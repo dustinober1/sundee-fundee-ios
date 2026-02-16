@@ -1,1 +1,1 @@
-// Export animation components here
+export * from './page-transition';
