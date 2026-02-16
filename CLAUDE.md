@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Strength** is a mobile-first workout tracking web application with offline-first architecture. The app allows users to browse workout programs, start training cycles, log workouts with comprehensive data tracking, and receive personalized recommendations.
 
-**Current Status:** Implementation in progress. Tasks 1-6 complete (foundation, types, database, calculations, first program, UI components). See [docs/plans/2025-02-15-workout-app-implementation.md](docs/plans/2025-02-15-workout-app-implementation.md) for the complete roadmap.
+**Current Status:** Implementation in progress. Tasks 1-9 complete (foundation, types, database, calculations, programs, UI components, contexts, providers). See [docs/plans/2025-02-15-workout-app-implementation.md](docs/plans/2025-02-15-workout-app-implementation.md) for the complete roadmap.
 
 ## Tech Stack
 
@@ -146,6 +146,15 @@ IndexedDB tables via Dexie.js:
 ## State Management with React Context
 
 Three main contexts (in [src/contexts/](src/contexts/)):
+
+### Testing Contexts
+Use wrapper pattern with ReactNode typing:
+```tsx
+const wrapper = ({ children }: { children: ReactNode }) => (
+  <UserProvider>{children}</UserProvider>
+);
+renderHook(() => useUser(), { wrapper });
+```
 
 1. **UserContext** - User profile, 1RMs, sync status
    - `user`, `oneRepMaxes`, `syncStatus`
