@@ -1,0 +1,52 @@
+{
+  "id": "bench-press-strength",
+  "name": "Bench Press: Strength Builder",
+  "category": "bench-press",
+  "description": "Progressive bench press program designed to increase your pressing strength over 8 weeks.",
+  "durationWeeks": 8,
+  "daysPerWeek": 3,
+  "exercises": ["bench-press"],
+  "difficulty": "intermediate",
+  "weeks": [
+    { "week": 1, "days": [
+      { "day": 1, "exercises": [{ "exercise": "bench-press", "sets": 5, "reps": 5, "percent1RM": 0.65, "restMinutes": 3 }] },
+      { "day": 2, "exercises": [{ "exercise": "bench-press", "sets": 5, "reps": 5, "percent1RM": 0.70, "restMinutes": 3 }] },
+      { "day": 3, "exercises": [{ "exercise": "bench-press", "sets": 5, "reps": 5, "percent1RM": 0.75, "restMinutes": 4 }] }
+    ]},
+    { "week": 2, "days": [
+      { "day": 1, "exercises": [{ "exercise": "bench-press", "sets": 5, "reps": 5, "percent1RM": 0.70, "restMinutes": 3 }] },
+      { "day": 2, "exercises": [{ "exercise": "bench-press", "sets": 5, "reps": 5, "percent1RM": 0.75, "restMinutes": 3 }] },
+      { "day": 3, "exercises": [{ "exercise": "bench-press", "sets": 5, "reps": 5, "percent1RM": 0.80, "restMinutes": 4 }] }
+    ]},
+    { "week": 3, "days": [
+      { "day": 1, "exercises": [{ "exercise": "bench-press", "sets": 5, "reps": 5, "percent1RM": 0.75, "restMinutes": 3 }] },
+      { "day": 2, "exercises": [{ "exercise": "bench-press", "sets": 5, "reps": 5, "percent1RM": 0.80, "restMinutes": 3 }] },
+      { "day": 3, "exercises": [{ "exercise": "bench-press", "sets": 5, "reps": 5, "percent1RM": 0.85, "restMinutes": 4 }] }
+    ]},
+    { "week": 4, "days": [
+      { "day": 1, "exercises": [{ "exercise": "bench-press", "sets": 5, "reps": 5, "percent1RM": 0.80, "restMinutes": 3 }] },
+      { "day": 2, "exercises": [{ "exercise": "bench-press", "sets": 5, "reps": 5, "percent1RM": 0.85, "restMinutes": 3 }] },
+      { "day": 3, "exercises": [{ "exercise": "bench-press", "sets": 5, "reps": 3, "percent1RM": 0.90, "restMinutes": 4 }] }
+    ]},
+    { "week": 5, "days": [
+      { "day": 1, "exercises": [{ "exercise": "bench-press", "sets": 5, "reps": 5, "percent1RM": 0.70, "restMinutes": 3 }] },
+      { "day": 2, "exercises": [{ "exercise": "bench-press", "sets": 5, "reps": 5, "percent1RM": 0.75, "restMinutes": 3 }] },
+      { "day": 3, "exercises": [{ "exercise": "bench-press", "sets": 5, "reps": 5, "percent1RM": 0.80, "restMinutes": 4 }] }
+    ]},
+    { "week": 6, "days": [
+      { "day": 1, "exercises": [{ "exercise": "bench-press", "sets": 5, "reps": 5, "percent1RM": 0.75, "restMinutes": 3 }] },
+      { "day": 2, "exercises": [{ "exercise": "bench-press", "sets": 5, "reps": 5, "percent1RM": 0.80, "restMinutes": 3 }] },
+      { "day": 3, "exercises": [{ "exercise": "bench-press", "sets": 5, "reps": 5, "percent1RM": 0.85, "restMinutes": 4 }] }
+    ]},
+    { "week": 7, "days": [
+      { "day": 1, "exercises": [{ "exercise": "bench-press", "sets": 5, "reps": 5, "percent1RM": 0.80, "restMinutes": 3 }] },
+      { "day": 2, "exercises": [{ "exercise": "bench-press", "sets": 5, "reps": 3, "percent1RM": 0.85, "restMinutes": 3 }] },
+      { "day": 3, "exercises": [{ "exercise": "bench-press", "sets": 5, "reps": 3, "percent1RM": 0.90, "restMinutes": 4 }] }
+    ]},
+    { "week": 8, "days": [
+      { "day": 1, "exercises": [{ "exercise": "bench-press", "sets": 5, "reps": 3, "percent1RM": 0.85, "restMinutes": 3 }] },
+      { "day": 2, "exercises": [{ "exercise": "bench-press", "sets": 5, "reps": 3, "percent1RM": 0.90, "restMinutes": 3 }] },
+      { "day": 3, "exercises": [{ "exercise": "bench-press", "sets": 5, "reps": 2, "percent1RM": 0.95, "restMinutes": 5 }] }
+    ]}
+  ]
+}
