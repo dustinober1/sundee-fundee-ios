@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Strength** is a mobile-first workout tracking web application with offline-first architecture. The app allows users to browse workout programs, start training cycles, log workouts with comprehensive data tracking, and receive personalized recommendations.
 
-**Current Status:** Design phase complete. Implementation planned but not yet started. See [docs/plans/2025-02-15-workout-app-implementation.md](docs/plans/2025-02-15-workout-app-implementation.md) for the complete implementation roadmap.
+**Current Status:** Implementation in progress. Tasks 1-6 complete (foundation, types, database, calculations, first program, UI components). See [docs/plans/2025-02-15-workout-app-implementation.md](docs/plans/2025-02-15-workout-app-implementation.md) for the complete roadmap.
 
 ## Tech Stack
 
@@ -46,28 +46,29 @@ Sync Layer (Supabase - optional)
 ## Development Commands
 
 ```bash
-# Install dependencies (when project is initialized)
-pnpm install
+# Install dependencies
+npm install
 
 # Development server
-pnpm dev
+npm run dev
 
 # Run tests
-pnpm vitest                # Unit tests
-pnpm playwright test       # E2E tests
+npm run test:run          # Unit tests
+npm run test:e2e          # E2E tests
 
 # Build
-pnpm build
+npm run build
 
 # Production preview
-pnpm start
+npm run start
 ```
 
 ## Testing Strategy
 
 - **Unit tests (70%):** Business logic, calculations, data layer operations
   - Location: `tests/unit/`
-  - Framework: Vitest with fake-indexedbg
+  - Framework: Vitest with fake-indexeddb
+  - Setup: `tests/setup.ts` must include `import 'fake-indexeddb/auto'` for Dexie tests
 - **Integration tests (20%):** React contexts, component interactions
   - Location: `tests/integration/`
   - Framework: Vitest + React Testing Library
@@ -76,6 +77,9 @@ pnpm start
   - Framework: Playwright with mobile viewport (iPhone 13)
 
 ## Important Implementation Notes
+
+### shadcn/ui Setup
+When running `npx shadcn@latest init`, it overwrites `src/lib/utils.ts`. Re-add any custom utility functions (like `roundToNearestFive`, `generateId`) after initialization.
 
 ### Type Definitions
 Core types are defined in [src/types/](src/types/):
