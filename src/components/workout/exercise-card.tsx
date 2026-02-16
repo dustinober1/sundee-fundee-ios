@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { SetInput } from './set-input';
 import type { Exercise } from '@/types';
@@ -7,9 +8,24 @@ import type { Exercise } from '@/types';
 interface ExerciseCardProps {
   exercise: Exercise;
   prescribedWeight: number;
+  onSetComplete?: (exercise: Exercise) => void;
 }
 
-export function ExerciseCard({ exercise, prescribedWeight }: ExerciseCardProps) {
+export function ExerciseCard({ exercise, prescribedWeight, onSetComplete }: ExerciseCardProps) {
+  // Track which sets are completed
+  const [completedSets, setCompletedSets] = useState<Set<number>>(new Set());
+
+  const handleSetComplete = (setIndex: number) => {
+    // Don't trigger if already completed
+    if (completedSets.has(setIndex)) return;
+
+    // Mark set as completed
+    setCompletedSets(prev => new Set(prev).add(setIndex));
+
+    // Notify parent component to start rest timer
+    onSetComplete?.(exercise);
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -27,6 +43,8 @@ export function ExerciseCard({ exercise, prescribedWeight }: ExerciseCardProps) 
             prescribedReps={exercise.reps}
             onWeightChange={() => {}}
             onRepsChange={() => {}}
+            onComplete={() => handleSetComplete(i)}
+            isCompleted={completedSets.has(i)}
           />
         ))}
       </CardContent>
