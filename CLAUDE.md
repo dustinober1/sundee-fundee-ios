@@ -10,38 +10,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Tech Stack
 
-- **Framework:** Next.js 15 with App Router
-- **UI:** React 19 + shadcn/ui + Tailwind CSS
+- **Framework:** Next.js 16 with App Router
+- **UI:** React 19 + shadcn/ui + Tailwind CSS + Framer Motion for animations
 - **Language:** TypeScript
 - **Local Storage:** Dexie.js (IndexedDB wrapper)
 - **Backend/Sync:** Supabase (optional, for backup and cross-device sync)
 - **Testing:** Vitest (unit/integration), Playwright (E2E)
 - **Charts:** Recharts
-
-## Key Architecture Principles
-
-### Local-First, Sync-Later Pattern
-The app follows a local-first architecture:
-1. **Primary data store:** IndexedDB via Dexie.js (works offline)
-2. **User data:** Users, active cycles, completed workouts, sets, 1RMs stored locally
-3. **Static data:** Program definitions bundled as JSON in the app
-4. **Optional sync:** Supabase for cloud backup and cross-device synchronization
-
-### Data Layer Structure
-```
-UI Layer (shadcn/ui components)
-  ↓
-State Layer (React Context - UserContext, ExerciseContext)
-  ↓
-Data Layer (Dexie.js - IndexedDB)
-  ↓
-Sync Layer (Supabase - optional)
-```
-
-### Static Data Organization
-- **Program definitions:** [src/data/programs/*.json](src/data/programs/) - 8-week programs with exercises, sets, reps, %1RM
-- **Exercise metadata:** [src/data/exercises.ts](src/data/exercises.ts)
-- **Recommendation rules:** [src/lib/recommendations/](src/lib/recommendations/)
+- **Animations:** Framer Motion, custom animation components
+- **Fonts:** Geist
 
 ## Development Commands
 
@@ -61,7 +38,45 @@ npm run build
 
 # Production preview
 npm run start
+
+# Lint
+npm run lint
 ```
+
+## Key Architecture Principles
+
+### Local-First, Sync-Later Pattern
+The app follows a local-first architecture:
+1. **Primary data store:** IndexedDB via Dexie.js (works offline)
+2. **User data:** Users, active cycles, completed workouts, sets, 1RMs stored locally
+3. **Static data:** Program definitions bundled as JSON in the app
+4. **Optional sync:** Supabase for cloud backup and cross-device synchronization
+
+### Data Layer Structure
+```
+UI Layer (shadcn/ui components + Framer Motion animations)
+  ↓
+State Layer (React Context - UserContext, ExerciseContext, RestTimerContext)
+  ↓
+Data Layer (Dexie.js - IndexedDB)
+  ↓
+Sync Layer (Supabase - optional)
+```
+
+### Static Data Organization
+- **Program definitions:** [src/data/programs/*.json](src/data/programs/) - 8-week programs with exercises, sets, reps, %1RM
+- **Exercise metadata:** [src/data/exercises.ts](src/data/exercises.ts)
+- **Recommendation rules:** [src/lib/recommendations/](src/lib/recommendations/)
+
+## Database Schema
+
+IndexedDB tables via Dexie.js (defined in [src/lib/db/dexie.ts](src/lib/db/dexie.ts)):
+- `users` - User profiles (`id`, `name`, `createdAt`)
+- `oneRepMaxes` - 1RM tracking per exercise (`id`, `userId`, `exerciseId`, `date`)
+- `activeCycles` - Active training programs (`id`, `userId`, `programId`, `status`)
+- `completedWorkouts` - Completed workout sessions (`id`, `userId`, `activeCycleId`, `completedAt`)
+- `completedSets` - Individual set logs (`id`, `workoutId`, `exerciseId`)
+- `setMetrics` - Optional enhanced metrics (tempo, heart rate) (`id`, `setId`)
 
 ## Testing Strategy
 
@@ -126,14 +141,13 @@ Key calculations in [src/lib/calculations.ts](src/lib/calculations.ts):
 - `calculateVolumeLoad(weight, reps, sets)` - Volume calculation
 - `detectPlateau(weights[])` - Plateau detection (3+ workouts with <5 lbs variance)
 
-### Database Schema
-IndexedDB tables via Dexie.js:
-- `users` - User profiles
-- `oneRepMaxes` - 1RM tracking per exercise
-- `activeCycles` - Active training programs
-- `completedWorkouts` - Completed workout sessions
-- `completedSets` - Individual set logs
-- `setMetrics` - Optional enhanced metrics (tempo, heart rate)
+## Animation System
+
+The app uses a sophisticated animation system:
+- Custom animation components in [src/components/animations/](src/components/animations/)
+- Page transitions, fade-ins, scale buttons, staggered lists
+- Framer Motion for complex animations
+- Global smooth scrolling enabled
 
 ## Mobile-First UX Considerations
 
@@ -142,6 +156,7 @@ IndexedDB tables via Dexie.js:
 - **Bottom navigation:** Fixed bottom nav with Dashboard, Programs, Workout, Progress
 - **Touch targets:** Minimum 44px for interactive elements
 - **Offline indicator:** Subtle badge when offline
+- **Confetti celebrations:** Triggered on workout completion and PR achievements
 
 ## State Management with React Context
 
@@ -164,9 +179,9 @@ renderHook(() => useUser(), { wrapper });
    - `programs`, `getProgram()`, `getWeek()`, `getDay()`
    - `calculatePrescribedWeight()`
 
-3. **ActiveContext** (planned) - Current training state
-   - `activeCycles`, `currentWorkout`
-   - `refresh()`
+3. **RestTimerContext** - Workout rest timer functionality
+   - Controls rest timers during workouts
+   - Manages timer state and settings
 
 ## Key Routes
 
@@ -200,6 +215,8 @@ The implementation plan ([docs/plans/2025-02-15-workout-app-implementation.md](d
 - ✅ Rule-based recommendations (plateau detection, PR celebrations, missed workout reminders)
 - ✅ Local-first with optional Supabase sync
 - ✅ % of 1RM-based intensity calculations
+- ✅ Animations and polished UI/UX
+- ✅ Rest timer functionality
 
 ## Error Handling Priorities
 
@@ -211,3 +228,12 @@ The implementation plan ([docs/plans/2025-02-15-workout-app-implementation.md](d
 - Network unavailable → Queue for later retry, subtle 'pending' indicator
 - Auth expired → Auto-refresh token, retry failed syncs
 - Conflicts → Last write wins by timestamp, merge complementary data
+
+## Animation Components
+
+The app includes several custom animation components:
+- `FadeIn` - Smooth entrance animations
+- `ScaleButton` - Animated button interactions
+- `StaggerList` - Sequential animations for list items
+- `PageTransition` - Smooth page transitions
+- Global smooth scrolling enabled in CSS
