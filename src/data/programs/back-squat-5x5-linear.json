@@ -1,0 +1,340 @@
+{
+  "id": "back-squat-5x5-linear",
+  "name": "Back Squat: 5x5 Linear Progression",
+  "category": "back-squat",
+  "description": "Classic 5x5 linear progression program. Add 5 lbs per week to build raw strength.",
+  "durationWeeks": 8,
+  "daysPerWeek": 3,
+  "exercises": ["back-squat"],
+  "difficulty": "intermediate",
+  "weeks": [
+    {
+      "week": 1,
+      "days": [
+        {
+          "day": 1,
+          "exercises": [
+            {
+              "exercise": "back-squat",
+              "sets": 5,
+              "reps": 5,
+              "percent1RM": 0.65,
+              "restMinutes": 3
+            }
+          ]
+        },
+        {
+          "day": 2,
+          "exercises": [
+            {
+              "exercise": "back-squat",
+              "sets": 5,
+              "reps": 5,
+              "percent1RM": 0.70,
+              "restMinutes": 3
+            }
+          ]
+        },
+        {
+          "day": 3,
+          "exercises": [
+            {
+              "exercise": "back-squat",
+              "sets": 5,
+              "reps": 5,
+              "percent1RM": 0.75,
+              "restMinutes": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "week": 2,
+      "days": [
+        {
+          "day": 1,
+          "exercises": [
+            {
+              "exercise": "back-squat",
+              "sets": 5,
+              "reps": 5,
+              "percent1RM": 0.70,
+              "restMinutes": 3
+            }
+          ]
+        },
+        {
+          "day": 2,
+          "exercises": [
+            {
+              "exercise": "back-squat",
+              "sets": 5,
+              "reps": 5,
+              "percent1RM": 0.75,
+              "restMinutes": 3
+            }
+          ]
+        },
+        {
+          "day": 3,
+          "exercises": [
+            {
+              "exercise": "back-squat",
+              "sets": 5,
+              "reps": 5,
+              "percent1RM": 0.80,
+              "restMinutes": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "week": 3,
+      "days": [
+        {
+          "day": 1,
+          "exercises": [
+            {
+              "exercise": "back-squat",
+              "sets": 5,
+              "reps": 5,
+              "percent1RM": 0.75,
+              "restMinutes": 3
+            }
+          ]
+        },
+        {
+          "day": 2,
+          "exercises": [
+            {
+              "exercise": "back-squat",
+              "sets": 5,
+              "reps": 5,
+              "percent1RM": 0.80,
+              "restMinutes": 3
+            }
+          ]
+        },
+        {
+          "day": 3,
+          "exercises": [
+            {
+              "exercise": "back-squat",
+              "sets": 5,
+              "reps": 5,
+              "percent1RM": 0.85,
+              "restMinutes": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "week": 4,
+      "days": [
+        {
+          "day": 1,
+          "exercises": [
+            {
+              "exercise": "back-squat",
+              "sets": 5,
+              "reps": 5,
+              "percent1RM": 0.80,
+              "restMinutes": 3
+            }
+          ]
+        },
+        {
+          "day": 2,
+          "exercises": [
+            {
+              "exercise": "back-squat",
+              "sets": 5,
+              "reps": 5,
+              "percent1RM": 0.85,
+              "restMinutes": 3
+            }
+          ]
+        },
+        {
+          "day": 3,
+          "exercises": [
+            {
+              "exercise": "back-squat",
+              "sets": 5,
+              "reps": 5,
+              "percent1RM": 0.90,
+              "restMinutes": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "week": 5,
+      "days": [
+        {
+          "day": 1,
+          "exercises": [
+            {
+              "exercise": "back-squat",
+              "sets": 5,
+              "reps": 5,
+              "percent1RM": 0.70,
+              "restMinutes": 3
+            }
+          ]
+        },
+        {
+          "day": 2,
+          "exercises": [
+            {
+              "exercise": "back-squat",
+              "sets": 5,
+              "reps": 5,
+              "percent1RM": 0.75,
+              "restMinutes": 3
+            }
+          ]
+        },
+        {
+          "day": 3,
+          "exercises": [
+            {
+              "exercise": "back-squat",
+              "sets": 5,
+              "reps": 5,
+              "percent1RM": 0.80,
+              "restMinutes": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "week": 6,
+      "days": [
+        {
+          "day": 1,
+          "exercises": [
+            {
+              "exercise": "back-squat",
+              "sets": 5,
+              "reps": 5,
+              "percent1RM": 0.75,
+              "restMinutes": 3
+            }
+          ]
+        },
+        {
+          "day": 2,
+          "exercises": [
+            {
+              "exercise": "back-squat",
+              "sets": 5,
+              "reps": 5,
+              "percent1RM": 0.80,
+              "restMinutes": 3
+            }
+          ]
+        },
+        {
+          "day": 3,
+          "exercises": [
+            {
+              "exercise": "back-squat",
+              "sets": 5,
+              "reps": 5,
+              "percent1RM": 0.85,
+              "restMinutes": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "week": 7,
+      "days": [
+        {
+          "day": 1,
+          "exercises": [
+            {
+              "exercise": "back-squat",
+              "sets": 5,
+              "reps": 5,
+              "percent1RM": 0.80,
+              "restMinutes": 3
+            }
+          ]
+        },
+        {
+          "day": 2,
+          "exercises": [
+            {
+              "exercise": "back-squat",
+              "sets": 5,
+              "reps": 5,
+              "percent1RM": 0.85,
+              "restMinutes": 3
+            }
+          ]
+        },
+        {
+          "day": 3,
+          "exercises": [
+            {
+              "exercise": "back-squat",
+              "sets": 5,
+              "reps": 5,
+              "percent1RM": 0.90,
+              "restMinutes": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "week": 8,
+      "days": [
+        {
+          "day": 1,
+          "exercises": [
+            {
+              "exercise": "back-squat",
+              "sets": 5,
+              "reps": 5,
+              "percent1RM": 0.85,
+              "restMinutes": 3
+            }
+          ]
+        },
+        {
+          "day": 2,
+          "exercises": [
+            {
+              "exercise": "back-squat",
+              "sets": 5,
+              "reps": 5,
+              "percent1RM": 0.90,
+              "restMinutes": 3
+            }
+          ]
+        },
+        {
+          "day": 3,
+          "exercises": [
+            {
+              "exercise": "back-squat",
+              "sets": 5,
+              "reps": 5,
+              "percent1RM": 0.95,
+              "restMinutes": 4
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
