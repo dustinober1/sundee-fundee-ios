@@ -21,10 +21,6 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const [oneRepMaxes, setOneRepMaxes] = useState<OneRepMax[]>([]);
   const [syncStatus, setSyncStatus] = useState<SyncStatus>('offline');
 
-  useEffect(() => {
-    loadUserData();
-  }, []);
-
   async function loadUserData() {
     const userData = await getUser();
     if (userData) {
@@ -33,6 +29,29 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       setOneRepMaxes(orms);
     }
   }
+
+  useEffect(() => {
+    let isActive = true;
+
+    void (async () => {
+      const userData = await getUser();
+      if (!isActive || !userData) {
+        return;
+      }
+
+      const orms = await getOneRepMaxesByUser(userData.id);
+      if (!isActive) {
+        return;
+      }
+
+      setUser(userData);
+      setOneRepMaxes(orms);
+    })();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
 
   async function updateUserProfile(updates: Partial<User>) {
     if (!user) return;

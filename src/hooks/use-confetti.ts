@@ -15,7 +15,7 @@ export function useConfetti() {
     });
 
     // Add a few random bursts
-    const interval: any = setInterval(function() {
+    const interval: ReturnType<typeof setInterval> = setInterval(function() {
       if (Date.now() > end) {
         return clearInterval(interval);
       }

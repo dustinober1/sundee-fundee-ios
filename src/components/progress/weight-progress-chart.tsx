@@ -13,22 +13,30 @@ export function WeightProgressChart() {
   const [data, setData] = useState<ChartData[]>([]);
 
   useEffect(() => {
-    loadProgressData();
+    let isActive = true;
+
+    void (async () => {
+      const sets = await db.completedSets
+        .orderBy('createdAt')
+        .limit(20)
+        .toArray();
+
+      if (!isActive) {
+        return;
+      }
+
+      const chartData = sets.map(set => ({
+        date: new Date(set.createdAt).toLocaleDateString(),
+        weight: set.actualWeight
+      }));
+
+      setData(chartData);
+    })();
+
+    return () => {
+      isActive = false;
+    };
   }, []);
-
-  async function loadProgressData() {
-    const sets = await db.completedSets
-      .orderBy('createdAt')
-      .limit(20)
-      .toArray();
-
-    const chartData = sets.map(set => ({
-      date: new Date(set.createdAt).toLocaleDateString(),
-      weight: set.actualWeight
-    }));
-
-    setData(chartData);
-  }
 
   if (data.length === 0) {
     return (

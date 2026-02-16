@@ -9,6 +9,7 @@ import { CycleCalendar } from '@/components/cycle/cycle-calendar';
 import { SymptomLogger } from '@/components/cycle/symptom-logger';
 import { BBTInput } from '@/components/cycle/bbt-input';
 import { PhaseIndicator } from '@/components/cycle/phase-indicator';
+import { RecommendationCard } from '@/components/cycle/recommendation-card';
 import { useCycle } from '@/contexts/cycle-context';
 import { format } from 'date-fns';
 
@@ -99,52 +100,7 @@ export default function CyclePage() {
           </Card>
         )}
 
-        {/* Training Guidance */}
-        {currentRecommendation && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Training Guidance</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="p-4 bg-accent rounded-md">
-                <h3 className="font-semibold mb-2">{currentRecommendation.title}</h3>
-                <p className="text-sm mb-3">{currentRecommendation.description}</p>
-                <div className="flex flex-wrap gap-2">
-                  <Badge variant="secondary">Focus: {currentRecommendation.trainingFocus}</Badge>
-                  <Badge variant={
-                    currentRecommendation.intensityRecommendation === 'peak' ? 'destructive' :
-                    currentRecommendation.intensityRecommendation === 'high' ? 'default' :
-                    currentRecommendation.intensityRecommendation === 'moderate' ? 'secondary' : 'outline'
-                  }>
-                    Intensity: {currentRecommendation.intensityRecommendation}
-                  </Badge>
-                </div>
-
-                {currentRecommendation.exercisesToEmphasize.length > 0 && (
-                  <div className="mt-3">
-                    <p className="text-xs uppercase text-muted-foreground mb-1">Focus on</p>
-                    <div className="flex flex-wrap gap-1">
-                      {currentRecommendation.exercisesToEmphasize.map((exercise, idx) => (
-                        <Badge key={idx} variant="outline" className="text-xs">{exercise}</Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {currentRecommendation.exercisesToAvoid.length > 0 && (
-                  <div className="mt-2">
-                    <p className="text-xs uppercase text-muted-foreground mb-1">Consider avoiding</p>
-                    <div className="flex flex-wrap gap-1">
-                      {currentRecommendation.exercisesToAvoid.map((exercise, idx) => (
-                        <Badge key={idx} variant="outline" className="text-xs bg-destructive/10">{exercise}</Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        {currentRecommendation && <RecommendationCard recommendation={currentRecommendation} />}
       </div>
     </div>
   );

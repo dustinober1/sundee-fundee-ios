@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import type {
   PeriodLog,
   SymptomLog,
@@ -63,8 +63,6 @@ export function CycleProvider({ children }: { children: React.ReactNode }) {
   const [bbtLogs, setBbtLogs] = useState<BBTLog[]>([]);
   const [settings, setSettings] = useState<CycleSettings | null>(null);
   const [availableSymptoms, setAvailableSymptoms] = useState<SymptomDefinition[]>([]);
-  const [cycleStatus, setCycleStatus] = useState<CycleStatus | null>(null);
-  const [currentRecommendation, setCurrentRecommendation] = useState<PhaseRecommendation | null>(null);
   const [strengthProfile] = useState<PhaseStrengthProfile | null>(null);
 
   function createDefaultSettings(userId: string): CycleSettings {
@@ -105,19 +103,25 @@ export function CycleProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (user) {
-      loadData();
+      void Promise.resolve().then(() => loadData());
     }
   }, [user, loadData]);
 
-  useEffect(() => {
-    if (user && settings && periodLogs.length > 0) {
-      const newCycleStatus = calculateCycleStatus(periodLogs, settings);
-      setCycleStatus(newCycleStatus);
-      if (newCycleStatus) {
-        setCurrentRecommendation(getPhaseRecommendation(newCycleStatus.currentPhase));
-      }
+  const cycleStatus = useMemo<CycleStatus | null>(() => {
+    if (!user || !settings || periodLogs.length === 0) {
+      return null;
     }
+
+    return calculateCycleStatus(periodLogs, settings);
   }, [user, periodLogs, settings]);
+
+  const currentRecommendation = useMemo<PhaseRecommendation | null>(() => {
+    if (!cycleStatus) {
+      return null;
+    }
+
+    return getPhaseRecommendation(cycleStatus.currentPhase);
+  }, [cycleStatus]);
 
   async function logPeriod(
     startDate: Date,

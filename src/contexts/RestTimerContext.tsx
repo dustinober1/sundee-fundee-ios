@@ -3,7 +3,7 @@
 import { createContext, useContext, ReactNode } from 'react';
 import { useRestTimer } from '@/hooks/useRestTimer';
 
-interface RestTimerContextValue extends ReturnType<typeof useRestTimer> {}
+type RestTimerContextValue = ReturnType<typeof useRestTimer>;
 
 const RestTimerContext = createContext<RestTimerContextValue | null>(null);
 

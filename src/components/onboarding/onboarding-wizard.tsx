@@ -68,7 +68,7 @@ export function OnboardingWizard() {
         <CardContent className="space-y-4">
           {step === 1 && (
             <div className="space-y-2">
-              <Label htmlFor="name">What's your name?</Label>
+              <Label htmlFor="name">What&apos;s your name?</Label>
               <Input
                 id="name"
                 value={data.name}
