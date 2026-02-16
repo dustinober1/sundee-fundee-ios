@@ -7,7 +7,7 @@ test('completes onboarding flow', async ({ page }) => {
   await expect(page).toHaveURL('/onboarding');
 
   // Step 1: Enter name
-  await page.fill('input[id="name"]', 'Test User');
+  await page.type('input[id="name"]', 'Test User', { delay: 50 });
   await page.click('button:has-text("Next")');
 
   // Step 2: Select experience
@@ -29,7 +29,7 @@ test('validates name input', async ({ page }) => {
   await expect(nextButton).toBeDisabled();
 
   // Type name
-  await page.fill('input[id="name"]', 'John');
+  await page.type('input[id="name"]', 'John', { delay: 50 });
 
   // Now button should be enabled
   await expect(nextButton).toBeEnabled();
@@ -39,7 +39,7 @@ test('navigates back through steps', async ({ page }) => {
   await page.goto('/onboarding');
 
   // Go to step 2
-  await page.fill('input[id="name"]', 'Test User');
+  await page.type('input[id="name"]', 'Test User', { delay: 50 });
   await page.click('button:has-text("Next")');
 
   // Back button should work
