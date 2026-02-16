@@ -1,5 +1,6 @@
 import Dexie, { Table } from 'dexie';
 import type { User, OneRepMax, ActiveCycle, CompletedWorkout, CompletedSet, SetMetrics } from '@/types';
+import type { PeriodLog, SymptomLog, BBTLog, SymptomDefinition, CycleSettings } from '@/types';
 
 export class StrengthDatabase extends Dexie {
   users!: Table<User, string>;
@@ -8,6 +9,11 @@ export class StrengthDatabase extends Dexie {
   completedWorkouts!: Table<CompletedWorkout, string>;
   completedSets!: Table<CompletedSet, string>;
   setMetrics!: Table<SetMetrics, string>;
+  periodLogs!: Table<PeriodLog, string>;
+  symptomLogs!: Table<SymptomLog, string>;
+  bbtLogs!: Table<BBTLog, string>;
+  symptomDefinitions!: Table<SymptomDefinition, string>;
+  cycleSettings!: Table<CycleSettings, string>;
 
   constructor() {
     super('StrengthApp');
@@ -19,6 +25,20 @@ export class StrengthDatabase extends Dexie {
       completedWorkouts: 'id, userId, activeCycleId, completedAt',
       completedSets: 'id, workoutId, exerciseId',
       setMetrics: 'id, setId'
+    });
+
+    this.version(2).stores({
+      users: 'id, name, createdAt',
+      oneRepMaxes: 'id, userId, exerciseId, date',
+      activeCycles: 'id, userId, programId, status',
+      completedWorkouts: 'id, userId, activeCycleId, completedAt',
+      completedSets: 'id, workoutId, exerciseId',
+      setMetrics: 'id, setId',
+      periodLogs: 'id, userId, startDate',
+      symptomLogs: 'id, userId, date',
+      bbtLogs: 'id, userId, date',
+      symptomDefinitions: 'id, category',
+      cycleSettings: 'id, userId'
     });
   }
 }

@@ -1,5 +1,6 @@
 import { ActiveCyclesCard } from '@/components/dashboard/active-cycles-card';
 import { FadeIn, StaggerList, StaggerItem } from '@/components/animations';
+import { CycleWidget } from '@/components/dashboard/cycle-widget';
 
 export default function DashboardPage() {
   return (
@@ -11,6 +12,9 @@ export default function DashboardPage() {
       <StaggerList className="space-y-4">
         <StaggerItem>
           <ActiveCyclesCard />
+        </StaggerItem>
+        <StaggerItem>
+          <CycleWidget />
         </StaggerItem>
         {/* Future widgets will be added here as StaggerItems */}
       </StaggerList>
