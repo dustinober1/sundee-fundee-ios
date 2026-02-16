@@ -3,12 +3,12 @@
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import type { Program } from '@/types';
+import type { ProgramV2 } from '@/types/programV2';
 import { motion } from 'framer-motion';
 import { VARIANTS } from '@/lib/animations';
 
 interface ProgramCardProps {
-  program: Program;
+  program: ProgramV2;
 }
 
 export function ProgramCard({ program }: ProgramCardProps) {
@@ -29,7 +29,7 @@ export function ProgramCard({ program }: ProgramCardProps) {
           </CardHeader>
           <CardContent>
             <div className="text-sm text-muted-foreground">
-              {program.durationWeeks} weeks • {program.daysPerWeek} days/week
+              {program.durationWeeks} weeks • {program.sessionsPerWeek} sessions/week
             </div>
           </CardContent>
         </Card>

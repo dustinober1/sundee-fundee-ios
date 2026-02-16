@@ -27,11 +27,26 @@ export default function ProgramDetailPage() {
           <CardDescription>{program.description}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="text-sm">
+          <div className="space-y-1 text-sm">
             <p><strong>Duration:</strong> {program.durationWeeks} weeks</p>
-            <p><strong>Frequency:</strong> {program.daysPerWeek} days per week</p>
-            <p><strong>Exercises:</strong> {program.exercises.join(', ')}</p>
+            <p><strong>Frequency:</strong> {program.sessionsPerWeek} sessions per week</p>
+            <p><strong>Sessions:</strong> {program.sessionsPerWeek} per week</p>
           </div>
+
+          {program.phases.length > 0 && (
+            <div className="space-y-2">
+              <h3 className="font-semibold">Training Phases</h3>
+              {program.phases.map(phase => (
+                <div key={phase.id} className="rounded-lg border p-3">
+                  <p className="font-medium">{phase.name}</p>
+                  <p className="text-muted-foreground text-sm">{phase.goal}</p>
+                  <p className="text-muted-foreground text-xs">
+                    Weeks {phase.weekRange[0]}-{phase.weekRange[1]}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
 
           <Button className="w-full">
             Start This Program

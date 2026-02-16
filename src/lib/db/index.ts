@@ -1,5 +1,6 @@
 import { db } from './dexie';
 import type { User, OneRepMax, ActiveCycle, CompletedWorkout, CompletedSet, PeriodLog, SymptomLog, BBTLog, SymptomDefinition, CycleSettings } from '@/types';
+import type { ProgramV2, Session } from '@/types/programV2';
 import { generateId } from '@/lib/utils';
 
 export async function createUser(data: Omit<User, 'id' | 'createdAt'>): Promise<User> {
@@ -54,6 +55,87 @@ export async function getOneRepMaxesByUser(userId: string): Promise<OneRepMax[]>
     .where('userId')
     .equals(userId)
     .toArray();
+}
+
+export async function saveProgramV2(program: ProgramV2): Promise<ProgramV2> {
+  await db.programs.put(program);
+  return program;
+}
+
+export async function getProgramV2(id: string): Promise<ProgramV2 | undefined> {
+  return await db.programs.get(id);
+}
+
+export async function getAllProgramsV2(): Promise<ProgramV2[]> {
+  return await db.programs.toArray();
+}
+
+export async function getCurrentSession(
+  programId: string,
+  week: number,
+  sessionId: string
+): Promise<Session | undefined> {
+  const program = await getProgramV2(programId);
+  if (!program) {
+    return undefined;
+  }
+
+  const weekData = program.weeks.find(w => w.week === week);
+  if (!weekData) {
+    return undefined;
+  }
+
+  return weekData.sessions.find(s => s.sessionId === sessionId);
+}
+
+export async function getPhaseProgress(programId: string, cycleId: string): Promise<number> {
+  const program = await getProgramV2(programId);
+  if (!program) {
+    return 0;
+  }
+
+  const cycle = await db.activeCycles.get(cycleId);
+  if (!cycle || !cycle.currentPhase) {
+    return 0;
+  }
+
+  const currentPhase = program.phases.find(phase => phase.id === cycle.currentPhase);
+  if (!currentPhase) {
+    return 0;
+  }
+
+  const [startWeek, endWeek] = currentPhase.weekRange;
+  const totalWeeksInPhase = endWeek - startWeek + 1;
+  const weeksCompleted = Math.max(0, cycle.currentWeek - startWeek);
+
+  return Math.min(100, Math.round((weeksCompleted / totalWeeksInPhase) * 100));
+}
+
+export async function updateUserProgramPreference(
+  userId: string,
+  programId: string,
+  preferences: Partial<{
+    viewMode: 'session-cards' | 'week-calendar' | 'compact-list';
+    currentSessionId: string;
+  }>
+): Promise<void> {
+  const existing = await db.userProgramPreferences
+    .where('[userId+programId]')
+    .equals([userId, programId])
+    .first();
+
+  if (existing) {
+    await db.userProgramPreferences.update(existing.id, preferences);
+    return;
+  }
+
+  await db.userProgramPreferences.add({
+    id: generateId(),
+    userId,
+    programId,
+    viewMode: preferences.viewMode ?? 'session-cards',
+    currentSessionId: preferences.currentSessionId
+  });
 }
 
 // Cycle tracking functions

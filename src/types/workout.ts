@@ -28,7 +28,8 @@ export interface CompletedWorkout {
   activeCycleId: string;
   programId: string;
   week: number;
-  day: number;
+  day?: number;
+  sessionId?: string;
   completedAt: Date;
   duration?: number;
   notes?: string;
@@ -49,5 +50,7 @@ export interface ActiveCycle {
   cycleName: string;
   startDate: Date;
   currentWeek: number;
+  currentSessionId?: string;
+  currentPhase?: string;
   status: 'active' | 'completed' | 'paused';
 }

@@ -3,14 +3,18 @@
 import React, { createContext, useContext, useMemo } from 'react';
 import { getAllPrograms, getProgramById } from '@/data/programs';
 import { calculateTargetWeight } from '@/lib/calculations';
-import type { Program, Week, Day, Exercise as ProgramExercise } from '@/types';
+import type { Day } from '@/types/program';
+import type { ExerciseV2, Phase, ProgramV2, Session, WeekV2 } from '@/types/programV2';
 
 interface ExerciseContextValue {
-  programs: Program[];
-  getProgram: (id: string) => Program | undefined;
-  getWeek: (programId: string, weekNumber: number) => Week | undefined;
+  programs: ProgramV2[];
+  getProgram: (id: string) => ProgramV2 | undefined;
+  getWeek: (programId: string, weekNumber: number) => WeekV2 | undefined;
   getDay: (programId: string, weekNumber: number, dayNumber: number) => Day | undefined;
-  calculatePrescribedWeight: (exercise: ProgramExercise, oneRepMax: number) => number;
+  calculatePrescribedWeight: (exercise: Pick<ExerciseV2, 'percent1RM'>, oneRepMax: number) => number;
+  getSession: (programId: string, weekNumber: number, sessionId: string) => Session | undefined;
+  getPhaseForWeek: (programId: string, weekNumber: number) => Phase | undefined;
+  getPhaseProgress: (programId: string, currentWeek: number, phaseId: string) => number;
 }
 
 const ExerciseContext = createContext<ExerciseContextValue | undefined>(undefined);
@@ -18,21 +22,60 @@ const ExerciseContext = createContext<ExerciseContextValue | undefined>(undefine
 export function ExerciseProvider({ children }: { children: React.ReactNode }) {
   const programs = useMemo(() => getAllPrograms(), []);
 
-  function getProgram(id: string): Program | undefined {
+  function getProgram(id: string): ProgramV2 | undefined {
     return getProgramById(id);
   }
 
-  function getWeek(programId: string, weekNumber: number): Week | undefined {
+  function getWeek(programId: string, weekNumber: number): WeekV2 | undefined {
     const program = getProgram(programId);
     return program?.weeks.find(w => w.week === weekNumber);
   }
 
   function getDay(programId: string, weekNumber: number, dayNumber: number): Day | undefined {
     const week = getWeek(programId, weekNumber);
-    return week?.days.find(d => d.day === dayNumber);
+    const legacyDays = (week as unknown as { days?: Day[] } | undefined)?.days;
+    return legacyDays?.find(day => day.day === dayNumber);
   }
 
-  function calculatePrescribedWeight(exercise: ProgramExercise, oneRepMax: number): number {
+  function getSession(programId: string, weekNumber: number, sessionId: string): Session | undefined {
+    const week = getWeek(programId, weekNumber);
+    return week?.sessions.find(session => session.sessionId === sessionId);
+  }
+
+  function getPhaseForWeek(programId: string, weekNumber: number): Phase | undefined {
+    const program = getProgram(programId);
+    return program?.phases.find(phase => {
+      const [start, end] = phase.weekRange;
+      return weekNumber >= start && weekNumber <= end;
+    });
+  }
+
+  function getPhaseProgress(programId: string, currentWeek: number, phaseId: string): number {
+    const program = getProgram(programId);
+    if (!program || !phaseId) {
+      return 0;
+    }
+
+    const phase = program.phases.find(value => value.id === phaseId);
+    if (!phase) {
+      return 0;
+    }
+
+    const [startWeek, endWeek] = phase.weekRange;
+    const totalWeeks = endWeek - startWeek + 1;
+
+    if (currentWeek < startWeek) {
+      return 0;
+    }
+    if (currentWeek > endWeek) {
+      return 100;
+    }
+
+    const weeksCompleted = currentWeek - startWeek + 1;
+    return Math.round((weeksCompleted / totalWeeks) * 100);
+  }
+
+  function calculatePrescribedWeight(exercise: Pick<ExerciseV2, 'percent1RM'>, oneRepMax: number): number {
     return calculateTargetWeight(oneRepMax, exercise.percent1RM);
   }
 
@@ -42,7 +85,10 @@ export function ExerciseProvider({ children }: { children: React.ReactNode }) {
       getProgram,
       getWeek,
       getDay,
-      calculatePrescribedWeight
+      calculatePrescribedWeight,
+      getSession,
+      getPhaseForWeek,
+      getPhaseProgress
     }}>
       {children}
     </ExerciseContext.Provider>

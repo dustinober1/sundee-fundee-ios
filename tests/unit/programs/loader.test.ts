@@ -4,13 +4,13 @@ import { getAllPrograms, getProgramById, getProgramsByCategory } from '@/data/pr
 describe('Program Loader', () => {
   it('loads all programs', () => {
     const programs = getAllPrograms();
-    expect(programs.length).toBeGreaterThan(0);
+    expect(programs.length).toBe(1);
   });
 
   it('finds program by ID', () => {
-    const program = getProgramById('back-squat-5x5-linear');
+    const program = getProgramById('back-squat-complete-cycle');
     expect(program).toBeDefined();
-    expect(program?.name).toBe('Back Squat: 5x5 Linear Progression');
+    expect(program?.name).toBe('Back Squat: Complete 8-Week Cycle');
   });
 
   it('returns undefined for unknown program', () => {
@@ -20,7 +20,7 @@ describe('Program Loader', () => {
 
   it('filters programs by category', () => {
     const programs = getProgramsByCategory('back-squat');
-    expect(programs.length).toBeGreaterThan(0);
+    expect(programs.length).toBe(1);
     expect(programs.every(p => p.category === 'back-squat')).toBe(true);
   });
 });

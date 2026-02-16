@@ -17,25 +17,24 @@ describe('Exercise Context', () => {
   it('finds program by ID', () => {
     const { result } = renderHook(() => useExercise(), { wrapper });
 
-    const program = result.current.getProgram('back-squat-5x5-linear');
+    const program = result.current.getProgram('back-squat-complete-cycle');
     expect(program).toBeDefined();
   });
 
   it('gets specific week', () => {
     const { result } = renderHook(() => useExercise(), { wrapper });
 
-    const week = result.current.getWeek('back-squat-5x5-linear', 1);
+    const week = result.current.getWeek('back-squat-complete-cycle', 1);
     expect(week).toBeDefined();
     expect(week?.week).toBe(1);
+    expect(week?.sessions).toHaveLength(3);
   });
 
-  it('gets specific day', () => {
+  it('returns undefined for legacy day lookup on V2 data', () => {
     const { result } = renderHook(() => useExercise(), { wrapper });
 
-    const day = result.current.getDay('back-squat-5x5-linear', 1, 1);
-    expect(day).toBeDefined();
-    expect(day?.day).toBe(1);
-    expect(day?.exercises).toHaveLength(1);
+    const day = result.current.getDay('back-squat-complete-cycle', 1, 1);
+    expect(day).toBeUndefined();
   });
 
   it('calculates prescribed weight', () => {
@@ -62,7 +61,7 @@ describe('Exercise Context', () => {
   it('returns undefined for invalid week', () => {
     const { result } = renderHook(() => useExercise(), { wrapper });
 
-    const week = result.current.getWeek('back-squat-5x5-linear', 99);
+    const week = result.current.getWeek('back-squat-complete-cycle', 99);
     expect(week).toBeUndefined();
   });
 });
