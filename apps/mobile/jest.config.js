@@ -1,31 +1,25 @@
+const { defaults: tsjPreset } = require('ts-jest/presets');
+
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'jsdom',
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
   setupFiles: ['<rootDir>/jest.setup.js'],
+  transform: {
+    '^.+\\.(js|jsx|ts|tsx)$': ['ts-jest', tsjPreset],
+  },
   transformIgnorePatterns: [
-    'node_modules/(?!(@react-native|react-native|expo|@expo|nativewind)/)',
+    'node_modules/(?!(@react-native|react-native|expo|@expo|react-native-paper|@react-native-async-storage|react-native-reanimated))',
   ],
-  testMatch: ['**/__tests__/**/*.test.[jt]s?(x)'],
-  collectCoverageFrom: [
-    'lib/**/*.{ts,tsx}',
-    'contexts/**/*.{ts,tsx}',
-    '!lib/**/*.d.ts',
-    '!contexts/**/*.d.ts',
-    '!lib/**/__tests__/**',
-    '!contexts/**/__tests__/**',
-  ],
+  testMatch: ['**/__tests__/**/*.(test|spec).(ts|tsx|js)'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
-    '^(\\.{1,2}/.*)\\.js$': '$1',
   },
-  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
-  transform: {
-    '^.+\\.(ts|tsx)$': ['ts-jest', {
-      tsconfig: {
-        jsx: 'react',
-        esModuleInterop: true,
-        allowSyntheticDefaultImports: true,
-      },
-    }],
-  },
+  collectCoverageFrom: [
+    'app/**/*.{ts,tsx}',
+    'components/**/*.{ts,tsx}',
+    'contexts/**/*.{ts,tsx}',
+    'lib/**/*.{ts,tsx}',
+    '!**/*.d.ts',
+  ],
 };

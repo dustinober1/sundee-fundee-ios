@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coverage generated="1771291440707" clover="3.2.0">
+  <project timestamp="1771291440707" name="All files">
+    <metrics statements="81" coveredstatements="71" conditionals="28" coveredconditionals="28" methods="23" coveredmethods="22" elements="132" coveredelements="121" complexity="0" loc="81" ncloc="81" packages="2" files="4" classes="4"/>
+    <package name="lib">
+      <metrics statements="23" coveredstatements="23" conditionals="4" coveredconditionals="4" methods="7" coveredmethods="7"/>
+      <file name="calculations.ts" path="/Users/dustinober/Projects/strength/apps/mobile/lib/calculations.ts">
+        <metrics statements="14" coveredstatements="14" conditionals="2" coveredconditionals="2" methods="4" coveredmethods="4"/>
+        <line num="1" count="1" type="stmt"/>
+        <line num="9" count="1" type="stmt"/>
+        <line num="10" count="3" type="stmt"/>
+        <line num="11" count="3" type="stmt"/>
+        <line num="20" count="1" type="stmt"/>
+        <line num="21" count="3" type="stmt"/>
+        <line num="31" count="1" type="stmt"/>
+        <line num="32" count="1" type="stmt"/>
+        <line num="40" count="1" type="stmt"/>
+        <line num="41" count="5" type="cond" truecount="2" falsecount="0"/>
+        <line num="43" count="3" type="stmt"/>
+        <line num="44" count="3" type="stmt"/>
+        <line num="45" count="3" type="stmt"/>
+        <line num="48" count="3" type="stmt"/>
+      </file>
+      <file name="utils.ts" path="/Users/dustinober/Projects/strength/apps/mobile/lib/utils.ts">
+        <metrics statements="9" coveredstatements="9" conditionals="2" coveredconditionals="2" methods="3" coveredmethods="3"/>
+        <line num="1" count="4" type="stmt"/>
+        <line num="2" count="4" type="stmt"/>
+        <line num="4" count="4" type="stmt"/>
+        <line num="5" count="3" type="stmt"/>
+        <line num="8" count="4" type="stmt"/>
+        <line num="11" count="9" type="cond" truecount="2" falsecount="0"/>
+        <line num="12" count="7" type="stmt"/>
+        <line num="15" count="4" type="stmt"/>
+        <line num="16" count="20" type="stmt"/>
+      </file>
+    </package>
+    <package name="lib.storage">
+      <metrics statements="58" coveredstatements="48" conditionals="24" coveredconditionals="24" methods="16" coveredmethods="15"/>
+      <file name="async-storage.ts" path="/Users/dustinober/Projects/strength/apps/mobile/lib/storage/async-storage.ts">
+        <metrics statements="26" coveredstatements="16" conditionals="6" coveredconditionals="6" methods="5" coveredmethods="4"/>
+        <line num="1" count="2" type="stmt"/>
+        <line num="3" count="2" type="stmt"/>
+        <line num="14" count="290" type="cond" truecount="4" falsecount="0"/>
+        <line num="15" count="40" type="stmt"/>
+        <line num="17" count="250" type="stmt"/>
+        <line num="20" count="2" type="stmt"/>
+        <line num="21" count="41" type="stmt"/>
+        <line num="22" count="41" type="stmt"/>
+        <line num="23" count="41" type="cond" truecount="2" falsecount="0"/>
+        <line num="25" count="0" type="stmt"/>
+        <line num="26" count="0" type="stmt"/>
+        <line num="30" count="2" type="stmt"/>
+        <line num="31" count="38" type="stmt"/>
+        <line num="32" count="38" type="stmt"/>
+        <line num="34" count="0" type="stmt"/>
+        <line num="35" count="0" type="stmt"/>
+        <line num="39" count="2" type="stmt"/>
+        <line num="40" count="0" type="stmt"/>
+        <line num="41" count="0" type="stmt"/>
+        <line num="43" count="0" type="stmt"/>
+        <line num="44" count="0" type="stmt"/>
+        <line num="48" count="2" type="stmt"/>
+        <line num="49" count="19" type="stmt"/>
+        <line num="50" count="19" type="stmt"/>
+        <line num="52" count="0" type="stmt"/>
+        <line num="53" count="0" type="stmt"/>
+      </file>
+      <file name="database.ts" path="/Users/dustinober/Projects/strength/apps/mobile/lib/storage/database.ts">
+        <metrics statements="32" coveredstatements="32" conditionals="18" coveredconditionals="18" methods="11" coveredmethods="11"/>
+        <line num="1" count="2" type="stmt"/>
+        <line num="2" count="2" type="stmt"/>
+        <line num="6" count="2" type="stmt"/>
+        <line num="7" count="17" type="stmt"/>
+        <line num="12" count="17" type="stmt"/>
+        <line num="13" count="17" type="stmt"/>
+        <line num="16" count="2" type="stmt"/>
+        <line num="17" count="10" type="stmt"/>
+        <line num="20" count="2" type="stmt"/>
+        <line num="21" count="3" type="stmt"/>
+        <line num="22" count="3" type="cond" truecount="4" falsecount="0"/>
+        <line num="23" count="2" type="stmt"/>
+        <line num="28" count="2" type="stmt"/>
+        <line num="29" count="9" type="cond" truecount="2" falsecount="0"/>
+        <line num="30" count="9" type="stmt"/>
+        <line num="31" count="9" type="stmt"/>
+        <line num="34" count="2" type="stmt"/>
+        <line num="35" count="6" type="cond" truecount="2" falsecount="0"/>
+        <line num="36" count="6" type="stmt"/>
+        <line num="37" count="11" type="cond" truecount="2" falsecount="0"/>
+        <line num="38" count="4" type="stmt"/>
+        <line num="39" count="6" type="stmt"/>
+        <line num="43" count="2" type="stmt"/>
+        <line num="44" count="10" type="cond" truecount="2" falsecount="0"/>
+        <line num="45" count="10" type="stmt"/>
+        <line num="47" count="10" type="cond" truecount="2" falsecount="0"/>
+        <line num="48" count="1" type="stmt"/>
+        <line num="50" count="9" type="stmt"/>
+        <line num="53" count="10" type="stmt"/>
+        <line num="56" count="2" type="stmt"/>
+        <line num="57" count="6" type="cond" truecount="2" falsecount="0"/>
+        <line num="58" count="9" type="cond" truecount="2" falsecount="0"/>
+      </file>
+    </package>
+  </project>
+</coverage>
