@@ -7,6 +7,7 @@ interface UserContextValue {
   user: User | null;
   oneRepMaxes: OneRepMax[];
   syncStatus: SyncStatus;
+  isLoading: boolean;
   updateUserProfile: (updates: Partial<User>) => Promise<void>;
   update1RM: (exerciseId: string, weight: number) => Promise<void>;
   refresh: () => Promise<void>;
@@ -18,16 +19,19 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [oneRepMaxes, setOneRepMaxes] = useState<OneRepMax[]>([]);
   const [syncStatus, setSyncStatus] = useState<SyncStatus>('offline');
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     loadUserData();
   }, []);
 
   async function loadUserData() {
+    setIsLoading(true);
     const userData = await getUser();
     if (userData) {
       setUser(userData);
     }
+    setIsLoading(false);
   }
 
   async function updateUserProfile(updates: Partial<User>) {
@@ -61,6 +65,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       user,
       oneRepMaxes,
       syncStatus,
+      isLoading,
       updateUserProfile,
       update1RM,
       refresh,
