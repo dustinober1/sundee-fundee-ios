@@ -1,6 +1,7 @@
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
+  setupFiles: ['<rootDir>/jest.setup.js'],
   transformIgnorePatterns: [
     'node_modules/(?!(@react-native|react-native|expo|@expo|nativewind)/)',
   ],
