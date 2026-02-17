@@ -6,7 +6,14 @@ module.exports = {
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
   setupFiles: ['<rootDir>/jest.setup.js'],
   transform: {
-    '^.+\\.(js|jsx|ts|tsx)$': ['ts-jest', tsjPreset],
+    '^.+\\.(js|jsx|ts|tsx)$': ['ts-jest', {
+      ...tsjPreset,
+      tsconfig: {
+        jsx: 'react',
+        esModuleInterop: true,
+        allowSyntheticDefaultImports: true,
+      },
+    }],
   },
   transformIgnorePatterns: [
     'node_modules/(?!(@react-native|react-native|expo|@expo|react-native-paper|@react-native-async-storage|react-native-reanimated))',

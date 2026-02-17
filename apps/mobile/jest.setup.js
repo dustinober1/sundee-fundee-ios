@@ -47,11 +47,20 @@ const mockAsyncStorage = {
 
 jest.mock('@react-native-async-storage/async-storage', () => mockAsyncStorage);
 
-// Mock React Native modules
-jest.mock('react-native/Libraries/Utilities/Platform', () => ({
-  OS: 'ios',
-  select: jest.fn((obj) => obj.ios),
-}));
+// Mock React Native
+jest.mock('react-native', () => {
+  const RN = jest.requireActual('react-native');
+  return {
+    ...RN,
+    Platform: {
+      OS: 'ios',
+      select: jest.fn((obj) => obj.ios),
+    },
+    NativeModules: {
+      ...RN.NativeModules,
+    },
+  };
+});
 
 jest.mock('react-native-reanimated', () => {
   const Reanimated = require('react-native-reanimated/mock');
