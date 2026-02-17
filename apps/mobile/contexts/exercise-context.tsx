@@ -1,5 +1,3 @@
-'use client';
-
 import React, { createContext, useContext, useMemo } from 'react';
 import { calculateTargetWeight } from '@/lib/calculations';
 import type { Program, Week, Day, Exercise as ProgramExercise } from '@/types';

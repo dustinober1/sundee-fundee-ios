@@ -1,5 +1,3 @@
-'use client';
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { User, OneRepMax, SyncStatus } from '@/types';
 import { getUser, updateUser, getLatest1RM } from '@/lib/storage/database';
