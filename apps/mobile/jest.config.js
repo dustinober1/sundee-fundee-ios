@@ -15,6 +15,16 @@ module.exports = {
       },
     }],
   },
+  transform: {
+    '^.+\\.(js|jsx|ts|tsx)$': ['ts-jest', {
+      ...tsjPreset,
+      tsconfig: {
+        jsx: 'react',
+        esModuleInterop: true,
+        allowSyntheticDefaultImports: true,
+      },
+    }],
+  },
   transformIgnorePatterns: [
     'node_modules/(?!(@react-native|react-native|expo|@expo|react-native-paper|@react-native-async-storage|react-native-reanimated))',
   ],
