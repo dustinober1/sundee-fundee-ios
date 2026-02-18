@@ -43,6 +43,18 @@ npm run start
 npm run lint
 ```
 
+## Environment Setup
+
+Copy `.env.local.example` to `.env.local` for development:
+
+```bash
+cp .env.local.example .env.local
+```
+
+Required environment variables:
+- `NEXT_PUBLIC_SUPABASE_URL`: Supabase project URL
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Supabase anonymous key
+
 ## Key Architecture Principles
 
 ### Local-First, Sync-Later Pattern
