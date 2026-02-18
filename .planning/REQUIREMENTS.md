@@ -9,9 +9,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Recommendations
 
-- [ ] **RECOM-01**: User receives weight suggestions for next workout based on rules (e.g. 5lb increase)
-- [ ] **RECOM-02**: System detects plateaus (3+ workouts without progress) and notifies user
-- [ ] **RECOM-03**: User sees confetti celebration when setting a new PR
+- [x] **RECOM-01**: User receives weight suggestions for next workout based on rules (e.g. 5lb increase)
+- [x] **RECOM-02**: System detects plateaus (3+ workouts without progress) and notifies user
+- [x] **RECOM-03**: User sees confetti celebration when setting a new PR
 
 ### Charts
 
@@ -62,9 +62,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| RECOM-01 | Phase 1 | Pending |
-| RECOM-02 | Phase 1 | Pending |
-| RECOM-03 | Phase 1 | Pending |
+| RECOM-01 | Phase 1 | Complete |
+| RECOM-02 | Phase 1 | Complete |
+| RECOM-03 | Phase 1 | Complete |
 | CHART-01 | Phase 2 | Pending |
 | CHART-02 | Phase 2 | Pending |
 | CHART-03 | Phase 2 | Pending |
@@ -82,4 +82,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-02-17*
-*Last updated: 2026-02-17 with Phase mappings*
+*Last updated: 2026-02-18 with Phase 1 completion*

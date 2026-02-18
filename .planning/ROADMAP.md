@@ -8,11 +8,11 @@
 
 ## Phases
 
-- [ ] **Phase 1: Smart Guidance** - Implement weight recommendations, plateau detection, and PR celebrations.
+- [x] **Phase 1: Smart Guidance** - Implement weight recommendations, plateau detection, and PR celebrations.
   Plans:
-  - [ ] 01-01-PLAN.md — Wire workout data persistence + DB schema v4 + Tooltip component
-  - [ ] 01-02-PLAN.md — Build recommendation engine, plateau detection, PR detection logic
-  - [ ] 01-03-PLAN.md — Integrate recommendation UI, PR celebrations, plateau modals into workout flow
+  - [x] 01-01-PLAN.md — Wire workout data persistence + DB schema v4 + Tooltip component
+  - [x] 01-02-PLAN.md — Build recommendation engine, plateau detection, PR detection logic
+  - [x] 01-03-PLAN.md — Integrate recommendation UI, PR celebrations, plateau modals into workout flow
 - [ ] **Phase 2: Visual Progress** - Build 1RM charts, volume visualization, and activity heatmaps.
 - [ ] **Phase 3: Cloud Sync** - Implement Supabase backup, cross-device restore, and sync status UI.
 - [ ] **Phase 4: E2E Verification** - Automate testing for critical user flows and sync reliability.
@@ -63,7 +63,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Smart Guidance | 0/3 | Planned | - |
+| 1. Smart Guidance | 3/3 | Complete | 2026-02-18 |
 | 2. Visual Progress | 0/3 | Not started | - |
 | 3. Cloud Sync | 0/3 | Not started | - |
 | 4. E2E Verification | 0/3 | Not started | - |
