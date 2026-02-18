@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { getExerciseByName } from '@/data/exercises';
 import type { ExerciseV2 } from '@/types/programV2';
+import type { WeightOverrideReason } from '@/types/workout';
 import { SetInputV2 } from './set-input-v2';
 
 interface ExerciseCardV2Props {
@@ -11,6 +12,12 @@ interface ExerciseCardV2Props {
   exerciseId: string;
   prescribedWeight: number;
   onSetChange: (setNumber: number, data: { weight: number; reps: number; prescribedWeight: number; prescribedReps: number }) => void;
+  /** Map of setNumber (1-indexed) to recommended weight */
+  recommendedWeights?: Record<number, number>;
+  /** Explanation text for the recommendation tooltip */
+  recommendationSource?: string;
+  /** Called when user provides an override reason for a specific set */
+  onOverrideReason?: (setNumber: number, reason: WeightOverrideReason) => void;
 }
 
 function formatSetCount(sets: ExerciseV2['sets']): string {
@@ -37,7 +44,15 @@ function getDefaultRepsValue(reps: ExerciseV2['reps']): number {
   return reps;
 }
 
-export function ExerciseCardV2({ exercise, exerciseId, prescribedWeight, onSetChange }: ExerciseCardV2Props) {
+export function ExerciseCardV2({
+  exercise,
+  exerciseId,
+  prescribedWeight,
+  onSetChange,
+  recommendedWeights,
+  recommendationSource,
+  onOverrideReason,
+}: ExerciseCardV2Props) {
   const exerciseMetadata = getExerciseByName(exercise.exercise);
   const displayName = exercise.variant
     ? `${exerciseMetadata?.name ?? exercise.exercise} (${exercise.variant})`
@@ -67,6 +82,9 @@ export function ExerciseCardV2({ exercise, exerciseId, prescribedWeight, onSetCh
             prescribedWeight={prescribedWeight}
             prescribedReps={exercise.reps}
             isTimeBased={isTimeBased}
+            recommendedWeight={recommendedWeights?.[index + 1]}
+            recommendationSource={recommendationSource}
+            onOverrideReason={reason => onOverrideReason?.(index + 1, reason)}
             onWeightChange={weight => onSetChange(index + 1, { weight, reps: prescribedReps, prescribedWeight, prescribedReps })}
             onRepsChange={reps => onSetChange(index + 1, { weight: prescribedWeight, reps, prescribedWeight, prescribedReps })}
             onTimeChange={seconds => onSetChange(index + 1, { weight: 0, reps: seconds, prescribedWeight, prescribedReps })}

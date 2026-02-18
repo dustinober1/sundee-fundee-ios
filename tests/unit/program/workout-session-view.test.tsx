@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { WorkoutSessionView } from '@/components/program/workout-session-view';
+import { UserProvider } from '@/contexts/user-context';
 import type { Session } from '@/types/programV2';
 
 const mockSession: Session = {
@@ -19,6 +20,10 @@ const mockSession: Session = {
   ]
 };
 
+function wrapper({ children }: { children: React.ReactNode }) {
+  return <UserProvider>{children}</UserProvider>;
+}
+
 describe('WorkoutSessionView', () => {
   it('displays phase banner', () => {
     render(
@@ -29,7 +34,8 @@ describe('WorkoutSessionView', () => {
         phaseProgress={25}
         oneRepMax={300}
         onComplete={() => {}}
-      />
+      />,
+      { wrapper }
     );
 
     expect(screen.getByText('Hypertrophy Phase')).toBeInTheDocument();
@@ -44,7 +50,8 @@ describe('WorkoutSessionView', () => {
         phaseProgress={0}
         oneRepMax={300}
         onComplete={() => {}}
-      />
+      />,
+      { wrapper }
     );
 
     expect(screen.getByText('Support Session A')).toBeInTheDocument();

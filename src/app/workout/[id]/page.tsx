@@ -1,16 +1,33 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useExercise } from '@/contexts/exercise-context';
 import { useUser } from '@/contexts/user-context';
 import { SessionSelector } from '@/components/program/session-selector';
 import { TestDayInterface } from '@/components/program/test-day-interface';
 import { WorkoutSessionView } from '@/components/program/workout-session-view';
-import { saveCompletedWorkout, saveCompletedSet, getActiveCycles } from '@/lib/db';
+import {
+  saveCompletedWorkout,
+  saveCompletedSet,
+  getActiveCycles,
+  getLastCompletedSetsForExercise,
+} from '@/lib/db';
 import { generateId } from '@/lib/utils';
+import { getNextRecommendedWeight, wasSessionSuccessful } from '@/lib/calculations';
+import { detectPlateauForExercise, getDeloadWeight } from '@/lib/recommendations/plateau-detection';
 import type { Session } from '@/types/programV2';
 import type { CollectedSetData } from '@/components/program/workout-session-view';
+
+interface RecommendationEntry {
+  weight: number;
+  source: string;
+}
+
+interface PlateauEntry {
+  exerciseName: string;
+  adjustedWeight: number;
+}
 
 function WorkoutContent() {
   const params = useParams();
@@ -18,6 +35,8 @@ function WorkoutContent() {
   const { getProgram, getWeek, getPhaseForWeek, getPhaseProgress } = useExercise();
   const { user, oneRepMaxes } = useUser();
   const [selectedSession, setSelectedSession] = useState<Session | null>(null);
+  const [recommendations, setRecommendations] = useState<Record<string, RecommendationEntry>>({});
+  const [plateaus, setPlateaus] = useState<PlateauEntry[]>([]);
   const currentWeek = 1;
 
   const programId = params.id as string;
@@ -34,7 +53,93 @@ function WorkoutContent() {
   const weekData = getWeek(programId, currentWeek);
   const phase = getPhaseForWeek(programId, currentWeek);
   const phaseProgress = getPhaseProgress(programId, currentWeek, phase?.id || '');
-  const backSquat1RM = oneRepMaxes.find(oneRepMax => oneRepMax.exerciseId === 'back-squat')?.weight ?? 200;
+
+  // Helper: get 1RM for a specific exercise
+  function get1RMForExercise(exerciseId: string): number | undefined {
+    const match = oneRepMaxes.find(orm => orm.exerciseId === exerciseId);
+    return match?.weight;
+  }
+
+  // Load recommendations and plateau detection when a session is selected
+  useEffect(() => {
+    if (!selectedSession || !user) return;
+
+    async function loadRecommendationsAndPlateaus() {
+      const activeCycles = await getActiveCycles(user!.id);
+      const activeCycleId = activeCycles[0]?.id;
+
+      const newRecommendations: Record<string, RecommendationEntry> = {};
+      const newPlateaus: PlateauEntry[] = [];
+
+      for (const exercise of selectedSession!.exercises) {
+        const exerciseId = exercise.exercise;
+        const oneRepMax = get1RMForExercise(exerciseId);
+
+        // Skip recommendation if no 1RM data for this exercise (fall back to prescribedWeight)
+        if (oneRepMax === undefined || oneRepMax === 0) continue;
+
+        const prescribedWeight = Math.round(oneRepMax * exercise.percent1RM);
+
+        // Get last completed sets for this exercise (most recent session)
+        let lastWeight = prescribedWeight;
+        let result: 'first' | 'success' | 'failure' = 'first';
+        let sourceText = `Starting weight: ${Math.round(oneRepMax * 0.7)} lbs (70% of 1RM)`;
+
+        if (activeCycleId) {
+          const lastSets = await getLastCompletedSetsForExercise(exerciseId, activeCycleId, 10);
+
+          if (lastSets.length > 0) {
+            // Determine the weight used in the most recent session
+            lastWeight = lastSets[0].actualWeight;
+
+            // Determine if that session was successful
+            const sessionSuccess = wasSessionSuccessful(
+              lastSets.map(s => ({
+                actualReps: s.actualReps,
+                prescribedReps: s.prescribedReps,
+                actualWeight: s.actualWeight,
+                prescribedWeight: s.prescribedWeight,
+              }))
+            );
+
+            result = sessionSuccess ? 'success' : 'failure';
+            const direction = result === 'success' ? '+5 lb progression' : '-5 lb adjustment';
+            sourceText = `Based on last session: ${lastWeight} lbs (${direction})`;
+          }
+        }
+
+        const recommendedWeight = getNextRecommendedWeight(lastWeight, result, oneRepMax);
+
+        // Plateau detection (requires activeCycleId)
+        if (activeCycleId) {
+          const plateauWarning = await detectPlateauForExercise(exerciseId, activeCycleId);
+
+          if (plateauWarning.hasPlateau) {
+            const adjustedWeight = getDeloadWeight(recommendedWeight);
+            newPlateaus.push({ exerciseName: exerciseId, adjustedWeight });
+
+            // Override recommendation with deload weight
+            newRecommendations[exerciseId] = {
+              weight: adjustedWeight,
+              source: `Deload: ${adjustedWeight} lbs (plateau detected — 10% reduction)`,
+            };
+            continue;
+          }
+        }
+
+        newRecommendations[exerciseId] = {
+          weight: recommendedWeight,
+          source: sourceText,
+        };
+      }
+
+      setRecommendations(newRecommendations);
+      setPlateaus(newPlateaus);
+    }
+
+    loadRecommendationsAndPlateaus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedSession, user]);
 
   if (!weekData) {
     return (
@@ -74,6 +179,7 @@ function WorkoutContent() {
         actualWeight: set.actualWeight,
         prescribedReps: set.prescribedReps,
         actualReps: set.actualReps,
+        overrideReason: set.overrideReason,
         createdAt: now
       });
     }
@@ -82,6 +188,8 @@ function WorkoutContent() {
   }
 
   if (weekData.isTestWeek) {
+    // Use the first available exercise's 1RM, fall back to back-squat, then 200
+    const backSquat1RM = get1RMForExercise('back-squat') ?? 200;
     const testSession = weekData.sessions.find(session => session.sessionType === 'testing');
     if (testSession) {
       return (
@@ -126,7 +234,9 @@ function WorkoutContent() {
       phaseName={phase?.name ?? ''}
       phaseGoal={phase?.goal ?? ''}
       phaseProgress={phaseProgress}
-      oneRepMax={backSquat1RM}
+      oneRepMax={get1RMForExercise(selectedSession.exercises[0]?.exercise) ?? 200}
+      recommendations={recommendations}
+      plateaus={plateaus}
       onComplete={handleWorkoutComplete}
     />
   );
