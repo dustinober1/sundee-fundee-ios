@@ -17,6 +17,7 @@ describe('ExerciseCardV2', () => {
     render(
       <ExerciseCardV2
         exercise={mockExercise}
+        exerciseId="pause-squat"
         prescribedWeight={195}
         onSetChange={() => {}}
       />
@@ -29,6 +30,7 @@ describe('ExerciseCardV2', () => {
     render(
       <ExerciseCardV2
         exercise={mockExercise}
+        exerciseId="pause-squat"
         prescribedWeight={195}
         onSetChange={() => {}}
       />
@@ -47,6 +49,7 @@ describe('ExerciseCardV2', () => {
     render(
       <ExerciseCardV2
         exercise={exerciseWithRange}
+        exerciseId="pause-squat"
         prescribedWeight={195}
         onSetChange={() => {}}
       />
@@ -64,6 +67,7 @@ describe('ExerciseCardV2', () => {
     render(
       <ExerciseCardV2
         exercise={exerciseWithNotes}
+        exerciseId="pause-squat"
         prescribedWeight={195}
         onSetChange={() => {}}
       />

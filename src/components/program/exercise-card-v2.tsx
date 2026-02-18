@@ -8,8 +8,9 @@ import { SetInputV2 } from './set-input-v2';
 
 interface ExerciseCardV2Props {
   exercise: ExerciseV2;
+  exerciseId: string;
   prescribedWeight: number;
-  onSetChange: (setNumber: number, data: { weight: number; reps: number }) => void;
+  onSetChange: (setNumber: number, data: { weight: number; reps: number; prescribedWeight: number; prescribedReps: number }) => void;
 }
 
 function formatSetCount(sets: ExerciseV2['sets']): string {
@@ -30,12 +31,19 @@ function toSetNumber(value: ExerciseV2['sets']): number {
   return value === 'AMRAP' ? 3 : value;
 }
 
-export function ExerciseCardV2({ exercise, prescribedWeight, onSetChange }: ExerciseCardV2Props) {
+function getDefaultRepsValue(reps: ExerciseV2['reps']): number {
+  if (Array.isArray(reps)) return reps[0];
+  if (reps === 'AMRAP') return 0;
+  return reps;
+}
+
+export function ExerciseCardV2({ exercise, exerciseId, prescribedWeight, onSetChange }: ExerciseCardV2Props) {
   const exerciseMetadata = getExerciseByName(exercise.exercise);
   const displayName = exercise.variant
     ? `${exerciseMetadata?.name ?? exercise.exercise} (${exercise.variant})`
     : (exerciseMetadata?.name ?? exercise.exercise);
   const isTimeBased = exercise.exercise === 'front-rack-hold';
+  const prescribedReps = getDefaultRepsValue(exercise.reps);
 
   return (
     <Card>
@@ -54,14 +62,14 @@ export function ExerciseCardV2({ exercise, prescribedWeight, onSetChange }: Exer
       <CardContent className="space-y-2">
         {Array.from({ length: toSetNumber(exercise.sets) }).map((_, index) => (
           <SetInputV2
-            key={`${exercise.exercise}-${index}`}
+            key={`${exerciseId}-${index}`}
             setNumber={index + 1}
             prescribedWeight={prescribedWeight}
             prescribedReps={exercise.reps}
             isTimeBased={isTimeBased}
-            onWeightChange={weight => onSetChange(index + 1, { weight, reps: 0 })}
-            onRepsChange={reps => onSetChange(index + 1, { weight: 0, reps })}
-            onTimeChange={seconds => onSetChange(index + 1, { weight: 0, reps: seconds })}
+            onWeightChange={weight => onSetChange(index + 1, { weight, reps: prescribedReps, prescribedWeight, prescribedReps })}
+            onRepsChange={reps => onSetChange(index + 1, { weight: prescribedWeight, reps, prescribedWeight, prescribedReps })}
+            onTimeChange={seconds => onSetChange(index + 1, { weight: 0, reps: seconds, prescribedWeight, prescribedReps })}
           />
         ))}
       </CardContent>

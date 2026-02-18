@@ -6,13 +6,22 @@ import { ExerciseCardV2 } from './exercise-card-v2';
 import { PhaseBanner } from './phase-banner';
 import type { Session } from '@/types/programV2';
 
+export interface CollectedSetData {
+  exerciseId: string;
+  setNumber: number;
+  prescribedWeight: number;
+  prescribedReps: number;
+  actualWeight: number;
+  actualReps: number;
+}
+
 interface WorkoutSessionViewProps {
   session: Session;
   phaseName: string;
   phaseGoal: string;
   phaseProgress: number;
   oneRepMax: number;
-  onComplete: (data: { completed: boolean }) => void;
+  onComplete: (data: { completed: boolean; sets: CollectedSetData[] }) => void;
 }
 
 export function WorkoutSessionView({
@@ -24,10 +33,32 @@ export function WorkoutSessionView({
   onComplete
 }: WorkoutSessionViewProps) {
   const [completedSets, setCompletedSets] = useState<Set<string>>(new Set());
+  const [setDataMap, setSetDataMap] = useState<Record<string, CollectedSetData>>({});
 
-  const handleSetChange = (exerciseIndex: number, setNumber: number) => {
+  const handleSetChange = (
+    exerciseIndex: number,
+    exerciseId: string,
+    setNumber: number,
+    data: { weight: number; reps: number; prescribedWeight: number; prescribedReps: number }
+  ) => {
     const key = `${exerciseIndex}-${setNumber}`;
     setCompletedSets(previous => new Set(previous).add(key));
+    setSetDataMap(previous => ({
+      ...previous,
+      [key]: {
+        exerciseId,
+        setNumber,
+        prescribedWeight: data.prescribedWeight,
+        prescribedReps: data.prescribedReps,
+        actualWeight: data.weight,
+        actualReps: data.reps
+      }
+    }));
+  };
+
+  const handleComplete = () => {
+    const sets = Object.values(setDataMap);
+    onComplete({ completed: true, sets });
   };
 
   return (
@@ -48,8 +79,9 @@ export function WorkoutSessionView({
           <ExerciseCardV2
             key={`${exercise.exercise}-${exerciseIndex}`}
             exercise={exercise}
+            exerciseId={exercise.exercise}
             prescribedWeight={Math.round(oneRepMax * exercise.percent1RM)}
-            onSetChange={(setNumber) => handleSetChange(exerciseIndex, setNumber)}
+            onSetChange={(setNumber, data) => handleSetChange(exerciseIndex, exercise.exercise, setNumber, data)}
           />
         ))}
       </div>
@@ -57,7 +89,7 @@ export function WorkoutSessionView({
       <Button
         className="mt-6 w-full"
         size="lg"
-        onClick={() => onComplete({ completed: true })}
+        onClick={handleComplete}
         disabled={completedSets.size === 0}
       >
         Complete Workout
