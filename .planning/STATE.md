@@ -6,12 +6,15 @@
 **Current Focus**: Implementing v1 features (Recommendations, Charts, Sync).
 
 ## Current Position
-**Phase**: 1. Smart Guidance
-**Status**: Not started
-**Progress**: [░░░░░░░░░░] 0%
+**Phase**: 1. Smart Guidance (1 of 4)
+**Plan**: 01-01 complete (1 of 3 in phase)
+**Status**: In progress
+**Progress**: [█░░░░░░░░░] 8% (1/12 plans)
+
+Last activity: 2026-02-18 - Completed 01-01-PLAN.md (Data Foundation & Workout Persistence)
 
 ## Performance Metrics
-- **Velocity**: 0 phases/week
+- **Velocity**: In progress
 - **Blockers**: None
 
 ## Context & Memory
@@ -19,10 +22,17 @@
 ### Decisions
 - **Phasing**: Grouped remaining work into 4 functional phases: Guidance, Visualization, Sync, Testing.
 - **Priority**: Recommendations first to enhance the daily workout experience immediately.
+- **activeCycleId resolution**: In `onComplete` handler, resolves via `getActiveCycles()`; falls back to `generateId()` if no active cycle exists. Keeps persistence working without blocking on cycle setup.
+- **exerciseId on ExerciseCardV2**: Made required (not optional) to keep data contract explicit and type-safe.
+- **CollectedSetData**: Exported named type from `workout-session-view.tsx` for use across the workout completion flow.
 
 ### Todo
-- [ ] Start planning Phase 1
+- [x] 01-01: Wire workout data persistence + DB schema v4 + Tooltip component
+- [ ] 01-02: Build recommendation engine, plateau detection, PR detection logic
+- [ ] 01-03: Integrate recommendation UI, PR celebrations, plateau modals into workout flow
 
 ### Session Continuity
-- **Last Action**: Created Roadmap
-- **Next Step**: Plan Phase 1
+- **Last session**: 2026-02-18
+- **Stopped at**: Completed 01-01-PLAN.md
+- **Resume file**: .planning/phases/01-smart-guidance/01-02-PLAN.md
+
