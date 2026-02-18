@@ -12,6 +12,73 @@ export function calculateTargetWeight(oneRepMax: number, percentage: number): nu
 }
 
 /**
+ * Session result classification for recommendation engine
+ */
+export type SessionResult = 'success' | 'failure' | 'first';
+
+/**
+ * Get next recommended working weight based on session result
+ * - 'first': 70% of 1RM (starting weight for a new exercise)
+ * - 'success': +5 lbs from current weight
+ * - 'failure': -5 lbs from current weight, with a floor at 50% of 1RM
+ * All results are rounded to nearest 5 lbs.
+ *
+ * @param currentWeight - Current working weight in lbs
+ * @param result - Outcome of the most recent session
+ * @param oneRepMax - User's 1RM for this exercise
+ * @returns Recommended weight for next session, rounded to nearest 5 lbs
+ */
+export function getNextRecommendedWeight(
+  currentWeight: number,
+  result: SessionResult,
+  oneRepMax: number
+): number {
+  switch (result) {
+    case 'first':
+      return roundToNearestFive(oneRepMax * 0.7);
+    case 'success':
+      return roundToNearestFive(currentWeight + 5);
+    case 'failure': {
+      const floor = roundToNearestFive(oneRepMax * 0.5);
+      return Math.max(roundToNearestFive(currentWeight - 5), floor);
+    }
+  }
+}
+
+/**
+ * Determine if a single set was successfully completed
+ * A set is successful if actualReps >= prescribedReps AND
+ * (if prescribedWeight is defined) actualWeight >= prescribedWeight.
+ */
+export function wasSetSuccessful(set: {
+  actualReps: number;
+  prescribedReps: number;
+  actualWeight: number;
+  prescribedWeight?: number;
+}): boolean {
+  const repsOk = set.actualReps >= set.prescribedReps;
+  const weightOk =
+    set.prescribedWeight === undefined || set.actualWeight >= set.prescribedWeight;
+  return repsOk && weightOk;
+}
+
+/**
+ * Determine if an entire session (array of sets) was successfully completed
+ * A session is successful if ALL sets pass wasSetSuccessful.
+ * An empty array returns true (vacuously successful).
+ */
+export function wasSessionSuccessful(
+  sets: Array<{
+    actualReps: number;
+    prescribedReps: number;
+    actualWeight: number;
+    prescribedWeight?: number;
+  }>
+): boolean {
+  return sets.every(wasSetSuccessful);
+}
+
+/**
  * Check if a weight represents a new personal record
  * @param weight - Current weight
  * @param previousMax - Previous maximum weight
