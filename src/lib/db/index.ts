@@ -1,5 +1,5 @@
 import { db } from './dexie';
-import type { User, OneRepMax, ActiveCycle, CompletedWorkout, CompletedSet, PeriodLog, SymptomLog, BBTLog, SymptomDefinition, CycleSettings } from '@/types';
+import type { User, OneRepMax, ActiveCycle, CompletedWorkout, CompletedSet, PeriodLog, SymptomLog, BBTLog, SymptomDefinition, CycleSettings, PersonalRecord } from '@/types';
 import type { ProgramV2, Session } from '@/types/programV2';
 import { generateId } from '@/lib/utils';
 
@@ -255,4 +255,59 @@ export async function initializeDefaultSymptoms(): Promise<void> {
     }));
     await db.symptomDefinitions.bulkAdd(defaultSymptomsWithIds);
   }
+}
+
+// Personal Records functions
+
+export async function savePersonalRecord(pr: PersonalRecord): Promise<void> {
+  await db.personalRecords.add(pr);
+}
+
+export async function getPersonalRecordsForExercise(
+  userId: string,
+  exerciseId: string
+): Promise<PersonalRecord[]> {
+  return await db.personalRecords
+    .where('userId')
+    .equals(userId)
+    .and(pr => pr.exerciseId === exerciseId)
+    .toArray();
+}
+
+export async function getLastCompletedSetsForExercise(
+  exerciseId: string,
+  activeCycleId: string,
+  limit: number
+): Promise<CompletedSet[]> {
+  const workouts = await db.completedWorkouts
+    .where('activeCycleId')
+    .equals(activeCycleId)
+    .toArray();
+
+  const workoutIds = new Set(workouts.map(w => w.id));
+
+  const sets = await db.completedSets
+    .filter(set => set.exerciseId === exerciseId && workoutIds.has(set.workoutId))
+    .toArray();
+
+  sets.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+
+  return sets.slice(0, limit);
+}
+
+export async function getCompletedWorkoutsForCycle(
+  activeCycleId: string,
+  limit?: number
+): Promise<CompletedWorkout[]> {
+  const workouts = await db.completedWorkouts
+    .where('activeCycleId')
+    .equals(activeCycleId)
+    .reverse()
+    .sortBy('completedAt');
+
+  if (limit !== undefined) {
+    return workouts.slice(0, limit);
+  }
+
+  return workouts;
 }

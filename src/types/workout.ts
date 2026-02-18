@@ -1,3 +1,5 @@
+export type WeightOverrideReason = 'injured' | 'fatigued' | 'just_because' | 'other';
+
 export interface CompletedSet {
   id: string;
   workoutId: string;
@@ -9,7 +11,20 @@ export interface CompletedSet {
   actualReps: number;
   rpe?: number;
   restSeconds?: number;
+  overrideReason?: WeightOverrideReason;
   createdAt: Date;
+}
+
+export type PRType = 'weight' | 'volume';
+
+export interface PersonalRecord {
+  id: string;
+  userId: string;
+  exerciseId: string;
+  type: PRType;
+  value: number;
+  workoutId: string;
+  date: Date;
 }
 
 export interface SetMetrics {
