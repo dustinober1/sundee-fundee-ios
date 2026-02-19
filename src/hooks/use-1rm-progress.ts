@@ -21,15 +21,13 @@ export function use1RMProgress(exerciseId: string): { data: OneRMPoint[]; loadin
 
   useEffect(() => {
     if (!exerciseId) {
-      setData([]);
-      setLoading(false);
       return;
     }
 
     let isActive = true;
-    setLoading(true);
 
     void (async () => {
+      if (isActive) setLoading(true);
       const sets = await db.completedSets
         .where('exerciseId')
         .equals(exerciseId)
@@ -92,7 +90,6 @@ export function useTrackedExercises(): { exercises: { id: string; name: string }
 
   useEffect(() => {
     let isActive = true;
-    setLoading(true);
 
     void (async () => {
       const sets = await db.completedSets.toArray();
