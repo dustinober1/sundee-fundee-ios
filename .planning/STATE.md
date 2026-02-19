@@ -6,12 +6,12 @@
 **Current Focus**: Implementing v1 features (Recommendations, Charts, Sync).
 
 ## Current Position
-**Phase**: 3. Cloud Sync (3 of 4) — **In Progress**
-**Plan**: 2 of 3 in Phase 03 complete
-**Status**: In progress — 03-01 and 03-02 complete, 03-03 pending
-**Progress**: [███████░░░] 58% (7/12 plans complete, 1 plan pending in phase)
+**Phase**: 3. Cloud Sync (3 of 4) — **Phase Complete**
+**Plan**: 3 of 3 in Phase 03 complete
+**Status**: Phase complete — 03-01, 03-02, 03-03 all done
+**Progress**: [████████░░] 67% (8/12 plans complete)
 
-Last activity: 2026-02-19 - Completed 03-02-PLAN.md (auth UI + sync integration)
+Last activity: 2026-02-19 - Completed 03-03-PLAN.md (dashboard sync UI)
 
 ## Performance Metrics
 - **Velocity**: In progress
@@ -46,6 +46,10 @@ Last activity: 2026-02-19 - Completed 03-02-PLAN.md (auth UI + sync integration)
 - **sync-configured-flag**: `isSyncConfigured = supabase !== null` gates all sync/auth ops in UserContext.
 - **error-status-after-retry**: `setSyncStatus('error')` after withRetry exhaustion — distinguishes from pending (offline).
 
+- **status-config-map**: SyncStatus config map provides icon/label/color per variant — avoids switch/case repetition in sync-status-popover.
+- **use-client-dashboard**: Added 'use client' to dashboard/page.tsx for useUser hook access.
+- **formatTimeAgo-inline**: formatTimeAgo implemented as pure function in sync-status-popover — no external dep needed.
+
 ### Todo
 - [x] 02-01: Build weight progress line chart (CHART-01) — weight-progress-chart.tsx
 - [x] 02-02: Build weekly volume bar chart (CHART-02) + workout heatmap (CHART-03)
@@ -56,7 +60,9 @@ Last activity: 2026-02-19 - Completed 03-02-PLAN.md (auth UI + sync integration)
 - [x] 03-01: Build sync infrastructure — middleware, auth callback, sync engine, schema
 - [x] 03-02: Auth UI + sync integration — AuthDialog, SyncNudge, UserContext auth state
 
+- [x] 03-03: Dashboard sync UI — DashboardHeader, SyncStatusPopover, OfflineBanner, dashboard page update
+
 ### Session Continuity
 - **Last session**: 2026-02-19
-- **Stopped at**: Completed 03-02-PLAN.md (auth UI + sync integration)
-- **Resume file**: .planning/phases/03-cloud-sync/03-03-PLAN.md
+- **Stopped at**: Completed 03-03-PLAN.md (dashboard sync UI)
+- **Resume file**: None (Phase 03 complete)
