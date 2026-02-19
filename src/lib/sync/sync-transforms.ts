@@ -1,3 +1,13 @@
+/** Type guard for Date objects using duck-typing (avoids instanceof on unknown). */
+function isDate(value: unknown): value is Date {
+  return (
+    value !== null &&
+    typeof value === 'object' &&
+    'toISOString' in value &&
+    typeof (value as { toISOString?: unknown }).toISOString === 'function'
+  );
+}
+
 /**
  * Transforms local (Dexie) records to Supabase row format.
  * Converts camelCase keys to snake_case and Date objects to ISO strings.
@@ -9,9 +19,9 @@ export function toSupabaseRows<T extends { id: string }>(
 ): Record<string, unknown>[] {
   return records.map(r => {
     const row: Record<string, unknown> = {};
-    for (const [k, v] of Object.entries(r)) {
+    for (const [k, v] of Object.entries(r as Record<string, unknown>)) {
       const snakeKey = k.replace(/([A-Z])/g, '_$1').toLowerCase();
-      row[snakeKey] = v instanceof Date ? v.toISOString() : v;
+      row[snakeKey] = isDate(v) ? v.toISOString() : v;
     }
     row['user_id'] = authUserId;
     row['updated_at'] = new Date().toISOString();
