@@ -22,6 +22,13 @@ export default defineConfig({
   webServer: {
     command: 'npm run dev',
     url: 'http://localhost:3000',
-    reuseExistingServer: !process.env.CI,
+    // IMPORTANT: Must be false so webServer.env vars (Supabase fakes) are injected.
+    // If true, the existing dev server's env is used and createClient() may return null,
+    // causing TEST-03 sync assertions to silently fail.
+    reuseExistingServer: false,
+    env: {
+      NEXT_PUBLIC_SUPABASE_URL: 'http://localhost:54321',
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: 'fake-anon-key-for-testing',
+    },
   },
 });

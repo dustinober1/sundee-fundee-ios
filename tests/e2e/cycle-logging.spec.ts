@@ -1,25 +1,9 @@
 import { test, expect } from '@playwright/test';
-import type { Page } from '@playwright/test';
-
-async function completeOnboarding(page: Page) {
-  // Use type() instead of fill() for React controlled inputs
-  await page.type('input[id="name"]', 'Cycle Test User', { delay: 50 });
-  // Wait for Next button to become enabled
-  await expect(page.locator('button:has-text("Next")')).toBeEnabled();
-  await page.click('button:has-text("Next")');
-  // Wait a moment for step 2 to render
-  await page.waitForTimeout(100);
-  // Click the label for the beginner radio option
-  await page.click('label[for="beginner"]');
-  // Wait for Next button to become enabled
-  await expect(page.locator('button:has-text("Next")')).toBeEnabled();
-  await page.click('button:has-text("Next")');
-  await page.click('button:has-text("Start Training")');
-}
+import { completeOnboarding } from './helpers/onboarding';
 
 test('logs period flow and shows cycle status', async ({ page }) => {
   await page.goto('/onboarding');
-  await completeOnboarding(page);
+  await completeOnboarding(page, 'Cycle Test User');
 
   await expect(page).toHaveURL('/dashboard');
 
