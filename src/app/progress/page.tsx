@@ -1,8 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { WeightProgressChart } from '@/components/progress/weight-progress-chart';
+import { WeeklyVolumeChart } from '@/components/progress/weekly-volume-chart';
+import { WorkoutHeatmap } from '@/components/progress/workout-heatmap';
 import { CycleFilter } from '@/components/progress/cycle-filter';
 
 export default function ProgressPage() {
@@ -16,10 +18,31 @@ export default function ProgressPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Weight Progress</CardTitle>
+          <CardTitle>Estimated 1RM Progress</CardTitle>
+          <CardDescription>Track your estimated one-rep max over time</CardDescription>
         </CardHeader>
         <CardContent>
           <WeightProgressChart />
+        </CardContent>
+      </Card>
+
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle>Weekly Volume</CardTitle>
+          <CardDescription>Total weight × reps lifted per week</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <WeeklyVolumeChart />
+        </CardContent>
+      </Card>
+
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle>Training Frequency</CardTitle>
+          <CardDescription>Your workout activity over the last year</CardDescription>
+        </CardHeader>
+        <CardContent className="overflow-x-auto">
+          <WorkoutHeatmap />
         </CardContent>
       </Card>
 
