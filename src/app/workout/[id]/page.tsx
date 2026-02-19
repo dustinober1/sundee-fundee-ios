@@ -33,7 +33,7 @@ function WorkoutContent() {
   const params = useParams();
   const router = useRouter();
   const { getProgram, getWeek, getPhaseForWeek, getPhaseProgress } = useExercise();
-  const { user, oneRepMaxes } = useUser();
+  const { user, oneRepMaxes, syncAfterWorkout } = useUser();
   const [selectedSession, setSelectedSession] = useState<Session | null>(null);
   const [recommendations, setRecommendations] = useState<Record<string, RecommendationEntry>>({});
   const [plateaus, setPlateaus] = useState<PlateauEntry[]>([]);
@@ -183,6 +183,9 @@ function WorkoutContent() {
         createdAt: now
       });
     }
+
+    // Trigger sync after workout is saved to Dexie
+    await syncAfterWorkout(workoutId);
 
     router.back();
   }
