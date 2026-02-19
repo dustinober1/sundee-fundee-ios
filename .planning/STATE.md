@@ -7,11 +7,11 @@
 
 ## Current Position
 **Phase**: 2. Visual Progress (2 of 4) — **In progress**
-**Plan**: 02-02 complete (2 of 3 in phase)
+**Plan**: 02-01 + 02-02 complete (2 of 3 in phase)
 **Status**: In progress
 **Progress**: [████░░░░░░] 33% (4/12 plans)
 
-Last activity: 2026-02-19 - Completed 02-02-PLAN.md (Weekly Volume Chart + Workout Heatmap — CHART-02 + CHART-03)
+Last activity: 2026-02-19 - Completed 02-01-PLAN.md (1RM Progress Chart — Epley hook + WeightProgressChart rewrite)
 
 ## Performance Metrics
 - **Velocity**: In progress
@@ -33,6 +33,7 @@ Last activity: 2026-02-19 - Completed 02-02-PLAN.md (Weekly Volume Chart + Worko
 - **Override reason trigger**: `onBlur` not `onChange` — prevents dialog flickering while user is mid-type.
 - **Plateau weight override**: Deload weight replaces recommendation entirely — user sees one number, not two conflicting values.
 - **Per-exercise 1RM lookup**: Dynamic `find()` on `oneRepMaxes` array removes hardcoded `backSquat1RM` assumption.
+- **1RM auto-select via derived state**: `effectiveExerciseId = selectedId || exercises[0]?.id` avoids `setState` in `useEffect` (lint rule compliance).
 
 ### Todo
 - [x] 02-01: Build weight progress line chart (CHART-01) — weight-progress-chart.tsx
