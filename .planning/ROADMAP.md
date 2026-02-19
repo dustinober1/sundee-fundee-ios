@@ -19,6 +19,10 @@
   - [x] 02-02-PLAN.md — Weekly volume bar chart + workout frequency heatmap (CHART-02, CHART-03)
   - [x] 02-03-PLAN.md — Progress page integration and end-to-end verification
 - [ ] **Phase 3: Cloud Sync** - Implement Supabase backup, cross-device restore, and sync status UI.
+  Plans:
+  - [ ] 03-01-PLAN.md — Foundation: middleware, auth callback, sync engine, transforms, queue
+  - [ ] 03-02-PLAN.md — Auth UI + Sync Nudge: auth dialog, sync nudge, useSync hook, UserContext integration
+  - [ ] 03-03-PLAN.md — Dashboard Sync UI: header, sync status popover, dashboard integration
 - [ ] **Phase 4: E2E Verification** - Automate testing for critical user flows and sync reliability.
 
 ## Phase Details
@@ -49,6 +53,7 @@
 **Goal**: User data is securely backed up and retrievable on other devices.
 **Depends on**: Phase 2
 **Requirements**: SYNC-01, SYNC-02, SYNC-03
+**Plans:** 3 plans
 **Success Criteria**:
   1. User data is automatically uploaded to Supabase after finishing a workout.
   2. User can log in on a fresh device and see their previous workout history.
@@ -70,5 +75,5 @@
 |-------|----------------|--------|-----------|
 | 1. Smart Guidance | 3/3 | Complete | 2026-02-18 |
 | 2. Visual Progress | 3/3 | Complete | 2026-02-19 |
-| 3. Cloud Sync | 0/3 | Not started | - |
+| 3. Cloud Sync | 0/3 | Planning Complete | - |
 | 4. E2E Verification | 0/3 | Not started | - |
