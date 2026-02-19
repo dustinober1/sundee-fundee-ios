@@ -21,9 +21,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Sync
 
-- [ ] **SYNC-01**: User data automatically backs up to Supabase when online
-- [ ] **SYNC-02**: User can restore data from cloud to a new device
-- [ ] **SYNC-03**: User sees visual indicator of sync status (synced, pending, offline)
+- [x] **SYNC-01**: User data automatically backs up to Supabase when online
+- [x] **SYNC-02**: User can restore data from cloud to a new device
+- [x] **SYNC-03**: User sees visual indicator of sync status (synced, pending, offline)
 
 ### Testing
 
@@ -68,9 +68,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CHART-01 | Phase 2 | Pending |
 | CHART-02 | Phase 2 | Pending |
 | CHART-03 | Phase 2 | Pending |
-| SYNC-01 | Phase 3 | Pending |
-| SYNC-02 | Phase 3 | Pending |
-| SYNC-03 | Phase 3 | Pending |
+| SYNC-01 | Phase 3 | Complete |
+| SYNC-02 | Phase 3 | Complete |
+| SYNC-03 | Phase 3 | Complete |
 | TEST-01 | Phase 4 | Pending |
 | TEST-02 | Phase 4 | Pending |
 | TEST-03 | Phase 4 | Pending |

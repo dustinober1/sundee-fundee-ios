@@ -18,11 +18,11 @@
   - [x] 02-01-PLAN.md — Estimated 1RM line chart with exercise selector (CHART-01)
   - [x] 02-02-PLAN.md — Weekly volume bar chart + workout frequency heatmap (CHART-02, CHART-03)
   - [x] 02-03-PLAN.md — Progress page integration and end-to-end verification
-- [ ] **Phase 3: Cloud Sync** - Implement Supabase backup, cross-device restore, and sync status UI.
+- [x] **Phase 3: Cloud Sync** - Implement Supabase backup, cross-device restore, and sync status UI.
   Plans:
-  - [ ] 03-01-PLAN.md — Foundation: middleware, auth callback, sync engine, transforms, queue
-  - [ ] 03-02-PLAN.md — Auth UI + Sync Nudge: auth dialog, sync nudge, UserContext integration, workout wiring
-  - [ ] 03-03-PLAN.md — Dashboard Sync UI: header, sync status popover, offline banner, dashboard integration
+  - [x] 03-01-PLAN.md — Foundation: middleware, auth callback, sync engine, transforms, queue
+  - [x] 03-02-PLAN.md — Auth UI + Sync Nudge: auth dialog, sync nudge, UserContext integration, workout wiring
+  - [x] 03-03-PLAN.md — Dashboard Sync UI: header, sync status popover, offline banner, dashboard integration
 - [ ] **Phase 4: E2E Verification** - Automate testing for critical user flows and sync reliability.
 
 ## Phase Details
@@ -75,5 +75,5 @@
 |-------|----------------|--------|-----------|
 | 1. Smart Guidance | 3/3 | Complete | 2026-02-18 |
 | 2. Visual Progress | 3/3 | Complete | 2026-02-19 |
-| 3. Cloud Sync | 0/3 | Ready to Execute | - |
+| 3. Cloud Sync | 3/3 | Complete | 2026-02-19 |
 | 4. E2E Verification | 0/3 | Not started | - |
