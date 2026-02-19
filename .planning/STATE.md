@@ -6,12 +6,12 @@
 **Current Focus**: Implementing v1 features (Recommendations, Charts, Sync).
 
 ## Current Position
-**Phase**: 4. E2E Verification (4 of 4) — **Not started**
-**Plan**: No plans created yet
-**Status**: Phase 03 verified (15/15 must-haves) — Ready to plan Phase 04
-**Progress**: [█████████░] 75% (9/12 plans complete)
+**Phase**: 4. E2E Verification (4 of 4) — **In progress**
+**Plan**: 04-01 complete (1 of ~3 in phase)
+**Status**: Phase 04 plan 01 complete — TEST-01 passing, shared helpers ready
+**Progress**: [██████████] 83% (10/12 plans complete)
 
-Last activity: 2026-02-19 - Phase 03 Cloud Sync complete and verified
+Last activity: 2026-02-19 - Completed 04-01-PLAN.md (E2E helpers + TEST-01 workout flow)
 
 ## Performance Metrics
 - **Velocity**: In progress
@@ -50,6 +50,11 @@ Last activity: 2026-02-19 - Phase 03 Cloud Sync complete and verified
 - **use-client-dashboard**: Added 'use client' to dashboard/page.tsx for useUser hook access.
 - **formatTimeAgo-inline**: formatTimeAgo implemented as pure function in sync-status-popover — no external dep needed.
 
+- **helper-no-goto**: completeOnboarding() helper does NOT call page.goto() — caller navigates first (keeps helper reusable).
+- **url-assertion-over-idb**: Asserts router.back() URL change (/dashboard) instead of raw IDB count — raw indexedDB.open() conflicts with Dexie's connection; URL change proves full save chain completed.
+- **userprovider-timing**: waitForLoadState + waitForTimeout(500) after page.goto to allow UserProvider useEffect to populate user state from IndexedDB.
+- **reuseExistingServer-false**: Set to false with comment — ensures webServer.env Supabase fake vars are injected for Wave 2 sync tests.
+
 ### Todo
 - [x] 02-01: Build weight progress line chart (CHART-01) — weight-progress-chart.tsx
 - [x] 02-02: Build weekly volume bar chart (CHART-02) + workout heatmap (CHART-03)
@@ -62,7 +67,9 @@ Last activity: 2026-02-19 - Phase 03 Cloud Sync complete and verified
 
 - [x] 03-03: Dashboard sync UI — DashboardHeader, SyncStatusPopover, OfflineBanner, dashboard page update
 
+- [x] 04-01: Extract shared E2E helpers, update Playwright config, create TEST-01 workout flow test
+
 ### Session Continuity
 - **Last session**: 2026-02-19
-- **Stopped at**: Completed 03-03-PLAN.md (dashboard sync UI)
-- **Resume file**: None (Phase 03 complete)
+- **Stopped at**: Completed 04-01-PLAN.md (E2E helpers + workout flow TEST-01)
+- **Resume file**: None
