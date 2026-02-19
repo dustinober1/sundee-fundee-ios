@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import type { User as SupabaseUser } from '@supabase/supabase-js';
+import type { User as SupabaseUser, AuthChangeEvent, Session } from '@supabase/supabase-js';
 import type { User, OneRepMax, SyncStatus } from '@/types';
 import { getUser, updateUser, getOneRepMaxesByUser, saveOneRepMax } from '@/lib/db';
 import { generateId } from '@/lib/utils';
@@ -56,6 +56,9 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
   const supabase = createClient();
 
+  // If Supabase is not configured, sync is disabled
+  const isSyncConfigured = supabase !== null;
+
   // ── Local data loading ──────────────────────────────────────────────────
 
   async function loadUserData() {
@@ -87,15 +90,24 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   // ── Auth initialization ─────────────────────────────────────────────────
 
   useEffect(() => {
+    if (!supabase) {
+      setSyncStatus('disabled');
+      return;
+    }
+
     // Get current session on mount
-    supabase.auth.getUser().then(({ data }) => {
-      setAuthUser(data.user ?? null);
-    });
+    void supabase.auth.getUser().then(
+      (result: { data: { user: SupabaseUser | null }; error: unknown }) => {
+        setAuthUser(result.data.user ?? null);
+      }
+    );
 
     // Listen for auth state changes (sign-in, sign-out, token refresh)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setAuthUser(session?.user ?? null);
-    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event: AuthChangeEvent, session: Session | null) => {
+        setAuthUser(session?.user ?? null);
+      }
+    );
 
     return () => {
       subscription.unsubscribe();
@@ -134,7 +146,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   // ── Auto-sync when coming online or authenticating ──────────────────────
 
   useEffect(() => {
-    if (!isOnline || !isAuthenticated) {
+    if (!isSyncConfigured || !isOnline || !isAuthenticated) {
       if (!isOnline) setSyncStatus('offline');
       return;
     }
@@ -150,7 +162,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         // Pull failure is non-fatal — local data still intact
       }
     })();
-  }, [isOnline, isAuthenticated, processQueue]);
+  }, [isOnline, isAuthenticated, isSyncConfigured, processQueue]);
 
   // ── Auto-pull on tab visibility change ──────────────────────────────────
 
@@ -173,6 +185,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   // ── Sync operations ─────────────────────────────────────────────────────
 
   async function syncAfterWorkout(workoutId: string) {
+    if (!isSyncConfigured) return;
     if (isOnline && isAuthenticated) {
       setSyncStatus('syncing');
       try {
@@ -192,7 +205,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   }
 
   async function pullFromCloud() {
-    if (!isOnline || !isAuthenticated) return;
+    if (!isSyncConfigured || !isOnline || !isAuthenticated) return;
     setSyncStatus('syncing');
     try {
       await pullLatest();
@@ -204,7 +217,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   }
 
   async function uploadExistingData(): Promise<boolean> {
-    if (!isOnline || !isAuthenticated) return false;
+    if (!isSyncConfigured || !isOnline || !isAuthenticated) return false;
     setSyncStatus('syncing');
     try {
       await uploadAll();
@@ -218,7 +231,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   }
 
   async function signOut() {
-    await supabase.auth.signOut();
+    if (supabase) await supabase.auth.signOut();
     clearQueue();
     setAuthUser(null);
     setSyncStatus('disabled');
