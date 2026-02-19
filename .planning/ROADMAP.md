@@ -21,8 +21,8 @@
 - [ ] **Phase 3: Cloud Sync** - Implement Supabase backup, cross-device restore, and sync status UI.
   Plans:
   - [ ] 03-01-PLAN.md — Foundation: middleware, auth callback, sync engine, transforms, queue
-  - [ ] 03-02-PLAN.md — Auth UI + Sync Nudge: auth dialog, sync nudge, useSync hook, UserContext integration
-  - [ ] 03-03-PLAN.md — Dashboard Sync UI: header, sync status popover, dashboard integration
+  - [ ] 03-02-PLAN.md — Auth UI + Sync Nudge: auth dialog, sync nudge, UserContext integration, workout wiring
+  - [ ] 03-03-PLAN.md — Dashboard Sync UI: header, sync status popover, offline banner, dashboard integration
 - [ ] **Phase 4: E2E Verification** - Automate testing for critical user flows and sync reliability.
 
 ## Phase Details
@@ -75,5 +75,5 @@
 |-------|----------------|--------|-----------|
 | 1. Smart Guidance | 3/3 | Complete | 2026-02-18 |
 | 2. Visual Progress | 3/3 | Complete | 2026-02-19 |
-| 3. Cloud Sync | 0/3 | Planning Complete | - |
+| 3. Cloud Sync | 0/3 | Ready to Execute | - |
 | 4. E2E Verification | 0/3 | Not started | - |
