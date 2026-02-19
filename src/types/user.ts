@@ -10,4 +10,4 @@ export interface User {
   syncedAt?: Date;
 }
 
-export type SyncStatus = 'synced' | 'syncing' | 'pending' | 'offline' | 'disabled';
+export type SyncStatus = 'synced' | 'syncing' | 'pending' | 'offline' | 'error' | 'disabled';
