@@ -6,12 +6,12 @@
 **Current Focus**: Implementing v1 features (Recommendations, Charts, Sync).
 
 ## Current Position
-**Phase**: 3. Cloud Sync (3 of 4) — **Ready to Execute**
-**Plan**: All 3 plans created and verified
-**Status**: Ready to execute Phase 03
-**Progress**: [█████░░░░░] 42% (5/12 plans complete, 3 plans planned)
+**Phase**: 3. Cloud Sync (3 of 4) — **In Progress**
+**Plan**: 1 of 3 in Phase 03 complete
+**Status**: In progress — 03-01 complete, 03-02 and 03-03 pending
+**Progress**: [██████░░░░] 50% (6/12 plans complete, 2 plans pending)
 
-Last activity: 2026-02-19 - Phase 03 plans created and checker-verified (3 plans, 3 waves)
+Last activity: 2026-02-19 - Completed 03-01-PLAN.md (sync infrastructure)
 
 ## Performance Metrics
 - **Velocity**: In progress
@@ -37,6 +37,11 @@ Last activity: 2026-02-19 - Phase 03 plans created and checker-verified (3 plans
 
 - **CardDescription-available**: `CardDescription` was already exported from shadcn/ui card — no fallback needed in progress page.
 
+- **singleton-supabase-client**: Module-level singleton for browser Supabase client to prevent multiple GoTrueClient instances.
+- **localstorage-offline-queue**: localStorage for pending workout IDs — survives page refreshes, works without service worker.
+- **bulkput-merge-strategy**: Dexie bulkPut (insert-or-replace) for pull — merges cloud without deleting local-only records.
+- **duck-typing-date**: Duck-type guard (`'toISOString' in value`) instead of `instanceof Date` — TypeScript strict mode compatible.
+
 ### Todo
 - [x] 02-01: Build weight progress line chart (CHART-01) — weight-progress-chart.tsx
 - [x] 02-02: Build weekly volume bar chart (CHART-02) + workout heatmap (CHART-03)
@@ -44,7 +49,9 @@ Last activity: 2026-02-19 - Phase 03 plans created and checker-verified (3 plans
 - [x] 01-02: Build recommendation engine, plateau detection, PR detection logic
 - [x] 01-03: Integrate recommendation UI, PR celebrations, plateau modals into workout flow
 
+- [x] 03-01: Build sync infrastructure — middleware, auth callback, sync engine, schema
+
 ### Session Continuity
-- **Last session**: 2026-02-18
-- **Stopped at**: Phase 3 context gathered
-- **Resume file**: .planning/phases/03-cloud-sync/03-CONTEXT.md
+- **Last session**: 2026-02-19
+- **Stopped at**: Completed 03-01-PLAN.md (sync infrastructure)
+- **Resume file**: .planning/phases/03-cloud-sync/03-02-PLAN.md
