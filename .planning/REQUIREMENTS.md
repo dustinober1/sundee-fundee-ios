@@ -15,9 +15,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Charts
 
-- [ ] **CHART-01**: User can view line chart of 1RM progress over time per exercise
-- [ ] **CHART-02**: User can view bar chart of weekly volume load
-- [ ] **CHART-03**: User can view workout frequency heatmap (GitHub style)
+- [x] **CHART-01**: User can view line chart of 1RM progress over time per exercise
+- [x] **CHART-02**: User can view bar chart of weekly volume load
+- [x] **CHART-03**: User can view workout frequency heatmap (GitHub style)
 
 ### Sync
 

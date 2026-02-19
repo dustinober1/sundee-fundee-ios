@@ -13,11 +13,11 @@
   - [x] 01-01-PLAN.md — Wire workout data persistence + DB schema v4 + Tooltip component
   - [x] 01-02-PLAN.md — Build recommendation engine, plateau detection, PR detection logic
   - [x] 01-03-PLAN.md — Integrate recommendation UI, PR celebrations, plateau modals into workout flow
-- [ ] **Phase 2: Visual Progress** - Build 1RM charts, volume visualization, and activity heatmaps.
+- [x] **Phase 2: Visual Progress** - Build 1RM charts, volume visualization, and activity heatmaps.
   Plans:
-  - [ ] 02-01-PLAN.md — Estimated 1RM line chart with exercise selector (CHART-01)
-  - [ ] 02-02-PLAN.md — Weekly volume bar chart + workout frequency heatmap (CHART-02, CHART-03)
-  - [ ] 02-03-PLAN.md — Progress page integration and end-to-end verification
+  - [x] 02-01-PLAN.md — Estimated 1RM line chart with exercise selector (CHART-01)
+  - [x] 02-02-PLAN.md — Weekly volume bar chart + workout frequency heatmap (CHART-02, CHART-03)
+  - [x] 02-03-PLAN.md — Progress page integration and end-to-end verification
 - [ ] **Phase 3: Cloud Sync** - Implement Supabase backup, cross-device restore, and sync status UI.
 - [ ] **Phase 4: E2E Verification** - Automate testing for critical user flows and sync reliability.
 
@@ -69,6 +69,6 @@
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Smart Guidance | 3/3 | Complete | 2026-02-18 |
-| 2. Visual Progress | 0/3 | Planned | - |
+| 2. Visual Progress | 3/3 | Complete | 2026-02-19 |
 | 3. Cloud Sync | 0/3 | Not started | - |
 | 4. E2E Verification | 0/3 | Not started | - |
