@@ -6,12 +6,12 @@
 **Current Focus**: Implementing v1 features (Recommendations, Charts, Sync).
 
 ## Current Position
-**Phase**: 1. Smart Guidance (1 of 4) — **PHASE COMPLETE**
-**Plan**: 01-03 complete (3 of 3 in phase)
-**Status**: Phase complete — ready for Phase 02 (Visualization)
-**Progress**: [███░░░░░░░] 25% (3/12 plans)
+**Phase**: 2. Visual Progress (2 of 4) — **In progress**
+**Plan**: 02-02 complete (2 of 3 in phase)
+**Status**: In progress
+**Progress**: [████░░░░░░] 33% (4/12 plans)
 
-Last activity: 2026-02-18 - Completed 01-03-PLAN.md (Smart Guidance UI Integration — recommendations, PR celebration, plateau modal)
+Last activity: 2026-02-19 - Completed 02-02-PLAN.md (Weekly Volume Chart + Workout Heatmap — CHART-02 + CHART-03)
 
 ## Performance Metrics
 - **Velocity**: In progress
@@ -29,18 +29,19 @@ Last activity: 2026-02-18 - Completed 01-03-PLAN.md (Smart Guidance UI Integrati
 - **Session failure definition**: ANY set with `actualReps < prescribedReps` = failed session for plateau detection purposes.
 - **Volume PR granularity**: Per single session volume (not cumulative) — avoids conflating volume growth with frequency increase.
 
-- **Weight PR priority over volume PR**: When both are detected on the same set, weight PR celebration shown — single celebration is cleaner UX.
+- **named-export-activity-calendar**: `react-activity-calendar` v3 uses named export `{ ActivityCalendar }`, not default export. Plan specified default import (incorrect for v3).
 - **Override reason trigger**: `onBlur` not `onChange` — prevents dialog flickering while user is mid-type.
 - **Plateau weight override**: Deload weight replaces recommendation entirely — user sees one number, not two conflicting values.
 - **Per-exercise 1RM lookup**: Dynamic `find()` on `oneRepMaxes` array removes hardcoded `backSquat1RM` assumption.
 
 ### Todo
-- [x] 01-01: Wire workout data persistence + DB schema v4 + Tooltip component
+- [x] 02-01: Build weight progress line chart (CHART-01) — weight-progress-chart.tsx
+- [x] 02-02: Build weekly volume bar chart (CHART-02) + workout heatmap (CHART-03)
 - [x] 01-02: Build recommendation engine, plateau detection, PR detection logic
 - [x] 01-03: Integrate recommendation UI, PR celebrations, plateau modals into workout flow
 
 ### Session Continuity
-- **Last session**: 2026-02-18
-- **Stopped at**: Completed 01-03-PLAN.md (Phase 01 complete)
-- **Resume file**: None — start Phase 02
+- **Last session**: 2026-02-19
+- **Stopped at**: Completed 02-02-PLAN.md (CHART-02 + CHART-03)
+- **Resume file**: None — continue with 02-03
 
