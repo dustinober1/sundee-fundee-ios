@@ -6,12 +6,12 @@
 **Current Focus**: Implementing v1 features (Recommendations, Charts, Sync).
 
 ## Current Position
-**Phase**: 4. E2E Verification (4 of 4) — **In progress**
-**Plan**: 04-01 complete (1 of ~3 in phase)
-**Status**: Phase 04 plan 01 complete — TEST-01 passing, shared helpers ready
-**Progress**: [██████████] 83% (10/12 plans complete)
+**Phase**: 4. E2E Verification (4 of 4) — **Complete**
+**Plan**: 04-02 complete (2 of 2 in phase)
+**Status**: Phase 04 complete — TEST-01, TEST-02, TEST-03 all passing (11/11 E2E tests)
+**Progress**: [████████████] 100% (12/12 plans complete)
 
-Last activity: 2026-02-19 - Completed 04-01-PLAN.md (E2E helpers + TEST-01 workout flow)
+Last activity: 2026-02-19 - Completed 04-02-PLAN.md (PR celebration + sync verification tests)
 
 ## Performance Metrics
 - **Velocity**: In progress
@@ -67,9 +67,13 @@ Last activity: 2026-02-19 - Completed 04-01-PLAN.md (E2E helpers + TEST-01 worko
 
 - [x] 03-03: Dashboard sync UI — DashboardHeader, SyncStatusPopover, OfflineBanner, dashboard page update
 
-- [x] 04-01: Extract shared E2E helpers, update Playwright config, create TEST-01 workout flow test
+- **versionless-idb-open**: Open IndexedDB without a version number in page.evaluate — Dexie stores verno*10 as IDB version (Dexie v4 = IDB v40); specifying version 4 triggers "lower version" error.
+- **seed-then-reload**: Reload page after seeding IDB so UserContext re-reads oneRepMaxes from Dexie — in-memory context from onboarding has [], reload re-hydrates it.
+- **unauthenticated-sync-queue**: Verify sync wiring via localStorage queue in unauthenticated state — deterministic, no mock timing needed.
+
+- [x] 04-02: PR celebration E2E test (TEST-02) + sync verification E2E test (TEST-03)
 
 ### Session Continuity
 - **Last session**: 2026-02-19
-- **Stopped at**: Completed 04-01-PLAN.md (E2E helpers + workout flow TEST-01)
+- **Stopped at**: Completed 04-02-PLAN.md (PR celebration + sync verification E2E tests) — Phase 04 complete
 - **Resume file**: None
