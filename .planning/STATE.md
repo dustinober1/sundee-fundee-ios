@@ -7,11 +7,11 @@
 
 ## Current Position
 **Phase**: 3. Cloud Sync (3 of 4) — **In Progress**
-**Plan**: 1 of 3 in Phase 03 complete
-**Status**: In progress — 03-01 complete, 03-02 and 03-03 pending
-**Progress**: [██████░░░░] 50% (6/12 plans complete, 2 plans pending)
+**Plan**: 2 of 3 in Phase 03 complete
+**Status**: In progress — 03-01 and 03-02 complete, 03-03 pending
+**Progress**: [███████░░░] 58% (7/12 plans complete, 1 plan pending in phase)
 
-Last activity: 2026-02-19 - Completed 03-01-PLAN.md (sync infrastructure)
+Last activity: 2026-02-19 - Completed 03-02-PLAN.md (auth UI + sync integration)
 
 ## Performance Metrics
 - **Velocity**: In progress
@@ -42,6 +42,10 @@ Last activity: 2026-02-19 - Completed 03-01-PLAN.md (sync infrastructure)
 - **bulkput-merge-strategy**: Dexie bulkPut (insert-or-replace) for pull — merges cloud without deleting local-only records.
 - **duck-typing-date**: Duck-type guard (`'toISOString' in value`) instead of `instanceof Date` — TypeScript strict mode compatible.
 
+- **null-supabase-client**: `createClient()` returns null when env vars not set — prevents @supabase/ssr throw during Next.js prerender; app works offline-only.
+- **sync-configured-flag**: `isSyncConfigured = supabase !== null` gates all sync/auth ops in UserContext.
+- **error-status-after-retry**: `setSyncStatus('error')` after withRetry exhaustion — distinguishes from pending (offline).
+
 ### Todo
 - [x] 02-01: Build weight progress line chart (CHART-01) — weight-progress-chart.tsx
 - [x] 02-02: Build weekly volume bar chart (CHART-02) + workout heatmap (CHART-03)
@@ -50,8 +54,9 @@ Last activity: 2026-02-19 - Completed 03-01-PLAN.md (sync infrastructure)
 - [x] 01-03: Integrate recommendation UI, PR celebrations, plateau modals into workout flow
 
 - [x] 03-01: Build sync infrastructure — middleware, auth callback, sync engine, schema
+- [x] 03-02: Auth UI + sync integration — AuthDialog, SyncNudge, UserContext auth state
 
 ### Session Continuity
 - **Last session**: 2026-02-19
-- **Stopped at**: Completed 03-01-PLAN.md (sync infrastructure)
-- **Resume file**: .planning/phases/03-cloud-sync/03-02-PLAN.md
+- **Stopped at**: Completed 03-02-PLAN.md (auth UI + sync integration)
+- **Resume file**: .planning/phases/03-cloud-sync/03-03-PLAN.md
