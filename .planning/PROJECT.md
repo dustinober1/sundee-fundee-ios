@@ -14,6 +14,15 @@ Users can reliably track their strength training progress offline and receive ac
 **Status:** Complete. All 12 v1 requirements validated, 11 E2E tests passing.
 **Tech:** Next.js 16 (App Router), React 19, shadcn/ui, Tailwind CSS, Framer Motion, Dexie.js v4, Supabase (optional), Vitest, Playwright — ~8,452 LOC TypeScript.
 
+## Current Milestone: v1.1 Sundee-Fundee
+
+**Goal:** Rebrand app to "Sundee-Fundee", enrich the UI with Lucide icons, and ship as an installable PWA for iOS and Android.
+
+**Target features:**
+- Rename app to Sundee-Fundee (name, metadata, app icon)
+- Icon enrichment across all UI pages using Lucide React
+- Progressive Web App setup: manifest, service worker, install prompt, multi-size icons
+
 ## Requirements
 
 ### Validated
@@ -82,4 +91,4 @@ Users can reliably track their strength training progress offline and receive ac
 | URL assertion over raw IDB count in E2E | Dexie open connection conflicts with raw indexedDB.open() | ✓ Good |
 
 ---
-*Last updated: 2026-02-19 after v1.0 milestone*
+*Last updated: 2026-02-19 — v1.1 milestone started*
