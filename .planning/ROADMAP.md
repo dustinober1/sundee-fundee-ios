@@ -23,10 +23,10 @@
   - [x] 03-01-PLAN.md — Foundation: middleware, auth callback, sync engine, transforms, queue
   - [x] 03-02-PLAN.md — Auth UI + Sync Nudge: auth dialog, sync nudge, UserContext integration, workout wiring
   - [x] 03-03-PLAN.md — Dashboard Sync UI: header, sync status popover, offline banner, dashboard integration
-- [ ] **Phase 4: E2E Verification** - Automate testing for critical user flows and sync reliability.
+- [x] **Phase 4: E2E Verification** - Automate testing for critical user flows and sync reliability.
   Plans:
-  - [ ] 04-01-PLAN.md — Test infrastructure (shared helpers, Playwright config) + full workout flow E2E test (TEST-01)
-  - [ ] 04-02-PLAN.md — PR celebration E2E test (TEST-02) + sync verification E2E test (TEST-03)
+  - [x] 04-01-PLAN.md — Test infrastructure (shared helpers, Playwright config) + full workout flow E2E test (TEST-01)
+  - [x] 04-02-PLAN.md — PR celebration E2E test (TEST-02) + sync verification E2E test (TEST-03)
 
 ## Phase Details
 
@@ -80,4 +80,4 @@
 | 1. Smart Guidance | 3/3 | Complete | 2026-02-18 |
 | 2. Visual Progress | 3/3 | Complete | 2026-02-19 |
 | 3. Cloud Sync | 3/3 | Complete | 2026-02-19 |
-| 4. E2E Verification | 0/2 | Not started | - |
+| 4. E2E Verification | 2/2 | Complete | 2026-02-19 |

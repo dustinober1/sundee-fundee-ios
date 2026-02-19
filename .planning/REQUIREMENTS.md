@@ -27,9 +27,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Testing
 
-- [ ] **TEST-01**: E2E test verifies user can complete full workout flow
-- [ ] **TEST-02**: E2E test verifies PR celebration triggers correctly
-- [ ] **TEST-03**: E2E test verifies data syncs to remote mock
+- [x] **TEST-01**: E2E test verifies user can complete full workout flow
+- [x] **TEST-02**: E2E test verifies PR celebration triggers correctly
+- [x] **TEST-03**: E2E test verifies data syncs to remote mock
 
 ## v2 Requirements
 
