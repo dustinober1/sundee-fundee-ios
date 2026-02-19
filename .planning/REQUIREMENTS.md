@@ -57,12 +57,20 @@
 
 ## Traceability
 
-*(Filled by roadmapper)*
-
-| Requirement | Phase |
-|------------|-------|
-| BRAND-01, BRAND-02, BRAND-03 | — |
-| PWA-01, PWA-02, PWA-04, PWA-05, PWA-06 | — |
-| PWA-03 | — |
-| INSTALL-01, INSTALL-02 | — |
-| ICON-01, ICON-02, ICON-03, ICON-04 | — |
+| Requirement | Phase | Status |
+|------------|-------|--------|
+| BRAND-01 | Phase 5 — Rebrand | Pending |
+| BRAND-02 | Phase 5 — Rebrand | Pending |
+| BRAND-03 | Phase 5 — Rebrand | Pending |
+| PWA-01 | Phase 6 — PWA Foundation | Pending |
+| PWA-02 | Phase 6 — PWA Foundation | Pending |
+| PWA-04 | Phase 6 — PWA Foundation | Pending |
+| PWA-05 | Phase 6 — PWA Foundation | Pending |
+| PWA-06 | Phase 6 — PWA Foundation | Pending |
+| PWA-03 | Phase 7 — Service Worker | Pending |
+| INSTALL-01 | Phase 8 — Install + Icon Polish | Pending |
+| INSTALL-02 | Phase 8 — Install + Icon Polish | Pending |
+| ICON-01 | Phase 8 — Install + Icon Polish | Pending |
+| ICON-02 | Phase 8 — Install + Icon Polish | Pending |
+| ICON-03 | Phase 8 — Install + Icon Polish | Pending |
+| ICON-04 | Phase 8 — Install + Icon Polish | Pending |
