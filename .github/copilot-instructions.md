@@ -1,81 +1,89 @@
 # Copilot instructions — Strength (concise agent guide)
 
-Purpose
+Actionable guide for AI coding agents working on the Sundee‑Fundee workout app. Before making changes, browse relevant files and tests for patterns.
 
-A short, actionable guide for AI coding agents working on the Strength app. Reference examples in the repo before changing conventions.
+## 🛠 Quick commands (exact scripts)
 
-## Quick commands (exact scripts)
+```bash
+npm install                # install dependencies
+npm run dev                # start development server
+npm run build              # build production bundle
+npm run start              # production preview
+npm run lint               # run ESLint (pre‑commit hook)
+npm run test               # Vitest watch mode
+npm run test:run           # Vitest once (CI)
+npm run test:e2e           # Playwright end‑to‑end tests
+``` 
 
-- Install: `npm install`
-- Dev server: `npm run dev`
-- Build: `npm run build`
-- Production preview: `npm run start`
-- Lint: `npm run lint`
-- Unit tests (watch): `npm run test`
-- Unit tests (CI / run once): `npm run test:run`
-- E2E tests: `npm run test:e2e`
+## 🧱 Project snapshot
 
-## Project snapshot
+- **Next.js 16** (App Router) with **React 19** and **TypeScript**
+- **Local‑first** data architecture: IndexedDB via Dexie, optional Supabase sync
+- UI built with Tailwind CSS & [shadcn/ui]; animations in `src/components/animations`
+- Key directories: `src/contexts/`, `src/lib/db/dexie.ts`, `src/data/programs/`, `src/lib/calculations.ts`
 
-- Framework: **Next.js 16 (App Router)**, React 19, TypeScript
-- Data: **Local-first** (IndexedDB via Dexie) with optional Supabase sync
-- UI: Tailwind + `shadcn/ui`; animations in `src/components/animations`
-- Important files: `src/contexts/`, `src/lib/db/dexie.ts`, `src/data/programs/`, `src/lib/calculations.ts`
+## 💅 Code style & conventions
 
-## Code style & conventions 🔧
+- TypeScript‑first; use `@/` imports (configured in `tsconfig.json`).
+- Components: `PascalCase`; utility/data files: `kebab-case`.
+- Context providers under `src/contexts/` (User, Exercise, RestTimer). Use wrapper helpers in tests.
+- Tests under `tests/` with subfolders `unit/`, `integration/`, `e2e/`.
+- `tests/setup.ts` must import `fake-indexeddb/auto` for Dexie tests.
+- Always run `npm run lint` and `npm run test:run` before committing.
+- Conventional commit prefixes required (`feat:`, `fix:`, `docs:`).
+- **Warning:** running `npx shadcn@latest init` overwrites `src/lib/utils.ts`; re‑apply custom helpers afterwards.
 
-- TypeScript-first. Use `@/` imports (see `tsconfig.json`).
-- Components: `PascalCase`; data files: `kebab-case`; contexts live in `src/contexts/`.
-- Tests live under `tests/` (unit, integration, e2e). Use `tests/setup.ts` for DB mocks.
-- Run `npm run lint` + `npm run test:run` before opening PRs. Follow conventional commit prefixes (`feat:`, `fix:`, `docs:`).
-- shadcn note: `npx shadcn@latest init` overwrites `src/lib/utils.ts` — reapply custom helpers after running it.
+## 🏗 Architecture overview
 
-## Architecture (where to start) 📂
+1. **UI layer** – React components in `src/components/` and routes under `src/app/`.
+2. **State layer** – React Contexts (`UserContext`, `ExerciseContext`, `RestTimerContext`).
+3. **Data layer** – Dexie database defined in `src/lib/db/dexie.ts`; static programs live in `src/data/programs/*.json`.
+4. **Business logic** – calculation helpers in `src/lib/calculations.ts` and `src/lib/cycle-calculations.ts`.
 
-- UI → React components in `src/components/` and routes under `src/app/`.
-- State → React Contexts (`src/contexts/`) — UserContext, ExerciseContext, RestTimerContext.
-- Data → Dexie DB (`src/lib/db/dexie.ts`) is the authoritative local store; static programs live in `src/data/programs/`.
-- Business logic → `src/lib/calculations.ts` and `src/lib/cycle-calculations.ts`.
+> Use these files as entry points when exploring new features.
 
-## Build & test details ✅
+## 🔍 Testing strategy
 
-- Vitest for unit/integration (`tests/unit/`, `tests/integration/`).
-- `tests/setup.ts` imports `fake-indexeddb/auto` — required for Dexie tests under jsdom.
-- Playwright E2E lives in `tests/e2e/`; `playwright.config.ts` uses a webServer and mobile emulation (iPhone 13).
-- Run a single test: `npx vitest run tests/unit/your.test.ts` or `npx playwright test tests/e2e/your.spec.ts`.
+- **Unit tests** (Vitest) cover calculations, hooks, db logic, data mutations.
+- **Integration tests** for contexts and components (React Testing Library).
+- **E2E tests** (Playwright) cover critical user flows with mobile emulation (iPhone 13).
+- To run a specific test: `npx vitest run tests/unit/your.test.ts` or `npx playwright test tests/e2e/your.spec.ts`.
 
-## Project-specific rules (do this, not aspirational notes) 📋
+## 📋 Project‑specific rules
 
-- Local-first, sync-later: write to Dexie, queue sync to Supabase.
-- Program JSON schema is authoritative — add/modify programs in `src/data/programs/*.json` following existing examples.
-- When changing DB schema, update `src/lib/db/dexie.ts` and add migration tests.
-- Add/adjust unit tests for all behavior changes; update `tests/setup.ts` only if required by test infra.
+- Local‑first, sync‑later. Write to Dexie first; queue changes for Supabase.
+- Program JSON schema is authoritative. Add/modify programs in `src/data/programs/*.json` and update related tests.
+- When modifying DB schema, update `src/lib/db/dexie.ts` **and** add migration tests under `tests/unit/db/`.
+- All logical changes require corresponding unit tests; update `tests/setup.ts` only if new test infrastructure is needed.
+- Preserve mobile‑first and one‑handed design in UI work (see `CLAUDE.md` for UX rules if needed).
 
-## Integration & environment 🔌
+## 🔗 Integration & environment
 
-- Supabase (optional): env vars `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` (see `src/lib/supabase/`).
-- UI/analytics: `recharts` for charts and `canvas-confetti` for PR celebrations.
+- Supabase credentials via `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` (see `src/lib/supabase/`).
+- Additional libs: `recharts` for charts, `canvas-confetti` for celebration effects.
 
-## Security & sensitive areas ⚠️
+## 🔐 Security & sensitive areas
 
-- Never commit secrets or `.env*` files. Treat server-side keys with care.
-- IndexedDB quota and Dexie transaction errors are handled in the DB layer — prefer retry/backoff logic when adding DB code.
+- Never commit secrets or `.env*` files. Handle server keys carefully.
+- IndexedDB quotas and Dexie transaction errors must be caught in the DB layer with retry/backoff.
 
-## How an AI agent should operate (practical) 🤖
+## 🤖 How an AI agent should operate
 
-1. Make a single, focused change + tests. Keep PRs small.
-2. Run `npm run lint` and `npm run test:run` locally (or via CI).
-3. Reference `CLAUDE.md` and `.planning/codebase/CONVENTIONS.md` for architecture and conventions.
-4. For DB or program changes, add migration/unit tests under `tests/unit/db` or `tests/unit/programs`.
+1. Make a focused, atomic change and add/modify tests.
+2. Run lint and tests locally; ensure CI passes.
+3. Consult `CLAUDE.md` or `.planning/codebase/CONVENTIONS.md` for additional context.
+4. For DB or program updates, write migration/unit tests in the appropriate folder.
 
-## Where to look first (entry points)
+## 📌 Where to look first
 
-- `src/contexts/` — context providers and hooks
-- `src/lib/db/dexie.ts` — DB schema & migrations
-- `src/lib/calculations.ts` — core logic
-- `src/data/programs/` — program definitions
-- `tests/` — test examples to copy patterns from
+- `src/contexts/` – context providers & hooks
+- `src/lib/db/dexie.ts` – database schema & migrations
+- `src/lib/calculations.ts` – core numeric logic
+- `src/data/programs/` – static program definitions
+- `tests/` – copy patterns from existing test files
 
 ---
 
-If any section is incomplete or you want more detail (tests, DB migrations, UI conventions), tell me which area and I will expand it.
+> ⚠️ Firebase CLI is installed globally in this workspace.
+
+If any section needs clarification (e.g. test patterns, DB migrations, UI conventions), ask for feedback before proceeding.
