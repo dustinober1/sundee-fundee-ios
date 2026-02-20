@@ -20,3 +20,25 @@ Full v1 feature set for the Strength workout tracking app, built on the existing
 
 - Roadmap: `.planning/milestones/v1.0-ROADMAP.md`
 - Requirements: `.planning/milestones/v1.0-REQUIREMENTS.md`
+
+## v1.1 Sundee-Fundee — ✅ Shipped 2026-02-20
+
+**Phases:** 5-8 | **Plans:** 7 | **Tasks:** 15 | **Duration:** 2 days (2026-02-19 → 2026-02-20)
+**Stats:** 67 files changed, +7,576/-394 lines, 11/11 E2E passing
+
+### Delivered
+
+Rebranded Strength to Sundee-Fundee, shipped installable PWA capabilities (manifest/icons/service worker wiring), added Android/iOS install flows, and completed Lucide icon enrichment across major UI surfaces.
+
+### Key Accomplishments
+
+1. **Brand Migration** — App-wide user-facing name rebrand shipped without functional regressions.
+2. **PWA Foundation** — Manifest route + generated icon set + iOS PWA metadata delivered.
+3. **Service Worker Infrastructure** — Serwist pipeline added with Supabase `NetworkOnly` protections and offline fallback route.
+4. **Install UX** — Deferred Android `beforeinstallprompt` flow and iOS Add-to-Home-Screen modal integrated into dashboard.
+5. **Icon Enrichment** — Dashboard, workout, and bottom navigation now use a consistent Lucide semantic icon set.
+
+### Archive
+
+- Roadmap: `.planning/milestones/v1.1-ROADMAP.md`
+- Requirements: `.planning/milestones/v1.1-REQUIREMENTS.md`

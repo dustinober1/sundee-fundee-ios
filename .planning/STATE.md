@@ -1,56 +1,46 @@
 # Project State
 
 ## Reference
-See: .planning/PROJECT.md (updated 2026-02-19)
+See: .planning/PROJECT.md (updated 2026-02-20)
 
 **Core value:** Users can reliably track their strength training progress offline and receive actionable insights to improve performance.
-**Current focus:** Milestone v1.1 — Sundee-Fundee rebrand + PWA + Icon Enrichment
+**Current focus:** Planning next milestone (v1.2)
 
 ## Current Position
-**Milestone**: v1.1 Sundee-Fundee
-**Phase**: 8 — Install Experience + Icon Enrichment (complete)
-**Plan**: 2 of 2 complete
-**Status**: Phase 8 complete — Milestone v1.1 fully delivered
+**Milestone**: v1.1 Sundee-Fundee (shipped)
+**Phase**: Milestone archival complete
+**Plan**: 7 of 7 plans complete
+**Status**: Roadmap + requirements archived, tag pending push decision
 
 ```
 v1.1 Progress: [█] [██] [██] [██]   7/7 plans
                Ph5  Ph6  Ph7   Ph8
 ```
 
-**Last activity**: 2026-02-20 — Completed 08-02 and phase verification passed (12/12 must-haves; all 11 E2E pass).
+**Last activity**: 2026-02-20 — Archived v1.1 milestone artifacts and prepared next-milestone handoff.
 
 ## Performance Metrics
-- **Velocity**: v1.0 shipped in 4 days (2026-02-15 → 2026-02-19)
+- **Velocity**: v1.1 shipped in 2 days (2026-02-19 → 2026-02-20)
 - **Blockers**: None
-- **Open questions before Phase 6**: Source SVG/PNG for app icon; confirm `short_name` (≤12 chars — "Sundee-Fundee" is 13); confirm `start_url` auth behavior (`/dashboard` vs `/`)
+- **Next Decision**: Define v1.2 scope and requirements via `/gsd-new-milestone`
 
 ## Accumulated Context
 
 ### Key Decisions (carried forward)
-- Local-first Architecture: Ensures app works reliably in gyms with poor connectivity
-- Dexie.js for Storage: Robust wrapper for IndexedDB with good TypeScript support
-- Supabase for Sync: Easy integration, reliable auth/db solution for backup
-- null Supabase client when env vars missing: Prevents prerender throw; app works offline-only
-- localstorage offline queue: Survives page refreshes; no service worker needed (until PWA)
+- Local-first architecture with Dexie as source of truth
+- Optional Supabase sync with offline queue and explicit status indicators
+- `super('StrengthApp')` in Dexie remains permanently frozen
+- `@serwist/turbopack` used for service worker under Next.js 16
+- Supabase routes in SW are `NetworkOnly` to avoid stale auth/data
+- Playwright uses `serviceWorkers: 'block'` for deterministic E2E runs
 
-### v1.1 Critical Decisions
-- `@serwist/turbopack` chosen (not `@serwist/next`) — only valid option for Next.js 16 Turbopack default
-- `super('StrengthApp')` in `dexie.ts` is **permanently frozen** — changing it silently destroys all user data
-- `serviceWorkers: 'block'` added to `playwright.config.ts` in Phase 6 (before SW exists) — guards all 11 tests
-- Supabase routes configured as `NetworkOnly` in SW — auth-gated responses must never be cached
-- `controllerchange` handled in layout to prevent mid-workout data loss on SW update
-- `Activity` icon (not `ClipboardPlus`) used for bottom nav Workout tab — fitness-semantic, distinct from Dumbbell (Programs tab)
-
-### v1.1 Rebrand Scope Boundaries
-| Change ✓ | Freeze ✗ |
-|----------|---------|
-| `layout.tsx` title/description | `super('StrengthApp')` in `dexie.ts` |
-| `package.json` name field | `PrimaryGoal` union value `'strength'` (fitness term) |
-| Onboarding welcome text | Domain function names (`analyzeStrengthPatterns`, etc.) |
-| `manifest.ts` name/short_name | `<SelectItem value="strength">Build Strength</SelectItem>` |
-| `README.md`, `CLAUDE.md`, `.planning/` docs | E2E tests referencing `'StrengthApp'` IDB name |
+### v1.1 Delivered Capabilities
+- App-wide Sundee-Fundee rebrand (user-facing + project metadata)
+- PWA manifest + icon pipeline + service worker + offline fallback page
+- Android install prompt + iOS Add-to-Home-Screen guidance modal
+- Lucide icon enrichment across dashboard, workout, and navigation
 
 ## Session Continuity
-- **Last session**: 2026-02-20 — Completed 08-02 (ICON-01–04 icon enrichment across 6 components)
-- **Stopped at**: Completed 08-02-SUMMARY.md
-- **Resume with**: Milestone v1.1 complete — next milestone planning or Lighthouse PWA audit
+- **Last session**: 2026-02-20 — Completed milestone archival workflow for v1.1
+- **Stopped at**: Milestone complete and tagged
+- **Resume with**: `/gsd-new-milestone` to define v1.2 requirements and roadmap
