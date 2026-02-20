@@ -3,7 +3,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, ArrowRight } from 'lucide-react';
+import { Calendar, ArrowRight, Flame, BarChart2 } from 'lucide-react';
 import { PhaseIndicator } from '@/components/cycle/phase-indicator';
 import { useCycle } from '@/contexts/cycle-context';
 import { useUser } from '@/contexts/user-context';
@@ -19,7 +19,10 @@ export function CycleWidget() {
     return (
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-lg">Cycle Tracking</CardTitle>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Flame className="h-5 w-5 text-orange-500" />
+            Cycle Tracking
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center py-6 text-muted-foreground">
@@ -37,7 +40,10 @@ export function CycleWidget() {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-lg">Cycle Phase</CardTitle>
+        <CardTitle className="text-lg flex items-center gap-2">
+          <Flame className="h-5 w-5 text-orange-500" />
+          Cycle Phase
+        </CardTitle>
         <Link href="/cycle" className="text-sm text-primary hover:underline flex items-center">
           View <ArrowRight className="ml-1 h-4 w-4" />
         </Link>
@@ -48,7 +54,10 @@ export function CycleWidget() {
 
           {currentRecommendation && (
             <div className="p-3 bg-accent rounded-md">
-              <h4 className="font-medium text-sm mb-1">Today&apos;s Focus</h4>
+              <h4 className="font-medium text-sm mb-1 flex items-center gap-1.5">
+                <BarChart2 className="h-4 w-4 text-muted-foreground" />
+                Today&apos;s Focus
+              </h4>
               <p className="text-xs text-muted-foreground">
                 {currentRecommendation.trainingFocus}
               </p>

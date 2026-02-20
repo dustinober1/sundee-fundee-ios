@@ -2,6 +2,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Trophy } from 'lucide-react';
 import { useUser } from '@/contexts/user-context';
 import { useExercise } from '@/contexts/exercise-context';
 import { getActiveCycles } from '@/lib/db';
@@ -24,7 +25,10 @@ export function ActiveCyclesCard() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Active Programs</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Trophy className="h-5 w-5 text-yellow-500" />
+            Active Programs
+          </CardTitle>
           <CardDescription>No active programs</CardDescription>
         </CardHeader>
         <CardContent>
@@ -39,7 +43,10 @@ export function ActiveCyclesCard() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Active Programs</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          <Trophy className="h-5 w-5 text-yellow-500" />
+          Active Programs
+        </CardTitle>
         <CardDescription>{activeCycles.length} program{activeCycles.length > 1 ? 's' : ''} in progress</CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">

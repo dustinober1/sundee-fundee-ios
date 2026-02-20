@@ -2,10 +2,11 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { RestTimerPill } from '@/components/rest-timer/RestTimerPill';
+import type { TimerStatus } from '@/types/rest-timer';
 
 // Mock the context hook
 const mockContext = {
-  status: 'running' as const,
+  status: 'running' as TimerStatus,
   remainingSeconds: 90,
   durationSeconds: 180,
   exerciseName: 'Back Squat',
