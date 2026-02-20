@@ -1,7 +1,9 @@
 import 'package:connectivity_plus_platform_interface/connectivity_plus_platform_interface.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
+import 'package:sundee_fundee/shared/providers/database_provider.dart';
 import '../helpers/app_helper.dart';
 import '../helpers/fake_connectivity.dart';
 
@@ -53,10 +55,18 @@ void main() {
         (tester) async {
       fakeConnectivity.goOffline();
       await pumpApp(tester);
-      // Complete onboarding while offline — data should save to Drift
       await completeOnboarding(tester);
-      // Should reach dashboard even while offline (local-first)
       expect(find.byKey(const Key('dashboard-screen')), findsOneWidget);
+
+      // Verify Drift persistence: query the DB for the user row
+      final container = ProviderScope.containerOf(
+        tester.element(find.byKey(const Key('dashboard-screen'))),
+      );
+      final db = container.read(databaseProvider);
+      final users = await db.select(db.users).get();
+      expect(users, isNotEmpty, reason: 'Onboarding should persist user to Drift');
+      expect(users.first.name, 'Test User');
+      expect(users.first.experienceLevel, 'beginner');
     });
   });
 }
