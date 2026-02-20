@@ -84,34 +84,34 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PLAT-01 | TBD | Pending |
-| PLAT-02 | TBD | Pending |
-| ONBD-01 | TBD | Pending |
-| ONBD-02 | TBD | Pending |
-| PROG-01 | TBD | Pending |
-| PROG-02 | TBD | Pending |
-| WORK-01 | TBD | Pending |
-| WORK-02 | TBD | Pending |
-| WORK-03 | TBD | Pending |
-| RECO-01 | TBD | Pending |
-| RECO-02 | TBD | Pending |
-| CHRT-01 | TBD | Pending |
-| CHRT-02 | TBD | Pending |
-| SYNC-01 | TBD | Pending |
-| SYNC-02 | TBD | Pending |
-| SYNC-03 | TBD | Pending |
-| DATA-01 | TBD | Pending |
-| DPLY-01 | TBD | Pending |
-| DPLY-02 | TBD | Pending |
-| DPLY-03 | TBD | Pending |
-| QUAL-01 | TBD | Pending |
-| QUAL-02 | TBD | Pending |
+| PLAT-01 | Phase 9 | Pending |
+| PLAT-02 | Phase 14 | Pending |
+| ONBD-01 | Phase 10 | Pending |
+| ONBD-02 | Phase 10 | Pending |
+| PROG-01 | Phase 10 | Pending |
+| PROG-02 | Phase 10 | Pending |
+| WORK-01 | Phase 11 | Pending |
+| WORK-02 | Phase 11 | Pending |
+| WORK-03 | Phase 11 | Pending |
+| RECO-01 | Phase 12 | Pending |
+| RECO-02 | Phase 12 | Pending |
+| CHRT-01 | Phase 12 | Pending |
+| CHRT-02 | Phase 12 | Pending |
+| SYNC-01 | Phase 13 | Pending |
+| SYNC-02 | Phase 13 | Pending |
+| SYNC-03 | Phase 13 | Pending |
+| DATA-01 | Phase 14 | Pending |
+| DPLY-01 | Phase 14 | Pending |
+| DPLY-02 | Phase 14 | Pending |
+| DPLY-03 | Phase 14 | Pending |
+| QUAL-01 | Phase 9 | Pending |
+| QUAL-02 | Phase 9 | Pending |
 
 **Coverage:**
 - v2.0 requirements: 22 total
-- Mapped to phases: 0
-- Unmapped: 22 ⚠️
+- Mapped to phases: 22
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-20*
-*Last updated: 2026-02-20 after v2.0 milestone scoping approval*
+*Last updated: 2026-02-20 after roadmap phase mapping*
