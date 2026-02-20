@@ -8,19 +8,19 @@ See: .planning/PROJECT.md (updated 2026-02-20)
 
 ## Current Position
 **Milestone**: v2.0 Flutter Full Rewrite (in progress)
-**Phase**: 9 of 14 (Cross-Platform Foundation + Parity Gates)
-**Plan**: 2 of 3
-**Status**: In progress
+**Phase**: 9 of 14 (Cross-Platform Foundation + Parity Gates) — **COMPLETE**
+**Plan**: 3 of 3
+**Status**: Phase 9 complete; ready for Phase 10
 
 ```
 v2.0 Progress: [█] [ ] [ ] [ ] [ ] [ ]
               Ph9 Ph10 Ph11 Ph12 Ph13 Ph14
 
-Phase 9 Plans: [█] [█] [ ]
+Phase 9 Plans: [█] [█] [█]
                P1  P2  P3
 ```
 
-**Last activity**: 2026-02-20 — Completed 09-02-PLAN.md (app shell: Drift + Riverpod + GoRouter + screens)
+**Last activity**: 2026-02-20 — Completed 09-03-PLAN.md (cross-platform parity gate tests: PLAT-01 + QUAL-01 + QUAL-02, verified web + android + ios)
 
 ## Performance Metrics
 - **Velocity**: Baseline reset for v2.0 planning cycle
@@ -40,6 +40,10 @@ Phase 9 Plans: [█] [█] [ ]
 - integration_test uses `sdk: flutter` form (not deprecated pub.dev package)
 - pubspec.lock committed in flutter_app/ (application repo convention)
 - Drift web assets (sqlite3.wasm, drift_worker.js) committed to flutter_app/web/
+- Radio<String> deprecated in Flutter 3.32+; use Icon-based selection instead
+- FakeConnectivityPlatform must extend ConnectivityPlatform with MockPlatformInterfaceMixin (token check)
+- Parity gate tests use platform-agnostic Key selectors only (no CupertinoButton/MaterialButton finders)
+- all_tests.dart aggregator pattern: single flutter drive target, per-gate files remain independently runnable
 
 ### Roadmap Evolution
 - Milestone v2.0 inserted after Phase 8 using integer continuation: new phases 9-14.
@@ -52,6 +56,6 @@ Phase 9 Plans: [█] [█] [ ]
 - Lucide icon enrichment across dashboard, workout, and navigation
 
 ## Session Continuity
-- **Last session**: 2026-02-20 — Completed 09-02 Flutter app shell (Drift + Riverpod + GoRouter + screens)
-- **Stopped at**: 09-02-PLAN.md complete; 09-03 ready to execute
-- **Resume with**: `/gsd-execute-phase` on `09-03-PLAN.md`
+- **Last session**: 2026-02-20 — Completed 09-03 parity gate tests (web + android + ios approved)
+- **Stopped at**: 09-03-PLAN.md complete; Phase 9 fully complete
+- **Resume with**: `/gsd-execute-phase` on Phase 10
