@@ -9,18 +9,18 @@ See: .planning/PROJECT.md (updated 2026-02-20)
 ## Current Position
 **Milestone**: v2.0 Flutter Full Rewrite (in progress)
 **Phase**: 9 of 14 (Cross-Platform Foundation + Parity Gates)
-**Plan**: 1 of 3
+**Plan**: 2 of 3
 **Status**: In progress
 
 ```
 v2.0 Progress: [█] [ ] [ ] [ ] [ ] [ ]
               Ph9 Ph10 Ph11 Ph12 Ph13 Ph14
 
-Phase 9 Plans: [█] [ ] [ ]
+Phase 9 Plans: [█] [█] [ ]
                P1  P2  P3
 ```
 
-**Last activity**: 2026-02-20 — Completed 09-01-PLAN.md (Flutter scaffold + Drift web assets)
+**Last activity**: 2026-02-20 — Completed 09-02-PLAN.md (app shell: Drift + Riverpod + GoRouter + screens)
 
 ## Performance Metrics
 - **Velocity**: Baseline reset for v2.0 planning cycle
@@ -52,6 +52,6 @@ Phase 9 Plans: [█] [ ] [ ]
 - Lucide icon enrichment across dashboard, workout, and navigation
 
 ## Session Continuity
-- **Last session**: 2026-02-20 — Completed 09-01 Flutter scaffold + Drift web assets
-- **Stopped at**: 09-01-PLAN.md complete; 09-02 ready to execute
-- **Resume with**: `/gsd-execute-phase` on `09-02-PLAN.md`
+- **Last session**: 2026-02-20 — Completed 09-02 Flutter app shell (Drift + Riverpod + GoRouter + screens)
+- **Stopped at**: 09-02-PLAN.md complete; 09-03 ready to execute
+- **Resume with**: `/gsd-execute-phase` on `09-03-PLAN.md`
