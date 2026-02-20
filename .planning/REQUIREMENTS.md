@@ -62,11 +62,11 @@
 | BRAND-01 | Phase 5 — Rebrand | Complete |
 | BRAND-02 | Phase 5 — Rebrand | Complete |
 | BRAND-03 | Phase 5 — Rebrand | Complete |
-| PWA-01 | Phase 6 — PWA Foundation | Pending |
-| PWA-02 | Phase 6 — PWA Foundation | Pending |
-| PWA-04 | Phase 6 — PWA Foundation | Pending |
-| PWA-05 | Phase 6 — PWA Foundation | Pending |
-| PWA-06 | Phase 6 — PWA Foundation | Pending |
+| PWA-01 | Phase 6 — PWA Foundation | Complete |
+| PWA-02 | Phase 6 — PWA Foundation | Complete |
+| PWA-04 | Phase 6 — PWA Foundation | Complete |
+| PWA-05 | Phase 6 — PWA Foundation | Complete |
+| PWA-06 | Phase 6 — PWA Foundation | Complete |
 | PWA-03 | Phase 7 — Service Worker | Pending |
 | INSTALL-01 | Phase 8 — Install + Icon Polish | Pending |
 | INSTALL-02 | Phase 8 — Install + Icon Polish | Pending |
