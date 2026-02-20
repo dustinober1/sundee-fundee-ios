@@ -15,11 +15,14 @@ Users can reliably track their strength training progress offline and receive ac
 **Tech:** Next.js 16 (App Router), React 19, shadcn/ui, Tailwind CSS, Framer Motion, Dexie.js v4, Supabase (optional), Vitest, Playwright — ~11,947 LOC TS/TSX.  
 **Archives:** `.planning/milestones/v1.1-ROADMAP.md`, `.planning/milestones/v1.1-REQUIREMENTS.md`
 
-## Next Milestone Goals
+## Current Milestone: v2.0 Flutter Full Rewrite
 
-- [ ] Start `/gsd-new-milestone` and define v1.2 scope
-- [ ] Create fresh `.planning/REQUIREMENTS.md` for next milestone
-- [ ] Prioritize DEPLOY-01 and post-ship quality hardening
+**Goal:** Rebuild Sundee-Fundee in Flutter for web, Android, and iOS with full feature parity and production deployment on Firebase.
+
+**Target features:**
+- Flutter app foundation for all 3 platforms (web, Android, iOS)
+- Full feature parity migration (onboarding, programs, workouts, recommendations, progress, sync UX)
+- Firebase production hosting path and release pipeline setup
 
 <details>
 <summary>Archived v1.1 milestone goals (shipped)</summary>
@@ -45,39 +48,37 @@ Users can reliably track their strength training progress offline and receive ac
 
 ### Active
 
-- [ ] DEPLOY-01: Production deployment configuration (Vercel, CI/CD, env vars, Supabase project setup)
+- [ ] FLUTTER-01: Cross-platform Flutter application foundation for web, Android, and iOS
+- [ ] PARITY-01: Full functional parity with v1.1 workflows (onboarding, programs, workout logging, recommendations, progress, sync UX)
+- [ ] FIREBASE-01: Production Firebase hosting and release pipeline for the new Flutter app
 
 ### Out of Scope
 
 - Real-time social features — High complexity, not core to individual tracking value
-- Video analysis — storage/bandwidth costs, defer to v2+
-- Native mobile app — Web-first approach covers mobile use cases
-- Nutrition tracking — focused purely on workout metrics for v1
+- Video analysis — storage/bandwidth costs, defer to a later milestone
+- Nutrition tracking — focused purely on workout metrics in this milestone
+- Wearable integrations — defer until core cross-platform parity is validated
 
 ## Context
 
-- **Architecture:** Local-first, sync-later. IndexedDB (Dexie) is authoritative; Supabase is optional backup/sync.
-- **UX:** Mobile-first interactions, bottom nav, offline status, sync status, install UX.
-- **Codebase:** ~11,947 LOC TS/TSX, 11 Playwright E2E tests.
+- **Architecture baseline:** Existing product is local-first and offline-capable; v2.0 will re-establish these properties in Flutter.
+- **Platform target:** Unified Flutter codebase for web + Android + iOS with production Firebase hosting.
+- **Legacy reference:** Existing Next.js implementation remains the behavioral source-of-truth during migration.
 
 ## Constraints
 
-- **Type:** Tech Stack — Must use Next.js 16, React 19, Dexie.js.
-- **Type:** UX — Must be fully functional offline.
-- **Type:** UX — Mobile-first design (touch targets >44px, thumb zone optimization).
-- **Type:** Data — `super('StrengthApp')` in Dexie is permanently frozen.
+- **Type:** UX — Must preserve mobile-first ergonomics and touch targets.
+- **Type:** Reliability — Core workout flow must function offline-first in the rewritten app.
+- **Type:** Scope — This milestone is focused on full feature parity, not net-new product surface area.
 
 ## Key Decisions
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Local-first Architecture | Reliable gym/offline operation | ✓ Good |
-| Dexie.js for Storage | Robust IndexedDB wrapper with TypeScript support | ✓ Good |
-| Supabase for Sync | Practical auth/db backup path | ✓ Good |
-| `@serwist/turbopack` for SW | Required for Next.js 16 Turbopack compatibility | ✓ Good |
-| Supabase `NetworkOnly` in SW | Avoid cached auth/data responses | ✓ Good |
-| `serviceWorkers: 'block'` in Playwright | Prevent SW flakiness in E2E tests | ✓ Good |
-| `Activity` icon for Workout tab | Better semantic distinction from Programs tab icon | ✓ Good |
+| Major version bump to v2.0 | Stack/architecture rewrite across platforms | ✓ Approved |
+| Milestone: Flutter Full Rewrite | Explicitly signals complete cross-platform migration | ✓ Approved |
+| Full parity scope | Preserve proven feature set while changing stack | ✓ Approved |
+| Research-first approach | Reduce rewrite risk with ecosystem + architecture guidance | ✓ Approved |
 
 ---
-*Last updated: 2026-02-20 — after v1.1 milestone completion*
+*Last updated: 2026-02-20 — v2.0 milestone initialized*

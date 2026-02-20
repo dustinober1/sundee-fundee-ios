@@ -4,25 +4,25 @@
 See: .planning/PROJECT.md (updated 2026-02-20)
 
 **Core value:** Users can reliably track their strength training progress offline and receive actionable insights to improve performance.
-**Current focus:** Planning next milestone (v1.2)
+**Current focus:** Defining v2.0 Flutter rewrite requirements and roadmap
 
 ## Current Position
-**Milestone**: v1.1 Sundee-Fundee (shipped)
-**Phase**: Milestone archival complete
-**Plan**: 7 of 7 plans complete
-**Status**: Roadmap + requirements archived, tag pending push decision
+**Milestone**: v2.0 Flutter Full Rewrite (in planning)
+**Phase**: Not started (defining requirements)
+**Plan**: —
+**Status**: Defining requirements
 
 ```
-v1.1 Progress: [█] [██] [██] [██]   7/7 plans
-               Ph5  Ph6  Ph7   Ph8
+v2.0 Progress: [ ] [ ] [ ] [ ]
+              Ph9 Ph10 Ph11 Ph12
 ```
 
-**Last activity**: 2026-02-20 — Archived v1.1 milestone artifacts and prepared next-milestone handoff.
+**Last activity**: 2026-02-20 — Milestone v2.0 started.
 
 ## Performance Metrics
-- **Velocity**: v1.1 shipped in 2 days (2026-02-19 → 2026-02-20)
+- **Velocity**: Baseline reset for v2.0 planning cycle
 - **Blockers**: None
-- **Next Decision**: Define v1.2 scope and requirements via `/gsd-new-milestone`
+- **Next Decision**: Finalize v2.0 requirements and roadmap structure
 
 ## Accumulated Context
 
