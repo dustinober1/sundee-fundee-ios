@@ -8,16 +8,16 @@ See: .planning/PROJECT.md (updated 2026-02-19)
 
 ## Current Position
 **Milestone**: v1.1 Sundee-Fundee
-**Phase**: 7 — Service Worker (complete)
-**Plan**: 2 of 2 complete
-**Status**: Phase 7 complete — ready for Phase 8
+**Phase**: 8 — Install Experience + Icon Enrichment (in progress)
+**Plan**: 1 of 2 complete
+**Status**: In progress — 08-01 complete, 08-02 ready
 
 ```
-v1.1 Progress: [█] [██] [██] [ ]   5/6 plans
+v1.1 Progress: [█] [██] [██] [█ ]   6/7 plans
                Ph5  Ph6  Ph7   Ph8
 ```
 
-**Last activity**: 2026-02-20 — Completed 07-02 (SerwistProvider in layout, /offline page, SerwistReloadHandler, 45 precache entries, 11/11 E2E pass).
+**Last activity**: 2026-02-20 — Completed 08-01 (useInstallPrompt + useIsIosInstallable hooks, InstallPromptBanner, IosInstallModal, dashboard integration, 11/11 E2E pass).
 
 ## Performance Metrics
 - **Velocity**: v1.0 shipped in 4 days (2026-02-15 → 2026-02-19)
@@ -50,6 +50,6 @@ v1.1 Progress: [█] [██] [██] [ ]   5/6 plans
 | `README.md`, `CLAUDE.md`, `.planning/` docs | E2E tests referencing `'StrengthApp'` IDB name |
 
 ## Session Continuity
-- **Last session**: 2026-02-20 — Completed 07-02 (SerwistProvider layout wiring + offline page)
-- **Stopped at**: Completed 07-02-SUMMARY.md
-- **Resume with**: Execute Phase 8 (Lighthouse PWA audit, ≥90 score)
+- **Last session**: 2026-02-20 — Completed 08-01 (PWA install experience hooks + components)
+- **Stopped at**: Completed 08-01-SUMMARY.md
+- **Resume with**: Execute Phase 8 Plan 02 (ICON-01–04 icon enrichment)
