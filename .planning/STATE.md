@@ -8,16 +8,16 @@ See: .planning/PROJECT.md (updated 2026-02-19)
 
 ## Current Position
 **Milestone**: v1.1 Sundee-Fundee
-**Phase**: 8 — Install Experience + Icon Enrichment (in progress)
-**Plan**: 1 of 2 complete
-**Status**: In progress — 08-01 complete, 08-02 ready
+**Phase**: 8 — Install Experience + Icon Enrichment (complete)
+**Plan**: 2 of 2 complete
+**Status**: Phase 8 complete — Milestone v1.1 fully delivered
 
 ```
-v1.1 Progress: [█] [██] [██] [█ ]   6/7 plans
+v1.1 Progress: [█] [██] [██] [██]   7/7 plans
                Ph5  Ph6  Ph7   Ph8
 ```
 
-**Last activity**: 2026-02-20 — Completed 08-01 (useInstallPrompt + useIsIosInstallable hooks, InstallPromptBanner, IosInstallModal, dashboard integration, 11/11 E2E pass).
+**Last activity**: 2026-02-20 — Completed 08-02 (ICON-01–04: WifiOff, Trophy, Flame, BarChart2, Dumbbell, Target, AlarmClockCheck, CircleCheck + Activity in bottom nav; all 11 E2E pass).
 
 ## Performance Metrics
 - **Velocity**: v1.0 shipped in 4 days (2026-02-15 → 2026-02-19)
@@ -39,6 +39,7 @@ v1.1 Progress: [█] [██] [██] [█ ]   6/7 plans
 - `serviceWorkers: 'block'` added to `playwright.config.ts` in Phase 6 (before SW exists) — guards all 11 tests
 - Supabase routes configured as `NetworkOnly` in SW — auth-gated responses must never be cached
 - `controllerchange` handled in layout to prevent mid-workout data loss on SW update
+- `Activity` icon (not `ClipboardPlus`) used for bottom nav Workout tab — fitness-semantic, distinct from Dumbbell (Programs tab)
 
 ### v1.1 Rebrand Scope Boundaries
 | Change ✓ | Freeze ✗ |
@@ -50,6 +51,6 @@ v1.1 Progress: [█] [██] [██] [█ ]   6/7 plans
 | `README.md`, `CLAUDE.md`, `.planning/` docs | E2E tests referencing `'StrengthApp'` IDB name |
 
 ## Session Continuity
-- **Last session**: 2026-02-20 — Completed 08-01 (PWA install experience hooks + components)
-- **Stopped at**: Completed 08-01-SUMMARY.md
-- **Resume with**: Execute Phase 8 Plan 02 (ICON-01–04 icon enrichment)
+- **Last session**: 2026-02-20 — Completed 08-02 (ICON-01–04 icon enrichment across 6 components)
+- **Stopped at**: Completed 08-02-SUMMARY.md
+- **Resume with**: Milestone v1.1 complete — next milestone planning or Lighthouse PWA audit
