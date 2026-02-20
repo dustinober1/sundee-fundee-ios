@@ -1,239 +1,165 @@
-# Research Summary — Sundee-Fundee v1.1
+# Project Research Summary
 
-**Milestone:** PWA + Rebrand (Strength → Sundee-Fundee) + Lucide Icon Enrichment
-**Synthesized:** 2025-07-15
-**Research files:** STACK.md · FEATURES.md · ARCHITECTURE.md · PITFALLS.md
-
----
+**Project:** Sundee-Fundee (Workout Tracker) — v2.0 Flutter Full Rewrite
+**Domain:** Offline-first cross-platform workout tracker migration (Flutter web + Android + iOS)
+**Researched:** 2026-02-20
+**Confidence:** MEDIUM-HIGH
 
 ## Executive Summary
 
-Sundee-Fundee v1.1 adds three tightly-related capabilities to an already-working offline-first fitness tracker: PWA installability (home screen icon, standalone mode, offline fallback), a brand rename from "Strength" to "Sundee-Fundee", and a pass to enrich icon usage across the UI using the already-installed `lucide-react` library. The existing architecture (Next.js 16 App Router + Dexie.js IndexedDB + Supabase sync) is a solid foundation — the PWA layer sits *below* the sync layer and is architecturally independent from Dexie, so the offline-first data story is unchanged.
+This is a behavior-preserving platform rewrite, not a greenfield build. The recommended strategy is to treat v1.1 as the behavioral source of truth and rebuild in Flutter with a local-first architecture: local DB as authority, explicit sync orchestration, and parity tests that enforce identical outcomes for onboarding, workout logging, recommendations, progress calculations, and sync UX across web, Android, and iOS.
 
-The single highest-impact technical decision is **which PWA library to use**. Next.js 16 defaults to Turbopack, which means the entire mainstream library ecosystem (`next-pwa`, `@ducanh2912/next-pwa`, `@serwist/next`) is incompatible with `next dev` / `next build` as currently configured. The correct library is **`@serwist/turbopack`** (paired with `serwist` core), which is the only actively-maintained option with explicit Turbopack support and is validated against `next: "16.1.6"` in the official Serwist example repo.
+Research aligns on Flutter 3.41 + Dart 3.11 with Riverpod, go_router, Drift for local persistence, and Firebase Hosting for web deployment. The safest build order is: lock parity contracts first, then data/rules, then sync, then feature UI parity, then deploy/cutover hardening. This sequencing addresses the highest-risk failure points early.
 
-The rebrand carries one non-obvious data-loss trap: the Dexie IndexedDB database is named `'StrengthApp'` and that string **must never change** — changing it silently orphans all existing user data. Everything else in the rebrand is safe text substitution. Plan accordingly: mark the DB name as permanently frozen on day one of the rebrand phase.
-
----
+Primary risks are offline parity regressions, web storage mismatches, sync conflict corruption during overlap with legacy clients, and Firebase deep-link/refresh failures. Mitigate with explicit cross-platform parity contract tests, early storage spike validation, deterministic conflict policies with telemetry, and CI smoke tests for hosting rewrites and offline behavior.
 
 ## Key Findings
 
-### From STACK.md — Technology Additions
+### Recommended Stack
 
-| Package | Version | Role | Notes |
-|---------|---------|------|-------|
-| `@serwist/turbopack` | `^9.5.6` | PWA service worker (Next.js 16 + Turbopack) | **Only valid option for this stack** |
-| `serwist` | `^9.5.6` | SW runtime, Workbox integration | Peer of the above |
-| `@vite-pwa/assets-generator` | `^1.0.2` | Icon generation (devDep) | One source SVG → full icon set |
+Stack recommendations are strong for cross-platform parity delivery: Flutter 3.41.x / Dart 3.11.x, Riverpod for app state, go_router for navigation, Drift for local-first persistence, and Firebase Hosting for web release. The rewrite should preserve domain behavior while replacing runtime/UI implementation.
 
-**No other packages needed.** The web app manifest uses Next.js 16 App Router's built-in `MetadataRoute.Manifest` (`app/manifest.ts`). Lucide enrichment is code-only — `lucide-react` v0.564.0 is already installed. The rebrand is text changes only.
+**Core technologies:**
+- **Flutter SDK 3.41.x + Dart 3.11.x:** Cross-platform runtime baseline — current stable and package-compatible.
+- **Drift (`^2.31.0` + `drift_flutter`):** Local-first storage authority across web/mobile.
+- **Riverpod (`^3.2.1`):** Testable state graph replacing React Context.
+- **go_router (`^17.1.0`):** Declarative route and deep-link parity.
+- **Firebase Hosting (CLI >=12.1.0):** Supported Flutter web deploy path.
+- **Cloud sync backend:** Must be explicitly decided early (STACK.md leans Firestore; ARCHITECTURE.md retains Supabase).
 
-**Critical version note:** `@serwist/next` (webpack-only) will *appear* to install fine but silently fails in dev and build under Next.js 16's Turbopack default. Use `@serwist/turbopack` exclusively.
+### Expected Features
 
----
+v2.0 is a parity milestone: users should get the same workflows and logic outcomes across all platforms. Reliability and deterministic behavior matter more than new surface area.
 
-### From FEATURES.md — What to Build
+**Must have (table stakes):**
+- Full workflow parity: onboarding, programs, workout logging, recommendations, progress, sync UX.
+- Offline-first core loop parity on web + Android + iOS.
+- Deterministic parity for %1RM/rounding/PR/plateau calculations.
+- Cross-platform acceptance tests for critical flows.
+- Data continuity/migration plan from v1 behavior.
 
-**Must ship (table stakes — app is not a credible PWA without these):**
-- `app/manifest.ts` with `display: standalone`, `theme_color`, `start_url: "/dashboard"`, 192×192 + 512×512 icons
-- iOS `<head>` meta tags (`apple-mobile-web-app-capable`, `status-bar-style`, `apple-mobile-web-app-title`)
-- Apple touch icons (180×180, 167×167, 152×152) — iOS **ignores** the manifest `icons` array entirely
-- Android icons: 192×192 (regular), 192×192 (maskable), 512×512
-- Service worker with stale-while-revalidate for app shell; network-only for Supabase + API routes
-- Offline fallback page at `/offline` — branded, links to `/dashboard`
-- Viewport `viewport-fit=cover` for iPhone notch/Dynamic Island
-- Full rebrand: title, manifest name, `apple-mobile-web-app-title`, onboarding welcome text
-- Replace `OfflineBanner` inline SVG with `<WifiOff>` from lucide-react (existing inconsistency)
+**Should have (competitive):**
+- Shared golden parity fixtures for rules/calculations.
+- Improved sync transparency (source + timestamp detail).
+- Platform-adaptive chart interactions with invariant datasets.
 
-**Ship in v1.1 if effort is low (confirmed low complexity):**
-- Android manifest shortcuts ("Log Workout" → `/workout`, "View Progress" → `/progress`)
-- iOS install nudge — detect iOS + non-standalone, show "Share → Add to Home Screen" tooltip
-- SW update notification toast ("New version available — tap to update")
-- Icon enrichment: `Trophy`/`Flame` on progress cards; `BarChart2` for volume; `AlarmClockCheck` for rest timer complete; `CircleCheck`/`CircleX` for set status
+**Defer (v2+):**
+- Social/community features.
+- Wearables/live sensors.
+- Real-time collaborative conflict tooling.
+- Pixel-identical UI across all platforms.
 
-**Defer post-v1.1 (explicitly out of scope):**
-- Push notifications (iOS 16.4+ only, VAPID backend required)
-- Per-device iOS splash screen images (14+ static PNGs, fragile maintenance)
-- Background Sync API (iOS doesn't support it; existing foreground queue is sufficient)
-- Web Share Target
+### Architecture Approach
 
----
+Adopt a layered, repository-first architecture: Flutter presentation -> feature viewmodels/use-cases -> repositories -> local DB + remote datasource + dedicated SyncOrchestrator -> platform/deploy adapters. Local writes are authoritative; cloud sync is async and stateful (queued, retried, conflict-resolved, and surfaced to users).
 
-### From ARCHITECTURE.md — Critical Decisions
+**Major components:**
+1. **Feature UI + Router:** Cross-platform workflows and navigation.
+2. **ViewModels + Repositories:** State orchestration and data ownership boundaries.
+3. **LocalDataSource (Drift):** Tables, migrations, and performant offline queries.
+4. **RemoteDataSource (Supabase/Firestore):** Cloud backup/sync transport.
+5. **SyncOrchestrator:** Queue, retry, idempotency, merge policy, sync status.
+6. **Hosting/Platform adapters:** Firebase rewrites, lifecycle/background sync triggers.
 
-1. **Manifest location:** `src/app/manifest.ts` (App Router convention) — NOT `public/manifest.json` (Pages Router pattern). Served at `/manifest.webmanifest` with correct MIME type.
+### Critical Pitfalls
 
-2. **SW file layout:**
-   ```
-   src/app/sw.ts          ← SW source (you write this)
-   src/app/offline/       ← Fallback page
-   src/app/manifest.ts    ← Manifest
-   public/sw.js           ← Compiled output (gitignore this)
-   public/icons/          ← Generated icon files
-   ```
-
-3. **`next.config.ts` shape** (Turbopack integration — different from webpack-based docs):
-   ```ts
-   import { withSerwist } from '@serwist/turbopack'
-   export default withSerwist(nextConfig)
-   ```
-   Not `withSerwistInit({ swSrc, swDest })` — that's the webpack pattern.
-
-4. **Supabase caching rule:** Configure all `*.supabase.co` routes as `NetworkOnly` in runtime caching. Dexie handles offline data; the SW must not cache auth-gated Supabase responses.
-
-5. **Middleware update required:** Current matcher catches `/sw.js` and `/workbox-*.js`, routing them through Supabase auth. Add exclusions: `sw\\.js|workbox-.*\\.js|manifest\\.json`.
-
-6. **Build phase order: Rebrand → Icons/Manifest → Service Worker.** SW is highest-risk — build on a verified foundation.
-
-7. **Rebrand scope — what to change vs. what to freeze:**
-
-   | Change | Freeze |
-   |--------|--------|
-   | `layout.tsx` title/description | `super('StrengthApp')` in `dexie.ts` ← **data loss if changed** |
-   | `package.json` name field | `PrimaryGoal` union value `'strength'` (fitness domain term) |
-   | `onboarding-wizard.tsx` welcome text | E2E tests referencing `'StrengthApp'` IDB name |
-   | `manifest.ts` name/short_name | All domain function names (`analyzeStrengthPatterns`, etc.) |
-   | `README.md`, `CLAUDE.md`, `.planning/` docs | `<SelectItem value="strength">Build Strength</SelectItem>` |
-
-8. **`tsconfig.json` additions:** Add `"webworker"` to `lib` array for SW types.
-
-9. **`.gitignore` additions:** `public/sw.js*`, `public/workbox-*.js`, `public/swe-worker*.js`.
-
----
-
-### From PITFALLS.md — Top Pitfalls (Ordered by Severity)
-
-| # | Pitfall | Phase | Impact | Fix |
-|---|---------|-------|--------|-----|
-| C1 | **`@serwist/next` is webpack-only — SW silently absent under Turbopack** | PWA | Silent failure in dev + prod | Use `@serwist/turbopack`; do not use `@serwist/next` |
-| C2 | **Playwright tests break when SW is active** | PWA | Intermittent CI failures | Add `serviceWorkers: 'block'` to `playwright.config.ts` immediately |
-| C3 | **Middleware intercepts `/sw.js` + `/workbox-*.js`** | PWA | Auth overhead on every SW update check | Update matcher exclusion pattern |
-| C4 | **`skipWaiting + clientsClaim` can abort in-flight Dexie transactions** | PWA | Mid-workout data loss | Handle `controllerchange` event; defer reload when workout is in progress |
-| C5 | **Renaming `'StrengthApp'` IDB name orphans all user data** | Rebrand | Complete data loss for existing users | Comment the line as immutable; exclude from rebrand scope |
-| M1 | **`cacheOnNavigation: true` bypasses Supabase session refresh** | PWA | Silent sync failures after hours | Keep `cacheOnNavigation: false` (default) |
-| M2 | **iOS has no `beforeinstallprompt`** | PWA | Install UI broken on iOS | Platform-detect; show "Share → Add to Home Screen" tooltip on iOS |
-| M3 | **Missing 192×192 + 512×512 icons blocks Android install prompt** | PWA | App not installable on Android | Generate both sizes; include maskable variant |
-| M6 | **Brand strings scattered — easy to miss some** | Rebrand | Inconsistent branding post-launch | Run `grep -r "Strength" src/` audit before starting; create `brand.ts` constants |
-| N1 | **Missing `viewport-fit=cover`** | PWA | Content clipped by iPhone notch | Add `viewportFit: 'cover'` to viewport export; add safe-area padding to `BottomNavigation` |
-
----
+1. **Offline parity regressions** — enforce offline parity contracts and release gates on all 3 platforms.
+2. **Wrong web DB assumptions** — run early web/mobile storage spike tests (transactions, restart recovery, quota behavior).
+3. **Legacy/new client conflict corruption** — use deterministic conflict policy, idempotent IDs, and conflict telemetry.
+4. **Firebase deep-link/refresh 404s** — configure SPA rewrites and validate in CI preview/prod smoke tests.
+5. **Stale Flutter web SW assumptions** — own explicit web offline/update strategy; do not rely on deprecated defaults.
 
 ## Implications for Roadmap
 
-### Recommended Phase Structure
+Based on research, suggested phase structure:
 
-**Phase 1 — Rebrand** *(text changes, zero functional risk)*
+### Phase 1: Parity Contract + Architecture Decision Lock
+**Rationale:** Stops behavior drift and resolves the cloud sync backend split before build-out.
+**Delivers:** Parity acceptance matrix, dependency/version lock, explicit sync backend decision (Supabase retain vs Firestore migrate).
+**Addresses:** Functional parity, reliability, and testability requirements.
+**Avoids:** Offline drift, dependency churn, backend indecision.
 
-Scope: All user-visible "Strength" → "Sundee-Fundee" substitutions. Create `src/lib/constants/brand.ts` with `APP_NAME`, `APP_TITLE`, `APP_DESCRIPTION` constants imported everywhere.
+### Phase 2: Data Core (Local DB + Rule Engine Port)
+**Rationale:** Data/rule correctness is upstream of all user-visible parity.
+**Delivers:** Drift schema/migrations, repository interfaces, deterministic calculation/recommendation ports, fixture tests.
+**Uses:** Drift, Riverpod, freezed/json_serializable.
+**Implements:** LocalDataSource + repository boundaries.
 
-Deliverable: App runs identically with new name in browser tab, onboarding, README, planning docs.
+### Phase 3: Sync + Auth Orchestration
+**Rationale:** Sync integrity must be proven before parity claims are credible.
+**Delivers:** Shared auth lifecycle state machine, queue/retry/conflict handling, sync state UX, dual-client overlap protocol.
+**Addresses:** Optional cloud sync parity and error-state parity.
+**Avoids:** Data loss/reversion and token-lifecycle stalls.
 
-Pitfalls to prevent: C5 (IDB name freeze), M6 (scattered strings audit).
+### Phase 4: Feature Workflow Parity (Vertical Slices)
+**Rationale:** With stable data/sync foundations, UI parity can be delivered predictably.
+**Delivers:** Onboarding -> Programs -> Workout -> Dashboard/Progress parity, including ergonomic checks.
+**Addresses:** Core end-user parity.
+**Avoids:** UI-first implementation masking data defects.
 
-Validation: App starts, tests pass, `grep -r "Strength" src/` returns only domain terms.
+### Phase 5: Web Runtime + Hosting/Release Hardening
+**Rationale:** Deployment and route/offline behavior are distinct risk surfaces.
+**Delivers:** Firebase Hosting rewrites, deep-link reliability, explicit web offline/update validation, CI/CD release pipeline.
+**Uses:** Firebase CLI + hosting workflows.
+**Avoids:** Production route failures and brittle update behavior.
 
----
+### Phase 6: Cutover + Stabilization
+**Rationale:** Real migration includes overlap between old and new clients.
+**Delivers:** Staged rollout, telemetry thresholds, rollback playbook, final parity sign-off.
+**Addresses:** Production readiness and trust continuity.
+**Avoids:** Silent corruption and hard-to-debug migration incidents.
 
-**Phase 2 — Icons + Manifest** *(PWA installability without offline caching)*
+### Phase Ordering Rationale
 
-Scope:
-- Generate icon assets (`@vite-pwa/assets-generator` from source SVG/PNG)
-- Create `src/app/manifest.ts`
-- Update `layout.tsx` metadata (manifest link, `appleWebApp`, `viewport` export with `viewportFit: 'cover'` and `themeColor`)
-- Add `<link rel="apple-touch-icon">` tags
-- Update `tsconfig.json` (add `"webworker"` to lib for type support)
-
-Deliverable: App passes Chrome installability check. "Add to Home Screen" prompt appears on Android. iOS icon renders correctly.
-
-Pitfalls to prevent: M2 (iOS install banner), M3 (icon sizes), N1 (viewport-fit), N2 (theme-color).
-
-Validation: Chrome DevTools → Application → Manifest — no errors. Lighthouse PWA score improves. Mobile install prompt fires.
-
----
-
-**Phase 3 — Service Worker + Offline Shell** *(highest complexity, build last)*
-
-Scope:
-- Install `@serwist/turbopack` + `serwist`
-- `next.config.ts` — add `withSerwist` wrapper
-- `src/app/sw.ts` — Serwist config with `defaultCache`, `NetworkOnly` for Supabase, offline fallback
-- `src/app/offline/page.tsx` — branded offline page
-- Update `middleware.ts` matcher (exclude SW/workbox files)
-- Add `.gitignore` entries for compiled SW output
-- Add `serviceWorkers: 'block'` to `playwright.config.ts`
-- Handle `controllerchange` in layout to defer reload during active workouts
-
-Deliverable: App loads shell offline. Lighthouse PWA score ≥ 90.
-
-Pitfalls to prevent: C1 (correct library), C2 (Playwright), C3 (middleware), C4 (skipWaiting), M1 (session refresh).
-
-Validation: Network offline in DevTools → navigate to `/dashboard` → app shell loads from cache → Dexie data visible → no broken UI.
-
----
-
-**Phase 4 — Icon Enrichment + Polish** *(code-only, low risk)*
-
-Scope:
-- Replace `OfflineBanner` inline SVG with `<WifiOff />`
-- Progress screen: add `Trophy`, `Flame`, `BarChart2`, `TrendingUp`
-- Rest timer: add `AlarmClockCheck` for complete state
-- Workout cards: add `CircleCheck`/`CircleX` for set status, `Dumbbell`/`BicepsFlexed` by category
-- SW update toast (`Download` icon + "New version available" message)
-- iOS install nudge (platform-detected, `Share → Add to Home Screen` tooltip)
-- Android manifest shortcuts
-
-Deliverable: Visually polished icon vocabulary throughout the app; SW update UX; platform-appropriate install guidance.
-
----
+- Data and rule parity are dependencies for every feature workflow.
+- Sync/auth must stabilize before cross-device parity is credible.
+- Hosting hardening should happen before user cutover.
+- This order directly de-risks the top identified pitfalls.
 
 ### Research Flags
 
-| Phase | Research Needed? | Rationale |
-|-------|-----------------|-----------|
-| Phase 1 — Rebrand | ❌ No | Pure text substitution; patterns are well-documented |
-| Phase 2 — Icons/Manifest | ❌ No | Chrome installability criteria and iOS requirements are fully specified in FEATURES.md + PITFALLS.md |
-| Phase 3 — Service Worker | ⚠️ Maybe | `@serwist/turbopack` integration pattern is in official examples, but Turbopack-specific behavior may surprise; consider a spike before full implementation |
-| Phase 4 — Icon Enrichment | ❌ No | Icon names confirmed available in installed lucide-react v0.564.0 |
+Phases likely needing deeper research during planning:
+- **Phase 1:** Backend decision analysis (Supabase retain vs Firestore migrate), including migration cost and risk.
+- **Phase 2:** Drift web storage mode/durability under target browser/device conditions.
+- **Phase 3:** Conflict policy edge cases and auth lifecycle behavior across platforms.
+- **Phase 5:** Flutter web offline/update strategy given service-worker changes.
 
----
+Phases with standard patterns (skip research-phase likely safe):
+- **Phase 4:** UI parity implementation once contracts and repositories are fixed.
+- **Phase 6:** Staged rollout/monitoring patterns are operationally standard.
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack (library selection) | **HIGH** | `@serwist/turbopack` confirmed against Next.js 16.1.6 source; esbuild peer dep verified |
-| Features (what to build) | **HIGH** | iOS/Android PWA requirements verified against Apple dev docs and web.dev; lucide icon names verified in installed package |
-| Architecture (file layout + patterns) | **HIGH** | App Router manifest convention verified in Next.js 16.1.6 docs; Turbopack `withSerwist` pattern from official example |
-| Pitfalls | **HIGH** (most) | C1–C5, M2, M3, N1 verified via source code or official docs. **MEDIUM** for M1 (derived behavior) and M4 (iOS 16.4 storage isolation) |
+| Stack | MEDIUM-HIGH | Official docs strongly support Flutter/Firebase/Drift baseline; some version details are snapshot-sensitive and backend recommendation is split. |
+| Features | MEDIUM-HIGH | Strong parity signal from existing product plus Flutter offline-first guidance; one Firestore offline-default detail explicitly flagged for verification. |
+| Architecture | MEDIUM | Robust architecture guidance, but unresolved backend direction introduces meaningful planning uncertainty. |
+| Pitfalls | HIGH | Specific, actionable, and phase-mapped pitfalls aligned with known Flutter web/offline/hosting risks. |
 
-### Open Questions (Need Decisions Before Implementation)
+**Overall confidence:** MEDIUM-HIGH
 
-1. **Final brand assets:** What is the source SVG/PNG for the app icon? A high-res source is required for `@vite-pwa/assets-generator`. Dumbbell/BicepsFlexed on brand-color background is recommended.
+### Gaps to Address
 
-2. **`short_name` character limit:** Must be ≤ 12 characters for safe display on small phone screens. "Sundee-Fundee" is 13 characters — decide on a short name (e.g., "S-Fundee", "SunFundee") or accept truncation.
+- **Sync backend conflict (Supabase vs Firestore):** Resolve in Phase 1 with decision memo, costed migration path, and rollback criteria.
+- **Firestore offline platform defaults:** Re-validate in implementation docs/tests before dependency.
+- **Web storage durability envelope:** Execute empirical spike for quota/eviction/restart behavior.
+- **Dual-client overlap protocol:** Define overlap window and deterministic conflict handling before beta.
 
-3. **`start_url` auth state:** Should the PWA open at `/dashboard` (requires auth) or `/` (redirects to auth if needed)? Opening at `/dashboard` with a stale session will redirect to login — confirm intended behavior.
+## Sources
 
-4. **Playwright SW block scope:** Adding `serviceWorkers: 'block'` is recommended; confirm no existing or planned tests intentionally test SW behavior.
+### Primary (HIGH confidence)
+- Flutter official docs: supported platforms, app architecture, offline-first pattern, web deployment, release notes/archive.
+- Firebase official docs: Flutter setup, Hosting full config, Flutter hosting integration.
+- Drift official docs: web/storage behavior and wasm storage implementations.
 
-5. **Supabase realtime:** The `NetworkOnly` rule for `*.supabase.co` is correct for HTTP. Confirm whether realtime WebSocket subscriptions are in use — the SW won't intercept WebSocket traffic regardless.
+### Secondary (MEDIUM confidence)
+- Pub package version indexes for FlutterFire, Riverpod, go_router, Drift, fl_chart, connectivity_plus, freezed/json_serializable.
+- Existing Sundee-Fundee v1.1 architecture/code/docs as behavioral baseline.
+
+### Tertiary (LOW confidence)
+- Firestore platform-specific offline-default behavior details not fully retrieved in this research run; requires implementation-phase validation.
 
 ---
-
-## Sources (Aggregated)
-
-| Source | Used In | Confidence |
-|--------|---------|------------|
-| `node_modules/next/dist/lib/bundler.js` — Turbopack default | STACK | HIGH |
-| Serwist example `next-turbo-basic` (Next.js 16.1.6) | STACK | HIGH |
-| `node_modules/next/dist/lib/metadata/types/manifest-types.d.ts` | STACK | HIGH |
-| npm registry: `@serwist/turbopack`, `@vite-pwa/assets-generator` | STACK | HIGH |
-| `node_modules/lucide-react/package.json` | STACK, FEATURES | HIGH |
-| Apple Developer Docs — Configuring Web Applications | FEATURES | HIGH |
-| web.dev — Add a web app manifest + Maskable icons | FEATURES, PITFALLS | HIGH |
-| serwist.pages.dev — Getting started (Next.js) | ARCHITECTURE | HIGH |
-| Next.js 16.1.6 docs — manifest.json file convention | ARCHITECTURE | HIGH |
-| `src/lib/db/dexie.ts:31` — `super('StrengthApp')` | ARCHITECTURE, PITFALLS | HIGH |
-| `middleware.ts:38-42` — matcher pattern | ARCHITECTURE, PITFALLS | HIGH |
-| Playwright API docs — `serviceWorkers: 'block'` | PITFALLS | HIGH |
-| WebKit release notes — Safari 16.4 PWA storage isolation | PITFALLS | MEDIUM |
+*Research completed: 2026-02-20*
+*Ready for roadmap: yes*
