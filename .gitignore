@@ -42,3 +42,4 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 playwright-report/index.html
+playwright-report/index.html
