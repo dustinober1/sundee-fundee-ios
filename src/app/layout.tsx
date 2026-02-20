@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/contexts/providers";
 import { BottomNavigation } from "@/components/layout/bottom-navigation";
+import { SerwistProvider } from "./serwist-client";
+import { SerwistReloadHandler } from "@/components/SerwistReloadHandler";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -43,10 +45,13 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Providers>
-          {children}
-          <BottomNavigation />
-        </Providers>
+        <SerwistProvider swUrl="/serwist/sw.js" reloadOnOnline={false}>
+          <Providers>
+            {children}
+            <BottomNavigation />
+            <SerwistReloadHandler />
+          </Providers>
+        </SerwistProvider>
       </body>
     </html>
   );
