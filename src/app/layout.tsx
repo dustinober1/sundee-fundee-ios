@@ -17,6 +17,20 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Sundee-Fundee",
   description: "Track your workouts and fitness goals",
+  manifest: '/manifest.json',
+  icons: {
+    apple: [
+      { url: '/icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+  },
+  appleWebApp: {
+    capable: true,
+    title: 'SundeeFundee',
+    statusBarStyle: 'black-translucent',
+  },
+  other: {
+    'apple-mobile-web-app-capable': 'yes',
+  },
 };
 
 export default function RootLayout({
