@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../shared/providers/database_provider.dart';
+import '../../data/database/app_database.dart';
 
-class OnboardingScreen extends StatefulWidget {
+class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
 
   @override
-  State<OnboardingScreen> createState() => _OnboardingScreenState();
+  ConsumerState<OnboardingScreen> createState() => _OnboardingScreenState();
 }
 
-class _OnboardingScreenState extends State<OnboardingScreen> {
+class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   int _currentStep = 0;
   final TextEditingController _nameController = TextEditingController();
   String? _selectedExperience;
@@ -164,7 +167,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           const SizedBox(height: 24),
           ElevatedButton(
             key: const Key('onboarding-start-button'),
-            onPressed: () => context.go('/dashboard'),
+            onPressed: () async {
+              final db = ref.read(databaseProvider);
+              await db.into(db.users).insert(
+                UsersCompanion.insert(
+                  name: _nameController.text.trim(),
+                  experienceLevel: _selectedExperience ?? 'beginner',
+                  goal: 'strength',
+                ),
+              );
+              if (mounted) {
+                context.go('/dashboard');
+              }
+            },
             child: const Text('Start Training'),
           ),
         ],
