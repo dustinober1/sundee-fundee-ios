@@ -52,10 +52,12 @@ Full details: [milestones/v1.1-ROADMAP.md](milestones/v1.1-ROADMAP.md)
   1. User can launch and navigate the Flutter app on web, Android, and iOS from the same product baseline.
   2. A tester can execute cross-platform acceptance tests for critical flows and get explicit pass/fail parity results.
   3. A tester can run offline parity scenarios (offline use, reconnect, persistence) on all 3 platforms and verify they pass.
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 09-01: TBD (run /gsd-plan-phase 9 to break down)
+- [ ] 09-01-PLAN.md — Flutter project scaffold + dependencies + Drift web assets
+- [ ] 09-02-PLAN.md — Core app shell: Drift database, GoRouter, placeholder screens, offline banner
+- [ ] 09-03-PLAN.md — Parity gate test suite: navigation, onboarding, workout, offline tests
 
 ### Phase 10: Onboarding + Program/Cycle Parity
 **Goal**: Users can set up their profile and manage training programs/cycles in Flutter with v1.1-equivalent behavior.
@@ -138,7 +140,7 @@ Plans:
 | 6. PWA Foundation | v1.1 | Installable PWA basics | PWA-01/02/04/05/06 | 2/2 | ✅ Complete | 2026-02-20 |
 | 7. Service Worker | v1.1 | Offline shell + caching | PWA-03 | 2/2 | ✅ Complete | 2026-02-20 |
 | 8. Install + Icon Polish | v1.1 | Install UX + icon enrichment | INSTALL-01/02, ICON-01/02/03/04 | 2/2 | ✅ Complete | 2026-02-20 |
-| 9. Foundation + Parity Gates | v2.0 | Flutter baseline + test gates | PLAT-01, QUAL-01, QUAL-02 | 0/TBD | Not started | - |
+| 9. Foundation + Parity Gates | v2.0 | Flutter baseline + test gates | PLAT-01, QUAL-01, QUAL-02 | 0/3 | Not started | - |
 | 10. Onboarding + Programs | v2.0 | Onboarding + catalog/cycles parity | ONBD-01/02, PROG-01/02 | 0/TBD | Not started | - |
 | 11. Workout Flow | v2.0 | Logging + rest + offline continuity | WORK-01/02/03 | 0/TBD | Not started | - |
 | 12. Insights Parity | v2.0 | Recommendations + progress parity | RECO-01/02, CHRT-01/02 | 0/TBD | Not started | - |
