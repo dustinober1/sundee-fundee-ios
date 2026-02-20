@@ -8,16 +8,16 @@ See: .planning/PROJECT.md (updated 2026-02-19)
 
 ## Current Position
 **Milestone**: v1.1 Sundee-Fundee
-**Phase**: 6 — PWA Foundation (complete)
-**Plan**: 2 of 2 complete
-**Status**: Phase 6 complete — ready for Phase 7
+**Phase**: 7 — Service Worker (in progress)
+**Plan**: 1 of 2 complete
+**Status**: In progress — 07-01 complete, 07-02 pending
 
 ```
-v1.1 Progress: [█] [██] [ ] [ ]   3/6 plans
-               Ph5  Ph6  Ph7  Ph8
+v1.1 Progress: [█] [██] [░█] [ ]   4/6 plans
+               Ph5  Ph6  Ph7   Ph8
 ```
 
-**Last activity**: 2026-02-20 — Completed Phase 6 (06-01 PWA icons + manifest, 06-02 iOS meta tags + middleware + Playwright guard). Verification passed 8/8 must-haves.
+**Last activity**: 2026-02-20 — Completed 07-01 (Serwist packages, next.config.ts, sw.ts, route handler, middleware). Build verified: 44 precache entries.
 
 ## Performance Metrics
 - **Velocity**: v1.0 shipped in 4 days (2026-02-15 → 2026-02-19)
@@ -50,6 +50,6 @@ v1.1 Progress: [█] [██] [ ] [ ]   3/6 plans
 | `README.md`, `CLAUDE.md`, `.planning/` docs | E2E tests referencing `'StrengthApp'` IDB name |
 
 ## Session Continuity
-- **Last session**: 2026-02-20 — 06-01 (icons + manifest) and 06-02 (iOS meta + middleware)
-- **Stopped at**: Completed 06-01-SUMMARY.md and 06-02-SUMMARY.md
-- **Resume with**: `/gsd-discuss-phase 7` or `/gsd-plan-phase 7`
+- **Last session**: 2026-02-20 — Completed 07-01 (service worker infrastructure)
+- **Stopped at**: Completed 07-01-SUMMARY.md
+- **Resume with**: Execute 07-02-PLAN.md (SerwistProvider + layout wiring + offline page)
