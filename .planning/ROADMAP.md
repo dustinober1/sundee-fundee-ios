@@ -105,6 +105,12 @@ Plans:
 
 **Requirements:** INSTALL-01, INSTALL-02, ICON-01, ICON-02, ICON-03, ICON-04
 
+**Plans:** 2 plans
+
+Plans:
+- [ ] 08-01-PLAN.md — Install experience (Android beforeinstallprompt + iOS A2HS modal)
+- [ ] 08-02-PLAN.md — Icon enrichment (WifiOff, Trophy, Flame, BarChart2, Dumbbell, AlarmClockCheck, Target, CircleCheck, Activity)
+
 **Success Criteria:**
 1. On Android Chrome (or DevTools mobile simulation), an "Add to Home Screen" install banner appears, powered by `beforeinstallprompt` deferral — tapping it triggers the native install dialog
 2. iOS users can tap a persistent UI affordance (button or banner) to open a step-by-step modal showing "Tap Share → Add to Home Screen" with a visual guide
@@ -125,4 +131,4 @@ Plans:
 | 5. Rebrand | v1.1 | Sundee-Fundee everywhere | BRAND-01/02/03 | 1/1 | ✅ Complete | 2026-02-20 |
 | 6. PWA Foundation | v1.1 | Installable PWA basics | PWA-01/02/04/05/06 | 2/2 | ✅ Complete | 2026-02-20 |
 | 7. Service Worker | v1.1 | Offline shell + caching | PWA-03 | 2/2 | ✅ Complete | 2026-02-20 |
-| 8. Install + Icon Polish | v1.1 | Install UX + icon enrichment | INSTALL-01/02, ICON-01/02/03/04 | 0/? | ⬜ Pending | — |
+| 8. Install + Icon Polish | v1.1 | Install UX + icon enrichment | INSTALL-01/02, ICON-01/02/03/04 | 0/2 | ⬜ Pending | — |
