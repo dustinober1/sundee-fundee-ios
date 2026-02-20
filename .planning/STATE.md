@@ -8,16 +8,16 @@ See: .planning/PROJECT.md (updated 2026-02-19)
 
 ## Current Position
 **Milestone**: v1.1 Sundee-Fundee
-**Phase**: 5 — Rebrand (complete)
-**Plan**: 1 of 1 complete
-**Status**: Phase 5 complete — ready for Phase 6
+**Phase**: 6 — PWA Foundation (in progress)
+**Plan**: 2 of 3 complete
+**Status**: Phase 6 in progress — 06-01 and 06-02 complete
 
 ```
-v1.1 Progress: [█] [ ] [ ] [ ]   1/4 phases
-               Ph5 Ph6 Ph7 Ph8
+v1.1 Progress: [█] [██ ] [ ] [ ]   3/6 plans
+               Ph5  Ph6  Ph7  Ph8
 ```
 
-**Last activity**: 2026-02-20 — Completed 05-01-PLAN.md (rebrand brand name references)
+**Last activity**: 2026-02-20 — Completed 06-02-PLAN.md (iOS meta tags, middleware exclusions, Playwright SW block)
 
 ## Performance Metrics
 - **Velocity**: v1.0 shipped in 4 days (2026-02-15 → 2026-02-19)
@@ -51,5 +51,5 @@ v1.1 Progress: [█] [ ] [ ] [ ]   1/4 phases
 
 ## Session Continuity
 - **Last session**: 2026-02-20
-- **Stopped at**: Completed 05-01-PLAN.md — Phase 5 Rebrand complete (1/1 plans)
-- **Resume with**: `/gsd-plan-phase 6`
+- **Stopped at**: Completed 06-02-PLAN.md — iOS meta tags, middleware PWA exclusions, Playwright SW block
+- **Resume with**: `/gsd-plan-phase 6` (plan 06-03 remaining)
