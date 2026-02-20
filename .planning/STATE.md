@@ -17,7 +17,7 @@ v1.1 Progress: [█] [██ ] [ ] [ ]   3/6 plans
                Ph5  Ph6  Ph7  Ph8
 ```
 
-**Last activity**: 2026-02-20 — Completed 06-02-PLAN.md (iOS meta tags, middleware exclusions, Playwright SW block)
+**Last activity**: 2026-02-20 — Completed 06-01-PLAN.md (PWA icons + manifest) and 06-02-PLAN.md (iOS meta tags, middleware exclusions, Playwright SW block)
 
 ## Performance Metrics
 - **Velocity**: v1.0 shipped in 4 days (2026-02-15 → 2026-02-19)
@@ -50,6 +50,6 @@ v1.1 Progress: [█] [██ ] [ ] [ ]   3/6 plans
 | `README.md`, `CLAUDE.md`, `.planning/` docs | E2E tests referencing `'StrengthApp'` IDB name |
 
 ## Session Continuity
-- **Last session**: 2026-02-20
-- **Stopped at**: Completed 06-02-PLAN.md — iOS meta tags, middleware PWA exclusions, Playwright SW block
+- **Last session**: 2026-02-20 — 06-01 (icons + manifest) and 06-02 (iOS meta + middleware)
+- **Stopped at**: Completed 06-01-SUMMARY.md and 06-02-SUMMARY.md
 - **Resume with**: `/gsd-plan-phase 6` (plan 06-03 remaining)
