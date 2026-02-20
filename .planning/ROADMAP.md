@@ -3,7 +3,7 @@
 ## Milestones
 
 - ✅ **v1.0 MVP** — Phases 1-4 (shipped 2026-02-19) · [archive](milestones/v1.0-ROADMAP.md)
-- 🚧 **v1.1 Sundee-Fundee** — Phases 5-8 (in progress)
+- ✅ **v1.1 Sundee-Fundee** — Phases 5-8 (shipped 2026-02-20)
 
 ## Phases
 
@@ -108,8 +108,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 08-01-PLAN.md — Install experience (Android beforeinstallprompt + iOS A2HS modal)
-- [ ] 08-02-PLAN.md — Icon enrichment (WifiOff, Trophy, Flame, BarChart2, Dumbbell, AlarmClockCheck, Target, CircleCheck, Activity)
+- [x] 08-01-PLAN.md — Install experience (Android beforeinstallprompt + iOS A2HS modal)
+- [x] 08-02-PLAN.md — Icon enrichment (WifiOff, Trophy, Flame, BarChart2, Dumbbell, AlarmClockCheck, Target, CircleCheck, Activity)
 
 **Success Criteria:**
 1. On Android Chrome (or DevTools mobile simulation), an "Add to Home Screen" install banner appears, powered by `beforeinstallprompt` deferral — tapping it triggers the native install dialog
@@ -131,4 +131,4 @@ Plans:
 | 5. Rebrand | v1.1 | Sundee-Fundee everywhere | BRAND-01/02/03 | 1/1 | ✅ Complete | 2026-02-20 |
 | 6. PWA Foundation | v1.1 | Installable PWA basics | PWA-01/02/04/05/06 | 2/2 | ✅ Complete | 2026-02-20 |
 | 7. Service Worker | v1.1 | Offline shell + caching | PWA-03 | 2/2 | ✅ Complete | 2026-02-20 |
-| 8. Install + Icon Polish | v1.1 | Install UX + icon enrichment | INSTALL-01/02, ICON-01/02/03/04 | 0/2 | ⬜ Pending | — |
+| 8. Install + Icon Polish | v1.1 | Install UX + icon enrichment | INSTALL-01/02, ICON-01/02/03/04 | 2/2 | ✅ Complete | 2026-02-20 |

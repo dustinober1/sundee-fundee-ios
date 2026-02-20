@@ -68,9 +68,9 @@
 | PWA-05 | Phase 6 — PWA Foundation | Complete |
 | PWA-06 | Phase 6 — PWA Foundation | Complete |
 | PWA-03 | Phase 7 — Service Worker | Complete |
-| INSTALL-01 | Phase 8 — Install + Icon Polish | Pending |
-| INSTALL-02 | Phase 8 — Install + Icon Polish | Pending |
-| ICON-01 | Phase 8 — Install + Icon Polish | Pending |
-| ICON-02 | Phase 8 — Install + Icon Polish | Pending |
-| ICON-03 | Phase 8 — Install + Icon Polish | Pending |
-| ICON-04 | Phase 8 — Install + Icon Polish | Pending |
+| INSTALL-01 | Phase 8 — Install + Icon Polish | Complete |
+| INSTALL-02 | Phase 8 — Install + Icon Polish | Complete |
+| ICON-01 | Phase 8 — Install + Icon Polish | Complete |
+| ICON-02 | Phase 8 — Install + Icon Polish | Complete |
+| ICON-03 | Phase 8 — Install + Icon Polish | Complete |
+| ICON-04 | Phase 8 — Install + Icon Polish | Complete |

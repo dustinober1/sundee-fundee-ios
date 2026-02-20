@@ -17,7 +17,7 @@ v1.1 Progress: [█] [██] [██] [██]   7/7 plans
                Ph5  Ph6  Ph7   Ph8
 ```
 
-**Last activity**: 2026-02-20 — Completed 08-02 (ICON-01–04: WifiOff, Trophy, Flame, BarChart2, Dumbbell, Target, AlarmClockCheck, CircleCheck + Activity in bottom nav; all 11 E2E pass).
+**Last activity**: 2026-02-20 — Completed 08-02 and phase verification passed (12/12 must-haves; all 11 E2E pass).
 
 ## Performance Metrics
 - **Velocity**: v1.0 shipped in 4 days (2026-02-15 → 2026-02-19)
