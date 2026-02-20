@@ -8,19 +8,19 @@ See: .planning/PROJECT.md (updated 2026-02-20)
 
 ## Current Position
 **Milestone**: v2.0 Flutter Full Rewrite (in progress)
-**Phase**: 9 of 14 (Cross-Platform Foundation + Parity Gates) — **COMPLETE**
-**Plan**: 3 of 3
-**Status**: Phase 9 complete; ready for Phase 10
+**Phase**: 9 of 14 (Cross-Platform Foundation + Parity Gates) — **IN PROGRESS**
+**Plan**: 4 of 5
+**Status**: Gap closure plans in progress
 
 ```
 v2.0 Progress: [█] [ ] [ ] [ ] [ ] [ ]
               Ph9 Ph10 Ph11 Ph12 Ph13 Ph14
 
-Phase 9 Plans: [█] [█] [█]
-               P1  P2  P3
+Phase 9 Plans: [█] [█] [█] [█] [ ]
+               P1  P2  P3  P4  P5
 ```
 
-**Last activity**: 2026-02-20 — Completed 09-03-PLAN.md (cross-platform parity gate tests: PLAT-01 + QUAL-01 + QUAL-02, verified web + android + ios)
+**Last activity**: 2026-02-20 — Completed 09-05-PLAN.md (Drift persistence gap closure: onboarding persists to DB, offline test verifies)
 
 ## Performance Metrics
 - **Velocity**: Baseline reset for v2.0 planning cycle
@@ -44,6 +44,7 @@ Phase 9 Plans: [█] [█] [█]
 - FakeConnectivityPlatform must extend ConnectivityPlatform with MockPlatformInterfaceMixin (token check)
 - Parity gate tests use platform-agnostic Key selectors only (no CupertinoButton/MaterialButton finders)
 - all_tests.dart aggregator pattern: single flutter drive target, per-gate files remain independently runnable
+- `if (mounted)` pattern for async gaps in ConsumerState (not `if (context.mounted)`)
 
 ### Roadmap Evolution
 - Milestone v2.0 inserted after Phase 8 using integer continuation: new phases 9-14.
@@ -56,6 +57,6 @@ Phase 9 Plans: [█] [█] [█]
 - Lucide icon enrichment across dashboard, workout, and navigation
 
 ## Session Continuity
-- **Last session**: 2026-02-20 — Completed 09-03 parity gate tests (web + android + ios approved)
-- **Stopped at**: 09-03-PLAN.md complete; Phase 9 fully complete
-- **Resume with**: `/gsd-execute-phase` on Phase 10
+- **Last session**: 2026-02-20 — Completed 09-05-PLAN.md (Drift persistence gap closure)
+- **Stopped at**: 09-05-PLAN.md complete; 4 of 5 plans done in Phase 9
+- **Resume with**: `/gsd-execute-phase` on 09-06-PLAN.md (if exists) or Phase 10
