@@ -124,5 +124,5 @@ Plans:
 | 4. E2E Verification | v1.0 | Verified test coverage | TEST-01/02/03 | 2/2 | ✅ Complete | 2026-02-19 |
 | 5. Rebrand | v1.1 | Sundee-Fundee everywhere | BRAND-01/02/03 | 1/1 | ✅ Complete | 2026-02-20 |
 | 6. PWA Foundation | v1.1 | Installable PWA basics | PWA-01/02/04/05/06 | 2/2 | ✅ Complete | 2026-02-20 |
-| 7. Service Worker | v1.1 | Offline shell + caching | PWA-03 | 0/? | ⬜ Pending | — |
+| 7. Service Worker | v1.1 | Offline shell + caching | PWA-03 | 2/2 | ✅ Complete | 2026-02-20 |
 | 8. Install + Icon Polish | v1.1 | Install UX + icon enrichment | INSTALL-01/02, ICON-01/02/03/04 | 0/? | ⬜ Pending | — |
