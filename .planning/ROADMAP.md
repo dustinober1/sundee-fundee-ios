@@ -116,7 +116,7 @@ Full details: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 | 2. Visual Progress | v1.0 | Progress visualization | CHART-01/02/03 | 3/3 | ✅ Complete | 2026-02-19 |
 | 3. Cloud Sync | v1.0 | Supabase backup + restore | SYNC-01/02/03 | 3/3 | ✅ Complete | 2026-02-19 |
 | 4. E2E Verification | v1.0 | Verified test coverage | TEST-01/02/03 | 2/2 | ✅ Complete | 2026-02-19 |
-| 5. Rebrand | v1.1 | Sundee-Fundee everywhere | BRAND-01/02/03 | 0/? | ⬜ Pending | — |
+| 5. Rebrand | v1.1 | Sundee-Fundee everywhere | BRAND-01/02/03 | 0/1 | 🔄 Planned | — |
 | 6. PWA Foundation | v1.1 | Installable PWA basics | PWA-01/02/04/05/06 | 0/? | ⬜ Pending | — |
 | 7. Service Worker | v1.1 | Offline shell + caching | PWA-03 | 0/? | ⬜ Pending | — |
 | 8. Install + Icon Polish | v1.1 | Install UX + icon enrichment | INSTALL-01/02, ICON-01/02/03/04 | 0/? | ⬜ Pending | — |
