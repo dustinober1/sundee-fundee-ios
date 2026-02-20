@@ -57,7 +57,7 @@ export function OnboardingWizard() {
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>
-            {step === 1 && 'Welcome to Strength'}
+            {step === 1 && 'Welcome to Sundee-Fundee'}
             {step === 2 && 'Training Experience'}
             {step === 3 && 'Your Goals'}
           </CardTitle>

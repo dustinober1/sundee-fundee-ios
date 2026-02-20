@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Strength - Workout Tracker",
-  description: "Track your workouts, build strength",
+  title: "Sundee-Fundee",
+  description: "Track your workouts and fitness goals",
 };
 
 export default function RootLayout({

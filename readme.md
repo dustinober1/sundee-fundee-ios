@@ -1,4 +1,4 @@
-# Strength - Workout Tracking App
+# Sundee-Fundee - Workout Tracking App
 
 Mobile-first web app for tracking workout programs, logging exercises, and monitoring progress.
 

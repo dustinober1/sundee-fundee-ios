@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Strength** is a mobile-first workout tracking web application with offline-first architecture. The app allows users to browse workout programs, start training cycles, log workouts with comprehensive data tracking, and receive personalized recommendations.
+**Sundee-Fundee** is a mobile-first workout tracking web application with offline-first architecture. The app allows users to browse workout programs, start training cycles, log workouts with comprehensive data tracking, and receive personalized recommendations.
 
 **Current Status:** Implementation in progress. Tasks 1-15 complete (all core features implemented). Remaining: recommendations, progress charts, Supabase, E2E tests, deployment. See [docs/plans/2025-02-15-workout-app-implementation.md](docs/plans/2025-02-15-workout-app-implementation.md) for the complete roadmap.
 
