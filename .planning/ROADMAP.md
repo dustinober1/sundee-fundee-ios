@@ -60,6 +60,12 @@ Full details: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 
 **Critical constraint:** `serviceWorkers: 'block'` (PWA-06) is added in this phase — before any service worker exists — so the Playwright guard is in place before Phase 7 introduces the SW.
 
+**Plans:** 2 plans
+
+Plans:
+- [ ] 06-01-PLAN.md — Generate PWA icons + create manifest.ts
+- [ ] 06-02-PLAN.md — iOS meta tags + middleware exclusions + Playwright guard
+
 **Success Criteria:**
 1. Chrome DevTools → Application → Manifest shows no errors: `name: "Sundee-Fundee"`, `display: "standalone"`, `start_url: "/dashboard"`, theme/background colors, and all icon sizes listed
 2. Icon set is complete and renders correctly: 192×192 (Android), 192×192 maskable (Android safe zone), 512×512, 180×180 apple-touch-icon (iOS home screen)
@@ -117,6 +123,6 @@ Full details: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 | 3. Cloud Sync | v1.0 | Supabase backup + restore | SYNC-01/02/03 | 3/3 | ✅ Complete | 2026-02-19 |
 | 4. E2E Verification | v1.0 | Verified test coverage | TEST-01/02/03 | 2/2 | ✅ Complete | 2026-02-19 |
 | 5. Rebrand | v1.1 | Sundee-Fundee everywhere | BRAND-01/02/03 | 1/1 | ✅ Complete | 2026-02-20 |
-| 6. PWA Foundation | v1.1 | Installable PWA basics | PWA-01/02/04/05/06 | 0/? | ⬜ Pending | — |
+| 6. PWA Foundation | v1.1 | Installable PWA basics | PWA-01/02/04/05/06 | 0/2 | ⬜ Pending | — |
 | 7. Service Worker | v1.1 | Offline shell + caching | PWA-03 | 0/? | ⬜ Pending | — |
 | 8. Install + Icon Polish | v1.1 | Install UX + icon enrichment | INSTALL-01/02, ICON-01/02/03/04 | 0/? | ⬜ Pending | — |
