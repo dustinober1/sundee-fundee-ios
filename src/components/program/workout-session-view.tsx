@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { CircleCheck, AlarmClockCheck } from 'lucide-react';
 import { ExerciseCardV2 } from './exercise-card-v2';
 import { PhaseBanner } from './phase-banner';
 import { PRCelebration } from './pr-celebration';
@@ -208,7 +209,10 @@ export function WorkoutSessionView({
       />
 
       <div className="mb-6">
-        <h1 className="text-2xl font-bold">{session.sessionName}</h1>
+        <h1 className="text-2xl font-bold flex items-center gap-2">
+          <AlarmClockCheck className="h-6 w-6 text-primary shrink-0" />
+          {session.sessionName}
+        </h1>
         <p className="text-muted-foreground">{session.focus}</p>
       </div>
 
@@ -250,6 +254,7 @@ export function WorkoutSessionView({
         onClick={handleComplete}
         disabled={completedSets.size === 0}
       >
+        <CircleCheck className="h-5 w-5 mr-2" />
         Complete Workout
       </Button>
     </div>

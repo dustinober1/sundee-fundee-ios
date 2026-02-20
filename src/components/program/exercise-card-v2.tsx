@@ -2,6 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Dumbbell, Target } from 'lucide-react';
 import { getExerciseByName } from '@/data/exercises';
 import type { ExerciseV2 } from '@/types/programV2';
 import type { WeightOverrideReason } from '@/types/workout';
@@ -63,11 +64,15 @@ export function ExerciseCardV2({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="capitalize">{displayName}</CardTitle>
+        <CardTitle className="capitalize flex items-center gap-2">
+          <Dumbbell className="h-5 w-5 text-muted-foreground shrink-0" />
+          {displayName}
+        </CardTitle>
         <p className="text-muted-foreground text-sm">
           <span>{formatSetCount(exercise.sets)}</span> × <span>{formatRepCount(exercise.reps)}</span>
         </p>
-        <p className="text-muted-foreground text-sm">
+        <p className="text-muted-foreground text-sm flex items-center gap-1.5">
+          <Target className="h-4 w-4 shrink-0" />
           @ {Math.round(exercise.percent1RM * 100)}% 1RM ({prescribedWeight} lbs)
         </p>
         {exercise.notes && (

@@ -2,13 +2,13 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Dumbbell, ClipboardPlus, TrendingUp } from 'lucide-react';
+import { LayoutDashboard, Dumbbell, Activity, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { href: '/programs', icon: Dumbbell, label: 'Programs' },
-  { href: '/workout', icon: ClipboardPlus, label: 'Workout' },
+  { href: '/workout', icon: Activity, label: 'Workout' },
   { href: '/progress', icon: TrendingUp, label: 'Progress' },
 ];
 
