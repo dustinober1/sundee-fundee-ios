@@ -4,28 +4,28 @@
 See: .planning/PROJECT.md (updated 2026-02-20)
 
 **Core value:** Users can reliably track their strength training progress offline and receive actionable insights to improve performance.
-**Current focus:** Phase 11 complete — all 3 plans done
+**Current focus:** Phase 12 in progress — Plan 01 complete
 
 ## Current Position
 **Milestone**: v2.0 Flutter Full Rewrite (in progress)
-**Phase**: 11 of 14 (Workout Logging + Rest + Offline Continuity) — **COMPLETE**
-**Plan**: 4 of 4
-**Status**: Phase 11 verified (3/3 truths); ready for Phase 12
+**Phase**: 12 of 14 (Recommendations + Progress + Insights Parity) — **In progress**
+**Plan**: 1 of 5
+**Status**: Plan 12-01 complete; ready for Plan 12-02
 
 ```
-v2.0 Progress: [█] [█] [█] [ ] [ ] [ ]
+v2.0 Progress: [█] [█] [█] [░] [ ] [ ]
               Ph9 Ph10 Ph11 Ph12 Ph13 Ph14
 
-Phase 11 Plans: [█] [█] [█] [█]
-                P1  P2  P3  P4
+Phase 12 Plans: [█] [ ] [ ] [ ] [ ]
+                P1  P2  P3  P4  P5
 ```
 
-**Last activity**: 2026-02-21 — Phase 11 complete: Drift schema v3 (CompletedWorkouts, CompletedSets, OneRepMaxes, PersonalRecords), WorkoutRepository (transactional), WorkoutSessionProvider, SetInputWidget, ExerciseAccordion, WorkoutScreen (full session UI), RestTimerProvider (background recalculation), RestTimerSheet, parity gate tests (WORK-01, WORK-02, WORK-03). Phase verified 3/3 truths.
+**Last activity**: 2026-02-21 — Plan 12-01 complete: fl_chart + intl deps, exercises.dart (7 exercises), calculations.dart (8 pure functions: epley/Epley with 10-rep cap, roundToNearestFive, getNextRecommendedWeight, wasSetSuccessful, wasSessionSuccessful, isPersonalRecord, calculateVolumeLoad, detectPlateau), plateau_detection.dart (cycle-scoped rep-failure detection, PlateauWarning, getDeloadWeight).
 
 ## Performance Metrics
 - **Velocity**: Baseline reset for v2.0 planning cycle
 - **Blockers**: None
-- **Next Decision**: Execute Phase 12 (next phase in roadmap)
+- **Next Decision**: Execute Phase 12 Plan 02 (progress screen chart queries + WorkoutRepository extensions)
 
 ## Accumulated Context
 
@@ -58,6 +58,10 @@ Phase 11 Plans: [█] [█] [█] [█]
 - CycleRepository.startCycle() returns `null` (not exception) for duplicate active cycle — caller shows SnackBar
 - FutureProvider + invalidate pattern for activeCycleProvider (simpler than streaming for infrequent cycle state changes)
 - Drift cascade delete on CompletedSets FK requires explicit `PRAGMA foreign_keys = ON` in `NativeDatabase.memory()` test setup (production drift_flutter already enables FKs)
+- Epley formula uses `reps.clamp(1, 10)` to cap rep input at 10 (matching v1.1 `Math.min(reps, 10)`)
+- `EXERCISES` constant name kept uppercase (v1.1 parity); `// ignore: constant_identifier_names` added to document intent
+- `detectPlateauForExercise` takes `AppDatabase` directly (not WorkoutRepository) for compound Drift query access
+- `getDeloadWeight` lives in `plateau_detection.dart` (not `calculations.dart`) — only meaningful in plateau context
 
 ### Roadmap Evolution
 - Milestone v2.0 inserted after Phase 8 using integer continuation: new phases 9-14.
@@ -70,6 +74,6 @@ Phase 11 Plans: [█] [█] [█] [█]
 - Lucide icon enrichment across dashboard, workout, and navigation
 
 ## Session Continuity
-- **Last session**: 2026-02-21 — Completed 11-04-PLAN.md (parity gate tests for WORK-01/02/03 + Start Workout button + workout helpers)
-- **Stopped at**: Phase 11 complete (all 4 plans done)
-- **Resume with**: Execute Phase 12
+- **Last session**: 2026-02-21 — Completed 12-01-PLAN.md (fl_chart + intl deps, exercises.dart, calculations.dart, plateau_detection.dart)
+- **Stopped at**: Phase 12 Plan 01 complete
+- **Resume with**: Execute Phase 12 Plan 02 (12-02-PLAN.md)
