@@ -70,10 +70,12 @@ Plans:
   2. User profile data remains available after app restart on web, Android, and iOS.
   3. User can browse the same program catalog structure and metadata as v1.1.
   4. User can start and track active cycles with behavior matching v1.1.
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 10-01: TBD (run /gsd-plan-phase 10 to break down)
+- [ ] 10-01-PLAN.md — Onboarding enhancement + persistence guard (ONBD-01, ONBD-02)
+- [ ] 10-02-PLAN.md — Program data models + catalog UI (PROG-01)
+- [ ] 10-03-PLAN.md — Active cycle DB + cycle management (PROG-02)
 
 ### Phase 11: Workout Logging + Rest + Offline Continuity
 **Goal**: Users can complete the full workout logging loop in Flutter, including rest timing and offline continuity.
@@ -143,7 +145,7 @@ Plans:
 | 7. Service Worker | v1.1 | Offline shell + caching | PWA-03 | 2/2 | ✅ Complete | 2026-02-20 |
 | 8. Install + Icon Polish | v1.1 | Install UX + icon enrichment | INSTALL-01/02, ICON-01/02/03/04 | 2/2 | ✅ Complete | 2026-02-20 |
 | 9. Foundation + Parity Gates | v2.0 | Flutter baseline + test gates | PLAT-01, QUAL-01, QUAL-02 | 5/5 | ✅ Complete | 2026-02-21 |
-| 10. Onboarding + Programs | v2.0 | Onboarding + catalog/cycles parity | ONBD-01/02, PROG-01/02 | 0/TBD | Not started | - |
+| 10. Onboarding + Programs | v2.0 | Onboarding + catalog/cycles parity | ONBD-01/02, PROG-01/02 | 0/3 | Not started | - |
 | 11. Workout Flow | v2.0 | Logging + rest + offline continuity | WORK-01/02/03 | 0/TBD | Not started | - |
 | 12. Insights Parity | v2.0 | Recommendations + progress parity | RECO-01/02, CHRT-01/02 | 0/TBD | Not started | - |
 | 13. Supabase Sync | v2.0 | Optional auth/sync parity | SYNC-01/02/03 | 0/TBD | Not started | - |
