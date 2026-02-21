@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import '../database/app_database.dart';
 import '../models/set_data.dart';
+import '../../core/recommendations/calculations.dart';
 
 class WorkoutRepository {
   final AppDatabase _db;
@@ -145,5 +146,141 @@ class WorkoutRepository {
     }
 
     return countByDate;
+  }
+
+  // ── PR detection and 1RM save methods ─────────────────────────────────────
+
+  /// Save estimated 1RM for an exercise.
+  Future<int> saveOneRepMax({
+    required int userId,
+    required String exerciseId,
+    required double weight,
+    required DateTime date,
+  }) async {
+    return await _db.into(_db.oneRepMaxes).insert(
+      OneRepMaxesCompanion.insert(
+        userId: userId,
+        exerciseId: exerciseId,
+        weight: weight,
+        date: date,
+      ),
+    );
+  }
+
+  /// Get historical max weight for an exercise from 1RM records.
+  Future<double> getHistoricalMax(int userId, String exerciseId) async {
+    final records = await (_db.select(_db.oneRepMaxes)
+          ..where((t) => t.userId.equals(userId))
+          ..where((t) => t.exerciseId.equals(exerciseId)))
+        .get();
+
+    if (records.isEmpty) return 0;
+    return records.map((r) => r.weight).reduce((a, b) => a > b ? a : b);
+  }
+
+  /// Check if weight is a PR and save if so.
+  /// Returns true if PR was detected and saved.
+  ///
+  /// CRITICAL: Only triggers PR if historicalMax > 0 (no PR on first-ever lift).
+  Future<bool> checkAndSaveWeightPR({
+    required int userId,
+    required String exerciseId,
+    required double newWeight,
+    required int workoutId,
+    required DateTime date,
+  }) async {
+    final historicalMax = await getHistoricalMax(userId, exerciseId);
+
+    // No PR on first-ever lift (historicalMax = 0)
+    if (historicalMax <= 0) return false;
+
+    if (newWeight > historicalMax) {
+      await _db.into(_db.personalRecords).insert(
+        PersonalRecordsCompanion.insert(
+          userId: userId,
+          exerciseId: exerciseId,
+          type: 'weight',
+          value: newWeight,
+          workoutId: workoutId,
+          date: date,
+        ),
+      );
+      return true;
+    }
+    return false;
+  }
+
+  /// Get best historical single-session volume for an exercise.
+  /// Excludes the specified workout ID from comparison.
+  Future<double> getBestSessionVolume({
+    required int userId,
+    required String exerciseId,
+    required int excludeWorkoutId,
+  }) async {
+    // Get all workouts for user
+    final workouts = await (_db.select(_db.completedWorkouts)
+          ..where((t) => t.userId.equals(userId)))
+        .get();
+
+    final workoutIds = workouts
+        .where((w) => w.id != excludeWorkoutId)
+        .map((w) => w.id)
+        .toList();
+
+    if (workoutIds.isEmpty) return 0;
+
+    // Get sets for this exercise from those workouts
+    final sets = await (_db.select(_db.completedSets)
+          ..where((t) => t.exerciseId.equals(exerciseId))
+          ..where((t) => t.workoutId.isIn(workoutIds)))
+        .get();
+
+    // Group by workout and calculate volume per session
+    final volumeByWorkout = <int, double>{};
+    for (final s in sets) {
+      volumeByWorkout[s.workoutId] =
+          (volumeByWorkout[s.workoutId] ?? 0) + (s.actualWeight * s.actualReps);
+    }
+
+    if (volumeByWorkout.isEmpty) return 0;
+    return volumeByWorkout.values.reduce((a, b) => a > b ? a : b);
+  }
+
+  /// Check if session volume is a PR and save if so.
+  /// Returns true if PR was detected and saved.
+  ///
+  /// CRITICAL: Only triggers PR if prior sessions exist (no PR on first session).
+  Future<bool> checkAndSaveVolumePR({
+    required int userId,
+    required String exerciseId,
+    required double currentVolume,
+    required int workoutId,
+    required DateTime date,
+  }) async {
+    if (currentVolume <= 0) return false;
+
+    final bestHistorical = await getBestSessionVolume(
+      userId: userId,
+      exerciseId: exerciseId,
+      excludeWorkoutId: workoutId,
+    );
+
+    // No PR on first session (bestHistorical = 0)
+    if (bestHistorical <= 0) return false;
+
+    if (currentVolume > bestHistorical) {
+      await _db.into(_db.personalRecords).insert(
+        PersonalRecordsCompanion.insert(
+          userId: userId,
+          exerciseId: exerciseId,
+          type: 'volume',
+          value: currentVolume,
+          workoutId: workoutId,
+          date: date,
+        ),
+      );
+      return true;
+    }
+    return false;
   }
 }
