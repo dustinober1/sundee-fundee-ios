@@ -23,6 +23,8 @@ struct SundeeFundeeApp: App {
                      BBTLog.self,
                      SymptomDefinition.self,
                      CycleSettings.self,
+                     CustomProgram.self,
+                     CustomProgramExercise.self,
                 configurations: config
             )
         } catch {
