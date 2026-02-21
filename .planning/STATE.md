@@ -8,19 +8,19 @@ See: .planning/PROJECT.md (updated 2026-02-20)
 
 ## Current Position
 **Milestone**: v2.0 Flutter Full Rewrite (in progress)
-**Phase**: 13 of 14 (Supabase Sync Parity + Optional Cloud) — **Complete**
-**Plan**: 5 of 5 (final plan)
-**Status**: Plans 13-01, 13-02, 13-03, 13-04, 13-05 complete
+**Phase**: 14 of 14 (Release Hardening + Cutover Safety) — **In progress**
+**Plan**: 2 of 6
+**Status**: Plans 14-01 (pending), 14-02 complete
 
 ```
-v2.0 Progress: [█] [█] [█] [█] [█] [ ]
+v2.0 Progress: [█] [█] [█] [█] [█] [░]
               Ph9 Ph10 Ph11 Ph12 Ph13 Ph14
 
-Phase 13 Plans: [█] [█] [█] [█] [█]
-                P1  P2  P3  P4  P5
+Phase 14 Plans: [░] [█] [░] [░] [░] [░]
+                P1  P2  P3  P4  P5  P6
 ```
 
-**Last activity**: 2026-02-21 — Plan 13-05 complete: sync unit tests (SyncService queue/retry, SyncNotifier state) + SYNC-01/02/03 parity gate tests + all_tests.dart aggregator. flutter analyze clean. Phase 13 complete.
+**Last activity**: 2026-02-21 — Plan 14-02 complete: DATA_MIGRATION_GUIDE.md created. DATA-01 satisfied (Supabase sync as primary migration path; local-only fresh start documented).
 
 ## Performance Metrics
 - **Velocity**: Baseline reset for v2.0 planning cycle
@@ -93,6 +93,6 @@ Phase 13 Plans: [█] [█] [█] [█] [█]
 - Lucide icon enrichment across dashboard, workout, and navigation
 
 ## Session Continuity
-- **Last session**: 2026-02-21 — Completed 13-05-PLAN.md (sync unit tests + SYNC parity gates + all_tests.dart; flutter analyze clean; Phase 13 complete)
-- **Stopped at**: Phase 13 Plan 05 complete — Phase 13 fully done
-- **Resume with**: Execute Phase 14
+- **Last session**: 2026-02-21 — Completed 14-02-PLAN.md (DATA_MIGRATION_GUIDE.md; DATA-01 satisfied; Supabase sync as primary migration path documented)
+- **Stopped at**: Phase 14 Plan 02 complete
+- **Resume with**: Execute Phase 14 Plan 03
