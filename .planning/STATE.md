@@ -4,28 +4,28 @@
 See: .planning/PROJECT.md (updated 2026-02-20)
 
 **Core value:** Users can reliably track their strength training progress offline and receive actionable insights to improve performance.
-**Current focus:** Phase 12 in progress — Plan 01 complete
+**Current focus:** Phase 12 in progress — Plan 02 complete
 
 ## Current Position
 **Milestone**: v2.0 Flutter Full Rewrite (in progress)
 **Phase**: 12 of 14 (Recommendations + Progress + Insights Parity) — **In progress**
-**Plan**: 1 of 5
-**Status**: Plan 12-01 complete; ready for Plan 12-02
+**Plan**: 2 of 5
+**Status**: Plan 12-02 complete; ready for Plan 12-03
 
 ```
 v2.0 Progress: [█] [█] [█] [░] [ ] [ ]
               Ph9 Ph10 Ph11 Ph12 Ph13 Ph14
 
-Phase 12 Plans: [█] [ ] [ ] [ ] [ ]
+Phase 12 Plans: [█] [█] [ ] [ ] [ ]
                 P1  P2  P3  P4  P5
 ```
 
-**Last activity**: 2026-02-21 — Plan 12-01 complete: fl_chart + intl deps, exercises.dart (7 exercises), calculations.dart (8 pure functions: epley/Epley with 10-rep cap, roundToNearestFive, getNextRecommendedWeight, wasSetSuccessful, wasSessionSuccessful, isPersonalRecord, calculateVolumeLoad, detectPlateau), plateau_detection.dart (cycle-scoped rep-failure detection, PlateauWarning, getDeloadWeight).
+**Last activity**: 2026-02-21 — Plan 12-02 complete: WorkoutRepository extended with 4 chart query methods (getSetsForExercise, getAllSetsWithWorkoutDate, getTrackedExerciseIds, getWorkoutCountByDate); 4 Riverpod FutureProviders created (oneRmProgressProvider/Epley 1RM trend, weeklyVolumeProvider/Monday-start last-12, workoutFrequencyProvider/365-day heatmap level 0-4, trackedExercisesProvider/-\d+$ suffix strip).
 
 ## Performance Metrics
 - **Velocity**: Baseline reset for v2.0 planning cycle
 - **Blockers**: None
-- **Next Decision**: Execute Phase 12 Plan 02 (progress screen chart queries + WorkoutRepository extensions)
+- **Next Decision**: Execute Phase 12 Plan 03 (progress_screen.dart + chart widgets)
 
 ## Accumulated Context
 
@@ -74,6 +74,6 @@ Phase 12 Plans: [█] [ ] [ ] [ ] [ ]
 - Lucide icon enrichment across dashboard, workout, and navigation
 
 ## Session Continuity
-- **Last session**: 2026-02-21 — Completed 12-01-PLAN.md (fl_chart + intl deps, exercises.dart, calculations.dart, plateau_detection.dart)
-- **Stopped at**: Phase 12 Plan 01 complete
-- **Resume with**: Execute Phase 12 Plan 02 (12-02-PLAN.md)
+- **Last session**: 2026-02-21 — Completed 12-02-PLAN.md (WorkoutRepository chart queries, oneRmProgressProvider, weeklyVolumeProvider, workoutFrequencyProvider, trackedExercisesProvider)
+- **Stopped at**: Phase 12 Plan 02 complete
+- **Resume with**: Execute Phase 12 Plan 03 (12-03-PLAN.md)
