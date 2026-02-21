@@ -105,11 +105,11 @@ Plans:
 **Plans**: 5 plans
 
 Plans:
-- [ ] 12-01-PLAN.md — Core recommendation engine + calculations.dart port
-- [ ] 12-02-PLAN.md — Progress data providers (1RM, volume, frequency)
-- [ ] 12-03-PLAN.md — Progress screen UI with fl_chart visualizations
-- [ ] 12-04-PLAN.md — PR detection + 1RM recording after workout
-- [ ] 12-05-PLAN.md — Parity gate tests (RECO-01, RECO-02, CHRT-01, CHRT-02)
+- [x] 12-01-PLAN.md — Core recommendation engine + calculations.dart port
+- [x] 12-02-PLAN.md — Progress data providers (1RM, volume, frequency)
+- [x] 12-03-PLAN.md — Progress screen UI with fl_chart visualizations
+- [x] 12-04-PLAN.md — PR detection + 1RM recording after workout
+- [x] 12-05-PLAN.md — Parity gate tests (RECO-01, RECO-02, CHRT-01, CHRT-02)
 
 ### Phase 13: Supabase Sync Parity (Optional Cloud)
 **Goal**: Users can use optional Supabase auth/sync in Flutter with local-first sync semantics and clear status feedback.

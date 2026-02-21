@@ -93,10 +93,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | WORK-01 | Phase 11 | Complete |
 | WORK-02 | Phase 11 | Complete |
 | WORK-03 | Phase 11 | Complete |
-| RECO-01 | Phase 12 | Pending |
-| RECO-02 | Phase 12 | Pending |
-| CHRT-01 | Phase 12 | Pending |
-| CHRT-02 | Phase 12 | Pending |
+| RECO-01 | Phase 12 | Complete |
+| RECO-02 | Phase 12 | Complete |
+| CHRT-01 | Phase 12 | Complete |
+| CHRT-02 | Phase 12 | Complete |
 | SYNC-01 | Phase 13 | Pending |
 | SYNC-02 | Phase 13 | Pending |
 | SYNC-03 | Phase 13 | Pending |
