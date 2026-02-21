@@ -4,28 +4,28 @@
 See: .planning/PROJECT.md (updated 2026-02-20)
 
 **Core value:** Users can reliably track their strength training progress offline and receive actionable insights to improve performance.
-**Current focus:** Phase 9 complete with gap closure; ready for Phase 10
+**Current focus:** Phase 10 in progress — Onboarding + Program/Cycle Parity (plan 1 of N complete)
 
 ## Current Position
 **Milestone**: v2.0 Flutter Full Rewrite (in progress)
-**Phase**: 9 of 14 (Cross-Platform Foundation + Parity Gates) — **COMPLETE**
-**Plan**: 5 of 5
-**Status**: Phase 9 verified (8/8 truths); ready for Phase 10
+**Phase**: 10 of 14 (Onboarding + Program/Cycle Parity) — **In progress**
+**Plan**: 1 completed
+**Status**: 10-01 complete (ONBD-01, ONBD-02 satisfied)
 
 ```
-v2.0 Progress: [█] [ ] [ ] [ ] [ ] [ ]
+v2.0 Progress: [█] [░] [ ] [ ] [ ] [ ]
               Ph9 Ph10 Ph11 Ph12 Ph13 Ph14
 
-Phase 9 Plans: [█] [█] [█] [█] [█]
-               P1  P2  P3  P4  P5
+Phase 10 Plans: [█] [ ] [ ] ...
+                P1  P2  P3
 ```
 
-**Last activity**: 2026-02-21 — Completed gap closure plans 09-04 (toolchain) and 09-05 (Drift persistence). Phase 9 re-verified: 8/8 truths passed.
+**Last activity**: 2026-02-21 — Completed 10-01-PLAN.md (onboarding wizard 3-step flow + redirect guard)
 
 ## Performance Metrics
 - **Velocity**: Baseline reset for v2.0 planning cycle
 - **Blockers**: None
-- **Next Decision**: Plan Phase 10 (Onboarding + Program/Cycle Parity)
+- **Next Decision**: Continue Phase 10 Plan 02 (Program/Cycle parity)
 
 ## Accumulated Context
 
@@ -45,6 +45,8 @@ Phase 9 Plans: [█] [█] [█] [█] [█]
 - Parity gate tests use platform-agnostic Key selectors only (no CupertinoButton/MaterialButton finders)
 - all_tests.dart aggregator pattern: single flutter drive target, per-gate files remain independently runnable
 - `if (mounted)` pattern for async gaps in ConsumerState (not `if (context.mounted)`)
+- Riverpod 3.x: use `NotifierProvider` (not `StateProvider` which is legacy-only); expose mutation via methods on Notifier (`.state` is `@protected`)
+- Riverpod 3.x: `overrideWith(() => MyNotifier(initialState: value))` to inject pre-loaded async state before runApp
 
 ### Roadmap Evolution
 - Milestone v2.0 inserted after Phase 8 using integer continuation: new phases 9-14.
@@ -57,6 +59,8 @@ Phase 9 Plans: [█] [█] [█] [█] [█]
 - Lucide icon enrichment across dashboard, workout, and navigation
 
 ## Session Continuity
-- **Last session**: 2026-02-21 — Phase 9 gap closure complete, re-verified 8/8
+- **Last session**: 2026-02-21 — Completed 10-01-PLAN.md (onboarding wizard 3-step + redirect guard)
+- **Stopped at**: Completed 10-01-PLAN.md
+- **Resume file**: None
 - **Stopped at**: Phase 9 fully complete and verified
 - **Resume with**: `/gsd-discuss-phase 10` or `/gsd-plan-phase 10`
