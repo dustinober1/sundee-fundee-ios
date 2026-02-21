@@ -3,6 +3,7 @@ import '../../data/models/set_data.dart';
 import '../../data/models/workout_session_state.dart';
 import '../../core/recommendations/calculations.dart';
 import 'workout_repository_provider.dart';
+import 'sync_provider.dart';
 
 class WorkoutSessionNotifier extends Notifier<WorkoutSessionState?> {
   @override
@@ -135,6 +136,12 @@ class WorkoutSessionNotifier extends Notifier<WorkoutSessionState?> {
     }
 
     state = null;
+
+    // Trigger sync (async, fire-and-forget — do not block workout completion).
+    // If sync fails, workoutId is enqueued for retry when connectivity returns.
+    // ignore: unawaited_futures
+    ref.read(syncProvider.notifier).syncAfterWorkout(workoutId);
+
     return (workoutId: workoutId, weightPRs: weightPRs, volumePRs: volumePRs);
   }
 
