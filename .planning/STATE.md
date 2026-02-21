@@ -4,23 +4,23 @@
 See: .planning/PROJECT.md (updated 2026-02-20)
 
 **Core value:** Users can reliably track their strength training progress offline and receive actionable insights to improve performance.
-**Current focus:** Phase 14 in progress — plans 14-01, 14-02, 14-03 complete
+**Current focus:** Phase 14 in progress — plans 14-01 through 14-05 complete
 
 ## Current Position
 **Milestone**: v2.0 Flutter Full Rewrite (in progress)
 **Phase**: 14 of 14 (Release Hardening + Cutover Safety) — **In progress**
-**Plan**: 4 of 6
-**Status**: Plans 14-01, 14-02, 14-03 complete; 14-04 complete
+**Plan**: 5 of 6
+**Status**: Plans 14-01, 14-02, 14-03, 14-04, 14-05 complete
 
 ```
 v2.0 Progress: [█] [█] [█] [█] [█] [░]
               Ph9 Ph10 Ph11 Ph12 Ph13 Ph14
 
-Phase 14 Plans: [█] [█] [█] [█] [░] [░]
+Phase 14 Plans: [█] [█] [█] [█] [█] [░]
                 P1  P2  P3  P4  P5  P6
 ```
 
-**Last activity**: 2026-02-21 — Plan 14-04 complete: Android applicationId + namespace set to com.sundeefundee.app; iOS PRODUCT_BUNDLE_IDENTIFIER set to com.sundeefundee.app (3 Runner + 3 RunnerTests configs); display names set to "Sundee Fundee" on both platforms. flutter analyze clean.
+**Last activity**: 2026-02-21 — Plan 14-05 complete: GitHub Actions flutter-release.yml (web/Android AAB/iOS IPA jobs); Android build.gradle.kts release signing via GitHub Secrets; isMinifyEnabled=false for Drift compatibility.
 
 ## Performance Metrics
 - **Velocity**: Baseline reset for v2.0 planning cycle
@@ -58,6 +58,9 @@ Phase 14 Plans: [█] [█] [█] [█] [░] [░]
 - Drift web assets (sqlite3.wasm, drift_worker.js) committed to flutter_app/web/
 - Radio<String> deprecated in Flutter 3.32+; use Icon-based selection instead
 - FakeConnectivityPlatform must extend ConnectivityPlatform with MockPlatformInterfaceMixin (token check)
+- Android release signing: Base64 keystore decoded at CI time from GitHub Secrets (env var → build dir); fallback to debug keys locally
+- `isMinifyEnabled = false` in Android release buildType — Drift generated code incompatible with R8 minification
+- iOS CI produces unsigned IPA via `--no-codesign`; signing is manual via Xcode/Transporter before App Store Connect
 - Parity gate tests use platform-agnostic Key selectors only (no CupertinoButton/MaterialButton finders)
 - all_tests.dart aggregator pattern: single flutter drive target, per-gate files remain independently runnable
 - `fakeAsync` is NOT exported from `package:flutter_test` for plain `test()` calls — only available inside `testWidgets` binding; use real async with minimal maxAttempts for retry tests
@@ -93,6 +96,6 @@ Phase 14 Plans: [█] [█] [█] [█] [░] [░]
 - Lucide icon enrichment across dashboard, workout, and navigation
 
 ## Session Continuity
-- **Last session**: 2026-02-21 — Completed 14-04-PLAN.md (Android applicationId + namespace; iOS bundle identifier; Sundee Fundee display names; flutter analyze clean)
-- **Stopped at**: Phase 14 Plan 04 complete
-- **Resume with**: Execute Phase 14 remaining plans (14-05, 14-06)
+- **Last session**: 2026-02-21 — Completed 14-05-PLAN.md (flutter-release.yml: web/Android AAB/iOS IPA CI jobs; Android release signing via GitHub Secrets; isMinifyEnabled=false)
+- **Stopped at**: Phase 14 Plan 05 complete
+- **Resume with**: Execute Phase 14 remaining plan (14-06)
