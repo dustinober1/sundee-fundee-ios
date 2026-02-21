@@ -106,14 +106,14 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
       return;
     }
 
-    final workoutId = await ref
+    final result = await ref
         .read(workoutSessionProvider.notifier)
         .completeWorkout(
           userId: user.id,
           activeCycleId: activeCycle.id,
         );
 
-    if (workoutId != null && mounted) {
+    if (result != null && mounted) {
       context.go('/dashboard');
     }
   }

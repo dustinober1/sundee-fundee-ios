@@ -1,7 +1,6 @@
 import 'package:drift/drift.dart';
 import '../database/app_database.dart';
 import '../models/set_data.dart';
-import '../../core/recommendations/calculations.dart';
 
 class WorkoutRepository {
   final AppDatabase _db;
