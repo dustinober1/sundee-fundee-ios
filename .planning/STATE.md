@@ -4,23 +4,23 @@
 See: .planning/PROJECT.md (updated 2026-02-20)
 
 **Core value:** Users can reliably track their strength training progress offline and receive actionable insights to improve performance.
-**Current focus:** Phase 13 in progress — Plan 01 complete
+**Current focus:** Phase 13 in progress — Plan 03 complete
 
 ## Current Position
 **Milestone**: v2.0 Flutter Full Rewrite (in progress)
 **Phase**: 13 of 14 (Supabase Sync Parity + Optional Cloud) — **In Progress**
-**Plan**: 1 of N
-**Status**: Plan 13-01 complete; Drift v4 schema + Supabase deps wired
+**Plan**: 3 of N
+**Status**: Plan 13-03 complete; Auth feature (AuthNotifier + AuthScreen + /auth route) delivered
 
 ```
 v2.0 Progress: [█] [█] [█] [█] [░] [ ]
               Ph9 Ph10 Ph11 Ph12 Ph13 Ph14
 
-Phase 13 Plans: [█] [ ] [ ] [ ] [ ]
+Phase 13 Plans: [█] [ ] [█] [ ] [ ]
                 P1  P2  P3  P4  P5
 ```
 
-**Last activity**: 2026-02-21 — Plan 13-01 complete: supabase_flutter+uuid deps added, Drift schema v4 with syncId columns on 5 tables, conditional Supabase.initialize() in main.dart, nullable supabaseClientProvider created. All tests pass.
+**Last activity**: 2026-02-21 — Plan 13-03 complete: AuthNotifier (signIn/signUp/signOut wrapping supabase_flutter), AuthScreen (email/password form with Key selectors), /auth route added to GoRouter. flutter analyze clean.
 
 ## Performance Metrics
 - **Velocity**: Baseline reset for v2.0 planning cycle
@@ -36,6 +36,9 @@ Phase 13 Plans: [█] [ ] [ ] [ ] [ ]
 - Drift schema is at v4 with syncId TEXT UNIQUE nullable on CompletedWorkouts, CompletedSets, ActiveCycles, OneRepMaxes, PersonalRecords (Users excluded — auth.uid() handles identity)
 - supabase_flutter initialized via `String.fromEnvironment` (compile-time `--dart-define`); skipped when env vars absent
 - `supabaseClientProvider` returns `null` via try/catch when Supabase not initialized — use everywhere instead of `Supabase.instance.client` directly
+- AuthNotifier contains zero sync logic — SyncNotifier handles `onAuthStateChange` stream independently
+- signUp returns `true` when `response.user != null` (not session) — handles email confirmation flow gracefully
+- `/auth` route added to GoRouter with no redirect guard changes — auth is optional
 
 ### Key Decisions (carried forward)
 - Local-first architecture with Dexie as source of truth (v1.1 baseline behavior)
@@ -81,6 +84,6 @@ Phase 13 Plans: [█] [ ] [ ] [ ] [ ]
 - Lucide icon enrichment across dashboard, workout, and navigation
 
 ## Session Continuity
-- **Last session**: 2026-02-21 — Completed 13-01-PLAN.md (supabase_flutter+uuid deps, Drift v4 syncId columns on 5 tables, conditional Supabase.initialize(), nullable supabaseClientProvider; flutter analyze clean, all tests pass)
-- **Stopped at**: Phase 13 Plan 01 complete
-- **Resume with**: Execute Phase 13 Plan 02
+- **Last session**: 2026-02-21 — Completed 13-03-PLAN.md (AuthNotifier with signIn/signUp/signOut, AuthScreen with email/password form + Key selectors, /auth route added to GoRouter; flutter analyze clean)
+- **Stopped at**: Phase 13 Plan 03 complete
+- **Resume with**: Execute Phase 13 Plan 04
