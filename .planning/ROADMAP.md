@@ -88,10 +88,10 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
-- [ ] 11-01-PLAN.md — Drift schema v3 + WorkoutRepository (Wave 1)
-- [ ] 11-02-PLAN.md — WorkoutSessionProvider + Workout UI (Wave 2)
-- [ ] 11-03-PLAN.md — RestTimerProvider + Rest Timer UI (Wave 2)
-- [ ] 11-04-PLAN.md — Parity gate test updates (Wave 3)
+- [x] 11-01-PLAN.md — Drift schema v3 + WorkoutRepository (Wave 1)
+- [x] 11-02-PLAN.md — WorkoutSessionProvider + Workout UI (Wave 2)
+- [x] 11-03-PLAN.md — RestTimerProvider + Rest Timer UI (Wave 2)
+- [x] 11-04-PLAN.md — Parity gate test updates (Wave 3)
 
 ### Phase 12: Recommendations + Progress Insights Parity
 **Goal**: Users receive the same coaching outcomes and progress insights in Flutter as in v1.1.
@@ -148,8 +148,8 @@ Plans:
 | 7. Service Worker | v1.1 | Offline shell + caching | PWA-03 | 2/2 | ✅ Complete | 2026-02-20 |
 | 8. Install + Icon Polish | v1.1 | Install UX + icon enrichment | INSTALL-01/02, ICON-01/02/03/04 | 2/2 | ✅ Complete | 2026-02-20 |
 | 9. Foundation + Parity Gates | v2.0 | Flutter baseline + test gates | PLAT-01, QUAL-01, QUAL-02 | 5/5 | ✅ Complete | 2026-02-21 |
-| 10. Onboarding + Programs | v2.0 | Onboarding + catalog/cycles parity | ONBD-01/02, PROG-01/02 | 0/3 | Not started | - |
-| 11. Workout Flow | v2.0 | Logging + rest + offline continuity | WORK-01/02/03 | 0/TBD | Not started | - |
+| 10. Onboarding + Programs | v2.0 | Onboarding + catalog/cycles parity | ONBD-01/02, PROG-01/02 | 3/3 | ✅ Complete | 2026-02-21 |
+| 11. Workout Flow | v2.0 | Logging + rest + offline continuity | WORK-01/02/03 | 4/4 | ✅ Complete | 2026-02-21 |
 | 12. Insights Parity | v2.0 | Recommendations + progress parity | RECO-01/02, CHRT-01/02 | 0/TBD | Not started | - |
 | 13. Supabase Sync | v2.0 | Optional auth/sync parity | SYNC-01/02/03 | 0/TBD | Not started | - |
 | 14. Release + Cutover | v2.0 | Production hardening + safe migration | PLAT-02, DATA-01, DPLY-01/02/03 | 0/TBD | Not started | - |

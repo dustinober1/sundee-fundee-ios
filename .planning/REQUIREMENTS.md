@@ -90,9 +90,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ONBD-02 | Phase 10 | Complete |
 | PROG-01 | Phase 10 | Complete |
 | PROG-02 | Phase 10 | Complete |
-| WORK-01 | Phase 11 | Pending |
-| WORK-02 | Phase 11 | Pending |
-| WORK-03 | Phase 11 | Pending |
+| WORK-01 | Phase 11 | Complete |
+| WORK-02 | Phase 11 | Complete |
+| WORK-03 | Phase 11 | Complete |
 | RECO-01 | Phase 12 | Pending |
 | RECO-02 | Phase 12 | Pending |
 | CHRT-01 | Phase 12 | Pending |

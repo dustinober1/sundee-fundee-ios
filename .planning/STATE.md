@@ -10,7 +10,7 @@ See: .planning/PROJECT.md (updated 2026-02-20)
 **Milestone**: v2.0 Flutter Full Rewrite (in progress)
 **Phase**: 11 of 14 (Workout Logging + Rest + Offline Continuity) — **COMPLETE**
 **Plan**: 4 of 4
-**Status**: All plans complete; Phase 11 fully executed
+**Status**: Phase 11 verified (3/3 truths); ready for Phase 12
 
 ```
 v2.0 Progress: [█] [█] [█] [ ] [ ] [ ]
@@ -20,7 +20,7 @@ Phase 11 Plans: [█] [█] [█] [█]
                 P1  P2  P3  P4
 ```
 
-**Last activity**: 2026-02-21 — Phase 11 Plan 04 complete: parity gate tests for WORK-01/02/03, Start Workout button on DashboardScreen, workout test helpers.
+**Last activity**: 2026-02-21 — Phase 11 complete: Drift schema v3 (CompletedWorkouts, CompletedSets, OneRepMaxes, PersonalRecords), WorkoutRepository (transactional), WorkoutSessionProvider, SetInputWidget, ExerciseAccordion, WorkoutScreen (full session UI), RestTimerProvider (background recalculation), RestTimerSheet, parity gate tests (WORK-01, WORK-02, WORK-03). Phase verified 3/3 truths.
 
 ## Performance Metrics
 - **Velocity**: Baseline reset for v2.0 planning cycle
