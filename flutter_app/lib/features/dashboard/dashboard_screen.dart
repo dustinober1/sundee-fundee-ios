@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../auth/auth_notifier.dart';
 import '../../shared/providers/cycle_provider.dart';
 import '../../shared/providers/user_provider.dart';
 import '../../shared/widgets/offline_banner.dart';
+import '../../shared/widgets/sync_status_badge.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -15,7 +17,29 @@ class DashboardScreen extends ConsumerWidget {
 
     return Scaffold(
       key: const Key('dashboard-screen'),
-      appBar: AppBar(title: const Text('Dashboard')),
+      appBar: AppBar(
+        title: const Text('Dashboard'),
+        actions: [
+          const SyncStatusBadge(),
+          Consumer(
+            builder: (context, ref, _) {
+              final authState = ref.watch(authProvider);
+              if (authState.isAuthenticated) {
+                return IconButton(
+                  key: const Key('nav-settings'),
+                  icon: const Icon(Icons.settings),
+                  onPressed: () => context.go('/settings'),
+                );
+              }
+              return IconButton(
+                key: const Key('nav-auth'),
+                icon: const Icon(Icons.login),
+                onPressed: () => context.go('/auth'),
+              );
+            },
+          ),
+        ],
+      ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
