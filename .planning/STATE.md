@@ -4,23 +4,23 @@
 See: .planning/PROJECT.md (updated 2026-02-20)
 
 **Core value:** Users can reliably track their strength training progress offline and receive actionable insights to improve performance.
-**Current focus:** Phase 13 in progress — Plan 03 complete
+**Current focus:** Phase 13 in progress — Plan 04 complete
 
 ## Current Position
 **Milestone**: v2.0 Flutter Full Rewrite (in progress)
 **Phase**: 13 of 14 (Supabase Sync Parity + Optional Cloud) — **In Progress**
-**Plan**: 3 of N (13-02 backfilled)
-**Status**: Plans 13-01, 13-02, 13-03 complete
+**Plan**: 4 of N
+**Status**: Plans 13-01, 13-02, 13-03, 13-04 complete
 
 ```
 v2.0 Progress: [█] [█] [█] [█] [░] [ ]
               Ph9 Ph10 Ph11 Ph12 Ph13 Ph14
 
-Phase 13 Plans: [█] [█] [█] [ ] [ ]
+Phase 13 Plans: [█] [█] [█] [█] [ ]
                 P1  P2  P3  P4  P5
 ```
 
-**Last activity**: 2026-02-21 — Plan 13-02 complete (backfilled): SyncService push/pull/queue/retry engine + SyncNotifier reactive state machine (disabled/offline/pending/syncing/synced/error). flutter analyze clean.
+**Last activity**: 2026-02-21 — Plan 13-04 complete: SyncStatusBadge widget, DashboardScreen AppBar with sync badge + auth/settings nav, syncAfterWorkout fire-and-forget in completeWorkout, SettingsScreen with sign-out/last-synced, /settings route. flutter analyze clean.
 
 ## Performance Metrics
 - **Velocity**: Baseline reset for v2.0 planning cycle
@@ -89,6 +89,6 @@ Phase 13 Plans: [█] [█] [█] [ ] [ ]
 - Lucide icon enrichment across dashboard, workout, and navigation
 
 ## Session Continuity
-- **Last session**: 2026-02-21 — Completed 13-02-PLAN.md (SyncService push/pull/queue/retry + SyncNotifier reactive state machine; flutter analyze clean)
-- **Stopped at**: Phase 13 Plan 02 complete (backfilled; 13-01, 13-02, 13-03 all done)
-- **Resume with**: Execute Phase 13 Plan 04
+- **Last session**: 2026-02-21 — Completed 13-04-PLAN.md (SyncStatusBadge + DashboardScreen AppBar wiring + syncAfterWorkout + SettingsScreen + /settings route; flutter analyze clean)
+- **Stopped at**: Phase 13 Plan 04 complete
+- **Resume with**: Execute Phase 13 Plan 05
