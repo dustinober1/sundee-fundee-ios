@@ -1,76 +1,89 @@
-# Sundee-Fundee - Workout Tracking App
+# Sundee Fundee
 
-Mobile-first web app for tracking workout programs, logging exercises, and monitoring progress.
+**Native iOS strength training app** powered by your cycle.
 
-## Features
+## Overview
 
-- 6 built-in workout programs (back squat, front squat, bench press, deadlift, box jump, burpees)
-- 8-week training cycles with percentage-based intensity
-- Comprehensive onboarding flow
-- Progress tracking with charts
-- Plateau detection and recommendations
-- Offline-first with IndexedDB storage
-- Optional Supabase sync for cross-device backup
+Sundee Fundee is a hormonal-aware strength training tracker built with SwiftUI and CloudKit. It helps users follow structured periodized programs while incorporating menstrual cycle phase data for optimized training recommendations.
 
 ## Tech Stack
 
-- Next.js 15 with App Router
-- React 19
-- TypeScript
-- Tailwind CSS + shadcn/ui
-- Dexie.js (IndexedDB)
-- Supabase (auth + sync, optional)
-- Recharts (progress charts)
+- **UI**: SwiftUI (iOS 17+)
+- **Data**: SwiftData with automatic CloudKit sync
+- **Auth**: Sign in with Apple
+- **Charts**: Swift Charts
+- **Backend**: Apple CloudKit (private + public databases)
+- **Architecture**: MVVM with `@Observable`
 
-## Development
+## Features
 
-```bash
-# Install dependencies
-npm install
-
-# Run development server
-npm run dev
-
-# Run unit tests
-npm run test:run
-
-# Run E2E tests
-npm run test:e2e
-
-# Build for production
-npm run build
-```
-
-## Deployment
-
-Deploy to Vercel:
-
-1. Connect repository to Vercel
-2. Add environment variables (Supabase URL and anon key)
-3. Deploy
-
-## Environment Variables
-
-```env
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-```
+- 📋 Structured training programs (periodized, multi-phase)
+- 🏋️ Set-by-set workout logging with prescribed weights (based on 1RM)
+- 📊 Progress tracking with charts and personal records
+- 🔄 Menstrual cycle phase tracking with training recommendations
+- ⏱ Rest timer with haptic feedback
+- ☁️ Automatic iCloud sync across devices
+- 🎉 Celebration animations for PRs
 
 ## Project Structure
 
 ```
-src/
-  app/              # Next.js App Router pages
-  components/       # React components (ui, layout, features)
-  contexts/         # React contexts (User, Exercise)
-  data/             # Static program data (JSON)
-  lib/              # Utilities, database, calculations
-  types/            # TypeScript type definitions
-tests/
-  unit/             # Vitest unit tests
-  e2e/              # Playwright E2E tests
+SundeeFundee/
+├── App/                    # App entry point & root views
+├── Models/                 # SwiftData models & Codable types
+├── Views/                  # SwiftUI views organized by feature
+│   ├── Auth/
+│   ├── Dashboard/
+│   ├── Onboarding/
+│   ├── Programs/
+│   ├── Progress/
+│   ├── Settings/
+│   ├── Workout/
+│   └── Components/
+├── ViewModels/             # @Observable view models
+├── Services/               # Business services (ProgramRepository, etc.)
+├── Utilities/              # Calculations, helpers, Keychain
+├── Resources/              # Assets, program JSON files
+│   ├── Programs/           # Training program definitions
+│   └── Assets.xcassets
+└── Extensions/             # Swift extensions
 ```
 
-## License
+## Requirements
 
-MIT
+- Xcode 15.4+
+- iOS 17.0+
+- Apple Developer account (for CloudKit & Sign in with Apple)
+
+## Getting Started
+
+1. Install [XcodeGen](https://github.com/yonaskolb/XcodeGen): `brew install xcodegen`
+2. Generate the Xcode project: `xcodegen generate`
+3. Open `SundeeFundee.xcodeproj` in Xcode
+4. Set your development team in Signing & Capabilities
+5. Configure CloudKit container: `iCloud.com.sundeefundee.app`
+6. Build and run on simulator or device
+
+## Running Tests
+
+```bash
+xcodegen generate
+xcodebuild test -project SundeeFundee.xcodeproj -scheme SundeeFundee \
+  -destination 'platform=iOS Simulator,name=iPhone 15'
+```
+
+## Architecture Decisions
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| UI Framework | SwiftUI | Native, declarative, best iOS integration |
+| Persistence | SwiftData | Modern, automatic CloudKit sync |
+| Backend | CloudKit | Zero server cost, native Apple integration |
+| Auth | Sign in with Apple | Required for CloudKit identity |
+| Charts | Swift Charts | Native framework, no dependencies |
+| State | @Observable | Modern Swift observation, no 3rd party |
+| Min iOS | 17.0 | Required for SwiftData |
+
+## Legacy Code
+
+Previous implementations (Next.js PWA, Flutter, React Native) are archived on the `legacy/web-flutter-rn` branch for reference.
