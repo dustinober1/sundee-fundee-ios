@@ -8,24 +8,24 @@ See: .planning/PROJECT.md (updated 2026-02-20)
 
 ## Current Position
 **Milestone**: v2.0 Flutter Full Rewrite (in progress)
-**Phase**: 12 of 14 (Recommendations + Progress + Insights Parity) — **In progress**
-**Plan**: 4 of 5
-**Status**: Plan 12-04 complete; ready for Plan 12-05
+**Phase**: 12 of 14 (Recommendations + Progress + Insights Parity) — **Complete**
+**Plan**: 5 of 5
+**Status**: Phase 12 complete; ready for Phase 13
 
 ```
-v2.0 Progress: [█] [█] [█] [░] [ ] [ ]
+v2.0 Progress: [█] [█] [█] [█] [ ] [ ]
               Ph9 Ph10 Ph11 Ph12 Ph13 Ph14
 
-Phase 12 Plans: [█] [█] [█] [█] [ ]
+Phase 12 Plans: [█] [█] [█] [█] [█]
                 P1  P2  P3  P4  P5
 ```
 
-**Last activity**: 2026-02-21 — Plan 12-04 complete: WorkoutRepository extended with PR detection (saveOneRepMax, checkAndSaveWeightPR, checkAndSaveVolumePR, getHistoricalMax, getBestSessionVolume); WorkoutSessionNotifier.completeWorkout() wired with RECO-02-compliant PR-before-1RM ordering; workout_screen.dart caller updated to use result record type.
+**Last activity**: 2026-02-21 — Plan 12-05 complete: recommendations_parity_test.dart created with CHRT-01, CHRT-02, RECO-01, RECO-02 parity gate tests; test_database.dart helper added; all_tests.dart aggregator updated. `flutter analyze --no-fatal-infos` clean.
 
 ## Performance Metrics
 - **Velocity**: Baseline reset for v2.0 planning cycle
 - **Blockers**: None
-- **Next Decision**: Execute Phase 12 Plan 04 (parity gate tests for progress screen)
+- **Next Decision**: Execute Phase 13
 
 ## Accumulated Context
 
@@ -78,6 +78,6 @@ Phase 12 Plans: [█] [█] [█] [█] [ ]
 - Lucide icon enrichment across dashboard, workout, and navigation
 
 ## Session Continuity
-- **Last session**: 2026-02-21 — Completed 12-04-PLAN.md (WorkoutRepository PR/1RM methods; completeWorkout() RECO-02 ordering; workout_screen.dart result record update)
-- **Stopped at**: Phase 12 Plan 04 complete
-- **Resume with**: Execute Phase 12 Plan 05 (12-05-PLAN.md)
+- **Last session**: 2026-02-21 — Completed 12-05-PLAN.md (recommendations_parity_test.dart with CHRT-01, CHRT-02, RECO-01, RECO-02; test_database.dart helper; all_tests.dart aggregator updated; flutter analyze clean)
+- **Stopped at**: Phase 12 Plan 05 complete — Phase 12 fully complete
+- **Resume with**: Execute Phase 13
