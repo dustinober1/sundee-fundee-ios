@@ -9,18 +9,18 @@ See: .planning/PROJECT.md (updated 2026-02-20)
 ## Current Position
 **Milestone**: v2.0 Flutter Full Rewrite (in progress)
 **Phase**: 12 of 14 (Recommendations + Progress + Insights Parity) — **In progress**
-**Plan**: 3 of 5
-**Status**: Plan 12-03 complete; ready for Plan 12-04
+**Plan**: 4 of 5
+**Status**: Plan 12-04 complete; ready for Plan 12-05
 
 ```
 v2.0 Progress: [█] [█] [█] [░] [ ] [ ]
               Ph9 Ph10 Ph11 Ph12 Ph13 Ph14
 
-Phase 12 Plans: [█] [█] [█] [ ] [ ]
+Phase 12 Plans: [█] [█] [█] [█] [ ]
                 P1  P2  P3  P4  P5
 ```
 
-**Last activity**: 2026-02-21 — Plan 12-03 complete: Progress screen built with fl_chart LineChart/BarChart and custom GitHub-style heatmap; 3 chart widgets (OneRmChart, WeeklyVolumeChart, WorkoutHeatmap) wired to Riverpod providers; all 4 Key selectors present on outer always-rendering widgets.
+**Last activity**: 2026-02-21 — Plan 12-04 complete: WorkoutRepository extended with PR detection (saveOneRepMax, checkAndSaveWeightPR, checkAndSaveVolumePR, getHistoricalMax, getBestSessionVolume); WorkoutSessionNotifier.completeWorkout() wired with RECO-02-compliant PR-before-1RM ordering; workout_screen.dart caller updated to use result record type.
 
 ## Performance Metrics
 - **Velocity**: Baseline reset for v2.0 planning cycle
@@ -62,6 +62,10 @@ Phase 12 Plans: [█] [█] [█] [ ] [ ]
 - `EXERCISES` constant name kept uppercase (v1.1 parity); `// ignore: constant_identifier_names` added to document intent
 - `detectPlateauForExercise` takes `AppDatabase` directly (not WorkoutRepository) for compound Drift query access
 - `getDeloadWeight` lives in `plateau_detection.dart` (not `calculations.dart`) — only meaningful in plateau context
+- PR detection runs BEFORE 1RM save in completeWorkout() — preserves pre-session baseline for accurate comparison
+- `historicalMax <= 0` guard in checkAndSaveWeightPR prevents first-ever-lift from being flagged as PR
+- `bestHistorical <= 0` guard in checkAndSaveVolumePR prevents first-session volume from being flagged as PR
+- `completeWorkout()` returns `({int? workoutId, List<String> weightPRs, List<String> volumePRs})?` record type (backward-compatible)
 
 ### Roadmap Evolution
 - Milestone v2.0 inserted after Phase 8 using integer continuation: new phases 9-14.
@@ -74,6 +78,6 @@ Phase 12 Plans: [█] [█] [█] [ ] [ ]
 - Lucide icon enrichment across dashboard, workout, and navigation
 
 ## Session Continuity
-- **Last session**: 2026-02-21 — Completed 12-03-PLAN.md (ProgressScreen with 3 chart Cards; OneRmChart LineChart + exercise dropdown; WeeklyVolumeChart BarChart + k-format; WorkoutHeatmap 365-day GitHub-style grid; all 4 Key selectors on outer widgets)
-- **Stopped at**: Phase 12 Plan 03 complete
-- **Resume with**: Execute Phase 12 Plan 04 (12-04-PLAN.md)
+- **Last session**: 2026-02-21 — Completed 12-04-PLAN.md (WorkoutRepository PR/1RM methods; completeWorkout() RECO-02 ordering; workout_screen.dart result record update)
+- **Stopped at**: Phase 12 Plan 04 complete
+- **Resume with**: Execute Phase 12 Plan 05 (12-05-PLAN.md)
