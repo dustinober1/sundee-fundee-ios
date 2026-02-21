@@ -16,6 +16,14 @@ struct SettingsView: View {
                         LabeledContent("Name", value: user.name)
                         LabeledContent("Experience", value: user.experienceLevel.rawValue.capitalized)
                         LabeledContent("Goal", value: user.primaryGoal.rawValue.capitalized)
+                        Picker("Gender", selection: Binding(
+                            get: { user.gender },
+                            set: { user.gender = $0 }
+                        )) {
+                            ForEach(Gender.allCases, id: \.self) { g in
+                                Text(g.displayName).tag(g)
+                            }
+                        }
                     }
 
                     Section("1RM Management") {
@@ -27,9 +35,6 @@ struct SettingsView: View {
                     Section("Training Preferences") {
                         NavigationLink("Rest Timer Defaults") {
                             Text("Rest timer settings — Phase 9")
-                        }
-                        NavigationLink("Cycle Tracking") {
-                            Text("Cycle tracking settings — Phase 9")
                         }
                     }
 

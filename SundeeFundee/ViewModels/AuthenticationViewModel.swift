@@ -66,6 +66,7 @@ final class AuthenticationViewModel {
         name: String,
         experienceLevel: ExperienceLevel,
         primaryGoal: PrimaryGoal,
+        gender: Gender,
         context: ModelContext
     ) {
         guard let appleUserID = KeychainHelper.load(key: keychainKey) else {
@@ -78,6 +79,7 @@ final class AuthenticationViewModel {
             name: name,
             experienceLevel: experienceLevel,
             primaryGoal: primaryGoal,
+            gender: gender,
             appleUserID: appleUserID
         )
 

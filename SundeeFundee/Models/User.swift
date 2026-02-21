@@ -7,6 +7,7 @@ final class User {
     var name: String
     var experienceLevelRaw: String
     var primaryGoalRaw: String
+    var genderRaw: String
     var createdAt: Date
     var appleUserID: String
 
@@ -20,11 +21,17 @@ final class User {
         set { primaryGoalRaw = newValue.rawValue }
     }
 
+    var gender: Gender {
+        get { Gender(rawValue: genderRaw) ?? .preferNotToSay }
+        set { genderRaw = newValue.rawValue }
+    }
+
     init(
         id: String = UUID().uuidString,
         name: String,
         experienceLevel: ExperienceLevel,
         primaryGoal: PrimaryGoal,
+        gender: Gender = .preferNotToSay,
         appleUserID: String,
         createdAt: Date = .now
     ) {
@@ -32,6 +39,7 @@ final class User {
         self.name = name
         self.experienceLevelRaw = experienceLevel.rawValue
         self.primaryGoalRaw = primaryGoal.rawValue
+        self.genderRaw = gender.rawValue
         self.appleUserID = appleUserID
         self.createdAt = createdAt
     }

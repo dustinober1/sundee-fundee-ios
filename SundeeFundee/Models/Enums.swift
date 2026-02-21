@@ -55,3 +55,17 @@ enum NotificationType: String, Codable, CaseIterable {
     case both
     case none
 }
+
+enum Gender: String, Codable, CaseIterable {
+    case male
+    case female
+    case preferNotToSay = "preferNotToSay"
+
+    var displayName: String {
+        switch self {
+        case .male: return "Male"
+        case .female: return "Female"
+        case .preferNotToSay: return "Prefer not to say"
+        }
+    }
+}

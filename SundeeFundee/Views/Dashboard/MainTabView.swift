@@ -1,6 +1,13 @@
 import SwiftUI
+import SwiftData
 
 struct MainTabView: View {
+    @Query private var users: [User]
+
+    private var showCycleTab: Bool {
+        users.first?.gender == .female
+    }
+
     var body: some View {
         TabView {
             DashboardView()
@@ -17,6 +24,13 @@ struct MainTabView: View {
                 .tabItem {
                     Label("Progress", systemImage: "chart.line.uptrend.xyaxis")
                 }
+
+            if showCycleTab {
+                CycleTrackerView()
+                    .tabItem {
+                        Label("Cycle", systemImage: "drop.fill")
+                    }
+            }
 
             SettingsView()
                 .tabItem {

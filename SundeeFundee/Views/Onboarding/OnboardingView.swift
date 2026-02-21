@@ -7,6 +7,7 @@ struct OnboardingView: View {
     @State private var name = ""
     @State private var experienceLevel: ExperienceLevel = .beginner
     @State private var primaryGoal: PrimaryGoal = .strength
+    @State private var gender: Gender = .preferNotToSay
 
     var body: some View {
         NavigationStack {
@@ -35,12 +36,22 @@ struct OnboardingView: View {
                     .pickerStyle(.segmented)
                 }
 
+                Section("Gender") {
+                    Picker("Gender", selection: $gender) {
+                        ForEach(Gender.allCases, id: \.self) { g in
+                            Text(g.displayName).tag(g)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                }
+
                 Section {
                     Button("Get Started") {
                         viewModel.completeOnboarding(
                             name: name,
                             experienceLevel: experienceLevel,
                             primaryGoal: primaryGoal,
+                            gender: gender,
                             context: modelContext
                         )
                     }
