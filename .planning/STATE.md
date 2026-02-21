@@ -4,30 +4,33 @@
 See: .planning/PROJECT.md (updated 2026-02-20)
 
 **Core value:** Users can reliably track their strength training progress offline and receive actionable insights to improve performance.
-**Current focus:** Phase 11 in progress; Plan 01 complete
+**Current focus:** Phase 11 complete — all 3 plans done
 
 ## Current Position
 **Milestone**: v2.0 Flutter Full Rewrite (in progress)
-**Phase**: 11 of 14 (Workout Logging + Rest + Offline Continuity) — **IN PROGRESS**
-**Plan**: 1 of 3
-**Status**: Plan 01 complete; Plans 02–03 pending
+**Phase**: 11 of 14 (Workout Logging + Rest + Offline Continuity) — **COMPLETE**
+**Plan**: 3 of 3
+**Status**: All plans complete; Phase 11 fully executed
 
 ```
-v2.0 Progress: [█] [█] [░] [ ] [ ] [ ]
+v2.0 Progress: [█] [█] [█] [ ] [ ] [ ]
               Ph9 Ph10 Ph11 Ph12 Ph13 Ph14
 
-Phase 11 Plans: [█] [░] [░] ...
+Phase 11 Plans: [█] [█] [█]
                 P1  P2  P3
 ```
 
-**Last activity**: 2026-02-21 — Phase 11 Plan 01 complete: Drift schema v3 (4 new workout tables), SetData model, WorkoutRepository with transactional saveWorkout(), workoutRepositoryProvider, 3 passing unit tests.
+**Last activity**: 2026-02-21 — Phase 11 Plan 03 complete: RestTimerProvider with background recalculation, RestTimerSheet modal bottom sheet, rest timer integrated into WorkoutScreen.
 
 ## Performance Metrics
 - **Velocity**: Baseline reset for v2.0 planning cycle
 - **Blockers**: None
-- **Next Decision**: Execute Phase 11 Plan 02 (WorkoutSessionProvider)
+- **Next Decision**: Execute Phase 12 (next phase in roadmap)
 
 ## Accumulated Context
+
+- Rest timer background recalculation: `_pauseTimerForBackground` cancels Timer without changing status; `_recalculateRemainingTime` uses `DateTime.now().difference(startedAt)` on foreground return — accurate after any background duration
+- Vibration errors silently swallowed (web/simulator safe — `Vibration.vibrate` throws on non-mobile)
 
 ### Key Decisions (carried forward)
 - Local-first architecture with Dexie as source of truth (v1.1 baseline behavior)
@@ -65,6 +68,6 @@ Phase 11 Plans: [█] [░] [░] ...
 - Lucide icon enrichment across dashboard, workout, and navigation
 
 ## Session Continuity
-- **Last session**: 2026-02-21 — Completed 11-01-PLAN.md (Drift schema v3 + WorkoutRepository)
-- **Stopped at**: Phase 11 Plan 01 complete; Plan 02 is next
-- **Resume with**: Execute `.planning/phases/11-workout-logging-rest-offline-continuity/11-02-PLAN.md`
+- **Last session**: 2026-02-21 — Completed 11-03-PLAN.md (RestTimerProvider + RestTimerSheet + WorkoutScreen integration)
+- **Stopped at**: Phase 11 complete (all 3 plans done)
+- **Resume with**: Execute Phase 12
