@@ -31,31 +31,40 @@ struct CycleTrackerView: View {
         return (phase: result.phase, day: result.dayOfCycle)
     }
 
+    private var isMenstrual: Bool {
+        currentPhaseInfo?.phase == .menstrual
+    }
+
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 20) {
-                    if let info = currentPhaseInfo {
-                        CyclePhaseCard(phase: info.phase, dayOfCycle: info.day)
-                    } else {
-                        NoPeriodDataCard()
-                    }
+            BrandBackgroundView {
+                ScrollView {
+                    VStack(spacing: 20) {
+                        CycleHeaderLogo(isMenstrual: isMenstrual)
+                            .padding(.top, 4)
 
-                    Button {
-                        showLogPeriod = true
-                    } label: {
-                        Label("Log Period", systemImage: "drop.fill")
-                            .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.large)
-                    .padding(.horizontal)
+                        if let info = currentPhaseInfo {
+                            CyclePhaseCard(phase: info.phase, dayOfCycle: info.day)
+                        } else {
+                            NoPeriodDataCard()
+                        }
 
-                    if !userPeriodLogs.isEmpty {
-                        PeriodHistorySection(logs: Array(userPeriodLogs.prefix(6)))
+                        Button {
+                            showLogPeriod = true
+                        } label: {
+                            Label("Log Period", systemImage: "drop.fill")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.large)
+                        .padding(.horizontal)
+
+                        if !userPeriodLogs.isEmpty {
+                            PeriodHistorySection(logs: Array(userPeriodLogs.prefix(6)))
+                        }
                     }
+                    .padding(.vertical)
                 }
-                .padding(.vertical)
             }
             .navigationTitle("Cycle Tracker")
             .toolbar {
@@ -72,6 +81,32 @@ struct CycleTrackerView: View {
                 })
             }
         }
+    }
+}
+
+// MARK: - Header Logo
+
+private struct CycleHeaderLogo: View {
+    let isMenstrual: Bool
+
+    var body: some View {
+        ZStack {
+            BrandCircularLogo("AppLogo", size: 88)
+                .opacity(isMenstrual ? 0 : 1)
+
+            Image("SharkWeekLogo")
+                .resizable()
+                .scaledToFit()
+                .frame(height: 96)
+                .opacity(isMenstrual ? 1 : 0)
+        }
+        .frame(maxWidth: .infinity)
+        .animation(.easeInOut(duration: 0.25), value: isMenstrual)
+        .padding()
+        .background(.regularMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .padding(.horizontal)
+        .accessibilityLabel(isMenstrual ? "Shark Week" : "Sundee Fundee")
     }
 }
 
@@ -144,7 +179,7 @@ private struct PeriodHistorySection: View {
             ForEach(logs, id: \.id) { log in
                 HStack {
                     Image(systemName: "drop.fill")
-                        .foregroundColor(.red)
+                        .foregroundColor(Brand.danger)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(log.startDate, style: .date)
                             .font(.subheadline)
@@ -160,7 +195,7 @@ private struct PeriodHistorySection: View {
                         .font(.caption)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
-                        .background(Color.red.opacity(0.12))
+                        .background(Brand.danger.opacity(0.12))
                         .clipShape(Capsule())
                 }
                 .padding(.horizontal)

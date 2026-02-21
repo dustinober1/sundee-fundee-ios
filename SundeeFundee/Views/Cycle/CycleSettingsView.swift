@@ -20,21 +20,24 @@ struct CycleSettingsView: View {
     @State private var loaded = false
 
     var body: some View {
-        Form {
-            Section {
-                Stepper("Cycle length: \(cycleLength) days", value: $cycleLength, in: 21...45)
-                Stepper("Period length: \(periodLength) days", value: $periodLength, in: 2...10)
-                Stepper("Luteal phase: \(lutealLength) days", value: $lutealLength, in: 10...16)
-            } header: {
-                Text("Cycle Lengths")
-            } footer: {
-                Text("These averages are used to predict your cycle phases.")
-                    .font(.caption)
-            }
+        BrandBackgroundView {
+            Form {
+                Section {
+                    Stepper("Cycle length: \(cycleLength) days", value: $cycleLength, in: 21...45)
+                    Stepper("Period length: \(periodLength) days", value: $periodLength, in: 2...10)
+                    Stepper("Luteal phase: \(lutealLength) days", value: $lutealLength, in: 10...16)
+                } header: {
+                    Text("Cycle Lengths")
+                } footer: {
+                    Text("These averages are used to predict your cycle phases.")
+                        .font(.caption)
+                }
 
-            Section("Notifications") {
-                Toggle("Cycle reminders", isOn: $notificationsEnabled)
+                Section("Notifications") {
+                    Toggle("Cycle reminders", isOn: $notificationsEnabled)
+                }
             }
+            .scrollContentBackground(.hidden)
         }
         .navigationTitle("Cycle Settings")
         .navigationBarTitleDisplayMode(.inline)

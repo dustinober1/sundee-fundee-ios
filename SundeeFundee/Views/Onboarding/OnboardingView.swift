@@ -11,53 +11,56 @@ struct OnboardingView: View {
 
     var body: some View {
         NavigationStack {
-            Form {
-                Section("About You") {
-                    TextField("Your Name", text: $name)
-                        .textContentType(.name)
-                        .autocorrectionDisabled()
-                }
+            BrandBackgroundView {
+                Form {
+                    Section("About You") {
+                        TextField("Your Name", text: $name)
+                            .textContentType(.name)
+                            .autocorrectionDisabled()
+                    }
 
-                Section("Experience Level") {
-                    Picker("Level", selection: $experienceLevel) {
-                        ForEach(ExperienceLevel.allCases, id: \.self) { level in
-                            Text(level.rawValue.capitalized).tag(level)
+                    Section("Experience Level") {
+                        Picker("Level", selection: $experienceLevel) {
+                            ForEach(ExperienceLevel.allCases, id: \.self) { level in
+                                Text(level.rawValue.capitalized).tag(level)
+                            }
                         }
+                        .pickerStyle(.segmented)
                     }
-                    .pickerStyle(.segmented)
-                }
 
-                Section("Primary Goal") {
-                    Picker("Goal", selection: $primaryGoal) {
-                        ForEach(PrimaryGoal.allCases, id: \.self) { goal in
-                            Text(goal.rawValue.capitalized).tag(goal)
+                    Section("Primary Goal") {
+                        Picker("Goal", selection: $primaryGoal) {
+                            ForEach(PrimaryGoal.allCases, id: \.self) { goal in
+                                Text(goal.rawValue.capitalized).tag(goal)
+                            }
                         }
+                        .pickerStyle(.segmented)
                     }
-                    .pickerStyle(.segmented)
-                }
 
-                Section("Gender") {
-                    Picker("Gender", selection: $gender) {
-                        ForEach(Gender.allCases, id: \.self) { g in
-                            Text(g.displayName).tag(g)
+                    Section("Gender") {
+                        Picker("Gender", selection: $gender) {
+                            ForEach(Gender.allCases, id: \.self) { g in
+                                Text(g.displayName).tag(g)
+                            }
                         }
+                        .pickerStyle(.segmented)
                     }
-                    .pickerStyle(.segmented)
-                }
 
-                Section {
-                    Button("Get Started") {
-                        viewModel.completeOnboarding(
-                            name: name,
-                            experienceLevel: experienceLevel,
-                            primaryGoal: primaryGoal,
-                            gender: gender,
-                            context: modelContext
-                        )
+                    Section {
+                        Button("Get Started") {
+                            viewModel.completeOnboarding(
+                                name: name,
+                                experienceLevel: experienceLevel,
+                                primaryGoal: primaryGoal,
+                                gender: gender,
+                                context: modelContext
+                            )
+                        }
+                        .frame(maxWidth: .infinity)
+                        .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
                     }
-                    .frame(maxWidth: .infinity)
-                    .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
                 }
+                .scrollContentBackground(.hidden)
             }
             .navigationTitle("Welcome")
         }

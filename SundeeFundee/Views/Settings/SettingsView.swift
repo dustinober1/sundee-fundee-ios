@@ -10,54 +10,57 @@ struct SettingsView: View {
 
     var body: some View {
         NavigationStack {
-            List {
-                if let user = currentUser {
-                    Section("Profile") {
-                        LabeledContent("Name", value: user.name)
-                        LabeledContent("Experience", value: user.experienceLevel.rawValue.capitalized)
-                        LabeledContent("Goal", value: user.primaryGoal.rawValue.capitalized)
-                        Picker("Gender", selection: Binding(
-                            get: { user.gender },
-                            set: {
-                                user.gender = $0
-                                try? modelContext.save()
+            BrandBackgroundView {
+                List {
+                    if let user = currentUser {
+                        Section("Profile") {
+                            LabeledContent("Name", value: user.name)
+                            LabeledContent("Experience", value: user.experienceLevel.rawValue.capitalized)
+                            LabeledContent("Goal", value: user.primaryGoal.rawValue.capitalized)
+                            Picker("Gender", selection: Binding(
+                                get: { user.gender },
+                                set: {
+                                    user.gender = $0
+                                    try? modelContext.save()
+                                }
+                            )) {
+                                ForEach(Gender.allCases, id: \.self) { g in
+                                    Text(g.displayName).tag(g)
+                                }
                             }
-                        )) {
-                            ForEach(Gender.allCases, id: \.self) { g in
-                                Text(g.displayName).tag(g)
+                        }
+
+                        Section("1RM Management") {
+                            NavigationLink("View & Edit 1RMs") {
+                                OneRepMaxManagementView()
                             }
                         }
-                    }
 
-                    Section("1RM Management") {
-                        NavigationLink("View & Edit 1RMs") {
-                            OneRepMaxManagementView()
+                        Section("Training Preferences") {
+                            NavigationLink("Rest Timer Defaults") {
+                                Text("Rest timer settings — Phase 9")
+                            }
+                        }
+
+                        Section("Sync") {
+                            LabeledContent("CloudKit", value: "Active")
+                            Text("Data syncs automatically via iCloud")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
                         }
                     }
 
-                    Section("Training Preferences") {
-                        NavigationLink("Rest Timer Defaults") {
-                            Text("Rest timer settings — Phase 9")
+                    Section {
+                        Button("Sign Out", role: .destructive) {
+                            authViewModel.signOut()
                         }
                     }
 
-                    Section("Sync") {
-                        LabeledContent("CloudKit", value: "Active")
-                        Text("Data syncs automatically via iCloud")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                    Section {
+                        LabeledContent("Version", value: "1.0.0")
                     }
                 }
-
-                Section {
-                    Button("Sign Out", role: .destructive) {
-                        authViewModel.signOut()
-                    }
-                }
-
-                Section {
-                    LabeledContent("Version", value: "1.0.0")
-                }
+                .scrollContentBackground(.hidden)
             }
             .navigationTitle("Settings")
         }

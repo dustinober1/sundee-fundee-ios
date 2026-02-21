@@ -16,52 +16,55 @@ struct ProgramsListView: View {
 
     var body: some View {
         NavigationStack {
-            List {
-                if !allCategories.isEmpty {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 8) {
-                            CategoryChip(title: "All", isSelected: selectedCategory == nil) {
-                                selectedCategory = nil
+            BrandBackgroundView {
+                List {
+                    if !allCategories.isEmpty {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 8) {
+                                CategoryChip(title: "All", isSelected: selectedCategory == nil) {
+                                    selectedCategory = nil
+                                }
+                                ForEach(allCategories, id: \.self) { category in
+                                    CategoryChip(
+                                        title: category == "custom" ? "Custom" : category.replacingOccurrences(of: "-", with: " ").capitalized,
+                                        isSelected: selectedCategory == category
+                                    ) {
+                                        selectedCategory = category
+                                    }
+                                }
                             }
-                            ForEach(allCategories, id: \.self) { category in
-                                CategoryChip(
-                                    title: category == "custom" ? "Custom" : category.replacingOccurrences(of: "-", with: " ").capitalized,
-                                    isSelected: selectedCategory == category
-                                ) {
-                                    selectedCategory = category
+                            .padding(.horizontal)
+                        }
+                        .listRowInsets(EdgeInsets())
+                        .listRowBackground(Color.clear)
+                    }
+
+                    // Custom programs
+                    if selectedCategory == nil || selectedCategory == "custom" {
+                        if !filteredCustomPrograms.isEmpty {
+                            Section("My Workouts") {
+                                ForEach(filteredCustomPrograms) { program in
+                                    NavigationLink(destination: CustomProgramDetailView(program: program)) {
+                                        CustomProgramRow(program: program)
+                                    }
                                 }
                             }
                         }
-                        .padding(.horizontal)
                     }
-                    .listRowInsets(EdgeInsets())
-                    .listRowBackground(Color.clear)
-                }
 
-                // Custom programs
-                if selectedCategory == nil || selectedCategory == "custom" {
-                    if !filteredCustomPrograms.isEmpty {
-                        Section("My Workouts") {
-                            ForEach(filteredCustomPrograms) { program in
-                                NavigationLink(destination: CustomProgramDetailView(program: program)) {
-                                    CustomProgramRow(program: program)
+                    // Predefined programs
+                    if selectedCategory != "custom" {
+                        let sectionHeader = filteredCustomPrograms.isEmpty ? "" : "Programs"
+                        Section(sectionHeader) {
+                            ForEach(filteredPrograms) { program in
+                                NavigationLink(destination: ProgramDetailView(program: program)) {
+                                    ProgramRow(program: program, isFeatured: featuredIds.contains(program.id))
                                 }
                             }
                         }
                     }
                 }
-
-                // Predefined programs
-                if selectedCategory != "custom" {
-                    let sectionHeader = filteredCustomPrograms.isEmpty ? "" : "Programs"
-                    Section(sectionHeader) {
-                        ForEach(filteredPrograms) { program in
-                            NavigationLink(destination: ProgramDetailView(program: program)) {
-                                ProgramRow(program: program, isFeatured: featuredIds.contains(program.id))
-                            }
-                        }
-                    }
-                }
+                .scrollContentBackground(.hidden)
             }
             .navigationTitle("Programs")
             .searchable(text: $searchText, prompt: "Search programs")
@@ -154,7 +157,7 @@ private struct ProgramRow: View {
                     Spacer()
                     Label("Featured", systemImage: "star.fill")
                         .font(.caption2)
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(Brand.orange)
                 }
             }
 

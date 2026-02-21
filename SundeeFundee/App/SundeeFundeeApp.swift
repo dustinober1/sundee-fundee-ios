@@ -7,10 +7,28 @@ struct SundeeFundeeApp: App {
 
     init() {
         do {
-            let config = ModelConfiguration(
-                "SundeeFundee",
-                cloudKitDatabase: .private("iCloud.com.sundeefundee.app")
-            )
+            let config: ModelConfiguration
+            let isUITesting = ProcessInfo.processInfo.arguments.contains("--ui-testing")
+            let isRunningTests = isUITesting
+                || ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+                || NSClassFromString("XCTestCase") != nil
+            if isRunningTests {
+                config = ModelConfiguration(
+                    "SundeeFundeeTests",
+                    isStoredInMemoryOnly: true,
+                    cloudKitDatabase: .none
+                )
+            } else {
+                config = ModelConfiguration(
+                    "SundeeFundee",
+                    cloudKitDatabase: .private("iCloud.com.sundeefundee.app")
+                )
+            }
+
+            if isUITesting {
+                KeychainHelper.delete(key: "com.sundeefundee.appleUserID")
+            }
+
             modelContainer = try ModelContainer(
                 for: User.self,
                      ActiveCycle.self,
@@ -35,6 +53,7 @@ struct SundeeFundeeApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .tint(Brand.tint)
         }
         .modelContainer(modelContainer)
     }

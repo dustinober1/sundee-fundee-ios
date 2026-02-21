@@ -51,13 +51,13 @@ enum CyclePhaseCalculator {
         }
     }
 
-    /// Accent color name for a cycle phase (use with Color(phaseColor)).
+    /// Brand color asset name for a cycle phase (use with `Color(name)`).
     static func phaseColorName(_ phase: CyclePhase) -> String {
         switch phase {
-        case .menstrual:  return "red"
-        case .follicular: return "green"
-        case .ovulation:  return "orange"
-        case .luteal:     return "purple"
+        case .menstrual:  return "BrandDanger"
+        case .follicular: return "BrandGold"
+        case .ovulation:  return "BrandOrange"
+        case .luteal:     return "BrandNavy"
         }
     }
 }

@@ -11,19 +11,24 @@ struct DashboardView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 20) {
-                    if let activeCycle = activeCycles.first {
-                        ActiveCycleCard(cycle: activeCycle)
-                    } else {
-                        EmptyStateCard()
+            BrandBackgroundView {
+                ScrollView {
+                    VStack(spacing: 20) {
+                        BrandCircularLogo("AppLogo", size: 84)
+                            .padding(.top, 4)
+
+                        if let activeCycle = activeCycles.first {
+                            ActiveCycleCard(cycle: activeCycle)
+                        } else {
+                            EmptyStateCard()
+                        }
+
+                        QuickStatsSection(workouts: recentWorkouts)
+
+                        RecentWorkoutsSection(workouts: Array(recentWorkouts.prefix(5)))
                     }
-
-                    QuickStatsSection(workouts: recentWorkouts)
-
-                    RecentWorkoutsSection(workouts: Array(recentWorkouts.prefix(5)))
+                    .padding()
                 }
-                .padding()
             }
             .navigationTitle("Dashboard")
         }

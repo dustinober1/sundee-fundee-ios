@@ -5,20 +5,22 @@ struct ContentView: View {
     @State private var authViewModel = AuthenticationViewModel()
 
     var body: some View {
-        Group {
-            switch authViewModel.authState {
-            case .loading:
-                ProgressView("Loading...")
-            case .unauthenticated:
-                SignInView(viewModel: authViewModel)
-            case .needsOnboarding:
-                OnboardingView(viewModel: authViewModel)
-            case .authenticated:
-                MainTabView()
+        BrandBackgroundView {
+            Group {
+                switch authViewModel.authState {
+                case .loading:
+                    ProgressView("Loading...")
+                case .unauthenticated:
+                    SignInView(viewModel: authViewModel)
+                case .needsOnboarding:
+                    OnboardingView(viewModel: authViewModel)
+                case .authenticated:
+                    MainTabView()
+                }
             }
-        }
-        .onAppear {
-            authViewModel.checkAuthState(context: modelContext)
+            .onAppear {
+                authViewModel.checkAuthState(context: modelContext)
+            }
         }
     }
 }
