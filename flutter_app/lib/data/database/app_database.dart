@@ -25,6 +25,7 @@ class ActiveCycles extends Table {
   // status values: 'active', 'completed', 'paused'
   TextColumn get status =>
       text().withDefault(const Constant('active'))();
+  TextColumn get syncId => text().nullable().unique()();
 }
 
 class CompletedWorkouts extends Table {
@@ -39,6 +40,7 @@ class CompletedWorkouts extends Table {
   DateTimeColumn get completedAt => dateTime()();
   IntColumn get duration => integer().nullable()(); // seconds
   TextColumn get notes => text().nullable()();
+  TextColumn get syncId => text().nullable().unique()();
 }
 
 class CompletedSets extends Table {
@@ -58,6 +60,7 @@ class CompletedSets extends Table {
   IntColumn get restSeconds => integer().nullable()();
   TextColumn get overrideReason => text().nullable()();
   DateTimeColumn get createdAt => dateTime()();
+  TextColumn get syncId => text().nullable().unique()();
 }
 
 class OneRepMaxes extends Table {
@@ -66,6 +69,7 @@ class OneRepMaxes extends Table {
   TextColumn get exerciseId => text()();
   RealColumn get weight => real()();
   DateTimeColumn get date => dateTime()();
+  TextColumn get syncId => text().nullable().unique()();
 }
 
 class PersonalRecords extends Table {
@@ -77,6 +81,7 @@ class PersonalRecords extends Table {
   IntColumn get workoutId =>
       integer().references(CompletedWorkouts, #id)();
   DateTimeColumn get date => dateTime()();
+  TextColumn get syncId => text().nullable().unique()();
 }
 
 @DriftDatabase(tables: [
@@ -93,7 +98,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.defaults() : super(driftDatabase(name: 'sundee_fundee'));
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -109,6 +114,13 @@ class AppDatabase extends _$AppDatabase {
         await m.createTable(completedSets);
         await m.createTable(oneRepMaxes);
         await m.createTable(personalRecords);
+      }
+      if (from < 4) {
+        await m.addColumn(completedWorkouts, completedWorkouts.syncId);
+        await m.addColumn(completedSets, completedSets.syncId);
+        await m.addColumn(activeCycles, activeCycles.syncId);
+        await m.addColumn(oneRepMaxes, oneRepMaxes.syncId);
+        await m.addColumn(personalRecords, personalRecords.syncId);
       }
     },
   );
