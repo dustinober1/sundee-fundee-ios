@@ -9,18 +9,18 @@ See: .planning/PROJECT.md (updated 2026-02-20)
 ## Current Position
 **Milestone**: v2.0 Flutter Full Rewrite (in progress)
 **Phase**: 14 of 14 (Release Hardening + Cutover Safety) — **In progress**
-**Plan**: 3 of 6
-**Status**: Plans 14-01, 14-02, 14-03 complete
+**Plan**: 4 of 6
+**Status**: Plans 14-01, 14-02, 14-03 complete; 14-04 complete
 
 ```
 v2.0 Progress: [█] [█] [█] [█] [█] [░]
               Ph9 Ph10 Ph11 Ph12 Ph13 Ph14
 
-Phase 14 Plans: [█] [█] [█] [░] [░] [░]
+Phase 14 Plans: [█] [█] [█] [█] [░] [░]
                 P1  P2  P3  P4  P5  P6
 ```
 
-**Last activity**: 2026-02-21 — Plan 14-03 complete: firebase.json SPA rewrite + WASM MIME headers + usePathUrlStrategy() in main.dart. DPLY-01 satisfied.
+**Last activity**: 2026-02-21 — Plan 14-04 complete: Android applicationId + namespace set to com.sundeefundee.app; iOS PRODUCT_BUNDLE_IDENTIFIER set to com.sundeefundee.app (3 Runner + 3 RunnerTests configs); display names set to "Sundee Fundee" on both platforms. flutter analyze clean.
 
 ## Performance Metrics
 - **Velocity**: Baseline reset for v2.0 planning cycle
@@ -93,6 +93,6 @@ Phase 14 Plans: [█] [█] [█] [░] [░] [░]
 - Lucide icon enrichment across dashboard, workout, and navigation
 
 ## Session Continuity
-- **Last session**: 2026-02-21 — Completed 14-03-PLAN.md (firebase.json SPA rewrite + WASM MIME headers; usePathUrlStrategy() in main.dart; DPLY-01 satisfied; flutter analyze clean)
-- **Stopped at**: Phase 14 Plan 03 complete
-- **Resume with**: Execute Phase 14 remaining plans (14-04, 14-05, 14-06)
+- **Last session**: 2026-02-21 — Completed 14-04-PLAN.md (Android applicationId + namespace; iOS bundle identifier; Sundee Fundee display names; flutter analyze clean)
+- **Stopped at**: Phase 14 Plan 04 complete
+- **Resume with**: Execute Phase 14 remaining plans (14-05, 14-06)
