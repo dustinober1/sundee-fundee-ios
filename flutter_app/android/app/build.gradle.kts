@@ -1,3 +1,6 @@
+import java.util.Base64
+import java.io.FileOutputStream
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -30,11 +33,33 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        create("release") {
+            val keystoreBase64 = System.getenv("ANDROID_KEYSTORE_BASE64")
+            if (keystoreBase64 != null) {
+                val keystoreFile = file("${project.buildDir}/keystore.jks")
+                keystoreFile.parentFile.mkdirs()
+                FileOutputStream(keystoreFile).use { fos ->
+                    fos.write(Base64.getDecoder().decode(keystoreBase64))
+                }
+                storeFile = keystoreFile
+                storePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("ANDROID_KEY_ALIAS")
+                keyPassword = System.getenv("ANDROID_KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            val releaseConfig = signingConfigs.findByName("release")
+            signingConfig = if (releaseConfig?.storeFile?.exists() == true) {
+                releaseConfig
+            } else {
+                signingConfigs.getByName("debug")
+            }
+            // Drift codegen is incompatible with R8 minification
+            isMinifyEnabled = false
         }
     }
 }
