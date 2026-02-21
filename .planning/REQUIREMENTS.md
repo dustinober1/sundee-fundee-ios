@@ -10,7 +10,7 @@ Requirements for the v2.0 milestone. These define full feature parity in Flutter
 ### Platform Foundation
 
 - [x] **PLAT-01**: User can use Sundee-Fundee from a Flutter application on web, Android, and iOS.
-- [ ] **PLAT-02**: User gets equivalent behavior outcomes across all 3 platforms for the same workout inputs.
+- [x] **PLAT-02**: User gets equivalent behavior outcomes across all 3 platforms for the same workout inputs.
 
 ### Onboarding
 
@@ -46,13 +46,13 @@ Requirements for the v2.0 milestone. These define full feature parity in Flutter
 
 ### Data Continuity
 
-- [ ] **DATA-01**: Existing users have a defined migration/continuity path with no silent data loss during cutover.
+- [x] **DATA-01**: Existing users have a defined migration/continuity path with no silent data loss during cutover.
 
 ### Deployment & Release
 
-- [ ] **DPLY-01**: User can open and refresh deep links on Firebase-hosted web routes without 404 failures.
-- [ ] **DPLY-02**: Team can produce reproducible signed Android and iOS release builds via pipeline.
-- [ ] **DPLY-03**: Production rollout includes cutover safety controls (telemetry thresholds and rollback path).
+- [x] **DPLY-01**: User can open and refresh deep links on Firebase-hosted web routes without 404 failures.
+- [x] **DPLY-02**: Team can produce reproducible signed Android and iOS release builds via pipeline.
+- [x] **DPLY-03**: Production rollout includes cutover safety controls (telemetry thresholds and rollback path).
 
 ### Quality Gates
 

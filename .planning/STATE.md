@@ -25,7 +25,7 @@ Phase 14 Plans: [█] [█] [█] [█] [█] [█]
 ## Performance Metrics
 - **Velocity**: Baseline reset for v2.0 planning cycle
 - **Blockers**: None
-- **Next Decision**: Execute Phase 14
+- **Next Decision**: /gsd-audit-milestone — v2.0 milestone complete
 
 ## Accumulated Context
 
