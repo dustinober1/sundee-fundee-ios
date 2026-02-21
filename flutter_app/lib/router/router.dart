@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../features/auth/auth_screen.dart';
 import '../features/onboarding/onboarding_screen.dart';
 import '../features/dashboard/dashboard_screen.dart';
 import '../features/programs/programs_screen.dart';
@@ -47,6 +48,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/progress',
         builder: (context, state) => const ProgressScreen(),
+      ),
+      GoRoute(
+        path: '/auth',
+        builder: (context, state) => const AuthScreen(),
       ),
     ],
   );
