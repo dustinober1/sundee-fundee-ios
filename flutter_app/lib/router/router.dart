@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../features/onboarding/onboarding_screen.dart';
 import '../features/dashboard/dashboard_screen.dart';
 import '../features/programs/programs_screen.dart';
+import '../features/programs/program_detail_screen.dart';
 import '../features/workout/workout_screen.dart';
 import '../features/progress/progress_screen.dart';
 import '../shared/providers/onboarding_status_provider.dart';
@@ -30,6 +31,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/programs',
         builder: (context, state) => const ProgramsScreen(),
+      ),
+      GoRoute(
+        path: '/programs/:id',
+        builder: (context, state) => ProgramDetailScreen(
+          programId: state.pathParameters['id']!,
+        ),
       ),
       GoRoute(
         path: '/workout/:programId',
