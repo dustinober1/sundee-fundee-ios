@@ -4,28 +4,28 @@
 See: .planning/PROJECT.md (updated 2026-02-20)
 
 **Core value:** Users can reliably track their strength training progress offline and receive actionable insights to improve performance.
-**Current focus:** Phase 13 in progress — Plan 04 complete
+**Current focus:** Phase 13 complete — all 5 plans done
 
 ## Current Position
 **Milestone**: v2.0 Flutter Full Rewrite (in progress)
-**Phase**: 13 of 14 (Supabase Sync Parity + Optional Cloud) — **In Progress**
-**Plan**: 4 of N
-**Status**: Plans 13-01, 13-02, 13-03, 13-04 complete
+**Phase**: 13 of 14 (Supabase Sync Parity + Optional Cloud) — **Complete**
+**Plan**: 5 of 5 (final plan)
+**Status**: Plans 13-01, 13-02, 13-03, 13-04, 13-05 complete
 
 ```
-v2.0 Progress: [█] [█] [█] [█] [░] [ ]
+v2.0 Progress: [█] [█] [█] [█] [█] [ ]
               Ph9 Ph10 Ph11 Ph12 Ph13 Ph14
 
-Phase 13 Plans: [█] [█] [█] [█] [ ]
+Phase 13 Plans: [█] [█] [█] [█] [█]
                 P1  P2  P3  P4  P5
 ```
 
-**Last activity**: 2026-02-21 — Plan 13-04 complete: SyncStatusBadge widget, DashboardScreen AppBar with sync badge + auth/settings nav, syncAfterWorkout fire-and-forget in completeWorkout, SettingsScreen with sign-out/last-synced, /settings route. flutter analyze clean.
+**Last activity**: 2026-02-21 — Plan 13-05 complete: sync unit tests (SyncService queue/retry, SyncNotifier state) + SYNC-01/02/03 parity gate tests + all_tests.dart aggregator. flutter analyze clean. Phase 13 complete.
 
 ## Performance Metrics
 - **Velocity**: Baseline reset for v2.0 planning cycle
 - **Blockers**: None
-- **Next Decision**: Execute Phase 13 Plan 02
+- **Next Decision**: Execute Phase 14
 
 ## Accumulated Context
 
@@ -60,6 +60,10 @@ Phase 13 Plans: [█] [█] [█] [█] [ ]
 - FakeConnectivityPlatform must extend ConnectivityPlatform with MockPlatformInterfaceMixin (token check)
 - Parity gate tests use platform-agnostic Key selectors only (no CupertinoButton/MaterialButton finders)
 - all_tests.dart aggregator pattern: single flutter drive target, per-gate files remain independently runnable
+- `fakeAsync` is NOT exported from `package:flutter_test` for plain `test()` calls — only available inside `testWidgets` binding; use real async with minimal maxAttempts for retry tests
+- `extends Fake implements ConcreteClass` creates safe stubs in mocktail where constructor injection is needed but methods are never called
+- Integration tests with `IntegrationTestWidgetsFlutterBinding` require a device/simulator; run `flutter test integration_test/... -d <device_id>`; use `xcrun simctl boot <uuid>` to start a simulator
+- `SyncState.copyWith(errorMessage: null)` PRESERVES the old errorMessage value (uses `??`); to clear error, set state directly via `SyncState(..., errorMessage: null)` in the notifier
 - `if (mounted)` pattern for async gaps in ConsumerState (not `if (context.mounted)`)
 - Riverpod 3.x: use `NotifierProvider` (not `StateProvider` which is legacy-only); expose mutation via methods on Notifier (`.state` is `@protected`)
 - Riverpod 3.x: `overrideWith(() => MyNotifier(initialState: value))` to inject pre-loaded async state before runApp
@@ -89,6 +93,6 @@ Phase 13 Plans: [█] [█] [█] [█] [ ]
 - Lucide icon enrichment across dashboard, workout, and navigation
 
 ## Session Continuity
-- **Last session**: 2026-02-21 — Completed 13-04-PLAN.md (SyncStatusBadge + DashboardScreen AppBar wiring + syncAfterWorkout + SettingsScreen + /settings route; flutter analyze clean)
-- **Stopped at**: Phase 13 Plan 04 complete
-- **Resume with**: Execute Phase 13 Plan 05
+- **Last session**: 2026-02-21 — Completed 13-05-PLAN.md (sync unit tests + SYNC parity gates + all_tests.dart; flutter analyze clean; Phase 13 complete)
+- **Stopped at**: Phase 13 Plan 05 complete — Phase 13 fully done
+- **Resume with**: Execute Phase 14
