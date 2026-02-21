@@ -138,10 +138,15 @@ Plans:
   3. User can open and refresh deep links on Firebase-hosted web routes without 404 errors.
   4. Team can produce reproducible signed Android and iOS release builds from pipeline.
   5. Production rollout uses defined telemetry thresholds and a tested rollback path.
-**Plans**: TBD
+**Plans**: 6 plans
 
 Plans:
-- [ ] 14-01: TBD (run /gsd-plan-phase 14 to break down)
+- [ ] 14-01-PLAN.md — Calculations parity gate test (PLAT-02)
+- [ ] 14-02-PLAN.md — Data migration guide documentation (DATA-01)
+- [ ] 14-03-PLAN.md — Firebase hosting SPA config + path URL strategy (DPLY-01)
+- [ ] 14-04-PLAN.md — Android/iOS app identifiers + display names (DPLY-02)
+- [ ] 14-05-PLAN.md — GitHub Actions Flutter release workflow + Android signing (DPLY-02)
+- [ ] 14-06-PLAN.md — Firebase Crashlytics + rollout safety documentation (DPLY-03)
 
 ## Progress
 
@@ -160,4 +165,4 @@ Plans:
 | 11. Workout Flow | v2.0 | Logging + rest + offline continuity | WORK-01/02/03 | 4/4 | ✅ Complete | 2026-02-21 |
 | 12. Insights Parity | v2.0 | Recommendations + progress parity | RECO-01/02, CHRT-01/02 | 5/5 | ✅ Complete | 2026-02-21 |
 | 13. Supabase Sync | v2.0 | Optional auth/sync parity | SYNC-01/02/03 | 5/5 | ✅ Complete | 2026-02-21 |
-| 14. Release + Cutover | v2.0 | Production hardening + safe migration | PLAT-02, DATA-01, DPLY-01/02/03 | 0/TBD | Not started | - |
+| 14. Release + Cutover | v2.0 | Production hardening + safe migration | PLAT-02, DATA-01, DPLY-01/02/03 | 0/6 | Not started | - |
