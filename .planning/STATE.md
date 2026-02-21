@@ -9,23 +9,23 @@ See: .planning/PROJECT.md (updated 2026-02-20)
 ## Current Position
 **Milestone**: v2.0 Flutter Full Rewrite (in progress)
 **Phase**: 12 of 14 (Recommendations + Progress + Insights Parity) — **In progress**
-**Plan**: 2 of 5
-**Status**: Plan 12-02 complete; ready for Plan 12-03
+**Plan**: 3 of 5
+**Status**: Plan 12-03 complete; ready for Plan 12-04
 
 ```
 v2.0 Progress: [█] [█] [█] [░] [ ] [ ]
               Ph9 Ph10 Ph11 Ph12 Ph13 Ph14
 
-Phase 12 Plans: [█] [█] [ ] [ ] [ ]
+Phase 12 Plans: [█] [█] [█] [ ] [ ]
                 P1  P2  P3  P4  P5
 ```
 
-**Last activity**: 2026-02-21 — Plan 12-02 complete: WorkoutRepository extended with 4 chart query methods (getSetsForExercise, getAllSetsWithWorkoutDate, getTrackedExerciseIds, getWorkoutCountByDate); 4 Riverpod FutureProviders created (oneRmProgressProvider/Epley 1RM trend, weeklyVolumeProvider/Monday-start last-12, workoutFrequencyProvider/365-day heatmap level 0-4, trackedExercisesProvider/-\d+$ suffix strip).
+**Last activity**: 2026-02-21 — Plan 12-03 complete: Progress screen built with fl_chart LineChart/BarChart and custom GitHub-style heatmap; 3 chart widgets (OneRmChart, WeeklyVolumeChart, WorkoutHeatmap) wired to Riverpod providers; all 4 Key selectors present on outer always-rendering widgets.
 
 ## Performance Metrics
 - **Velocity**: Baseline reset for v2.0 planning cycle
 - **Blockers**: None
-- **Next Decision**: Execute Phase 12 Plan 03 (progress_screen.dart + chart widgets)
+- **Next Decision**: Execute Phase 12 Plan 04 (parity gate tests for progress screen)
 
 ## Accumulated Context
 
@@ -74,6 +74,6 @@ Phase 12 Plans: [█] [█] [ ] [ ] [ ]
 - Lucide icon enrichment across dashboard, workout, and navigation
 
 ## Session Continuity
-- **Last session**: 2026-02-21 — Completed 12-02-PLAN.md (WorkoutRepository chart queries, oneRmProgressProvider, weeklyVolumeProvider, workoutFrequencyProvider, trackedExercisesProvider)
-- **Stopped at**: Phase 12 Plan 02 complete
-- **Resume with**: Execute Phase 12 Plan 03 (12-03-PLAN.md)
+- **Last session**: 2026-02-21 — Completed 12-03-PLAN.md (ProgressScreen with 3 chart Cards; OneRmChart LineChart + exercise dropdown; WeeklyVolumeChart BarChart + k-format; WorkoutHeatmap 365-day GitHub-style grid; all 4 Key selectors on outer widgets)
+- **Stopped at**: Phase 12 Plan 03 complete
+- **Resume with**: Execute Phase 12 Plan 04 (12-04-PLAN.md)
