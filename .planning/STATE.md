@@ -4,23 +4,23 @@
 See: .planning/PROJECT.md (updated 2026-02-20)
 
 **Core value:** Users can reliably track their strength training progress offline and receive actionable insights to improve performance.
-**Current focus:** Phase 13 complete — all 5 plans done
+**Current focus:** Phase 14 in progress — plans 14-01, 14-02, 14-03 complete
 
 ## Current Position
 **Milestone**: v2.0 Flutter Full Rewrite (in progress)
 **Phase**: 14 of 14 (Release Hardening + Cutover Safety) — **In progress**
-**Plan**: 2 of 6
-**Status**: Plans 14-01 (pending), 14-02 complete
+**Plan**: 3 of 6
+**Status**: Plans 14-01, 14-02, 14-03 complete
 
 ```
 v2.0 Progress: [█] [█] [█] [█] [█] [░]
               Ph9 Ph10 Ph11 Ph12 Ph13 Ph14
 
-Phase 14 Plans: [░] [█] [░] [░] [░] [░]
+Phase 14 Plans: [█] [█] [█] [░] [░] [░]
                 P1  P2  P3  P4  P5  P6
 ```
 
-**Last activity**: 2026-02-21 — Plan 14-02 complete: DATA_MIGRATION_GUIDE.md created. DATA-01 satisfied (Supabase sync as primary migration path; local-only fresh start documented).
+**Last activity**: 2026-02-21 — Plan 14-03 complete: firebase.json SPA rewrite + WASM MIME headers + usePathUrlStrategy() in main.dart. DPLY-01 satisfied.
 
 ## Performance Metrics
 - **Velocity**: Baseline reset for v2.0 planning cycle
@@ -93,6 +93,6 @@ Phase 14 Plans: [░] [█] [░] [░] [░] [░]
 - Lucide icon enrichment across dashboard, workout, and navigation
 
 ## Session Continuity
-- **Last session**: 2026-02-21 — Completed 14-02-PLAN.md (DATA_MIGRATION_GUIDE.md; DATA-01 satisfied; Supabase sync as primary migration path documented)
-- **Stopped at**: Phase 14 Plan 02 complete
-- **Resume with**: Execute Phase 14 Plan 03
+- **Last session**: 2026-02-21 — Completed 14-01-PLAN.md (calculations parity gate; 29 assertions, 8 functions, PLAT-02 satisfied; flutter analyze clean)
+- **Stopped at**: Phase 14 Plan 01 complete
+- **Resume with**: Execute Phase 14 remaining plans
