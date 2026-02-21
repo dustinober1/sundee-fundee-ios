@@ -9,18 +9,18 @@ See: .planning/PROJECT.md (updated 2026-02-20)
 ## Current Position
 **Milestone**: v2.0 Flutter Full Rewrite (in progress)
 **Phase**: 13 of 14 (Supabase Sync Parity + Optional Cloud) — **In Progress**
-**Plan**: 3 of N
-**Status**: Plan 13-03 complete; Auth feature (AuthNotifier + AuthScreen + /auth route) delivered
+**Plan**: 3 of N (13-02 backfilled)
+**Status**: Plans 13-01, 13-02, 13-03 complete
 
 ```
 v2.0 Progress: [█] [█] [█] [█] [░] [ ]
               Ph9 Ph10 Ph11 Ph12 Ph13 Ph14
 
-Phase 13 Plans: [█] [ ] [█] [ ] [ ]
+Phase 13 Plans: [█] [█] [█] [ ] [ ]
                 P1  P2  P3  P4  P5
 ```
 
-**Last activity**: 2026-02-21 — Plan 13-03 complete: AuthNotifier (signIn/signUp/signOut wrapping supabase_flutter), AuthScreen (email/password form with Key selectors), /auth route added to GoRouter. flutter analyze clean.
+**Last activity**: 2026-02-21 — Plan 13-02 complete (backfilled): SyncService push/pull/queue/retry engine + SyncNotifier reactive state machine (disabled/offline/pending/syncing/synced/error). flutter analyze clean.
 
 ## Performance Metrics
 - **Velocity**: Baseline reset for v2.0 planning cycle
@@ -37,6 +37,11 @@ Phase 13 Plans: [█] [ ] [█] [ ] [ ]
 - supabase_flutter initialized via `String.fromEnvironment` (compile-time `--dart-define`); skipped when env vars absent
 - `supabaseClientProvider` returns `null` via try/catch when Supabase not initialized — use everywhere instead of `Supabase.instance.client` directly
 - AuthNotifier contains zero sync logic — SyncNotifier handles `onAuthStateChange` stream independently
+- syncId written to Drift BEFORE Supabase upsert call — ensures idempotent retries on failure
+- SyncService push order: active_cycles → completed_workouts → completed_sets/PRs/1RMs (FK constraint order)
+- Offline retry queue uses SharedPreferences JSON-encoded List<int> (survives app restart)
+- SyncNotifier._trySetState() swallows StateError on disposed notifier (safe async gaps)
+- syncProvider = NotifierProvider<SyncNotifier, SyncState> — consume via ref.read(syncProvider.notifier).syncAfterWorkout(id)
 - signUp returns `true` when `response.user != null` (not session) — handles email confirmation flow gracefully
 - `/auth` route added to GoRouter with no redirect guard changes — auth is optional
 
@@ -84,6 +89,6 @@ Phase 13 Plans: [█] [ ] [█] [ ] [ ]
 - Lucide icon enrichment across dashboard, workout, and navigation
 
 ## Session Continuity
-- **Last session**: 2026-02-21 — Completed 13-03-PLAN.md (AuthNotifier with signIn/signUp/signOut, AuthScreen with email/password form + Key selectors, /auth route added to GoRouter; flutter analyze clean)
-- **Stopped at**: Phase 13 Plan 03 complete
+- **Last session**: 2026-02-21 — Completed 13-02-PLAN.md (SyncService push/pull/queue/retry + SyncNotifier reactive state machine; flutter analyze clean)
+- **Stopped at**: Phase 13 Plan 02 complete (backfilled; 13-01, 13-02, 13-03 all done)
 - **Resume with**: Execute Phase 13 Plan 04
