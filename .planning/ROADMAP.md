@@ -119,10 +119,14 @@ Plans:
   1. User can optionally authenticate and sync workout data from the Flutter app using Supabase-backed sync.
   2. User sees sync states (`offline`, `pending`, `syncing`, `synced`, `error`) with v1.1-equivalent semantics.
   3. User writes are persisted locally first, then queued/retried to cloud automatically when connectivity returns.
-**Plans**: TBD
+**Plans**: 5 plans
 
 Plans:
-- [ ] 13-01: TBD (run /gsd-plan-phase 13 to break down)
+- [ ] 13-01-PLAN.md — Foundation: deps + Drift schema v4 + Supabase init
+- [ ] 13-02-PLAN.md — Sync engine: SyncService + SyncNotifier
+- [ ] 13-03-PLAN.md — Auth feature: AuthNotifier + AuthScreen + /auth route
+- [ ] 13-04-PLAN.md — UI wiring: SyncStatusBadge + dashboard + workout integration + settings
+- [ ] 13-05-PLAN.md — Tests: unit tests + parity gate tests (SYNC-01, SYNC-02, SYNC-03)
 
 ### Phase 14: Release Hardening + Cutover Safety
 **Goal**: Users can safely transition to the Flutter app in production without silent data loss or deployment breakage.
