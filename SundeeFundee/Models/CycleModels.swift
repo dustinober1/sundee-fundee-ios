@@ -3,11 +3,11 @@ import SwiftData
 
 @Model
 final class PeriodLog {
-    @Attribute(.unique) var id: String
-    var userId: String
-    var startDate: Date
+    var id: String = UUID().uuidString
+    var userId: String = ""
+    var startDate: Date = Date.now
     var endDate: Date?
-    var flowLevelRaw: String
+    var flowLevelRaw: String = FlowLevel.medium.rawValue
     var notes: String?
 
     var flowLevel: FlowLevel {
@@ -34,11 +34,11 @@ final class PeriodLog {
 
 @Model
 final class SymptomLog {
-    @Attribute(.unique) var id: String
-    var userId: String
-    var date: Date
-    var symptomId: String
-    var severity: Int
+    var id: String = UUID().uuidString
+    var userId: String = ""
+    var date: Date = Date.now
+    var symptomId: String = ""
+    var severity: Int = 1
     var notes: String?
 
     init(
@@ -60,10 +60,10 @@ final class SymptomLog {
 
 @Model
 final class BBTLog {
-    @Attribute(.unique) var id: String
-    var userId: String
-    var date: Date
-    var temperature: Double
+    var id: String = UUID().uuidString
+    var userId: String = ""
+    var date: Date = Date.now
+    var temperature: Double = 0
     var time: Date?
     var notes: String?
 
@@ -86,10 +86,10 @@ final class BBTLog {
 
 @Model
 final class SymptomDefinition {
-    @Attribute(.unique) var id: String
-    var name: String
-    var categoryRaw: String
-    var isDefault: Bool
+    var id: String = UUID().uuidString
+    var name: String = ""
+    var categoryRaw: String = SymptomCategory.physical.rawValue
+    var isDefault: Bool = true
     var userId: String?
 
     var category: SymptomCategory {
@@ -114,13 +114,13 @@ final class SymptomDefinition {
 
 @Model
 final class CycleSettings {
-    @Attribute(.unique) var id: String
-    var userId: String
-    var averageCycleLength: Int
-    var averagePeriodLength: Int
-    var lutealPhaseLength: Int
-    var enabledSymptomIds: [String]
-    var notificationsEnabled: Bool
+    var id: String = UUID().uuidString
+    var userId: String = ""
+    var averageCycleLength: Int = 28
+    var averagePeriodLength: Int = 5
+    var lutealPhaseLength: Int = 14
+    var enabledSymptomIds: [String] = []
+    var notificationsEnabled: Bool = false
 
     init(
         id: String = UUID().uuidString,

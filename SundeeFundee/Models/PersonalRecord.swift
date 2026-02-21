@@ -3,13 +3,13 @@ import SwiftData
 
 @Model
 final class PersonalRecord {
-    @Attribute(.unique) var id: String
-    var userId: String
-    var exerciseId: String
-    var recordTypeRaw: String
-    var value: Double
+    var id: String = UUID().uuidString
+    var userId: String = ""
+    var exerciseId: String = ""
+    var recordTypeRaw: String = RecordType.weight.rawValue
+    var value: Double = 0
     var workoutId: String?
-    var date: Date
+    var date: Date = Date.now
 
     var recordType: RecordType {
         get { RecordType(rawValue: recordTypeRaw) ?? .weight }

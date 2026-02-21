@@ -3,11 +3,11 @@ import SwiftData
 
 @Model
 final class OneRepMax {
-    @Attribute(.unique) var id: String
-    var userId: String
-    var exerciseId: String
-    var weight: Double
-    var date: Date
+    var id: String = UUID().uuidString
+    var userId: String = ""
+    var exerciseId: String = ""
+    var weight: Double = 0
+    var date: Date = Date.now
 
     init(
         id: String = UUID().uuidString,

@@ -3,21 +3,21 @@ import SwiftData
 
 @Model
 final class CompletedWorkout {
-    @Attribute(.unique) var id: String
-    var userId: String
-    var activeCycleId: String
-    var programId: String
-    var week: Int
-    var day: Int
-    var sessionId: String
-    var completedAt: Date
-    var duration: Int
+    var id: String = UUID().uuidString
+    var userId: String = ""
+    var activeCycleId: String = ""
+    var programId: String = ""
+    var week: Int = 1
+    var day: Int = 1
+    var sessionId: String = ""
+    var completedAt: Date = Date.now
+    var duration: Int = 0
     var notes: String?
 
     var activeCycle: ActiveCycle?
 
     @Relationship(deleteRule: .cascade, inverse: \CompletedSet.workout)
-    var completedSets: [CompletedSet]?
+    var completedSets: [CompletedSet]? = []
 
     init(
         id: String = UUID().uuidString,

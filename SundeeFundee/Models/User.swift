@@ -3,13 +3,13 @@ import SwiftData
 
 @Model
 final class User {
-    @Attribute(.unique) var id: String
-    var name: String
-    var experienceLevelRaw: String
-    var primaryGoalRaw: String
-    var genderRaw: String
-    var createdAt: Date
-    var appleUserID: String
+    var id: String = UUID().uuidString
+    var name: String = ""
+    var experienceLevelRaw: String = ExperienceLevel.beginner.rawValue
+    var primaryGoalRaw: String = PrimaryGoal.strength.rawValue
+    var genderRaw: String = Gender.preferNotToSay.rawValue
+    var createdAt: Date = Date.now
+    var appleUserID: String = ""
 
     var experienceLevel: ExperienceLevel {
         get { ExperienceLevel(rawValue: experienceLevelRaw) ?? .beginner }

@@ -3,18 +3,18 @@ import SwiftData
 
 @Model
 final class ActiveCycle {
-    @Attribute(.unique) var id: String
-    var userId: String
-    var programId: String
-    var cycleName: String
-    var startDate: Date
-    var currentWeek: Int
-    var currentSessionId: String
+    var id: String = UUID().uuidString
+    var userId: String = ""
+    var programId: String = ""
+    var cycleName: String = ""
+    var startDate: Date = Date.now
+    var currentWeek: Int = 1
+    var currentSessionId: String = ""
     var currentPhase: String?
-    var statusRaw: String
+    var statusRaw: String = CycleStatus.active.rawValue
 
     @Relationship(deleteRule: .cascade, inverse: \CompletedWorkout.activeCycle)
-    var completedWorkouts: [CompletedWorkout]?
+    var completedWorkouts: [CompletedWorkout]? = []
 
     var status: CycleStatus {
         get { CycleStatus(rawValue: statusRaw) ?? .active }

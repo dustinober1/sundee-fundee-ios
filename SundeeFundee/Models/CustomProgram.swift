@@ -4,14 +4,14 @@ import SwiftData
 /// A user-created reusable workout template.
 @Model
 final class CustomProgram {
-    @Attribute(.unique) var id: String
-    var userId: String
-    var name: String
+    var id: String = UUID().uuidString
+    var userId: String = ""
+    var name: String = ""
     var notes: String?
-    var createdAt: Date
+    var createdAt: Date = Date.now
 
     @Relationship(deleteRule: .cascade, inverse: \CustomProgramExercise.program)
-    var exercises: [CustomProgramExercise]?
+    var exercises: [CustomProgramExercise]? = []
 
     init(
         id: String = UUID().uuidString,
@@ -37,13 +37,13 @@ final class CustomProgram {
 /// A single exercise entry inside a CustomProgram.
 @Model
 final class CustomProgramExercise {
-    @Attribute(.unique) var id: String
-    var exerciseId: String
-    var sets: Int
-    var reps: Int
-    var restMinutes: Double
+    var id: String = UUID().uuidString
+    var exerciseId: String = ""
+    var sets: Int = 3
+    var reps: Int = 8
+    var restMinutes: Double = 2.0
     var notes: String?
-    var order: Int
+    var order: Int = 0
 
     var program: CustomProgram?
 

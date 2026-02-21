@@ -3,10 +3,10 @@ import SwiftData
 
 @Model
 final class CompletedSet {
-    @Attribute(.unique) var id: String
-    var workoutId: String
-    var exerciseId: String
-    var setNumber: Int
+    var id: String = UUID().uuidString
+    var workoutId: String = ""
+    var exerciseId: String = ""
+    var setNumber: Int = 1
     var prescribedWeight: Double?
     var actualWeight: Double?
     var prescribedReps: Int?
