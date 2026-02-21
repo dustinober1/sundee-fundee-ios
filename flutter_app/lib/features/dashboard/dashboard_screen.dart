@@ -108,6 +108,13 @@ class DashboardScreen extends ConsumerWidget {
                                 'Week ${activeCycle.currentWeek}',
                                 style: Theme.of(context).textTheme.bodyLarge,
                               ),
+                              const SizedBox(height: 16),
+                              ElevatedButton(
+                                key: const Key('start-workout-button'),
+                                onPressed: () => context
+                                    .go('/workout/${activeCycle.programId}'),
+                                child: const Text('Start Workout'),
+                              ),
                             ],
                           ),
                         ),
