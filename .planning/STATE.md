@@ -93,6 +93,6 @@ Phase 14 Plans: [█] [█] [█] [░] [░] [░]
 - Lucide icon enrichment across dashboard, workout, and navigation
 
 ## Session Continuity
-- **Last session**: 2026-02-21 — Completed 14-01-PLAN.md (calculations parity gate; 29 assertions, 8 functions, PLAT-02 satisfied; flutter analyze clean)
-- **Stopped at**: Phase 14 Plan 01 complete
-- **Resume with**: Execute Phase 14 remaining plans
+- **Last session**: 2026-02-21 — Completed 14-03-PLAN.md (firebase.json SPA rewrite + WASM MIME headers; usePathUrlStrategy() in main.dart; DPLY-01 satisfied; flutter analyze clean)
+- **Stopped at**: Phase 14 Plan 03 complete
+- **Resume with**: Execute Phase 14 remaining plans (14-04, 14-05, 14-06)
