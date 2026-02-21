@@ -85,10 +85,13 @@ Plans:
   1. User can log sets (reps/weight), complete workouts, and see saved workout results with v1.1-equivalent semantics.
   2. User can use rest-timer behavior during active workouts with equivalent workflow to v1.1.
   3. User can keep logging workouts while offline and see local workout state preserved after reconnect.
-**Plans**: TBD
+**Plans**: 4 plans
 
 Plans:
-- [ ] 11-01: TBD (run /gsd-plan-phase 11 to break down)
+- [ ] 11-01-PLAN.md — Drift schema v3 + WorkoutRepository (Wave 1)
+- [ ] 11-02-PLAN.md — WorkoutSessionProvider + Workout UI (Wave 2)
+- [ ] 11-03-PLAN.md — RestTimerProvider + Rest Timer UI (Wave 2)
+- [ ] 11-04-PLAN.md — Parity gate test updates (Wave 3)
 
 ### Phase 12: Recommendations + Progress Insights Parity
 **Goal**: Users receive the same coaching outcomes and progress insights in Flutter as in v1.1.
