@@ -18,7 +18,10 @@ struct SettingsView: View {
                         LabeledContent("Goal", value: user.primaryGoal.rawValue.capitalized)
                         Picker("Gender", selection: Binding(
                             get: { user.gender },
-                            set: { user.gender = $0 }
+                            set: {
+                                user.gender = $0
+                                try? modelContext.save()
+                            }
                         )) {
                             ForEach(Gender.allCases, id: \.self) { g in
                                 Text(g.displayName).tag(g)

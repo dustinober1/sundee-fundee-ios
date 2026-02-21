@@ -43,7 +43,9 @@ struct ProgramsListView: View {
                     if !filteredCustomPrograms.isEmpty {
                         Section("My Workouts") {
                             ForEach(filteredCustomPrograms) { program in
-                                CustomProgramRow(program: program)
+                                NavigationLink(destination: CustomProgramDetailView(program: program)) {
+                                    CustomProgramRow(program: program)
+                                }
                             }
                         }
                     }

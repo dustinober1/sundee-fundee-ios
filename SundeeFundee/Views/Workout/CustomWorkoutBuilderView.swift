@@ -59,7 +59,8 @@ struct CustomWorkoutBuilderView: View {
             }
             .safeAreaInset(edge: .bottom) {
                 BottomActionBar(
-                    canSave: !workoutName.isEmpty && !exercises.isEmpty,
+                    canLogNow: !exercises.isEmpty,
+                    canSaveProgram: !workoutName.isEmpty && !exercises.isEmpty,
                     onLogNow: logNow,
                     onSave: saveAsProgram
                 )
@@ -93,18 +94,18 @@ struct CustomWorkoutBuilderView: View {
         )
         modelContext.insert(workout)
 
-        for (i, entry) in exercises.enumerated() {
+        for entry in exercises {
             for setNum in 1...max(1, entry.sets) {
                 let set = CompletedSet(
                     workoutId: workout.id,
                     exerciseId: entry.exerciseId,
                     setNumber: setNum,
-                    prescribedReps: entry.reps
+                    prescribedReps: entry.reps,
+                    restSeconds: Int(entry.restMinutes * 60)
                 )
                 set.workout = workout
                 modelContext.insert(set)
             }
-            _ = i
         }
 
         try? modelContext.save()
@@ -190,7 +191,8 @@ private struct ExerciseEntryRow: View {
 // MARK: - Bottom Action Bar
 
 private struct BottomActionBar: View {
-    let canSave: Bool
+    let canLogNow: Bool
+    let canSaveProgram: Bool
     let onLogNow: () -> Void
     let onSave: () -> Void
 
@@ -202,7 +204,7 @@ private struct BottomActionBar: View {
             }
             .buttonStyle(.bordered)
             .controlSize(.large)
-            .disabled(!canSave)
+            .disabled(!canLogNow)
 
             Button(action: onSave) {
                 Label("Save Program", systemImage: "square.and.arrow.down")
@@ -210,7 +212,7 @@ private struct BottomActionBar: View {
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
-            .disabled(!canSave)
+            .disabled(!canSaveProgram)
         }
         .padding()
         .background(.bar)
