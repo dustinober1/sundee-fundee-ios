@@ -5,10 +5,19 @@ import '../features/dashboard/dashboard_screen.dart';
 import '../features/programs/programs_screen.dart';
 import '../features/workout/workout_screen.dart';
 import '../features/progress/progress_screen.dart';
+import '../shared/providers/onboarding_status_provider.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
+  final onboardingComplete = ref.watch(onboardingCompleteProvider);
   return GoRouter(
-    initialLocation: '/onboarding',
+    initialLocation: onboardingComplete ? '/dashboard' : '/onboarding',
+    redirect: (context, state) {
+      final isComplete = ref.read(onboardingCompleteProvider);
+      final isOnboarding = state.uri.path == '/onboarding';
+      if (isComplete && isOnboarding) return '/dashboard';
+      if (!isComplete && !isOnboarding) return '/onboarding';
+      return null;
+    },
     routes: [
       GoRoute(
         path: '/onboarding',
