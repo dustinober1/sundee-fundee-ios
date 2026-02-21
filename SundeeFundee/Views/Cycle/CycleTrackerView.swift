@@ -91,14 +91,16 @@ private struct CycleHeaderLogo: View {
 
     var body: some View {
         ZStack {
-            BrandCircularLogo("AppLogo", size: 88)
-                .opacity(isMenstrual ? 0 : 1)
-
-            Image("SharkWeekLogo")
-                .resizable()
-                .scaledToFit()
-                .frame(height: 96)
-                .opacity(isMenstrual ? 1 : 0)
+            if isMenstrual {
+                Image("SharkWeekLogo")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(maxWidth: .infinity)
+                    .transition(.opacity)
+            } else {
+                BrandCircularLogo("AppLogo", size: 88)
+                    .transition(.opacity)
+            }
         }
         .frame(maxWidth: .infinity)
         .animation(.easeInOut(duration: 0.25), value: isMenstrual)
