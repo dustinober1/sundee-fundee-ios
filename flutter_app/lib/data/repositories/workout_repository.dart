@@ -83,4 +83,67 @@ class WorkoutRepository {
           ..orderBy([(t) => OrderingTerm.asc(t.completedAt)]))
         .get();
   }
+
+  // ── Chart query methods ────────────────────────────────────────────────────
+
+  /// Get all sets for a specific exercise across all workouts.
+  /// Returns sets paired with their workout's completedAt date.
+  Future<List<({CompletedSet set, DateTime completedAt})>> getSetsForExercise(
+    String exerciseId,
+  ) async {
+    final sets = await (_db.select(_db.completedSets)
+          ..where((t) => t.exerciseId.equals(exerciseId)))
+        .get();
+
+    if (sets.isEmpty) return [];
+
+    final workoutIds = sets.map((s) => s.workoutId).toSet().toList();
+    final workouts = await (_db.select(_db.completedWorkouts)
+          ..where((t) => t.id.isIn(workoutIds)))
+        .get();
+
+    final workoutDateMap = {for (var w in workouts) w.id: w.completedAt};
+
+    return sets
+        .where((s) => workoutDateMap.containsKey(s.workoutId))
+        .map((s) => (set: s, completedAt: workoutDateMap[s.workoutId]!))
+        .toList();
+  }
+
+  /// Get all sets with their workout date for volume calculations.
+  Future<List<({CompletedSet set, DateTime completedAt})>>
+  getAllSetsWithWorkoutDate() async {
+    final workouts = await _db.select(_db.completedWorkouts).get();
+    final workoutDateMap = {for (var w in workouts) w.id: w.completedAt};
+
+    final sets = await _db.select(_db.completedSets).get();
+
+    return sets
+        .where((s) => workoutDateMap.containsKey(s.workoutId))
+        .map((s) => (set: s, completedAt: workoutDateMap[s.workoutId]!))
+        .toList();
+  }
+
+  /// Get all unique exercise IDs from completed sets.
+  Future<List<String>> getTrackedExerciseIds() async {
+    final sets = await _db.select(_db.completedSets).get();
+    return sets.map((s) => s.exerciseId).toSet().toList();
+  }
+
+  /// Get workout count by date (yyyy-MM-dd) for the last year.
+  /// Used to build the activity heatmap.
+  Future<Map<String, int>> getWorkoutCountByDate() async {
+    final workouts = await _db.select(_db.completedWorkouts).get();
+    final countByDate = <String, int>{};
+
+    for (final w in workouts) {
+      final dateKey =
+          '${w.completedAt.year}-'
+          '${w.completedAt.month.toString().padLeft(2, '0')}-'
+          '${w.completedAt.day.toString().padLeft(2, '0')}';
+      countByDate[dateKey] = (countByDate[dateKey] ?? 0) + 1;
+    }
+
+    return countByDate;
+  }
 }
