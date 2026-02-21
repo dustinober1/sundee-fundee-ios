@@ -4,28 +4,28 @@
 See: .planning/PROJECT.md (updated 2026-02-20)
 
 **Core value:** Users can reliably track their strength training progress offline and receive actionable insights to improve performance.
-**Current focus:** Phase 12 complete — ready for Phase 13
+**Current focus:** Phase 13 in progress — Plan 01 complete
 
 ## Current Position
 **Milestone**: v2.0 Flutter Full Rewrite (in progress)
-**Phase**: 12 of 14 (Recommendations + Progress + Insights Parity) — **Complete**
-**Plan**: 5 of 5
-**Status**: Phase 12 complete; ready for Phase 13
+**Phase**: 13 of 14 (Supabase Sync Parity + Optional Cloud) — **In Progress**
+**Plan**: 1 of N
+**Status**: Plan 13-01 complete; Drift v4 schema + Supabase deps wired
 
 ```
-v2.0 Progress: [█] [█] [█] [█] [ ] [ ]
+v2.0 Progress: [█] [█] [█] [█] [░] [ ]
               Ph9 Ph10 Ph11 Ph12 Ph13 Ph14
 
-Phase 12 Plans: [█] [█] [█] [█] [█]
+Phase 13 Plans: [█] [ ] [ ] [ ] [ ]
                 P1  P2  P3  P4  P5
 ```
 
-**Last activity**: 2026-02-21 — Plan 12-05 complete: recommendations_parity_test.dart created with CHRT-01, CHRT-02, RECO-01, RECO-02 parity gate tests; test_database.dart helper added; all_tests.dart aggregator updated. `flutter analyze --no-fatal-infos` clean.
+**Last activity**: 2026-02-21 — Plan 13-01 complete: supabase_flutter+uuid deps added, Drift schema v4 with syncId columns on 5 tables, conditional Supabase.initialize() in main.dart, nullable supabaseClientProvider created. All tests pass.
 
 ## Performance Metrics
 - **Velocity**: Baseline reset for v2.0 planning cycle
 - **Blockers**: None
-- **Next Decision**: Execute Phase 13
+- **Next Decision**: Execute Phase 13 Plan 02
 
 ## Accumulated Context
 
@@ -33,6 +33,9 @@ Phase 12 Plans: [█] [█] [█] [█] [█]
 - Start Workout button on DashboardScreen (Key 'start-workout-button') navigates to `/workout/${activeCycle.programId}` — only visible when active cycle exists
 - startCycleFromPrograms helper uses runtime guard before tapping start-cycle-button (idempotent across test re-runs)
 - Vibration errors silently swallowed (web/simulator safe — `Vibration.vibrate` throws on non-mobile)
+- Drift schema is at v4 with syncId TEXT UNIQUE nullable on CompletedWorkouts, CompletedSets, ActiveCycles, OneRepMaxes, PersonalRecords (Users excluded — auth.uid() handles identity)
+- supabase_flutter initialized via `String.fromEnvironment` (compile-time `--dart-define`); skipped when env vars absent
+- `supabaseClientProvider` returns `null` via try/catch when Supabase not initialized — use everywhere instead of `Supabase.instance.client` directly
 
 ### Key Decisions (carried forward)
 - Local-first architecture with Dexie as source of truth (v1.1 baseline behavior)
@@ -78,6 +81,6 @@ Phase 12 Plans: [█] [█] [█] [█] [█]
 - Lucide icon enrichment across dashboard, workout, and navigation
 
 ## Session Continuity
-- **Last session**: 2026-02-21 — Completed 12-05-PLAN.md (recommendations_parity_test.dart with CHRT-01, CHRT-02, RECO-01, RECO-02; test_database.dart helper; all_tests.dart aggregator updated; flutter analyze clean)
-- **Stopped at**: Phase 12 Plan 05 complete — Phase 12 fully complete
-- **Resume with**: Execute Phase 13
+- **Last session**: 2026-02-21 — Completed 13-01-PLAN.md (supabase_flutter+uuid deps, Drift v4 syncId columns on 5 tables, conditional Supabase.initialize(), nullable supabaseClientProvider; flutter analyze clean, all tests pass)
+- **Stopped at**: Phase 13 Plan 01 complete
+- **Resume with**: Execute Phase 13 Plan 02
