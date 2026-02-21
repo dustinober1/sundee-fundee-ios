@@ -4,23 +4,23 @@
 See: .planning/PROJECT.md (updated 2026-02-20)
 
 **Core value:** Users can reliably track their strength training progress offline and receive actionable insights to improve performance.
-**Current focus:** Phase 10 in progress — Onboarding + Program/Cycle Parity (plan 1 of N complete)
+**Current focus:** Phase 10 in progress — Onboarding + Program/Cycle Parity (plans 1–2 of N complete)
 
 ## Current Position
 **Milestone**: v2.0 Flutter Full Rewrite (in progress)
 **Phase**: 10 of 14 (Onboarding + Program/Cycle Parity) — **In progress**
-**Plan**: 1 completed
-**Status**: 10-01 complete (ONBD-01, ONBD-02 satisfied)
+**Plan**: 2 completed
+**Status**: 10-02 complete (PROG-01 satisfied)
 
 ```
 v2.0 Progress: [█] [░] [ ] [ ] [ ] [ ]
               Ph9 Ph10 Ph11 Ph12 Ph13 Ph14
 
-Phase 10 Plans: [█] [ ] [ ] ...
+Phase 10 Plans: [█] [█] [ ] ...
                 P1  P2  P3
 ```
 
-**Last activity**: 2026-02-21 — Completed 10-01-PLAN.md (onboarding wizard 3-step flow + redirect guard)
+**Last activity**: 2026-02-21 — Completed 10-02-PLAN.md (program catalog + data layer)
 
 ## Performance Metrics
 - **Velocity**: Baseline reset for v2.0 planning cycle
@@ -47,6 +47,8 @@ Phase 10 Plans: [█] [ ] [ ] ...
 - `if (mounted)` pattern for async gaps in ConsumerState (not `if (context.mounted)`)
 - Riverpod 3.x: use `NotifierProvider` (not `StateProvider` which is legacy-only); expose mutation via methods on Notifier (`.state` is `@protected`)
 - Riverpod 3.x: `overrideWith(() => MyNotifier(initialState: value))` to inject pre-loaded async state before runApp
+- ProgramV2 models use plain Dart fromJson (NOT freezed — avoids build_runner conflicts with Drift)
+- Dual JSON schema: back-squat uses sessionsPerWeek/sessions[]; other 5 programs use daysPerWeek/days[] — both handled by same model via nullable fallbacks
 
 ### Roadmap Evolution
 - Milestone v2.0 inserted after Phase 8 using integer continuation: new phases 9-14.
@@ -59,8 +61,7 @@ Phase 10 Plans: [█] [ ] [ ] ...
 - Lucide icon enrichment across dashboard, workout, and navigation
 
 ## Session Continuity
-- **Last session**: 2026-02-21 — Completed 10-01-PLAN.md (onboarding wizard 3-step + redirect guard)
-- **Stopped at**: Completed 10-01-PLAN.md
+- **Last session**: 2026-02-21 — Completed 10-02-PLAN.md (program catalog + data layer)
+- **Stopped at**: Completed 10-02-PLAN.md
 - **Resume file**: None
-- **Stopped at**: Phase 9 fully complete and verified
-- **Resume with**: `/gsd-discuss-phase 10` or `/gsd-plan-phase 10`
+- **Resume with**: Continue Phase 10 Plan 03 (Cycle/Training parity)
