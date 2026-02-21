@@ -1,8 +1,7 @@
-/// Pure Dart recommendation calculations.
-/// Exact port of v1.1 src/lib/calculations.ts.
-///
-/// All functions are pure (no side effects, no DB access).
-/// Used by plateau_detection.dart and coaching UI.
+// Pure Dart recommendation calculations.
+// Exact port of v1.1 src/lib/calculations.ts.
+// All functions are pure (no side effects, no DB access).
+// Used by plateau_detection.dart and coaching UI.
 
 /// Round to nearest 5 lbs.
 double roundToNearestFive(double value) {

@@ -1,5 +1,5 @@
-/// Exercise metadata for name lookups and coaching context.
-/// Exact port of src/data/exercises.ts from v1.1.
+// Exercise metadata for name lookups and coaching context.
+// Exact port of src/data/exercises.ts from v1.1.
 
 class ExerciseMetadata {
   final String id;
@@ -17,6 +17,7 @@ class ExerciseMetadata {
   });
 }
 
+// ignore: constant_identifier_names — matches v1.1 TypeScript constant naming
 const List<ExerciseMetadata> EXERCISES = [
   ExerciseMetadata(
     id: 'back-squat',
