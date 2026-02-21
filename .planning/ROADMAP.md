@@ -73,9 +73,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 10-01-PLAN.md — Onboarding enhancement + persistence guard (ONBD-01, ONBD-02)
-- [ ] 10-02-PLAN.md — Program data models + catalog UI (PROG-01)
-- [ ] 10-03-PLAN.md — Active cycle DB + cycle management (PROG-02)
+- [x] 10-01-PLAN.md — Onboarding enhancement + persistence guard (ONBD-01, ONBD-02)
+- [x] 10-02-PLAN.md — Program data models + catalog UI (PROG-01)
+- [x] 10-03-PLAN.md — Active cycle DB + cycle management (PROG-02)
 
 ### Phase 11: Workout Logging + Rest + Offline Continuity
 **Goal**: Users can complete the full workout logging loop in Flutter, including rest timing and offline continuity.

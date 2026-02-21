@@ -14,13 +14,13 @@ Requirements for the v2.0 milestone. These define full feature parity in Flutter
 
 ### Onboarding
 
-- [ ] **ONBD-01**: User can complete onboarding with the same required profile fields and completion rules as v1.1.
-- [ ] **ONBD-02**: User profile data persists locally and remains available after app restart on each platform.
+- [x] **ONBD-01**: User can complete onboarding with the same required profile fields and completion rules as v1.1.
+- [x] **ONBD-02**: User profile data persists locally and remains available after app restart on each platform.
 
 ### Programs & Cycles
 
-- [ ] **PROG-01**: User can browse the same program catalog with equivalent structure and metadata as v1.1.
-- [ ] **PROG-02**: User can start and track active cycles with behavior equivalent to v1.1.
+- [x] **PROG-01**: User can browse the same program catalog with equivalent structure and metadata as v1.1.
+- [x] **PROG-02**: User can start and track active cycles with behavior equivalent to v1.1.
 
 ### Workout Flow
 
@@ -86,10 +86,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 |-------------|-------|--------|
 | PLAT-01 | Phase 9 | Complete |
 | PLAT-02 | Phase 14 | Pending |
-| ONBD-01 | Phase 10 | Pending |
-| ONBD-02 | Phase 10 | Pending |
-| PROG-01 | Phase 10 | Pending |
-| PROG-02 | Phase 10 | Pending |
+| ONBD-01 | Phase 10 | Complete |
+| ONBD-02 | Phase 10 | Complete |
+| PROG-01 | Phase 10 | Complete |
+| PROG-02 | Phase 10 | Complete |
 | WORK-01 | Phase 11 | Pending |
 | WORK-02 | Phase 11 | Pending |
 | WORK-03 | Phase 11 | Pending |
