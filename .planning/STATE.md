@@ -9,18 +9,18 @@ See: .planning/PROJECT.md (updated 2026-02-20)
 ## Current Position
 **Milestone**: v2.0 Flutter Full Rewrite (in progress)
 **Phase**: 11 of 14 (Workout Logging + Rest + Offline Continuity) — **COMPLETE**
-**Plan**: 3 of 3
+**Plan**: 4 of 4
 **Status**: All plans complete; Phase 11 fully executed
 
 ```
 v2.0 Progress: [█] [█] [█] [ ] [ ] [ ]
               Ph9 Ph10 Ph11 Ph12 Ph13 Ph14
 
-Phase 11 Plans: [█] [█] [█]
-                P1  P2  P3
+Phase 11 Plans: [█] [█] [█] [█]
+                P1  P2  P3  P4
 ```
 
-**Last activity**: 2026-02-21 — Phase 11 Plan 03 complete: RestTimerProvider with background recalculation, RestTimerSheet modal bottom sheet, rest timer integrated into WorkoutScreen.
+**Last activity**: 2026-02-21 — Phase 11 Plan 04 complete: parity gate tests for WORK-01/02/03, Start Workout button on DashboardScreen, workout test helpers.
 
 ## Performance Metrics
 - **Velocity**: Baseline reset for v2.0 planning cycle
@@ -30,6 +30,8 @@ Phase 11 Plans: [█] [█] [█]
 ## Accumulated Context
 
 - Rest timer background recalculation: `_pauseTimerForBackground` cancels Timer without changing status; `_recalculateRemainingTime` uses `DateTime.now().difference(startedAt)` on foreground return — accurate after any background duration
+- Start Workout button on DashboardScreen (Key 'start-workout-button') navigates to `/workout/${activeCycle.programId}` — only visible when active cycle exists
+- startCycleFromPrograms helper uses runtime guard before tapping start-cycle-button (idempotent across test re-runs)
 - Vibration errors silently swallowed (web/simulator safe — `Vibration.vibrate` throws on non-mobile)
 
 ### Key Decisions (carried forward)
@@ -68,6 +70,6 @@ Phase 11 Plans: [█] [█] [█]
 - Lucide icon enrichment across dashboard, workout, and navigation
 
 ## Session Continuity
-- **Last session**: 2026-02-21 — Completed 11-03-PLAN.md (RestTimerProvider + RestTimerSheet + WorkoutScreen integration)
-- **Stopped at**: Phase 11 complete (all 3 plans done)
+- **Last session**: 2026-02-21 — Completed 11-04-PLAN.md (parity gate tests for WORK-01/02/03 + Start Workout button + workout helpers)
+- **Stopped at**: Phase 11 complete (all 4 plans done)
 - **Resume with**: Execute Phase 12
