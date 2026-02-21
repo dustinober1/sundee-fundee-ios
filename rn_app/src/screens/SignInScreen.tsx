@@ -1,23 +1,41 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
-import { signInWithEmail } from '../lib/supabase';
+import { Alert, StyleSheet, Text, TextInput, View } from 'react-native';
+import ArtDecoButton from '../components/ArtDecoButton';
+import ArtDecoCard from '../components/ArtDecoCard';
+import { signInWithEmail, signUpWithEmail } from '../lib/supabase';
+import { artDecoTheme } from '../theme/tokens';
 
-export default function SignInScreen({ onSignedIn, onBack }: { onSignedIn: () => void; onBack: () => void }) {
+export default function SignInScreen({
+  onSignedIn,
+  onBack,
+}: {
+  onSignedIn: () => void;
+  onBack: () => void;
+}) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isSignIn, setIsSignIn] = useState(true);
 
-  async function handleSignIn() {
+  async function handleSubmit() {
+    if (!email.trim() || !password.trim()) {
+      Alert.alert('Missing fields', 'Please enter both email and password.');
+      return;
+    }
+
     setLoading(true);
     try {
-      const res: any = await signInWithEmail(email, password);
+      const res = isSignIn
+        ? await signInWithEmail(email.trim(), password)
+        : await signUpWithEmail(email.trim(), password);
+
       if (res.error) {
-        Alert.alert('Sign in failed', res.error.message || 'Unknown error');
+        Alert.alert('Authentication failed', res.error.message || 'Unknown error');
       } else {
         onSignedIn();
       }
-    } catch (err) {
-      Alert.alert('Sign in error', String(err));
+    } catch (error) {
+      Alert.alert('Authentication error', String(error));
     } finally {
       setLoading(false);
     }
@@ -25,31 +43,75 @@ export default function SignInScreen({ onSignedIn, onBack }: { onSignedIn: () =>
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Sign in</Text>
-      <TextInput
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-        style={styles.input}
-      />
-      <TextInput
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-        style={styles.input}
-      />
-      <Button title={loading ? 'Signing in...' : 'Sign in'} onPress={handleSignIn} disabled={loading} />
-      <View style={{ height: 8 }} />
-      <Button title="Back" onPress={onBack} />
+      <ArtDecoCard>
+        <Text style={styles.title}>{isSignIn ? 'Sign in' : 'Create account'}</Text>
+        <TextInput
+          placeholder="Email"
+          placeholderTextColor={artDecoTheme.colors.textSecondary}
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+          style={styles.input}
+        />
+        <TextInput
+          placeholder="Password"
+          placeholderTextColor={artDecoTheme.colors.textSecondary}
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+          style={styles.input}
+        />
+        <ArtDecoButton
+          title={
+            loading
+              ? isSignIn
+                ? 'Signing in...'
+                : 'Creating account...'
+              : isSignIn
+                ? 'Sign in'
+                : 'Create account'
+          }
+          onPress={handleSubmit}
+          disabled={loading}
+        />
+        <View style={styles.spacing} />
+        <ArtDecoButton title="Back" variant="secondary" onPress={onBack} />
+        <View style={styles.spacing} />
+        <ArtDecoButton
+          title={isSignIn ? 'Need an account? Sign up' : 'Already have an account? Sign in'}
+          variant="secondary"
+          onPress={() => setIsSignIn(prev => !prev)}
+          disabled={loading}
+        />
+      </ArtDecoCard>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, justifyContent: 'center' },
-  title: { fontSize: 20, fontWeight: '700', marginBottom: 12 },
-  input: { borderWidth: 1, borderColor: '#ddd', padding: 8, marginBottom: 8, borderRadius: 6 }
+  container: {
+    flex: 1,
+    backgroundColor: artDecoTheme.colors.background,
+    justifyContent: 'center',
+    padding: artDecoTheme.spacing.md,
+  },
+  title: {
+    color: artDecoTheme.colors.textPrimary,
+    fontSize: artDecoTheme.typography.subtitle,
+    fontWeight: '700',
+    marginBottom: artDecoTheme.spacing.sm,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: artDecoTheme.colors.border,
+    borderRadius: artDecoTheme.radius.sm,
+    color: artDecoTheme.colors.textPrimary,
+    padding: artDecoTheme.spacing.sm,
+    marginBottom: artDecoTheme.spacing.sm,
+    backgroundColor: artDecoTheme.colors.surfaceMuted,
+  },
+  spacing: {
+    height: artDecoTheme.spacing.sm,
+  },
 });

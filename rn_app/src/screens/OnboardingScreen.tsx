@@ -1,19 +1,63 @@
 import React from 'react';
-import { View, Text, StyleSheet, Button } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
+import ArtDecoButton from '../components/ArtDecoButton';
+import { artDecoTheme } from '../theme/tokens';
 
-export default function OnboardingScreen({ onContinue, onSignIn }: { onContinue: () => void; onSignIn?: () => void }) {
+export default function OnboardingScreen({
+  onContinue,
+  onSignIn,
+}: {
+  onContinue: () => void;
+  onSignIn?: () => void;
+}) {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Welcome to Sundee-Fundee</Text>
-      <Text style={styles.subtitle}>Track workouts, cycles, and progress — offline-first.</Text>
-      <Button title="Get Started" onPress={onContinue} />
-      {onSignIn ? <View style={{ marginTop: 12 }}><Button title="Sign in" onPress={onSignIn} /></View> : null}
+      <View style={styles.hero}>
+        <Text style={styles.title}>Sundee-Fundee</Text>
+        <Text style={styles.subtitle}>Art Deco Training Companion</Text>
+        <Text style={styles.description}>
+          Track workouts, cycles, and progress with an offline-first mobile flow.
+        </Text>
+      </View>
+
+      <ArtDecoButton title="Get Started" onPress={onContinue} />
+      {onSignIn ? (
+        <View style={styles.secondaryButton}>
+          <ArtDecoButton title="Sign in" variant="secondary" onPress={onSignIn} />
+        </View>
+      ) : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, justifyContent: 'center', alignItems: 'center' },
-  title: { fontSize: 24, fontWeight: '700', marginBottom: 8 },
-  subtitle: { fontSize: 16, color: '#444', marginBottom: 16, textAlign: 'center' }
+  container: {
+    flex: 1,
+    backgroundColor: artDecoTheme.colors.background,
+    padding: artDecoTheme.spacing.lg,
+    justifyContent: 'center',
+  },
+  hero: {
+    marginBottom: artDecoTheme.spacing.xl,
+  },
+  title: {
+    color: artDecoTheme.colors.accent,
+    fontSize: 36,
+    fontWeight: '800',
+    letterSpacing: 1.2,
+    marginBottom: artDecoTheme.spacing.sm,
+  },
+  subtitle: {
+    color: artDecoTheme.colors.textPrimary,
+    fontSize: artDecoTheme.typography.subtitle,
+    marginBottom: artDecoTheme.spacing.sm,
+  },
+  description: {
+    color: artDecoTheme.colors.textSecondary,
+    fontSize: artDecoTheme.typography.body,
+    lineHeight: 22,
+  },
+  secondaryButton: {
+    marginTop: artDecoTheme.spacing.sm,
+  },
 });

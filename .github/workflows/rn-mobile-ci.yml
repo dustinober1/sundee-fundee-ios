@@ -1,0 +1,40 @@
+name: RN Mobile CI
+
+on:
+  pull_request:
+    paths:
+      - 'rn_app/**'
+      - '.github/workflows/rn-mobile-ci.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'rn_app/**'
+      - '.github/workflows/rn-mobile-ci.yml'
+  workflow_dispatch:
+
+jobs:
+  mobile-quality:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: rn_app
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: rn_app/package-lock.json
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test
+        run: npm run test

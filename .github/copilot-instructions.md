@@ -6,14 +6,21 @@ Actionable guide for AI coding agents working on the Sundee‑Fundee workout app
 
 ```bash
 npm install                # install dependencies
-npm run dev                # start development server
+npm run dev                # run web development server
 npm run build              # build production bundle
 npm run start              # production preview
 npm run lint               # run ESLint (pre‑commit hook)
 npm run test               # Vitest watch mode
 npm run test:run           # Vitest once (CI)
 npm run test:e2e           # Playwright end‑to‑end tests
-``` 
+```
+
+> ⚠️ This repository also contains mobile clients under `flutter_app/` and
+> `rn_app/`.  Those directories have independent build/test workflows which
+> are documented in their respective `README.md` files; agents working there
+> should follow the platform‑specific commands.  The web commands above apply
+> only to the Next.js project.
+
 
 ## 🧱 Project snapshot
 
@@ -21,6 +28,10 @@ npm run test:e2e           # Playwright end‑to‑end tests
 - **Local‑first** data architecture: IndexedDB via Dexie, optional Supabase sync
 - UI built with Tailwind CSS & [shadcn/ui]; animations in `src/components/animations`
 - Key directories: `src/contexts/`, `src/lib/db/dexie.ts`, `src/data/programs/`, `src/lib/calculations.ts`
+
+> The repo is polyglot; mobile clients exist in `flutter_app/` (Flutter) and
+> `rn_app/` (React Native).  Work there follows the patterns in those
+> subprojects' READMEs rather than the web instructions below.
 
 ## 💅 Code style & conventions
 
@@ -81,6 +92,9 @@ npm run test:e2e           # Playwright end‑to‑end tests
 - `src/lib/calculations.ts` – core numeric logic
 - `src/data/programs/` – static program definitions
 - `tests/` – copy patterns from existing test files
+
+> For mobile‑specific work, open `flutter_app/lib/` or `rn_app/src/` and follow
+> the conventions described in those subprojects' documentation.
 
 ---
 

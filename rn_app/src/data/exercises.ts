@@ -1,4 +1,4 @@
-import type { ProgramCategory } from '@/types/program';
+import type { ProgramCategory } from '../types/program';
 
 export interface ExerciseMetadata {
   id: string;

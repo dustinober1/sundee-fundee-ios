@@ -1,32 +1,79 @@
 import React from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, Button } from 'react-native';
+import {
+  FlatList,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import ArtDecoButton from '../components/ArtDecoButton';
+import ArtDecoCard from '../components/ArtDecoCard';
 import { getAllPrograms } from '../data/programs';
+import { artDecoTheme } from '../theme/tokens';
 
-export default function ProgramListScreen({ onBack, onSelect }: { onBack: () => void; onSelect: (id: string) => void; }) {
+export default function ProgramListScreen({
+  onSelect,
+  onViewProgress,
+}: {
+  onSelect: (id: string) => void;
+  onViewProgress: () => void;
+}) {
   const programs = getAllPrograms();
 
   return (
     <View style={styles.container}>
-      <Button title="Back" onPress={onBack} />
       <Text style={styles.title}>Programs</Text>
+      <Text style={styles.subtitle}>Choose a program to start your next cycle.</Text>
       <FlatList
         data={programs}
         keyExtractor={(p) => p.id}
+        contentContainerStyle={styles.listContent}
         renderItem={({ item }) => (
-          <TouchableOpacity style={styles.item} onPress={() => onSelect(item.id)}>
-            <Text style={styles.itemTitle}>{item.name}</Text>
-            {item.description ? <Text style={styles.itemDesc}>{item.description}</Text> : null}
+          <TouchableOpacity onPress={() => onSelect(item.id)}>
+            <ArtDecoCard style={styles.item}>
+              <Text style={styles.itemTitle}>{item.name}</Text>
+              {item.description ? <Text style={styles.itemDesc}>{item.description}</Text> : null}
+            </ArtDecoCard>
           </TouchableOpacity>
         )}
       />
+      <ArtDecoButton title="View Progress" variant="secondary" onPress={onViewProgress} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16 },
-  title: { fontSize: 20, fontWeight: '700', marginVertical: 8 },
-  item: { padding: 12, borderBottomWidth: 1, borderColor: '#eee' },
-  itemTitle: { fontSize: 16, fontWeight: '600' },
-  itemDesc: { fontSize: 12, color: '#666' }
+  container: {
+    flex: 1,
+    backgroundColor: artDecoTheme.colors.background,
+    padding: artDecoTheme.spacing.md,
+  },
+  title: {
+    color: artDecoTheme.colors.accent,
+    fontSize: artDecoTheme.typography.title,
+    fontWeight: '800',
+    marginBottom: artDecoTheme.spacing.xs,
+  },
+  subtitle: {
+    color: artDecoTheme.colors.textSecondary,
+    fontSize: artDecoTheme.typography.body,
+    marginBottom: artDecoTheme.spacing.sm,
+  },
+  listContent: {
+    paddingBottom: artDecoTheme.spacing.md,
+  },
+  item: {
+    marginBottom: artDecoTheme.spacing.sm,
+  },
+  itemTitle: {
+    color: artDecoTheme.colors.textPrimary,
+    fontSize: artDecoTheme.typography.subtitle,
+    fontWeight: '700',
+    marginBottom: artDecoTheme.spacing.xs,
+  },
+  itemDesc: {
+    color: artDecoTheme.colors.textSecondary,
+    fontSize: artDecoTheme.typography.caption,
+    lineHeight: 18,
+  },
 });
