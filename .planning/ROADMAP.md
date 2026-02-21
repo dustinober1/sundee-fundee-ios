@@ -102,10 +102,14 @@ Plans:
   2. User sees PR and plateau outcomes that match v1.1 decision logic.
   3. User can view 1RM trend, weekly volume, and activity insights with calculation parity to v1.1.
   4. User can open progress insights from local data without needing an active network.
-**Plans**: TBD
+**Plans**: 5 plans
 
 Plans:
-- [ ] 12-01: TBD (run /gsd-plan-phase 12 to break down)
+- [ ] 12-01-PLAN.md — Core recommendation engine + calculations.dart port
+- [ ] 12-02-PLAN.md — Progress data providers (1RM, volume, frequency)
+- [ ] 12-03-PLAN.md — Progress screen UI with fl_chart visualizations
+- [ ] 12-04-PLAN.md — PR detection + 1RM recording after workout
+- [ ] 12-05-PLAN.md — Parity gate tests (RECO-01, RECO-02, CHRT-01, CHRT-02)
 
 ### Phase 13: Supabase Sync Parity (Optional Cloud)
 **Goal**: Users can use optional Supabase auth/sync in Flutter with local-first sync semantics and clear status feedback.
@@ -150,6 +154,6 @@ Plans:
 | 9. Foundation + Parity Gates | v2.0 | Flutter baseline + test gates | PLAT-01, QUAL-01, QUAL-02 | 5/5 | ✅ Complete | 2026-02-21 |
 | 10. Onboarding + Programs | v2.0 | Onboarding + catalog/cycles parity | ONBD-01/02, PROG-01/02 | 3/3 | ✅ Complete | 2026-02-21 |
 | 11. Workout Flow | v2.0 | Logging + rest + offline continuity | WORK-01/02/03 | 4/4 | ✅ Complete | 2026-02-21 |
-| 12. Insights Parity | v2.0 | Recommendations + progress parity | RECO-01/02, CHRT-01/02 | 0/TBD | Not started | - |
+| 12. Insights Parity | v2.0 | Recommendations + progress parity | RECO-01/02, CHRT-01/02 | 0/5 | Not started | - |
 | 13. Supabase Sync | v2.0 | Optional auth/sync parity | SYNC-01/02/03 | 0/TBD | Not started | - |
 | 14. Release + Cutover | v2.0 | Production hardening + safe migration | PLAT-02, DATA-01, DPLY-01/02/03 | 0/TBD | Not started | - |
