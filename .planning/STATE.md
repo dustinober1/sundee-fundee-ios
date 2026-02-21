@@ -4,23 +4,23 @@
 See: .planning/PROJECT.md (updated 2026-02-20)
 
 **Core value:** Users can reliably track their strength training progress offline and receive actionable insights to improve performance.
-**Current focus:** Phase 14 in progress — plans 14-01 through 14-05 complete
+**Current focus:** Phase 14 complete — all 6 plans done; v2.0 release ready
 
 ## Current Position
-**Milestone**: v2.0 Flutter Full Rewrite (in progress)
-**Phase**: 14 of 14 (Release Hardening + Cutover Safety) — **In progress**
-**Plan**: 5 of 6
-**Status**: Plans 14-01, 14-02, 14-03, 14-04, 14-05 complete
+**Milestone**: v2.0 Flutter Full Rewrite (complete — pending release)
+**Phase**: 14 of 14 (Release Hardening + Cutover Safety) — **Complete**
+**Plan**: 6 of 6
+**Status**: Plans 14-01 through 14-06 complete
 
 ```
-v2.0 Progress: [█] [█] [█] [█] [█] [░]
+v2.0 Progress: [█] [█] [█] [█] [█] [█]
               Ph9 Ph10 Ph11 Ph12 Ph13 Ph14
 
-Phase 14 Plans: [█] [█] [█] [█] [█] [░]
+Phase 14 Plans: [█] [█] [█] [█] [█] [█]
                 P1  P2  P3  P4  P5  P6
 ```
 
-**Last activity**: 2026-02-21 — Plan 14-05 complete: GitHub Actions flutter-release.yml (web/Android AAB/iOS IPA jobs); Android build.gradle.kts release signing via GitHub Secrets; isMinifyEnabled=false for Drift compatibility.
+**Last activity**: 2026-02-21 — Plan 14-06 complete: Firebase Crashlytics dependencies added (pubspec.yaml); FlutterError.onError + PlatformDispatcher.onError wired in main.dart with graceful degradation; docs/ROLLOUT_SAFETY.md created with staged rollout plan (1%→10%→50%→100%), go/no-go criteria, and platform rollback procedures.
 
 ## Performance Metrics
 - **Velocity**: Baseline reset for v2.0 planning cycle
@@ -96,6 +96,6 @@ Phase 14 Plans: [█] [█] [█] [█] [█] [░]
 - Lucide icon enrichment across dashboard, workout, and navigation
 
 ## Session Continuity
-- **Last session**: 2026-02-21 — Completed 14-05-PLAN.md (flutter-release.yml: web/Android AAB/iOS IPA CI jobs; Android release signing via GitHub Secrets; isMinifyEnabled=false)
-- **Stopped at**: Phase 14 Plan 05 complete
-- **Resume with**: Execute Phase 14 remaining plan (14-06)
+- **Last session**: 2026-02-21 — Completed 14-06-PLAN.md (Firebase Crashlytics dependencies; FlutterError.onError + PlatformDispatcher.onError wiring; docs/ROLLOUT_SAFETY.md staged rollout plan)
+- **Stopped at**: Phase 14 Plan 06 complete — ALL PLANS DONE
+- **Resume with**: N/A — Phase 14 (final phase) is complete. Next step: run `flutterfire configure` then execute production release per ROLLOUT_SAFETY.md
