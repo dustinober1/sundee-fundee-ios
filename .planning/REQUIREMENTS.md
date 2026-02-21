@@ -40,9 +40,9 @@ Requirements for the v2.0 milestone. These define full feature parity in Flutter
 
 ### Sync (Supabase retained in v2.0)
 
-- [ ] **SYNC-01**: User can optionally authenticate and sync data using Supabase-backed sync from the Flutter app.
-- [ ] **SYNC-02**: User sees sync status states (`offline`, `pending`, `syncing`, `synced`, `error`) equivalent to v1.1 semantics.
-- [ ] **SYNC-03**: User writes are local-first and queued/retried for cloud sync when connectivity returns.
+- [x] **SYNC-01**: User can optionally authenticate and sync data using Supabase-backed sync from the Flutter app.
+- [x] **SYNC-02**: User sees sync status states (`offline`, `pending`, `syncing`, `synced`, `error`) equivalent to v1.1 semantics.
+- [x] **SYNC-03**: User writes are local-first and queued/retried for cloud sync when connectivity returns.
 
 ### Data Continuity
 
@@ -97,9 +97,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | RECO-02 | Phase 12 | Complete |
 | CHRT-01 | Phase 12 | Complete |
 | CHRT-02 | Phase 12 | Complete |
-| SYNC-01 | Phase 13 | Pending |
-| SYNC-02 | Phase 13 | Pending |
-| SYNC-03 | Phase 13 | Pending |
+| SYNC-01 | Phase 13 | Complete |
+| SYNC-02 | Phase 13 | Complete |
+| SYNC-03 | Phase 13 | Complete |
 | DATA-01 | Phase 14 | Pending |
 | DPLY-01 | Phase 14 | Pending |
 | DPLY-02 | Phase 14 | Pending |

@@ -122,11 +122,11 @@ Plans:
 **Plans**: 5 plans
 
 Plans:
-- [ ] 13-01-PLAN.md — Foundation: deps + Drift schema v4 + Supabase init
-- [ ] 13-02-PLAN.md — Sync engine: SyncService + SyncNotifier
-- [ ] 13-03-PLAN.md — Auth feature: AuthNotifier + AuthScreen + /auth route
-- [ ] 13-04-PLAN.md — UI wiring: SyncStatusBadge + dashboard + workout integration + settings
-- [ ] 13-05-PLAN.md — Tests: unit tests + parity gate tests (SYNC-01, SYNC-02, SYNC-03)
+- [x] 13-01-PLAN.md — Foundation: deps + Drift schema v4 + Supabase init
+- [x] 13-02-PLAN.md — Sync engine: SyncService + SyncNotifier
+- [x] 13-03-PLAN.md — Auth feature: AuthNotifier + AuthScreen + /auth route
+- [x] 13-04-PLAN.md — UI wiring: SyncStatusBadge + dashboard + workout integration + settings
+- [x] 13-05-PLAN.md — Tests: unit tests + parity gate tests (SYNC-01, SYNC-02, SYNC-03)
 
 ### Phase 14: Release Hardening + Cutover Safety
 **Goal**: Users can safely transition to the Flutter app in production without silent data loss or deployment breakage.
@@ -158,6 +158,6 @@ Plans:
 | 9. Foundation + Parity Gates | v2.0 | Flutter baseline + test gates | PLAT-01, QUAL-01, QUAL-02 | 5/5 | ✅ Complete | 2026-02-21 |
 | 10. Onboarding + Programs | v2.0 | Onboarding + catalog/cycles parity | ONBD-01/02, PROG-01/02 | 3/3 | ✅ Complete | 2026-02-21 |
 | 11. Workout Flow | v2.0 | Logging + rest + offline continuity | WORK-01/02/03 | 4/4 | ✅ Complete | 2026-02-21 |
-| 12. Insights Parity | v2.0 | Recommendations + progress parity | RECO-01/02, CHRT-01/02 | 0/5 | Not started | - |
-| 13. Supabase Sync | v2.0 | Optional auth/sync parity | SYNC-01/02/03 | 0/TBD | Not started | - |
+| 12. Insights Parity | v2.0 | Recommendations + progress parity | RECO-01/02, CHRT-01/02 | 5/5 | ✅ Complete | 2026-02-21 |
+| 13. Supabase Sync | v2.0 | Optional auth/sync parity | SYNC-01/02/03 | 5/5 | ✅ Complete | 2026-02-21 |
 | 14. Release + Cutover | v2.0 | Production hardening + safe migration | PLAT-02, DATA-01, DPLY-01/02/03 | 0/TBD | Not started | - |
