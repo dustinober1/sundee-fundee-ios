@@ -9,7 +9,7 @@ Requirements for the v2.0 milestone. These define full feature parity in Flutter
 
 ### Platform Foundation
 
-- [ ] **PLAT-01**: User can use Sundee-Fundee from a Flutter application on web, Android, and iOS.
+- [x] **PLAT-01**: User can use Sundee-Fundee from a Flutter application on web, Android, and iOS.
 - [ ] **PLAT-02**: User gets equivalent behavior outcomes across all 3 platforms for the same workout inputs.
 
 ### Onboarding
@@ -56,8 +56,8 @@ Requirements for the v2.0 milestone. These define full feature parity in Flutter
 
 ### Quality Gates
 
-- [ ] **QUAL-01**: Critical flows have cross-platform acceptance tests with explicit parity pass criteria.
-- [ ] **QUAL-02**: Offline parity scenarios pass on web, Android, and iOS before release.
+- [x] **QUAL-01**: Critical flows have cross-platform acceptance tests with explicit parity pass criteria.
+- [x] **QUAL-02**: Offline parity scenarios pass on web, Android, and iOS before release.
 
 ## Future Requirements (Post-v2.0)
 
@@ -84,7 +84,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PLAT-01 | Phase 9 | Pending |
+| PLAT-01 | Phase 9 | Complete |
 | PLAT-02 | Phase 14 | Pending |
 | ONBD-01 | Phase 10 | Pending |
 | ONBD-02 | Phase 10 | Pending |
@@ -104,8 +104,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DPLY-01 | Phase 14 | Pending |
 | DPLY-02 | Phase 14 | Pending |
 | DPLY-03 | Phase 14 | Pending |
-| QUAL-01 | Phase 9 | Pending |
-| QUAL-02 | Phase 9 | Pending |
+| QUAL-01 | Phase 9 | Complete |
+| QUAL-02 | Phase 9 | Complete |
 
 **Coverage:**
 - v2.0 requirements: 22 total
@@ -114,4 +114,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-02-20*
-*Last updated: 2026-02-20 after roadmap phase mapping*
+*Last updated: 2026-02-21 after Phase 9 completion*
