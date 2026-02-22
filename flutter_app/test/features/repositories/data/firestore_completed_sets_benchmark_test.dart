@@ -1,4 +1,5 @@
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sundee_fundee_flutter/domain/models/completed_set_model.dart';
 import 'package:sundee_fundee_flutter/features/repositories/data/firestore_repositories.dart';
@@ -11,7 +12,7 @@ void main() {
     const workoutId = 'benchmark_workout';
 
     // Populate with 2000 sets (simulating a very large workout or data accumulation)
-    print('Seeding 2000 sets...');
+    debugPrint('Seeding 2000 sets...');
     for (int i = 0; i < 2000; i++) {
       final set = CompletedSetModel(
         id: 'set_$i',
@@ -35,7 +36,7 @@ void main() {
     }
 
     // Warmup JIT
-    print('Warming up...');
+    debugPrint('Warming up...');
     await repository.watchCompletedSets(userId: userId, workoutId: workoutId).first;
     await firestore
         .collection('users')
@@ -57,7 +58,7 @@ void main() {
     final boundedTime = stopwatch.elapsedMilliseconds;
 
     expect(boundedResult.length, 500);
-    print('Bounded Query (limit 500): ${boundedResult.length} items in ${boundedTime}ms');
+    debugPrint('Bounded Query (limit 500): ${boundedResult.length} items in ${boundedTime}ms');
 
     // 2. Measure Unbounded Query (Simulated)
     stopwatch.reset();
@@ -78,13 +79,13 @@ void main() {
     final unboundedTime = stopwatch.elapsedMilliseconds;
 
     expect(unboundedResult.length, 2000);
-    print('Unbounded Query (no limit): ${unboundedResult.length} items in ${unboundedTime}ms');
+    debugPrint('Unbounded Query (no limit): ${unboundedResult.length} items in ${unboundedTime}ms');
 
     // Analyze results
-    print('Performance Improvement:');
-    print('  Unbounded Time: ${unboundedTime}ms');
-    print('  Bounded Time:   ${boundedTime}ms');
-    print('  Diff:           ${unboundedTime - boundedTime}ms');
+    debugPrint('Performance Improvement:');
+    debugPrint('  Unbounded Time: ${unboundedTime}ms');
+    debugPrint('  Bounded Time:   ${boundedTime}ms');
+    debugPrint('  Diff:           ${unboundedTime - boundedTime}ms');
 
     // In a real environment, bounded should be faster.
     // However, fake_cloud_firestore might have different characteristics.

@@ -1,4 +1,5 @@
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sundee_fundee_flutter/domain/models/completed_workout_model.dart';
 import 'package:sundee_fundee_flutter/features/repositories/data/firestore_repositories.dart';
@@ -10,7 +11,7 @@ void main() {
     const userId = 'benchmark_user';
 
     // Populate with 1000 workouts
-    print('Seeding 1000 workouts...');
+    debugPrint('Seeding 1000 workouts...');
     for (int i = 0; i < 1000; i++) {
       final workout = CompletedWorkoutModel(
         id: 'workout_$i',
@@ -33,7 +34,7 @@ void main() {
     }
 
     // Warmup JIT
-    print('Warming up...');
+    debugPrint('Warming up...');
     await repository.watchWorkouts(userId: userId).first;
     await firestore
         .collection('users')
@@ -50,7 +51,7 @@ void main() {
     stopwatch.stop();
     final time = stopwatch.elapsedMilliseconds;
 
-    print('Query Result: ${result.length} items in ${time}ms');
+    debugPrint('Query Result: ${result.length} items in ${time}ms');
 
     // Expect exactly 500 items (the limit)
     expect(result.length, 500);
