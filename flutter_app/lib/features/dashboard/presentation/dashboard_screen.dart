@@ -57,12 +57,14 @@ class DashboardScreen extends ConsumerWidget {
         stateMessage = 'Not signed in';
     }
 
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          const Text(
-            'Available Programs',
+    return SingleChildScrollView(
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            const SizedBox(height: 16),
+            const Text(
+              'Available Programs',
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
@@ -96,9 +98,11 @@ class DashboardScreen extends ConsumerWidget {
               ),
             ),
           )),
-          const SizedBox(height: 24),
-          Text(stateMessage),
-        ],
+            const SizedBox(height: 24),
+            Text(stateMessage),
+            const SizedBox(height: 24),
+          ],
+        ),
       ),
     );
   }
