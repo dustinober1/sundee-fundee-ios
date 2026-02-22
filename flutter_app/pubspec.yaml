@@ -45,6 +45,7 @@ dependencies:
   sign_in_with_apple: ^7.0.1
   google_sign_in: ^7.2.0
   shared_preferences: ^2.5.4
+  flutter_dynamic_icon_plus: ^1.4.0
 
 dev_dependencies:
   flutter_test:
@@ -56,6 +57,7 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
