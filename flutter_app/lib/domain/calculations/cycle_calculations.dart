@@ -49,6 +49,10 @@ class PhaseRecommendation {
 class CycleCalculations {
   const CycleCalculations._();
 
+  static const int _defaultFollicularStart = 6;
+  static const int _defaultOvulationStart = 13;
+  static const int _defaultLutealStart = 16;
+
   static CycleStatusResult? calculateCycleStatus({
     required List<PeriodLogModel> periodLogs,
     required CycleSettingsModel settings,
@@ -127,13 +131,18 @@ class CycleCalculations {
     switch (currentPhase) {
       case CyclePhase.menstrual:
         daysUntilNextPhase =
-            (boundaries[CyclePhase.follicular]?.start ?? 6) - cycleDay;
+            (boundaries[CyclePhase.follicular]?.start ??
+                _defaultFollicularStart) -
+            cycleDay;
       case CyclePhase.follicular:
         daysUntilNextPhase =
-            (boundaries[CyclePhase.ovulation]?.start ?? 13) - cycleDay;
+            (boundaries[CyclePhase.ovulation]?.start ??
+                _defaultOvulationStart) -
+            cycleDay;
       case CyclePhase.ovulation:
         daysUntilNextPhase =
-            (boundaries[CyclePhase.luteal]?.start ?? 16) - cycleDay;
+            (boundaries[CyclePhase.luteal]?.start ?? _defaultLutealStart) -
+            cycleDay;
       case CyclePhase.luteal:
         daysUntilNextPhase = settings.averageCycleLength - cycleDay + 1;
     }
