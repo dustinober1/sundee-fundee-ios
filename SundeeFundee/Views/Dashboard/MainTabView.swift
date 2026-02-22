@@ -3,9 +3,11 @@ import SwiftData
 
 struct MainTabView: View {
     @Query private var users: [User]
+    @Environment(AuthenticationViewModel.self) private var authViewModel
 
     private var showCycleTab: Bool {
-        users.first?.gender == .female
+        guard authViewModel.authState != .guest else { return false }
+        return users.first?.gender == .female
     }
 
     var body: some View {

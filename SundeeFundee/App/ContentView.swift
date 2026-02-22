@@ -14,7 +14,7 @@ struct ContentView: View {
                     SignInView(viewModel: authViewModel)
                 case .needsOnboarding:
                     OnboardingView(viewModel: authViewModel)
-                case .authenticated:
+                case .authenticated, .guest:
                     MainTabView()
                 }
             }

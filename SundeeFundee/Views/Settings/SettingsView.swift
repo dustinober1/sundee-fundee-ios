@@ -7,12 +7,13 @@ struct SettingsView: View {
     @Environment(AuthenticationViewModel.self) private var authViewModel
 
     private var currentUser: User? { users.first }
+    private var isGuest: Bool { authViewModel.authState == .guest }
 
     var body: some View {
         NavigationStack {
             BrandBackgroundView {
                 List {
-                    if let user = currentUser {
+                    if !isGuest, let user = currentUser {
                         Section("Profile") {
                             LabeledContent("Name", value: user.name)
                             LabeledContent("Experience", value: user.experienceLevel.rawValue.capitalized)
@@ -50,9 +51,23 @@ struct SettingsView: View {
                         }
                     }
 
+                    if isGuest {
+                        Section("Guest Mode") {
+                            Text("You are browsing as a guest. Sign in with Apple anytime to save and sync your data.")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+
                     Section {
-                        Button("Sign Out", role: .destructive) {
-                            authViewModel.signOut()
+                        if isGuest {
+                            Button("Sign In to Save Data") {
+                                authViewModel.signOut()
+                            }
+                        } else {
+                            Button("Sign Out", role: .destructive) {
+                                authViewModel.signOut()
+                            }
                         }
                     }
 
@@ -111,4 +126,3 @@ struct OneRepMaxManagementView: View {
         .modelContainer(for: [User.self, OneRepMax.self], inMemory: true)
         .environment(AuthenticationViewModel())
 }
-

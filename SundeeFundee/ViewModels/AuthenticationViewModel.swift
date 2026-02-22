@@ -7,6 +7,7 @@ enum AuthState {
     case unauthenticated
     case needsOnboarding
     case authenticated
+    case guest
 }
 
 @Observable
@@ -16,10 +17,14 @@ final class AuthenticationViewModel {
     private(set) var currentUser: User?
 
     private let keychainKey = "com.sundeefundee.appleUserID"
+    private let guestModeKey = "com.sundeefundee.guestModeEnabled"
 
     func checkAuthState(context: ModelContext) {
+        errorMessage = nil
+
         guard let storedUserID = KeychainHelper.load(key: keychainKey) else {
-            authState = .unauthenticated
+            currentUser = nil
+            authState = UserDefaults.standard.bool(forKey: guestModeKey) ? .guest : .unauthenticated
             return
         }
 
@@ -45,6 +50,8 @@ final class AuthenticationViewModel {
 
             let userID = credential.user
             KeychainHelper.save(key: keychainKey, value: userID)
+            UserDefaults.standard.set(false, forKey: guestModeKey)
+            errorMessage = nil
 
             let descriptor = FetchDescriptor<User>(
                 predicate: #Predicate { $0.appleUserID == userID }
@@ -60,6 +67,14 @@ final class AuthenticationViewModel {
         case .failure(let error):
             errorMessage = error.localizedDescription
         }
+    }
+
+    func continueAsGuest() {
+        KeychainHelper.delete(key: keychainKey)
+        UserDefaults.standard.set(true, forKey: guestModeKey)
+        currentUser = nil
+        errorMessage = nil
+        authState = .guest
     }
 
     func completeOnboarding(
@@ -91,6 +106,7 @@ final class AuthenticationViewModel {
 
     func signOut() {
         KeychainHelper.delete(key: keychainKey)
+        UserDefaults.standard.set(false, forKey: guestModeKey)
         currentUser = nil
         authState = .unauthenticated
     }

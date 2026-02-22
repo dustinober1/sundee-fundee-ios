@@ -34,6 +34,19 @@ struct SignInView: View {
                 .frame(height: 50)
                 .padding(.horizontal, 40)
 
+                Button("Continue as Guest") {
+                    viewModel.continueAsGuest()
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.large)
+                .padding(.horizontal, 40)
+
+                Text("Browse first, then sign in later to save and sync your progress.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 40)
+
                 if let error = viewModel.errorMessage {
                     Text(error)
                         .font(.caption)
