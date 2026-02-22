@@ -1,89 +1,187 @@
 # Sundee Fundee
 
-**Native iOS strength training app** powered by your cycle.
+**Cross-platform strength training app** powered by your cycle.
 
 ## Overview
 
-Sundee Fundee is a hormonal-aware strength training tracker built with SwiftUI and CloudKit. It helps users follow structured periodized programs while incorporating menstrual cycle phase data for optimized training recommendations.
+Sundee Fundee is a hormonal-aware strength training tracker built with Flutter and Firebase. It helps users follow structured periodized programs while incorporating menstrual cycle phase data for optimized training recommendations. Available on **iOS**, **Android**, and **Web**.
 
 ## Tech Stack
 
-- **UI**: SwiftUI (iOS 17+)
-- **Data**: SwiftData with automatic CloudKit sync
-- **Auth**: Sign in with Apple
-- **Charts**: Swift Charts
-- **Backend**: Apple CloudKit (private + public databases)
-- **Architecture**: MVVM with `@Observable`
+| Component | Technology |
+|:---|:---|
+| **Language** | Dart 3.11+ |
+| **UI Framework** | Flutter 3.41+ |
+| **State Management** | Riverpod |
+| **Database** | Cloud Firestore (with offline persistence) |
+| **Authentication** | Firebase Auth (Apple, Google, Email/Password) |
+| **File Storage** | Firebase Cloud Storage |
+| **Analytics** | Firebase Analytics |
+| **Crash Reporting** | Firebase Crashlytics |
+| **Routing** | GoRouter |
+| **Hosting (Web)** | Firebase Hosting |
 
 ## Features
 
 - 📋 Structured training programs (periodized, multi-phase)
 - 🏋️ Set-by-set workout logging with prescribed weights (based on 1RM)
-- 📊 Progress tracking with charts and personal records
+- 📊 Progress tracking and personal records
 - 🔄 Menstrual cycle phase tracking with training recommendations
-- ⏱ Rest timer with haptic feedback
-- ☁️ Automatic iCloud sync across devices
-- 🎉 Celebration animations for PRs
+- 👤 Guest mode for offline-first usage
+- 🔐 Sign in with Apple & Google authentication
+- ☁️ Real-time cloud sync across devices via Firestore
+- 📱 Responsive design for mobile & web
 
 ## Project Structure
 
 ```
-SundeeFundee/
-├── App/                    # App entry point & root views
-├── Models/                 # SwiftData models & Codable types
-├── Views/                  # SwiftUI views organized by feature
-│   ├── Auth/
-│   ├── Dashboard/
-│   ├── Onboarding/
-│   ├── Programs/
-│   ├── Progress/
-│   ├── Settings/
-│   ├── Workout/
-│   └── Components/
-├── ViewModels/             # @Observable view models
-├── Services/               # Business services (ProgramRepository, etc.)
-├── Utilities/              # Calculations, helpers, Keychain
-├── Resources/              # Assets, program JSON files
-│   ├── Programs/           # Training program definitions
-│   └── Assets.xcassets
-└── Extensions/             # Swift extensions
+flutter_app/
+├── lib/
+│   ├── main.dart                 # App entry point
+│   ├── bootstrap.dart            # Firebase init & app startup
+│   ├── firebase_options.dart     # Generated Firebase config
+│   ├── app/                      # App shell, router, theme
+│   │   ├── app.dart              # Root MaterialApp widget
+│   │   ├── router.dart           # GoRouter with auth redirects
+│   │   └── theme.dart            # App-wide theming
+│   ├── domain/                   # Core business logic & data
+│   │   ├── enums.dart            # Shared enumerations
+│   │   ├── models/               # Data models with Firestore serialization
+│   │   └── calculations/         # Weight & cycle calculation logic
+│   ├── features/                 # Feature modules (Clean Architecture)
+│   │   ├── auth/                 # Authentication (Firebase Auth, guest mode)
+│   │   ├── dashboard/            # Dashboard UI
+│   │   ├── repositories/         # Firestore data repositories
+│   │   ├── migration/            # Legacy data migration utilities
+│   │   ├── observability/        # Analytics & crashlytics
+│   │   ├── settings/             # User settings
+│   │   ├── shell/                # Main tab shell
+│   │   ├── shared/               # Shared widgets
+│   │   └── storage/              # Firebase Cloud Storage
+│   └── firebase/                 # Firebase bootstrap & config
+├── test/                         # Unit & widget tests
+├── android/                      # Android platform project
+├── ios/                          # iOS platform project
+├── web/                          # Web platform project
+├── pubspec.yaml                  # Dart dependencies
+└── analysis_options.yaml         # Lint rules
 ```
 
-## Requirements
+## Prerequisites
 
-- Xcode 15.4+
-- iOS 17.0+
-- Apple Developer account (for CloudKit & Sign in with Apple)
+- Flutter 3.41+ (`flutter --version`)
+- Dart 3.11+
+- Firebase CLI (`npm install -g firebase-tools` or `curl -sL https://firebase.tools | bash`)
+- FlutterFire CLI (`dart pub global activate flutterfire_cli`)
+- A Firebase project with iOS, Android, and Web apps registered
 
 ## Getting Started
 
-1. Install [XcodeGen](https://github.com/yonaskolb/XcodeGen): `brew install xcodegen`
-2. Generate the Xcode project: `xcodegen generate`
-3. Open `SundeeFundee.xcodeproj` in Xcode
-4. Set your development team in Signing & Capabilities
-5. Configure CloudKit container: `iCloud.com.sundeefundee.app`
-6. Build and run on simulator or device
+```bash
+# 1. Navigate to the Flutter app
+cd flutter_app
 
-## Running Tests
+# 2. Install dependencies
+flutter pub get
+
+# 3. Run static analysis
+flutter analyze
+
+# 4. Run tests
+flutter test
+
+# 5. Run the app (without Firebase — guest mode)
+flutter run
+
+# 6. Run the app with Firebase enabled
+flutter run --dart-define=ENABLE_FIREBASE=true
+```
+
+### Firebase Configuration
+
+To configure or refresh Firebase bindings:
 
 ```bash
-xcodegen generate
-xcodebuild test -project SundeeFundee.xcodeproj -scheme SundeeFundee \
-  -destination 'platform=iOS Simulator,name=iPhone 15'
+flutterfire configure \
+  --project=sundee-fundee \
+  --platforms=ios,android,web \
+  --ios-bundle-id=com.sundeefundee.app \
+  --android-package-name=com.sundeefundee.app \
+  --ios-out=ios/Runner/GoogleService-Info.plist \
+  --android-out=android/app/google-services.json
+```
+
+This generates/updates:
+- `lib/firebase_options.dart`
+- `ios/Runner/GoogleService-Info.plist`
+- `android/app/google-services.json`
+
+## Firebase Configuration Files
+
+Root-level Firebase config files manage the backend:
+
+| File | Purpose |
+|------|---------|
+| `firebase.json` | Firestore rules, indexes, storage rules, and hosting config |
+| `.firebaserc` | Firebase project alias (`sundee-fundee`) |
+| `firestore.rules` | Firestore security rules (user-scoped data isolation) |
+| `firestore.indexes.json` | Composite index definitions |
+| `storage.rules` | Cloud Storage security rules |
+
+### Deploy Firebase Rules
+
+```bash
+# Deploy Firestore rules & indexes
+firebase deploy --only firestore
+
+# Deploy Storage rules
+firebase deploy --only storage
+
+# Deploy web app to Firebase Hosting
+cd flutter_app && flutter build web --release
+cd .. && firebase deploy --only hosting
 ```
 
 ## Architecture Decisions
 
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
-| UI Framework | SwiftUI | Native, declarative, best iOS integration |
-| Persistence | SwiftData | Modern, automatic CloudKit sync |
-| Backend | CloudKit | Zero server cost, native Apple integration |
-| Auth | Sign in with Apple | Required for CloudKit identity |
-| Charts | Swift Charts | Native framework, no dependencies |
-| State | @Observable | Modern Swift observation, no 3rd party |
-| Min iOS | 17.0 | Required for SwiftData |
+| UI Framework | Flutter | Single codebase for iOS, Android, and Web |
+| State Management | Riverpod | Type-safe, testable, modern Flutter state management |
+| Database | Cloud Firestore | Real-time sync, offline persistence, NoSQL scalability |
+| Auth | Firebase Auth | Multi-provider (Apple, Google, Email), cross-platform |
+| Routing | GoRouter | Declarative routing with auth-based redirects |
+| Architecture | Feature-first Clean Architecture | Separation of concerns, testability |
 
-## Legacy Code
+## Auth Flow
 
-Previous implementations (Next.js PWA, Flutter, React Native) are archived on the `legacy/web-flutter-rn` branch for reference.
+The app uses GoRouter with auth-state redirects:
+
+1. **Loading** → `LoadingScreen` (Firebase initializing)
+2. **Unauthenticated** → `SignInScreen` (Apple / Google / Guest)
+3. **Needs Onboarding** → `OnboardingScreen` (name, experience, goals)
+4. **Authenticated / Guest** → `MainShellScreen` (dashboard)
+
+## Cycle-Based Training Recommendations
+
+`CycleCalculations` provides training guidance per menstrual phase:
+
+| Phase | Recommendation |
+|-------|---------------|
+| **Menstrual** | Low intensity, recovery focus |
+| **Follicular** | Moderate, building strength |
+| **Ovulation** | Peak intensity, PR attempts |
+| **Luteal** | Maintenance, technique work |
+
+## CI/CD
+
+GitHub Actions workflows are located in `.github/workflows/`:
+
+- **`flutter-release.yml`**: Analyze, test, and build release artifacts for Web, Android (.aab), and iOS (.ipa) on every push to `main`.
+
+## Contributing
+
+1. Make focused, atomic changes with corresponding tests.
+2. Run `flutter analyze` and `flutter test` before committing.
+3. Use Conventional Commits: `feat:`, `fix:`, `docs:`, etc.
+4. Never commit secrets, API keys, or `.env` files.

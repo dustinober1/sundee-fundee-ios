@@ -1,14 +1,15 @@
-# Sundee Fundee Flutter App
+# Sundee Fundee — Flutter App
 
-Flutter cross-platform client for the Sundee Fundee migration from SwiftUI/CloudKit to Flutter/Firebase.
+Cross-platform Flutter client for the Sundee Fundee strength training app with Firebase backend.
 
 ## Prerequisites
 
 - Flutter 3.41+
 - Dart 3.11+
-- Firebase project(s) with iOS/Android/Web apps registered
+- Firebase project with iOS, Android, and Web apps registered
+- FlutterFire CLI (`dart pub global activate flutterfire_cli`)
 
-## Local setup
+## Local Setup
 
 ```bash
 flutter pub get
@@ -16,16 +17,12 @@ flutter analyze
 flutter test
 ```
 
-## Firebase bootstrap
-
-This app initializes Firebase only when `ENABLE_FIREBASE=true` is supplied.
+## Firebase Configuration
 
 ### Configure or refresh Firebase bindings
 
-Run:
-
 ```bash
-~/.pub-cache/bin/flutterfire configure \
+flutterfire configure \
   --project=sundee-fundee \
   --platforms=ios,android,web \
   --ios-bundle-id=com.sundeefundee.app \
@@ -34,16 +31,42 @@ Run:
   --android-out=android/app/google-services.json
 ```
 
-This updates:
-
+This generates / updates:
 - `lib/firebase_options.dart`
 - `ios/Runner/GoogleService-Info.plist`
 - `android/app/google-services.json`
 
-### Run with Firebase enabled
+## Running the App
 
-Firebase initialization is gated by a flag:
+### Guest mode (no Firebase required)
+
+```bash
+flutter run
+```
+
+### With Firebase enabled
 
 ```bash
 flutter run --dart-define=ENABLE_FIREBASE=true
 ```
+
+## Building Release Artifacts
+
+```bash
+# Web
+flutter build web --release --dart-define=ENABLE_FIREBASE=true
+
+# Android (AAB)
+flutter build appbundle --release
+
+# iOS (unsigned IPA)
+flutter build ipa --release --no-codesign
+```
+
+## Architecture
+
+- **State Management**: Riverpod — providers in `lib/features/*/providers.dart`
+- **Routing**: GoRouter with auth-state-based redirects
+- **Data Access**: Firestore repositories behind abstract interfaces
+- **Business Logic**: Pure calculations in `lib/domain/calculations/`
+- **Firebase Gate**: Compile-time flag `ENABLE_FIREBASE` — when false, app runs in guest mode

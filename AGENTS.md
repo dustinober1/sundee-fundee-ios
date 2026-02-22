@@ -2,59 +2,74 @@
 
 ## Project Structure & Module Organization
 
-- `SundeeFundee/`: SwiftUI app source
-  - `App/`: app entry + root views
-  - `Models/`: SwiftData `@Model` types + Codable models
-  - `Views/`: SwiftUI views organized by feature
-  - `ViewModels/`: `@Observable` view models (MVVM)
-  - `Services/`, `Utilities/`, `Extensions/`
-  - `Resources/`: assets + training program JSON (`Resources/Programs/*.json`)
-- `SundeeFundeeTests/`: XCTest unit tests
-- `SundeeFundeeUITests/`: XCTest UI tests
-- `project.yml`: XcodeGen source-of-truth for `SundeeFundee.xcodeproj`
-- `.github/`: CI + agent prompts (some workflows are legacy stacks)
+- `flutter_app/`: Flutter cross-platform app (iOS, Android, Web)
+  - `lib/app/`: Root app widget, GoRouter, theme
+  - `lib/domain/`: Core business logic — models, enums, calculations
+  - `lib/features/`: Feature modules (auth, dashboard, repositories, settings, etc.)
+  - `lib/firebase/`: Firebase bootstrap and feature flag
+  - `test/`: Unit and widget tests
+- `firebase.json`, `firestore.rules`, `firestore.indexes.json`, `storage.rules`: Firebase backend config
+- `.firebaserc`: Firebase project alias
+- `.github/workflows/`: CI/CD (Flutter release builds)
 
 ## Build, Test, and Development Commands
 
 ```bash
-# Generate Xcode project (run after cloning or editing project.yml)
-xcodegen generate
+# Install dependencies
+cd flutter_app && flutter pub get
 
-# Build
-xcodebuild -project SundeeFundee.xcodeproj -scheme SundeeFundee \
-  -destination 'platform=iOS Simulator,name=iPhone 15'
+# Run static analysis
+flutter analyze
 
-# Test (unit + UI)
-xcodebuild test -project SundeeFundee.xcodeproj -scheme SundeeFundee \
-  -destination 'platform=iOS Simulator,name=iPhone 15'
+# Run all tests
+flutter test
 
-# Run a specific test class
-xcodebuild test -project SundeeFundee.xcodeproj -scheme SundeeFundee \
-  -destination 'platform=iOS Simulator,name=iPhone 15' \
-  -only-testing:SundeeFundeeTests/WeightCalculationsTests
+# Run a specific test file
+flutter test test/domain/weight_calculations_test.dart
+
+# Run the app (guest mode / no Firebase)
+flutter run
+
+# Run the app with Firebase enabled
+flutter run --dart-define=ENABLE_FIREBASE=true
+
+# Build release artifacts
+flutter build web --release
+flutter build appbundle --release
+flutter build ipa --release --no-codesign
+
+# Deploy Firebase rules
+firebase deploy --only firestore
+firebase deploy --only storage
+firebase deploy --only hosting
 ```
 
 ## Coding Style & Naming Conventions
 
-- Indentation: 4 spaces; avoid tabs; match existing SwiftUI formatting.
-- Naming: types/files in `PascalCase` (for example, `CompletedSet.swift`), members in `lowerCamelCase`.
-- Patterns: prefer MVVM (`Views/` + `ViewModels/`) and keep business logic in `Services/`/`Utilities/`.
-- SwiftData: new `@Model` types must be registered in `SundeeFundee/App/SundeeFundeeApp.swift`.
+- Indentation: 2 spaces (Dart standard); match existing Flutter formatting.
+- Naming: types/files in `PascalCase` for classes (e.g., `UserModel`), `snake_case` for files (e.g., `user_model.dart`), `lowerCamelCase` for members.
+- Patterns: Feature-first Clean Architecture — each feature has `data/`, `domain/`, `presentation/` sub-layers and a `providers.dart` for Riverpod DI.
+- State: Riverpod `Provider`, `StreamProvider`, `StateProvider`. No third-party state management beyond Riverpod.
+- Models: Plain Dart classes with `fromJson`/`toJson` for Firestore serialization. Enums stored as raw strings.
+- Firebase gated behind `--dart-define=ENABLE_FIREBASE=true`; guest mode available when disabled.
 
 ## Testing Guidelines
 
-- Framework: XCTest (`SundeeFundeeTests/` for unit tests, `SundeeFundeeUITests/` for UI tests).
-- Conventions: `*Tests.swift`, `final class FooTests: XCTestCase`, methods start with `test...`.
-- Prefer targeted unit tests for calculations/parsing (for example `SundeeFundee/Utilities/` and program JSON models).
+- Framework: `flutter_test` for unit and widget tests.
+- Location: `flutter_app/test/` with subdirectories mirroring `lib/`.
+- Conventions: `*_test.dart`, use `group()` and `test()` from `flutter_test`.
+- Prefer targeted unit tests for calculations and model serialization.
+- Run `flutter analyze` and `flutter test` before committing.
 
 ## Commit & Pull Request Guidelines
 
-- Commits follow Conventional Commits: `feat: ...`, `fix: ...`, `docs(scope): ...` (see `git log` for examples).
-- PRs include: short description, how you tested (paste the `xcodebuild` command), and screenshots for UI changes.
-- Call out any changes to signing, entitlements, or CloudKit configuration explicitly.
+- Commits follow Conventional Commits: `feat: ...`, `fix: ...`, `docs(scope): ...`.
+- PRs include: short description, how you tested (paste the `flutter test` command), and screenshots for UI changes.
+- Call out any changes to Firebase rules, Firestore indexes, or authentication configuration explicitly.
 
 ## Security & Configuration Tips
 
-- CloudKit container: `iCloud.com.sundeefundee.app`; use your own signing team and Apple ID when running locally.
-- Do not commit certificates, provisioning profiles, or other sensitive key material.
-- Assistant notes: see `CLAUDE.md`, `GEMINI.md`, and `.github/copilot-instructions.md`.
+- Firebase project: `sundee-fundee`. Configuration files are generated by FlutterFire CLI.
+- Do not commit API keys, `GoogleService-Info.plist`, `google-services.json`, or other sensitive credentials.
+- Firestore rules enforce user-scoped data isolation (`isOwner(userId)`).
+- Assistant notes: see `CLAUDE.md` and `GEMINI.md` for AI-specific guidance.

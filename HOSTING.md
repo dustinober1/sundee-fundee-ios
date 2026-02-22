@@ -1,47 +1,108 @@
-HOSTING GUIDE for Sundee‑Fundee
+# Hosting Guide — Sundee-Fundee
 
-Summary
+## Summary
 
-This document lists recommended hosting approaches for Sundee‑Fundee (an iOS‑first SwiftUI + SwiftData app) and short pros/cons and next steps for each option.
+Sundee-Fundee is hosted entirely on **Firebase**. The Flutter app targets iOS, Android, and Web from a single codebase, with Firebase providing all backend services.
 
-1) Native iOS (Recommended when no custom server is needed) — CloudKit / iCloud
-- Use the iCloud container (iCloud.com.sundeefundee.app) with SwiftData ModelContainer for automatic sync and Sign in with Apple integration.
-- Pros: Minimal operational overhead, native SwiftData <-> CloudKit sync, good privacy (data stored in user iCloud), straightforward UX for iOS users.
-- Cons: Apple‑only; limited server‑side business logic and cross‑platform access.
+## Firebase Services in Use
 
-When to choose: App will remain iOS-only and most data is user-scoped (workouts, PRs, cycle data).
+| Service | Purpose |
+|---------|---------|
+| **Cloud Firestore** | Primary database — real-time sync, offline persistence, user-scoped data |
+| **Firebase Authentication** | Sign in with Apple, Google Sign-In, Email/Password, Guest mode |
+| **Firebase Cloud Storage** | User file uploads (profile images, etc.) |
+| **Firebase Hosting** | Web app deployment (`flutter_app/build/web`) |
+| **Firebase Analytics** | Usage tracking and event logging |
+| **Firebase Crashlytics** | Crash reporting and diagnostics |
 
-2) Cross-platform backend (Recommended when you need a server, web client, or shared relational data) — Supabase (recommended) or Firebase
-- Supabase: Postgres database, Row-Level Security, realtime features, edge functions (good for relational data and web clients).
-- Firebase: Firestore/Realtime, excellent mobile SDKs and auth, strong serverless functions ecosystem.
-- Pros: Full control over server-side logic, easier to serve web/Android clients, analytics, centralized backups.
-- Cons: Operational cost, need to manage auth mapping (Sign in with Apple -> server users), additional infra complexity.
+## Deployment
 
-When to choose: You need cross-platform clients, central analytics, multi-user shared data, or custom server logic.
+### Web (Firebase Hosting)
 
-3) Web frontend / Next.js hosting
-- Vercel (recommended) for Next.js App Router deployments. Netlify or Render are good alternatives. Use S3 + CloudFront for large static assets.
-- When web SSR or SEO matters, pick Vercel for zero-config Next.js deployments.
+```bash
+# Build the Flutter web release
+cd flutter_app
+flutter build web --release --dart-define=ENABLE_FIREBASE=true
 
-4) Serverless & Cloud Providers
-- Use AWS Lambda / API Gateway, or GCP Cloud Functions, or Vercel Edge Functions for serverless endpoints.
-- Use managed DBs (RDS, Cloud SQL) or Supabase for Postgres-backed workloads.
+# Deploy to Firebase Hosting
+cd ..
+firebase deploy --only hosting
+```
 
-CI/CD and iOS distribution
-- Use GitHub Actions for CI (lint, tests, xcodegen generate, xcodebuild). Use Fastlane for code signing and TestFlight/App Store uploads (or Xcode Cloud if preferred).
-- Store secrets (App Store, Supabase/Firebase keys) in GitHub Actions secrets; never commit keys.
+The web app is served from `flutter_app/build/web/` with SPA rewrites configured in `firebase.json`.
 
-Operational & privacy notes
-- CloudKit: ensure entitlements and iCloud container are configured and test CloudKit sync flows thoroughly.
-- Server-backed: enforce TLS, encrypt sensitive data at rest, follow GDPR/CCPA practices if applicable.
+### Android (Google Play)
 
-Decision checklist
-- Apple-only mobile + minimal server: CloudKit.
-- Need relational DB & cross-platform API: Supabase.
-- Primary web client + SSR: Vercel + Supabase/Firebase.
-- Heavy custom server logic: AWS/GCP serverless + managed DB.
+```bash
+cd flutter_app
+flutter build appbundle --release
+```
 
-Next steps
-- Decide primary hosting model.
-- If CloudKit: confirm iCloud container and entitlements (iCloud.com.sundeefundee.app) and test SwiftData sync.
-- If server-backed: prototype auth mapping (Sign in with Apple -> Supabase/Firebase user) and add CI secrets and env configuration.
+Upload the `.aab` from `flutter_app/build/app/outputs/bundle/release/app-release.aab` to the Google Play Console.
+
+### iOS (App Store / TestFlight)
+
+```bash
+cd flutter_app
+flutter build ipa --release
+```
+
+Upload the `.ipa` from `flutter_app/build/ios/ipa/` via Xcode Organizer or Transporter.
+
+## Firebase Rules Deployment
+
+```bash
+# Deploy Firestore security rules and indexes
+firebase deploy --only firestore
+
+# Deploy Cloud Storage security rules
+firebase deploy --only storage
+
+# Deploy everything
+firebase deploy
+```
+
+## Firestore Data Architecture
+
+All user data is scoped under `users/{userId}/` for security:
+
+```
+users/{userId}                    → User profile & settings
+users/{userId}/workouts/          → Workout logs
+users/{userId}/completedSets/     → Completed set data
+users/{userId}/maxLifts/          → 1RM data
+users/{userId}/oneRepMaxes/       → ORM history
+users/{userId}/records/           → Personal records
+users/{userId}/cycles/            → Cycle tracking data
+users/{userId}/customPrograms/    → User-created programs
+programCatalog/{programId}        → Public program catalog (read-only)
+```
+
+**Security rules** (`firestore.rules`) enforce that users can only read/write their own data. The `programCatalog` collection is publicly readable but not writable.
+
+## CI/CD
+
+GitHub Actions (`.github/workflows/flutter-release.yml`) handles:
+1. **Quality gate**: `flutter analyze` + `flutter test`
+2. **Web build**: `flutter build web --release`
+3. **Android build**: `flutter build appbundle --release`
+4. **iOS build**: `flutter build ipa --release --no-codesign`
+
+Artifacts are uploaded for each platform on every push to `main`.
+
+## Environment & Secrets
+
+- **Firebase project**: `sundee-fundee` (configured in `.firebaserc`)
+- **Firebase feature flag**: `ENABLE_FIREBASE=true` passed via `--dart-define`
+- **CI secrets** (GitHub Actions):
+  - `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`
+- Never commit sensitive keys, `GoogleService-Info.plist`, or `google-services.json`.
+
+## Custom Domain (Optional)
+
+To serve the web app from a custom domain (e.g., `app.sundeefundee.com`):
+
+1. Go to Firebase Console → Hosting → Add custom domain
+2. Verify domain ownership via DNS TXT record
+3. Add CNAME record pointing to Firebase Hosting
+4. Firebase provisions SSL automatically
