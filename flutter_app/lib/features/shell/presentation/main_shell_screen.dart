@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../domain/enums.dart';
 import '../../cycle/presentation/cycle_tracking_screen.dart';
+import '../../cycle/providers.dart';
 import '../../dashboard/presentation/dashboard_screen.dart';
 import '../../maxes/presentation/max_lifts_screen.dart';
 import '../../settings/presentation/settings_screen.dart';
@@ -45,7 +48,28 @@ class _MainShellScreenState extends State<MainShellScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(_titles[_selectedIndex])),
-      body: SafeArea(child: _screens[_selectedIndex]),
+      body: SafeArea(
+        child: Consumer(
+          builder: (context, ref, child) {
+            final cycleStatus = ref.watch(cycleStatusProvider);
+            final isSharkweek = cycleStatus?.currentPhase == CyclePhase.menstrual;
+            
+            return Column(
+              children: [
+                if (isSharkweek)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
+                    child: Image.asset(
+                      'assets/images/period_logo.png',
+                      height: 50,
+                    ),
+                  ),
+                Expanded(child: _screens[_selectedIndex]),
+              ],
+            );
+          },
+        ),
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
         onDestinationSelected: (int index) {

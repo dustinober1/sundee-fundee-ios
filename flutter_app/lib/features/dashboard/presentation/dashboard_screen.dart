@@ -65,19 +65,22 @@ class DashboardScreen extends ConsumerWidget {
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
-          Card(
-            margin: const EdgeInsets.symmetric(horizontal: 16),
+          ...[
+            PredefinedPrograms.baseline12Week,
+            PredefinedPrograms.deadlift1Cycle,
+          ].map((program) => Card(
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    PredefinedPrograms.baseline12Week.name,
+                    program.name,
                     style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
-                  Text(PredefinedPrograms.baseline12Week.description),
+                  Text(program.description),
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () {
@@ -90,7 +93,7 @@ class DashboardScreen extends ConsumerWidget {
                 ],
               ),
             ),
-          ),
+          )),
           const SizedBox(height: 24),
           Text(stateMessage),
         ],
