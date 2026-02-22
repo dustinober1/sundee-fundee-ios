@@ -38,7 +38,7 @@ struct BrandCircularLogo: View {
     var body: some View {
         Image(imageName)
             .resizable()
-            .scaledToFit()
+            .scaledToFill()
             .frame(width: size, height: size)
             .clipShape(Circle())
     }

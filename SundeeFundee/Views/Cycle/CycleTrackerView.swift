@@ -31,16 +31,12 @@ struct CycleTrackerView: View {
         return (phase: result.phase, day: result.dayOfCycle)
     }
 
-    private var isMenstrual: Bool {
-        currentPhaseInfo?.phase == .menstrual
-    }
-
     var body: some View {
         NavigationStack {
             BrandBackgroundView {
                 ScrollView {
                     VStack(spacing: 20) {
-                        CycleHeaderLogo(isMenstrual: isMenstrual)
+                        CycleHeaderLogo()
                             .padding(.top, 4)
 
                         if let info = currentPhaseInfo {
@@ -87,28 +83,17 @@ struct CycleTrackerView: View {
 // MARK: - Header Logo
 
 private struct CycleHeaderLogo: View {
-    let isMenstrual: Bool
 
     var body: some View {
-        ZStack {
-            if isMenstrual {
-                Image("SharkWeekLogo")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(maxWidth: .infinity)
-                    .transition(.opacity)
-            } else {
-                BrandCircularLogo("AppLogo", size: 88)
-                    .transition(.opacity)
-            }
-        }
-        .frame(maxWidth: .infinity)
-        .animation(.easeInOut(duration: 0.25), value: isMenstrual)
-        .padding()
-        .background(.regularMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-        .padding(.horizontal)
-        .accessibilityLabel(isMenstrual ? "Shark Week" : "Sundee Fundee")
+        Image("SharkWeekLogo")
+            .resizable()
+            .scaledToFit()
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(.regularMaterial)
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .padding(.horizontal)
+            .accessibilityLabel("Shark Week")
     }
 }
 
