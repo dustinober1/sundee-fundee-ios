@@ -13,6 +13,8 @@ class FirestoreWorkoutRepository implements WorkoutRepository {
   FirestoreWorkoutRepository({required FirebaseFirestore firestore})
     : _firestore = firestore;
 
+  static const int _maxCompletedSetsLimit = 500;
+
   final FirebaseFirestore _firestore;
 
   @override
@@ -58,7 +60,7 @@ class FirestoreWorkoutRepository implements WorkoutRepository {
     return _completedSetsCollection(userId)
         .where('workoutId', isEqualTo: workoutId)
         .orderBy('setNumber')
-        .limit(500)
+        .limit(_maxCompletedSetsLimit)
         .snapshots()
         .map((QuerySnapshot<Map<String, dynamic>> snapshot) {
           return snapshot.docs
