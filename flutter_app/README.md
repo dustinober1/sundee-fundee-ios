@@ -65,10 +65,10 @@ flutter build ipa --release --no-codesign
 
 ## UI & Design
 
-- **Dark theme** with brand color `#8D2A5B`, gold accent `#D4A853`
+- **Light theme** with primary color `#1C354C` (Navy), secondary accent `#E25E29` (Orange), and surface `#F4ECE1` (Cream)
 - **Sign-in screen**: gradient background, app logo, glassmorphism card, social sign-in (Apple/Google), email/password, guest mode
-- **Loading screen**: branded splash with logo and gold progress indicator
-- **Global styling**: rounded inputs, gradient primary buttons, styled navigation bar
+- **Loading screen**: branded splash with logo and progress indicator
+- **Global styling**: rounded inputs, primary buttons, styled navigation bar
 - Design tokens centralized in `lib/app/theme.dart` (`AppColors`)
 
 ## Architecture
