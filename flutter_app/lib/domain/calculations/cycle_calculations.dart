@@ -46,46 +46,6 @@ class PhaseRecommendation {
   final List<String> exercisesToAvoid;
 }
 
-class PhasePerformance {
-  const PhasePerformance({
-    required this.phase,
-    required this.avgPerformanceDelta,
-    required this.sampleSize,
-  });
-
-  final CyclePhase phase;
-  final double avgPerformanceDelta;
-  final int sampleSize;
-}
-
-class PhaseStrengthProfile {
-  const PhaseStrengthProfile({
-    required this.userId,
-    required this.phases,
-    required this.strongestPhase,
-    required this.weakestPhase,
-    required this.confidence,
-  });
-
-  final String userId;
-  final List<PhasePerformance> phases;
-  final CyclePhase strongestPhase;
-  final CyclePhase weakestPhase;
-  final double confidence;
-}
-
-class StrengthWindow {
-  const StrengthWindow({
-    required this.startDate,
-    required this.endDate,
-    required this.confidence,
-  });
-
-  final DateTime startDate;
-  final DateTime endDate;
-  final double confidence;
-}
-
 class CycleCalculations {
   const CycleCalculations._();
 
