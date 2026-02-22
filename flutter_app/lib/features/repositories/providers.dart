@@ -61,3 +61,16 @@ final customProgramRepositoryProvider = Provider<CustomProgramRepository>((
 
   return FirestoreCustomProgramRepository(firestore: firestore);
 });
+
+final enrolledProgramRepositoryProvider = Provider<EnrolledProgramRepository>((
+  Ref ref,
+) {
+  final FirebaseFirestore? firestore = ref.watch(firestoreProvider);
+  if (firestore == null) {
+    throw StateError(
+      'EnrolledProgramRepository requires ENABLE_FIREBASE=true and initialized Firestore.',
+    );
+  }
+
+  return FirestoreEnrolledProgramRepository(firestore: firestore);
+});

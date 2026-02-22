@@ -6,6 +6,7 @@ import '../../../domain/models/cycle_models.dart';
 import '../../../domain/models/lift_max_model.dart';
 import '../../../domain/models/one_rep_max_model.dart';
 import '../../../domain/models/personal_record_model.dart';
+import '../../../domain/models/program_models.dart';
 
 abstract class WorkoutRepository {
   Future<void> saveWorkout({
@@ -94,5 +95,26 @@ abstract class CustomProgramRepository {
 
   Stream<List<CustomProgramModel>> watchCustomPrograms({
     required String userId,
+  });
+}
+
+abstract class EnrolledProgramRepository {
+  Future<void> enrollUser({
+    required String userId,
+    required EnrolledProgramModel enrollment,
+  });
+
+  Stream<EnrolledProgramModel?> watchActiveEnrollment({required String userId});
+
+  Future<void> updateEnrollmentProgress({
+    required String userId,
+    required String enrollmentId,
+    required int week,
+    required int day,
+  });
+
+  Future<void> completeEnrollment({
+    required String userId,
+    required String enrollmentId,
   });
 }

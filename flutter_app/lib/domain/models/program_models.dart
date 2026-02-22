@@ -1,3 +1,5 @@
+import 'json_utils.dart';
+
 class ProgramV2 {
   ProgramV2({
     required this.id,
@@ -306,5 +308,66 @@ class ExerciseValue {
       case ExerciseValueType.range:
         return '${minValue ?? 0}-${maxValue ?? 0}';
     }
+  }
+}
+
+class EnrolledProgramModel {
+  EnrolledProgramModel({
+    required this.id,
+    required this.programId,
+    required this.startDate,
+    required this.currentWeek,
+    required this.currentDay,
+    this.isActive = true,
+    this.completedAt,
+  });
+
+  final String id;
+  final String programId;
+  final DateTime startDate;
+  final int currentWeek;
+  final int currentDay;
+  final bool isActive;
+  final DateTime? completedAt;
+
+  factory EnrolledProgramModel.fromJson(Map<String, dynamic> json) {
+    return EnrolledProgramModel(
+      id: json['id'] as String? ?? '',
+      programId: json['programId'] as String? ?? '',
+      startDate: parseDateTime(json['startDate'], fieldName: 'startDate'),
+      currentWeek: (json['currentWeek'] as num?)?.toInt() ?? 1,
+      currentDay: (json['currentDay'] as num?)?.toInt() ?? 1,
+      isActive: json['isActive'] as bool? ?? true,
+      completedAt: parseNullableDateTime(json['completedAt']),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'id': id,
+      'programId': programId,
+      'startDate': startDate.toIso8601String(),
+      'currentWeek': currentWeek,
+      'currentDay': currentDay,
+      'isActive': isActive,
+      'completedAt': completedAt?.toIso8601String(),
+    };
+  }
+
+  EnrolledProgramModel copyWith({
+    int? currentWeek,
+    int? currentDay,
+    bool? isActive,
+    DateTime? completedAt,
+  }) {
+    return EnrolledProgramModel(
+      id: id,
+      programId: programId,
+      startDate: startDate,
+      currentWeek: currentWeek ?? this.currentWeek,
+      currentDay: currentDay ?? this.currentDay,
+      isActive: isActive ?? this.isActive,
+      completedAt: completedAt ?? this.completedAt,
+    );
   }
 }

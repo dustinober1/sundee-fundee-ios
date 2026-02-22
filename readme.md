@@ -21,9 +21,8 @@ Sundee Fundee is a hormonal-aware strength training tracker built with Flutter a
 | **Routing** | GoRouter |
 | **Hosting (Web)** | Firebase Hosting |
 
-## Features
-
-- 📊 Workout History on the Dashboard for tracking completed sessions
+- 🏋️ **Program Enrollment:** Enroll in structured training programs and track your progress
+- 📊 **Next Workout Dashboard:** Dynamic dashboard card showing your next session focus and week/day details
 - 📋 Structured training programs (periodized, multi-phase) moved to a dedicated Programs page with enhanced card layout
 - 🦈 Sharkweek logo displayed full-width on the Cycle page during the Menstrual phase
 - 🏋️ Set-by-set workout logging with prescribed weights (based on 1RM)

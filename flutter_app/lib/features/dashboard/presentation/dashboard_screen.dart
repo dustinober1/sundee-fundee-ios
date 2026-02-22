@@ -7,6 +7,7 @@ import '../../../app/theme.dart';
 import '../../auth/domain/auth_state.dart';
 import '../../auth/providers.dart';
 import '../../migration/providers.dart';
+import '../../programs/data/program_repository.dart';
 import '../../repositories/providers.dart';
 
 class DashboardScreen extends ConsumerWidget {
@@ -64,6 +65,20 @@ class DashboardScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.0),
+              child: Text(
+                'Next Workout',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.brandPrimary,
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            const _NextWorkoutCard(),
+            const SizedBox(height: 32),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16.0),
               child: Text(
@@ -159,6 +174,187 @@ class _WorkoutHistoryList extends ConsumerWidget {
           }).toList(),
         );
       },
+    );
+  }
+}
+
+class _NextWorkoutCard extends ConsumerWidget {
+  const _NextWorkoutCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final enrollmentAsync = ref.watch(activeEnrollmentProvider);
+    final programAsync = ref.watch(activeProgramProvider);
+
+    return enrollmentAsync.when(
+      data: (enrollment) {
+        if (enrollment == null) {
+          return const _NoActiveProgramCard();
+        }
+
+        return programAsync.when(
+          data: (program) {
+            if (program == null) return const SizedBox.shrink();
+
+            final week = program.weeks.firstWhere(
+              (w) => w.week == enrollment.currentWeek,
+              orElse: () => program.weeks.last,
+            );
+            
+            // For simplicity, we assume sessions are day 1, 2, 3...
+            final sessionIndex = enrollment.currentDay - 1;
+            final session = sessionIndex < week.sessions.length
+                ? week.sessions[sessionIndex]
+                : week.sessions.last;
+
+            return Card(
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              elevation: 4,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.brandPrimary,
+                      AppColors.brandPrimary.withValues(alpha: 0.8),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            program.name,
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const Icon(Icons.fitness_center, color: Colors.white70, size: 20),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Week ${enrollment.currentWeek}, Session ${enrollment.currentDay}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Focus: ${session.focus}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () {
+                          // TODO: Navigate to workout execution
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Start Workout feature coming!')),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: AppColors.brandPrimary,
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: const Text(
+                          'START SESSION',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+          loading: () => const _LoadingCard(),
+          error: (err, stack) => _ErrorCard(err.toString()),
+        );
+      },
+      loading: () => const _LoadingCard(),
+      error: (err, stack) => _ErrorCard(err.toString()),
+    );
+  }
+}
+
+class _NoActiveProgramCard extends StatelessWidget {
+  const _NoActiveProgramCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            const Icon(Icons.info_outline, color: AppColors.textSecondary, size: 32),
+            const SizedBox(height: 8),
+            const Text(
+              'No active program enrollment.',
+              style: TextStyle(color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: 12),
+            TextButton(
+              onPressed: () {
+                // Navigate to programs tab
+              },
+              child: const Text('EXPLORE PROGRAMS'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _LoadingCard extends StatelessWidget {
+  const _LoadingCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Card(
+      margin: EdgeInsets.symmetric(horizontal: 16),
+      child: Padding(
+        padding: EdgeInsets.all(32.0),
+        child: Center(child: CircularProgressIndicator()),
+      ),
+    );
+  }
+}
+
+class _ErrorCard extends StatelessWidget {
+  final String error;
+  const _ErrorCard(this.error);
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Text('Error loading next workout: $error'),
+      ),
     );
   }
 }

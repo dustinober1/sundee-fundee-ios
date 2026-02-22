@@ -8,6 +8,7 @@ import '../../../domain/models/cycle_models.dart';
 import '../../../domain/models/lift_max_model.dart';
 import '../../../domain/models/one_rep_max_model.dart';
 import '../../../domain/models/personal_record_model.dart';
+import '../../../domain/models/program_models.dart';
 import '../domain/repository_interfaces.dart';
 
 const int kCompletedSetsLimit = 500;
@@ -359,5 +360,66 @@ class FirestoreCustomProgramRepository implements CustomProgramRepository {
         .collection('users')
         .doc(userId)
         .collection('customPrograms');
+  }
+}
+
+class FirestoreEnrolledProgramRepository implements EnrolledProgramRepository {
+  FirestoreEnrolledProgramRepository({required FirebaseFirestore firestore})
+    : _firestore = firestore;
+
+  final FirebaseFirestore _firestore;
+
+  @override
+  Future<void> enrollUser({
+    required String userId,
+    required EnrolledProgramModel enrollment,
+  }) {
+    return _enrollmentsCollection(
+      userId,
+    ).doc(enrollment.id).set(enrollment.toJson(), SetOptions(merge: true));
+  }
+
+  @override
+  Stream<EnrolledProgramModel?> watchActiveEnrollment({required String userId}) {
+    return _enrollmentsCollection(userId)
+        .where('isActive', isEqualTo: true)
+        .limit(1)
+        .snapshots()
+        .map((QuerySnapshot<Map<String, dynamic>> snapshot) {
+          if (snapshot.docs.isEmpty) {
+            return null;
+          }
+          return EnrolledProgramModel.fromJson(snapshot.docs.first.data());
+        });
+  }
+
+  @override
+  Future<void> updateEnrollmentProgress({
+    required String userId,
+    required String enrollmentId,
+    required int week,
+    required int day,
+  }) {
+    return _enrollmentsCollection(userId).doc(enrollmentId).update({
+      'currentWeek': week,
+      'currentDay': day,
+    });
+  }
+
+  @override
+  Future<void> completeEnrollment({
+    required String userId,
+    required String enrollmentId,
+  }) {
+    return _enrollmentsCollection(userId).doc(enrollmentId).update({
+      'isActive': false,
+      'completedAt': DateTime.now().toIso8601String(),
+    });
+  }
+
+  CollectionReference<Map<String, dynamic>> _enrollmentsCollection(
+    String userId,
+  ) {
+    return _firestore.collection('users').doc(userId).collection('enrollments');
   }
 }
