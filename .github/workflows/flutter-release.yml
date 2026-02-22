@@ -48,7 +48,7 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
       - name: Build web release
-        run: flutter build web --release
+        run: flutter build web --release --dart-define=ENABLE_FIREBASE=true
       - name: Upload web artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -76,7 +76,7 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
       - name: Build Android AAB
-        run: flutter build appbundle --release
+        run: flutter build appbundle --release --dart-define=ENABLE_FIREBASE=true
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
@@ -107,7 +107,7 @@ jobs:
       - name: Install CocoaPods
         run: cd ios && pod install
       - name: Build iOS IPA (unsigned)
-        run: flutter build ipa --release --no-codesign
+        run: flutter build ipa --release --no-codesign --dart-define=ENABLE_FIREBASE=true
       - name: Upload iOS IPA
         uses: actions/upload-artifact@v4
         with:

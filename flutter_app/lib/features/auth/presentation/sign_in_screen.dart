@@ -146,7 +146,10 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                   OutlinedButton(
                     onPressed: _isWorking
                         ? null
-                        : () => _performAction(authRepository.continueAsGuest),
+                        : () => _performAction(() async {
+                              await authRepository.continueAsGuest();
+                              ref.invalidate(authSessionStreamProvider);
+                            }),
                     child: const Text('Continue as Guest'),
                   ),
                   if (_errorMessage != null) ...<Widget>[
