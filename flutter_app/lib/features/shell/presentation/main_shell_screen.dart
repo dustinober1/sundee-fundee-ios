@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+<<<<<<< HEAD
 import '../../../domain/enums.dart';
 import '../../cycle/presentation/cycle_tracking_screen.dart';
 import '../../cycle/providers.dart';
+=======
+>>>>>>> programs/deadlift-12-week-1585677400188165246
 import '../../dashboard/presentation/dashboard_screen.dart';
 import '../../maxes/presentation/max_lifts_screen.dart';
+import '../../programs/presentation/programs_screen.dart';
 import '../../settings/presentation/settings_screen.dart';
 import '../../shared/presentation/placeholder_feature_screen.dart';
 
@@ -30,17 +34,16 @@ class _MainShellScreenState extends State<MainShellScreen> {
 
   static const List<Widget> _screens = <Widget>[
     DashboardScreen(),
-    PlaceholderFeatureScreen(
-      title: 'Programs',
-      subtitle:
-          'Program browsing and cycle start flows are next in the UI port.',
-    ),
+    ProgramsScreen(),
     PlaceholderFeatureScreen(
       title: 'Workout',
       subtitle: 'Workout execution and set-by-set logging will be added next.',
     ),
     MaxLiftsScreen(),
-    CycleTrackingScreen(),
+    PlaceholderFeatureScreen(
+      title: 'Cycle',
+      subtitle: 'Cycle tracking and recommendations UI is queued next.',
+    ),
     SettingsScreen(),
   ];
 

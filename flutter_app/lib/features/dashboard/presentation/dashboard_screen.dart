@@ -7,6 +7,7 @@ import '../../auth/domain/auth_state.dart';
 import '../../auth/providers.dart';
 import '../../migration/providers.dart';
 import '../../../domain/data/predefined_programs.dart';
+
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
 

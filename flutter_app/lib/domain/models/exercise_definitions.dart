@@ -33,6 +33,7 @@ class Exercises {
     ExerciseDefinition(id: 'block-squat-clean', name: 'Block Squat Clean', category: 'Olympic Lifts', muscleGroups: ['full-body']),
     ExerciseDefinition(id: 'block-power-clean', name: 'Block Power Clean', category: 'Olympic Lifts', muscleGroups: ['full-body']),
     ExerciseDefinition(id: 'muscle-clean', name: 'Muscle Clean', category: 'Olympic Lifts', muscleGroups: ['shoulders', 'back']),
+    ExerciseDefinition(id: 'clean-pull', name: 'Clean Pull', category: 'Olympic Lifts', muscleGroups: ['full-body']),
 
     // Olympic Lifts - Jerks
     ExerciseDefinition(id: 'split-jerk', name: 'Split Jerk', category: 'Olympic Lifts', muscleGroups: ['shoulders', 'triceps', 'legs']),
@@ -63,6 +64,7 @@ class Exercises {
     ExerciseDefinition(id: 'conventional-deadlift-with-straps', name: 'Conventional Deadlift (With Straps)', category: 'Deadlift Variations', muscleGroups: ['posterior-chain']),
     ExerciseDefinition(id: 'sumo-deadlift-no-straps', name: 'Sumo Deadlift (No Straps)', category: 'Deadlift Variations', muscleGroups: ['posterior-chain', 'quads', 'grip']),
     ExerciseDefinition(id: 'sumo-deadlift-with-straps', name: 'Sumo Deadlift (With Straps)', category: 'Deadlift Variations', muscleGroups: ['posterior-chain', 'quads']),
+    ExerciseDefinition(id: 'speed-deadlift', name: 'Speed Deadlift', category: 'Deadlift Variations', muscleGroups: ['posterior-chain', 'grip']),
 
     // Hinge Variations
     ExerciseDefinition(id: 'rdl-no-straps', name: 'Romanian Deadlift / RDL (No Straps)', category: 'Hinge Variations', muscleGroups: ['hamstrings', 'glutes', 'grip']),
@@ -73,14 +75,18 @@ class Exercises {
     ExerciseDefinition(id: 'deficit-deadlift-with-straps', name: 'Deficit Deadlift (With Straps)', category: 'Hinge Variations', muscleGroups: ['posterior-chain']),
     ExerciseDefinition(id: 'trap-bar-deadlift-no-straps', name: 'Trap Bar / Hex Bar Deadlift (No Straps)', category: 'Hinge Variations', muscleGroups: ['posterior-chain', 'quads', 'grip']),
     ExerciseDefinition(id: 'trap-bar-deadlift-with-straps', name: 'Trap Bar / Hex Bar Deadlift (With Straps)', category: 'Hinge Variations', muscleGroups: ['posterior-chain', 'quads']),
+    ExerciseDefinition(id: 'rack-pull', name: 'Rack Pull / Block Pull', category: 'Hinge Variations', muscleGroups: ['back', 'glutes', 'grip']),
 
     // Overhead Pressing
     ExerciseDefinition(id: 'strict-press', name: 'Strict Press / Military Press', category: 'Overhead Pressing', muscleGroups: ['shoulders', 'triceps']),
     ExerciseDefinition(id: 'push-press', name: 'Push Press', category: 'Overhead Pressing', muscleGroups: ['shoulders', 'triceps', 'legs']),
     ExerciseDefinition(id: 'z-press', name: 'Z-Press', category: 'Overhead Pressing', muscleGroups: ['shoulders', 'core']),
 
-    // Complexes
-    ExerciseDefinition(id: 'squat-clean-front-squat-complex', name: 'Squat Clean + Front Squat Complex', category: 'Complexes', muscleGroups: ['full-body']),
+    // Back Exercises
+    ExerciseDefinition(id: 'pendlay-row', name: 'Pendlay Row', category: 'Back Exercises', muscleGroups: ['back', 'biceps', 'core']),
+    ExerciseDefinition(id: 'pull-up', name: 'Pull-up', category: 'Back Exercises', muscleGroups: ['back', 'biceps']),
+    ExerciseDefinition(id: 'lat-pulldown', name: 'Lat Pulldown', category: 'Back Exercises', muscleGroups: ['back', 'biceps']),
+    ExerciseDefinition(id: 't-bar-row', name: 'T-Bar Row', category: 'Back Exercises', muscleGroups: ['back', 'biceps']),
 
     // Accessories & Core
     ExerciseDefinition(id: 'walking-lunges', name: 'Walking Lunges', category: 'Accessories', muscleGroups: ['quads', 'glutes']),
@@ -94,6 +100,8 @@ class Exercises {
     ExerciseDefinition(id: 'light-core', name: 'Light Core Work', category: 'Core', muscleGroups: ['core']),
     ExerciseDefinition(id: 'ab-wheel-rollouts', name: 'Ab Wheel Rollouts', category: 'Core', muscleGroups: ['core']),
     ExerciseDefinition(id: 'broad-jumps', name: 'Broad Jumps', category: 'Plyometrics', muscleGroups: ['legs', 'explosiveness']),
+    ExerciseDefinition(id: 'barbell-shrug', name: 'Barbell Shrug', category: 'Accessories', muscleGroups: ['traps']),
+    ExerciseDefinition(id: 'mobility', name: 'Mobility Work', category: 'Accessories', muscleGroups: ['full-body']),
 
     // New Bench Press Accessories
     ExerciseDefinition(id: 'incline-dumbbell-bench-press', name: 'Incline Dumbbell Bench Press', category: 'Bench Press Variations', muscleGroups: ['upper-chest', 'shoulders']),

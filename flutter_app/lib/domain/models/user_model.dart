@@ -10,7 +10,6 @@ class UserModel {
     required this.gender,
     required this.createdAt,
     required this.appleUserId,
-    required this.enableCycleTracking,
   });
 
   final String id;
@@ -20,7 +19,6 @@ class UserModel {
   final Gender gender;
   final DateTime createdAt;
   final String appleUserId;
-  final bool enableCycleTracking;
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
@@ -47,7 +45,6 @@ class UserModel {
           json['appleUserID'] as String? ??
           json['appleUserId'] as String? ??
           '',
-      enableCycleTracking: json['enableCycleTracking'] as bool? ?? false,
     );
   }
 
@@ -60,7 +57,6 @@ class UserModel {
       'genderRaw': gender.name,
       'createdAt': createdAt.toIso8601String(),
       'appleUserID': appleUserId,
-      'enableCycleTracking': enableCycleTracking,
     };
   }
 }
