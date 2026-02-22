@@ -98,24 +98,28 @@ struct OneRepMaxManagementView: View {
     }
 
     var body: some View {
-        List {
-            if latestByExercise.isEmpty {
-                Text("No 1RM data yet. Start a program to enter your maxes.")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            } else {
-                ForEach(latestByExercise, id: \.id) { orm in
-                    HStack {
-                        Text(Exercises.find(byId: orm.exerciseId)?.name ?? orm.exerciseId)
-                        Spacer()
-                        Text("\(orm.weight, specifier: "%.0f") lbs")
-                            .fontWeight(.semibold)
-                        Text(orm.date, style: .date)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+        BrandBackgroundView {
+            List {
+                if latestByExercise.isEmpty {
+                    Text("No 1RM data yet. Start a program to enter your maxes.")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                } else {
+                    ForEach(latestByExercise, id: \.id) { orm in
+                        HStack {
+                            Text(Exercises.find(byId: orm.exerciseId)?.name ?? orm.exerciseId)
+                            Spacer()
+                            Text("\(orm.weight, specifier: "%.0f") lbs")
+                                .fontWeight(.semibold)
+                            Text(orm.date, style: .date)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        .padding(.vertical, 4)
                     }
                 }
             }
+            .scrollContentBackground(.hidden)
         }
         .navigationTitle("1RM Records")
     }
