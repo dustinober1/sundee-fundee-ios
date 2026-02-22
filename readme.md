@@ -79,7 +79,21 @@ flutter_app/
 - FlutterFire CLI (`dart pub global activate flutterfire_cli`)
 - A Firebase project with iOS, Android, and Web apps registered
 
+## Helper Scripts
+
+For convenience, two bash scripts are provided in the root directory:
+
+```bash
+# Run locally with Firebase enabled (Chrome)
+./run_local.sh
+
+# Build and deploy to Firebase Hosting
+./deploy.sh
+```
+
 ## Getting Started
+
+If you prefer to run manual commands:
 
 ```bash
 # 1. Navigate to the Flutter app
