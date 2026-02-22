@@ -44,6 +44,38 @@ class _SignInScreenState extends ConsumerState<SignInScreen>
     super.dispose();
   }
 
+  bool _validateInputs() {
+    final String email = _emailController.text.trim();
+    final String password = _passwordController.text;
+
+    if (email.isEmpty) {
+      setState(() => _errorMessage = 'Please enter an email address.');
+      return false;
+    }
+
+    final RegExp emailRegex =
+        RegExp(r'^[a-zA-Z0-9+_.-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]+$');
+    if (!emailRegex.hasMatch(email)) {
+      setState(() => _errorMessage = 'Please enter a valid email address.');
+      return false;
+    }
+
+    if (password.isEmpty) {
+      setState(() => _errorMessage = 'Please enter a password.');
+      return false;
+    }
+
+    if (password.length < 6) {
+      setState(() {
+        _errorMessage = 'Password must be at least 6 characters long.';
+      });
+      return false;
+    }
+
+    setState(() => _errorMessage = null);
+    return true;
+  }
+
   Future<void> _performAction(Future<void> Function() action) async {
     setState(() {
       _isWorking = true;
@@ -234,7 +266,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen>
                 obscureText: true,
                 textInputAction: TextInputAction.done,
                 onSubmitted: (_) {
-                  if (!_isWorking) {
+                  if (!_isWorking && _validateInputs()) {
                     _performAction(
                       () => authRepository.signInWithEmailPassword(
                         email: _emailController.text.trim(),
@@ -252,12 +284,16 @@ class _SignInScreenState extends ConsumerState<SignInScreen>
                 label: 'Sign In',
                 onPressed: _isWorking
                     ? null
-                    : () => _performAction(
-                          () => authRepository.signInWithEmailPassword(
-                            email: _emailController.text.trim(),
-                            password: _passwordController.text,
-                          ),
-                        ),
+                    : () {
+                        if (_validateInputs()) {
+                          _performAction(
+                            () => authRepository.signInWithEmailPassword(
+                              email: _emailController.text.trim(),
+                              password: _passwordController.text,
+                            ),
+                          );
+                        }
+                      },
               ),
               const SizedBox(height: 10),
 
@@ -265,12 +301,16 @@ class _SignInScreenState extends ConsumerState<SignInScreen>
               OutlinedButton(
                 onPressed: _isWorking
                     ? null
-                    : () => _performAction(
-                          () => authRepository.createUserWithEmailPassword(
-                            email: _emailController.text.trim(),
-                            password: _passwordController.text,
-                          ),
-                        ),
+                    : () {
+                        if (_validateInputs()) {
+                          _performAction(
+                            () => authRepository.createUserWithEmailPassword(
+                              email: _emailController.text.trim(),
+                              password: _passwordController.text,
+                            ),
+                          );
+                        }
+                      },
                 child: const Text('Create Account'),
               ),
 
