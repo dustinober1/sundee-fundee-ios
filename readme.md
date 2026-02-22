@@ -25,6 +25,7 @@ Sundee Fundee is a hormonal-aware strength training tracker built with Flutter a
 
 - 📋 Structured training programs (periodized, multi-phase)
 - 🏋️ Set-by-set workout logging with prescribed weights (based on 1RM)
+- 📈 Max Lifts Tracker for recording 1RM, 3RM, 5RM, and 10RM for various powerlifting and Olympic lifts
 - 📊 Progress tracking and personal records
 - 🔄 Menstrual cycle phase tracking with training recommendations
 - 👤 Guest mode for offline-first usage
