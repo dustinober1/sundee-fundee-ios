@@ -173,17 +173,30 @@ class AuthRepository {
       );
     }
 
-    final DocumentSnapshot<Map<String, dynamic>> userDoc =
-        await _usersCollection.doc(user.uid).get();
-    final bool onboardingComplete =
-        userDoc.data()?['onboardingComplete'] as bool? ?? false;
+    try {
+      final DocumentSnapshot<Map<String, dynamic>> userDoc =
+          await _usersCollection
+              .doc(user.uid)
+              .get()
+              .timeout(const Duration(seconds: 5));
 
-    return AuthSession(
-      status: onboardingComplete
-          ? AuthStatus.authenticated
-          : AuthStatus.needsOnboarding,
-      user: user,
-    );
+      final bool onboardingComplete =
+          userDoc.data()?['onboardingComplete'] as bool? ?? false;
+
+      return AuthSession(
+        status: onboardingComplete
+            ? AuthStatus.authenticated
+            : AuthStatus.needsOnboarding,
+        user: user,
+      );
+    } catch (_) {
+      // If Firestore hangs or fails, fall back to guest or unauthenticated
+      // to prevent the app from being stuck in a loading state.
+      return AuthSession(
+        status: guestEnabled ? AuthStatus.guest : AuthStatus.unauthenticated,
+        user: user,
+      );
+    }
   }
 
   Future<void> _ensureUserDocument(User? user) async {

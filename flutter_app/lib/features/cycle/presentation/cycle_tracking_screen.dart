@@ -68,16 +68,56 @@ class CycleTrackingScreen extends ConsumerWidget {
 
     return Scaffold(
       body: periodLogsAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, _) => Center(child: Text('Error: $err')),
+        loading: () => Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const CircularProgressIndicator(),
+              const SizedBox(height: 16),
+              Text(
+                'Fetching cycle data...',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              if (userId == null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text(
+                    'Waiting for authentication...',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 10),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        error: (err, stack) => Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline, color: Colors.red, size: 48),
+                const SizedBox(height: 16),
+                Text('Error loading cycle: $err', textAlign: TextAlign.center),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () => ref.invalidate(periodLogsProvider),
+                  child: const Text('Retry'),
+                ),
+              ],
+            ),
+          ),
+        ),
         data: (periodLogs) {
+          final status = cycleStatus;
+          final rec = recommendation;
+          
           return ListView(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             children: [
               // ── Phase hero card
               _PhaseHeroCard(
-                cycleStatus: cycleStatus,
-                recommendation: recommendation,
+                cycleStatus: status,
+                recommendation: rec,
               ),
 
               const SizedBox(height: 20),
@@ -91,14 +131,14 @@ class CycleTrackingScreen extends ConsumerWidget {
               const SizedBox(height: 20),
 
               // ── Training recommendation
-              if (recommendation != null) ...[
-                _TrainingRecommendationCard(recommendation: recommendation),
+              if (rec != null) ...[
+                _TrainingRecommendationCard(recommendation: rec),
                 const SizedBox(height: 20),
               ],
 
               // ── Phase timeline
-              if (cycleStatus != null) ...[
-                _PhaseTimelineCard(cycleStatus: cycleStatus),
+              if (status != null) ...[
+                _PhaseTimelineCard(cycleStatus: status),
                 const SizedBox(height: 20),
               ],
 
