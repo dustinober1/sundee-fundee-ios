@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../dashboard/presentation/dashboard_screen.dart';
+import '../../maxes/presentation/max_lifts_screen.dart';
 import '../../settings/presentation/settings_screen.dart';
 import '../../shared/presentation/placeholder_feature_screen.dart';
 
@@ -18,7 +19,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
     'Dashboard',
     'Programs',
     'Workout',
-    'Progress',
+    'Maxes',
     'Cycle',
     'Settings',
   ];
@@ -34,10 +35,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
       title: 'Workout',
       subtitle: 'Workout execution and set-by-set logging will be added next.',
     ),
-    PlaceholderFeatureScreen(
-      title: 'Progress',
-      subtitle: 'PR tracking and charts are queued for implementation.',
-    ),
+    MaxLiftsScreen(),
     PlaceholderFeatureScreen(
       title: 'Cycle',
       subtitle: 'Cycle tracking and recommendations UI is queued next.',
@@ -69,7 +67,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
           ),
           NavigationDestination(
             icon: Icon(Icons.show_chart),
-            label: 'Progress',
+            label: 'Maxes',
           ),
           NavigationDestination(
             icon: Icon(Icons.monitor_heart_outlined),
