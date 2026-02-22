@@ -189,3 +189,6 @@ GitHub Actions workflows are located in `.github/workflows/`:
 2. Run `flutter analyze` and `flutter test` before committing.
 3. Use Conventional Commits: `feat:`, `fix:`, `docs:`, etc.
 4. Never commit secrets, API keys, or `.env` files.
+
+## UI & Theme
+- Transitioned from a dark theme defaults to a brand-new `Light Theme` (Cream, Navy, and Orange accents) to match the latest logos and branding.
