@@ -17,8 +17,10 @@ void main() {
     await tester.pumpAndSettle();
 
     // Verify list is shown
-    expect(find.text('Deadlift 1 Cycle'), findsOneWidget);
-    expect(find.text('The complete 12-week baseline program designed for maximum deadlift strength.'), findsOneWidget);
+    // We check for the first program 'Squat 1 Cycle' to ensure it's visible without scrolling
+    // in all test environments (CI might have smaller viewport).
+    expect(find.text('Squat 1 Cycle'), findsOneWidget);
+    expect(find.text('The complete 12-week baseline program designed for maximum squat strength.'), findsOneWidget);
 
     // Verify interaction (shows SnackBar)
     await tester.tap(find.text('Enroll in Program').first);
