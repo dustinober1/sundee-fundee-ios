@@ -187,7 +187,7 @@ The app uses GoRouter with auth-state redirects:
 | **Ovulation** | Peak intensity, PR attempts |
 | **Luteal** | Maintenance, technique work |
 
-The application now includes the **Sundee-Fundee 12-Week Main Cycle**. For women, this baseline program's Sunday heavy lifting day is dynamically adapted based on their active cycle phase via `CycleProgramGenerator`.
+The application now includes the **Squat 1 Cycle**. For women, this baseline program's Sunday heavy lifting day is dynamically adapted based on their active cycle phase via `CycleProgramGenerator`.
 
 ## CI/CD
 

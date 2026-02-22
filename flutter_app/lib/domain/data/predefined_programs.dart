@@ -2,8 +2,8 @@ import '../models/program_models.dart';
 
 class PredefinedPrograms {
   static final ProgramV2 baseline12Week = ProgramV2(
-    id: 'baseline-12-week-squat',
-    name: 'Sundee-Fundee 12-Week Main Cycle',
+    id: 'squat-1-cycle',
+    name: 'Squat 1 Cycle',
     category: 'Strength Building',
     description:
         'The complete 12-week baseline program designed for maximum squat strength.',
