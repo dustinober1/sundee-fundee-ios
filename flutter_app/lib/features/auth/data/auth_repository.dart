@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
+import '../../../domain/enums.dart';
 import '../domain/auth_state.dart';
 import 'guest_mode_store.dart';
 
@@ -125,7 +126,11 @@ class AuthRepository {
     return userCredential;
   }
 
-  Future<void> completeOnboarding({required String name}) async {
+  Future<void> completeOnboarding({
+    required String name,
+    required Gender gender,
+    required bool enableCycleTracking,
+  }) async {
     _assertFirebaseEnabled('completeOnboarding');
 
     final User? user = _requireAuth().currentUser;
@@ -135,6 +140,10 @@ class AuthRepository {
 
     await _usersCollection.doc(user.uid).set(<String, dynamic>{
       'displayName': name,
+      'name': name,
+      'gender': gender.name,
+      'genderRaw': gender.name,
+      'enableCycleTracking': enableCycleTracking,
       'onboardingComplete': true,
       'updatedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
