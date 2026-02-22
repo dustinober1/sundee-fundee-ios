@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-<<<<<<< HEAD
 import '../../../domain/enums.dart';
 import '../../cycle/presentation/cycle_tracking_screen.dart';
 import '../../cycle/providers.dart';
-=======
->>>>>>> programs/deadlift-12-week-1585677400188165246
 import '../../dashboard/presentation/dashboard_screen.dart';
 import '../../maxes/presentation/max_lifts_screen.dart';
 import '../../programs/presentation/programs_screen.dart';

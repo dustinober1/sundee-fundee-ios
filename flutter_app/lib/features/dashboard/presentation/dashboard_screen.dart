@@ -58,11 +58,12 @@ class DashboardScreen extends ConsumerWidget {
     }
 
     return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          const Text(
-            'Available Programs',
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            const Text(
+              'Available Programs',
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
@@ -96,9 +97,10 @@ class DashboardScreen extends ConsumerWidget {
               ),
             ),
           )),
-          const SizedBox(height: 24),
-          Text(stateMessage),
-        ],
+            const SizedBox(height: 24),
+            Text(stateMessage),
+          ],
+        ),
       ),
     );
   }
