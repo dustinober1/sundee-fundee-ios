@@ -11,6 +11,7 @@ import '../../../domain/models/personal_record_model.dart';
 import '../domain/repository_interfaces.dart';
 
 const int kCompletedSetsLimit = 500;
+const int kWorkoutsLimit = 500;
 
 class FirestoreWorkoutRepository implements WorkoutRepository {
   FirestoreWorkoutRepository({required FirebaseFirestore firestore})
@@ -32,6 +33,7 @@ class FirestoreWorkoutRepository implements WorkoutRepository {
   Stream<List<CompletedWorkoutModel>> watchWorkouts({required String userId}) {
     return _workoutsCollection(userId)
         .orderBy('completedAt', descending: true)
+        .limit(kWorkoutsLimit)
         .snapshots()
         .map((QuerySnapshot<Map<String, dynamic>> snapshot) {
           return snapshot.docs
