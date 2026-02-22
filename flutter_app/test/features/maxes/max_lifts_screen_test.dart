@@ -31,27 +31,34 @@ void main() {
 
     await _pumpScreen(tester: tester, repo: repo);
 
-    expect(find.text('High Bar Back Squat'), findsOneWidget);
-    expect(find.text('225 lbs  1RM'), findsOneWidget);
-
-    await tester.tap(find.text('High Bar Back Squat'));
+    // Expand the category
+    await tester.tap(find.text('Squat Variations'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Save'), findsOneWidget);
-    expect(find.byType(TextField), findsNWidgets(4));
+    expect(find.text('High Bar Back Squat'), findsOneWidget);
+    expect(find.text('225.0'), findsOneWidget); // The TextField text
+
+    // No more bottom sheet, it's inline
+    await tester.enterText(find.byType(TextField).first, '230');
+    await tester.tap(find.byIcon(Icons.save).first);
+    await tester.pumpAndSettle();
+
+    expect(repo.savedLiftMaxes, hasLength(1));
+    expect(repo.savedLiftMaxes.first.weight, 230);
   });
 
-  testWidgets('saves entered max from bottom sheet', (WidgetTester tester) async {
+  testWidgets('saves entered max from inline row', (WidgetTester tester) async {
     final FakeLiftRepository repo = FakeLiftRepository();
     addTearDown(repo.dispose);
 
     await _pumpScreen(tester: tester, repo: repo);
 
-    await tester.tap(find.text('High Bar Back Squat'));
+    // Expand the category
+    await tester.tap(find.text('Squat Variations'));
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextField).first, '205');
-    await tester.tap(find.text('Save'));
+    await tester.tap(find.byIcon(Icons.save).first);
     await tester.pumpAndSettle();
 
     expect(repo.savedLiftMaxes, hasLength(1));

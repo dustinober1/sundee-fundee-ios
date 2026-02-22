@@ -3,8 +3,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../domain/models/active_cycle_model.dart';
 import '../../../domain/models/completed_set_model.dart';
 import '../../../domain/models/completed_workout_model.dart';
-import '../../../domain/models/cycle_models.dart';
 import '../../../domain/models/custom_program_model.dart';
+import '../../../domain/models/cycle_models.dart';
 import '../../../domain/models/lift_max_model.dart';
 import '../../../domain/models/one_rep_max_model.dart';
 import '../../../domain/models/personal_record_model.dart';
@@ -119,53 +119,14 @@ class FirestoreCycleRepository implements CycleRepository {
   }
 
   @override
-  Stream<List<PeriodLogModel>> watchPeriodLogs({required String userId}) {
-    return _periodLogsCollection(userId)
-        .orderBy('startDate', descending: true)
-        .snapshots()
-        .map((QuerySnapshot<Map<String, dynamic>> snapshot) {
-          return snapshot.docs
-              .map(
-                (QueryDocumentSnapshot<Map<String, dynamic>> doc) =>
-                    PeriodLogModel.fromJson(doc.data()),
-              )
-              .toList();
-        });
-  }
-
-  @override
-  Stream<List<SymptomLogModel>> watchSymptomLogs({required String userId}) {
-    return _symptomLogsCollection(userId)
-        .orderBy('date', descending: true)
-        .snapshots()
-        .map((QuerySnapshot<Map<String, dynamic>> snapshot) {
-          return snapshot.docs
-              .map(
-                (QueryDocumentSnapshot<Map<String, dynamic>> doc) =>
-                    SymptomLogModel.fromJson(doc.data()),
-              )
-              .toList();
-        });
-  }
-
-  @override
-  Stream<CycleSettingsModel?> watchCycleSettings({required String userId}) {
-    return _cycleSettingsCollection(userId).doc('settings').snapshots().map(
-      (DocumentSnapshot<Map<String, dynamic>> snapshot) {
-        if (!snapshot.exists || snapshot.data() == null) return null;
-        return CycleSettingsModel.fromJson(snapshot.data()!);
-      },
-    );
-  }
-
-  @override
   Future<void> savePeriodLog({
     required String userId,
     required PeriodLogModel log,
   }) {
-    return _periodLogsCollection(
-      userId,
-    ).doc(log.id).set(log.toJson(), SetOptions(merge: true));
+    return _periodLogsCollection(userId).doc(log.id).set(
+      log.toJson(),
+      SetOptions(merge: true),
+    );
   }
 
   @override
@@ -177,13 +138,40 @@ class FirestoreCycleRepository implements CycleRepository {
   }
 
   @override
+  Stream<List<PeriodLogModel>> watchPeriodLogs({required String userId}) {
+    return _periodLogsCollection(userId)
+        .orderBy('startDate', descending: true)
+        .snapshots()
+        .map(
+          (snapshot) =>
+              snapshot.docs
+                  .map((doc) => PeriodLogModel.fromJson(doc.data()))
+                  .toList(),
+        );
+  }
+
+  @override
   Future<void> saveSymptomLog({
     required String userId,
     required SymptomLogModel log,
   }) {
-    return _symptomLogsCollection(
-      userId,
-    ).doc(log.id).set(log.toJson(), SetOptions(merge: true));
+    return _symptomLogsCollection(userId).doc(log.id).set(
+      log.toJson(),
+      SetOptions(merge: true),
+    );
+  }
+
+  @override
+  Stream<List<SymptomLogModel>> watchSymptomLogs({required String userId}) {
+    return _symptomLogsCollection(userId)
+        .orderBy('date', descending: true)
+        .snapshots()
+        .map(
+          (snapshot) =>
+              snapshot.docs
+                  .map((doc) => SymptomLogModel.fromJson(doc.data()))
+                  .toList(),
+        );
   }
 
   @override
@@ -191,9 +179,26 @@ class FirestoreCycleRepository implements CycleRepository {
     required String userId,
     required CycleSettingsModel settings,
   }) {
-    return _cycleSettingsCollection(
-      userId,
-    ).doc(settings.id).set(settings.toJson(), SetOptions(merge: true));
+    return _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('settings')
+        .doc('cycle')
+        .set(settings.toJson(), SetOptions(merge: true));
+  }
+
+  @override
+  Stream<CycleSettingsModel?> watchCycleSettings({required String userId}) {
+    return _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('settings')
+        .doc('cycle')
+        .snapshots()
+        .map(
+          (doc) =>
+              doc.exists ? CycleSettingsModel.fromJson(doc.data()!) : null,
+        );
   }
 
   CollectionReference<Map<String, dynamic>> _cyclesCollection(String userId) {
@@ -210,15 +215,6 @@ class FirestoreCycleRepository implements CycleRepository {
     String userId,
   ) {
     return _firestore.collection('users').doc(userId).collection('symptomLogs');
-  }
-
-  CollectionReference<Map<String, dynamic>> _cycleSettingsCollection(
-    String userId,
-  ) {
-    return _firestore
-        .collection('users')
-        .doc(userId)
-        .collection('cycleSettings');
   }
 }
 
