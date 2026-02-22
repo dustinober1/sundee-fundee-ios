@@ -68,6 +68,7 @@ class DashboardScreen extends ConsumerWidget {
           ...[
             PredefinedPrograms.baseline12Week,
             PredefinedPrograms.deadlift1Cycle,
+            PredefinedPrograms.benchPress1Cycle,
           ].map((program) => Card(
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Padding(
