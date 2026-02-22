@@ -56,8 +56,8 @@ void main() {
     stopwatch.stop();
     final boundedTime = stopwatch.elapsedMilliseconds;
 
-    expect(boundedResult.length, 500);
-    print('Bounded Query (limit 500): ${boundedResult.length} items in ${boundedTime}ms');
+    expect(boundedResult.length, 100);
+    print('Bounded Query (limit 100): ${boundedResult.length} items in ${boundedTime}ms');
 
     // 2. Measure Unbounded Query (Simulated)
     stopwatch.reset();

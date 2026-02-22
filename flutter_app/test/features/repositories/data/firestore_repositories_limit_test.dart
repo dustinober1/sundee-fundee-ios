@@ -41,7 +41,7 @@ void main() {
 
     final sets = await stream.first;
 
-    // Expect 500 (bounded).
-    expect(sets.length, 500);
+    // Expect 100 (bounded).
+    expect(sets.length, 100);
   });
 }
