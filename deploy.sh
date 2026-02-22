@@ -22,9 +22,8 @@ echo -e "${BLUE}📥 Getting Flutter dependencies...${NC}"
 flutter pub get
 
 # Build Flutter Web
-# Using --web-renderer canvaskit for performance, but you can change to html if needed
 echo -e "${BLUE}🏗 Building Flutter Web (ENABLE_FIREBASE=true)...${NC}"
-flutter build web --dart-define=ENABLE_FIREBASE=true --web-renderer canvaskit
+flutter build web --dart-define=ENABLE_FIREBASE=true --release
 
 # Navigate back to root
 cd ..
