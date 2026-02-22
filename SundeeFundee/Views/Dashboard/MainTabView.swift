@@ -45,4 +45,5 @@ struct MainTabView: View {
 #Preview {
     MainTabView()
         .modelContainer(for: User.self, inMemory: true)
+        .environment(AuthenticationViewModel())
 }
