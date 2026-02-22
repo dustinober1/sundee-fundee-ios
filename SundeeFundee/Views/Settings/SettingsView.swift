@@ -109,5 +109,6 @@ struct OneRepMaxManagementView: View {
 #Preview {
     SettingsView()
         .modelContainer(for: [User.self, OneRepMax.self], inMemory: true)
+        .environment(AuthenticationViewModel())
 }
 

@@ -3,13 +3,14 @@ import SwiftData
 
 struct CycleTrackerView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(AuthenticationViewModel.self) private var authViewModel
     @Query private var users: [User]
     @Query(sort: \PeriodLog.startDate, order: .reverse) private var periodLogs: [PeriodLog]
     @Query private var allSettings: [CycleSettings]
 
     @State private var showLogPeriod = false
 
-    private var userId: String { users.first?.id ?? "" }
+    private var userId: String { authViewModel.currentUser?.id ?? users.first?.id ?? "" }
 
     private var userPeriodLogs: [PeriodLog] {
         periodLogs.filter { $0.userId == userId }
@@ -263,3 +264,4 @@ private struct LogPeriodSheet: View {
     CycleTrackerView()
         .modelContainer(for: [User.self, PeriodLog.self, CycleSettings.self], inMemory: true)
 }
+
