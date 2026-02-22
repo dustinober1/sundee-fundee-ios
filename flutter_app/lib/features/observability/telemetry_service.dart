@@ -6,6 +6,13 @@ class TelemetryService {
   const TelemetryService._();
 
   static Future<void> configure() async {
+    if (kIsWeb) {
+      // Firebase Crashlytics is not supported on Web.
+      // We still log the app open event via Analytics which is supported.
+      await FirebaseAnalytics.instance.logAppOpen();
+      return;
+    }
+
     final FirebaseCrashlytics crashlytics = FirebaseCrashlytics.instance;
 
     await crashlytics.setCrashlyticsCollectionEnabled(true);
