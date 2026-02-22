@@ -60,7 +60,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
                   Padding(
                     padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
                     child: Image.asset(
-                      'assets/images/period_logo.png',
+                      'assets/images/period_logo_v2.png',
                       height: 200,
                     ),
                   ),
