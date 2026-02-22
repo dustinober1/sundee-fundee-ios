@@ -24,6 +24,7 @@ class AuthRepository {
   final FirebaseAuth? _auth;
   final FirebaseFirestore? _firestore;
   final GoogleSignIn? _googleSignIn;
+  bool _googleSignInInitialized = false;
 
   Stream<AuthSession> authStateChanges() async* {
     final bool guestEnabled = await _guestModeStore.isGuestModeEnabled();
@@ -77,6 +78,7 @@ class AuthRepository {
 
     final GoogleSignIn googleSignIn = _requireGoogleSignIn();
     await googleSignIn.initialize();
+    _googleSignInInitialized = true;
     final GoogleSignInAccount googleUser = await googleSignIn.authenticate();
     final GoogleSignInAuthentication googleAuth = googleUser.authentication;
     final String? idToken = googleAuth.idToken;
@@ -152,12 +154,10 @@ class AuthRepository {
       return;
     }
 
-    // Google Sign-In signOut may fail if the plugin was never initialized
-    // (e.g., user signed in via email/Apple or used guest mode).
-    try {
+    // Only sign out of Google if the plugin was actually initialized
+    // during this session; calling signOut before init crashes on web.
+    if (_googleSignInInitialized) {
       await _requireGoogleSignIn().signOut();
-    } on StateError catch (_) {
-      // GoogleSignIn was not initialized — safe to ignore.
     }
 
     await _requireAuth().signOut();
