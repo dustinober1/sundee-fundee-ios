@@ -94,6 +94,22 @@ class Exercises {
     ExerciseDefinition(id: 'light-core', name: 'Light Core Work', category: 'Core', muscleGroups: ['core']),
     ExerciseDefinition(id: 'ab-wheel-rollouts', name: 'Ab Wheel Rollouts', category: 'Core', muscleGroups: ['core']),
     ExerciseDefinition(id: 'broad-jumps', name: 'Broad Jumps', category: 'Plyometrics', muscleGroups: ['legs', 'explosiveness']),
+
+    // New Bench Press Accessories
+    ExerciseDefinition(id: 'incline-dumbbell-bench-press', name: 'Incline Dumbbell Bench Press', category: 'Bench Press Variations', muscleGroups: ['upper-chest', 'shoulders']),
+    ExerciseDefinition(id: 'dumbbell-bench-press', name: 'Dumbbell Bench Press', category: 'Bench Press Variations', muscleGroups: ['chest', 'shoulders', 'triceps']),
+    ExerciseDefinition(id: 'chest-flys', name: 'Chest Flys', category: 'Accessories', muscleGroups: ['chest']),
+    ExerciseDefinition(id: 'face-pulls', name: 'Face Pulls', category: 'Accessories', muscleGroups: ['rear-delts', 'upper-back']),
+    ExerciseDefinition(id: 'skullcrushers', name: 'Skullcrushers', category: 'Accessories', muscleGroups: ['triceps']),
+    ExerciseDefinition(id: 'barbell-rows', name: 'Barbell Rows', category: 'Accessories', muscleGroups: ['back', 'biceps']),
+    ExerciseDefinition(id: 'triceps-pushdowns', name: 'Triceps Pushdowns', category: 'Accessories', muscleGroups: ['triceps']),
+    ExerciseDefinition(id: 'dumbbell-pullovers', name: 'Dumbbell Pullovers', category: 'Accessories', muscleGroups: ['chest', 'lats']),
+    ExerciseDefinition(id: 'lateral-raises', name: 'Lateral Raises', category: 'Accessories', muscleGroups: ['shoulders']),
+    ExerciseDefinition(id: 'weighted-dips', name: 'Weighted Dips', category: 'Accessories', muscleGroups: ['chest', 'triceps', 'shoulders']),
+    ExerciseDefinition(id: 'pendlay-rows', name: 'Pendlay Rows', category: 'Accessories', muscleGroups: ['back', 'biceps']),
+    ExerciseDefinition(id: 'overhead-dumbbell-triceps-extensions', name: 'Overhead Dumbbell Triceps Extensions', category: 'Accessories', muscleGroups: ['triceps']),
+    ExerciseDefinition(id: 'pull-ups', name: 'Pull-ups', category: 'Accessories', muscleGroups: ['back', 'biceps']),
+    ExerciseDefinition(id: 'triceps-extensions', name: 'Triceps Extensions', category: 'Accessories', muscleGroups: ['triceps']),
   ];
 
   static ExerciseDefinition? findById(String id) {
