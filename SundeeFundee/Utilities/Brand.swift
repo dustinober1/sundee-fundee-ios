@@ -36,11 +36,16 @@ struct BrandCircularLogo: View {
     }
 
     var body: some View {
-        Image(imageName)
-            .resizable()
-            .scaledToFill()
-            .frame(width: size, height: size)
-            .clipShape(Circle())
+        ZStack {
+            Circle()
+                .fill(Brand.surface)
+
+            Image(imageName)
+                .resizable()
+                .scaledToFit()
+                .padding(size * 0.08)
+        }
+        .frame(width: size, height: size)
+        .clipShape(Circle())
     }
 }
-
