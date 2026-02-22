@@ -12,7 +12,6 @@ struct SignInView: View {
                 Spacer()
 
                 VStack(spacing: 16) {
-                    BrandCircularLogo("AppLogo", size: 160)
 
                     Text("Sundee Fundee")
                         .font(.largeTitle)
@@ -59,3 +58,4 @@ struct SignInView: View {
         }
     }
 }
+

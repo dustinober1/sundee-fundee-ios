@@ -26,26 +26,3 @@ struct BrandBackgroundView<Content: View>: View {
     }
 }
 
-struct BrandCircularLogo: View {
-    let imageName: String
-    var size: CGFloat
-
-    init(_ imageName: String, size: CGFloat = 140) {
-        self.imageName = imageName
-        self.size = size
-    }
-
-    var body: some View {
-        ZStack {
-            Circle()
-                .fill(Brand.surface)
-
-            Image(imageName)
-                .resizable()
-                .scaledToFit()
-                .padding(size * 0.08)
-        }
-        .frame(width: size, height: size)
-        .clipShape(Circle())
-    }
-}
