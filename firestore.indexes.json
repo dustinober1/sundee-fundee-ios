@@ -1,16 +1,6 @@
 {
   "indexes": [
     {
-      "collectionGroup": "workouts",
-      "queryScope": "COLLECTION_GROUP",
-      "fields": [
-        {
-          "fieldPath": "completedAt",
-          "order": "DESCENDING"
-        }
-      ]
-    },
-    {
       "collectionGroup": "completedSets",
       "queryScope": "COLLECTION_GROUP",
       "fields": [
