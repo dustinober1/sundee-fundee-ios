@@ -63,6 +63,14 @@ flutter build appbundle --release
 flutter build ipa --release --no-codesign
 ```
 
+## UI & Design
+
+- **Dark theme** with brand color `#8D2A5B`, gold accent `#D4A853`
+- **Sign-in screen**: gradient background, app logo, glassmorphism card, social sign-in (Apple/Google), email/password, guest mode
+- **Loading screen**: branded splash with logo and gold progress indicator
+- **Global styling**: rounded inputs, gradient primary buttons, styled navigation bar
+- Design tokens centralized in `lib/app/theme.dart` (`AppColors`)
+
 ## Architecture
 
 - **State Management**: Riverpod — providers in `lib/features/*/providers.dart`
