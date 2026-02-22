@@ -186,7 +186,7 @@ The app uses GoRouter with auth-state redirects:
 
 1. **Loading** → `LoadingScreen` (Firebase initializing)
 2. **Unauthenticated** → `SignInScreen` (Apple / Google / Guest)
-3. **Needs Onboarding** → `OnboardingScreen` (name, experience, goals)
+3. **Needs Onboarding** → `OnboardingScreen` (name, gender for strength standards, and cycle tracking toggle)
 4. **Authenticated / Guest** → `MainShellScreen` (dashboard)
 
 ## Known Issues & Fixes
