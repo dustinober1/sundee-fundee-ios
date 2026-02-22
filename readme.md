@@ -162,6 +162,10 @@ The app uses GoRouter with auth-state redirects:
 3. **Needs Onboarding** → `OnboardingScreen` (name, experience, goals)
 4. **Authenticated / Guest** → `MainShellScreen` (dashboard)
 
+## Known Issues & Fixes
+
+- **Google Sign-In web plugin**: The `google_sign_in_web` plugin requires `initialize()` before any other method call. `AuthRepository` tracks initialization state via a `_googleSignInInitialized` flag and skips `GoogleSignIn.signOut()` when the plugin was never initialized (e.g., guest mode, email, or Apple sign-in paths).
+
 ## Cycle-Based Training Recommendations
 
 `CycleCalculations` provides training guidance per menstrual phase:
