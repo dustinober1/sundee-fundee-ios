@@ -57,48 +57,53 @@ class DashboardScreen extends ConsumerWidget {
         stateMessage = 'Not signed in';
     }
 
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          const Text(
-            'Available Programs',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 16),
-          ...[
-            PredefinedPrograms.baseline12Week,
-            PredefinedPrograms.deadlift1Cycle,
-            PredefinedPrograms.benchPress1Cycle,
-          ].map((program) => Card(
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    program.name,
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(program.description),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () {
-                      ScaffoldMessenger.maybeOf(context)?.showSnackBar(
-                        const SnackBar(content: Text('Enrollment coming soon!')),
-                      );
-                    },
-                    child: const Text('Enroll in Program'),
-                  ),
-                ],
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 24.0),
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              const Text(
+                'Available Programs',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
-            ),
-          )),
-          const SizedBox(height: 24),
-          Text(stateMessage),
-        ],
+              const SizedBox(height: 16),
+              ...[
+                PredefinedPrograms.baseline12Week,
+                PredefinedPrograms.deadlift1Cycle,
+                PredefinedPrograms.benchPress1Cycle,
+              ].map((program) => Card(
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        program.name,
+                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(program.description),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () {
+                          ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+                            const SnackBar(content: Text('Enrollment coming soon!')),
+                          );
+                        },
+                        child: const Text('Enroll in Program'),
+                      ),
+                    ],
+                  ),
+                ),
+              )),
+              const SizedBox(height: 24),
+              Text(stateMessage),
+            ],
+          ),
+        ),
       ),
     );
   }
