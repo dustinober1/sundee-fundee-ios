@@ -68,6 +68,7 @@ class DashboardScreen extends ConsumerWidget {
           const SizedBox(height: 16),
           ...[
             PredefinedPrograms.baseline12Week,
+            PredefinedPrograms.squat2Cycle,
             PredefinedPrograms.deadlift1Cycle,
             PredefinedPrograms.benchPress1Cycle,
           ].map((program) => Card(
