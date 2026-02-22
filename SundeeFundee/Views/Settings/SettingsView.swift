@@ -4,7 +4,7 @@ import SwiftData
 struct SettingsView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var users: [User]
-    @State private var authViewModel = AuthenticationViewModel()
+    @Environment(AuthenticationViewModel.self) private var authViewModel
 
     private var currentUser: User? { users.first }
 
@@ -110,3 +110,4 @@ struct OneRepMaxManagementView: View {
     SettingsView()
         .modelContainer(for: [User.self, OneRepMax.self], inMemory: true)
 }
+

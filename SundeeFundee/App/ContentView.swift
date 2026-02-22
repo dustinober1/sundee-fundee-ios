@@ -22,6 +22,7 @@ struct ContentView: View {
                 authViewModel.checkAuthState(context: modelContext)
             }
         }
+        .environment(authViewModel)
     }
 }
 
