@@ -152,7 +152,14 @@ class AuthRepository {
       return;
     }
 
-    await _requireGoogleSignIn().signOut();
+    // Google Sign-In signOut may fail if the plugin was never initialized
+    // (e.g., user signed in via email/Apple or used guest mode).
+    try {
+      await _requireGoogleSignIn().signOut();
+    } on StateError catch (_) {
+      // GoogleSignIn was not initialized — safe to ignore.
+    }
+
     await _requireAuth().signOut();
   }
 
