@@ -36,7 +36,7 @@
             android:name=".PeriodIcon"
             android:enabled="false"
             android:exported="true"
-            android:icon="@mipmap/ic_launcher_period"
+            android:icon="@mipmap/ic_launcher"
             android:targetActivity=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
