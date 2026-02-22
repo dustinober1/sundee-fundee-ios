@@ -27,7 +27,8 @@ Sundee Fundee is a hormonal-aware strength training tracker built with Flutter a
 - 🏋️ Set-by-set workout logging with prescribed weights (based on 1RM)
 - 📈 Max Lifts Tracker for recording 1RM, 3RM, 5RM, and 10RM for various powerlifting and Olympic lifts
 - 📊 Progress tracking and personal records
-- 🔄 Menstrual cycle phase tracking with training recommendations
+- 🔄 Full menstrual cycle tracking: period logging, symptom tracking, phase-based training recommendations, and cycle settings
+- 💪 Phase-aware training recommendations with exercise emphasis/avoidance guidance
 - 👤 Guest mode for offline-first usage
 - 🔐 Sign in with Apple & Google authentication
 - ☁️ Real-time cloud sync across devices via Firestore
@@ -51,7 +52,9 @@ flutter_app/
 │   │   └── calculations/         # Weight & cycle calculation logic
 │   ├── features/                 # Feature modules (Clean Architecture)
 │   │   ├── auth/                 # Authentication (Firebase Auth, guest mode)
+│   │   ├── cycle/                # Period cycle tracking & phase recommendations
 │   │   ├── dashboard/            # Dashboard UI
+│   │   ├── maxes/                # Max Lifts tracker
 │   │   ├── repositories/         # Firestore data repositories
 │   │   ├── migration/            # Legacy data migration utilities
 │   │   ├── observability/        # Analytics & crashlytics
@@ -176,18 +179,36 @@ The app uses GoRouter with auth-state redirects:
 
 - **Google Sign-In web plugin**: The `google_sign_in_web` plugin requires `initialize()` before any other method call. `AuthRepository` tracks initialization state via a `_googleSignInInitialized` flag and skips `GoogleSignIn.signOut()` when the plugin was never initialized (e.g., guest mode, email, or Apple sign-in paths).
 
-## Cycle-Based Training Recommendations
+## Cycle Tracking
 
-`CycleCalculations` provides training guidance per menstrual phase:
+The Cycle tab provides comprehensive menstrual cycle tracking, fully integrated with the strength training experience:
 
-| Phase | Recommendation |
-|-------|---------------|
-| **Menstrual** | Low intensity, recovery focus |
-| **Follicular** | Moderate, building strength |
-| **Ovulation** | Peak intensity, PR attempts |
-| **Luteal** | Maintenance, technique work |
+### Phase Detection & Status
+`CycleCalculations` determines the current cycle phase from logged period data and user settings:
 
-The application now includes the **Squat 1 Cycle**. For women, this baseline program's Sunday heavy lifting day is dynamically adapted based on their active cycle phase via `CycleProgramGenerator`.
+| Phase | Emoji | Training Recommendation |
+|-------|-------|------------------------|
+| **Menstrual** | 🩸 | Low intensity, recovery focus |
+| **Follicular** | 🌱 | Moderate, building strength |
+| **Ovulation** | ☀️ | Peak intensity, PR attempts |
+| **Luteal** | 🌙 | Maintenance, technique work |
+
+### Features
+- **Phase Hero Card** — Displays current phase, cycle day, days until next phase, predicted next period, and recommended intensity
+- **Quick Actions** — One-tap Start/End Period, Log Symptom, and Log Period with detailed bottom sheets
+- **Training Recommendations** — Phase-specific exercise emphasis and avoidance guidance
+- **Phase Timeline** — Color-coded progress bar showing all four phases relative to the current day
+- **Symptom Quick-Log** — Tap emoji chips (Cramps, Headache, Bloating, Fatigue, Mood Swings, Acne, Back Pain, Insomnia) for instant logging
+- **Period History** — View and delete past period logs with flow level and duration
+- **Cycle Settings** — Sliders to configure average cycle length, period length, and luteal phase length
+
+### Firestore Collections
+All cycle data is stored under `users/{userId}/` with the following subcollections:
+- `periodLogs/` — Start/end dates, flow level, notes
+- `symptomLogs/` — Symptom ID, severity (1–5), date, notes
+- `cycleSettings/` — Average cycle length, period length, luteal phase length, enabled symptoms
+
+The application also includes the **Squat 1 Cycle**. For women, this baseline program's Sunday heavy lifting day is dynamically adapted based on their active cycle phase via `CycleProgramGenerator`.
 
 ## CI/CD
 
