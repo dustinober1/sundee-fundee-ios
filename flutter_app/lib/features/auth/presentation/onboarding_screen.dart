@@ -36,10 +36,20 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       await ref
           .read(authRepositoryProvider)
           .completeOnboarding(name: trimmedName);
+
+      // The router watches authSessionStreamProvider, which is driven by
+      // Firebase Auth state changes — NOT Firestore document changes. So
+      // simply writing onboardingComplete=true to Firestore won't trigger a
+      // route redirect on its own. Invalidating the provider forces it to
+      // re-read the user document and emit AuthStatus.authenticated, which
+      // causes GoRouter to navigate to '/'.
+      ref.invalidate(authSessionStreamProvider);
     } catch (error) {
-      setState(() {
-        _errorMessage = error.toString();
-      });
+      if (mounted) {
+        setState(() {
+          _errorMessage = error.toString();
+        });
+      }
     } finally {
       if (mounted) {
         setState(() {
