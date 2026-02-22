@@ -41,9 +41,6 @@ void main() {
 
     final sets = await stream.first;
 
-    // This print statement helps debug/verify the count
-    print('Fetched sets count: ${sets.length}');
-
     // Expect 500 (bounded).
     expect(sets.length, 500);
   });
