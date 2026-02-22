@@ -34,6 +34,7 @@ struct ProgressDashboardView: View {
                                     .clipShape(RoundedRectangle(cornerRadius: 12))
                             }
                         }
+                        .frame(maxWidth: .infinity)
 
                         // Personal Records
                         VStack(alignment: .leading, spacing: 8) {
@@ -65,6 +66,7 @@ struct ProgressDashboardView: View {
                                 }
                             }
                         }
+                        .frame(maxWidth: .infinity)
 
                         // Volume Trend Placeholder
                         VStack(alignment: .leading, spacing: 8) {
@@ -79,6 +81,7 @@ struct ProgressDashboardView: View {
                                 .background(.regularMaterial)
                                 .clipShape(RoundedRectangle(cornerRadius: 12))
                         }
+                        .frame(maxWidth: .infinity)
                     }
                     .padding()
                 }
