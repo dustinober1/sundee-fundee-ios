@@ -8,7 +8,7 @@ class AppColors {
   static const Color brandSecondary = Color(0xFFE25E29); // Orange
   static const Color accentGold = Color(0xFFF2A900); // Yellow/Gold
   
-  static const Color surfaceLight = Color(0xFFF4ECE1); // Cream
+  static const Color surfaceLight = Color(0xFFF4F2E6); // Cream matching main logo background
   static const Color cardLight = Color(0xFFFFFFFF); // White for cards
   
   static const Color textPrimary = Color(0xFF1C354C); // Navy for text
