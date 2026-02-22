@@ -1263,6 +1263,7 @@ class _SymptomLogBottomSheetState
           const SizedBox(height: 8),
           TextField(
             controller: _notesCtrl,
+            maxLength: 500,
             decoration: const InputDecoration(
               hintText: 'Notes (optional)',
             ),
@@ -1280,9 +1281,9 @@ class _SymptomLogBottomSheetState
                         date: DateTime.now(),
                         symptomId: _selectedSymptom!,
                         severity: _severity,
-                        notes: _notesCtrl.text.isEmpty
+                        notes: _notesCtrl.text.trim().isEmpty
                             ? null
-                            : _notesCtrl.text,
+                            : _notesCtrl.text.trim(),
                       );
                       ref
                           .read(cycleControllerProvider.notifier)
@@ -1412,6 +1413,7 @@ class _PeriodLogBottomSheetState
           const SizedBox(height: 12),
           TextField(
             controller: _notesCtrl,
+            maxLength: 500,
             decoration: const InputDecoration(hintText: 'Notes (optional)'),
           ),
           const SizedBox(height: 16),
@@ -1426,7 +1428,7 @@ class _PeriodLogBottomSheetState
                   endDate: _endDate,
                   flowLevel: _flowLevel,
                   notes:
-                      _notesCtrl.text.isEmpty ? null : _notesCtrl.text,
+                      _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
                 );
                 ref
                     .read(cycleControllerProvider.notifier)
