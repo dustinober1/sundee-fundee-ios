@@ -62,7 +62,7 @@ struct LiftMaxInputRow: View {
 private struct RepMaxField: View {
     let repCount: Int
     let value: Double?
-    let onSave: (Double) -> Void
+    let onSave: @MainActor (Double) -> Void
 
     @State private var text: String = ""
     @FocusState private var isFocused: Bool
