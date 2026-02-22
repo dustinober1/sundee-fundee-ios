@@ -76,7 +76,7 @@ struct MaxLiftsView: View {
 private struct LiftCategorySection: View {
     let category: LiftCategory
     let isExpanded: Bool
-    let onToggle: () -> Void
+    let onToggle: @MainActor () -> Void
     let userId: String
     @Bindable var viewModel: MaxLiftsViewModel
 
