@@ -4,26 +4,30 @@ import 'package:flutter/material.dart';
 class AppColors {
   AppColors._();
 
-  static const Color brandPrimary = Color(0xFF8D2A5B);
-  static const Color brandDark = Color(0xFF1A0A12);
-  static const Color surfaceDark = Color(0xFF1E1218);
-  static const Color cardDark = Color(0xFF2A1A22);
-  static const Color textPrimary = Color(0xFFF5EEF1);
-  static const Color textSecondary = Color(0xFFB8A0AC);
-  static const Color accentGold = Color(0xFFD4A853);
+  static const Color brandPrimary = Color(0xFF1C354C); // Navy
+  static const Color brandSecondary = Color(0xFFE25E29); // Orange
+  static const Color accentGold = Color(0xFFF2A900); // Yellow/Gold
+  
+  static const Color surfaceLight = Color(0xFFF4ECE1); // Cream
+  static const Color cardLight = Color(0xFFFFFFFF); // White for cards
+  
+  static const Color textPrimary = Color(0xFF1C354C); // Navy for text
+  static const Color textSecondary = Color(0xFF6A819C); // Lighter Navy/Grey
 }
 
 ThemeData buildAppTheme() {
   final ColorScheme colorScheme = ColorScheme.fromSeed(
     seedColor: AppColors.brandPrimary,
-    brightness: Brightness.dark,
-    surface: AppColors.surfaceDark,
+    brightness: Brightness.light,
+    primary: AppColors.brandPrimary,
+    secondary: AppColors.brandSecondary,
+    surface: AppColors.surfaceLight,
   );
 
   return ThemeData(
-    brightness: Brightness.dark,
+    brightness: Brightness.light,
     colorScheme: colorScheme,
-    scaffoldBackgroundColor: AppColors.surfaceDark,
+    scaffoldBackgroundColor: AppColors.surfaceLight,
     useMaterial3: true,
 
     // Typography
@@ -66,7 +70,7 @@ ThemeData buildAppTheme() {
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         backgroundColor: AppColors.brandPrimary,
-        foregroundColor: AppColors.textPrimary,
+        foregroundColor: Colors.white,
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         textStyle: const TextStyle(
@@ -81,7 +85,7 @@ ThemeData buildAppTheme() {
     // Outlined button
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
-        foregroundColor: AppColors.textPrimary,
+        foregroundColor: AppColors.brandPrimary,
         side: BorderSide(color: AppColors.brandPrimary.withValues(alpha: 0.5)),
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
@@ -96,15 +100,15 @@ ThemeData buildAppTheme() {
     // Text button
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
-        foregroundColor: AppColors.textSecondary,
-        textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+        foregroundColor: AppColors.textPrimary,
+        textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
       ),
     ),
 
     // Input fields
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: AppColors.cardDark,
+      fillColor: AppColors.cardLight,
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
@@ -113,7 +117,7 @@ ThemeData buildAppTheme() {
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
         borderSide: BorderSide(
-          color: AppColors.brandPrimary.withValues(alpha: 0.2),
+          color: AppColors.textSecondary.withValues(alpha: 0.2),
         ),
       ),
       focusedBorder: OutlineInputBorder(
@@ -139,11 +143,11 @@ ThemeData buildAppTheme() {
 
     // Navigation bar
     navigationBarTheme: NavigationBarThemeData(
-      backgroundColor: AppColors.brandDark,
-      indicatorColor: AppColors.brandPrimary.withValues(alpha: 0.3),
+      backgroundColor: AppColors.cardLight,
+      indicatorColor: AppColors.brandPrimary.withValues(alpha: 0.1),
       iconTheme: WidgetStateProperty.resolveWith((Set<WidgetState> states) {
         if (states.contains(WidgetState.selected)) {
-          return const IconThemeData(color: AppColors.accentGold, size: 24);
+          return const IconThemeData(color: AppColors.brandPrimary, size: 24);
         }
         return const IconThemeData(color: AppColors.textSecondary, size: 24);
       }),
@@ -152,7 +156,7 @@ ThemeData buildAppTheme() {
           return const TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: AppColors.accentGold,
+            color: AppColors.brandPrimary,
           );
         }
         return const TextStyle(
@@ -165,15 +169,16 @@ ThemeData buildAppTheme() {
 
     // Card
     cardTheme: CardThemeData(
-      color: AppColors.cardDark,
-      elevation: 0,
+      color: AppColors.cardLight,
+      elevation: 2,
+      shadowColor: AppColors.textSecondary.withValues(alpha: 0.2),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
     ),
 
     // Snackbar
     snackBarTheme: SnackBarThemeData(
-      backgroundColor: AppColors.cardDark,
-      contentTextStyle: const TextStyle(color: AppColors.textPrimary),
+      backgroundColor: AppColors.brandPrimary,
+      contentTextStyle: const TextStyle(color: Colors.white),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       behavior: SnackBarBehavior.floating,
     ),

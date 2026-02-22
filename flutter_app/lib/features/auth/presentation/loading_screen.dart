@@ -11,18 +11,7 @@ class LoadingScreen extends StatelessWidget {
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: RadialGradient(
-            center: Alignment(0, -0.3),
-            radius: 1.4,
-            colors: <Color>[
-              Color(0xFF3A1228),
-              AppColors.brandDark,
-              Color(0xFF0D0509),
-            ],
-            stops: <double>[0.0, 0.5, 1.0],
-          ),
-        ),
+        color: AppColors.surfaceLight,
         child: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -35,9 +24,9 @@ class LoadingScreen extends StatelessWidget {
                   shape: BoxShape.circle,
                   boxShadow: <BoxShadow>[
                     BoxShadow(
-                      color: AppColors.brandPrimary.withValues(alpha: 0.4),
-                      blurRadius: 40,
-                      spreadRadius: 5,
+                      color: AppColors.brandPrimary.withValues(alpha: 0.1),
+                      blurRadius: 30,
+                      spreadRadius: 2,
                     ),
                   ],
                 ),
@@ -54,7 +43,7 @@ class LoadingScreen extends StatelessWidget {
                 height: 32,
                 child: CircularProgressIndicator(
                   strokeWidth: 3,
-                  color: AppColors.accentGold,
+                  color: AppColors.brandPrimary,
                 ),
               ),
               const SizedBox(height: 16),

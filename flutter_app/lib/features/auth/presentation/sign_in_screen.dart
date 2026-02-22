@@ -74,18 +74,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen>
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: RadialGradient(
-            center: Alignment(0, -0.4),
-            radius: 1.4,
-            colors: <Color>[
-              Color(0xFF3A1228),
-              AppColors.brandDark,
-              Color(0xFF0D0509),
-            ],
-            stops: <double>[0.0, 0.5, 1.0],
-          ),
-        ),
+        color: AppColors.surfaceLight,
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(
@@ -113,9 +102,9 @@ class _SignInScreenState extends ConsumerState<SignInScreen>
                       Text(
                         'Strength. Tracked.',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: AppColors.accentGold,
+                              color: AppColors.brandSecondary,
                               letterSpacing: 2.5,
-                              fontWeight: FontWeight.w500,
+                              fontWeight: FontWeight.w600,
                             ),
                       ),
                       const SizedBox(height: 36),
@@ -142,9 +131,9 @@ class _SignInScreenState extends ConsumerState<SignInScreen>
         shape: BoxShape.circle,
         boxShadow: <BoxShadow>[
           BoxShadow(
-            color: AppColors.brandPrimary.withValues(alpha: 0.4),
-            blurRadius: 40,
-            spreadRadius: 5,
+            color: AppColors.brandPrimary.withValues(alpha: 0.1),
+            blurRadius: 30,
+            spreadRadius: 2,
           ),
         ],
       ),
@@ -165,10 +154,10 @@ class _SignInScreenState extends ConsumerState<SignInScreen>
         child: Container(
           padding: const EdgeInsets.all(28),
           decoration: BoxDecoration(
-            color: AppColors.cardDark.withValues(alpha: 0.6),
+            color: AppColors.cardLight.withValues(alpha: 0.8),
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
-              color: AppColors.brandPrimary.withValues(alpha: 0.15),
+              color: AppColors.brandPrimary.withValues(alpha: 0.1),
             ),
           ),
           child: Column(
@@ -372,8 +361,8 @@ class _SignInScreenState extends ConsumerState<SignInScreen>
         icon: Icon(icon, size: 22),
         label: Text(label),
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.textPrimary,
-          foregroundColor: AppColors.brandDark,
+          backgroundColor: AppColors.brandPrimary,
+          foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
@@ -400,12 +389,12 @@ class _SignInScreenState extends ConsumerState<SignInScreen>
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(14),
         gradient: const LinearGradient(
-          colors: <Color>[AppColors.brandPrimary, Color(0xFFB83D72)],
+          colors: <Color>[AppColors.brandPrimary, Color(0xFF2B4C6A)],
         ),
         boxShadow: <BoxShadow>[
           BoxShadow(
-            color: AppColors.brandPrimary.withValues(alpha: 0.4),
-            blurRadius: 16,
+            color: AppColors.brandPrimary.withValues(alpha: 0.3),
+            blurRadius: 12,
             offset: const Offset(0, 4),
           ),
         ],
