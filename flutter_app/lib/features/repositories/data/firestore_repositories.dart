@@ -59,6 +59,7 @@ class FirestoreWorkoutRepository implements WorkoutRepository {
     return _completedSetsCollection(userId)
         .where('workoutId', isEqualTo: workoutId)
         .orderBy('setNumber')
+        .limit(500)
         .snapshots()
         .map((QuerySnapshot<Map<String, dynamic>> snapshot) {
           return snapshot.docs
