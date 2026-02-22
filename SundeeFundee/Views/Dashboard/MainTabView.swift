@@ -22,6 +22,11 @@ struct MainTabView: View {
                     Label("Programs", systemImage: "list.bullet.rectangle.fill")
                 }
 
+            MaxLiftsView()
+                .tabItem {
+                    Label("Maxes", systemImage: "scalemass.fill")
+                }
+
             ProgressDashboardView()
                 .tabItem {
                     Label("Progress", systemImage: "chart.line.uptrend.xyaxis")

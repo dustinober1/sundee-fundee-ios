@@ -32,8 +32,8 @@ struct SettingsView: View {
                         }
 
                         Section("1RM Management") {
-                            NavigationLink("View & Edit 1RMs") {
-                                OneRepMaxManagementView()
+                            NavigationLink("View & Edit Maxes") {
+                                MaxLiftsView()
                             }
                         }
 

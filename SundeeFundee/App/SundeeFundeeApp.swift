@@ -35,6 +35,7 @@ struct SundeeFundeeApp: App {
                      CompletedWorkout.self,
                      CompletedSet.self,
                      OneRepMax.self,
+                     LiftMax.self,
                      PersonalRecord.self,
                      PeriodLog.self,
                      SymptomLog.self,
