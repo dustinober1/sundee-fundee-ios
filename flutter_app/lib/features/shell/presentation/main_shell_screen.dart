@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../cycle/presentation/cycle_tracking_screen.dart';
 import '../../dashboard/presentation/dashboard_screen.dart';
 import '../../maxes/presentation/max_lifts_screen.dart';
 import '../../settings/presentation/settings_screen.dart';
@@ -36,10 +37,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
       subtitle: 'Workout execution and set-by-set logging will be added next.',
     ),
     MaxLiftsScreen(),
-    PlaceholderFeatureScreen(
-      title: 'Cycle',
-      subtitle: 'Cycle tracking and recommendations UI is queued next.',
-    ),
+    CycleTrackingScreen(),
     SettingsScreen(),
   ];
 
