@@ -18,7 +18,7 @@ struct MaxLiftsView: View {
         NavigationStack {
             BrandBackgroundView {
                 ScrollView {
-                    VStack(spacing: 20) {
+                    LazyVStack(spacing: 20) {
                         // Header description
                         Text("Track your rep maxes across every lift. Tap a field to enter weight in lbs.")
                             .font(.subheadline)
@@ -124,7 +124,7 @@ private struct LiftCategorySection: View {
 
             // Expanded exercises
             if isExpanded {
-                VStack(spacing: 0) {
+                LazyVStack(spacing: 0) {
                     ForEach(exercises) { exercise in
                         VStack(spacing: 0) {
                             if exercise.supportsStraps {
