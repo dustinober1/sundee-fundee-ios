@@ -113,61 +113,68 @@ class CycleTrackingScreen extends ConsumerWidget {
           final isSharkweek = status?.currentPhase == CyclePhase.menstrual;
           
           return ListView(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.symmetric(vertical: 12),
             children: [
               if (isSharkweek)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 24),
-                  child: Center(
-                    child: Image.asset(
-                      'assets/images/period_logo_v2.png',
-                      height: 180,
-                    ),
+                  child: Image.asset(
+                    'assets/images/period_logo_v2.png',
+                    width: double.infinity,
+                    fit: BoxFit.fitWidth,
                   ),
                 ),
 
-              // ── Phase hero card
-              _PhaseHeroCard(
-                cycleStatus: status,
-                recommendation: rec,
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // ── Phase hero card
+                    _PhaseHeroCard(
+                      cycleStatus: status,
+                      recommendation: rec,
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // ── Quick actions
+                    _QuickActionsRow(
+                      hasOpenPeriod: periodLogs.any((l) => l.endDate == null),
+                      userId: userId,
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // ── Training recommendation
+                    if (rec != null) ...[
+                      _TrainingRecommendationCard(recommendation: rec),
+                      const SizedBox(height: 20),
+                    ],
+
+                    // ── Phase timeline
+                    if (status != null) ...[
+                      _PhaseTimelineCard(cycleStatus: status),
+                      const SizedBox(height: 20),
+                    ],
+
+                    // ── Symptom quick-log
+                    _SymptomQuickLogCard(userId: userId),
+
+                    const SizedBox(height: 20),
+
+                    // ── Period log history
+                    _PeriodHistoryCard(logs: periodLogs, userId: userId),
+
+                    const SizedBox(height: 20),
+
+                    // ── Cycle Settings
+                    _CycleSettingsCard(userId: userId),
+
+                    const SizedBox(height: 40),
+                  ],
+                ),
               ),
-
-              const SizedBox(height: 20),
-
-              // ── Quick actions
-              _QuickActionsRow(
-                hasOpenPeriod: periodLogs.any((l) => l.endDate == null),
-                userId: userId,
-              ),
-
-              const SizedBox(height: 20),
-
-              // ── Training recommendation
-              if (rec != null) ...[
-                _TrainingRecommendationCard(recommendation: rec),
-                const SizedBox(height: 20),
-              ],
-
-              // ── Phase timeline
-              if (status != null) ...[
-                _PhaseTimelineCard(cycleStatus: status),
-                const SizedBox(height: 20),
-              ],
-
-              // ── Symptom quick-log
-              _SymptomQuickLogCard(userId: userId),
-
-              const SizedBox(height: 20),
-
-              // ── Period log history
-              _PeriodHistoryCard(logs: periodLogs, userId: userId),
-
-              const SizedBox(height: 20),
-
-              // ── Cycle Settings
-              _CycleSettingsCard(userId: userId),
-
-              const SizedBox(height: 40),
             ],
           );
         },
