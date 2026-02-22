@@ -1,12 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-<<<<<<< HEAD
-import '../../../domain/enums.dart';
 import '../../cycle/presentation/cycle_tracking_screen.dart';
-import '../../cycle/providers.dart';
-=======
->>>>>>> programs/deadlift-12-week-1585677400188165246
 import '../../dashboard/presentation/dashboard_screen.dart';
 import '../../maxes/presentation/max_lifts_screen.dart';
 import '../../programs/presentation/programs_screen.dart';
@@ -40,10 +35,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
       subtitle: 'Workout execution and set-by-set logging will be added next.',
     ),
     MaxLiftsScreen(),
-    PlaceholderFeatureScreen(
-      title: 'Cycle',
-      subtitle: 'Cycle tracking and recommendations UI is queued next.',
-    ),
+    CycleTrackingScreen(),
     SettingsScreen(),
   ];
 
@@ -54,22 +46,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
       body: SafeArea(
         child: Consumer(
           builder: (context, ref, child) {
-            final cycleStatus = ref.watch(cycleStatusProvider);
-            final isSharkweek = cycleStatus?.currentPhase == CyclePhase.menstrual;
-            
-            return Column(
-              children: [
-                if (isSharkweek)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
-                    child: Image.asset(
-                      'assets/images/period_logo_v2.png',
-                      height: 200,
-                    ),
-                  ),
-                Expanded(child: _screens[_selectedIndex]),
-              ],
-            );
+            return _screens[_selectedIndex];
           },
         ),
       ),

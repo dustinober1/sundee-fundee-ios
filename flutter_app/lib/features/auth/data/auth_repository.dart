@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 import '../domain/auth_state.dart';
@@ -26,23 +28,48 @@ class AuthRepository {
   final GoogleSignIn? _googleSignIn;
   bool _googleSignInInitialized = false;
 
-  Stream<AuthSession> authStateChanges() async* {
-    final bool guestEnabled = await _guestModeStore.isGuestModeEnabled();
-
+  Stream<AuthSession> authStateChanges() {
     if (!_firebaseEnabled) {
-      yield AuthSession(
-        status: guestEnabled ? AuthStatus.guest : AuthStatus.unauthenticated,
+      return Stream.fromFuture(_guestModeStore.isGuestModeEnabled()).map(
+        (guestEnabled) => AuthSession(
+          status: guestEnabled ? AuthStatus.guest : AuthStatus.unauthenticated,
+        ),
       );
-      return;
     }
 
     final FirebaseAuth auth = _requireAuth();
-    yield await _buildSession(auth.currentUser, guestEnabled: guestEnabled);
 
-    await for (final User? user in auth.authStateChanges()) {
-      final bool currentGuestState = await _guestModeStore.isGuestModeEnabled();
-      yield await _buildSession(user, guestEnabled: currentGuestState);
-    }
+    return Rx.combineLatest2(
+      auth.authStateChanges(),
+      Stream.fromFuture(_guestModeStore.isGuestModeEnabled()).concatWith([
+        _guestModeStore.watchGuestModeChanges(),
+      ]),
+      (User? user, bool guestEnabled) => (user, guestEnabled),
+    ).switchMap((data) {
+      final user = data.$1;
+      final guestEnabled = data.$2;
+
+      if (user == null) {
+        return Stream.value(
+          AuthSession(
+            status: guestEnabled ? AuthStatus.guest : AuthStatus.unauthenticated,
+          ),
+        );
+      }
+
+      // Watch the user document for changes (like onboardingComplete)
+      return _usersCollection.doc(user.uid).snapshots().map((userDoc) {
+        final bool onboardingComplete =
+            userDoc.data()?['onboardingComplete'] as bool? ?? false;
+
+        return AuthSession(
+          status: onboardingComplete
+              ? AuthStatus.authenticated
+              : AuthStatus.needsOnboarding,
+          user: user,
+        );
+      });
+    });
   }
 
   Future<UserCredential> signInWithApple() async {
@@ -161,29 +188,6 @@ class AuthRepository {
     }
 
     await _requireAuth().signOut();
-  }
-
-  Future<AuthSession> _buildSession(
-    User? user, {
-    required bool guestEnabled,
-  }) async {
-    if (user == null) {
-      return AuthSession(
-        status: guestEnabled ? AuthStatus.guest : AuthStatus.unauthenticated,
-      );
-    }
-
-    final DocumentSnapshot<Map<String, dynamic>> userDoc =
-        await _usersCollection.doc(user.uid).get();
-    final bool onboardingComplete =
-        userDoc.data()?['onboardingComplete'] as bool? ?? false;
-
-    return AuthSession(
-      status: onboardingComplete
-          ? AuthStatus.authenticated
-          : AuthStatus.needsOnboarding,
-      user: user,
-    );
   }
 
   Future<void> _ensureUserDocument(User? user) async {

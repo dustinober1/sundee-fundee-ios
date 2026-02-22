@@ -3,6 +3,7 @@ import 'package:sundee_fundee_flutter/domain/models/active_cycle_model.dart';
 import 'package:sundee_fundee_flutter/domain/models/completed_set_model.dart';
 import 'package:sundee_fundee_flutter/domain/models/completed_workout_model.dart';
 import 'package:sundee_fundee_flutter/domain/models/custom_program_model.dart';
+import 'package:sundee_fundee_flutter/domain/models/cycle_models.dart';
 import 'package:sundee_fundee_flutter/domain/models/lift_max_model.dart';
 import 'package:sundee_fundee_flutter/domain/models/one_rep_max_model.dart';
 import 'package:sundee_fundee_flutter/domain/models/personal_record_model.dart';
@@ -275,6 +276,45 @@ class FakeCycleRepository implements CycleRepository {
   @override
   Stream<List<ActiveCycleModel>> watchActiveCycles({required String userId}) {
     return Stream<List<ActiveCycleModel>>.value(cycles);
+  }
+
+  @override
+  Future<void> savePeriodLog({
+    required String userId,
+    required PeriodLogModel log,
+  }) async {}
+
+  @override
+  Future<void> deletePeriodLog({
+    required String userId,
+    required String logId,
+  }) async {}
+
+  @override
+  Stream<List<PeriodLogModel>> watchPeriodLogs({required String userId}) {
+    return Stream.value([]);
+  }
+
+  @override
+  Future<void> saveSymptomLog({
+    required String userId,
+    required SymptomLogModel log,
+  }) async {}
+
+  @override
+  Stream<List<SymptomLogModel>> watchSymptomLogs({required String userId}) {
+    return Stream.value([]);
+  }
+
+  @override
+  Future<void> saveCycleSettings({
+    required String userId,
+    required CycleSettingsModel settings,
+  }) async {}
+
+  @override
+  Stream<CycleSettingsModel?> watchCycleSettings({required String userId}) {
+    return Stream.value(null);
   }
 }
 

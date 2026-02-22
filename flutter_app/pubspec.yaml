@@ -48,6 +48,7 @@ dependencies:
   flutter_dynamic_icon_plus: ^1.4.0
   uuid: ^4.5.3
   intl: ^0.20.2
+  rxdart: ^0.28.0
 
 dev_dependencies:
   flutter_test:

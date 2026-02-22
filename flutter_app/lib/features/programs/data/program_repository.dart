@@ -1,12 +1,16 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../domain/models/program_models.dart';
-import 'deadlift_program.dart';
+import '../../../domain/data/predefined_programs.dart';
 
 class ProgramRepository {
   Future<List<ProgramV2>> getPrograms() async {
-    // In the future, this could fetch from Firestore or an API
-    return <ProgramV2>[deadliftProgram];
+    return <ProgramV2>[
+      PredefinedPrograms.baseline12Week,
+      PredefinedPrograms.squat2Cycle,
+      PredefinedPrograms.deadlift1Cycle,
+      PredefinedPrograms.benchPress1Cycle,
+    ];
   }
 }
 
