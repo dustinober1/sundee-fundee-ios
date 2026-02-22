@@ -49,28 +49,23 @@ final recordRepositoryProvider = Provider<RecordRepository>((Ref ref) {
   return FirestoreRecordRepository(firestore: firestore);
 });
 
-final customProgramRepositoryProvider = Provider<CustomProgramRepository>((
-  Ref ref,
-) {
-  final FirebaseFirestore? firestore = ref.watch(firestoreProvider);
+final customProgramRepositoryProvider = Provider<CustomProgramRepository>((ref) {
+  final firestore = ref.watch(firestoreProvider);
   if (firestore == null) {
     throw StateError(
       'CustomProgramRepository requires ENABLE_FIREBASE=true and initialized Firestore.',
     );
   }
-
   return FirestoreCustomProgramRepository(firestore: firestore);
 });
 
-final enrolledProgramRepositoryProvider = Provider<EnrolledProgramRepository>((
-  Ref ref,
-) {
-  final FirebaseFirestore? firestore = ref.watch(firestoreProvider);
+final enrolledProgramRepositoryProvider = Provider<EnrolledProgramRepository>((ref) {
+  final firestore = ref.watch(firestoreProvider);
   if (firestore == null) {
     throw StateError(
-      'EnrolledProgramRepository requires ENABLE_FIREBASE=true and initialized Firestore.',
+      'EnrolledProgramRepository requires ENABLE_FIREBASE=true and initialized Firestore. '
+      'Check if firebaseAuthEnabled is true.',
     );
   }
-
   return FirestoreEnrolledProgramRepository(firestore: firestore);
 });
