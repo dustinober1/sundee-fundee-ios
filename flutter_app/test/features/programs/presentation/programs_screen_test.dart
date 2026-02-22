@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sundee_fundee_flutter/features/programs/presentation/programs_screen.dart';
 
 void main() {
-  testWidgets('ProgramsScreen renders list of programs', (WidgetTester tester) async {
+  testWidgets('ProgramsScreen renders list of programs including Deadlift Cycle 2', (WidgetTester tester) async {
     await tester.pumpWidget(
       const ProviderScope(
         child: MaterialApp(
@@ -16,17 +16,26 @@ void main() {
     // Wait for FutureProvider to resolve
     await tester.pumpAndSettle();
 
-    // Verify list is shown
-    expect(find.text('12-Week Deadlift Program (Cycle Syncing)'), findsOneWidget);
-    expect(find.text('A 12-week deadlift program designed to align max attempts with ovulation phases for female athletes. Includes speed pulls, heavy rows, and squat variations.'), findsOneWidget);
+    // Scroll to find the program if it's off-screen
+    final Finder programFinder = find.text('Deadlift Cycle 2 (Overload & Tension)');
+    await tester.scrollUntilVisible(
+      programFinder,
+      500.0,
+      scrollable: find.byType(Scrollable).first,
+    );
 
-    // Tap on it
-    await tester.tap(find.text('12-Week Deadlift Program (Cycle Syncing)'));
-    await tester.pumpAndSettle();
+    // Verify Deadlift Cycle 2 is shown
+    expect(programFinder, findsOneWidget);
+    expect(find.text('A 12-week deadlift program focusing on upper back overload, time under tension with clusters, and speed work.'), findsOneWidget);
 
-    // Verify dialog appears
-    expect(find.text('Would you like to start this 12-week program?'), findsOneWidget);
-    expect(find.text('Start'), findsOneWidget);
-    expect(find.text('Cancel'), findsOneWidget);
+    // Verify Enroll button exists (at least one)
+    expect(find.text('Enroll in Program'), findsWidgets);
+
+    // Tap the first enroll button
+    await tester.tap(find.text('Enroll in Program').first);
+    await tester.pump(); // Pump for SnackBar animation
+
+    // Verify SnackBar appears
+    expect(find.text('Enrollment coming soon!'), findsOneWidget);
   });
 }

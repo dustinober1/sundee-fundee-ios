@@ -34,6 +34,7 @@ class Exercises {
     ExerciseDefinition(id: 'block-power-clean', name: 'Block Power Clean', category: 'Olympic Lifts', muscleGroups: ['full-body']),
     ExerciseDefinition(id: 'muscle-clean', name: 'Muscle Clean', category: 'Olympic Lifts', muscleGroups: ['shoulders', 'back']),
     ExerciseDefinition(id: 'clean-pull', name: 'Clean Pull', category: 'Olympic Lifts', muscleGroups: ['full-body']),
+    ExerciseDefinition(id: 'squat-clean-front-squat-complex', name: 'Squat Clean + Front Squat', category: 'Olympic Lifts', muscleGroups: ['full-body', 'legs']),
 
     // Olympic Lifts - Jerks
     ExerciseDefinition(id: 'split-jerk', name: 'Split Jerk', category: 'Olympic Lifts', muscleGroups: ['shoulders', 'triceps', 'legs']),
@@ -129,6 +130,14 @@ class Exercises {
     ExerciseDefinition(id: 'farmers-carries', name: "Farmer's Carries", category: 'Accessories', muscleGroups: ['grip', 'core', 'traps']),
     ExerciseDefinition(id: 'speed-squat', name: 'Speed Squat', category: 'Squat Variations', muscleGroups: ['quads', 'glutes', 'explosiveness']),
     ExerciseDefinition(id: 'tempo-back-squat', name: 'Tempo Back Squat', category: 'Squat Variations', muscleGroups: ['quads', 'glutes', 'core']),
+
+    // Deadlift Cycle 2 Exercises
+    ExerciseDefinition(id: 'snatch-grip-deadlift', name: 'Snatch-Grip Deadlift', category: 'Deadlift Variations', muscleGroups: ['posterior-chain', 'upper-back', 'grip']),
+    ExerciseDefinition(id: 'single-arm-dumbbell-row', name: 'Single-Arm Dumbbell Row', category: 'Back Exercises', muscleGroups: ['back', 'biceps', 'core']),
+    ExerciseDefinition(id: 'suitcase-carries', name: 'Suitcase Carries', category: 'Core', muscleGroups: ['core', 'grip', 'obliques']),
+    ExerciseDefinition(id: 'chest-supported-t-bar-row', name: 'Chest-Supported T-Bar Row', category: 'Back Exercises', muscleGroups: ['back', 'biceps']),
+    ExerciseDefinition(id: 'pause-deadlift', name: 'Pause Deadlift', category: 'Deadlift Variations', muscleGroups: ['posterior-chain', 'core']),
+    ExerciseDefinition(id: 'bodyweight-split-squat', name: 'Bodyweight Split Squat', category: 'Squat Variations', muscleGroups: ['quads', 'glutes', 'core']),
   ];
 
   static ExerciseDefinition? findById(String id) {

@@ -10,6 +10,7 @@ class ProgramRepository {
       PredefinedPrograms.squat2Cycle,
       PredefinedPrograms.deadlift1Cycle,
       PredefinedPrograms.benchPress1Cycle,
+      PredefinedPrograms.deadlift2Cycle,
     ];
   }
 }
