@@ -72,6 +72,7 @@ flutterfire configure \
 ## Knowledge Base & Learning
 
 - **Phase Detection:** `CycleCalculations` determines the current cycle phase (Menstrual, Follicular, Ovulation, Luteal) from logged period data.
+- **Sharkweek Logo:** The "sharkweek" logo (`period_logo_v2.png`) is conditionally displayed at the top of the Cycle Tracking screen *only* when the user is currently in the Menstrual phase.
 - **Program Generation:** `CycleProgramGenerator` adapts training programs based on the active cycle phase.
 - **Guest Mode:** The app supports a guest mode via a compile-time flag `ENABLE_FIREBASE`.
 - **Google Sign-In Web:** Requires initialization before use; handled in `AuthRepository`.

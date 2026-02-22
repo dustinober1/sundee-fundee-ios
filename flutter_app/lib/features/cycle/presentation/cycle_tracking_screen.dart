@@ -110,10 +110,22 @@ class CycleTrackingScreen extends ConsumerWidget {
         data: (periodLogs) {
           final status = cycleStatus;
           final rec = recommendation;
+          final isSharkweek = status?.currentPhase == CyclePhase.menstrual;
           
           return ListView(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             children: [
+              if (isSharkweek)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 24),
+                  child: Center(
+                    child: Image.asset(
+                      'assets/images/period_logo_v2.png',
+                      height: 180,
+                    ),
+                  ),
+                ),
+
               // ── Phase hero card
               _PhaseHeroCard(
                 cycleStatus: status,
