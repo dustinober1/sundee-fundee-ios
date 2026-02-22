@@ -32,9 +32,20 @@ struct CycleTrackerView: View {
         return (phase: result.phase, day: result.dayOfCycle)
     }
 
+    private let sharkWeekBackground = Color(
+        .sRGB,
+        red: 0.965,
+        green: 0.949,
+        blue: 0.902,
+        opacity: 1.0
+    )
+
     var body: some View {
         NavigationStack {
-            BrandBackgroundView {
+            ZStack {
+                sharkWeekBackground
+                    .ignoresSafeArea()
+
                 ScrollView {
                     VStack(spacing: 20) {
                         CycleHeaderLogo()
@@ -91,7 +102,9 @@ private struct CycleHeaderLogo: View {
             .scaledToFit()
             .frame(maxWidth: .infinity)
             .padding()
-            .background(.regularMaterial)
+            .background(
+                Color(.sRGB, red: 0.965, green: 0.949, blue: 0.902, opacity: 1.0)
+            )
             .clipShape(RoundedRectangle(cornerRadius: 16))
             .padding(.horizontal)
             .accessibilityLabel("Shark Week")
@@ -264,4 +277,3 @@ private struct LogPeriodSheet: View {
     CycleTrackerView()
         .modelContainer(for: [User.self, PeriodLog.self, CycleSettings.self], inMemory: true)
 }
-

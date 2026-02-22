@@ -14,9 +14,6 @@ struct DashboardView: View {
             BrandBackgroundView {
                 ScrollView {
                     VStack(spacing: 20) {
-                        BrandCircularLogo("AppLogo", size: 84)
-                            .padding(.top, 4)
-
                         if let activeCycle = activeCycles.first {
                             ActiveCycleCard(cycle: activeCycle)
                         } else {
