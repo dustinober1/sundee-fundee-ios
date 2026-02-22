@@ -1,6 +1,6 @@
 # Sundee Fundee
 
-**Cross-platform strength training app** powered by your cycle.
+**Strength Gained - On You Cycle** — Cross-platform strength training powered by your hormones.
 
 ## Overview
 
@@ -141,6 +141,15 @@ firebase deploy --only storage
 cd flutter_app && flutter build web --release
 cd .. && firebase deploy --only hosting
 ```
+### One-Step Deployment (Web)
+
+A shortcut script is provided in the root directory to build and deploy the web app in one command:
+
+```bash
+./deploy.sh
+```
+
+This script automatically handles the `ENABLE_FIREBASE=true` flag and uses the `canvaskit` renderer for performance.
 
 ## Architecture Decisions
 
