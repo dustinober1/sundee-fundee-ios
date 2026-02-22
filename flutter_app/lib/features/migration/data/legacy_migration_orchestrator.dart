@@ -321,26 +321,30 @@ class LegacyMigrationOrchestrator {
     required Future<void> Function(T model) persist,
   }) async {
     int migrated = 0;
+    final List<Future<void>> tasks = <Future<void>>[];
 
     for (int index = 0; index < records.length; index++) {
       final Map<String, dynamic> record = records[index];
       final String recordId = record['id']?.toString() ?? '$label-index-$index';
 
-      try {
-        final T model = decode(record);
-        await _withRetry(() => persist(model), label: '$label/$recordId');
-        migrated += 1;
-      } catch (error, stackTrace) {
-        final String message = '$label/$recordId: $error';
-        failures.add(message);
-        _crashlytics?.recordError(
-          error,
-          stackTrace,
-          reason: 'Failed to migrate $label record for user $userId',
-        );
-      }
+      tasks.add(() async {
+        try {
+          final T model = decode(record);
+          await _withRetry(() => persist(model), label: '$label/$recordId');
+          migrated += 1;
+        } catch (error, stackTrace) {
+          final String message = '$label/$recordId: $error';
+          failures.add(message);
+          _crashlytics?.recordError(
+            error,
+            stackTrace,
+            reason: 'Failed to migrate $label record for user $userId',
+          );
+        }
+      }());
     }
 
+    await Future.wait(tasks);
     return migrated;
   }
 
