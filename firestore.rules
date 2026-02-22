@@ -40,6 +40,18 @@ service cloud.firestore {
       match /customPrograms/{programDoc=**} {
         allow read, write: if isOwner(userId);
       }
+
+      match /periodLogs/{logId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /symptomLogs/{logId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /cycleSettings/{settingsId} {
+        allow read, write: if isOwner(userId);
+      }
     }
 
     match /programCatalog/{programId} {

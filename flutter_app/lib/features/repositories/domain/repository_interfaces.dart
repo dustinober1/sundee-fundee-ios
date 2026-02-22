@@ -2,6 +2,7 @@ import '../../../domain/models/active_cycle_model.dart';
 import '../../../domain/models/completed_set_model.dart';
 import '../../../domain/models/completed_workout_model.dart';
 import '../../../domain/models/custom_program_model.dart';
+import '../../../domain/models/cycle_models.dart';
 import '../../../domain/models/lift_max_model.dart';
 import '../../../domain/models/one_rep_max_model.dart';
 import '../../../domain/models/personal_record_model.dart';
@@ -32,6 +33,35 @@ abstract class CycleRepository {
   });
 
   Stream<List<ActiveCycleModel>> watchActiveCycles({required String userId});
+
+  // Period logs
+  Future<void> savePeriodLog({
+    required String userId,
+    required PeriodLogModel log,
+  });
+
+  Future<void> deletePeriodLog({
+    required String userId,
+    required String logId,
+  });
+
+  Stream<List<PeriodLogModel>> watchPeriodLogs({required String userId});
+
+  // Symptom logs
+  Future<void> saveSymptomLog({
+    required String userId,
+    required SymptomLogModel log,
+  });
+
+  Stream<List<SymptomLogModel>> watchSymptomLogs({required String userId});
+
+  // Cycle settings
+  Future<void> saveCycleSettings({
+    required String userId,
+    required CycleSettingsModel settings,
+  });
+
+  Stream<CycleSettingsModel?> watchCycleSettings({required String userId});
 }
 
 abstract class LiftRepository {

@@ -80,6 +80,7 @@ class Exercises {
     ExerciseDefinition(id: 'push-press', name: 'Push Press', category: 'Overhead Pressing', muscleGroups: ['shoulders', 'triceps', 'legs']),
     ExerciseDefinition(id: 'z-press', name: 'Z-Press', category: 'Overhead Pressing', muscleGroups: ['shoulders', 'core']),
 
+<<<<<<< HEAD
     // Back Exercises
     ExerciseDefinition(id: 'pendlay-row', name: 'Pendlay Row', category: 'Back Exercises', muscleGroups: ['back', 'biceps', 'core']),
     ExerciseDefinition(id: 'pull-up', name: 'Pull-up', category: 'Back Exercises', muscleGroups: ['back', 'biceps']),
@@ -101,6 +102,23 @@ class Exercises {
     ExerciseDefinition(id: 'speed-deadlift', name: 'Speed Deadlift', category: 'Deadlift Variations', muscleGroups: ['posterior-chain', 'grip']),
     ExerciseDefinition(id: 'rack-pull', name: 'Rack Pull / Block Pull', category: 'Hinge Variations', muscleGroups: ['back', 'glutes', 'grip']),
     ExerciseDefinition(id: 'mobility', name: 'Mobility Work', category: 'Accessory Exercises', muscleGroups: ['full-body']),
+=======
+    // Complexes
+    ExerciseDefinition(id: 'squat-clean-front-squat-complex', name: 'Squat Clean + Front Squat Complex', category: 'Complexes', muscleGroups: ['full-body']),
+
+    // Accessories & Core
+    ExerciseDefinition(id: 'walking-lunges', name: 'Walking Lunges', category: 'Accessories', muscleGroups: ['quads', 'glutes']),
+    ExerciseDefinition(id: 'bodyweight-lunges', name: 'Bodyweight Lunges', category: 'Accessories', muscleGroups: ['quads', 'glutes']),
+    ExerciseDefinition(id: 'weighted-planks', name: 'Weighted Planks', category: 'Core', muscleGroups: ['core']),
+    ExerciseDefinition(id: 'unweighted-planks', name: 'Unweighted Planks', category: 'Core', muscleGroups: ['core']),
+    ExerciseDefinition(id: 'box-jumps', name: 'Box Jumps', category: 'Plyometrics', muscleGroups: ['legs', 'explosiveness']),
+    ExerciseDefinition(id: 'pallof-press', name: 'Pallof Press', category: 'Core', muscleGroups: ['core']),
+    ExerciseDefinition(id: 'leg-curls', name: 'Leg Curls', category: 'Accessories', muscleGroups: ['hamstrings']),
+    ExerciseDefinition(id: 'glute-ham-raises', name: 'Glute Ham Raises', category: 'Accessories', muscleGroups: ['hamstrings', 'glutes', 'lower-back']),
+    ExerciseDefinition(id: 'light-core', name: 'Light Core Work', category: 'Core', muscleGroups: ['core']),
+    ExerciseDefinition(id: 'ab-wheel-rollouts', name: 'Ab Wheel Rollouts', category: 'Core', muscleGroups: ['core']),
+    ExerciseDefinition(id: 'broad-jumps', name: 'Broad Jumps', category: 'Plyometrics', muscleGroups: ['legs', 'explosiveness']),
+>>>>>>> main
   ];
 
   static ExerciseDefinition? findById(String id) {

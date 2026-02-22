@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sundee_fundee_flutter/domain/models/active_cycle_model.dart';
+import 'package:sundee_fundee_flutter/domain/models/cycle_models.dart';
 import 'package:sundee_fundee_flutter/domain/models/completed_set_model.dart';
 import 'package:sundee_fundee_flutter/domain/models/completed_workout_model.dart';
 import 'package:sundee_fundee_flutter/domain/models/custom_program_model.dart';
@@ -263,6 +264,9 @@ class FakeWorkoutRepository implements WorkoutRepository {
 
 class FakeCycleRepository implements CycleRepository {
   final List<ActiveCycleModel> cycles = <ActiveCycleModel>[];
+  final List<PeriodLogModel> periodLogs = <PeriodLogModel>[];
+  final List<SymptomLogModel> symptomLogs = <SymptomLogModel>[];
+  CycleSettingsModel? cycleSettings;
 
   @override
   Future<void> saveActiveCycle({
@@ -275,6 +279,53 @@ class FakeCycleRepository implements CycleRepository {
   @override
   Stream<List<ActiveCycleModel>> watchActiveCycles({required String userId}) {
     return Stream<List<ActiveCycleModel>>.value(cycles);
+  }
+
+  @override
+  Future<void> savePeriodLog({
+    required String userId,
+    required PeriodLogModel log,
+  }) async {
+    periodLogs.add(log);
+  }
+
+  @override
+  Future<void> deletePeriodLog({
+    required String userId,
+    required String logId,
+  }) async {
+    periodLogs.removeWhere((l) => l.id == logId);
+  }
+
+  @override
+  Stream<List<PeriodLogModel>> watchPeriodLogs({required String userId}) {
+    return Stream<List<PeriodLogModel>>.value(periodLogs);
+  }
+
+  @override
+  Future<void> saveSymptomLog({
+    required String userId,
+    required SymptomLogModel log,
+  }) async {
+    symptomLogs.add(log);
+  }
+
+  @override
+  Stream<List<SymptomLogModel>> watchSymptomLogs({required String userId}) {
+    return Stream<List<SymptomLogModel>>.value(symptomLogs);
+  }
+
+  @override
+  Future<void> saveCycleSettings({
+    required String userId,
+    required CycleSettingsModel settings,
+  }) async {
+    cycleSettings = settings;
+  }
+
+  @override
+  Stream<CycleSettingsModel?> watchCycleSettings({required String userId}) {
+    return Stream<CycleSettingsModel?>.value(cycleSettings);
   }
 }
 
