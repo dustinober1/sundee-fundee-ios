@@ -118,6 +118,17 @@ class Exercises {
     ExerciseDefinition(id: 'overhead-dumbbell-triceps-extensions', name: 'Overhead Dumbbell Triceps Extensions', category: 'Accessories', muscleGroups: ['triceps']),
     ExerciseDefinition(id: 'pull-ups', name: 'Pull-ups', category: 'Accessories', muscleGroups: ['back', 'biceps']),
     ExerciseDefinition(id: 'triceps-extensions', name: 'Triceps Extensions', category: 'Accessories', muscleGroups: ['triceps']),
+
+    // Squat Cycle 2 Accessories
+    ExerciseDefinition(id: 'good-mornings', name: 'Good Mornings', category: 'Hinge Variations', muscleGroups: ['hamstrings', 'lower-back']),
+    ExerciseDefinition(id: 'front-rack-reverse-lunges', name: 'Front-Rack Reverse Lunges', category: 'Accessories', muscleGroups: ['quads', 'glutes', 'core']),
+    ExerciseDefinition(id: 'kettlebell-swings', name: 'Kettlebell Swings', category: 'Hinge Variations', muscleGroups: ['posterior-chain', 'glutes']),
+    ExerciseDefinition(id: 'snatch-balance', name: 'Snatch Balance', category: 'Olympic Lifts', muscleGroups: ['shoulders', 'legs', 'core']),
+    ExerciseDefinition(id: 'hanging-leg-raises', name: 'Hanging Leg Raises', category: 'Core', muscleGroups: ['core']),
+    ExerciseDefinition(id: 'barbell-hip-thrusts', name: 'Barbell Hip Thrusts', category: 'Hinge Variations', muscleGroups: ['glutes', 'hamstrings']),
+    ExerciseDefinition(id: 'farmers-carries', name: "Farmer's Carries", category: 'Accessories', muscleGroups: ['grip', 'core', 'traps']),
+    ExerciseDefinition(id: 'speed-squat', name: 'Speed Squat', category: 'Squat Variations', muscleGroups: ['quads', 'glutes', 'explosiveness']),
+    ExerciseDefinition(id: 'tempo-back-squat', name: 'Tempo Back Squat', category: 'Squat Variations', muscleGroups: ['quads', 'glutes', 'core']),
   ];
 
   static ExerciseDefinition? findById(String id) {

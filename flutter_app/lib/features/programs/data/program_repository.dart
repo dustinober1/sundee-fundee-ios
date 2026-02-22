@@ -7,6 +7,7 @@ class ProgramRepository {
   Future<List<ProgramV2>> getPrograms() async {
     return <ProgramV2>[
       PredefinedPrograms.baseline12Week,
+      PredefinedPrograms.squat2Cycle,
       PredefinedPrograms.deadlift1Cycle,
       PredefinedPrograms.benchPress1Cycle,
     ];
