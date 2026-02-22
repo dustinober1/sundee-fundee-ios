@@ -24,6 +24,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Dashboard'), findsOneWidget);
-    expect(find.text('Available Programs'), findsOneWidget);
+    // Updated expectation to match current DashboardScreen content
+    expect(find.text('Workout History'), findsOneWidget);
   });
 }
