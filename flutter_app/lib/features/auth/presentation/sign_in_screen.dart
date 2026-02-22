@@ -100,7 +100,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen>
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        'Strength Gained - On You Cycle',
+                        'Strength Gained - On Your Cycle',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: AppColors.brandSecondary,
                               letterSpacing: 2.5,

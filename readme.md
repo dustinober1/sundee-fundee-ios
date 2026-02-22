@@ -1,6 +1,6 @@
 # Sundee Fundee
 
-**Strength Gained - On You Cycle** — Cross-platform strength training powered by your hormones.
+**Strength Gained - On Your Cycle** — Cross-platform strength training powered by your hormones.
 
 ## Overview
 
