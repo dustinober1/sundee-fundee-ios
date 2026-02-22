@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../domain/enums.dart';
 import '../providers.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {
@@ -13,8 +12,6 @@ class OnboardingScreen extends ConsumerStatefulWidget {
 
 class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final TextEditingController _nameController = TextEditingController();
-  Gender _selectedGender = Gender.preferNotToSay;
-  bool _enableCycleTracking = false;
   bool _isSubmitting = false;
   String? _errorMessage;
 
@@ -36,25 +33,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         throw StateError('Please enter your name to complete onboarding.');
       }
 
-      await ref.read(authRepositoryProvider).completeOnboarding(
-            name: trimmedName,
-            gender: _selectedGender,
-            enableCycleTracking: _enableCycleTracking,
-          );
-
-      // The router watches authSessionStreamProvider, which is driven by
-      // Firebase Auth state changes — NOT Firestore document changes. So
-      // simply writing onboardingComplete=true to Firestore won't trigger a
-      // route redirect on its own. Invalidating the provider forces it to
-      // re-read the user document and emit AuthStatus.authenticated, which
-      // causes GoRouter to navigate to '/'.
-      ref.invalidate(authSessionStreamProvider);
+      await ref
+          .read(authRepositoryProvider)
+          .completeOnboarding(name: trimmedName);
     } catch (error) {
-      if (mounted) {
-        setState(() {
-          _errorMessage = error.toString();
-        });
-      }
+      setState(() {
+        _errorMessage = error.toString();
+      });
     } finally {
       if (mounted) {
         setState(() {
@@ -78,7 +63,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
                 const Text(
-                  'Tell us a bit about yourself to finish setup.',
+                  'Tell us your name to finish setup.',
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                 ),
@@ -90,47 +75,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     labelText: 'Name',
                     border: OutlineInputBorder(),
                   ),
-                ),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<Gender>(
-                  initialValue: _selectedGender,
-                  decoration: const InputDecoration(
-                    labelText: 'Sex / Gender (for strength standards)',
-                    border: OutlineInputBorder(),
-                  ),
-                  items: Gender.values.map((Gender gender) {
-                    return DropdownMenuItem<Gender>(
-                      value: gender,
-                      child: Text(gender.displayName),
-                    );
-                  }).toList(),
-                  onChanged: _isSubmitting
-                      ? null
-                      : (Gender? newValue) {
-                          if (newValue != null) {
-                            setState(() {
-                              _selectedGender = newValue;
-                            });
-                          }
-                        },
-                ),
-                const SizedBox(height: 24),
-                const Text(
-                  'Sundee Fundee can optimize your strength program based on hormonal fluctuations. Do you want to enable menstrual cycle tracking?',
-                  style: TextStyle(fontSize: 14),
-                ),
-                const SizedBox(height: 8),
-                SwitchListTile(
-                  title: const Text('Enable Cycle Tracking'),
-                  contentPadding: EdgeInsets.zero,
-                  value: _enableCycleTracking,
-                  onChanged: _isSubmitting
-                      ? null
-                      : (bool value) {
-                          setState(() {
-                            _enableCycleTracking = value;
-                          });
-                        },
                 ),
                 const SizedBox(height: 12),
                 ElevatedButton(

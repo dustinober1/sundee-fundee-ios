@@ -3,7 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
-import '../../../domain/enums.dart';
 import '../domain/auth_state.dart';
 import 'guest_mode_store.dart';
 
@@ -126,11 +125,7 @@ class AuthRepository {
     return userCredential;
   }
 
-  Future<void> completeOnboarding({
-    required String name,
-    required Gender gender,
-    required bool enableCycleTracking,
-  }) async {
+  Future<void> completeOnboarding({required String name}) async {
     _assertFirebaseEnabled('completeOnboarding');
 
     final User? user = _requireAuth().currentUser;
@@ -140,10 +135,6 @@ class AuthRepository {
 
     await _usersCollection.doc(user.uid).set(<String, dynamic>{
       'displayName': name,
-      'name': name,
-      'gender': gender.name,
-      'genderRaw': gender.name,
-      'enableCycleTracking': enableCycleTracking,
       'onboardingComplete': true,
       'updatedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
@@ -182,30 +173,17 @@ class AuthRepository {
       );
     }
 
-    try {
-      final DocumentSnapshot<Map<String, dynamic>> userDoc =
-          await _usersCollection
-              .doc(user.uid)
-              .get()
-              .timeout(const Duration(seconds: 5));
+    final DocumentSnapshot<Map<String, dynamic>> userDoc =
+        await _usersCollection.doc(user.uid).get();
+    final bool onboardingComplete =
+        userDoc.data()?['onboardingComplete'] as bool? ?? false;
 
-      final bool onboardingComplete =
-          userDoc.data()?['onboardingComplete'] as bool? ?? false;
-
-      return AuthSession(
-        status: onboardingComplete
-            ? AuthStatus.authenticated
-            : AuthStatus.needsOnboarding,
-        user: user,
-      );
-    } catch (_) {
-      // If Firestore hangs or fails, fall back to guest or unauthenticated
-      // to prevent the app from being stuck in a loading state.
-      return AuthSession(
-        status: guestEnabled ? AuthStatus.guest : AuthStatus.unauthenticated,
-        user: user,
-      );
-    }
+    return AuthSession(
+      status: onboardingComplete
+          ? AuthStatus.authenticated
+          : AuthStatus.needsOnboarding,
+      user: user,
+    );
   }
 
   Future<void> _ensureUserDocument(User? user) async {

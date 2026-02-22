@@ -1,7 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sundee_fundee_flutter/domain/calculations/cycle_calculations.dart';
 import 'package:sundee_fundee_flutter/domain/models/cycle_models.dart';
-import 'package:sundee_fundee_flutter/domain/models/program_models.dart';
 import 'package:sundee_fundee_flutter/domain/programs/program_scheduler.dart';
 import 'package:sundee_fundee_flutter/features/programs/data/deadlift_program.dart';
 
