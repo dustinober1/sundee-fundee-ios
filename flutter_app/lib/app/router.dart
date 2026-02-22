@@ -15,7 +15,7 @@ final appRouterProvider = Provider<GoRouter>((Ref ref) {
 
   final AuthStatus authStatus = authSessionAsync.when(
     data: (AuthSession session) => session.status,
-    error: (_, _) => AuthStatus.unauthenticated,
+    error: (Object error, StackTrace stackTrace) => AuthStatus.unauthenticated,
     loading: () => AuthStatus.loading,
   );
 

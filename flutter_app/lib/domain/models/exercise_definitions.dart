@@ -33,6 +33,7 @@ class Exercises {
     ExerciseDefinition(id: 'block-squat-clean', name: 'Block Squat Clean', category: 'Olympic Lifts', muscleGroups: ['full-body']),
     ExerciseDefinition(id: 'block-power-clean', name: 'Block Power Clean', category: 'Olympic Lifts', muscleGroups: ['full-body']),
     ExerciseDefinition(id: 'muscle-clean', name: 'Muscle Clean', category: 'Olympic Lifts', muscleGroups: ['shoulders', 'back']),
+    ExerciseDefinition(id: 'clean-pull', name: 'Clean Pull', category: 'Olympic Lifts', muscleGroups: ['full-body']),
 
     // Olympic Lifts - Jerks
     ExerciseDefinition(id: 'split-jerk', name: 'Split Jerk', category: 'Olympic Lifts', muscleGroups: ['shoulders', 'triceps', 'legs']),
@@ -78,6 +79,28 @@ class Exercises {
     ExerciseDefinition(id: 'strict-press', name: 'Strict Press / Military Press', category: 'Overhead Pressing', muscleGroups: ['shoulders', 'triceps']),
     ExerciseDefinition(id: 'push-press', name: 'Push Press', category: 'Overhead Pressing', muscleGroups: ['shoulders', 'triceps', 'legs']),
     ExerciseDefinition(id: 'z-press', name: 'Z-Press', category: 'Overhead Pressing', muscleGroups: ['shoulders', 'core']),
+
+    // Back Exercises
+    ExerciseDefinition(id: 'pendlay-row', name: 'Pendlay Row', category: 'Back Exercises', muscleGroups: ['back', 'biceps', 'core']),
+    ExerciseDefinition(id: 'pull-up', name: 'Pull-up', category: 'Back Exercises', muscleGroups: ['back', 'biceps']),
+    ExerciseDefinition(id: 'lat-pulldown', name: 'Lat Pulldown', category: 'Back Exercises', muscleGroups: ['back', 'biceps']),
+    ExerciseDefinition(id: 't-bar-row', name: 'T-Bar Row', category: 'Back Exercises', muscleGroups: ['back', 'biceps']),
+
+    // Core Exercises
+    ExerciseDefinition(id: 'weighted-plank', name: 'Weighted Plank', category: 'Core Exercises', muscleGroups: ['core']),
+    ExerciseDefinition(id: 'plank', name: 'Plank', category: 'Core Exercises', muscleGroups: ['core']),
+    ExerciseDefinition(id: 'pallof-press', name: 'Pallof Press', category: 'Core Exercises', muscleGroups: ['core', 'obliques']),
+    ExerciseDefinition(id: 'ab-wheel-rollout', name: 'Ab Wheel Rollout', category: 'Core Exercises', muscleGroups: ['core']),
+
+    // Accessory Exercises
+    ExerciseDefinition(id: 'glute-ham-raise', name: 'Glute Ham Raise', category: 'Accessory Exercises', muscleGroups: ['hamstrings', 'glutes']),
+    ExerciseDefinition(id: 'leg-curl', name: 'Leg Curl', category: 'Accessory Exercises', muscleGroups: ['hamstrings']),
+    ExerciseDefinition(id: 'barbell-shrug', name: 'Barbell Shrug', category: 'Accessory Exercises', muscleGroups: ['traps']),
+
+    // Additional Deadlift/Hinge Variations
+    ExerciseDefinition(id: 'speed-deadlift', name: 'Speed Deadlift', category: 'Deadlift Variations', muscleGroups: ['posterior-chain', 'grip']),
+    ExerciseDefinition(id: 'rack-pull', name: 'Rack Pull / Block Pull', category: 'Hinge Variations', muscleGroups: ['back', 'glutes', 'grip']),
+    ExerciseDefinition(id: 'mobility', name: 'Mobility Work', category: 'Accessory Exercises', muscleGroups: ['full-body']),
   ];
 
   static ExerciseDefinition? findById(String id) {
