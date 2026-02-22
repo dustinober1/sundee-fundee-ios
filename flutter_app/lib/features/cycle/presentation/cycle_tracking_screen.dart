@@ -989,7 +989,7 @@ class _CycleSettingsCard extends ConsumerWidget {
 
     return settingsAsync.when(
       loading: () => const SizedBox.shrink(),
-      error: (_, _) => const SizedBox.shrink(),
+      error: (error, stack) => const SizedBox.shrink(),
       data: (settings) {
         final s = settings ?? defaultCycleSettings(userId ?? '');
 

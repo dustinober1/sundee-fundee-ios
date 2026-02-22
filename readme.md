@@ -191,6 +191,7 @@ The app uses GoRouter with auth-state redirects:
 
 ## Known Issues & Fixes
 
+- **Dart Compiler Errors**: Resolved duplicate `_` variable naming errors in GoRouter error handlers and cycle tracking error states.
 - **Google Sign-In web plugin**: The `google_sign_in_web` plugin requires `initialize()` before any other method call. `AuthRepository` tracks initialization state via a `_googleSignInInitialized` flag and skips `GoogleSignIn.signOut()` when the plugin was never initialized (e.g., guest mode, email, or Apple sign-in paths).
 
 ## Cycle Tracking
