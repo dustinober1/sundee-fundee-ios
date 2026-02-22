@@ -106,11 +106,11 @@ jobs:
         run: flutter pub get
       - name: Install CocoaPods
         run: cd ios && pod install
-      - name: Build iOS IPA (unsigned)
-        run: flutter build ipa --release --no-codesign --dart-define=ENABLE_FIREBASE=true
-      - name: Upload iOS IPA
+      - name: Build iOS App (unsigned)
+        run: flutter build ios --release --no-codesign --dart-define=ENABLE_FIREBASE=true
+      - name: Upload iOS App
         uses: actions/upload-artifact@v4
         with:
           name: ios-release
-          path: flutter_app/build/ios/ipa/
+          path: flutter_app/build/ios/iphoneos/Runner.app
           retention-days: 30
