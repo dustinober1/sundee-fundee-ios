@@ -78,10 +78,10 @@ class WorkoutExecutionNotifier extends Notifier<WorkoutExecutionState?> {
     return null;
   }
 
-  void initialize(ProgramSession session) {
+  Future<void> initialize(ProgramSession session) async {
     if (state != null) return;
 
-    final liftMaxes = ref.read(liftMaxesProvider).asData?.value ?? [];
+    final liftMaxes = await ref.read(liftMaxesProvider.future);
 
     final Map<String, List<SetExecutionState>> initialSets = {};
     for (final exercise in session.exercises) {
