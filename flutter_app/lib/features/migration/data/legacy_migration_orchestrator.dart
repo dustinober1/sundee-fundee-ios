@@ -37,15 +37,15 @@ class LegacyMigrationOrchestrator {
     FirebaseFirestore? firestore,
     FirebaseAnalytics? analytics,
     FirebaseCrashlytics? crashlytics,
-  }) : _legacyMigrationService = legacyMigrationService,
-       _workoutRepository = workoutRepository,
-       _cycleRepository = cycleRepository,
-       _liftRepository = liftRepository,
-       _recordRepository = recordRepository,
-       _customProgramRepository = customProgramRepository,
-       _firestore = firestore,
-       _analytics = analytics,
-       _crashlytics = crashlytics;
+  })  : _legacyMigrationService = legacyMigrationService,
+        _workoutRepository = workoutRepository,
+        _cycleRepository = cycleRepository,
+        _liftRepository = liftRepository,
+        _recordRepository = recordRepository,
+        _customProgramRepository = customProgramRepository,
+        _firestore = firestore,
+        _analytics = analytics,
+        _crashlytics = crashlytics;
 
   final LegacyMigrationService _legacyMigrationService;
   final WorkoutRepository _workoutRepository;
@@ -79,8 +79,8 @@ class LegacyMigrationOrchestrator {
       );
     }
 
-    final Map<String, dynamic> payload = await _legacyMigrationService
-        .readLegacySnapshot(userId: userId);
+    final Map<String, dynamic> payload =
+        await _legacyMigrationService.readLegacySnapshot(userId: userId);
 
     final int expectedRecords = _countExpectedRecords(payload);
     await _writeMigrationState(
@@ -398,12 +398,12 @@ class LegacyMigrationOrchestrator {
         .collection('migrations')
         .doc('apple_to_firebase')
         .set(<String, dynamic>{
-          'state': state,
-          'expectedRecords': expectedRecords,
-          'migratedRecords': migratedRecords,
-          'error': error,
-          'updatedAt': FieldValue.serverTimestamp(),
-        }, SetOptions(merge: true));
+      'state': state,
+      'expectedRecords': expectedRecords,
+      'migratedRecords': migratedRecords,
+      'error': error,
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
   }
 
   List<Map<String, dynamic>> _parseMapList(

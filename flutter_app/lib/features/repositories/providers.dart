@@ -49,7 +49,8 @@ final recordRepositoryProvider = Provider<RecordRepository>((Ref ref) {
   return FirestoreRecordRepository(firestore: firestore);
 });
 
-final customProgramRepositoryProvider = Provider<CustomProgramRepository>((ref) {
+final customProgramRepositoryProvider =
+    Provider<CustomProgramRepository>((ref) {
   final firestore = ref.watch(firestoreProvider);
   if (firestore == null) {
     throw StateError(
@@ -59,7 +60,8 @@ final customProgramRepositoryProvider = Provider<CustomProgramRepository>((ref) 
   return FirestoreCustomProgramRepository(firestore: firestore);
 });
 
-final enrolledProgramRepositoryProvider = Provider<EnrolledProgramRepository>((ref) {
+final enrolledProgramRepositoryProvider =
+    Provider<EnrolledProgramRepository>((ref) {
   final firestore = ref.watch(firestoreProvider);
   if (firestore == null) {
     throw StateError(

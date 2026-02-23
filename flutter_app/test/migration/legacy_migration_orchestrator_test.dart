@@ -16,20 +16,20 @@ void main() {
     test('returns already_complete when migration flag is set', () async {
       final FakeLegacyMigrationService migrationService =
           FakeLegacyMigrationService(
-            supports: true,
-            completed: true,
-            payload: _emptyPayload(),
-          );
+        supports: true,
+        completed: true,
+        payload: _emptyPayload(),
+      );
       final _RepoBundle repos = _RepoBundle();
       final LegacyMigrationOrchestrator orchestrator =
           LegacyMigrationOrchestrator(
-            legacyMigrationService: migrationService,
-            workoutRepository: repos.workout,
-            cycleRepository: repos.cycle,
-            liftRepository: repos.lift,
-            recordRepository: repos.record,
-            customProgramRepository: repos.customProgram,
-          );
+        legacyMigrationService: migrationService,
+        workoutRepository: repos.workout,
+        cycleRepository: repos.cycle,
+        liftRepository: repos.lift,
+        recordRepository: repos.record,
+        customProgramRepository: repos.customProgram,
+      );
 
       final LegacyMigrationResult result = await orchestrator.migrateIfNeeded(
         userId: 'user-1',
@@ -43,20 +43,20 @@ void main() {
     test('migrates payload and marks migration complete', () async {
       final FakeLegacyMigrationService migrationService =
           FakeLegacyMigrationService(
-            supports: true,
-            completed: false,
-            payload: _payloadWithWorkout(),
-          );
+        supports: true,
+        completed: false,
+        payload: _payloadWithWorkout(),
+      );
       final _RepoBundle repos = _RepoBundle();
       final LegacyMigrationOrchestrator orchestrator =
           LegacyMigrationOrchestrator(
-            legacyMigrationService: migrationService,
-            workoutRepository: repos.workout,
-            cycleRepository: repos.cycle,
-            liftRepository: repos.lift,
-            recordRepository: repos.record,
-            customProgramRepository: repos.customProgram,
-          );
+        legacyMigrationService: migrationService,
+        workoutRepository: repos.workout,
+        cycleRepository: repos.cycle,
+        liftRepository: repos.lift,
+        recordRepository: repos.record,
+        customProgramRepository: repos.customProgram,
+      );
 
       final LegacyMigrationResult result = await orchestrator.migrateIfNeeded(
         userId: 'user-1',
@@ -73,22 +73,22 @@ void main() {
     test('retries transient save errors before succeeding', () async {
       final FakeLegacyMigrationService migrationService =
           FakeLegacyMigrationService(
-            supports: true,
-            completed: false,
-            payload: _payloadWithWorkout(),
-          );
+        supports: true,
+        completed: false,
+        payload: _payloadWithWorkout(),
+      );
       final _RepoBundle repos = _RepoBundle();
       repos.workout.failWorkoutSaveAttemptsRemaining = 2;
 
       final LegacyMigrationOrchestrator orchestrator =
           LegacyMigrationOrchestrator(
-            legacyMigrationService: migrationService,
-            workoutRepository: repos.workout,
-            cycleRepository: repos.cycle,
-            liftRepository: repos.lift,
-            recordRepository: repos.record,
-            customProgramRepository: repos.customProgram,
-          );
+        legacyMigrationService: migrationService,
+        workoutRepository: repos.workout,
+        cycleRepository: repos.cycle,
+        liftRepository: repos.lift,
+        recordRepository: repos.record,
+        customProgramRepository: repos.customProgram,
+      );
 
       final LegacyMigrationResult result = await orchestrator.migrateIfNeeded(
         userId: 'user-1',
@@ -102,22 +102,22 @@ void main() {
     test('throws and does not mark complete on persistent failures', () async {
       final FakeLegacyMigrationService migrationService =
           FakeLegacyMigrationService(
-            supports: true,
-            completed: false,
-            payload: _payloadWithWorkout(),
-          );
+        supports: true,
+        completed: false,
+        payload: _payloadWithWorkout(),
+      );
       final _RepoBundle repos = _RepoBundle();
       repos.workout.failWorkoutSaveAttemptsRemaining = 3;
 
       final LegacyMigrationOrchestrator orchestrator =
           LegacyMigrationOrchestrator(
-            legacyMigrationService: migrationService,
-            workoutRepository: repos.workout,
-            cycleRepository: repos.cycle,
-            liftRepository: repos.lift,
-            recordRepository: repos.record,
-            customProgramRepository: repos.customProgram,
-          );
+        legacyMigrationService: migrationService,
+        workoutRepository: repos.workout,
+        cycleRepository: repos.cycle,
+        liftRepository: repos.lift,
+        recordRepository: repos.record,
+        customProgramRepository: repos.customProgram,
+      );
 
       await expectLater(
         orchestrator.migrateIfNeeded(userId: 'user-1'),

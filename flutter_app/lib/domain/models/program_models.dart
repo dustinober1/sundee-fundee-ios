@@ -137,9 +137,8 @@ class ProgramWeek {
       'week': week,
       'phaseId': phaseId,
       'isTestWeek': isTestWeek,
-      'sessions': sessions
-          .map((ProgramSession session) => session.toJson())
-          .toList(),
+      'sessions':
+          sessions.map((ProgramSession session) => session.toJson()).toList(),
     };
   }
 }

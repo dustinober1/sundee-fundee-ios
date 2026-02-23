@@ -88,7 +88,7 @@ Future<void> _pumpScreen({
 
 class FakeLiftRepository implements LiftRepository {
   FakeLiftRepository({List<LiftMaxModel>? initialMaxes})
-    : _maxes = <LiftMaxModel>[...?initialMaxes];
+      : _maxes = <LiftMaxModel>[...?initialMaxes];
 
   final List<LiftMaxModel> _maxes;
   final StreamController<List<LiftMaxModel>> _updatesController =

@@ -21,29 +21,40 @@ class WorkoutLandingScreen extends ConsumerWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.fitness_center, size: 80, color: AppColors.brandPrimary),
+            const Icon(Icons.fitness_center,
+                size: 80, color: AppColors.brandPrimary),
             const SizedBox(height: 32),
             if (isWorkoutActive) ...[
               const Text(
                 'Workout in Progress',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary),
               ),
               const SizedBox(height: 24),
               ElevatedButton.icon(
                 onPressed: () => context.pushNamed('workout'),
                 icon: const Icon(Icons.play_arrow),
-                label: const Text('RESUME WORKOUT', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                label: const Text('RESUME WORKOUT',
+                    style:
+                        TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                   backgroundColor: AppColors.brandSecondary,
                   foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8)),
                 ),
               ),
             ] else ...[
               const Text(
                 'Ready to crush it?',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary),
               ),
               const SizedBox(height: 32),
               _buildNextSessionInfo(context, ref),
@@ -63,7 +74,8 @@ class WorkoutLandingScreen extends ConsumerWidget {
         if (enrollment == null) {
           return const Column(
             children: [
-              Icon(Icons.info_outline, size: 48, color: AppColors.textSecondary),
+              Icon(Icons.info_outline,
+                  size: 48, color: AppColors.textSecondary),
               SizedBox(height: 16),
               Text(
                 'No active program enrollment.',
@@ -94,7 +106,8 @@ class WorkoutLandingScreen extends ConsumerWidget {
 
             return Card(
               elevation: 4,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
               child: Container(
                 width: double.infinity,
                 decoration: BoxDecoration(
@@ -113,13 +126,19 @@ class WorkoutLandingScreen extends ConsumerWidget {
                   children: [
                     Text(
                       program.name,
-                      style: const TextStyle(fontSize: 16, color: Colors.white70, fontWeight: FontWeight.w500),
+                      style: const TextStyle(
+                          fontSize: 16,
+                          color: Colors.white70,
+                          fontWeight: FontWeight.w500),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 8),
                     Text(
                       'Week ${enrollment.currentWeek}, Day ${enrollment.currentDay}',
-                      style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
+                      style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 4),
@@ -132,13 +151,17 @@ class WorkoutLandingScreen extends ConsumerWidget {
                     ElevatedButton.icon(
                       onPressed: () => context.pushNamed('workout'),
                       icon: const Icon(Icons.flash_on),
-                      label: const Text('START SESSION', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      label: const Text('START SESSION',
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold)),
                       style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 24, vertical: 14),
                         backgroundColor: Colors.white,
                         foregroundColor: AppColors.brandPrimary,
                         elevation: 0,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8)),
                       ),
                     ),
                   ],
@@ -147,11 +170,13 @@ class WorkoutLandingScreen extends ConsumerWidget {
             );
           },
           loading: () => const CircularProgressIndicator(),
-          error: (e, st) => Text('Error loading program: $e', style: const TextStyle(color: Colors.red)),
+          error: (e, st) => Text('Error loading program: $e',
+              style: const TextStyle(color: Colors.red)),
         );
       },
       loading: () => const CircularProgressIndicator(),
-      error: (e, st) => Text('Error loading enrollment: $e', style: const TextStyle(color: Colors.red)),
+      error: (e, st) => Text('Error loading enrollment: $e',
+          style: const TextStyle(color: Colors.red)),
     );
   }
 }

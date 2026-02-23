@@ -44,14 +44,13 @@ class WeightCalculations {
 
   static bool wasSessionSuccessful({
     required List<
-      ({
-        int actualReps,
-        int prescribedReps,
-        double actualWeight,
-        double? prescribedWeight,
-      })
-    >
-    sets,
+            ({
+              int actualReps,
+              int prescribedReps,
+              double actualWeight,
+              double? prescribedWeight,
+            })>
+        sets,
   }) {
     return sets.every((
       ({
@@ -59,8 +58,7 @@ class WeightCalculations {
         int prescribedReps,
         double actualWeight,
         double? prescribedWeight,
-      })
-      set,
+      }) set,
     ) {
       return wasSetSuccessful(
         actualReps: set.actualReps,

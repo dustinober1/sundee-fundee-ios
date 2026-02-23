@@ -5,15 +5,18 @@ void main() {
   group('enumFromString', () {
     test('returns correct ExperienceLevel for valid strings', () {
       expect(
-        enumFromString(ExperienceLevel.values, 'beginner', ExperienceLevel.advanced),
+        enumFromString(
+            ExperienceLevel.values, 'beginner', ExperienceLevel.advanced),
         ExperienceLevel.beginner,
       );
       expect(
-        enumFromString(ExperienceLevel.values, 'intermediate', ExperienceLevel.advanced),
+        enumFromString(
+            ExperienceLevel.values, 'intermediate', ExperienceLevel.advanced),
         ExperienceLevel.intermediate,
       );
       expect(
-        enumFromString(ExperienceLevel.values, 'advanced', ExperienceLevel.beginner),
+        enumFromString(
+            ExperienceLevel.values, 'advanced', ExperienceLevel.beginner),
         ExperienceLevel.advanced,
       );
     });
@@ -35,7 +38,8 @@ void main() {
 
     test('returns fallback for invalid strings', () {
       expect(
-        enumFromString(ExperienceLevel.values, 'invalid', ExperienceLevel.beginner),
+        enumFromString(
+            ExperienceLevel.values, 'invalid', ExperienceLevel.beginner),
         ExperienceLevel.beginner,
       );
       expect(
@@ -46,7 +50,8 @@ void main() {
 
     test('returns fallback for null string', () {
       expect(
-        enumFromString(ExperienceLevel.values, null, ExperienceLevel.intermediate),
+        enumFromString(
+            ExperienceLevel.values, null, ExperienceLevel.intermediate),
         ExperienceLevel.intermediate,
       );
     });
@@ -55,7 +60,8 @@ void main() {
       // enum names in Dart are typically camelCase, and value.name returns the name as is.
       // enumFromString compares value.name == rawValue.
       expect(
-        enumFromString(ExperienceLevel.values, 'Beginner', ExperienceLevel.advanced),
+        enumFromString(
+            ExperienceLevel.values, 'Beginner', ExperienceLevel.advanced),
         ExperienceLevel.advanced,
       );
     });

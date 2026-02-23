@@ -8,7 +8,8 @@ import '../../repositories/domain/repository_interfaces.dart';
 import '../../repositories/providers.dart';
 
 class ProgramRepository {
-  ProgramRepository({required EnrolledProgramRepository enrolledProgramRepository})
+  ProgramRepository(
+      {required EnrolledProgramRepository enrolledProgramRepository})
       : _enrolledProgramRepository = enrolledProgramRepository;
 
   final EnrolledProgramRepository _enrolledProgramRepository;
@@ -39,7 +40,8 @@ class ProgramRepository {
     );
   }
 
-  Stream<EnrolledProgramModel?> watchActiveEnrollment({required String userId}) {
+  Stream<EnrolledProgramModel?> watchActiveEnrollment(
+      {required String userId}) {
     return _enrolledProgramRepository.watchActiveEnrollment(userId: userId);
   }
 }
@@ -77,6 +79,7 @@ final StreamProvider<ProgramV2?> activeProgramProvider =
   final programs = await ref.watch(programsProvider.future);
   yield programs.firstWhere(
     (p) => p.id == enrollment.programId,
-    orElse: () => throw StateError('Program not found: ${enrollment.programId}'),
+    orElse: () =>
+        throw StateError('Program not found: ${enrollment.programId}'),
   );
 });

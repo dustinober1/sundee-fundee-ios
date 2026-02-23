@@ -5,16 +5,20 @@ import 'package:go_router/go_router.dart';
 import '../../../app/theme.dart';
 import '../../../domain/models/program_models.dart';
 import '../../programs/data/program_repository.dart';
+import 'plate_calculator_dialog.dart';
+import 'rest_timer_provider.dart';
 import 'workout_execution_providers.dart';
 
 class WorkoutExecutionScreen extends ConsumerStatefulWidget {
   const WorkoutExecutionScreen({super.key});
 
   @override
-  ConsumerState<WorkoutExecutionScreen> createState() => _WorkoutExecutionScreenState();
+  ConsumerState<WorkoutExecutionScreen> createState() =>
+      _WorkoutExecutionScreenState();
 }
 
-class _WorkoutExecutionScreenState extends ConsumerState<WorkoutExecutionScreen> {
+class _WorkoutExecutionScreenState
+    extends ConsumerState<WorkoutExecutionScreen> {
   bool _initialized = false;
   late ProgramSession _session;
   late int _week;
@@ -50,7 +54,9 @@ class _WorkoutExecutionScreenState extends ConsumerState<WorkoutExecutionScreen>
       // Defer state modification
       Future.microtask(() {
         if (mounted) {
-          ref.read(workoutExecutionNotifierProvider.notifier).initialize(_session);
+          ref
+              .read(workoutExecutionNotifierProvider.notifier)
+              .initialize(_session);
         }
       });
       _initialized = true;
@@ -84,19 +90,37 @@ class _WorkoutExecutionScreenState extends ConsumerState<WorkoutExecutionScreen>
           icon: const Icon(Icons.close),
           onPressed: () => _confirmExit(context),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.calculate),
+            onPressed: () => showDialog(
+              context: context,
+              builder: (context) => const PlateCalculatorDialog(),
+            ),
+          ),
+        ],
       ),
       body: state.isSaving
           ? const Center(child: CircularProgressIndicator())
-          : ListView.builder(
-              padding: const EdgeInsets.only(bottom: 100),
-              itemCount: _session.exercises.length,
-              itemBuilder: (context, index) {
-                final exercise = _session.exercises[index];
-                return _ExerciseCard(
-                  exercise: exercise,
-                  setsState: state.exerciseSets[exercise.exercise] ?? [],
-                );
-              },
+          : Stack(
+              children: [
+                ListView.builder(
+                  padding: const EdgeInsets.only(bottom: 100),
+                  itemCount: _session.exercises.length,
+                  itemBuilder: (context, index) {
+                    final exercise = _session.exercises[index];
+                    return _ExerciseCard(
+                      exercise: exercise,
+                      setsState: state.exerciseSets[exercise.exercise] ?? [],
+                    );
+                  },
+                ),
+                const Positioned(
+                  bottom: 16,
+                  left: 16,
+                  child: _RestTimerDisplay(),
+                ),
+              ],
             ),
       floatingActionButton: state.isSaving
           ? null
@@ -114,7 +138,8 @@ class _WorkoutExecutionScreenState extends ConsumerState<WorkoutExecutionScreen>
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Cancel Workout?'),
-        content: const Text('Are you sure you want to cancel this workout? Progress will not be saved.'),
+        content: const Text(
+            'Are you sure you want to cancel this workout? Progress will not be saved.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
@@ -136,11 +161,11 @@ class _WorkoutExecutionScreenState extends ConsumerState<WorkoutExecutionScreen>
   Future<void> _finishWorkout(BuildContext context) async {
     try {
       await ref.read(workoutExecutionNotifierProvider.notifier).finishWorkout(
-        _session,
-        _week,
-        _day,
-        _programId,
-      );
+            _session,
+            _week,
+            _day,
+            _programId,
+          );
       if (context.mounted) {
         context.pop(); // Go back to dashboard
       }
@@ -174,22 +199,41 @@ class _ExerciseCard extends ConsumerWidget {
           children: [
             Text(
               exercise.exercise,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.brandPrimary),
+              style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.brandPrimary),
             ),
             if (exercise.notes != null)
               Padding(
                 padding: const EdgeInsets.only(top: 4.0),
                 child: Text(
                   exercise.notes!,
-                  style: const TextStyle(fontStyle: FontStyle.italic, color: AppColors.textSecondary),
+                  style: const TextStyle(
+                      fontStyle: FontStyle.italic,
+                      color: AppColors.textSecondary),
                 ),
               ),
             const SizedBox(height: 16),
             const Row(
               children: [
-                SizedBox(width: 32, child: Text('Set', style: TextStyle(fontWeight: FontWeight.bold))),
-                Expanded(child: Center(child: Text('LBS', style: TextStyle(fontWeight: FontWeight.bold)))),
-                Expanded(child: Center(child: Text('Reps', style: TextStyle(fontWeight: FontWeight.bold)))),
+                SizedBox(
+                    width: 32,
+                    child: Text('Set',
+                        style: TextStyle(fontWeight: FontWeight.bold))),
+                Expanded(
+                    child: Center(
+                        child: Text('LBS',
+                            style: TextStyle(fontWeight: FontWeight.bold)))),
+                Expanded(
+                    child: Center(
+                        child: Text('Reps',
+                            style: TextStyle(fontWeight: FontWeight.bold)))),
+                SizedBox(
+                    width: 40,
+                    child: Center(
+                        child: Text('RPE',
+                            style: TextStyle(fontWeight: FontWeight.bold)))),
                 SizedBox(width: 48), // Checkbox area
               ],
             ),
@@ -199,6 +243,9 @@ class _ExerciseCard extends ConsumerWidget {
                 exerciseId: exercise.exercise,
                 setIndex: index,
                 state: setsState[index],
+                restSeconds: (exercise.restMinutes != null)
+                    ? (exercise.restMinutes! * 60).round()
+                    : null,
               );
             }),
           ],
@@ -213,11 +260,13 @@ class _SetRow extends ConsumerStatefulWidget {
     required this.exerciseId,
     required this.setIndex,
     required this.state,
+    this.restSeconds,
   });
 
   final String exerciseId;
   final int setIndex;
   final SetExecutionState state;
+  final int? restSeconds;
 
   @override
   ConsumerState<_SetRow> createState() => _SetRowState();
@@ -226,15 +275,24 @@ class _SetRow extends ConsumerStatefulWidget {
 class _SetRowState extends ConsumerState<_SetRow> {
   late TextEditingController _weightController;
   late TextEditingController _repsController;
+  late TextEditingController _rpeController;
 
   @override
   void initState() {
     super.initState();
     _weightController = TextEditingController(
-      text: widget.state.actualWeight > 0 ? widget.state.actualWeight.toStringAsFixed(1).replaceAll(RegExp(r'\.0$'), '') : '',
+      text: widget.state.actualWeight > 0
+          ? widget.state.actualWeight
+              .toStringAsFixed(1)
+              .replaceAll(RegExp(r'\.0$'), '')
+          : '',
     );
     _repsController = TextEditingController(
-      text: widget.state.actualReps > 0 ? widget.state.actualReps.toString() : '',
+      text:
+          widget.state.actualReps > 0 ? widget.state.actualReps.toString() : '',
+    );
+    _rpeController = TextEditingController(
+      text: widget.state.rpe != null ? widget.state.rpe.toString() : '',
     );
   }
 
@@ -242,17 +300,20 @@ class _SetRowState extends ConsumerState<_SetRow> {
   void dispose() {
     _weightController.dispose();
     _repsController.dispose();
+    _rpeController.dispose();
     super.dispose();
   }
 
   void _onChanged() {
     final w = double.tryParse(_weightController.text) ?? 0.0;
     final r = int.tryParse(_repsController.text) ?? 0;
+    final rpe = double.tryParse(_rpeController.text);
     ref.read(workoutExecutionNotifierProvider.notifier).updateSet(
           widget.exerciseId,
           widget.setIndex,
           weight: w,
           reps: r,
+          rpe: rpe,
         );
   }
 
@@ -262,13 +323,15 @@ class _SetRowState extends ConsumerState<_SetRow> {
           widget.exerciseId,
           widget.setIndex,
           isCompleted: val,
+          restSeconds: widget.restSeconds,
         );
   }
 
   @override
   Widget build(BuildContext context) {
     final isCompleted = widget.state.isCompleted;
-    final rowColor = isCompleted ? Colors.green.withValues(alpha: 0.1) : Colors.transparent;
+    final rowColor =
+        isCompleted ? Colors.green.withValues(alpha: 0.1) : Colors.transparent;
 
     return Container(
       color: rowColor,
@@ -284,14 +347,50 @@ class _SetRowState extends ConsumerState<_SetRow> {
               padding: const EdgeInsets.symmetric(horizontal: 8.0),
               child: TextField(
                 controller: _weightController,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
                 textAlign: TextAlign.center,
                 decoration: InputDecoration(
                   isDense: true,
-                  hintText: widget.state.prescribedWeight > 0 ? widget.state.prescribedWeight.toStringAsFixed(1).replaceAll(RegExp(r'\.0$'), '') : '-',
+                  hintText: widget.state.prescribedWeight > 0
+                      ? widget.state.prescribedWeight
+                          .toStringAsFixed(1)
+                          .replaceAll(RegExp(r'\.0$'), '')
+                      : '-',
                   filled: true,
-                  fillColor: isCompleted ? Colors.transparent : Colors.grey.withValues(alpha: 0.1),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+                  fillColor: isCompleted
+                      ? Colors.transparent
+                      : Colors.grey.withValues(alpha: 0.1),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide.none),
+                ),
+                onChanged: (_) => _onChanged(),
+                enabled: !isCompleted,
+              ),
+            ),
+          ),
+          SizedBox(
+            width: 40,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4.0),
+              child: TextField(
+                controller: _rpeController,
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                textAlign: TextAlign.center,
+                decoration: InputDecoration(
+                  isDense: true,
+                  hintText: '-',
+                  filled: true,
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                  fillColor: isCompleted
+                      ? Colors.transparent
+                      : Colors.grey.withValues(alpha: 0.1),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide.none),
                 ),
                 onChanged: (_) => _onChanged(),
                 enabled: !isCompleted,
@@ -307,10 +406,16 @@ class _SetRowState extends ConsumerState<_SetRow> {
                 textAlign: TextAlign.center,
                 decoration: InputDecoration(
                   isDense: true,
-                  hintText: widget.state.prescribedReps > 0 ? widget.state.prescribedReps.toString() : '-',
+                  hintText: widget.state.prescribedReps > 0
+                      ? widget.state.prescribedReps.toString()
+                      : '-',
                   filled: true,
-                  fillColor: isCompleted ? Colors.transparent : Colors.grey.withValues(alpha: 0.1),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+                  fillColor: isCompleted
+                      ? Colors.transparent
+                      : Colors.grey.withValues(alpha: 0.1),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide.none),
                 ),
                 onChanged: (_) => _onChanged(),
                 enabled: !isCompleted,
@@ -328,6 +433,63 @@ class _SetRowState extends ConsumerState<_SetRow> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _RestTimerDisplay extends ConsumerWidget {
+  const _RestTimerDisplay();
+
+  String _formatTime(int totalSeconds) {
+    final m = totalSeconds ~/ 60;
+    final s = totalSeconds % 60;
+    return '$m:${s.toString().padLeft(2, '0')}';
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final timerState = ref.watch(restTimerProvider);
+
+    if (!timerState.isRunning) return const SizedBox.shrink();
+
+    return Card(
+      color: Colors.black87,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.timer, color: Colors.white, size: 20),
+            const SizedBox(width: 8),
+            Text(
+              _formatTime(timerState.remainingSeconds),
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+            const SizedBox(width: 8),
+            IconButton(
+              icon: const Icon(Icons.close, color: Colors.white70, size: 20),
+              constraints: const BoxConstraints(),
+              padding: EdgeInsets.zero,
+              onPressed: () {
+                ref.read(restTimerProvider.notifier).stopTimer();
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.add, color: Colors.white70, size: 20),
+              constraints: const BoxConstraints(),
+              padding: EdgeInsets.zero,
+              onPressed: () {
+                ref.read(restTimerProvider.notifier).addTime(30);
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

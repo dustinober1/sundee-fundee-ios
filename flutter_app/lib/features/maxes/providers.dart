@@ -35,6 +35,7 @@ class MaxesController extends AsyncNotifier<void> {
   }
 }
 
-final maxesControllerProvider = AsyncNotifierProvider<MaxesController, void>(() {
+final maxesControllerProvider =
+    AsyncNotifierProvider<MaxesController, void>(() {
   return MaxesController();
 });

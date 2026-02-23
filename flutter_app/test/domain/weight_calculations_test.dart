@@ -84,66 +84,56 @@ void main() {
 
     test('wasSessionSuccessful checks all sets', () {
       final List<
-        ({
-          int actualReps,
-          int prescribedReps,
-          double actualWeight,
-          double? prescribedWeight,
-        })
-      >
-      passingSets =
-          <
-            ({
-              int actualReps,
-              int prescribedReps,
-              double actualWeight,
-              double? prescribedWeight,
-            })
-          >[
-            (
-              actualReps: 5,
-              prescribedReps: 5,
-              actualWeight: 135,
-              prescribedWeight: 135,
-            ),
-            (
-              actualReps: 5,
-              prescribedReps: 5,
-              actualWeight: 135,
-              prescribedWeight: 135,
-            ),
-          ];
+          ({
+            int actualReps,
+            int prescribedReps,
+            double actualWeight,
+            double? prescribedWeight,
+          })> passingSets = <({
+        int actualReps,
+        int prescribedReps,
+        double actualWeight,
+        double? prescribedWeight,
+      })>[
+        (
+          actualReps: 5,
+          prescribedReps: 5,
+          actualWeight: 135,
+          prescribedWeight: 135,
+        ),
+        (
+          actualReps: 5,
+          prescribedReps: 5,
+          actualWeight: 135,
+          prescribedWeight: 135,
+        ),
+      ];
 
       final List<
-        ({
-          int actualReps,
-          int prescribedReps,
-          double actualWeight,
-          double? prescribedWeight,
-        })
-      >
-      failingSets =
-          <
-            ({
-              int actualReps,
-              int prescribedReps,
-              double actualWeight,
-              double? prescribedWeight,
-            })
-          >[
-            (
-              actualReps: 5,
-              prescribedReps: 5,
-              actualWeight: 135,
-              prescribedWeight: 135,
-            ),
-            (
-              actualReps: 3,
-              prescribedReps: 5,
-              actualWeight: 135,
-              prescribedWeight: 135,
-            ),
-          ];
+          ({
+            int actualReps,
+            int prescribedReps,
+            double actualWeight,
+            double? prescribedWeight,
+          })> failingSets = <({
+        int actualReps,
+        int prescribedReps,
+        double actualWeight,
+        double? prescribedWeight,
+      })>[
+        (
+          actualReps: 5,
+          prescribedReps: 5,
+          actualWeight: 135,
+          prescribedWeight: 135,
+        ),
+        (
+          actualReps: 3,
+          prescribedReps: 5,
+          actualWeight: 135,
+          prescribedWeight: 135,
+        ),
+      ];
 
       expect(
         WeightCalculations.wasSessionSuccessful(sets: passingSets),
@@ -155,15 +145,12 @@ void main() {
       );
       expect(
         WeightCalculations.wasSessionSuccessful(
-          sets:
-              <
-                ({
-                  int actualReps,
-                  int prescribedReps,
-                  double actualWeight,
-                  double? prescribedWeight,
-                })
-              >[],
+          sets: <({
+            int actualReps,
+            int prescribedReps,
+            double actualWeight,
+            double? prescribedWeight,
+          })>[],
         ),
         isTrue,
       );
