@@ -194,8 +194,7 @@ class _ExerciseCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final definition = Exercises.findById(exercise.exercise);
-    final displayName = definition?.name ?? exercise.exercise;
+    final displayName = Exercises.nameById(exercise.exercise);
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

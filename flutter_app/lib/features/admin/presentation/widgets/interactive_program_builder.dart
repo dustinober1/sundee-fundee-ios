@@ -167,7 +167,7 @@ class _InteractiveProgramBuilderState extends State<InteractiveProgramBuilder> {
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          ...session.exercises.map((e) => Text('• ${e.exercise} (${e.sets.displayString}x${e.reps.displayString} @ ${(e.percent1Rm! * 100).toInt()}%)')),
+                          ...session.exercises.map((e) => Text('• ${Exercises.nameById(e.exercise)} (${e.sets.displayString}x${e.reps.displayString} @ ${(e.percent1Rm! * 100).toInt()}%)')),
                           TextButton(
                             onPressed: () => _addExercise(wIdx, sIdx),
                             child: const Text('+ Add Exercise'),

@@ -233,13 +233,7 @@ class WorkoutSummaryScreen extends ConsumerWidget {
 
   Widget _buildExerciseCard(String exerciseId, List<CompletedSetModel> sets) {
     // Look up human-readable name from definitions
-    final definition = Exercises.findById(exerciseId);
-    final displayName = definition?.name ??
-        exerciseId
-            .split('-')
-            .map((word) =>
-                word.isNotEmpty ? '${word[0].toUpperCase()}${word.substring(1)}' : '')
-            .join(' ');
+    final displayName = Exercises.nameById(exerciseId);
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

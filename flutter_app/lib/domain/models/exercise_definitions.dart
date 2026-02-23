@@ -535,4 +535,13 @@ class Exercises {
 
     return null;
   }
+
+  static String nameById(String id) {
+    return findById(id)?.name ??
+        id
+            .split('-')
+            .map((word) =>
+                word.isNotEmpty ? '${word[0].toUpperCase()}${word.substring(1)}' : '')
+            .join(' ');
+  }
 }
