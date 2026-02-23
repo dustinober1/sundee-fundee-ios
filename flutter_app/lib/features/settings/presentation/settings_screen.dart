@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../domain/enums.dart';
 import '../../auth/providers.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -9,6 +10,9 @@ class SettingsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final userProfile = ref.watch(userProfileStreamProvider).asData?.value;
+    final bool isFemale = userProfile?.gender == Gender.female;
+
     return Scaffold(
       body: ListView(
         children: <Widget>[
@@ -26,8 +30,8 @@ class SettingsScreen extends ConsumerWidget {
           ),
           ListTile(
             leading: const Icon(Icons.person_outline),
-            title: Text(ref.watch(authSessionStreamProvider).asData?.value.user?.email ?? 'User'),
-            subtitle: const Text('Logged in'),
+            title: Text(userProfile?.name ?? 'User'),
+            subtitle: Text(ref.watch(authSessionStreamProvider).asData?.value.user?.email ?? 'Logged in'),
           ),
           if (ref.watch(authSessionStreamProvider).asData?.value.user?.email == 'dustinober@me.com')
             ListTile(
@@ -37,6 +41,29 @@ class SettingsScreen extends ConsumerWidget {
               tileColor: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.1),
             ),
           const Divider(),
+          if (isFemale) ...[
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: Text(
+                'App Settings',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey,
+                ),
+              ),
+            ),
+            SwitchListTile(
+              secondary: const Icon(Icons.monitor_heart_outlined),
+              title: const Text('Cycle Tracking'),
+              subtitle: const Text('Hormone-aware training recommendations'),
+              value: userProfile?.cycleTrackingEnabled ?? false,
+              onChanged: (bool value) {
+                ref.read(authRepositoryProvider).updateCycleTracking(value);
+              },
+            ),
+            const Divider(),
+          ],
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
             child: Text(

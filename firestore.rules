@@ -49,7 +49,7 @@ service cloud.firestore {
         allow read, write: if isOwner(userId);
       }
 
-      match /cycleSettings/{settingsId} {
+      match /settings/cycle {
         allow read, write: if isOwner(userId);
       }
 

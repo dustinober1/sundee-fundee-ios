@@ -214,6 +214,20 @@ class AuthRepository {
     await user.updateDisplayName(name);
   }
 
+  Future<void> updateCycleTracking(bool enabled) async {
+    _assertFirebaseEnabled('updateCycleTracking');
+
+    final User? user = _requireAuth().currentUser;
+    if (user == null) {
+      throw StateError('No authenticated user found for updating settings.');
+    }
+
+    await _usersCollection.doc(user.uid).update(<String, dynamic>{
+      'cycleTrackingEnabled': enabled,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
   Future<void> continueAsGuest() async {
     if (_firebaseEnabled) {
       await _requireAuth().signOut();

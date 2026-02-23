@@ -1,6 +1,12 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 DateTime parseDateTime(dynamic value, {required String fieldName}) {
   if (value is DateTime) {
     return value;
+  }
+
+  if (value is Timestamp) {
+    return value.toDate();
   }
 
   if (value is String) {
