@@ -1,13 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sundee_fundee_flutter/domain/data/predefined_programs.dart';
+import 'package:sundee_fundee_flutter/domain/models/program_models.dart';
+import 'package:sundee_fundee_flutter/features/programs/data/program_repository.dart';
 import 'package:sundee_fundee_flutter/features/programs/presentation/programs_screen.dart';
 
 void main() {
-  testWidgets('ProgramsScreen renders list of programs including Deadlift Cycle 2', (WidgetTester tester) async {
+  testWidgets('ProgramsScreen renders list of programs including Deadlift Cycle 2',
+      (WidgetTester tester) async {
     await tester.pumpWidget(
-      const ProviderScope(
-        child: MaterialApp(
+      ProviderScope(
+        overrides: [
+          programsProvider.overrideWith((Ref ref) async {
+            return [PredefinedPrograms.deadlift2Cycle];
+          }),
+        ],
+        child: const MaterialApp(
           home: Scaffold(body: ProgramsScreen()),
         ),
       ),
@@ -17,7 +26,8 @@ void main() {
     await tester.pumpAndSettle();
 
     // Scroll to find the program if it's off-screen
-    final Finder programFinder = find.text('Deadlift Cycle 2 (Overload & Tension)');
+    final Finder programFinder =
+        find.text('Deadlift Cycle 2 (Overload & Tension)');
     await tester.scrollUntilVisible(
       programFinder,
       500.0,
@@ -26,7 +36,10 @@ void main() {
 
     // Verify Deadlift Cycle 2 is shown
     expect(programFinder, findsOneWidget);
-    expect(find.text('A 12-week deadlift program focusing on upper back overload, time under tension with clusters, and speed work.'), findsOneWidget);
+    expect(
+        find.text(
+            'A 12-week deadlift program focusing on upper back overload, time under tension with clusters, and speed work.'),
+        findsOneWidget);
 
     // Verify Enroll button exists (at least one)
     expect(find.text('Enroll in Program'), findsWidgets);
