@@ -144,10 +144,8 @@ class _ExerciseMaxCardState extends State<_ExerciseMaxCard> {
   @override
   Widget build(BuildContext context) {
     final hasAnyMax = widget.maxes.isNotEmpty;
-    final bestMax = widget.maxes[1] ??
-        widget.maxes[3] ??
-        widget.maxes[5] ??
-        widget.maxes[10];
+    final isJump = widget.exercise.category == 'Plyometrics';
+    final bestMax = widget.maxes[1] ?? widget.maxes[3] ?? widget.maxes[5];
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
@@ -196,7 +194,9 @@ class _ExerciseMaxCardState extends State<_ExerciseMaxCard> {
                           ),
                           if (hasAnyMax && bestMax != null)
                             Text(
-                              'Best: ${bestMax.weight} lbs (${bestMax.repCount}RM)',
+                              isJump
+                                  ? 'Best: ${bestMax.weight} in'
+                                  : 'Best: ${bestMax.weight} lbs (${bestMax.repCount}RM)',
                               style: Theme.of(context).textTheme.bodySmall,
                             )
                           else
@@ -222,22 +222,27 @@ class _ExerciseMaxCardState extends State<_ExerciseMaxCard> {
                   children: [
                     const Divider(),
                     const SizedBox(height: 8),
-                    _RepMaxInputRow(
+                    if (isJump)
+                      _RepMaxInputRow(
                         exercise: widget.exercise,
                         repCount: 1,
-                        currentMax: widget.maxes[1]),
-                    _RepMaxInputRow(
-                        exercise: widget.exercise,
-                        repCount: 3,
-                        currentMax: widget.maxes[3]),
-                    _RepMaxInputRow(
-                        exercise: widget.exercise,
-                        repCount: 5,
-                        currentMax: widget.maxes[5]),
-                    _RepMaxInputRow(
-                        exercise: widget.exercise,
-                        repCount: 10,
-                        currentMax: widget.maxes[10]),
+                        currentMax: widget.maxes[1],
+                        isJump: true,
+                      )
+                    else ...[
+                      _RepMaxInputRow(
+                          exercise: widget.exercise,
+                          repCount: 1,
+                          currentMax: widget.maxes[1]),
+                      _RepMaxInputRow(
+                          exercise: widget.exercise,
+                          repCount: 3,
+                          currentMax: widget.maxes[3]),
+                      _RepMaxInputRow(
+                          exercise: widget.exercise,
+                          repCount: 5,
+                          currentMax: widget.maxes[5]),
+                    ],
                   ],
                 ),
               ),
@@ -255,6 +260,7 @@ class _ExerciseMaxCardState extends State<_ExerciseMaxCard> {
     }
     if (category.contains('Olympic')) return Icons.flash_on;
     if (category.contains('Overhead')) return Icons.upload;
+    if (category.contains('Plyometrics')) return Icons.rocket_launch;
     return Icons.accessibility_new;
   }
 }
@@ -264,11 +270,13 @@ class _RepMaxInputRow extends ConsumerStatefulWidget {
     required this.exercise,
     required this.repCount,
     this.currentMax,
+    this.isJump = false,
   });
 
   final ExerciseDefinition exercise;
   final int repCount;
   final LiftMaxModel? currentMax;
+  final bool isJump;
 
   @override
   ConsumerState<_RepMaxInputRow> createState() => _RepMaxInputRowState();
@@ -374,7 +382,7 @@ class _RepMaxInputRowState extends ConsumerState<_RepMaxInputRow> {
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
-              '${widget.repCount} RM',
+              widget.isJump ? 'BEST' : '${widget.repCount} RM',
               style: TextStyle(
                 color: AppColors.brandSecondary,
                 fontWeight: FontWeight.bold,
@@ -390,11 +398,11 @@ class _RepMaxInputRowState extends ConsumerState<_RepMaxInputRow> {
                   const TextInputType.numberWithOptions(decimal: true),
               style: const TextStyle(fontSize: 14),
               decoration: InputDecoration(
-                hintText: 'Weight',
+                hintText: widget.isJump ? 'Distance' : 'Weight',
                 isDense: true,
                 contentPadding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                suffixText: 'lbs',
+                suffixText: widget.isJump ? 'in' : 'lbs',
                 fillColor: AppColors.surfaceLight,
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),

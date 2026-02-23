@@ -334,7 +334,7 @@ class PredefinedPrograms {
                 notes: '1+1',
               ),
               ProgramExercise(
-                exercise: 'bodyweight-lunges',
+                exercise: 'walking-lunges',
                 variant: null,
                 sets: ExerciseValue.fixed(3),
                 reps: ExerciseValue.fixed(10),
@@ -343,7 +343,7 @@ class PredefinedPrograms {
                 notes: '10/leg',
               ),
               ProgramExercise(
-                exercise: 'unweighted-planks',
+                exercise: 'weighted-planks',
                 variant: null,
                 sets: ExerciseValue.fixed(3),
                 reps: ExerciseValue.fixed(1),
@@ -446,7 +446,7 @@ class PredefinedPrograms {
                 notes: null,
               ),
               ProgramExercise(
-                exercise: 'pallof-press',
+                exercise: 'weighted-planks',
                 variant: null,
                 sets: ExerciseValue.fixed(3),
                 reps: ExerciseValue.fixed(12),
@@ -481,7 +481,7 @@ class PredefinedPrograms {
                 notes: '8/leg',
               ),
               ProgramExercise(
-                exercise: 'leg-curls',
+                exercise: 'glute-ham-raises',
                 variant: null,
                 sets: ExerciseValue.fixed(3),
                 reps: ExerciseValue.fixed(10),
@@ -540,7 +540,7 @@ class PredefinedPrograms {
                 notes: null,
               ),
               ProgramExercise(
-                exercise: 'pallof-press',
+                exercise: 'weighted-planks',
                 variant: null,
                 sets: ExerciseValue.fixed(3),
                 reps: ExerciseValue.fixed(12),
@@ -575,7 +575,7 @@ class PredefinedPrograms {
                 notes: '8/leg',
               ),
               ProgramExercise(
-                exercise: 'leg-curls',
+                exercise: 'glute-ham-raises',
                 variant: null,
                 sets: ExerciseValue.fixed(3),
                 reps: ExerciseValue.fixed(10),
@@ -634,7 +634,7 @@ class PredefinedPrograms {
                 notes: null,
               ),
               ProgramExercise(
-                exercise: 'pallof-press',
+                exercise: 'weighted-planks',
                 variant: null,
                 sets: ExerciseValue.fixed(3),
                 reps: ExerciseValue.fixed(12),
@@ -669,7 +669,7 @@ class PredefinedPrograms {
                 notes: '8/leg',
               ),
               ProgramExercise(
-                exercise: 'leg-curls',
+                exercise: 'glute-ham-raises',
                 variant: null,
                 sets: ExerciseValue.fixed(3),
                 reps: ExerciseValue.fixed(10),
@@ -728,7 +728,7 @@ class PredefinedPrograms {
                 notes: null,
               ),
               ProgramExercise(
-                exercise: 'light-core',
+                exercise: 'weighted-planks',
                 variant: null,
                 sets: ExerciseValue.fixed(1),
                 reps: ExerciseValue.fixed(1),
@@ -763,7 +763,7 @@ class PredefinedPrograms {
                 notes: '8/leg',
               ),
               ProgramExercise(
-                exercise: 'leg-curls',
+                exercise: 'glute-ham-raises',
                 variant: null,
                 sets: ExerciseValue.fixed(2),
                 reps: ExerciseValue.fixed(10),
@@ -822,7 +822,7 @@ class PredefinedPrograms {
                 notes: null,
               ),
               ProgramExercise(
-                exercise: 'ab-wheel-rollouts',
+                exercise: 'weighted-planks',
                 variant: null,
                 sets: ExerciseValue.fixed(3),
                 reps: ExerciseValue.fixed(10),
@@ -916,7 +916,7 @@ class PredefinedPrograms {
                 notes: null,
               ),
               ProgramExercise(
-                exercise: 'ab-wheel-rollouts',
+                exercise: 'weighted-planks',
                 variant: null,
                 sets: ExerciseValue.fixed(3),
                 reps: ExerciseValue.fixed(10),
@@ -1010,7 +1010,7 @@ class PredefinedPrograms {
                 notes: null,
               ),
               ProgramExercise(
-                exercise: 'ab-wheel-rollouts',
+                exercise: 'weighted-planks',
                 variant: null,
                 sets: ExerciseValue.fixed(3),
                 reps: ExerciseValue.fixed(10),
@@ -1104,7 +1104,7 @@ class PredefinedPrograms {
                 notes: null,
               ),
               ProgramExercise(
-                exercise: 'light-core',
+                exercise: 'weighted-planks',
                 variant: null,
                 sets: ExerciseValue.fixed(1),
                 reps: ExerciseValue.fixed(1),
@@ -1223,7 +1223,7 @@ class PredefinedPrograms {
                 notes: 'Cable or Dumbbell',
               ),
               ProgramExercise(
-                exercise: 'face-pulls',
+                exercise: 'lateral-raises',
                 variant: null,
                 sets: ExerciseValue.fixed(3),
                 reps: ExerciseValue.fixed(15),
@@ -1317,7 +1317,7 @@ class PredefinedPrograms {
                 notes: null,
               ),
               ProgramExercise(
-                exercise: 'face-pulls',
+                exercise: 'lateral-raises',
                 variant: null,
                 sets: ExerciseValue.fixed(3),
                 reps: ExerciseValue.fixed(15),
@@ -1411,7 +1411,7 @@ class PredefinedPrograms {
                 notes: null,
               ),
               ProgramExercise(
-                exercise: 'face-pulls',
+                exercise: 'lateral-raises',
                 variant: null,
                 sets: ExerciseValue.fixed(3),
                 reps: ExerciseValue.fixed(15),
@@ -1496,7 +1496,7 @@ class PredefinedPrograms {
                 notes: 'Light',
               ),
               ProgramExercise(
-                exercise: 'face-pulls',
+                exercise: 'lateral-raises',
                 variant: null,
                 sets: ExerciseValue.fixed(3),
                 reps: ExerciseValue.fixed(15),
@@ -1522,7 +1522,7 @@ class PredefinedPrograms {
                 notes: 'Light',
               ),
               ProgramExercise(
-                exercise: 'triceps-pushdowns',
+                exercise: 'triceps-extensions',
                 variant: null,
                 sets: ExerciseValue.fixed(3),
                 reps: ExerciseValue.fixed(12),
@@ -1618,7 +1618,7 @@ class PredefinedPrograms {
                 notes: 'Or Board Press',
               ),
               ProgramExercise(
-                exercise: 'weighted-dips',
+                exercise: 'skullcrushers',
                 variant: null,
                 sets: ExerciseValue.fixed(3),
                 reps: ExerciseValue.fixed(8),
@@ -1627,7 +1627,7 @@ class PredefinedPrograms {
                 notes: null,
               ),
               ProgramExercise(
-                exercise: 'pendlay-rows',
+                exercise: 'barbell-rows',
                 variant: null,
                 sets: ExerciseValue.fixed(4),
                 reps: ExerciseValue.fixed(8),
@@ -1712,7 +1712,7 @@ class PredefinedPrograms {
                 notes: 'Or Board Press',
               ),
               ProgramExercise(
-                exercise: 'weighted-dips',
+                exercise: 'skullcrushers',
                 variant: null,
                 sets: ExerciseValue.fixed(3),
                 reps: ExerciseValue.fixed(8),
@@ -1721,7 +1721,7 @@ class PredefinedPrograms {
                 notes: null,
               ),
               ProgramExercise(
-                exercise: 'pendlay-rows',
+                exercise: 'barbell-rows',
                 variant: null,
                 sets: ExerciseValue.fixed(4),
                 reps: ExerciseValue.fixed(8),
@@ -1806,7 +1806,7 @@ class PredefinedPrograms {
                 notes: 'Or Board Press',
               ),
               ProgramExercise(
-                exercise: 'weighted-dips',
+                exercise: 'skullcrushers',
                 variant: null,
                 sets: ExerciseValue.fixed(3),
                 reps: ExerciseValue.fixed(8),
@@ -1815,7 +1815,7 @@ class PredefinedPrograms {
                 notes: null,
               ),
               ProgramExercise(
-                exercise: 'pendlay-rows',
+                exercise: 'barbell-rows',
                 variant: null,
                 sets: ExerciseValue.fixed(4),
                 reps: ExerciseValue.fixed(8),
@@ -1891,7 +1891,7 @@ class PredefinedPrograms {
                 notes: 'Light',
               ),
               ProgramExercise(
-                exercise: 'triceps-pushdowns',
+                exercise: 'triceps-extensions',
                 variant: null,
                 sets: ExerciseValue.fixed(3),
                 reps: ExerciseValue.fixed(12),
@@ -1934,7 +1934,7 @@ class PredefinedPrograms {
             focus: 'Hypertrophy',
             exercises: [
               ProgramExercise(
-                exercise: 'spoto-press',
+                exercise: 'board-press',
                 variant: null,
                 sets: ExerciseValue.fixed(4),
                 reps: ExerciseValue.fixed(3),
@@ -1952,7 +1952,7 @@ class PredefinedPrograms {
                 notes: null,
               ),
               ProgramExercise(
-                exercise: 'face-pulls',
+                exercise: 'lateral-raises',
                 variant: null,
                 sets: ExerciseValue.fixed(3),
                 reps: ExerciseValue.fixed(15),
@@ -1978,7 +1978,7 @@ class PredefinedPrograms {
                 notes: 'Heavy',
               ),
               ProgramExercise(
-                exercise: 'triceps-pushdowns',
+                exercise: 'triceps-extensions',
                 variant: null,
                 sets: ExerciseValue.fixed(4),
                 reps: ExerciseValue.fixed(8),
@@ -2028,7 +2028,7 @@ class PredefinedPrograms {
             focus: 'Hypertrophy',
             exercises: [
               ProgramExercise(
-                exercise: 'spoto-press',
+                exercise: 'board-press',
                 variant: null,
                 sets: ExerciseValue.fixed(4),
                 reps: ExerciseValue.fixed(2),
@@ -2046,7 +2046,7 @@ class PredefinedPrograms {
                 notes: null,
               ),
               ProgramExercise(
-                exercise: 'face-pulls',
+                exercise: 'lateral-raises',
                 variant: null,
                 sets: ExerciseValue.fixed(3),
                 reps: ExerciseValue.fixed(15),
@@ -2072,7 +2072,7 @@ class PredefinedPrograms {
                 notes: 'Heavy',
               ),
               ProgramExercise(
-                exercise: 'triceps-pushdowns',
+                exercise: 'triceps-extensions',
                 variant: null,
                 sets: ExerciseValue.fixed(4),
                 reps: ExerciseValue.fixed(8),
@@ -2122,7 +2122,7 @@ class PredefinedPrograms {
             focus: 'Hypertrophy',
             exercises: [
               ProgramExercise(
-                exercise: 'spoto-press',
+                exercise: 'board-press',
                 variant: null,
                 sets: ExerciseValue.fixed(3),
                 reps: ExerciseValue.fixed(2),
@@ -2224,7 +2224,7 @@ class PredefinedPrograms {
                 notes: 'Very Light',
               ),
               ProgramExercise(
-                exercise: 'face-pulls',
+                exercise: 'lateral-raises',
                 variant: null,
                 sets: ExerciseValue.fixed(2),
                 reps: ExerciseValue.fixed(15),
@@ -2589,7 +2589,7 @@ class PredefinedPrograms {
                 notes: '1+1',
               ),
               ProgramExercise(
-                exercise: 'bodyweight-lunges',
+                exercise: 'walking-lunges',
                 variant: null,
                 sets: ExerciseValue.fixed(3),
                 reps: ExerciseValue.fixed(10),
@@ -2598,7 +2598,7 @@ class PredefinedPrograms {
                 notes: '10/leg',
               ),
               ProgramExercise(
-                exercise: 'unweighted-planks',
+                exercise: 'weighted-planks',
                 variant: null,
                 sets: ExerciseValue.fixed(3),
                 reps: ExerciseValue.fixed(1),
@@ -2701,7 +2701,7 @@ class PredefinedPrograms {
                 notes: null,
               ),
               ProgramExercise(
-                exercise: 'pallof-press',
+                exercise: 'weighted-planks',
                 variant: null,
                 sets: ExerciseValue.fixed(3),
                 reps: ExerciseValue.fixed(12),
@@ -2736,7 +2736,7 @@ class PredefinedPrograms {
                 notes: '8/leg',
               ),
               ProgramExercise(
-                exercise: 'leg-curls',
+                exercise: 'glute-ham-raises',
                 variant: null,
                 sets: ExerciseValue.fixed(3),
                 reps: ExerciseValue.fixed(10),
@@ -2795,7 +2795,7 @@ class PredefinedPrograms {
                 notes: null,
               ),
               ProgramExercise(
-                exercise: 'pallof-press',
+                exercise: 'weighted-planks',
                 variant: null,
                 sets: ExerciseValue.fixed(3),
                 reps: ExerciseValue.fixed(12),
@@ -2830,7 +2830,7 @@ class PredefinedPrograms {
                 notes: '8/leg',
               ),
               ProgramExercise(
-                exercise: 'leg-curls',
+                exercise: 'glute-ham-raises',
                 variant: null,
                 sets: ExerciseValue.fixed(3),
                 reps: ExerciseValue.fixed(10),
@@ -2889,7 +2889,7 @@ class PredefinedPrograms {
                 notes: null,
               ),
               ProgramExercise(
-                exercise: 'pallof-press',
+                exercise: 'weighted-planks',
                 variant: null,
                 sets: ExerciseValue.fixed(3),
                 reps: ExerciseValue.fixed(12),
@@ -2924,7 +2924,7 @@ class PredefinedPrograms {
                 notes: '8/leg',
               ),
               ProgramExercise(
-                exercise: 'leg-curls',
+                exercise: 'glute-ham-raises',
                 variant: null,
                 sets: ExerciseValue.fixed(3),
                 reps: ExerciseValue.fixed(10),
@@ -2983,7 +2983,7 @@ class PredefinedPrograms {
                 notes: null,
               ),
               ProgramExercise(
-                exercise: 'light-core',
+                exercise: 'weighted-planks',
                 variant: null,
                 sets: ExerciseValue.fixed(1),
                 reps: ExerciseValue.fixed(1),
@@ -3018,7 +3018,7 @@ class PredefinedPrograms {
                 notes: '8/leg',
               ),
               ProgramExercise(
-                exercise: 'leg-curls',
+                exercise: 'glute-ham-raises',
                 variant: null,
                 sets: ExerciseValue.fixed(2),
                 reps: ExerciseValue.fixed(10),
@@ -3077,7 +3077,7 @@ class PredefinedPrograms {
                 notes: null,
               ),
               ProgramExercise(
-                exercise: 'ab-wheel-rollouts',
+                exercise: 'weighted-planks',
                 variant: null,
                 sets: ExerciseValue.fixed(3),
                 reps: ExerciseValue.fixed(10),
@@ -3171,7 +3171,7 @@ class PredefinedPrograms {
                 notes: null,
               ),
               ProgramExercise(
-                exercise: 'ab-wheel-rollouts',
+                exercise: 'weighted-planks',
                 variant: null,
                 sets: ExerciseValue.fixed(3),
                 reps: ExerciseValue.fixed(10),
@@ -3265,7 +3265,7 @@ class PredefinedPrograms {
                 notes: null,
               ),
               ProgramExercise(
-                exercise: 'ab-wheel-rollouts',
+                exercise: 'weighted-planks',
                 variant: null,
                 sets: ExerciseValue.fixed(3),
                 reps: ExerciseValue.fixed(10),
@@ -3359,7 +3359,7 @@ class PredefinedPrograms {
                 notes: null,
               ),
               ProgramExercise(
-                exercise: 'light-core',
+                exercise: 'weighted-planks',
                 variant: null,
                 sets: ExerciseValue.fixed(1),
                 reps: ExerciseValue.fixed(1),

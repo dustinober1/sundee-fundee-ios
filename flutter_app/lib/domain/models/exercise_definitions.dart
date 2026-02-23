@@ -77,11 +77,7 @@ class Exercises {
         name: 'Hang Power Clean',
         category: 'Olympic Lifts',
         muscleGroups: ['full-body']),
-    ExerciseDefinition(
-        id: 'block-squat-clean',
-        name: 'Block Squat Clean',
-        category: 'Olympic Lifts',
-        muscleGroups: ['full-body']),
+
     ExerciseDefinition(
         id: 'block-power-clean',
         name: 'Block Power Clean',
@@ -136,11 +132,7 @@ class Exercises {
         name: 'Hang Power Snatch',
         category: 'Olympic Lifts',
         muscleGroups: ['full-body']),
-    ExerciseDefinition(
-        id: 'block-squat-snatch',
-        name: 'Block Squat Snatch',
-        category: 'Olympic Lifts',
-        muscleGroups: ['full-body']),
+
     ExerciseDefinition(
         id: 'block-power-snatch',
         name: 'Block Power Snatch',
@@ -183,11 +175,7 @@ class Exercises {
         name: 'Floor Press',
         category: 'Bench Press Variations',
         muscleGroups: ['triceps', 'chest']),
-    ExerciseDefinition(
-        id: 'spoto-press',
-        name: 'Spoto Press',
-        category: 'Bench Press Variations',
-        muscleGroups: ['chest', 'triceps']),
+
     ExerciseDefinition(
         id: 'board-press',
         name: 'Board Press',
@@ -215,11 +203,7 @@ class Exercises {
         name: 'Sumo Deadlift (With Straps)',
         category: 'Deadlift Variations',
         muscleGroups: ['posterior-chain', 'quads']),
-    ExerciseDefinition(
-        id: 'speed-deadlift',
-        name: 'Speed Deadlift',
-        category: 'Deadlift Variations',
-        muscleGroups: ['posterior-chain', 'grip']),
+
 
     // Hinge Variations
     ExerciseDefinition(
@@ -286,26 +270,14 @@ class Exercises {
         muscleGroups: ['shoulders', 'core']),
 
     // Back Exercises
-    ExerciseDefinition(
-        id: 'pendlay-row',
-        name: 'Pendlay Row',
-        category: 'Back Exercises',
-        muscleGroups: ['back', 'biceps', 'core']),
+
     ExerciseDefinition(
         id: 'pull-up',
         name: 'Pull-up',
         category: 'Back Exercises',
         muscleGroups: ['back', 'biceps']),
-    ExerciseDefinition(
-        id: 'lat-pulldown',
-        name: 'Lat Pulldown',
-        category: 'Back Exercises',
-        muscleGroups: ['back', 'biceps']),
-    ExerciseDefinition(
-        id: 't-bar-row',
-        name: 'T-Bar Row',
-        category: 'Back Exercises',
-        muscleGroups: ['back', 'biceps']),
+
+
 
     // Accessories & Core
     ExerciseDefinition(
@@ -313,51 +285,27 @@ class Exercises {
         name: 'Walking Lunges',
         category: 'Accessories',
         muscleGroups: ['quads', 'glutes']),
-    ExerciseDefinition(
-        id: 'bodyweight-lunges',
-        name: 'Bodyweight Lunges',
-        category: 'Accessories',
-        muscleGroups: ['quads', 'glutes']),
+
     ExerciseDefinition(
         id: 'weighted-planks',
         name: 'Weighted Planks',
         category: 'Core',
         muscleGroups: ['core']),
-    ExerciseDefinition(
-        id: 'unweighted-planks',
-        name: 'Unweighted Planks',
-        category: 'Core',
-        muscleGroups: ['core']),
+
     ExerciseDefinition(
         id: 'box-jumps',
         name: 'Box Jumps',
         category: 'Plyometrics',
         muscleGroups: ['legs', 'explosiveness']),
-    ExerciseDefinition(
-        id: 'pallof-press',
-        name: 'Pallof Press',
-        category: 'Core',
-        muscleGroups: ['core']),
-    ExerciseDefinition(
-        id: 'leg-curls',
-        name: 'Leg Curls',
-        category: 'Accessories',
-        muscleGroups: ['hamstrings']),
+
+
     ExerciseDefinition(
         id: 'glute-ham-raises',
         name: 'Glute Ham Raises',
         category: 'Accessories',
         muscleGroups: ['hamstrings', 'glutes', 'lower-back']),
-    ExerciseDefinition(
-        id: 'light-core',
-        name: 'Light Core Work',
-        category: 'Core',
-        muscleGroups: ['core']),
-    ExerciseDefinition(
-        id: 'ab-wheel-rollouts',
-        name: 'Ab Wheel Rollouts',
-        category: 'Core',
-        muscleGroups: ['core']),
+
+
     ExerciseDefinition(
         id: 'broad-jumps',
         name: 'Broad Jumps',
@@ -368,11 +316,7 @@ class Exercises {
         name: 'Barbell Shrug',
         category: 'Accessories',
         muscleGroups: ['traps']),
-    ExerciseDefinition(
-        id: 'mobility',
-        name: 'Mobility Work',
-        category: 'Accessories',
-        muscleGroups: ['full-body']),
+
 
     // New Bench Press Accessories
     ExerciseDefinition(
@@ -390,11 +334,7 @@ class Exercises {
         name: 'Chest Flys',
         category: 'Accessories',
         muscleGroups: ['chest']),
-    ExerciseDefinition(
-        id: 'face-pulls',
-        name: 'Face Pulls',
-        category: 'Accessories',
-        muscleGroups: ['rear-delts', 'upper-back']),
+
     ExerciseDefinition(
         id: 'skullcrushers',
         name: 'Skullcrushers',
@@ -405,11 +345,7 @@ class Exercises {
         name: 'Barbell Rows',
         category: 'Accessories',
         muscleGroups: ['back', 'biceps']),
-    ExerciseDefinition(
-        id: 'triceps-pushdowns',
-        name: 'Triceps Pushdowns',
-        category: 'Accessories',
-        muscleGroups: ['triceps']),
+
     ExerciseDefinition(
         id: 'dumbbell-pullovers',
         name: 'Dumbbell Pullovers',
@@ -420,16 +356,8 @@ class Exercises {
         name: 'Lateral Raises',
         category: 'Accessories',
         muscleGroups: ['shoulders']),
-    ExerciseDefinition(
-        id: 'weighted-dips',
-        name: 'Weighted Dips',
-        category: 'Accessories',
-        muscleGroups: ['chest', 'triceps', 'shoulders']),
-    ExerciseDefinition(
-        id: 'pendlay-rows',
-        name: 'Pendlay Rows',
-        category: 'Accessories',
-        muscleGroups: ['back', 'biceps']),
+
+
     ExerciseDefinition(
         id: 'overhead-dumbbell-triceps-extensions',
         name: 'Overhead Dumbbell Triceps Extensions',
@@ -457,21 +385,13 @@ class Exercises {
         name: 'Front-Rack Reverse Lunges',
         category: 'Accessories',
         muscleGroups: ['quads', 'glutes', 'core']),
-    ExerciseDefinition(
-        id: 'kettlebell-swings',
-        name: 'Kettlebell Swings',
-        category: 'Hinge Variations',
-        muscleGroups: ['posterior-chain', 'glutes']),
+
     ExerciseDefinition(
         id: 'snatch-balance',
         name: 'Snatch Balance',
         category: 'Olympic Lifts',
         muscleGroups: ['shoulders', 'legs', 'core']),
-    ExerciseDefinition(
-        id: 'hanging-leg-raises',
-        name: 'Hanging Leg Raises',
-        category: 'Core',
-        muscleGroups: ['core']),
+
     ExerciseDefinition(
         id: 'barbell-hip-thrusts',
         name: 'Barbell Hip Thrusts',
@@ -482,16 +402,8 @@ class Exercises {
         name: "Farmer's Carries",
         category: 'Accessories',
         muscleGroups: ['grip', 'core', 'traps']),
-    ExerciseDefinition(
-        id: 'speed-squat',
-        name: 'Speed Squat',
-        category: 'Squat Variations',
-        muscleGroups: ['quads', 'glutes', 'explosiveness']),
-    ExerciseDefinition(
-        id: 'tempo-back-squat',
-        name: 'Tempo Back Squat',
-        category: 'Squat Variations',
-        muscleGroups: ['quads', 'glutes', 'core']),
+
+
   ];
 
   static ExerciseDefinition? findById(String id) {
