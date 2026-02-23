@@ -28,7 +28,9 @@ class _WorkoutExecutionScreenState
   int _initAttempts = 0;
   bool _updatePromptVisible = false;
   bool _hasDeferredUpdate = false;
+  bool _recoveryPrepSkipped = false;
   final Set<String> _handledUpdateSignatures = <String>{};
+  final Set<String> _revertedExercises = <String>{};
   String _sessionSignature = '';
   late ProgramSession _session;
   late int _week;
@@ -137,16 +139,29 @@ class _WorkoutExecutionScreenState
           ? const Center(child: CircularProgressIndicator())
           : Stack(
               children: [
-                ListView.builder(
+                ListView(
                   padding: const EdgeInsets.only(bottom: 100),
-                  itemCount: _session.exercises.length,
-                  itemBuilder: (context, index) {
-                    final exercise = _session.exercises[index];
-                    return _ExerciseCard(
-                      exercise: exercise,
-                      setsState: state.exerciseSets[exercise.exercise] ?? [],
-                    );
-                  },
+                  children: <Widget>[
+                    if (_session.recoveryPrepExercises.isNotEmpty &&
+                        !_recoveryPrepSkipped)
+                      _buildRecoveryPrepBlock(context),
+                    if (_session.recoveryPrepExercises.isNotEmpty &&
+                        !_recoveryPrepSkipped)
+                      const Divider(height: 8, thickness: 0.5),
+                    ..._session.exercises.map(
+                      (ProgramExercise exercise) => _ExerciseCard(
+                        exercise: exercise,
+                        setsState:
+                            state.exerciseSets[exercise.exercise] ?? [],
+                        revertedExercises: _revertedExercises,
+                        onRevertExercise: (String exerciseId) {
+                          setState(() {
+                            _revertedExercises.add(exerciseId);
+                          });
+                        },
+                      ),
+                    ),
+                  ],
                 ),
                 const Positioned(
                   bottom: 16,
@@ -185,6 +200,112 @@ class _WorkoutExecutionScreenState
               backgroundColor: AppColors.brandPrimary,
             ),
     );
+  }
+
+  Widget _buildRecoveryPrepBlock(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      color: Colors.orange.shade50,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Row(
+              children: <Widget>[
+                const Icon(Icons.healing, color: Colors.orange),
+                const SizedBox(width: 8),
+                const Expanded(
+                  child: Text(
+                    'Recovery Prep',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.orange,
+                    ),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => _confirmSkipRecoveryPrep(context),
+                  child: const Text('Skip'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            ..._session.recoveryPrepExercises.map((ProgramExercise exercise) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    const Icon(Icons.circle, size: 6, color: Colors.orange),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Text(
+                            Exercises.nameById(exercise.exercise),
+                            style:
+                                const TextStyle(fontWeight: FontWeight.w500),
+                          ),
+                          Text(
+                            '${exercise.sets.displayString} × ${exercise.reps.displayString}',
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                          if (exercise.notes != null)
+                            Text(
+                              exercise.notes!,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontStyle: FontStyle.italic,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _confirmSkipRecoveryPrep(BuildContext context) async {
+    final bool skip = await showDialog<bool>(
+          context: context,
+          builder: (BuildContext ctx) => AlertDialog(
+            title: const Text('Skip Recovery Prep?'),
+            content: const Text(
+              'These exercises help prepare your body for training with an '
+              'active injury. Skipping may increase risk. Skip anyway?',
+            ),
+            actions: <Widget>[
+              ElevatedButton(
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: const Text('KEEP PREP'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(true),
+                child: const Text('SKIP THIS SESSION'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+
+    if (skip && mounted) {
+      setState(() {
+        _recoveryPrepSkipped = true;
+      });
+    }
   }
 
   void _handleAdaptedProgramUpdate(AsyncValue<ProgramV2?> next) {
@@ -229,7 +350,30 @@ class _WorkoutExecutionScreenState
     _promptForPhaseUpdate(
       latestSession: latestSession,
       latestSignature: latestSignature,
+      isInjuryRelated: _isInjuryRelatedChange(_session, latestSession),
     );
+  }
+
+  bool _isInjuryRelatedChange(
+    ProgramSession previous,
+    ProgramSession next,
+  ) {
+    // Check if recovery prep section changed
+    if (previous.recoveryPrepExercises.length !=
+        next.recoveryPrepExercises.length) {
+      return true;
+    }
+    // Check if any exercise's injuryReplacedOriginal field differs
+    final int minLength = previous.exercises.length < next.exercises.length
+        ? previous.exercises.length
+        : next.exercises.length;
+    for (int i = 0; i < minLength; i++) {
+      if (previous.exercises[i].injuryReplacedOriginal !=
+          next.exercises[i].injuryReplacedOriginal) {
+        return true;
+      }
+    }
+    return false;
   }
 
   ProgramSession _resolveSessionFromProgram(ProgramV2 program) {
@@ -254,7 +398,9 @@ class _WorkoutExecutionScreenState
         ..write(':')
         ..write(exercise.reps.displayString)
         ..write(':')
-        ..write((exercise.percent1Rm ?? 0).toStringAsFixed(3));
+        ..write((exercise.percent1Rm ?? 0).toStringAsFixed(3))
+        ..write(':')
+        ..write(exercise.injuryReplacedOriginal ?? '');
     }
     return buffer.toString();
   }
@@ -293,6 +439,7 @@ class _WorkoutExecutionScreenState
   Future<void> _promptForPhaseUpdate({
     required ProgramSession latestSession,
     required String latestSignature,
+    bool isInjuryRelated = false,
   }) async {
     if (_updatePromptVisible || !mounted) {
       return;
@@ -302,20 +449,28 @@ class _WorkoutExecutionScreenState
     final bool applyNow = await showDialog<bool>(
           context: context,
           builder: (BuildContext dialogContext) => AlertDialog(
-            title: const Text('Cycle Update Available'),
-            content: const Text(
-              'Your cycle phase changed during this workout. Apply updated '
-              'prescriptions to remaining sets now, or defer to your next '
-              'session.',
+            title: Text(
+              isInjuryRelated
+                  ? 'Injury Update Available'
+                  : 'Cycle Update Available',
+            ),
+            content: Text(
+              isInjuryRelated
+                  ? 'Your injury profile changed during this workout. Updated '
+                      'safe exercise prescriptions are available. Apply them to '
+                      'remaining exercises, or keep your current session.'
+                  : 'Your cycle phase changed during this workout. Apply updated '
+                      'prescriptions to remaining sets now, or defer to your next '
+                      'session.',
             ),
             actions: <Widget>[
               TextButton(
                 onPressed: () => Navigator.of(dialogContext).pop(false),
-                child: const Text('DEFER'),
+                child: Text(isInjuryRelated ? 'KEEP CURRENT' : 'DEFER'),
               ),
               ElevatedButton(
                 onPressed: () => Navigator.of(dialogContext).pop(true),
-                child: const Text('APPLY'),
+                child: Text(isInjuryRelated ? 'APPLY SAFE' : 'APPLY'),
               ),
             ],
           ),
@@ -408,14 +563,63 @@ class _ExerciseCard extends ConsumerWidget {
   const _ExerciseCard({
     required this.exercise,
     required this.setsState,
+    required this.revertedExercises,
+    required this.onRevertExercise,
   });
 
   final ProgramExercise exercise;
   final List<SetExecutionState> setsState;
+  final Set<String> revertedExercises;
+  final void Function(String exerciseId) onRevertExercise;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final displayName = Exercises.nameById(exercise.exercise);
+    final bool isReverted = revertedExercises.contains(exercise.exercise);
+    final bool isReplacement = exercise.injuryReplacedOriginal != null;
+
+    // If user reverted, show the original (contraindicated) exercise name.
+    final String displayName = isReverted
+        ? Exercises.nameById(exercise.injuryReplacedOriginal!)
+        : Exercises.nameById(exercise.exercise);
+
+    Future<void> showRevertWarningDialog() async {
+      final String originalName =
+          Exercises.nameById(exercise.injuryReplacedOriginal!);
+      final bool revert = await showDialog<bool>(
+            context: context,
+            builder: (BuildContext dialogContext) => AlertDialog(
+              title: const Text('⚠ Warning: Contraindicated Exercise'),
+              content: Text(
+                "'$originalName' was replaced due to your active injury. "
+                'Performing it may worsen your condition or cause harm.\n\n'
+                'This app does not provide medical advice. Consult a healthcare '
+                'professional before proceeding.',
+              ),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(false),
+                  style: TextButton.styleFrom(
+                    foregroundColor:
+                        Theme.of(dialogContext).colorScheme.primary,
+                  ),
+                  child: const Text('STAY SAFE'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(true),
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.red,
+                  ),
+                  child: const Text('REVERT ANYWAY'),
+                ),
+              ],
+            ),
+          ) ??
+          false;
+
+      if (revert) {
+        onRevertExercise(exercise.exercise);
+      }
+    }
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -431,6 +635,69 @@ class _ExerciseCard extends ConsumerWidget {
                   fontWeight: FontWeight.bold,
                   color: AppColors.brandPrimary),
             ),
+            // Injury replacement info (only when not yet reverted)
+            if (!isReverted && isReplacement) ...<Widget>[
+              const SizedBox(height: 4),
+              Row(
+                children: <Widget>[
+                  const Icon(Icons.swap_horiz, size: 16, color: Colors.orange),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Replaces ${Exercises.nameById(exercise.injuryReplacedOriginal!)}',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.orange,
+                    ),
+                  ),
+                ],
+              ),
+              if (exercise.injuryReplacementReason != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Text(
+                    exercise.injuryReplacementReason!,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontStyle: FontStyle.italic,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ),
+              TextButton(
+                onPressed: showRevertWarningDialog,
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.textSecondary,
+                  padding: EdgeInsets.zero,
+                  visualDensity: VisualDensity.compact,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                child: const Text('Use original instead'),
+              ),
+            ],
+            // Contraindicated warning banner
+            if (isReverted || exercise.isContraindicatedOriginal)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Container(
+                  width: double.infinity,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(color: Colors.red.shade200),
+                  ),
+                  child: const Text(
+                    '⚠ Using contraindicated exercise — consult healthcare professional',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.red,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
             if (exercise.notes != null)
               Padding(
                 padding: const EdgeInsets.only(top: 4.0),
