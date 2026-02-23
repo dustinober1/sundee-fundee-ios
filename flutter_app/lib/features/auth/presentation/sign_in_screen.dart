@@ -198,7 +198,8 @@ class _SignInScreenState extends ConsumerState<SignInScreen>
                       'or sign in with email',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             fontSize: 12,
-                            color: AppColors.textSecondary.withValues(alpha: 0.7),
+                            color:
+                                AppColors.textSecondary.withValues(alpha: 0.7),
                           ),
                     ),
                   ),

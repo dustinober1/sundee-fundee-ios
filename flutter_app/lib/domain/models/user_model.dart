@@ -41,8 +41,7 @@ class UserModel {
         Gender.preferNotToSay,
       ),
       createdAt: parseDateTime(json['createdAt'], fieldName: 'createdAt'),
-      appleUserId:
-          json['appleUserID'] as String? ??
+      appleUserId: json['appleUserID'] as String? ??
           json['appleUserId'] as String? ??
           '',
     );

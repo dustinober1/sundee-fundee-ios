@@ -15,11 +15,11 @@ class AuthRepository {
     FirebaseAuth? auth,
     FirebaseFirestore? firestore,
     GoogleSignIn? googleSignIn,
-  }) : _guestModeStore = guestModeStore,
-       _firebaseEnabled = firebaseEnabled,
-       _auth = auth,
-       _firestore = firestore,
-       _googleSignIn = googleSignIn;
+  })  : _guestModeStore = guestModeStore,
+        _firebaseEnabled = firebaseEnabled,
+        _auth = auth,
+        _firestore = firestore,
+        _googleSignIn = googleSignIn;
 
   final GuestModeStore _guestModeStore;
   final bool _firebaseEnabled;
@@ -52,7 +52,8 @@ class AuthRepository {
       if (user == null) {
         return Stream.value(
           AuthSession(
-            status: guestEnabled ? AuthStatus.guest : AuthStatus.unauthenticated,
+            status:
+                guestEnabled ? AuthStatus.guest : AuthStatus.unauthenticated,
           ),
         );
       }
@@ -77,11 +78,11 @@ class AuthRepository {
 
     final AuthorizationCredentialAppleID appleCredential =
         await SignInWithApple.getAppleIDCredential(
-          scopes: <AppleIDAuthorizationScopes>[
-            AppleIDAuthorizationScopes.email,
-            AppleIDAuthorizationScopes.fullName,
-          ],
-        );
+      scopes: <AppleIDAuthorizationScopes>[
+        AppleIDAuthorizationScopes.email,
+        AppleIDAuthorizationScopes.fullName,
+      ],
+    );
 
     final String? identityToken = appleCredential.identityToken;
     if (identityToken == null || identityToken.isEmpty) {
@@ -93,8 +94,8 @@ class AuthRepository {
       accessToken: appleCredential.authorizationCode,
     );
 
-    final UserCredential userCredential = await _requireAuth()
-        .signInWithCredential(credential);
+    final UserCredential userCredential =
+        await _requireAuth().signInWithCredential(credential);
     await _guestModeStore.setGuestModeEnabled(false);
     await _ensureUserDocument(userCredential.user);
     return userCredential;
@@ -117,8 +118,8 @@ class AuthRepository {
       idToken: idToken,
     );
 
-    final UserCredential userCredential = await _requireAuth()
-        .signInWithCredential(credential);
+    final UserCredential userCredential =
+        await _requireAuth().signInWithCredential(credential);
     await _guestModeStore.setGuestModeEnabled(false);
     await _ensureUserDocument(userCredential.user);
     return userCredential;

@@ -113,7 +113,8 @@ final ProgramV2 deadliftProgram = ProgramV2(
           focus: 'Heavy Deadlift Progression',
           exercises: <ProgramExercise>[
             ProgramExercise(
-              exercise: 'conventional-deadlift-no-straps', // Defaulting to conventional
+              exercise:
+                  'conventional-deadlift-no-straps', // Defaulting to conventional
               variant: null,
               sets: ExerciseValue.fixed(4),
               reps: ExerciseValue.fixed(5),
@@ -531,7 +532,8 @@ final ProgramV2 deadliftProgram = ProgramV2(
               exercise: 'pull-up',
               variant: null,
               sets: ExerciseValue.fixed(3),
-              reps: ExerciseValue.amrap(), // Assuming near failure or fixed reps not specified
+              reps: ExerciseValue
+                  .amrap(), // Assuming near failure or fixed reps not specified
               percent1Rm: null,
               restMinutes: 2,
               notes: '3 sets',
@@ -1061,7 +1063,8 @@ final ProgramV2 deadliftProgram = ProgramV2(
               notes: null,
             ),
             ProgramExercise(
-              exercise: 'mobility', // Not in definitions, skipping or adding note
+              exercise:
+                  'mobility', // Not in definitions, skipping or adding note
               variant: null,
               sets: ExerciseValue.fixed(1),
               reps: ExerciseValue.fixed(1),

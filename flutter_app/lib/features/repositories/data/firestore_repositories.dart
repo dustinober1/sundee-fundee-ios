@@ -15,7 +15,7 @@ const int kCompletedSetsLimit = 500;
 
 class FirestoreWorkoutRepository implements WorkoutRepository {
   FirestoreWorkoutRepository({required FirebaseFirestore firestore})
-    : _firestore = firestore;
+      : _firestore = firestore;
 
   final FirebaseFirestore _firestore;
 
@@ -35,13 +35,13 @@ class FirestoreWorkoutRepository implements WorkoutRepository {
         .orderBy('completedAt', descending: true)
         .snapshots()
         .map((QuerySnapshot<Map<String, dynamic>> snapshot) {
-          return snapshot.docs
-              .map(
-                (QueryDocumentSnapshot<Map<String, dynamic>> doc) =>
-                    CompletedWorkoutModel.fromJson(doc.data()),
-              )
-              .toList();
-        });
+      return snapshot.docs
+          .map(
+            (QueryDocumentSnapshot<Map<String, dynamic>> doc) =>
+                CompletedWorkoutModel.fromJson(doc.data()),
+          )
+          .toList();
+    });
   }
 
   @override
@@ -65,13 +65,13 @@ class FirestoreWorkoutRepository implements WorkoutRepository {
         .limit(kCompletedSetsLimit)
         .snapshots()
         .map((QuerySnapshot<Map<String, dynamic>> snapshot) {
-          return snapshot.docs
-              .map(
-                (QueryDocumentSnapshot<Map<String, dynamic>> doc) =>
-                    CompletedSetModel.fromJson(doc.data()),
-              )
-              .toList();
-        });
+      return snapshot.docs
+          .map(
+            (QueryDocumentSnapshot<Map<String, dynamic>> doc) =>
+                CompletedSetModel.fromJson(doc.data()),
+          )
+          .toList();
+    });
   }
 
   CollectionReference<Map<String, dynamic>> _workoutsCollection(String userId) {
@@ -90,7 +90,7 @@ class FirestoreWorkoutRepository implements WorkoutRepository {
 
 class FirestoreCycleRepository implements CycleRepository {
   FirestoreCycleRepository({required FirebaseFirestore firestore})
-    : _firestore = firestore;
+      : _firestore = firestore;
 
   final FirebaseFirestore _firestore;
 
@@ -110,13 +110,13 @@ class FirestoreCycleRepository implements CycleRepository {
         .orderBy('startDate', descending: true)
         .snapshots()
         .map((QuerySnapshot<Map<String, dynamic>> snapshot) {
-          return snapshot.docs
-              .map(
-                (QueryDocumentSnapshot<Map<String, dynamic>> doc) =>
-                    ActiveCycleModel.fromJson(doc.data()),
-              )
-              .toList();
-        });
+      return snapshot.docs
+          .map(
+            (QueryDocumentSnapshot<Map<String, dynamic>> doc) =>
+                ActiveCycleModel.fromJson(doc.data()),
+          )
+          .toList();
+    });
   }
 
   @override
@@ -125,9 +125,9 @@ class FirestoreCycleRepository implements CycleRepository {
     required PeriodLogModel log,
   }) {
     return _periodLogsCollection(userId).doc(log.id).set(
-      log.toJson(),
-      SetOptions(merge: true),
-    );
+          log.toJson(),
+          SetOptions(merge: true),
+        );
   }
 
   @override
@@ -144,10 +144,9 @@ class FirestoreCycleRepository implements CycleRepository {
         .orderBy('startDate', descending: true)
         .snapshots()
         .map(
-          (snapshot) =>
-              snapshot.docs
-                  .map((doc) => PeriodLogModel.fromJson(doc.data()))
-                  .toList(),
+          (snapshot) => snapshot.docs
+              .map((doc) => PeriodLogModel.fromJson(doc.data()))
+              .toList(),
         );
   }
 
@@ -157,9 +156,9 @@ class FirestoreCycleRepository implements CycleRepository {
     required SymptomLogModel log,
   }) {
     return _symptomLogsCollection(userId).doc(log.id).set(
-      log.toJson(),
-      SetOptions(merge: true),
-    );
+          log.toJson(),
+          SetOptions(merge: true),
+        );
   }
 
   @override
@@ -168,10 +167,9 @@ class FirestoreCycleRepository implements CycleRepository {
         .orderBy('date', descending: true)
         .snapshots()
         .map(
-          (snapshot) =>
-              snapshot.docs
-                  .map((doc) => SymptomLogModel.fromJson(doc.data()))
-                  .toList(),
+          (snapshot) => snapshot.docs
+              .map((doc) => SymptomLogModel.fromJson(doc.data()))
+              .toList(),
         );
   }
 
@@ -197,8 +195,7 @@ class FirestoreCycleRepository implements CycleRepository {
         .doc('cycle')
         .snapshots()
         .map(
-          (doc) =>
-              doc.exists ? CycleSettingsModel.fromJson(doc.data()!) : null,
+          (doc) => doc.exists ? CycleSettingsModel.fromJson(doc.data()!) : null,
         );
   }
 
@@ -221,7 +218,7 @@ class FirestoreCycleRepository implements CycleRepository {
 
 class FirestoreLiftRepository implements LiftRepository {
   FirestoreLiftRepository({required FirebaseFirestore firestore})
-    : _firestore = firestore;
+      : _firestore = firestore;
 
   final FirebaseFirestore _firestore;
 
@@ -241,13 +238,13 @@ class FirestoreLiftRepository implements LiftRepository {
         .orderBy('updatedAt', descending: true)
         .snapshots()
         .map((QuerySnapshot<Map<String, dynamic>> snapshot) {
-          return snapshot.docs
-              .map(
-                (QueryDocumentSnapshot<Map<String, dynamic>> doc) =>
-                    LiftMaxModel.fromJson(doc.data()),
-              )
-              .toList();
-        });
+      return snapshot.docs
+          .map(
+            (QueryDocumentSnapshot<Map<String, dynamic>> doc) =>
+                LiftMaxModel.fromJson(doc.data()),
+          )
+          .toList();
+    });
   }
 
   @override
@@ -266,13 +263,13 @@ class FirestoreLiftRepository implements LiftRepository {
         .orderBy('date', descending: true)
         .snapshots()
         .map((QuerySnapshot<Map<String, dynamic>> snapshot) {
-          return snapshot.docs
-              .map(
-                (QueryDocumentSnapshot<Map<String, dynamic>> doc) =>
-                    OneRepMaxModel.fromJson(doc.data()),
-              )
-              .toList();
-        });
+      return snapshot.docs
+          .map(
+            (QueryDocumentSnapshot<Map<String, dynamic>> doc) =>
+                OneRepMaxModel.fromJson(doc.data()),
+          )
+          .toList();
+    });
   }
 
   CollectionReference<Map<String, dynamic>> _maxLiftsCollection(String userId) {
@@ -288,7 +285,7 @@ class FirestoreLiftRepository implements LiftRepository {
 
 class FirestoreRecordRepository implements RecordRepository {
   FirestoreRecordRepository({required FirebaseFirestore firestore})
-    : _firestore = firestore;
+      : _firestore = firestore;
 
   final FirebaseFirestore _firestore;
 
@@ -308,13 +305,13 @@ class FirestoreRecordRepository implements RecordRepository {
         .orderBy('date', descending: true)
         .snapshots()
         .map((QuerySnapshot<Map<String, dynamic>> snapshot) {
-          return snapshot.docs
-              .map(
-                (QueryDocumentSnapshot<Map<String, dynamic>> doc) =>
-                    PersonalRecordModel.fromJson(doc.data()),
-              )
-              .toList();
-        });
+      return snapshot.docs
+          .map(
+            (QueryDocumentSnapshot<Map<String, dynamic>> doc) =>
+                PersonalRecordModel.fromJson(doc.data()),
+          )
+          .toList();
+    });
   }
 
   CollectionReference<Map<String, dynamic>> _recordsCollection(String userId) {
@@ -324,7 +321,7 @@ class FirestoreRecordRepository implements RecordRepository {
 
 class FirestoreCustomProgramRepository implements CustomProgramRepository {
   FirestoreCustomProgramRepository({required FirebaseFirestore firestore})
-    : _firestore = firestore;
+      : _firestore = firestore;
 
   final FirebaseFirestore _firestore;
 
@@ -346,13 +343,13 @@ class FirestoreCustomProgramRepository implements CustomProgramRepository {
         .orderBy('createdAt', descending: true)
         .snapshots()
         .map((QuerySnapshot<Map<String, dynamic>> snapshot) {
-          return snapshot.docs
-              .map(
-                (QueryDocumentSnapshot<Map<String, dynamic>> doc) =>
-                    CustomProgramModel.fromJson(doc.data()),
-              )
-              .toList();
-        });
+      return snapshot.docs
+          .map(
+            (QueryDocumentSnapshot<Map<String, dynamic>> doc) =>
+                CustomProgramModel.fromJson(doc.data()),
+          )
+          .toList();
+    });
   }
 
   CollectionReference<Map<String, dynamic>> _programsCollection(String userId) {
@@ -365,7 +362,7 @@ class FirestoreCustomProgramRepository implements CustomProgramRepository {
 
 class FirestoreEnrolledProgramRepository implements EnrolledProgramRepository {
   FirestoreEnrolledProgramRepository({required FirebaseFirestore firestore})
-    : _firestore = firestore;
+      : _firestore = firestore;
 
   final FirebaseFirestore _firestore;
 
@@ -380,17 +377,18 @@ class FirestoreEnrolledProgramRepository implements EnrolledProgramRepository {
   }
 
   @override
-  Stream<EnrolledProgramModel?> watchActiveEnrollment({required String userId}) {
+  Stream<EnrolledProgramModel?> watchActiveEnrollment(
+      {required String userId}) {
     return _enrollmentsCollection(userId)
         .where('isActive', isEqualTo: true)
         .limit(1)
         .snapshots()
         .map((QuerySnapshot<Map<String, dynamic>> snapshot) {
-          if (snapshot.docs.isEmpty) {
-            return null;
-          }
-          return EnrolledProgramModel.fromJson(snapshot.docs.first.data());
-        });
+      if (snapshot.docs.isEmpty) {
+        return null;
+      }
+      return EnrolledProgramModel.fromJson(snapshot.docs.first.data());
+    });
   }
 
   @override

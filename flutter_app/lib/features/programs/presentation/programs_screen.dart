@@ -11,7 +11,8 @@ class ProgramsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final AsyncValue<List<ProgramV2>> programsAsync = ref.watch(programsProvider);
+    final AsyncValue<List<ProgramV2>> programsAsync =
+        ref.watch(programsProvider);
     final AsyncValue<EnrolledProgramModel?> activeEnrollmentAsync =
         ref.watch(activeEnrollmentProvider);
 
@@ -29,10 +30,12 @@ class ProgramsScreen extends ConsumerWidget {
               itemCount: programs.length,
               itemBuilder: (BuildContext context, int index) {
                 final ProgramV2 program = programs[index];
-                final bool isEnrolled = enrolledProgram?.programId == program.id;
+                final bool isEnrolled =
+                    enrolledProgram?.programId == program.id;
 
                 return Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  margin:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
@@ -53,7 +56,8 @@ class ProgramsScreen extends ConsumerWidget {
                               Container(
                                 padding: const EdgeInsets.all(4),
                                 decoration: BoxDecoration(
-                                  color: AppColors.brandSecondary.withValues(alpha: 0.1),
+                                  color: AppColors.brandSecondary
+                                      .withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: const Text(
@@ -90,24 +94,30 @@ class ProgramsScreen extends ConsumerWidget {
                                             programId: program.id,
                                           );
                                       if (context.mounted) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
                                           SnackBar(
-                                            content: Text('Enrolled in ${program.name}!'),
+                                            content: Text(
+                                                'Enrolled in ${program.name}!'),
                                           ),
                                         );
                                       }
                                     } catch (e) {
                                       if (context.mounted) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
                                           SnackBar(
-                                            content: Text('Enrollment failed: $e'),
+                                            content:
+                                                Text('Enrollment failed: $e'),
                                           ),
                                         );
                                       }
                                     }
                                   },
                             child: Text(
-                              isEnrolled ? 'Currently Enrolled' : 'Enroll in Program',
+                              isEnrolled
+                                  ? 'Currently Enrolled'
+                                  : 'Enroll in Program',
                             ),
                           ),
                         ),

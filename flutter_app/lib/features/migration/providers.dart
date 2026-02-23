@@ -37,15 +37,15 @@ final migrationCrashlyticsProvider = Provider<FirebaseCrashlytics?>((Ref ref) {
 
 final legacyMigrationOrchestratorProvider =
     Provider<LegacyMigrationOrchestrator>((Ref ref) {
-      return LegacyMigrationOrchestrator(
-        legacyMigrationService: ref.watch(legacyMigrationServiceProvider),
-        workoutRepository: ref.watch(workoutRepositoryProvider),
-        cycleRepository: ref.watch(cycleRepositoryProvider),
-        liftRepository: ref.watch(liftRepositoryProvider),
-        recordRepository: ref.watch(recordRepositoryProvider),
-        customProgramRepository: ref.watch(customProgramRepositoryProvider),
-        firestore: ref.watch(migrationFirestoreProvider),
-        analytics: ref.watch(migrationAnalyticsProvider),
-        crashlytics: ref.watch(migrationCrashlyticsProvider),
-      );
-    });
+  return LegacyMigrationOrchestrator(
+    legacyMigrationService: ref.watch(legacyMigrationServiceProvider),
+    workoutRepository: ref.watch(workoutRepositoryProvider),
+    cycleRepository: ref.watch(cycleRepositoryProvider),
+    liftRepository: ref.watch(liftRepositoryProvider),
+    recordRepository: ref.watch(recordRepositoryProvider),
+    customProgramRepository: ref.watch(customProgramRepositoryProvider),
+    firestore: ref.watch(migrationFirestoreProvider),
+    analytics: ref.watch(migrationAnalyticsProvider),
+    crashlytics: ref.watch(migrationCrashlyticsProvider),
+  );
+});

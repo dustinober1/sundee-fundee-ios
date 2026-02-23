@@ -26,8 +26,6 @@ Color _phaseColor(CyclePhase phase) {
   }
 }
 
-
-
 String _phaseEmoji(CyclePhase phase) {
   switch (phase) {
     case CyclePhase.menstrual:
@@ -83,7 +81,10 @@ class CycleTrackingScreen extends ConsumerWidget {
                   padding: const EdgeInsets.only(top: 8),
                   child: Text(
                     'Waiting for authentication...',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 10),
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodySmall
+                        ?.copyWith(fontSize: 10),
                   ),
                 ),
             ],
@@ -111,7 +112,7 @@ class CycleTrackingScreen extends ConsumerWidget {
           final status = cycleStatus;
           final rec = recommendation;
           final isSharkweek = status?.currentPhase == CyclePhase.menstrual;
-          
+
           return ListView(
             padding: const EdgeInsets.symmetric(vertical: 12),
             children: [
@@ -124,7 +125,6 @@ class CycleTrackingScreen extends ConsumerWidget {
                     fit: BoxFit.fitWidth,
                   ),
                 ),
-
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Column(
@@ -215,7 +215,10 @@ class _PhaseHeroCard extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [color.withValues(alpha: 0.15), color.withValues(alpha: 0.05)],
+          colors: [
+            color.withValues(alpha: 0.15),
+            color.withValues(alpha: 0.05)
+          ],
         ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: color.withValues(alpha: 0.25)),
@@ -248,9 +251,9 @@ class _PhaseHeroCard extends StatelessWidget {
                     Text(
                       recommendation?.title ?? phase.name,
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: color,
-                        fontWeight: FontWeight.w700,
-                      ),
+                            color: color,
+                            fontWeight: FontWeight.w700,
+                          ),
                     ),
                     const SizedBox(height: 2),
                     Text(
@@ -296,8 +299,8 @@ class _PhaseHeroCard extends StatelessWidget {
             Text(
               recommendation!.description,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                height: 1.5,
-              ),
+                    height: 1.5,
+                  ),
             ),
           ],
         ],
@@ -331,17 +334,17 @@ class _MiniStat extends StatelessWidget {
             Text(
               value,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: color,
-                fontWeight: FontWeight.w700,
-              ),
+                    color: color,
+                    fontWeight: FontWeight.w700,
+                  ),
             ),
             const SizedBox(height: 4),
             Text(
               label,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                fontSize: 11,
-              ),
+                    fontSize: 11,
+                  ),
             ),
           ],
         ),
@@ -511,8 +514,8 @@ class _TrainingRecommendationCard extends StatelessWidget {
                 Text(
                   'Training Focus',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
+                        fontWeight: FontWeight.w700,
+                      ),
                 ),
               ],
             ),
@@ -520,11 +523,10 @@ class _TrainingRecommendationCard extends StatelessWidget {
             Text(
               recommendation.trainingFocus,
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+                    fontWeight: FontWeight.w600,
+                  ),
             ),
             const SizedBox(height: 16),
-
             if (recommendation.exercisesToEmphasize.isNotEmpty) ...[
               _ChipGroup(
                 label: 'Emphasize',
@@ -533,7 +535,6 @@ class _TrainingRecommendationCard extends StatelessWidget {
               ),
               const SizedBox(height: 10),
             ],
-
             if (recommendation.exercisesToAvoid.isNotEmpty) ...[
               _ChipGroup(
                 label: 'Limit',
@@ -567,9 +568,9 @@ class _ChipGroup extends StatelessWidget {
         Text(
           label,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: AppColors.textSecondary,
-          ),
+                fontWeight: FontWeight.w600,
+                color: AppColors.textSecondary,
+              ),
         ),
         const SizedBox(height: 6),
         Wrap(
@@ -634,8 +635,8 @@ class _PhaseTimelineCard extends ConsumerWidget {
             Text(
               'Cycle Timeline',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
+                    fontWeight: FontWeight.w700,
+                  ),
             ),
             const SizedBox(height: 16),
 
@@ -750,13 +751,14 @@ class _SymptomQuickLogCard extends ConsumerWidget {
           children: [
             Row(
               children: [
-                const Icon(Icons.healing, color: AppColors.brandSecondary, size: 22),
+                const Icon(Icons.healing,
+                    color: AppColors.brandSecondary, size: 22),
                 const SizedBox(width: 8),
                 Text(
                   'Quick Symptom Log',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
+                        fontWeight: FontWeight.w700,
+                      ),
                 ),
               ],
             ),
@@ -863,13 +865,14 @@ class _PeriodHistoryCard extends ConsumerWidget {
           children: [
             Row(
               children: [
-                const Icon(Icons.history, color: AppColors.brandPrimary, size: 22),
+                const Icon(Icons.history,
+                    color: AppColors.brandPrimary, size: 22),
                 const SizedBox(width: 8),
                 Text(
                   'Period History',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
+                        fontWeight: FontWeight.w700,
+                      ),
                 ),
               ],
             ),
@@ -937,7 +940,8 @@ class _PeriodHistoryRow extends StatelessWidget {
               : AppColors.surfaceLight,
           borderRadius: BorderRadius.circular(12),
           border: isOpen
-              ? Border.all(color: AppColors.brandSecondary.withValues(alpha: 0.3))
+              ? Border.all(
+                  color: AppColors.brandSecondary.withValues(alpha: 0.3))
               : null,
         ),
         child: Row(
@@ -945,9 +949,8 @@ class _PeriodHistoryRow extends StatelessWidget {
             Icon(
               isOpen ? Icons.circle : Icons.check_circle,
               size: 18,
-              color: isOpen
-                  ? AppColors.brandSecondary
-                  : const Color(0xFF4CAF50),
+              color:
+                  isOpen ? AppColors.brandSecondary : const Color(0xFF4CAF50),
             ),
             const SizedBox(width: 10),
             Expanded(
@@ -972,8 +975,8 @@ class _PeriodHistoryRow extends StatelessWidget {
                     Text(
                       'In progress · ${_flowLabel(log.flowLevel)} flow',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.brandSecondary,
-                      ),
+                            color: AppColors.brandSecondary,
+                          ),
                     ),
                 ],
               ),
@@ -1020,14 +1023,14 @@ class _CycleSettingsCard extends ConsumerWidget {
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.tune, color: AppColors.brandPrimary, size: 22),
+                    const Icon(Icons.tune,
+                        color: AppColors.brandPrimary, size: 22),
                     const SizedBox(width: 8),
                     Text(
                       'Cycle Settings',
-                      style:
-                          Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
                     ),
                   ],
                 ),
@@ -1153,9 +1156,7 @@ class _SettingsSlider extends StatelessWidget {
           max: max.toDouble(),
           divisions: max - min,
           activeColor: AppColors.brandPrimary,
-          onChanged: onChanged != null
-              ? (v) => onChanged!(v.round())
-              : null,
+          onChanged: onChanged != null ? (v) => onChanged!(v.round()) : null,
         ),
       ],
     );
@@ -1331,8 +1332,7 @@ class _PeriodLogBottomSheet extends ConsumerStatefulWidget {
       _PeriodLogBottomSheetState();
 }
 
-class _PeriodLogBottomSheetState
-    extends ConsumerState<_PeriodLogBottomSheet> {
+class _PeriodLogBottomSheetState extends ConsumerState<_PeriodLogBottomSheet> {
   DateTime _startDate = DateTime.now();
   DateTime? _endDate;
   FlowLevel _flowLevel = FlowLevel.medium;
@@ -1411,8 +1411,8 @@ class _PeriodLogBottomSheetState
           Text(
             'Flow Level',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
+                  fontWeight: FontWeight.w600,
+                ),
           ),
           const SizedBox(height: 8),
           SegmentedButton<FlowLevel>(
@@ -1446,12 +1446,11 @@ class _PeriodLogBottomSheetState
                   startDate: _startDate,
                   endDate: _endDate,
                   flowLevel: _flowLevel,
-                  notes:
-                      _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
+                  notes: _notesCtrl.text.trim().isEmpty
+                      ? null
+                      : _notesCtrl.text.trim(),
                 );
-                ref
-                    .read(cycleControllerProvider.notifier)
-                    .savePeriodLog(log);
+                ref.read(cycleControllerProvider.notifier).savePeriodLog(log);
                 Navigator.pop(context);
               },
               child: const Text('Save Period Log'),

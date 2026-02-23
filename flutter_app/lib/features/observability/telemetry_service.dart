@@ -21,9 +21,9 @@ class TelemetryService {
 
     PlatformDispatcher.instance.onError =
         (Object error, StackTrace stackTrace) {
-          crashlytics.recordError(error, stackTrace, fatal: true);
-          return true;
-        };
+      crashlytics.recordError(error, stackTrace, fatal: true);
+      return true;
+    };
 
     await FirebaseAnalytics.instance.logAppOpen();
     if (!kReleaseMode) {

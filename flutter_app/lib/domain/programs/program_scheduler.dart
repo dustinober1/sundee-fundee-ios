@@ -55,10 +55,10 @@ class ProgramScheduler {
 
     final DateTime now = DateTime.now();
     if (ovulationDateCurrentCycle.isBefore(now)) {
-       // Suggest next cycle's ovulation
-       return ovulationDateCurrentCycle.add(
-         Duration(days: settings.averageCycleLength),
-       );
+      // Suggest next cycle's ovulation
+      return ovulationDateCurrentCycle.add(
+        Duration(days: settings.averageCycleLength),
+      );
     }
 
     return ovulationDateCurrentCycle;

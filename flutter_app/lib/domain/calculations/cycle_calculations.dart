@@ -170,19 +170,17 @@ class CycleCalculations {
     final int daysUntilNextPhase;
     switch (currentPhase) {
       case CyclePhase.menstrual:
-        daysUntilNextPhase =
-            (boundaries[CyclePhase.follicular]?.start ??
+        daysUntilNextPhase = (boundaries[CyclePhase.follicular]?.start ??
                 _defaultFollicularStart) -
             cycleDay;
       case CyclePhase.follicular:
-        daysUntilNextPhase =
-            (boundaries[CyclePhase.ovulation]?.start ??
+        daysUntilNextPhase = (boundaries[CyclePhase.ovulation]?.start ??
                 _defaultOvulationStart) -
             cycleDay;
       case CyclePhase.ovulation:
         daysUntilNextPhase =
             (boundaries[CyclePhase.luteal]?.start ?? _defaultLutealStart) -
-            cycleDay;
+                cycleDay;
       case CyclePhase.luteal:
         daysUntilNextPhase = settings.averageCycleLength - cycleDay + 1;
     }

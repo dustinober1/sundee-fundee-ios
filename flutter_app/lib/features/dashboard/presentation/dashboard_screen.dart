@@ -10,6 +10,7 @@ import '../../auth/providers.dart';
 import '../../migration/providers.dart';
 import '../../programs/data/program_repository.dart';
 import '../../repositories/providers.dart';
+import 'cycle_insights_chart.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -34,17 +35,15 @@ class DashboardScreen extends ConsumerWidget {
             .migrateIfNeeded(userId: userId)
             .then((_) {})
             .catchError((Object error, StackTrace stackTrace) {
-              messenger?.showSnackBar(
-                SnackBar(content: Text('Legacy migration failed: $error')),
-              );
-            }),
+          messenger?.showSnackBar(
+            SnackBar(content: Text('Legacy migration failed: $error')),
+          );
+        }),
       );
     });
 
-    final AuthSession? session = ref
-        .watch(authSessionStreamProvider)
-        .asData
-        ?.value;
+    final AuthSession? session =
+        ref.watch(authSessionStreamProvider).asData?.value;
 
     final String stateMessage;
     switch (session?.status) {
@@ -79,6 +78,8 @@ class DashboardScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             const _NextWorkoutCard(),
+            const SizedBox(height: 32),
+            const CycleInsightsChart(),
             const SizedBox(height: 32),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16.0),
@@ -122,7 +123,8 @@ class _WorkoutHistoryList extends ConsumerWidget {
       return const Center(child: Text('Please sign in to view history.'));
     }
 
-    final workoutsAsync = ref.watch(workoutRepositoryProvider).watchWorkouts(userId: userId);
+    final workoutsAsync =
+        ref.watch(workoutRepositoryProvider).watchWorkouts(userId: userId);
 
     return StreamBuilder(
       stream: workoutsAsync,
@@ -142,7 +144,8 @@ class _WorkoutHistoryList extends ConsumerWidget {
             padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
             child: Column(
               children: [
-                Icon(Icons.history_outlined, size: 48, color: AppColors.textSecondary),
+                Icon(Icons.history_outlined,
+                    size: 48, color: AppColors.textSecondary),
                 SizedBox(height: 16),
                 Text(
                   'No workouts completed yet.',
@@ -159,8 +162,10 @@ class _WorkoutHistoryList extends ConsumerWidget {
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: ListTile(
                 leading: CircleAvatar(
-                  backgroundColor: AppColors.brandPrimary.withValues(alpha: 0.1),
-                  child: const Icon(Icons.fitness_center, color: AppColors.brandPrimary, size: 20),
+                  backgroundColor:
+                      AppColors.brandPrimary.withValues(alpha: 0.1),
+                  child: const Icon(Icons.fitness_center,
+                      color: AppColors.brandPrimary, size: 20),
                 ),
                 title: Text(
                   '${workout.programId} - W${workout.week}D${workout.day}',
@@ -201,7 +206,7 @@ class _NextWorkoutCard extends ConsumerWidget {
               (w) => w.week == enrollment.currentWeek,
               orElse: () => program.weeks.last,
             );
-            
+
             // For simplicity, we assume sessions are day 1, 2, 3...
             final sessionIndex = enrollment.currentDay - 1;
             final session = sessionIndex < week.sessions.length
@@ -211,7 +216,8 @@ class _NextWorkoutCard extends ConsumerWidget {
             return Card(
               margin: const EdgeInsets.symmetric(horizontal: 16),
               elevation: 4,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
               child: Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
@@ -240,7 +246,8 @@ class _NextWorkoutCard extends ConsumerWidget {
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          const Icon(Icons.fitness_center, color: Colors.white70, size: 20),
+                          const Icon(Icons.fitness_center,
+                              color: Colors.white70, size: 20),
                         ],
                       ),
                       const SizedBox(height: 8),
@@ -269,7 +276,8 @@ class _NextWorkoutCard extends ConsumerWidget {
                           backgroundColor: Colors.white,
                           foregroundColor: AppColors.brandPrimary,
                           elevation: 0,
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 24, vertical: 12),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
@@ -306,7 +314,8 @@ class _NoActiveProgramCard extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            const Icon(Icons.info_outline, color: AppColors.textSecondary, size: 32),
+            const Icon(Icons.info_outline,
+                color: AppColors.textSecondary, size: 32),
             const SizedBox(height: 8),
             const Text(
               'No active program enrollment.',
