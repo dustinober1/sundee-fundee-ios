@@ -93,6 +93,7 @@ class _WorkoutExecutionScreenState
         leading: IconButton(
           icon: const Icon(Icons.close),
           onPressed: () => _confirmExit(context),
+          tooltip: 'Exit workout',
         ),
         actions: [
           IconButton(
@@ -101,6 +102,7 @@ class _WorkoutExecutionScreenState
               context: context,
               builder: (context) => const PlateCalculatorDialog(),
             ),
+            tooltip: 'Open plate calculator',
           ),
         ],
       ),
@@ -336,13 +338,15 @@ class _SetRowState extends ConsumerState<_SetRow> {
   @override
   Widget build(BuildContext context) {
     final userProfile = ref.watch(userProfileStreamProvider).asData?.value;
-    final double barbellWeight = (userProfile?.gender == Gender.male) ? 45.0 : 35.0;
-    
+    final double barbellWeight =
+        (userProfile?.gender == Gender.male) ? 45.0 : 35.0;
+
     final isCompleted = widget.state.isCompleted;
     final rowColor =
         isCompleted ? Colors.green.withValues(alpha: 0.1) : Colors.transparent;
 
-    final double currentWeight = double.tryParse(_weightController.text) ?? widget.state.prescribedWeight;
+    final double currentWeight = double.tryParse(_weightController.text) ??
+        widget.state.prescribedWeight;
     final Map<double, int> plateBreakdown = PlateCalculation.calculatePlates(
       totalWeight: currentWeight,
       barbellWeight: barbellWeight,
@@ -405,8 +409,8 @@ class _SetRowState extends ConsumerState<_SetRow> {
                       isDense: true,
                       hintText: '-',
                       filled: true,
-                      contentPadding:
-                          const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 4, vertical: 8),
                       fillColor: isCompleted
                           ? Colors.transparent
                           : Colors.grey.withValues(alpha: 0.1),
@@ -448,10 +452,14 @@ class _SetRowState extends ConsumerState<_SetRow> {
                 width: 48,
                 child: IconButton(
                   icon: Icon(
-                    isCompleted ? Icons.check_circle : Icons.check_circle_outline,
+                    isCompleted
+                        ? Icons.check_circle
+                        : Icons.check_circle_outline,
                     color: isCompleted ? Colors.green : Colors.grey,
                   ),
                   onPressed: () => _onToggleComplete(!isCompleted),
+                  tooltip:
+                      isCompleted ? 'Mark set incomplete' : 'Mark set complete',
                 ),
               ),
             ],
@@ -464,7 +472,8 @@ class _SetRowState extends ConsumerState<_SetRow> {
               spacing: 4,
               children: plateBreakdown.entries.map((e) {
                 return Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
                     color: AppColors.brandPrimary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(4),
@@ -527,6 +536,7 @@ class _RestTimerDisplay extends ConsumerWidget {
               onPressed: () {
                 ref.read(restTimerProvider.notifier).stopTimer();
               },
+              tooltip: 'Stop rest timer',
             ),
             IconButton(
               icon: const Icon(Icons.add, color: Colors.white70, size: 20),
@@ -535,6 +545,7 @@ class _RestTimerDisplay extends ConsumerWidget {
               onPressed: () {
                 ref.read(restTimerProvider.notifier).addTime(30);
               },
+              tooltip: 'Add 30 seconds',
             ),
           ],
         ),

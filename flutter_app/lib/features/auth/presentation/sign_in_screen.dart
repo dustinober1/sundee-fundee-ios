@@ -142,6 +142,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen>
         child: Image.asset(
           'assets/images/main_logo.png',
           fit: BoxFit.cover,
+          semanticLabel: 'Sundee Fundee logo',
         ),
       ),
     );
@@ -193,10 +194,11 @@ class _SignInScreenState extends ConsumerState<SignInScreen>
                       color: AppColors.textSecondary.withValues(alpha: 0.3),
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                  const SizedBox(width: 12),
+                  Flexible(
                     child: Text(
                       'or sign in with email',
+                      textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             fontSize: 12,
                             color:
@@ -204,6 +206,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen>
                           ),
                     ),
                   ),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Divider(
                       color: AppColors.textSecondary.withValues(alpha: 0.3),
@@ -312,16 +315,10 @@ class _SignInScreenState extends ConsumerState<SignInScreen>
                       color: AppColors.textSecondary.withValues(alpha: 0.6),
                     ),
                   ),
-                  GestureDetector(
-                    onTap: () => context.push('/legal', extra: {'tabIndex': 0}),
-                    child: const Text(
-                      'Terms',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: AppColors.brandSecondary,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                  _buildLegalLink(
+                    label: 'Terms',
+                    onPressed: () =>
+                        context.push('/legal', extra: {'tabIndex': 0}),
                   ),
                   Text(
                     ' and ',
@@ -330,16 +327,10 @@ class _SignInScreenState extends ConsumerState<SignInScreen>
                       color: AppColors.textSecondary.withValues(alpha: 0.6),
                     ),
                   ),
-                  GestureDetector(
-                    onTap: () => context.push('/legal', extra: {'tabIndex': 1}),
-                    child: const Text(
-                      'Privacy Policy',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: AppColors.brandSecondary,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                  _buildLegalLink(
+                    label: 'Privacy Policy',
+                    onPressed: () =>
+                        context.push('/legal', extra: {'tabIndex': 1}),
                   ),
                 ],
               ),
@@ -424,6 +415,28 @@ class _SignInScreenState extends ConsumerState<SignInScreen>
       label: Text(label),
       style: OutlinedButton.styleFrom(
         padding: const EdgeInsets.symmetric(vertical: 16),
+      ),
+    );
+  }
+
+  Widget _buildLegalLink({
+    required String label,
+    required VoidCallback onPressed,
+  }) {
+    return TextButton(
+      onPressed: onPressed,
+      style: TextButton.styleFrom(
+        foregroundColor: AppColors.brandSecondary,
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        minimumSize: const Size(44, 44),
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.bold,
+        ),
       ),
     );
   }

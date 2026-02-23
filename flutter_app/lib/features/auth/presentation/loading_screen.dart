@@ -34,6 +34,7 @@ class LoadingScreen extends StatelessWidget {
                   child: Image.asset(
                     'assets/images/main_logo.png',
                     fit: BoxFit.cover,
+                    semanticLabel: 'Sundee Fundee logo',
                   ),
                 ),
               ),

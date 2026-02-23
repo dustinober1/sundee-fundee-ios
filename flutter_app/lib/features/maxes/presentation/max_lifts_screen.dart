@@ -35,7 +35,8 @@ class _MaxLiftsScreenState extends ConsumerState<MaxLiftsScreen> {
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(60),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
             child: TextField(
               controller: _searchCtrl,
               onChanged: (val) => setState(() => _searchQuery = val),
@@ -165,53 +166,58 @@ class _ExerciseMaxCardState extends State<_ExerciseMaxCard> {
         borderRadius: BorderRadius.circular(20),
         child: Column(
           children: [
-            InkWell(
-              onTap: () => setState(() => _isExpanded = !_isExpanded),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: AppColors.brandPrimary.withValues(alpha: 0.1),
-                        shape: BoxShape.circle,
+            Semantics(
+              button: true,
+              label:
+                  '${_isExpanded ? 'Collapse' : 'Expand'} ${widget.exercise.name}',
+              child: InkWell(
+                onTap: () => setState(() => _isExpanded = !_isExpanded),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: AppColors.brandPrimary.withValues(alpha: 0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          _getIconForCategory(widget.exercise.category),
+                          color: AppColors.brandPrimary,
+                        ),
                       ),
-                      child: Icon(
-                        _getIconForCategory(widget.exercise.category),
-                        color: AppColors.brandPrimary,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            widget.exercise.name,
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
-                          if (hasAnyMax && bestMax != null)
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
                             Text(
-                              isJump
-                                  ? 'Best: ${bestMax.weight} in'
-                                  : 'Best: ${bestMax.weight} lbs (${bestMax.repCount}RM)',
-                              style: Theme.of(context).textTheme.bodySmall,
-                            )
-                          else
-                            Text(
-                              'No data logged',
-                              style: Theme.of(context).textTheme.bodySmall,
+                              widget.exercise.name,
+                              style: Theme.of(context).textTheme.titleMedium,
                             ),
-                        ],
+                            if (hasAnyMax && bestMax != null)
+                              Text(
+                                isJump
+                                    ? 'Best: ${bestMax.weight} in'
+                                    : 'Best: ${bestMax.weight} lbs (${bestMax.repCount}RM)',
+                                style: Theme.of(context).textTheme.bodySmall,
+                              )
+                            else
+                              Text(
+                                'No data logged',
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                          ],
+                        ),
                       ),
-                    ),
-                    Icon(
-                      _isExpanded ? Icons.expand_less : Icons.expand_more,
-                      color: AppColors.textSecondary,
-                    ),
-                  ],
+                      Icon(
+                        _isExpanded ? Icons.expand_less : Icons.expand_more,
+                        color: AppColors.textSecondary,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -417,27 +423,35 @@ class _RepMaxInputRowState extends ConsumerState<_RepMaxInputRow> {
             ),
           ),
           const SizedBox(width: 8),
-          InkWell(
-            onTap: _pickDate,
-            borderRadius: BorderRadius.circular(8),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-              child: Column(
-                children: [
-                  const Icon(Icons.calendar_today,
-                      size: 14, color: AppColors.brandPrimary),
-                  Text(
-                    _selectedDate != null
-                        ? DateFormat('MM/dd').format(_selectedDate!)
-                        : 'Date',
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: _selectedDate != null
-                          ? AppColors.brandPrimary
-                          : AppColors.textSecondary,
-                    ),
+          Tooltip(
+            message: 'Select date',
+            child: Semantics(
+              button: true,
+              label: 'Select date',
+              child: InkWell(
+                onTap: _pickDate,
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                  child: Column(
+                    children: [
+                      const Icon(Icons.calendar_today,
+                          size: 14, color: AppColors.brandPrimary),
+                      Text(
+                        _selectedDate != null
+                            ? DateFormat('MM/dd').format(_selectedDate!)
+                            : 'Date',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: _selectedDate != null
+                              ? AppColors.brandPrimary
+                              : AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
           ),

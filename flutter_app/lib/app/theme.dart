@@ -5,7 +5,7 @@ class AppColors {
   AppColors._();
 
   static const Color brandPrimary = Color(0xFF1C354C); // Navy
-  static const Color brandSecondary = Color(0xFFE25E29); // Orange
+  static const Color brandSecondary = Color(0xFFB74519); // Accessible orange
   static const Color accentGold = Color(0xFFF2A900); // Yellow/Gold
 
   static const Color surfaceLight =
@@ -13,7 +13,7 @@ class AppColors {
   static const Color cardLight = Color(0xFFFFFFFF); // White for cards
 
   static const Color textPrimary = Color(0xFF1C354C); // Navy for text
-  static const Color textSecondary = Color(0xFF6A819C); // Lighter Navy/Grey
+  static const Color textSecondary = Color(0xFF566F89); // Accessible muted navy
 }
 
 ThemeData buildAppTheme() {

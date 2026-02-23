@@ -157,7 +157,11 @@ class _InteractiveProgramBuilderState extends State<InteractiveProgramBuilder> {
               margin: const EdgeInsets.symmetric(vertical: 8),
               child: ExpansionTile(
                 title: Text('Week ${week.week}'),
-                trailing: IconButton(icon: const Icon(Icons.add_circle_outline), onPressed: () => _addSession(wIdx)),
+                trailing: IconButton(
+                  icon: const Icon(Icons.add_circle_outline),
+                  onPressed: () => _addSession(wIdx),
+                  tooltip: 'Add session to week',
+                ),
                 children: [
                   ...week.sessions.asMap().entries.map((sessionEntry) {
                     final sIdx = sessionEntry.key;
@@ -196,13 +200,18 @@ class _InteractiveProgramBuilderState extends State<InteractiveProgramBuilder> {
 class ExerciseSearchDelegate extends SearchDelegate<ExerciseDefinition?> {
   @override
   List<Widget>? buildActions(BuildContext context) => [
-    IconButton(icon: const Icon(Icons.clear), onPressed: () => query = ''),
+    IconButton(
+      icon: const Icon(Icons.clear),
+      onPressed: () => query = '',
+      tooltip: 'Clear search query',
+    ),
   ];
 
   @override
   Widget? buildLeading(BuildContext context) => IconButton(
     icon: const Icon(Icons.arrow_back),
     onPressed: () => close(context, null),
+    tooltip: 'Close exercise search',
   );
 
   @override
