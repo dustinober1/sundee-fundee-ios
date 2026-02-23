@@ -22,13 +22,12 @@ Sundee Fundee is a hormonal-aware strength training tracker built with Flutter a
 | **Hosting (Web)** | Firebase Hosting |
 
 - ⏱️ **Workout Execution:** Active workout tracking with set-by-set logging of actual weights & reps vs prescribed amounts. Includes visual completion tracking and session management, accessible via a dedicated Workout Landing Screen tab.
-- 📊 **Next Workout Dashboard:** Dynamic dashboard card showing your next session focus and week/day details with a quick "Resume/Start" action.
-- 🏋️ **Program Enrollment:** Enroll in structured training programs and track your progress.
-- 📋 Structured training programs (periodized, multi-phase) moved to a dedicated Programs page.
+- 📊 **Dynamic Dashboard:** Now features a personalized "Welcome {User Name}" message for a premium, familiar feel. includes quick access to next sessions and workout history.
+- 🏋️ **Program Management:** Removed the dedicated "Programs" navigation tab to allow for manual oversight of weekly training schedules.
 - 🦈 Sharkweek logo displayed full-width on the Cycle page during the Menstrual phase
 - 🏋️ Set-by-set workout logging with prescribed weights (based on 1RM)
 - 📈 **Automated Lift Records:** Completing a workout now automatically detects new personal records (1/3/5 RM) and updates your Max Lifts tracker.
-- 📈 Max Lifts Tracker for manual recording of 1RM, 3RM, and 5RM for various powerlifting and Olympic lifts
+- ⚙️ **Enhanced Settings & Legal:** Completely redesigned Settings screen with dedicated sections for Account, Support, and Legal. Added placeholders for Terms of Service, Privacy Policy, and Contact Support, along with mandatory account deletion functionality.
 - ⚙️ **Admin Dashboard** allowing authorized users (e.g. dustinober@me.com) to upload and push new custom workout programs via JSON to Firestore directly from the mobile app.
 - 🏋️ **Streamlined Exercise Library:** Removed redundant and non-essential movements, focusing on core strength and performance lifts.
 - 📈 **Optimized Progress Tracking:** Removed 10 rep maxes to focus on strength-specific metrics (1/3/5 RM).
