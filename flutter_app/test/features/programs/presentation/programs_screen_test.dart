@@ -17,10 +17,10 @@ void main() {
     await tester.pumpAndSettle();
 
     // Verify list is shown
-    expect(find.text('Deadlift 1 Cycle'), findsOneWidget);
+    expect(find.text('Squat 1 Cycle'), findsOneWidget);
     expect(
       find.text(
-        'The complete 12-week baseline program designed for maximum deadlift strength.',
+        'The complete 12-week baseline program designed for maximum squat strength.',
       ),
       findsOneWidget,
     );
