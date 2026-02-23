@@ -12,7 +12,7 @@
      4. UI cues (sharkweek logo) show on the cycle screen when applicable.
      5. Firestore reads/writes succeed and rules validate basic data.
 
-2. **Female Cycle‑Aware Program Generation**
+2. **Female Cycle‑Aware Program Generation** ✅ Completed (2026-02-23)
    - Goal: Implement dynamic program generation that adjusts intensity based on the user’s cycle phase.
    - Requirements: PROG-03
    - Success Criteria:
@@ -32,7 +32,7 @@
 
 ## Phase Status
 - Phase 1: Complete (verified)
-- Phase 2: Pending
+- Phase 2: Complete (verified)
 - Phase 3: Pending
 
 ## Traceability Updates

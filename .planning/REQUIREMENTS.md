@@ -11,7 +11,7 @@
 ### Programs
 - [x] **PROG-01**: User can enroll in a 12‑week strength training program and track weekly progress (existing)
 - [x] **PROG-02**: The program structure for men is rendered week‑by‑week rather than as a fixed 12‑week block (new)
-- [ ] **PROG-03**: Program generator adapts workout prescription for female users based on their current cycle phase (new)
+- [x] **PROG-03**: Program generator adapts workout prescription for female users based on their current cycle phase (new)
 
 ### UI / Experience
 - [x] **UI-01**: Cycle‑specific visual cues (e.g., sharkweek logo) are displayed in relevant screens (existing, ensure consistency)
