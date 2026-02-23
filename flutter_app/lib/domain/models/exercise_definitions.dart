@@ -16,190 +16,190 @@ class Exercises {
   static const List<ExerciseDefinition> all = <ExerciseDefinition>[
     // Squat Variations
     ExerciseDefinition(
-        id: 'back-squat',
+        id: 'Back Squat',
         name: 'Back Squat',
         category: 'Squat Variations',
         muscleGroups: ['quads', 'glutes', 'hamstrings', 'core']),
     ExerciseDefinition(
-        id: 'front-squat',
+        id: 'Front Squat',
         name: 'Front Squat',
         category: 'Squat Variations',
         muscleGroups: ['quads', 'core']),
     ExerciseDefinition(
-        id: 'overhead-squat',
+        id: 'Overhead Squat',
         name: 'Overhead Squat',
         category: 'Squat Variations',
         muscleGroups: ['quads', 'shoulders', 'core']),
     ExerciseDefinition(
-        id: 'box-squat',
+        id: 'Box Squat',
         name: 'Box Squat',
         category: 'Squat Variations',
         muscleGroups: ['glutes', 'hamstrings']),
     ExerciseDefinition(
-        id: 'zercher-squat',
+        id: 'Zercher Squat',
         name: 'Zercher Squat',
         category: 'Squat Variations',
         muscleGroups: ['quads', 'core']),
     ExerciseDefinition(
-        id: 'bulgarian-split-squat',
+        id: 'Bulgarian Split Squat',
         name: 'Bulgarian Split Squat',
         category: 'Squat Variations',
         muscleGroups: ['quads', 'glutes']),
     ExerciseDefinition(
-        id: 'goblet-squat',
+        id: 'Goblet Squat',
         name: 'Goblet Squat',
         category: 'Squat Variations',
         muscleGroups: ['quads', 'core']),
     ExerciseDefinition(
-        id: 'pause-squat',
+        id: 'Pause Squat',
         name: 'Pause Squat',
         category: 'Squat Variations',
         muscleGroups: ['quads', 'glutes']),
 
     // Olympic Lifts - Cleans
     ExerciseDefinition(
-        id: 'squat-clean',
+        id: 'Squat Clean',
         name: 'Squat Clean',
         category: 'Olympic Lifts',
         muscleGroups: ['full-body']),
     ExerciseDefinition(
-        id: 'power-clean',
+        id: 'Power Clean',
         name: 'Power Clean',
         category: 'Olympic Lifts',
         muscleGroups: ['full-body']),
     ExerciseDefinition(
-        id: 'hang-squat-clean',
+        id: 'Hang Squat Clean',
         name: 'Hang Squat Clean',
         category: 'Olympic Lifts',
         muscleGroups: ['full-body']),
     ExerciseDefinition(
-        id: 'hang-power-clean',
+        id: 'Hang Power Clean',
         name: 'Hang Power Clean',
         category: 'Olympic Lifts',
         muscleGroups: ['full-body']),
 
     ExerciseDefinition(
-        id: 'block-power-clean',
+        id: 'Block Power Clean',
         name: 'Block Power Clean',
         category: 'Olympic Lifts',
         muscleGroups: ['full-body']),
     ExerciseDefinition(
-        id: 'muscle-clean',
+        id: 'Muscle Clean',
         name: 'Muscle Clean',
         category: 'Olympic Lifts',
         muscleGroups: ['shoulders', 'back']),
     ExerciseDefinition(
-        id: 'clean-pull',
+        id: 'Clean Pull',
         name: 'Clean Pull',
         category: 'Olympic Lifts',
         muscleGroups: ['full-body']),
 
     // Olympic Lifts - Jerks
     ExerciseDefinition(
-        id: 'split-jerk',
+        id: 'Split Jerk',
         name: 'Split Jerk',
         category: 'Olympic Lifts',
         muscleGroups: ['shoulders', 'triceps', 'legs']),
     ExerciseDefinition(
-        id: 'push-jerk',
+        id: 'Push Jerk',
         name: 'Push Jerk',
         category: 'Olympic Lifts',
         muscleGroups: ['shoulders', 'triceps']),
     ExerciseDefinition(
-        id: 'squat-jerk',
+        id: 'Squat Jerk',
         name: 'Squat Jerk',
         category: 'Olympic Lifts',
         muscleGroups: ['shoulders', 'legs']),
 
     // Olympic Lifts - Snatches
     ExerciseDefinition(
-        id: 'squat-snatch',
+        id: 'Squat Snatch',
         name: 'Squat Snatch',
         category: 'Olympic Lifts',
         muscleGroups: ['full-body']),
     ExerciseDefinition(
-        id: 'power-snatch',
+        id: 'Power Snatch',
         name: 'Power Snatch',
         category: 'Olympic Lifts',
         muscleGroups: ['full-body']),
     ExerciseDefinition(
-        id: 'hang-squat-snatch',
+        id: 'Hang Squat Snatch',
         name: 'Hang Squat Snatch',
         category: 'Olympic Lifts',
         muscleGroups: ['full-body']),
     ExerciseDefinition(
-        id: 'hang-power-snatch',
+        id: 'Hang Power Snatch',
         name: 'Hang Power Snatch',
         category: 'Olympic Lifts',
         muscleGroups: ['full-body']),
 
     ExerciseDefinition(
-        id: 'block-power-snatch',
+        id: 'Block Power Snatch',
         name: 'Block Power Snatch',
         category: 'Olympic Lifts',
         muscleGroups: ['full-body']),
     ExerciseDefinition(
-        id: 'muscle-snatch',
+        id: 'Muscle Snatch',
         name: 'Muscle Snatch',
         category: 'Olympic Lifts',
         muscleGroups: ['shoulders', 'back']),
 
     // Bench Press Variations
     ExerciseDefinition(
-        id: 'flat-barbell-bench-press',
+        id: 'Flat Barbell Bench Press',
         name: 'Flat Barbell Bench Press',
         category: 'Bench Press Variations',
         muscleGroups: ['chest', 'triceps', 'shoulders']),
     ExerciseDefinition(
-        id: 'incline-bench-press',
+        id: 'Incline Bench Press',
         name: 'Incline Bench Press',
         category: 'Bench Press Variations',
         muscleGroups: ['upper-chest', 'shoulders']),
     ExerciseDefinition(
-        id: 'decline-bench-press',
+        id: 'Decline Bench Press',
         name: 'Decline Bench Press',
         category: 'Bench Press Variations',
         muscleGroups: ['lower-chest', 'triceps']),
     ExerciseDefinition(
-        id: 'close-grip-bench-press',
+        id: 'Close-Grip Bench Press',
         name: 'Close-Grip Bench Press',
         category: 'Bench Press Variations',
         muscleGroups: ['triceps', 'chest']),
     ExerciseDefinition(
-        id: 'wide-grip-bench-press',
+        id: 'Wide-Grip Bench Press',
         name: 'Wide-Grip Bench Press',
         category: 'Bench Press Variations',
         muscleGroups: ['chest']),
     ExerciseDefinition(
-        id: 'floor-press',
+        id: 'Floor Press',
         name: 'Floor Press',
         category: 'Bench Press Variations',
         muscleGroups: ['triceps', 'chest']),
 
     ExerciseDefinition(
-        id: 'board-press',
+        id: 'Board Press',
         name: 'Board Press',
         category: 'Bench Press Variations',
         muscleGroups: ['triceps', 'chest']),
 
     // Deadlift Variations
     ExerciseDefinition(
-        id: 'conventional-deadlift-no-straps',
+        id: 'Conventional Deadlift (No Straps)',
         name: 'Conventional Deadlift (No Straps)',
         category: 'Deadlift Variations',
         muscleGroups: ['posterior-chain', 'grip']),
     ExerciseDefinition(
-        id: 'conventional-deadlift-with-straps',
+        id: 'Conventional Deadlift (With Straps)',
         name: 'Conventional Deadlift (With Straps)',
         category: 'Deadlift Variations',
         muscleGroups: ['posterior-chain']),
     ExerciseDefinition(
-        id: 'sumo-deadlift-no-straps',
+        id: 'Sumo Deadlift (No Straps)',
         name: 'Sumo Deadlift (No Straps)',
         category: 'Deadlift Variations',
         muscleGroups: ['posterior-chain', 'quads', 'grip']),
     ExerciseDefinition(
-        id: 'sumo-deadlift-with-straps',
+        id: 'Sumo Deadlift (With Straps)',
         name: 'Sumo Deadlift (With Straps)',
         category: 'Deadlift Variations',
         muscleGroups: ['posterior-chain', 'quads']),
@@ -207,64 +207,64 @@ class Exercises {
 
     // Hinge Variations
     ExerciseDefinition(
-        id: 'rdl-no-straps',
+        id: 'Romanian Deadlift / RDL (No Straps)',
         name: 'Romanian Deadlift / RDL (No Straps)',
         category: 'Hinge Variations',
         muscleGroups: ['hamstrings', 'glutes', 'grip']),
     ExerciseDefinition(
-        id: 'rdl-with-straps',
+        id: 'Romanian Deadlift / RDL (With Straps)',
         name: 'Romanian Deadlift / RDL (With Straps)',
         category: 'Hinge Variations',
         muscleGroups: ['hamstrings', 'glutes']),
     ExerciseDefinition(
-        id: 'sldl-no-straps',
+        id: 'Stiff-Legged Deadlift (No Straps)',
         name: 'Stiff-Legged Deadlift (No Straps)',
         category: 'Hinge Variations',
         muscleGroups: ['hamstrings', 'lower-back', 'grip']),
     ExerciseDefinition(
-        id: 'sldl-with-straps',
+        id: 'Stiff-Legged Deadlift (With Straps)',
         name: 'Stiff-Legged Deadlift (With Straps)',
         category: 'Hinge Variations',
         muscleGroups: ['hamstrings', 'lower-back']),
     ExerciseDefinition(
-        id: 'deficit-deadlift-no-straps',
+        id: 'Deficit Deadlift (No Straps)',
         name: 'Deficit Deadlift (No Straps)',
         category: 'Hinge Variations',
         muscleGroups: ['posterior-chain', 'grip']),
     ExerciseDefinition(
-        id: 'deficit-deadlift-with-straps',
+        id: 'Deficit Deadlift (With Straps)',
         name: 'Deficit Deadlift (With Straps)',
         category: 'Hinge Variations',
         muscleGroups: ['posterior-chain']),
     ExerciseDefinition(
-        id: 'trap-bar-deadlift-no-straps',
+        id: 'Trap Bar / Hex Bar Deadlift (No Straps)',
         name: 'Trap Bar / Hex Bar Deadlift (No Straps)',
         category: 'Hinge Variations',
         muscleGroups: ['posterior-chain', 'quads', 'grip']),
     ExerciseDefinition(
-        id: 'trap-bar-deadlift-with-straps',
+        id: 'Trap Bar / Hex Bar Deadlift (With Straps)',
         name: 'Trap Bar / Hex Bar Deadlift (With Straps)',
         category: 'Hinge Variations',
         muscleGroups: ['posterior-chain', 'quads']),
     ExerciseDefinition(
-        id: 'rack-pull',
+        id: 'Rack Pull / Block Pull',
         name: 'Rack Pull / Block Pull',
         category: 'Hinge Variations',
         muscleGroups: ['back', 'glutes', 'grip']),
 
     // Overhead Pressing
     ExerciseDefinition(
-        id: 'strict-press',
+        id: 'Strict Press / Military Press',
         name: 'Strict Press / Military Press',
         category: 'Overhead Pressing',
         muscleGroups: ['shoulders', 'triceps']),
     ExerciseDefinition(
-        id: 'push-press',
+        id: 'Push Press',
         name: 'Push Press',
         category: 'Overhead Pressing',
         muscleGroups: ['shoulders', 'triceps', 'legs']),
     ExerciseDefinition(
-        id: 'z-press',
+        id: 'Z-Press',
         name: 'Z-Press',
         category: 'Overhead Pressing',
         muscleGroups: ['shoulders', 'core']),
@@ -272,7 +272,7 @@ class Exercises {
     // Back Exercises
 
     ExerciseDefinition(
-        id: 'pull-up',
+        id: 'Pull-up',
         name: 'Pull-up',
         category: 'Back Exercises',
         muscleGroups: ['back', 'biceps']),
@@ -281,38 +281,38 @@ class Exercises {
 
     // Accessories & Core
     ExerciseDefinition(
-        id: 'walking-lunges',
+        id: 'Walking Lunges',
         name: 'Walking Lunges',
         category: 'Accessories',
         muscleGroups: ['quads', 'glutes']),
 
     ExerciseDefinition(
-        id: 'weighted-planks',
+        id: 'Weighted Planks',
         name: 'Weighted Planks',
         category: 'Core',
         muscleGroups: ['core']),
 
     ExerciseDefinition(
-        id: 'box-jumps',
+        id: 'Box Jumps',
         name: 'Box Jumps',
         category: 'Plyometrics',
         muscleGroups: ['legs', 'explosiveness']),
 
 
     ExerciseDefinition(
-        id: 'glute-ham-raises',
+        id: 'Glute Ham Raises',
         name: 'Glute Ham Raises',
         category: 'Accessories',
         muscleGroups: ['hamstrings', 'glutes', 'lower-back']),
 
 
     ExerciseDefinition(
-        id: 'broad-jumps',
+        id: 'Broad Jumps',
         name: 'Broad Jumps',
         category: 'Plyometrics',
         muscleGroups: ['legs', 'explosiveness']),
     ExerciseDefinition(
-        id: 'barbell-shrug',
+        id: 'Barbell Shrug',
         name: 'Barbell Shrug',
         category: 'Accessories',
         muscleGroups: ['traps']),
@@ -320,207 +320,207 @@ class Exercises {
 
     // New Bench Press Accessories
     ExerciseDefinition(
-        id: 'incline-dumbbell-bench-press',
+        id: 'Incline Dumbbell Bench Press',
         name: 'Incline Dumbbell Bench Press',
         category: 'Bench Press Variations',
         muscleGroups: ['upper-chest', 'shoulders']),
     ExerciseDefinition(
-        id: 'dumbbell-bench-press',
+        id: 'Dumbbell Bench Press',
         name: 'Dumbbell Bench Press',
         category: 'Bench Press Variations',
         muscleGroups: ['chest', 'shoulders', 'triceps']),
     ExerciseDefinition(
-        id: 'chest-flys',
+        id: 'Chest Flys',
         name: 'Chest Flys',
         category: 'Accessories',
         muscleGroups: ['chest']),
 
     ExerciseDefinition(
-        id: 'skullcrushers',
+        id: 'Skullcrushers',
         name: 'Skullcrushers',
         category: 'Accessories',
         muscleGroups: ['triceps']),
     ExerciseDefinition(
-        id: 'barbell-rows',
+        id: 'Barbell Rows',
         name: 'Barbell Rows',
         category: 'Accessories',
         muscleGroups: ['back', 'biceps']),
 
     ExerciseDefinition(
-        id: 'dumbbell-pullovers',
+        id: 'Dumbbell Pullovers',
         name: 'Dumbbell Pullovers',
         category: 'Accessories',
         muscleGroups: ['chest', 'lats']),
     ExerciseDefinition(
-        id: 'lateral-raises',
+        id: 'Lateral Raises',
         name: 'Lateral Raises',
         category: 'Accessories',
         muscleGroups: ['shoulders']),
 
 
     ExerciseDefinition(
-        id: 'overhead-dumbbell-triceps-extensions',
+        id: 'Overhead Dumbbell Triceps Extensions',
         name: 'Overhead Dumbbell Triceps Extensions',
         category: 'Accessories',
         muscleGroups: ['triceps']),
     ExerciseDefinition(
-        id: 'pull-ups',
+        id: 'Pull-ups',
         name: 'Pull-ups',
         category: 'Accessories',
         muscleGroups: ['back', 'biceps']),
     ExerciseDefinition(
-        id: 'triceps-extensions',
+        id: 'Triceps Extensions',
         name: 'Triceps Extensions',
         category: 'Accessories',
         muscleGroups: ['triceps']),
 
     // Squat Cycle 2 Accessories
     ExerciseDefinition(
-        id: 'good-mornings',
+        id: 'Good Mornings',
         name: 'Good Mornings',
         category: 'Hinge Variations',
         muscleGroups: ['hamstrings', 'lower-back']),
     ExerciseDefinition(
-        id: 'front-rack-reverse-lunges',
+        id: 'Front-Rack Reverse Lunges',
         name: 'Front-Rack Reverse Lunges',
         category: 'Accessories',
         muscleGroups: ['quads', 'glutes', 'core']),
 
     ExerciseDefinition(
-        id: 'snatch-balance',
+        id: 'Snatch Balance',
         name: 'Snatch Balance',
         category: 'Olympic Lifts',
         muscleGroups: ['shoulders', 'legs', 'core']),
 
     ExerciseDefinition(
-        id: 'barbell-hip-thrusts',
+        id: 'Barbell Hip Thrusts',
         name: 'Barbell Hip Thrusts',
         category: 'Hinge Variations',
         muscleGroups: ['glutes', 'hamstrings']),
     ExerciseDefinition(
-        id: 'farmers-carries',
+        id: 'Farmer\'s Carries',
         name: "Farmer's Carries",
         category: 'Accessories',
         muscleGroups: ['grip', 'core', 'traps']),
 
     // Back Squat Program Accessories
     ExerciseDefinition(
-        id: 'leg-raises',
+        id: 'Leg Raises',
         name: 'Leg Raises',
         category: 'Core',
         muscleGroups: ['core', 'abs']),
     ExerciseDefinition(
-        id: 'face-pulls',
+        id: 'Face Pulls',
         name: 'Face Pulls',
         category: 'Accessories',
         muscleGroups: ['shoulders', 'upper-back']),
     ExerciseDefinition(
-        id: 'step-ups',
+        id: 'Step-ups',
         name: 'Step-ups',
         category: 'Accessories',
         muscleGroups: ['quads', 'glutes']),
     ExerciseDefinition(
-        id: 'russian-twists',
+        id: 'Russian Twists',
         name: 'Russian Twists',
         category: 'Core',
         muscleGroups: ['core', 'obliques']),
     ExerciseDefinition(
-        id: 'lat-pulldowns',
+        id: 'Lat Pulldowns',
         name: 'Lat Pulldowns',
         category: 'Back Exercises',
         muscleGroups: ['back', 'lats', 'biceps']),
     ExerciseDefinition(
-        id: 'hollow-body-hold',
+        id: 'Hollow Body Hold',
         name: 'Hollow Body Hold',
         category: 'Core',
         muscleGroups: ['core', 'abs']),
     ExerciseDefinition(
-        id: 'single-leg-press',
+        id: 'Single-Leg Press',
         name: 'Single-Leg Press',
         category: 'Accessories',
         muscleGroups: ['quads', 'glutes']),
     ExerciseDefinition(
-        id: 'knees-to-chest',
+        id: 'Knees-to-Chest',
         name: 'Knees-to-Chest',
         category: 'Core',
         muscleGroups: ['core', 'abs']),
     ExerciseDefinition(
-        id: 'heels-elevated-goblet-squat',
+        id: 'Heels-Elevated Goblet Squat',
         name: 'Heels-Elevated Goblet Squat',
         category: 'Squat Variations',
         muscleGroups: ['quads', 'core']),
     ExerciseDefinition(
-        id: 'curtsy-lunges',
+        id: 'Curtsy Lunges',
         name: 'Curtsy Lunges',
         category: 'Accessories',
         muscleGroups: ['glutes', 'quads']),
     ExerciseDefinition(
-        id: 'side-plank',
+        id: 'Side Plank',
         name: 'Side Plank',
         category: 'Core',
         muscleGroups: ['core', 'obliques']),
     ExerciseDefinition(
-        id: 'bodyweight-lunges',
+        id: 'Bodyweight Lunges',
         name: 'Bodyweight Lunges',
         category: 'Accessories',
         muscleGroups: ['quads', 'glutes']),
     ExerciseDefinition(
-        id: 'bird-dogs',
+        id: 'Bird-Dogs',
         name: 'Bird-Dogs',
         category: 'Core',
         muscleGroups: ['core', 'lower-back']),
     ExerciseDefinition(
-        id: 'air-squats',
+        id: 'Air Squats',
         name: 'Air Squats',
         category: 'Squat Variations',
         muscleGroups: ['quads', 'glutes']),
     ExerciseDefinition(
-        id: 'weighted-dead-bug',
+        id: 'Weighted Dead Bug',
         name: 'Weighted Dead Bug',
         category: 'Core',
         muscleGroups: ['core', 'abs']),
     ExerciseDefinition(
-        id: 'leg-press',
+        id: 'Leg Press',
         name: 'Leg Press',
         category: 'Accessories',
         muscleGroups: ['quads', 'glutes']),
     ExerciseDefinition(
-        id: 'banded-pull-aparts',
+        id: 'Banded Pull-Aparts',
         name: 'Banded Pull-Aparts',
         category: 'Accessories',
         muscleGroups: ['shoulders', 'upper-back']),
     ExerciseDefinition(
-        id: 'hanging-leg-raises',
+        id: 'Hanging Leg Raises',
         name: 'Hanging Leg Raises',
         category: 'Core',
         muscleGroups: ['core', 'abs']),
     ExerciseDefinition(
-        id: 'hack-squat',
+        id: 'Hack Squat',
         name: 'Hack Squat',
         category: 'Squat Variations',
         muscleGroups: ['quads', 'glutes']),
     ExerciseDefinition(
-        id: 'snatch-grip-rdl',
+        id: 'Snatch-Grip RDL',
         name: 'Snatch-Grip RDL',
         category: 'Hinge Variations',
         muscleGroups: ['hamstrings', 'glutes', 'upper-back']),
     ExerciseDefinition(
-        id: 'weighted-lunges',
+        id: 'Weighted Lunges',
         name: 'Weighted Lunges',
         category: 'Accessories',
         muscleGroups: ['quads', 'glutes']),
     ExerciseDefinition(
-        id: 'l-sit-hold',
+        id: 'L-Sit Hold',
         name: 'L-Sit Hold',
         category: 'Core',
         muscleGroups: ['core', 'abs']),
     ExerciseDefinition(
-        id: 'vertical-jumps',
+        id: 'Vertical Jumps',
         name: 'Vertical Jumps',
         category: 'Plyometrics',
         muscleGroups: ['legs', 'explosiveness']),
     ExerciseDefinition(
-        id: 'depth-jumps',
+        id: 'Depth Jumps',
         name: 'Depth Jumps',
         category: 'Plyometrics',
         muscleGroups: ['legs', 'explosiveness']),

@@ -60,7 +60,7 @@ void main() {
                 "focus": "Strength",
                 "exercises": [
                   {
-                    "exercise": "back-squat",
+                    "exercise": "Back Squat",
                     "sets": 3,
                     "reps": 5,
                     "percent1RM": 0.70,
@@ -86,7 +86,7 @@ void main() {
       expect(program.weeks.first.sessions.first.exercises.length, 1);
       expect(
         program.weeks.first.sessions.first.exercises.first.exercise,
-        'back-squat',
+        'Back Squat',
       );
       expect(
         program.weeks.first.sessions.first.exercises.first.sets.type,
@@ -96,7 +96,7 @@ void main() {
 
     test('Exercise definitions lookup works', () {
       final ExerciseDefinition? squat =
-          Exercises.findById('back-squat');
+          Exercises.findById('Back Squat');
       expect(squat, isNotNull);
       expect(squat?.name, 'Back Squat');
       expect(Exercises.findById('nonexistent'), isNull);

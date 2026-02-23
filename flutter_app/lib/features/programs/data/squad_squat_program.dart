@@ -43,7 +43,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
           focus: 'Main Lift + Accessories',
           exercises: <ProgramExercise>[
             ProgramExercise(
-              exercise: 'back-squat',
+              exercise: 'Back Squat',
               variant: null,
               sets: ExerciseValue.fixed(3),
               reps: ExerciseValue.fixed(8),
@@ -52,7 +52,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
               notes: '3x8 @ 65%. Focus on consistent depth.',
             ),
             ProgramExercise(
-              exercise: 'bulgarian-split-squat',
+              exercise: 'Bulgarian Split Squat',
               variant: null,
               sets: ExerciseValue.fixed(3),
               reps: ExerciseValue.fixed(10),
@@ -69,7 +69,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
           focus: 'Main Lift + Accessories',
           exercises: <ProgramExercise>[
             ProgramExercise(
-              exercise: 'back-squat',
+              exercise: 'Back Squat',
               variant: null,
               sets: ExerciseValue.fixed(4),
               reps: ExerciseValue.fixed(10),
@@ -78,7 +78,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
               notes: '4x10 @ 60%. Speed and positioning.',
             ),
             ProgramExercise(
-              exercise: 'goblet-squat',
+              exercise: 'Goblet Squat',
               variant: null,
               sets: ExerciseValue.fixed(3),
               reps: ExerciseValue.fixed(12),
@@ -95,7 +95,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
           focus: 'Sundee-Fundee - Volume',
           exercises: <ProgramExercise>[
             ProgramExercise(
-              exercise: 'back-squat',
+              exercise: 'Back Squat',
               variant: null,
               sets: ExerciseValue.fixed(5),
               reps: ExerciseValue.fixed(8),
@@ -104,7 +104,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
               notes: '5x8 @ 70%. The Squad Day!',
             ),
             ProgramExercise(
-              exercise: 'rdl-no-straps',
+              exercise: 'Romanian Deadlift / RDL (No Straps)',
               variant: null,
               sets: ExerciseValue.fixed(4),
               reps: ExerciseValue.fixed(8),
@@ -113,7 +113,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
               notes: null,
             ),
             ProgramExercise(
-              exercise: 'walking-lunges',
+              exercise: 'Walking Lunges',
               variant: null,
               sets: ExerciseValue.fixed(3),
               reps: ExerciseValue.fixed(10),
@@ -138,7 +138,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
           focus: 'Main Lift + Accessories',
           exercises: <ProgramExercise>[
             ProgramExercise(
-              exercise: 'back-squat',
+              exercise: 'Back Squat',
               variant: null,
               sets: ExerciseValue.fixed(3),
               reps: ExerciseValue.fixed(8),
@@ -147,7 +147,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
               notes: '3x8 @ 70%.',
             ),
             ProgramExercise(
-              exercise: 'step-ups',
+              exercise: 'Step-ups',
               variant: null,
               sets: ExerciseValue.fixed(3),
               reps: ExerciseValue.fixed(10),
@@ -164,7 +164,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
           focus: 'Main Lift + Accessories',
           exercises: <ProgramExercise>[
             ProgramExercise(
-              exercise: 'back-squat',
+              exercise: 'Back Squat',
               variant: null,
               sets: ExerciseValue.fixed(4),
               reps: ExerciseValue.fixed(10),
@@ -173,7 +173,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
               notes: '4x10 @ 65%.',
             ),
             ProgramExercise(
-              exercise: 'box-squat',
+              exercise: 'Box Squat',
               variant: null,
               sets: ExerciseValue.fixed(3),
               reps: ExerciseValue.fixed(10),
@@ -190,7 +190,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
           focus: 'Sundee-Fundee - Volume',
           exercises: <ProgramExercise>[
             ProgramExercise(
-              exercise: 'back-squat',
+              exercise: 'Back Squat',
               variant: null,
               sets: ExerciseValue.fixed(5),
               reps: ExerciseValue.fixed(8),
@@ -199,7 +199,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
               notes: '5x8 @ 75%.',
             ),
             ProgramExercise(
-              exercise: 'good-mornings',
+              exercise: 'Good Mornings',
               variant: null,
               sets: ExerciseValue.fixed(3),
               reps: ExerciseValue.fixed(10),
@@ -208,7 +208,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
               notes: null,
             ),
             ProgramExercise(
-              exercise: 'front-rack-reverse-lunges',
+              exercise: 'Front-Rack Reverse Lunges',
               variant: null,
               sets: ExerciseValue.fixed(3),
               reps: ExerciseValue.fixed(8),
@@ -233,7 +233,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
           focus: 'Main Lift + Accessories',
           exercises: <ProgramExercise>[
             ProgramExercise(
-              exercise: 'back-squat',
+              exercise: 'Back Squat',
               variant: null,
               sets: ExerciseValue.fixed(3),
               reps: ExerciseValue.fixed(5),
@@ -242,7 +242,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
               notes: '3x5 @ 75%.',
             ),
             ProgramExercise(
-              exercise: 'leg-press',
+              exercise: 'Leg Press',
               variant: null,
               sets: ExerciseValue.fixed(3),
               reps: ExerciseValue.fixed(12),
@@ -259,7 +259,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
           focus: 'Main Lift + Accessories',
           exercises: <ProgramExercise>[
             ProgramExercise(
-              exercise: 'back-squat',
+              exercise: 'Back Squat',
               variant: null,
               sets: ExerciseValue.fixed(4),
               reps: ExerciseValue.fixed(10),
@@ -268,7 +268,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
               notes: '4x10 @ 65%.',
             ),
             ProgramExercise(
-              exercise: 'heels-elevated-goblet-squat',
+              exercise: 'Heels-Elevated Goblet Squat',
               variant: null,
               sets: ExerciseValue.fixed(3),
               reps: ExerciseValue.fixed(12),
@@ -285,7 +285,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
           focus: 'Sundee-Fundee - Volume',
           exercises: <ProgramExercise>[
             ProgramExercise(
-              exercise: 'back-squat',
+              exercise: 'Back Squat',
               variant: null,
               sets: ExerciseValue.fixed(5),
               reps: ExerciseValue.fixed(5),
@@ -294,7 +294,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
               notes: '5x5 @ 80%.',
             ),
             ProgramExercise(
-              exercise: 'sldl-no-straps',
+              exercise: 'Stiff-Legged Deadlift (No Straps)',
               variant: null,
               sets: ExerciseValue.fixed(4),
               reps: ExerciseValue.fixed(8),
@@ -303,7 +303,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
               notes: null,
             ),
             ProgramExercise(
-              exercise: 'curtsy-lunges',
+              exercise: 'Curtsy Lunges',
               variant: null,
               sets: ExerciseValue.fixed(3),
               reps: ExerciseValue.fixed(10),
@@ -328,7 +328,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
           focus: 'Deload/Power',
           exercises: <ProgramExercise>[
             ProgramExercise(
-              exercise: 'back-squat',
+              exercise: 'Back Squat',
               variant: null,
               sets: ExerciseValue.fixed(2),
               reps: ExerciseValue.fixed(3),
@@ -345,7 +345,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
           focus: 'Mobility / Core',
           exercises: <ProgramExercise>[
             ProgramExercise(
-              exercise: 'weighted-planks',
+              exercise: 'Weighted Planks',
               variant: null,
               sets: ExerciseValue.fixed(3),
               reps: ExerciseValue.fixed(45),
@@ -354,7 +354,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
               notes: '45 second hold.',
             ),
             ProgramExercise(
-              exercise: 'leg-raises',
+              exercise: 'Leg Raises',
               variant: null,
               sets: ExerciseValue.fixed(3),
               reps: ExerciseValue.fixed(15),
@@ -371,7 +371,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
           focus: 'Sundee-Fundee - 5RM MAX',
           exercises: <ProgramExercise>[
             ProgramExercise(
-              exercise: 'back-squat',
+              exercise: 'Back Squat',
               variant: null,
               sets: ExerciseValue.fixed(1),
               reps: ExerciseValue.fixed(5),
@@ -396,7 +396,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
           focus: 'Main Lift + Accessories',
           exercises: <ProgramExercise>[
             ProgramExercise(
-              exercise: 'back-squat',
+              exercise: 'Back Squat',
               variant: null,
               sets: ExerciseValue.fixed(3),
               reps: ExerciseValue.fixed(5),
@@ -405,7 +405,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
               notes: '3x5 @ 75%.',
             ),
             ProgramExercise(
-              exercise: 'box-jumps',
+              exercise: 'Box Jumps',
               variant: null,
               sets: ExerciseValue.fixed(3),
               reps: ExerciseValue.fixed(5),
@@ -422,7 +422,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
           focus: 'Main Lift + Accessories',
           exercises: <ProgramExercise>[
             ProgramExercise(
-              exercise: 'back-squat',
+              exercise: 'Back Squat',
               variant: null,
               sets: ExerciseValue.fixed(3),
               reps: ExerciseValue.fixed(8),
@@ -431,7 +431,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
               notes: '3x8 @ 70%.',
             ),
             ProgramExercise(
-              exercise: 'hack-squat',
+              exercise: 'Hack Squat',
               variant: null,
               sets: ExerciseValue.fixed(3),
               reps: ExerciseValue.fixed(10),
@@ -448,7 +448,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
           focus: 'Sundee-Fundee - Strength',
           exercises: <ProgramExercise>[
             ProgramExercise(
-              exercise: 'back-squat',
+              exercise: 'Back Squat',
               variant: null,
               sets: ExerciseValue.fixed(5),
               reps: ExerciseValue.fixed(5),
@@ -457,7 +457,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
               notes: '5x5 @ 82%.',
             ),
             ProgramExercise(
-              exercise: 'snatch-grip-rdl',
+              exercise: 'Snatch-Grip RDL',
               variant: null,
               sets: ExerciseValue.fixed(4),
               reps: ExerciseValue.fixed(8),
@@ -466,7 +466,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
               notes: null,
             ),
             ProgramExercise(
-              exercise: 'step-ups',
+              exercise: 'Step-ups',
               variant: null,
               sets: ExerciseValue.fixed(3),
               reps: ExerciseValue.fixed(8),
@@ -491,7 +491,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
           focus: 'Main Lift + Accessories',
           exercises: <ProgramExercise>[
             ProgramExercise(
-              exercise: 'back-squat',
+              exercise: 'Back Squat',
               variant: null,
               sets: ExerciseValue.fixed(3),
               reps: ExerciseValue.fixed(3),
@@ -500,7 +500,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
               notes: '3x3 @ 80%.',
             ),
             ProgramExercise(
-              exercise: 'broad-jumps',
+              exercise: 'Broad Jumps',
               variant: null,
               sets: ExerciseValue.fixed(3),
               reps: ExerciseValue.fixed(5),
@@ -517,7 +517,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
           focus: 'Main Lift + Accessories',
           exercises: <ProgramExercise>[
             ProgramExercise(
-              exercise: 'back-squat',
+              exercise: 'Back Squat',
               variant: null,
               sets: ExerciseValue.fixed(3),
               reps: ExerciseValue.fixed(8),
@@ -526,7 +526,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
               notes: '3x8 @ 72%.',
             ),
             ProgramExercise(
-              exercise: 'leg-press',
+              exercise: 'Leg Press',
               variant: null,
               sets: ExerciseValue.fixed(3),
               reps: ExerciseValue.fixed(12),
@@ -543,7 +543,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
           focus: 'Sundee-Fundee - Strength',
           exercises: <ProgramExercise>[
             ProgramExercise(
-              exercise: 'back-squat',
+              exercise: 'Back Squat',
               variant: null,
               sets: ExerciseValue.fixed(5),
               reps: ExerciseValue.fixed(3),
@@ -552,7 +552,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
               notes: '5x3 @ 85%.',
             ),
             ProgramExercise(
-              exercise: 'deficit-deadlift-no-straps',
+              exercise: 'Deficit Deadlift (No Straps)',
               variant: null,
               sets: ExerciseValue.fixed(4),
               reps: ExerciseValue.fixed(8),
@@ -561,7 +561,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
               notes: 'Deficit RDLs.',
             ),
             ProgramExercise(
-              exercise: 'weighted-lunges',
+              exercise: 'Weighted Lunges',
               variant: null,
               sets: ExerciseValue.fixed(3),
               reps: ExerciseValue.fixed(8),
@@ -586,7 +586,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
           focus: 'Main Lift + Accessories',
           exercises: <ProgramExercise>[
             ProgramExercise(
-              exercise: 'back-squat',
+              exercise: 'Back Squat',
               variant: null,
               sets: ExerciseValue.fixed(3),
               reps: ExerciseValue.fixed(3),
@@ -595,7 +595,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
               notes: '3x3 @ 85%.',
             ),
             ProgramExercise(
-              exercise: 'depth-jumps',
+              exercise: 'Depth Jumps',
               variant: null,
               sets: ExerciseValue.fixed(3),
               reps: ExerciseValue.fixed(5),
@@ -612,7 +612,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
           focus: 'Main Lift + Accessories',
           exercises: <ProgramExercise>[
             ProgramExercise(
-              exercise: 'back-squat',
+              exercise: 'Back Squat',
               variant: null,
               sets: ExerciseValue.fixed(3),
               reps: ExerciseValue.fixed(8),
@@ -621,7 +621,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
               notes: '3x8 @ 75%.',
             ),
             ProgramExercise(
-              exercise: 'zercher-squat',
+              exercise: 'Zercher Squat',
               variant: null,
               sets: ExerciseValue.fixed(3),
               reps: ExerciseValue.fixed(10),
@@ -638,7 +638,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
           focus: 'Sundee-Fundee - Strength',
           exercises: <ProgramExercise>[
             ProgramExercise(
-              exercise: 'back-squat',
+              exercise: 'Back Squat',
               variant: null,
               sets: ExerciseValue.fixed(4),
               reps: ExerciseValue.fixed(2),
@@ -647,7 +647,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
               notes: '4x2 @ 90%.',
             ),
             ProgramExercise(
-              exercise: 'rack-pull',
+              exercise: 'Rack Pull / Block Pull',
               variant: null,
               sets: ExerciseValue.fixed(4),
               reps: ExerciseValue.fixed(8),
@@ -656,7 +656,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
               notes: null,
             ),
             ProgramExercise(
-              exercise: 'bulgarian-split-squat',
+              exercise: 'Bulgarian Split Squat',
               variant: null,
               sets: ExerciseValue.fixed(3),
               reps: ExerciseValue.fixed(8),
@@ -681,7 +681,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
           focus: 'Deload/Speed',
           exercises: <ProgramExercise>[
             ProgramExercise(
-              exercise: 'back-squat',
+              exercise: 'Back Squat',
               variant: null,
               sets: ExerciseValue.fixed(2),
               reps: ExerciseValue.fixed(2),
@@ -698,7 +698,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
           focus: 'Mobility / Banded Work',
           exercises: <ProgramExercise>[
             ProgramExercise(
-              exercise: 'banded-pull-aparts',
+              exercise: 'Banded Pull-Aparts',
               variant: null,
               sets: ExerciseValue.fixed(3),
               reps: ExerciseValue.fixed(20),
@@ -715,7 +715,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
           focus: 'Sundee-Fundee - 3RM MAX',
           exercises: <ProgramExercise>[
             ProgramExercise(
-              exercise: 'back-squat',
+              exercise: 'Back Squat',
               variant: null,
               sets: ExerciseValue.fixed(1),
               reps: ExerciseValue.fixed(3),
@@ -740,7 +740,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
           focus: 'Main Lift + Speed Pulls',
           exercises: <ProgramExercise>[
             ProgramExercise(
-              exercise: 'back-squat',
+              exercise: 'Back Squat',
               variant: null,
               sets: ExerciseValue.fixed(3),
               reps: ExerciseValue.fixed(3),
@@ -749,7 +749,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
               notes: '3x3 @ 85%.',
             ),
             ProgramExercise(
-              exercise: 'conventional-deadlift-no-straps',
+              exercise: 'Conventional Deadlift (No Straps)',
               variant: null,
               sets: ExerciseValue.fixed(3),
               reps: ExerciseValue.fixed(5),
@@ -766,7 +766,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
           focus: 'Main Lift + Rows',
           exercises: <ProgramExercise>[
             ProgramExercise(
-              exercise: 'back-squat',
+              exercise: 'Back Squat',
               variant: null,
               sets: ExerciseValue.fixed(3),
               reps: ExerciseValue.fixed(5),
@@ -775,7 +775,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
               notes: '3x5 @ 70%.',
             ),
             ProgramExercise(
-              exercise: 'barbell-rows',
+              exercise: 'Barbell Rows',
               variant: null,
               sets: ExerciseValue.fixed(3),
               reps: ExerciseValue.fixed(8),
@@ -792,7 +792,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
           focus: 'Sundee-Fundee - Peaking',
           exercises: <ProgramExercise>[
             ProgramExercise(
-              exercise: 'back-squat',
+              exercise: 'Back Squat',
               variant: null,
               sets: ExerciseValue.fixed(3),
               reps: ExerciseValue.fixed(2),
@@ -801,7 +801,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
               notes: '3x2 @ 92%.',
             ),
             ProgramExercise(
-              exercise: 'good-mornings',
+              exercise: 'Good Mornings',
               variant: null,
               sets: ExerciseValue.fixed(3),
               reps: ExerciseValue.fixed(8),
@@ -826,7 +826,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
           focus: 'Main Lift + Pause Squats',
           exercises: <ProgramExercise>[
             ProgramExercise(
-              exercise: 'back-squat',
+              exercise: 'Back Squat',
               variant: null,
               sets: ExerciseValue.fixed(2),
               reps: ExerciseValue.fixed(2),
@@ -835,7 +835,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
               notes: '2x2 @ 90%.',
             ),
             ProgramExercise(
-              exercise: 'pause-squat',
+              exercise: 'Pause Squat',
               variant: null,
               sets: ExerciseValue.fixed(3),
               reps: ExerciseValue.fixed(3),
@@ -852,7 +852,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
           focus: 'Main Lift + Face Pulls',
           exercises: <ProgramExercise>[
             ProgramExercise(
-              exercise: 'back-squat',
+              exercise: 'Back Squat',
               variant: null,
               sets: ExerciseValue.fixed(2),
               reps: ExerciseValue.fixed(5),
@@ -861,7 +861,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
               notes: '2x5 @ 75%.',
             ),
             ProgramExercise(
-              exercise: 'face-pulls',
+              exercise: 'Face Pulls',
               variant: null,
               sets: ExerciseValue.fixed(3),
               reps: ExerciseValue.fixed(15),
@@ -878,7 +878,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
           focus: 'Sundee-Fundee - Peaking',
           exercises: <ProgramExercise>[
             ProgramExercise(
-              exercise: 'back-squat',
+              exercise: 'Back Squat',
               variant: null,
               sets: ExerciseValue.fixed(2),
               reps: ExerciseValue.fixed(1),
@@ -887,7 +887,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
               notes: '2x1 @ 95%.',
             ),
             ProgramExercise(
-              exercise: 'barbell-hip-thrusts',
+              exercise: 'Barbell Hip Thrusts',
               variant: null,
               sets: ExerciseValue.fixed(3),
               reps: ExerciseValue.fixed(8),
@@ -912,7 +912,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
           focus: 'Deload',
           exercises: <ProgramExercise>[
             ProgramExercise(
-              exercise: 'back-squat',
+              exercise: 'Back Squat',
               variant: null,
               sets: ExerciseValue.fixed(2),
               reps: ExerciseValue.fixed(2),
@@ -936,7 +936,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
           focus: 'Sundee-Fundee - Deload',
           exercises: <ProgramExercise>[
             ProgramExercise(
-              exercise: 'back-squat',
+              exercise: 'Back Squat',
               variant: null,
               sets: ExerciseValue.fixed(3),
               reps: ExerciseValue.fixed(3),
@@ -968,7 +968,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
           focus: 'Light Bracing Drills',
           exercises: <ProgramExercise>[
             ProgramExercise(
-              exercise: 'weighted-planks',
+              exercise: 'Weighted Planks',
               variant: null,
               sets: ExerciseValue.fixed(2),
               reps: ExerciseValue.fixed(30),
@@ -985,7 +985,7 @@ final ProgramV2 squadSquatProgram = ProgramV2(
           focus: 'THE 1RM MAX OUT PARTY',
           exercises: <ProgramExercise>[
             ProgramExercise(
-              exercise: 'back-squat',
+              exercise: 'Back Squat',
               variant: null,
               sets: ExerciseValue.fixed(1),
               reps: ExerciseValue.fixed(1),
