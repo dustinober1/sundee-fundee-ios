@@ -58,6 +58,11 @@ service cloud.firestore {
       }
     }
 
+    match /programs/{programId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
     match /programCatalog/{programId} {
       allow read: if true;
       allow write: if false;
