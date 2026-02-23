@@ -25,7 +25,7 @@ class RestTimerState {
   }
 }
 
-class RestTimerNotifier extends AutoDisposeNotifier<RestTimerState> {
+class RestTimerNotifier extends Notifier<RestTimerState> {
   Timer? _timer;
 
   @override
@@ -76,6 +76,6 @@ class RestTimerNotifier extends AutoDisposeNotifier<RestTimerState> {
 }
 
 final restTimerProvider =
-    AutoDisposeNotifierProvider<RestTimerNotifier, RestTimerState>(
+    NotifierProvider.autoDispose<RestTimerNotifier, RestTimerState>(
   RestTimerNotifier.new,
 );

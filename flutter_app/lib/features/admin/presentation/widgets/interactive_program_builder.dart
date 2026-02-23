@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:uuid/uuid.dart';
 
 import '../../../../domain/models/exercise_definitions.dart';
 import '../../../../domain/models/program_models.dart';
@@ -50,6 +49,7 @@ class _InteractiveProgramBuilderState extends State<InteractiveProgramBuilder> {
       _weeks.add(ProgramWeek(
         week: weekNum,
         phaseId: _phases.isNotEmpty ? _phases.first.id : 'block-1',
+        isTestWeek: false,
         sessions: [],
       ));
     });
@@ -78,9 +78,12 @@ class _InteractiveProgramBuilderState extends State<InteractiveProgramBuilder> {
       setState(() {
         _weeks[weekIndex].sessions[sessionIndex].exercises.add(ProgramExercise(
           exercise: selected.id,
+          variant: null,
           sets: ExerciseValue.fixed(3),
           reps: ExerciseValue.fixed(5),
           percent1Rm: 0.7,
+          restMinutes: 2.0,
+          notes: null,
         ));
       });
     }
@@ -131,7 +134,13 @@ class _InteractiveProgramBuilderState extends State<InteractiveProgramBuilder> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text('Structure', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              ElevatedButton(onPressed: _addWeek, child: const Text('Add Week')),
+              Row(
+                children: [
+                  TextButton(onPressed: _addPhase, child: const Text('Add Phase')),
+                  const SizedBox(width: 8),
+                  ElevatedButton(onPressed: _addWeek, child: const Text('Add Week')),
+                ],
+              ),
             ],
           ),
           
