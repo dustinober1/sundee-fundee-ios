@@ -264,12 +264,12 @@ class InjuryAdaptationEngine {
     }
 
     // Priority 4: Bodyweight regression from safe set
-    const List<String> _safeBodyweight = <String>[
+    const List<String> safeBodyweight = <String>[
       'Air Squats',
       'Bird-Dogs',
       'Bodyweight Lunges',
     ];
-    for (final String safe in _safeBodyweight) {
+    for (final String safe in safeBodyweight) {
       if (_exercises.containsKey(safe) &&
           !_isContraindicated(safe, injuries)) {
         return _ReplacementResult(
