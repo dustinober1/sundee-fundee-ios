@@ -50,6 +50,42 @@ String _flowLabel(FlowLevel level) {
   }
 }
 
+class _InlineInfoBanner extends StatelessWidget {
+  const _InlineInfoBanner({
+    required this.icon,
+    required this.message,
+  });
+
+  final IconData icon;
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.cardLight,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.textSecondary.withValues(alpha: 0.2)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 18, color: AppColors.textSecondary),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              message,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Main Screen
 // ─────────────────────────────────────────────────────────────────────────────
@@ -62,6 +98,7 @@ class CycleTrackingScreen extends ConsumerWidget {
     final periodLogsAsync = ref.watch(periodLogsProvider);
     final cycleStatus = ref.watch(cycleStatusProvider);
     final recommendation = ref.watch(phaseRecommendationProvider);
+    final cycleControllerState = ref.watch(cycleControllerProvider);
     final userId = ref.watch(cycleUserIdProvider);
 
     return Scaffold(
@@ -112,6 +149,8 @@ class CycleTrackingScreen extends ConsumerWidget {
           final status = cycleStatus;
           final rec = recommendation;
           final isSharkweek = status?.currentPhase == CyclePhase.menstrual;
+          final DateTime? lastSyncedAt =
+              periodLogs.isEmpty ? null : periodLogs.first.startDate;
 
           return ListView(
             padding: const EdgeInsets.symmetric(vertical: 12),
@@ -131,6 +170,30 @@ class CycleTrackingScreen extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    if (cycleControllerState.hasError)
+                      const _InlineInfoBanner(
+                        icon: Icons.sync_problem_outlined,
+                        message: 'Changes could not be saved. Retry.',
+                      ),
+
+                    if (status == null) ...[
+                      const _InlineInfoBanner(
+                        icon: Icons.info_outline,
+                        message:
+                            'Cycle data unavailable. Add or sync cycle records to unlock recommendations.',
+                      ),
+                      const SizedBox(height: 12),
+                    ],
+
+                    Text(
+                      'Last synced: ${lastSyncedAt == null ? 'No cycle records yet' : DateFormat.yMMMd().format(lastSyncedAt)}',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
+                    ),
+
+                    const SizedBox(height: 12),
+
                     // ── Phase hero card
                     _PhaseHeroCard(
                       cycleStatus: status,

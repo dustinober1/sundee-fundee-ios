@@ -73,6 +73,22 @@ final cycleStatusProvider = Provider<CycleStatusResult?>((ref) {
   );
 });
 
+final cycleLastSyncedAtProvider = Provider<DateTime?>((ref) {
+  final List<PeriodLogModel> logs = ref.watch(periodLogsProvider).value ?? [];
+  if (logs.isEmpty) return null;
+
+  final List<PeriodLogModel> sorted = List<PeriodLogModel>.from(logs)
+    ..sort((PeriodLogModel a, PeriodLogModel b) {
+      return b.startDate.compareTo(a.startDate);
+    });
+  return sorted.first.startDate;
+});
+
+final cycleDataUnavailableProvider = Provider<bool>((ref) {
+  final status = ref.watch(cycleStatusProvider);
+  return status == null;
+});
+
 final phaseRecommendationProvider = Provider<PhaseRecommendation?>((ref) {
   final status = ref.watch(cycleStatusProvider);
   if (status == null) return null;
