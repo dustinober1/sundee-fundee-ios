@@ -1,6 +1,5 @@
-- Save onboarding and stop asking for each login
-- Set up for the plan to adjust if the user enters a current injury they have
-    - Give the user alternate exercises if they have an injury
-    - Give the user exercise to add to their plan to recover from the injury.
-    - Add to the legal disclaimers this is not a subsitute for medical advice or physical therapy. 
-- Need an option to cancel a plan once enrolled. 
+- Research FLutter widgets that will be beneficial to this application
+- Verify accessibility requirements, especially color contrast
+- Research alternative exercises for users that are injured or recovering.
+- Remove all non weightlifting moves from the max tracker. 
+- Add a benchmarks tab to put named workouts
