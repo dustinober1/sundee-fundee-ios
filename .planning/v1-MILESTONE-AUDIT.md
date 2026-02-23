@@ -1,23 +1,17 @@
 ---
 milestone: v1
 audited: 2026-02-23T21:24:25Z
-status: tech_debt
+status: passed
 scores:
   requirements: 6/6
-  phases: 3/3
+  phases: 4/4
   integration: 4/4
   flows: 3/3
 gaps:
   requirements: []
   integration: []
   flows: []
-tech_debt:
-  - phase: 01-foundation-mens-program-layout
-    items:
-      - "Phase 01 verification recorded unrelated full-suite test failures outside scoped checks; milestone evidence remains targeted-suite based rather than full `flutter test` pass."
-  - phase: 03-polish-future-prep
-    items:
-      - "Phase 03 fixed known regression test drift and re-verified critical paths, but no artifact demonstrates full-suite green across all legacy tests."
+tech_debt: []
 ---
 
 # Milestone Audit: v1
@@ -28,7 +22,7 @@ tech_debt:
   - `.planning/REQUIREMENTS.md`
   - `.planning/ROADMAP.md`
   - All phase `*-SUMMARY.md` and `*-VERIFICATION.md` artifacts under `.planning/phases/*`
-- Milestone in scope: **v1** (all 3 completed roadmap phases)
+- Milestone in scope: **v1** (all 4 completed roadmap phases)
 
 ## Method
 - Verified phase-level completion and verification status from each `*-VERIFICATION.md`.
@@ -43,6 +37,7 @@ tech_debt:
 | 01-foundation-mens-program-layout | `01-VERIFICATION.md` | passed | none | Baseline auth/cycle/program UI/rules verified with targeted suite |
 | 02-female-cycle-aware-program-generation | `02-VERIFICATION.md` | passed | none | Cycle-aware adaptation + provider/runtime wiring verified |
 | 03-polish-future-prep | `03-VERIFICATION.md` | passed | none | Polish/offline/docs/rules and targeted regressions verified |
+| 04-full-suite-test-stabilization-verification-hardening | `04-VERIFICATION.md` | passed | none | Full-suite stabilization completed and final clean full `flutter test` evidence captured |
 
 ## Requirements Coverage (v1)
 
@@ -77,9 +72,9 @@ tech_debt:
 - No unsatisfied v1 requirements.
 
 ## Tech Debt Register
-1. Phase 01 verification explicitly documented that full-suite tests had unrelated legacy failures at that time; milestone acceptance relies on targeted critical-path suites.
-2. Phase 03 improved and re-verified major regressions, but there is still no single artifact proving an end-to-end full `flutter test` green run.
+1. No open tech debt items remain after Phase 04 closure.
+2. Prior full-suite verification debt was closed by `04-VERIFICATION.md` clean-run evidence.
 
 ## Final Determination
-- **Milestone status: `tech_debt`**
-- Rationale: all v1 requirements and critical integrations are satisfied, but verification evidence remains intentionally targeted rather than full-suite clean.
+- **Milestone status: `passed`**
+- Rationale: all v1 requirements are satisfied and full-suite verification evidence is now clean and documented in Phase 04 artifacts.
