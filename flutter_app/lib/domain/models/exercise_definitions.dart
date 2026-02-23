@@ -16,15 +16,10 @@ class Exercises {
   static const List<ExerciseDefinition> all = <ExerciseDefinition>[
     // Squat Variations
     ExerciseDefinition(
-        id: 'high-bar-back-squat',
-        name: 'High Bar Back Squat',
+        id: 'back-squat',
+        name: 'Back Squat',
         category: 'Squat Variations',
-        muscleGroups: ['quads', 'glutes', 'core']),
-    ExerciseDefinition(
-        id: 'low-bar-back-squat',
-        name: 'Low Bar Back Squat',
-        category: 'Squat Variations',
-        muscleGroups: ['glutes', 'hamstrings', 'core']),
+        muscleGroups: ['quads', 'glutes', 'hamstrings', 'core']),
     ExerciseDefinition(
         id: 'front-squat',
         name: 'Front Squat',

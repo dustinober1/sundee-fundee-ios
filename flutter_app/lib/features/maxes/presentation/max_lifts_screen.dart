@@ -3,36 +3,88 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../app/theme.dart';
 import '../../../domain/models/exercise_definitions.dart';
 import '../../../domain/models/lift_max_model.dart';
 import '../providers.dart';
 
-class MaxLiftsScreen extends ConsumerWidget {
+class MaxLiftsScreen extends ConsumerStatefulWidget {
   const MaxLiftsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MaxLiftsScreen> createState() => _MaxLiftsScreenState();
+}
+
+class _MaxLiftsScreenState extends ConsumerState<MaxLiftsScreen> {
+  final TextEditingController _searchCtrl = TextEditingController();
+  String _searchQuery = '';
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final maxesAsync = ref.watch(liftMaxesProvider);
 
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Personal Bests'),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(60),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: TextField(
+              controller: _searchCtrl,
+              onChanged: (val) => setState(() => _searchQuery = val),
+              decoration: InputDecoration(
+                hintText: 'Search exercises...',
+                prefixIcon: const Icon(Icons.search),
+                isDense: true,
+                contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
       body: maxesAsync.when(
         data: (maxes) {
           final mappedMaxes = _groupMaxes(maxes);
-          final categories = _groupExercisesByCategory();
+          final categories = _groupExercisesByCategory(_searchQuery);
+
+          if (categories.isEmpty) {
+            return const Center(child: Text('No exercises found.'));
+          }
 
           return ListView.builder(
+            padding: const EdgeInsets.only(bottom: 32),
             itemCount: categories.keys.length,
-            addAutomaticKeepAlives: true,
             itemBuilder: (context, index) {
               final category = categories.keys.elementAt(index);
               final exercises = categories[category]!;
 
-              return ExpansionTile(
-                title: Text(category,
-                    style: Theme.of(context).textTheme.titleLarge),
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Padding(
+                    padding:
+                        const EdgeInsets.only(left: 20, top: 24, bottom: 8),
+                    child: Text(
+                      category.toUpperCase(),
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            color: AppColors.brandSecondary,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1.2,
+                          ),
+                    ),
+                  ),
                   for (final exercise in exercises)
-                    _ExerciseMaxRow(
+                    _ExerciseMaxCard(
                       exercise: exercise,
                       maxes: mappedMaxes[exercise.id] ?? {},
                     )
@@ -59,9 +111,14 @@ class MaxLiftsScreen extends ConsumerWidget {
     return grouped;
   }
 
-  Map<String, List<ExerciseDefinition>> _groupExercisesByCategory() {
+  Map<String, List<ExerciseDefinition>> _groupExercisesByCategory(
+      String query) {
     final grouped = <String, List<ExerciseDefinition>>{};
-    for (final exercise in Exercises.all) {
+    final filtered = Exercises.all.where((e) =>
+        e.name.toLowerCase().contains(query.toLowerCase()) ||
+        e.category.toLowerCase().contains(query.toLowerCase()));
+
+    for (final exercise in filtered) {
       if (!grouped.containsKey(exercise.category)) {
         grouped[exercise.category] = [];
       }
@@ -71,50 +128,156 @@ class MaxLiftsScreen extends ConsumerWidget {
   }
 }
 
-class _ExerciseMaxRow extends ConsumerWidget {
-  const _ExerciseMaxRow({required this.exercise, required this.maxes});
+class _ExerciseMaxCard extends StatefulWidget {
+  const _ExerciseMaxCard({required this.exercise, required this.maxes});
 
   final ExerciseDefinition exercise;
   final Map<int, LiftMaxModel> maxes;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Card(
+  State<_ExerciseMaxCard> createState() => _ExerciseMaxCardState();
+}
+
+class _ExerciseMaxCardState extends State<_ExerciseMaxCard> {
+  bool _isExpanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final hasAnyMax = widget.maxes.isNotEmpty;
+    final bestMax = widget.maxes[1] ??
+        widget.maxes[3] ??
+        widget.maxes[5] ??
+        widget.maxes[10];
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: AppColors.cardLight,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.brandPrimary.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(exercise.name, style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 16),
-            _RepMaxInput(exercise: exercise, repCount: 1, currentMax: maxes[1]),
-            _RepMaxInput(exercise: exercise, repCount: 3, currentMax: maxes[3]),
-            _RepMaxInput(exercise: exercise, repCount: 5, currentMax: maxes[5]),
-            _RepMaxInput(
-                exercise: exercise, repCount: 10, currentMax: maxes[10]),
+            InkWell(
+              onTap: () => setState(() => _isExpanded = !_isExpanded),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: AppColors.brandPrimary.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        _getIconForCategory(widget.exercise.category),
+                        color: AppColors.brandPrimary,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.exercise.name,
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          if (hasAnyMax && bestMax != null)
+                            Text(
+                              'Best: ${bestMax.weight} lbs (${bestMax.repCount}RM)',
+                              style: Theme.of(context).textTheme.bodySmall,
+                            )
+                          else
+                            Text(
+                              'No data logged',
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                        ],
+                      ),
+                    ),
+                    Icon(
+                      _isExpanded ? Icons.expand_less : Icons.expand_more,
+                      color: AppColors.textSecondary,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            if (_isExpanded)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                child: Column(
+                  children: [
+                    const Divider(),
+                    const SizedBox(height: 8),
+                    _RepMaxInputRow(
+                        exercise: widget.exercise,
+                        repCount: 1,
+                        currentMax: widget.maxes[1]),
+                    _RepMaxInputRow(
+                        exercise: widget.exercise,
+                        repCount: 3,
+                        currentMax: widget.maxes[3]),
+                    _RepMaxInputRow(
+                        exercise: widget.exercise,
+                        repCount: 5,
+                        currentMax: widget.maxes[5]),
+                    _RepMaxInputRow(
+                        exercise: widget.exercise,
+                        repCount: 10,
+                        currentMax: widget.maxes[10]),
+                  ],
+                ),
+              ),
           ],
         ),
       ),
     );
   }
+
+  IconData _getIconForCategory(String category) {
+    if (category.contains('Squat')) return Icons.fitness_center;
+    if (category.contains('Bench')) return Icons.horizontal_rule;
+    if (category.contains('Deadlift') || category.contains('Hinge')) {
+      return Icons.vertical_align_bottom;
+    }
+    if (category.contains('Olympic')) return Icons.flash_on;
+    if (category.contains('Overhead')) return Icons.upload;
+    return Icons.accessibility_new;
+  }
 }
 
-class _RepMaxInput extends ConsumerStatefulWidget {
-  const _RepMaxInput(
-      {required this.exercise, required this.repCount, this.currentMax});
+class _RepMaxInputRow extends ConsumerStatefulWidget {
+  const _RepMaxInputRow({
+    required this.exercise,
+    required this.repCount,
+    this.currentMax,
+  });
 
   final ExerciseDefinition exercise;
   final int repCount;
   final LiftMaxModel? currentMax;
 
   @override
-  ConsumerState<_RepMaxInput> createState() => _RepMaxInputState();
+  ConsumerState<_RepMaxInputRow> createState() => _RepMaxInputRowState();
 }
 
-class _RepMaxInputState extends ConsumerState<_RepMaxInput> {
+class _RepMaxInputRowState extends ConsumerState<_RepMaxInputRow> {
   late TextEditingController _weightCtrl;
   DateTime? _selectedDate;
+  bool _isSaving = false;
 
   @override
   void initState() {
@@ -125,7 +288,7 @@ class _RepMaxInputState extends ConsumerState<_RepMaxInput> {
   }
 
   @override
-  void didUpdateWidget(_RepMaxInput oldWidget) {
+  void didUpdateWidget(_RepMaxInputRow oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.currentMax?.weight != oldWidget.currentMax?.weight) {
       _weightCtrl.text = widget.currentMax?.weight.toString() ?? '';
@@ -156,8 +319,11 @@ class _RepMaxInputState extends ConsumerState<_RepMaxInput> {
     }
   }
 
-  void _save() {
-    final w = double.tryParse(_weightCtrl.text);
+  void _save() async {
+    final wString = _weightCtrl.text.trim();
+    if (wString.isEmpty) return;
+
+    final w = double.tryParse(wString);
     if (w == null) return;
 
     final userId = ref.read(maxesUserIdProvider);
@@ -167,6 +333,8 @@ class _RepMaxInputState extends ConsumerState<_RepMaxInput> {
       );
       return;
     }
+
+    setState(() => _isSaving = true);
 
     final newMax = LiftMaxModel(
       id: widget.currentMax?.id ?? const Uuid().v4(),
@@ -178,55 +346,109 @@ class _RepMaxInputState extends ConsumerState<_RepMaxInput> {
       updatedAt: _selectedDate ?? DateTime.now(),
     );
 
-    ref.read(maxesControllerProvider.notifier).saveMax(newMax);
+    try {
+      await ref.read(maxesControllerProvider.notifier).saveMax(newMax);
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isSaving = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error saving: $e')),
+        );
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
+      padding: const EdgeInsets.symmetric(vertical: 6.0),
       child: Row(
         children: [
-          SizedBox(
-            width: 50,
-            child: Text('${widget.repCount} RM:'),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: AppColors.brandSecondary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              '${widget.repCount} RM',
+              style: TextStyle(
+                color: AppColors.brandSecondary,
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+              ),
+            ),
           ),
+          const SizedBox(width: 12),
           Expanded(
             child: TextField(
               controller: _weightCtrl,
               keyboardType:
                   const TextInputType.numberWithOptions(decimal: true),
-              decoration: const InputDecoration(
+              style: const TextStyle(fontSize: 14),
+              decoration: InputDecoration(
                 hintText: 'Weight',
                 isDense: true,
-                border: OutlineInputBorder(),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                suffixText: 'lbs',
+                fillColor: AppColors.surfaceLight,
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(
+                    color: AppColors.textSecondary.withValues(alpha: 0.1),
+                  ),
+                ),
               ),
               onSubmitted: (_) {
-                FocusScope.of(context).unfocus();
                 _save();
               },
             ),
           ),
-          const SizedBox(width: 4),
-          TextButton.icon(
-            onPressed: _pickDate,
-            icon: const Icon(Icons.calendar_today, size: 16),
-            label: Text(
-              _selectedDate != null
-                  ? DateFormat.yMd().format(_selectedDate!)
-                  : 'Date',
+          const SizedBox(width: 8),
+          InkWell(
+            onTap: _pickDate,
+            borderRadius: BorderRadius.circular(8),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+              child: Column(
+                children: [
+                  const Icon(Icons.calendar_today,
+                      size: 14, color: AppColors.brandPrimary),
+                  Text(
+                    _selectedDate != null
+                        ? DateFormat('MM/dd').format(_selectedDate!)
+                        : 'Date',
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: _selectedDate != null
+                          ? AppColors.brandPrimary
+                          : AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-          IconButton(
-            icon: const Icon(Icons.save),
-            tooltip: 'Save',
-            constraints: const BoxConstraints(),
-            padding: const EdgeInsets.all(8),
-            onPressed: () {
-              FocusScope.of(context).unfocus();
-              _save();
-            },
-          )
+          if (_isSaving)
+            const SizedBox(
+              width: 32,
+              height: 32,
+              child: Padding(
+                padding: EdgeInsets.all(8.0),
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            )
+          else
+            IconButton(
+              icon: const Icon(Icons.check_circle_outline,
+                  color: AppColors.brandPrimary),
+              onPressed: _save,
+              tooltip: 'Save',
+            ),
         ],
       ),
     );

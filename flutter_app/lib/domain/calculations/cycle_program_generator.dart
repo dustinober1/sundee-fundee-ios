@@ -11,7 +11,7 @@ class CycleProgramGenerator {
         // Peak Strength -> MAX ATTEMPT
         return [
           ProgramExercise(
-            exercise: 'high-bar-back-squat',
+            exercise: 'back-squat',
             variant: null,
             sets: ExerciseValue.fixed(1),
             reps: ExerciseValue.fixed(1),
@@ -26,7 +26,7 @@ class CycleProgramGenerator {
         // High Energy -> VOLUME
         return [
           ProgramExercise(
-            exercise: 'high-bar-back-squat',
+            exercise: 'back-squat',
             variant: null,
             sets: ExerciseValue.fixed(4),
             reps: ExerciseValue.fixed(5),
@@ -40,7 +40,7 @@ class CycleProgramGenerator {
         // High Temp / CNS Fatigue -> HEAVY BUT LOW REP
         return [
           ProgramExercise(
-            exercise: 'high-bar-back-squat',
+            exercise: 'back-squat',
             variant: null,
             sets: ExerciseValue.fixed(3),
             reps: ExerciseValue.range(
@@ -56,7 +56,7 @@ class CycleProgramGenerator {
         // Low Energy -> DELOAD
         return [
           ProgramExercise(
-            exercise: 'high-bar-back-squat',
+            exercise: 'back-squat',
             variant: null,
             sets: ExerciseValue.fixed(4),
             reps: ExerciseValue.fixed(4),
