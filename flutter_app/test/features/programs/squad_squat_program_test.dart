@@ -31,7 +31,7 @@ void main() {
       final sessionC = week12.sessions.firstWhere((s) => s.sessionId == 'ss-w12-c');
       
       expect(sessionC.sessionName, contains('Session C'));
-      expect(sessionC.exercises.first.exercise, 'back-squat');
+      expect(sessionC.exercises.first.exercise, 'Back Squat');
       expect(sessionC.exercises.first.reps.fixedValue, 1);
     });
   });
