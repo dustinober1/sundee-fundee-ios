@@ -3,11 +3,11 @@
 ## Current Position
 
 Phase: 6 (Injury-Aware Plan Adaptation) — in progress  
-Plan: 06-02 complete (06-03, 06-04 remaining)  
+Plan: 06-03 complete (06-04 remaining)  
 Status: Milestone v1.1 execution in progress  
-Last activity: 2026-02-23 — Executed 06-02-PLAN.md
+Last activity: 2026-02-23 — Executed 06-03-PLAN.md
 
-Progress: ██████████████████░░░ 19/21 plans complete (~90%)
+Progress: ███████████████████░░ 20/21 plans complete (~95%)
 
 ## Accumulated Context
 
@@ -31,9 +31,13 @@ Progress: ██████████████████░░░ 19/21 
 | Disclaimer ack persistence | Map<String, DateTime> on UserModel, Firestore dot-notation merge | 06-02 |
 | InjuryAdaptationContext empty injuries | disclaimerAcknowledgedForAll = true when no active injuries | 06-02 |
 | Provider stacking | injuryAdaptedActiveProgramProvider wraps adaptedActiveProgramProvider (cycle preserved) | 06-02 |
+| InjuryAdaptationBanner state ownership | Parent-managed visible/onToggleVisibility (matches CycleAdjustmentExplainer) | 06-03 |
+| programs_screen hard gate | Grey italic text replaces week list until disclaimer acknowledged | 06-03 |
+| workout_landing_screen hard gate | START SESSION button disabled (onPressed: null) until disclaimer acknowledged | 06-03 |
+| dashboard injury indicator | Lightweight chip only — no full banner on dashboard | 06-03 |
 
 ## Session Continuity
 
-Last session: 2026-02-23T23:41:49Z  
-Stopped at: Completed 06-02-PLAN.md  
+Last session: 2026-02-23T23:50:21Z  
+Stopped at: Completed 06-03-PLAN.md  
 Resume file: None
