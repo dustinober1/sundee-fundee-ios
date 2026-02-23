@@ -31,14 +31,24 @@ class SettingsScreen extends ConsumerWidget {
           ListTile(
             leading: const Icon(Icons.person_outline),
             title: Text(userProfile?.name ?? 'User'),
-            subtitle: Text(ref.watch(authSessionStreamProvider).asData?.value.user?.email ?? 'Logged in'),
+            subtitle: Text(ref
+                    .watch(authSessionStreamProvider)
+                    .asData
+                    ?.value
+                    .user
+                    ?.email ??
+                'Logged in'),
           ),
-          if (ref.watch(authSessionStreamProvider).asData?.value.user?.email == 'dustinober@me.com')
+          if (ref.watch(authSessionStreamProvider).asData?.value.user?.email ==
+              'dustinober@me.com')
             ListTile(
               leading: const Icon(Icons.admin_panel_settings_outlined),
               title: const Text('Admin: Manage Programs'),
               onTap: () => context.push('/admin/programs'),
-              tileColor: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.1),
+              tileColor: Theme.of(context)
+                  .colorScheme
+                  .primaryContainer
+                  .withValues(alpha: 0.1),
             ),
           const Divider(),
           if (isFemale) ...[
@@ -64,6 +74,30 @@ class SettingsScreen extends ConsumerWidget {
             ),
             const Divider(),
           ],
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: Text(
+              'Profile',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey,
+              ),
+            ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.badge_outlined),
+            title: const Text('Edit Onboarding Answers'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push('/settings/onboarding-profile'),
+          ),
+          ListTile(
+            leading: const Icon(Icons.healing_outlined),
+            title: const Text('Injury Profile'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push('/settings/injury-profile'),
+          ),
+          const Divider(),
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
             child: Text(
@@ -116,8 +150,10 @@ class SettingsScreen extends ConsumerWidget {
             onTap: () => ref.read(authRepositoryProvider).signOut(),
           ),
           ListTile(
-            leading: const Icon(Icons.delete_forever_outlined, color: Colors.red),
-            title: const Text('Delete Account', style: TextStyle(color: Colors.red)),
+            leading:
+                const Icon(Icons.delete_forever_outlined, color: Colors.red),
+            title: const Text('Delete Account',
+                style: TextStyle(color: Colors.red)),
             onTap: () async {
               final bool? confirmed = await showDialog<bool>(
                 context: context,
@@ -136,7 +172,8 @@ class SettingsScreen extends ConsumerWidget {
                       ),
                       TextButton(
                         onPressed: () => Navigator.of(context).pop(true),
-                        style: TextButton.styleFrom(foregroundColor: Colors.red),
+                        style:
+                            TextButton.styleFrom(foregroundColor: Colors.red),
                         child: const Text('Delete Permanently'),
                       ),
                     ],
