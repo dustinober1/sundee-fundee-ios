@@ -10,6 +10,8 @@ class UserModel {
     required this.gender,
     required this.createdAt,
     required this.appleUserId,
+    required this.weightUnit,
+    required this.roundingValue,
   });
 
   final String id;
@@ -19,6 +21,8 @@ class UserModel {
   final Gender gender;
   final DateTime createdAt;
   final String appleUserId;
+  final WeightUnit weightUnit;
+  final double roundingValue;
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
@@ -45,6 +49,12 @@ class UserModel {
           json['appleUserID'] as String? ??
           json['appleUserId'] as String? ??
           '',
+      weightUnit: enumFromString<WeightUnit>(
+        WeightUnit.values,
+        json['weightUnitRaw'] as String?,
+        WeightUnit.lbs,
+      ),
+      roundingValue: parseDouble(json['roundingValue'], fallback: 2.5),
     );
   }
 
@@ -57,6 +67,32 @@ class UserModel {
       'genderRaw': gender.name,
       'createdAt': createdAt.toIso8601String(),
       'appleUserID': appleUserId,
+      'weightUnitRaw': weightUnit.name,
+      'roundingValue': roundingValue,
     };
+  }
+
+  UserModel copyWith({
+    String? id,
+    String? name,
+    ExperienceLevel? experienceLevel,
+    PrimaryGoal? primaryGoal,
+    Gender? gender,
+    DateTime? createdAt,
+    String? appleUserId,
+    WeightUnit? weightUnit,
+    double? roundingValue,
+  }) {
+    return UserModel(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      experienceLevel: experienceLevel ?? this.experienceLevel,
+      primaryGoal: primaryGoal ?? this.primaryGoal,
+      gender: gender ?? this.gender,
+      createdAt: createdAt ?? this.createdAt,
+      appleUserId: appleUserId ?? this.appleUserId,
+      weightUnit: weightUnit ?? this.weightUnit,
+      roundingValue: roundingValue ?? this.roundingValue,
+    );
   }
 }

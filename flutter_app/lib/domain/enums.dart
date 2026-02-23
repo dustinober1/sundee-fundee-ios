@@ -31,6 +31,8 @@ extension GenderDisplayName on Gender {
   }
 }
 
+enum WeightUnit { lbs, kg }
+
 T enumFromString<T extends Enum>(List<T> values, String? rawValue, T fallback) {
   if (rawValue == null) {
     return fallback;

@@ -69,3 +69,14 @@ final enrolledProgramRepositoryProvider = Provider<EnrolledProgramRepository>((r
   }
   return FirestoreEnrolledProgramRepository(firestore: firestore);
 });
+
+final userRepositoryProvider = Provider<UserRepository>((Ref ref) {
+  final FirebaseFirestore? firestore = ref.watch(firestoreProvider);
+  if (firestore == null) {
+    throw StateError(
+      'UserRepository requires ENABLE_FIREBASE=true and initialized Firestore.',
+    );
+  }
+
+  return FirestoreUserRepository(firestore: firestore);
+});

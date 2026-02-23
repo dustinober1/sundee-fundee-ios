@@ -6,7 +6,6 @@ import '../../dashboard/presentation/dashboard_screen.dart';
 import '../../maxes/presentation/max_lifts_screen.dart';
 import '../../programs/presentation/programs_screen.dart';
 import '../../settings/presentation/settings_screen.dart';
-import '../../workouts/presentation/workout_landing_screen.dart';
 
 class MainShellScreen extends StatefulWidget {
   const MainShellScreen({super.key});
@@ -21,7 +20,6 @@ class _MainShellScreenState extends State<MainShellScreen> {
   static const List<String> _titles = <String>[
     'Dashboard',
     'Programs',
-    'Workout',
     'Maxes',
     'Cycle',
     'Settings',
@@ -30,7 +28,6 @@ class _MainShellScreenState extends State<MainShellScreen> {
   static const List<Widget> _screens = <Widget>[
     DashboardScreen(),
     ProgramsScreen(),
-    WorkoutLandingScreen(),
     MaxLiftsScreen(),
     CycleTrackingScreen(),
     SettingsScreen(),
@@ -59,10 +56,6 @@ class _MainShellScreenState extends State<MainShellScreen> {
           NavigationDestination(
             icon: Icon(Icons.list_alt_outlined),
             label: 'Programs',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.fitness_center),
-            label: 'Workout',
           ),
           NavigationDestination(
             icon: Icon(Icons.show_chart),

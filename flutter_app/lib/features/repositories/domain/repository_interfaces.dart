@@ -7,6 +7,7 @@ import '../../../domain/models/lift_max_model.dart';
 import '../../../domain/models/one_rep_max_model.dart';
 import '../../../domain/models/personal_record_model.dart';
 import '../../../domain/models/program_models.dart';
+import '../../../domain/models/user_model.dart';
 
 abstract class WorkoutRepository {
   Future<void> saveWorkout({
@@ -117,4 +118,9 @@ abstract class EnrolledProgramRepository {
     required String userId,
     required String enrollmentId,
   });
+}
+
+abstract class UserRepository {
+  Future<void> saveUser({required UserModel user});
+  Stream<UserModel?> watchUser({required String userId});
 }

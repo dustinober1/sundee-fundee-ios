@@ -212,4 +212,24 @@ class CycleSettingsModel {
       'notificationsEnabled': notificationsEnabled,
     };
   }
+
+  CycleSettingsModel copyWith({
+    String? id,
+    String? userId,
+    int? averageCycleLength,
+    int? averagePeriodLength,
+    int? lutealPhaseLength,
+    List<String>? enabledSymptomIds,
+    bool? notificationsEnabled,
+  }) {
+    return CycleSettingsModel(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      averageCycleLength: averageCycleLength ?? this.averageCycleLength,
+      averagePeriodLength: averagePeriodLength ?? this.averagePeriodLength,
+      lutealPhaseLength: lutealPhaseLength ?? this.lutealPhaseLength,
+      enabledSymptomIds: enabledSymptomIds ?? this.enabledSymptomIds,
+      notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
+    );
+  }
 }

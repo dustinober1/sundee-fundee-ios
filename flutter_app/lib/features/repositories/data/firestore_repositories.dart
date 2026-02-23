@@ -9,6 +9,7 @@ import '../../../domain/models/lift_max_model.dart';
 import '../../../domain/models/one_rep_max_model.dart';
 import '../../../domain/models/personal_record_model.dart';
 import '../../../domain/models/program_models.dart';
+import '../../../domain/models/user_model.dart';
 import '../domain/repository_interfaces.dart';
 
 const int kCompletedSetsLimit = 500;
@@ -421,5 +422,29 @@ class FirestoreEnrolledProgramRepository implements EnrolledProgramRepository {
     String userId,
   ) {
     return _firestore.collection('users').doc(userId).collection('enrollments');
+  }
+}
+
+class FirestoreUserRepository implements UserRepository {
+  FirestoreUserRepository({required FirebaseFirestore firestore})
+    : _firestore = firestore;
+
+  final FirebaseFirestore _firestore;
+
+  @override
+  Future<void> saveUser({required UserModel user}) {
+    return _firestore
+        .collection('users')
+        .doc(user.id)
+        .set(user.toJson(), SetOptions(merge: true));
+  }
+
+  @override
+  Stream<UserModel?> watchUser({required String userId}) {
+    return _firestore
+        .collection('users')
+        .doc(userId)
+        .snapshots()
+        .map((doc) => doc.exists ? UserModel.fromJson(doc.data()!) : null);
   }
 }

@@ -59,5 +59,17 @@ void main() {
         ExperienceLevel.advanced,
       );
     });
+
+    test('returns correct WeightUnit for valid strings', () {
+      expect(
+        enumFromString(WeightUnit.values, 'lbs', WeightUnit.kg),
+        WeightUnit.lbs,
+      );
+      expect(
+        enumFromString(WeightUnit.values, 'kg', WeightUnit.lbs),
+        WeightUnit.kg,
+      );
+    });
+
   });
 }
