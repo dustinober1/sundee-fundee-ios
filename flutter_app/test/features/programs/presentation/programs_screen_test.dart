@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sundee_fundee_flutter/domain/data/predefined_programs.dart';
-import 'package:sundee_fundee_flutter/domain/models/program_models.dart';
 import 'package:sundee_fundee_flutter/features/programs/data/program_repository.dart';
 import 'package:sundee_fundee_flutter/features/programs/presentation/programs_screen.dart';
 
