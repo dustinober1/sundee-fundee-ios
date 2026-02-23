@@ -6,7 +6,7 @@ import '../../dashboard/presentation/dashboard_screen.dart';
 import '../../maxes/presentation/max_lifts_screen.dart';
 import '../../programs/presentation/programs_screen.dart';
 import '../../settings/presentation/settings_screen.dart';
-import '../../shared/presentation/placeholder_feature_screen.dart';
+import '../../workouts/presentation/workout_landing_screen.dart';
 
 class MainShellScreen extends StatefulWidget {
   const MainShellScreen({super.key});
@@ -30,10 +30,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
   static const List<Widget> _screens = <Widget>[
     DashboardScreen(),
     ProgramsScreen(),
-    PlaceholderFeatureScreen(
-      title: 'Workout',
-      subtitle: 'Workout execution and set-by-set logging will be added next.',
-    ),
+    WorkoutLandingScreen(),
     MaxLiftsScreen(),
     CycleTrackingScreen(),
     SettingsScreen(),

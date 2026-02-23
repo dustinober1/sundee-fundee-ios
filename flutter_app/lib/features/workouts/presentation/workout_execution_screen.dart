@@ -49,9 +49,19 @@ class _WorkoutExecutionScreenState extends ConsumerState<WorkoutExecutionScreen>
 
       // Defer state modification
       Future.microtask(() {
-        ref.read(workoutExecutionNotifierProvider.notifier).initialize(_session);
+        if (mounted) {
+          ref.read(workoutExecutionNotifierProvider.notifier).initialize(_session);
+        }
       });
       _initialized = true;
+    } else {
+      // If we somehow navigated here without an active program, we mark it missing.
+      _initialized = true;
+      // We could set a flag _hasError, but if _session can't be late initialized we will crash.
+      // So let's fall back to popping.
+      Future.microtask(() {
+        if (mounted) context.pop();
+      });
     }
   }
 
@@ -63,6 +73,7 @@ class _WorkoutExecutionScreenState extends ConsumerState<WorkoutExecutionScreen>
 
     final state = ref.watch(workoutExecutionNotifierProvider);
     if (state == null) {
+      // If it hasn't initialized yet but we got a session, wait for next frame
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
@@ -225,17 +236,6 @@ class _SetRowState extends ConsumerState<_SetRow> {
     _repsController = TextEditingController(
       text: widget.state.actualReps > 0 ? widget.state.actualReps.toString() : '',
     );
-  }
-
-  @override
-  void didUpdateWidget(covariant _SetRow oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.state.actualWeight != widget.state.actualWeight && !widget.state.isCompleted) {
-      _weightController.text = widget.state.actualWeight > 0 ? widget.state.actualWeight.toStringAsFixed(1).replaceAll(RegExp(r'\.0$'), '') : '';
-    }
-    if (oldWidget.state.actualReps != widget.state.actualReps && !widget.state.isCompleted) {
-      _repsController.text = widget.state.actualReps > 0 ? widget.state.actualReps.toString() : '';
-    }
   }
 
   @override
