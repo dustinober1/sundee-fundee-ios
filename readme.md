@@ -30,7 +30,8 @@ Sundee Fundee is a hormonal-aware strength training tracker built with Flutter a
 - 📈 **Automated Lift Records:** Completing a workout now automatically detects new personal records (1/3/5/10 RM) and updates your Max Lifts tracker.
 - 📈 Max Lifts Tracker for manual recording of 1RM, 3RM, 5RM, and 10RM for various powerlifting and Olympic lifts
 - ⚙️ **Admin Dashboard** allowing authorized users (e.g. dustinober@me.com) to upload and push new custom workout programs via JSON to Firestore directly from the mobile app.
-- 🏋️ **Refactored Exercise Definitions** to spell out acronyms (RDL, SLDL), measure plyometrics (Box Jumps) in inches instead of weight, and merged squat variations under a unified "Back Squat."
+- 🏋️ **Refactored Exercise Definitions:** Merged High Bar and Low Bar Back Squat into a single "Back Squat" for streamlined tracking.
+- 📈 **Enhanced Max Lifts UI:** Redesigned the Personal Bests screen with search functionality, category-specific icons, and a modern, premium aesthetic.
 - 📊 Progress tracking and personal records
 - 🔄 Menstrual cycle phase tracking with training recommendations
 - 👤 Guest mode for offline-first usage
