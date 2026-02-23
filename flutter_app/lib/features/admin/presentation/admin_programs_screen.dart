@@ -2,8 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../domain/data/predefined_programs.dart';
-import '../../../domain/models/program_models.dart';
+import '../../programs/data/back_squat_program.dart';
 import '../../programs/data/program_repository.dart';
 import 'widgets/interactive_program_builder.dart';
 
@@ -57,12 +56,12 @@ class _AdminProgramsScreenState extends ConsumerState<AdminProgramsScreen> {
   Future<void> _pushBaseline() async {
     setState(() => _isLoading = true);
     try {
-      final program = PredefinedPrograms.baseline12Week;
+      final program = backSquatProgram;
       await ref.read(programRepositoryProvider).pushProgram(program);
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Successfully pushed Baseline 12-Week Program!')),
+          SnackBar(content: Text('Successfully pushed 8-Week Back Squat Peak!')),
         );
       }
     } catch (e) {
@@ -124,7 +123,7 @@ class _AdminProgramsScreenState extends ConsumerState<AdminProgramsScreen> {
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: _isLoading ? null : _pushBaseline,
-            child: const Text('Push Baseline 12-Week Default Program'),
+            child: const Text('Push 8-Week Back Squat Peak Default Program'),
           ),
           const SizedBox(height: 24),
           const Text('Or Paste Program JSON below:'),

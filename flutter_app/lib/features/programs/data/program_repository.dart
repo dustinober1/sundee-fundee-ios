@@ -3,12 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../auth/providers.dart';
-import '../../../domain/data/predefined_programs.dart';
 import '../../../domain/models/program_models.dart';
 import '../../repositories/domain/repository_interfaces.dart';
 import '../../repositories/providers.dart';
 import 'back_squat_program.dart';
-import 'deadlift_program.dart';
 
 class ProgramRepository {
   ProgramRepository({
@@ -21,10 +19,6 @@ class ProgramRepository {
   final EnrolledProgramRepository _enrolledProgramRepository;
 
   List<ProgramV2> get _fallbackPrograms => [
-        PredefinedPrograms.baseline12Week,
-        PredefinedPrograms.benchPress1Cycle,
-        PredefinedPrograms.deadlift1Cycle,
-        deadliftProgram,
         backSquatProgram,
       ];
 

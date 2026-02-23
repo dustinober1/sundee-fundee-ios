@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sundee_fundee_flutter/domain/models/cycle_models.dart';
+import 'package:sundee_fundee_flutter/features/programs/data/back_squat_program.dart';
 import 'package:sundee_fundee_flutter/domain/programs/program_scheduler.dart';
-import 'package:sundee_fundee_flutter/domain/data/predefined_programs.dart';
+import 'package:sundee_fundee_flutter/domain/models/cycle_models.dart';
 
 void main() {
   group('ProgramScheduler', () {
@@ -23,7 +23,7 @@ void main() {
           DateTime.now().subtract(const Duration(days: 5));
 
       final DateTime result = ProgramScheduler.getRecommendedStartDate(
-        program: PredefinedPrograms.baseline12Week,
+        program: backSquatProgram,
         settings: settings,
         lastPeriodDate: lastPeriodDate,
       );
@@ -66,7 +66,7 @@ void main() {
           DateTime.now().subtract(const Duration(days: 20));
 
       final DateTime result = ProgramScheduler.getRecommendedStartDate(
-        program: PredefinedPrograms.baseline12Week,
+        program: backSquatProgram,
         settings: settings,
         lastPeriodDate: lastPeriodDate,
       );
