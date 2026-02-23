@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
@@ -8,18 +9,42 @@ import '../../repositories/domain/repository_interfaces.dart';
 import '../../repositories/providers.dart';
 
 class ProgramRepository {
-  ProgramRepository({required EnrolledProgramRepository enrolledProgramRepository})
-      : _enrolledProgramRepository = enrolledProgramRepository;
+  ProgramRepository({
+    required FirebaseFirestore? firestore,
+    required EnrolledProgramRepository enrolledProgramRepository,
+  })  : _firestore = firestore,
+        _enrolledProgramRepository = enrolledProgramRepository;
 
+  final FirebaseFirestore? _firestore;
   final EnrolledProgramRepository _enrolledProgramRepository;
 
   Future<List<ProgramV2>> getPrograms() async {
-    return <ProgramV2>[
-      PredefinedPrograms.baseline12Week,
-      PredefinedPrograms.squat2Cycle,
-      PredefinedPrograms.deadlift1Cycle,
-      PredefinedPrograms.benchPress1Cycle,
-    ];
+    final firestore = _firestore;
+    if (firestore == null) {
+      // Guest mode fallback
+      return <ProgramV2>[PredefinedPrograms.baseline12Week];
+    }
+    
+    try {
+      final snapshot = await firestore.collection('programs').get();
+      if (snapshot.docs.isEmpty) {
+        // If Firestore is empty, return local fallback or seed it
+        return <ProgramV2>[PredefinedPrograms.baseline12Week];
+      }
+      return snapshot.docs
+          .map((doc) => ProgramV2.fromJson(doc.data()))
+          .toList();
+    } catch (e) {
+      return <ProgramV2>[PredefinedPrograms.baseline12Week];
+    }
+  }
+
+  Future<void> pushProgram(ProgramV2 program) async {
+    final firestore = _firestore;
+    if (firestore == null) {
+      throw StateError('Firebase is not enabled, cannot push program.');
+    }
+    await firestore.collection('programs').doc(program.id).set(program.toJson());
   }
 
   Future<void> enrollUser({
@@ -47,7 +72,11 @@ class ProgramRepository {
 final Provider<ProgramRepository> programRepositoryProvider =
     Provider<ProgramRepository>((Ref ref) {
   final enrolledRepo = ref.watch(enrolledProgramRepositoryProvider);
-  return ProgramRepository(enrolledProgramRepository: enrolledRepo);
+  final firestore = ref.watch(firestoreProvider);
+  return ProgramRepository(
+    firestore: firestore,
+    enrolledProgramRepository: enrolledRepo,
+  );
 });
 
 final FutureProvider<List<ProgramV2>> programsProvider =

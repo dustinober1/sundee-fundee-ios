@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sundee_fundee_flutter/domain/models/cycle_models.dart';
 import 'package:sundee_fundee_flutter/domain/programs/program_scheduler.dart';
-import 'package:sundee_fundee_flutter/features/programs/data/deadlift_program.dart';
+import 'package:sundee_fundee_flutter/domain/data/predefined_programs.dart';
 
 void main() {
   group('ProgramScheduler', () {
@@ -20,7 +20,7 @@ void main() {
       final DateTime lastPeriodDate = DateTime.now().subtract(const Duration(days: 5));
 
       final DateTime result = ProgramScheduler.getRecommendedStartDate(
-        program: deadliftProgram,
+        program: PredefinedPrograms.baseline12Week,
         settings: settings,
         lastPeriodDate: lastPeriodDate,
       );
@@ -60,7 +60,7 @@ void main() {
       final DateTime lastPeriodDate = DateTime.now().subtract(const Duration(days: 20));
 
       final DateTime result = ProgramScheduler.getRecommendedStartDate(
-        program: deadliftProgram,
+        program: PredefinedPrograms.baseline12Week,
         settings: settings,
         lastPeriodDate: lastPeriodDate,
       );
