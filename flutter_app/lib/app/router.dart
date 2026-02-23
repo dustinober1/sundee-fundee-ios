@@ -8,6 +8,7 @@ import '../features/auth/presentation/sign_in_screen.dart';
 import '../features/auth/providers.dart';
 import '../features/shell/presentation/main_shell_screen.dart';
 import '../features/workouts/presentation/workout_execution_screen.dart';
+import '../features/workouts/presentation/workout_summary_screen.dart';
 import '../features/admin/presentation/admin_programs_screen.dart';
 import '../features/settings/presentation/legal_screen.dart';
 
@@ -37,6 +38,14 @@ final appRouterProvider = Provider<GoRouter>((Ref ref) {
         path: '/workout',
         name: 'workout',
         builder: (context, state) => const WorkoutExecutionScreen(),
+      ),
+      GoRoute(
+        path: '/workout-summary/:id',
+        name: 'workout_summary',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return WorkoutSummaryScreen(workoutId: id);
+        },
       ),
       GoRoute(
         path: '/admin/programs',

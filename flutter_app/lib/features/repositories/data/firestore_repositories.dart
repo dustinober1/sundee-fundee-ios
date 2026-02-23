@@ -45,6 +45,19 @@ class FirestoreWorkoutRepository implements WorkoutRepository {
   }
 
   @override
+  Stream<CompletedWorkoutModel?> watchWorkout({
+    required String userId,
+    required String workoutId,
+  }) {
+    return _workoutsCollection(userId).doc(workoutId).snapshots().map(
+      (DocumentSnapshot<Map<String, dynamic>> doc) {
+        if (!doc.exists) return null;
+        return CompletedWorkoutModel.fromJson(doc.data()!);
+      },
+    );
+  }
+
+  @override
   Future<void> deleteWorkout({
     required String userId,
     required String workoutId,

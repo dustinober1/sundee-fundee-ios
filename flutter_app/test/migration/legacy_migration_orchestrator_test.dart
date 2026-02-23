@@ -262,6 +262,18 @@ class FakeWorkoutRepository implements WorkoutRepository {
   }
 
   @override
+  Stream<CompletedWorkoutModel?> watchWorkout({
+    required String userId,
+    required String workoutId,
+  }) {
+    final workout = savedWorkouts.firstWhere(
+      (w) => w.id == workoutId,
+      orElse: () => throw StateError('Workout not found'),
+    );
+    return Stream.value(workout);
+  }
+
+  @override
   Future<void> deleteWorkout({
     required String userId,
     required String workoutId,

@@ -35,7 +35,11 @@ class CycleInsightsChart extends ConsumerWidget {
     if (workoutsAsync.hasError ||
         periodLogsAsync.hasError ||
         settingsAsync.hasError) {
-      return const Text('Error loading insights');
+      final error = workoutsAsync.error ??
+          periodLogsAsync.error ??
+          settingsAsync.error;
+      debugPrint('Error loading insights: $error');
+      return Text('Error loading insights: $error');
     }
 
     final workouts = workoutsAsync.value ?? [];
@@ -70,7 +74,10 @@ class CycleInsightsChart extends ConsumerWidget {
       }
     }
 
-    final maxCount = phaseCounts.values.reduce((a, b) => a > b ? a : b);
+    final values = phaseCounts.values.toList();
+    final maxCount = values.isEmpty
+        ? 0
+        : values.reduce((a, b) => a > b ? a : b);
     final hasData = maxCount > 0;
 
     if (!hasData) {

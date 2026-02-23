@@ -225,6 +225,12 @@ class _WorkoutHistoryList extends ConsumerWidget {
                     '${workout.completedAt.toString().split(' ')[0]} • ${workout.duration} mins',
                   ),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 14),
+                  onTap: () {
+                    context.pushNamed(
+                      'workout_summary',
+                      pathParameters: {'id': workout.id},
+                    );
+                  },
                 ),
               ),
             );
