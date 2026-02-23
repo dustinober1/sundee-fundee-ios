@@ -2,12 +2,12 @@
 
 ## Current Position
 
-Phase: 6 (Injury-Aware Plan Adaptation) — in progress  
-Plan: 06-03 complete (06-04 remaining)  
-Status: Milestone v1.1 execution in progress  
-Last activity: 2026-02-23 — Executed 06-03-PLAN.md
+Phase: 6 (Injury-Aware Plan Adaptation) — **complete**  
+Plan: 06-04 complete (all plans done)  
+Status: Milestone v1.1 execution complete  
+Last activity: 2026-02-23 — Executed 06-04-PLAN.md
 
-Progress: ███████████████████░░ 20/21 plans complete (~95%)
+Progress: █████████████████████ 21/21 plans complete (100%)
 
 ## Accumulated Context
 
@@ -36,8 +36,12 @@ Progress: ███████████████████░░ 20/21 
 | workout_landing_screen hard gate | START SESSION button disabled (onPressed: null) until disclaimer acknowledged | 06-03 |
 | dashboard injury indicator | Lightweight chip only — no full banner on dashboard | 06-03 |
 
+| Recovery prep skip | Session-local bool, no persistence | 06-04 |
+| Exercise revert | Session-local Set<String>, no provider writes | 06-04 |
+| isInjuryRelated detection | recoveryPrepExercises.length diff + injuryReplacedOriginal field diff | 06-04 |
+
 ## Session Continuity
 
-Last session: 2026-02-23T23:50:21Z  
-Stopped at: Completed 06-03-PLAN.md  
+Last session: 2026-02-23T23:52:17Z  
+Stopped at: Completed 06-04-PLAN.md  
 Resume file: None
