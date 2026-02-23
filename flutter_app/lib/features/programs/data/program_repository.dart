@@ -7,6 +7,8 @@ import '../../../domain/data/predefined_programs.dart';
 import '../../../domain/models/program_models.dart';
 import '../../repositories/domain/repository_interfaces.dart';
 import '../../repositories/providers.dart';
+import 'back_squat_program.dart';
+import 'deadlift_program.dart';
 
 class ProgramRepository {
   ProgramRepository({
@@ -18,24 +20,32 @@ class ProgramRepository {
   final FirebaseFirestore? _firestore;
   final EnrolledProgramRepository _enrolledProgramRepository;
 
+  List<ProgramV2> get _fallbackPrograms => [
+        PredefinedPrograms.baseline12Week,
+        PredefinedPrograms.benchPress1Cycle,
+        PredefinedPrograms.deadlift1Cycle,
+        deadliftProgram,
+        backSquatProgram,
+      ];
+
   Future<List<ProgramV2>> getPrograms() async {
     final firestore = _firestore;
     if (firestore == null) {
       // Guest mode fallback
-      return <ProgramV2>[PredefinedPrograms.baseline12Week];
+      return _fallbackPrograms;
     }
-    
+
     try {
       final snapshot = await firestore.collection('programs').get();
       if (snapshot.docs.isEmpty) {
         // If Firestore is empty, return local fallback or seed it
-        return <ProgramV2>[PredefinedPrograms.baseline12Week];
+        return _fallbackPrograms;
       }
       return snapshot.docs
           .map((doc) => ProgramV2.fromJson(doc.data()))
           .toList();
     } catch (e) {
-      return <ProgramV2>[PredefinedPrograms.baseline12Week];
+      return _fallbackPrograms;
     }
   }
 

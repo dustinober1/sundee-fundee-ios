@@ -23,13 +23,13 @@ Sundee Fundee is a hormonal-aware strength training tracker built with Flutter a
 
 - ⏱️ **Workout Execution:** Active workout tracking with set-by-set logging of actual weights & reps vs prescribed amounts. Includes visual completion tracking and session management, accessible via a dedicated Workout Landing Screen tab.
 - 📊 **Dynamic Dashboard:** Now features a personalized "Welcome {User Name}" message for a premium, familiar feel. includes quick access to next sessions and workout history.
-- 🏋️ **Program Management:** Removed the dedicated "Programs" navigation tab to allow for manual oversight of weekly training schedules.
+- 🏋️ **Program Management:** Added the **8-Week Back Squat Peak** program, focused on building a solid base followed by a nervous system peak for a new 1RM.
 - 🦈 Sharkweek logo displayed full-width on the Cycle page during the Menstrual phase
 - 🏋️ Set-by-set workout logging with prescribed weights (based on 1RM)
 - 📈 **Automated Lift Records:** Completing a workout now automatically detects new personal records (1/3/5 RM) and updates your Max Lifts tracker.
 - ⚙️ **Enhanced Settings & Legal:** Completely redesigned Settings screen with dedicated sections for Account, Support, and Legal. Added a multi-tab **Legal & Privacy screen** featuring professional, comprehensive Terms of Service, Privacy Policy (with sensitive health data handling), and Medical/Physical Legal Disclaimers.
 - ⚙️ **Admin Dashboard** allowing authorized users (e.g. dustinober@me.com) to upload and push new custom workout programs via JSON to Firestore directly from the mobile app.
-- 🏋️ **Streamlined Exercise Library:** Removed redundant and non-essential movements, focusing on core strength and performance lifts.
+- 🏋️ **Streamlined Exercise Library:** Expanded with 20+ new strength and accessory movements including Leg Raises, Face Pulls, Step-ups, and more.
 - 📈 **Optimized Progress Tracking:** Removed 10 rep maxes to focus on strength-specific metrics (1/3/5 RM).
 - 🚀 **Plyometrics Tracking:** Integrated specific tracking for Box Jumps and Broad Jumps in inches (highest/farthest effort).
 - 📈 **Enhanced Max Lifts UI:** Redesigned the Personal Bests screen with search functionality, category-specific icons, and a modern, premium aesthetic.

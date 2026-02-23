@@ -403,7 +403,122 @@ class Exercises {
         category: 'Accessories',
         muscleGroups: ['grip', 'core', 'traps']),
 
-
+    // Back Squat Program Accessories
+    ExerciseDefinition(
+        id: 'leg-raises',
+        name: 'Leg Raises',
+        category: 'Core',
+        muscleGroups: ['core', 'abs']),
+    ExerciseDefinition(
+        id: 'face-pulls',
+        name: 'Face Pulls',
+        category: 'Accessories',
+        muscleGroups: ['shoulders', 'upper-back']),
+    ExerciseDefinition(
+        id: 'step-ups',
+        name: 'Step-ups',
+        category: 'Accessories',
+        muscleGroups: ['quads', 'glutes']),
+    ExerciseDefinition(
+        id: 'russian-twists',
+        name: 'Russian Twists',
+        category: 'Core',
+        muscleGroups: ['core', 'obliques']),
+    ExerciseDefinition(
+        id: 'lat-pulldowns',
+        name: 'Lat Pulldowns',
+        category: 'Back Exercises',
+        muscleGroups: ['back', 'lats', 'biceps']),
+    ExerciseDefinition(
+        id: 'hollow-body-hold',
+        name: 'Hollow Body Hold',
+        category: 'Core',
+        muscleGroups: ['core', 'abs']),
+    ExerciseDefinition(
+        id: 'single-leg-press',
+        name: 'Single-Leg Press',
+        category: 'Accessories',
+        muscleGroups: ['quads', 'glutes']),
+    ExerciseDefinition(
+        id: 'knees-to-chest',
+        name: 'Knees-to-Chest',
+        category: 'Core',
+        muscleGroups: ['core', 'abs']),
+    ExerciseDefinition(
+        id: 'heels-elevated-goblet-squat',
+        name: 'Heels-Elevated Goblet Squat',
+        category: 'Squat Variations',
+        muscleGroups: ['quads', 'core']),
+    ExerciseDefinition(
+        id: 'curtsy-lunges',
+        name: 'Curtsy Lunges',
+        category: 'Accessories',
+        muscleGroups: ['glutes', 'quads']),
+    ExerciseDefinition(
+        id: 'side-plank',
+        name: 'Side Plank',
+        category: 'Core',
+        muscleGroups: ['core', 'obliques']),
+    ExerciseDefinition(
+        id: 'bodyweight-lunges',
+        name: 'Bodyweight Lunges',
+        category: 'Accessories',
+        muscleGroups: ['quads', 'glutes']),
+    ExerciseDefinition(
+        id: 'bird-dogs',
+        name: 'Bird-Dogs',
+        category: 'Core',
+        muscleGroups: ['core', 'lower-back']),
+    ExerciseDefinition(
+        id: 'air-squats',
+        name: 'Air Squats',
+        category: 'Squat Variations',
+        muscleGroups: ['quads', 'glutes']),
+    ExerciseDefinition(
+        id: 'weighted-dead-bug',
+        name: 'Weighted Dead Bug',
+        category: 'Core',
+        muscleGroups: ['core', 'abs']),
+    ExerciseDefinition(
+        id: 'leg-press',
+        name: 'Leg Press',
+        category: 'Accessories',
+        muscleGroups: ['quads', 'glutes']),
+    ExerciseDefinition(
+        id: 'banded-pull-aparts',
+        name: 'Banded Pull-Aparts',
+        category: 'Accessories',
+        muscleGroups: ['shoulders', 'upper-back']),
+    ExerciseDefinition(
+        id: 'hanging-leg-raises',
+        name: 'Hanging Leg Raises',
+        category: 'Core',
+        muscleGroups: ['core', 'abs']),
+    ExerciseDefinition(
+        id: 'hack-squat',
+        name: 'Hack Squat',
+        category: 'Squat Variations',
+        muscleGroups: ['quads', 'glutes']),
+    ExerciseDefinition(
+        id: 'snatch-grip-rdl',
+        name: 'Snatch-Grip RDL',
+        category: 'Hinge Variations',
+        muscleGroups: ['hamstrings', 'glutes', 'upper-back']),
+    ExerciseDefinition(
+        id: 'weighted-lunges',
+        name: 'Weighted Lunges',
+        category: 'Accessories',
+        muscleGroups: ['quads', 'glutes']),
+    ExerciseDefinition(
+        id: 'l-sit-hold',
+        name: 'L-Sit Hold',
+        category: 'Core',
+        muscleGroups: ['core', 'abs']),
+    ExerciseDefinition(
+        id: 'vertical-jumps',
+        name: 'Vertical Jumps',
+        category: 'Plyometrics',
+        muscleGroups: ['legs', 'explosiveness']),
   ];
 
   static ExerciseDefinition? findById(String id) {
