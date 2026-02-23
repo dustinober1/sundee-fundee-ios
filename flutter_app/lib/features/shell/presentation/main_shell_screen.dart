@@ -5,6 +5,7 @@ import '../../auth/providers.dart';
 import '../../cycle/presentation/cycle_tracking_screen.dart';
 import '../../dashboard/presentation/dashboard_screen.dart';
 import '../../maxes/presentation/max_lifts_screen.dart';
+import '../../programs/presentation/programs_screen.dart';
 import '../../settings/presentation/settings_screen.dart';
 import '../../workouts/presentation/workout_landing_screen.dart';
 
@@ -26,6 +27,7 @@ class _MainShellScreenState extends ConsumerState<MainShellScreen> {
     final List<String> titles = [
       'Dashboard',
       'Workout',
+      'Programs',
       'Maxes',
       if (showCycleTab) 'Cycle',
       'Settings',
@@ -34,6 +36,7 @@ class _MainShellScreenState extends ConsumerState<MainShellScreen> {
     final List<Widget> screens = [
       const DashboardScreen(),
       const WorkoutLandingScreen(),
+      const ProgramsScreen(),
       const MaxLiftsScreen(),
       if (showCycleTab) const CycleTrackingScreen(),
       const SettingsScreen(),
@@ -44,6 +47,10 @@ class _MainShellScreenState extends ConsumerState<MainShellScreen> {
       const NavigationDestination(
         icon: Icon(Icons.fitness_center),
         label: 'Workout',
+      ),
+      const NavigationDestination(
+        icon: Icon(Icons.list_alt),
+        label: 'Programs',
       ),
       const NavigationDestination(
         icon: Icon(Icons.show_chart),
