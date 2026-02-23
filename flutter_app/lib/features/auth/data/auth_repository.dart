@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter/foundation.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
@@ -75,6 +76,17 @@ class AuthRepository {
   Future<UserCredential> signInWithApple() async {
     _assertFirebaseEnabled('signInWithApple');
 
+    if (kIsWeb) {
+      final AppleAuthProvider appleProvider = AppleAuthProvider();
+      appleProvider.addScope('email');
+      appleProvider.addScope('name');
+      final UserCredential userCredential =
+          await _requireAuth().signInWithPopup(appleProvider);
+      await _guestModeStore.setGuestModeEnabled(false);
+      await _ensureUserDocument(userCredential.user);
+      return userCredential;
+    }
+
     final AuthorizationCredentialAppleID appleCredential =
         await SignInWithApple.getAppleIDCredential(
           scopes: <AppleIDAuthorizationScopes>[
@@ -103,11 +115,21 @@ class AuthRepository {
   Future<UserCredential> signInWithGoogle() async {
     _assertFirebaseEnabled('signInWithGoogle');
 
+    if (kIsWeb) {
+      final GoogleAuthProvider googleProvider = GoogleAuthProvider();
+      final UserCredential userCredential =
+          await _requireAuth().signInWithPopup(googleProvider);
+      await _guestModeStore.setGuestModeEnabled(false);
+      await _ensureUserDocument(userCredential.user);
+      return userCredential;
+    }
+
     final GoogleSignIn googleSignIn = _requireGoogleSignIn();
     await googleSignIn.initialize();
     _googleSignInInitialized = true;
     final GoogleSignInAccount googleUser = await googleSignIn.authenticate();
     final GoogleSignInAuthentication googleAuth = googleUser.authentication;
+    
     final String? idToken = googleAuth.idToken;
     if (idToken == null || idToken.isEmpty) {
       throw StateError('Google Sign-In did not return an ID token.');
