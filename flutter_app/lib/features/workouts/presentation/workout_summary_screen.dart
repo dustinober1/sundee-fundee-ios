@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../app/theme.dart';
 import '../../../domain/models/completed_set_model.dart';
@@ -34,6 +35,45 @@ class WorkoutSummaryScreen extends ConsumerWidget {
 
   final String workoutId;
 
+  Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
+    final session = ref.read(authSessionStreamProvider).asData?.value;
+    final userId = session?.user?.uid;
+    if (userId == null) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Workout?'),
+        content: const Text(
+            'This will permanently remove this workout from your history.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('CANCEL'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('DELETE'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      await ref.read(workoutRepositoryProvider).deleteWorkout(
+            userId: userId,
+            workoutId: workoutId,
+          );
+      if (context.mounted) {
+        context.pop(); // Back to dashboard
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Workout deleted')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final workoutAsync = ref.watch(workoutSummaryProvider(workoutId));
@@ -44,6 +84,13 @@ class WorkoutSummaryScreen extends ConsumerWidget {
         title: const Text('Workout Summary'),
         backgroundColor: AppColors.brandPrimary,
         foregroundColor: Colors.white,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.delete_outline),
+            tooltip: 'Delete Workout',
+            onPressed: () => _confirmDelete(context, ref),
+          ),
+        ],
       ),
       body: workoutAsync.when(
         data: (workout) {
