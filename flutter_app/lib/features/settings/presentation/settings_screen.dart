@@ -52,17 +52,19 @@ class SettingsScreen extends ConsumerWidget {
             leading: const Icon(Icons.description_outlined),
             title: const Text('Terms of Service'),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-              // TODO: Implement TOS link
-            },
+            onTap: () => context.push('/legal', extra: {'tabIndex': 0}),
           ),
           ListTile(
             leading: const Icon(Icons.privacy_tip_outlined),
             title: const Text('Privacy Policy'),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-              // TODO: Implement Privacy Policy link
-            },
+            onTap: () => context.push('/legal', extra: {'tabIndex': 1}),
+          ),
+          ListTile(
+            leading: const Icon(Icons.gavel_outlined),
+            title: const Text('Legal Disclaimer'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push('/legal', extra: {'tabIndex': 2}),
           ),
           ListTile(
             leading: const Icon(Icons.help_outline),

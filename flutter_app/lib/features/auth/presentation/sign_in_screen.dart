@@ -298,6 +298,51 @@ class _SignInScreenState extends ConsumerState<SignInScreen>
                 ),
               ),
 
+              const SizedBox(height: 24),
+
+              // — Legal Footer —
+              Wrap(
+                alignment: WrapAlignment.center,
+                children: <Widget>[
+                  Text(
+                    'By continuing, you agree to our ',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: AppColors.textSecondary.withValues(alpha: 0.6),
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () => context.push('/legal', extra: {'tabIndex': 0}),
+                    child: const Text(
+                      'Terms',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: AppColors.brandSecondary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    ' and ',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: AppColors.textSecondary.withValues(alpha: 0.6),
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () => context.push('/legal', extra: {'tabIndex': 1}),
+                    child: const Text(
+                      'Privacy Policy',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: AppColors.brandSecondary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
               // — Error —
               if (_errorMessage != null) ...<Widget>[
                 const SizedBox(height: 16),

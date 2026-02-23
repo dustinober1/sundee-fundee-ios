@@ -9,6 +9,7 @@ import '../features/auth/providers.dart';
 import '../features/shell/presentation/main_shell_screen.dart';
 import '../features/workouts/presentation/workout_execution_screen.dart';
 import '../features/admin/presentation/admin_programs_screen.dart';
+import '../features/settings/presentation/legal_screen.dart';
 
 final appRouterProvider = Provider<GoRouter>((Ref ref) {
   final AsyncValue<AuthSession> authSessionAsync = ref.watch(
@@ -41,6 +42,14 @@ final appRouterProvider = Provider<GoRouter>((Ref ref) {
         path: '/admin/programs',
         builder: (context, state) => const AdminProgramsScreen(),
       ),
+      GoRoute(
+        path: '/legal',
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          final tabIndex = extra?['tabIndex'] as int? ?? 0;
+          return LegalScreen(initialTabIndex: tabIndex);
+        },
+      ),
       GoRoute(path: '/', builder: (context, state) => const MainShellScreen()),
     ],
     redirect: (context, state) {
@@ -50,6 +59,7 @@ final appRouterProvider = Provider<GoRouter>((Ref ref) {
         case AuthStatus.loading:
           return location == '/loading' ? null : '/loading';
         case AuthStatus.unauthenticated:
+          if (location == '/legal') return null;
           return location == '/auth' ? null : '/auth';
         case AuthStatus.needsOnboarding:
           return location == '/onboarding' ? null : '/onboarding';
