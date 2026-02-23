@@ -260,6 +260,15 @@ class FakeWorkoutRepository implements WorkoutRepository {
   Stream<List<CompletedWorkoutModel>> watchWorkouts({required String userId}) {
     return Stream<List<CompletedWorkoutModel>>.value(savedWorkouts);
   }
+
+  @override
+  Future<void> deleteWorkout({
+    required String userId,
+    required String workoutId,
+  }) async {
+    savedWorkouts.removeWhere((w) => w.id == workoutId);
+    savedSets.removeWhere((s) => s.workoutId == workoutId);
+  }
 }
 
 class FakeCycleRepository implements CycleRepository {

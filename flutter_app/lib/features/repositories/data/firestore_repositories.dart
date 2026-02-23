@@ -45,6 +45,29 @@ class FirestoreWorkoutRepository implements WorkoutRepository {
   }
 
   @override
+  Future<void> deleteWorkout({
+    required String userId,
+    required String workoutId,
+  }) async {
+    final WriteBatch batch = _firestore.batch();
+
+    // Delete the workout document
+    batch.delete(_workoutsCollection(userId).doc(workoutId));
+
+    // Find and delete all completed sets for this workout
+    final QuerySnapshot<Map<String, dynamic>> setsSnapshot =
+        await _completedSetsCollection(userId)
+            .where('workoutId', isEqualTo: workoutId)
+            .get();
+
+    for (final DocumentSnapshot<Map<String, dynamic>> doc in setsSnapshot.docs) {
+      batch.delete(doc.reference);
+    }
+
+    return batch.commit();
+  }
+
+  @override
   Future<void> saveCompletedSet({
     required String userId,
     required CompletedSetModel completedSet,

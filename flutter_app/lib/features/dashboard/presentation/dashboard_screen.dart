@@ -169,23 +169,63 @@ class _WorkoutHistoryList extends ConsumerWidget {
 
         return Column(
           children: workouts.map((workout) {
-            return Card(
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: ListTile(
-                leading: CircleAvatar(
-                  backgroundColor:
-                      AppColors.brandPrimary.withValues(alpha: 0.1),
-                  child: const Icon(Icons.fitness_center,
-                      color: AppColors.brandPrimary, size: 20),
+            return Dismissible(
+              key: Key(workout.id),
+              direction: DismissDirection.endToStart,
+              confirmDismiss: (direction) async {
+                return await showDialog<bool>(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Delete Workout?'),
+                    content: const Text(
+                        'This will permanently remove this workout from your history.'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(false),
+                        child: const Text('CANCEL'),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(true),
+                        style: TextButton.styleFrom(foregroundColor: Colors.red),
+                        child: const Text('DELETE'),
+                      ),
+                    ],
+                  ),
+                );
+              },
+              onDismissed: (direction) {
+                ref.read(workoutRepositoryProvider).deleteWorkout(
+                      userId: userId,
+                      workoutId: workout.id,
+                    );
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Workout deleted')),
+                );
+              },
+              background: Container(
+                alignment: Alignment.centerRight,
+                padding: const EdgeInsets.only(right: 20.0),
+                color: Colors.red,
+                child: const Icon(Icons.delete, color: Colors.white),
+              ),
+              child: Card(
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor:
+                        AppColors.brandPrimary.withValues(alpha: 0.1),
+                    child: const Icon(Icons.fitness_center,
+                        color: AppColors.brandPrimary, size: 20),
+                  ),
+                  title: Text(
+                    '${workout.programId} - W${workout.week}D${workout.day}',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  subtitle: Text(
+                    '${workout.completedAt.toString().split(' ')[0]} • ${workout.duration} mins',
+                  ),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 14),
                 ),
-                title: Text(
-                  '${workout.programId} - W${workout.week}D${workout.day}',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                subtitle: Text(
-                  '${workout.completedAt.toString().split(' ')[0]} • ${workout.duration} mins',
-                ),
-                trailing: const Icon(Icons.arrow_forward_ios, size: 14),
               ),
             );
           }).toList(),

@@ -21,11 +21,11 @@ Sundee Fundee is a hormonal-aware strength training tracker built with Flutter a
 | **Routing** | GoRouter |
 | **Hosting (Web)** | Firebase Hosting |
 
-- ⏱️ **Workout Execution:** Active workout tracking with set-by-set logging of actual weights & reps vs prescribed amounts. Includes visual completion tracking and session management, accessible via a dedicated Workout Landing Screen tab.
-- 📊 **Dynamic Dashboard:** Now features a personalized "Welcome {User Name}" message for a premium, familiar feel. includes quick access to next sessions and workout history.
+- ⏱️ **Workout Execution:** Active workout tracking with set-by-set logging of actual weights & reps vs prescribed amounts. Includes visual completion tracking and session management, accessible via a dedicated Workout Landing Screen tab. Enhanced with rest timers and plate calculations.
+- 📊 **Dynamic Dashboard:** Now features a personalized "Welcome {User Name}" message for a premium, familiar feel. Includes quick access to next sessions and workout history with the ability to remove entries.
+- 🗑️ **History Management:** Users can now delete workout history and period logs with confirmation.
 - 🏋️ **Program Management:** Dedicated **Programs** navigation tab to browse and enroll in structured plans, including the new **12-Week Squad Squat Peak**.
-- 🦈 Sharkweek logo displayed full-width on the Cycle page during the Menstrual phase
-- 🏋️ Set-by-set workout logging with prescribed weights (based on 1RM)
+- 🦈 **Sharkweek Logo:** The "sharkweek" logo is conditionally displayed at the top of the Cycle Tracking screen *only* when the user is currently in the Menstrual phase.
 - 📈 **Automated Lift Records:** Completing a workout now automatically detects new personal records (1/3/5 RM) and updates your Max Lifts tracker.
 - ⚙️ **Enhanced Settings & Legal:** Completely redesigned Settings screen with dedicated sections for Account, Support, and Legal. Added a multi-tab **Legal & Privacy screen** featuring professional, comprehensive Terms of Service, Privacy Policy (with sensitive health data handling), and Medical/Physical Legal Disclaimers.
 - ⚙️ **Admin Dashboard** allowing authorized users (e.g. dustinober@me.com) to upload and push new custom workout programs via JSON to Firestore directly from the mobile app.
