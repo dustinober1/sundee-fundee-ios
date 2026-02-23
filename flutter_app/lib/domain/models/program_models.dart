@@ -280,6 +280,10 @@ class ExerciseValue {
   final String? textValue;
 
   static ExerciseValue fromJson(dynamic jsonValue) {
+    if (jsonValue == null) {
+      return const ExerciseValue._(type: ExerciseValueType.fixed, fixedValue: 0);
+    }
+
     if (jsonValue is int) {
       return ExerciseValue.fixed(jsonValue);
     }
@@ -289,8 +293,8 @@ class ExerciseValue {
     }
 
     if (jsonValue is String) {
-      final String val = jsonValue.trim().toUpperCase();
-      if (val == 'AMRAP') {
+      final String val = jsonValue.trim();
+      if (val.toUpperCase() == 'AMRAP') {
         return ExerciseValue.amrap();
       }
 
@@ -330,7 +334,7 @@ class ExerciseValue {
     }
 
     throw FormatException(
-      'Expected Int, "AMRAP", "8-10", or [Int, Int] for ExerciseValue. Got: $jsonValue',
+      'Invalid ExerciseValue: $jsonValue. Expected Int, "AMRAP", range (e.g., "8-10"), or custom text.',
     );
   }
 
