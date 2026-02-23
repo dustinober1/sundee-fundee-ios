@@ -43,23 +43,27 @@ void main() {
     });
 
     test('needsOnboarding redirects to /onboarding', () {
-      expect(
-        authRedirectForLocation(
-          authStatus: AuthStatus.needsOnboarding,
-          location: '/',
-        ),
-        '/onboarding',
-      );
-      expect(
-        authRedirectForLocation(
-          authStatus: AuthStatus.needsOnboarding,
-          location: '/onboarding',
-        ),
-        isNull,
-      );
+      for (final AuthStatus status in <AuthStatus>[
+        AuthStatus.needsOnboarding,
+        AuthStatus.resumeOnboarding,
+        AuthStatus.needsInjuryProfile,
+      ]) {
+        expect(
+          authRedirectForLocation(authStatus: status, location: '/'),
+          '/onboarding',
+        );
+        expect(
+          authRedirectForLocation(
+            authStatus: status,
+            location: '/onboarding',
+          ),
+          isNull,
+        );
+      }
     });
 
-    test('authenticated and guest routes away from auth/loading/onboarding', () {
+    test('authenticated and guest routes away from auth/loading/onboarding',
+        () {
       for (final AuthStatus status in <AuthStatus>[
         AuthStatus.authenticated,
         AuthStatus.guest,

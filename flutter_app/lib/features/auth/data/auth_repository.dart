@@ -8,7 +8,9 @@ import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 import '../domain/auth_state.dart';
 import '../../../domain/enums.dart';
+import '../../../domain/models/injury_profile_model.dart';
 import '../../../domain/models/user_model.dart';
+import '../../profile/data/profile_repository.dart';
 import 'guest_mode_store.dart';
 
 class AuthRepository {
@@ -18,17 +20,20 @@ class AuthRepository {
     FirebaseAuth? auth,
     FirebaseFirestore? firestore,
     GoogleSignIn? googleSignIn,
+    ProfileRepository? profileRepository,
   })  : _guestModeStore = guestModeStore,
         _firebaseEnabled = firebaseEnabled,
         _auth = auth,
         _firestore = firestore,
-        _googleSignIn = googleSignIn;
+        _googleSignIn = googleSignIn,
+        _profileRepository = profileRepository;
 
   final GuestModeStore _guestModeStore;
   final bool _firebaseEnabled;
   final FirebaseAuth? _auth;
   final FirebaseFirestore? _firestore;
   final GoogleSignIn? _googleSignIn;
+  final ProfileRepository? _profileRepository;
   bool _googleSignInInitialized = false;
 
   Stream<AuthSession> authStateChanges() {
@@ -73,17 +78,30 @@ class AuthRepository {
           );
         }
 
-        // Watch the user document for changes (like onboardingComplete)
-        return _usersCollection.doc(user.uid).snapshots().map((userDoc) {
-          final bool onboardingComplete =
-              userDoc.data()?['onboardingComplete'] as bool? ?? false;
+        return _resolvedProfileRepository.watchUserProfile(user.uid).map((
+          UserModel? profile,
+        ) {
+          if (profile == null) {
+            return AuthSession(status: AuthStatus.needsOnboarding, user: user);
+          }
 
-          return AuthSession(
-            status: onboardingComplete
-                ? AuthStatus.authenticated
-                : AuthStatus.needsOnboarding,
-            user: user,
-          );
+          if (!profile.onboardingCompleteComputed) {
+            return AuthSession(status: AuthStatus.needsOnboarding, user: user);
+          }
+
+          if (!profile.onboardingComplete &&
+              profile.hasRequiredOnboardingAnswers) {
+            return AuthSession(status: AuthStatus.resumeOnboarding, user: user);
+          }
+
+          if (profile.requiresInjuryProfileCompletion) {
+            return AuthSession(
+              status: AuthStatus.needsInjuryProfile,
+              user: user,
+            );
+          }
+
+          return AuthSession(status: AuthStatus.authenticated, user: user);
         });
       });
     });
@@ -94,12 +112,7 @@ class AuthRepository {
       return Stream.value(null);
     }
 
-    return _usersCollection.doc(userId).snapshots().map((doc) {
-      if (!doc.exists) {
-        return null;
-      }
-      return UserModel.fromJson(doc.data()!);
-    });
+    return _resolvedProfileRepository.watchUserProfile(userId);
   }
 
   Future<UserCredential> signInWithApple() async {
@@ -158,7 +171,7 @@ class AuthRepository {
     _googleSignInInitialized = true;
     final GoogleSignInAccount googleUser = await googleSignIn.authenticate();
     final GoogleSignInAuthentication googleAuth = googleUser.authentication;
-    
+
     final String? idToken = googleAuth.idToken;
     if (idToken == null || idToken.isEmpty) {
       throw StateError('Google Sign-In did not return an ID token.');
@@ -215,13 +228,12 @@ class AuthRepository {
       throw StateError('No authenticated user found for onboarding.');
     }
 
-    await _usersCollection.doc(user.uid).set(<String, dynamic>{
-      'displayName': name,
-      'genderRaw': gender.name,
-      'cycleTrackingEnabled': cycleTrackingEnabled,
-      'onboardingComplete': true,
-      'updatedAt': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
+    await _resolvedProfileRepository.upsertOnboardingProfile(
+      userId: user.uid,
+      name: name,
+      gender: gender,
+      cycleTrackingEnabled: cycleTrackingEnabled,
+    );
 
     // Also update the Auth profile so the name is available in the User object immediately
     await user.updateDisplayName(name);
@@ -235,11 +247,78 @@ class AuthRepository {
       throw StateError('No authenticated user found for updating settings.');
     }
 
-    await _usersCollection.doc(user.uid).update(<String, dynamic>{
+    await _usersCollection.doc(user.uid).set(<String, dynamic>{
       'cycleTrackingEnabled': enabled,
+      'profileUpdatedAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
-    });
+    }, SetOptions(merge: true));
   }
+
+  Future<void> restartOnboarding() async {
+    _assertFirebaseEnabled('restartOnboarding');
+    final User? user = _requireAuth().currentUser;
+    if (user == null) {
+      throw StateError('No authenticated user found for restart onboarding.');
+    }
+
+    await _usersCollection.doc(user.uid).set(<String, dynamic>{
+      'displayName': '',
+      'name': '',
+      'genderRaw': Gender.preferNotToSay.name,
+      'cycleTrackingEnabled': false,
+      'onboardingComplete': false,
+      'profileUpdatedAt': FieldValue.serverTimestamp(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+  }
+
+  Future<void> saveInjuryProfile({
+    required String id,
+    required String location,
+    required String movementLimitations,
+    required String recoveryGoal,
+    InjuryStatus status = InjuryStatus.active,
+  }) async {
+    _assertFirebaseEnabled('saveInjuryProfile');
+    final User? user = _requireAuth().currentUser;
+    if (user == null) {
+      throw StateError('No authenticated user found for injury profile.');
+    }
+
+    final DateTime now = DateTime.now().toUtc();
+    await _resolvedProfileRepository.saveInjuryProfile(
+      userId: user.uid,
+      injury: InjuryProfileModel(
+        id: id,
+        location: location,
+        movementLimitations: movementLimitations,
+        recoveryGoal: recoveryGoal,
+        status: status,
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+  }
+
+  Future<void> resolveInjuryProfile(String injuryId) async {
+    _assertFirebaseEnabled('resolveInjuryProfile');
+    final User? user = _requireAuth().currentUser;
+    if (user == null) {
+      throw StateError('No authenticated user found for injury profile.');
+    }
+    await _resolvedProfileRepository.resolveInjury(
+      userId: user.uid,
+      injuryId: injuryId,
+    );
+  }
+
+  Future<void> retryProfileWrites() async {
+    _assertFirebaseEnabled('retryProfileWrites');
+    await _resolvedProfileRepository.retryPendingWrites();
+  }
+
+  int get pendingProfileWriteCount =>
+      _resolvedProfileRepository.pendingWriteCount;
 
   Future<void> deleteAccount() async {
     _assertFirebaseEnabled('deleteAccount');
@@ -250,8 +329,8 @@ class AuthRepository {
     }
 
     // 1. Delete user data from Firestore first (while we still have auth tokens)
-    // Note: This only deletes the root user document. Sub-collections are 
-    // typically handled via Cloud Functions or recursive deletes, but 
+    // Note: This only deletes the root user document. Sub-collections are
+    // typically handled via Cloud Functions or recursive deletes, but
     // for this implementation, we at least clear the primary profile.
     await _usersCollection.doc(user.uid).delete();
 
@@ -323,12 +402,15 @@ class AuthRepository {
       'id': user.uid,
       'email': user.email,
       'displayName': user.displayName,
+      'name': user.displayName,
       'providerId': user.providerData.isNotEmpty
           ? user.providerData.first.providerId
           : '',
       'createdAt': FieldValue.serverTimestamp(),
       'lastLoginAt': FieldValue.serverTimestamp(),
       'onboardingComplete': false,
+      'profileUpdatedAt': FieldValue.serverTimestamp(),
+      'injuryProfiles': <Map<String, dynamic>>[],
     }, SetOptions(merge: true));
   }
 
@@ -367,4 +449,7 @@ class AuthRepository {
       );
     }
   }
+
+  ProfileRepository get _resolvedProfileRepository =>
+      _profileRepository ?? ProfileRepository(firestore: _firestore);
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../domain/enums.dart';
+import '../domain/auth_state.dart';
 import '../providers.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {
@@ -16,6 +17,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   Gender _selectedGender = Gender.preferNotToSay;
   bool _cycleTrackingOptIn = false;
   bool _isSubmitting = false;
+  bool _resumeDecisionTaken = false;
   String? _errorMessage;
 
   @override
@@ -55,9 +57,88 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     }
   }
 
+  void _hydrateFromProfile() {
+    final profile = ref.read(userProfileStreamProvider).asData?.value;
+    if (profile == null) {
+      return;
+    }
+    _nameController.text = profile.name;
+    _selectedGender = profile.gender;
+    _cycleTrackingOptIn = profile.cycleTrackingEnabled;
+  }
+
+  Future<void> _restartFromScratch() async {
+    setState(() {
+      _isSubmitting = true;
+      _errorMessage = null;
+    });
+    try {
+      await ref.read(authRepositoryProvider).restartOnboarding();
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _nameController.clear();
+        _selectedGender = Gender.preferNotToSay;
+        _cycleTrackingOptIn = false;
+        _resumeDecisionTaken = true;
+      });
+    } catch (error) {
+      setState(() {
+        _errorMessage = error.toString();
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final authSession = ref.watch(authSessionStreamProvider).asData?.value;
+    final bool resumeRequired =
+        authSession?.status == AuthStatus.resumeOnboarding;
+    final bool injuryRequired =
+        authSession?.status == AuthStatus.needsInjuryProfile;
+
+    if (resumeRequired && !_resumeDecisionTaken) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Resume Onboarding')),
+        body: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              const Text(
+                'We found partially completed onboarding. Resume where you left off or restart?',
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: _isSubmitting
+                    ? null
+                    : () {
+                        setState(() {
+                          _hydrateFromProfile();
+                          _resumeDecisionTaken = true;
+                        });
+                      },
+                child: const Text('Resume onboarding'),
+              ),
+              const SizedBox(height: 8),
+              TextButton(
+                onPressed: _isSubmitting ? null : _restartFromScratch,
+                child: const Text('Restart onboarding'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
       appBar: AppBar(title: const Text('Welcome to Sundee Fundee')),
@@ -70,6 +151,20 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
+                if (injuryRequired) ...<Widget>[
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Text(
+                      'Your injury profile needs a few more details before plan generation. Complete this form and include current limitations.',
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                ],
                 Text(
                   'Let\'s get started!',
                   textAlign: TextAlign.center,
@@ -85,7 +180,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   style: TextStyle(fontSize: 16, color: Colors.grey),
                 ),
                 const SizedBox(height: 32),
-                
+
                 // Name Field
                 TextField(
                   controller: _nameController,
@@ -115,7 +210,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                             ? null
                             : (selected) {
                                 if (selected) {
-                                  setState(() => _selectedGender = Gender.female);
+                                  setState(
+                                      () => _selectedGender = Gender.female);
                                 }
                               },
                       ),
@@ -200,7 +296,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 ],
 
                 const SizedBox(height: 40),
-                
+
                 ElevatedButton(
                   onPressed: _isSubmitting ? null : _completeOnboarding,
                   style: ElevatedButton.styleFrom(
@@ -228,7 +324,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                           ),
                         ),
                 ),
-                
+
                 if (_errorMessage != null) ...<Widget>[
                   const SizedBox(height: 16),
                   Text(

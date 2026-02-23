@@ -4,6 +4,8 @@ enum AuthStatus {
   loading,
   unauthenticated,
   needsOnboarding,
+  resumeOnboarding,
+  needsInjuryProfile,
   authenticated,
   guest,
 }

@@ -62,6 +62,8 @@ class DashboardScreen extends ConsumerWidget {
       case AuthStatus.authenticated:
         stateMessage = 'Signed in as ${session?.user?.email ?? 'user'}';
       case AuthStatus.needsOnboarding:
+      case AuthStatus.resumeOnboarding:
+      case AuthStatus.needsInjuryProfile:
         stateMessage = 'Onboarding required';
       case AuthStatus.unauthenticated:
       case AuthStatus.loading:

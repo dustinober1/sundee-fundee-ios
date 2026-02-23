@@ -11,6 +11,8 @@ import '../features/workouts/presentation/workout_execution_screen.dart';
 import '../features/workouts/presentation/workout_summary_screen.dart';
 import '../features/admin/presentation/admin_programs_screen.dart';
 import '../features/settings/presentation/legal_screen.dart';
+import '../features/settings/presentation/onboarding_profile_screen.dart';
+import '../features/settings/presentation/injury_profile_screen.dart';
 
 String? authRedirectForLocation({
   required AuthStatus authStatus,
@@ -23,6 +25,8 @@ String? authRedirectForLocation({
       if (location == '/legal') return null;
       return location == '/auth' ? null : '/auth';
     case AuthStatus.needsOnboarding:
+    case AuthStatus.resumeOnboarding:
+    case AuthStatus.needsInjuryProfile:
       return location == '/onboarding' ? null : '/onboarding';
     case AuthStatus.authenticated:
     case AuthStatus.guest:
@@ -82,11 +86,20 @@ final appRouterProvider = Provider<GoRouter>((Ref ref) {
           return LegalScreen(initialTabIndex: tabIndex);
         },
       ),
+      GoRoute(
+        path: '/settings/onboarding-profile',
+        builder: (context, state) => const OnboardingProfileScreen(),
+      ),
+      GoRoute(
+        path: '/settings/injury-profile',
+        builder: (context, state) => const InjuryProfileScreen(),
+      ),
       GoRoute(path: '/', builder: (context, state) => const MainShellScreen()),
     ],
     redirect: (context, state) {
       final String location = state.matchedLocation;
-      return authRedirectForLocation(authStatus: authStatus, location: location);
+      return authRedirectForLocation(
+          authStatus: authStatus, location: location);
     },
   );
 });
