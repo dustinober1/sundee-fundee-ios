@@ -46,6 +46,14 @@ Success criteria:
 3. Disclaimer text appears on all injury-guidance plan surfaces.
 4. Adaptation behavior is covered by automated tests for at least representative injury scenarios.
 
+**Plans:** 4 plans
+
+Plans:
+- [ ] 06-01-PLAN.md — Model extensions + InjuryAdaptationEngine (TDD)
+- [ ] 06-02-PLAN.md — Provider wiring, disclaimer persistence, screen reference swap
+- [ ] 06-03-PLAN.md — Disclaimer banner UI on plan overview surfaces
+- [ ] 06-04-PLAN.md — Workout execution: exercise labels, recovery prep, override, mid-workout prompt
+
 ### Phase 7: Enrollment Cancellation Lifecycle
 Goal: Provide explicit cancel-plan flow that preserves history and supports future enrollment.
 
