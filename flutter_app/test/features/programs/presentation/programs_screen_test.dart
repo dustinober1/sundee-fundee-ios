@@ -16,8 +16,16 @@ void main() {
     // Wait for FutureProvider to resolve
     await tester.pumpAndSettle();
 
+    // Scroll to ensure the item is visible (ListView.builder is lazy)
+    final itemFinder = find.text('Deadlift 1 Cycle');
+    await tester.scrollUntilVisible(
+      itemFinder,
+      500.0,
+      scrollable: find.byType(Scrollable),
+    );
+
     // Verify list is shown
-    expect(find.text('Deadlift 1 Cycle'), findsOneWidget);
+    expect(itemFinder, findsOneWidget);
     expect(find.text('The complete 12-week baseline program designed for maximum deadlift strength.'), findsOneWidget);
 
     // Tap on Enroll button for the first item
