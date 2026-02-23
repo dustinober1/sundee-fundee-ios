@@ -175,7 +175,7 @@ The app uses GoRouter with auth-state redirects:
 
 ## Known Issues & Fixes
 
-- **Firestore Permission Denied**: If you see `[cloud_firestore/permission-denied] Missing or insufficient permissions` when accessing features like the cycle tracker, ensure that your local `firestore.rules` file has been deployed to the Firebase project (`firebase deploy --only firestore`).
+- **Firestore Permission Denied**: If you see `[cloud_firestore/permission-denied] Missing or insufficient permissions` when accessing features like the cycle tracker or program enrollments, ensure that your local `firestore.rules` file has been deployed to the Firebase project (`firebase deploy --only firestore`). Added missing `enrollments`, `periodLogs`, `symptomLogs`, and `cycleSettings` rules.
 - **Dart Compiler Errors**: Resolved duplicate `_` variable naming errors in GoRouter error handlers and cycle tracking error states.
 - **Google Sign-In web plugin**: The `google_sign_in_web` plugin requires `initialize()` before any other method call. `AuthRepository` tracks initialization state via a `_googleSignInInitialized` flag and skips `GoogleSignIn.signOut()` when the plugin was never initialized (e.g., guest mode, email, or Apple sign-in paths).
 
