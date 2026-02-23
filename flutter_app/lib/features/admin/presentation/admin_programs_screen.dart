@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../domain/data/predefined_programs.dart';
 import '../../../domain/models/program_models.dart';
 import '../../programs/data/program_repository.dart';
+import 'widgets/interactive_program_builder.dart';
 
 class AdminProgramsScreen extends ConsumerStatefulWidget {
   const AdminProgramsScreen({super.key});
@@ -79,50 +80,77 @@ class _AdminProgramsScreenState extends ConsumerState<AdminProgramsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Admin Dashboard'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Admin Dashboard'),
+          bottom: const TabBar(
+            tabs: [
+              Tab(text: 'Interactive Builder'),
+              Tab(text: 'JSON Uploader'),
+            ],
+          ),
+        ),
+        body: TabBarView(
           children: [
-            const Text(
-              'Program Uploader',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            InteractiveProgramBuilder(
+              onPush: (program) async {
+                await ref.read(programRepositoryProvider).pushProgram(program);
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Successfully pushed: ${program.name}')),
+                  );
+                }
+              },
             ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _isLoading ? null : _pushBaseline,
-              child: const Text('Push Baseline 12-Week Default Program'),
-            ),
-            const SizedBox(height: 24),
-            const Text('Or Paste Program JSON below:'),
-            const SizedBox(height: 8),
-            Expanded(
-              child: TextField(
-                controller: _jsonController,
-                maxLines: null,
-                expands: true,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  hintText: '{"id": "custom-1", "name": "...", ...}',
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _isLoading ? null : _pushFromJson,
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-              ),
-              child: _isLoading 
-                  ? const CircularProgressIndicator()
-                  : const Text('Push Program JSON to Team'),
-            ),
+            _buildJsonUploader(),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildJsonUploader() {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text(
+            'Program JSON Uploader',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: _isLoading ? null : _pushBaseline,
+            child: const Text('Push Baseline 12-Week Default Program'),
+          ),
+          const SizedBox(height: 24),
+          const Text('Or Paste Program JSON below:'),
+          const SizedBox(height: 8),
+          Expanded(
+            child: TextField(
+              controller: _jsonController,
+              maxLines: null,
+              expands: true,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                hintText: '{"id": "custom-1", "name": "...", ...}',
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: _isLoading ? null : _pushFromJson,
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+            ),
+            child: _isLoading 
+                ? const CircularProgressIndicator()
+                : const Text('Push Program JSON to Team'),
+          ),
+        ],
       ),
     );
   }

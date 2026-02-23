@@ -6,6 +6,7 @@ import '../../../domain/models/completed_workout_model.dart';
 import '../../../domain/models/program_models.dart';
 import '../../auth/providers.dart';
 import '../../maxes/providers.dart';
+import '../../../domain/models/lift_max_model.dart';
 import '../../programs/data/program_repository.dart';
 import '../../repositories/providers.dart';
 
@@ -186,6 +187,55 @@ class WorkoutExecutionNotifier extends Notifier<WorkoutExecutionState?> {
     );
 
     await workoutRepository.saveWorkout(userId: userId, workout: workout);
+
+    // Update Lift Records (Maxes)
+    final liftRepository = ref.read(liftRepositoryProvider);
+    final currentMaxesAsync = await ref.read(liftMaxesProvider.future);
+    
+    // Track unique (exercise, reps) updates to avoid redundant writes
+    final Map<String, double> newPotentialMaxes = {};
+
+    for (final exercise in session.exercises) {
+      final sets = currentState.exerciseSets[exercise.exercise] ?? [];
+      for (final s in sets) {
+        if (!s.isCompleted) continue;
+        
+        final exerciseId = exercise.exercise;
+        final actualReps = s.actualReps;
+        final actualWeight = s.actualWeight;
+
+        // We track 1, 3, 5, 10 RM
+        for (final targetReps in [1, 3, 5, 10]) {
+          if (actualReps >= targetReps) {
+            final key = '${exerciseId}_$targetReps';
+            final currentMax = currentMaxesAsync.where((m) => m.exerciseId == exerciseId && m.repCount == targetReps).fold<double>(0, (prev, m) => m.weight > prev ? m.weight : prev);
+            
+            if (actualWeight > currentMax && actualWeight > (newPotentialMaxes[key] ?? 0)) {
+              newPotentialMaxes[key] = actualWeight;
+            }
+          }
+        }
+      }
+    }
+
+    // Save the new maxes
+    for (final entry in newPotentialMaxes.entries) {
+      final parts = entry.key.split('_');
+      final exerciseId = parts[0];
+      final targetReps = int.parse(parts[1]);
+      final weight = entry.value;
+
+      final newMax = LiftMaxModel(
+        id: const Uuid().v4(),
+        userId: userId,
+        exerciseId: exerciseId,
+        repCount: targetReps,
+        weight: weight,
+        withStraps: false, // Defaulting to false, could be tracked per set if added to UI
+        updatedAt: now,
+      );
+      await liftRepository.saveLiftMax(userId: userId, liftMax: newMax);
+    }
 
     // Update Enrollment Progress
     final enrollment = ref.read(activeEnrollmentProvider).asData?.value;
