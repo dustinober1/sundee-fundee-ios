@@ -21,7 +21,7 @@ Sundee Fundee is a hormonal-aware strength training tracker built with Flutter a
 | **Routing** | GoRouter |
 | **Hosting (Web)** | Firebase Hosting |
 
-- ⏱️ **Workout Execution:** Active workout tracking with set-by-set logging of actual weights & reps vs prescribed amounts. Includes visual completion tracking and session management.
+- ⏱️ **Workout Execution:** Active workout tracking with set-by-set logging of actual weights & reps vs prescribed amounts. Includes visual completion tracking and session management, accessible via a dedicated Workout Landing Screen tab.
 - 📊 **Next Workout Dashboard:** Dynamic dashboard card showing your next session focus and week/day details with a quick "Resume/Start" action.
 - 🏋️ **Program Enrollment:** Enroll in structured training programs and track your progress.
 - 📋 Structured training programs (periodized, multi-phase) moved to a dedicated Programs page.
