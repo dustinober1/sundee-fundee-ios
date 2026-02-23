@@ -8,6 +8,7 @@ import '../../domain/enums.dart';
 import '../../domain/models/cycle_models.dart';
 import '../auth/domain/auth_state.dart';
 import '../auth/providers.dart';
+import '../repositories/domain/sync_status_model.dart';
 import '../repositories/providers.dart';
 
 // ─── Auth ────────────────────────────────────────────────────────────────────
@@ -159,6 +160,22 @@ final cycleAdaptationConfidenceProvider = Provider<AdaptationConfidence>((ref) {
     periodLogCount: logs.length,
     lastPeriodStart: lastSyncedAt,
     referenceDate: DateTime.now(),
+  );
+});
+
+final cycleSyncStatusProvider = Provider<SyncStatusModel>((ref) {
+  final AsyncValue<List<PeriodLogModel>> logsAsync =
+      ref.watch(periodLogsProvider);
+  final DateTime? lastSyncedAt = ref.watch(cycleLastSyncedAtProvider);
+  final bool pendingWrites = ref.watch(cycleControllerProvider).isLoading;
+  final bool fromCache =
+      logsAsync.isLoading && (logsAsync.asData?.value.isNotEmpty ?? false);
+
+  return SyncStatusModel.fromLastSynced(
+    fromCache: fromCache,
+    pendingWrites: pendingWrites,
+    lastSyncedAt: lastSyncedAt,
+    now: DateTime.now(),
   );
 });
 

@@ -19,7 +19,7 @@ void main() {
         LiftMaxModel(
           id: 'max-1',
           userId: 'user-1',
-          exerciseId: 'back-squat',
+          exerciseId: 'Back Squat',
           repCount: 1,
           weight: 225,
           withStraps: false,
@@ -31,16 +31,18 @@ void main() {
 
     await _pumpScreen(tester: tester, repo: repo);
 
-    // Expand the category
-    await tester.tap(find.text('Squat Variations'));
+    // Expand the exercise card.
+    await tester.tap(find.text('Back Squat').first);
     await tester.pumpAndSettle();
 
     expect(find.text('Back Squat'), findsOneWidget);
-    expect(find.text('225.0'), findsOneWidget); // The TextField text
+    final TextField rowInput =
+        tester.widget<TextField>(find.byType(TextField).first);
+    expect(rowInput.controller?.text, '225.0');
 
     // No more bottom sheet, it's inline
     await tester.enterText(find.byType(TextField).first, '230');
-    await tester.tap(find.byIcon(Icons.save).first);
+    await tester.tap(find.byIcon(Icons.check_circle_outline).first);
     await tester.pumpAndSettle();
 
     expect(repo.savedLiftMaxes, hasLength(1));
@@ -53,18 +55,18 @@ void main() {
 
     await _pumpScreen(tester: tester, repo: repo);
 
-    // Expand the category
-    await tester.tap(find.text('Squat Variations'));
+    // Expand the exercise card.
+    await tester.tap(find.text('Back Squat').first);
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextField).first, '205');
-    await tester.tap(find.byIcon(Icons.save).first);
+    await tester.tap(find.byIcon(Icons.check_circle_outline).first);
     await tester.pumpAndSettle();
 
     expect(repo.savedLiftMaxes, hasLength(1));
     final LiftMaxModel saved = repo.savedLiftMaxes.single;
     expect(saved.userId, 'user-1');
-    expect(saved.exerciseId, 'back-squat');
+    expect(saved.exerciseId, 'Back Squat');
     expect(saved.repCount, 1);
     expect(saved.weight, 205);
   });

@@ -7,6 +7,7 @@ import '../../../app/theme.dart';
 import '../../../domain/calculations/cycle_calculations.dart';
 import '../../../domain/enums.dart';
 import '../../../domain/models/cycle_models.dart';
+import '../../shared/presentation/sync_status_badge.dart';
 import '../providers.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -67,7 +68,8 @@ class _InlineInfoBanner extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.cardLight,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.textSecondary.withValues(alpha: 0.2)),
+        border:
+            Border.all(color: AppColors.textSecondary.withValues(alpha: 0.2)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -100,6 +102,7 @@ class CycleTrackingScreen extends ConsumerWidget {
     final recommendation = ref.watch(phaseRecommendationProvider);
     final cycleControllerState = ref.watch(cycleControllerProvider);
     final userId = ref.watch(cycleUserIdProvider);
+    final syncStatus = ref.watch(cycleSyncStatusProvider);
 
     return Scaffold(
       body: periodLogsAsync.when(
@@ -185,11 +188,20 @@ class CycleTrackingScreen extends ConsumerWidget {
                       const SizedBox(height: 12),
                     ],
 
-                    Text(
-                      'Last synced: ${lastSyncedAt == null ? 'No cycle records yet' : DateFormat.yMMMd().format(lastSyncedAt)}',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: AppColors.textSecondary,
-                          ),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: <Widget>[
+                        Text(
+                          'Last synced: ${lastSyncedAt == null ? 'No cycle records yet' : DateFormat.yMMMd().format(lastSyncedAt)}',
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: AppColors.textSecondary,
+                                  ),
+                        ),
+                        SyncStatusBadge(status: syncStatus),
+                      ],
                     ),
 
                     const SizedBox(height: 12),

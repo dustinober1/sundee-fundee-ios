@@ -10,6 +10,8 @@ import '../../../domain/models/program_models.dart';
 import '../../auth/domain/auth_state.dart';
 import '../../auth/providers.dart';
 import '../../cycle/providers.dart';
+import '../../repositories/domain/sync_status_model.dart';
+import '../../shared/presentation/sync_status_badge.dart';
 import '../data/program_repository.dart';
 import '../providers/adapted_program_provider.dart';
 import 'widgets/cycle_adjustment_explainer.dart';
@@ -40,6 +42,7 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
     final ProgramAdaptationContext adaptationContext = ref.watch(
       programAdaptationContextProvider,
     );
+    final SyncStatusModel syncStatus = ref.watch(cycleSyncStatusProvider);
     final bool detailsVisible = _cycleAdjustmentDetailsOverride ??
         ref.watch(cycleAdjustmentDetailsVisibleProvider);
 
@@ -114,7 +117,10 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
                   ),
                 ],
                 const SizedBox(height: 12),
-                _LastSyncedRow(lastSyncedAt: enrollment.lastSyncedAt),
+                _LastSyncedRow(
+                  lastSyncedAt: enrollment.lastSyncedAt,
+                  syncStatus: syncStatus,
+                ),
                 if (_hasIncompleteData(
                     selectedProgram, enrollment)) ...<Widget>[
                   const SizedBox(height: 12),
@@ -440,20 +446,32 @@ class _NoticeCard extends StatelessWidget {
 }
 
 class _LastSyncedRow extends StatelessWidget {
-  const _LastSyncedRow({required this.lastSyncedAt});
+  const _LastSyncedRow({
+    required this.lastSyncedAt,
+    required this.syncStatus,
+  });
 
   final DateTime? lastSyncedAt;
+  final SyncStatusModel syncStatus;
 
   @override
   Widget build(BuildContext context) {
     final String value = lastSyncedAt == null
         ? 'Not yet synced'
         : DateFormat.yMMMd().add_jm().format(lastSyncedAt!.toLocal());
-    return Text(
-      'Last synced: $value',
-      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: AppColors.textSecondary,
-          ),
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: <Widget>[
+        Text(
+          'Last synced: $value',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: AppColors.textSecondary,
+              ),
+        ),
+        SyncStatusBadge(status: syncStatus),
+      ],
     );
   }
 }

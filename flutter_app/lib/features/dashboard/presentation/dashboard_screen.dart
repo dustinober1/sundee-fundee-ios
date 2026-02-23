@@ -13,6 +13,7 @@ import '../../migration/providers.dart';
 import '../../programs/data/program_repository.dart';
 import '../../programs/providers/adapted_program_provider.dart';
 import '../../repositories/providers.dart';
+import '../../shared/presentation/sync_status_badge.dart';
 import 'cycle_insights_chart.dart';
 
 class DashboardScreen extends ConsumerWidget {
@@ -50,6 +51,7 @@ class DashboardScreen extends ConsumerWidget {
     final cycleStatus = ref.watch(cycleStatusProvider);
     final periodLogs = ref.watch(periodLogsProvider).asData?.value ?? const [];
     final cycleControllerState = ref.watch(cycleControllerProvider);
+    final syncStatus = ref.watch(cycleSyncStatusProvider);
     final DateTime? lastSyncedAt =
         periodLogs.isEmpty ? null : periodLogs.first.startDate;
 
@@ -103,12 +105,20 @@ class DashboardScreen extends ConsumerWidget {
               ),
             Padding(
               padding: const EdgeInsets.only(top: 8, left: 16, right: 16),
-              child: Text(
-                'Last synced: ${lastSyncedAt == null ? 'No cycle records yet' : DateFormat.yMMMd().format(lastSyncedAt)}',
-                style: const TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 12,
-                ),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: <Widget>[
+                  Text(
+                    'Last synced: ${lastSyncedAt == null ? 'No cycle records yet' : DateFormat.yMMMd().format(lastSyncedAt)}',
+                    style: const TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 12,
+                    ),
+                  ),
+                  SyncStatusBadge(status: syncStatus),
+                ],
               ),
             ),
             const Padding(
