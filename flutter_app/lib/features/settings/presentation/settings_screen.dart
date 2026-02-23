@@ -118,8 +118,43 @@ class SettingsScreen extends ConsumerWidget {
           ListTile(
             leading: const Icon(Icons.delete_forever_outlined, color: Colors.red),
             title: const Text('Delete Account', style: TextStyle(color: Colors.red)),
-            onTap: () {
-              // TODO: Implement Account Deletion
+            onTap: () async {
+              final bool? confirmed = await showDialog<bool>(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: const Text('Delete Account?'),
+                    content: const Text(
+                      'This action is permanent and will delete your profile. '
+                      'Workout history and personal records will no longer be '
+                      'associated with your email.',
+                    ),
+                    actions: <Widget>[
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(false),
+                        child: const Text('Cancel'),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(true),
+                        style: TextButton.styleFrom(foregroundColor: Colors.red),
+                        child: const Text('Delete Permanently'),
+                      ),
+                    ],
+                  );
+                },
+              );
+
+              if (confirmed == true && context.mounted) {
+                try {
+                  await ref.read(authRepositoryProvider).deleteAccount();
+                } catch (error) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(error.toString())),
+                    );
+                  }
+                }
+              }
             },
           ),
           const SizedBox(height: 32),

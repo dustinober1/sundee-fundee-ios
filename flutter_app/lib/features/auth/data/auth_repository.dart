@@ -228,6 +228,37 @@ class AuthRepository {
     });
   }
 
+  Future<void> deleteAccount() async {
+    _assertFirebaseEnabled('deleteAccount');
+
+    final User? user = _requireAuth().currentUser;
+    if (user == null) {
+      throw StateError('No authenticated user found for account deletion.');
+    }
+
+    // 1. Delete user data from Firestore first (while we still have auth tokens)
+    // Note: This only deletes the root user document. Sub-collections are 
+    // typically handled via Cloud Functions or recursive deletes, but 
+    // for this implementation, we at least clear the primary profile.
+    await _usersCollection.doc(user.uid).delete();
+
+    // 2. Delete the Firebase Auth user
+    try {
+      await user.delete();
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'requires-recent-login') {
+        throw StateError(
+          'For security reasons, this operation requires recent authentication. '
+          'Please sign out and sign back in before deleting your account.',
+        );
+      }
+      rethrow;
+    }
+
+    // 3. Clear guest mode state
+    await _guestModeStore.setGuestModeEnabled(false);
+  }
+
   Future<void> continueAsGuest() async {
     if (_firebaseEnabled) {
       await _requireAuth().signOut();
