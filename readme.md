@@ -27,7 +27,7 @@ Sundee Fundee is a hormonal-aware strength training tracker built with Flutter a
 - 🏋️ **Program Management:** Dedicated **Programs** navigation tab to browse and enroll in structured plans, including the new **12-Week Squad Squat Peak**.
 - 🏋️ **Human-Readable Exercise Identifiers:** Refactored exercise IDs from kebab-case (e.g., `back-squat`) to Title Case (e.g., `Back Squat`) to ensure they display beautifully in the UI and improve developer experience when creating new programs.
 - 🦈 **Sharkweek Logo:** The "sharkweek" logo is conditionally displayed at the top of the Cycle Tracking screen *only* when the user is currently in the Menstrual phase.
-- 📈 **Automated Lift Records:** Completing a workout now automatically detects new personal records (1/3/5 RM) and updates your Max Lifts tracker.
+- 📈 **Automated Lift Records:** Completing a workout now automatically detects new personal records (1/3/5 RM), and dynamically calculates an Estimated 1RM using the Epley formula to ensure workout percentages scale correctly.
 - ⚙️ **Enhanced Settings & Legal:** Completely redesigned Settings screen with dedicated sections for Account, Support, and Legal. Added a multi-tab **Legal & Privacy screen** featuring professional, comprehensive Terms of Service, Privacy Policy (with sensitive health data handling), and Medical/Physical Legal Disclaimers.
 - ⚙️ **Admin Dashboard** allowing authorized users (e.g. dustinober@me.com) to upload and push new custom workout programs via JSON to Firestore directly from the mobile app.
 - 🏋️ **Streamlined Exercise Library:** Expanded with 20+ new strength and accessory movements including Leg Raises, Face Pulls, Step-ups, and more.
