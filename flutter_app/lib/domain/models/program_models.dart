@@ -374,7 +374,15 @@ class EnrolledProgramModel {
     required this.currentDay,
     this.isActive = true,
     this.completedAt,
-  });
+    List<int>? completedWeeks,
+    this.lastSyncedAt,
+  }) : completedWeeks = List<int>.unmodifiable(
+          (completedWeeks ?? const <int>[])
+              .map((int week) => week)
+              .toSet()
+              .toList()
+            ..sort(),
+        );
 
   final String id;
   final String programId;
@@ -383,8 +391,17 @@ class EnrolledProgramModel {
   final int currentDay;
   final bool isActive;
   final DateTime? completedAt;
+  final List<int> completedWeeks;
+  final DateTime? lastSyncedAt;
 
   factory EnrolledProgramModel.fromJson(Map<String, dynamic> json) {
+    final List<int> completedWeeks =
+        (json['completedWeeks'] as List<dynamic>? ?? const <dynamic>[])
+            .map((dynamic value) => (value as num).toInt())
+            .toSet()
+            .toList()
+          ..sort();
+
     return EnrolledProgramModel(
       id: json['id'] as String? ?? '',
       programId: json['programId'] as String? ?? '',
@@ -393,6 +410,8 @@ class EnrolledProgramModel {
       currentDay: (json['currentDay'] as num?)?.toInt() ?? 1,
       isActive: json['isActive'] as bool? ?? true,
       completedAt: parseNullableDateTime(json['completedAt']),
+      completedWeeks: completedWeeks,
+      lastSyncedAt: parseNullableDateTime(json['lastSyncedAt']),
     );
   }
 
@@ -405,6 +424,8 @@ class EnrolledProgramModel {
       'currentDay': currentDay,
       'isActive': isActive,
       'completedAt': completedAt?.toIso8601String(),
+      'completedWeeks': completedWeeks,
+      'lastSyncedAt': lastSyncedAt?.toIso8601String(),
     };
   }
 
@@ -413,6 +434,8 @@ class EnrolledProgramModel {
     int? currentDay,
     bool? isActive,
     DateTime? completedAt,
+    List<int>? completedWeeks,
+    DateTime? lastSyncedAt,
   }) {
     return EnrolledProgramModel(
       id: id,
@@ -422,6 +445,8 @@ class EnrolledProgramModel {
       currentDay: currentDay ?? this.currentDay,
       isActive: isActive ?? this.isActive,
       completedAt: completedAt ?? this.completedAt,
+      completedWeeks: completedWeeks ?? this.completedWeeks,
+      lastSyncedAt: lastSyncedAt ?? this.lastSyncedAt,
     );
   }
 }

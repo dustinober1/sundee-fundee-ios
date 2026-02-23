@@ -437,6 +437,35 @@ class FirestoreEnrolledProgramRepository implements EnrolledProgramRepository {
     return _enrollmentsCollection(userId).doc(enrollmentId).update({
       'currentWeek': week,
       'currentDay': day,
+      'lastSyncedAt': DateTime.now().toIso8601String(),
+    });
+  }
+
+  @override
+  Future<void> markWeekComplete({
+    required String userId,
+    required String enrollmentId,
+    required int completedWeek,
+    required int nextWeek,
+  }) {
+    return _enrollmentsCollection(userId).doc(enrollmentId).update({
+      'completedWeeks': FieldValue.arrayUnion(<int>[completedWeek]),
+      'currentWeek': nextWeek,
+      'currentDay': 1,
+      'lastSyncedAt': DateTime.now().toIso8601String(),
+    });
+  }
+
+  @override
+  Future<void> jumpToWeek({
+    required String userId,
+    required String enrollmentId,
+    required int week,
+  }) {
+    return _enrollmentsCollection(userId).doc(enrollmentId).update({
+      'currentWeek': week,
+      'currentDay': 1,
+      'lastSyncedAt': DateTime.now().toIso8601String(),
     });
   }
 
@@ -448,6 +477,7 @@ class FirestoreEnrolledProgramRepository implements EnrolledProgramRepository {
     return _enrollmentsCollection(userId).doc(enrollmentId).update({
       'isActive': false,
       'completedAt': DateTime.now().toIso8601String(),
+      'lastSyncedAt': DateTime.now().toIso8601String(),
     });
   }
 
@@ -458,6 +488,7 @@ class FirestoreEnrolledProgramRepository implements EnrolledProgramRepository {
   }) {
     return _enrollmentsCollection(userId).doc(enrollmentId).update({
       'isActive': false,
+      'lastSyncedAt': DateTime.now().toIso8601String(),
     });
   }
 

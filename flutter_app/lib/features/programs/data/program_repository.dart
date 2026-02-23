@@ -78,6 +78,57 @@ class ProgramRepository {
     );
   }
 
+  Future<void> markWeekComplete({
+    required String userId,
+    required EnrolledProgramModel enrollment,
+    required int programDurationWeeks,
+  }) async {
+    final int completedWeek = enrollment.currentWeek;
+    final int nextWeek = completedWeek >= programDurationWeeks
+        ? completedWeek
+        : completedWeek + 1;
+
+    await _enrolledProgramRepository.markWeekComplete(
+      userId: userId,
+      enrollmentId: enrollment.id,
+      completedWeek: completedWeek,
+      nextWeek: nextWeek,
+    );
+
+    if (completedWeek >= programDurationWeeks) {
+      await _enrolledProgramRepository.completeEnrollment(
+        userId: userId,
+        enrollmentId: enrollment.id,
+      );
+    }
+  }
+
+  Future<void> jumpToWeek({
+    required String userId,
+    required String enrollmentId,
+    required int week,
+  }) {
+    return _enrolledProgramRepository.jumpToWeek(
+      userId: userId,
+      enrollmentId: enrollmentId,
+      week: week,
+    );
+  }
+
+  Future<void> updateEnrollmentProgress({
+    required String userId,
+    required String enrollmentId,
+    required int week,
+    required int day,
+  }) {
+    return _enrolledProgramRepository.updateEnrollmentProgress(
+      userId: userId,
+      enrollmentId: enrollmentId,
+      week: week,
+      day: day,
+    );
+  }
+
   Stream<EnrolledProgramModel?> watchActiveEnrollment(
       {required String userId}) {
     return _enrolledProgramRepository.watchActiveEnrollment(userId: userId);

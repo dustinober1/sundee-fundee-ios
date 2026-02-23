@@ -108,5 +108,37 @@ void main() {
         expect(exercise.muscleGroups, isNotEmpty);
       }
     });
+
+    test('EnrolledProgramModel defaults completedWeeks for legacy records', () {
+      final EnrolledProgramModel model = EnrolledProgramModel.fromJson(
+        <String, dynamic>{
+          'id': 'enrollment-1',
+          'programId': 'program-1',
+          'startDate': '2026-01-01T00:00:00.000Z',
+          'currentWeek': 2,
+          'currentDay': 3,
+          'isActive': true,
+        },
+      );
+
+      expect(model.completedWeeks, isEmpty);
+    });
+
+    test('EnrolledProgramModel serializes completedWeeks and lastSyncedAt', () {
+      final DateTime lastSyncedAt = DateTime.utc(2026, 2, 23, 12, 0, 0);
+      final EnrolledProgramModel model = EnrolledProgramModel(
+        id: 'enrollment-2',
+        programId: 'program-1',
+        startDate: DateTime.utc(2026, 1, 1),
+        currentWeek: 4,
+        currentDay: 1,
+        completedWeeks: const <int>[1, 2, 3],
+        lastSyncedAt: lastSyncedAt,
+      );
+
+      final Map<String, dynamic> json = model.toJson();
+      expect(json['completedWeeks'], <int>[1, 2, 3]);
+      expect(json['lastSyncedAt'], lastSyncedAt.toIso8601String());
+    });
   });
 }

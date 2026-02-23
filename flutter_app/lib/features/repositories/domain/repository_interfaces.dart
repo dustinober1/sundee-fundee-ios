@@ -123,6 +123,19 @@ abstract class EnrolledProgramRepository {
     required int day,
   });
 
+  Future<void> markWeekComplete({
+    required String userId,
+    required String enrollmentId,
+    required int completedWeek,
+    required int nextWeek,
+  });
+
+  Future<void> jumpToWeek({
+    required String userId,
+    required String enrollmentId,
+    required int week,
+  });
+
   Future<void> completeEnrollment({
     required String userId,
     required String enrollmentId,
