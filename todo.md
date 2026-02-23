@@ -1,1 +1,5 @@
 - Save onboarding and stop asking for each login
+- Set up for the plan to adjust if the user enters a current injury they have
+    - Give the user alternate exercises if they have an injury
+    - Give the user exercise to add to their plan to recover from the injury.
+    - Add to the legal disclaimers this is not a subsitute for medical advice or physical therapy. 
