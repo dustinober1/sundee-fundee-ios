@@ -10,8 +10,31 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
+    function validInjuryProfile(injury) {
+      return injury is map
+        && (!('id' in injury) || injury.id is string)
+        && (!('location' in injury) || injury.location is string)
+        && (!('movementLimitations' in injury) || injury.movementLimitations is string)
+        && (!('recoveryGoal' in injury) || injury.recoveryGoal is string)
+        && (!('status' in injury) || injury.status in ['active', 'resolved'])
+        && (!('createdAt' in injury) || injury.createdAt is timestamp || injury.createdAt is string)
+        && (!('updatedAt' in injury) || injury.updatedAt is timestamp || injury.updatedAt is string)
+        && (!('resolvedAt' in injury) || injury.resolvedAt is timestamp || injury.resolvedAt is string || injury.resolvedAt == null);
+    }
+
+    function validUserProfileWrite(userId) {
+      let data = request.resource.data;
+      let injuries = data.injuryProfiles;
+      return data.id == userId
+        && (!('onboardingComplete' in data) || data.onboardingComplete is bool)
+        && (!('profileUpdatedAt' in data) || data.profileUpdatedAt is timestamp || data.profileUpdatedAt is string)
+        && (!('injuryProfiles' in data) || (injuries is list && injuries.size() <= 20));
+    }
+
     match /users/{userId} {
-      allow read, write: if isOwner(userId);
+      allow read: if isOwner(userId);
+      allow create, update: if isOwner(userId) && validUserProfileWrite(userId);
+      allow delete: if isOwner(userId);
 
       match /workouts/{workoutId} {
         allow read, write: if isOwner(userId);

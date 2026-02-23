@@ -1,4 +1,5 @@
 import '../enums.dart';
+import 'injury_profile_model.dart';
 import 'json_utils.dart';
 
 class UserModel {
@@ -11,6 +12,9 @@ class UserModel {
     required this.createdAt,
     required this.appleUserId,
     this.cycleTrackingEnabled = false,
+    this.onboardingComplete = false,
+    this.profileUpdatedAt,
+    this.injuryProfiles = const <InjuryProfileModel>[],
   });
 
   final String id;
@@ -21,6 +25,24 @@ class UserModel {
   final DateTime createdAt;
   final String appleUserId;
   final bool cycleTrackingEnabled;
+  final bool onboardingComplete;
+  final DateTime? profileUpdatedAt;
+  final List<InjuryProfileModel> injuryProfiles;
+
+  bool get hasRequiredOnboardingAnswers => name.trim().isNotEmpty;
+
+  bool get onboardingCompleteComputed =>
+      onboardingComplete || hasRequiredOnboardingAnswers;
+
+  List<InjuryProfileModel> get activeInjuries => injuryProfiles
+      .where((InjuryProfileModel injury) => injury.isActive)
+      .toList();
+
+  bool get hasIncompleteActiveInjuryProfiles =>
+      activeInjuries.any((InjuryProfileModel injury) => !injury.isComplete);
+
+  bool get requiresInjuryProfileCompletion =>
+      activeInjuries.isNotEmpty && hasIncompleteActiveInjuryProfiles;
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
@@ -47,6 +69,14 @@ class UserModel {
           json['appleUserId'] as String? ??
           '',
       cycleTrackingEnabled: json['cycleTrackingEnabled'] as bool? ?? false,
+      onboardingComplete: json['onboardingComplete'] as bool? ?? false,
+      profileUpdatedAt: json['profileUpdatedAt'] == null
+          ? null
+          : parseDateTime(
+              json['profileUpdatedAt'],
+              fieldName: 'profileUpdatedAt',
+            ),
+      injuryProfiles: _parseInjuryProfiles(json),
     );
   }
 
@@ -60,6 +90,77 @@ class UserModel {
       'createdAt': createdAt.toIso8601String(),
       'appleUserID': appleUserId,
       'cycleTrackingEnabled': cycleTrackingEnabled,
+      'onboardingComplete': onboardingComplete,
+      if (profileUpdatedAt != null)
+        'profileUpdatedAt': profileUpdatedAt!.toIso8601String(),
+      'injuryProfiles': injuryProfiles
+          .map((InjuryProfileModel injury) => injury.toJson())
+          .toList(),
     };
+  }
+
+  UserModel copyWith({
+    String? id,
+    String? name,
+    ExperienceLevel? experienceLevel,
+    PrimaryGoal? primaryGoal,
+    Gender? gender,
+    DateTime? createdAt,
+    String? appleUserId,
+    bool? cycleTrackingEnabled,
+    bool? onboardingComplete,
+    DateTime? profileUpdatedAt,
+    List<InjuryProfileModel>? injuryProfiles,
+  }) {
+    return UserModel(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      experienceLevel: experienceLevel ?? this.experienceLevel,
+      primaryGoal: primaryGoal ?? this.primaryGoal,
+      gender: gender ?? this.gender,
+      createdAt: createdAt ?? this.createdAt,
+      appleUserId: appleUserId ?? this.appleUserId,
+      cycleTrackingEnabled: cycleTrackingEnabled ?? this.cycleTrackingEnabled,
+      onboardingComplete: onboardingComplete ?? this.onboardingComplete,
+      profileUpdatedAt: profileUpdatedAt ?? this.profileUpdatedAt,
+      injuryProfiles: injuryProfiles ?? this.injuryProfiles,
+    );
+  }
+
+  static List<InjuryProfileModel> _parseInjuryProfiles(
+      Map<String, dynamic> json) {
+    final dynamic rawProfiles = json['injuryProfiles'];
+    if (rawProfiles is List) {
+      return rawProfiles
+          .whereType<Map>()
+          .map(
+            (Map injury) =>
+                InjuryProfileModel.fromJson(Map<String, dynamic>.from(injury)),
+          )
+          .toList();
+    }
+
+    // Legacy schema support: single injury object.
+    final dynamic legacyInjury = json['injuryProfile'];
+    if (legacyInjury is Map) {
+      return <InjuryProfileModel>[
+        InjuryProfileModel.fromJson(
+          <String, dynamic>{
+            'id': legacyInjury['id'] ?? 'legacy-injury',
+            'location': legacyInjury['location'] ?? '',
+            'movementLimitations': legacyInjury['movementLimitations'] ?? '',
+            'recoveryGoal': legacyInjury['recoveryGoal'] ?? '',
+            'status': legacyInjury['status'] ?? 'active',
+            'createdAt':
+                legacyInjury['createdAt'] ?? DateTime.now().toIso8601String(),
+            'updatedAt':
+                legacyInjury['updatedAt'] ?? DateTime.now().toIso8601String(),
+            'resolvedAt': legacyInjury['resolvedAt'],
+          },
+        ),
+      ];
+    }
+
+    return const <InjuryProfileModel>[];
   }
 }
