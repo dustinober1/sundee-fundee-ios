@@ -1,3 +1,4 @@
+// ignore_for_file: avoid_print
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sundee_fundee_flutter/domain/models/completed_set_model.dart';

@@ -97,7 +97,7 @@ class _AdminProgramsScreenState extends ConsumerState<AdminProgramsScreen> {
             InteractiveProgramBuilder(
               onPush: (program) async {
                 await ref.read(programRepositoryProvider).pushProgram(program);
-                if (mounted) {
+                if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Successfully pushed: ${program.name}')),
                   );
