@@ -274,6 +274,111 @@ Future<void> maybeApplyCycleUpdate({
    - What's unclear: canonical "in progress" marker and lifecycle event source are not currently explicit.
    - Recommendation: model workout session state in notifier and trigger recompute prompts only while active.
 
+## Deep Dive Addendum (Dig Deeper - 2026-02-23)
+
+This addendum resolves implementation ambiguity for the three open areas using current code capabilities and external evidence.
+
+### 1) Readiness + Cycle Blend Policy (Resolved Recommendation)
+
+#### Evidence snapshot
+- Menstrual-cycle and strength literature is mixed: some reviews show small/trivial aggregate effects, while newer reviews report phase-linked strength differences in some contexts.
+- A large exercising-women dataset found symptom burden is associated with missed/modified training and competition availability.
+- Autoregulation research supports using session-day readiness controls (RPE/APRE/VBT families) over rigid fixed-percentage programming for maximal-strength development.
+
+#### Prescriptive decision
+Use **phase-first baseline + readiness modifier**, not replacement:
+
+1. Phase sets the baseline prescription (`CycleProgramGenerator` output).
+2. Readiness applies a bounded adjustment layer to load/volume.
+3. If signals conflict, keep both: phase determines direction, readiness determines magnitude.
+
+#### Minimal readiness contract for this codebase
+- `readinessTier = low | neutral | high`
+- Resolve in this order:
+  1. Explicit daily readiness input (if introduced in Phase 02 UI)
+  2. Same-day symptom severity aggregate from `symptomLogsProvider`
+  3. Previous workout average RPE from completed sets
+  4. Fallback `neutral`
+
+#### Recommended modifier table
+| Readiness Tier | Load Delta | Volume Delta | Notes |
+|---|---:|---:|---|
+| low | -5% | -1 working set (min 2) | Preserve movement pattern, reduce fatigue risk |
+| neutral | 0% | 0 | Keep phase baseline |
+| high | +2.5% | +0 to +1 set (cap total weekly increase) | Keep conservative headroom |
+
+#### Guardrails
+- Clamp all adapted top-set loads to `[0.65, 0.95] * 1RM`.
+- Never apply both high-load and high-volume increases in the same update.
+- Keep session structure and `sessionId` stable.
+
+### 2) Low-Confidence Cycle Scoring (Resolved Recommendation)
+
+#### Evidence snapshot
+- FIGO/ACOG cycle-regularity guidance supports using cycle interval range and variability as quality indicators.
+- Firestore metadata flags (`hasPendingWrites`, `isFromCache`) provide authoritative sync-state confidence signals.
+
+#### Prescriptive decision
+Add `cycleConfidenceProvider` and compute confidence from **prediction confidence + sync confidence**.
+
+#### Prediction confidence algorithm (from period logs/settings)
+Use last up to 6 cycle intervals (`startDate[i] - startDate[i+1]`):
+
+- `HIGH` when:
+  - at least 3 complete intervals, and
+  - >=80% intervals are 24-38 days, and
+  - `(maxInterval - minInterval) <= 9`
+- `MEDIUM` when:
+  - at least 2 complete intervals, and
+  - >=50% intervals are 24-38 days, and
+  - `(maxInterval - minInterval) <= 14`
+- `LOW` otherwise.
+
+#### Sync confidence rule (Firestore metadata)
+- Downgrade one tier when any relevant stream is from cache only.
+- Downgrade to at most `MEDIUM` when pending writes exist.
+- Never block training; low confidence only reduces adaptation magnitude.
+
+#### Behavior mapping
+| Confidence | Adjustment Magnitude | UI Copy |
+|---|---|---|
+| HIGH | Full phase + readiness blend | "Cycle-adjusted for current phase" |
+| MEDIUM | 75% of planned phase delta | "Cycle estimate applied (moderate confidence)" |
+| LOW | 50% of planned phase delta, no aggressive peaks | "Using conservative adjustment while data stabilizes" |
+
+### 3) In-Progress Update Handling (Resolved Recommendation)
+
+#### Evidence snapshot
+- Riverpod `ref.listen` is intended for side effects like dialogs/navigation and is safe in widget build contexts.
+- Existing app already exposes active-workout state via `workoutExecutionNotifierProvider != null`.
+
+#### Prescriptive decision
+Use a **listen-and-stage** pattern:
+
+1. Capture `phaseAtWorkoutStart` on workout initialization.
+2. `ref.listen(cycleStatusProvider, ...)` while workout is active.
+3. If phase changes and adapted session differs materially, create staged update.
+4. Show apply/defer dialog once per phase transition.
+5. Apply:
+   - update only remaining sets/reps/load.
+   - keep completed sets unchanged.
+6. Defer:
+   - keep current workout unchanged.
+   - apply new phase on next session launch.
+
+#### Trigger condition
+- Prompt only when all are true:
+  - workout active
+  - `previousPhase != nextPhase`
+  - next session prescription diff exceeds threshold (>=2.5% load OR any set-count change)
+
+#### Verification requirements for plan-phase
+- Unit: readiness resolver order and modifier clamps.
+- Unit: cycle confidence classifier with synthetic interval distributions.
+- Widget: workout screen prompts once on phase change while active.
+- Widget: defer keeps current session; apply updates remaining sets only.
+- Regression: enrollment progression unaffected by adaptation updates.
+
 ## Sources
 
 ### Primary (HIGH confidence)
@@ -286,16 +391,36 @@ Future<void> maybeApplyCycleUpdate({
   - Metadata changes and `hasPendingWrites` / `fromCache` semantics.
 - Firebase Firestore offline persistence: [https://firebase.google.com/docs/firestore/manage-data/enable-offline](https://firebase.google.com/docs/firestore/manage-data/enable-offline)
   - Offline persistence behavior and platform caveats.
+- `cloud_firestore` Query API (Dart): [https://pub.dev/documentation/cloud_firestore/latest/cloud_firestore/Query-class.html](https://pub.dev/documentation/cloud_firestore/latest/cloud_firestore/Query-class.html)
+  - `snapshots(includeMetadataChanges: ...)` support in current package line.
+- `cloud_firestore` SnapshotMetadata API (Dart): [https://pub.dev/documentation/cloud_firestore/latest/cloud_firestore/SnapshotMetadata-class.html](https://pub.dev/documentation/cloud_firestore/latest/cloud_firestore/SnapshotMetadata-class.html)
+  - `hasPendingWrites` and `isFromCache` flags.
 - Firebase Firestore best practices: [https://firebase.google.com/docs/firestore/best-practices](https://firebase.google.com/docs/firestore/best-practices)
   - ID/indexing/hotspot guidance relevant to program and enrollment data.
 - Firestore rules testing with emulator: [https://firebase.google.com/docs/firestore/security/test-rules-emulator](https://firebase.google.com/docs/firestore/security/test-rules-emulator)
   - Recommended local rules verification workflow.
 - Flutter app architecture docs: [https://docs.flutter.dev/app-architecture](https://docs.flutter.dev/app-architecture)
   - Layered architecture guidance (UI, state, repositories/services).
+- The two FIGO systems...2018 revisions (PubMed): [https://pubmed.ncbi.nlm.nih.gov/30198563/](https://pubmed.ncbi.nlm.nih.gov/30198563/)
+  - Normal cycle frequency/regularity framework for confidence thresholds.
+- Menstruation in Girls and Adolescents: Using the Menstrual Cycle as a Vital Sign (ACOG): [https://www.acog.org/clinical/clinical-guidance/committee-opinion/articles/2015/12/menstruation-in-girls-and-adolescents-using-the-menstrual-cycle-as-a-vital-sign](https://www.acog.org/clinical/clinical-guidance/committee-opinion/articles/2015/12/menstruation-in-girls-and-adolescents-using-the-menstrual-cycle-as-a-vital-sign)
+  - Clinical cycle-interval and abnormal-pattern guidance.
+- The Influence of Menstrual Cycle Phases on Maximal Strength Performance... (PubMed): [https://pubmed.ncbi.nlm.nih.gov/38251305/](https://pubmed.ncbi.nlm.nih.gov/38251305/)
+  - Newer synthesis reporting phase-dependent maximal strength effects.
+- Variations in strength-related measures during the menstrual cycle... (PubMed): [https://pubmed.ncbi.nlm.nih.gov/32456980/](https://pubmed.ncbi.nlm.nih.gov/32456980/)
+  - Prior synthesis showing generally small/trivial average effects.
+- Prevalence and frequency of menstrual cycle symptoms are associated with availability to train and compete... (PubMed): [https://pubmed.ncbi.nlm.nih.gov/33199360/](https://pubmed.ncbi.nlm.nih.gov/33199360/)
+  - Large sample evidence linking symptom burden to altered training/competition availability.
+- Autoregulated resistance training for maximal strength enhancement... (PubMed): [https://pubmed.ncbi.nlm.nih.gov/40791980/](https://pubmed.ncbi.nlm.nih.gov/40791980/)
+  - Updated network meta-analysis supporting autoregulation strategies.
 
 ### Secondary (MEDIUM confidence)
 - Flutter testing overview page: [https://docs.flutter.dev/testing/overview](https://docs.flutter.dev/testing/overview)
   - Test pyramid framing for unit/widget/integration coverage in Flutter projects.
+- Riverpod refs docs (`ref.listen`, `ref.watch`): [https://riverpod.dev/docs/concepts2/refs](https://riverpod.dev/docs/concepts2/refs)
+  - Side-effect listening pattern for phase-change prompts.
+- Riverpod provider overrides docs: [https://riverpod.dev/docs/concepts2/overrides](https://riverpod.dev/docs/concepts2/overrides)
+  - Deterministic override strategy for adaptation tests.
 
 ### Tertiary (LOW confidence)
 - None. No critical recommendation is based only on unverified secondary sources.
