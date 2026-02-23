@@ -2,7 +2,7 @@
 
 Phase: 04-full-suite-test-stabilization-verification-hardening
 Date: 2026-02-23
-Status: active
+Status: resolved
 
 ## Baseline Run
 - Command: `cd flutter_app && flutter test`
@@ -23,10 +23,17 @@ Status: active
   - Result: failed with same mismatch (deterministic)
 - Disposition: fix test expectation
 - Owner: phase-04 stabilization
-- Status: open
+- Status: fixed
 
 ## Triage Summary
 - behavior regression: 0
 - brittle assertion drift: 1
 - environment/flaky: 0
 - obsolete coverage: 0
+
+## Final Disposition
+- Item `1` closed by updating stale expectation in:
+  - `flutter_app/test/features/programs/squad_squat_program_test.dart`
+- Validation:
+  - Focused rerun passed.
+  - Broad rerun (`flutter test`) passed.
