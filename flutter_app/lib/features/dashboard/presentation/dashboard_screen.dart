@@ -3,10 +3,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import '../../../app/theme.dart';
 import '../../auth/domain/auth_state.dart';
 import '../../auth/providers.dart';
+import '../../cycle/providers.dart';
 import '../../migration/providers.dart';
 import '../../programs/data/program_repository.dart';
 import '../../repositories/providers.dart';
@@ -44,6 +46,11 @@ class DashboardScreen extends ConsumerWidget {
 
     final AuthSession? session =
         ref.watch(authSessionStreamProvider).asData?.value;
+    final cycleStatus = ref.watch(cycleStatusProvider);
+    final periodLogs = ref.watch(periodLogsProvider).asData?.value ?? const [];
+    final cycleControllerState = ref.watch(cycleControllerProvider);
+    final DateTime? lastSyncedAt =
+        periodLogs.isEmpty ? null : periodLogs.first.startDate;
 
     final String stateMessage;
     switch (session?.status) {
@@ -73,6 +80,33 @@ class DashboardScreen extends ConsumerWidget {
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
                   color: AppColors.brandPrimary,
+                ),
+              ),
+            ),
+            if (cycleControllerState.hasError)
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: _DashboardInfoBanner(
+                  icon: Icons.sync_problem_outlined,
+                  message: 'Changes could not be saved. Retry.',
+                ),
+              ),
+            if (cycleStatus == null)
+              const Padding(
+                padding: EdgeInsets.only(top: 8, left: 16, right: 16),
+                child: _DashboardInfoBanner(
+                  icon: Icons.info_outline,
+                  message:
+                      'Cycle data unavailable. Recommendations may be limited.',
+                ),
+              ),
+            Padding(
+              padding: const EdgeInsets.only(top: 8, left: 16, right: 16),
+              child: Text(
+                'Last synced: ${lastSyncedAt == null ? 'No cycle records yet' : DateFormat.yMMMd().format(lastSyncedAt)}',
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 12,
                 ),
               ),
             ),
@@ -117,6 +151,41 @@ class DashboardScreen extends ConsumerWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _DashboardInfoBanner extends StatelessWidget {
+  const _DashboardInfoBanner({
+    required this.icon,
+    required this.message,
+  });
+
+  final IconData icon;
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: AppColors.cardLight,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppColors.textSecondary.withValues(alpha: 0.2)),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 16, color: AppColors.textSecondary),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(fontSize: 12),
+            ),
+          ),
+        ],
       ),
     );
   }
