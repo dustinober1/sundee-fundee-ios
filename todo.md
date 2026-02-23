@@ -3,3 +3,4 @@
     - Give the user alternate exercises if they have an injury
     - Give the user exercise to add to their plan to recover from the injury.
     - Add to the legal disclaimers this is not a subsitute for medical advice or physical therapy. 
+- Need an option to cancel a plan once enrolled. 
