@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../domain/calculations/cycle_adaptation_policy.dart';
 import '../../domain/calculations/cycle_calculations.dart';
 import '../../domain/enums.dart';
 import '../../domain/models/cycle_models.dart';
@@ -46,6 +47,16 @@ final cycleSettingsProvider = StreamProvider<CycleSettingsModel?>((ref) {
       .timeout(const Duration(seconds: 10));
 });
 
+final cycleAdaptationPreferencesProvider =
+    StreamProvider<CycleAdaptationPreferencesModel?>((ref) {
+  final userId = ref.watch(cycleUserIdProvider);
+  if (userId == null || userId == 'guest') return Stream.value(null);
+  return ref
+      .watch(cycleRepositoryProvider)
+      .watchCycleAdaptationPreferences(userId: userId)
+      .timeout(const Duration(seconds: 10));
+});
+
 // ─── Computed ────────────────────────────────────────────────────────────────
 
 /// Default settings used when the user has not yet configured their cycle.
@@ -58,6 +69,19 @@ CycleSettingsModel defaultCycleSettings(String userId) {
     lutealPhaseLength: 14,
     enabledSymptomIds: <String>[],
     notificationsEnabled: false,
+  );
+}
+
+CycleAdaptationPreferencesModel defaultCycleAdaptationPreferences(
+  String userId,
+) {
+  return CycleAdaptationPreferencesModel(
+    id: 'programAdaptation',
+    userId: userId,
+    enabled: true,
+    readinessScore: null,
+    autoApplyDuringWorkout: false,
+    showAdjustmentDetails: true,
   );
 }
 
@@ -93,6 +117,49 @@ final phaseRecommendationProvider = Provider<PhaseRecommendation?>((ref) {
   final status = ref.watch(cycleStatusProvider);
   if (status == null) return null;
   return CycleCalculations.getPhaseRecommendation(phase: status.currentPhase);
+});
+
+final cycleLastKnownPhaseProvider = Provider<CyclePhase?>((ref) {
+  final CycleStatusResult? currentStatus = ref.watch(cycleStatusProvider);
+  if (currentStatus != null) {
+    return currentStatus.currentPhase;
+  }
+
+  final List<PeriodLogModel> logs = ref.watch(periodLogsProvider).value ?? [];
+  if (logs.isEmpty) {
+    return null;
+  }
+
+  final String userId = ref.watch(cycleUserIdProvider) ?? '';
+  final CycleSettingsModel settings =
+      ref.watch(cycleSettingsProvider).value ?? defaultCycleSettings(userId);
+  final List<PeriodLogModel> sorted = List<PeriodLogModel>.from(logs)
+    ..sort((PeriodLogModel a, PeriodLogModel b) {
+      return b.startDate.compareTo(a.startDate);
+    });
+
+  final CycleStatusResult? lastKnown = CycleCalculations.calculateCycleStatus(
+    periodLogs: logs,
+    settings: settings,
+    referenceDate: sorted.first.startDate,
+  );
+  return lastKnown?.currentPhase;
+});
+
+final cycleAdaptationConfidenceProvider = Provider<AdaptationConfidence>((ref) {
+  const CycleAdaptationPolicy policy = CycleAdaptationPolicy();
+  final CycleStatusResult? status = ref.watch(cycleStatusProvider);
+  final CyclePhase? lastKnown = ref.watch(cycleLastKnownPhaseProvider);
+  final List<PeriodLogModel> logs = ref.watch(periodLogsProvider).value ?? [];
+  final DateTime? lastSyncedAt = ref.watch(cycleLastSyncedAtProvider);
+
+  return policy.resolveConfidence(
+    currentPhase: status?.currentPhase,
+    lastKnownPhase: lastKnown,
+    periodLogCount: logs.length,
+    lastPeriodStart: lastSyncedAt,
+    referenceDate: DateTime.now(),
+  );
 });
 
 // ─── Controller ──────────────────────────────────────────────────────────────
@@ -133,6 +200,19 @@ class CycleController extends AsyncNotifier<void> {
     state = await AsyncValue.guard(() async {
       final repo = ref.read(cycleRepositoryProvider);
       await repo.saveCycleSettings(userId: settings.userId, settings: settings);
+    });
+  }
+
+  Future<void> saveCycleAdaptationPreferences(
+    CycleAdaptationPreferencesModel preferences,
+  ) async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() async {
+      final repo = ref.read(cycleRepositoryProvider);
+      await repo.saveCycleAdaptationPreferences(
+        userId: preferences.userId,
+        preferences: preferences,
+      );
     });
   }
 

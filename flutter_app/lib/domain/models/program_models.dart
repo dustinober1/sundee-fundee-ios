@@ -11,6 +11,7 @@ class ProgramV2 {
     required this.difficulty,
     required this.phases,
     required this.weeks,
+    this.cycleAdjustmentProfile,
   });
 
   final String id;
@@ -22,6 +23,7 @@ class ProgramV2 {
   final String difficulty;
   final List<ProgramPhase> phases;
   final List<ProgramWeek> weeks;
+  final ProgramCycleAdjustmentProfile? cycleAdjustmentProfile;
 
   factory ProgramV2.fromJson(Map<String, dynamic> json) {
     final List<dynamic> phaseJson =
@@ -56,6 +58,9 @@ class ProgramV2 {
                 ProgramWeek.fromJson(item as Map<String, dynamic>),
           )
           .toList(),
+      cycleAdjustmentProfile: _parseCycleAdjustmentProfile(
+        json['cycleAdjustmentProfile'],
+      ),
     );
   }
 
@@ -70,6 +75,103 @@ class ProgramV2 {
       'difficulty': difficulty,
       'phases': phases.map((ProgramPhase phase) => phase.toJson()).toList(),
       'weeks': weeks.map((ProgramWeek week) => week.toJson()).toList(),
+      if (cycleAdjustmentProfile != null)
+        'cycleAdjustmentProfile': cycleAdjustmentProfile!.toJson(),
+    };
+  }
+
+  static ProgramCycleAdjustmentProfile? _parseCycleAdjustmentProfile(
+    dynamic value,
+  ) {
+    if (value == null) {
+      return null;
+    }
+    if (value is Map<String, dynamic>) {
+      return ProgramCycleAdjustmentProfile.fromJson(value);
+    }
+    if (value is Map) {
+      return ProgramCycleAdjustmentProfile.fromJson(
+        value.cast<String, dynamic>(),
+      );
+    }
+    return null;
+  }
+}
+
+class ProgramCycleAdjustmentProfile {
+  const ProgramCycleAdjustmentProfile({
+    this.fallbackPhase = 'follicular',
+    this.lowConfidenceScale = 0.7,
+    this.phaseSettings = const <String, ProgramPhaseAdjustmentSettings>{},
+  });
+
+  final String fallbackPhase;
+  final double lowConfidenceScale;
+  final Map<String, ProgramPhaseAdjustmentSettings> phaseSettings;
+
+  factory ProgramCycleAdjustmentProfile.fromJson(Map<String, dynamic> json) {
+    final Map<String, dynamic> rawSettings =
+        (json['phaseSettings'] as Map?)?.cast<String, dynamic>() ??
+            const <String, dynamic>{};
+
+    return ProgramCycleAdjustmentProfile(
+      fallbackPhase: (json['fallbackPhase'] as String?) ?? 'follicular',
+      lowConfidenceScale: parseDouble(
+        json['lowConfidenceScale'],
+        fallback: 0.7,
+      ),
+      phaseSettings: rawSettings.map(
+        (String key, dynamic value) {
+          final Map<String, dynamic> normalized = value is Map<String, dynamic>
+              ? value
+              : (value is Map
+                  ? value.cast<String, dynamic>()
+                  : const <String, dynamic>{});
+          return MapEntry<String, ProgramPhaseAdjustmentSettings>(
+            key,
+            ProgramPhaseAdjustmentSettings.fromJson(normalized),
+          );
+        },
+      ),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'fallbackPhase': fallbackPhase,
+      'lowConfidenceScale': lowConfidenceScale,
+      'phaseSettings': phaseSettings.map(
+        (String key, ProgramPhaseAdjustmentSettings value) =>
+            MapEntry<String, dynamic>(key, value.toJson()),
+      ),
+    };
+  }
+}
+
+class ProgramPhaseAdjustmentSettings {
+  const ProgramPhaseAdjustmentSettings({
+    this.loadMultiplier = 1.0,
+    this.setsMultiplier = 1.0,
+    this.repsMultiplier = 1.0,
+  });
+
+  final double loadMultiplier;
+  final double setsMultiplier;
+  final double repsMultiplier;
+
+  factory ProgramPhaseAdjustmentSettings.fromJson(Map<String, dynamic> json) {
+    return ProgramPhaseAdjustmentSettings(
+      loadMultiplier: parseDouble(json['loadMultiplier'], fallback: 1.0),
+      setsMultiplier: parseDouble(json['setsMultiplier'], fallback: 1.0),
+      repsMultiplier: parseDouble(json['repsMultiplier'], fallback: 1.0),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'loadMultiplier': loadMultiplier,
+      'setsMultiplier': setsMultiplier,
+      'repsMultiplier': repsMultiplier,
     };
   }
 }
@@ -281,7 +383,8 @@ class ExerciseValue {
 
   static ExerciseValue fromJson(dynamic jsonValue) {
     if (jsonValue == null) {
-      return const ExerciseValue._(type: ExerciseValueType.fixed, fixedValue: 0);
+      return const ExerciseValue._(
+          type: ExerciseValueType.fixed, fixedValue: 0);
     }
 
     if (jsonValue is int) {

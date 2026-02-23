@@ -5,11 +5,14 @@ import 'package:intl/intl.dart';
 import '../../../app/theme.dart';
 import '../../../domain/calculations/cycle_calculations.dart';
 import '../../../domain/enums.dart';
+import '../../../domain/models/cycle_models.dart';
 import '../../../domain/models/program_models.dart';
 import '../../auth/domain/auth_state.dart';
 import '../../auth/providers.dart';
 import '../../cycle/providers.dart';
 import '../data/program_repository.dart';
+import '../providers/adapted_program_provider.dart';
+import 'widgets/cycle_adjustment_explainer.dart';
 
 class ProgramsScreen extends ConsumerStatefulWidget {
   const ProgramsScreen({super.key});
@@ -20,14 +23,25 @@ class ProgramsScreen extends ConsumerStatefulWidget {
 
 class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
   String? _writeError;
+  bool? _cycleAdjustmentDetailsOverride;
 
   @override
   Widget build(BuildContext context) {
-    final AsyncValue<List<ProgramV2>> programsAsync = ref.watch(programsProvider);
+    final AsyncValue<List<ProgramV2>> programsAsync =
+        ref.watch(programsProvider);
     final AsyncValue<EnrolledProgramModel?> activeEnrollmentAsync =
         ref.watch(activeEnrollmentProvider);
-    final AuthSession? session = ref.watch(authSessionStreamProvider).asData?.value;
+    final AsyncValue<ProgramV2?> adaptedActiveProgramAsync = ref.watch(
+      adaptedActiveProgramProvider,
+    );
+    final AuthSession? session =
+        ref.watch(authSessionStreamProvider).asData?.value;
     final CycleStatusResult? cycleStatus = ref.watch(cycleStatusProvider);
+    final ProgramAdaptationContext adaptationContext = ref.watch(
+      programAdaptationContextProvider,
+    );
+    final bool detailsVisible = _cycleAdjustmentDetailsOverride ??
+        ref.watch(cycleAdjustmentDetailsVisibleProvider);
 
     final String? userId = session?.user?.uid ??
         (session?.status == AuthStatus.guest ? 'guest' : null);
@@ -68,12 +82,28 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
                 ],
               );
             }
-            final ProgramV2 selectedProgram = activeProgram;
+            final ProgramV2 selectedProgram =
+                adaptedActiveProgramAsync.asData?.value ?? activeProgram;
 
             return ListView(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
               children: <Widget>[
                 _CycleContextCard(cycleStatus: cycleStatus),
+                if (adaptationContext.isAdapted) ...<Widget>[
+                  const SizedBox(height: 12),
+                  CycleAdjustmentExplainer(
+                    phase: adaptationContext.phase,
+                    confidence: adaptationContext.confidence,
+                    visible: detailsVisible,
+                    showRecalculationBadge: true,
+                    onToggleVisibility: () {
+                      _setCycleAdjustmentVisibility(
+                        userId: userId,
+                        visible: !detailsVisible,
+                      );
+                    },
+                  ),
+                ],
                 if (_writeError != null) ...<Widget>[
                   const SizedBox(height: 12),
                   _NoticeCard(
@@ -85,7 +115,8 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
                 ],
                 const SizedBox(height: 12),
                 _LastSyncedRow(lastSyncedAt: enrollment.lastSyncedAt),
-                if (_hasIncompleteData(selectedProgram, enrollment)) ...<Widget>[
+                if (_hasIncompleteData(
+                    selectedProgram, enrollment)) ...<Widget>[
                   const SizedBox(height: 12),
                   const _NoticeCard(
                     title: 'Incomplete data',
@@ -104,7 +135,8 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
                 ),
                 const SizedBox(height: 12),
                 ...selectedProgram.weeks.map((ProgramWeek week) {
-                  final bool isCompleted = enrollment.completedWeeks.contains(week.week);
+                  final bool isCompleted =
+                      enrollment.completedWeeks.contains(week.week);
                   final bool isCurrent = enrollment.currentWeek == week.week;
                   final double progress = _progressForWeek(
                     week: week,
@@ -122,8 +154,12 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
                     week: week,
                     statusLabel: statusLabel,
                     progress: progress,
-                    intensityLabel: _intensityLabel(week.week, week.isTestWeek ?? false),
-                    showCompleteAction: isCurrent && !isCompleted && userId != null,
+                    intensityLabel:
+                        _intensityLabel(week.week, week.isTestWeek ?? false),
+                    adjustmentLabel:
+                        adaptationContext.isAdapted ? 'Cycle-adjusted' : null,
+                    showCompleteAction:
+                        isCurrent && !isCompleted && userId != null,
                     canJump: userId != null,
                     onJumpToWeek: userId == null
                         ? null
@@ -145,7 +181,8 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
             );
           },
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (Object err, StackTrace stack) => Center(child: Text('Error: $err')),
+          error: (Object err, StackTrace stack) =>
+              Center(child: Text('Error: $err')),
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -203,6 +240,39 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
       }
     }
   }
+
+  Future<void> _setCycleAdjustmentVisibility({
+    required String? userId,
+    required bool visible,
+  }) async {
+    if (mounted) {
+      setState(() {
+        _cycleAdjustmentDetailsOverride = visible;
+      });
+    }
+
+    if (userId == null || userId == 'guest') {
+      return;
+    }
+
+    final CycleAdaptationPreferencesModel existing =
+        ref.read(cycleAdaptationPreferencesProvider).asData?.value ??
+            defaultCycleAdaptationPreferences(userId);
+    final CycleAdaptationPreferencesModel updated =
+        CycleAdaptationPreferencesModel(
+      id: existing.id,
+      userId: userId,
+      enabled: existing.enabled,
+      readinessScore: existing.readinessScore,
+      autoApplyDuringWorkout: existing.autoApplyDuringWorkout,
+      showAdjustmentDetails: visible,
+      updatedAt: DateTime.now(),
+    );
+
+    await ref
+        .read(cycleControllerProvider.notifier)
+        .saveCycleAdaptationPreferences(updated);
+  }
 }
 
 class _ProgramsCatalogList extends ConsumerWidget {
@@ -253,14 +323,17 @@ class _ProgramsCatalogList extends ConsumerWidget {
                         ? null
                         : () async {
                             try {
-                              await ref.read(programRepositoryProvider).enrollUser(
+                              await ref
+                                  .read(programRepositoryProvider)
+                                  .enrollUser(
                                     userId: userId!,
                                     programId: program.id,
                                   );
                             } catch (e) {
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Enrollment failed: $e')),
+                                  SnackBar(
+                                      content: Text('Enrollment failed: $e')),
                                 );
                               }
                             }
@@ -391,6 +464,7 @@ class _WeekCard extends StatelessWidget {
     required this.statusLabel,
     required this.progress,
     required this.intensityLabel,
+    required this.adjustmentLabel,
     required this.showCompleteAction,
     required this.canJump,
     required this.onJumpToWeek,
@@ -401,6 +475,7 @@ class _WeekCard extends StatelessWidget {
   final String statusLabel;
   final double progress;
   final String intensityLabel;
+  final String? adjustmentLabel;
   final bool showCompleteAction;
   final bool canJump;
   final VoidCallback? onJumpToWeek;
@@ -408,7 +483,9 @@ class _WeekCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final String note = week.sessions.isEmpty ? 'No session details yet.' : week.sessions.first.focus;
+    final String note = week.sessions.isEmpty
+        ? 'No session details yet.'
+        : week.sessions.first.focus;
     final int percent = (progress * 100).round();
 
     return Card(
@@ -438,6 +515,8 @@ class _WeekCard extends StatelessWidget {
               children: <Widget>[
                 _ChipLabel(label: '${week.sessions.length} workouts'),
                 _ChipLabel(label: intensityLabel),
+                if (adjustmentLabel != null)
+                  _ChipLabel(label: adjustmentLabel!),
               ],
             ),
             const SizedBox(height: 8),

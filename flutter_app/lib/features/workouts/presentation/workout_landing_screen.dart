@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/theme.dart';
 import '../../programs/data/program_repository.dart';
+import '../../programs/providers/adapted_program_provider.dart';
 import 'workout_execution_providers.dart';
 
 class WorkoutLandingScreen extends ConsumerWidget {
@@ -67,7 +68,7 @@ class WorkoutLandingScreen extends ConsumerWidget {
 
   Widget _buildNextSessionInfo(BuildContext context, WidgetRef ref) {
     final enrollmentAsync = ref.watch(activeEnrollmentProvider);
-    final programAsync = ref.watch(activeProgramProvider);
+    final programAsync = ref.watch(adaptedActiveProgramProvider);
 
     return enrollmentAsync.when(
       data: (enrollment) {

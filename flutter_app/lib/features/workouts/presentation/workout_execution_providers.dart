@@ -8,6 +8,7 @@ import '../../auth/providers.dart';
 import '../../maxes/providers.dart';
 import '../../../domain/models/lift_max_model.dart';
 import '../../programs/data/program_repository.dart';
+import '../../programs/providers/adapted_program_provider.dart';
 import '../../repositories/providers.dart';
 import 'rest_timer_provider.dart';
 
@@ -116,27 +117,17 @@ class WorkoutExecutionNotifier extends Notifier<WorkoutExecutionState?> {
   Future<void> initialize(ProgramSession session) async {
     if (state != null) return;
 
-    final liftMaxes = await ref.read(liftMaxesProvider.future);
+    final List<LiftMaxModel> liftMaxes = _currentLiftMaxes();
 
-    final Map<String, List<SetExecutionState>> initialSets = {};
-    for (final exercise in session.exercises) {
-      final int numSets = exercise.sets.fixedValue ?? 1;
-      final int numReps =
-          exercise.reps.fixedValue ?? exercise.reps.minValue ?? 1;
-
-      double prescribedWeight = 0.0;
-      if (exercise.percent1Rm != null) {
-        // Find 1RM
-        final maxes = liftMaxes
-            .where((l) => l.exerciseId == exercise.exercise && l.repCount == 1)
-            .toList();
-        if (maxes.isNotEmpty) {
-          maxes.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
-          prescribedWeight = maxes.first.weight * exercise.percent1Rm!;
-          // Round to nearest 5
-          prescribedWeight = (prescribedWeight / 5).round() * 5.0;
-        }
-      }
+    final Map<String, List<SetExecutionState>> initialSets =
+        <String, List<SetExecutionState>>{};
+    for (final ProgramExercise exercise in session.exercises) {
+      final int numSets = _resolveSetCount(exercise);
+      final int numReps = _resolveRepTarget(exercise);
+      final double prescribedWeight = _resolvePrescribedWeight(
+        exercise: exercise,
+        liftMaxes: liftMaxes,
+      );
 
       initialSets[exercise.exercise] = List.generate(
         numSets,
@@ -153,6 +144,114 @@ class WorkoutExecutionNotifier extends Notifier<WorkoutExecutionState?> {
       startTime: DateTime.now(),
       exerciseSets: initialSets,
     );
+  }
+
+  Future<void> applySessionPrescription(ProgramSession session) async {
+    if (state == null) return;
+    final WorkoutExecutionState currentState = state!;
+    final List<LiftMaxModel> liftMaxes = _currentLiftMaxes();
+    final Map<String, List<SetExecutionState>> updated =
+        Map<String, List<SetExecutionState>>.from(currentState.exerciseSets);
+
+    for (final ProgramExercise exercise in session.exercises) {
+      final int targetSets = _resolveSetCount(exercise);
+      final int targetReps = _resolveRepTarget(exercise);
+      final double targetWeight = _resolvePrescribedWeight(
+        exercise: exercise,
+        liftMaxes: liftMaxes,
+      );
+      final List<SetExecutionState> current = List<SetExecutionState>.from(
+          updated[exercise.exercise] ?? <SetExecutionState>[]);
+      if (current.isEmpty) {
+        updated[exercise.exercise] = List<SetExecutionState>.generate(
+          targetSets,
+          (_) => SetExecutionState(
+            prescribedReps: targetReps,
+            prescribedWeight: targetWeight,
+            actualReps: targetReps,
+            actualWeight: targetWeight,
+          ),
+        );
+        continue;
+      }
+
+      final int desiredLength =
+          targetSets > current.length ? targetSets : current.length;
+      final List<SetExecutionState> next = List<SetExecutionState>.generate(
+        desiredLength,
+        (int index) {
+          if (index >= current.length) {
+            return SetExecutionState(
+              prescribedReps: targetReps,
+              prescribedWeight: targetWeight,
+              actualReps: targetReps,
+              actualWeight: targetWeight,
+            );
+          }
+
+          final SetExecutionState existing = current[index];
+          if (existing.isCompleted) {
+            return existing;
+          }
+
+          final bool actualWeightMatchesPreviousPrescription =
+              (existing.actualWeight - existing.prescribedWeight).abs() < 0.01;
+          final bool actualRepsMatchesPreviousPrescription =
+              existing.actualReps == existing.prescribedReps;
+
+          return existing.copyWith(
+            prescribedReps: targetReps,
+            prescribedWeight: targetWeight,
+            actualReps: actualRepsMatchesPreviousPrescription
+                ? targetReps
+                : existing.actualReps,
+            actualWeight: actualWeightMatchesPreviousPrescription
+                ? targetWeight
+                : existing.actualWeight,
+          );
+        },
+      );
+
+      updated[exercise.exercise] = next;
+    }
+
+    state = currentState.copyWith(exerciseSets: updated);
+  }
+
+  int _resolveSetCount(ProgramExercise exercise) {
+    return exercise.sets.fixedValue ?? exercise.sets.minValue ?? 1;
+  }
+
+  int _resolveRepTarget(ProgramExercise exercise) {
+    return exercise.reps.fixedValue ?? exercise.reps.minValue ?? 1;
+  }
+
+  double _resolvePrescribedWeight({
+    required ProgramExercise exercise,
+    required List<LiftMaxModel> liftMaxes,
+  }) {
+    if (exercise.percent1Rm == null) {
+      return 0.0;
+    }
+
+    final List<LiftMaxModel> maxes = liftMaxes.where((LiftMaxModel liftMax) {
+      return liftMax.exerciseId == exercise.exercise && liftMax.repCount == 1;
+    }).toList();
+    if (maxes.isEmpty) {
+      return 0.0;
+    }
+
+    maxes.sort((LiftMaxModel a, LiftMaxModel b) {
+      return b.updatedAt.compareTo(a.updatedAt);
+    });
+    final double prescribed = maxes.first.weight * exercise.percent1Rm!;
+    return (prescribed / 5).round() * 5.0;
+  }
+
+  List<LiftMaxModel> _currentLiftMaxes() {
+    final AsyncValue<List<LiftMaxModel>> asyncValue =
+        ref.read(liftMaxesProvider);
+    return asyncValue.asData?.value ?? const <LiftMaxModel>[];
   }
 
   void updateSet(String exerciseId, int setIndex,
@@ -248,7 +347,7 @@ class WorkoutExecutionNotifier extends Notifier<WorkoutExecutionState?> {
     // Update Lift Records (Maxes)
     final liftRepository = ref.read(liftRepositoryProvider);
     final currentMaxesAsync = await ref.read(liftMaxesProvider.future);
-    
+
     // Track unique (exercise, reps) updates to avoid redundant writes
     final Map<String, double> newPotentialMaxes = {};
 
@@ -256,7 +355,7 @@ class WorkoutExecutionNotifier extends Notifier<WorkoutExecutionState?> {
       final sets = currentState.exerciseSets[exercise.exercise] ?? [];
       for (final s in sets) {
         if (!s.isCompleted) continue;
-        
+
         final exerciseId = exercise.exercise;
         final actualReps = s.actualReps;
         final actualWeight = s.actualWeight;
@@ -281,9 +380,14 @@ class WorkoutExecutionNotifier extends Notifier<WorkoutExecutionState?> {
             }
 
             final key = '${exerciseId}_$targetReps';
-            final currentMax = currentMaxesAsync.where((m) => m.exerciseId == exerciseId && m.repCount == targetReps).fold<double>(0, (prev, m) => m.weight > prev ? m.weight : prev);
-            
-            if (compareWeight > currentMax && compareWeight > (newPotentialMaxes[key] ?? 0)) {
+            final currentMax = currentMaxesAsync
+                .where((m) =>
+                    m.exerciseId == exerciseId && m.repCount == targetReps)
+                .fold<double>(
+                    0, (prev, m) => m.weight > prev ? m.weight : prev);
+
+            if (compareWeight > currentMax &&
+                compareWeight > (newPotentialMaxes[key] ?? 0)) {
               newPotentialMaxes[key] = compareWeight;
             }
           }
@@ -304,7 +408,8 @@ class WorkoutExecutionNotifier extends Notifier<WorkoutExecutionState?> {
         exerciseId: exerciseId,
         repCount: targetReps,
         weight: weight,
-        withStraps: false, // Defaulting to false, could be tracked per set if added to UI
+        withStraps:
+            false, // Defaulting to false, could be tracked per set if added to UI
         updatedAt: now,
       );
       await liftRepository.saveLiftMax(userId: userId, liftMax: newMax);
@@ -314,7 +419,7 @@ class WorkoutExecutionNotifier extends Notifier<WorkoutExecutionState?> {
     final enrollment = ref.read(activeEnrollmentProvider).asData?.value;
     if (enrollment != null) {
       final enrolledRepo = ref.read(enrolledProgramRepositoryProvider);
-      final programAsync = ref.read(activeProgramProvider).asData?.value;
+      final programAsync = ref.read(adaptedActiveProgramProvider).asData?.value;
 
       if (programAsync != null) {
         final EnrollmentProgress recommendation =

@@ -46,7 +46,8 @@ class _FakeEnrolledProgramRepository implements EnrolledProgramRepository {
   }) async {}
 
   @override
-  Stream<EnrolledProgramModel?> watchActiveEnrollment({required String userId}) {
+  Stream<EnrolledProgramModel?> watchActiveEnrollment(
+      {required String userId}) {
     return Stream<EnrolledProgramModel?>.value(null);
   }
 
@@ -88,7 +89,8 @@ void main() {
       );
     });
 
-    test('markWeekComplete delegates to repository and advances week', () async {
+    test('markWeekComplete delegates to repository and advances week',
+        () async {
       final EnrolledProgramModel enrollment = EnrolledProgramModel(
         id: 'enrollment-1',
         programId: 'program-1',
@@ -110,7 +112,8 @@ void main() {
       expect(enrolledRepository.completeEnrollmentId, isNull);
     });
 
-    test('markWeekComplete completes enrollment when final week is complete', () async {
+    test('markWeekComplete completes enrollment when final week is complete',
+        () async {
       final EnrolledProgramModel enrollment = EnrolledProgramModel(
         id: 'enrollment-2',
         programId: 'program-1',
@@ -141,6 +144,37 @@ void main() {
       expect(enrolledRepository.jumpWeekUserId, 'user-1');
       expect(enrolledRepository.jumpWeekEnrollmentId, 'enrollment-9');
       expect(enrolledRepository.jumpWeek, 7);
+    });
+
+    test('findProgramById returns matching program when present', () {
+      final ProgramV2 program = ProgramV2(
+        id: 'program-1',
+        name: 'Program',
+        category: 'Strength',
+        description: 'desc',
+        durationWeeks: 12,
+        sessionsPerWeek: 3,
+        difficulty: 'Intermediate',
+        phases: const <ProgramPhase>[],
+        weeks: const <ProgramWeek>[],
+      );
+
+      final ProgramV2? result = repository.findProgramById(
+        programs: <ProgramV2>[program],
+        programId: 'program-1',
+      );
+
+      expect(result, isNotNull);
+      expect(result!.id, 'program-1');
+    });
+
+    test('findProgramById returns null when program is missing', () {
+      final ProgramV2? result = repository.findProgramById(
+        programs: const <ProgramV2>[],
+        programId: 'missing-program',
+      );
+
+      expect(result, isNull);
     });
   });
 }

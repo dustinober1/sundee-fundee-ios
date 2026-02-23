@@ -9,6 +9,7 @@ import '../../../domain/models/exercise_definitions.dart';
 import '../../../domain/models/program_models.dart';
 import '../../auth/providers.dart';
 import '../../programs/data/program_repository.dart';
+import '../../programs/providers/adapted_program_provider.dart';
 import 'plate_calculator_dialog.dart';
 import 'rest_timer_provider.dart';
 import 'workout_execution_providers.dart';
@@ -24,6 +25,11 @@ class WorkoutExecutionScreen extends ConsumerStatefulWidget {
 class _WorkoutExecutionScreenState
     extends ConsumerState<WorkoutExecutionScreen> {
   bool _initialized = false;
+  int _initAttempts = 0;
+  bool _updatePromptVisible = false;
+  bool _hasDeferredUpdate = false;
+  final Set<String> _handledUpdateSignatures = <String>{};
+  String _sessionSignature = '';
   late ProgramSession _session;
   late int _week;
   late int _day;
@@ -39,44 +45,65 @@ class _WorkoutExecutionScreenState
 
   void _initSession() {
     final enrollment = ref.read(activeEnrollmentProvider).asData?.value;
-    final program = ref.read(activeProgramProvider).asData?.value;
+    final program = ref.read(adaptedActiveProgramProvider).asData?.value;
 
-    if (enrollment != null && program != null) {
-      _programId = program.id;
-      _week = enrollment.currentWeek;
-      _day = enrollment.currentDay;
-
-      final week = program.weeks.firstWhere(
-        (w) => w.week == _week,
-        orElse: () => program.weeks.last,
-      );
-      final sessionIndex = _day - 1;
-      _session = sessionIndex < week.sessions.length
-          ? week.sessions[sessionIndex]
-          : week.sessions.last;
-
-      // Defer state modification
-      Future.microtask(() {
-        if (mounted) {
-          ref
-              .read(workoutExecutionNotifierProvider.notifier)
-              .initialize(_session);
-        }
-      });
-      _initialized = true;
-    } else {
-      // If we somehow navigated here without an active program, we mark it missing.
-      _initialized = true;
-      // We could set a flag _hasError, but if _session can't be late initialized we will crash.
-      // So let's fall back to popping.
-      Future.microtask(() {
-        if (mounted) context.pop();
-      });
+    if (enrollment == null || program == null) {
+      _initAttempts += 1;
+      if (_initAttempts > 30) {
+        _initialized = true;
+        Future.microtask(() {
+          if (mounted) {
+            Navigator.of(context).maybePop();
+          }
+        });
+      } else {
+        Future<void>.delayed(const Duration(milliseconds: 16), () {
+          if (mounted && !_initialized) {
+            _initSession();
+          }
+        });
+      }
+      return;
     }
+
+    _programId = program.id;
+    _week = enrollment.currentWeek;
+    _day = enrollment.currentDay;
+
+    final week = program.weeks.firstWhere(
+      (w) => w.week == _week,
+      orElse: () => program.weeks.last,
+    );
+    final sessionIndex = _day - 1;
+    _session = sessionIndex < week.sessions.length
+        ? week.sessions[sessionIndex]
+        : week.sessions.last;
+    _sessionSignature = _buildSessionSignature(_session);
+
+    // Defer state modification
+    Future.microtask(() {
+      if (mounted) {
+        ref
+            .read(workoutExecutionNotifierProvider.notifier)
+            .initialize(_session);
+      }
+    });
+    _initialized = true;
   }
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(activeEnrollmentProvider);
+    ref.listen<AsyncValue<ProgramV2?>>(
+      adaptedActiveProgramProvider,
+      (
+        AsyncValue<ProgramV2?>? previous,
+        AsyncValue<ProgramV2?> next,
+      ) {
+        _handleAdaptedProgramUpdate(next);
+      },
+    );
+
     if (!_initialized) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
@@ -126,6 +153,27 @@ class _WorkoutExecutionScreenState
                   left: 16,
                   child: _RestTimerDisplay(),
                 ),
+                if (_hasDeferredUpdate)
+                  Positioned(
+                    top: 12,
+                    left: 16,
+                    right: 16,
+                    child: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: AppColors.cardLight,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: AppColors.textSecondary.withValues(alpha: 0.2),
+                        ),
+                      ),
+                      child: const Text(
+                        'Cycle update deferred. Changes will apply next session.',
+                        style: TextStyle(fontSize: 12),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
               ],
             ),
       floatingActionButton: state.isSaving
@@ -137,6 +185,177 @@ class _WorkoutExecutionScreenState
               backgroundColor: AppColors.brandPrimary,
             ),
     );
+  }
+
+  void _handleAdaptedProgramUpdate(AsyncValue<ProgramV2?> next) {
+    if (!_initialized || !mounted) {
+      return;
+    }
+
+    final WorkoutExecutionState? workoutState = ref.read(
+      workoutExecutionNotifierProvider,
+    );
+    if (workoutState == null) {
+      return;
+    }
+
+    final ProgramV2? updatedProgram = next.asData?.value;
+    if (updatedProgram == null) {
+      return;
+    }
+
+    final ProgramSession latestSession =
+        _resolveSessionFromProgram(updatedProgram);
+    final String latestSignature = _buildSessionSignature(latestSession);
+    if (latestSignature == _sessionSignature) {
+      return;
+    }
+    if (_handledUpdateSignatures.contains(latestSignature)) {
+      return;
+    }
+    if (!_hasMeaningfulPrescriptionChange(_session, latestSession)) {
+      return;
+    }
+
+    final ProgramAdaptationContext adaptationContext = ref.read(
+      programAdaptationContextProvider,
+    );
+    if (adaptationContext.autoApplyDuringWorkout) {
+      _handledUpdateSignatures.add(latestSignature);
+      _applySessionUpdate(latestSession, latestSignature);
+      return;
+    }
+
+    _promptForPhaseUpdate(
+      latestSession: latestSession,
+      latestSignature: latestSignature,
+    );
+  }
+
+  ProgramSession _resolveSessionFromProgram(ProgramV2 program) {
+    final ProgramWeek week = program.weeks.firstWhere(
+      (ProgramWeek item) => item.week == _week,
+      orElse: () => program.weeks.last,
+    );
+    final int sessionIndex = _day - 1;
+    return sessionIndex < week.sessions.length
+        ? week.sessions[sessionIndex]
+        : week.sessions.last;
+  }
+
+  String _buildSessionSignature(ProgramSession session) {
+    final StringBuffer buffer = StringBuffer(session.sessionId);
+    for (final ProgramExercise exercise in session.exercises) {
+      buffer
+        ..write('|')
+        ..write(exercise.exercise)
+        ..write(':')
+        ..write(exercise.sets.displayString)
+        ..write(':')
+        ..write(exercise.reps.displayString)
+        ..write(':')
+        ..write((exercise.percent1Rm ?? 0).toStringAsFixed(3));
+    }
+    return buffer.toString();
+  }
+
+  bool _hasMeaningfulPrescriptionChange(
+    ProgramSession previous,
+    ProgramSession next,
+  ) {
+    if (previous.exercises.length != next.exercises.length) {
+      return true;
+    }
+
+    for (int index = 0; index < previous.exercises.length; index += 1) {
+      final ProgramExercise before = previous.exercises[index];
+      final ProgramExercise after = next.exercises[index];
+      if (before.exercise != after.exercise) {
+        return true;
+      }
+      if (before.sets.displayString != after.sets.displayString) {
+        return true;
+      }
+      if (before.reps.displayString != after.reps.displayString) {
+        return true;
+      }
+
+      final double beforeLoad = before.percent1Rm ?? 0;
+      final double afterLoad = after.percent1Rm ?? 0;
+      if ((beforeLoad - afterLoad).abs() >= 0.01) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  Future<void> _promptForPhaseUpdate({
+    required ProgramSession latestSession,
+    required String latestSignature,
+  }) async {
+    if (_updatePromptVisible || !mounted) {
+      return;
+    }
+    _updatePromptVisible = true;
+
+    final bool applyNow = await showDialog<bool>(
+          context: context,
+          builder: (BuildContext dialogContext) => AlertDialog(
+            title: const Text('Cycle Update Available'),
+            content: const Text(
+              'Your cycle phase changed during this workout. Apply updated '
+              'prescriptions to remaining sets now, or defer to your next '
+              'session.',
+            ),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(false),
+                child: const Text('DEFER'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.of(dialogContext).pop(true),
+                child: const Text('APPLY'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+
+    if (!mounted) {
+      return;
+    }
+
+    _handledUpdateSignatures.add(latestSignature);
+    _updatePromptVisible = false;
+
+    if (applyNow) {
+      await _applySessionUpdate(latestSession, latestSignature);
+      return;
+    }
+
+    setState(() {
+      _hasDeferredUpdate = true;
+    });
+  }
+
+  Future<void> _applySessionUpdate(
+    ProgramSession latestSession,
+    String latestSignature,
+  ) async {
+    await ref
+        .read(workoutExecutionNotifierProvider.notifier)
+        .applySessionPrescription(latestSession);
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _session = latestSession;
+      _sessionSignature = latestSignature;
+      _hasDeferredUpdate = false;
+    });
   }
 
   Future<void> _confirmExit(BuildContext context) async {

@@ -48,7 +48,10 @@ class ProgramRepository {
     if (firestore == null) {
       throw StateError('Firebase is not enabled, cannot push program.');
     }
-    await firestore.collection('programs').doc(program.id).set(program.toJson());
+    await firestore
+        .collection('programs')
+        .doc(program.id)
+        .set(program.toJson());
   }
 
   Future<void> enrollUser({
@@ -133,6 +136,18 @@ class ProgramRepository {
       {required String userId}) {
     return _enrolledProgramRepository.watchActiveEnrollment(userId: userId);
   }
+
+  ProgramV2? findProgramById({
+    required List<ProgramV2> programs,
+    required String programId,
+  }) {
+    for (final ProgramV2 program in programs) {
+      if (program.id == programId) {
+        return program;
+      }
+    }
+    return null;
+  }
 }
 
 final Provider<ProgramRepository> programRepositoryProvider =
@@ -170,9 +185,10 @@ final StreamProvider<ProgramV2?> activeProgramProvider =
   }
 
   final programs = await ref.watch(programsProvider.future);
-  yield programs.firstWhere(
-    (p) => p.id == enrollment.programId,
-    orElse: () =>
-        throw StateError('Program not found: ${enrollment.programId}'),
-  );
+  final ProgramV2? program =
+      ref.read(programRepositoryProvider).findProgramById(
+            programs: programs,
+            programId: enrollment.programId,
+          );
+  yield program;
 });

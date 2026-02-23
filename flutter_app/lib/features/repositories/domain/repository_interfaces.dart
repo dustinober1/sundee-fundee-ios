@@ -70,6 +70,15 @@ abstract class CycleRepository {
   });
 
   Stream<CycleSettingsModel?> watchCycleSettings({required String userId});
+
+  Future<void> saveCycleAdaptationPreferences({
+    required String userId,
+    required CycleAdaptationPreferencesModel preferences,
+  });
+
+  Stream<CycleAdaptationPreferencesModel?> watchCycleAdaptationPreferences({
+    required String userId,
+  });
 }
 
 abstract class LiftRepository {

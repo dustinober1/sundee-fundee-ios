@@ -212,3 +212,49 @@ class CycleSettingsModel {
     };
   }
 }
+
+class CycleAdaptationPreferencesModel {
+  const CycleAdaptationPreferencesModel({
+    required this.id,
+    required this.userId,
+    this.enabled = true,
+    this.readinessScore,
+    this.autoApplyDuringWorkout = false,
+    this.showAdjustmentDetails = true,
+    this.updatedAt,
+  });
+
+  final String id;
+  final String userId;
+  final bool enabled;
+  final double? readinessScore;
+  final bool autoApplyDuringWorkout;
+  final bool showAdjustmentDetails;
+  final DateTime? updatedAt;
+
+  factory CycleAdaptationPreferencesModel.fromJson(Map<String, dynamic> json) {
+    return CycleAdaptationPreferencesModel(
+      id: json['id'] as String? ?? 'programAdaptation',
+      userId: json['userId'] as String? ?? '',
+      enabled: json['enabled'] as bool? ?? true,
+      readinessScore: json['readinessScore'] == null
+          ? null
+          : parseDouble(json['readinessScore'], fallback: 0),
+      autoApplyDuringWorkout: json['autoApplyDuringWorkout'] as bool? ?? false,
+      showAdjustmentDetails: json['showAdjustmentDetails'] as bool? ?? true,
+      updatedAt: parseNullableDateTime(json['updatedAt']),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'id': id,
+      'userId': userId,
+      'enabled': enabled,
+      'readinessScore': readinessScore,
+      'autoApplyDuringWorkout': autoApplyDuringWorkout,
+      'showAdjustmentDetails': showAdjustmentDetails,
+      'updatedAt': updatedAt?.toIso8601String(),
+    };
+  }
+}

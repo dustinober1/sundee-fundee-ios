@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sundee_fundee_flutter/domain/calculations/cycle_adaptation_policy.dart';
 import 'package:sundee_fundee_flutter/domain/calculations/cycle_calculations.dart';
 import 'package:sundee_fundee_flutter/domain/enums.dart';
 import 'package:sundee_fundee_flutter/domain/models/program_models.dart';
@@ -8,6 +9,7 @@ import 'package:sundee_fundee_flutter/features/auth/domain/auth_state.dart';
 import 'package:sundee_fundee_flutter/features/auth/providers.dart';
 import 'package:sundee_fundee_flutter/features/cycle/providers.dart';
 import 'package:sundee_fundee_flutter/features/programs/data/program_repository.dart';
+import 'package:sundee_fundee_flutter/features/programs/providers/adapted_program_provider.dart';
 import 'package:sundee_fundee_flutter/features/programs/presentation/programs_screen.dart';
 import 'package:sundee_fundee_flutter/features/repositories/domain/repository_interfaces.dart';
 
@@ -54,7 +56,8 @@ class _NoopEnrolledProgramRepository implements EnrolledProgramRepository {
   }) async {}
 
   @override
-  Stream<EnrolledProgramModel?> watchActiveEnrollment({required String userId}) {
+  Stream<EnrolledProgramModel?> watchActiveEnrollment(
+      {required String userId}) {
     return const Stream<EnrolledProgramModel?>.empty();
   }
 }
@@ -188,7 +191,8 @@ Future<void> _pumpScreen({
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
-        programsProvider.overrideWith((Ref ref) async => <ProgramV2>[_buildProgram()]),
+        programsProvider
+            .overrideWith((Ref ref) async => <ProgramV2>[_buildProgram()]),
         activeEnrollmentProvider.overrideWith(
           (Ref ref) => Stream<EnrolledProgramModel?>.value(enrollment),
         ),
@@ -208,7 +212,8 @@ Future<void> _pumpScreen({
 }
 
 void main() {
-  testWidgets('renders week cards with metadata, progress, and manual controls', (
+  testWidgets('renders week cards with metadata, progress, and manual controls',
+      (
     WidgetTester tester,
   ) async {
     final _FakeProgramRepository repository = _FakeProgramRepository();
@@ -227,7 +232,8 @@ void main() {
     expect(find.textContaining('Sharkweek active'), findsOneWidget);
   });
 
-  testWidgets('shows neutral cycle unavailable message when cycle data is missing', (
+  testWidgets(
+      'shows neutral cycle unavailable message when cycle data is missing', (
     WidgetTester tester,
   ) async {
     final _FakeProgramRepository repository = _FakeProgramRepository();
@@ -256,5 +262,59 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.textContaining('Could not save changes'), findsOneWidget);
+  });
+
+  testWidgets('shows cycle adjustment explainer with hide/show controls', (
+    WidgetTester tester,
+  ) async {
+    final _FakeProgramRepository repository = _FakeProgramRepository();
+    final EnrolledProgramModel enrollment = EnrolledProgramModel(
+      id: 'enrollment-1',
+      programId: 'program-1',
+      startDate: DateTime.utc(2026, 1, 1),
+      currentWeek: 2,
+      currentDay: 1,
+      completedWeeks: const <int>[1],
+      lastSyncedAt: DateTime.utc(2026, 2, 23, 11, 0, 0),
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          programsProvider
+              .overrideWith((Ref ref) async => <ProgramV2>[_buildProgram()]),
+          activeEnrollmentProvider.overrideWith(
+            (Ref ref) => Stream<EnrolledProgramModel?>.value(enrollment),
+          ),
+          authSessionStreamProvider.overrideWith(
+            (Ref ref) => Stream<AuthSession>.value(
+              const AuthSession(status: AuthStatus.guest),
+            ),
+          ),
+          cycleStatusProvider.overrideWith((Ref ref) => _menstrualStatus()),
+          adaptedActiveProgramProvider.overrideWith(
+            (Ref ref) => AsyncData<ProgramV2?>(_buildProgram()),
+          ),
+          programAdaptationContextProvider.overrideWith(
+            (Ref ref) => const ProgramAdaptationContext(
+              isAdapted: true,
+              phase: CyclePhase.menstrual,
+              confidence: AdaptationConfidence.medium,
+              showAdjustmentDetails: true,
+              autoApplyDuringWorkout: false,
+            ),
+          ),
+          cycleAdjustmentDetailsVisibleProvider.overrideWith((Ref ref) => true),
+          programRepositoryProvider.overrideWithValue(repository),
+        ],
+        child: const MaterialApp(home: Scaffold(body: ProgramsScreen())),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Cycle-adjusted:'), findsOneWidget);
+    expect(find.text('Hide details'), findsOneWidget);
+    expect(find.text('Cycle-adjusted'), findsNWidgets(2));
   });
 }

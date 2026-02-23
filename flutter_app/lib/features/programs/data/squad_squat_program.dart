@@ -9,6 +9,32 @@ final ProgramV2 squadSquatProgram = ProgramV2(
   durationWeeks: 12,
   sessionsPerWeek: 3,
   difficulty: 'Intermediate/Advanced',
+  cycleAdjustmentProfile: const ProgramCycleAdjustmentProfile(
+    fallbackPhase: 'follicular',
+    lowConfidenceScale: 0.7,
+    phaseSettings: <String, ProgramPhaseAdjustmentSettings>{
+      'menstrual': ProgramPhaseAdjustmentSettings(
+        loadMultiplier: 0.9,
+        setsMultiplier: 0.9,
+        repsMultiplier: 0.9,
+      ),
+      'follicular': ProgramPhaseAdjustmentSettings(
+        loadMultiplier: 1.0,
+        setsMultiplier: 1.0,
+        repsMultiplier: 1.0,
+      ),
+      'ovulation': ProgramPhaseAdjustmentSettings(
+        loadMultiplier: 1.12,
+        setsMultiplier: 1.05,
+        repsMultiplier: 0.95,
+      ),
+      'luteal': ProgramPhaseAdjustmentSettings(
+        loadMultiplier: 0.97,
+        setsMultiplier: 0.95,
+        repsMultiplier: 0.92,
+      ),
+    },
+  ),
   phases: <ProgramPhase>[
     ProgramPhase(
       id: 'block-1-volume',
@@ -991,7 +1017,8 @@ final ProgramV2 squadSquatProgram = ProgramV2(
               reps: ExerciseValue.fixed(1),
               percent1Rm: 1.05,
               restMinutes: 5,
-              notes: 'THE BIG ONE. Squad Day Strategy: Use spotters and a hype man!',
+              notes:
+                  'THE BIG ONE. Squad Day Strategy: Use spotters and a hype man!',
             ),
           ],
         ),

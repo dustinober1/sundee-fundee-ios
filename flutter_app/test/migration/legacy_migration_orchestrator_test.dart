@@ -337,6 +337,19 @@ class FakeCycleRepository implements CycleRepository {
   Stream<CycleSettingsModel?> watchCycleSettings({required String userId}) {
     return Stream.value(null);
   }
+
+  @override
+  Future<void> saveCycleAdaptationPreferences({
+    required String userId,
+    required CycleAdaptationPreferencesModel preferences,
+  }) async {}
+
+  @override
+  Stream<CycleAdaptationPreferencesModel?> watchCycleAdaptationPreferences({
+    required String userId,
+  }) {
+    return Stream.value(null);
+  }
 }
 
 class FakeLiftRepository implements LiftRepository {

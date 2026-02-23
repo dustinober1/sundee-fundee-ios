@@ -11,6 +11,7 @@ import '../../auth/providers.dart';
 import '../../cycle/providers.dart';
 import '../../migration/providers.dart';
 import '../../programs/data/program_repository.dart';
+import '../../programs/providers/adapted_program_provider.dart';
 import '../../repositories/providers.dart';
 import 'cycle_insights_chart.dart';
 
@@ -173,7 +174,8 @@ class _DashboardInfoBanner extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.cardLight,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.textSecondary.withValues(alpha: 0.2)),
+        border:
+            Border.all(color: AppColors.textSecondary.withValues(alpha: 0.2)),
       ),
       child: Row(
         children: [
@@ -265,7 +267,8 @@ class _WorkoutHistoryList extends ConsumerWidget {
                       ),
                       TextButton(
                         onPressed: () => Navigator.of(context).pop(true),
-                        style: TextButton.styleFrom(foregroundColor: Colors.red),
+                        style:
+                            TextButton.styleFrom(foregroundColor: Colors.red),
                         child: const Text('DELETE'),
                       ),
                     ],
@@ -326,7 +329,10 @@ class _NextWorkoutCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final enrollmentAsync = ref.watch(activeEnrollmentProvider);
-    final programAsync = ref.watch(activeProgramProvider);
+    final programAsync = ref.watch(adaptedActiveProgramProvider);
+    final ProgramAdaptationContext adaptationContext = ref.watch(
+      programAdaptationContextProvider,
+    );
 
     return enrollmentAsync.when(
       data: (enrollment) {
@@ -386,6 +392,27 @@ class _NextWorkoutCard extends ConsumerWidget {
                               color: Colors.white70, size: 20),
                         ],
                       ),
+                      if (adaptationContext.isAdapted) ...<Widget>[
+                        const SizedBox(height: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            color: Colors.white.withValues(alpha: 0.15),
+                          ),
+                          child: const Text(
+                            'Cycle-adjusted',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
                       const SizedBox(height: 8),
                       Text(
                         'Week ${enrollment.currentWeek}, Session ${enrollment.currentDay}',

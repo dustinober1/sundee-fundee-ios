@@ -35,7 +35,8 @@ void main() {
       expect(logs.first.flowLevel, FlowLevel.medium);
     });
 
-    test('saveCycleSettings persists and watchCycleSettings reads it', () async {
+    test('saveCycleSettings persists and watchCycleSettings reads it',
+        () async {
       final CycleSettingsModel settings = CycleSettingsModel(
         id: 'settings',
         userId: userId,
@@ -56,5 +57,35 @@ void main() {
       expect(stored.enabledSymptomIds, contains('cramps'));
       expect(stored.notificationsEnabled, isTrue);
     });
+
+    test(
+      'saveCycleAdaptationPreferences persists and watch reads preferences',
+      () async {
+        final CycleAdaptationPreferencesModel preferences =
+            CycleAdaptationPreferencesModel(
+          id: 'programAdaptation',
+          userId: userId,
+          enabled: true,
+          readinessScore: 7.5,
+          autoApplyDuringWorkout: false,
+          showAdjustmentDetails: true,
+          updatedAt: DateTime.utc(2026, 2, 23, 12),
+        );
+
+        await repository.saveCycleAdaptationPreferences(
+          userId: userId,
+          preferences: preferences,
+        );
+
+        final CycleAdaptationPreferencesModel? stored = await repository
+            .watchCycleAdaptationPreferences(userId: userId)
+            .first;
+
+        expect(stored, isNotNull);
+        expect(stored!.enabled, isTrue);
+        expect(stored.readinessScore, closeTo(7.5, 0.0001));
+        expect(stored.showAdjustmentDetails, isTrue);
+      },
+    );
   });
 }

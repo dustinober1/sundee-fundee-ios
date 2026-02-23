@@ -73,7 +73,8 @@ class FirestoreWorkoutRepository implements WorkoutRepository {
             .where('workoutId', isEqualTo: workoutId)
             .get();
 
-    for (final DocumentSnapshot<Map<String, dynamic>> doc in setsSnapshot.docs) {
+    for (final DocumentSnapshot<Map<String, dynamic>> doc
+        in setsSnapshot.docs) {
       batch.delete(doc.reference);
     }
 
@@ -235,6 +236,29 @@ class FirestoreCycleRepository implements CycleRepository {
         );
   }
 
+  @override
+  Future<void> saveCycleAdaptationPreferences({
+    required String userId,
+    required CycleAdaptationPreferencesModel preferences,
+  }) {
+    return _adaptationSettingsDocument(userId).set(
+      preferences.toJson(),
+      SetOptions(merge: true),
+    );
+  }
+
+  @override
+  Stream<CycleAdaptationPreferencesModel?> watchCycleAdaptationPreferences({
+    required String userId,
+  }) {
+    return _adaptationSettingsDocument(userId).snapshots().map((doc) {
+      if (!doc.exists) {
+        return null;
+      }
+      return CycleAdaptationPreferencesModel.fromJson(doc.data()!);
+    });
+  }
+
   CollectionReference<Map<String, dynamic>> _cyclesCollection(String userId) {
     return _firestore.collection('users').doc(userId).collection('cycles');
   }
@@ -249,6 +273,16 @@ class FirestoreCycleRepository implements CycleRepository {
     String userId,
   ) {
     return _firestore.collection('users').doc(userId).collection('symptomLogs');
+  }
+
+  DocumentReference<Map<String, dynamic>> _adaptationSettingsDocument(
+    String userId,
+  ) {
+    return _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('settings')
+        .doc('programAdaptation');
   }
 }
 

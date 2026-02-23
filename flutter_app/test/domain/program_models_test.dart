@@ -94,9 +94,99 @@ void main() {
       );
     });
 
+    test('ProgramV2 defaults cycle adjustment profile for legacy JSON', () {
+      final ProgramV2 legacyProgram = ProgramV2.fromJson(
+        <String, dynamic>{
+          'id': 'legacy-program',
+          'name': 'Legacy Program',
+          'category': 'Strength',
+          'description': 'legacy',
+          'durationWeeks': 4,
+          'sessionsPerWeek': 3,
+          'difficulty': 'Intermediate',
+          'phases': const <dynamic>[],
+          'weeks': const <dynamic>[],
+        },
+      );
+
+      expect(legacyProgram.cycleAdjustmentProfile, isNull);
+    });
+
+    test('ProgramV2 round-trips full cycle adjustment profile', () {
+      final ProgramV2 program = ProgramV2(
+        id: 'cycle-program',
+        name: 'Cycle Program',
+        category: 'Strength',
+        description: 'desc',
+        durationWeeks: 8,
+        sessionsPerWeek: 3,
+        difficulty: 'Intermediate',
+        phases: const <ProgramPhase>[],
+        weeks: const <ProgramWeek>[],
+        cycleAdjustmentProfile: ProgramCycleAdjustmentProfile(
+          fallbackPhase: 'follicular',
+          lowConfidenceScale: 0.6,
+          phaseSettings: <String, ProgramPhaseAdjustmentSettings>{
+            'menstrual': const ProgramPhaseAdjustmentSettings(
+              loadMultiplier: 0.9,
+              setsMultiplier: 0.9,
+              repsMultiplier: 0.9,
+            ),
+            'ovulation': const ProgramPhaseAdjustmentSettings(
+              loadMultiplier: 1.1,
+              setsMultiplier: 1.05,
+              repsMultiplier: 0.95,
+            ),
+          },
+        ),
+      );
+
+      final ProgramV2 decoded = ProgramV2.fromJson(program.toJson());
+      final ProgramCycleAdjustmentProfile? profile =
+          decoded.cycleAdjustmentProfile;
+
+      expect(profile, isNotNull);
+      expect(profile!.fallbackPhase, 'follicular');
+      expect(profile.lowConfidenceScale, closeTo(0.6, 0.0001));
+      expect(profile.phaseSettings['menstrual']!.loadMultiplier, 0.9);
+      expect(profile.phaseSettings['ovulation']!.setsMultiplier, 1.05);
+    });
+
+    test('ProgramV2 handles partial cycle adjustment profile with defaults',
+        () {
+      final ProgramV2 program = ProgramV2.fromJson(
+        <String, dynamic>{
+          'id': 'partial-program',
+          'name': 'Partial Program',
+          'category': 'Strength',
+          'description': 'partial',
+          'durationWeeks': 4,
+          'sessionsPerWeek': 3,
+          'difficulty': 'Intermediate',
+          'phases': const <dynamic>[],
+          'weeks': const <dynamic>[],
+          'cycleAdjustmentProfile': <String, dynamic>{
+            'phaseSettings': <String, dynamic>{
+              'luteal': <String, dynamic>{'loadMultiplier': 0.96},
+            },
+          },
+        },
+      );
+
+      final ProgramCycleAdjustmentProfile profile =
+          program.cycleAdjustmentProfile!;
+      final ProgramPhaseAdjustmentSettings lutealSettings =
+          profile.phaseSettings['luteal']!;
+
+      expect(profile.fallbackPhase, 'follicular');
+      expect(profile.lowConfidenceScale, closeTo(0.7, 0.0001));
+      expect(lutealSettings.loadMultiplier, 0.96);
+      expect(lutealSettings.setsMultiplier, 1.0);
+      expect(lutealSettings.repsMultiplier, 1.0);
+    });
+
     test('Exercise definitions lookup works', () {
-      final ExerciseDefinition? squat =
-          Exercises.findById('Back Squat');
+      final ExerciseDefinition? squat = Exercises.findById('Back Squat');
       expect(squat, isNotNull);
       expect(squat?.name, 'Back Squat');
       expect(Exercises.findById('nonexistent'), isNull);
