@@ -72,6 +72,41 @@ class WorkoutExecutionState {
   }
 }
 
+class EnrollmentProgress {
+  const EnrollmentProgress({
+    required this.week,
+    required this.day,
+  });
+
+  final int week;
+  final int day;
+}
+
+EnrollmentProgress recommendNextEnrollmentProgress({
+  required EnrolledProgramModel enrollment,
+  required ProgramV2 program,
+}) {
+  final ProgramWeek currentProgramWeek = program.weeks.firstWhere(
+    (ProgramWeek week) => week.week == enrollment.currentWeek,
+    orElse: () => program.weeks.last,
+  );
+  final int maxDay = currentProgramWeek.sessions.length;
+
+  // Day progression stays automatic, but week progression requires
+  // explicit manual completion from the enrollment controls.
+  if (enrollment.currentDay < maxDay) {
+    return EnrollmentProgress(
+      week: enrollment.currentWeek,
+      day: enrollment.currentDay + 1,
+    );
+  }
+
+  return EnrollmentProgress(
+    week: enrollment.currentWeek,
+    day: maxDay,
+  );
+}
+
 class WorkoutExecutionNotifier extends Notifier<WorkoutExecutionState?> {
   @override
   WorkoutExecutionState? build() {
@@ -282,31 +317,18 @@ class WorkoutExecutionNotifier extends Notifier<WorkoutExecutionState?> {
       final programAsync = ref.read(activeProgramProvider).asData?.value;
 
       if (programAsync != null) {
-        int nextDay = day + 1;
-        int nextWeek = week;
+        final EnrollmentProgress recommendation =
+            recommendNextEnrollmentProgress(
+          enrollment: enrollment,
+          program: programAsync,
+        );
 
-        // Check if we need to advance the week
-        final currentProgramWeek = programAsync.weeks.firstWhere(
-            (w) => w.week == week,
-            orElse: () => programAsync.weeks.last);
-        if (nextDay > currentProgramWeek.sessions.length) {
-          nextDay = 1;
-          nextWeek++;
-        }
-
-        if (nextWeek > programAsync.durationWeeks) {
-          // Program completed
-          await enrolledRepo.completeEnrollment(
-              userId: userId, enrollmentId: enrollment.id);
-        } else {
-          // Advance progress
-          await enrolledRepo.updateEnrollmentProgress(
-            userId: userId,
-            enrollmentId: enrollment.id,
-            week: nextWeek,
-            day: nextDay,
-          );
-        }
+        await enrolledRepo.updateEnrollmentProgress(
+          userId: userId,
+          enrollmentId: enrollment.id,
+          week: recommendation.week,
+          day: recommendation.day,
+        );
       }
     }
 
