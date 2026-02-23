@@ -113,7 +113,7 @@ You have the right to:
 - Opt-out of any non-essential data collection.
 
 ## 6. Children's Privacy
-Sundee Fundee is not intended for use by individuals under the age of 13 (or 16 in some jurisdictions). We do not knowingly collect data from children.
+Sundee Fundee is not intended for use by individuals under the age of 18 or the age of majority in their jurisdiction. We do not knowingly collect data from children.
 """;
 
 const String _disclaimer = """
