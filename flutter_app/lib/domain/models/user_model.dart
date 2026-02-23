@@ -15,6 +15,7 @@ class UserModel {
     this.onboardingComplete = false,
     this.profileUpdatedAt,
     this.injuryProfiles = const <InjuryProfileModel>[],
+    this.acknowledgedInjuryDisclaimerIds = const <String, DateTime>{},
   });
 
   final String id;
@@ -28,11 +29,24 @@ class UserModel {
   final bool onboardingComplete;
   final DateTime? profileUpdatedAt;
   final List<InjuryProfileModel> injuryProfiles;
+  final Map<String, DateTime> acknowledgedInjuryDisclaimerIds;
 
   bool get hasRequiredOnboardingAnswers => name.trim().isNotEmpty;
 
   bool get onboardingCompleteComputed =>
       onboardingComplete || hasRequiredOnboardingAnswers;
+
+  /// Returns true only if every active injury's ID exists as a key in
+  /// [acknowledgedInjuryDisclaimerIds].
+  bool hasAcknowledgedDisclaimerForAllActive(
+    List<InjuryProfileModel> activeInjuries,
+  ) {
+    if (activeInjuries.isEmpty) return true;
+    return activeInjuries.every(
+      (InjuryProfileModel injury) =>
+          acknowledgedInjuryDisclaimerIds.containsKey(injury.id),
+    );
+  }
 
   List<InjuryProfileModel> get activeInjuries => injuryProfiles
       .where((InjuryProfileModel injury) => injury.isActive)
@@ -77,6 +91,8 @@ class UserModel {
               fieldName: 'profileUpdatedAt',
             ),
       injuryProfiles: _parseInjuryProfiles(json),
+      acknowledgedInjuryDisclaimerIds:
+          _parseAcknowledgedInjuryDisclaimerIds(json),
     );
   }
 
@@ -96,6 +112,11 @@ class UserModel {
       'injuryProfiles': injuryProfiles
           .map((InjuryProfileModel injury) => injury.toJson())
           .toList(),
+      if (acknowledgedInjuryDisclaimerIds.isNotEmpty)
+        'acknowledgedInjuryDisclaimerIds': acknowledgedInjuryDisclaimerIds.map(
+          (String key, DateTime value) =>
+              MapEntry<String, String>(key, value.toIso8601String()),
+        ),
     };
   }
 
@@ -111,6 +132,7 @@ class UserModel {
     bool? onboardingComplete,
     DateTime? profileUpdatedAt,
     List<InjuryProfileModel>? injuryProfiles,
+    Map<String, DateTime>? acknowledgedInjuryDisclaimerIds,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -124,6 +146,8 @@ class UserModel {
       onboardingComplete: onboardingComplete ?? this.onboardingComplete,
       profileUpdatedAt: profileUpdatedAt ?? this.profileUpdatedAt,
       injuryProfiles: injuryProfiles ?? this.injuryProfiles,
+      acknowledgedInjuryDisclaimerIds:
+          acknowledgedInjuryDisclaimerIds ?? this.acknowledgedInjuryDisclaimerIds,
     );
   }
 
@@ -162,5 +186,28 @@ class UserModel {
     }
 
     return const <InjuryProfileModel>[];
+  }
+
+  static Map<String, DateTime> _parseAcknowledgedInjuryDisclaimerIds(
+      Map<String, dynamic> json) {
+    final dynamic raw = json['acknowledgedInjuryDisclaimerIds'];
+    if (raw is Map) {
+      final Map<String, DateTime> result = <String, DateTime>{};
+      for (final MapEntry<dynamic, dynamic> entry in raw.entries) {
+        final String key = entry.key as String;
+        final dynamic value = entry.value;
+        if (value is String) {
+          try {
+            result[key] = DateTime.parse(value);
+          } catch (_) {
+            // skip malformed timestamps
+          }
+        } else if (value is DateTime) {
+          result[key] = value;
+        }
+      }
+      return result;
+    }
+    return const <String, DateTime>{};
   }
 }

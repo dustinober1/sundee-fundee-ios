@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../domain/calculations/cycle_adaptation_policy.dart';
 import '../../../domain/calculations/cycle_calculations.dart';
 import '../../../domain/calculations/cycle_program_generator.dart';
+import '../../../domain/calculations/injury_adaptation_engine.dart';
 import '../../../domain/enums.dart';
 import '../../../domain/models/cycle_models.dart';
+import '../../../domain/models/injury_profile_model.dart';
 import '../../../domain/models/program_models.dart';
 import '../../../domain/models/user_model.dart';
 import '../../auth/providers.dart';
@@ -147,3 +149,61 @@ ProgramV2? buildAdaptedProgramView({
     confidence: confidence,
   );
 }
+
+// ---------------------------------------------------------------------------
+// Injury adaptation providers
+// ---------------------------------------------------------------------------
+
+/// Stacks injury adaptation on top of cycle adaptation.
+///
+/// Watches [adaptedActiveProgramProvider] (cycle-adapted) and applies
+/// [InjuryAdaptationEngine.adaptProgram] when there are active injuries.
+/// Returns the cycle-adapted program unchanged when no injuries are present
+/// (zero-cost fast-path via [InjuryAdaptationEngine] same-reference return).
+final Provider<AsyncValue<ProgramV2?>> injuryAdaptedActiveProgramProvider =
+    Provider<AsyncValue<ProgramV2?>>((Ref ref) {
+  final AsyncValue<ProgramV2?> cycleAdaptedAsync =
+      ref.watch(adaptedActiveProgramProvider);
+  final AsyncValue<UserModel?> profileAsync =
+      ref.watch(userProfileStreamProvider);
+
+  final List<InjuryProfileModel> activeInjuries =
+      profileAsync.asData?.value?.activeInjuries ?? const [];
+
+  return cycleAdaptedAsync.whenData((ProgramV2? program) {
+    if (program == null || activeInjuries.isEmpty) return program;
+    return InjuryAdaptationEngine.adaptProgram(
+      baseProgram: program,
+      activeInjuries: activeInjuries,
+    );
+  });
+});
+
+/// UI-facing context for injury adaptation state.
+class InjuryAdaptationContext {
+  const InjuryAdaptationContext({
+    required this.hasActiveInjuries,
+    required this.activeInjuries,
+    required this.disclaimerAcknowledgedForAll,
+  });
+
+  final bool hasActiveInjuries;
+  final List<InjuryProfileModel> activeInjuries;
+  final bool disclaimerAcknowledgedForAll;
+}
+
+final Provider<InjuryAdaptationContext> injuryAdaptationContextProvider =
+    Provider<InjuryAdaptationContext>((Ref ref) {
+  final AsyncValue<UserModel?> profileAsync =
+      ref.watch(userProfileStreamProvider);
+  final UserModel? profile = profileAsync.asData?.value;
+  final List<InjuryProfileModel> activeInjuries =
+      profile?.activeInjuries ?? const [];
+
+  return InjuryAdaptationContext(
+    hasActiveInjuries: activeInjuries.isNotEmpty,
+    activeInjuries: activeInjuries,
+    disclaimerAcknowledgedForAll:
+        profile?.hasAcknowledgedDisclaimerForAllActive(activeInjuries) ?? false,
+  );
+});

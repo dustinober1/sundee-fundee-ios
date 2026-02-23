@@ -126,6 +126,32 @@ class ProfileRepository {
     });
   }
 
+  /// Persists acknowledgment of the injury disclaimer for [injuryId] in
+  /// Firestore using dot-notation merge so only this field changes.
+  Future<void> acknowledgeInjuryDisclaimer({
+    required String userId,
+    required String injuryId,
+  }) async {
+    await _performWrite(() async {
+      await _users.doc(userId).set(<String, dynamic>{
+        'acknowledgedInjuryDisclaimerIds.$injuryId':
+            FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    });
+  }
+
+  /// Clears all injury disclaimer acknowledgments (e.g. when all injuries are
+  /// resolved and a fresh start is needed).
+  Future<void> clearInjuryDisclaimerAcknowledgments({
+    required String userId,
+  }) async {
+    await _performWrite(() async {
+      await _users.doc(userId).set(<String, dynamic>{
+        'acknowledgedInjuryDisclaimerIds': <String, dynamic>{},
+      }, SetOptions(merge: true));
+    });
+  }
+
   Future<void> retryPendingWrites() async {
     if (_pendingWrites.isEmpty) {
       return;
@@ -192,6 +218,8 @@ class ProfileRepository {
       'injuryProfiles': _normalizedInjuries(raw)
           .map((InjuryProfileModel x) => x.toJson())
           .toList(),
+      if (raw['acknowledgedInjuryDisclaimerIds'] != null)
+        'acknowledgedInjuryDisclaimerIds': raw['acknowledgedInjuryDisclaimerIds'],
     };
   }
 
