@@ -2,8 +2,8 @@ import '../models/program_models.dart';
 
 class PredefinedPrograms {
   static final ProgramV2 baseline12Week = ProgramV2(
-    id: 'squat-1-cycle',
-    name: 'Squat 1 Cycle',
+    id: 'squat-cycle',
+    name: 'Squat Cycle',
     category: 'Strength Building',
     description:
         'The complete 12-week baseline program designed for maximum squat strength.',
@@ -49,7 +49,7 @@ class PredefinedPrograms {
                 reps: ExerciseValue.fixed(1),
                 percent1Rm: 0.7,
                 restMinutes: null,
-                notes: '1 Clean + 2 Front Squats',
+                notes: '1 Squat Clean + 2 Front Squats',
               ),
               ProgramExercise(
                 exercise: 'walking-lunges',
@@ -87,13 +87,13 @@ class PredefinedPrograms {
                 notes: null,
               ),
               ProgramExercise(
-                exercise: 'rdl-no-straps',
+                exercise: 'romanian-deadlift-no-straps',
                 variant: null,
                 sets: ExerciseValue.fixed(4),
                 reps: ExerciseValue.fixed(8),
                 percent1Rm: null,
                 restMinutes: null,
-                notes: 'RPE 7',
+                notes: 'Rate of Perceived Exertion 7',
               ),
               ProgramExercise(
                 exercise: 'box-jumps',
@@ -102,7 +102,7 @@ class PredefinedPrograms {
                 reps: ExerciseValue.fixed(5),
                 percent1Rm: null,
                 restMinutes: null,
-                notes: 'step down',
+                notes: 'Step down, 24 inches',
               ),
             ],
           ),
@@ -113,7 +113,7 @@ class PredefinedPrograms {
             focus: 'HeavyMainLift',
             exercises: [
               ProgramExercise(
-                exercise: 'high-bar-back-squat',
+                exercise: 'back-squat',
                 variant: null,
                 sets: ExerciseValue.fixed(4),
                 reps: ExerciseValue.fixed(5),
@@ -143,7 +143,7 @@ class PredefinedPrograms {
                 reps: ExerciseValue.fixed(1),
                 percent1Rm: 0.75,
                 restMinutes: null,
-                notes: '1 Clean + 2 Front Squats',
+                notes: '1 Squat Clean + 2 Front Squats',
               ),
               ProgramExercise(
                 exercise: 'walking-lunges',
@@ -181,13 +181,13 @@ class PredefinedPrograms {
                 notes: null,
               ),
               ProgramExercise(
-                exercise: 'rdl-no-straps',
+                exercise: 'romanian-deadlift-no-straps',
                 variant: null,
                 sets: ExerciseValue.fixed(4),
                 reps: ExerciseValue.fixed(8),
                 percent1Rm: null,
                 restMinutes: null,
-                notes: 'RPE 8',
+                notes: 'Rate of Perceived Exertion 8',
               ),
               ProgramExercise(
                 exercise: 'box-jumps',
@@ -196,7 +196,7 @@ class PredefinedPrograms {
                 reps: ExerciseValue.fixed(5),
                 percent1Rm: null,
                 restMinutes: null,
-                notes: null,
+                notes: '24 inches',
               ),
             ],
           ),
@@ -207,7 +207,7 @@ class PredefinedPrograms {
             focus: 'HeavyMainLift',
             exercises: [
               ProgramExercise(
-                exercise: 'high-bar-back-squat',
+                exercise: 'back-squat',
                 variant: null,
                 sets: ExerciseValue.fixed(4),
                 reps: ExerciseValue.fixed(5),
@@ -237,7 +237,7 @@ class PredefinedPrograms {
                 reps: ExerciseValue.fixed(1),
                 percent1Rm: 0.8,
                 restMinutes: null,
-                notes: '1 Clean + 1 Front Squat',
+                notes: '1 Squat Clean + 1 Front Squat',
               ),
               ProgramExercise(
                 exercise: 'walking-lunges',
@@ -275,13 +275,13 @@ class PredefinedPrograms {
                 notes: null,
               ),
               ProgramExercise(
-                exercise: 'rdl-no-straps',
+                exercise: 'romanian-deadlift-no-straps',
                 variant: null,
                 sets: ExerciseValue.fixed(4),
                 reps: ExerciseValue.fixed(8),
                 percent1Rm: null,
                 restMinutes: null,
-                notes: 'RPE 8.5',
+                notes: 'Rate of Perceived Exertion 8.5',
               ),
               ProgramExercise(
                 exercise: 'box-jumps',
@@ -290,7 +290,7 @@ class PredefinedPrograms {
                 reps: ExerciseValue.fixed(5),
                 percent1Rm: null,
                 restMinutes: null,
-                notes: null,
+                notes: '24 inches',
               ),
             ],
           ),
@@ -301,7 +301,7 @@ class PredefinedPrograms {
             focus: 'HeavyMainLift',
             exercises: [
               ProgramExercise(
-                exercise: 'high-bar-back-squat',
+                exercise: 'back-squat',
                 variant: null,
                 sets: ExerciseValue.fixed(4),
                 reps: ExerciseValue.fixed(4),
@@ -369,7 +369,7 @@ class PredefinedPrograms {
                 notes: null,
               ),
               ProgramExercise(
-                exercise: 'rdl-no-straps',
+                exercise: 'romanian-deadlift-no-straps',
                 variant: null,
                 sets: ExerciseValue.fixed(3),
                 reps: ExerciseValue.fixed(8),
@@ -395,7 +395,7 @@ class PredefinedPrograms {
             focus: 'HeavyMainLift',
             exercises: [
               ProgramExercise(
-                exercise: 'high-bar-back-squat',
+                exercise: 'back-squat',
                 variant: null,
                 sets: ExerciseValue.fixed(1),
                 reps: ExerciseValue.fixed(1),
@@ -404,7 +404,7 @@ class PredefinedPrograms {
                 notes: 'Work up to a heavy, clean single around 90-95%',
               ),
               ProgramExercise(
-                exercise: 'high-bar-back-squat',
+                exercise: 'back-squat',
                 variant: null,
                 sets: ExerciseValue.fixed(2),
                 reps: ExerciseValue.fixed(3),
@@ -498,7 +498,7 @@ class PredefinedPrograms {
             focus: 'HeavyMainLift',
             exercises: [
               ProgramExercise(
-                exercise: 'high-bar-back-squat',
+                exercise: 'back-squat',
                 variant: null,
                 sets: ExerciseValue.fixed(5),
                 reps: ExerciseValue.fixed(4),
@@ -592,7 +592,7 @@ class PredefinedPrograms {
             focus: 'HeavyMainLift',
             exercises: [
               ProgramExercise(
-                exercise: 'high-bar-back-squat',
+                exercise: 'back-squat',
                 variant: null,
                 sets: ExerciseValue.fixed(4),
                 reps: ExerciseValue.fixed(3),
@@ -686,7 +686,7 @@ class PredefinedPrograms {
             focus: 'HeavyMainLift',
             exercises: [
               ProgramExercise(
-                exercise: 'high-bar-back-squat',
+                exercise: 'back-squat',
                 variant: null,
                 sets: ExerciseValue.fixed(4),
                 reps: ExerciseValue.fixed(3),
@@ -780,7 +780,7 @@ class PredefinedPrograms {
             focus: 'HeavyMainLift',
             exercises: [
               ProgramExercise(
-                exercise: 'high-bar-back-squat',
+                exercise: 'back-squat',
                 variant: null,
                 sets: ExerciseValue.fixed(1),
                 reps: ExerciseValue.fixed(1),
@@ -848,7 +848,7 @@ class PredefinedPrograms {
                 notes: null,
               ),
               ProgramExercise(
-                exercise: 'sldl-no-straps',
+                exercise: 'stiff-legged-deadlift-no-straps',
                 variant: null,
                 sets: ExerciseValue.fixed(4),
                 reps: ExerciseValue.fixed(6),
@@ -874,7 +874,7 @@ class PredefinedPrograms {
             focus: 'HeavyMainLift',
             exercises: [
               ProgramExercise(
-                exercise: 'high-bar-back-squat',
+                exercise: 'back-squat',
                 variant: null,
                 sets: ExerciseValue.fixed(3),
                 reps: ExerciseValue.fixed(3),
@@ -942,7 +942,7 @@ class PredefinedPrograms {
                 notes: null,
               ),
               ProgramExercise(
-                exercise: 'sldl-no-straps',
+                exercise: 'stiff-legged-deadlift-no-straps',
                 variant: null,
                 sets: ExerciseValue.fixed(4),
                 reps: ExerciseValue.fixed(6),
@@ -968,7 +968,7 @@ class PredefinedPrograms {
             focus: 'HeavyMainLift',
             exercises: [
               ProgramExercise(
-                exercise: 'high-bar-back-squat',
+                exercise: 'back-squat',
                 variant: null,
                 sets: ExerciseValue.fixed(3),
                 reps: ExerciseValue.fixed(2),
@@ -1036,7 +1036,7 @@ class PredefinedPrograms {
                 notes: null,
               ),
               ProgramExercise(
-                exercise: 'sldl-no-straps',
+                exercise: 'stiff-legged-deadlift-no-straps',
                 variant: null,
                 sets: ExerciseValue.fixed(3),
                 reps: ExerciseValue.fixed(6),
@@ -1062,7 +1062,7 @@ class PredefinedPrograms {
             focus: 'HeavyMainLift',
             exercises: [
               ProgramExercise(
-                exercise: 'high-bar-back-squat',
+                exercise: 'back-squat',
                 variant: null,
                 sets: ExerciseValue.fixed(2),
                 reps: ExerciseValue.fixed(2),
@@ -1130,7 +1130,7 @@ class PredefinedPrograms {
                 notes: null,
               ),
               ProgramExercise(
-                exercise: 'rdl-no-straps',
+                exercise: 'romanian-deadlift-no-straps',
                 variant: null,
                 sets: ExerciseValue.fixed(3),
                 reps: ExerciseValue.fixed(8),
@@ -1147,7 +1147,7 @@ class PredefinedPrograms {
             focus: 'HeavyMainLift',
             exercises: [
               ProgramExercise(
-                exercise: 'high-bar-back-squat',
+                exercise: 'back-squat',
                 variant: null,
                 sets: ExerciseValue.fixed(1),
                 reps: ExerciseValue.fixed(1),
@@ -2304,7 +2304,7 @@ class PredefinedPrograms {
                 reps: ExerciseValue.fixed(1),
                 percent1Rm: 0.7,
                 restMinutes: null,
-                notes: '1 Clean + 2 Front Squats',
+                notes: '1 Squat Clean + 2 Front Squats',
               ),
               ProgramExercise(
                 exercise: 'walking-lunges',
@@ -2342,13 +2342,13 @@ class PredefinedPrograms {
                 notes: null,
               ),
               ProgramExercise(
-                exercise: 'rdl-no-straps',
+                exercise: 'romanian-deadlift-no-straps',
                 variant: null,
                 sets: ExerciseValue.fixed(4),
                 reps: ExerciseValue.fixed(8),
                 percent1Rm: null,
                 restMinutes: null,
-                notes: 'RPE 7',
+                notes: 'Rate of Perceived Exertion 7',
               ),
               ProgramExercise(
                 exercise: 'box-jumps',
@@ -2357,7 +2357,7 @@ class PredefinedPrograms {
                 reps: ExerciseValue.fixed(5),
                 percent1Rm: null,
                 restMinutes: null,
-                notes: 'step down',
+                notes: 'Step down, 24 inches',
               ),
             ],
           ),
@@ -2398,7 +2398,7 @@ class PredefinedPrograms {
                 reps: ExerciseValue.fixed(1),
                 percent1Rm: 0.75,
                 restMinutes: null,
-                notes: '1 Clean + 2 Front Squats',
+                notes: '1 Squat Clean + 2 Front Squats',
               ),
               ProgramExercise(
                 exercise: 'walking-lunges',
@@ -2436,13 +2436,13 @@ class PredefinedPrograms {
                 notes: null,
               ),
               ProgramExercise(
-                exercise: 'rdl-no-straps',
+                exercise: 'romanian-deadlift-no-straps',
                 variant: null,
                 sets: ExerciseValue.fixed(4),
                 reps: ExerciseValue.fixed(8),
                 percent1Rm: null,
                 restMinutes: null,
-                notes: 'RPE 8',
+                notes: 'Rate of Perceived Exertion 8',
               ),
               ProgramExercise(
                 exercise: 'box-jumps',
@@ -2451,7 +2451,7 @@ class PredefinedPrograms {
                 reps: ExerciseValue.fixed(5),
                 percent1Rm: null,
                 restMinutes: null,
-                notes: null,
+                notes: '24 inches',
               ),
             ],
           ),
@@ -2492,7 +2492,7 @@ class PredefinedPrograms {
                 reps: ExerciseValue.fixed(1),
                 percent1Rm: 0.8,
                 restMinutes: null,
-                notes: '1 Clean + 1 Front Squat',
+                notes: '1 Squat Clean + 1 Front Squat',
               ),
               ProgramExercise(
                 exercise: 'walking-lunges',
@@ -2530,13 +2530,13 @@ class PredefinedPrograms {
                 notes: null,
               ),
               ProgramExercise(
-                exercise: 'rdl-no-straps',
+                exercise: 'romanian-deadlift-no-straps',
                 variant: null,
                 sets: ExerciseValue.fixed(4),
                 reps: ExerciseValue.fixed(8),
                 percent1Rm: null,
                 restMinutes: null,
-                notes: 'RPE 8.5',
+                notes: 'Rate of Perceived Exertion 8.5',
               ),
               ProgramExercise(
                 exercise: 'box-jumps',
@@ -2545,7 +2545,7 @@ class PredefinedPrograms {
                 reps: ExerciseValue.fixed(5),
                 percent1Rm: null,
                 restMinutes: null,
-                notes: null,
+                notes: '24 inches',
               ),
             ],
           ),
@@ -2624,7 +2624,7 @@ class PredefinedPrograms {
                 notes: null,
               ),
               ProgramExercise(
-                exercise: 'rdl-no-straps',
+                exercise: 'romanian-deadlift-no-straps',
                 variant: null,
                 sets: ExerciseValue.fixed(3),
                 reps: ExerciseValue.fixed(8),
@@ -3103,7 +3103,7 @@ class PredefinedPrograms {
                 notes: null,
               ),
               ProgramExercise(
-                exercise: 'sldl-no-straps',
+                exercise: 'stiff-legged-deadlift-no-straps',
                 variant: null,
                 sets: ExerciseValue.fixed(4),
                 reps: ExerciseValue.fixed(6),
@@ -3197,7 +3197,7 @@ class PredefinedPrograms {
                 notes: null,
               ),
               ProgramExercise(
-                exercise: 'sldl-no-straps',
+                exercise: 'stiff-legged-deadlift-no-straps',
                 variant: null,
                 sets: ExerciseValue.fixed(4),
                 reps: ExerciseValue.fixed(6),
@@ -3291,7 +3291,7 @@ class PredefinedPrograms {
                 notes: null,
               ),
               ProgramExercise(
-                exercise: 'sldl-no-straps',
+                exercise: 'stiff-legged-deadlift-no-straps',
                 variant: null,
                 sets: ExerciseValue.fixed(3),
                 reps: ExerciseValue.fixed(6),
@@ -3385,7 +3385,7 @@ class PredefinedPrograms {
                 notes: null,
               ),
               ProgramExercise(
-                exercise: 'rdl-no-straps',
+                exercise: 'romanian-deadlift-no-straps',
                 variant: null,
                 sets: ExerciseValue.fixed(3),
                 reps: ExerciseValue.fixed(8),

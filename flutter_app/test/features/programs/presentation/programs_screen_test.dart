@@ -24,7 +24,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Verify list is shown
-    expect(find.text('Squat 1 Cycle'), findsOneWidget);
+    expect(find.text('Squat Cycle'), findsOneWidget);
     expect(find.text('The complete 12-week baseline program designed for maximum squat strength.'), findsOneWidget);
 
     // We don't need to test actual enrollment in this simple widget test because userId is null in unit tests lacking auth seeding,

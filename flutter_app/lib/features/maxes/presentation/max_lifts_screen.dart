@@ -191,10 +191,10 @@ class _RepMaxInputState extends ConsumerState<_RepMaxInput> {
             child: TextField(
               controller: _weightCtrl,
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              decoration: const InputDecoration(
-                hintText: 'Weight',
+              decoration: InputDecoration(
+                hintText: widget.exercise.category == 'Plyometrics' ? 'Height (in)' : 'Weight (lbs)',
                 isDense: true,
-                border: OutlineInputBorder(),
+                border: const OutlineInputBorder(),
               ),
               onSubmitted: (_) {
                 FocusScope.of(context).unfocus();

@@ -15,8 +15,7 @@ class ExerciseDefinition {
 class Exercises {
   static const List<ExerciseDefinition> all = <ExerciseDefinition>[
     // Squat Variations
-    ExerciseDefinition(id: 'high-bar-back-squat', name: 'High Bar Back Squat', category: 'Squat Variations', muscleGroups: ['quads', 'glutes', 'core']),
-    ExerciseDefinition(id: 'low-bar-back-squat', name: 'Low Bar Back Squat', category: 'Squat Variations', muscleGroups: ['glutes', 'hamstrings', 'core']),
+    ExerciseDefinition(id: 'back-squat', name: 'Back Squat', category: 'Squat Variations', muscleGroups: ['quads', 'glutes', 'hamstrings', 'core']),
     ExerciseDefinition(id: 'front-squat', name: 'Front Squat', category: 'Squat Variations', muscleGroups: ['quads', 'core']),
     ExerciseDefinition(id: 'overhead-squat', name: 'Overhead Squat', category: 'Squat Variations', muscleGroups: ['quads', 'shoulders', 'core']),
     ExerciseDefinition(id: 'box-squat', name: 'Box Squat', category: 'Squat Variations', muscleGroups: ['glutes', 'hamstrings']),
@@ -26,6 +25,7 @@ class Exercises {
     ExerciseDefinition(id: 'pause-squat', name: 'Pause Squat', category: 'Squat Variations', muscleGroups: ['quads', 'glutes']),
 
     // Olympic Lifts - Cleans
+    ExerciseDefinition(id: 'squat-clean-front-squat-complex', name: 'Squat Clean + Front Squat Complex', category: 'Olympic Lifts', muscleGroups: ['full-body']),
     ExerciseDefinition(id: 'squat-clean', name: 'Squat Clean', category: 'Olympic Lifts', muscleGroups: ['full-body']),
     ExerciseDefinition(id: 'power-clean', name: 'Power Clean', category: 'Olympic Lifts', muscleGroups: ['full-body']),
     ExerciseDefinition(id: 'hang-squat-clean', name: 'Hang Squat Clean', category: 'Olympic Lifts', muscleGroups: ['full-body']),
@@ -67,10 +67,10 @@ class Exercises {
     ExerciseDefinition(id: 'speed-deadlift', name: 'Speed Deadlift', category: 'Deadlift Variations', muscleGroups: ['posterior-chain', 'grip']),
 
     // Hinge Variations
-    ExerciseDefinition(id: 'rdl-no-straps', name: 'Romanian Deadlift / RDL (No Straps)', category: 'Hinge Variations', muscleGroups: ['hamstrings', 'glutes', 'grip']),
-    ExerciseDefinition(id: 'rdl-with-straps', name: 'Romanian Deadlift / RDL (With Straps)', category: 'Hinge Variations', muscleGroups: ['hamstrings', 'glutes']),
-    ExerciseDefinition(id: 'sldl-no-straps', name: 'Stiff-Legged Deadlift (No Straps)', category: 'Hinge Variations', muscleGroups: ['hamstrings', 'lower-back', 'grip']),
-    ExerciseDefinition(id: 'sldl-with-straps', name: 'Stiff-Legged Deadlift (With Straps)', category: 'Hinge Variations', muscleGroups: ['hamstrings', 'lower-back']),
+    ExerciseDefinition(id: 'romanian-deadlift-no-straps', name: 'Romanian Deadlift (No Straps)', category: 'Hinge Variations', muscleGroups: ['hamstrings', 'glutes', 'grip']),
+    ExerciseDefinition(id: 'romanian-deadlift-with-straps', name: 'Romanian Deadlift (With Straps)', category: 'Hinge Variations', muscleGroups: ['hamstrings', 'glutes']),
+    ExerciseDefinition(id: 'stiff-legged-deadlift-no-straps', name: 'Stiff-Legged Deadlift (No Straps)', category: 'Hinge Variations', muscleGroups: ['hamstrings', 'lower-back', 'grip']),
+    ExerciseDefinition(id: 'stiff-legged-deadlift-with-straps', name: 'Stiff-Legged Deadlift (With Straps)', category: 'Hinge Variations', muscleGroups: ['hamstrings', 'lower-back']),
     ExerciseDefinition(id: 'deficit-deadlift-no-straps', name: 'Deficit Deadlift (No Straps)', category: 'Hinge Variations', muscleGroups: ['posterior-chain', 'grip']),
     ExerciseDefinition(id: 'deficit-deadlift-with-straps', name: 'Deficit Deadlift (With Straps)', category: 'Hinge Variations', muscleGroups: ['posterior-chain']),
     ExerciseDefinition(id: 'trap-bar-deadlift-no-straps', name: 'Trap Bar / Hex Bar Deadlift (No Straps)', category: 'Hinge Variations', muscleGroups: ['posterior-chain', 'quads', 'grip']),

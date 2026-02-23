@@ -19,7 +19,7 @@ void main() {
         LiftMaxModel(
           id: 'max-1',
           userId: 'user-1',
-          exerciseId: 'high-bar-back-squat',
+          exerciseId: 'back-squat',
           repCount: 1,
           weight: 225,
           withStraps: false,
@@ -35,7 +35,7 @@ void main() {
     await tester.tap(find.text('Squat Variations'));
     await tester.pumpAndSettle();
 
-    expect(find.text('High Bar Back Squat'), findsOneWidget);
+    expect(find.text('Back Squat'), findsOneWidget);
     expect(find.text('225.0'), findsOneWidget); // The TextField text
 
     // No more bottom sheet, it's inline
@@ -64,7 +64,7 @@ void main() {
     expect(repo.savedLiftMaxes, hasLength(1));
     final LiftMaxModel saved = repo.savedLiftMaxes.single;
     expect(saved.userId, 'user-1');
-    expect(saved.exerciseId, 'high-bar-back-squat');
+    expect(saved.exerciseId, 'back-squat');
     expect(saved.repCount, 1);
     expect(saved.weight, 205);
   });

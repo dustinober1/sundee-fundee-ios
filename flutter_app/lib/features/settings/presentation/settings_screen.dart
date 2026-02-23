@@ -22,14 +22,15 @@ class SettingsScreen extends ConsumerWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
-            ElevatedButton.icon(
-              onPressed: () => context.push('/admin/programs'),
-              icon: const Icon(Icons.admin_panel_settings),
-              label: const Text('Admin: Manage Programs'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+            if (ref.watch(authSessionStreamProvider).asData?.value.user?.email == 'dustinober@me.com')
+              ElevatedButton.icon(
+                onPressed: () => context.push('/admin/programs'),
+                icon: const Icon(Icons.admin_panel_settings),
+                label: const Text('Admin: Manage Programs'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                ),
               ),
-            ),
             const SizedBox(height: 16),
             ElevatedButton.icon(
               onPressed: () => ref.read(authRepositoryProvider).signOut(),
