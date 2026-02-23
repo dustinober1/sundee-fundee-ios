@@ -259,6 +259,7 @@ class ProgramSession {
     required this.sessionType,
     required this.focus,
     required this.exercises,
+    this.recoveryPrepExercises = const <ProgramExercise>[],
   });
 
   final String sessionId;
@@ -266,6 +267,10 @@ class ProgramSession {
   final String sessionType;
   final String focus;
   final List<ProgramExercise> exercises;
+
+  /// View-layer only — not persisted in fromJson/toJson.
+  /// Set by InjuryAdaptationEngine with targeted warm-up/mobility exercises.
+  final List<ProgramExercise> recoveryPrepExercises;
 
   String get id => sessionId;
 
@@ -309,6 +314,9 @@ class ProgramExercise {
     required this.percent1Rm,
     required this.restMinutes,
     required this.notes,
+    this.injuryReplacedOriginal,
+    this.injuryReplacementReason,
+    this.isContraindicatedOriginal = false,
   });
 
   final String exercise;
@@ -318,6 +326,17 @@ class ProgramExercise {
   final double? percent1Rm;
   final double? restMinutes;
   final String? notes;
+
+  /// View-layer only — not persisted in fromJson/toJson.
+  /// Set by InjuryAdaptationEngine when this exercise was replaced.
+  final String? injuryReplacedOriginal;
+
+  /// View-layer only — not persisted. Human-readable replacement reason.
+  final String? injuryReplacementReason;
+
+  /// View-layer only — not persisted. True only when user manually reverts
+  /// to the contraindicated original (never set by the engine).
+  final bool isContraindicatedOriginal;
 
   factory ProgramExercise.fromJson(Map<String, dynamic> json) {
     return ProgramExercise(
