@@ -125,6 +125,16 @@ class DashboardScreen extends ConsumerWidget {
 class _WorkoutHistoryList extends ConsumerWidget {
   const _WorkoutHistoryList();
 
+  String _formatProgramId(String id) {
+    if (id == 'squad-squat') return '12-Week Squad Squat Peak';
+    return id
+        .split('-')
+        .map((word) => word.isNotEmpty
+            ? '${word[0].toUpperCase()}${word.substring(1)}'
+            : '')
+        .join(' ');
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final session = ref.watch(authSessionStreamProvider).asData?.value;
@@ -218,7 +228,7 @@ class _WorkoutHistoryList extends ConsumerWidget {
                         color: AppColors.brandPrimary, size: 20),
                   ),
                   title: Text(
-                    '${workout.programId} - W${workout.week}D${workout.day}',
+                    '${_formatProgramId(workout.programId)} - W${workout.week}D${workout.day}',
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   subtitle: Text(

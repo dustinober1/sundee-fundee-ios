@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../app/theme.dart';
 import '../../../domain/models/completed_set_model.dart';
 import '../../../domain/models/completed_workout_model.dart';
+import '../../../domain/models/exercise_definitions.dart';
 import '../../auth/providers.dart';
 import '../../repositories/providers.dart';
 
@@ -34,6 +35,16 @@ class WorkoutSummaryScreen extends ConsumerWidget {
   const WorkoutSummaryScreen({super.key, required this.workoutId});
 
   final String workoutId;
+
+  String _formatProgramId(String id) {
+    if (id == 'squad-squat') return '12-Week Squad Squat Peak';
+    return id
+        .split('-')
+        .map((word) => word.isNotEmpty
+            ? '${word[0].toUpperCase()}${word.substring(1)}'
+            : '')
+        .join(' ');
+  }
 
   Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
     final session = ref.read(authSessionStreamProvider).asData?.value;
@@ -154,7 +165,7 @@ class WorkoutSummaryScreen extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            workout.programId,
+            _formatProgramId(workout.programId),
             style: const TextStyle(
               fontSize: 16,
               color: AppColors.brandPrimary,
@@ -221,11 +232,14 @@ class WorkoutSummaryScreen extends ConsumerWidget {
   }
 
   Widget _buildExerciseCard(String exerciseId, List<CompletedSetModel> sets) {
-    // Basic formatting for exerciseId (e.g., "back-squat" -> "Back Squat")
-    final displayName = exerciseId
-        .split('-')
-        .map((word) => word.isNotEmpty ? '${word[0].toUpperCase()}${word.substring(1)}' : '')
-        .join(' ');
+    // Look up human-readable name from definitions
+    final definition = Exercises.findById(exerciseId);
+    final displayName = definition?.name ??
+        exerciseId
+            .split('-')
+            .map((word) =>
+                word.isNotEmpty ? '${word[0].toUpperCase()}${word.substring(1)}' : '')
+            .join(' ');
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

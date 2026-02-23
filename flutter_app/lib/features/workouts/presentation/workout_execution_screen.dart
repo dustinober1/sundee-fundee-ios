@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../app/theme.dart';
 import '../../../domain/calculations/plate_calculation.dart';
 import '../../../domain/enums.dart';
+import '../../../domain/models/exercise_definitions.dart';
 import '../../../domain/models/program_models.dart';
 import '../../auth/providers.dart';
 import '../../programs/data/program_repository.dart';
@@ -193,6 +194,9 @@ class _ExerciseCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final definition = Exercises.findById(exercise.exercise);
+    final displayName = definition?.name ?? exercise.exercise;
+
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Padding(
@@ -201,7 +205,7 @@ class _ExerciseCard extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              exercise.exercise,
+              displayName,
               style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
