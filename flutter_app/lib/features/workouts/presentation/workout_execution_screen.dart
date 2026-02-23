@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/theme.dart';
+import '../../../domain/calculations/plate_calculation.dart';
+import '../../../domain/enums.dart';
 import '../../../domain/models/program_models.dart';
 import '../../programs/data/program_repository.dart';
 import 'plate_calculator_dialog.dart';
@@ -329,111 +331,153 @@ class _SetRowState extends ConsumerState<_SetRow> {
 
   @override
   Widget build(BuildContext context) {
+    final userProfile = ref.watch(userProfileStreamProvider).asData?.value;
+    final double barbellWeight = (userProfile?.gender == Gender.male) ? 45.0 : 35.0;
+    
     final isCompleted = widget.state.isCompleted;
     final rowColor =
         isCompleted ? Colors.green.withValues(alpha: 0.1) : Colors.transparent;
 
-    return Container(
-      color: rowColor,
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 32,
-            child: Text('${widget.setIndex + 1}'),
-          ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: TextField(
-                controller: _weightController,
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
-                textAlign: TextAlign.center,
-                decoration: InputDecoration(
-                  isDense: true,
-                  hintText: widget.state.prescribedWeight > 0
-                      ? widget.state.prescribedWeight
-                          .toStringAsFixed(1)
-                          .replaceAll(RegExp(r'\.0$'), '')
-                      : '-',
-                  filled: true,
-                  fillColor: isCompleted
-                      ? Colors.transparent
-                      : Colors.grey.withValues(alpha: 0.1),
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none),
+    final double currentWeight = double.tryParse(_weightController.text) ?? widget.state.prescribedWeight;
+    final Map<double, int> plateBreakdown = PlateCalculation.calculatePlates(
+      totalWeight: currentWeight,
+      barbellWeight: barbellWeight,
+    );
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          color: rowColor,
+          padding: const EdgeInsets.symmetric(vertical: 4.0),
+          child: Row(
+            children: [
+              SizedBox(
+                width: 32,
+                child: Text('${widget.setIndex + 1}'),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: TextField(
+                    controller: _weightController,
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    textAlign: TextAlign.center,
+                    decoration: InputDecoration(
+                      isDense: true,
+                      hintText: widget.state.prescribedWeight > 0
+                          ? widget.state.prescribedWeight
+                              .toStringAsFixed(1)
+                              .replaceAll(RegExp(r'\.0$'), '')
+                          : '-',
+                      filled: true,
+                      fillColor: isCompleted
+                          ? Colors.transparent
+                          : Colors.grey.withValues(alpha: 0.1),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide.none),
+                    ),
+                    onChanged: (_) {
+                      _onChanged();
+                      setState(() {}); // Update plate breakdown
+                    },
+                    enabled: !isCompleted,
+                  ),
                 ),
-                onChanged: (_) => _onChanged(),
-                enabled: !isCompleted,
               ),
-            ),
-          ),
-          SizedBox(
-            width: 40,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4.0),
-              child: TextField(
-                controller: _rpeController,
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
-                textAlign: TextAlign.center,
-                decoration: InputDecoration(
-                  isDense: true,
-                  hintText: '-',
-                  filled: true,
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-                  fillColor: isCompleted
-                      ? Colors.transparent
-                      : Colors.grey.withValues(alpha: 0.1),
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none),
+              SizedBox(
+                width: 40,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                  child: TextField(
+                    controller: _rpeController,
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    textAlign: TextAlign.center,
+                    decoration: InputDecoration(
+                      isDense: true,
+                      hintText: '-',
+                      filled: true,
+                      contentPadding:
+                          const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                      fillColor: isCompleted
+                          ? Colors.transparent
+                          : Colors.grey.withValues(alpha: 0.1),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide.none),
+                    ),
+                    onChanged: (_) => _onChanged(),
+                    enabled: !isCompleted,
+                  ),
                 ),
-                onChanged: (_) => _onChanged(),
-                enabled: !isCompleted,
               ),
-            ),
-          ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: TextField(
-                controller: _repsController,
-                keyboardType: TextInputType.number,
-                textAlign: TextAlign.center,
-                decoration: InputDecoration(
-                  isDense: true,
-                  hintText: widget.state.prescribedReps > 0
-                      ? widget.state.prescribedReps.toString()
-                      : '-',
-                  filled: true,
-                  fillColor: isCompleted
-                      ? Colors.transparent
-                      : Colors.grey.withValues(alpha: 0.1),
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: TextField(
+                    controller: _repsController,
+                    keyboardType: TextInputType.number,
+                    textAlign: TextAlign.center,
+                    decoration: InputDecoration(
+                      isDense: true,
+                      hintText: widget.state.prescribedReps > 0
+                          ? widget.state.prescribedReps.toString()
+                          : '-',
+                      filled: true,
+                      fillColor: isCompleted
+                          ? Colors.transparent
+                          : Colors.grey.withValues(alpha: 0.1),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide.none),
+                    ),
+                    onChanged: (_) => _onChanged(),
+                    enabled: !isCompleted,
+                  ),
                 ),
-                onChanged: (_) => _onChanged(),
-                enabled: !isCompleted,
               ),
+              SizedBox(
+                width: 48,
+                child: IconButton(
+                  icon: Icon(
+                    isCompleted ? Icons.check_circle : Icons.check_circle_outline,
+                    color: isCompleted ? Colors.green : Colors.grey,
+                  ),
+                  onPressed: () => _onToggleComplete(!isCompleted),
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (plateBreakdown.isNotEmpty && !isCompleted)
+          Padding(
+            padding: const EdgeInsets.only(left: 32, bottom: 8),
+            child: Wrap(
+              spacing: 4,
+              children: plateBreakdown.entries.map((e) {
+                return Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppColors.brandPrimary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    '${e.value}x${e.key.toString().replaceAll(RegExp(r'\.0$'), '')}',
+                    style: const TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.brandPrimary,
+                    ),
+                  ),
+                );
+              }).toList(),
             ),
           ),
-          SizedBox(
-            width: 48,
-            child: IconButton(
-              icon: Icon(
-                isCompleted ? Icons.check_circle : Icons.check_circle_outline,
-                color: isCompleted ? Colors.green : Colors.grey,
-              ),
-              onPressed: () => _onToggleComplete(!isCompleted),
-            ),
-          ),
-        ],
-      ),
+      ],
     );
   }
 }

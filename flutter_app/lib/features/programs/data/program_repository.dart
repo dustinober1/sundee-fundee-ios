@@ -6,7 +6,7 @@ import '../../auth/providers.dart';
 import '../../../domain/models/program_models.dart';
 import '../../repositories/domain/repository_interfaces.dart';
 import '../../repositories/providers.dart';
-import 'back_squat_program.dart';
+import 'squad_squat_program.dart';
 
 class ProgramRepository {
   ProgramRepository({
@@ -19,7 +19,7 @@ class ProgramRepository {
   final EnrolledProgramRepository _enrolledProgramRepository;
 
   List<ProgramV2> get _fallbackPrograms => [
-        backSquatProgram,
+        squadSquatProgram,
       ];
 
   Future<List<ProgramV2>> getPrograms() async {

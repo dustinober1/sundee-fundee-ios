@@ -519,6 +519,11 @@ class Exercises {
         name: 'Vertical Jumps',
         category: 'Plyometrics',
         muscleGroups: ['legs', 'explosiveness']),
+    ExerciseDefinition(
+        id: 'depth-jumps',
+        name: 'Depth Jumps',
+        category: 'Plyometrics',
+        muscleGroups: ['legs', 'explosiveness']),
   ];
 
   static ExerciseDefinition? findById(String id) {

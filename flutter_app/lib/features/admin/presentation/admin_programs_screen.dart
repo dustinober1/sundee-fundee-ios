@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../domain/models/program_models.dart';
-import '../../programs/data/back_squat_program.dart';
 import '../../programs/data/program_repository.dart';
+import '../../programs/data/squad_squat_program.dart';
 import 'widgets/interactive_program_builder.dart';
 
 class AdminProgramsScreen extends ConsumerStatefulWidget {
@@ -57,12 +57,12 @@ class _AdminProgramsScreenState extends ConsumerState<AdminProgramsScreen> {
   Future<void> _pushBaseline() async {
     setState(() => _isLoading = true);
     try {
-      final program = backSquatProgram;
+      final program = squadSquatProgram;
       await ref.read(programRepositoryProvider).pushProgram(program);
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Successfully pushed 8-Week Back Squat Peak!')),
+          SnackBar(content: Text('Successfully pushed 12-Week Squad Squat Peak!')),
         );
       }
     } catch (e) {
@@ -124,7 +124,7 @@ class _AdminProgramsScreenState extends ConsumerState<AdminProgramsScreen> {
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: _isLoading ? null : _pushBaseline,
-            child: const Text('Push 8-Week Back Squat Peak Default Program'),
+            child: const Text('Push 12-Week Squad Squat Peak Default Program'),
           ),
           const SizedBox(height: 24),
           const Text('Or Paste Program JSON below:'),
