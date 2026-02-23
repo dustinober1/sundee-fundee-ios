@@ -178,7 +178,7 @@ The app uses GoRouter with auth-state redirects:
 
 - **Firestore Permission Denied**: If you see `[cloud_firestore/permission-denied] Missing or insufficient permissions` when accessing features like the cycle tracker or program enrollments, ensure that your local `firestore.rules` file has been deployed to the Firebase project (`firebase deploy --only firestore`). Added missing `enrollments`, `periodLogs`, `symptomLogs`, and `cycleSettings` rules.
 - **Dart Compiler Errors**: Resolved duplicate `_` variable naming errors in GoRouter error handlers and cycle tracking error states.
-- **Google Sign-In web plugin**: The `google_sign_in_web` plugin requires `initialize()` before any other method call. `AuthRepository` tracks initialization state via a `_googleSignInInitialized` flag and skips `GoogleSignIn.signOut()` when the plugin was never initialized (e.g., guest mode, email, or Apple sign-in paths).
+- **Web Authentication Plugins**: The application uses Firebase Auth's built-in `signInWithPopup` (with `GoogleAuthProvider` and `AppleAuthProvider`) on the Web platform. This avoids manual OAuth client ID configuration and bypasses initialization issues inherent to the `google_sign_in` and `sign_in_with_apple` web plugins. On mobile devices, the native plugins are still utilized. `AuthRepository` tracks `_googleSignInInitialized` to prevent signing out uninitialized plugins.
 
 ## Cycle-Based Training Recommendations
 
