@@ -5,6 +5,8 @@ import 'package:sundee_fundee_flutter/features/programs/presentation/programs_sc
 
 import 'package:sundee_fundee_flutter/features/programs/data/back_squat_program.dart';
 import 'package:sundee_fundee_flutter/features/programs/data/program_repository.dart';
+import 'package:sundee_fundee_flutter/features/auth/providers.dart';
+import 'package:sundee_fundee_flutter/features/auth/domain/auth_state.dart';
 
 void main() {
   testWidgets('ProgramsScreen renders list of programs',
@@ -14,6 +16,9 @@ void main() {
         overrides: [
           programsProvider.overrideWith((ref) async => [backSquatProgram]),
           activeEnrollmentProvider.overrideWith((ref) => Stream.value(null)),
+          authSessionStreamProvider.overrideWith((ref) => Stream.value(
+                const AuthSession(status: AuthStatus.unauthenticated),
+              )),
         ],
         child: const MaterialApp(
           home: Scaffold(body: ProgramsScreen()),
@@ -28,8 +33,8 @@ void main() {
     expect(find.text('8-Week Back Squat Peak'), findsOneWidget);
     expect(find.text('A two-phase program focused on building a solid base followed by a nervous system peak for a new 1RM.'), findsOneWidget);
 
-    // We don't need to test actual enrollment in this simple widget test because userId is null in unit tests lacking auth seeding,
-    // so we just verify the button exists.
-    expect(find.text('Enroll in Program'), findsOneWidget);
+    // Button should be disabled since userId is null
+    final enrollButton = find.text('Enroll in Program');
+    expect(enrollButton, findsOneWidget);
   });
 }

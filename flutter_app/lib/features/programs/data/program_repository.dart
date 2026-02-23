@@ -68,6 +68,16 @@ class ProgramRepository {
     );
   }
 
+  Future<void> stopProgram({
+    required String userId,
+    required String enrollmentId,
+  }) async {
+    return _enrolledProgramRepository.stopEnrollment(
+      userId: userId,
+      enrollmentId: enrollmentId,
+    );
+  }
+
   Stream<EnrolledProgramModel?> watchActiveEnrollment(
       {required String userId}) {
     return _enrolledProgramRepository.watchActiveEnrollment(userId: userId);

@@ -82,43 +82,113 @@ class ProgramsScreen extends ConsumerWidget {
                         const SizedBox(height: 16),
                         Align(
                           alignment: Alignment.centerLeft,
-                          child: ElevatedButton(
-                            onPressed: isEnrolled || userId == null
-                                ? null
-                                : () async {
-                                    try {
-                                      await ref
-                                          .read(programRepositoryProvider)
-                                          .enrollUser(
-                                            userId: userId,
-                                            programId: program.id,
+                          child: Row(
+                            children: [
+                              ElevatedButton(
+                                onPressed: isEnrolled || userId == null
+                                    ? null
+                                    : () async {
+                                        try {
+                                          await ref
+                                              .read(programRepositoryProvider)
+                                              .enrollUser(
+                                                userId: userId,
+                                                programId: program.id,
+                                              );
+                                          if (context.mounted) {
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                    'Enrolled in ${program.name}!'),
+                                              ),
+                                            );
+                                          }
+                                        } catch (e) {
+                                          if (context.mounted) {
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                    'Enrollment failed: $e'),
+                                              ),
+                                            );
+                                          }
+                                        }
+                                      },
+                                child: Text(
+                                  isEnrolled
+                                      ? 'Currently Enrolled'
+                                      : 'Enroll in Program',
+                                ),
+                              ),
+                              if (isEnrolled && userId != null) ...[
+                                const SizedBox(width: 8),
+                                OutlinedButton(
+                                  onPressed: () async {
+                                    final bool? confirm = await showDialog<bool>(
+                                      context: context,
+                                      builder: (context) => AlertDialog(
+                                        title: const Text('Stop Program?'),
+                                        content: const Text(
+                                          'Are you sure you want to stop this program? Your progress will be saved but the program will no longer be active.',
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () =>
+                                                Navigator.pop(context, false),
+                                            child: const Text('Cancel'),
+                                          ),
+                                          TextButton(
+                                            onPressed: () =>
+                                                Navigator.pop(context, true),
+                                            child: const Text(
+                                              'Stop Program',
+                                              style:
+                                                  TextStyle(color: Colors.red),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+
+                                    if (confirm == true) {
+                                      try {
+                                        await ref
+                                            .read(programRepositoryProvider)
+                                            .stopProgram(
+                                              userId: userId,
+                                              enrollmentId: enrolledProgram!.id,
+                                            );
+                                        if (context.mounted) {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            const SnackBar(
+                                              content: Text('Program stopped.'),
+                                            ),
                                           );
-                                      if (context.mounted) {
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                                'Enrolled in ${program.name}!'),
-                                          ),
-                                        );
-                                      }
-                                    } catch (e) {
-                                      if (context.mounted) {
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          SnackBar(
-                                            content:
-                                                Text('Enrollment failed: $e'),
-                                          ),
-                                        );
+                                        }
+                                      } catch (e) {
+                                        if (context.mounted) {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                  'Failed to stop program: $e'),
+                                            ),
+                                          );
+                                        }
                                       }
                                     }
                                   },
-                            child: Text(
-                              isEnrolled
-                                  ? 'Currently Enrolled'
-                                  : 'Enroll in Program',
-                            ),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: Colors.red,
+                                    side: const BorderSide(color: Colors.red),
+                                  ),
+                                  child: const Text('Stop'),
+                                ),
+                              ],
+                            ],
                           ),
                         ),
                       ],

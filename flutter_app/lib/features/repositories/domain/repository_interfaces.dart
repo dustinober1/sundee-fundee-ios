@@ -117,4 +117,9 @@ abstract class EnrolledProgramRepository {
     required String userId,
     required String enrollmentId,
   });
+
+  Future<void> stopEnrollment({
+    required String userId,
+    required String enrollmentId,
+  });
 }

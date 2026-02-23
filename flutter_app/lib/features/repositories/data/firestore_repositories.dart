@@ -415,6 +415,16 @@ class FirestoreEnrolledProgramRepository implements EnrolledProgramRepository {
     });
   }
 
+  @override
+  Future<void> stopEnrollment({
+    required String userId,
+    required String enrollmentId,
+  }) {
+    return _enrollmentsCollection(userId).doc(enrollmentId).update({
+      'isActive': false,
+    });
+  }
+
   CollectionReference<Map<String, dynamic>> _enrollmentsCollection(
     String userId,
   ) {
