@@ -2,7 +2,7 @@
 
 ## Milestones
 - [x] **v1 Foundation Release** (shipped 2026-02-23) - 4 phases, 14 plans, audit passed. Archive: `.planning/milestones/v1-ROADMAP.md`
-- [ ] **v1.1 Onboarding Persistence + Injury-Aware Plans** (planning)
+- [ ] **v1.1 Onboarding Persistence + Injury-Aware Plans** (execution)
 
 ## Current Milestone: v1.1 Onboarding Persistence + Injury-Aware Plans
 
@@ -35,7 +35,7 @@ Plans:
 - [x] 05-02-PLAN.md - Bootstrap state machine, resume/restart onboarding flow, and injury-required routing gates
 - [x] 05-03-PLAN.md - Settings profile edit surfaces, non-blocking save retry handling, and plan-refresh wiring
 
-### Phase 6: Injury-Aware Plan Adaptation
+### Phase 6: Injury-Aware Plan Adaptation (completed 2026-02-23)
 Goal: Adapt generated plans when injuries are present using safe alternates/recovery additions with explicit legal disclaimers.
 
 Requirements: INJ-03, INJ-04, INJ-05
@@ -49,10 +49,10 @@ Success criteria:
 **Plans:** 4 plans
 
 Plans:
-- [ ] 06-01-PLAN.md — Model extensions + InjuryAdaptationEngine (TDD)
-- [ ] 06-02-PLAN.md — Provider wiring, disclaimer persistence, screen reference swap
-- [ ] 06-03-PLAN.md — Disclaimer banner UI on plan overview surfaces
-- [ ] 06-04-PLAN.md — Workout execution: exercise labels, recovery prep, override, mid-workout prompt
+- [x] 06-01-PLAN.md — Model extensions + InjuryAdaptationEngine (TDD)
+- [x] 06-02-PLAN.md — Provider wiring, disclaimer persistence, screen reference swap
+- [x] 06-03-PLAN.md — Disclaimer banner UI on plan overview surfaces
+- [x] 06-04-PLAN.md — Workout execution: exercise labels, recovery prep, override, mid-workout prompt
 
 ### Phase 7: Enrollment Cancellation Lifecycle
 Goal: Provide explicit cancel-plan flow that preserves history and supports future enrollment.
@@ -66,4 +66,4 @@ Success criteria:
 4. Users can enroll in a new plan after cancellation with no conflicting active-state artifacts.
 
 ## Next Command
-`$gsd-discuss-phase 6`
+`$gsd-discuss-phase 7`

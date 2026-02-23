@@ -4,7 +4,7 @@
 
 Phase: 6 (Injury-Aware Plan Adaptation) — **complete**  
 Plan: 06-04 complete (all plans done)  
-Status: Milestone v1.1 execution complete  
+Status: Milestone v1.1 execution in progress (Phase 7 pending)  
 Last activity: 2026-02-23 — Executed 06-04-PLAN.md
 
 Progress: █████████████████████ 21/21 plans complete (100%)

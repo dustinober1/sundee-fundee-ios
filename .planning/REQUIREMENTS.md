@@ -13,9 +13,9 @@ Milestone v1.1 focuses on onboarding persistence, injury-aware planning, and enr
 ### Injury Profile and Adaptation
 - [x] **INJ-01**: User can record current injury context (injured area and basic status) that is stored with their profile.
 - [x] **INJ-02**: User can update or clear injury context, and subsequent plan generation reflects the latest saved state.
-- [ ] **INJ-03**: User receives alternate exercises when planned movements conflict with saved injury context.
-- [ ] **INJ-04**: User receives recovery-support additions in generated plans when injury context is present.
-- [ ] **INJ-05**: User sees an explicit disclaimer stating generated guidance is not a substitute for medical advice or physical therapy.
+- [x] **INJ-03**: User receives alternate exercises when planned movements conflict with saved injury context.
+- [x] **INJ-04**: User receives recovery-support additions in generated plans when injury context is present.
+- [x] **INJ-05**: User sees an explicit disclaimer stating generated guidance is not a substitute for medical advice or physical therapy.
 
 ### Plan Enrollment Lifecycle
 - [ ] **PLN-01**: User can cancel an enrolled plan from the app without deleting completed workout history.
