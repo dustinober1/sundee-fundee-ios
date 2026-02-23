@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../domain/models/program_models.dart';
 import '../../programs/data/back_squat_program.dart';
 import '../../programs/data/program_repository.dart';
 import 'widgets/interactive_program_builder.dart';
