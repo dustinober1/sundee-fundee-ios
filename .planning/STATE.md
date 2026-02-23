@@ -3,11 +3,11 @@
 ## Current Position
 
 Phase: 6 (Injury-Aware Plan Adaptation) — in progress  
-Plan: 06-01 complete (06-02, 06-03, 06-04 remaining)  
+Plan: 06-02 complete (06-03, 06-04 remaining)  
 Status: Milestone v1.1 execution in progress  
-Last activity: 2026-02-23 — Executed 06-01-PLAN.md
+Last activity: 2026-02-23 — Executed 06-02-PLAN.md
 
-Progress: █████████████████░░░░ 18/21 plans complete (~86%)
+Progress: ██████████████████░░░ 19/21 plans complete (~90%)
 
 ## Accumulated Context
 
@@ -28,9 +28,12 @@ Progress: █████████████████░░░░ 18/21 
 | No-op fast-path | Return same reference when activeInjuries is empty | 06-01 |
 | Regression table | Hardcoded deterministic table for primary lifts | 06-01 |
 | isContraindicatedOriginal | Engine always sets false; only user revert sets true | 06-01 |
+| Disclaimer ack persistence | Map<String, DateTime> on UserModel, Firestore dot-notation merge | 06-02 |
+| InjuryAdaptationContext empty injuries | disclaimerAcknowledgedForAll = true when no active injuries | 06-02 |
+| Provider stacking | injuryAdaptedActiveProgramProvider wraps adaptedActiveProgramProvider (cycle preserved) | 06-02 |
 
 ## Session Continuity
 
-Last session: 2026-02-23T23:31:43Z  
-Stopped at: Completed 06-01-PLAN.md  
+Last session: 2026-02-23T23:41:49Z  
+Stopped at: Completed 06-02-PLAN.md  
 Resume file: None
