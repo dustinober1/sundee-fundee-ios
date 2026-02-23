@@ -25,5 +25,7 @@ void main() {
 
     expect(find.text('Dashboard'), findsOneWidget);
     expect(find.text('Next Workout'), findsOneWidget);
+    expect(find.textContaining('Last synced:'), findsOneWidget);
+    expect(find.textContaining('Cycle data unavailable'), findsOneWidget);
   });
 }
