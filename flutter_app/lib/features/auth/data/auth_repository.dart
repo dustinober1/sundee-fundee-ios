@@ -188,6 +188,9 @@ class AuthRepository {
       'onboardingComplete': true,
       'updatedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
+
+    // Also update the Auth profile so the name is available in the User object immediately
+    await user.updateDisplayName(name);
   }
 
   Future<void> continueAsGuest() async {
