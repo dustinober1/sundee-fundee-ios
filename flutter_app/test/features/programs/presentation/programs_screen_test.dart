@@ -1,40 +1,260 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sundee_fundee_flutter/features/programs/presentation/programs_screen.dart';
-
-import 'package:sundee_fundee_flutter/features/programs/data/squad_squat_program.dart';
-import 'package:sundee_fundee_flutter/features/programs/data/program_repository.dart';
-import 'package:sundee_fundee_flutter/features/auth/providers.dart';
+import 'package:sundee_fundee_flutter/domain/calculations/cycle_calculations.dart';
+import 'package:sundee_fundee_flutter/domain/enums.dart';
+import 'package:sundee_fundee_flutter/domain/models/program_models.dart';
 import 'package:sundee_fundee_flutter/features/auth/domain/auth_state.dart';
+import 'package:sundee_fundee_flutter/features/auth/providers.dart';
+import 'package:sundee_fundee_flutter/features/cycle/providers.dart';
+import 'package:sundee_fundee_flutter/features/programs/data/program_repository.dart';
+import 'package:sundee_fundee_flutter/features/programs/presentation/programs_screen.dart';
+import 'package:sundee_fundee_flutter/features/repositories/domain/repository_interfaces.dart';
+
+class _NoopEnrolledProgramRepository implements EnrolledProgramRepository {
+  @override
+  Future<void> completeEnrollment({
+    required String userId,
+    required String enrollmentId,
+  }) async {}
+
+  @override
+  Future<void> enrollUser({
+    required String userId,
+    required EnrolledProgramModel enrollment,
+  }) async {}
+
+  @override
+  Future<void> jumpToWeek({
+    required String userId,
+    required String enrollmentId,
+    required int week,
+  }) async {}
+
+  @override
+  Future<void> markWeekComplete({
+    required String userId,
+    required String enrollmentId,
+    required int completedWeek,
+    required int nextWeek,
+  }) async {}
+
+  @override
+  Future<void> stopEnrollment({
+    required String userId,
+    required String enrollmentId,
+  }) async {}
+
+  @override
+  Future<void> updateEnrollmentProgress({
+    required String userId,
+    required String enrollmentId,
+    required int week,
+    required int day,
+  }) async {}
+
+  @override
+  Stream<EnrolledProgramModel?> watchActiveEnrollment({required String userId}) {
+    return const Stream<EnrolledProgramModel?>.empty();
+  }
+}
+
+class _FakeProgramRepository extends ProgramRepository {
+  _FakeProgramRepository({this.throwOnWrite = false})
+      : super(
+          firestore: null,
+          enrolledProgramRepository: _NoopEnrolledProgramRepository(),
+        );
+
+  final bool throwOnWrite;
+  bool markWeekCompleteCalled = false;
+  bool jumpToWeekCalled = false;
+
+  @override
+  Future<void> markWeekComplete({
+    required String userId,
+    required EnrolledProgramModel enrollment,
+    required int programDurationWeeks,
+  }) async {
+    if (throwOnWrite) {
+      throw Exception('write failed');
+    }
+    markWeekCompleteCalled = true;
+  }
+
+  @override
+  Future<void> jumpToWeek({
+    required String userId,
+    required String enrollmentId,
+    required int week,
+  }) async {
+    if (throwOnWrite) {
+      throw Exception('write failed');
+    }
+    jumpToWeekCalled = true;
+  }
+}
+
+ProgramV2 _buildProgram() {
+  ProgramWeek week({
+    required int number,
+    required String focus,
+  }) {
+    return ProgramWeek(
+      week: number,
+      phaseId: 'phase',
+      isTestWeek: false,
+      sessions: <ProgramSession>[
+        ProgramSession(
+          sessionId: 'w${number}a',
+          sessionName: 'Session A',
+          sessionType: 'Lift',
+          focus: focus,
+          exercises: <ProgramExercise>[
+            ProgramExercise(
+              exercise: 'Back Squat',
+              variant: null,
+              sets: ExerciseValue.fixed(3),
+              reps: ExerciseValue.fixed(5),
+              percent1Rm: 0.75,
+              restMinutes: 3,
+              notes: null,
+            ),
+          ],
+        ),
+        ProgramSession(
+          sessionId: 'w${number}b',
+          sessionName: 'Session B',
+          sessionType: 'Lift',
+          focus: focus,
+          exercises: <ProgramExercise>[
+            ProgramExercise(
+              exercise: 'Back Squat',
+              variant: null,
+              sets: ExerciseValue.fixed(3),
+              reps: ExerciseValue.fixed(5),
+              percent1Rm: 0.75,
+              restMinutes: 3,
+              notes: null,
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  return ProgramV2(
+    id: 'program-1',
+    name: '12-Week Squad Squat Peak',
+    category: 'Squat',
+    description: 'desc',
+    durationWeeks: 12,
+    sessionsPerWeek: 2,
+    difficulty: 'Intermediate',
+    phases: <ProgramPhase>[],
+    weeks: <ProgramWeek>[
+      week(number: 1, focus: 'Foundation'),
+      week(number: 2, focus: 'Strength'),
+    ],
+  );
+}
+
+CycleStatusResult _menstrualStatus() {
+  return CycleStatusResult(
+    currentPhase: CyclePhase.menstrual,
+    cycleDay: 2,
+    daysUntilNextPhase: 3,
+    predictedNextPeriod: DateTime.utc(2026, 3, 1),
+    phaseStartDate: DateTime.utc(2026, 2, 20),
+    phaseEndDate: DateTime.utc(2026, 2, 24),
+  );
+}
+
+Future<void> _pumpScreen({
+  required WidgetTester tester,
+  required _FakeProgramRepository repository,
+  required CycleStatusResult? cycleStatus,
+}) async {
+  final EnrolledProgramModel enrollment = EnrolledProgramModel(
+    id: 'enrollment-1',
+    programId: 'program-1',
+    startDate: DateTime.utc(2026, 1, 1),
+    currentWeek: 2,
+    currentDay: 1,
+    completedWeeks: const <int>[1],
+    lastSyncedAt: DateTime.utc(2026, 2, 23, 11, 0, 0),
+  );
+
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [
+        programsProvider.overrideWith((Ref ref) async => <ProgramV2>[_buildProgram()]),
+        activeEnrollmentProvider.overrideWith(
+          (Ref ref) => Stream<EnrolledProgramModel?>.value(enrollment),
+        ),
+        authSessionStreamProvider.overrideWith(
+          (Ref ref) => Stream<AuthSession>.value(
+            const AuthSession(status: AuthStatus.guest),
+          ),
+        ),
+        cycleStatusProvider.overrideWith((Ref ref) => cycleStatus),
+        programRepositoryProvider.overrideWithValue(repository),
+      ],
+      child: const MaterialApp(home: Scaffold(body: ProgramsScreen())),
+    ),
+  );
+
+  await tester.pumpAndSettle();
+}
 
 void main() {
-  testWidgets('ProgramsScreen renders list of programs',
-      (WidgetTester tester) async {
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          programsProvider.overrideWith((ref) async => [squadSquatProgram]),
-          activeEnrollmentProvider.overrideWith((ref) => Stream.value(null)),
-          authSessionStreamProvider.overrideWith((ref) => Stream.value(
-                const AuthSession(status: AuthStatus.unauthenticated),
-              )),
-        ],
-        child: const MaterialApp(
-          home: Scaffold(body: ProgramsScreen()),
-        ),
-      ),
+  testWidgets('renders week cards with metadata, progress, and manual controls', (
+    WidgetTester tester,
+  ) async {
+    final _FakeProgramRepository repository = _FakeProgramRepository();
+    await _pumpScreen(
+      tester: tester,
+      repository: repository,
+      cycleStatus: _menstrualStatus(),
     );
 
-    // Wait for FutureProvider to resolve
+    expect(find.text('Week 1'), findsOneWidget);
+    expect(find.text('Week 2'), findsOneWidget);
+    expect(find.text('Completed'), findsOneWidget);
+    expect(find.text('In Progress'), findsOneWidget);
+    expect(find.text('2 workouts'), findsNWidgets(2));
+    expect(find.text('Mark Week Complete'), findsOneWidget);
+    expect(find.textContaining('Sharkweek active'), findsOneWidget);
+  });
+
+  testWidgets('shows neutral cycle unavailable message when cycle data is missing', (
+    WidgetTester tester,
+  ) async {
+    final _FakeProgramRepository repository = _FakeProgramRepository();
+    await _pumpScreen(
+      tester: tester,
+      repository: repository,
+      cycleStatus: null,
+    );
+
+    expect(find.textContaining('Cycle data unavailable'), findsOneWidget);
+  });
+
+  testWidgets('shows inline write error banner when week action fails', (
+    WidgetTester tester,
+  ) async {
+    final _FakeProgramRepository repository =
+        _FakeProgramRepository(throwOnWrite: true);
+    await _pumpScreen(
+      tester: tester,
+      repository: repository,
+      cycleStatus: _menstrualStatus(),
+    );
+
+    await tester.ensureVisible(find.text('Mark Week Complete'));
+    await tester.tap(find.text('Mark Week Complete'));
     await tester.pumpAndSettle();
 
-    // Verify list is shown
-    expect(find.text('12-Week Squad Squat Peak'), findsOneWidget);
-    expect(find.text('A 12-week three-phase squat program focused on building a volume foundation, transitioning to heavy triples, and peaking for a true 1RM.'), findsOneWidget);
-
-    // Button should be disabled since userId is null
-    final enrollButton = find.text('Enroll in Program');
-    expect(enrollButton, findsOneWidget);
+    expect(find.textContaining('Could not save changes'), findsOneWidget);
   });
 }
