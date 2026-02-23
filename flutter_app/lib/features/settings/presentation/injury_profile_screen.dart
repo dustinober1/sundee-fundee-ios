@@ -40,7 +40,7 @@ class _InjuryProfileScreenState extends ConsumerState<InjuryProfileScreen> {
             movementLimitations: _limitationsController.text.trim(),
             recoveryGoal: _goalController.text.trim(),
           );
-      ref.invalidate(adaptedActiveProgramProvider);
+      ref.invalidate(injuryAdaptedActiveProgramProvider);
       _locationController.clear();
       _limitationsController.clear();
       _goalController.clear();
@@ -65,7 +65,7 @@ class _InjuryProfileScreenState extends ConsumerState<InjuryProfileScreen> {
   Future<void> _resolveInjury(String injuryId) async {
     try {
       await ref.read(authRepositoryProvider).resolveInjuryProfile(injuryId);
-      ref.invalidate(adaptedActiveProgramProvider);
+      ref.invalidate(injuryAdaptedActiveProgramProvider);
     } catch (error) {
       if (!mounted) {
         return;

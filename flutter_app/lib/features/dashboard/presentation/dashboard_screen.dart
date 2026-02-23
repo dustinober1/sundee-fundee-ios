@@ -341,7 +341,7 @@ class _NextWorkoutCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final enrollmentAsync = ref.watch(activeEnrollmentProvider);
-    final programAsync = ref.watch(adaptedActiveProgramProvider);
+    final programAsync = ref.watch(injuryAdaptedActiveProgramProvider);
     final ProgramAdaptationContext adaptationContext = ref.watch(
       programAdaptationContextProvider,
     );

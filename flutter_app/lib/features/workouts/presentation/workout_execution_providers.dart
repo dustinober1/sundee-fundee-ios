@@ -419,7 +419,7 @@ class WorkoutExecutionNotifier extends Notifier<WorkoutExecutionState?> {
     final enrollment = ref.read(activeEnrollmentProvider).asData?.value;
     if (enrollment != null) {
       final enrolledRepo = ref.read(enrolledProgramRepositoryProvider);
-      final programAsync = ref.read(adaptedActiveProgramProvider).asData?.value;
+      final programAsync = ref.read(injuryAdaptedActiveProgramProvider).asData?.value;
 
       if (programAsync != null) {
         final EnrollmentProgress recommendation =

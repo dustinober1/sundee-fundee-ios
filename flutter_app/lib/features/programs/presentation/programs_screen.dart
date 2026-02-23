@@ -34,7 +34,7 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
     final AsyncValue<EnrolledProgramModel?> activeEnrollmentAsync =
         ref.watch(activeEnrollmentProvider);
     final AsyncValue<ProgramV2?> adaptedActiveProgramAsync = ref.watch(
-      adaptedActiveProgramProvider,
+      injuryAdaptedActiveProgramProvider,
     );
     final AuthSession? session =
         ref.watch(authSessionStreamProvider).asData?.value;

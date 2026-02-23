@@ -45,7 +45,7 @@ class _WorkoutExecutionScreenState
 
   void _initSession() {
     final enrollment = ref.read(activeEnrollmentProvider).asData?.value;
-    final program = ref.read(adaptedActiveProgramProvider).asData?.value;
+    final program = ref.read(injuryAdaptedActiveProgramProvider).asData?.value;
 
     if (enrollment == null || program == null) {
       _initAttempts += 1;
@@ -95,7 +95,7 @@ class _WorkoutExecutionScreenState
   Widget build(BuildContext context) {
     ref.watch(activeEnrollmentProvider);
     ref.listen<AsyncValue<ProgramV2?>>(
-      adaptedActiveProgramProvider,
+      injuryAdaptedActiveProgramProvider,
       (
         AsyncValue<ProgramV2?>? previous,
         AsyncValue<ProgramV2?> next,

@@ -68,7 +68,7 @@ class WorkoutLandingScreen extends ConsumerWidget {
 
   Widget _buildNextSessionInfo(BuildContext context, WidgetRef ref) {
     final enrollmentAsync = ref.watch(activeEnrollmentProvider);
-    final programAsync = ref.watch(adaptedActiveProgramProvider);
+    final programAsync = ref.watch(injuryAdaptedActiveProgramProvider);
 
     return enrollmentAsync.when(
       data: (enrollment) {
