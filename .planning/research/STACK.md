@@ -1,15 +1,27 @@
-# Stack Research
+# Stack Research (v1.1)
 
-For a cycle-aware strength training tracker in 2026, the standard technology stack includes:
+## Scope
+Milestone v1.1 adds onboarding persistence, injury-aware plan adjustments, legal disclaimer handling, and enrolled-plan cancellation.
 
-- **Cross-platform UI**: Flutter with Dart 3.x (already used in repo). Supports mobile, web, desktop with same codebase.
-- **State Management**: Riverpod or Provider; this code uses Riverpod which remains current.
-- **Routing**: GoRouter or Flutter Navigator 2.0; GoRouter chosen for simplicity.
-- **Backend**: Firebase (Firestore for real-time data, Auth for login, Storage for media). Works well for small‑to‑mid scale mobile apps without server maintenance.
-- **Analytics/Crash**: Firebase Analytics + Crashlytics.
-- **Optional**: Health or cycle data could integrate with HealthKit/Google Fit but the current focus is manual logging.
+## Recommended Stack Additions/Changes
+- **No new platform dependency required** for core scope.
+- **Flutter + Riverpod + Firebase Auth/Firestore** remain sufficient.
+- **Firestore schema extensions** should be introduced for:
+  - persisted onboarding completion/profile state,
+  - active injury profile and recovery preferences,
+  - plan enrollment lifecycle status (`active`, `canceled`).
+- **Optional but recommended:** `freezed`/`json_serializable` consistency for new value objects if current models already use generated serialization.
 
-**Rationale:**
-Flutter gives fastest startup for existing project. Firebase keeps serverless backend with free tier and built‑in auth. Riverpod is the de facto state pattern and integrates with GoRouter. This matches existing codebase.
+## Integration Points
+- `Auth/session bootstrap` should hydrate persisted onboarding state after sign-in.
+- `Program generation policy` should read injury profile and apply substitution/recovery rules before workout output is finalized.
+- `Enrollment management` should support cancellation without deleting historical performance data.
+- `Disclaimer rendering` should be versioned copy in app constants/content layer and shown where injury guidance is presented.
 
-**Confidence:** high (stack already chosen and well-suited for domain).
+## What Not To Add
+- No new backend service is needed for v1.1.
+- No ML recommendation pipeline is needed for injury logic in this milestone.
+- No social/community dependencies for cancellation UX.
+
+## Notes
+The highest-risk technical area is data-contract correctness across old users and new profile fields; migration-safe defaults are mandatory.

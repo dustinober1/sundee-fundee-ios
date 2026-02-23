@@ -1,18 +1,28 @@
-# Research Summary
+# Research Summary (v1.1)
 
-**Stack:** Flutter (Dart 3), Riverpod, GoRouter, Firebase backend. Existing stack is appropriate and current.
+## Key Findings
 
-**Table Stakes:** Auth, cycle logging, program enrollment, dashboard, Firestore sync. These are already implemented in the codebase.
+**Stack additions:**
+- No new infrastructure required.
+- Extend Firestore contracts for onboarding persistence, injury profile, and enrollment lifecycle status.
+- Extend generator policy layer for deterministic injury-aware substitutions and recovery additions.
 
-**Differentiators:** Cycle-aware program generator with adaptive plans for women and hard-coded 12-week flow for men. UI cues like sharkweek logo.
-
-**Anti-features:** Social/sharing, real-time coaching.
+**New feature table stakes:**
+- Persist onboarding and skip repeat prompts on future logins.
+- Injury capture that influences plan generation.
+- Safe alternates + recovery-support additions.
+- Explicit non-medical disclaimer across injury guidance.
+- Cancel enrolled plans while preserving history.
 
 **Watch Out For:**
-- Handle irregular cycle data gracefully
-- Keep program generator simple initially
-- Update Firestore rules as schema changes
-- Guarantee offline support
-- Design user-friendly menstrual UI cues
+- Backward compatibility for existing users with missing fields.
+- Unsafe substitution mapping without movement-pattern safeguards.
+- Legal copy drift across screens.
+- Destructive cancellation behavior.
 
-Files: `.planning/research/STACK.md`, `FEATURES.md`, `ARCHITECTURE.md`, `PITFALLS.md`.
+## Output Files
+- `.planning/research/STACK.md`
+- `.planning/research/FEATURES.md`
+- `.planning/research/ARCHITECTURE.md`
+- `.planning/research/PITFALLS.md`
+- `.planning/research/SUMMARY.md`

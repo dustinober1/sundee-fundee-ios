@@ -1,19 +1,25 @@
-# Features Research
+# Features Research (v1.1)
 
 ## Table Stakes
-- User authentication (anonymous/email) with persistent state
-- Cycle logging: record periods, display current phase
-- Program enrollment: join a training plan and track progress
-- Dashboard showing current cycle and program week
-- Data sync via Firestore, offline support
+- Persist onboarding completion and responses so returning users are not re-onboarded.
+- Allow users to declare current injuries in profile or planning flow.
+- Generate safe alternate exercises when a planned movement conflicts with injury context.
+- Add recovery-support movements/routines appropriate to selected injury context.
+- Present legal disclaimer text that guidance is not medical advice or physical therapy.
+- Provide an explicit cancel action for an enrolled plan.
 
 ## Differentiators
-- Cycle-aware program generator adjusting loads by phase
-- Custom 12-week plan for men and adaptive plan for women
-- Menstrual phase cues (sharkweek logo)
+- Injury-aware substitutions that preserve progression intent (pattern-equivalent replacements).
+- Contextual recovery additions integrated into the plan rather than shown as disconnected tips.
+- Cancellation flow that preserves historical logs and allows future re-enrollment without corruption.
 
-## Anti-features
-- Social networking or sharing
-- Real-time coaching AI
+## Anti-Features
+- Diagnosing injuries or assigning medical treatment plans.
+- Automatic return-to-lift clearance claims.
+- Destructive cancellation that erases completed sessions and progression history.
 
-**Notes:** Existing code already implements most table stakes and some differentiators. Future work focuses on fine-tuning program adaptation and UI.
+## Complexity + Dependencies
+- **Onboarding persistence:** low-medium complexity; depends on auth bootstrap and profile storage.
+- **Injury-aware generation:** medium-high complexity; depends on exercise taxonomy/tagging and generator policy hooks.
+- **Disclaimer/legal copy:** low complexity; depends on all injury-facing surfaces.
+- **Plan cancellation:** medium complexity; depends on enrollment state model and UI entry points.
