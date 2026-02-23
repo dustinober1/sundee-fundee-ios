@@ -10,6 +10,7 @@ class UserModel {
     required this.gender,
     required this.createdAt,
     required this.appleUserId,
+    this.cycleTrackingEnabled = false,
   });
 
   final String id;
@@ -19,11 +20,12 @@ class UserModel {
   final Gender gender;
   final DateTime createdAt;
   final String appleUserId;
+  final bool cycleTrackingEnabled;
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
       id: json['id'] as String? ?? '',
-      name: json['name'] as String? ?? '',
+      name: json['name'] as String? ?? json['displayName'] as String? ?? '',
       experienceLevel: enumFromString<ExperienceLevel>(
         ExperienceLevel.values,
         json['experienceLevelRaw'] as String? ??
@@ -44,6 +46,7 @@ class UserModel {
       appleUserId: json['appleUserID'] as String? ??
           json['appleUserId'] as String? ??
           '',
+      cycleTrackingEnabled: json['cycleTrackingEnabled'] as bool? ?? false,
     );
   }
 
@@ -56,6 +59,7 @@ class UserModel {
       'genderRaw': gender.name,
       'createdAt': createdAt.toIso8601String(),
       'appleUserID': appleUserId,
+      'cycleTrackingEnabled': cycleTrackingEnabled,
     };
   }
 }

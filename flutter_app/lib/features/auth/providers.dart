@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
+import '../../domain/models/user_model.dart';
 import 'data/auth_repository.dart';
 import 'data/guest_mode_store.dart';
 import 'domain/auth_state.dart';
@@ -49,4 +50,13 @@ final authRepositoryProvider = Provider<AuthRepository>((Ref ref) {
 
 final authSessionStreamProvider = StreamProvider<AuthSession>((Ref ref) {
   return ref.watch(authRepositoryProvider).authStateChanges();
+});
+
+final userProfileStreamProvider = StreamProvider<UserModel?>((Ref ref) {
+  final session = ref.watch(authSessionStreamProvider).asData?.value;
+  final userId = session?.user?.uid;
+  if (userId == null) {
+    return Stream.value(null);
+  }
+  return ref.watch(authRepositoryProvider).watchUserProfile(userId);
 });

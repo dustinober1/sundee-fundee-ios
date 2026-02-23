@@ -1,48 +1,74 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../auth/providers.dart';
 import '../../cycle/presentation/cycle_tracking_screen.dart';
 import '../../dashboard/presentation/dashboard_screen.dart';
 import '../../maxes/presentation/max_lifts_screen.dart';
 import '../../settings/presentation/settings_screen.dart';
 import '../../workouts/presentation/workout_landing_screen.dart';
 
-class MainShellScreen extends StatefulWidget {
+class MainShellScreen extends ConsumerStatefulWidget {
   const MainShellScreen({super.key});
 
   @override
-  State<MainShellScreen> createState() => _MainShellScreenState();
+  ConsumerState<MainShellScreen> createState() => _MainShellScreenState();
 }
 
-class _MainShellScreenState extends State<MainShellScreen> {
+class _MainShellScreenState extends ConsumerState<MainShellScreen> {
   int _selectedIndex = 0;
-
-  static const List<String> _titles = <String>[
-    'Dashboard',
-    'Workout',
-    'Maxes',
-    'Cycle',
-    'Settings',
-  ];
-
-  static const List<Widget> _screens = <Widget>[
-    DashboardScreen(),
-    WorkoutLandingScreen(),
-    MaxLiftsScreen(),
-    CycleTrackingScreen(),
-    SettingsScreen(),
-  ];
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(_titles[_selectedIndex])),
-      body: SafeArea(
-        child: Consumer(
-          builder: (context, ref, child) {
-            return _screens[_selectedIndex];
-          },
+    final userProfile = ref.watch(userProfileStreamProvider).asData?.value;
+    final bool showCycleTab = userProfile?.cycleTrackingEnabled ?? false;
+
+    final List<String> titles = [
+      'Dashboard',
+      'Workout',
+      'Maxes',
+      if (showCycleTab) 'Cycle',
+      'Settings',
+    ];
+
+    final List<Widget> screens = [
+      const DashboardScreen(),
+      const WorkoutLandingScreen(),
+      const MaxLiftsScreen(),
+      if (showCycleTab) const CycleTrackingScreen(),
+      const SettingsScreen(),
+    ];
+
+    final List<NavigationDestination> destinations = [
+      const NavigationDestination(icon: Icon(Icons.home_outlined), label: 'Home'),
+      const NavigationDestination(
+        icon: Icon(Icons.fitness_center),
+        label: 'Workout',
+      ),
+      const NavigationDestination(
+        icon: Icon(Icons.show_chart),
+        label: 'Maxes',
+      ),
+      if (showCycleTab)
+        const NavigationDestination(
+          icon: Icon(Icons.monitor_heart_outlined),
+          label: 'Cycle',
         ),
+      const NavigationDestination(
+        icon: Icon(Icons.settings_outlined),
+        label: 'Settings',
+      ),
+    ];
+
+    // Ensure _selectedIndex is not out of bounds after filtering
+    if (_selectedIndex >= screens.length) {
+      _selectedIndex = 0;
+    }
+
+    return Scaffold(
+      appBar: AppBar(title: Text(titles[_selectedIndex])),
+      body: SafeArea(
+        child: screens[_selectedIndex],
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
@@ -51,25 +77,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
             _selectedIndex = index;
           });
         },
-        destinations: const <NavigationDestination>[
-          NavigationDestination(icon: Icon(Icons.home_outlined), label: 'Home'),
-          NavigationDestination(
-            icon: Icon(Icons.fitness_center),
-            label: 'Workout',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.show_chart),
-            label: 'Maxes',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.monitor_heart_outlined),
-            label: 'Cycle',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.settings_outlined),
-            label: 'Settings',
-          ),
-        ],
+        destinations: destinations,
       ),
     );
   }

@@ -7,6 +7,8 @@ import 'package:rxdart/rxdart.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 import '../domain/auth_state.dart';
+import '../../../domain/enums.dart';
+import '../../../domain/models/user_model.dart';
 import 'guest_mode_store.dart';
 
 class AuthRepository {
@@ -71,6 +73,19 @@ class AuthRepository {
           user: user,
         );
       });
+    });
+  }
+
+  Stream<UserModel?> watchUserProfile(String userId) {
+    if (!_firebaseEnabled) {
+      return Stream.value(null);
+    }
+
+    return _usersCollection.doc(userId).snapshots().map((doc) {
+      if (!doc.exists) {
+        return null;
+      }
+      return UserModel.fromJson(doc.data()!);
     });
   }
 
@@ -175,7 +190,11 @@ class AuthRepository {
     return userCredential;
   }
 
-  Future<void> completeOnboarding({required String name}) async {
+  Future<void> completeOnboarding({
+    required String name,
+    required Gender gender,
+    required bool cycleTrackingEnabled,
+  }) async {
     _assertFirebaseEnabled('completeOnboarding');
 
     final User? user = _requireAuth().currentUser;
@@ -185,6 +204,8 @@ class AuthRepository {
 
     await _usersCollection.doc(user.uid).set(<String, dynamic>{
       'displayName': name,
+      'genderRaw': gender.name,
+      'cycleTrackingEnabled': cycleTrackingEnabled,
       'onboardingComplete': true,
       'updatedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
