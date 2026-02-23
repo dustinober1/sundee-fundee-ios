@@ -29,13 +29,24 @@
      2. All Firebase rules updated for new program fields.
      3. Codebase documented and tests cover critical paths.
 
+4. **Full-Suite Test Stabilization & Verification Hardening** 🟡 Planned
+   - Goal: Eliminate remaining legacy/full-suite test drift and produce clean full-suite verification evidence for v1 completion confidence.
+   - Requirements: AUTH-01, CYCLE-01, PROG-01, PROG-02, PROG-03, UI-01 (verification hardening)
+   - Gap Closure: Closes tech debt items from `v1-MILESTONE-AUDIT.md`
+   - Success Criteria:
+     1. Remaining full-suite failures are cataloged and fixed or intentionally retired with rationale.
+     2. `flutter analyze` and full `flutter test` complete cleanly in a documented run.
+     3. Verification artifacts are updated to include full-suite evidence links.
+
 
 ## Phase Status
 - Phase 1: Complete (verified)
 - Phase 2: Complete (verified)
 - Phase 3: Complete (verified)
+- Phase 4: Planned (gap closure)
 
 ## Traceability Updates
 - Phase 1: AUTH-01, CYCLE-01, PROG-01, PROG-02, UI-01
 - Phase 2: PROG-03
 - Phase 3: UI-01 (polish), PROG-03 (stability)
+- Phase 4: AUTH-01, CYCLE-01, PROG-01, PROG-02, PROG-03, UI-01 (verification hardening)
