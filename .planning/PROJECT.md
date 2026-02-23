@@ -12,10 +12,21 @@ Help users follow a structured strength plan with reliable progression and cycle
 - Verification status: clean `flutter analyze` + full `flutter test`
 - Core platform: Flutter + Riverpod + Firebase (Firestore/Auth)
 
-## Next Milestone Goals
-- Define v2 product goals and requirement set.
-- Decide priority among deferred items (OAuth, custom programs, social sharing).
-- Preserve v1 reliability baseline while expanding feature scope.
+## Current Milestone: v1.1 Onboarding Persistence + Injury-Aware Plans
+
+**Goal:** Remove repeat onboarding friction while introducing injury-aware plan customization and safe plan cancellation.
+
+**Target features:**
+- Save onboarding profile inputs and stop re-prompting on each login.
+- Adjust generated plans when users report current injuries, including safer alternates and recovery-support additions.
+- Add legal disclaimer copy clarifying the app is not medical advice or physical therapy.
+- Let users cancel an enrolled plan without breaking progression history.
+
+## Active Requirements Focus
+- Persist onboarding completion state per user account and honor it on future sessions.
+- Collect and store injury context that can influence workout generation rules.
+- Provide explicit cancel-plan controls and data/state transitions for enrolled plans.
+- Preserve v1 reliability baseline while expanding scope.
 
 ## Key Decisions
 | Decision | Rationale | Outcome |
@@ -38,4 +49,4 @@ Help users follow a structured strength plan with reliable progression and cycle
 </details>
 
 ---
-*Last updated: 2026-02-23 after v1 milestone completion*
+*Last updated: 2026-02-23 for v1.1 milestone initialization*
