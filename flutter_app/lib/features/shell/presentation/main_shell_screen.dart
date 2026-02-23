@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../cycle/presentation/cycle_tracking_screen.dart';
 import '../../dashboard/presentation/dashboard_screen.dart';
 import '../../maxes/presentation/max_lifts_screen.dart';
-import '../../programs/presentation/programs_screen.dart';
 import '../../settings/presentation/settings_screen.dart';
 import '../../workouts/presentation/workout_landing_screen.dart';
 
