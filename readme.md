@@ -33,6 +33,7 @@ Sundee Fundee is a hormonal-aware strength training tracker built with Flutter a
 - 📈 **Optimized Progress Tracking:** Removed 10 rep maxes to focus on strength-specific metrics (1/3/5 RM).
 - 🚀 **Plyometrics Tracking:** Integrated specific tracking for Box Jumps and Broad Jumps in inches (highest/farthest effort).
 - 📈 **Enhanced Max Lifts UI:** Redesigned the Personal Bests screen with search functionality, category-specific icons, and a modern, premium aesthetic.
+- 👤 **Enhanced Onboarding:** New registration flow collects user name, biological sex, and offers a conditional opt-in for hormone-aware cycle tracking for female users. The main navigation dynamically adapts to hide cycle-related features for opted-out users.
 - 📊 Progress tracking and personal records
 - 🔄 Menstrual cycle phase tracking with training recommendations
 - 👤 Guest mode for offline-first usage
