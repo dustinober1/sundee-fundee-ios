@@ -52,6 +52,8 @@ class DashboardScreen extends ConsumerWidget {
     final periodLogs = ref.watch(periodLogsProvider).asData?.value ?? const [];
     final cycleControllerState = ref.watch(cycleControllerProvider);
     final syncStatus = ref.watch(cycleSyncStatusProvider);
+    final InjuryAdaptationContext injuryContext =
+        ref.watch(injuryAdaptationContextProvider);
     final DateTime? lastSyncedAt =
         periodLogs.isEmpty ? null : periodLogs.first.startDate;
 
@@ -134,6 +136,15 @@ class DashboardScreen extends ConsumerWidget {
                 ),
               ),
             ),
+            if (injuryContext.hasActiveInjuries) ...<Widget>[
+              const SizedBox(height: 8),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: _InjuryActiveIndicator(
+                  injuryCount: injuryContext.activeInjuries.length,
+                ),
+              ),
+            ],
             const SizedBox(height: 16),
             const _NextWorkoutCard(),
             const SizedBox(height: 32),
@@ -201,6 +212,38 @@ class _DashboardInfoBanner extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Lightweight indicator shown on the dashboard when there are active injuries.
+/// Tapping it does nothing — it is purely informational. For full details,
+/// the user navigates to the Programs tab where the full banner is displayed.
+class _InjuryActiveIndicator extends StatelessWidget {
+  const _InjuryActiveIndicator({required this.injuryCount});
+
+  final int injuryCount;
+
+  @override
+  Widget build(BuildContext context) {
+    final String label = injuryCount == 1
+        ? '1 active injury — plan adapted'
+        : '$injuryCount active injuries — plan adapted';
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        const Icon(Icons.warning_amber_rounded, size: 14, color: Colors.orange),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 12,
+            color: Colors.orange,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
     );
   }
 }

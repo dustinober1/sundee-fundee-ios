@@ -10,11 +10,13 @@ import '../../../domain/models/program_models.dart';
 import '../../auth/domain/auth_state.dart';
 import '../../auth/providers.dart';
 import '../../cycle/providers.dart';
+import '../../profile/providers.dart';
 import '../../repositories/domain/sync_status_model.dart';
 import '../../shared/presentation/sync_status_badge.dart';
 import '../data/program_repository.dart';
 import '../providers/adapted_program_provider.dart';
 import 'widgets/cycle_adjustment_explainer.dart';
+import 'widgets/injury_adaptation_banner.dart';
 
 class ProgramsScreen extends ConsumerStatefulWidget {
   const ProgramsScreen({super.key});
@@ -26,6 +28,7 @@ class ProgramsScreen extends ConsumerStatefulWidget {
 class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
   String? _writeError;
   bool? _cycleAdjustmentDetailsOverride;
+  bool? _injuryBannerVisibleOverride;
 
   @override
   Widget build(BuildContext context) {
@@ -42,9 +45,13 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
     final ProgramAdaptationContext adaptationContext = ref.watch(
       programAdaptationContextProvider,
     );
+    final InjuryAdaptationContext injuryContext = ref.watch(
+      injuryAdaptationContextProvider,
+    );
     final SyncStatusModel syncStatus = ref.watch(cycleSyncStatusProvider);
     final bool detailsVisible = _cycleAdjustmentDetailsOverride ??
         ref.watch(cycleAdjustmentDetailsVisibleProvider);
+    final bool injuryBannerVisible = _injuryBannerVisibleOverride ?? true;
 
     final String? userId = session?.user?.uid ??
         (session?.status == AuthStatus.guest ? 'guest' : null);
@@ -107,6 +114,30 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
                     },
                   ),
                 ],
+                if (injuryContext.hasActiveInjuries) ...<Widget>[
+                  const SizedBox(height: 12),
+                  InjuryAdaptationBanner(
+                    injuryContext: injuryContext,
+                    adaptationChangelog: _buildAdaptationChangelog(
+                      selectedProgram,
+                    ),
+                    visible: injuryBannerVisible,
+                    onToggleVisibility: () {
+                      setState(() {
+                        _injuryBannerVisibleOverride = !injuryBannerVisible;
+                      });
+                    },
+                    onAcknowledgeDisclaimer: (String injuryId) async {
+                      if (userId == null || userId == 'guest') return;
+                      await ref
+                          .read(profileRepositoryProvider)
+                          .acknowledgeInjuryDisclaimer(
+                            userId: userId,
+                            injuryId: injuryId,
+                          );
+                    },
+                  ),
+                ],
                 if (_writeError != null) ...<Widget>[
                   const SizedBox(height: 12),
                   _NoticeCard(
@@ -140,49 +171,64 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
                       ),
                 ),
                 const SizedBox(height: 12),
-                ...selectedProgram.weeks.map((ProgramWeek week) {
-                  final bool isCompleted =
-                      enrollment.completedWeeks.contains(week.week);
-                  final bool isCurrent = enrollment.currentWeek == week.week;
-                  final double progress = _progressForWeek(
-                    week: week,
-                    enrollment: enrollment,
-                    isCompleted: isCompleted,
-                    isCurrent: isCurrent,
-                  );
-                  final String statusLabel = isCompleted
-                      ? 'Completed'
-                      : isCurrent
-                          ? 'In Progress'
-                          : 'Upcoming';
+                // Hard gate: hide week list until disclaimer acknowledged
+                if (injuryContext.hasActiveInjuries &&
+                    !injuryContext.disclaimerAcknowledgedForAll)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 24),
+                    child: Text(
+                      'Acknowledge the injury disclaimer above to view your adapted plan.',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: AppColors.textSecondary,
+                            fontStyle: FontStyle.italic,
+                          ),
+                    ),
+                  )
+                else
+                  ...selectedProgram.weeks.map((ProgramWeek week) {
+                    final bool isCompleted =
+                        enrollment.completedWeeks.contains(week.week);
+                    final bool isCurrent = enrollment.currentWeek == week.week;
+                    final double progress = _progressForWeek(
+                      week: week,
+                      enrollment: enrollment,
+                      isCompleted: isCompleted,
+                      isCurrent: isCurrent,
+                    );
+                    final String statusLabel = isCompleted
+                        ? 'Completed'
+                        : isCurrent
+                            ? 'In Progress'
+                            : 'Upcoming';
 
-                  return _WeekCard(
-                    week: week,
-                    statusLabel: statusLabel,
-                    progress: progress,
-                    intensityLabel:
-                        _intensityLabel(week.week, week.isTestWeek ?? false),
-                    adjustmentLabel:
-                        adaptationContext.isAdapted ? 'Cycle-adjusted' : null,
-                    showCompleteAction:
-                        isCurrent && !isCompleted && userId != null,
-                    canJump: userId != null,
-                    onJumpToWeek: userId == null
-                        ? null
-                        : () => _handleJumpToWeek(
-                              userId: userId,
-                              enrollmentId: enrollment.id,
-                              week: week.week,
-                            ),
-                    onMarkWeekComplete: userId == null
-                        ? null
-                        : () => _handleMarkWeekComplete(
-                              userId: userId,
-                              enrollment: enrollment,
-                              durationWeeks: selectedProgram.durationWeeks,
-                            ),
-                  );
-                }),
+                    return _WeekCard(
+                      week: week,
+                      statusLabel: statusLabel,
+                      progress: progress,
+                      intensityLabel:
+                          _intensityLabel(week.week, week.isTestWeek ?? false),
+                      adjustmentLabel:
+                          adaptationContext.isAdapted ? 'Cycle-adjusted' : null,
+                      showCompleteAction:
+                          isCurrent && !isCompleted && userId != null,
+                      canJump: userId != null,
+                      onJumpToWeek: userId == null
+                          ? null
+                          : () => _handleJumpToWeek(
+                                userId: userId,
+                                enrollmentId: enrollment.id,
+                                week: week.week,
+                              ),
+                      onMarkWeekComplete: userId == null
+                          ? null
+                          : () => _handleMarkWeekComplete(
+                                userId: userId,
+                                enrollment: enrollment,
+                                durationWeeks: selectedProgram.durationWeeks,
+                              ),
+                    );
+                  }),
               ],
             );
           },
@@ -245,6 +291,48 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
         });
       }
     }
+  }
+
+  /// Builds a deduplicated list of human-readable changelog entries from the
+  /// adapted program. Used to populate the [InjuryAdaptationBanner].
+  List<String> _buildAdaptationChangelog(ProgramV2 program) {
+    final Set<String> seen = <String>{};
+    final List<String> entries = <String>[];
+
+    int maxRecoveryPrepCount = 0;
+
+    for (final ProgramWeek week in program.weeks) {
+      for (final ProgramSession session in week.sessions) {
+        // Replaced exercises
+        for (final ProgramExercise exercise in session.exercises) {
+          if (exercise.injuryReplacedOriginal != null) {
+            final String reason = exercise.injuryReplacementReason != null
+                ? ' (${exercise.injuryReplacementReason})'
+                : '';
+            final String entry =
+                '${exercise.injuryReplacedOriginal} → ${exercise.exercise}$reason';
+            if (seen.add(entry)) {
+              entries.add(entry);
+            }
+          }
+        }
+        // Track max recovery prep count across sessions
+        if (session.recoveryPrepExercises.isNotEmpty) {
+          maxRecoveryPrepCount = session.recoveryPrepExercises.length >
+                  maxRecoveryPrepCount
+              ? session.recoveryPrepExercises.length
+              : maxRecoveryPrepCount;
+        }
+      }
+    }
+
+    if (maxRecoveryPrepCount > 0) {
+      entries.add(
+        'Recovery prep block added ($maxRecoveryPrepCount exercise${maxRecoveryPrepCount == 1 ? '' : 's'})',
+      );
+    }
+
+    return entries;
   }
 
   Future<void> _setCycleAdjustmentVisibility({
