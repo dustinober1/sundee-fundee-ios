@@ -2,10 +2,10 @@
 
 ## Current Position
 
-Phase: Not started (defining requirements)  
+Phase: Roadmap drafted (awaiting approval)  
 Plan: —  
-Status: Defining requirements  
-Last activity: 2026-02-23 — Milestone v1.1 started
+Status: Milestone v1.1 planning in progress  
+Last activity: 2026-02-23 — Drafted roadmap for milestone v1.1
 
 ## Accumulated Context
 

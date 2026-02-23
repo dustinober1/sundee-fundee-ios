@@ -35,14 +35,14 @@ Milestone v1.1 focuses on onboarding persistence, injury-aware planning, and enr
 ## Traceability (Requirement -> Phase)
 | Requirement ID | Planned Phase |
 |---|---|
-| ONB-01 | TBD |
-| ONB-02 | TBD |
-| ONB-03 | TBD |
-| INJ-01 | TBD |
-| INJ-02 | TBD |
-| INJ-03 | TBD |
-| INJ-04 | TBD |
-| INJ-05 | TBD |
-| PLN-01 | TBD |
-| PLN-02 | TBD |
-| PLN-03 | TBD |
+| ONB-01 | 5 |
+| ONB-02 | 5 |
+| ONB-03 | 5 |
+| INJ-01 | 5 |
+| INJ-02 | 5 |
+| INJ-03 | 6 |
+| INJ-04 | 6 |
+| INJ-05 | 6 |
+| PLN-01 | 7 |
+| PLN-02 | 7 |
+| PLN-03 | 7 |

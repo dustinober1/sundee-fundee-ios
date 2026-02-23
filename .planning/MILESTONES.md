@@ -24,3 +24,18 @@
 **What's next:** Start v2 milestone planning.
 
 ---
+
+## v1.1 Onboarding Persistence + Injury-Aware Plans (Planned: 2026-02-23)
+
+**Goal:** Remove repeat onboarding friction while introducing injury-aware plan customization and safe plan cancellation.
+
+**Planned phases:** 5-7
+
+**In scope:**
+- Persist onboarding completion and profile answers across sessions/devices.
+- Add injury profile inputs that adapt generated plans with alternates and recovery-support additions.
+- Add legal disclaimer that guidance is not medical advice or physical therapy.
+- Support plan cancellation while preserving historical workout/progression records.
+
+**Requirements:** `.planning/REQUIREMENTS.md` (ONB-01..03, INJ-01..05, PLN-01..03)
+**Roadmap:** `.planning/ROADMAP.md`
