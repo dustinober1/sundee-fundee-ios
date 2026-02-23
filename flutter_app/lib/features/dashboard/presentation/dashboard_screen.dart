@@ -65,6 +65,17 @@ class DashboardScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Text(
+                'Welcome, ${session?.user?.displayName ?? 'User'}',
+                style: const TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.brandPrimary,
+                ),
+              ),
+            ),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16.0),
               child: Text(

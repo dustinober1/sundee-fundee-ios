@@ -20,7 +20,6 @@ class _MainShellScreenState extends State<MainShellScreen> {
 
   static const List<String> _titles = <String>[
     'Dashboard',
-    'Programs',
     'Workout',
     'Maxes',
     'Cycle',
@@ -29,7 +28,6 @@ class _MainShellScreenState extends State<MainShellScreen> {
 
   static const List<Widget> _screens = <Widget>[
     DashboardScreen(),
-    ProgramsScreen(),
     WorkoutLandingScreen(),
     MaxLiftsScreen(),
     CycleTrackingScreen(),
@@ -56,10 +54,6 @@ class _MainShellScreenState extends State<MainShellScreen> {
         },
         destinations: const <NavigationDestination>[
           NavigationDestination(icon: Icon(Icons.home_outlined), label: 'Home'),
-          NavigationDestination(
-            icon: Icon(Icons.list_alt_outlined),
-            label: 'Programs',
-          ),
           NavigationDestination(
             icon: Icon(Icons.fitness_center),
             label: 'Workout',
