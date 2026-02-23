@@ -242,7 +242,7 @@ class ProgramExercise {
   }
 }
 
-enum ExerciseValueType { fixed, amrap, range }
+enum ExerciseValueType { fixed, amrap, range, text }
 
 class ExerciseValue {
   const ExerciseValue._({
@@ -250,6 +250,7 @@ class ExerciseValue {
     this.fixedValue,
     this.minValue,
     this.maxValue,
+    this.textValue,
   });
 
   factory ExerciseValue.fixed(int value) {
@@ -268,10 +269,15 @@ class ExerciseValue {
     );
   }
 
+  factory ExerciseValue.text(String text) {
+    return ExerciseValue._(type: ExerciseValueType.text, textValue: text);
+  }
+
   final ExerciseValueType type;
   final int? fixedValue;
   final int? minValue;
   final int? maxValue;
+  final String? textValue;
 
   static ExerciseValue fromJson(dynamic jsonValue) {
     if (jsonValue is int) {
@@ -305,6 +311,9 @@ class ExerciseValue {
       if (single != null) {
         return ExerciseValue.fixed(single);
       }
+
+      // Fallback for everything else ("5 minutes", "500m")
+      return ExerciseValue.text(jsonValue);
     }
 
     if (jsonValue is List<dynamic> && jsonValue.length == 2) {
@@ -333,6 +342,8 @@ class ExerciseValue {
         return 'AMRAP';
       case ExerciseValueType.range:
         return <int>[minValue!, maxValue!];
+      case ExerciseValueType.text:
+        return textValue;
     }
   }
 
@@ -344,6 +355,8 @@ class ExerciseValue {
         return 'AMRAP';
       case ExerciseValueType.range:
         return '${minValue ?? 0}-${maxValue ?? 0}';
+      case ExerciseValueType.text:
+        return textValue ?? '';
     }
   }
 }
