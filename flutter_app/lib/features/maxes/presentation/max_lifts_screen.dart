@@ -28,7 +28,8 @@ class MaxLiftsScreen extends ConsumerWidget {
               final exercises = categories[category]!;
 
               return ExpansionTile(
-                title: Text(category, style: Theme.of(context).textTheme.titleLarge),
+                title: Text(category,
+                    style: Theme.of(context).textTheme.titleLarge),
                 children: [
                   for (final exercise in exercises)
                     _ExerciseMaxRow(
@@ -90,7 +91,8 @@ class _ExerciseMaxRow extends ConsumerWidget {
             _RepMaxInput(exercise: exercise, repCount: 1, currentMax: maxes[1]),
             _RepMaxInput(exercise: exercise, repCount: 3, currentMax: maxes[3]),
             _RepMaxInput(exercise: exercise, repCount: 5, currentMax: maxes[5]),
-            _RepMaxInput(exercise: exercise, repCount: 10, currentMax: maxes[10]),
+            _RepMaxInput(
+                exercise: exercise, repCount: 10, currentMax: maxes[10]),
           ],
         ),
       ),
@@ -99,7 +101,8 @@ class _ExerciseMaxRow extends ConsumerWidget {
 }
 
 class _RepMaxInput extends ConsumerStatefulWidget {
-  const _RepMaxInput({required this.exercise, required this.repCount, this.currentMax});
+  const _RepMaxInput(
+      {required this.exercise, required this.repCount, this.currentMax});
 
   final ExerciseDefinition exercise;
   final int repCount;
@@ -116,7 +119,8 @@ class _RepMaxInputState extends ConsumerState<_RepMaxInput> {
   @override
   void initState() {
     super.initState();
-    _weightCtrl = TextEditingController(text: widget.currentMax?.weight.toString() ?? '');
+    _weightCtrl =
+        TextEditingController(text: widget.currentMax?.weight.toString() ?? '');
     _selectedDate = widget.currentMax?.updatedAt;
   }
 
@@ -190,11 +194,12 @@ class _RepMaxInputState extends ConsumerState<_RepMaxInput> {
           Expanded(
             child: TextField(
               controller: _weightCtrl,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              decoration: InputDecoration(
-                hintText: widget.exercise.category == 'Plyometrics' ? 'Height (in)' : 'Weight (lbs)',
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
+              decoration: const InputDecoration(
+                hintText: 'Weight',
                 isDense: true,
-                border: const OutlineInputBorder(),
+                border: OutlineInputBorder(),
               ),
               onSubmitted: (_) {
                 FocusScope.of(context).unfocus();

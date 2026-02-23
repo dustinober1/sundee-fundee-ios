@@ -64,7 +64,8 @@ class ProgramRepository {
     );
   }
 
-  Stream<EnrolledProgramModel?> watchActiveEnrollment({required String userId}) {
+  Stream<EnrolledProgramModel?> watchActiveEnrollment(
+      {required String userId}) {
     return _enrolledProgramRepository.watchActiveEnrollment(userId: userId);
   }
 }
@@ -106,6 +107,7 @@ final StreamProvider<ProgramV2?> activeProgramProvider =
   final programs = await ref.watch(programsProvider.future);
   yield programs.firstWhere(
     (p) => p.id == enrollment.programId,
-    orElse: () => throw StateError('Program not found: ${enrollment.programId}'),
+    orElse: () =>
+        throw StateError('Program not found: ${enrollment.programId}'),
   );
 });

@@ -17,7 +17,8 @@ class CycleProgramGenerator {
             reps: ExerciseValue.fixed(1),
             percent1Rm: 0.95, // 90-95% (Heavy Single)
             restMinutes: 4.0, // 3-5 minutes
-            notes: "PEAK STRENGTH. Estrogen/Testosterone are peaking. Hit a heavy, clean single.",
+            notes:
+                "PEAK STRENGTH. Estrogen/Testosterone are peaking. Hit a heavy, clean single.",
           ),
         ];
 
@@ -42,10 +43,12 @@ class CycleProgramGenerator {
             exercise: 'high-bar-back-squat',
             variant: null,
             sets: ExerciseValue.fixed(3),
-            reps: ExerciseValue.range(2, 3), // 2-3 reps Let's use 2 here, or a range if available.
+            reps: ExerciseValue.range(
+                2, 3), // 2-3 reps Let's use 2 here, or a range if available.
             percent1Rm: 0.85,
             restMinutes: 3.5, // 3+ minutes
-            notes: "Endurance is lower, but strength is maintained. Keep reps low to manage CNS fatigue.",
+            notes:
+                "Endurance is lower, but strength is maintained. Keep reps low to manage CNS fatigue.",
           ),
         ];
 
@@ -85,7 +88,8 @@ class CycleProgramGenerator {
       // Since DateTime weekdays are: Monday=1 ... Sunday=7
       // If programStartDate is a Monday (1), Sunday is programStartDate + 6 days.
       // We will just calculate target Sunday as:
-      final DateTime sundayDate = programStartDate.add(Duration(days: ((weekNum - 1) * 7) + 6));
+      final DateTime sundayDate =
+          programStartDate.add(Duration(days: ((weekNum - 1) * 7) + 6));
 
       // What phase will they be in on that Sunday?
       final CycleStatusResult? status = CycleCalculations.calculateCycleStatus(
@@ -94,7 +98,8 @@ class CycleProgramGenerator {
         referenceDate: sundayDate,
       );
 
-      final CyclePhase currentPhase = status?.currentPhase ?? CyclePhase.menstrual;
+      final CyclePhase currentPhase =
+          status?.currentPhase ?? CyclePhase.menstrual;
 
       // Find the week in the base program
       final ProgramWeek baseWeek = baseProgram.weeks.firstWhere(
@@ -105,7 +110,8 @@ class CycleProgramGenerator {
       final List<ProgramSession> adaptedSessions = [];
 
       for (var session in baseWeek.sessions) {
-        if (session.focus == 'HeavyMainLift' || session.sessionName == 'Sundee-Fundee') {
+        if (session.focus == 'HeavyMainLift' ||
+            session.sessionName == 'Sundee-Fundee') {
           // Adapt the Sunday workout!
           final ProgramSession adaptedSession = ProgramSession(
             sessionId: session.sessionId,

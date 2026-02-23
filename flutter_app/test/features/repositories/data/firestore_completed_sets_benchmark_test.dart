@@ -4,7 +4,8 @@ import 'package:sundee_fundee_flutter/domain/models/completed_set_model.dart';
 import 'package:sundee_fundee_flutter/features/repositories/data/firestore_repositories.dart';
 
 void main() {
-  test('Benchmark: watchCompletedSets performance with large dataset', () async {
+  test('Benchmark: watchCompletedSets performance with large dataset',
+      () async {
     final firestore = FakeFirebaseFirestore();
     final repository = FirestoreWorkoutRepository(firestore: firestore);
     const userId = 'benchmark_user';
@@ -36,7 +37,9 @@ void main() {
 
     // Warmup JIT
     print('Warming up...');
-    await repository.watchCompletedSets(userId: userId, workoutId: workoutId).first;
+    await repository
+        .watchCompletedSets(userId: userId, workoutId: workoutId)
+        .first;
     await firestore
         .collection('users')
         .doc(userId)
@@ -57,7 +60,8 @@ void main() {
     final boundedTime = stopwatch.elapsedMilliseconds;
 
     expect(boundedResult.length, 500);
-    print('Bounded Query (limit 500): ${boundedResult.length} items in ${boundedTime}ms');
+    print(
+        'Bounded Query (limit 500): ${boundedResult.length} items in ${boundedTime}ms');
 
     // 2. Measure Unbounded Query (Simulated)
     stopwatch.reset();
@@ -78,7 +82,8 @@ void main() {
     final unboundedTime = stopwatch.elapsedMilliseconds;
 
     expect(unboundedResult.length, 2000);
-    print('Unbounded Query (no limit): ${unboundedResult.length} items in ${unboundedTime}ms');
+    print(
+        'Unbounded Query (no limit): ${unboundedResult.length} items in ${unboundedTime}ms');
 
     // Analyze results
     print('Performance Improvement:');

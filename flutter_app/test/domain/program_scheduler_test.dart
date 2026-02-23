@@ -5,7 +5,9 @@ import 'package:sundee_fundee_flutter/domain/data/predefined_programs.dart';
 
 void main() {
   group('ProgramScheduler', () {
-    test('getRecommendedStartDate suggests current cycle ovulation if in future', () {
+    test(
+        'getRecommendedStartDate suggests current cycle ovulation if in future',
+        () {
       final CycleSettingsModel settings = CycleSettingsModel(
         id: 'test',
         userId: 'user',
@@ -17,7 +19,8 @@ void main() {
       );
 
       // Period started 5 days ago. Ovulation is day 14 (9 days from now).
-      final DateTime lastPeriodDate = DateTime.now().subtract(const Duration(days: 5));
+      final DateTime lastPeriodDate =
+          DateTime.now().subtract(const Duration(days: 5));
 
       final DateTime result = ProgramScheduler.getRecommendedStartDate(
         program: PredefinedPrograms.baseline12Week,
@@ -45,7 +48,9 @@ void main() {
       expect(result.day, expectedDate.day);
     });
 
-    test('getRecommendedStartDate suggests next cycle ovulation if current is past', () {
+    test(
+        'getRecommendedStartDate suggests next cycle ovulation if current is past',
+        () {
       final CycleSettingsModel settings = CycleSettingsModel(
         id: 'test',
         userId: 'user',
@@ -57,7 +62,8 @@ void main() {
       );
 
       // Period started 20 days ago. Ovulation (Day 12-16) is past.
-      final DateTime lastPeriodDate = DateTime.now().subtract(const Duration(days: 20));
+      final DateTime lastPeriodDate =
+          DateTime.now().subtract(const Duration(days: 20));
 
       final DateTime result = ProgramScheduler.getRecommendedStartDate(
         program: PredefinedPrograms.baseline12Week,

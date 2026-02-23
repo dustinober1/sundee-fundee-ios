@@ -7,10 +7,11 @@ class AppColors {
   static const Color brandPrimary = Color(0xFF1C354C); // Navy
   static const Color brandSecondary = Color(0xFFE25E29); // Orange
   static const Color accentGold = Color(0xFFF2A900); // Yellow/Gold
-  
-  static const Color surfaceLight = Color(0xFFF4F2E6); // Cream matching main logo background
+
+  static const Color surfaceLight =
+      Color(0xFFF4F2E6); // Cream matching main logo background
   static const Color cardLight = Color(0xFFFFFFFF); // White for cards
-  
+
   static const Color textPrimary = Color(0xFF1C354C); // Navy for text
   static const Color textSecondary = Color(0xFF6A819C); // Lighter Navy/Grey
 }
@@ -151,7 +152,8 @@ ThemeData buildAppTheme() {
         }
         return const IconThemeData(color: AppColors.textSecondary, size: 24);
       }),
-      labelTextStyle: WidgetStateProperty.resolveWith((Set<WidgetState> states) {
+      labelTextStyle:
+          WidgetStateProperty.resolveWith((Set<WidgetState> states) {
         if (states.contains(WidgetState.selected)) {
           return const TextStyle(
             fontSize: 12,

@@ -22,7 +22,8 @@ final cycleUserIdProvider = Provider<String?>((ref) {
 final periodLogsProvider = StreamProvider<List<PeriodLogModel>>((ref) {
   final userId = ref.watch(cycleUserIdProvider);
   if (userId == null || userId == 'guest') return Stream.value([]);
-  return ref.watch(cycleRepositoryProvider)
+  return ref
+      .watch(cycleRepositoryProvider)
       .watchPeriodLogs(userId: userId)
       .timeout(const Duration(seconds: 10));
 });
@@ -30,7 +31,8 @@ final periodLogsProvider = StreamProvider<List<PeriodLogModel>>((ref) {
 final symptomLogsProvider = StreamProvider<List<SymptomLogModel>>((ref) {
   final userId = ref.watch(cycleUserIdProvider);
   if (userId == null || userId == 'guest') return Stream.value([]);
-  return ref.watch(cycleRepositoryProvider)
+  return ref
+      .watch(cycleRepositoryProvider)
       .watchSymptomLogs(userId: userId)
       .timeout(const Duration(seconds: 10));
 });
@@ -38,7 +40,8 @@ final symptomLogsProvider = StreamProvider<List<SymptomLogModel>>((ref) {
 final cycleSettingsProvider = StreamProvider<CycleSettingsModel?>((ref) {
   final userId = ref.watch(cycleUserIdProvider);
   if (userId == null || userId == 'guest') return Stream.value(null);
-  return ref.watch(cycleRepositoryProvider)
+  return ref
+      .watch(cycleRepositoryProvider)
       .watchCycleSettings(userId: userId)
       .timeout(const Duration(seconds: 10));
 });

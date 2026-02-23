@@ -95,9 +95,10 @@ void main() {
     });
 
     test('Exercise definitions lookup works', () {
-      final ExerciseDefinition? squat = Exercises.findById('back-squat');
+      final ExerciseDefinition? squat =
+          Exercises.findById('high-bar-back-squat');
       expect(squat, isNotNull);
-      expect(squat?.name, 'Back Squat');
+      expect(squat?.name, 'High Bar Back Squat');
       expect(Exercises.findById('nonexistent'), isNull);
 
       for (final ExerciseDefinition exercise in Exercises.all) {

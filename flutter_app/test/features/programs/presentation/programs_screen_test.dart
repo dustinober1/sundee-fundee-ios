@@ -7,7 +7,8 @@ import 'package:sundee_fundee_flutter/features/programs/data/program_repository.
 import 'package:sundee_fundee_flutter/domain/data/predefined_programs.dart';
 
 void main() {
-  testWidgets('ProgramsScreen renders list of programs', (WidgetTester tester) async {
+  testWidgets('ProgramsScreen renders list of programs',
+      (WidgetTester tester) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [

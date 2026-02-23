@@ -9,6 +9,7 @@ import '../../maxes/providers.dart';
 import '../../../domain/models/lift_max_model.dart';
 import '../../programs/data/program_repository.dart';
 import '../../repositories/providers.dart';
+import 'rest_timer_provider.dart';
 
 class SetExecutionState {
   SetExecutionState({
@@ -17,6 +18,7 @@ class SetExecutionState {
     required this.actualReps,
     required this.actualWeight,
     this.isCompleted = false,
+    this.rpe,
   });
 
   final int prescribedReps;
@@ -24,6 +26,7 @@ class SetExecutionState {
   final int actualReps;
   final double actualWeight;
   final bool isCompleted;
+  final double? rpe;
 
   SetExecutionState copyWith({
     int? prescribedReps,
@@ -31,6 +34,7 @@ class SetExecutionState {
     int? actualReps,
     double? actualWeight,
     bool? isCompleted,
+    double? rpe,
   }) {
     return SetExecutionState(
       prescribedReps: prescribedReps ?? this.prescribedReps,
@@ -38,6 +42,7 @@ class SetExecutionState {
       actualReps: actualReps ?? this.actualReps,
       actualWeight: actualWeight ?? this.actualWeight,
       isCompleted: isCompleted ?? this.isCompleted,
+      rpe: rpe ?? this.rpe,
     );
   }
 }
@@ -77,16 +82,19 @@ class WorkoutExecutionNotifier extends Notifier<WorkoutExecutionState?> {
     if (state != null) return;
 
     final liftMaxes = ref.read(liftMaxesProvider).asData?.value ?? [];
-    
+
     final Map<String, List<SetExecutionState>> initialSets = {};
     for (final exercise in session.exercises) {
       final int numSets = exercise.sets.fixedValue ?? 1;
-      final int numReps = exercise.reps.fixedValue ?? exercise.reps.minValue ?? 1;
-      
+      final int numReps =
+          exercise.reps.fixedValue ?? exercise.reps.minValue ?? 1;
+
       double prescribedWeight = 0.0;
       if (exercise.percent1Rm != null) {
         // Find 1RM
-        final maxes = liftMaxes.where((l) => l.exerciseId == exercise.exercise && l.repCount == 1).toList();
+        final maxes = liftMaxes
+            .where((l) => l.exerciseId == exercise.exercise && l.repCount == 1)
+            .toList();
         if (maxes.isNotEmpty) {
           maxes.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
           prescribedWeight = maxes.first.weight * exercise.percent1Rm!;
@@ -112,30 +120,42 @@ class WorkoutExecutionNotifier extends Notifier<WorkoutExecutionState?> {
     );
   }
 
-  void updateSet(String exerciseId, int setIndex, {int? reps, double? weight, bool? isCompleted}) {
+  void updateSet(String exerciseId, int setIndex,
+      {int? reps,
+      double? weight,
+      bool? isCompleted,
+      int? restSeconds,
+      double? rpe}) {
     if (state == null) return;
-    
+
     final sets = Map<String, List<SetExecutionState>>.from(state!.exerciseSets);
     final exerciseList = List<SetExecutionState>.from(sets[exerciseId] ?? []);
-    
+
     if (setIndex >= 0 && setIndex < exerciseList.length) {
       exerciseList[setIndex] = exerciseList[setIndex].copyWith(
         actualReps: reps,
         actualWeight: weight,
         isCompleted: isCompleted,
+        rpe: rpe,
       );
       sets[exerciseId] = exerciseList;
       state = state!.copyWith(exerciseSets: sets);
+
+      if (isCompleted == true) {
+        ref.read(restTimerProvider.notifier).startTimer(restSeconds ?? 90);
+      }
     }
   }
 
-  Future<void> finishWorkout(ProgramSession session, int week, int day, String programId) async {
+  Future<void> finishWorkout(
+      ProgramSession session, int week, int day, String programId) async {
     if (state == null) return;
     final currentState = state!;
-    
+
     state = currentState.copyWith(isSaving: true);
 
-    final String? userId = ref.read(authSessionStreamProvider).asData?.value.user?.uid;
+    final String? userId =
+        ref.read(authSessionStreamProvider).asData?.value.user?.uid;
     if (userId == null) {
       state = currentState.copyWith(isSaving: false);
       throw Exception('User not authenticated.');
@@ -143,7 +163,8 @@ class WorkoutExecutionNotifier extends Notifier<WorkoutExecutionState?> {
 
     final String workoutId = const Uuid().v4();
     final DateTime now = DateTime.now();
-    final int durationMinutes = now.difference(currentState.startTime).inMinutes;
+    final int durationMinutes =
+        now.difference(currentState.startTime).inMinutes;
 
     final workoutRepository = ref.read(workoutRepositoryProvider);
 
@@ -163,12 +184,13 @@ class WorkoutExecutionNotifier extends Notifier<WorkoutExecutionState?> {
           actualWeight: s.actualWeight,
           prescribedReps: s.prescribedReps,
           actualReps: s.actualReps,
-          rpe: null,
+          rpe: s.rpe,
           restSeconds: null,
           overrideReason: null,
         );
 
-        await workoutRepository.saveCompletedSet(userId: userId, completedSet: completedSet);
+        await workoutRepository.saveCompletedSet(
+            userId: userId, completedSet: completedSet);
       }
     }
 
@@ -248,7 +270,9 @@ class WorkoutExecutionNotifier extends Notifier<WorkoutExecutionState?> {
         int nextWeek = week;
 
         // Check if we need to advance the week
-        final currentProgramWeek = programAsync.weeks.firstWhere((w) => w.week == week, orElse: () => programAsync.weeks.last);
+        final currentProgramWeek = programAsync.weeks.firstWhere(
+            (w) => w.week == week,
+            orElse: () => programAsync.weeks.last);
         if (nextDay > currentProgramWeek.sessions.length) {
           nextDay = 1;
           nextWeek++;
@@ -256,7 +280,8 @@ class WorkoutExecutionNotifier extends Notifier<WorkoutExecutionState?> {
 
         if (nextWeek > programAsync.durationWeeks) {
           // Program completed
-          await enrolledRepo.completeEnrollment(userId: userId, enrollmentId: enrollment.id);
+          await enrolledRepo.completeEnrollment(
+              userId: userId, enrollmentId: enrollment.id);
         } else {
           // Advance progress
           await enrolledRepo.updateEnrollmentProgress(
@@ -268,9 +293,11 @@ class WorkoutExecutionNotifier extends Notifier<WorkoutExecutionState?> {
         }
       }
     }
-    
+
     state = null;
   }
 }
 
-final workoutExecutionNotifierProvider = NotifierProvider<WorkoutExecutionNotifier, WorkoutExecutionState?>(WorkoutExecutionNotifier.new);
+final workoutExecutionNotifierProvider =
+    NotifierProvider<WorkoutExecutionNotifier, WorkoutExecutionState?>(
+        WorkoutExecutionNotifier.new);

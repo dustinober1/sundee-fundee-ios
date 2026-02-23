@@ -194,9 +194,8 @@ class CycleSettingsModel {
       averageCycleLength: parseInt(json['averageCycleLength'], fallback: 28),
       averagePeriodLength: parseInt(json['averagePeriodLength'], fallback: 5),
       lutealPhaseLength: parseInt(json['lutealPhaseLength'], fallback: 14),
-      enabledSymptomIds: symptomIds
-          .map((dynamic item) => item.toString())
-          .toList(),
+      enabledSymptomIds:
+          symptomIds.map((dynamic item) => item.toString()).toList(),
       notificationsEnabled: json['notificationsEnabled'] as bool? ?? false,
     );
   }
