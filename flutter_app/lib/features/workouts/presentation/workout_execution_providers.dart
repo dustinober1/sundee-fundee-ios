@@ -66,7 +66,7 @@ class WorkoutExecutionState {
   }
 }
 
-class WorkoutExecutionNotifier extends AutoDisposeNotifier<WorkoutExecutionState?> {
+class WorkoutExecutionNotifier extends Notifier<WorkoutExecutionState?> {
   @override
   WorkoutExecutionState? build() {
     return null;
@@ -223,6 +223,4 @@ class WorkoutExecutionNotifier extends AutoDisposeNotifier<WorkoutExecutionState
   }
 }
 
-final workoutExecutionNotifierProvider = AutoDisposeNotifierProvider<WorkoutExecutionNotifier, WorkoutExecutionState?>(() {
-  return WorkoutExecutionNotifier();
-});
+final workoutExecutionNotifierProvider = NotifierProvider<WorkoutExecutionNotifier, WorkoutExecutionState?>(WorkoutExecutionNotifier.new);

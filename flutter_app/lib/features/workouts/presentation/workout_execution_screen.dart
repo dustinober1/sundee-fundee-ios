@@ -117,7 +117,7 @@ class _WorkoutExecutionScreenState extends ConsumerState<WorkoutExecutionScreen>
       ),
     );
 
-    if (shouldExit == true && mounted) {
+    if (shouldExit == true && context.mounted) {
       context.pop();
     }
   }
@@ -130,11 +130,11 @@ class _WorkoutExecutionScreenState extends ConsumerState<WorkoutExecutionScreen>
         _day,
         _programId,
       );
-      if (mounted) {
+      if (context.mounted) {
         context.pop(); // Go back to dashboard
       }
     } catch (e) {
-      if (mounted) {
+      if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to save workout: $e')),
         );

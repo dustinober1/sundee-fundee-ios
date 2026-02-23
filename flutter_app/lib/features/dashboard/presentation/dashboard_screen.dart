@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../app/theme.dart';
 import '../../auth/domain/auth_state.dart';
@@ -262,10 +263,7 @@ class _NextWorkoutCard extends ConsumerWidget {
                       const SizedBox(height: 16),
                       ElevatedButton(
                         onPressed: () {
-                          // TODO: Navigate to workout execution
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Start Workout feature coming!')),
-                          );
+                          context.pushNamed('workout');
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.white,
