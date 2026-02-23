@@ -1,6 +1,6 @@
 ---
 milestone: v1
-audited: 2026-02-23T21:24:25Z
+audited: 2026-02-23T21:37:20Z
 status: passed
 scores:
   requirements: 6/6
@@ -27,8 +27,8 @@ tech_debt: []
 ## Method
 - Verified phase-level completion and verification status from each `*-VERIFICATION.md`.
 - Aggregated exported capabilities and dependency handoffs from phase summaries.
-- Performed cross-phase integration checks directly from implementation references (provider wiring, repository contracts, rules coverage, and UI flow touchpoints).
-  - Note: dedicated `gsd-integration-checker` subagent execution was not available in this runtime; equivalent integration checks were executed directly in-repo.
+- Performed cross-phase integration checks directly from implementation references plus targeted integration/E2E regression tests.
+  - Note: dedicated `gsd-integration-checker` subagent execution was not available in this runtime; equivalent checks were executed directly in-repo with command evidence.
 
 ## Phase Verification Status
 
@@ -54,17 +54,17 @@ tech_debt: []
 
 | Integration path | Result | Evidence |
 |---|---|---|
-| Phase 01 progression model -> Phase 02 adaptation runtime | pass | Enrollment fields (`completedWeeks`) and progression helpers consumed without enrollment ID mutation |
-| Phase 02 adapted providers -> Dashboard/Programs/Workout surfaces | pass | `adaptedActiveProgramProvider` and adaptation context consumed across all primary surfaces |
-| Cycle/sync state -> shared UI badges and context messaging | pass | `cycleSyncStatusProvider` + `SyncStatusBadge` wired into cycle/dashboard/program screens |
-| Data contracts -> Firestore rules paths | pass | Owner-gated `/users/*`, `/settings/{settingsId}`, and `/programs/{programId}` rules in place |
+| Phase 01 progression model -> Phase 02 adaptation runtime | pass | `ProgramRepository.markWeekComplete/jumpToWeek` delegation + progression tests and interfaces |
+| Phase 02 adapted providers -> Dashboard/Programs/Workout surfaces | pass | `adaptedActiveProgramProvider` wiring confirmed in dashboard/program/workout screens + provider/widget tests |
+| Cycle/sync state -> shared UI badges and context messaging | pass | `cycleSyncStatusProvider` and `SyncStatusBadge` usage confirmed in cycle/dashboard/program screens |
+| Data contracts -> Firestore rules paths | pass | Owner-gated `/users/*`, `/settings/{settingsId}`, and `/programs/{programId}` rules verified |
 
 ## E2E Flow Audit
 
 | Flow | Result | Notes |
 |---|---|---|
 | Auth restore -> app shell -> progression continuity | pass | Verified via auth + widget/progression targeted suites |
-| Cycle update -> adapted program -> workout execution | pass | Provider composition + apply/defer staging and notifier update tests |
+| Cycle update -> adapted program -> workout execution | pass | `adapted_program_provider` and workout phase-update regressions passed |
 | Offline use -> reconnect -> latest-edit-wins progression | pass | Phase 03 regression/smoke evidence covers reconnect behavior |
 
 ## Gaps
@@ -78,3 +78,8 @@ tech_debt: []
 ## Final Determination
 - **Milestone status: `passed`**
 - Rationale: all v1 requirements are satisfied and full-suite verification evidence is now clean and documented in Phase 04 artifacts.
+
+## Command Evidence (This Audit Run)
+- `cd flutter_app && flutter test test/features/programs/providers/adapted_program_provider_test.dart test/features/workouts/presentation/workout_execution_screen_phase_update_test.dart test/features/workouts/presentation/workout_execution_progress_test.dart test/widget_test.dart`
+- `rg -n "adaptedActiveProgramProvider|cycleSyncStatusProvider|SyncStatusBadge|markWeekComplete|jumpToWeek" flutter_app/lib`
+- `rg -n "match /users/|match /programs/|match /settings/|isOwner\(" firestore.rules`
