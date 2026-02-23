@@ -136,7 +136,24 @@ class _AdminProgramsScreenState extends ConsumerState<AdminProgramsScreen> {
               expands: true,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
-                hintText: '{"id": "custom-1", "name": "...", ...}',
+                hintText: 'Full Program JSON structure expected:\n'
+                    '{\n'
+                    '  "id": "my-program-id",\n'
+                    '  "name": "Program Name",\n'
+                    '  "weeks": [\n'
+                    '    {\n'
+                    '      "week": 1,\n'
+                    '      "sessions": [\n'
+                    '        {\n'
+                    '          "sessionId": "w1-d1",\n'
+                    '          "exercises": [\n'
+                    '            {"exercise": "squat", "sets": 3, "reps": "8-10"}\n'
+                    '          ]\n'
+                    '        }\n'
+                    '      ]\n'
+                    '    }\n'
+                    '  ]\n'
+                    '}',
               ),
             ),
           ),

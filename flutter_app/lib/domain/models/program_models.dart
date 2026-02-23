@@ -29,8 +29,15 @@ class ProgramV2 {
     final List<dynamic> weekJson =
         json['weeks'] as List<dynamic>? ?? <dynamic>[];
 
+    final String id = json['id'] as String? ?? '';
+    if (id.isEmpty) {
+      throw const FormatException(
+        'Program JSON must include a non-empty "id" field.',
+      );
+    }
+
     return ProgramV2(
-      id: json['id'] as String? ?? '',
+      id: id,
       name: json['name'] as String? ?? '',
       category: json['category'] as String? ?? '',
       description: json['description'] as String? ?? '',
@@ -271,19 +278,50 @@ class ExerciseValue {
       return ExerciseValue.fixed(jsonValue);
     }
 
-    if (jsonValue is String && jsonValue.toUpperCase() == 'AMRAP') {
-      return ExerciseValue.amrap();
+    if (jsonValue is num) {
+      return ExerciseValue.fixed(jsonValue.toInt());
     }
 
-    if (jsonValue is List<dynamic> &&
-        jsonValue.length == 2 &&
-        jsonValue[0] is int &&
-        jsonValue[1] is int) {
-      return ExerciseValue.range(jsonValue[0] as int, jsonValue[1] as int);
+    if (jsonValue is String) {
+      final String val = jsonValue.trim().toUpperCase();
+      if (val == 'AMRAP') {
+        return ExerciseValue.amrap();
+      }
+
+      // Handle "8-10" or "8 - 10"
+      if (val.contains('-')) {
+        final List<String> parts = val.split('-');
+        if (parts.length == 2) {
+          final int? min = int.tryParse(parts[0].trim());
+          final int? max = int.tryParse(parts[1].trim());
+          if (min != null && max != null) {
+            return ExerciseValue.range(min, max);
+          }
+        }
+      }
+
+      // Handle single number string "5"
+      final int? single = int.tryParse(val);
+      if (single != null) {
+        return ExerciseValue.fixed(single);
+      }
+    }
+
+    if (jsonValue is List<dynamic> && jsonValue.length == 2) {
+      final int? min = jsonValue[0] is num
+          ? (jsonValue[0] as num).toInt()
+          : int.tryParse(jsonValue[0].toString());
+      final int? max = jsonValue[1] is num
+          ? (jsonValue[1] as num).toInt()
+          : int.tryParse(jsonValue[1].toString());
+
+      if (min != null && max != null) {
+        return ExerciseValue.range(min, max);
+      }
     }
 
     throw FormatException(
-      'Expected Int, "AMRAP", or [Int, Int] for ExerciseValue.',
+      'Expected Int, "AMRAP", "8-10", or [Int, Int] for ExerciseValue. Got: $jsonValue',
     );
   }
 
