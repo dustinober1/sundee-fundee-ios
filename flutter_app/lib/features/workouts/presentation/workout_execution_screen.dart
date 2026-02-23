@@ -6,6 +6,7 @@ import '../../../app/theme.dart';
 import '../../../domain/calculations/plate_calculation.dart';
 import '../../../domain/enums.dart';
 import '../../../domain/models/program_models.dart';
+import '../../auth/providers.dart';
 import '../../programs/data/program_repository.dart';
 import 'plate_calculator_dialog.dart';
 import 'rest_timer_provider.dart';

@@ -16,6 +16,11 @@ abstract class WorkoutRepository {
 
   Stream<List<CompletedWorkoutModel>> watchWorkouts({required String userId});
 
+  Future<void> deleteWorkout({
+    required String userId,
+    required String workoutId,
+  });
+
   Future<void> saveCompletedSet({
     required String userId,
     required CompletedSetModel completedSet,
