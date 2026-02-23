@@ -61,17 +61,30 @@ class AuthRepository {
         );
       }
 
-      // Watch the user document for changes (like onboardingComplete)
-      return _usersCollection.doc(user.uid).snapshots().map((userDoc) {
-        final bool onboardingComplete =
-            userDoc.data()?['onboardingComplete'] as bool? ?? false;
+      return Stream.fromFuture(_validateAndRefreshSession(user)).switchMap((
+        bool validSession,
+      ) {
+        if (!validSession) {
+          return Stream.value(
+            AuthSession(
+              status:
+                  guestEnabled ? AuthStatus.guest : AuthStatus.unauthenticated,
+            ),
+          );
+        }
 
-        return AuthSession(
-          status: onboardingComplete
-              ? AuthStatus.authenticated
-              : AuthStatus.needsOnboarding,
-          user: user,
-        );
+        // Watch the user document for changes (like onboardingComplete)
+        return _usersCollection.doc(user.uid).snapshots().map((userDoc) {
+          final bool onboardingComplete =
+              userDoc.data()?['onboardingComplete'] as bool? ?? false;
+
+          return AuthSession(
+            status: onboardingComplete
+                ? AuthStatus.authenticated
+                : AuthStatus.needsOnboarding,
+            user: user,
+          );
+        });
       });
     });
   }
@@ -280,6 +293,21 @@ class AuthRepository {
     }
 
     await _requireAuth().signOut();
+  }
+
+  Future<bool> _validateAndRefreshSession(User user) async {
+    try {
+      await user.getIdTokenResult(true);
+      return true;
+    } catch (_) {
+      // Token refresh failed, so route to login without crashing.
+      try {
+        await _requireAuth().signOut();
+      } catch (_) {
+        // Ignore sign-out errors and let auth routing recover.
+      }
+      return false;
+    }
   }
 
   Future<void> _ensureUserDocument(User? user) async {

@@ -55,7 +55,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen>
       await action();
     } catch (error) {
       setState(() {
-        _errorMessage = error.toString();
+        _errorMessage = _mapAuthError(error);
       });
     } finally {
       if (mounted) {
@@ -64,6 +64,25 @@ class _SignInScreenState extends ConsumerState<SignInScreen>
         });
       }
     }
+  }
+
+  String _mapAuthError(Object error) {
+    final String message = error.toString().toLowerCase();
+
+    if (message.contains('invalid-credential') ||
+        message.contains('wrong-password') ||
+        message.contains('user-not-found') ||
+        message.contains('invalid-email')) {
+      return 'Sign-in failed. Check your details and try again.';
+    }
+
+    if (message.contains('network') ||
+        message.contains('timeout') ||
+        message.contains('unavailable')) {
+      return 'Could not reach the server. Please try again.';
+    }
+
+    return 'Sign-in failed. Check your details and try again.';
   }
 
   @override

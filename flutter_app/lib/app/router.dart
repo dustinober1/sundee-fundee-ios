@@ -12,6 +12,29 @@ import '../features/workouts/presentation/workout_summary_screen.dart';
 import '../features/admin/presentation/admin_programs_screen.dart';
 import '../features/settings/presentation/legal_screen.dart';
 
+String? authRedirectForLocation({
+  required AuthStatus authStatus,
+  required String location,
+}) {
+  switch (authStatus) {
+    case AuthStatus.loading:
+      return location == '/loading' ? null : '/loading';
+    case AuthStatus.unauthenticated:
+      if (location == '/legal') return null;
+      return location == '/auth' ? null : '/auth';
+    case AuthStatus.needsOnboarding:
+      return location == '/onboarding' ? null : '/onboarding';
+    case AuthStatus.authenticated:
+    case AuthStatus.guest:
+      if (location == '/auth' ||
+          location == '/loading' ||
+          location == '/onboarding') {
+        return '/';
+      }
+      return null;
+  }
+}
+
 final appRouterProvider = Provider<GoRouter>((Ref ref) {
   final AsyncValue<AuthSession> authSessionAsync = ref.watch(
     authSessionStreamProvider,
@@ -63,24 +86,7 @@ final appRouterProvider = Provider<GoRouter>((Ref ref) {
     ],
     redirect: (context, state) {
       final String location = state.matchedLocation;
-
-      switch (authStatus) {
-        case AuthStatus.loading:
-          return location == '/loading' ? null : '/loading';
-        case AuthStatus.unauthenticated:
-          if (location == '/legal') return null;
-          return location == '/auth' ? null : '/auth';
-        case AuthStatus.needsOnboarding:
-          return location == '/onboarding' ? null : '/onboarding';
-        case AuthStatus.authenticated:
-        case AuthStatus.guest:
-          if (location == '/auth' ||
-              location == '/loading' ||
-              location == '/onboarding') {
-            return '/';
-          }
-          return null;
-      }
+      return authRedirectForLocation(authStatus: authStatus, location: location);
     },
   );
 });
