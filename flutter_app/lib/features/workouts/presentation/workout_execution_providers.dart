@@ -226,14 +226,30 @@ class WorkoutExecutionNotifier extends Notifier<WorkoutExecutionState?> {
         final actualReps = s.actualReps;
         final actualWeight = s.actualWeight;
 
+        // Calculate estimated 1RM using Epley formula: w * (1 + r/30)
+        // Cap the multiplier at 10 reps for reasonable strength estimation
+        int repsForCalc = actualReps > 10 ? 10 : actualReps;
+        double estimated1RM = actualWeight;
+        if (repsForCalc > 1) {
+          estimated1RM = actualWeight * (1 + (repsForCalc / 30.0));
+        }
+        // Round to nearest 5 lbs/kgs for cleaner numbers
+        estimated1RM = (estimated1RM / 5).round() * 5.0;
+
         // We track 1, 3, 5, 10 RM
         for (final targetReps in [1, 3, 5, 10]) {
-          if (actualReps >= targetReps) {
+          // Always calculate 1RM, otherwise demand actualReps >= targetReps
+          if (actualReps >= targetReps || targetReps == 1) {
+            double compareWeight = actualWeight;
+            if (targetReps == 1) {
+              compareWeight = estimated1RM;
+            }
+
             final key = '${exerciseId}_$targetReps';
             final currentMax = currentMaxesAsync.where((m) => m.exerciseId == exerciseId && m.repCount == targetReps).fold<double>(0, (prev, m) => m.weight > prev ? m.weight : prev);
             
-            if (actualWeight > currentMax && actualWeight > (newPotentialMaxes[key] ?? 0)) {
-              newPotentialMaxes[key] = actualWeight;
+            if (compareWeight > currentMax && compareWeight > (newPotentialMaxes[key] ?? 0)) {
+              newPotentialMaxes[key] = compareWeight;
             }
           }
         }
