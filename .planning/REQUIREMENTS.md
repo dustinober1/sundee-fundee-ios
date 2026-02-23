@@ -6,13 +6,13 @@ Milestone v1.1 focuses on onboarding persistence, injury-aware planning, and enr
 ## In-Scope Requirements
 
 ### Onboarding Persistence
-- [ ] **ONB-01**: User can complete onboarding once and skip onboarding on subsequent logins when completion is already recorded.
-- [ ] **ONB-02**: User can review and edit previously saved onboarding answers from settings/profile without rerunning full onboarding.
-- [ ] **ONB-03**: User can sign in on a new device and receive the same onboarding-complete behavior based on account data.
+- [x] **ONB-01**: User can complete onboarding once and skip onboarding on subsequent logins when completion is already recorded.
+- [x] **ONB-02**: User can review and edit previously saved onboarding answers from settings/profile without rerunning full onboarding.
+- [x] **ONB-03**: User can sign in on a new device and receive the same onboarding-complete behavior based on account data.
 
 ### Injury Profile and Adaptation
-- [ ] **INJ-01**: User can record current injury context (injured area and basic status) that is stored with their profile.
-- [ ] **INJ-02**: User can update or clear injury context, and subsequent plan generation reflects the latest saved state.
+- [x] **INJ-01**: User can record current injury context (injured area and basic status) that is stored with their profile.
+- [x] **INJ-02**: User can update or clear injury context, and subsequent plan generation reflects the latest saved state.
 - [ ] **INJ-03**: User receives alternate exercises when planned movements conflict with saved injury context.
 - [ ] **INJ-04**: User receives recovery-support additions in generated plans when injury context is present.
 - [ ] **INJ-05**: User sees an explicit disclaimer stating generated guidance is not a substitute for medical advice or physical therapy.

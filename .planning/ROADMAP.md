@@ -19,7 +19,7 @@
 
 ## Phase Details
 
-### Phase 5: Profile Persistence Foundation
+### Phase 5: Profile Persistence Foundation (completed 2026-02-23)
 Goal: Persist onboarding and injury profile data so users are not repeatedly prompted and settings are stable across devices.
 
 Requirements: ONB-01, ONB-02, ONB-03, INJ-01, INJ-02
@@ -29,6 +29,11 @@ Success criteria:
 2. Editing onboarding answers in profile persists and is reflected on next session bootstrap.
 3. Injury context can be created, updated, and cleared without schema/regression errors.
 4. Existing pre-v1.1 accounts with missing fields receive safe defaults and no crash paths.
+
+Plans:
+- [x] 05-01-PLAN.md - Canonical profile schema, repository normalization, and Firestore rules hardening
+- [x] 05-02-PLAN.md - Bootstrap state machine, resume/restart onboarding flow, and injury-required routing gates
+- [x] 05-03-PLAN.md - Settings profile edit surfaces, non-blocking save retry handling, and plan-refresh wiring
 
 ### Phase 6: Injury-Aware Plan Adaptation
 Goal: Adapt generated plans when injuries are present using safe alternates/recovery additions with explicit legal disclaimers.
@@ -53,4 +58,4 @@ Success criteria:
 4. Users can enroll in a new plan after cancellation with no conflicting active-state artifacts.
 
 ## Next Command
-`$gsd-discuss-phase 5`
+`$gsd-discuss-phase 6`
