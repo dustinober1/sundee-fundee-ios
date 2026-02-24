@@ -15,6 +15,65 @@ void main() {
       repository = FirestoreWorkoutRepository(firestore: firestore);
     });
 
+    test('saveWorkout round-trips optional enrollment linkage', () async {
+      final workout = CompletedWorkoutModel(
+        id: 'workout-linked',
+        userId: userId,
+        activeCycleId: 'cycle1',
+        programId: 'program1',
+        enrollmentId: 'enrollment-99',
+        week: 2,
+        day: 1,
+        sessionId: 'session1',
+        completedAt: DateTime.now(),
+        duration: 3600,
+        notes: null,
+      );
+
+      await repository.saveWorkout(userId: userId, workout: workout);
+
+      final loaded = await repository
+          .watchWorkout(
+            userId: userId,
+            workoutId: workout.id,
+          )
+          .first;
+
+      expect(loaded, isNotNull);
+      expect(loaded!.enrollmentId, 'enrollment-99');
+    });
+
+    test('legacy workout rows without enrollmentId still decode', () async {
+      await firestore
+          .collection('users')
+          .doc(userId)
+          .collection('workouts')
+          .doc('legacy-workout')
+          .set(
+        <String, dynamic>{
+          'id': 'legacy-workout',
+          'userId': userId,
+          'activeCycleId': 'cycle1',
+          'programId': 'program1',
+          'week': 1,
+          'day': 1,
+          'sessionId': 'session1',
+          'completedAt': DateTime.now().toIso8601String(),
+          'duration': 1200,
+          'notes': null,
+        },
+      );
+
+      final loaded = await repository
+          .watchWorkout(
+            userId: userId,
+            workoutId: 'legacy-workout',
+          )
+          .first;
+      expect(loaded, isNotNull);
+      expect(loaded!.enrollmentId, isNull);
+    });
+
     test('deleteWorkout removes workout and associated sets', () async {
       const workoutId = 'workout1';
       final workout = CompletedWorkoutModel(
@@ -83,7 +142,7 @@ void main() {
       // Verify they exist
       var workouts = await repository.watchWorkouts(userId: userId).first;
       expect(workouts.length, 1);
-      
+
       // Delete workout
       await repository.deleteWorkout(userId: userId, workoutId: workoutId);
 

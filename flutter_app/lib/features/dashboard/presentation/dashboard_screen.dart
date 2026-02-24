@@ -6,10 +6,13 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../app/theme.dart';
+import '../../../domain/models/completed_workout_model.dart';
+import '../../../domain/models/program_models.dart';
 import '../../auth/domain/auth_state.dart';
 import '../../auth/providers.dart';
 import '../../cycle/providers.dart';
 import '../../migration/providers.dart';
+import '../../programs/data/program_repository.dart';
 import '../../programs/providers/adapted_program_provider.dart';
 import '../../programs/providers/enrollment_lifecycle_provider.dart';
 import '../../repositories/providers.dart';
@@ -345,35 +348,107 @@ class _WorkoutHistoryList extends ConsumerWidget {
                 color: Colors.red,
                 child: const Icon(Icons.delete, color: Colors.white),
               ),
-              child: Card(
-                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor:
-                        AppColors.brandPrimary.withValues(alpha: 0.1),
-                    child: const Icon(Icons.fitness_center,
-                        color: AppColors.brandPrimary, size: 20),
-                  ),
-                  title: Text(
-                    '${_formatProgramId(workout.programId)} - W${workout.week}D${workout.day}',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  subtitle: Text(
-                    '${workout.completedAt.toString().split(' ')[0]} • ${workout.duration} mins',
-                  ),
-                  trailing: const Icon(Icons.arrow_forward_ios, size: 14),
-                  onTap: () {
-                    context.pushNamed(
-                      'workout_summary',
-                      pathParameters: {'id': workout.id},
-                    );
-                  },
-                ),
+              child: _WorkoutHistoryTile(
+                workout: workout,
+                programLabel: _formatProgramId(workout.programId),
+                enrollmentEventStream: workout.enrollmentId == null
+                    ? null
+                    : ref
+                        .read(programRepositoryProvider)
+                        .watchLatestEnrollmentEvent(
+                          userId: userId,
+                          enrollmentId: workout.enrollmentId,
+                        ),
               ),
             );
           }).toList(),
         );
       },
+    );
+  }
+}
+
+class _WorkoutHistoryTile extends StatelessWidget {
+  const _WorkoutHistoryTile({
+    required this.workout,
+    required this.programLabel,
+    required this.enrollmentEventStream,
+  });
+
+  final CompletedWorkoutModel workout;
+  final String programLabel;
+  final Stream<EnrollmentEventModel?>? enrollmentEventStream;
+
+  bool _isCanceledMarkerEvent(EnrollmentEventModel? event) {
+    if (event == null) {
+      return false;
+    }
+    return event.eventType == EnrollmentEventType.canceled ||
+        event.eventType == EnrollmentEventType.autoHealed;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (enrollmentEventStream == null) {
+      return _buildTile(context, isCanceledPlan: false);
+    }
+
+    return StreamBuilder<EnrollmentEventModel?>(
+      stream: enrollmentEventStream,
+      builder: (BuildContext context,
+          AsyncSnapshot<EnrollmentEventModel?> snapshot) {
+        return _buildTile(
+          context,
+          isCanceledPlan: _isCanceledMarkerEvent(snapshot.data),
+        );
+      },
+    );
+  }
+
+  Widget _buildTile(
+    BuildContext context, {
+    required bool isCanceledPlan,
+  }) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundColor: AppColors.brandPrimary.withValues(alpha: 0.1),
+          child: const Icon(
+            Icons.fitness_center,
+            color: AppColors.brandPrimary,
+            size: 20,
+          ),
+        ),
+        title: Text(
+          '$programLabel - W${workout.week}D${workout.day}',
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Text(
+              '${workout.completedAt.toString().split(' ')[0]} • ${workout.duration} mins',
+            ),
+            if (isCanceledPlan)
+              const Text(
+                'Canceled plan',
+                style: TextStyle(
+                  color: Colors.orange,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+          ],
+        ),
+        trailing: const Icon(Icons.arrow_forward_ios, size: 14),
+        onTap: () {
+          context.pushNamed(
+            'workout_summary',
+            pathParameters: {'id': workout.id},
+          );
+        },
+      ),
     );
   }
 }

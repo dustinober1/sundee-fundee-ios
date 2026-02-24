@@ -6,6 +6,7 @@ class CompletedWorkoutModel {
     required this.userId,
     required this.activeCycleId,
     required this.programId,
+    this.enrollmentId,
     required this.week,
     required this.day,
     required this.sessionId,
@@ -18,6 +19,7 @@ class CompletedWorkoutModel {
   final String userId;
   final String activeCycleId;
   final String programId;
+  final String? enrollmentId;
   final int week;
   final int day;
   final String sessionId;
@@ -31,6 +33,7 @@ class CompletedWorkoutModel {
       userId: json['userId'] as String? ?? '',
       activeCycleId: json['activeCycleId'] as String? ?? '',
       programId: json['programId'] as String? ?? '',
+      enrollmentId: json['enrollmentId'] as String?,
       week: parseInt(json['week'], fallback: 1),
       day: parseInt(json['day'], fallback: 1),
       sessionId: json['sessionId'] as String? ?? '',
@@ -46,6 +49,7 @@ class CompletedWorkoutModel {
       'userId': userId,
       'activeCycleId': activeCycleId,
       'programId': programId,
+      'enrollmentId': enrollmentId,
       'week': week,
       'day': day,
       'sessionId': sessionId,

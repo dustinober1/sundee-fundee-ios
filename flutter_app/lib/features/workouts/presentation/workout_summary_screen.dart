@@ -6,7 +6,9 @@ import '../../../app/theme.dart';
 import '../../../domain/models/completed_set_model.dart';
 import '../../../domain/models/completed_workout_model.dart';
 import '../../../domain/models/exercise_definitions.dart';
+import '../../../domain/models/program_models.dart';
 import '../../auth/providers.dart';
+import '../../programs/data/program_repository.dart';
 import '../../repositories/providers.dart';
 
 final workoutSummaryProvider =
@@ -29,6 +31,18 @@ final workoutSetsProvider =
   return ref
       .watch(workoutRepositoryProvider)
       .watchCompletedSets(userId: userId, workoutId: workoutId);
+});
+
+final workoutEnrollmentEventProvider =
+    StreamProvider.family<EnrollmentEventModel?, String>((ref, enrollmentId) {
+  final session = ref.watch(authSessionStreamProvider).asData?.value;
+  final userId = session?.user?.uid;
+  if (userId == null) return Stream.value(null);
+
+  return ref.watch(programRepositoryProvider).watchLatestEnrollmentEvent(
+        userId: userId,
+        enrollmentId: enrollmentId,
+      );
 });
 
 class WorkoutSummaryScreen extends ConsumerWidget {
@@ -109,20 +123,42 @@ class WorkoutSummaryScreen extends ConsumerWidget {
             return const Center(child: Text('Workout not found.'));
           }
 
+          final EnrollmentEventModel? enrollmentEvent = workout.enrollmentId ==
+                  null
+              ? null
+              : ref
+                  .watch(workoutEnrollmentEventProvider(workout.enrollmentId!))
+                  .asData
+                  ?.value;
+          final bool isCanceledPlanMarker =
+              enrollmentEvent?.eventType == EnrollmentEventType.canceled ||
+                  enrollmentEvent?.eventType == EnrollmentEventType.autoHealed;
+
           return setsAsync.when(
-            data: (sets) => _buildSummary(context, workout, sets),
+            data: (sets) => _buildSummary(
+              context,
+              workout,
+              sets,
+              isCanceledPlanMarker: isCanceledPlanMarker,
+            ),
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (err, stack) => Center(child: Text('Error loading sets: $err')),
+            error: (err, stack) =>
+                Center(child: Text('Error loading sets: $err')),
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, stack) => Center(child: Text('Error loading workout: $err')),
+        error: (err, stack) =>
+            Center(child: Text('Error loading workout: $err')),
       ),
     );
   }
 
   Widget _buildSummary(
-      BuildContext context, CompletedWorkoutModel workout, List<CompletedSetModel> sets) {
+    BuildContext context,
+    CompletedWorkoutModel workout,
+    List<CompletedSetModel> sets, {
+    required bool isCanceledPlanMarker,
+  }) {
     // Group sets by exercise
     final Map<String, List<CompletedSetModel>> groupedSets = {};
     for (final set in sets) {
@@ -133,7 +169,7 @@ class WorkoutSummaryScreen extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildHeader(workout),
+          _buildHeader(workout, isCanceledPlanMarker: isCanceledPlanMarker),
           const SizedBox(height: 16),
           _buildStats(workout, sets),
           const Divider(height: 32),
@@ -149,14 +185,18 @@ class WorkoutSummaryScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 8),
-          ...groupedSets.entries.map((entry) => _buildExerciseCard(entry.key, entry.value)),
+          ...groupedSets.entries
+              .map((entry) => _buildExerciseCard(entry.key, entry.value)),
           const SizedBox(height: 32),
         ],
       ),
     );
   }
 
-  Widget _buildHeader(CompletedWorkoutModel workout) {
+  Widget _buildHeader(
+    CompletedWorkoutModel workout, {
+    required bool isCanceledPlanMarker,
+  }) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24.0),
@@ -181,10 +221,28 @@ class WorkoutSummaryScreen extends ConsumerWidget {
               color: AppColors.textPrimary,
             ),
           ),
+          if (isCanceledPlanMarker) ...<Widget>[
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.orange.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: const Text(
+                'Canceled plan',
+                style: TextStyle(
+                  color: Colors.orange,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
           const SizedBox(height: 8),
           Row(
             children: [
-              const Icon(Icons.calendar_today, size: 16, color: AppColors.textSecondary),
+              const Icon(Icons.calendar_today,
+                  size: 16, color: AppColors.textSecondary),
               const SizedBox(width: 8),
               Text(
                 workout.completedAt.toString().split(' ')[0],
@@ -213,10 +271,12 @@ class WorkoutSummaryScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildStats(CompletedWorkoutModel workout, List<CompletedSetModel> sets) {
-    final totalVolume = sets.fold<double>(
-        0, (sum, set) => sum + ((set.actualWeight ?? 0) * (set.actualReps ?? 0)));
-    final totalReps = sets.fold<int>(0, (sum, set) => sum + (set.actualReps ?? 0));
+  Widget _buildStats(
+      CompletedWorkoutModel workout, List<CompletedSetModel> sets) {
+    final totalVolume = sets.fold<double>(0,
+        (sum, set) => sum + ((set.actualWeight ?? 0) * (set.actualReps ?? 0)));
+    final totalReps =
+        sets.fold<int>(0, (sum, set) => sum + (set.actualReps ?? 0));
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -257,7 +317,8 @@ class WorkoutSummaryScreen extends ConsumerWidget {
                     children: [
                       CircleAvatar(
                         radius: 12,
-                        backgroundColor: AppColors.brandPrimary.withValues(alpha: 0.1),
+                        backgroundColor:
+                            AppColors.brandPrimary.withValues(alpha: 0.1),
                         child: Text(
                           '${set.setNumber}',
                           style: const TextStyle(

@@ -299,6 +299,8 @@ class WorkoutExecutionNotifier extends Notifier<WorkoutExecutionState?> {
     final DateTime now = DateTime.now();
     final int durationMinutes =
         now.difference(currentState.startTime).inMinutes;
+    final EnrolledProgramModel? activeEnrollment =
+        ref.read(activeEnrollmentProvider).asData?.value;
 
     final workoutRepository = ref.read(workoutRepositoryProvider);
 
@@ -334,6 +336,7 @@ class WorkoutExecutionNotifier extends Notifier<WorkoutExecutionState?> {
       userId: userId,
       activeCycleId: '', // TODO: Get active cycle if available
       programId: programId,
+      enrollmentId: activeEnrollment?.id,
       week: week,
       day: day,
       sessionId: session.id,
@@ -416,21 +419,21 @@ class WorkoutExecutionNotifier extends Notifier<WorkoutExecutionState?> {
     }
 
     // Update Enrollment Progress
-    final enrollment = ref.read(activeEnrollmentProvider).asData?.value;
-    if (enrollment != null) {
+    if (activeEnrollment != null) {
       final enrolledRepo = ref.read(enrolledProgramRepositoryProvider);
-      final programAsync = ref.read(injuryAdaptedActiveProgramProvider).asData?.value;
+      final programAsync =
+          ref.read(injuryAdaptedActiveProgramProvider).asData?.value;
 
       if (programAsync != null) {
         final EnrollmentProgress recommendation =
             recommendNextEnrollmentProgress(
-          enrollment: enrollment,
+          enrollment: activeEnrollment,
           program: programAsync,
         );
 
         await enrolledRepo.updateEnrollmentProgress(
           userId: userId,
-          enrollmentId: enrollment.id,
+          enrollmentId: activeEnrollment.id,
           week: recommendation.week,
           day: recommendation.day,
         );
