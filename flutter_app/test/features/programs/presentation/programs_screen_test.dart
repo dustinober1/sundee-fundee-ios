@@ -10,6 +10,7 @@ import 'package:sundee_fundee_flutter/features/auth/providers.dart';
 import 'package:sundee_fundee_flutter/features/cycle/providers.dart';
 import 'package:sundee_fundee_flutter/features/programs/data/program_repository.dart';
 import 'package:sundee_fundee_flutter/features/programs/providers/adapted_program_provider.dart';
+import 'package:sundee_fundee_flutter/features/programs/providers/enrollment_lifecycle_provider.dart';
 import 'package:sundee_fundee_flutter/features/programs/presentation/programs_screen.dart';
 import 'package:sundee_fundee_flutter/features/repositories/domain/repository_interfaces.dart';
 
@@ -64,7 +65,7 @@ class _NoopEnrolledProgramRepository implements EnrolledProgramRepository {
   @override
   Stream<EnrolledProgramModel?> watchActiveEnrollment(
       {required String userId}) {
-    return const Stream<EnrolledProgramModel?>.empty();
+    return Stream<EnrolledProgramModel?>.value(null);
   }
 
   @override
@@ -72,7 +73,7 @@ class _NoopEnrolledProgramRepository implements EnrolledProgramRepository {
     required String userId,
     String? enrollmentId,
   }) {
-    return const Stream<EnrollmentEventModel?>.empty();
+    return Stream<EnrollmentEventModel?>.value(null);
   }
 
   @override
@@ -97,15 +98,19 @@ class _NoopEnrolledProgramRepository implements EnrolledProgramRepository {
 }
 
 class _FakeProgramRepository extends ProgramRepository {
-  _FakeProgramRepository({this.throwOnWrite = false})
-      : super(
+  _FakeProgramRepository({
+    this.throwOnCancel = false,
+  }) : super(
           firestore: null,
           enrolledProgramRepository: _NoopEnrolledProgramRepository(),
         );
 
-  final bool throwOnWrite;
+  final bool throwOnCancel;
   bool markWeekCompleteCalled = false;
   bool jumpToWeekCalled = false;
+  bool cancelEnrollmentCalled = false;
+  String? cancelEnrollmentId;
+  bool enrollUserCalled = false;
 
   @override
   Future<void> markWeekComplete({
@@ -113,9 +118,6 @@ class _FakeProgramRepository extends ProgramRepository {
     required EnrolledProgramModel enrollment,
     required int programDurationWeeks,
   }) async {
-    if (throwOnWrite) {
-      throw Exception('write failed');
-    }
     markWeekCompleteCalled = true;
   }
 
@@ -125,10 +127,27 @@ class _FakeProgramRepository extends ProgramRepository {
     required String enrollmentId,
     required int week,
   }) async {
-    if (throwOnWrite) {
-      throw Exception('write failed');
-    }
     jumpToWeekCalled = true;
+  }
+
+  @override
+  Future<void> cancelEnrollment({
+    required String userId,
+    required String enrollmentId,
+  }) async {
+    if (throwOnCancel) {
+      throw Exception('cancel failed');
+    }
+    cancelEnrollmentCalled = true;
+    cancelEnrollmentId = enrollmentId;
+  }
+
+  @override
+  Future<void> enrollUser({
+    required String userId,
+    required String programId,
+  }) async {
+    enrollUserCalled = true;
   }
 }
 
@@ -207,20 +226,27 @@ CycleStatusResult _menstrualStatus() {
   );
 }
 
+const Object _defaultEnrollmentSentinel = Object();
+
 Future<void> _pumpScreen({
   required WidgetTester tester,
   required _FakeProgramRepository repository,
   required CycleStatusResult? cycleStatus,
+  Object? enrollment = _defaultEnrollmentSentinel,
+  EnrollmentEventModel? latestEvent,
 }) async {
-  final EnrolledProgramModel enrollment = EnrolledProgramModel(
-    id: 'enrollment-1',
-    programId: 'program-1',
-    startDate: DateTime.utc(2026, 1, 1),
-    currentWeek: 2,
-    currentDay: 1,
-    completedWeeks: const <int>[1],
-    lastSyncedAt: DateTime.utc(2026, 2, 23, 11, 0, 0),
-  );
+  final EnrolledProgramModel? resolvedEnrollment =
+      identical(enrollment, _defaultEnrollmentSentinel)
+          ? EnrolledProgramModel(
+              id: 'enrollment-1',
+              programId: 'program-1',
+              startDate: DateTime.utc(2026, 1, 1),
+              currentWeek: 2,
+              currentDay: 1,
+              completedWeeks: const <int>[1],
+              lastSyncedAt: DateTime.utc(2026, 2, 23, 11, 0, 0),
+            )
+          : enrollment as EnrolledProgramModel?;
 
   await tester.pumpWidget(
     ProviderScope(
@@ -228,7 +254,10 @@ Future<void> _pumpScreen({
         programsProvider
             .overrideWith((Ref ref) async => <ProgramV2>[_buildProgram()]),
         activeEnrollmentProvider.overrideWith(
-          (Ref ref) => Stream<EnrolledProgramModel?>.value(enrollment),
+          (Ref ref) => Stream<EnrolledProgramModel?>.value(resolvedEnrollment),
+        ),
+        latestEnrollmentEventProvider.overrideWith(
+          (Ref ref) => Stream<EnrollmentEventModel?>.value(latestEvent),
         ),
         authSessionStreamProvider.overrideWith(
           (Ref ref) => Stream<AuthSession>.value(
@@ -280,22 +309,76 @@ void main() {
     expect(find.textContaining('Cycle data unavailable'), findsOneWidget);
   });
 
-  testWidgets('shows inline write error banner when week action fails', (
+  testWidgets('shows inline write error banner when cancel action fails', (
     WidgetTester tester,
   ) async {
     final _FakeProgramRepository repository =
-        _FakeProgramRepository(throwOnWrite: true);
+        _FakeProgramRepository(throwOnCancel: true);
     await _pumpScreen(
       tester: tester,
       repository: repository,
       cycleStatus: _menstrualStatus(),
     );
 
-    await tester.ensureVisible(find.text('Mark Week Complete'));
-    await tester.tap(find.text('Mark Week Complete'));
+    await tester.ensureVisible(find.text('Cancel plan'));
+    await tester.tap(find.text('Cancel plan'));
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('Could not save changes'), findsOneWidget);
+    await tester.tap(find.text('CONTINUE'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('CANCEL PLAN'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Could not cancel plan'), findsOneWidget);
+  });
+
+  testWidgets('cancel flow uses two-step confirmation and cancels enrollment',
+      (WidgetTester tester) async {
+    final _FakeProgramRepository repository = _FakeProgramRepository();
+    await _pumpScreen(
+      tester: tester,
+      repository: repository,
+      cycleStatus: _menstrualStatus(),
+    );
+
+    await tester.ensureVisible(find.text('Cancel plan'));
+    await tester.tap(find.text('Cancel plan'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Cancel your plan?'), findsOneWidget);
+    await tester.tap(find.text('CONTINUE'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('This cannot be undone'), findsOneWidget);
+    await tester.tap(find.text('CANCEL PLAN'));
+    await tester.pumpAndSettle();
+
+    expect(repository.cancelEnrollmentCalled, isTrue);
+    expect(repository.cancelEnrollmentId, 'enrollment-1');
+  });
+
+  testWidgets('renders explicit canceled replacement state with both CTAs',
+      (WidgetTester tester) async {
+    final _FakeProgramRepository repository = _FakeProgramRepository();
+    await _pumpScreen(
+      tester: tester,
+      repository: repository,
+      cycleStatus: _menstrualStatus(),
+      enrollment: null,
+      latestEvent: EnrollmentEventModel(
+        id: 'event-1',
+        enrollmentId: 'enrollment-1',
+        eventType: EnrollmentEventType.canceled,
+        occurredAt: DateTime.utc(2026, 2, 24, 11, 0, 0),
+      ),
+    );
+
+    expect(find.text('No active plan'), findsOneWidget);
+    expect(find.text('Browse plans'), findsOneWidget);
+    expect(find.text('Enroll in new plan'), findsOneWidget);
+    expect(find.textContaining('Canceled on'), findsOneWidget);
+    expect(find.text('Mark Week Complete'), findsNothing);
   });
 
   testWidgets('shows cycle adjustment explainer with hide/show controls', (
@@ -349,6 +432,6 @@ void main() {
 
     expect(find.textContaining('Cycle-adjusted:'), findsOneWidget);
     expect(find.text('Hide details'), findsOneWidget);
-    expect(find.text('Cycle-adjusted'), findsNWidgets(2));
+    expect(find.text('Cycle-adjusted'), findsOneWidget);
   });
 }

@@ -15,6 +15,7 @@ import '../../repositories/domain/sync_status_model.dart';
 import '../../shared/presentation/sync_status_badge.dart';
 import '../data/program_repository.dart';
 import '../providers/adapted_program_provider.dart';
+import '../providers/enrollment_lifecycle_provider.dart';
 import 'widgets/cycle_adjustment_explainer.dart';
 import 'widgets/injury_adaptation_banner.dart';
 
@@ -29,13 +30,20 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
   String? _writeError;
   bool? _cycleAdjustmentDetailsOverride;
   bool? _injuryBannerVisibleOverride;
+  final ScrollController _catalogScrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _catalogScrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final AsyncValue<List<ProgramV2>> programsAsync =
         ref.watch(programsProvider);
-    final AsyncValue<EnrolledProgramModel?> activeEnrollmentAsync =
-        ref.watch(activeEnrollmentProvider);
+    final AsyncValue<EnrollmentLifecycleState> lifecycleAsync =
+        ref.watch(enrollmentLifecycleStateProvider);
     final AsyncValue<ProgramV2?> adaptedActiveProgramAsync = ref.watch(
       injuryAdaptedActiveProgramProvider,
     );
@@ -62,14 +70,46 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
           return const Center(child: Text('No programs available.'));
         }
 
-        return activeEnrollmentAsync.when(
-          data: (EnrolledProgramModel? enrollment) {
-            if (enrollment == null) {
+        return lifecycleAsync.when(
+          data: (EnrollmentLifecycleState lifecycleState) {
+            if (lifecycleState.kind == EnrollmentLifecycleKind.none) {
               return _ProgramsCatalogList(
+                controller: _catalogScrollController,
                 programs: programs,
                 userId: userId,
               );
             }
+
+            if (lifecycleState.kind == EnrollmentLifecycleKind.canceled) {
+              return _ProgramsCatalogList(
+                controller: _catalogScrollController,
+                programs: programs,
+                userId: userId,
+                leadingChildren: <Widget>[
+                  _NoActivePlanCard(
+                    canceledAt: lifecycleState.canceledAt,
+                    onBrowsePlans: _scrollToPlanCatalog,
+                    onEnrollInNewPlan: userId == null
+                        ? null
+                        : () => _showEnrollInNewPlanDialog(
+                              programs: programs,
+                              userId: userId,
+                            ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Available plans',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.brandPrimary,
+                        ),
+                  ),
+                  const SizedBox(height: 8),
+                ],
+              );
+            }
+
+            final EnrolledProgramModel enrollment = lifecycleState.enrollment!;
 
             ProgramV2? activeProgram;
             for (final ProgramV2 program in programs) {
@@ -151,6 +191,23 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
                 _LastSyncedRow(
                   lastSyncedAt: enrollment.lastSyncedAt,
                   syncStatus: syncStatus,
+                ),
+                const SizedBox(height: 12),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: OutlinedButton.icon(
+                    onPressed: userId == null
+                        ? null
+                        : () => _handleCancelEnrollment(
+                              userId: userId,
+                              enrollmentId: enrollment.id,
+                            ),
+                    icon: const Icon(Icons.cancel_outlined),
+                    label: const Text('Cancel plan'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.red.shade700,
+                    ),
+                  ),
                 ),
                 if (_hasIncompleteData(
                     selectedProgram, enrollment)) ...<Widget>[
@@ -293,6 +350,151 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
     }
   }
 
+  Future<void> _handleCancelEnrollment({
+    required String userId,
+    required String enrollmentId,
+  }) async {
+    final bool firstConfirmation = await showDialog<bool>(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Cancel your plan?'),
+              content: const Text(
+                'You will lose access to active plan actions immediately.',
+              ),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: const Text('KEEP PLAN'),
+                ),
+                ElevatedButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  child: const Text('CONTINUE'),
+                ),
+              ],
+            );
+          },
+        ) ??
+        false;
+    if (!firstConfirmation) {
+      return;
+    }
+    if (!mounted) {
+      return;
+    }
+
+    final bool finalConfirmation = await showDialog<bool>(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('This cannot be undone'),
+              content: const Text(
+                'Confirm cancellation now. You can enroll in a new plan afterward.',
+              ),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: const Text('GO BACK'),
+                ),
+                ElevatedButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red.shade700,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: const Text('CANCEL PLAN'),
+                ),
+              ],
+            );
+          },
+        ) ??
+        false;
+    if (!finalConfirmation) {
+      return;
+    }
+
+    try {
+      await ref.read(programRepositoryProvider).cancelEnrollment(
+            userId: userId,
+            enrollmentId: enrollmentId,
+          );
+      if (mounted) {
+        setState(() {
+          _writeError = null;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _writeError = 'Could not cancel plan. Please retry.';
+        });
+      }
+    }
+  }
+
+  Future<void> _showEnrollInNewPlanDialog({
+    required List<ProgramV2> programs,
+    required String userId,
+  }) async {
+    final ProgramV2? selectedProgram = await showModalBottomSheet<ProgramV2>(
+      context: context,
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              const ListTile(
+                title: Text('Enroll in new plan'),
+                subtitle: Text('Choose a plan to start from week 1/day 1.'),
+              ),
+              ...programs.map((ProgramV2 program) {
+                return ListTile(
+                  title: Text(program.name),
+                  subtitle: Text(program.description),
+                  onTap: () => Navigator.of(context).pop(program),
+                );
+              }),
+            ],
+          ),
+        );
+      },
+    );
+
+    if (selectedProgram == null) {
+      return;
+    }
+
+    try {
+      await ref.read(programRepositoryProvider).enrollUser(
+            userId: userId,
+            programId: selectedProgram.id,
+          );
+      if (mounted) {
+        setState(() {
+          _writeError = null;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _writeError = 'Could not enroll in a new plan. Please retry.';
+        });
+      }
+    }
+  }
+
+  void _scrollToPlanCatalog() {
+    if (!_catalogScrollController.hasClients) {
+      return;
+    }
+
+    _catalogScrollController.animateTo(
+      280,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+    );
+  }
+
   /// Builds a deduplicated list of human-readable changelog entries from the
   /// adapted program. Used to populate the [InjuryAdaptationBanner].
   List<String> _buildAdaptationChangelog(ProgramV2 program) {
@@ -318,10 +520,10 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
         }
         // Track max recovery prep count across sessions
         if (session.recoveryPrepExercises.isNotEmpty) {
-          maxRecoveryPrepCount = session.recoveryPrepExercises.length >
-                  maxRecoveryPrepCount
-              ? session.recoveryPrepExercises.length
-              : maxRecoveryPrepCount;
+          maxRecoveryPrepCount =
+              session.recoveryPrepExercises.length > maxRecoveryPrepCount
+                  ? session.recoveryPrepExercises.length
+                  : maxRecoveryPrepCount;
         }
       }
     }
@@ -371,75 +573,171 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
 
 class _ProgramsCatalogList extends ConsumerWidget {
   const _ProgramsCatalogList({
+    this.controller,
     required this.programs,
+    required this.userId,
+    this.leadingChildren = const <Widget>[],
+  });
+
+  final ScrollController? controller;
+  final List<ProgramV2> programs;
+  final String? userId;
+  final List<Widget> leadingChildren;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return ListView(
+      controller: controller,
+      padding: const EdgeInsets.symmetric(vertical: 24.0),
+      children: <Widget>[
+        ...leadingChildren,
+        ...programs.map(
+          (ProgramV2 program) => _ProgramCatalogCard(
+            program: program,
+            userId: userId,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ProgramCatalogCard extends ConsumerWidget {
+  const _ProgramCatalogCard({
+    required this.program,
     required this.userId,
   });
 
-  final List<ProgramV2> programs;
+  final ProgramV2 program;
   final String? userId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(vertical: 24.0),
-      itemCount: programs.length,
-      itemBuilder: (BuildContext context, int index) {
-        final ProgramV2 program = programs[index];
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            Text(
+              program.name,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: AppColors.brandPrimary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              program.description,
+              style: const TextStyle(
+                fontSize: 14,
+                color: AppColors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: ElevatedButton(
+                onPressed: userId == null
+                    ? null
+                    : () async {
+                        try {
+                          await ref.read(programRepositoryProvider).enrollUser(
+                                userId: userId!,
+                                programId: program.id,
+                              );
+                        } catch (e) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Enrollment failed: $e')),
+                            );
+                          }
+                        }
+                      },
+                child: const Text('Enroll in Program'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
-        return Card(
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                Text(
-                  program.name,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+class _NoActivePlanCard extends StatelessWidget {
+  const _NoActivePlanCard({
+    required this.canceledAt,
+    required this.onBrowsePlans,
+    required this.onEnrollInNewPlan,
+  });
+
+  final DateTime? canceledAt;
+  final VoidCallback onBrowsePlans;
+  final VoidCallback? onEnrollInNewPlan;
+
+  @override
+  Widget build(BuildContext context) {
+    final String? canceledDate = canceledAt == null
+        ? null
+        : DateFormat.yMMMd().add_jm().format(canceledAt!.toLocal());
+
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Text(
+              'No active plan',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
                     color: AppColors.brandPrimary,
                   ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  program.description,
-                  style: const TextStyle(
-                    fontSize: 14,
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Your plan has been canceled. Browse available plans or enroll in a new plan anytime.',
+            ),
+            if (canceledDate != null) ...<Widget>[
+              const SizedBox(height: 12),
+              Row(
+                children: <Widget>[
+                  const Icon(
+                    Icons.event_note_outlined,
+                    size: 16,
                     color: AppColors.textSecondary,
                   ),
-                ),
-                const SizedBox(height: 16),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: ElevatedButton(
-                    onPressed: userId == null
-                        ? null
-                        : () async {
-                            try {
-                              await ref
-                                  .read(programRepositoryProvider)
-                                  .enrollUser(
-                                    userId: userId!,
-                                    programId: program.id,
-                                  );
-                            } catch (e) {
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                      content: Text('Enrollment failed: $e')),
-                                );
-                              }
-                            }
-                          },
-                    child: const Text('Enroll in Program'),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Canceled on $canceledDate',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
                   ),
+                ],
+              ),
+            ],
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: <Widget>[
+                OutlinedButton(
+                  onPressed: onBrowsePlans,
+                  child: const Text('Browse plans'),
+                ),
+                ElevatedButton(
+                  onPressed: onEnrollInNewPlan,
+                  child: const Text('Enroll in new plan'),
                 ),
               ],
             ),
-          ),
-        );
-      },
+          ],
+        ),
+      ),
     );
   }
 }
