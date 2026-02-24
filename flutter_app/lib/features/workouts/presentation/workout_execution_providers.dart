@@ -1,15 +1,21 @@
+import 'dart:async';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../domain/models/completed_set_model.dart';
 import '../../../domain/models/completed_workout_model.dart';
+import '../../../domain/models/lift_max_model.dart';
 import '../../../domain/models/program_models.dart';
+import '../../auth/domain/auth_state.dart';
 import '../../auth/providers.dart';
 import '../../maxes/providers.dart';
-import '../../../domain/models/lift_max_model.dart';
 import '../../programs/data/program_repository.dart';
 import '../../programs/providers/adapted_program_provider.dart';
 import '../../repositories/providers.dart';
+import '../data/workout_sync_queue_store.dart';
+import '../providers/workout_sync_recovery_provider.dart';
 import 'rest_timer_provider.dart';
 
 class SetExecutionState {
@@ -49,26 +55,42 @@ class SetExecutionState {
 }
 
 class WorkoutExecutionState {
+  static const Object _keepValue = Object();
+
   WorkoutExecutionState({
     required this.startTime,
     required this.exerciseSets,
     this.isSaving = false,
+    this.requiresSyncRecovery = false,
+    this.syncRecoveryMessage,
+    this.pendingSyncWrites = 0,
   });
 
   final DateTime startTime;
   // Key: exercise.exercise (name/id) -> List of SetExecutionState
   final Map<String, List<SetExecutionState>> exerciseSets;
   final bool isSaving;
+  final bool requiresSyncRecovery;
+  final String? syncRecoveryMessage;
+  final int pendingSyncWrites;
 
   WorkoutExecutionState copyWith({
     DateTime? startTime,
     Map<String, List<SetExecutionState>>? exerciseSets,
     bool? isSaving,
+    bool? requiresSyncRecovery,
+    Object? syncRecoveryMessage = _keepValue,
+    int? pendingSyncWrites,
   }) {
     return WorkoutExecutionState(
       startTime: startTime ?? this.startTime,
       exerciseSets: exerciseSets ?? this.exerciseSets,
       isSaving: isSaving ?? this.isSaving,
+      requiresSyncRecovery: requiresSyncRecovery ?? this.requiresSyncRecovery,
+      syncRecoveryMessage: syncRecoveryMessage == _keepValue
+          ? this.syncRecoveryMessage
+          : syncRecoveryMessage as String?,
+      pendingSyncWrites: pendingSyncWrites ?? this.pendingSyncWrites,
     );
   }
 }
@@ -81,6 +103,15 @@ class EnrollmentProgress {
 
   final int week;
   final int day;
+}
+
+class WorkoutSyncBlockingException implements Exception {
+  const WorkoutSyncBlockingException(this.message);
+
+  final String message;
+
+  @override
+  String toString() => message;
 }
 
 EnrollmentProgress recommendNextEnrollmentProgress({
@@ -286,15 +317,139 @@ class WorkoutExecutionNotifier extends Notifier<WorkoutExecutionState?> {
     if (state == null) return;
     final currentState = state!;
 
-    state = currentState.copyWith(isSaving: true);
+    state = currentState.copyWith(
+      isSaving: true,
+      requiresSyncRecovery: false,
+      syncRecoveryMessage: null,
+      pendingSyncWrites: 0,
+    );
 
-    final String? userId =
-        ref.read(authSessionStreamProvider).asData?.value.user?.uid;
+    final AuthSession? authSession =
+        ref.read(authSessionStreamProvider).asData?.value;
+    final String? userId = authSession?.user?.uid ??
+        (authSession?.status == AuthStatus.guest || authSession == null
+            ? 'guest'
+            : null);
     if (userId == null) {
       state = currentState.copyWith(isSaving: false);
       throw Exception('User not authenticated.');
     }
 
+    final List<PendingWorkoutWriteIntent> intents = await _buildWriteIntents(
+      session: session,
+      week: week,
+      day: day,
+      programId: programId,
+      userId: userId,
+      currentState: currentState,
+    );
+
+    final List<PendingWorkoutWriteIntent> failedIntents =
+        <PendingWorkoutWriteIntent>[];
+    final DateTime attemptAt = DateTime.now();
+    for (final PendingWorkoutWriteIntent intent in intents) {
+      try {
+        await _executeWriteIntent(intent);
+      } catch (error) {
+        if (_isRecoverableWriteError(error)) {
+          failedIntents.add(
+            intent.copyWith(
+              retryCount: intent.retryCount + 1,
+              lastAttemptAt: attemptAt,
+            ),
+          );
+          continue;
+        }
+        state = currentState.copyWith(isSaving: false);
+        rethrow;
+      }
+    }
+
+    if (failedIntents.isEmpty) {
+      ref.read(workoutSyncRecoveryProvider.notifier).clearBlocking();
+      await ref.read(workoutSyncRecoveryProvider.notifier).refreshFromQueue();
+      state = null;
+      return;
+    }
+
+    const String blockingMessage =
+        'Failed to save workout to cloud. Retry to complete sync.';
+    await ref.read(workoutSyncRecoveryProvider.notifier).queuePendingWrites(
+          failedIntents,
+          message: blockingMessage,
+        );
+    state = currentState.copyWith(
+      isSaving: false,
+      requiresSyncRecovery: true,
+      syncRecoveryMessage: blockingMessage,
+      pendingSyncWrites: failedIntents.length,
+    );
+    throw const WorkoutSyncBlockingException(blockingMessage);
+  }
+
+  Future<bool> retryPendingWrites() async {
+    final WorkoutExecutionState? currentState = state;
+    final WorkoutSyncRecoveryController controller =
+        ref.read(workoutSyncRecoveryProvider.notifier);
+    final WorkoutSyncQueueStore store = ref.read(workoutSyncQueueStoreProvider);
+
+    controller.markSyncing();
+    final List<PendingWorkoutWriteIntent> pending =
+        await store.readPendingWrites();
+    if (pending.isEmpty) {
+      controller.clearBlocking();
+      state = null;
+      return true;
+    }
+
+    final DateTime attemptAt = DateTime.now();
+    final List<PendingWorkoutWriteIntent> remaining =
+        <PendingWorkoutWriteIntent>[];
+    for (final PendingWorkoutWriteIntent intent in pending) {
+      try {
+        await _executeWriteIntent(intent);
+      } catch (error) {
+        remaining.add(
+          intent.copyWith(
+            retryCount: intent.retryCount + 1,
+            lastAttemptAt: attemptAt,
+          ),
+        );
+      }
+    }
+
+    await store.writePendingWrites(remaining);
+    await controller.refreshFromQueue();
+    if (remaining.isEmpty) {
+      controller.clearBlocking();
+      state = null;
+      return true;
+    }
+
+    const String blockingMessage =
+        'Failed to save workout to cloud. Retry to complete sync.';
+    controller.markBlocking(message: blockingMessage);
+    if (currentState != null) {
+      state = currentState.copyWith(
+        isSaving: false,
+        requiresSyncRecovery: true,
+        syncRecoveryMessage: blockingMessage,
+        pendingSyncWrites: remaining.length,
+      );
+    }
+    return false;
+  }
+
+  Future<List<PendingWorkoutWriteIntent>> _buildWriteIntents({
+    required ProgramSession session,
+    required int week,
+    required int day,
+    required String programId,
+    required String userId,
+    required WorkoutExecutionState currentState,
+  }) async {
+    final List<PendingWorkoutWriteIntent> intents =
+        <PendingWorkoutWriteIntent>[];
     final String workoutId = const Uuid().v4();
     final DateTime now = DateTime.now();
     final int durationMinutes =
@@ -302,39 +457,43 @@ class WorkoutExecutionNotifier extends Notifier<WorkoutExecutionState?> {
     final EnrolledProgramModel? activeEnrollment =
         ref.read(activeEnrollmentProvider).asData?.value;
 
-    final workoutRepository = ref.read(workoutRepositoryProvider);
-
-    // Save each completed set
     int globalSetNumber = 1;
-    for (final exercise in session.exercises) {
-      final sets = currentState.exerciseSets[exercise.exercise] ?? [];
-      for (final s in sets) {
-        if (!s.isCompleted) continue;
-
-        final completedSet = CompletedSetModel(
+    for (final ProgramExercise exercise in session.exercises) {
+      final List<SetExecutionState> sets =
+          currentState.exerciseSets[exercise.exercise] ?? <SetExecutionState>[];
+      for (final SetExecutionState setState in sets) {
+        if (!setState.isCompleted) {
+          continue;
+        }
+        final CompletedSetModel completedSet = CompletedSetModel(
           id: const Uuid().v4(),
           workoutId: workoutId,
           exerciseId: exercise.exercise,
           setNumber: globalSetNumber++,
-          prescribedWeight: s.prescribedWeight,
-          actualWeight: s.actualWeight,
-          prescribedReps: s.prescribedReps,
-          actualReps: s.actualReps,
-          rpe: s.rpe,
+          prescribedWeight: setState.prescribedWeight,
+          actualWeight: setState.actualWeight,
+          prescribedReps: setState.prescribedReps,
+          actualReps: setState.actualReps,
+          rpe: setState.rpe,
           restSeconds: null,
           overrideReason: null,
         );
-
-        await workoutRepository.saveCompletedSet(
-            userId: userId, completedSet: completedSet);
+        intents.add(
+          PendingWorkoutWriteIntent(
+            id: const Uuid().v4(),
+            type: WorkoutSyncOperationType.completedSet,
+            userId: userId,
+            payload: completedSet.toJson(),
+            createdAt: now,
+          ),
+        );
       }
     }
 
-    // Save Workout
-    final workout = CompletedWorkoutModel(
+    final CompletedWorkoutModel workout = CompletedWorkoutModel(
       id: workoutId,
       userId: userId,
-      activeCycleId: '', // TODO: Get active cycle if available
+      activeCycleId: '',
       programId: programId,
       enrollmentId: activeEnrollment?.id,
       week: week,
@@ -344,103 +503,157 @@ class WorkoutExecutionNotifier extends Notifier<WorkoutExecutionState?> {
       duration: durationMinutes,
       notes: null,
     );
+    intents.add(
+      PendingWorkoutWriteIntent(
+        id: const Uuid().v4(),
+        type: WorkoutSyncOperationType.workoutSummary,
+        userId: userId,
+        payload: workout.toJson(),
+        createdAt: now,
+      ),
+    );
 
-    await workoutRepository.saveWorkout(userId: userId, workout: workout);
+    final List<LiftMaxModel> currentMaxes =
+        await ref.read(liftMaxesProvider.future);
+    final Map<String, double> newPotentialMaxes = <String, double>{};
 
-    // Update Lift Records (Maxes)
-    final liftRepository = ref.read(liftRepositoryProvider);
-    final currentMaxesAsync = await ref.read(liftMaxesProvider.future);
+    for (final ProgramExercise exercise in session.exercises) {
+      final List<SetExecutionState> sets =
+          currentState.exerciseSets[exercise.exercise] ?? <SetExecutionState>[];
+      for (final SetExecutionState setState in sets) {
+        if (!setState.isCompleted) {
+          continue;
+        }
 
-    // Track unique (exercise, reps) updates to avoid redundant writes
-    final Map<String, double> newPotentialMaxes = {};
-
-    for (final exercise in session.exercises) {
-      final sets = currentState.exerciseSets[exercise.exercise] ?? [];
-      for (final s in sets) {
-        if (!s.isCompleted) continue;
-
-        final exerciseId = exercise.exercise;
-        final actualReps = s.actualReps;
-        final actualWeight = s.actualWeight;
-
-        // Calculate estimated 1RM using Epley formula: w * (1 + r/30)
-        // Cap the multiplier at 10 reps for reasonable strength estimation
-        int repsForCalc = actualReps > 10 ? 10 : actualReps;
+        final String exerciseId = exercise.exercise;
+        final int actualReps = setState.actualReps;
+        final double actualWeight = setState.actualWeight;
+        final int repsForCalc = actualReps > 10 ? 10 : actualReps;
         double estimated1RM = actualWeight;
         if (repsForCalc > 1) {
           estimated1RM = actualWeight * (1 + (repsForCalc / 30.0));
         }
-        // Round to nearest 5 lbs/kgs for cleaner numbers
         estimated1RM = (estimated1RM / 5).round() * 5.0;
 
-        // We track 1, 3, 5, 10 RM
-        for (final targetReps in [1, 3, 5, 10]) {
-          // Always calculate 1RM, otherwise demand actualReps >= targetReps
-          if (actualReps >= targetReps || targetReps == 1) {
-            double compareWeight = actualWeight;
-            if (targetReps == 1) {
-              compareWeight = estimated1RM;
-            }
-
-            final key = '${exerciseId}_$targetReps';
-            final currentMax = currentMaxesAsync
-                .where((m) =>
-                    m.exerciseId == exerciseId && m.repCount == targetReps)
-                .fold<double>(
-                    0, (prev, m) => m.weight > prev ? m.weight : prev);
-
-            if (compareWeight > currentMax &&
-                compareWeight > (newPotentialMaxes[key] ?? 0)) {
-              newPotentialMaxes[key] = compareWeight;
-            }
+        for (final int targetReps in <int>[1, 3, 5, 10]) {
+          if (actualReps < targetReps && targetReps != 1) {
+            continue;
+          }
+          double compareWeight = actualWeight;
+          if (targetReps == 1) {
+            compareWeight = estimated1RM;
+          }
+          final String key = '${exerciseId}_$targetReps';
+          final double currentMax = currentMaxes.where((LiftMaxModel max) {
+            return max.exerciseId == exerciseId && max.repCount == targetReps;
+          }).fold<double>(
+            0,
+            (double previous, LiftMaxModel max) {
+              return max.weight > previous ? max.weight : previous;
+            },
+          );
+          if (compareWeight > currentMax &&
+              compareWeight > (newPotentialMaxes[key] ?? 0)) {
+            newPotentialMaxes[key] = compareWeight;
           }
         }
       }
     }
 
-    // Save the new maxes
-    for (final entry in newPotentialMaxes.entries) {
-      final parts = entry.key.split('_');
-      final exerciseId = parts[0];
-      final targetReps = int.parse(parts[1]);
-      final weight = entry.value;
-
-      final newMax = LiftMaxModel(
+    for (final MapEntry<String, double> entry in newPotentialMaxes.entries) {
+      final List<String> parts = entry.key.split('_');
+      final LiftMaxModel newMax = LiftMaxModel(
         id: const Uuid().v4(),
         userId: userId,
-        exerciseId: exerciseId,
-        repCount: targetReps,
-        weight: weight,
-        withStraps:
-            false, // Defaulting to false, could be tracked per set if added to UI
+        exerciseId: parts[0],
+        repCount: int.parse(parts[1]),
+        weight: entry.value,
+        withStraps: false,
         updatedAt: now,
       );
-      await liftRepository.saveLiftMax(userId: userId, liftMax: newMax);
+      intents.add(
+        PendingWorkoutWriteIntent(
+          id: const Uuid().v4(),
+          type: WorkoutSyncOperationType.liftMax,
+          userId: userId,
+          payload: newMax.toJson(),
+          createdAt: now,
+        ),
+      );
     }
 
-    // Update Enrollment Progress
     if (activeEnrollment != null) {
-      final enrolledRepo = ref.read(enrolledProgramRepositoryProvider);
-      final programAsync =
+      final ProgramV2? activeProgram =
           ref.read(injuryAdaptedActiveProgramProvider).asData?.value;
-
-      if (programAsync != null) {
+      if (activeProgram != null) {
         final EnrollmentProgress recommendation =
             recommendNextEnrollmentProgress(
           enrollment: activeEnrollment,
-          program: programAsync,
+          program: activeProgram,
         );
-
-        await enrolledRepo.updateEnrollmentProgress(
-          userId: userId,
-          enrollmentId: activeEnrollment.id,
-          week: recommendation.week,
-          day: recommendation.day,
+        intents.add(
+          PendingWorkoutWriteIntent(
+            id: const Uuid().v4(),
+            type: WorkoutSyncOperationType.enrollmentProgress,
+            userId: userId,
+            payload: <String, dynamic>{
+              'enrollmentId': activeEnrollment.id,
+              'week': recommendation.week,
+              'day': recommendation.day,
+            },
+            createdAt: now,
+          ),
         );
       }
     }
 
-    state = null;
+    return intents;
+  }
+
+  Future<void> _executeWriteIntent(PendingWorkoutWriteIntent intent) async {
+    switch (intent.type) {
+      case WorkoutSyncOperationType.completedSet:
+        await ref.read(workoutRepositoryProvider).saveCompletedSet(
+              userId: intent.userId,
+              completedSet: CompletedSetModel.fromJson(intent.payload),
+            );
+        return;
+      case WorkoutSyncOperationType.workoutSummary:
+        await ref.read(workoutRepositoryProvider).saveWorkout(
+              userId: intent.userId,
+              workout: CompletedWorkoutModel.fromJson(intent.payload),
+            );
+        return;
+      case WorkoutSyncOperationType.liftMax:
+        await ref.read(liftRepositoryProvider).saveLiftMax(
+              userId: intent.userId,
+              liftMax: LiftMaxModel.fromJson(intent.payload),
+            );
+        return;
+      case WorkoutSyncOperationType.enrollmentProgress:
+        await ref
+            .read(enrolledProgramRepositoryProvider)
+            .updateEnrollmentProgress(
+              userId: intent.userId,
+              enrollmentId: intent.payload['enrollmentId'] as String,
+              week: (intent.payload['week'] as num).toInt(),
+              day: (intent.payload['day'] as num).toInt(),
+            );
+        return;
+    }
+  }
+
+  bool _isRecoverableWriteError(Object error) {
+    if (error is TimeoutException) {
+      return true;
+    }
+    if (error is FirebaseException) {
+      return error.code == 'permission-denied' ||
+          error.code == 'unauthenticated' ||
+          error.code == 'unavailable' ||
+          error.code == 'deadline-exceeded';
+    }
+    return false;
   }
 }
 
