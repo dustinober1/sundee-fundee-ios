@@ -1,6 +1,6 @@
 # Requirements: v1.2 UAT Access + Onboarding Reliability
 
-**Status:** Drafted 2026-02-24
+**Status:** In progress - phase 8 complete (2026-02-24)
 **Milestone:** v1.2
 **Source:** UAT testing report using account `elizabethober@me.com`
 
@@ -10,11 +10,11 @@ Milestone v1.2 addresses UAT-blocking access failures in core training surfaces 
 ## In-Scope Requirements
 
 ### Firestore Access and Core Training Flows
-- [ ] **ACL-01**: User can open Home and load the "Next Workout" card for an active enrollment without `cloud_firestore/permission-denied`.
-- [ ] **ACL-02**: User can open Programs and view their enrollment/program data without `cloud_firestore/permission-denied`.
-- [ ] **ACL-03**: User can open Workout and load active enrollment/session context without `cloud_firestore/permission-denied`.
-- [ ] **ACL-04**: User can start a workout and persist session progress for their active enrollment under authenticated access.
-- [ ] **ACL-05**: User receives a recoverable error state (with retry) instead of a broken tab when backend access genuinely fails.
+- [x] **ACL-01**: User can open Home and load the "Next Workout" card for an active enrollment without `cloud_firestore/permission-denied`.
+- [x] **ACL-02**: User can open Programs and view their enrollment/program data without `cloud_firestore/permission-denied`.
+- [x] **ACL-03**: User can open Workout and load active enrollment/session context without `cloud_firestore/permission-denied`.
+- [x] **ACL-04**: User can start a workout and persist session progress for their active enrollment under authenticated access.
+- [x] **ACL-05**: User receives a recoverable error state (with retry) instead of a broken tab when backend access genuinely fails.
 
 ### Onboarding State Consistency
 - [ ] **ONB-04**: User with a complete onboarding profile is not prompted with "Resume Onboarding" on login.
@@ -37,11 +37,11 @@ Milestone v1.2 addresses UAT-blocking access failures in core training surfaces 
 ## Traceability (Requirement -> Phase)
 | Requirement ID | Planned Phase | Outcome |
 |---|---|---|
-| ACL-01 | 8 | Planned |
-| ACL-02 | 8 | Planned |
-| ACL-03 | 8 | Planned |
-| ACL-04 | 8 | Planned |
-| ACL-05 | 8 | Planned |
+| ACL-01 | 8 | Complete |
+| ACL-02 | 8 | Complete |
+| ACL-03 | 8 | Complete |
+| ACL-04 | 8 | Complete |
+| ACL-05 | 8 | Complete |
 | ONB-04 | 9 | Planned |
 | ONB-05 | 9 | Planned |
 | QA-01 | 10 | Planned |

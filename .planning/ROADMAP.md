@@ -3,7 +3,7 @@
 ## Milestones
 - [x] **v1 Foundation Release** (shipped 2026-02-23) - 4 phases, 14 plans, audit passed. Archive: `.planning/milestones/v1-ROADMAP.md`
 - [x] **v1.1 Onboarding Persistence + Injury-Aware Plans** (shipped 2026-02-24) - 3 phases, 10 plans, 11/11 requirements satisfied, audit status `tech_debt` (no blockers). Archive: `.planning/milestones/v1.1-ROADMAP.md`
-- [ ] **v1.2 UAT Access + Onboarding Reliability** (planning started 2026-02-24) - 3 phases, 9 requirements.
+- [ ] **v1.2 UAT Access + Onboarding Reliability** (in progress; phase 8 complete on 2026-02-24) - 3 phases, 9 requirements.
 
 ## Current Milestone: v1.2 UAT Access + Onboarding Reliability
 
@@ -13,6 +13,13 @@
 
 **Goal:** Restore authenticated read/write access for core training surfaces by aligning Firestore rules and repository/query contracts.
 **Requirements:** ACL-01, ACL-02, ACL-03, ACL-04, ACL-05
+**Status:** ✅ Complete (verified 2026-02-24)
+**Plans:** 3/3 complete
+
+Plans:
+- [x] 08-01-PLAN.md - Enrollment/rules/deploy contract recovery and legacy-safe normalization
+- [x] 08-02-PLAN.md - Recoverable access lifecycle model and cross-surface retry UX
+- [x] 08-03-PLAN.md - Workout write queue, replay, and sync-gated recovery flow
 
 **Success criteria:**
 1. Home loads "Next Workout" for authenticated users with active enrollment without permission-denied errors.
@@ -46,4 +53,4 @@
 - Starting phase number: 8 (continues from v1.1 phase 7)
 
 ## Next Command
-`$gsd-discuss-phase 8`
+`$gsd-discuss-phase 9`
