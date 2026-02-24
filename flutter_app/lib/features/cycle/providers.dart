@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
@@ -19,43 +21,80 @@ final cycleUserIdProvider = Provider<String?>((ref) {
   return session?.user?.uid;
 });
 
+bool _isRecoverableCycleReadError(Object error) {
+  if (error is TimeoutException) {
+    return true;
+  }
+
+  if (error is FirebaseException) {
+    return error.code == 'permission-denied' ||
+        error.code == 'unauthenticated' ||
+        error.code == 'unavailable' ||
+        error.code == 'deadline-exceeded';
+  }
+
+  return false;
+}
+
+Stream<T> _guardCycleReadStream<T>({
+  required Stream<T> source,
+  required T seedValue,
+  required String label,
+}) async* {
+  yield seedValue;
+  yield* source.handleError((Object error, StackTrace stackTrace) {
+    if (_isRecoverableCycleReadError(error)) {
+      debugPrint('Cycle stream unavailable for $label: $error');
+      return;
+    }
+    Error.throwWithStackTrace(error, stackTrace);
+  });
+}
+
 // ─── Streams ─────────────────────────────────────────────────────────────────
 
 final periodLogsProvider = StreamProvider<List<PeriodLogModel>>((ref) {
   final userId = ref.watch(cycleUserIdProvider);
   if (userId == null || userId == 'guest') return Stream.value([]);
-  return ref
-      .watch(cycleRepositoryProvider)
-      .watchPeriodLogs(userId: userId)
-      .timeout(const Duration(seconds: 10));
+  return _guardCycleReadStream<List<PeriodLogModel>>(
+    source: ref.watch(cycleRepositoryProvider).watchPeriodLogs(userId: userId),
+    seedValue: const <PeriodLogModel>[],
+    label: 'periodLogs',
+  );
 });
 
 final symptomLogsProvider = StreamProvider<List<SymptomLogModel>>((ref) {
   final userId = ref.watch(cycleUserIdProvider);
   if (userId == null || userId == 'guest') return Stream.value([]);
-  return ref
-      .watch(cycleRepositoryProvider)
-      .watchSymptomLogs(userId: userId)
-      .timeout(const Duration(seconds: 10));
+  return _guardCycleReadStream<List<SymptomLogModel>>(
+    source: ref.watch(cycleRepositoryProvider).watchSymptomLogs(userId: userId),
+    seedValue: const <SymptomLogModel>[],
+    label: 'symptomLogs',
+  );
 });
 
 final cycleSettingsProvider = StreamProvider<CycleSettingsModel?>((ref) {
   final userId = ref.watch(cycleUserIdProvider);
   if (userId == null || userId == 'guest') return Stream.value(null);
-  return ref
-      .watch(cycleRepositoryProvider)
-      .watchCycleSettings(userId: userId)
-      .timeout(const Duration(seconds: 10));
+  return _guardCycleReadStream<CycleSettingsModel?>(
+    source:
+        ref.watch(cycleRepositoryProvider).watchCycleSettings(userId: userId),
+    seedValue: null,
+    label: 'cycleSettings',
+  );
 });
 
 final cycleAdaptationPreferencesProvider =
     StreamProvider<CycleAdaptationPreferencesModel?>((ref) {
   final userId = ref.watch(cycleUserIdProvider);
   if (userId == null || userId == 'guest') return Stream.value(null);
-  return ref
-      .watch(cycleRepositoryProvider)
-      .watchCycleAdaptationPreferences(userId: userId)
-      .timeout(const Duration(seconds: 10));
+  return _guardCycleReadStream<CycleAdaptationPreferencesModel?>(
+    source: ref
+        .watch(cycleRepositoryProvider)
+        .watchCycleAdaptationPreferences(userId: userId),
+    seedValue: null,
+    label: 'cycleAdaptationPreferences',
+  );
 });
 
 // ─── Computed ────────────────────────────────────────────────────────────────

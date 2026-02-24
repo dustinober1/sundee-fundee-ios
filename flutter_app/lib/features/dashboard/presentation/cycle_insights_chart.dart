@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -9,9 +12,33 @@ import '../../auth/providers.dart';
 import '../../cycle/providers.dart';
 import '../../repositories/providers.dart';
 
+bool _isRecoverableInsightsError(Object error) {
+  if (error is TimeoutException) {
+    return true;
+  }
+  if (error is FirebaseException) {
+    return error.code == 'permission-denied' ||
+        error.code == 'unauthenticated' ||
+        error.code == 'unavailable' ||
+        error.code == 'deadline-exceeded';
+  }
+  return false;
+}
+
 final cycleWorkoutsProvider =
     StreamProvider.family<List<CompletedWorkoutModel>, String>((ref, userId) {
-  return ref.watch(workoutRepositoryProvider).watchWorkouts(userId: userId);
+  return ref
+      .watch(workoutRepositoryProvider)
+      .watchWorkouts(userId: userId)
+      .handleError((
+    Object error,
+    StackTrace stackTrace,
+  ) {
+    if (_isRecoverableInsightsError(error)) {
+      return;
+    }
+    Error.throwWithStackTrace(error, stackTrace);
+  });
 });
 
 class CycleInsightsChart extends ConsumerWidget {
@@ -35,11 +62,13 @@ class CycleInsightsChart extends ConsumerWidget {
     if (workoutsAsync.hasError ||
         periodLogsAsync.hasError ||
         settingsAsync.hasError) {
-      final error = workoutsAsync.error ??
-          periodLogsAsync.error ??
-          settingsAsync.error;
+      final error =
+          workoutsAsync.error ?? periodLogsAsync.error ?? settingsAsync.error;
+      if (error != null && _isRecoverableInsightsError(error)) {
+        return const SizedBox.shrink();
+      }
       debugPrint('Error loading insights: $error');
-      return Text('Error loading insights: $error');
+      return const Text('Error loading insights.');
     }
 
     final workouts = workoutsAsync.value ?? [];
@@ -75,9 +104,8 @@ class CycleInsightsChart extends ConsumerWidget {
     }
 
     final values = phaseCounts.values.toList();
-    final maxCount = values.isEmpty
-        ? 0
-        : values.reduce((a, b) => a > b ? a : b);
+    final maxCount =
+        values.isEmpty ? 0 : values.reduce((a, b) => a > b ? a : b);
     final hasData = maxCount > 0;
 
     if (!hasData) {
