@@ -10,6 +10,7 @@ import '../../profile/providers.dart';
 import '../../programs/presentation/widgets/injury_adaptation_banner.dart';
 import '../../programs/providers/adapted_program_provider.dart';
 import '../../programs/providers/enrollment_lifecycle_provider.dart';
+import '../../shared/presentation/recoverable_access_banner.dart';
 import 'workout_execution_providers.dart';
 
 class WorkoutLandingScreen extends ConsumerStatefulWidget {
@@ -28,8 +29,14 @@ class _WorkoutLandingScreenState extends ConsumerState<WorkoutLandingScreen> {
     // Check if there is an active workout
     final activeWorkoutState = ref.watch(workoutExecutionNotifierProvider);
     final bool isWorkoutActive = activeWorkoutState != null;
-    final EnrollmentLifecycleState? lifecycleState =
+    final EnrollmentLifecycleState? rawLifecycleState =
         ref.watch(enrollmentLifecycleStateProvider).asData?.value;
+    final EnrollmentLifecycleState? lifecycleState = rawLifecycleState == null
+        ? null
+        : (rawLifecycleState.isRecoverableFailure ||
+                rawLifecycleState.isBlockingFailure
+            ? rawLifecycleState.fallbackContentState
+            : rawLifecycleState);
     final bool isCanceled = lifecycleState?.isCanceled ?? false;
 
     return Center(
@@ -115,9 +122,24 @@ class _WorkoutLandingScreenState extends ConsumerState<WorkoutLandingScreen> {
 
     return lifecycleAsync.when(
       data: (EnrollmentLifecycleState lifecycleState) {
-        final EnrolledProgramModel? enrollment = lifecycleState.enrollment;
-        if (lifecycleState.isCanceled) {
-          return const Column(
+        if (lifecycleState.isBlockingFailure) {
+          return RecoverableAccessBanner(
+            title: 'Manual retry required',
+            message: lifecycleState.errorMessage ??
+                'Workout access is still unavailable.',
+            onRetry: () => refreshEnrollmentLifecycleAccess(ref),
+          );
+        }
+
+        final bool showRecoverableBanner = lifecycleState.isRecoverableFailure;
+        final EnrollmentLifecycleState contentState = showRecoverableBanner
+            ? lifecycleState.fallbackContentState
+            : lifecycleState;
+        final EnrolledProgramModel? enrollment = contentState.enrollment;
+
+        Widget content;
+        if (contentState.isCanceled) {
+          content = const Column(
             children: [
               Icon(Icons.event_busy_outlined,
                   size: 48, color: AppColors.textSecondary),
@@ -135,9 +157,8 @@ class _WorkoutLandingScreenState extends ConsumerState<WorkoutLandingScreen> {
               ),
             ],
           );
-        }
-        if (enrollment == null) {
-          return const Column(
+        } else if (enrollment == null) {
+          content = const Column(
             children: [
               Icon(Icons.info_outline,
                   size: 48, color: AppColors.textSecondary),
@@ -155,147 +176,192 @@ class _WorkoutLandingScreenState extends ConsumerState<WorkoutLandingScreen> {
               ),
             ],
           );
-        }
-        return programAsync.when(
-          data: (program) {
-            if (program == null) return const SizedBox.shrink();
-
-            final week = program.weeks.firstWhere(
-              (w) => w.week == enrollment.currentWeek,
-              orElse: () => program.weeks.last,
-            );
-            final sessionIndex = enrollment.currentDay - 1;
-            final session = sessionIndex < week.sessions.length
-                ? week.sessions[sessionIndex]
-                : week.sessions.last;
-
-            final List<String> changelog = _buildAdaptationChangelog(program);
-
-            // Disclaimer gate — disable START SESSION until acknowledged
-            final bool startBlocked = injuryContext.hasActiveInjuries &&
-                !injuryContext.disclaimerAcknowledgedForAll;
-
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Injury banner — above the session card
-                if (injuryContext.hasActiveInjuries) ...[
-                  InjuryAdaptationBanner(
-                    injuryContext: injuryContext,
-                    adaptationChangelog: changelog,
-                    visible: injuryBannerVisible,
-                    onToggleVisibility: () {
-                      setState(() {
-                        _injuryBannerVisibleOverride = !injuryBannerVisible;
-                      });
-                    },
-                    onAcknowledgeDisclaimer: (String injuryId) async {
-                      if (userId == null || userId == 'guest') return;
-                      await ref
-                          .read(profileRepositoryProvider)
-                          .acknowledgeInjuryDisclaimer(
-                            userId: userId,
-                            injuryId: injuryId,
-                          );
-                    },
+        } else {
+          content = programAsync.when(
+            data: (program) {
+              if (program == null) {
+                return const Text(
+                  'No upcoming session yet',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: AppColors.textSecondary,
                   ),
-                  const SizedBox(height: 16),
-                ],
-                // Session card
-                Card(
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                  child: Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      gradient: LinearGradient(
-                        colors: [
-                          AppColors.brandPrimary,
-                          AppColors.brandPrimary.withValues(alpha: 0.8),
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
+                  textAlign: TextAlign.center,
+                );
+              }
+
+              final week = program.weeks.firstWhere(
+                (w) => w.week == enrollment.currentWeek,
+                orElse: () => program.weeks.last,
+              );
+              if (week.sessions.isEmpty) {
+                return const Text(
+                  'No upcoming session yet',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: AppColors.textSecondary,
+                  ),
+                  textAlign: TextAlign.center,
+                );
+              }
+              final sessionIndex = enrollment.currentDay - 1;
+              final session = sessionIndex < week.sessions.length
+                  ? week.sessions[sessionIndex]
+                  : week.sessions.last;
+
+              final List<String> changelog = _buildAdaptationChangelog(program);
+
+              // Disclaimer gate — disable START SESSION until acknowledged
+              final bool startBlocked = injuryContext.hasActiveInjuries &&
+                  !injuryContext.disclaimerAcknowledgedForAll;
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Injury banner — above the session card
+                  if (injuryContext.hasActiveInjuries) ...[
+                    InjuryAdaptationBanner(
+                      injuryContext: injuryContext,
+                      adaptationChangelog: changelog,
+                      visible: injuryBannerVisible,
+                      onToggleVisibility: () {
+                        setState(() {
+                          _injuryBannerVisibleOverride = !injuryBannerVisible;
+                        });
+                      },
+                      onAcknowledgeDisclaimer: (String injuryId) async {
+                        if (userId == null || userId == 'guest') return;
+                        await ref
+                            .read(profileRepositoryProvider)
+                            .acknowledgeInjuryDisclaimer(
+                              userId: userId,
+                              injuryId: injuryId,
+                            );
+                      },
                     ),
-                    padding: const EdgeInsets.all(24.0),
-                    child: Column(
-                      children: [
-                        Text(
-                          program.name,
-                          style: const TextStyle(
-                              fontSize: 16,
-                              color: Colors.white70,
-                              fontWeight: FontWeight.w500),
-                          textAlign: TextAlign.center,
+                    const SizedBox(height: 16),
+                  ],
+                  // Session card
+                  Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                    child: Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        gradient: LinearGradient(
+                          colors: [
+                            AppColors.brandPrimary,
+                            AppColors.brandPrimary.withValues(alpha: 0.8),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Week ${enrollment.currentWeek}, Day ${enrollment.currentDay}',
-                          style: const TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          session.sessionName,
-                          style: const TextStyle(
-                              fontSize: 18, color: Colors.white),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 32),
-                        ElevatedButton.icon(
-                          onPressed: startBlocked
-                              ? null
-                              : () => context.pushNamed('workout'),
-                          icon: const Icon(Icons.flash_on),
-                          label: const Text('START SESSION',
-                              style: TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.bold)),
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 24, vertical: 14),
-                            backgroundColor: Colors.white,
-                            foregroundColor: AppColors.brandPrimary,
-                            disabledBackgroundColor:
-                                Colors.white.withValues(alpha: 0.4),
-                            disabledForegroundColor:
-                                AppColors.brandPrimary.withValues(alpha: 0.4),
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8)),
-                          ),
-                        ),
-                        if (startBlocked) ...[
-                          const SizedBox(height: 8),
-                          const Text(
-                            'Acknowledge the injury disclaimer to start your workout.',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.white70,
-                              fontStyle: FontStyle.italic,
-                            ),
+                      ),
+                      padding: const EdgeInsets.all(24.0),
+                      child: Column(
+                        children: [
+                          Text(
+                            program.name,
+                            style: const TextStyle(
+                                fontSize: 16,
+                                color: Colors.white70,
+                                fontWeight: FontWeight.w500),
                             textAlign: TextAlign.center,
                           ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Week ${enrollment.currentWeek}, Day ${enrollment.currentDay}',
+                            style: const TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            session.sessionName,
+                            style: const TextStyle(
+                                fontSize: 18, color: Colors.white),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 32),
+                          ElevatedButton.icon(
+                            onPressed: startBlocked
+                                ? null
+                                : () => context.pushNamed('workout'),
+                            icon: const Icon(Icons.flash_on),
+                            label: const Text('START SESSION',
+                                style: TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.bold)),
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 24, vertical: 14),
+                              backgroundColor: Colors.white,
+                              foregroundColor: AppColors.brandPrimary,
+                              disabledBackgroundColor:
+                                  Colors.white.withValues(alpha: 0.4),
+                              disabledForegroundColor:
+                                  AppColors.brandPrimary.withValues(alpha: 0.4),
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8)),
+                            ),
+                          ),
+                          if (startBlocked) ...[
+                            const SizedBox(height: 8),
+                            const Text(
+                              'Acknowledge the injury disclaimer to start your workout.',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.white70,
+                                fontStyle: FontStyle.italic,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
                         ],
-                      ],
+                      ),
                     ),
                   ),
-                ),
-              ],
-            );
-          },
-          loading: () => const CircularProgressIndicator(),
-          error: (e, st) => Text('Error loading program: $e',
-              style: const TextStyle(color: Colors.red)),
+                ],
+              );
+            },
+            loading: () => const CircularProgressIndicator(),
+            error: (e, st) => const Text(
+              'No upcoming session yet',
+              style: TextStyle(color: AppColors.textSecondary),
+              textAlign: TextAlign.center,
+            ),
+          );
+        }
+
+        if (!showRecoverableBanner) {
+          return content;
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            RecoverableAccessBanner(
+              message: lifecycleState.errorMessage ??
+                  'We are retrying access in the background.',
+              retryAttempt: lifecycleState.retryAttempt,
+              maxRetries: lifecycleState.maxRetries,
+              onRetry: () => refreshEnrollmentLifecycleAccess(ref),
+            ),
+            const SizedBox(height: 8),
+            content,
+          ],
         );
       },
       loading: () => const CircularProgressIndicator(),
-      error: (e, st) => Text('Error loading enrollment: $e',
-          style: const TextStyle(color: Colors.red)),
+      error: (e, st) => RecoverableAccessBanner(
+        title: 'Manual retry required',
+        message: 'Could not load workout access state.',
+        onRetry: () => refreshEnrollmentLifecycleAccess(ref),
+      ),
     );
   }
 

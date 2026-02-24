@@ -6,6 +6,7 @@ import '../../cycle/presentation/cycle_tracking_screen.dart';
 import '../../dashboard/presentation/dashboard_screen.dart';
 import '../../maxes/presentation/max_lifts_screen.dart';
 import '../../programs/presentation/programs_screen.dart';
+import '../../programs/providers/enrollment_lifecycle_provider.dart';
 import '../../settings/presentation/settings_screen.dart';
 import '../../workouts/presentation/workout_landing_screen.dart';
 
@@ -16,8 +17,28 @@ class MainShellScreen extends ConsumerStatefulWidget {
   ConsumerState<MainShellScreen> createState() => _MainShellScreenState();
 }
 
-class _MainShellScreenState extends ConsumerState<MainShellScreen> {
+class _MainShellScreenState extends ConsumerState<MainShellScreen>
+    with WidgetsBindingObserver {
   int _selectedIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      refreshEnrollmentLifecycleAccess(ref);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +64,8 @@ class _MainShellScreenState extends ConsumerState<MainShellScreen> {
     ];
 
     final List<NavigationDestination> destinations = [
-      const NavigationDestination(icon: Icon(Icons.home_outlined), label: 'Home'),
+      const NavigationDestination(
+          icon: Icon(Icons.home_outlined), label: 'Home'),
       const NavigationDestination(
         icon: Icon(Icons.fitness_center),
         label: 'Workout',

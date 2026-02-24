@@ -16,6 +16,7 @@ import '../../programs/data/program_repository.dart';
 import '../../programs/providers/adapted_program_provider.dart';
 import '../../programs/providers/enrollment_lifecycle_provider.dart';
 import '../../repositories/providers.dart';
+import '../../shared/presentation/recoverable_access_banner.dart';
 import '../../shared/presentation/sync_status_badge.dart';
 import 'cycle_insights_chart.dart';
 
@@ -466,137 +467,198 @@ class _NextWorkoutCard extends ConsumerWidget {
 
     return lifecycleAsync.when(
       data: (EnrollmentLifecycleState lifecycleState) {
-        if (lifecycleState.isCanceled) {
-          return _NoActiveProgramCard(canceledAt: lifecycleState.canceledAt);
+        final EnrollmentLifecycleState contentState =
+            lifecycleState.isRecoverableFailure ||
+                    lifecycleState.isBlockingFailure
+                ? lifecycleState.fallbackContentState
+                : lifecycleState;
+
+        if (lifecycleState.isBlockingFailure) {
+          return _BlockingAccessCard(
+            message: lifecycleState.errorMessage ??
+                'Could not validate training access.',
+            onRetry: () => refreshEnrollmentLifecycleAccess(ref),
+          );
         }
 
-        final enrollment = lifecycleState.enrollment;
-        if (enrollment == null) {
-          return const _NoActiveProgramCard();
+        final Widget contentCard = _buildContentCard(
+          context: context,
+          contentState: contentState,
+          programAsync: programAsync,
+          adaptationContext: adaptationContext,
+        );
+
+        if (!lifecycleState.isRecoverableFailure) {
+          return contentCard;
         }
 
-        return programAsync.when(
-          data: (program) {
-            if (program == null) return const SizedBox.shrink();
-
-            final week = program.weeks.firstWhere(
-              (w) => w.week == enrollment.currentWeek,
-              orElse: () => program.weeks.last,
-            );
-
-            // For simplicity, we assume sessions are day 1, 2, 3...
-            final sessionIndex = enrollment.currentDay - 1;
-            final session = sessionIndex < week.sessions.length
-                ? week.sessions[sessionIndex]
-                : week.sessions.last;
-
-            return Card(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  gradient: LinearGradient(
-                    colors: [
-                      AppColors.brandPrimary,
-                      AppColors.brandPrimary.withValues(alpha: 0.8),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            program.name,
-                            style: const TextStyle(
-                              color: Colors.white70,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          const Icon(Icons.fitness_center,
-                              color: Colors.white70, size: 20),
-                        ],
-                      ),
-                      if (adaptationContext.isAdapted) ...<Widget>[
-                        const SizedBox(height: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12),
-                            color: Colors.white.withValues(alpha: 0.15),
-                          ),
-                          child: const Text(
-                            'Cycle-adjusted',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ],
-                      const SizedBox(height: 8),
-                      Text(
-                        'Week ${enrollment.currentWeek}, Session ${enrollment.currentDay}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Focus: ${session.focus}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: () {
-                          context.pushNamed('workout');
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: AppColors.brandPrimary,
-                          elevation: 0,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 24, vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: const Text(
-                          'START SESSION',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: RecoverableAccessBanner(
+                message: lifecycleState.errorMessage ??
+                    'We are retrying access in the background.',
+                retryAttempt: lifecycleState.retryAttempt,
+                maxRetries: lifecycleState.maxRetries,
+                onRetry: () => refreshEnrollmentLifecycleAccess(ref),
               ),
-            );
-          },
-          loading: () => const _LoadingCard(),
-          error: (err, stack) => _ErrorCard(err.toString()),
+            ),
+            contentCard,
+          ],
         );
       },
       loading: () => const _LoadingCard(),
-      error: (err, stack) => _ErrorCard(err.toString()),
+      error: (err, stack) => _BlockingAccessCard(
+        message: 'Could not load next workout access state.',
+        onRetry: () => refreshEnrollmentLifecycleAccess(ref),
+      ),
+    );
+  }
+
+  Widget _buildContentCard({
+    required BuildContext context,
+    required EnrollmentLifecycleState contentState,
+    required AsyncValue<ProgramV2?> programAsync,
+    required ProgramAdaptationContext adaptationContext,
+  }) {
+    if (contentState.isCanceled) {
+      return _NoActiveProgramCard(canceledAt: contentState.canceledAt);
+    }
+
+    final EnrolledProgramModel? enrollment = contentState.enrollment;
+    if (enrollment == null) {
+      return const _NoActiveProgramCard();
+    }
+
+    return programAsync.when(
+      data: (ProgramV2? program) {
+        if (program == null) {
+          return const _NoUpcomingSessionCard();
+        }
+
+        final ProgramWeek week = program.weeks.firstWhere(
+          (ProgramWeek item) => item.week == enrollment.currentWeek,
+          orElse: () => program.weeks.last,
+        );
+        if (week.sessions.isEmpty) {
+          return const _NoUpcomingSessionCard();
+        }
+
+        final int sessionIndex = enrollment.currentDay - 1;
+        final ProgramSession session = sessionIndex < week.sessions.length
+            ? week.sessions[sessionIndex]
+            : week.sessions.last;
+
+        return Card(
+          margin: const EdgeInsets.symmetric(horizontal: 16),
+          elevation: 4,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.brandPrimary,
+                  AppColors.brandPrimary.withValues(alpha: 0.8),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      Text(
+                        program.name,
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const Icon(
+                        Icons.fitness_center,
+                        color: Colors.white70,
+                        size: 20,
+                      ),
+                    ],
+                  ),
+                  if (adaptationContext.isAdapted) ...<Widget>[
+                    const SizedBox(height: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        color: Colors.white.withValues(alpha: 0.15),
+                      ),
+                      child: const Text(
+                        'Cycle-adjusted',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 8),
+                  Text(
+                    'Week ${enrollment.currentWeek}, Session ${enrollment.currentDay}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Focus: ${session.focus}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      context.pushNamed('workout');
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: AppColors.brandPrimary,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text(
+                      'START SESSION',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+      loading: () => const _LoadingCard(),
+      error: (Object _, StackTrace __) => const _NoUpcomingSessionCard(),
     );
   }
 }
@@ -645,6 +707,36 @@ class _NoActiveProgramCard extends StatelessWidget {
   }
 }
 
+class _NoUpcomingSessionCard extends StatelessWidget {
+  const _NoUpcomingSessionCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: <Widget>[
+            const Icon(Icons.info_outline,
+                color: AppColors.textSecondary, size: 28),
+            const SizedBox(height: 8),
+            const Text(
+              'No upcoming session yet',
+              style: TextStyle(color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: 6),
+            TextButton(
+              onPressed: () {},
+              child: const Text('REFRESH'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _LoadingCard extends StatelessWidget {
   const _LoadingCard();
 
@@ -671,6 +763,38 @@ class _ErrorCard extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Text('Error loading next workout: $error'),
+      ),
+    );
+  }
+}
+
+class _BlockingAccessCard extends StatelessWidget {
+  const _BlockingAccessCard({
+    required this.message,
+    required this.onRetry,
+  });
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            _ErrorCard(message),
+            const SizedBox(height: 8),
+            RecoverableAccessBanner(
+              title: 'Manual retry required',
+              message: 'Access check is still failing. Retry to continue.',
+              onRetry: onRetry,
+            ),
+          ],
+        ),
       ),
     );
   }

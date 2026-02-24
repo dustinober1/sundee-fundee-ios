@@ -12,6 +12,7 @@ import '../../auth/providers.dart';
 import '../../cycle/providers.dart';
 import '../../profile/providers.dart';
 import '../../repositories/domain/sync_status_model.dart';
+import '../../shared/presentation/recoverable_access_banner.dart';
 import '../../shared/presentation/sync_status_badge.dart';
 import '../data/program_repository.dart';
 import '../providers/adapted_program_provider.dart';
@@ -72,32 +73,34 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
 
         return lifecycleAsync.when(
           data: (EnrollmentLifecycleState lifecycleState) {
-            if (lifecycleState.kind == EnrollmentLifecycleKind.none) {
-              return _ProgramsCatalogList(
-                controller: _catalogScrollController,
-                programs: programs,
-                userId: userId,
-                onEnrollRequested: userId == null
-                    ? null
-                    : (ProgramV2 program) => _handleCatalogEnrollment(
-                          userId: userId,
-                          program: program,
-                        ),
-                leadingChildren: _writeError == null
-                    ? const <Widget>[]
-                    : <Widget>[
-                        _NoticeCard(
-                          title: 'Sync warning',
-                          body: _writeError!,
-                          icon: Icons.sync_problem_outlined,
-                          color: Colors.orange.shade700,
-                        ),
-                        const SizedBox(height: 12),
-                      ],
+            final bool showRecoverableBanner =
+                lifecycleState.isRecoverableFailure;
+            final EnrollmentLifecycleState contentState =
+                lifecycleState.isRecoverableFailure ||
+                        lifecycleState.isBlockingFailure
+                    ? lifecycleState.fallbackContentState
+                    : lifecycleState;
+
+            if (lifecycleState.isBlockingFailure) {
+              return _BlockingAccessState(
+                message: lifecycleState.errorMessage ??
+                    'Access is still unavailable. Retry to continue.',
+                onRetry: () => refreshEnrollmentLifecycleAccess(ref),
               );
             }
 
-            if (lifecycleState.kind == EnrollmentLifecycleKind.canceled) {
+            final RecoverableAccessBanner? recoverableBanner =
+                showRecoverableBanner
+                    ? RecoverableAccessBanner(
+                        message: lifecycleState.errorMessage ??
+                            'We are retrying access in the background.',
+                        retryAttempt: lifecycleState.retryAttempt,
+                        maxRetries: lifecycleState.maxRetries,
+                        onRetry: () => refreshEnrollmentLifecycleAccess(ref),
+                      )
+                    : null;
+
+            if (contentState.kind == EnrollmentLifecycleKind.validEmpty) {
               return _ProgramsCatalogList(
                 controller: _catalogScrollController,
                 programs: programs,
@@ -109,6 +112,39 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
                           program: program,
                         ),
                 leadingChildren: <Widget>[
+                  if (recoverableBanner != null) ...<Widget>[
+                    recoverableBanner,
+                    const SizedBox(height: 12),
+                  ],
+                  if (_writeError != null) ...<Widget>[
+                    _NoticeCard(
+                      title: 'Sync warning',
+                      body: _writeError!,
+                      icon: Icons.sync_problem_outlined,
+                      color: Colors.orange.shade700,
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                ],
+              );
+            }
+
+            if (contentState.kind == EnrollmentLifecycleKind.canceled) {
+              return _ProgramsCatalogList(
+                controller: _catalogScrollController,
+                programs: programs,
+                userId: userId,
+                onEnrollRequested: userId == null
+                    ? null
+                    : (ProgramV2 program) => _handleCatalogEnrollment(
+                          userId: userId,
+                          program: program,
+                        ),
+                leadingChildren: <Widget>[
+                  if (recoverableBanner != null) ...<Widget>[
+                    recoverableBanner,
+                    const SizedBox(height: 12),
+                  ],
                   if (_writeError != null) ...<Widget>[
                     _NoticeCard(
                       title: 'Sync warning',
@@ -119,7 +155,7 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
                     const SizedBox(height: 12),
                   ],
                   _NoActivePlanCard(
-                    canceledAt: lifecycleState.canceledAt,
+                    canceledAt: contentState.canceledAt,
                     onBrowsePlans: _scrollToPlanCatalog,
                     onEnrollInNewPlan: userId == null
                         ? null
@@ -141,7 +177,7 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
               );
             }
 
-            final EnrolledProgramModel enrollment = lifecycleState.enrollment!;
+            final EnrolledProgramModel enrollment = contentState.enrollment!;
 
             ProgramV2? activeProgram;
             for (final ProgramV2 program in programs) {
@@ -170,6 +206,7 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
             return ListView(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
               children: <Widget>[
+                if (recoverableBanner != null) recoverableBanner,
                 _CycleContextCard(cycleStatus: cycleStatus),
                 if (adaptationContext.isAdapted) ...<Widget>[
                   const SizedBox(height: 12),
@@ -322,13 +359,15 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
             );
           },
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (Object err, StackTrace stack) =>
-              Center(child: Text('Error: $err')),
+          error: (Object err, StackTrace stack) => _BlockingAccessState(
+            message: 'Could not load program access state. Retry to continue.',
+            onRetry: () => refreshEnrollmentLifecycleAccess(ref),
+          ),
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (Object error, StackTrace stackTrace) =>
-          Center(child: Text('Error: $error')),
+          const Center(child: Text('Could not load programs right now.')),
     );
   }
 
@@ -874,6 +913,37 @@ class _CycleContextCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _BlockingAccessState extends StatelessWidget {
+  const _BlockingAccessState({
+    required this.message,
+    required this.onRetry,
+  });
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: <Widget>[
+        _NoticeCard(
+          title: 'Access unavailable',
+          body: message,
+          icon: Icons.lock_outline,
+          color: Colors.red.shade700,
+        ),
+        const SizedBox(height: 8),
+        RecoverableAccessBanner(
+          message: 'Retry after checking your connection and session state.',
+          onRetry: onRetry,
+          title: 'Manual retry required',
+        ),
+      ],
     );
   }
 }
