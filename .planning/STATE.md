@@ -2,12 +2,12 @@
 
 ## Current Position
 
-Phase: 6 (Injury-Aware Plan Adaptation) — **complete**  
-Plan: 06-04 complete (all plans done)  
-Status: Milestone v1.1 execution in progress (Phase 7 pending)  
-Last activity: 2026-02-23 — Executed 06-04-PLAN.md
+Phase: 7 (Enrollment Cancellation Lifecycle) — **complete**  
+Plan: 07-03 complete (all plans done)  
+Status: Milestone v1.1 complete (milestone audit pending)  
+Last activity: 2026-02-24 — Executed 07-01/07-02/07-03 and phase verification
 
-Progress: █████████████████████ 21/21 plans complete (100%)
+Progress: █████████████████████ 24/24 plans complete (100%)
 
 ## Accumulated Context
 
@@ -39,9 +39,14 @@ Progress: █████████████████████ 21/21 
 | Recovery prep skip | Session-local bool, no persistence | 06-04 |
 | Exercise revert | Session-local Set<String>, no provider writes | 06-04 |
 | isInjuryRelated detection | recoveryPrepExercises.length diff + injuryReplacedOriginal field diff | 06-04 |
+| Enrollment lifecycle contract | Explicit `active/canceled/completed` status + event stream with legacy compatibility | 07-01 |
+| Cancel operation semantics | Immediate batched enrollment status transition + cancellation event write | 07-01 |
+| Cancellation UX | Two-step confirmation, no reason prompt, explicit `No active plan` replacement card | 07-02 |
+| Re-enrollment safety | Restore-vs-new prompt with stale-state auto-heal guardrail and fallback error | 07-03 |
+| Workout history integrity | Persist workout `enrollmentId`; surface `Canceled plan` marker in dashboard/summary | 07-03 |
 
 ## Session Continuity
 
-Last session: 2026-02-23T23:52:17Z  
-Stopped at: Completed 06-04-PLAN.md  
+Last session: 2026-02-24T00:00:00Z  
+Stopped at: Completed 07-03-PLAN.md and generated 07-VERIFICATION.md  
 Resume file: None

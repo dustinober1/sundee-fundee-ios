@@ -2,11 +2,12 @@
 
 ## Milestones
 - [x] **v1 Foundation Release** (shipped 2026-02-23) - 4 phases, 14 plans, audit passed. Archive: `.planning/milestones/v1-ROADMAP.md`
-- [ ] **v1.1 Onboarding Persistence + Injury-Aware Plans** (execution)
+- [x] **v1.1 Onboarding Persistence + Injury-Aware Plans** (completed 2026-02-24)
 
 ## Current Milestone: v1.1 Onboarding Persistence + Injury-Aware Plans
 
 **Goal:** Remove repeat onboarding friction while introducing injury-aware plan customization and safe plan cancellation.
+**Status:** Complete (verified 2026-02-24)
 
 **Phases:** 3 (Phase 5-7)  
 **Requirements mapped:** 11/11 (100%)
@@ -54,7 +55,7 @@ Plans:
 - [x] 06-03-PLAN.md — Disclaimer banner UI on plan overview surfaces
 - [x] 06-04-PLAN.md — Workout execution: exercise labels, recovery prep, override, mid-workout prompt
 
-### Phase 7: Enrollment Cancellation Lifecycle
+### Phase 7: Enrollment Cancellation Lifecycle (completed 2026-02-24)
 Goal: Provide explicit cancel-plan flow that preserves history and supports future enrollment.
 
 Requirements: PLN-01, PLN-02, PLN-03
@@ -65,5 +66,10 @@ Success criteria:
 3. Historical completed workouts remain intact after cancellation.
 4. Users can enroll in a new plan after cancellation with no conflicting active-state artifacts.
 
+Plans:
+- [x] 07-01-PLAN.md - Lifecycle domain/repository/rules foundation
+- [x] 07-02-PLAN.md - Cancellation UX and post-cancel replacement state
+- [x] 07-03-PLAN.md - Guarded re-enrollment + canceled-history integrity
+
 ## Next Command
-`$gsd-discuss-phase 7`
+`$gsd-audit-milestone`

@@ -18,9 +18,9 @@ Milestone v1.1 focuses on onboarding persistence, injury-aware planning, and enr
 - [x] **INJ-05**: User sees an explicit disclaimer stating generated guidance is not a substitute for medical advice or physical therapy.
 
 ### Plan Enrollment Lifecycle
-- [ ] **PLN-01**: User can cancel an enrolled plan from the app without deleting completed workout history.
-- [ ] **PLN-02**: User sees clear enrollment status after cancellation (for example, canceled/inactive state).
-- [ ] **PLN-03**: User can start a new plan after cancellation without data corruption from prior enrollment state.
+- [x] **PLN-01**: User can cancel an enrolled plan from the app without deleting completed workout history.
+- [x] **PLN-02**: User sees clear enrollment status after cancellation (for example, canceled/inactive state).
+- [x] **PLN-03**: User can start a new plan after cancellation without data corruption from prior enrollment state.
 
 ## Future Requirements (Deferred)
 - OAuth/social sign-in expansion.
