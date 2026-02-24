@@ -258,5 +258,68 @@ void main() {
       expect(latestEvent!.eventType, EnrollmentEventType.restored);
       expect(latestEvent.programId, 'program-1');
     });
+
+    test('watchActiveEnrollment reads canonical status-only active rows',
+        () async {
+      await firestore
+          .collection('users')
+          .doc(userId)
+          .collection('enrollments')
+          .doc('status-only')
+          .set(<String, dynamic>{
+        'id': 'status-only',
+        'programId': 'program-2',
+        'startDate': DateTime.utc(2026, 2, 1).toIso8601String(),
+        'currentWeek': 2,
+        'currentDay': 1,
+        'status': 'active',
+        'lastSyncedAt': DateTime.utc(2026, 2, 24, 12, 0, 0).toIso8601String(),
+      });
+
+      final EnrolledProgramModel? active =
+          await repository.watchActiveEnrollment(userId: userId).first;
+
+      expect(active, isNotNull);
+      expect(active!.id, 'status-only');
+      expect(active.status, EnrollmentStatus.active);
+    });
+
+    test('updateEnrollmentProgress normalizes legacy contract fields',
+        () async {
+      await firestore
+          .collection('users')
+          .doc(userId)
+          .collection('enrollments')
+          .doc(enrollmentId)
+          .set(<String, dynamic>{
+        'programId': 'program-legacy',
+        'startDate': DateTime.utc(2026, 1, 1).toIso8601String(),
+        'currentWeek': 1,
+        'currentDay': 1,
+      });
+
+      await repository.updateEnrollmentProgress(
+        userId: userId,
+        enrollmentId: enrollmentId,
+        week: 2,
+        day: 3,
+      );
+
+      final Map<String, dynamic>? doc = (await firestore
+              .collection('users')
+              .doc(userId)
+              .collection('enrollments')
+              .doc(enrollmentId)
+              .get())
+          .data();
+
+      expect(doc, isNotNull);
+      expect(doc!['id'], enrollmentId);
+      expect(doc['status'], 'active');
+      expect(doc['isActive'], isTrue);
+      expect(doc['lastSyncedAt'], isNotNull);
+      expect(doc['currentWeek'], 2);
+      expect(doc['currentDay'], 3);
+    });
   });
 }

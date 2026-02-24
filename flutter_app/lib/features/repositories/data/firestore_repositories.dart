@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:rxdart/rxdart.dart';
 
 import '../../../domain/models/active_cycle_model.dart';
 import '../../../domain/models/completed_set_model.dart';
@@ -471,36 +474,87 @@ class FirestoreEnrolledProgramRepository implements EnrolledProgramRepository {
   @override
   Stream<EnrolledProgramModel?> watchActiveEnrollment(
       {required String userId}) {
-    return _enrollmentsCollection(userId)
-        .where('isActive', isEqualTo: true)
-        .orderBy('lastSyncedAt', descending: true)
-        .limit(10)
-        .snapshots()
-        .map((QuerySnapshot<Map<String, dynamic>> snapshot) {
-      final List<EnrolledProgramModel> activeEnrollments = snapshot.docs
-          .map((QueryDocumentSnapshot<Map<String, dynamic>> doc) {
-            final Map<String, dynamic> data = <String, dynamic>{
-              ...doc.data(),
-              if (!(doc.data().containsKey('id'))) 'id': doc.id,
-            };
-            return EnrolledProgramModel.fromJson(data);
-          })
-          .where(
-            (EnrolledProgramModel model) =>
-                model.status == EnrollmentStatus.active,
-          )
-          .toList();
+    final Stream<List<QueryDocumentSnapshot<Map<String, dynamic>>>>
+        canonicalStream = _enrollmentsCollection(userId)
+            .where(
+              'status',
+              isEqualTo: enrollmentStatusToJson(EnrollmentStatus.active),
+            )
+            .orderBy('lastSyncedAt', descending: true)
+            .limit(10)
+            .snapshots()
+            .map(
+                (QuerySnapshot<Map<String, dynamic>> snapshot) => snapshot.docs)
+            .onErrorReturn(
+      const <QueryDocumentSnapshot<Map<String, dynamic>>>[],
+    );
 
-      if (activeEnrollments.isEmpty) {
-        return null;
-      }
+    final Stream<List<QueryDocumentSnapshot<Map<String, dynamic>>>>
+        legacyStream = _enrollmentsCollection(userId)
+            .where('isActive', isEqualTo: true)
+            .orderBy('lastSyncedAt', descending: true)
+            .limit(10)
+            .snapshots()
+            .map((QuerySnapshot<Map<String, dynamic>> snapshot) =>
+                snapshot.docs);
 
-      activeEnrollments.sort(
-        (EnrolledProgramModel a, EnrolledProgramModel b) =>
-            _effectiveSyncTime(b).compareTo(_effectiveSyncTime(a)),
-      );
-      return activeEnrollments.first;
-    });
+    return Rx.combineLatest2<
+        List<QueryDocumentSnapshot<Map<String, dynamic>>>,
+        List<QueryDocumentSnapshot<Map<String, dynamic>>>,
+        EnrolledProgramModel?>(
+      canonicalStream,
+      legacyStream,
+      (
+        List<QueryDocumentSnapshot<Map<String, dynamic>>> canonicalDocs,
+        List<QueryDocumentSnapshot<Map<String, dynamic>>> legacyDocs,
+      ) {
+        final DateTime now = DateTime.now();
+        final Map<String, QueryDocumentSnapshot<Map<String, dynamic>>>
+            docsById = <String, QueryDocumentSnapshot<Map<String, dynamic>>>{};
+        for (final QueryDocumentSnapshot<Map<String, dynamic>> doc
+            in canonicalDocs) {
+          docsById[doc.id] = doc;
+        }
+        for (final QueryDocumentSnapshot<Map<String, dynamic>> doc
+            in legacyDocs) {
+          docsById[doc.id] = doc;
+        }
+
+        final List<EnrolledProgramModel> activeEnrollments =
+            <EnrolledProgramModel>[];
+        for (final QueryDocumentSnapshot<Map<String, dynamic>> doc
+            in docsById.values) {
+          final Map<String, dynamic> normalizedData = _normalizeEnrollmentData(
+            enrollmentId: doc.id,
+            enrollmentData: doc.data(),
+            now: now,
+          );
+          if (_needsEnrollmentNormalization(
+            enrollmentData: doc.data(),
+            normalizedData: normalizedData,
+          )) {
+            unawaited(
+                doc.reference.set(normalizedData, SetOptions(merge: true)));
+          }
+          final EnrolledProgramModel? enrollment =
+              _safeEnrollmentFromData(normalizedData);
+          if (enrollment != null &&
+              enrollment.status == EnrollmentStatus.active) {
+            activeEnrollments.add(enrollment);
+          }
+        }
+
+        if (activeEnrollments.isEmpty) {
+          return null;
+        }
+
+        activeEnrollments.sort(
+          (EnrolledProgramModel a, EnrolledProgramModel b) =>
+              _effectiveSyncTime(b).compareTo(_effectiveSyncTime(a)),
+        );
+        return activeEnrollments.first;
+      },
+    );
   }
 
   @override
@@ -510,16 +564,20 @@ class FirestoreEnrolledProgramRepository implements EnrolledProgramRepository {
   }) async {
     final DocumentReference<Map<String, dynamic>> enrollmentRef =
         _enrollmentsCollection(userId).doc(enrollmentId);
-    final DocumentSnapshot<Map<String, dynamic>> snapshot =
-        await enrollmentRef.get();
-    if (!snapshot.exists) {
-      throw StateError('Enrollment "$enrollmentId" not found.');
-    }
-
-    final Map<String, dynamic> enrollmentData = snapshot.data()!;
-    final String? programId = enrollmentData['programId'] as String?;
     final DateTime now = DateTime.now();
+    final Map<String, dynamic> enrollmentData =
+        await _normalizeEnrollmentForWrite(
+      userId: userId,
+      enrollmentId: enrollmentId,
+      now: now,
+    );
+    final String? programId = enrollmentData['programId'] as String?;
     final WriteBatch batch = _firestore.batch();
+    batch.set(
+      enrollmentRef,
+      enrollmentData,
+      SetOptions(merge: true),
+    );
     batch.update(enrollmentRef, <String, dynamic>{
       'isActive': false,
       'status': enrollmentStatusToJson(EnrollmentStatus.canceled),
@@ -593,18 +651,13 @@ class FirestoreEnrolledProgramRepository implements EnrolledProgramRepository {
 
   @override
   Future<int> healDuplicateActiveEnrollments({required String userId}) async {
-    final QuerySnapshot<Map<String, dynamic>> snapshot =
-        await _enrollmentsCollection(userId)
-            .where('isActive', isEqualTo: true)
-            .orderBy('lastSyncedAt', descending: true)
-            .get();
+    final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs =
+        await _fetchActiveEnrollmentDocs(userId: userId);
 
-    if (snapshot.docs.length <= 1) {
+    if (docs.length <= 1) {
       return 0;
     }
 
-    final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs =
-        snapshot.docs.toList(growable: false);
     final QueryDocumentSnapshot<Map<String, dynamic>> canonicalDoc = docs.first;
     final String canonicalEnrollmentId = canonicalDoc.id;
     final DateTime now = DateTime.now();
@@ -658,11 +711,21 @@ class FirestoreEnrolledProgramRepository implements EnrolledProgramRepository {
     required String enrollmentId,
     required int week,
     required int day,
-  }) {
-    return _enrollmentsCollection(userId).doc(enrollmentId).update({
+  }) async {
+    final DateTime now = DateTime.now();
+    final DocumentReference<Map<String, dynamic>> enrollmentRef =
+        _enrollmentsCollection(userId).doc(enrollmentId);
+    final Map<String, dynamic> normalizedData =
+        await _normalizeEnrollmentForWrite(
+      userId: userId,
+      enrollmentId: enrollmentId,
+      now: now,
+    );
+    await enrollmentRef.set(normalizedData, SetOptions(merge: true));
+    await enrollmentRef.update({
       'currentWeek': week,
       'currentDay': day,
-      'lastSyncedAt': DateTime.now().toIso8601String(),
+      'lastSyncedAt': now.toIso8601String(),
     });
   }
 
@@ -672,12 +735,22 @@ class FirestoreEnrolledProgramRepository implements EnrolledProgramRepository {
     required String enrollmentId,
     required int completedWeek,
     required int nextWeek,
-  }) {
-    return _enrollmentsCollection(userId).doc(enrollmentId).update({
+  }) async {
+    final DateTime now = DateTime.now();
+    final DocumentReference<Map<String, dynamic>> enrollmentRef =
+        _enrollmentsCollection(userId).doc(enrollmentId);
+    final Map<String, dynamic> normalizedData =
+        await _normalizeEnrollmentForWrite(
+      userId: userId,
+      enrollmentId: enrollmentId,
+      now: now,
+    );
+    await enrollmentRef.set(normalizedData, SetOptions(merge: true));
+    await enrollmentRef.update({
       'completedWeeks': FieldValue.arrayUnion(<int>[completedWeek]),
       'currentWeek': nextWeek,
       'currentDay': 1,
-      'lastSyncedAt': DateTime.now().toIso8601String(),
+      'lastSyncedAt': now.toIso8601String(),
     });
   }
 
@@ -686,11 +759,21 @@ class FirestoreEnrolledProgramRepository implements EnrolledProgramRepository {
     required String userId,
     required String enrollmentId,
     required int week,
-  }) {
-    return _enrollmentsCollection(userId).doc(enrollmentId).update({
+  }) async {
+    final DateTime now = DateTime.now();
+    final DocumentReference<Map<String, dynamic>> enrollmentRef =
+        _enrollmentsCollection(userId).doc(enrollmentId);
+    final Map<String, dynamic> normalizedData =
+        await _normalizeEnrollmentForWrite(
+      userId: userId,
+      enrollmentId: enrollmentId,
+      now: now,
+    );
+    await enrollmentRef.set(normalizedData, SetOptions(merge: true));
+    await enrollmentRef.update({
       'currentWeek': week,
       'currentDay': 1,
-      'lastSyncedAt': DateTime.now().toIso8601String(),
+      'lastSyncedAt': now.toIso8601String(),
     });
   }
 
@@ -701,18 +784,24 @@ class FirestoreEnrolledProgramRepository implements EnrolledProgramRepository {
   }) async {
     final DocumentReference<Map<String, dynamic>> enrollmentRef =
         _enrollmentsCollection(userId).doc(enrollmentId);
-    final DocumentSnapshot<Map<String, dynamic>> snapshot =
-        await enrollmentRef.get();
-    if (!snapshot.exists) {
-      throw StateError('Enrollment "$enrollmentId" not found.');
-    }
-    final String? programId = snapshot.data()!['programId'] as String?;
     final DateTime now = DateTime.now();
+    final Map<String, dynamic> enrollmentData =
+        await _normalizeEnrollmentForWrite(
+      userId: userId,
+      enrollmentId: enrollmentId,
+      now: now,
+    );
+    final String? programId = enrollmentData['programId'] as String?;
     final WriteBatch batch = _firestore.batch();
+    batch.set(
+      enrollmentRef,
+      enrollmentData,
+      SetOptions(merge: true),
+    );
     batch.update(enrollmentRef, <String, dynamic>{
       'isActive': false,
       'status': enrollmentStatusToJson(EnrollmentStatus.completed),
-      'completedAt': DateTime.now().toIso8601String(),
+      'completedAt': now.toIso8601String(),
       'lastSyncedAt': now.toIso8601String(),
     });
     _appendEnrollmentEventToBatch(
@@ -754,6 +843,262 @@ class FirestoreEnrolledProgramRepository implements EnrolledProgramRepository {
         model.canceledAt ??
         model.completedAt ??
         model.startDate;
+  }
+
+  Future<List<QueryDocumentSnapshot<Map<String, dynamic>>>>
+      _fetchActiveEnrollmentDocs({
+    required String userId,
+  }) async {
+    final QuerySnapshot<Map<String, dynamic>> statusSnapshot =
+        await _enrollmentsCollection(userId)
+            .where(
+              'status',
+              isEqualTo: enrollmentStatusToJson(EnrollmentStatus.active),
+            )
+            .orderBy('lastSyncedAt', descending: true)
+            .limit(10)
+            .get();
+    final QuerySnapshot<Map<String, dynamic>> legacySnapshot =
+        await _enrollmentsCollection(userId)
+            .where('isActive', isEqualTo: true)
+            .orderBy('lastSyncedAt', descending: true)
+            .limit(10)
+            .get();
+
+    final Map<String, QueryDocumentSnapshot<Map<String, dynamic>>> docsById =
+        <String, QueryDocumentSnapshot<Map<String, dynamic>>>{};
+    for (final QueryDocumentSnapshot<Map<String, dynamic>> doc
+        in statusSnapshot.docs) {
+      docsById[doc.id] = doc;
+    }
+    for (final QueryDocumentSnapshot<Map<String, dynamic>> doc
+        in legacySnapshot.docs) {
+      docsById[doc.id] = doc;
+    }
+
+    final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs =
+        docsById.values.toList(growable: false);
+    docs.sort((QueryDocumentSnapshot<Map<String, dynamic>> a,
+        QueryDocumentSnapshot<Map<String, dynamic>> b) {
+      final DateTime aSynced = _effectiveSyncTimeFromData(
+        data: a.data(),
+        fallback: DateTime.fromMillisecondsSinceEpoch(0),
+      );
+      final DateTime bSynced = _effectiveSyncTimeFromData(
+        data: b.data(),
+        fallback: DateTime.fromMillisecondsSinceEpoch(0),
+      );
+      return bSynced.compareTo(aSynced);
+    });
+    return docs;
+  }
+
+  Future<Map<String, dynamic>> _normalizeEnrollmentForWrite({
+    required String userId,
+    required String enrollmentId,
+    required DateTime now,
+  }) async {
+    final DocumentSnapshot<Map<String, dynamic>> snapshot =
+        await _enrollmentsCollection(userId).doc(enrollmentId).get();
+    if (!snapshot.exists) {
+      throw StateError('Enrollment "$enrollmentId" not found.');
+    }
+    final Map<String, dynamic> enrollmentData = snapshot.data()!;
+    final Map<String, dynamic> normalizedData = _normalizeEnrollmentData(
+      enrollmentId: enrollmentId,
+      enrollmentData: enrollmentData,
+      now: now,
+    );
+    return normalizedData;
+  }
+
+  Map<String, dynamic> _normalizeEnrollmentData({
+    required String enrollmentId,
+    required Map<String, dynamic> enrollmentData,
+    required DateTime now,
+  }) {
+    final DateTime? completedAt =
+        _parseFirestoreDate(enrollmentData['completedAt']);
+    final DateTime? canceledAt =
+        _parseFirestoreDate(enrollmentData['canceledAt']);
+    final DateTime? startDate =
+        _parseFirestoreDate(enrollmentData['startDate']);
+    final DateTime? lastSyncedAt =
+        _parseFirestoreDate(enrollmentData['lastSyncedAt']);
+    final bool legacyIsActive = enrollmentData['isActive'] as bool? ?? true;
+    final EnrollmentStatus status = _deriveEnrollmentStatus(
+      rawStatus: enrollmentData['status'],
+      legacyIsActive: legacyIsActive,
+      completedAt: completedAt,
+      canceledAt: canceledAt,
+    );
+
+    return <String, dynamic>{
+      ...enrollmentData,
+      'id': enrollmentData['id'] as String? ?? enrollmentId,
+      'programId': enrollmentData['programId'] as String? ?? '',
+      'startDate': _normalizedDateValue(
+        originalValue: enrollmentData['startDate'],
+        fallback: startDate ?? now,
+      ),
+      'currentWeek': (enrollmentData['currentWeek'] as num?)?.toInt() ?? 1,
+      'currentDay': (enrollmentData['currentDay'] as num?)?.toInt() ?? 1,
+      'completedWeeks': (enrollmentData['completedWeeks'] as List<dynamic>? ??
+              const <dynamic>[])
+          .map((dynamic value) => (value as num).toInt())
+          .toSet()
+          .toList()
+        ..sort(),
+      'status': enrollmentStatusToJson(status),
+      'isActive': status == EnrollmentStatus.active,
+      'completedAt': _normalizedNullableDateValue(
+        originalValue: enrollmentData['completedAt'],
+        fallback: completedAt,
+      ),
+      'canceledAt': _normalizedNullableDateValue(
+        originalValue: enrollmentData['canceledAt'],
+        fallback: canceledAt,
+      ),
+      'lastSyncedAt': _normalizedDateValue(
+        originalValue: enrollmentData['lastSyncedAt'],
+        fallback: lastSyncedAt ?? now,
+      ),
+    };
+  }
+
+  bool _needsEnrollmentNormalization({
+    required Map<String, dynamic> enrollmentData,
+    required Map<String, dynamic> normalizedData,
+  }) {
+    const List<String> keysToCheck = <String>[
+      'id',
+      'programId',
+      'startDate',
+      'currentWeek',
+      'currentDay',
+      'completedWeeks',
+      'status',
+      'isActive',
+      'completedAt',
+      'canceledAt',
+      'lastSyncedAt',
+    ];
+    for (final String key in keysToCheck) {
+      if (!_isEquivalentValue(enrollmentData[key], normalizedData[key])) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool _isEquivalentValue(dynamic left, dynamic right) {
+    if (left is Timestamp || right is Timestamp) {
+      final DateTime? leftDate = _parseFirestoreDate(left);
+      final DateTime? rightDate = _parseFirestoreDate(right);
+      return leftDate?.toIso8601String() == rightDate?.toIso8601String();
+    }
+    if (left is DateTime || right is DateTime) {
+      final DateTime? leftDate = _parseFirestoreDate(left);
+      final DateTime? rightDate = _parseFirestoreDate(right);
+      return leftDate?.toIso8601String() == rightDate?.toIso8601String();
+    }
+    if (left is List && right is List) {
+      if (left.length != right.length) {
+        return false;
+      }
+      for (int i = 0; i < left.length; i += 1) {
+        if (!_isEquivalentValue(left[i], right[i])) {
+          return false;
+        }
+      }
+      return true;
+    }
+    return left == right;
+  }
+
+  EnrolledProgramModel? _safeEnrollmentFromData(Map<String, dynamic> data) {
+    try {
+      return EnrolledProgramModel.fromJson(data);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  EnrollmentStatus _deriveEnrollmentStatus({
+    required dynamic rawStatus,
+    required bool legacyIsActive,
+    required DateTime? completedAt,
+    required DateTime? canceledAt,
+  }) {
+    if (rawStatus is String && rawStatus.isNotEmpty) {
+      return enrollmentStatusFromJson(rawStatus);
+    }
+    if (legacyIsActive) {
+      return EnrollmentStatus.active;
+    }
+    if (completedAt != null) {
+      return EnrollmentStatus.completed;
+    }
+    if (canceledAt != null) {
+      return EnrollmentStatus.canceled;
+    }
+    return EnrollmentStatus.canceled;
+  }
+
+  DateTime _effectiveSyncTimeFromData({
+    required Map<String, dynamic> data,
+    required DateTime fallback,
+  }) {
+    final DateTime? lastSyncedAt = _parseFirestoreDate(data['lastSyncedAt']);
+    final DateTime? canceledAt = _parseFirestoreDate(data['canceledAt']);
+    final DateTime? completedAt = _parseFirestoreDate(data['completedAt']);
+    final DateTime? startDate = _parseFirestoreDate(data['startDate']);
+    return lastSyncedAt ?? canceledAt ?? completedAt ?? startDate ?? fallback;
+  }
+
+  dynamic _normalizedDateValue({
+    required dynamic originalValue,
+    required DateTime fallback,
+  }) {
+    if (originalValue is Timestamp || originalValue is String) {
+      return originalValue;
+    }
+    if (originalValue is DateTime) {
+      return originalValue.toIso8601String();
+    }
+    return fallback.toIso8601String();
+  }
+
+  dynamic _normalizedNullableDateValue({
+    required dynamic originalValue,
+    required DateTime? fallback,
+  }) {
+    if (originalValue == null) {
+      return null;
+    }
+    if (originalValue is Timestamp || originalValue is String) {
+      return originalValue;
+    }
+    if (originalValue is DateTime) {
+      return originalValue.toIso8601String();
+    }
+    return fallback?.toIso8601String();
+  }
+
+  DateTime? _parseFirestoreDate(dynamic value) {
+    if (value == null) {
+      return null;
+    }
+    if (value is DateTime) {
+      return value;
+    }
+    if (value is Timestamp) {
+      return value.toDate();
+    }
+    if (value is String) {
+      return DateTime.tryParse(value);
+    }
+    return null;
   }
 
   void _appendEnrollmentEventToBatch({

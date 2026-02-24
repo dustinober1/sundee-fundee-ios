@@ -230,6 +230,42 @@ void main() {
       expect(healedActive!.id, 'enrollment-3');
     });
 
+    test('legacy enrollment rows normalize before progress writes', () async {
+      await firestore
+          .collection('users')
+          .doc(userId)
+          .collection('enrollments')
+          .doc('legacy-row')
+          .set(<String, dynamic>{
+        'programId': 'program-legacy',
+        'startDate': DateTime.utc(2026, 1, 1).toIso8601String(),
+        'currentWeek': 1,
+        'currentDay': 1,
+      });
+
+      await enrolledRepository.updateEnrollmentProgress(
+        userId: userId,
+        enrollmentId: 'legacy-row',
+        week: 2,
+        day: 2,
+      );
+
+      final Map<String, dynamic>? doc = (await firestore
+              .collection('users')
+              .doc(userId)
+              .collection('enrollments')
+              .doc('legacy-row')
+              .get())
+          .data();
+      expect(doc, isNotNull);
+      expect(doc!['id'], 'legacy-row');
+      expect(doc['status'], 'active');
+      expect(doc['isActive'], isTrue);
+      expect(doc['lastSyncedAt'], isNotNull);
+      expect(doc['currentWeek'], 2);
+      expect(doc['currentDay'], 2);
+    });
+
     test('program repository re-enroll restore/new paths reset progress safely',
         () async {
       final ProgramRepository programRepository = ProgramRepository(
