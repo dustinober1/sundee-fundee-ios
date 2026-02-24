@@ -77,6 +77,23 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
                 controller: _catalogScrollController,
                 programs: programs,
                 userId: userId,
+                onEnrollRequested: userId == null
+                    ? null
+                    : (ProgramV2 program) => _handleCatalogEnrollment(
+                          userId: userId,
+                          program: program,
+                        ),
+                leadingChildren: _writeError == null
+                    ? const <Widget>[]
+                    : <Widget>[
+                        _NoticeCard(
+                          title: 'Sync warning',
+                          body: _writeError!,
+                          icon: Icons.sync_problem_outlined,
+                          color: Colors.orange.shade700,
+                        ),
+                        const SizedBox(height: 12),
+                      ],
               );
             }
 
@@ -85,7 +102,22 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
                 controller: _catalogScrollController,
                 programs: programs,
                 userId: userId,
+                onEnrollRequested: userId == null
+                    ? null
+                    : (ProgramV2 program) => _handleCatalogEnrollment(
+                          userId: userId,
+                          program: program,
+                        ),
                 leadingChildren: <Widget>[
+                  if (_writeError != null) ...<Widget>[
+                    _NoticeCard(
+                      title: 'Sync warning',
+                      body: _writeError!,
+                      icon: Icons.sync_problem_outlined,
+                      color: Colors.orange.shade700,
+                    ),
+                    const SizedBox(height: 12),
+                  ],
                   _NoActivePlanCard(
                     canceledAt: lifecycleState.canceledAt,
                     onBrowsePlans: _scrollToPlanCatalog,
@@ -464,23 +496,90 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
       return;
     }
 
+    await _handleCatalogEnrollment(
+      userId: userId,
+      program: selectedProgram,
+    );
+  }
+
+  Future<void> _handleCatalogEnrollment({
+    required String userId,
+    required ProgramV2 program,
+  }) async {
+    final ProgramRepository repository = ref.read(programRepositoryProvider);
+
+    final EnrolledProgramModel? canceledEnrollment =
+        await repository.findLatestCanceledEnrollmentForProgram(
+      userId: userId,
+      programId: program.id,
+    );
+
+    bool restorePriorEnrollment = false;
+    if (canceledEnrollment != null) {
+      if (!mounted) {
+        return;
+      }
+      final _ReEnrollmentChoice? choice =
+          await _promptReEnrollmentChoice(programName: program.name);
+      if (choice == null) {
+        return;
+      }
+      restorePriorEnrollment = choice == _ReEnrollmentChoice.restorePrior;
+    }
+
     try {
-      await ref.read(programRepositoryProvider).enrollUser(
-            userId: userId,
-            programId: selectedProgram.id,
-          );
+      await repository.reEnroll(
+        userId: userId,
+        programId: program.id,
+        restorePriorEnrollment: restorePriorEnrollment,
+      );
       if (mounted) {
         setState(() {
           _writeError = null;
         });
       }
-    } catch (_) {
+    } catch (error) {
+      final String fallbackError = error is StateError
+          ? error.message.toString()
+          : 'Could not enroll in a new plan. Please retry.';
       if (mounted) {
         setState(() {
-          _writeError = 'Could not enroll in a new plan. Please retry.';
+          _writeError = fallbackError;
         });
       }
     }
+  }
+
+  Future<_ReEnrollmentChoice?> _promptReEnrollmentChoice({
+    required String programName,
+  }) {
+    return showDialog<_ReEnrollmentChoice>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Re-enroll in $programName?'),
+          content: const Text(
+            'Choose how to continue. Both options restart at week 1/day 1.',
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            OutlinedButton(
+              onPressed: () =>
+                  Navigator.of(context).pop(_ReEnrollmentChoice.restorePrior),
+              child: const Text('Restore prior enrollment'),
+            ),
+            ElevatedButton(
+              onPressed: () =>
+                  Navigator.of(context).pop(_ReEnrollmentChoice.startNew),
+              child: const Text('Start new enrollment'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _scrollToPlanCatalog() {
@@ -571,21 +670,25 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
   }
 }
 
-class _ProgramsCatalogList extends ConsumerWidget {
+enum _ReEnrollmentChoice { restorePrior, startNew }
+
+class _ProgramsCatalogList extends StatelessWidget {
   const _ProgramsCatalogList({
     this.controller,
     required this.programs,
     required this.userId,
+    required this.onEnrollRequested,
     this.leadingChildren = const <Widget>[],
   });
 
   final ScrollController? controller;
   final List<ProgramV2> programs;
   final String? userId;
+  final Future<void> Function(ProgramV2 program)? onEnrollRequested;
   final List<Widget> leadingChildren;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return ListView(
       controller: controller,
       padding: const EdgeInsets.symmetric(vertical: 24.0),
@@ -595,6 +698,7 @@ class _ProgramsCatalogList extends ConsumerWidget {
           (ProgramV2 program) => _ProgramCatalogCard(
             program: program,
             userId: userId,
+            onEnrollRequested: onEnrollRequested,
           ),
         ),
       ],
@@ -602,17 +706,19 @@ class _ProgramsCatalogList extends ConsumerWidget {
   }
 }
 
-class _ProgramCatalogCard extends ConsumerWidget {
+class _ProgramCatalogCard extends StatelessWidget {
   const _ProgramCatalogCard({
     required this.program,
     required this.userId,
+    required this.onEnrollRequested,
   });
 
   final ProgramV2 program;
   final String? userId;
+  final Future<void> Function(ProgramV2 program)? onEnrollRequested;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Padding(
@@ -640,22 +746,9 @@ class _ProgramCatalogCard extends ConsumerWidget {
             Align(
               alignment: Alignment.centerLeft,
               child: ElevatedButton(
-                onPressed: userId == null
+                onPressed: onEnrollRequested == null
                     ? null
-                    : () async {
-                        try {
-                          await ref.read(programRepositoryProvider).enrollUser(
-                                userId: userId!,
-                                programId: program.id,
-                              );
-                        } catch (e) {
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Enrollment failed: $e')),
-                            );
-                          }
-                        }
-                      },
+                    : () => onEnrollRequested!(program),
                 child: const Text('Enroll in Program'),
               ),
             ),

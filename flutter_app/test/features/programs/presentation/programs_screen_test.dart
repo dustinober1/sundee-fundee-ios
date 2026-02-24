@@ -111,6 +111,11 @@ class _FakeProgramRepository extends ProgramRepository {
   bool cancelEnrollmentCalled = false;
   String? cancelEnrollmentId;
   bool enrollUserCalled = false;
+  bool reEnrollCalled = false;
+  bool? reEnrollRestoreChoice;
+  String? reEnrollProgramId;
+  bool throwOnReEnroll = false;
+  EnrolledProgramModel? canceledEnrollmentForProgram;
 
   @override
   Future<void> markWeekComplete({
@@ -148,6 +153,29 @@ class _FakeProgramRepository extends ProgramRepository {
     required String programId,
   }) async {
     enrollUserCalled = true;
+  }
+
+  @override
+  Future<EnrolledProgramModel?> findLatestCanceledEnrollmentForProgram({
+    required String userId,
+    required String programId,
+  }) async {
+    return canceledEnrollmentForProgram;
+  }
+
+  @override
+  Future<void> reEnroll({
+    required String userId,
+    required String programId,
+    required bool restorePriorEnrollment,
+  }) async {
+    if (throwOnReEnroll) {
+      throw StateError(
+          'Could not verify enrollment state. Please try again in a moment.');
+    }
+    reEnrollCalled = true;
+    reEnrollRestoreChoice = restorePriorEnrollment;
+    reEnrollProgramId = programId;
   }
 }
 
@@ -379,6 +407,63 @@ void main() {
     expect(find.text('Enroll in new plan'), findsOneWidget);
     expect(find.textContaining('Canceled on'), findsOneWidget);
     expect(find.text('Mark Week Complete'), findsNothing);
+  });
+
+  testWidgets(
+      're-enrollment prompts restore vs new choice when canceled history exists',
+      (WidgetTester tester) async {
+    final _FakeProgramRepository repository = _FakeProgramRepository();
+    repository.canceledEnrollmentForProgram = EnrolledProgramModel(
+      id: 'canceled-prior',
+      programId: 'program-1',
+      startDate: DateTime.utc(2026, 1, 1),
+      currentWeek: 8,
+      currentDay: 2,
+      status: EnrollmentStatus.canceled,
+      canceledAt: DateTime.utc(2026, 2, 20),
+      completedWeeks: const <int>[1, 2, 3, 4],
+    );
+
+    await _pumpScreen(
+      tester: tester,
+      repository: repository,
+      cycleStatus: _menstrualStatus(),
+      enrollment: null,
+    );
+
+    await tester.tap(find.text('Enroll in Program').first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Restore prior enrollment'), findsOneWidget);
+    expect(find.text('Start new enrollment'), findsOneWidget);
+
+    await tester.tap(find.text('Restore prior enrollment'));
+    await tester.pumpAndSettle();
+
+    expect(repository.reEnrollCalled, isTrue);
+    expect(repository.reEnrollRestoreChoice, isTrue);
+    expect(repository.reEnrollProgramId, 'program-1');
+  });
+
+  testWidgets('shows fallback enrollment error when re-enroll guardrail fails',
+      (WidgetTester tester) async {
+    final _FakeProgramRepository repository = _FakeProgramRepository();
+    repository.throwOnReEnroll = true;
+
+    await _pumpScreen(
+      tester: tester,
+      repository: repository,
+      cycleStatus: _menstrualStatus(),
+      enrollment: null,
+    );
+
+    await tester.tap(find.text('Enroll in Program').first);
+    await tester.pumpAndSettle();
+
+    expect(
+      find.textContaining('Could not verify enrollment state'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('shows cycle adjustment explainer with hide/show controls', (

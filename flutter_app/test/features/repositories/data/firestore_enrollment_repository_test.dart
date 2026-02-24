@@ -196,5 +196,67 @@ void main() {
           .get();
       expect(eventSnapshot.docs.length, 2);
     });
+
+    test('findLatestCanceledEnrollmentForProgram returns newest canceled row',
+        () async {
+      Future<void> seedCanceled({
+        required String id,
+        required DateTime canceledAt,
+      }) async {
+        await firestore
+            .collection('users')
+            .doc(userId)
+            .collection('enrollments')
+            .doc(id)
+            .set(
+              EnrolledProgramModel(
+                id: id,
+                programId: 'program-1',
+                startDate: DateTime.utc(2026, 1, 1),
+                currentWeek: 1,
+                currentDay: 1,
+                status: EnrollmentStatus.canceled,
+                canceledAt: canceledAt,
+                lastSyncedAt: canceledAt,
+              ).toJson(),
+            );
+      }
+
+      await seedCanceled(
+        id: 'canceled-older',
+        canceledAt: DateTime.utc(2026, 2, 20, 10),
+      );
+      await seedCanceled(
+        id: 'canceled-newer',
+        canceledAt: DateTime.utc(2026, 2, 21, 10),
+      );
+
+      final EnrolledProgramModel? latest =
+          await repository.findLatestCanceledEnrollmentForProgram(
+        userId: userId,
+        programId: 'program-1',
+      );
+      expect(latest, isNotNull);
+      expect(latest!.id, 'canceled-newer');
+      expect(latest.status, EnrollmentStatus.canceled);
+    });
+
+    test('recordEnrollmentRestored appends restored event', () async {
+      await repository.recordEnrollmentRestored(
+        userId: userId,
+        enrollmentId: enrollmentId,
+        programId: 'program-1',
+      );
+
+      final EnrollmentEventModel? latestEvent = await repository
+          .watchLatestEnrollmentEvent(
+            userId: userId,
+            enrollmentId: enrollmentId,
+          )
+          .first;
+      expect(latestEvent, isNotNull);
+      expect(latestEvent!.eventType, EnrollmentEventType.restored);
+      expect(latestEvent.programId, 'program-1');
+    });
   });
 }

@@ -71,6 +71,57 @@ class ProgramRepository {
     );
   }
 
+  Future<void> reEnroll({
+    required String userId,
+    required String programId,
+    required bool restorePriorEnrollment,
+  }) async {
+    try {
+      await _enrolledProgramRepository.healDuplicateActiveEnrollments(
+        userId: userId,
+      );
+    } catch (_) {
+      throw StateError(
+        'Could not verify enrollment state. Please try again in a moment.',
+      );
+    }
+
+    if (restorePriorEnrollment) {
+      final EnrolledProgramModel? previousCanceledEnrollment =
+          await _enrolledProgramRepository
+              .findLatestCanceledEnrollmentForProgram(
+        userId: userId,
+        programId: programId,
+      );
+      if (previousCanceledEnrollment != null) {
+        final DateTime now = DateTime.now();
+        final EnrolledProgramModel restoredEnrollment = EnrolledProgramModel(
+          id: previousCanceledEnrollment.id,
+          programId: previousCanceledEnrollment.programId,
+          startDate: now,
+          currentWeek: 1,
+          currentDay: 1,
+          status: EnrollmentStatus.active,
+          completedWeeks: const <int>[],
+          lastSyncedAt: now,
+        );
+
+        await _enrolledProgramRepository.enrollUser(
+          userId: userId,
+          enrollment: restoredEnrollment,
+        );
+        await _enrolledProgramRepository.recordEnrollmentRestored(
+          userId: userId,
+          enrollmentId: restoredEnrollment.id,
+          programId: restoredEnrollment.programId,
+        );
+        return;
+      }
+    }
+
+    await enrollUser(userId: userId, programId: programId);
+  }
+
   Future<void> stopProgram({
     required String userId,
     required String enrollmentId,

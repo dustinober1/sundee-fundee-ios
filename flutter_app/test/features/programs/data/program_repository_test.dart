@@ -8,6 +8,11 @@ class _FakeEnrolledProgramRepository implements EnrolledProgramRepository {
   String? completeEnrollmentUserId;
   String? cancelEnrollmentId;
   String? cancelEnrollmentUserId;
+  int enrollCalls = 0;
+  EnrolledProgramModel? lastEnrolledModel;
+  EnrolledProgramModel? latestCanceledEnrollmentForProgram;
+  String? restoredEnrollmentId;
+  String? restoredProgramId;
 
   String? markWeekEnrollmentId;
   String? markWeekUserId;
@@ -18,6 +23,7 @@ class _FakeEnrolledProgramRepository implements EnrolledProgramRepository {
   String? jumpWeekUserId;
   int? jumpWeek;
   int healCalls = 0;
+  bool throwOnHeal = false;
 
   @override
   Future<void> completeEnrollment({
@@ -32,7 +38,10 @@ class _FakeEnrolledProgramRepository implements EnrolledProgramRepository {
   Future<void> enrollUser({
     required String userId,
     required EnrolledProgramModel enrollment,
-  }) async {}
+  }) async {
+    enrollCalls += 1;
+    lastEnrolledModel = enrollment;
+  }
 
   @override
   Future<void> cancelEnrollment({
@@ -68,7 +77,7 @@ class _FakeEnrolledProgramRepository implements EnrolledProgramRepository {
     required String userId,
     String? enrollmentId,
   }) {
-    return const Stream<EnrollmentEventModel?>.empty();
+    return Stream<EnrollmentEventModel?>.value(null);
   }
 
   @override
@@ -76,11 +85,14 @@ class _FakeEnrolledProgramRepository implements EnrolledProgramRepository {
     required String userId,
     required String programId,
   }) async {
-    return null;
+    return latestCanceledEnrollmentForProgram;
   }
 
   @override
   Future<int> healDuplicateActiveEnrollments({required String userId}) async {
+    if (throwOnHeal) {
+      throw StateError('heal failed');
+    }
     healCalls += 1;
     return 0;
   }
@@ -90,7 +102,10 @@ class _FakeEnrolledProgramRepository implements EnrolledProgramRepository {
     required String userId,
     required String enrollmentId,
     required String programId,
-  }) async {}
+  }) async {
+    restoredEnrollmentId = enrollmentId;
+    restoredProgramId = programId;
+  }
 
   @override
   Future<void> markWeekComplete({
@@ -202,6 +217,85 @@ void main() {
       await repository.healDuplicateActiveEnrollments(userId: 'user-1');
 
       expect(enrolledRepository.healCalls, 1);
+    });
+
+    test('reEnroll restores prior canceled enrollment when selected', () async {
+      enrolledRepository.latestCanceledEnrollmentForProgram =
+          EnrolledProgramModel(
+        id: 'enrollment-restore',
+        programId: 'program-1',
+        startDate: DateTime.utc(2026, 1, 1),
+        currentWeek: 6,
+        currentDay: 2,
+        status: EnrollmentStatus.canceled,
+        completedWeeks: const <int>[1, 2, 3, 4, 5],
+        canceledAt: DateTime.utc(2026, 2, 20),
+      );
+
+      await repository.reEnroll(
+        userId: 'user-1',
+        programId: 'program-1',
+        restorePriorEnrollment: true,
+      );
+
+      expect(enrolledRepository.healCalls, 1);
+      expect(enrolledRepository.enrollCalls, 1);
+      expect(enrolledRepository.lastEnrolledModel, isNotNull);
+      expect(enrolledRepository.lastEnrolledModel!.id, 'enrollment-restore');
+      expect(enrolledRepository.lastEnrolledModel!.currentWeek, 1);
+      expect(enrolledRepository.lastEnrolledModel!.currentDay, 1);
+      expect(enrolledRepository.lastEnrolledModel!.completedWeeks, isEmpty);
+      expect(
+        enrolledRepository.lastEnrolledModel!.status,
+        EnrollmentStatus.active,
+      );
+      expect(enrolledRepository.restoredEnrollmentId, 'enrollment-restore');
+      expect(enrolledRepository.restoredProgramId, 'program-1');
+    });
+
+    test('reEnroll starts new enrollment when restore is not selected',
+        () async {
+      await repository.reEnroll(
+        userId: 'user-1',
+        programId: 'program-1',
+        restorePriorEnrollment: false,
+      );
+
+      expect(enrolledRepository.healCalls, 1);
+      expect(enrolledRepository.enrollCalls, 1);
+      expect(enrolledRepository.restoredEnrollmentId, isNull);
+      expect(enrolledRepository.lastEnrolledModel!.currentWeek, 1);
+      expect(enrolledRepository.lastEnrolledModel!.currentDay, 1);
+      expect(enrolledRepository.lastEnrolledModel!.completedWeeks, isEmpty);
+    });
+
+    test(
+        'reEnroll falls back to new enrollment when no canceled history exists',
+        () async {
+      await repository.reEnroll(
+        userId: 'user-1',
+        programId: 'program-1',
+        restorePriorEnrollment: true,
+      );
+
+      expect(enrolledRepository.healCalls, 1);
+      expect(enrolledRepository.enrollCalls, 1);
+      expect(enrolledRepository.restoredEnrollmentId, isNull);
+    });
+
+    test('reEnroll surfaces fallback error when duplicate-heal fails',
+        () async {
+      enrolledRepository.throwOnHeal = true;
+
+      await expectLater(
+        () => repository.reEnroll(
+          userId: 'user-1',
+          programId: 'program-1',
+          restorePriorEnrollment: true,
+        ),
+        throwsA(isA<StateError>()),
+      );
+      expect(enrolledRepository.enrollCalls, 0);
     });
 
     test('findProgramById returns matching program when present', () {
