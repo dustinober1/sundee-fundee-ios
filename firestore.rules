@@ -107,6 +107,10 @@ service cloud.firestore {
         allow read, write: if isOwner(userId);
       }
 
+      match /migrations/{migrationId} {
+        allow read, write: if isOwner(userId);
+      }
+
       match /enrollments/{enrollmentId} {
         allow read: if isOwner(userId);
         allow create, update: if isOwner(userId)
