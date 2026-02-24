@@ -44,7 +44,7 @@ void main() {
       ProviderScope(
         overrides: [
           enrollmentLifecycleStateProvider.overrideWith(
-            (Ref ref) => AsyncData<EnrollmentLifecycleState>(
+            (Ref ref) => Stream<EnrollmentLifecycleState>.value(
               EnrollmentLifecycleState.canceled(
                 latestEvent: EnrollmentEventModel(
                   id: 'event-1',
@@ -89,7 +89,7 @@ void main() {
       ProviderScope(
         overrides: [
           enrollmentLifecycleStateProvider.overrideWith(
-            (Ref ref) => AsyncData<EnrollmentLifecycleState>(
+            (Ref ref) => Stream<EnrollmentLifecycleState>.value(
               EnrollmentLifecycleState.active(enrollment: enrollment),
             ),
           ),
@@ -112,5 +112,38 @@ void main() {
 
     expect(find.text('START SESSION'), findsOneWidget);
     expect(find.text('No active plan'), findsNothing);
+  });
+
+  testWidgets('shows recoverable banner while preserving landing content',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          enrollmentLifecycleStateProvider.overrideWith(
+            (Ref ref) => Stream<EnrollmentLifecycleState>.value(
+              const EnrollmentLifecycleState.recoverableFailure(
+                errorMessage: 'Temporary access issue.',
+                retryAttempt: 1,
+                maxRetries: 3,
+              ),
+            ),
+          ),
+          authSessionStreamProvider.overrideWith(
+            (Ref ref) => Stream<AuthSession>.value(
+              const AuthSession(status: AuthStatus.guest),
+            ),
+          ),
+        ],
+        child: const MaterialApp(
+          home: Scaffold(body: WorkoutLandingScreen()),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(find.text('Connection issue'), findsOneWidget);
+    expect(find.text('No active plan'), findsWidgets);
+    expect(find.textContaining('Error loading enrollment'), findsNothing);
   });
 }
