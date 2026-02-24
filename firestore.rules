@@ -31,6 +31,37 @@ service cloud.firestore {
         && (!('injuryProfiles' in data) || (injuries is list && injuries.size() <= 20));
     }
 
+    function validEnrollmentStatus(status) {
+      return status in ['active', 'canceled', 'completed'];
+    }
+
+    function validEnrollmentWrite(enrollment, enrollmentId) {
+      return enrollment.id == enrollmentId
+        && enrollment.programId is string
+        && (enrollment.startDate is timestamp || enrollment.startDate is string)
+        && enrollment.currentWeek is int
+        && enrollment.currentDay is int
+        && (!('isActive' in enrollment) || enrollment.isActive is bool)
+        && (!('status' in enrollment) || validEnrollmentStatus(enrollment.status))
+        && (!('completedAt' in enrollment) || enrollment.completedAt is timestamp || enrollment.completedAt is string || enrollment.completedAt == null)
+        && (!('canceledAt' in enrollment) || enrollment.canceledAt is timestamp || enrollment.canceledAt is string || enrollment.canceledAt == null)
+        && (!('lastSyncedAt' in enrollment) || enrollment.lastSyncedAt is timestamp || enrollment.lastSyncedAt is string || enrollment.lastSyncedAt == null)
+        && (!('completedWeeks' in enrollment) || enrollment.completedWeeks is list);
+    }
+
+    function validEnrollmentEventType(eventType) {
+      return eventType in ['enrolled', 'canceled', 'completed', 'restored', 'auto_healed'];
+    }
+
+    function validEnrollmentEventWrite(event, eventId) {
+      return event.id == eventId
+        && event.enrollmentId is string
+        && validEnrollmentEventType(event.eventType)
+        && (event.occurredAt is timestamp || event.occurredAt is string)
+        && (!('programId' in event) || event.programId is string || event.programId == null)
+        && (!('metadata' in event) || event.metadata is map);
+    }
+
     match /users/{userId} {
       allow read: if isOwner(userId);
       allow create, update: if isOwner(userId) && validUserProfileWrite(userId);
@@ -77,7 +108,17 @@ service cloud.firestore {
       }
 
       match /enrollments/{enrollmentId} {
-        allow read, write: if isOwner(userId);
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId)
+          && validEnrollmentWrite(request.resource.data, enrollmentId);
+        allow delete: if isOwner(userId);
+      }
+
+      match /enrollmentEvents/{eventId} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId)
+          && validEnrollmentEventWrite(request.resource.data, eventId);
+        allow delete: if isOwner(userId);
       }
     }
 

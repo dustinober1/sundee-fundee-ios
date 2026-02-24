@@ -21,6 +21,12 @@ class _NoopEnrolledProgramRepository implements EnrolledProgramRepository {
   }) async {}
 
   @override
+  Future<void> cancelEnrollment({
+    required String userId,
+    required String enrollmentId,
+  }) async {}
+
+  @override
   Future<void> jumpToWeek({
     required String userId,
     required String enrollmentId,
@@ -50,9 +56,38 @@ class _NoopEnrolledProgramRepository implements EnrolledProgramRepository {
   }) async {}
 
   @override
-  Stream<EnrolledProgramModel?> watchActiveEnrollment({required String userId}) {
+  Stream<EnrolledProgramModel?> watchActiveEnrollment(
+      {required String userId}) {
     return const Stream<EnrolledProgramModel?>.empty();
   }
+
+  @override
+  Stream<EnrollmentEventModel?> watchLatestEnrollmentEvent({
+    required String userId,
+    String? enrollmentId,
+  }) {
+    return const Stream<EnrollmentEventModel?>.empty();
+  }
+
+  @override
+  Future<EnrolledProgramModel?> findLatestCanceledEnrollmentForProgram({
+    required String userId,
+    required String programId,
+  }) async {
+    return null;
+  }
+
+  @override
+  Future<int> healDuplicateActiveEnrollments({required String userId}) async {
+    return 0;
+  }
+
+  @override
+  Future<void> recordEnrollmentRestored({
+    required String userId,
+    required String enrollmentId,
+    required String programId,
+  }) async {}
 }
 
 void main() {
@@ -65,7 +100,8 @@ void main() {
     setUp(() {
       firestore = FakeFirebaseFirestore();
       cycleRepository = FirestoreCycleRepository(firestore: firestore);
-      enrolledRepository = FirestoreEnrolledProgramRepository(firestore: firestore);
+      enrolledRepository =
+          FirestoreEnrolledProgramRepository(firestore: firestore);
     });
 
     test('cycle period logs and settings read/write paths work', () async {
@@ -88,7 +124,8 @@ void main() {
       );
 
       await cycleRepository.savePeriodLog(userId: userId, log: log);
-      await cycleRepository.saveCycleSettings(userId: userId, settings: settings);
+      await cycleRepository.saveCycleSettings(
+          userId: userId, settings: settings);
 
       final List<PeriodLogModel> logs =
           await cycleRepository.watchPeriodLogs(userId: userId).first;
@@ -101,7 +138,7 @@ void main() {
       expect(savedSettings!.notificationsEnabled, isTrue);
     });
 
-    test('enrollment create/watch/update/stop flow works', () async {
+    test('enrollment create/watch/update/cancel/heal flow works', () async {
       final EnrolledProgramModel enrollment = EnrolledProgramModel(
         id: 'enrollment-1',
         programId: 'program-1',
@@ -110,7 +147,8 @@ void main() {
         currentDay: 1,
       );
 
-      await enrolledRepository.enrollUser(userId: userId, enrollment: enrollment);
+      await enrolledRepository.enrollUser(
+          userId: userId, enrollment: enrollment);
       await enrolledRepository.updateEnrollmentProgress(
         userId: userId,
         enrollmentId: enrollment.id,
@@ -136,15 +174,65 @@ void main() {
       expect(active.currentDay, 1);
       expect(active.completedWeeks, contains(1));
 
-      await enrolledRepository.stopEnrollment(
+      await enrolledRepository.cancelEnrollment(
         userId: userId,
         enrollmentId: enrollment.id,
       );
-      active = await enrolledRepository.watchActiveEnrollment(userId: userId).first;
+      active =
+          await enrolledRepository.watchActiveEnrollment(userId: userId).first;
       expect(active, isNull);
+
+      final EnrollmentEventModel? latestEvent = await enrolledRepository
+          .watchLatestEnrollmentEvent(userId: userId)
+          .first;
+      expect(latestEvent, isNotNull);
+      expect(latestEvent!.eventType, EnrollmentEventType.canceled);
+
+      await firestore
+          .collection('users')
+          .doc(userId)
+          .collection('enrollments')
+          .doc('enrollment-2')
+          .set(
+            EnrolledProgramModel(
+              id: 'enrollment-2',
+              programId: 'program-2',
+              startDate: DateTime.utc(2026, 2, 1),
+              currentWeek: 1,
+              currentDay: 1,
+              status: EnrollmentStatus.active,
+              lastSyncedAt: DateTime.utc(2026, 2, 10, 8),
+            ).toJson(),
+          );
+      await firestore
+          .collection('users')
+          .doc(userId)
+          .collection('enrollments')
+          .doc('enrollment-3')
+          .set(
+            EnrolledProgramModel(
+              id: 'enrollment-3',
+              programId: 'program-2',
+              startDate: DateTime.utc(2026, 2, 1),
+              currentWeek: 1,
+              currentDay: 1,
+              status: EnrollmentStatus.active,
+              lastSyncedAt: DateTime.utc(2026, 2, 11, 8),
+            ).toJson(),
+          );
+
+      final int healed = await enrolledRepository
+          .healDuplicateActiveEnrollments(userId: userId);
+      expect(healed, 1);
+      final EnrolledProgramModel? healedActive =
+          await enrolledRepository.watchActiveEnrollment(userId: userId).first;
+      expect(healedActive, isNotNull);
+      expect(healedActive!.id, 'enrollment-3');
     });
 
-    test('program repository falls back to bundled program when firestore is empty', () async {
+    test(
+        'program repository falls back to bundled program when firestore is empty',
+        () async {
       final ProgramRepository repository = ProgramRepository(
         firestore: firestore,
         enrolledProgramRepository: _NoopEnrolledProgramRepository(),
