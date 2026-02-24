@@ -10,6 +10,8 @@ import '../../../domain/models/program_models.dart';
 import '../../auth/providers.dart';
 import '../../programs/data/program_repository.dart';
 import '../../programs/providers/adapted_program_provider.dart';
+import '../../shared/presentation/recoverable_access_banner.dart';
+import '../providers/workout_sync_recovery_provider.dart';
 import 'plate_calculator_dialog.dart';
 import 'rest_timer_provider.dart';
 import 'workout_execution_providers.dart';
@@ -111,6 +113,8 @@ class _WorkoutExecutionScreenState
     }
 
     final state = ref.watch(workoutExecutionNotifierProvider);
+    final WorkoutSyncRecoveryState syncRecoveryState =
+        ref.watch(workoutSyncRecoveryProvider);
     if (state == null) {
       // If it hasn't initialized yet but we got a session, wait for next frame
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
@@ -142,6 +146,18 @@ class _WorkoutExecutionScreenState
                 ListView(
                   padding: const EdgeInsets.only(bottom: 100),
                   children: <Widget>[
+                    if (syncRecoveryState.blocking ||
+                        state.requiresSyncRecovery)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                        child: RecoverableAccessBanner(
+                          title: 'Manual retry required',
+                          message: syncRecoveryState.message ??
+                              state.syncRecoveryMessage ??
+                              'Failed to save workout. Retry to complete sync.',
+                          onRetry: () => _retryPendingSync(context),
+                        ),
+                      ),
                     if (_session.recoveryPrepExercises.isNotEmpty &&
                         !_recoveryPrepSkipped)
                       _buildRecoveryPrepBlock(context),
@@ -151,8 +167,7 @@ class _WorkoutExecutionScreenState
                     ..._session.exercises.map(
                       (ProgramExercise exercise) => _ExerciseCard(
                         exercise: exercise,
-                        setsState:
-                            state.exerciseSets[exercise.exercise] ?? [],
+                        setsState: state.exerciseSets[exercise.exercise] ?? [],
                         revertedExercises: _revertedExercises,
                         onRevertExercise: (String exerciseId) {
                           setState(() {
@@ -246,8 +261,7 @@ class _WorkoutExecutionScreenState
                         children: <Widget>[
                           Text(
                             Exercises.nameById(exercise.exercise),
-                            style:
-                                const TextStyle(fontWeight: FontWeight.w500),
+                            style: const TextStyle(fontWeight: FontWeight.w500),
                           ),
                           Text(
                             '${exercise.sets.displayString} × ${exercise.reps.displayString}',
@@ -549,6 +563,15 @@ class _WorkoutExecutionScreenState
       if (context.mounted) {
         context.pop(); // Go back to dashboard
       }
+    } on WorkoutSyncBlockingException catch (error) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Workout saved locally. Sync pending.'),
+          ),
+        );
+        await _showSyncRecoveryDialog(context, message: error.message);
+      }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -556,6 +579,71 @@ class _WorkoutExecutionScreenState
         );
       }
     }
+  }
+
+  Future<void> _retryPendingSync(BuildContext context) async {
+    final bool synced = await ref
+        .read(workoutExecutionNotifierProvider.notifier)
+        .retryPendingWrites();
+    if (!context.mounted) {
+      return;
+    }
+    if (synced) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Workout sync complete.')),
+      );
+      context.pop();
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Sync still pending. Please retry.')),
+    );
+  }
+
+  Future<void> _showSyncRecoveryDialog(
+    BuildContext context, {
+    required String message,
+  }) async {
+    await showDialog<void>(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Workout Sync Pending'),
+          content: Text(message),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Keep Session Open'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final bool synced = await ref
+                    .read(workoutExecutionNotifierProvider.notifier)
+                    .retryPendingWrites();
+                if (!dialogContext.mounted) {
+                  return;
+                }
+                Navigator.of(dialogContext).pop();
+                if (!context.mounted) {
+                  return;
+                }
+                if (synced) {
+                  context.pop();
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Sync still pending. Retry again.'),
+                    ),
+                  );
+                }
+              },
+              child: const Text('Retry now'),
+            ),
+          ],
+        );
+      },
+    );
   }
 }
 
