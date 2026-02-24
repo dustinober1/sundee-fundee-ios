@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sundee_fundee_flutter/domain/models/exercise_definitions.dart';
 import 'package:sundee_fundee_flutter/domain/models/program_models.dart';
@@ -214,6 +215,42 @@ void main() {
       expect(model.completedWeeks, isEmpty);
     });
 
+    test('EnrolledProgramModel maps legacy inactive rows to canceled status',
+        () {
+      final EnrolledProgramModel model = EnrolledProgramModel.fromJson(
+        <String, dynamic>{
+          'id': 'enrollment-legacy-canceled',
+          'programId': 'program-1',
+          'startDate': '2026-01-01T00:00:00.000Z',
+          'currentWeek': 2,
+          'currentDay': 3,
+          'isActive': false,
+        },
+      );
+
+      expect(model.status, EnrollmentStatus.canceled);
+      expect(model.isActive, isFalse);
+    });
+
+    test(
+        'EnrolledProgramModel maps inactive rows with completedAt to completed',
+        () {
+      final EnrolledProgramModel model = EnrolledProgramModel.fromJson(
+        <String, dynamic>{
+          'id': 'enrollment-legacy-completed',
+          'programId': 'program-1',
+          'startDate': '2026-01-01T00:00:00.000Z',
+          'currentWeek': 12,
+          'currentDay': 3,
+          'isActive': false,
+          'completedAt': '2026-03-01T12:00:00.000Z',
+        },
+      );
+
+      expect(model.status, EnrollmentStatus.completed);
+      expect(model.isActive, isFalse);
+    });
+
     test('EnrolledProgramModel serializes completedWeeks and lastSyncedAt', () {
       final DateTime lastSyncedAt = DateTime.utc(2026, 2, 23, 12, 0, 0);
       final EnrolledProgramModel model = EnrolledProgramModel(
@@ -229,6 +266,29 @@ void main() {
       final Map<String, dynamic> json = model.toJson();
       expect(json['completedWeeks'], <int>[1, 2, 3]);
       expect(json['lastSyncedAt'], lastSyncedAt.toIso8601String());
+      expect(json['status'], 'active');
+      expect(json['isActive'], isTrue);
+    });
+
+    test('EnrollmentEventModel parses timestamp/date payloads', () {
+      final DateTime now = DateTime.utc(2026, 2, 24, 13, 15, 0);
+      final EnrollmentEventModel event = EnrollmentEventModel.fromJson(
+        <String, dynamic>{
+          'id': 'event-1',
+          'enrollmentId': 'enrollment-1',
+          'programId': 'program-1',
+          'eventType': 'auto_healed',
+          'occurredAt': Timestamp.fromDate(now),
+          'metadata': <String, dynamic>{
+            'reason': 'duplicate active enrollment',
+          },
+        },
+      );
+
+      expect(event.eventType, EnrollmentEventType.autoHealed);
+      expect(event.occurredAt.toUtc(), now);
+      expect(event.metadata['reason'], 'duplicate active enrollment');
+      expect(event.toJson()['eventType'], 'auto_healed');
     });
   });
 }

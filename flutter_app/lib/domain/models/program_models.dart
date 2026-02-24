@@ -365,6 +365,108 @@ class ProgramExercise {
 
 enum ExerciseValueType { fixed, amrap, range, text }
 
+enum EnrollmentStatus { active, canceled, completed }
+
+EnrollmentStatus enrollmentStatusFromJson(dynamic value) {
+  switch ((value as String?)?.toLowerCase()) {
+    case 'active':
+      return EnrollmentStatus.active;
+    case 'canceled':
+      return EnrollmentStatus.canceled;
+    case 'completed':
+      return EnrollmentStatus.completed;
+    default:
+      return EnrollmentStatus.active;
+  }
+}
+
+String enrollmentStatusToJson(EnrollmentStatus status) {
+  switch (status) {
+    case EnrollmentStatus.active:
+      return 'active';
+    case EnrollmentStatus.canceled:
+      return 'canceled';
+    case EnrollmentStatus.completed:
+      return 'completed';
+  }
+}
+
+enum EnrollmentEventType { enrolled, canceled, completed, restored, autoHealed }
+
+EnrollmentEventType enrollmentEventTypeFromJson(dynamic value) {
+  switch ((value as String?)?.toLowerCase()) {
+    case 'enrolled':
+      return EnrollmentEventType.enrolled;
+    case 'canceled':
+      return EnrollmentEventType.canceled;
+    case 'completed':
+      return EnrollmentEventType.completed;
+    case 'restored':
+      return EnrollmentEventType.restored;
+    case 'auto_healed':
+      return EnrollmentEventType.autoHealed;
+    default:
+      return EnrollmentEventType.enrolled;
+  }
+}
+
+String enrollmentEventTypeToJson(EnrollmentEventType eventType) {
+  switch (eventType) {
+    case EnrollmentEventType.enrolled:
+      return 'enrolled';
+    case EnrollmentEventType.canceled:
+      return 'canceled';
+    case EnrollmentEventType.completed:
+      return 'completed';
+    case EnrollmentEventType.restored:
+      return 'restored';
+    case EnrollmentEventType.autoHealed:
+      return 'auto_healed';
+  }
+}
+
+class EnrollmentEventModel {
+  EnrollmentEventModel({
+    required this.id,
+    required this.enrollmentId,
+    required this.eventType,
+    required this.occurredAt,
+    this.programId,
+    this.metadata = const <String, dynamic>{},
+  });
+
+  final String id;
+  final String enrollmentId;
+  final EnrollmentEventType eventType;
+  final DateTime occurredAt;
+  final String? programId;
+  final Map<String, dynamic> metadata;
+
+  factory EnrollmentEventModel.fromJson(Map<String, dynamic> json) {
+    return EnrollmentEventModel(
+      id: json['id'] as String? ?? '',
+      enrollmentId: json['enrollmentId'] as String? ?? '',
+      eventType: enrollmentEventTypeFromJson(json['eventType']),
+      occurredAt: parseDateTime(json['occurredAt'], fieldName: 'occurredAt'),
+      programId: json['programId'] as String?,
+      metadata: (json['metadata'] as Map<String, dynamic>?) ??
+          (json['metadata'] as Map?)?.cast<String, dynamic>() ??
+          const <String, dynamic>{},
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'id': id,
+      'enrollmentId': enrollmentId,
+      'eventType': enrollmentEventTypeToJson(eventType),
+      'occurredAt': occurredAt.toIso8601String(),
+      'programId': programId,
+      'metadata': metadata,
+    };
+  }
+}
+
 class ExerciseValue {
   const ExerciseValue._({
     required this.type,
@@ -494,8 +596,9 @@ class EnrolledProgramModel {
     required this.startDate,
     required this.currentWeek,
     required this.currentDay,
-    this.isActive = true,
+    this.status = EnrollmentStatus.active,
     this.completedAt,
+    this.canceledAt,
     List<int>? completedWeeks,
     this.lastSyncedAt,
   }) : completedWeeks = List<int>.unmodifiable(
@@ -511,10 +614,13 @@ class EnrolledProgramModel {
   final DateTime startDate;
   final int currentWeek;
   final int currentDay;
-  final bool isActive;
+  final EnrollmentStatus status;
   final DateTime? completedAt;
+  final DateTime? canceledAt;
   final List<int> completedWeeks;
   final DateTime? lastSyncedAt;
+
+  bool get isActive => status == EnrollmentStatus.active;
 
   factory EnrolledProgramModel.fromJson(Map<String, dynamic> json) {
     final List<int> completedWeeks =
@@ -524,17 +630,45 @@ class EnrolledProgramModel {
             .toList()
           ..sort();
 
+    final bool legacyIsActive = json['isActive'] as bool? ?? true;
+    final DateTime? completedAt = parseNullableDateTime(json['completedAt']);
+    final DateTime? canceledAt = parseNullableDateTime(json['canceledAt']);
+    final EnrollmentStatus status = _deriveEnrollmentStatus(
+        json['status'], legacyIsActive, completedAt, canceledAt);
+
     return EnrolledProgramModel(
       id: json['id'] as String? ?? '',
       programId: json['programId'] as String? ?? '',
       startDate: parseDateTime(json['startDate'], fieldName: 'startDate'),
       currentWeek: (json['currentWeek'] as num?)?.toInt() ?? 1,
       currentDay: (json['currentDay'] as num?)?.toInt() ?? 1,
-      isActive: json['isActive'] as bool? ?? true,
-      completedAt: parseNullableDateTime(json['completedAt']),
+      status: status,
+      completedAt: completedAt,
+      canceledAt: canceledAt,
       completedWeeks: completedWeeks,
       lastSyncedAt: parseNullableDateTime(json['lastSyncedAt']),
     );
+  }
+
+  static EnrollmentStatus _deriveEnrollmentStatus(
+    dynamic rawStatus,
+    bool legacyIsActive,
+    DateTime? completedAt,
+    DateTime? canceledAt,
+  ) {
+    if (rawStatus is String && rawStatus.isNotEmpty) {
+      return enrollmentStatusFromJson(rawStatus);
+    }
+    if (legacyIsActive) {
+      return EnrollmentStatus.active;
+    }
+    if (completedAt != null) {
+      return EnrollmentStatus.completed;
+    }
+    if (canceledAt != null) {
+      return EnrollmentStatus.canceled;
+    }
+    return EnrollmentStatus.canceled;
   }
 
   Map<String, dynamic> toJson() {
@@ -545,7 +679,9 @@ class EnrolledProgramModel {
       'currentWeek': currentWeek,
       'currentDay': currentDay,
       'isActive': isActive,
+      'status': enrollmentStatusToJson(status),
       'completedAt': completedAt?.toIso8601String(),
+      'canceledAt': canceledAt?.toIso8601String(),
       'completedWeeks': completedWeeks,
       'lastSyncedAt': lastSyncedAt?.toIso8601String(),
     };
@@ -554,8 +690,9 @@ class EnrolledProgramModel {
   EnrolledProgramModel copyWith({
     int? currentWeek,
     int? currentDay,
-    bool? isActive,
+    EnrollmentStatus? status,
     DateTime? completedAt,
+    DateTime? canceledAt,
     List<int>? completedWeeks,
     DateTime? lastSyncedAt,
   }) {
@@ -565,8 +702,9 @@ class EnrolledProgramModel {
       startDate: startDate,
       currentWeek: currentWeek ?? this.currentWeek,
       currentDay: currentDay ?? this.currentDay,
-      isActive: isActive ?? this.isActive,
+      status: status ?? this.status,
       completedAt: completedAt ?? this.completedAt,
+      canceledAt: canceledAt ?? this.canceledAt,
       completedWeeks: completedWeeks ?? this.completedWeeks,
       lastSyncedAt: lastSyncedAt ?? this.lastSyncedAt,
     );
