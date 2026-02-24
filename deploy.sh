@@ -28,8 +28,8 @@ flutter build web --dart-define=ENABLE_FIREBASE=true --release
 # Navigate back to root
 cd ..
 
-# Deploy to Firebase
-echo -e "${BLUE}🔥 Deploying to Firebase Hosting...${NC}"
-firebase deploy --only hosting
+# Deploy app and firestore contract artifacts together
+echo -e "${BLUE}🔥 Deploying Firebase Hosting + Firestore contract...${NC}"
+firebase deploy --only firestore,firestore:indexes,hosting
 
 echo -e "${GREEN}✅ Success! Application is live.${NC}"

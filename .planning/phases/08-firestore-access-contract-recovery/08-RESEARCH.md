@@ -205,3 +205,9 @@ No new external product libraries are required for Phase 08.
 
 **Research date:** 2026-02-24  
 **Valid until:** 2026-03-24 (refresh if Firestore schema/rules change)
+
+## Phase 08 Execution Notes (Contract Parity Guardrail)
+
+- Deploy workflow must ship client + Firestore contract together:
+  - `firebase deploy --only firestore,firestore:indexes,hosting`
+- Keep this guardrail in future phase execution to avoid UAT-only permission drift.
