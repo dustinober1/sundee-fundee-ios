@@ -2,51 +2,41 @@
 
 ## Current Position
 
-Phase: 7 (Enrollment Cancellation Lifecycle) — **complete**  
-Plan: 07-03 complete (all plans done)  
-Status: Milestone v1.1 complete (milestone audit pending)  
-Last activity: 2026-02-24 — Executed 07-01/07-02/07-03 and phase verification
+Phase: Milestone transition (v1.1 archived)
+Plan: None
+Status: Ready to plan next milestone
+Last activity: 2026-02-24 — archived v1.1 milestone, updated planning docs, created release tag
 
-Progress: █████████████████████ 24/24 plans complete (100%)
+Progress: █████████████████████ 24/24 plans complete (100%) for v1.1
 
 ## Accumulated Context
 
-- Initialized: 2026-02-23
-- Milestone completed: v1 (2026-02-23)
-- Milestone audit: passed (`.planning/v1-MILESTONE-AUDIT.md`)
 - Milestone archives:
   - `.planning/milestones/v1-ROADMAP.md`
   - `.planning/milestones/v1-REQUIREMENTS.md`
+  - `.planning/milestones/v1.1-ROADMAP.md`
+  - `.planning/milestones/v1.1-REQUIREMENTS.md`
+  - `.planning/milestones/v1.1-MILESTONE-AUDIT.md`
 - Milestone index:
   - `.planning/MILESTONES.md`
 
-## Key Decisions
+## Key Decisions (Recent)
 
-| Decision | Choice | Plan |
+| Decision | Choice | Source |
 |---|---|---|
-| Injury fields serialization | View-layer-only — NOT in fromJson/toJson | 06-01 |
-| No-op fast-path | Return same reference when activeInjuries is empty | 06-01 |
-| Regression table | Hardcoded deterministic table for primary lifts | 06-01 |
-| isContraindicatedOriginal | Engine always sets false; only user revert sets true | 06-01 |
-| Disclaimer ack persistence | Map<String, DateTime> on UserModel, Firestore dot-notation merge | 06-02 |
-| InjuryAdaptationContext empty injuries | disclaimerAcknowledgedForAll = true when no active injuries | 06-02 |
-| Provider stacking | injuryAdaptedActiveProgramProvider wraps adaptedActiveProgramProvider (cycle preserved) | 06-02 |
-| InjuryAdaptationBanner state ownership | Parent-managed visible/onToggleVisibility (matches CycleAdjustmentExplainer) | 06-03 |
-| programs_screen hard gate | Grey italic text replaces week list until disclaimer acknowledged | 06-03 |
-| workout_landing_screen hard gate | START SESSION button disabled (onPressed: null) until disclaimer acknowledged | 06-03 |
-| dashboard injury indicator | Lightweight chip only — no full banner on dashboard | 06-03 |
+| Injury adaptation serialization boundary | Keep injury-only adaptation metadata out of persisted program JSON | 06-01 |
+| Disclaimer acknowledgment persistence | Store per-injury acknowledgment map on user profile with merge writes | 06-02 |
+| Cancellation UX safety | Two-step confirmation with immediate lifecycle transition and explicit replacement state | 07-02 |
+| Re-enrollment guardrail | Heal duplicate-active state before restore/new re-enrollment commit | 07-03 |
+| Workout history integrity | Persist `enrollmentId` on completed workouts and show canceled-plan markers | 07-03 |
 
-| Recovery prep skip | Session-local bool, no persistence | 06-04 |
-| Exercise revert | Session-local Set<String>, no provider writes | 06-04 |
-| isInjuryRelated detection | recoveryPrepExercises.length diff + injuryReplacedOriginal field diff | 06-04 |
-| Enrollment lifecycle contract | Explicit `active/canceled/completed` status + event stream with legacy compatibility | 07-01 |
-| Cancel operation semantics | Immediate batched enrollment status transition + cancellation event write | 07-01 |
-| Cancellation UX | Two-step confirmation, no reason prompt, explicit `No active plan` replacement card | 07-02 |
-| Re-enrollment safety | Restore-vs-new prompt with stale-state auto-heal guardrail and fallback error | 07-03 |
-| Workout history integrity | Persist workout `enrollmentId`; surface `Canceled plan` marker in dashboard/summary | 07-03 |
+## Open Follow-ups
+
+- Execute and record the manual UAT scenarios documented for Phase 06.
+- Resolve pre-existing `deprecated_member_use` analyzer info in onboarding profile screen.
 
 ## Session Continuity
 
-Last session: 2026-02-24T00:00:00Z  
-Stopped at: Completed 07-03-PLAN.md and generated 07-VERIFICATION.md  
-Resume file: None
+Last session: 2026-02-24
+Stopped at: Milestone completion docs and archive/tag operations complete
+Resume command: `$gsd-new-milestone`

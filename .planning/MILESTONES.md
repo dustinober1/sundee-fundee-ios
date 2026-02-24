@@ -1,5 +1,31 @@
 # Project Milestones: Sundee-Fundee
 
+## v1.1 Onboarding Persistence + Injury-Aware Plans (Shipped: 2026-02-24)
+
+**Delivered:** Account-level onboarding persistence, injury-aware adaptation/disclaimer flows, and safe plan cancellation with guarded re-enrollment and history integrity.
+
+**Phases completed:** 5-7 (10 plans total)
+
+**Key accomplishments:**
+- Implemented canonical onboarding/injury profile persistence with legacy-safe normalization and rules hardening.
+- Added bootstrap routing for onboarding resume/restart and injury-required gating across auth flows.
+- Shipped deterministic injury adaptation engine plus provider wiring and per-injury disclaimer acknowledgment persistence.
+- Added injury-aware UI gates and workout execution controls (recovery prep, replacement labeling, revert warnings).
+- Delivered explicit enrollment lifecycle, two-step cancellation UX, and canceled-state surfaces across programs/workout/dashboard.
+- Added guarded restore-vs-new re-enrollment and persisted workout enrollment markers for post-cancel history integrity.
+
+**Stats:**
+- 86 files changed
+- 10,636 insertions, 432 deletions
+- 3 phases, 10 plans, 24 tasks
+- Timeline: 2026-02-23 to 2026-02-24
+
+**Git range:** `2da651e` -> `821707b`
+
+**What's next:** Start next milestone definition with `$gsd-new-milestone`.
+
+---
+
 ## v1 Foundation Release (Shipped: 2026-02-23)
 
 **Delivered:** Stable cycle-aware strength training app with verified week-by-week progression and clean full-suite evidence.
@@ -24,18 +50,3 @@
 **What's next:** Start v2 milestone planning.
 
 ---
-
-## v1.1 Onboarding Persistence + Injury-Aware Plans (Planned: 2026-02-23)
-
-**Goal:** Remove repeat onboarding friction while introducing injury-aware plan customization and safe plan cancellation.
-
-**Planned phases:** 5-7
-
-**In scope:**
-- Persist onboarding completion and profile answers across sessions/devices.
-- Add injury profile inputs that adapt generated plans with alternates and recovery-support additions.
-- Add legal disclaimer that guidance is not medical advice or physical therapy.
-- Support plan cancellation while preserving historical workout/progression records.
-
-**Requirements:** `.planning/REQUIREMENTS.md` (ONB-01..03, INJ-01..05, PLN-01..03)
-**Roadmap:** `.planning/ROADMAP.md`

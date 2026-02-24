@@ -2,74 +2,10 @@
 
 ## Milestones
 - [x] **v1 Foundation Release** (shipped 2026-02-23) - 4 phases, 14 plans, audit passed. Archive: `.planning/milestones/v1-ROADMAP.md`
-- [x] **v1.1 Onboarding Persistence + Injury-Aware Plans** (completed 2026-02-24)
+- [x] **v1.1 Onboarding Persistence + Injury-Aware Plans** (shipped 2026-02-24) - 3 phases, 10 plans, 11/11 requirements satisfied, audit status `tech_debt` (no blockers). Archive: `.planning/milestones/v1.1-ROADMAP.md`
 
-## Current Milestone: v1.1 Onboarding Persistence + Injury-Aware Plans
-
-**Goal:** Remove repeat onboarding friction while introducing injury-aware plan customization and safe plan cancellation.
-**Status:** Complete (verified 2026-02-24)
-
-**Phases:** 3 (Phase 5-7)  
-**Requirements mapped:** 11/11 (100%)
-
-| # | Phase | Goal | Requirements | Success Criteria |
-|---|---|---|---|---|
-| 5 | Profile Persistence Foundation | Persist onboarding/injury profile state reliably across sessions/devices | ONB-01, ONB-02, ONB-03, INJ-01, INJ-02 | 4 |
-| 6 | Injury-Aware Plan Adaptation | Generate safer alternates/recovery additions and show legal disclaimer copy | INJ-03, INJ-04, INJ-05 | 4 |
-| 7 | Enrollment Cancellation Lifecycle | Let users cancel enrolled plans safely while preserving history and re-enrollment | PLN-01, PLN-02, PLN-03 | 4 |
-
-## Phase Details
-
-### Phase 5: Profile Persistence Foundation (completed 2026-02-23)
-Goal: Persist onboarding and injury profile data so users are not repeatedly prompted and settings are stable across devices.
-
-Requirements: ONB-01, ONB-02, ONB-03, INJ-01, INJ-02
-
-Success criteria:
-1. Returning authenticated users with completed onboarding bypass onboarding by default.
-2. Editing onboarding answers in profile persists and is reflected on next session bootstrap.
-3. Injury context can be created, updated, and cleared without schema/regression errors.
-4. Existing pre-v1.1 accounts with missing fields receive safe defaults and no crash paths.
-
-Plans:
-- [x] 05-01-PLAN.md - Canonical profile schema, repository normalization, and Firestore rules hardening
-- [x] 05-02-PLAN.md - Bootstrap state machine, resume/restart onboarding flow, and injury-required routing gates
-- [x] 05-03-PLAN.md - Settings profile edit surfaces, non-blocking save retry handling, and plan-refresh wiring
-
-### Phase 6: Injury-Aware Plan Adaptation (completed 2026-02-23)
-Goal: Adapt generated plans when injuries are present using safe alternates/recovery additions with explicit legal disclaimers.
-
-Requirements: INJ-03, INJ-04, INJ-05
-
-Success criteria:
-1. Contraindicated planned movements are replaced by deterministic pattern-equivalent alternatives.
-2. Recovery-support additions appear when injury context is present and disappear when cleared.
-3. Disclaimer text appears on all injury-guidance plan surfaces.
-4. Adaptation behavior is covered by automated tests for at least representative injury scenarios.
-
-**Plans:** 4 plans
-
-Plans:
-- [x] 06-01-PLAN.md — Model extensions + InjuryAdaptationEngine (TDD)
-- [x] 06-02-PLAN.md — Provider wiring, disclaimer persistence, screen reference swap
-- [x] 06-03-PLAN.md — Disclaimer banner UI on plan overview surfaces
-- [x] 06-04-PLAN.md — Workout execution: exercise labels, recovery prep, override, mid-workout prompt
-
-### Phase 7: Enrollment Cancellation Lifecycle (completed 2026-02-24)
-Goal: Provide explicit cancel-plan flow that preserves history and supports future enrollment.
-
-Requirements: PLN-01, PLN-02, PLN-03
-
-Success criteria:
-1. Users can cancel active enrollment from supported plan management surface.
-2. Post-cancel state is visible and unambiguous in UI (inactive/canceled).
-3. Historical completed workouts remain intact after cancellation.
-4. Users can enroll in a new plan after cancellation with no conflicting active-state artifacts.
-
-Plans:
-- [x] 07-01-PLAN.md - Lifecycle domain/repository/rules foundation
-- [x] 07-02-PLAN.md - Cancellation UX and post-cancel replacement state
-- [x] 07-03-PLAN.md - Guarded re-enrollment + canceled-history integrity
+## Current Milestone
+- [ ] Not started. Run `$gsd-new-milestone` to define the next milestone scope and create a fresh `.planning/REQUIREMENTS.md`.
 
 ## Next Command
-`$gsd-audit-milestone`
+`$gsd-new-milestone`
