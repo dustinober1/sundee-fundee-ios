@@ -67,6 +67,7 @@ void main() {
       expect(result.migratedRecords, 2);
       expect(migrationService.markCompleteCalls, 1);
       expect(repos.workout.savedWorkouts.length, 1);
+      expect(repos.workout.savedWorkouts.first.enrollmentId, isNull);
       expect(repos.workout.savedSets.length, 1);
     });
 

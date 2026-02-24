@@ -230,6 +230,72 @@ void main() {
       expect(healedActive!.id, 'enrollment-3');
     });
 
+    test('program repository re-enroll restore/new paths reset progress safely',
+        () async {
+      final ProgramRepository programRepository = ProgramRepository(
+        firestore: firestore,
+        enrolledProgramRepository: enrolledRepository,
+      );
+
+      await firestore
+          .collection('users')
+          .doc(userId)
+          .collection('enrollments')
+          .doc('canceled-prior')
+          .set(
+            EnrolledProgramModel(
+              id: 'canceled-prior',
+              programId: 'program-reenroll',
+              startDate: DateTime.utc(2026, 1, 1),
+              currentWeek: 7,
+              currentDay: 2,
+              status: EnrollmentStatus.canceled,
+              completedWeeks: const <int>[1, 2, 3, 4, 5, 6],
+              canceledAt: DateTime.utc(2026, 2, 20),
+              lastSyncedAt: DateTime.utc(2026, 2, 20),
+            ).toJson(),
+          );
+
+      await programRepository.reEnroll(
+        userId: userId,
+        programId: 'program-reenroll',
+        restorePriorEnrollment: true,
+      );
+
+      EnrolledProgramModel? active =
+          await enrolledRepository.watchActiveEnrollment(userId: userId).first;
+      expect(active, isNotNull);
+      expect(active!.id, 'canceled-prior');
+      expect(active.currentWeek, 1);
+      expect(active.currentDay, 1);
+      expect(active.completedWeeks, isEmpty);
+
+      await enrolledRepository.cancelEnrollment(
+        userId: userId,
+        enrollmentId: active.id,
+      );
+
+      await programRepository.reEnroll(
+        userId: userId,
+        programId: 'program-reenroll',
+        restorePriorEnrollment: false,
+      );
+      active =
+          await enrolledRepository.watchActiveEnrollment(userId: userId).first;
+      expect(active, isNotNull);
+      expect(active!.id, isNot('canceled-prior'));
+      expect(active.currentWeek, 1);
+      expect(active.currentDay, 1);
+
+      final activeDocs = await firestore
+          .collection('users')
+          .doc(userId)
+          .collection('enrollments')
+          .where('isActive', isEqualTo: true)
+          .get();
+      expect(activeDocs.docs.length, 1);
+    });
+
     test(
         'program repository falls back to bundled program when firestore is empty',
         () async {
