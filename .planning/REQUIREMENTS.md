@@ -37,12 +37,12 @@ Milestone v1.2 addresses UAT-blocking access failures in core training surfaces 
 ## Traceability (Requirement -> Phase)
 | Requirement ID | Planned Phase | Outcome |
 |---|---|---|
-| ACL-01 | TBD | Planned |
-| ACL-02 | TBD | Planned |
-| ACL-03 | TBD | Planned |
-| ACL-04 | TBD | Planned |
-| ACL-05 | TBD | Planned |
-| ONB-04 | TBD | Planned |
-| ONB-05 | TBD | Planned |
-| QA-01 | TBD | Planned |
-| QA-02 | TBD | Planned |
+| ACL-01 | 8 | Planned |
+| ACL-02 | 8 | Planned |
+| ACL-03 | 8 | Planned |
+| ACL-04 | 8 | Planned |
+| ACL-05 | 8 | Planned |
+| ONB-04 | 9 | Planned |
+| ONB-05 | 9 | Planned |
+| QA-01 | 10 | Planned |
+| QA-02 | 10 | Planned |

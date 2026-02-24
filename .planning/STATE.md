@@ -2,10 +2,10 @@
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 8 (ready for discussion)
 Plan: -
-Status: Defining requirements for milestone v1.2
-Last activity: 2026-02-24 - Milestone v1.2 started from UAT findings
+Status: Milestone v1.2 initialized; roadmap created
+Last activity: 2026-02-24 - Created v1.2 roadmap from UAT findings
 
 Progress: 0/3 phases complete (0%) for v1.2
 
@@ -45,5 +45,5 @@ Progress: 0/3 phases complete (0%) for v1.2
 ## Session Continuity
 
 Last session: 2026-02-24
-Stopped at: Milestone initialization and requirement definition start (v1.2)
-Resume command: `$gsd-new-milestone`
+Stopped at: Roadmap created for v1.2; ready for phase 8 discussion/planning
+Resume command: `$gsd-discuss-phase 8`
