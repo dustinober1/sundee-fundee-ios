@@ -5,7 +5,7 @@
 Phase: Milestone transition (v1.1 archived)
 Plan: None
 Status: Ready to plan next milestone
-Last activity: 2026-02-24 — archived v1.1 milestone, updated planning docs, created release tag
+Last activity: 2026-02-24 — Completed quick task 001: Fix Firestore insights permission and timeout errors
 
 Progress: █████████████████████ 24/24 plans complete (100%) for v1.1
 
@@ -34,6 +34,12 @@ Progress: █████████████████████ 24/24 
 
 - Execute and record the manual UAT scenarios documented for Phase 06.
 - Resolve pre-existing `deprecated_member_use` analyzer info in onboarding profile screen.
+
+## Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 001 | Fix Firestore insights permission and timeout errors | 2026-02-24 | f325ea8 | [001-fix-firestore-insights-permission-and-ti](./quick/001-fix-firestore-insights-permission-and-ti/) |
 
 ## Session Continuity
 
