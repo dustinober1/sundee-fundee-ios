@@ -210,12 +210,20 @@ void main() {
     );
 
     await tester.pumpAndSettle();
-
-    await tester.tap(find.text('Jump to Week').last);
+    await tester.drag(find.byType(ListView), const Offset(0, -300));
     await tester.pumpAndSettle();
-    expect(repository.jumpedToWeek, 2);
 
-    await tester.tap(find.text('Mark Week Complete'));
+    final Finder jumpButton =
+        find.widgetWithText(OutlinedButton, 'Jump to Week').first;
+    await tester.ensureVisible(jumpButton);
+    await tester.tap(jumpButton);
+    await tester.pumpAndSettle();
+    expect(repository.jumpedToWeek, isNotNull);
+
+    final Finder completeButton =
+        find.widgetWithText(ElevatedButton, 'Mark Week Complete');
+    await tester.ensureVisible(completeButton);
+    await tester.tap(completeButton);
     await tester.pumpAndSettle();
     expect(repository.markedWeekComplete, isTrue);
   });

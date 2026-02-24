@@ -7,9 +7,9 @@ import '../../../domain/models/program_models.dart';
 import '../../auth/domain/auth_state.dart';
 import '../../auth/providers.dart';
 import '../../profile/providers.dart';
-import '../../programs/data/program_repository.dart';
 import '../../programs/presentation/widgets/injury_adaptation_banner.dart';
 import '../../programs/providers/adapted_program_provider.dart';
+import '../../programs/providers/enrollment_lifecycle_provider.dart';
 import 'workout_execution_providers.dart';
 
 class WorkoutLandingScreen extends ConsumerStatefulWidget {
@@ -27,7 +27,10 @@ class _WorkoutLandingScreenState extends ConsumerState<WorkoutLandingScreen> {
   Widget build(BuildContext context) {
     // Check if there is an active workout
     final activeWorkoutState = ref.watch(workoutExecutionNotifierProvider);
-    final isWorkoutActive = activeWorkoutState != null;
+    final bool isWorkoutActive = activeWorkoutState != null;
+    final EnrollmentLifecycleState? lifecycleState =
+        ref.watch(enrollmentLifecycleStateProvider).asData?.value;
+    final bool isCanceled = lifecycleState?.isCanceled ?? false;
 
     return Center(
       child: Padding(
@@ -38,7 +41,27 @@ class _WorkoutLandingScreenState extends ConsumerState<WorkoutLandingScreen> {
             const Icon(Icons.fitness_center,
                 size: 80, color: AppColors.brandPrimary),
             const SizedBox(height: 32),
-            if (isWorkoutActive) ...[
+            if (isCanceled) ...[
+              const Text(
+                'No active plan',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                lifecycleState?.canceledAt == null
+                    ? 'Your plan has been canceled. Enroll in a new plan to start sessions.'
+                    : 'Canceled on ${lifecycleState!.canceledAt!.toLocal().toString().split('.').first}',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ] else if (isWorkoutActive) ...[
               const Text(
                 'Workout in Progress',
                 style: TextStyle(
@@ -80,7 +103,7 @@ class _WorkoutLandingScreenState extends ConsumerState<WorkoutLandingScreen> {
   }
 
   Widget _buildNextSessionInfo(BuildContext context) {
-    final enrollmentAsync = ref.watch(activeEnrollmentProvider);
+    final lifecycleAsync = ref.watch(enrollmentLifecycleStateProvider);
     final programAsync = ref.watch(injuryAdaptedActiveProgramProvider);
     final InjuryAdaptationContext injuryContext =
         ref.watch(injuryAdaptationContextProvider);
@@ -90,8 +113,29 @@ class _WorkoutLandingScreenState extends ConsumerState<WorkoutLandingScreen> {
     final String? userId = session?.user?.uid ??
         (session?.status == AuthStatus.guest ? 'guest' : null);
 
-    return enrollmentAsync.when(
-      data: (enrollment) {
+    return lifecycleAsync.when(
+      data: (EnrollmentLifecycleState lifecycleState) {
+        final EnrolledProgramModel? enrollment = lifecycleState.enrollment;
+        if (lifecycleState.isCanceled) {
+          return const Column(
+            children: [
+              Icon(Icons.event_busy_outlined,
+                  size: 48, color: AppColors.textSecondary),
+              SizedBox(height: 16),
+              Text(
+                'No active plan',
+                style: TextStyle(fontSize: 16, color: AppColors.textSecondary),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: 8),
+              Text(
+                'Your enrollment was canceled. Enroll in a new plan to start sessions.',
+                style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          );
+        }
         if (enrollment == null) {
           return const Column(
             children: [
@@ -99,7 +143,7 @@ class _WorkoutLandingScreenState extends ConsumerState<WorkoutLandingScreen> {
                   size: 48, color: AppColors.textSecondary),
               SizedBox(height: 16),
               Text(
-                'No active program enrollment.',
+                'No active plan',
                 style: TextStyle(fontSize: 16, color: AppColors.textSecondary),
                 textAlign: TextAlign.center,
               ),
@@ -125,8 +169,7 @@ class _WorkoutLandingScreenState extends ConsumerState<WorkoutLandingScreen> {
                 ? week.sessions[sessionIndex]
                 : week.sessions.last;
 
-            final List<String> changelog =
-                _buildAdaptationChangelog(program);
+            final List<String> changelog = _buildAdaptationChangelog(program);
 
             // Disclaimer gate — disable START SESSION until acknowledged
             final bool startBlocked = injuryContext.hasActiveInjuries &&

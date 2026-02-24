@@ -10,8 +10,8 @@ import '../../auth/domain/auth_state.dart';
 import '../../auth/providers.dart';
 import '../../cycle/providers.dart';
 import '../../migration/providers.dart';
-import '../../programs/data/program_repository.dart';
 import '../../programs/providers/adapted_program_provider.dart';
+import '../../programs/providers/enrollment_lifecycle_provider.dart';
 import '../../repositories/providers.dart';
 import '../../shared/presentation/sync_status_badge.dart';
 import 'cycle_insights_chart.dart';
@@ -383,14 +383,19 @@ class _NextWorkoutCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final enrollmentAsync = ref.watch(activeEnrollmentProvider);
+    final lifecycleAsync = ref.watch(enrollmentLifecycleStateProvider);
     final programAsync = ref.watch(injuryAdaptedActiveProgramProvider);
     final ProgramAdaptationContext adaptationContext = ref.watch(
       programAdaptationContextProvider,
     );
 
-    return enrollmentAsync.when(
-      data: (enrollment) {
+    return lifecycleAsync.when(
+      data: (EnrollmentLifecycleState lifecycleState) {
+        if (lifecycleState.isCanceled) {
+          return _NoActiveProgramCard(canceledAt: lifecycleState.canceledAt);
+        }
+
+        final enrollment = lifecycleState.enrollment;
         if (enrollment == null) {
           return const _NoActiveProgramCard();
         }
@@ -522,10 +527,15 @@ class _NextWorkoutCard extends ConsumerWidget {
 }
 
 class _NoActiveProgramCard extends StatelessWidget {
-  const _NoActiveProgramCard();
+  const _NoActiveProgramCard({this.canceledAt});
+
+  final DateTime? canceledAt;
 
   @override
   Widget build(BuildContext context) {
+    final String? canceledDate =
+        canceledAt == null ? null : DateFormat.yMMMd().format(canceledAt!);
+
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       child: Padding(
@@ -536,15 +546,22 @@ class _NoActiveProgramCard extends StatelessWidget {
                 color: AppColors.textSecondary, size: 32),
             const SizedBox(height: 8),
             const Text(
-              'No active program enrollment.',
+              'No active plan',
               style: TextStyle(color: AppColors.textSecondary),
             ),
+            if (canceledDate != null) ...<Widget>[
+              const SizedBox(height: 6),
+              Text(
+                'Canceled on $canceledDate',
+                style: const TextStyle(color: AppColors.textSecondary),
+              ),
+            ],
             const SizedBox(height: 12),
             TextButton(
               onPressed: () {
                 // Navigate to programs tab
               },
-              child: const Text('EXPLORE PROGRAMS'),
+              child: const Text('BROWSE PLANS'),
             ),
           ],
         ),
