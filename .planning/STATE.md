@@ -2,12 +2,12 @@
 
 ## Current Position
 
-Phase: Milestone transition (v1.1 archived)
-Plan: None
-Status: Ready to plan next milestone
-Last activity: 2026-02-24 — Completed quick task 001: Fix Firestore insights permission and timeout errors
+Phase: Not started (defining requirements)
+Plan: -
+Status: Defining requirements for milestone v1.2
+Last activity: 2026-02-24 - Milestone v1.2 started from UAT findings
 
-Progress: █████████████████████ 24/24 plans complete (100%) for v1.1
+Progress: 0/3 phases complete (0%) for v1.2
 
 ## Accumulated Context
 
@@ -32,8 +32,9 @@ Progress: █████████████████████ 24/24 
 
 ## Open Follow-ups
 
-- Execute and record the manual UAT scenarios documented for Phase 06.
-- Resolve pre-existing `deprecated_member_use` analyzer info in onboarding profile screen.
+- Resolve Firestore permission-denied failures on Home "Next Workout", Programs, and Workout surfaces.
+- Fix onboarding resume gating so completed users are not looped into onboarding.
+- Capture executed UAT evidence for the repaired access paths.
 
 ## Quick Tasks Completed
 
@@ -44,5 +45,5 @@ Progress: █████████████████████ 24/24 
 ## Session Continuity
 
 Last session: 2026-02-24
-Stopped at: Milestone completion docs and archive/tag operations complete
+Stopped at: Milestone initialization and requirement definition start (v1.2)
 Resume command: `$gsd-new-milestone`

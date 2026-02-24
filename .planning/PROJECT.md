@@ -15,13 +15,20 @@ Help users follow a structured strength plan with reliable progression and adapt
   - One pre-existing analyzer info remains: `deprecated_member_use` in `onboarding_profile_screen.dart`.
 - Core platform: Flutter + Riverpod + Firebase (Firestore/Auth)
 
-## Next Milestone Goals
-- Clear outstanding non-blocking debt from v1.1 audit evidence.
-- Define next product slice (from deferred items: OAuth/social sign-in, user-authored templates, social/community).
-- Preserve v1/v1.1 reliability baseline while expanding capability.
+## Current Milestone: v1.2 UAT Access + Onboarding Reliability
+
+**Goal:** Restore core training flow access for authenticated users and remove false onboarding prompts for returning users.
+
+**Target features:**
+- Fix Firestore access paths and rules so Home "Next Workout", Programs, and Workout surfaces load reliably.
+- Ensure workout start/session writes succeed for active enrollments without permission-denied failures.
+- Show onboarding resume only for truly incomplete profiles; route complete users directly to product flows.
+- Capture repeatable verification evidence for the repaired dashboard/program/workout journey.
 
 ## Active Requirements Focus
-- Pending next milestone definition (`$gsd-new-milestone`).
+- Firestore permission hardening for enrollment/program/workout data paths.
+- Onboarding completion-state gating for returning users.
+- Regression and UAT evidence for authentication, dashboard, programs, and workout startup flows.
 
 ## Key Decisions
 | Decision | Rationale | Outcome |
@@ -48,4 +55,4 @@ Help users follow a structured strength plan with reliable progression and adapt
 </details>
 
 ---
-*Last updated: 2026-02-24 after v1.1 milestone completion*
+*Last updated: 2026-02-24 for milestone v1.2 initialization*
