@@ -75,7 +75,17 @@ class ProgramRepository {
     required String userId,
     required String enrollmentId,
   }) async {
-    return _enrolledProgramRepository.stopEnrollment(
+    return _enrolledProgramRepository.cancelEnrollment(
+      userId: userId,
+      enrollmentId: enrollmentId,
+    );
+  }
+
+  Future<void> cancelEnrollment({
+    required String userId,
+    required String enrollmentId,
+  }) {
+    return _enrolledProgramRepository.cancelEnrollment(
       userId: userId,
       enrollmentId: enrollmentId,
     );
@@ -135,6 +145,44 @@ class ProgramRepository {
   Stream<EnrolledProgramModel?> watchActiveEnrollment(
       {required String userId}) {
     return _enrolledProgramRepository.watchActiveEnrollment(userId: userId);
+  }
+
+  Stream<EnrollmentEventModel?> watchLatestEnrollmentEvent({
+    required String userId,
+    String? enrollmentId,
+  }) {
+    return _enrolledProgramRepository.watchLatestEnrollmentEvent(
+      userId: userId,
+      enrollmentId: enrollmentId,
+    );
+  }
+
+  Future<EnrolledProgramModel?> findLatestCanceledEnrollmentForProgram({
+    required String userId,
+    required String programId,
+  }) {
+    return _enrolledProgramRepository.findLatestCanceledEnrollmentForProgram(
+      userId: userId,
+      programId: programId,
+    );
+  }
+
+  Future<int> healDuplicateActiveEnrollments({required String userId}) {
+    return _enrolledProgramRepository.healDuplicateActiveEnrollments(
+      userId: userId,
+    );
+  }
+
+  Future<void> recordEnrollmentRestored({
+    required String userId,
+    required String enrollmentId,
+    required String programId,
+  }) {
+    return _enrolledProgramRepository.recordEnrollmentRestored(
+      userId: userId,
+      enrollmentId: enrollmentId,
+      programId: programId,
+    );
   }
 
   ProgramV2? findProgramById({

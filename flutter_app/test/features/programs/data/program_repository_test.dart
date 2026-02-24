@@ -6,6 +6,8 @@ import 'package:sundee_fundee_flutter/features/repositories/domain/repository_in
 class _FakeEnrolledProgramRepository implements EnrolledProgramRepository {
   String? completeEnrollmentId;
   String? completeEnrollmentUserId;
+  String? cancelEnrollmentId;
+  String? cancelEnrollmentUserId;
 
   String? markWeekEnrollmentId;
   String? markWeekUserId;
@@ -15,6 +17,7 @@ class _FakeEnrolledProgramRepository implements EnrolledProgramRepository {
   String? jumpWeekEnrollmentId;
   String? jumpWeekUserId;
   int? jumpWeek;
+  int healCalls = 0;
 
   @override
   Future<void> completeEnrollment({
@@ -30,6 +33,15 @@ class _FakeEnrolledProgramRepository implements EnrolledProgramRepository {
     required String userId,
     required EnrolledProgramModel enrollment,
   }) async {}
+
+  @override
+  Future<void> cancelEnrollment({
+    required String userId,
+    required String enrollmentId,
+  }) async {
+    cancelEnrollmentUserId = userId;
+    cancelEnrollmentId = enrollmentId;
+  }
 
   @override
   Future<void> stopEnrollment({
@@ -50,6 +62,35 @@ class _FakeEnrolledProgramRepository implements EnrolledProgramRepository {
       {required String userId}) {
     return Stream<EnrolledProgramModel?>.value(null);
   }
+
+  @override
+  Stream<EnrollmentEventModel?> watchLatestEnrollmentEvent({
+    required String userId,
+    String? enrollmentId,
+  }) {
+    return const Stream<EnrollmentEventModel?>.empty();
+  }
+
+  @override
+  Future<EnrolledProgramModel?> findLatestCanceledEnrollmentForProgram({
+    required String userId,
+    required String programId,
+  }) async {
+    return null;
+  }
+
+  @override
+  Future<int> healDuplicateActiveEnrollments({required String userId}) async {
+    healCalls += 1;
+    return 0;
+  }
+
+  @override
+  Future<void> recordEnrollmentRestored({
+    required String userId,
+    required String enrollmentId,
+    required String programId,
+  }) async {}
 
   @override
   Future<void> markWeekComplete({
@@ -144,6 +185,23 @@ void main() {
       expect(enrolledRepository.jumpWeekUserId, 'user-1');
       expect(enrolledRepository.jumpWeekEnrollmentId, 'enrollment-9');
       expect(enrolledRepository.jumpWeek, 7);
+    });
+
+    test('cancelEnrollment delegates to enrollment repository', () async {
+      await repository.cancelEnrollment(
+        userId: 'user-1',
+        enrollmentId: 'enrollment-9',
+      );
+
+      expect(enrolledRepository.cancelEnrollmentUserId, 'user-1');
+      expect(enrolledRepository.cancelEnrollmentId, 'enrollment-9');
+    });
+
+    test('healDuplicateActiveEnrollments delegates to enrollment repository',
+        () async {
+      await repository.healDuplicateActiveEnrollments(userId: 'user-1');
+
+      expect(enrolledRepository.healCalls, 1);
     });
 
     test('findProgramById returns matching program when present', () {

@@ -25,6 +25,12 @@ class _NoopEnrolledProgramRepository implements EnrolledProgramRepository {
   }) async {}
 
   @override
+  Future<void> cancelEnrollment({
+    required String userId,
+    required String enrollmentId,
+  }) async {}
+
+  @override
   Future<void> jumpToWeek({
     required String userId,
     required String enrollmentId,
@@ -54,9 +60,38 @@ class _NoopEnrolledProgramRepository implements EnrolledProgramRepository {
   }) async {}
 
   @override
-  Stream<EnrolledProgramModel?> watchActiveEnrollment({required String userId}) {
+  Stream<EnrolledProgramModel?> watchActiveEnrollment(
+      {required String userId}) {
     return const Stream<EnrolledProgramModel?>.empty();
   }
+
+  @override
+  Stream<EnrollmentEventModel?> watchLatestEnrollmentEvent({
+    required String userId,
+    String? enrollmentId,
+  }) {
+    return const Stream<EnrollmentEventModel?>.empty();
+  }
+
+  @override
+  Future<EnrolledProgramModel?> findLatestCanceledEnrollmentForProgram({
+    required String userId,
+    required String programId,
+  }) async {
+    return null;
+  }
+
+  @override
+  Future<int> healDuplicateActiveEnrollments({required String userId}) async {
+    return 0;
+  }
+
+  @override
+  Future<void> recordEnrollmentRestored({
+    required String userId,
+    required String enrollmentId,
+    required String programId,
+  }) async {}
 }
 
 class _TrackingProgramRepository extends ProgramRepository {
@@ -157,7 +192,8 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          programsProvider.overrideWith((Ref ref) async => <ProgramV2>[_program()]),
+          programsProvider
+              .overrideWith((Ref ref) async => <ProgramV2>[_program()]),
           activeEnrollmentProvider.overrideWith(
             (Ref ref) => Stream<EnrolledProgramModel?>.value(enrollment),
           ),

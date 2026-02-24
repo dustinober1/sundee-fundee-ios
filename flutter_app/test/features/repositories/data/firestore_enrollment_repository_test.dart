@@ -27,7 +27,8 @@ void main() {
       await repository.enrollUser(userId: userId, enrollment: enrollment);
     }
 
-    test('markWeekComplete stores completion and advances to next week', () async {
+    test('markWeekComplete stores completion and advances to next week',
+        () async {
       await seedEnrollment();
 
       await repository.markWeekComplete(
@@ -47,7 +48,8 @@ void main() {
       expect(updated.lastSyncedAt, isNotNull);
     });
 
-    test('jumpToWeek updates currentWeek/currentDay and keeps isActive', () async {
+    test('jumpToWeek updates currentWeek/currentDay and keeps isActive',
+        () async {
       await seedEnrollment();
 
       await repository.jumpToWeek(
@@ -63,6 +65,136 @@ void main() {
       expect(updated!.currentWeek, 5);
       expect(updated.currentDay, 1);
       expect(updated.isActive, isTrue);
+    });
+
+    test('cancelEnrollment deactivates enrollment and writes canceled event',
+        () async {
+      await seedEnrollment();
+
+      await repository.cancelEnrollment(
+        userId: userId,
+        enrollmentId: enrollmentId,
+      );
+
+      final EnrolledProgramModel? active =
+          await repository.watchActiveEnrollment(userId: userId).first;
+      expect(active, isNull);
+
+      final Map<String, dynamic>? enrollmentData = (await firestore
+              .collection('users')
+              .doc(userId)
+              .collection('enrollments')
+              .doc(enrollmentId)
+              .get())
+          .data();
+      expect(enrollmentData, isNotNull);
+      expect(enrollmentData!['status'], 'canceled');
+      expect(enrollmentData['isActive'], isFalse);
+      expect(enrollmentData['canceledAt'], isNotNull);
+
+      final EnrollmentEventModel? latestEvent =
+          await repository.watchLatestEnrollmentEvent(userId: userId).first;
+      expect(latestEvent, isNotNull);
+      expect(latestEvent!.eventType, EnrollmentEventType.canceled);
+      expect(latestEvent.enrollmentId, enrollmentId);
+    });
+
+    test('watchActiveEnrollment returns most recently synced active enrollment',
+        () async {
+      await firestore
+          .collection('users')
+          .doc(userId)
+          .collection('enrollments')
+          .doc('older')
+          .set(
+            EnrolledProgramModel(
+              id: 'older',
+              programId: 'program-1',
+              startDate: DateTime.utc(2026, 1, 1),
+              currentWeek: 2,
+              currentDay: 1,
+              status: EnrollmentStatus.active,
+              lastSyncedAt: DateTime.utc(2026, 2, 20, 10, 0, 0),
+            ).toJson(),
+          );
+      await firestore
+          .collection('users')
+          .doc(userId)
+          .collection('enrollments')
+          .doc('newer')
+          .set(
+            EnrolledProgramModel(
+              id: 'newer',
+              programId: 'program-2',
+              startDate: DateTime.utc(2026, 1, 10),
+              currentWeek: 1,
+              currentDay: 1,
+              status: EnrollmentStatus.active,
+              lastSyncedAt: DateTime.utc(2026, 2, 23, 10, 0, 0),
+            ).toJson(),
+          );
+
+      final EnrolledProgramModel? active =
+          await repository.watchActiveEnrollment(userId: userId).first;
+
+      expect(active, isNotNull);
+      expect(active!.id, 'newer');
+      expect(active.status, EnrollmentStatus.active);
+    });
+
+    test('healDuplicateActiveEnrollments keeps newest and auto-heals others',
+        () async {
+      Future<void> seed({
+        required String id,
+        required DateTime syncedAt,
+      }) async {
+        await firestore
+            .collection('users')
+            .doc(userId)
+            .collection('enrollments')
+            .doc(id)
+            .set(
+              EnrolledProgramModel(
+                id: id,
+                programId: 'program-1',
+                startDate: DateTime.utc(2026, 1, 1),
+                currentWeek: 1,
+                currentDay: 1,
+                status: EnrollmentStatus.active,
+                lastSyncedAt: syncedAt,
+              ).toJson(),
+            );
+      }
+
+      await seed(id: 'active-1', syncedAt: DateTime.utc(2026, 2, 21, 10));
+      await seed(id: 'active-2', syncedAt: DateTime.utc(2026, 2, 22, 10));
+      await seed(id: 'active-3', syncedAt: DateTime.utc(2026, 2, 23, 10));
+
+      final int healedCount =
+          await repository.healDuplicateActiveEnrollments(userId: userId);
+
+      expect(healedCount, 2);
+
+      final EnrolledProgramModel? active =
+          await repository.watchActiveEnrollment(userId: userId).first;
+      expect(active, isNotNull);
+      expect(active!.id, 'active-3');
+
+      final enrollmentSnapshot = await firestore
+          .collection('users')
+          .doc(userId)
+          .collection('enrollments')
+          .where('status', isEqualTo: 'canceled')
+          .get();
+      expect(enrollmentSnapshot.docs.length, 2);
+
+      final eventSnapshot = await firestore
+          .collection('users')
+          .doc(userId)
+          .collection('enrollmentEvents')
+          .where('eventType', isEqualTo: 'auto_healed')
+          .get();
+      expect(eventSnapshot.docs.length, 2);
     });
   });
 }

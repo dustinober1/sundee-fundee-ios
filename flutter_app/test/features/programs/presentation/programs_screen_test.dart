@@ -27,6 +27,12 @@ class _NoopEnrolledProgramRepository implements EnrolledProgramRepository {
   }) async {}
 
   @override
+  Future<void> cancelEnrollment({
+    required String userId,
+    required String enrollmentId,
+  }) async {}
+
+  @override
   Future<void> jumpToWeek({
     required String userId,
     required String enrollmentId,
@@ -60,6 +66,34 @@ class _NoopEnrolledProgramRepository implements EnrolledProgramRepository {
       {required String userId}) {
     return const Stream<EnrolledProgramModel?>.empty();
   }
+
+  @override
+  Stream<EnrollmentEventModel?> watchLatestEnrollmentEvent({
+    required String userId,
+    String? enrollmentId,
+  }) {
+    return const Stream<EnrollmentEventModel?>.empty();
+  }
+
+  @override
+  Future<EnrolledProgramModel?> findLatestCanceledEnrollmentForProgram({
+    required String userId,
+    required String programId,
+  }) async {
+    return null;
+  }
+
+  @override
+  Future<int> healDuplicateActiveEnrollments({required String userId}) async {
+    return 0;
+  }
+
+  @override
+  Future<void> recordEnrollmentRestored({
+    required String userId,
+    required String enrollmentId,
+    required String programId,
+  }) async {}
 }
 
 class _FakeProgramRepository extends ProgramRepository {

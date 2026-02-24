@@ -125,6 +125,29 @@ abstract class EnrolledProgramRepository {
 
   Stream<EnrolledProgramModel?> watchActiveEnrollment({required String userId});
 
+  Future<void> cancelEnrollment({
+    required String userId,
+    required String enrollmentId,
+  });
+
+  Stream<EnrollmentEventModel?> watchLatestEnrollmentEvent({
+    required String userId,
+    String? enrollmentId,
+  });
+
+  Future<EnrolledProgramModel?> findLatestCanceledEnrollmentForProgram({
+    required String userId,
+    required String programId,
+  });
+
+  Future<int> healDuplicateActiveEnrollments({required String userId});
+
+  Future<void> recordEnrollmentRestored({
+    required String userId,
+    required String enrollmentId,
+    required String programId,
+  });
+
   Future<void> updateEnrollmentProgress({
     required String userId,
     required String enrollmentId,

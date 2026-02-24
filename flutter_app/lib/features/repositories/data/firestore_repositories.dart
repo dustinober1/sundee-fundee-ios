@@ -440,10 +440,32 @@ class FirestoreEnrolledProgramRepository implements EnrolledProgramRepository {
   Future<void> enrollUser({
     required String userId,
     required EnrolledProgramModel enrollment,
-  }) {
-    return _enrollmentsCollection(
-      userId,
-    ).doc(enrollment.id).set(enrollment.toJson(), SetOptions(merge: true));
+  }) async {
+    final DateTime now = DateTime.now();
+    final EnrolledProgramModel normalizedEnrollment = enrollment.copyWith(
+      status: EnrollmentStatus.active,
+      lastSyncedAt: now,
+      completedAt: null,
+      canceledAt: null,
+    );
+    final DocumentReference<Map<String, dynamic>> enrollmentRef =
+        _enrollmentsCollection(userId).doc(normalizedEnrollment.id);
+    final WriteBatch batch = _firestore.batch();
+    batch.set(
+      enrollmentRef,
+      normalizedEnrollment.toJson(),
+      SetOptions(merge: true),
+    );
+    _appendEnrollmentEventToBatch(
+      batch: batch,
+      userId: userId,
+      enrollmentId: normalizedEnrollment.id,
+      programId: normalizedEnrollment.programId,
+      eventType: EnrollmentEventType.enrolled,
+      occurredAt: now,
+      metadata: const <String, dynamic>{'source': 'enroll'},
+    );
+    await batch.commit();
   }
 
   @override
@@ -451,14 +473,183 @@ class FirestoreEnrolledProgramRepository implements EnrolledProgramRepository {
       {required String userId}) {
     return _enrollmentsCollection(userId)
         .where('isActive', isEqualTo: true)
+        .orderBy('lastSyncedAt', descending: true)
+        .limit(10)
+        .snapshots()
+        .map((QuerySnapshot<Map<String, dynamic>> snapshot) {
+      final List<EnrolledProgramModel> activeEnrollments = snapshot.docs
+          .map((QueryDocumentSnapshot<Map<String, dynamic>> doc) {
+            final Map<String, dynamic> data = <String, dynamic>{
+              ...doc.data(),
+              if (!(doc.data().containsKey('id'))) 'id': doc.id,
+            };
+            return EnrolledProgramModel.fromJson(data);
+          })
+          .where(
+            (EnrolledProgramModel model) =>
+                model.status == EnrollmentStatus.active,
+          )
+          .toList();
+
+      if (activeEnrollments.isEmpty) {
+        return null;
+      }
+
+      activeEnrollments.sort(
+        (EnrolledProgramModel a, EnrolledProgramModel b) =>
+            _effectiveSyncTime(b).compareTo(_effectiveSyncTime(a)),
+      );
+      return activeEnrollments.first;
+    });
+  }
+
+  @override
+  Future<void> cancelEnrollment({
+    required String userId,
+    required String enrollmentId,
+  }) async {
+    final DocumentReference<Map<String, dynamic>> enrollmentRef =
+        _enrollmentsCollection(userId).doc(enrollmentId);
+    final DocumentSnapshot<Map<String, dynamic>> snapshot =
+        await enrollmentRef.get();
+    if (!snapshot.exists) {
+      throw StateError('Enrollment "$enrollmentId" not found.');
+    }
+
+    final Map<String, dynamic> enrollmentData = snapshot.data()!;
+    final String? programId = enrollmentData['programId'] as String?;
+    final DateTime now = DateTime.now();
+    final WriteBatch batch = _firestore.batch();
+    batch.update(enrollmentRef, <String, dynamic>{
+      'isActive': false,
+      'status': enrollmentStatusToJson(EnrollmentStatus.canceled),
+      'canceledAt': now.toIso8601String(),
+      'lastSyncedAt': now.toIso8601String(),
+    });
+    _appendEnrollmentEventToBatch(
+      batch: batch,
+      userId: userId,
+      enrollmentId: enrollmentId,
+      programId: programId,
+      eventType: EnrollmentEventType.canceled,
+      occurredAt: now,
+    );
+    await batch.commit();
+  }
+
+  @override
+  Stream<EnrollmentEventModel?> watchLatestEnrollmentEvent({
+    required String userId,
+    String? enrollmentId,
+  }) {
+    Query<Map<String, dynamic>> query = _enrollmentEventsCollection(userId)
+        .orderBy('occurredAt', descending: true);
+    if (enrollmentId != null && enrollmentId.isNotEmpty) {
+      query = query.where('enrollmentId', isEqualTo: enrollmentId);
+    }
+
+    return query
         .limit(1)
         .snapshots()
         .map((QuerySnapshot<Map<String, dynamic>> snapshot) {
       if (snapshot.docs.isEmpty) {
         return null;
       }
-      return EnrolledProgramModel.fromJson(snapshot.docs.first.data());
+      final QueryDocumentSnapshot<Map<String, dynamic>> doc =
+          snapshot.docs.first;
+      final Map<String, dynamic> data = <String, dynamic>{
+        ...doc.data(),
+        if (!(doc.data().containsKey('id'))) 'id': doc.id,
+      };
+      return EnrollmentEventModel.fromJson(data);
     });
+  }
+
+  @override
+  Future<EnrolledProgramModel?> findLatestCanceledEnrollmentForProgram({
+    required String userId,
+    required String programId,
+  }) async {
+    final QuerySnapshot<Map<String, dynamic>> snapshot =
+        await _enrollmentsCollection(userId)
+            .where('programId', isEqualTo: programId)
+            .where(
+              'status',
+              isEqualTo: enrollmentStatusToJson(EnrollmentStatus.canceled),
+            )
+            .orderBy('canceledAt', descending: true)
+            .limit(1)
+            .get();
+    if (snapshot.docs.isEmpty) {
+      return null;
+    }
+    final QueryDocumentSnapshot<Map<String, dynamic>> doc = snapshot.docs.first;
+    final Map<String, dynamic> data = <String, dynamic>{
+      ...doc.data(),
+      if (!(doc.data().containsKey('id'))) 'id': doc.id,
+    };
+    return EnrolledProgramModel.fromJson(data);
+  }
+
+  @override
+  Future<int> healDuplicateActiveEnrollments({required String userId}) async {
+    final QuerySnapshot<Map<String, dynamic>> snapshot =
+        await _enrollmentsCollection(userId)
+            .where('isActive', isEqualTo: true)
+            .orderBy('lastSyncedAt', descending: true)
+            .get();
+
+    if (snapshot.docs.length <= 1) {
+      return 0;
+    }
+
+    final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs =
+        snapshot.docs.toList(growable: false);
+    final QueryDocumentSnapshot<Map<String, dynamic>> canonicalDoc = docs.first;
+    final String canonicalEnrollmentId = canonicalDoc.id;
+    final DateTime now = DateTime.now();
+    final WriteBatch batch = _firestore.batch();
+
+    for (final QueryDocumentSnapshot<Map<String, dynamic>> doc
+        in docs.skip(1)) {
+      final Map<String, dynamic> data = doc.data();
+      final String enrollmentId = doc.id;
+      batch.update(doc.reference, <String, dynamic>{
+        'isActive': false,
+        'status': enrollmentStatusToJson(EnrollmentStatus.canceled),
+        'canceledAt': now.toIso8601String(),
+        'lastSyncedAt': now.toIso8601String(),
+      });
+      _appendEnrollmentEventToBatch(
+        batch: batch,
+        userId: userId,
+        enrollmentId: enrollmentId,
+        programId: data['programId'] as String?,
+        eventType: EnrollmentEventType.autoHealed,
+        occurredAt: now,
+        metadata: <String, dynamic>{
+          'keptEnrollmentId': canonicalEnrollmentId,
+        },
+      );
+    }
+
+    await batch.commit();
+    return docs.length - 1;
+  }
+
+  @override
+  Future<void> recordEnrollmentRestored({
+    required String userId,
+    required String enrollmentId,
+    required String programId,
+  }) {
+    return _writeEnrollmentEvent(
+      userId: userId,
+      enrollmentId: enrollmentId,
+      programId: programId,
+      eventType: EnrollmentEventType.restored,
+      metadata: const <String, dynamic>{'source': 'restore'},
+    );
   }
 
   @override
@@ -507,12 +698,32 @@ class FirestoreEnrolledProgramRepository implements EnrolledProgramRepository {
   Future<void> completeEnrollment({
     required String userId,
     required String enrollmentId,
-  }) {
-    return _enrollmentsCollection(userId).doc(enrollmentId).update({
+  }) async {
+    final DocumentReference<Map<String, dynamic>> enrollmentRef =
+        _enrollmentsCollection(userId).doc(enrollmentId);
+    final DocumentSnapshot<Map<String, dynamic>> snapshot =
+        await enrollmentRef.get();
+    if (!snapshot.exists) {
+      throw StateError('Enrollment "$enrollmentId" not found.');
+    }
+    final String? programId = snapshot.data()!['programId'] as String?;
+    final DateTime now = DateTime.now();
+    final WriteBatch batch = _firestore.batch();
+    batch.update(enrollmentRef, <String, dynamic>{
       'isActive': false,
+      'status': enrollmentStatusToJson(EnrollmentStatus.completed),
       'completedAt': DateTime.now().toIso8601String(),
-      'lastSyncedAt': DateTime.now().toIso8601String(),
+      'lastSyncedAt': now.toIso8601String(),
     });
+    _appendEnrollmentEventToBatch(
+      batch: batch,
+      userId: userId,
+      enrollmentId: enrollmentId,
+      programId: programId,
+      eventType: EnrollmentEventType.completed,
+      occurredAt: now,
+    );
+    await batch.commit();
   }
 
   @override
@@ -520,15 +731,71 @@ class FirestoreEnrolledProgramRepository implements EnrolledProgramRepository {
     required String userId,
     required String enrollmentId,
   }) {
-    return _enrollmentsCollection(userId).doc(enrollmentId).update({
-      'isActive': false,
-      'lastSyncedAt': DateTime.now().toIso8601String(),
-    });
+    return cancelEnrollment(userId: userId, enrollmentId: enrollmentId);
   }
 
   CollectionReference<Map<String, dynamic>> _enrollmentsCollection(
     String userId,
   ) {
     return _firestore.collection('users').doc(userId).collection('enrollments');
+  }
+
+  CollectionReference<Map<String, dynamic>> _enrollmentEventsCollection(
+    String userId,
+  ) {
+    return _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('enrollmentEvents');
+  }
+
+  DateTime _effectiveSyncTime(EnrolledProgramModel model) {
+    return model.lastSyncedAt ??
+        model.canceledAt ??
+        model.completedAt ??
+        model.startDate;
+  }
+
+  void _appendEnrollmentEventToBatch({
+    required WriteBatch batch,
+    required String userId,
+    required String enrollmentId,
+    required EnrollmentEventType eventType,
+    required DateTime occurredAt,
+    String? programId,
+    Map<String, dynamic> metadata = const <String, dynamic>{},
+  }) {
+    final DocumentReference<Map<String, dynamic>> eventRef =
+        _enrollmentEventsCollection(userId).doc();
+    final EnrollmentEventModel event = EnrollmentEventModel(
+      id: eventRef.id,
+      enrollmentId: enrollmentId,
+      programId: programId,
+      eventType: eventType,
+      occurredAt: occurredAt,
+      metadata: metadata,
+    );
+    batch.set(eventRef, event.toJson(), SetOptions(merge: true));
+  }
+
+  Future<void> _writeEnrollmentEvent({
+    required String userId,
+    required String enrollmentId,
+    required EnrollmentEventType eventType,
+    String? programId,
+    Map<String, dynamic> metadata = const <String, dynamic>{},
+  }) {
+    final DateTime now = DateTime.now();
+    final DocumentReference<Map<String, dynamic>> eventRef =
+        _enrollmentEventsCollection(userId).doc();
+    final EnrollmentEventModel event = EnrollmentEventModel(
+      id: eventRef.id,
+      enrollmentId: enrollmentId,
+      programId: programId,
+      eventType: eventType,
+      occurredAt: now,
+      metadata: metadata,
+    );
+    return eventRef.set(event.toJson(), SetOptions(merge: true));
   }
 }
