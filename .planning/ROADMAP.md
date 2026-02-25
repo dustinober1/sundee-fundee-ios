@@ -76,7 +76,7 @@ Plans:
 - [ ] 11-02-PLAN.md — Generate Linux desktop platform and rewrite CI quality-integration job
 
 **Success criteria:**
-1. `quality-integration` CI job runs `integration_test/critical_access_flow_test.dart` under emulators and passes.
+1. `quality-integration` CI job runs `integration_test/critical_access_flow_test.dart` on Linux desktop via xvfb-run and passes.
 2. Release build jobs are no longer blocked by `quality-integration`.
 
 ### Phase 12: UAT Evidence Capture Closeout
