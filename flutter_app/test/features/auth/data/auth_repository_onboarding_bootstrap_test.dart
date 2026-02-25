@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sundee_fundee_flutter/domain/enums.dart';
 import 'package:sundee_fundee_flutter/domain/models/injury_profile_model.dart';

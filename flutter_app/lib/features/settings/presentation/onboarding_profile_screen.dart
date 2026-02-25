@@ -79,6 +79,7 @@ class _OnboardingProfileScreenState
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<Gender>(
+              // ignore: deprecated_member_use
               value: _gender,
               decoration: const InputDecoration(labelText: 'Gender'),
               items: Gender.values
