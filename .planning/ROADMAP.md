@@ -3,7 +3,7 @@
 ## Milestones
 - [x] **v1 Foundation Release** (shipped 2026-02-23) - 4 phases, 14 plans, audit passed. Archive: `.planning/milestones/v1-ROADMAP.md`
 - [x] **v1.1 Onboarding Persistence + Injury-Aware Plans** (shipped 2026-02-24) - 3 phases, 10 plans, 11/11 requirements satisfied, audit status `tech_debt` (no blockers). Archive: `.planning/milestones/v1.1-ROADMAP.md`
-- [ ] **v1.2 UAT Access + Onboarding Reliability** (in progress; phase 8 complete on 2026-02-24) - 3 phases, 9 requirements.
+- [ ] **v1.2 UAT Access + Onboarding Reliability** (in progress; phases 8-9 complete as of 2026-02-25) - 3 phases, 9 requirements.
 
 ## Current Milestone: v1.2 UAT Access + Onboarding Reliability
 
@@ -31,6 +31,13 @@ Plans:
 
 **Goal:** Eliminate false onboarding prompts for returning users while preserving resume for genuinely incomplete profiles.
 **Requirements:** ONB-04, ONB-05
+**Status:** ✅ Complete (verified 2026-02-25)
+**Plans:** 3/3 complete
+
+Plans:
+- [x] 09-01-PLAN.md - Deterministic onboarding eligibility evaluation and bootstrap fallback handling
+- [x] 09-02-PLAN.md - Recovery notice and injury-first resume/restart UX hardening
+- [x] 09-03-PLAN.md - Regression guardrails for bootstrap matrix, restart resets, and recovery notice behavior
 
 **Success criteria:**
 1. Returning users with complete onboarding data bypass "Resume Onboarding" and land in product flows.
@@ -53,4 +60,4 @@ Plans:
 - Starting phase number: 8 (continues from v1.1 phase 7)
 
 ## Next Command
-`$gsd-discuss-phase 9`
+`$gsd-discuss-phase 10`

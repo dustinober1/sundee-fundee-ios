@@ -1,6 +1,6 @@
 # Requirements: v1.2 UAT Access + Onboarding Reliability
 
-**Status:** In progress - phase 8 complete (2026-02-24)
+**Status:** In progress - phases 8-9 complete (2026-02-25)
 **Milestone:** v1.2
 **Source:** UAT testing report using account `elizabethober@me.com`
 
@@ -17,8 +17,8 @@ Milestone v1.2 addresses UAT-blocking access failures in core training surfaces 
 - [x] **ACL-05**: User receives a recoverable error state (with retry) instead of a broken tab when backend access genuinely fails.
 
 ### Onboarding State Consistency
-- [ ] **ONB-04**: User with a complete onboarding profile is not prompted with "Resume Onboarding" on login.
-- [ ] **ONB-05**: User is prompted to resume onboarding only when required onboarding fields are missing or incomplete.
+- [x] **ONB-04**: User with a complete onboarding profile is not prompted with "Resume Onboarding" on login.
+- [x] **ONB-05**: User is prompted to resume onboarding only when required onboarding fields are missing or incomplete.
 
 ### Verification and Regression Evidence
 - [ ] **QA-01**: User-facing access paths for Home, Programs, and Workout are covered by automated tests validating authenticated read/write behavior.
@@ -42,7 +42,7 @@ Milestone v1.2 addresses UAT-blocking access failures in core training surfaces 
 | ACL-03 | 8 | Complete |
 | ACL-04 | 8 | Complete |
 | ACL-05 | 8 | Complete |
-| ONB-04 | 9 | Planned |
-| ONB-05 | 9 | Planned |
+| ONB-04 | 9 | Complete |
+| ONB-05 | 9 | Complete |
 | QA-01 | 10 | Planned |
 | QA-02 | 10 | Planned |

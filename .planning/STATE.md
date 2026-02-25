@@ -2,12 +2,12 @@
 
 ## Current Position
 
-Phase: 9 (ready for discussion)
+Phase: 10 (ready for discussion)
 Plan: -
-Status: Phase 8 complete and verified; milestone v1.2 in progress
-Last activity: 2026-02-24 - Completed phase 8 Firestore access contract recovery
+Status: Phases 8 and 9 complete and verified; milestone v1.2 in progress
+Last activity: 2026-02-25 - Completed phase 9 onboarding resume eligibility hardening
 
-Progress: 1/3 phases complete (33%) for v1.2
+Progress: 2/3 phases complete (67%) for v1.2
 
 ## Accumulated Context
 
@@ -31,10 +31,12 @@ Progress: 1/3 phases complete (33%) for v1.2
 | Workout history integrity | Persist `enrollmentId` on completed workouts and show canceled-plan markers | 07-03 |
 | Enrollment access resiliency | Separate `validEmpty` vs `recoverableFailure` vs `blockingFailure` lifecycle states with bounded auto-retry | 08-02 |
 | Workout write durability | Queue recoverable completion writes with sync-gated finalization and manual retry UX | 08-03 |
+| Onboarding completeness authority | Route auth bootstrap through one evaluator contract and auto-heal stale onboardingComplete states | 09-01 |
+| Legacy resume bypass notice | Emit one-time recovery notice only for max-only legacy recovery path | 09-02 |
+| Restart reset contract | Clear onboarding fields and injury/disclaimer state together on restart | 09-03 |
 
 ## Open Follow-ups
 
-- Fix onboarding resume gating so completed users are not looped into onboarding.
 - Capture executed UAT evidence for the repaired access paths.
 
 ## Quick Tasks Completed
@@ -45,6 +47,6 @@ Progress: 1/3 phases complete (33%) for v1.2
 
 ## Session Continuity
 
-Last session: 2026-02-24
-Stopped at: Phase 8 execution complete (plans 08-01, 08-02, 08-03 verified)
-Resume command: `$gsd-discuss-phase 9`
+Last session: 2026-02-25
+Stopped at: Phase 9 execution complete (plans 09-01, 09-02, 09-03 verified)
+Resume command: `$gsd-discuss-phase 10`
