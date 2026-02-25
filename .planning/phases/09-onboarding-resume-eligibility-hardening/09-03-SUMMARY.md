@@ -49,7 +49,7 @@ completed: 2026-02-25
 ## Task Commits
 
 1. **Task 1: Finalize bootstrap decision matrix guardrails** - `0fe9044` (feat)
-2. **Task 2: Add restart payload cleanup regression coverage** - `a1de8b5` (test)
+2. **Task 2: Add restart payload cleanup regression coverage** - `a1de8b5`, `d6f2fbd` (test)
 3. **Task 3: Lock one-time recovery notice behavior coverage** - `c91ea6f` (feat)
 
 ## Files Created/Modified
