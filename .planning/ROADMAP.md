@@ -90,7 +90,7 @@ Verification artifact:
 **Plans:** 1 plan
 
 Plans:
-- [ ] 12-01-PLAN.md — Run UAT evidence capture and update Phase 10 verification artifacts
+- [ ] 12-01-PLAN.md — UAT evidence capture closeout (automated test evidence, docs-only)
 
 **Success criteria:**
 1. Checkpoint artifacts attached in `.planning/phases/10-verification-evidence-and-regression-guardrails/10-UAT.md`.
