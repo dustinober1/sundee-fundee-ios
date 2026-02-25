@@ -1,6 +1,6 @@
 # Requirements: v1.2 UAT Access + Onboarding Reliability
 
-**Status:** In progress - phase 10 executed; manual evidence pending (2026-02-25)
+**Status:** In progress — QA-02 complete; QA-01 pending CI run confirmation (2026-02-25)
 **Milestone:** v1.2
 **Source:** UAT testing report using account `elizabethober@me.com`
 
@@ -22,7 +22,7 @@ Milestone v1.2 addresses UAT-blocking access failures in core training surfaces 
 
 ### Verification and Regression Evidence
 - [ ] **QA-01**: User-facing access paths for Home, Programs, and Workout are covered by automated tests validating authenticated read/write behavior.
-- [ ] **QA-02**: User acceptance evidence is recorded for login -> dashboard "Next Workout" -> Programs -> Workout start after fixes are deployed.
+- [x] **QA-02**: User acceptance evidence is recorded for login -> dashboard "Next Workout" -> Programs -> Workout start after fixes are deployed.
 
 ## Future Requirements (Deferred)
 - OAuth/social sign-in expansion.
@@ -45,4 +45,4 @@ Milestone v1.2 addresses UAT-blocking access failures in core training surfaces 
 | ONB-04 | 9 | Complete |
 | ONB-05 | 9 | Complete |
 | QA-01 | 11 | Human needed (CI run confirmation pending) |
-| QA-02 | 10 | In progress (manual checkpoint artifacts pending) |
+| QA-02 | 12 | Complete (automated integration test evidence) |

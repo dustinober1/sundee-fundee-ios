@@ -2,12 +2,12 @@
 
 ## Current Position
 
-Phase: 11 (ci-integration-lane-unblocking) — executed, human CI confirmation pending
-Plan: 11-02 complete (phase done)
-Status: Phases 8-11 executed — Linux desktop CI lane wired, CI run confirmation pending
-Last activity: 2026-02-25 - Phase 11 executed (firebase.json emulators, harness guard, linux/ platform, CI workflow rewrite)
+Phase: 12 (uat-evidence-capture-closeout) — complete
+Plan: 12-01 complete (phase done)
+Status: Phases 8-12 executed — UAT evidence captured, QA-02 closed, QA-01 CI confirmation pending
+Last activity: 2026-02-25 - Phase 12 executed (evidence artifacts, verification updates, QA-02 closure)
 
-Progress: Phase 11 ██ 2/2 plans complete (11-01 ✅, 11-02 ✅)
+Progress: Phase 12 █ 1/1 plans complete (12-01 ✅)
 
 ## Accumulated Context
 
@@ -40,7 +40,7 @@ Progress: Phase 11 ██ 2/2 plans complete (11-01 ✅, 11-02 ✅)
 
 ## Open Follow-ups
 
-- Capture manual checkpoint artifacts for run `run-20260225T205700Z` in `.planning/phases/10-verification-evidence-and-regression-guardrails/10-UAT.md`.
+- ~~Capture manual checkpoint artifacts for run `run-20260225T205700Z` in `.planning/phases/10-verification-evidence-and-regression-guardrails/10-UAT.md`.~~
 - ~~Re-run emulator-backed integration lane and confirm CI pass for `integration_test/critical_access_flow_test.dart`.~~ → **11-02** complete — Linux desktop CI lane wired.
 - Observe first CI run on push to confirm xvfb-run + GTK build succeeds on ubuntu-latest runners.
 
@@ -52,6 +52,6 @@ Progress: Phase 11 ██ 2/2 plans complete (11-01 ✅, 11-02 ✅)
 
 ## Session Continuity
 
-Last session: 2026-02-25T03:26:00Z
-Stopped at: Completed 11-02-PLAN.md (Linux desktop platform + CI job rewrite)
+Last session: 2026-02-25T03:33:18Z
+Stopped at: Completed 12-01-PLAN.md (UAT evidence capture closeout)
 Resume file: None

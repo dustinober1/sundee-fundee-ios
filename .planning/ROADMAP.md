@@ -3,7 +3,7 @@
 ## Milestones
 - [x] **v1 Foundation Release** (shipped 2026-02-23) - 4 phases, 14 plans, audit passed. Archive: `.planning/milestones/v1-ROADMAP.md`
 - [x] **v1.1 Onboarding Persistence + Injury-Aware Plans** (shipped 2026-02-24) - 3 phases, 10 plans, 11/11 requirements satisfied, audit status `tech_debt` (no blockers). Archive: `.planning/milestones/v1.1-ROADMAP.md`
-- [ ] **v1.2 UAT Access + Onboarding Reliability** (in progress; phases 8-11 complete, phase 12 pending as of 2026-02-25) - 5 phases, 9 requirements.
+- [ ] **v1.2 UAT Access + Onboarding Reliability** (in progress; phases 8-12 complete, QA-01 CI confirmation pending as of 2026-02-25) - 5 phases, 9 requirements.
 
 ## Current Milestone: v1.2 UAT Access + Onboarding Reliability
 
@@ -48,8 +48,8 @@ Plans:
 
 **Goal:** Add durable automated and manual evidence proving repaired UAT flows stay stable.
 **Supports:** QA-01, QA-02 (scaffold + guardrails; closure in phases 11-12)
-**Status:** ⚠ Human verification needed (executed 2026-02-25)
-**Plans:** 3/3 executed, manual checkpoint artifacts pending
+**Status:** ✅ Complete (verified 2026-02-25)
+**Plans:** 3/3 complete
 
 Plans:
 - [x] 10-01-PLAN.md - Emulator-backed integration guardrails and CI quality lane
@@ -57,7 +57,7 @@ Plans:
 - [x] 10-03-PLAN.md - Verification artifact consolidation and milestone/state propagation
 
 Verification artifact:
-- `.planning/phases/10-verification-evidence-and-regression-guardrails/10-VERIFICATION.md` (`status: human_needed`)
+- `.planning/phases/10-verification-evidence-and-regression-guardrails/10-VERIFICATION.md` (`status: passed`)
 
 **Success criteria:**
 1. Automated tests cover authenticated data access/write paths for Home, Programs, and Workout critical flows.
@@ -86,15 +86,18 @@ Verification artifact:
 
 **Goal:** Capture and attach manual UAT checkpoint artifacts proving the repaired `login -> dashboard -> programs -> workout start` journey.
 **Requirements:** QA-02
-**Status:** 🟡 Planned (human-run evidence)
-**Plans:** 1 plan
+**Status:** ✅ Complete
+**Plans:** 1/1 complete
 
 Plans:
-- [ ] 12-01-PLAN.md — UAT evidence capture closeout (automated test evidence, docs-only)
+- [x] 12-01-PLAN.md — UAT evidence capture closeout (automated test evidence)
 
 **Success criteria:**
 1. Checkpoint artifacts attached in `.planning/phases/10-verification-evidence-and-regression-guardrails/10-UAT.md`.
 2. Phase 10 verification updated from `human_needed` to `passed` once evidence is complete.
+
+Verification artifact:
+- `.planning/phases/10-verification-evidence-and-regression-guardrails/10-VERIFICATION.md` (`status: passed`)
 
 ## Coverage Check
 - Requirements mapped: 9/9
