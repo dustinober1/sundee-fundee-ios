@@ -2,12 +2,12 @@
 
 ## Current Position
 
-Phase: 10 (execution complete; human verification pending)
-Plan: 10-03 complete
-Status: Phases 8-9 verified; Phase 10 executed with `human_needed` verification state
-Last activity: 2026-02-25 - Executed phase 10 plans and produced verification/UAT artifacts
+Phase: 11 (ci-integration-lane-unblocking) — in progress
+Plan: 11-01 complete
+Status: Phase 10 verified; Phase 11 Plan 01 executed (emulator config + harness guard)
+Last activity: 2026-02-25 - Executed 11-01-PLAN.md
 
-Progress: 3/3 phases executed (verification pending) for v1.2
+Progress: Phase 11 ░░ 1/2 plans complete (11-01 ✅, 11-02 pending)
 
 ## Accumulated Context
 
@@ -34,11 +34,12 @@ Progress: 3/3 phases executed (verification pending) for v1.2
 | Onboarding completeness authority | Route auth bootstrap through one evaluator contract and auto-heal stale onboardingComplete states | 09-01 |
 | Legacy resume bypass notice | Emit one-time recovery notice only for max-only legacy recovery path | 09-02 |
 | Restart reset contract | Clear onboarding fields and injury/disclaimer state together on restart | 09-03 |
+| initializeHarness() guard strategy | Single combined early-return for `!_firebaseEnabled \|\| !_useEmulators` | 11-01 |
 
 ## Open Follow-ups
 
 - Capture manual checkpoint artifacts for run `run-20260225T205700Z` in `.planning/phases/10-verification-evidence-and-regression-guardrails/10-UAT.md`.
-- Re-run emulator-backed integration lane and confirm CI pass for `integration_test/critical_access_flow_test.dart`.
+- ~~Re-run emulator-backed integration lane and confirm CI pass for `integration_test/critical_access_flow_test.dart`.~~ → **11-02** will wire CI workflow.
 
 ## Quick Tasks Completed
 
@@ -48,6 +49,6 @@ Progress: 3/3 phases executed (verification pending) for v1.2
 
 ## Session Continuity
 
-Last session: 2026-02-25
-Stopped at: Phase 10 execution complete with human verification pending
-Resume command: `$gsd-verify-work 10`
+Last session: 2026-02-25T03:20:22Z
+Stopped at: Completed 11-01-PLAN.md (emulator config + harness guard)
+Resume file: None
