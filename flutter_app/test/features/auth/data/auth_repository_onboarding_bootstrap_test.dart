@@ -187,5 +187,26 @@ void main() {
 
       expect(session.status, AuthStatus.needsInjuryProfile);
     });
+
+    test(
+        'canonical verification account profile does not regress to resume onboarding',
+        () async {
+      final repository = _buildRepository(
+        legacyEvidenceLoader: (_) async =>
+            const LegacyOnboardingEvidence.none(),
+        autoHealWriter: (_) async {},
+      );
+
+      final AuthSession session = await repository.resolveAuthSessionForProfile(
+        userId: 'verification-user',
+        profile: _profile(
+          name: 'Elizabeth Ober',
+          onboardingComplete: true,
+        ),
+      );
+
+      expect(session.status, AuthStatus.authenticated);
+      expect(session.status, isNot(AuthStatus.resumeOnboarding));
+    });
   });
 }

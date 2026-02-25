@@ -81,6 +81,34 @@ class _FlakyWorkoutRepository implements WorkoutRepository {
   }
 }
 
+class _PermissionDeniedWorkoutRepository extends _FlakyWorkoutRepository {
+  _PermissionDeniedWorkoutRepository() : super(shouldFail: false);
+
+  @override
+  Future<void> saveCompletedSet({
+    required String userId,
+    required CompletedSetModel completedSet,
+  }) async {
+    throw FirebaseException(
+      plugin: 'cloud_firestore',
+      code: 'permission-denied',
+      message: 'simulated permission-denied write',
+    );
+  }
+
+  @override
+  Future<void> saveWorkout({
+    required String userId,
+    required CompletedWorkoutModel workout,
+  }) async {
+    throw FirebaseException(
+      plugin: 'cloud_firestore',
+      code: 'permission-denied',
+      message: 'simulated permission-denied write',
+    );
+  }
+}
+
 class _FlakyLiftRepository implements LiftRepository {
   _FlakyLiftRepository({required this.shouldFail});
 
@@ -251,5 +279,59 @@ void main() {
       container.read(workoutSyncRecoveryProvider).pendingWriteCount,
       0,
     );
+  });
+
+  test('permission-denied write failures are queued for explicit sync recovery',
+      () async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final _PermissionDeniedWorkoutRepository workoutRepo =
+        _PermissionDeniedWorkoutRepository();
+    final _FlakyLiftRepository liftRepo =
+        _FlakyLiftRepository(shouldFail: false);
+
+    final ProviderContainer container = ProviderContainer(
+      overrides: [
+        authSessionStreamProvider.overrideWith(
+          (Ref ref) => Stream<AuthSession>.value(
+            const AuthSession(status: AuthStatus.guest),
+          ),
+        ),
+        workoutRepositoryProvider.overrideWith((Ref ref) => workoutRepo),
+        liftRepositoryProvider.overrideWith((Ref ref) => liftRepo),
+        liftMaxesProvider.overrideWithValue(
+          const AsyncData<List<LiftMaxModel>>(<LiftMaxModel>[]),
+        ),
+        workoutSyncQueueStoreProvider.overrideWith(
+          (Ref ref) => WorkoutSyncQueueStore(sharedPreferences: prefs),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    final WorkoutExecutionNotifier notifier =
+        container.read(workoutExecutionNotifierProvider.notifier);
+    await notifier.initialize(_session());
+    notifier.updateSet(
+      'Back Squat',
+      0,
+      isCompleted: true,
+      reps: 5,
+      weight: 135,
+    );
+
+    await expectLater(
+      () => notifier.finishWorkout(_session(), 1, 1, 'program-1'),
+      throwsA(isA<WorkoutSyncBlockingException>()),
+    );
+
+    final WorkoutExecutionState? state =
+        container.read(workoutExecutionNotifierProvider);
+    expect(state, isNotNull);
+    expect(state!.requiresSyncRecovery, isTrue);
+    expect(state.pendingSyncWrites, greaterThan(0));
+
+    final List<PendingWorkoutWriteIntent> pending =
+        await container.read(workoutSyncQueueStoreProvider).readPendingWrites();
+    expect(pending, isNotEmpty);
   });
 }
