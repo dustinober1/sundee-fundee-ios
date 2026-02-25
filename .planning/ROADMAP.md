@@ -87,10 +87,10 @@ Verification artifact:
 **Goal:** Capture and attach manual UAT checkpoint artifacts proving the repaired `login -> dashboard -> programs -> workout start` journey.
 **Requirements:** QA-02
 **Status:** 🟡 Planned (human-run evidence)
-**Plans:** 0/1
+**Plans:** 1 plan
 
 Plans:
-- [ ] 12-01-PLAN.md - Run UAT capture for `run-20260225T205700Z` (or a fresh run) and update Phase 10 verification artifacts
+- [ ] 12-01-PLAN.md — Run UAT evidence capture and update Phase 10 verification artifacts
 
 **Success criteria:**
 1. Checkpoint artifacts attached in `.planning/phases/10-verification-evidence-and-regression-guardrails/10-UAT.md`.
