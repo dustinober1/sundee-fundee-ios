@@ -3,7 +3,7 @@
 ## Milestones
 - [x] **v1 Foundation Release** (shipped 2026-02-23) - 4 phases, 14 plans, audit passed. Archive: `.planning/milestones/v1-ROADMAP.md`
 - [x] **v1.1 Onboarding Persistence + Injury-Aware Plans** (shipped 2026-02-24) - 3 phases, 10 plans, 11/11 requirements satisfied, audit status `tech_debt` (no blockers). Archive: `.planning/milestones/v1.1-ROADMAP.md`
-- [ ] **v1.2 UAT Access + Onboarding Reliability** (in progress; phase 10 execution complete with human verification pending as of 2026-02-25) - 3 phases, 9 requirements.
+- [ ] **v1.2 UAT Access + Onboarding Reliability** (in progress; phase 10 execution complete with human verification pending as of 2026-02-25) - 5 phases, 9 requirements.
 
 ## Current Milestone: v1.2 UAT Access + Onboarding Reliability
 
@@ -47,7 +47,7 @@ Plans:
 ### Phase 10: Verification Evidence and Regression Guardrails
 
 **Goal:** Add durable automated and manual evidence proving repaired UAT flows stay stable.
-**Requirements:** QA-01, QA-02
+**Supports:** QA-01, QA-02 (scaffold + guardrails; closure in phases 11-12)
 **Status:** ⚠ Human verification needed (executed 2026-02-25)
 **Plans:** 3/3 executed, manual checkpoint artifacts pending
 
@@ -64,10 +64,39 @@ Verification artifact:
 2. UAT execution evidence is recorded for login -> dashboard -> programs -> workout start using the verification account path.
 3. Milestone artifacts show resolved status for the reported `permission-denied` and onboarding false-prompt findings.
 
+### Phase 11: CI Integration Lane Unblocking
+
+**Goal:** Make the emulator-backed critical-access integration test runnable and passing in GitHub Actions.
+**Requirements:** QA-01
+**Status:** 🟡 Planned (gap closure)
+**Plans:** 0/2
+
+Plans:
+- [ ] 11-01-PLAN.md - Add Firebase emulator port configuration and CI harness alignment
+- [ ] 11-02-PLAN.md - Enable a supported integration_test target/device in GitHub Actions and run the critical flow test
+
+**Success criteria:**
+1. `quality-integration` CI job runs `integration_test/critical_access_flow_test.dart` under emulators and passes.
+2. Release build jobs are no longer blocked by `quality-integration`.
+
+### Phase 12: UAT Evidence Capture Closeout
+
+**Goal:** Capture and attach manual UAT checkpoint artifacts proving the repaired `login -> dashboard -> programs -> workout start` journey.
+**Requirements:** QA-02
+**Status:** 🟡 Planned (human-run evidence)
+**Plans:** 0/1
+
+Plans:
+- [ ] 12-01-PLAN.md - Run UAT capture for `run-20260225T205700Z` (or a fresh run) and update Phase 10 verification artifacts
+
+**Success criteria:**
+1. Checkpoint artifacts attached in `.planning/phases/10-verification-evidence-and-regression-guardrails/10-UAT.md`.
+2. Phase 10 verification updated from `human_needed` to `passed` once evidence is complete.
+
 ## Coverage Check
 - Requirements mapped: 9/9
 - Requirement overlap: none (each requirement mapped to exactly one phase)
 - Starting phase number: 8 (continues from v1.1 phase 7)
 
 ## Next Command
-`$gsd-verify-work 10`
+`$gsd-plan-phase 11`
