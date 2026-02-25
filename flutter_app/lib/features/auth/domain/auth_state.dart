@@ -11,8 +11,15 @@ enum AuthStatus {
 }
 
 class AuthSession {
-  const AuthSession({required this.status, this.user});
+  const AuthSession({
+    required this.status,
+    this.user,
+    this.shouldShowRecoveryNotice = false,
+    this.recoveryNoticeMessage,
+  });
 
   final AuthStatus status;
   final User? user;
+  final bool shouldShowRecoveryNotice;
+  final String? recoveryNoticeMessage;
 }

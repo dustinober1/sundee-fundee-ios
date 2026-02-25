@@ -69,5 +69,40 @@ void main() {
       expect(user.activeInjuries, hasLength(1));
       expect(user.requiresInjuryProfileCompletion, isTrue);
     });
+
+    test('treats only male and female as explicit onboarding gender answers',
+        () {
+      final UserModel female = UserModel.fromJson(<String, dynamic>{
+        'id': 'female',
+        'name': 'Ada',
+        'experienceLevelRaw': 'beginner',
+        'primaryGoalRaw': 'strength',
+        'genderRaw': 'female',
+        'createdAt': DateTime.utc(2026, 1, 1).toIso8601String(),
+        'appleUserID': 'apple',
+      });
+      final UserModel male = UserModel.fromJson(<String, dynamic>{
+        'id': 'male',
+        'name': 'Ben',
+        'experienceLevelRaw': 'beginner',
+        'primaryGoalRaw': 'strength',
+        'genderRaw': 'male',
+        'createdAt': DateTime.utc(2026, 1, 1).toIso8601String(),
+        'appleUserID': 'apple',
+      });
+      final UserModel preferNotToSay = UserModel.fromJson(<String, dynamic>{
+        'id': 'pnts',
+        'name': 'Casey',
+        'experienceLevelRaw': 'beginner',
+        'primaryGoalRaw': 'strength',
+        'genderRaw': 'preferNotToSay',
+        'createdAt': DateTime.utc(2026, 1, 1).toIso8601String(),
+        'appleUserID': 'apple',
+      });
+
+      expect(female.hasExplicitOnboardingGenderAnswer, isTrue);
+      expect(male.hasExplicitOnboardingGenderAnswer, isTrue);
+      expect(preferNotToSay.hasExplicitOnboardingGenderAnswer, isFalse);
+    });
   });
 }

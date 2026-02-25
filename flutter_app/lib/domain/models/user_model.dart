@@ -33,6 +33,9 @@ class UserModel {
 
   bool get hasRequiredOnboardingAnswers => name.trim().isNotEmpty;
 
+  bool get hasExplicitOnboardingGenderAnswer =>
+      gender == Gender.female || gender == Gender.male;
+
   bool get onboardingCompleteComputed =>
       onboardingComplete || hasRequiredOnboardingAnswers;
 
@@ -146,8 +149,8 @@ class UserModel {
       onboardingComplete: onboardingComplete ?? this.onboardingComplete,
       profileUpdatedAt: profileUpdatedAt ?? this.profileUpdatedAt,
       injuryProfiles: injuryProfiles ?? this.injuryProfiles,
-      acknowledgedInjuryDisclaimerIds:
-          acknowledgedInjuryDisclaimerIds ?? this.acknowledgedInjuryDisclaimerIds,
+      acknowledgedInjuryDisclaimerIds: acknowledgedInjuryDisclaimerIds ??
+          this.acknowledgedInjuryDisclaimerIds,
     );
   }
 

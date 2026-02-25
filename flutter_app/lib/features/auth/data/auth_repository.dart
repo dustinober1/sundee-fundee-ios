@@ -1,12 +1,13 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter/foundation.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 import '../domain/auth_state.dart';
+import '../domain/onboarding_eligibility_evaluator.dart';
 import '../../../domain/enums.dart';
 import '../../../domain/models/injury_profile_model.dart';
 import '../../../domain/models/user_model.dart';
@@ -21,12 +22,22 @@ class AuthRepository {
     FirebaseFirestore? firestore,
     GoogleSignIn? googleSignIn,
     ProfileRepository? profileRepository,
+    OnboardingEligibilityEvaluator onboardingEligibilityEvaluator =
+        const OnboardingEligibilityEvaluator(),
+    Future<LegacyOnboardingEvidence> Function(String userId)?
+        legacyEvidenceLoader,
+    Future<void> Function(String userId)? onboardingAutoHealWriter,
+    Duration legacyEvidenceTimeout = const Duration(seconds: 3),
   })  : _guestModeStore = guestModeStore,
         _firebaseEnabled = firebaseEnabled,
         _auth = auth,
         _firestore = firestore,
         _googleSignIn = googleSignIn,
-        _profileRepository = profileRepository;
+        _profileRepository = profileRepository,
+        _onboardingEligibilityEvaluator = onboardingEligibilityEvaluator,
+        _legacyEvidenceLoader = legacyEvidenceLoader,
+        _onboardingAutoHealWriter = onboardingAutoHealWriter,
+        _legacyEvidenceTimeout = legacyEvidenceTimeout;
 
   final GuestModeStore _guestModeStore;
   final bool _firebaseEnabled;
@@ -34,7 +45,14 @@ class AuthRepository {
   final FirebaseFirestore? _firestore;
   final GoogleSignIn? _googleSignIn;
   final ProfileRepository? _profileRepository;
+  final OnboardingEligibilityEvaluator _onboardingEligibilityEvaluator;
+  final Future<LegacyOnboardingEvidence> Function(String userId)?
+      _legacyEvidenceLoader;
+  final Future<void> Function(String userId)? _onboardingAutoHealWriter;
+  final Duration _legacyEvidenceTimeout;
   bool _googleSignInInitialized = false;
+  String? _recoveryNoticeUserId;
+  bool _recoveryNoticeShownInSession = false;
 
   Stream<AuthSession> authStateChanges() {
     if (!_firebaseEnabled) {
@@ -58,6 +76,7 @@ class AuthRepository {
       final guestEnabled = data.$2;
 
       if (user == null) {
+        _resetRecoveryNoticeState();
         return Stream.value(
           AuthSession(
             status:
@@ -66,10 +85,13 @@ class AuthRepository {
         );
       }
 
+      _setRecoveryNoticeUser(user.uid);
+
       return Stream.fromFuture(_validateAndRefreshSession(user)).switchMap((
         bool validSession,
       ) {
         if (!validSession) {
+          _resetRecoveryNoticeState();
           return Stream.value(
             AuthSession(
               status:
@@ -78,33 +100,77 @@ class AuthRepository {
           );
         }
 
-        return _resolvedProfileRepository.watchUserProfile(user.uid).map((
-          UserModel? profile,
-        ) {
-          if (profile == null) {
-            return AuthSession(status: AuthStatus.needsOnboarding, user: user);
-          }
-
-          if (!profile.onboardingCompleteComputed) {
-            return AuthSession(status: AuthStatus.needsOnboarding, user: user);
-          }
-
-          if (!profile.onboardingComplete &&
-              profile.hasRequiredOnboardingAnswers) {
-            return AuthSession(status: AuthStatus.resumeOnboarding, user: user);
-          }
-
-          if (profile.requiresInjuryProfileCompletion) {
-            return AuthSession(
-              status: AuthStatus.needsInjuryProfile,
-              user: user,
+        return _resolvedProfileRepository
+            .watchUserProfile(user.uid)
+            .asyncMap(
+              (UserModel? profile) => resolveAuthSessionForProfile(
+                userId: user.uid,
+                profile: profile,
+                user: user,
+              ),
+            )
+            .onErrorReturn(
+              AuthSession(status: AuthStatus.resumeOnboarding, user: user),
             );
-          }
-
-          return AuthSession(status: AuthStatus.authenticated, user: user);
-        });
       });
     });
+  }
+
+  @visibleForTesting
+  Future<AuthSession> resolveAuthSessionForProfile({
+    required String userId,
+    required UserModel? profile,
+    User? user,
+  }) async {
+    if (profile == null) {
+      return AuthSession(status: AuthStatus.needsOnboarding, user: user);
+    }
+
+    final LegacyOnboardingEvidence evidence;
+    if (profile.onboardingComplete || profile.hasRequiredOnboardingAnswers) {
+      evidence = const LegacyOnboardingEvidence.none();
+    } else {
+      try {
+        evidence = await _loadLegacyOnboardingEvidence(userId).timeout(
+          _legacyEvidenceTimeout,
+        );
+      } on TimeoutException {
+        return AuthSession(status: AuthStatus.resumeOnboarding, user: user);
+      } catch (_) {
+        return AuthSession(status: AuthStatus.resumeOnboarding, user: user);
+      }
+    }
+
+    final OnboardingEligibility eligibility = _onboardingEligibilityEvaluator
+        .evaluate(profile: profile, evidence: evidence);
+
+    if (eligibility.shouldAutoHeal) {
+      unawaited(_writeOnboardingAutoHeal(userId).catchError((_) {}));
+    }
+
+    if (eligibility.decision == OnboardingDecision.needsOnboarding) {
+      return AuthSession(status: AuthStatus.needsOnboarding, user: user);
+    }
+
+    if (eligibility.decision == OnboardingDecision.resumeOnboarding) {
+      return AuthSession(status: AuthStatus.resumeOnboarding, user: user);
+    }
+
+    if (profile.requiresInjuryProfileCompletion) {
+      return AuthSession(status: AuthStatus.needsInjuryProfile, user: user);
+    }
+
+    final bool shouldShowRecoveryNotice =
+        eligibility.showRecoveryNotice && _markRecoveryNoticeShown(userId);
+
+    return AuthSession(
+      status: AuthStatus.authenticated,
+      user: user,
+      shouldShowRecoveryNotice: shouldShowRecoveryNotice,
+      recoveryNoticeMessage: shouldShowRecoveryNotice
+          ? 'We recovered your onboarding profile from training history.'
+          : null,
+    );
   }
 
   Stream<UserModel?> watchUserProfile(String userId) {
@@ -261,15 +327,27 @@ class AuthRepository {
       throw StateError('No authenticated user found for restart onboarding.');
     }
 
-    await _usersCollection.doc(user.uid).set(<String, dynamic>{
+    await restartOnboardingForUser(user.uid);
+  }
+
+  @visibleForTesting
+  Future<void> restartOnboardingForUser(String userId) async {
+    final DocumentReference<Map<String, dynamic>> docRef =
+        _usersCollection.doc(userId);
+    await docRef.update(<String, dynamic>{
       'displayName': '',
       'name': '',
       'genderRaw': Gender.preferNotToSay.name,
       'cycleTrackingEnabled': false,
       'onboardingComplete': false,
+      'injuryProfiles': <Map<String, dynamic>>[],
+      'acknowledgedInjuryDisclaimerIds': FieldValue.delete(),
       'profileUpdatedAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
+    });
+    await docRef.update(<String, dynamic>{
+      'acknowledgedInjuryDisclaimerIds': <String, dynamic>{},
+    });
   }
 
   Future<void> saveInjuryProfile({
@@ -360,6 +438,7 @@ class AuthRepository {
 
   Future<void> signOut() async {
     await _guestModeStore.setGuestModeEnabled(false);
+    _resetRecoveryNoticeState();
 
     if (!_firebaseEnabled) {
       return;
@@ -372,6 +451,78 @@ class AuthRepository {
     }
 
     await _requireAuth().signOut();
+  }
+
+  Future<LegacyOnboardingEvidence> _loadLegacyOnboardingEvidence(
+    String userId,
+  ) {
+    final Future<LegacyOnboardingEvidence> Function(String userId) loader =
+        _legacyEvidenceLoader ?? _fetchLegacyOnboardingEvidence;
+    return loader(userId);
+  }
+
+  Future<LegacyOnboardingEvidence> _fetchLegacyOnboardingEvidence(
+    String userId,
+  ) async {
+    final DocumentReference<Map<String, dynamic>> userRef =
+        _usersCollection.doc(userId);
+
+    final List<bool> probeResults = await Future.wait<bool>(<Future<bool>>[
+      _containsDocuments(userRef.collection('workouts')),
+      Future.wait<bool>(<Future<bool>>[
+        _containsDocuments(userRef.collection('maxLifts')),
+        _containsDocuments(userRef.collection('oneRepMaxes')),
+      ]).then((List<bool> values) => values.any((bool value) => value)),
+    ]);
+
+    return LegacyOnboardingEvidence(
+      hasWorkoutHistory: probeResults.first,
+      hasMaxHistory: probeResults.last,
+    );
+  }
+
+  Future<bool> _containsDocuments(
+    CollectionReference<Map<String, dynamic>> collection,
+  ) async {
+    final QuerySnapshot<Map<String, dynamic>> snapshot =
+        await collection.limit(1).get();
+    return snapshot.docs.isNotEmpty;
+  }
+
+  Future<void> _writeOnboardingAutoHeal(String userId) {
+    final Future<void> Function(String userId) writer =
+        _onboardingAutoHealWriter ?? _performOnboardingAutoHeal;
+    return writer(userId);
+  }
+
+  Future<void> _performOnboardingAutoHeal(String userId) {
+    return _usersCollection.doc(userId).set(<String, dynamic>{
+      'onboardingComplete': true,
+      'profileUpdatedAt': FieldValue.serverTimestamp(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+  }
+
+  void _setRecoveryNoticeUser(String userId) {
+    if (_recoveryNoticeUserId == userId) {
+      return;
+    }
+    _recoveryNoticeUserId = userId;
+    _recoveryNoticeShownInSession = false;
+  }
+
+  void _resetRecoveryNoticeState() {
+    _recoveryNoticeUserId = null;
+    _recoveryNoticeShownInSession = false;
+  }
+
+  bool _markRecoveryNoticeShown(String userId) {
+    _setRecoveryNoticeUser(userId);
+    if (_recoveryNoticeShownInSession) {
+      return false;
+    }
+    _recoveryNoticeShownInSession = true;
+    return true;
   }
 
   Future<bool> _validateAndRefreshSession(User user) async {
