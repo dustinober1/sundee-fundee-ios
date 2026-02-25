@@ -3,7 +3,7 @@
 ## Milestones
 - [x] **v1 Foundation Release** (shipped 2026-02-23) - 4 phases, 14 plans, audit passed. Archive: `.planning/milestones/v1-ROADMAP.md`
 - [x] **v1.1 Onboarding Persistence + Injury-Aware Plans** (shipped 2026-02-24) - 3 phases, 10 plans, 11/11 requirements satisfied, audit status `tech_debt` (no blockers). Archive: `.planning/milestones/v1.1-ROADMAP.md`
-- [ ] **v1.2 UAT Access + Onboarding Reliability** (in progress; phase 10 execution complete with human verification pending as of 2026-02-25) - 5 phases, 9 requirements.
+- [ ] **v1.2 UAT Access + Onboarding Reliability** (in progress; phases 8-11 complete, phase 12 pending as of 2026-02-25) - 5 phases, 9 requirements.
 
 ## Current Milestone: v1.2 UAT Access + Onboarding Reliability
 
@@ -68,12 +68,15 @@ Verification artifact:
 
 **Goal:** Make the emulator-backed critical-access integration test runnable and passing in GitHub Actions.
 **Requirements:** QA-01
-**Status:** 🟡 Planned (gap closure)
-**Plans:** 2 plans
+**Status:** ⚠ Human verification needed (executed 2026-02-25; CI run confirmation pending)
+**Plans:** 2/2 complete
 
 Plans:
-- [ ] 11-01-PLAN.md — Add Firebase emulator port configuration and harness no-op guard refactor
-- [ ] 11-02-PLAN.md — Generate Linux desktop platform and rewrite CI quality-integration job
+- [x] 11-01-PLAN.md — Add Firebase emulator port configuration and harness no-op guard refactor
+- [x] 11-02-PLAN.md — Generate Linux desktop platform and rewrite CI quality-integration job
+
+Verification artifact:
+- `.planning/phases/11-ci-integration-lane-unblocking/11-VERIFICATION.md` (`status: human_needed` — 7/8 checks passed; CI run confirmation pending)
 
 **Success criteria:**
 1. `quality-integration` CI job runs `integration_test/critical_access_flow_test.dart` on Linux desktop via xvfb-run and passes.

@@ -44,5 +44,5 @@ Milestone v1.2 addresses UAT-blocking access failures in core training surfaces 
 | ACL-05 | 8 | Complete |
 | ONB-04 | 9 | Complete |
 | ONB-05 | 9 | Complete |
-| QA-01 | 10 | In progress (automated guardrails added, CI/UAT confirmation pending) |
+| QA-01 | 11 | Human needed (CI run confirmation pending) |
 | QA-02 | 10 | In progress (manual checkpoint artifacts pending) |
