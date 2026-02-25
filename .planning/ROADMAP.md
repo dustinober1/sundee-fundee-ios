@@ -69,11 +69,11 @@ Verification artifact:
 **Goal:** Make the emulator-backed critical-access integration test runnable and passing in GitHub Actions.
 **Requirements:** QA-01
 **Status:** 🟡 Planned (gap closure)
-**Plans:** 0/2
+**Plans:** 2 plans
 
 Plans:
-- [ ] 11-01-PLAN.md - Add Firebase emulator port configuration and CI harness alignment
-- [ ] 11-02-PLAN.md - Enable a supported integration_test target/device in GitHub Actions and run the critical flow test
+- [ ] 11-01-PLAN.md — Add Firebase emulator port configuration and harness no-op guard refactor
+- [ ] 11-02-PLAN.md — Generate Linux desktop platform and rewrite CI quality-integration job
 
 **Success criteria:**
 1. `quality-integration` CI job runs `integration_test/critical_access_flow_test.dart` under emulators and passes.
