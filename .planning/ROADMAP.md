@@ -102,4 +102,4 @@ Plans:
 - Starting phase number: 8 (continues from v1.1 phase 7)
 
 ## Next Command
-`$gsd-plan-phase 11`
+`$gsd-execute-phase 12`
