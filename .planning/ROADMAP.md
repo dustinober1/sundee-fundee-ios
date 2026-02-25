@@ -3,7 +3,7 @@
 ## Milestones
 - [x] **v1 Foundation Release** (shipped 2026-02-23) - 4 phases, 14 plans, audit passed. Archive: `.planning/milestones/v1-ROADMAP.md`
 - [x] **v1.1 Onboarding Persistence + Injury-Aware Plans** (shipped 2026-02-24) - 3 phases, 10 plans, 11/11 requirements satisfied, audit status `tech_debt` (no blockers). Archive: `.planning/milestones/v1.1-ROADMAP.md`
-- [ ] **v1.2 UAT Access + Onboarding Reliability** (in progress; phases 8-9 complete as of 2026-02-25) - 3 phases, 9 requirements.
+- [ ] **v1.2 UAT Access + Onboarding Reliability** (in progress; phase 10 execution complete with human verification pending as of 2026-02-25) - 3 phases, 9 requirements.
 
 ## Current Milestone: v1.2 UAT Access + Onboarding Reliability
 
@@ -48,6 +48,16 @@ Plans:
 
 **Goal:** Add durable automated and manual evidence proving repaired UAT flows stay stable.
 **Requirements:** QA-01, QA-02
+**Status:** ⚠ Human verification needed (executed 2026-02-25)
+**Plans:** 3/3 executed, manual checkpoint artifacts pending
+
+Plans:
+- [x] 10-01-PLAN.md - Emulator-backed integration guardrails and CI quality lane
+- [x] 10-02-PLAN.md - UAT evidence scaffold, playbook, and run metadata/log structure
+- [x] 10-03-PLAN.md - Verification artifact consolidation and milestone/state propagation
+
+Verification artifact:
+- `.planning/phases/10-verification-evidence-and-regression-guardrails/10-VERIFICATION.md` (`status: human_needed`)
 
 **Success criteria:**
 1. Automated tests cover authenticated data access/write paths for Home, Programs, and Workout critical flows.
@@ -60,4 +70,4 @@ Plans:
 - Starting phase number: 8 (continues from v1.1 phase 7)
 
 ## Next Command
-`$gsd-discuss-phase 10`
+`$gsd-verify-work 10`

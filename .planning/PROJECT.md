@@ -8,10 +8,11 @@ Help users follow a structured strength plan with reliable progression and adapt
 
 ## Current State
 - Latest shipped milestone: **v1.1** (2026-02-24)
-- Milestone status: `tech_debt` (11/11 requirements satisfied; no blockers)
-- Verification status: phase verification complete for Phases 05-07, audit coverage complete for requirements/integration/flows
-- Open debt from audit:
-  - Manual UAT scenarios documented in Phase 06 verification were not captured as executed evidence in the audit run.
+- Milestone status: `in_progress` (v1.2 Phase 10 executed; manual verification evidence pending)
+- Verification status: phase execution complete through Phase 10 with `human_needed` verification state on QA evidence capture
+- Open debt:
+  - Manual UAT checkpoint artifacts for `login -> dashboard -> programs -> workout start` still need capture for run `run-20260225T205700Z`.
+  - Integration flow test command in local workspace is platform-blocked; CI lane is configured as authoritative gate.
   - One pre-existing analyzer info remains: `deprecated_member_use` in `onboarding_profile_screen.dart`.
 - Core platform: Flutter + Riverpod + Firebase (Firestore/Auth)
 
@@ -55,4 +56,4 @@ Help users follow a structured strength plan with reliable progression and adapt
 </details>
 
 ---
-*Last updated: 2026-02-24 for milestone v1.2 initialization*
+*Last updated: 2026-02-25 during phase 10 execution*
