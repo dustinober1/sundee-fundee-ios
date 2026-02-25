@@ -9,6 +9,7 @@ import 'package:sundee_fundee_flutter/features/auth/providers.dart';
 import 'package:sundee_fundee_flutter/features/cycle/providers.dart';
 import 'package:sundee_fundee_flutter/features/programs/data/program_repository.dart';
 import 'package:sundee_fundee_flutter/features/programs/presentation/programs_screen.dart';
+import 'package:sundee_fundee_flutter/features/programs/providers/enrollment_lifecycle_provider.dart';
 import 'package:sundee_fundee_flutter/features/repositories/domain/repository_interfaces.dart';
 
 class _NoopEnrolledProgramRepository implements EnrolledProgramRepository {
@@ -194,8 +195,10 @@ void main() {
         overrides: [
           programsProvider
               .overrideWith((Ref ref) async => <ProgramV2>[_program()]),
-          activeEnrollmentProvider.overrideWith(
-            (Ref ref) => Stream<EnrolledProgramModel?>.value(enrollment),
+          enrollmentLifecycleStateProvider.overrideWith(
+            (Ref ref) => Stream<EnrollmentLifecycleState>.value(
+              EnrollmentLifecycleState.active(enrollment: enrollment),
+            ),
           ),
           authSessionStreamProvider.overrideWith(
             (Ref ref) => Stream<AuthSession>.value(
