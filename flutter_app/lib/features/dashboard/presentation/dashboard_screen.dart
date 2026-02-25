@@ -20,23 +20,56 @@ import '../../shared/presentation/recoverable_access_banner.dart';
 import '../../shared/presentation/sync_status_badge.dart';
 import 'cycle_insights_chart.dart';
 
-class DashboardScreen extends ConsumerWidget {
+class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
 
+  static const String _defaultRecoveryNoticeMessage =
+      'We recovered your onboarding profile from training history.';
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends ConsumerState<DashboardScreen> {
+  bool _recoveryNoticeShownInSession = false;
+
+  @override
+  Widget build(BuildContext context) {
     ref.listen<AsyncValue<AuthSession>>(authSessionStreamProvider, (
-      AsyncValue<AuthSession>? previous,
+      AsyncValue<AuthSession>? _,
       AsyncValue<AuthSession> next,
     ) {
-      final String? userId = next.asData?.value.user?.uid;
-      if (userId == null) {
+      final AuthSession? nextSession = next.asData?.value;
+      if (nextSession == null) {
         return;
       }
 
       final ScaffoldMessengerState? messenger = ScaffoldMessenger.maybeOf(
         context,
       );
+      if (nextSession.status == AuthStatus.unauthenticated ||
+          nextSession.status == AuthStatus.guest) {
+        _recoveryNoticeShownInSession = false;
+      }
+
+      if (nextSession.shouldShowRecoveryNotice &&
+          !_recoveryNoticeShownInSession) {
+        _recoveryNoticeShownInSession = true;
+        messenger?.showSnackBar(
+          SnackBar(
+            content: Text(
+              nextSession.recoveryNoticeMessage ??
+                  DashboardScreen._defaultRecoveryNoticeMessage,
+            ),
+          ),
+        );
+      }
+
+      final String? userId = nextSession.user?.uid;
+      if (userId == null) {
+        return;
+      }
+
       unawaited(
         ref
             .read(legacyMigrationOrchestratorProvider)
