@@ -2,12 +2,12 @@
 
 ## Current Position
 
-Phase: 11 (ci-integration-lane-unblocking) — in progress
-Plan: 11-01 complete
-Status: Phase 10 verified; Phase 11 Plan 01 executed (emulator config + harness guard)
-Last activity: 2026-02-25 - Executed 11-01-PLAN.md
+Phase: 11 (ci-integration-lane-unblocking) — complete
+Plan: 11-02 complete (phase done)
+Status: Phase 11 fully executed — Linux desktop CI lane wired, flutter analyze clean
+Last activity: 2026-02-25 - Executed 11-02-PLAN.md
 
-Progress: Phase 11 ░░ 1/2 plans complete (11-01 ✅, 11-02 pending)
+Progress: Phase 11 ██ 2/2 plans complete (11-01 ✅, 11-02 ✅)
 
 ## Accumulated Context
 
@@ -35,11 +35,14 @@ Progress: Phase 11 ░░ 1/2 plans complete (11-01 ✅, 11-02 pending)
 | Legacy resume bypass notice | Emit one-time recovery notice only for max-only legacy recovery path | 09-02 |
 | Restart reset contract | Clear onboarding fields and injury/disclaimer state together on restart | 09-03 |
 | initializeHarness() guard strategy | Single combined early-return for `!_firebaseEnabled \|\| !_useEmulators` | 11-01 |
+| Linux desktop CI target choice | xvfb-run Linux desktop (not web/chromedriver) | 11-02 |
+| Firebase emulator removal from CI | Removed entirely — provider overrides + harness guard make emulators unnecessary | 11-02 |
 
 ## Open Follow-ups
 
 - Capture manual checkpoint artifacts for run `run-20260225T205700Z` in `.planning/phases/10-verification-evidence-and-regression-guardrails/10-UAT.md`.
-- ~~Re-run emulator-backed integration lane and confirm CI pass for `integration_test/critical_access_flow_test.dart`.~~ → **11-02** will wire CI workflow.
+- ~~Re-run emulator-backed integration lane and confirm CI pass for `integration_test/critical_access_flow_test.dart`.~~ → **11-02** complete — Linux desktop CI lane wired.
+- Observe first CI run on push to confirm xvfb-run + GTK build succeeds on ubuntu-latest runners.
 
 ## Quick Tasks Completed
 
@@ -49,6 +52,6 @@ Progress: Phase 11 ░░ 1/2 plans complete (11-01 ✅, 11-02 pending)
 
 ## Session Continuity
 
-Last session: 2026-02-25T03:20:22Z
-Stopped at: Completed 11-01-PLAN.md (emulator config + harness guard)
+Last session: 2026-02-25T03:26:00Z
+Stopped at: Completed 11-02-PLAN.md (Linux desktop platform + CI job rewrite)
 Resume file: None
