@@ -7,6 +7,7 @@ struct SundeeFundeeApp: App {
 
     init() {
         container = AppModelContainer.shared
+        MetricsService.shared.start()
     }
 
     var body: some Scene {
