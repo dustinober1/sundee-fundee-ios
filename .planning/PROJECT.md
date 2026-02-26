@@ -7,29 +7,34 @@ Sundee-Fundee is a cross-platform strength training tracker with cycle-aware and
 Help users follow a structured strength plan with reliable progression and adaptation to their current context.
 
 ## Current State
-- Latest shipped milestone: **v1.1** (2026-02-24)
-- Milestone status: `in_progress` (v1.2 Phase 10 executed; manual verification evidence pending)
-- Verification status: phase execution complete through Phase 10 with `human_needed` verification state on QA evidence capture
+- Latest shipped milestone: **v1.2** (2026-02-25)
+- Milestone status: `complete` — all 5 phases (8-12) executed and verified
+- Verification status: phases 8-10, 12 fully passed; phase 11 wired (CI run confirmation pending)
 - Open debt:
-  - Manual UAT checkpoint artifacts for `login -> dashboard -> programs -> workout start` still need capture for run `run-20260225T205700Z`.
-  - Integration flow test command in local workspace is platform-blocked; CI lane is configured as authoritative gate.
+  - QA-01: `quality-integration` CI lane wired by Phase 11; first live GitHub Actions run not yet confirmed.
+  - Dashboard UX: `_WorkoutHistoryList` surfaces raw error text; `_BlockingAccessCard` double-renders; BROWSE PLANS / REFRESH CTAs are no-ops.
   - One pre-existing analyzer info remains: `deprecated_member_use` in `onboarding_profile_screen.dart`.
 - Core platform: Flutter + Riverpod + Firebase (Firestore/Auth)
 
-## Current Milestone: v1.2 UAT Access + Onboarding Reliability
+## Current Milestone
+
+No active milestone — v1.2 shipped. Start the next with `/gsd-new-milestone`.
+
+<details>
+<summary>v1.2 Milestone (Archived)</summary>
 
 **Goal:** Restore core training flow access for authenticated users and remove false onboarding prompts for returning users.
 
-**Target features:**
-- Fix Firestore access paths and rules so Home "Next Workout", Programs, and Workout surfaces load reliably.
-- Ensure workout start/session writes succeed for active enrollments without permission-denied failures.
-- Show onboarding resume only for truly incomplete profiles; route complete users directly to product flows.
-- Capture repeatable verification evidence for the repaired dashboard/program/workout journey.
+**Delivered:**
+- Fixed Firestore access paths and rules so Home "Next Workout", Programs, and Workout surfaces load reliably.
+- Workout start/session writes succeed for active enrollments without permission-denied failures.
+- Onboarding resume only for truly incomplete profiles; complete users route directly to product flows.
+- Automated test evidence for the repaired dashboard/program/workout journey (critical_access_flow_test.dart).
+- GitHub Actions CI integration lane wired with Linux desktop + xvfb-run.
 
-## Active Requirements Focus
-- Firestore permission hardening for enrollment/program/workout data paths.
-- Onboarding completion-state gating for returning users.
-- Regression and UAT evidence for authentication, dashboard, programs, and workout startup flows.
+**Archive:** `.planning/milestones/v1.2-ROADMAP.md`
+
+</details>
 
 ## Key Decisions
 | Decision | Rationale | Outcome |
@@ -52,8 +57,11 @@ Help users follow a structured strength plan with reliable progression and adapt
 - v1.1 requirements archive: `.planning/milestones/v1.1-REQUIREMENTS.md`
 - v1.1 roadmap archive: `.planning/milestones/v1.1-ROADMAP.md`
 - v1.1 audit archive: `.planning/milestones/v1.1-MILESTONE-AUDIT.md`
+- v1.2 requirements archive: `.planning/milestones/v1.2-REQUIREMENTS.md`
+- v1.2 roadmap archive: `.planning/milestones/v1.2-ROADMAP.md`
+- v1.2 audit archive: `.planning/milestones/v1.2-MILESTONE-AUDIT.md`
 
 </details>
 
 ---
-*Last updated: 2026-02-25 during phase 10 execution*
+*Last updated: 2026-02-26 — v1.2 milestone archived*

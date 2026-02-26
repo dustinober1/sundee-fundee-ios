@@ -1,4 +1,3 @@
-- Research FLutter widgets that will be beneficial to this application
 - Verify accessibility requirements, especially color contrast
 - Research alternative exercises for users that are injured or recovering.
 - Remove all non weightlifting moves from the max tracker. 

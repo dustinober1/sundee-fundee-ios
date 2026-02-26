@@ -1,5 +1,31 @@
 # Project Milestones: Sundee-Fundee
 
+## v1.2 UAT Access + Onboarding Reliability (Shipped: 2026-02-25)
+
+**Delivered:** Restored Firestore access reliability for core training surfaces, eliminated onboarding false prompts for returning users, added workout write durability with sync recovery, wired the GitHub Actions CI integration lane, and captured automated test evidence closing QA-02.
+
+**Phases completed:** 8–12 (12 plans total)
+
+**Key accomplishments:**
+- Fixed enrollment contract drift with legacy-safe normalization and recoverable access lifecycle model (validEmpty / recoverableFailure / blockingFailure) with auto-retry UX.
+- Shipped workout write durability: pending intent queue, sync-gated finish flow, and manual retry UX for unresolved completion sync.
+- Eliminated onboarding false prompts via deterministic bootstrap evaluator, auto-heal for stale flags, and clear restart-reset contract.
+- Hardened injury-first resume/restart UX with one-time legacy recovery notice and bootstrap matrix regression guardrails.
+- Wired GitHub Actions `quality-integration` CI lane with Linux desktop + xvfb-run, replacing Firebase emulator approach.
+- Closed QA-02: automated `critical_access_flow_test.dart` provider-override evidence for full `login → dashboard → programs → workout start` journey.
+
+**Stats:**
+- 5 phases, 12 plans
+- Timeline: 2026-02-24 to 2026-02-25
+
+**Git range:** `9968c60` → `741533a`
+
+**Tech debt carried forward:** QA-01 CI confirmation pending; dashboard UX inconsistencies (raw error text, no-op CTAs).
+
+**What's next:** Start next milestone definition with `/gsd-new-milestone`.
+
+---
+
 ## v1.1 Onboarding Persistence + Injury-Aware Plans (Shipped: 2026-02-24)
 
 **Delivered:** Account-level onboarding persistence, injury-aware adaptation/disclaimer flows, and safe plan cancellation with guarded re-enrollment and history integrity.
