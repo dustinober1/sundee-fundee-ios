@@ -11,7 +11,7 @@ enum EnrollmentEventType: String, Codable {
 
 @Model
 final class EnrolledProgram {
-    @Attribute(.unique) var id: String
+    var id: String
     var userID: String
     var programID: String
     var startDate: Date
@@ -72,7 +72,7 @@ final class EnrolledProgram {
 
 @Model
 final class EnrollmentEvent {
-    @Attribute(.unique) var id: String
+    var id: String
     var enrollmentID: String
     var eventTypeRaw: String
     var occurredAt: Date

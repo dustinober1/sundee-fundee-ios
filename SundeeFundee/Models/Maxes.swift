@@ -3,7 +3,7 @@ import Foundation
 
 @Model
 final class OneRepMax {
-    @Attribute(.unique) var id: String
+    var id: String
     var userID: String
     var exerciseID: String
     var weightKg: Double
@@ -35,7 +35,7 @@ enum RepMaxType: String, Codable {
 
 @Model
 final class PersonalRecord {
-    @Attribute(.unique) var id: String
+    var id: String
     var userID: String
     var exerciseID: String
     var repMaxTypeRaw: String
@@ -73,7 +73,7 @@ final class PersonalRecord {
 /// Historical lift max (user manually entered max, not auto-detected).
 @Model
 final class LiftMax {
-    @Attribute(.unique) var id: String
+    var id: String
     var userID: String
     var exerciseID: String
     var weightKg: Double

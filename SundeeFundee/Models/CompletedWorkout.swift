@@ -3,7 +3,7 @@ import Foundation
 
 @Model
 final class CompletedWorkout {
-    @Attribute(.unique) var id: String
+    var id: String
     var userID: String
     var activeCycleID: String
     var programID: String
@@ -44,7 +44,7 @@ final class CompletedWorkout {
 
 @Model
 final class CompletedSet {
-    @Attribute(.unique) var id: String
+    var id: String
     var userID: String
     var workoutID: String
     var exerciseName: String

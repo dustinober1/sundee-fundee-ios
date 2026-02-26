@@ -7,7 +7,7 @@ enum FlowLevel: String, Codable, CaseIterable {
 
 @Model
 final class PeriodLog {
-    @Attribute(.unique) var id: String
+    var id: String
     var userID: String
     var startDate: Date
     var endDate: Date?
@@ -38,7 +38,7 @@ final class PeriodLog {
 
 @Model
 final class SymptomLog {
-    @Attribute(.unique) var id: String
+    var id: String
     var userID: String
     var date: Date
     var symptomID: String
@@ -64,7 +64,7 @@ final class SymptomLog {
 
 @Model
 final class CycleSettings {
-    @Attribute(.unique) var id: String
+    var id: String
     var userID: String
     var averageCycleLengthDays: Int
     var averagePeriodLengthDays: Int
@@ -93,7 +93,7 @@ final class CycleSettings {
 
 @Model
 final class CycleAdaptationPreferences {
-    @Attribute(.unique) var id: String
+    var id: String
     var userID: String
     var adaptationEnabled: Bool
     var fallbackPhase: String

@@ -19,7 +19,7 @@ enum Gender: String, Codable, CaseIterable {
 
 @Model
 final class User {
-    @Attribute(.unique) var id: String
+    var id: String
     var name: String
     var experienceLevelRaw: String
     var primaryGoalRaw: String

@@ -7,7 +7,7 @@ enum InjuryStatus: String, Codable {
 
 @Model
 final class InjuryProfile {
-    @Attribute(.unique) var id: String
+    var id: String
     var userID: String
     var location: String
     var movementLimitations: String

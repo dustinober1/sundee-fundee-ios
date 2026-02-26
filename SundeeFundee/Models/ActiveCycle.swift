@@ -7,7 +7,7 @@ enum CycleStatus: String, Codable {
 
 @Model
 final class ActiveCycle {
-    @Attribute(.unique) var id: String
+    var id: String
     var userID: String
     var programID: String
     var cycleName: String
