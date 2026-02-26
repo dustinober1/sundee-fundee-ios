@@ -1,7 +1,9 @@
 import SwiftUI
+import SwiftData
 
 /// Routes between loading, sign-in, onboarding, and main app based on AppState.
 struct AppRootView: View {
+    @Environment(\.modelContext) private var modelContext
     @State private var appState = AppState()
 
     var body: some View {
@@ -11,11 +13,8 @@ struct AppRootView: View {
                 LoadingView()
             case .signedOut:
                 SignInView()
-            case .needsOnboarding(let userID, let appleUserID):
+            case .needsOnboarding:
                 Text("Onboarding — Phase 3") // placeholder until Phase 3
-                    .task {
-                        _ = userID; _ = appleUserID
-                    }
             case .authenticated:
                 Text("Main App — Phase 6+") // placeholder until shell is built
             case .guest:
@@ -23,6 +22,11 @@ struct AppRootView: View {
             }
         }
         .environment(appState)
+        .task {
+            // Restore session on cold launch.
+            let state = await appState.authService.restoreSession(modelContext: modelContext)
+            appState.apply(state)
+        }
     }
 }
 

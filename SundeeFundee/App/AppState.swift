@@ -11,9 +11,12 @@ enum AuthState {
 }
 
 @Observable
+@MainActor
 final class AppState {
     var authState: AuthState = .loading
     var currentUserID: String?
+
+    let authService = AuthService()
 
     func signInAsGuest() {
         authState = .guest
@@ -21,7 +24,15 @@ final class AppState {
     }
 
     func signOut() {
+        KeychainHelper.deleteAppleUserID()
         authState = .signedOut
         currentUserID = nil
+    }
+
+    func apply(_ state: AuthState) {
+        authState = state
+        if case .authenticated(let id) = state { currentUserID = id }
+        else if case .needsOnboarding(let id, _) = state { currentUserID = id }
+        else { currentUserID = nil }
     }
 }
