@@ -19,10 +19,10 @@ struct MainTabView: View {
             }
 
             NavigationStack {
-                WorkoutsPlaceholderView()
+                MaxLiftsView()
             }
             .tabItem {
-                Label("Workouts", systemImage: "dumbbell.fill")
+                Label("Maxes", systemImage: "dumbbell.fill")
             }
 
             NavigationStack {
