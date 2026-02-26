@@ -42,9 +42,22 @@ enum AppModelContainer {
         do {
             let schema = Schema(allModels)
             let localConfig = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-            return try ModelContainer(for: schema, migrationPlan: AppSchemaMigrationPlan.self, configurations: [localConfig])
+            return try ModelContainer(for: schema, configurations: [localConfig])
         } catch {
-            print("AppModelContainer: local persistent container failed: \(error). Falling back to in-memory.")
+            print("AppModelContainer: local persistent container failed: \(error).")
+            print("Attempting to delete corrupted store files and create fresh one...")
+            
+            // Delete the corrupted store files and try again
+            do {
+                try deleteStoreFiles()
+                let schema = Schema(allModels)
+                let localConfig = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+                let container = try ModelContainer(for: schema, configurations: [localConfig])
+                print("AppModelContainer: Created fresh local store after clearing corrupted data.")
+                return container
+            } catch {
+                print("AppModelContainer: Failed to create fresh store: \(error). Falling back to in-memory.")
+            }
         }
 
         // Tier 3 — In-memory store (data lost on restart; last resort).
@@ -73,4 +86,24 @@ enum AppModelContainer {
     }
 
     private static let allModels: [any PersistentModel.Type] = AppSchemaV1.models
+    
+    /// Deletes all SwiftData store files for the app.
+    ///
+    /// Call this when the store is corrupted or when you want to reset all local data.
+    private static func deleteStoreFiles() throws {
+        let fileManager = FileManager.default
+        let urls = fileManager.urls(for: .documentDirectory, in: .userDomainMask)
+        guard let documentsDirectory = urls.first else { return }
+        
+        let storeURL = documentsDirectory.appendingPathComponent("default.store")
+        let walURL = documentsDirectory.appendingPathComponent("default.store-wal")
+        let shmURL = documentsDirectory.appendingPathComponent("default.store-shm")
+        
+        for url in [storeURL, walURL, shmURL] {
+            if fileManager.fileExists(atPath: url.path) {
+                try fileManager.removeItem(at: url)
+                print("AppModelContainer: Deleted \(url.lastPathComponent)")
+            }
+        }
+    }
 }
