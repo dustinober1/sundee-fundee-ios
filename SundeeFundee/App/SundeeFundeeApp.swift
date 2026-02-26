@@ -1,0 +1,18 @@
+import SwiftUI
+import SwiftData
+
+@main
+struct SundeeFundeeApp: App {
+    let container: ModelContainer
+
+    init() {
+        container = AppModelContainer.shared
+    }
+
+    var body: some Scene {
+        WindowGroup {
+            AppRootView()
+                .modelContainer(container)
+        }
+    }
+}
