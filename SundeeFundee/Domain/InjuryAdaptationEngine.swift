@@ -1,0 +1,177 @@
+import Foundation
+
+// MARK: - InjuryAdaptationEngine
+
+/// Adapts a Program for active injury profiles.
+/// Pure value semantics — never mutates inputs, returns new instances.
+enum InjuryAdaptationEngine {
+
+    struct ReplacementResult {
+        let exerciseName: String
+        let reason: String
+    }
+
+    // MARK: - Public API
+
+    /// Returns the same program unchanged if no active injuries exist.
+    static func adaptProgram(
+        _ program: Program,
+        activeInjuries: [InjuryProfile]
+    ) -> Program {
+        guard !activeInjuries.isEmpty else { return program }
+
+        let adaptedWeeks = program.weeks.map { week in
+            ProgramWeek(
+                week: week.week,
+                phaseID: week.phaseID,
+                isTestWeek: week.isTestWeek,
+                sessions: week.sessions.map { adaptSession($0, injuries: activeInjuries) }
+            )
+        }
+
+        return Program(
+            id: program.id,
+            name: program.name,
+            category: program.category,
+            description: program.description,
+            durationWeeks: program.durationWeeks,
+            sessionsPerWeek: program.sessionsPerWeek,
+            difficulty: program.difficulty,
+            phases: program.phases,
+            weeks: adaptedWeeks,
+            cycleAdjustmentProfile: program.cycleAdjustmentProfile
+        )
+    }
+
+    // MARK: - Private — contraindication tables
+
+    private struct ContraindicationRule {
+        let categories: [String]
+        let muscleGroupKeywords: [String]
+    }
+
+    private static let contraindicationRules: [String: ContraindicationRule] = [
+        "knee":     ContraindicationRule(categories: ["Squat Variations"], muscleGroupKeywords: ["quads"]),
+        "shoulder": ContraindicationRule(categories: ["Overhead Pressing", "Bench Press Variations"], muscleGroupKeywords: ["shoulders"]),
+        "back":     ContraindicationRule(categories: ["Hinge Variations", "Deadlift Variations"], muscleGroupKeywords: ["back"]),
+        "spine":    ContraindicationRule(categories: ["Hinge Variations", "Deadlift Variations"], muscleGroupKeywords: ["back"]),
+        "hip":      ContraindicationRule(categories: [], muscleGroupKeywords: ["glutes", "hamstrings"]),
+    ]
+
+    private static let regressionTable: [String: [String]] = [
+        "Back Squat":                             ["Goblet Squat", "Air Squats", "Leg Press"],
+        "Front Squat":                            ["Goblet Squat", "Air Squats"],
+        "Conventional Deadlift (No Straps)":      ["Romanian Deadlift / RDL (No Straps)", "Trap Bar / Hex Bar Deadlift (No Straps)"],
+        "Flat Barbell Bench Press":               ["Dumbbell Bench Press", "Floor Press"],
+        "Strict Press / Military Press":          ["Lateral Raises", "Z-Press"],
+    ]
+
+    private static let recoveryPrepMap: [String: [String]] = [
+        "knee":     ["Bird-Dogs", "Bodyweight Lunges"],
+        "shoulder": ["Banded Pull-Aparts", "Face Pulls"],
+        "back":     ["Cat-Cow", "Bird-Dogs"],
+        "spine":    ["Cat-Cow", "Bird-Dogs"],
+        "hip":      ["Hip Circles", "Glute Bridges"],
+    ]
+
+    private static let safeBodyweight = ["Air Squats", "Bird-Dogs", "Bodyweight Lunges"]
+
+    // MARK: - Private — session / exercise adaptation
+
+    private static func adaptSession(
+        _ session: ProgramSession,
+        injuries: [InjuryProfile]
+    ) -> ProgramSession {
+        ProgramSession(
+            sessionID:   session.sessionID,
+            sessionName: session.sessionName,
+            sessionType: session.sessionType,
+            focus:       session.focus,
+            exercises:   session.exercises.map { adaptExercise($0, injuries: injuries) }
+        )
+    }
+
+    private static func adaptExercise(
+        _ exercise: ProgramExercise,
+        injuries: [InjuryProfile]
+    ) -> ProgramExercise {
+        guard isContraindicated(exercise.exercise, injuries: injuries) else { return exercise }
+        let replacement = findReplacement(exercise.exercise, injuries: injuries)
+        return ProgramExercise(
+            exercise:    replacement.exerciseName,
+            variant:     exercise.variant,
+            sets:        exercise.sets,
+            reps:        exercise.reps,
+            percent1RM:  exercise.percent1RM,
+            restMinutes: exercise.restMinutes,
+            notes:       exercise.notes
+        )
+    }
+
+    private static func isContraindicated(_ exerciseID: String, injuries: [InjuryProfile]) -> Bool {
+        // For the initial port we use a simplified keyword check.
+        // Full category-based check requires an exercise definition catalogue.
+        for injury in injuries {
+            let loc = injury.location.lowercased()
+            for (key, rule) in contraindicationRules {
+                guard loc.contains(key) else { continue }
+                for keyword in rule.muscleGroupKeywords {
+                    if exerciseID.lowercased().contains(keyword) { return true }
+                }
+                for cat in rule.categories {
+                    if exerciseID.lowercased().contains(cat.lowercased()) { return true }
+                }
+            }
+        }
+        return false
+    }
+
+    private static func findReplacement(_ exerciseID: String, injuries: [InjuryProfile]) -> ReplacementResult {
+        let locations = injuries.map(\.location).joined(separator: ", ")
+
+        if let regressions = regressionTable[exerciseID] {
+            for candidate in regressions {
+                if !isContraindicated(candidate, injuries: injuries) {
+                    return ReplacementResult(exerciseName: candidate,
+                                            reason: "Replaced due to \(locations) injury. Using \(candidate).")
+                }
+            }
+        }
+
+        for safe in safeBodyweight where !isContraindicated(safe, injuries: injuries) {
+            return ReplacementResult(exerciseName: safe,
+                                    reason: "Replaced due to \(locations) injury. Using \(safe).")
+        }
+
+        return ReplacementResult(exerciseName: exerciseID,
+                                 reason: "Consult your coach — no safe automatic replacement found for \(locations) injury.")
+    }
+
+    // MARK: - Recovery prep block
+
+    /// Returns a list of recovery prep exercises for all active injuries.
+    static func buildRecoveryPrepBlock(injuries: [InjuryProfile]) -> [ProgramExercise] {
+        var seen  = Set<String>()
+        var block: [ProgramExercise] = []
+
+        for injury in injuries {
+            let loc = injury.location.lowercased()
+            for (key, exercises) in recoveryPrepMap {
+                guard loc.contains(key) else { continue }
+                for ex in exercises where !seen.contains(ex) {
+                    seen.insert(ex)
+                    block.append(ProgramExercise(
+                        exercise:    ex,
+                        variant:     nil,
+                        sets:        .fixed(2),
+                        reps:        .fixed(10),
+                        percent1RM:  nil,
+                        restMinutes: 1,
+                        notes:       "Recovery prep — gentle movement only"
+                    ))
+                }
+            }
+        }
+        return block
+    }
+}

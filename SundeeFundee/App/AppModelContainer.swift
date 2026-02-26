@@ -9,6 +9,10 @@ enum AppModelContainer {
 
     static let shared: ModelContainer = {
         let schema = Schema(allModels)
+        if isRunningTests {
+            let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+            return try! ModelContainer(for: schema, configurations: [config])
+        }
         let config = ModelConfiguration(
             schema: schema,
             isStoredInMemoryOnly: false,
@@ -26,6 +30,10 @@ enum AppModelContainer {
         let schema = Schema(allModels)
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
         return try! ModelContainer(for: schema, configurations: [config])
+    }
+
+    private static var isRunningTests: Bool {
+        ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
     }
 
     private static let allModels: [any PersistentModel.Type] = [

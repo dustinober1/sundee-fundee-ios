@@ -6,7 +6,7 @@ import Testing
 
 @Suite("Placeholder")
 struct PlaceholderTests {
-    @Test func appStateDefaultsToLoading() {
+    @Test @MainActor func appStateDefaultsToLoading() {
         let state = AppState()
         if case .loading = state.authState { } else {
             Issue.record("Expected loading state")

@@ -7,16 +7,23 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0050529D52C6D1AD4079C359 /* CycleAdaptationPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04C582617701447ED4C8D80F /* CycleAdaptationPolicy.swift */; };
 		05B28BACF7A04E963A0C0920 /* SundeeFundeeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53AE80F4CD24ED2C384C12D6 /* SundeeFundeeApp.swift */; };
+		1E26D44D83981BB2631E923F /* InjuryAdaptationEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 276F03F12261E20C6ACF6703 /* InjuryAdaptationEngine.swift */; };
+		31505F6907BCB93B44087ECF /* WeightCalculations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDE3BB6E8105A1F1B02BD4A /* WeightCalculations.swift */; };
 		35F7120D99DD863F41920B85 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AA39C1CC2588484E7774CF5 /* User.swift */; };
 		3A9441E40CA4388FA2C73B92 /* CompletedWorkout.swift in Sources */ = {isa = PBXBuildFile; fileRef = D16BAB9EF7570DE98192141A /* CompletedWorkout.swift */; };
+		45229EECE5D7216C48A5F6FC /* PlateCalculation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 852A5F052505B69DD46A8EF0 /* PlateCalculation.swift */; };
+		655EE5D9DB2119F675AD7328 /* BusinessLogicTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C45D5676126D1932B823CB77 /* BusinessLogicTests.swift */; };
 		6BF362B1C82D428DBC8CCD13 /* OnboardingEligibilityEvaluator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E9555CE9EC2982C2B6DCDAE /* OnboardingEligibilityEvaluator.swift */; };
 		6D132998DC635FE6065128BC /* SignInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110F2999B2AA30421DABB2AC /* SignInView.swift */; };
 		766DE2BEB88044B71AF369C3 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2516C1A819184F9F55D78137 /* AuthService.swift */; };
 		8810FD17BC17B670A1FA43D4 /* OnboardingFlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 012BAC8B631FE8D7BA41AC0C /* OnboardingFlowView.swift */; };
 		8F55C3C1B9309AB75A09961E /* Program.swift in Sources */ = {isa = PBXBuildFile; fileRef = E79A7C624E31B53EDC3AD5B7 /* Program.swift */; };
 		949139796F6B381980E7A830 /* Maxes.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6EDF76C2A7A135CEBE4365C /* Maxes.swift */; };
+		A1B9AF2CD29CA287A8DD1E56 /* CycleCalculations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 745F2F666C9657BEF7407740 /* CycleCalculations.swift */; };
 		A3FA9EED08F58B73BE717256 /* EnrolledProgram.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CC3DF4CA337E185D6494F40 /* EnrolledProgram.swift */; };
+		ABD91D701AAC10F1E21BBE59 /* CycleProgramGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9185B33B347E99EC19EDC8E2 /* CycleProgramGenerator.swift */; };
 		ADF6FEF628146548B866FF2D /* ActiveCycle.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDBCB8CEF6A70B16D8F96BB7 /* ActiveCycle.swift */; };
 		B2CD5842C2859340BC2D67FD /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FE4123606BF8631A29FFA77 /* AppState.swift */; };
 		B3FBCBDA5E4A927FF9725DD5 /* InjuryProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3930E4513F75B95B07D303F1 /* InjuryProfile.swift */; };
@@ -42,10 +49,12 @@
 
 /* Begin PBXFileReference section */
 		012BAC8B631FE8D7BA41AC0C /* OnboardingFlowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFlowView.swift; sourceTree = "<group>"; };
+		04C582617701447ED4C8D80F /* CycleAdaptationPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleAdaptationPolicy.swift; sourceTree = "<group>"; };
 		110F2999B2AA30421DABB2AC /* SignInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInView.swift; sourceTree = "<group>"; };
 		18228C01CE4329F639652F6D /* CycleModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleModels.swift; sourceTree = "<group>"; };
 		1C622B6A0C64BA37AEAEF044 /* AppModelContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModelContainer.swift; sourceTree = "<group>"; };
 		2516C1A819184F9F55D78137 /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
+		276F03F12261E20C6ACF6703 /* InjuryAdaptationEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InjuryAdaptationEngine.swift; sourceTree = "<group>"; };
 		2CC3DF4CA337E185D6494F40 /* EnrolledProgram.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnrolledProgram.swift; sourceTree = "<group>"; };
 		2FE4123606BF8631A29FFA77 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
 		3231B6FFDA72065ECDA67FEC /* AppRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRootView.swift; sourceTree = "<group>"; };
@@ -53,7 +62,11 @@
 		3E9555CE9EC2982C2B6DCDAE /* OnboardingEligibilityEvaluator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingEligibilityEvaluator.swift; sourceTree = "<group>"; };
 		4D25ACD9D39C9AB1DA0F1386 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		53AE80F4CD24ED2C384C12D6 /* SundeeFundeeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SundeeFundeeApp.swift; sourceTree = "<group>"; };
+		745F2F666C9657BEF7407740 /* CycleCalculations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleCalculations.swift; sourceTree = "<group>"; };
+		852A5F052505B69DD46A8EF0 /* PlateCalculation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlateCalculation.swift; sourceTree = "<group>"; };
 		8AA39C1CC2588484E7774CF5 /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
+		9185B33B347E99EC19EDC8E2 /* CycleProgramGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleProgramGenerator.swift; sourceTree = "<group>"; };
+		9BDE3BB6E8105A1F1B02BD4A /* WeightCalculations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightCalculations.swift; sourceTree = "<group>"; };
 		A087E3D80C040517C19344A7 /* CloudKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CloudKit.framework; path = System/Library/Frameworks/CloudKit.framework; sourceTree = SDKROOT; };
 		A45D0BF2A4A803CFAF9F115B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		A595115D72C6220739A44F49 /* AppTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTheme.swift; sourceTree = "<group>"; };
@@ -61,6 +74,7 @@
 		B6EDF76C2A7A135CEBE4365C /* Maxes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Maxes.swift; sourceTree = "<group>"; };
 		B75299B558602C0FC9B4A225 /* PlaceholderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceholderTests.swift; sourceTree = "<group>"; };
 		BD43C5FF1DD1826489EC84DA /* SundeeFundeTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = SundeeFundeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		C45D5676126D1932B823CB77 /* BusinessLogicTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BusinessLogicTests.swift; sourceTree = "<group>"; };
 		C99B9014B8F76C3124C8DA6A /* SundeeFundee.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = SundeeFundee.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		CDBCB8CEF6A70B16D8F96BB7 /* ActiveCycle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveCycle.swift; sourceTree = "<group>"; };
 		D16BAB9EF7570DE98192141A /* CompletedWorkout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompletedWorkout.swift; sourceTree = "<group>"; };
@@ -112,8 +126,22 @@
 		78DF59D41D62891FD405730D /* Domain */ = {
 			isa = PBXGroup;
 			children = (
+				04C582617701447ED4C8D80F /* CycleAdaptationPolicy.swift */,
+				745F2F666C9657BEF7407740 /* CycleCalculations.swift */,
+				9185B33B347E99EC19EDC8E2 /* CycleProgramGenerator.swift */,
+				276F03F12261E20C6ACF6703 /* InjuryAdaptationEngine.swift */,
+				7F3295F09F711668D384648E /* Calculations */,
 			);
 			path = Domain;
+			sourceTree = "<group>";
+		};
+		7F3295F09F711668D384648E /* Calculations */ = {
+			isa = PBXGroup;
+			children = (
+				852A5F052505B69DD46A8EF0 /* PlateCalculation.swift */,
+				9BDE3BB6E8105A1F1B02BD4A /* WeightCalculations.swift */,
+			);
+			path = Calculations;
 			sourceTree = "<group>";
 		};
 		979CD95AF87EC3AA70F05528 /* App */ = {
@@ -163,6 +191,7 @@
 		C66005991728DE75DBCD47BF /* SundeeFundeTests */ = {
 			isa = PBXGroup;
 			children = (
+				C45D5676126D1932B823CB77 /* BusinessLogicTests.swift */,
 				B75299B558602C0FC9B4A225 /* PlaceholderTests.swift */,
 			);
 			path = SundeeFundeTests;
@@ -317,17 +346,23 @@
 				FD012FB20EDC77E448673EF8 /* AppTheme.swift in Sources */,
 				766DE2BEB88044B71AF369C3 /* AuthService.swift in Sources */,
 				3A9441E40CA4388FA2C73B92 /* CompletedWorkout.swift in Sources */,
+				0050529D52C6D1AD4079C359 /* CycleAdaptationPolicy.swift in Sources */,
+				A1B9AF2CD29CA287A8DD1E56 /* CycleCalculations.swift in Sources */,
 				F7AEA19AF9ECE7E4A49A9861 /* CycleModels.swift in Sources */,
+				ABD91D701AAC10F1E21BBE59 /* CycleProgramGenerator.swift in Sources */,
 				A3FA9EED08F58B73BE717256 /* EnrolledProgram.swift in Sources */,
+				1E26D44D83981BB2631E923F /* InjuryAdaptationEngine.swift in Sources */,
 				B3FBCBDA5E4A927FF9725DD5 /* InjuryProfile.swift in Sources */,
 				DD2A7D93D3A7C9B1000670A6 /* KeychainHelper.swift in Sources */,
 				949139796F6B381980E7A830 /* Maxes.swift in Sources */,
 				6BF362B1C82D428DBC8CCD13 /* OnboardingEligibilityEvaluator.swift in Sources */,
 				8810FD17BC17B670A1FA43D4 /* OnboardingFlowView.swift in Sources */,
+				45229EECE5D7216C48A5F6FC /* PlateCalculation.swift in Sources */,
 				8F55C3C1B9309AB75A09961E /* Program.swift in Sources */,
 				6D132998DC635FE6065128BC /* SignInView.swift in Sources */,
 				05B28BACF7A04E963A0C0920 /* SundeeFundeeApp.swift in Sources */,
 				35F7120D99DD863F41920B85 /* User.swift in Sources */,
+				31505F6907BCB93B44087ECF /* WeightCalculations.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -335,6 +370,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				655EE5D9DB2119F675AD7328 /* BusinessLogicTests.swift in Sources */,
 				D33BBF3880A570A0E74C748C /* PlaceholderTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -453,6 +489,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -539,6 +576,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

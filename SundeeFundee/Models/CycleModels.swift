@@ -67,6 +67,8 @@ final class CycleSettings {
     @Attribute(.unique) var id: String
     var userID: String
     var averageCycleLengthDays: Int
+    var averagePeriodLengthDays: Int
+    var lutealPhaseLengthDays: Int
     var isTrackingEnabled: Bool
     var updatedAt: Date
 
@@ -74,12 +76,16 @@ final class CycleSettings {
         id: String,
         userID: String,
         averageCycleLengthDays: Int = 28,
+        averagePeriodLengthDays: Int = 5,
+        lutealPhaseLengthDays: Int = 14,
         isTrackingEnabled: Bool = true,
         updatedAt: Date = .now
     ) {
         self.id = id
         self.userID = userID
         self.averageCycleLengthDays = averageCycleLengthDays
+        self.averagePeriodLengthDays = averagePeriodLengthDays
+        self.lutealPhaseLengthDays = lutealPhaseLengthDays
         self.isTrackingEnabled = isTrackingEnabled
         self.updatedAt = updatedAt
     }

@@ -59,5 +59,6 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.sundeefundee.tests
         SWIFT_VERSION: "6.0"
+        GENERATE_INFOPLIST_FILE: YES
     dependencies:
       - target: SundeeFundee
