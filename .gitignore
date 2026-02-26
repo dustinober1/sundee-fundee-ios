@@ -1,39 +1,14 @@
-# Flutter / Dart
-flutter_app/.dart_tool/
-flutter_app/.flutter-plugins
-flutter_app/.flutter-plugins-dependencies
-flutter_app/.packages
-flutter_app/build/
-flutter_app/.idea/
-flutter_app/*.iml
-flutter_app/.metadata
-
-# Android
-flutter_app/android/.gradle/
-flutter_app/android/local.properties
-flutter_app/android/app/debug/
-flutter_app/android/app/profile/
-flutter_app/android/app/release/
-flutter_app/android/app/google-services.json
-
-# iOS
-flutter_app/ios/Pods/
-flutter_app/ios/.symlinks/
-flutter_app/ios/Flutter/Flutter.framework
-flutter_app/ios/Flutter/Flutter.podspec
-flutter_app/ios/Flutter/Generated.xcconfig
-flutter_app/ios/Flutter/app.flx
-flutter_app/ios/Flutter/engine/
-flutter_app/ios/Flutter/flutter_export_environment.sh
-flutter_app/ios/ServiceDefinitions.json
-flutter_app/ios/Runner/GeneratedPluginRegistrant.*
-flutter_app/ios/Runner/GoogleService-Info.plist
-
-# Web
-flutter_app/web/firebase-config.js
-
-# Generated
-flutter_app/lib/firebase_options.dart
+# Xcode
+*.xcuserstate
+xcuserdata/
+DerivedData/
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+*.xccheckout
+*.xcscmblueprint
+build/
 
 # macOS
 .DS_Store
@@ -47,12 +22,7 @@ flutter_app/lib/firebase_options.dart
 # Secrets / Environment
 *.pem
 .env*
-
-# Firebase
-.firebase/
-firebase-debug.log
-firebase-debug.*.log
-ui-debug.log
+GoogleService-Info.plist
 
 # Misc
 *.log
