@@ -1,0 +1,38 @@
+name: iOS CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate --quiet
+
+      - name: Build
+        run: |
+          xcodebuild build \
+            -project SundeeFundee.xcodeproj \
+            -scheme SundeeFundee \
+            -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
+            CODE_SIGNING_ALLOWED=NO \
+            | xcpretty || cat
+
+      - name: Test
+        run: |
+          xcodebuild test \
+            -project SundeeFundee.xcodeproj \
+            -scheme SundeeFundee \
+            -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
+            -only-testing:SundeeFundeTests \
+            CODE_SIGNING_ALLOWED=NO \
+            | xcpretty || cat
