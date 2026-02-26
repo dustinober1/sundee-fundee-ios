@@ -33,7 +33,7 @@ struct MainTabView: View {
             }
 
             NavigationStack {
-                SettingsPlaceholderView()
+                SettingsView()
             }
             .tabItem {
                 Label("Settings", systemImage: "gearshape.fill")
