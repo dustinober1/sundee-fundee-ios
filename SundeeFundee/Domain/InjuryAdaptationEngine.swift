@@ -59,19 +59,34 @@ enum InjuryAdaptationEngine {
     ]
 
     private static let regressionTable: [String: [String]] = [
-        "Back Squat":                             ["Goblet Squat", "Air Squats", "Leg Press"],
-        "Front Squat":                            ["Goblet Squat", "Air Squats"],
-        "Conventional Deadlift (No Straps)":      ["Romanian Deadlift / RDL (No Straps)", "Trap Bar / Hex Bar Deadlift (No Straps)"],
-        "Flat Barbell Bench Press":               ["Dumbbell Bench Press", "Floor Press"],
-        "Strict Press / Military Press":          ["Lateral Raises", "Z-Press"],
+        // Squat variations
+        "Back Squat":                             ["Goblet Squat", "Box Squat", "Leg Press", "Air Squats"],
+        "Front Squat":                            ["Goblet Squat", "Safety Bar Squat", "Air Squats"],
+        "Walking Lunges":                         ["Stationary Lunges", "Step-Ups", "Leg Press"],
+        // Hip hinge / posterior chain
+        "Romanian Deadlift":                      ["Nordic Curl", "Glute Bridge", "Hip Thrust", "Cable Pull-Through"],
+        "Conventional Deadlift (No Straps)":      ["Romanian Deadlift / RDL (No Straps)", "Trap Bar / Hex Bar Deadlift (No Straps)", "Kettlebell Deadlift"],
+        "Good Morning":                           ["Cat-Cow", "Bird-Dogs", "Seated Good Morning"],
+        // Machine / accessory
+        "Leg Press":                              ["Goblet Squat", "Air Squats", "Step-Ups"],
+        "Leg Curl":                               ["Nordic Curl", "Glute Bridge", "Swiss Ball Leg Curl"],
+        "Calf Raise":                             ["Seated Calf Raise", "Single-Leg Calf Raise"],
+        // Upper body press
+        "Flat Barbell Bench Press":               ["Dumbbell Bench Press", "Floor Press", "Push-Ups"],
+        "Strict Press / Military Press":          ["Lateral Raises", "Z-Press", "Seated Dumbbell Press"],
+        // Upper body pull
+        "Pull-Up":                                ["Lat Pulldown", "Band-Assisted Pull-Up", "TRX Row"],
+        "Barbell Row":                            ["Dumbbell Row", "Cable Row", "TRX Row"],
     ]
 
     private static let recoveryPrepMap: [String: [String]] = [
-        "knee":     ["Bird-Dogs", "Bodyweight Lunges"],
-        "shoulder": ["Banded Pull-Aparts", "Face Pulls"],
-        "back":     ["Cat-Cow", "Bird-Dogs"],
-        "spine":    ["Cat-Cow", "Bird-Dogs"],
-        "hip":      ["Hip Circles", "Glute Bridges"],
+        "knee":     ["Bird-Dogs", "Bodyweight Lunges", "Terminal Knee Extension", "Straight Leg Raises"],
+        "shoulder": ["Banded Pull-Aparts", "Face Pulls", "Wall Slides", "Shoulder Circles"],
+        "back":     ["Cat-Cow", "Bird-Dogs", "Dead Bug", "Pelvic Tilts"],
+        "spine":    ["Cat-Cow", "Bird-Dogs", "Dead Bug", "McGill Curl-Up"],
+        "hip":      ["Hip Circles", "Glute Bridges", "Clamshells", "90/90 Hip Stretch"],
+        "ankle":    ["Ankle Circles", "Calf Raises (Partial)", "Towel Toe Curls"],
+        "wrist":    ["Wrist Circles", "Prayer Stretch", "Reverse Wrist Curl"],
     ]
 
     private static let safeBodyweight = ["Air Squats", "Bird-Dogs", "Bodyweight Lunges"]

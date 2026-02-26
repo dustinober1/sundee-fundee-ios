@@ -213,7 +213,7 @@ struct CyclePhaseBadge: View {
     var body: some View {
         Text(phase.displayName)
             .font(AppTheme.Fonts.caption)
-            .foregroundStyle(.white)
+            .foregroundStyle(AppTheme.Colors.navy)   // navy passes WCAG AA on all badge colors
             .padding(.horizontal, AppTheme.Spacing.sm)
             .padding(.vertical, 4)
             .background(badgeColor)

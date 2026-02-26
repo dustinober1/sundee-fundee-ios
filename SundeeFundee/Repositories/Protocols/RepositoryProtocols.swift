@@ -64,6 +64,15 @@ protocol EnrolledProgramRepository {
     func delete(_ enrollment: EnrolledProgram) throws
 }
 
+// MARK: - BenchmarkRepository
+
+protocol BenchmarkRepository {
+    func save(_ benchmark: Benchmark) throws
+    func fetchBenchmarks() throws -> [Benchmark]
+    func fetchBenchmarks(named name: String) throws -> [Benchmark]
+    func delete(_ benchmark: Benchmark) throws
+}
+
 // MARK: - ProgramRepository
 
 protocol ProgramRepository: Sendable {

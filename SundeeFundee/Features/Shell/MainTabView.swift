@@ -26,6 +26,13 @@ struct MainTabView: View {
             }
 
             NavigationStack {
+                BenchmarksView()
+            }
+            .tabItem {
+                Label("Benchmarks", systemImage: "checkmark.seal.fill")
+            }
+
+            NavigationStack {
                 CycleTrackingView()
             }
             .tabItem {

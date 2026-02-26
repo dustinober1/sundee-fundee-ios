@@ -204,3 +204,107 @@ struct CycleAdaptationPolicyTests {
         #expect((highConf.percent1RM ?? 0) > (lowConf.percent1RM ?? 0))
     }
 }
+
+// MARK: - InjuryAdaptationEngine tests
+
+@Suite("InjuryAdaptationEngine")
+struct InjuryAdaptationEngineTests {
+
+    private func makeInjury(location: String) -> InjuryProfile {
+        InjuryProfile(id: UUID().uuidString, userID: "u1", location: location)
+    }
+
+    @Test func romanianDeadliftReplacedForBackInjury() {
+        let program = makeSingleExerciseProgram("Romanian Deadlift")
+        let adapted = InjuryAdaptationEngine.adaptProgram(program, activeInjuries: [makeInjury(location: "back")])
+        let exercise = adapted.weeks.first?.sessions.first?.exercises.first?.exercise ?? ""
+        // Should be replaced with a back-safe alternative
+        #expect(exercise != "Romanian Deadlift")
+    }
+
+    @Test func walkingLungesReplacedForKneeInjury() {
+        let program = makeSingleExerciseProgram("Walking Lunges")
+        let adapted = InjuryAdaptationEngine.adaptProgram(program, activeInjuries: [makeInjury(location: "knee")])
+        let exercise = adapted.weeks.first?.sessions.first?.exercises.first?.exercise ?? ""
+        #expect(exercise != "Walking Lunges")
+    }
+
+    @Test func noInjuryReturnsUnchanged() {
+        let program = makeSingleExerciseProgram("Back Squat")
+        let adapted = InjuryAdaptationEngine.adaptProgram(program, activeInjuries: [])
+        let exercise = adapted.weeks.first?.sessions.first?.exercises.first?.exercise ?? ""
+        #expect(exercise == "Back Squat")
+    }
+
+    @Test func recoveryPrepBlockKneeHasExercises() {
+        let block = InjuryAdaptationEngine.buildRecoveryPrepBlock(injuries: [makeInjury(location: "knee")])
+        #expect(!block.isEmpty)
+    }
+
+    @Test func recoveryPrepBlockHipHasExercises() {
+        let block = InjuryAdaptationEngine.buildRecoveryPrepBlock(injuries: [makeInjury(location: "hip")])
+        #expect(block.count >= 2)
+    }
+
+    @Test func recoveryPrepBlockCombinesMultipleInjuries() {
+        let knee = makeInjury(location: "knee")
+        let shoulder = makeInjury(location: "shoulder")
+        let block = InjuryAdaptationEngine.buildRecoveryPrepBlock(injuries: [knee, shoulder])
+        // Should include exercises for both locations, de-duplicated
+        #expect(block.count >= 3)
+    }
+
+    // MARK: - Helper
+
+    private func makeSingleExerciseProgram(_ exerciseName: String) -> Program {
+        let ex = ProgramExercise(exercise: exerciseName, variant: nil,
+                                  sets: .fixed(3), reps: .fixed(5),
+                                  percent1RM: 0.80, restMinutes: 3, notes: nil)
+        let session = ProgramSession(sessionID: "s1", sessionName: "Day 1",
+                                     sessionType: "strength", focus: "Lower",
+                                     exercises: [ex])
+        let week = ProgramWeek(week: 1, phaseID: nil, isTestWeek: nil, sessions: [session])
+        return Program(id: "p1", name: "Test", category: "Test",
+                       description: "", durationWeeks: 1, sessionsPerWeek: 1,
+                       difficulty: "beginner", phases: [], weeks: [week],
+                       cycleAdjustmentProfile: nil)
+    }
+}
+
+// MARK: - WeightliftingExerciseCatalog tests
+
+@Suite("WeightliftingExerciseCatalog")
+struct WeightliftingExerciseCatalogTests {
+
+    @Test func backSquatIsWeightlifting() {
+        #expect(WeightliftingExerciseCatalog.isWeightliftingExercise("Back Squat") == true)
+    }
+
+    @Test func calfRaiseIsNotWeightlifting() {
+        #expect(WeightliftingExerciseCatalog.isWeightliftingExercise("Calf Raise") == false)
+    }
+
+    @Test func legPressIsNotWeightlifting() {
+        #expect(WeightliftingExerciseCatalog.isWeightliftingExercise("Leg Press") == false)
+    }
+
+    @Test func walkingLungesIsNotWeightlifting() {
+        #expect(WeightliftingExerciseCatalog.isWeightliftingExercise("Walking Lunges") == false)
+    }
+
+    @Test func romanianDeadliftIsWeightlifting() {
+        #expect(WeightliftingExerciseCatalog.isWeightliftingExercise("Romanian Deadlift") == true)
+    }
+
+    @Test func catalogIsNonEmpty() {
+        #expect(WeightliftingExerciseCatalog.all.isEmpty == false)
+    }
+
+    @Test func sortedByCategoryOrdering() {
+        let sorted = WeightliftingExerciseCatalog.sortedByCategory
+        // Squats come before hinges in category order
+        let squatIdx = sorted.firstIndex { $0.category == .squat }
+        let hingeIdx = sorted.firstIndex { $0.category == .hinge }
+        if let s = squatIdx, let h = hingeIdx { #expect(s < h) }
+    }
+}

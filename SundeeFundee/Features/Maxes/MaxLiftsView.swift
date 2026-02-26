@@ -48,6 +48,7 @@ struct MaxLiftsView: View {
                 Button { showAddMax = true } label: {
                     Image(systemName: "plus")
                 }
+                .accessibilityLabel("Add lift max")
             }
         }
         .navigationDestination(for: String.self) { exercise in
@@ -101,7 +102,7 @@ struct PRBadge: View {
     var body: some View {
         Text("\(pr.reps)RM: \(String(format: "%.1f", pr.weightKg))kg")
             .font(AppTheme.Fonts.caption)
-            .foregroundStyle(.white)
+            .foregroundStyle(AppTheme.Colors.navy)   // navy on orange passes WCAG AA (~4.7:1)
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
             .background(AppTheme.Colors.accentOrange)
@@ -162,7 +163,7 @@ struct AddLiftMaxSheet: View {
     @Bindable var viewModel: MaxLiftsViewModel
     @Environment(\.dismiss) private var dismiss
 
-    @State private var exerciseName = ""
+    @State private var selectedExercise = WeightliftingExerciseCatalog.all.first?.id ?? ""
     @State private var weightKg = ""
     @State private var reps = 1
     @State private var isEstimated = false
@@ -170,11 +171,20 @@ struct AddLiftMaxSheet: View {
     var body: some View {
         NavigationStack {
             Form {
-                TextField("Exercise name", text: $exerciseName)
-                TextField("Weight (kg)", text: $weightKg)
-                    .keyboardType(.decimalPad)
-                Stepper("Reps: \(reps)", value: $reps, in: 1...20)
-                Toggle("Estimated (via Epley formula)", isOn: $isEstimated)
+                Section("Exercise") {
+                    Picker("Exercise", selection: $selectedExercise) {
+                        ForEach(WeightliftingExerciseCatalog.sortedByCategory) { entry in
+                            Text(entry.id).tag(entry.id)
+                        }
+                    }
+                    .pickerStyle(.navigationLink)
+                }
+                Section("Performance") {
+                    TextField("Weight (kg)", text: $weightKg)
+                        .keyboardType(.decimalPad)
+                    Stepper("Reps: \(reps)", value: $reps, in: 1...20)
+                    Toggle("Estimated (via Epley formula)", isOn: $isEstimated)
+                }
             }
             .scrollContentBackground(.hidden)
             .background(AppTheme.Colors.cream)
@@ -186,10 +196,9 @@ struct AddLiftMaxSheet: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
-                        guard !exerciseName.isEmpty,
-                              let kg = Double(weightKg) else { return }
+                        guard let kg = Double(weightKg) else { return }
                         viewModel.addMax(
-                            exercise: exerciseName,
+                            exercise: selectedExercise,
                             weightKg: kg,
                             reps: reps,
                             isEstimated: isEstimated

@@ -3,7 +3,7 @@ import SwiftData
 /// The initial versioned schema for the Sundee Fundee persistent store.
 ///
 /// Version history:
-///   V1 — initial schema (14 models, no @Attribute(.unique) for CloudKit compatibility)
+///   V1 — initial schema (15 models, no @Attribute(.unique) for CloudKit compatibility)
 enum AppSchemaV1: VersionedSchema {
     static let versionIdentifier = Schema.Version(1, 0, 0)
 
@@ -23,6 +23,7 @@ enum AppSchemaV1: VersionedSchema {
             InjuryProfile.self,
             EnrolledProgram.self,
             EnrollmentEvent.self,
+            Benchmark.self,
         ]
     }
 }
