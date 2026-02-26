@@ -43,7 +43,9 @@ final class AuthService: NSObject, ObservableObject {
             KeychainHelper.deleteAppleUserID()
             return .signedOut
         case .transferred:
-            <#code#>
+            // Treat transferred as signedOut for now; handle migration if needed later.
+            KeychainHelper.deleteAppleUserID()
+            return .signedOut
         @unknown default:
             return .signedOut
         }
