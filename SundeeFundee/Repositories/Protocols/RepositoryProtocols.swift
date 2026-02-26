@@ -66,7 +66,7 @@ protocol EnrolledProgramRepository {
 
 // MARK: - ProgramRepository
 
-protocol ProgramRepository {
+protocol ProgramRepository: Sendable {
     func fetchPrograms() async throws -> [Program]
     func fetchProgram(id: String) async throws -> Program?
 }

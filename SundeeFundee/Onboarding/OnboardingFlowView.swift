@@ -245,18 +245,6 @@ struct SelectionRow: View {
     }
 }
 
-struct PrimaryButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(AppTheme.Font.body(16, weight: .semibold))
-            .foregroundStyle(.white)
-            .padding(.horizontal, AppTheme.Spacing.xl)
-            .padding(.vertical, AppTheme.Spacing.md)
-            .background(AppTheme.Color.orange.opacity(configuration.isPressed ? 0.7 : 1))
-            .cornerRadius(AppTheme.Radius.sm)
-    }
-}
-
 // MARK: - Display name extensions
 
 extension ExperienceLevel {

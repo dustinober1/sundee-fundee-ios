@@ -16,9 +16,9 @@ struct AppRootView: View {
             case .needsOnboarding(let userID, _):
                 OnboardingFlowView(userID: userID)
             case .authenticated:
-                Text("Main App — Phase 6+") // placeholder until shell is built
+                MainTabView()
             case .guest:
-                Text("Guest Mode — Phase 6+") // placeholder
+                MainTabView()
             }
         }
         .environment(appState)

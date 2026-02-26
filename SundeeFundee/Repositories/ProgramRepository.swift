@@ -5,7 +5,7 @@ import CloudKit
 
 /// Loads programs bundled as JSON in the app target.
 /// Used as the primary source when CloudKit is unavailable.
-final class BundledProgramRepository: ProgramRepository {
+final class BundledProgramRepository: ProgramRepository, @unchecked Sendable {
     private var cache: [Program]?
 
     func fetchPrograms() async throws -> [Program] {
@@ -29,7 +29,7 @@ final class BundledProgramRepository: ProgramRepository {
 
 /// Fetches programs from CloudKit Public Database.
 /// Falls back to the bundled repository if CloudKit is unavailable.
-final class CloudKitProgramRepository: ProgramRepository {
+final class CloudKitProgramRepository: ProgramRepository, @unchecked Sendable {
     private let container: CKContainer
     private let fallback: BundledProgramRepository
 
