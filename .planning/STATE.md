@@ -2,12 +2,10 @@
 
 ## Current Position
 
-Phase: 12 (uat-evidence-capture-closeout) — complete
-Plan: 12-01 complete (phase done)
-Status: Phases 8-12 executed — UAT evidence captured, QA-02 closed, QA-01 CI confirmation pending
-Last activity: 2026-02-25 - Phase 12 executed (evidence artifacts, verification updates, QA-02 closure)
-
-Progress: Phase 12 █ 1/1 plans complete (12-01 ✅)
+Phase: v1.2 archived
+Milestone: v1.2 complete (2026-02-25) — archive: `.planning/milestones/v1.2-ROADMAP.md`
+Status: No active phase. Start next milestone with `/gsd-new-milestone`
+Last activity: 2026-02-26 - v1.2 milestone archived
 
 ## Accumulated Context
 
@@ -17,10 +15,13 @@ Progress: Phase 12 █ 1/1 plans complete (12-01 ✅)
   - `.planning/milestones/v1.1-ROADMAP.md`
   - `.planning/milestones/v1.1-REQUIREMENTS.md`
   - `.planning/milestones/v1.1-MILESTONE-AUDIT.md`
+  - `.planning/milestones/v1.2-ROADMAP.md`
+  - `.planning/milestones/v1.2-REQUIREMENTS.md`
+  - `.planning/milestones/v1.2-MILESTONE-AUDIT.md`
 - Milestone index:
   - `.planning/MILESTONES.md`
 
-## Key Decisions (Recent)
+## Key Decisions (Stable)
 
 | Decision | Choice | Source |
 |---|---|---|
@@ -34,15 +35,12 @@ Progress: Phase 12 █ 1/1 plans complete (12-01 ✅)
 | Onboarding completeness authority | Route auth bootstrap through one evaluator contract and auto-heal stale onboardingComplete states | 09-01 |
 | Legacy resume bypass notice | Emit one-time recovery notice only for max-only legacy recovery path | 09-02 |
 | Restart reset contract | Clear onboarding fields and injury/disclaimer state together on restart | 09-03 |
-| initializeHarness() guard strategy | Single combined early-return for `!_firebaseEnabled \|\| !_useEmulators` | 11-01 |
-| Linux desktop CI target choice | xvfb-run Linux desktop (not web/chromedriver) | 11-02 |
-| Firebase emulator removal from CI | Removed entirely — provider overrides + harness guard make emulators unnecessary | 11-02 |
+| CI integration strategy | xvfb-run Linux desktop with provider overrides (no Firebase emulators in CI) | 11-02 |
 
 ## Open Follow-ups
 
-- ~~Capture manual checkpoint artifacts for run `run-20260225T205700Z` in `.planning/phases/10-verification-evidence-and-regression-guardrails/10-UAT.md`.~~
-- ~~Re-run emulator-backed integration lane and confirm CI pass for `integration_test/critical_access_flow_test.dart`.~~ → **11-02** complete — Linux desktop CI lane wired.
-- Observe first CI run on push to confirm xvfb-run + GTK build succeeds on ubuntu-latest runners.
+- Observe first CI run on push to confirm `quality-integration` job passes with xvfb-run + GTK build on ubuntu-latest.
+- Dashboard UX cleanup: `_WorkoutHistoryList` raw error text, `_BlockingAccessCard` double-render, no-op CTAs (carry to v1.3).
 
 ## Quick Tasks Completed
 
@@ -52,6 +50,6 @@ Progress: Phase 12 █ 1/1 plans complete (12-01 ✅)
 
 ## Session Continuity
 
-Last session: 2026-02-25T03:33:18Z
-Stopped at: Completed 12-01-PLAN.md (UAT evidence capture closeout)
+Last session: 2026-02-26T00:00:00Z
+Stopped at: v1.2 milestone archived
 Resume file: None
