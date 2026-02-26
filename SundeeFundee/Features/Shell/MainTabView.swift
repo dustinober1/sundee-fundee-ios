@@ -5,7 +5,7 @@ struct MainTabView: View {
     var body: some View {
         TabView {
             NavigationStack {
-                DashboardPlaceholderView()
+                DashboardView()
             }
             .tabItem {
                 Label("Dashboard", systemImage: "house.fill")
@@ -44,12 +44,6 @@ struct MainTabView: View {
 }
 
 // MARK: - Placeholder views (replaced in later phases)
-
-struct DashboardPlaceholderView: View {
-    var body: some View {
-        Text("Dashboard").navigationTitle("Dashboard")
-    }
-}
 
 struct WorkoutsPlaceholderView: View {
     var body: some View {

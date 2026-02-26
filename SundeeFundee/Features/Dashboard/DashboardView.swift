@@ -1,0 +1,260 @@
+import SwiftUI
+import SwiftData
+
+/// Dashboard — home screen showing active enrollment, cycle phase, and recent workouts.
+struct DashboardView: View {
+    @State private var viewModel = DashboardViewModel()
+    @Environment(\.modelContext) private var modelContext
+    @Environment(AppState.self) private var appState
+
+    var body: some View {
+        ZStack {
+            AppTheme.Colors.cream.ignoresSafeArea()
+            ScrollView {
+                VStack(alignment: .leading, spacing: AppTheme.Spacing.lg) {
+                    greetingHeader
+                    if let enrollment = viewModel.activeEnrollment,
+                       let program = viewModel.activeProgram {
+                        ActiveEnrollmentCard(
+                            enrollment: enrollment,
+                            program: program,
+                            nextSession: viewModel.nextSession,
+                            cyclePhase: viewModel.currentCyclePhase
+                        )
+                        .accessibilityIdentifier("active-cycle-card")
+                    } else {
+                        NoEnrollmentCard()
+                    }
+                    recentWorkoutsSection
+                }
+                .padding(AppTheme.Spacing.md)
+            }
+        }
+        .navigationTitle("Dashboard")
+        .navigationDestination(for: StartWorkoutDestination.self) { dest in
+            if let program = viewModel.activeProgram {
+                WorkoutExecutionView(
+                    viewModel: WorkoutExecutionViewModel(
+                        session: dest.session,
+                        enrollment: dest.enrollment,
+                        program: program
+                    )
+                )
+            }
+        }
+        .task { await viewModel.load(modelContext: modelContext) }
+        .refreshable { await viewModel.load(modelContext: modelContext) }
+    }
+
+    // MARK: - Subviews
+
+    private var greetingHeader: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(greeting)
+                    .font(AppTheme.Fonts.heading)
+                    .foregroundStyle(AppTheme.Colors.navy)
+                Text(Date.now, style: .date)
+                    .font(AppTheme.Fonts.caption)
+                    .foregroundStyle(AppTheme.Colors.navy.opacity(0.6))
+            }
+            Spacer()
+            if let phase = viewModel.currentCyclePhase {
+                CyclePhaseBadge(phase: phase)
+            }
+        }
+    }
+
+    private var recentWorkoutsSection: some View {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
+            Text("Recent Workouts")
+                .font(AppTheme.Fonts.subheading)
+                .foregroundStyle(AppTheme.Colors.navy)
+
+            if viewModel.recentWorkouts.isEmpty {
+                Text("No workouts yet. Enroll in a program to get started.")
+                    .font(AppTheme.Fonts.caption)
+                    .foregroundStyle(AppTheme.Colors.navy.opacity(0.5))
+                    .padding(.vertical, AppTheme.Spacing.sm)
+            } else {
+                ForEach(viewModel.recentWorkouts) { workout in
+                    WorkoutHistoryRow(workout: workout)
+                }
+            }
+        }
+    }
+
+    private var greeting: String {
+        let hour = Calendar.current.component(.hour, from: Date())
+        switch hour {
+        case 0..<12: return "Good morning"
+        case 12..<17: return "Good afternoon"
+        default: return "Good evening"
+        }
+    }
+}
+
+// MARK: - ActiveEnrollmentCard
+
+struct ActiveEnrollmentCard: View {
+    let enrollment: EnrolledProgram
+    let program: Program
+    let nextSession: ProgramSession?
+    let cyclePhase: CyclePhase?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
+            // Program name + week progress
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(program.name)
+                        .font(AppTheme.Fonts.subheading)
+                        .foregroundStyle(AppTheme.Colors.navy)
+                    Text("Week \(enrollment.currentWeek) of \(program.durationWeeks)")
+                        .font(AppTheme.Fonts.caption)
+                        .foregroundStyle(AppTheme.Colors.navy.opacity(0.6))
+                }
+                Spacer()
+                Image(systemName: "figure.strengthtraining.traditional")
+                    .font(.title2)
+                    .foregroundStyle(AppTheme.Colors.accentOrange)
+            }
+
+            // Progress bar
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(AppTheme.Colors.separator)
+                        .frame(height: 8)
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(AppTheme.Colors.accentOrange)
+                        .frame(width: geo.size.width * progressFraction, height: 8)
+                }
+            }
+            .frame(height: 8)
+
+            // Next session
+            if let session = nextSession {
+                Divider()
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("UP NEXT")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(AppTheme.Colors.accentOrange)
+                        .tracking(1.5)
+                    Text(session.sessionName)
+                        .font(AppTheme.Fonts.body)
+                        .foregroundStyle(AppTheme.Colors.navy)
+                    Text(session.focus)
+                        .font(AppTheme.Fonts.caption)
+                        .foregroundStyle(AppTheme.Colors.navy.opacity(0.6))
+                }
+
+                NavigationLink(value: StartWorkoutDestination(enrollment: enrollment, session: session)) {
+                    Label("Start Workout", systemImage: "play.fill")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(PrimaryButtonStyle())
+                .accessibilityIdentifier("start-workout-button")
+            }
+        }
+        .padding(AppTheme.Spacing.md)
+        .background(AppTheme.Colors.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: AppTheme.CornerRadius.card))
+        .shadow(color: .black.opacity(0.08), radius: 6, x: 0, y: 3)
+    }
+
+    private var progressFraction: Double {
+        let total = Double(program.durationWeeks)
+        guard total > 0 else { return 0 }
+        return min(1.0, Double(enrollment.currentWeek - 1) / total)
+    }
+}
+
+// MARK: - StartWorkoutDestination
+
+struct StartWorkoutDestination: Hashable {
+    let enrollment: EnrolledProgram
+    let session: ProgramSession
+
+    func hash(into hasher: inout Hasher) { hasher.combine(enrollment.id) }
+    static func == (lhs: StartWorkoutDestination, rhs: StartWorkoutDestination) -> Bool {
+        lhs.enrollment.id == rhs.enrollment.id && lhs.session.sessionID == rhs.session.sessionID
+    }
+}
+
+// MARK: - NoEnrollmentCard
+
+struct NoEnrollmentCard: View {
+    var body: some View {
+        VStack(spacing: AppTheme.Spacing.sm) {
+            Image(systemName: "list.bullet.rectangle.portrait")
+                .font(.largeTitle)
+                .foregroundStyle(AppTheme.Colors.navy.opacity(0.3))
+            Text("No Active Program")
+                .font(AppTheme.Fonts.subheading)
+                .foregroundStyle(AppTheme.Colors.navy)
+            Text("Browse and enroll in a program to start training.")
+                .font(AppTheme.Fonts.caption)
+                .foregroundStyle(AppTheme.Colors.navy.opacity(0.5))
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(AppTheme.Spacing.xl)
+        .background(AppTheme.Colors.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: AppTheme.CornerRadius.card))
+    }
+}
+
+// MARK: - CyclePhaseBadge
+
+struct CyclePhaseBadge: View {
+    let phase: CyclePhase
+
+    var body: some View {
+        Text(phase.displayName)
+            .font(AppTheme.Fonts.caption)
+            .foregroundStyle(.white)
+            .padding(.horizontal, AppTheme.Spacing.sm)
+            .padding(.vertical, 4)
+            .background(badgeColor)
+            .clipShape(Capsule())
+    }
+
+    private var badgeColor: Color {
+        switch phase {
+        case .menstrual:  return Color(red: 0.75, green: 0.15, blue: 0.20)
+        case .follicular: return Color(red: 0.20, green: 0.55, blue: 0.80)
+        case .ovulation:  return AppTheme.Colors.accentOrange
+        case .luteal:     return Color(red: 0.50, green: 0.35, blue: 0.65)
+        }
+    }
+}
+
+// MARK: - WorkoutHistoryRow
+
+struct WorkoutHistoryRow: View {
+    let workout: CompletedWorkout
+
+    var body: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Session \(workout.day) — Week \(workout.week)")
+                    .font(AppTheme.Fonts.body)
+                    .foregroundStyle(AppTheme.Colors.navy)
+                Text(workout.completedAt, style: .relative)
+                    .font(AppTheme.Fonts.caption)
+                    .foregroundStyle(AppTheme.Colors.navy.opacity(0.5))
+            }
+            Spacer()
+            Text("\(workout.durationSeconds / 60)m")
+                .font(AppTheme.Fonts.caption)
+                .foregroundStyle(AppTheme.Colors.navy.opacity(0.5))
+            Image(systemName: "chevron.right")
+                .font(.caption)
+                .foregroundStyle(AppTheme.Colors.navy.opacity(0.3))
+        }
+        .padding(AppTheme.Spacing.sm)
+        .background(AppTheme.Colors.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+    }
+}
