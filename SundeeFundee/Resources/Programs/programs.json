@@ -1,0 +1,68 @@
+[
+  {
+    "id": "squad-squat-12-week-peak",
+    "name": "12-Week Squad Squat Peak",
+    "category": "Squat Focus",
+    "description": "A 12-week three-phase squat program focused on building a volume foundation, transitioning to heavy triples, and peaking for a true 1RM.",
+    "durationWeeks": 12,
+    "sessionsPerWeek": 3,
+    "difficulty": "Intermediate/Advanced",
+    "phases": [
+      { "id": "block-1-volume", "name": "Block 1: The Volume Foundation", "goal": "Build muscle and work capacity.", "weekRange": [1, 4] },
+      { "id": "block-2-strength", "name": "Block 2: The Strength Transition", "goal": "Heavy triples and bracing.", "weekRange": [5, 8] },
+      { "id": "block-3-peak", "name": "Block 3: The Peaking Phase", "goal": "Maximize intensity for a new 1RM.", "weekRange": [9, 12] }
+    ],
+    "cycleAdjustmentProfile": {
+      "fallbackPhase": "follicular",
+      "lowConfidenceScale": 0.7,
+      "phaseSettings": {
+        "menstrual":   { "loadMultiplier": 0.90, "setsMultiplier": 0.90, "repsMultiplier": 0.90 },
+        "follicular":  { "loadMultiplier": 1.00, "setsMultiplier": 1.00, "repsMultiplier": 1.00 },
+        "ovulation":   { "loadMultiplier": 1.12, "setsMultiplier": 1.05, "repsMultiplier": 0.95 },
+        "luteal":      { "loadMultiplier": 0.97, "setsMultiplier": 0.95, "repsMultiplier": 0.92 }
+      }
+    },
+    "weeks": [
+      {
+        "week": 1,
+        "phaseId": "block-1-volume",
+        "isTestWeek": false,
+        "sessions": [
+          {
+            "sessionId": "ss-w1-a",
+            "sessionName": "Session A",
+            "sessionType": "Lift",
+            "focus": "Main Lift + Accessories",
+            "exercises": [
+              { "exercise": "Back Squat", "variant": null, "sets": 3, "reps": 8, "percent1RM": 0.65, "restMinutes": 3, "notes": "3x8 @ 65%. Focus on consistent depth." },
+              { "exercise": "Romanian Deadlift", "variant": null, "sets": 3, "reps": 10, "percent1RM": null, "restMinutes": 2, "notes": "Moderate weight, feel the hamstrings." },
+              { "exercise": "Leg Press", "variant": null, "sets": 3, "reps": 12, "percent1RM": null, "restMinutes": 2, "notes": "Controlled descent." }
+            ]
+          },
+          {
+            "sessionId": "ss-w1-b",
+            "sessionName": "Session B",
+            "sessionType": "Lift",
+            "focus": "Squat Variation + Accessories",
+            "exercises": [
+              { "exercise": "Front Squat", "variant": null, "sets": 3, "reps": 6, "percent1RM": 0.60, "restMinutes": 3, "notes": "3x6 @ 60%. Upright torso." },
+              { "exercise": "Walking Lunges", "variant": null, "sets": 3, "reps": 10, "percent1RM": null, "restMinutes": 2, "notes": "10 per leg." },
+              { "exercise": "Leg Curl", "variant": null, "sets": 3, "reps": 12, "percent1RM": null, "restMinutes": 90, "notes": "Full range of motion." }
+            ]
+          },
+          {
+            "sessionId": "ss-w1-c",
+            "sessionName": "Session C",
+            "sessionType": "Lift",
+            "focus": "Volume Day",
+            "exercises": [
+              { "exercise": "Back Squat", "variant": null, "sets": 4, "reps": 8, "percent1RM": 0.65, "restMinutes": 3, "notes": "4x8 @ 65%." },
+              { "exercise": "Good Morning", "variant": null, "sets": 3, "reps": 10, "percent1RM": null, "restMinutes": 2, "notes": "Light weight, strong hip hinge." },
+              { "exercise": "Calf Raise", "variant": null, "sets": 4, "reps": 15, "percent1RM": null, "restMinutes": 60, "notes": "Slow and controlled." }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]
