@@ -53,7 +53,15 @@ struct DashboardPlaceholderView: View {
 
 struct WorkoutsPlaceholderView: View {
     var body: some View {
-        Text("Workouts").navigationTitle("Workouts")
+        ZStack {
+            AppTheme.Colors.cream.ignoresSafeArea()
+            ContentUnavailableView(
+                "Start from Programs",
+                systemImage: "dumbbell.fill",
+                description: Text("Enroll in a program and tap Start Workout from the Dashboard.")
+            )
+        }
+        .navigationTitle("Workouts")
     }
 }
 

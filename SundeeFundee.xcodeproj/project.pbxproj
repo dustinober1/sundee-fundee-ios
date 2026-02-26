@@ -21,6 +21,7 @@
 		3A9441E40CA4388FA2C73B92 /* CompletedWorkout.swift in Sources */ = {isa = PBXBuildFile; fileRef = D16BAB9EF7570DE98192141A /* CompletedWorkout.swift */; };
 		3C53F6C5B43D351DA380EF68 /* ProgramListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE26DFC10D79B87DFF9A2ACF /* ProgramListViewModel.swift */; };
 		45229EECE5D7216C48A5F6FC /* PlateCalculation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 852A5F052505B69DD46A8EF0 /* PlateCalculation.swift */; };
+		58D144FC8038C566D8BAB4CB /* WorkoutExecutionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F600E9E479637F14E71E2864 /* WorkoutExecutionView.swift */; };
 		655EE5D9DB2119F675AD7328 /* BusinessLogicTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C45D5676126D1932B823CB77 /* BusinessLogicTests.swift */; };
 		6BF362B1C82D428DBC8CCD13 /* OnboardingEligibilityEvaluator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E9555CE9EC2982C2B6DCDAE /* OnboardingEligibilityEvaluator.swift */; };
 		6D132998DC635FE6065128BC /* SignInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110F2999B2AA30421DABB2AC /* SignInView.swift */; };
@@ -28,6 +29,7 @@
 		723768005002BAFC38E3FE29 /* SwiftDataEnrolledProgramRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = A49C6CE7BE8E30D0775C5F27 /* SwiftDataEnrolledProgramRepository.swift */; };
 		766DE2BEB88044B71AF369C3 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2516C1A819184F9F55D78137 /* AuthService.swift */; };
 		8810FD17BC17B670A1FA43D4 /* OnboardingFlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 012BAC8B631FE8D7BA41AC0C /* OnboardingFlowView.swift */; };
+		8B070DD5C4018F8302A5BCDD /* WorkoutSummaryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44B2AAB0FEC53F881F02C1A5 /* WorkoutSummaryView.swift */; };
 		8F55C3C1B9309AB75A09961E /* Program.swift in Sources */ = {isa = PBXBuildFile; fileRef = E79A7C624E31B53EDC3AD5B7 /* Program.swift */; };
 		949139796F6B381980E7A830 /* Maxes.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6EDF76C2A7A135CEBE4365C /* Maxes.swift */; };
 		9DECC5EBF919AD81D7EE5D81 /* programs.json in Resources */ = {isa = PBXBuildFile; fileRef = 5F1B65069425B81601B09ECE /* programs.json */; };
@@ -37,6 +39,7 @@
 		ADF6FEF628146548B866FF2D /* ActiveCycle.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDBCB8CEF6A70B16D8F96BB7 /* ActiveCycle.swift */; };
 		B2CD5842C2859340BC2D67FD /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FE4123606BF8631A29FFA77 /* AppState.swift */; };
 		B3FBCBDA5E4A927FF9725DD5 /* InjuryProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3930E4513F75B95B07D303F1 /* InjuryProfile.swift */; };
+		BC5E4C2F2C20830D028CE69E /* WorkoutExecutionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23C77DFF6F55C69781249BF1 /* WorkoutExecutionViewModel.swift */; };
 		D03B53707FF4C6FCE513D02C /* AppModelContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C622B6A0C64BA37AEAEF044 /* AppModelContainer.swift */; };
 		D2ADE6487FB9DD6319D81FA4 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4D25ACD9D39C9AB1DA0F1386 /* Assets.xcassets */; };
 		D33BBF3880A570A0E74C748C /* PlaceholderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B75299B558602C0FC9B4A225 /* PlaceholderTests.swift */; };
@@ -67,6 +70,7 @@
 		177C37A3D267D4BE118A2E9F /* SwiftDataWorkoutRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftDataWorkoutRepository.swift; sourceTree = "<group>"; };
 		18228C01CE4329F639652F6D /* CycleModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleModels.swift; sourceTree = "<group>"; };
 		1C622B6A0C64BA37AEAEF044 /* AppModelContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModelContainer.swift; sourceTree = "<group>"; };
+		23C77DFF6F55C69781249BF1 /* WorkoutExecutionViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutExecutionViewModel.swift; sourceTree = "<group>"; };
 		2516C1A819184F9F55D78137 /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
 		26BB8436C4B1AD7E5CD21AB0 /* SwiftDataCycleRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftDataCycleRepository.swift; sourceTree = "<group>"; };
 		276F03F12261E20C6ACF6703 /* InjuryAdaptationEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InjuryAdaptationEngine.swift; sourceTree = "<group>"; };
@@ -75,6 +79,7 @@
 		3231B6FFDA72065ECDA67FEC /* AppRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRootView.swift; sourceTree = "<group>"; };
 		3930E4513F75B95B07D303F1 /* InjuryProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InjuryProfile.swift; sourceTree = "<group>"; };
 		3E9555CE9EC2982C2B6DCDAE /* OnboardingEligibilityEvaluator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingEligibilityEvaluator.swift; sourceTree = "<group>"; };
+		44B2AAB0FEC53F881F02C1A5 /* WorkoutSummaryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutSummaryView.swift; sourceTree = "<group>"; };
 		4D25ACD9D39C9AB1DA0F1386 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		53AE80F4CD24ED2C384C12D6 /* SundeeFundeeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SundeeFundeeApp.swift; sourceTree = "<group>"; };
 		5EA6C16D1835102BA7816B7E /* ProgramDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramDetailView.swift; sourceTree = "<group>"; };
@@ -105,6 +110,7 @@
 		E5AA0B73DAFAAB5029C55DFF /* KeychainHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainHelper.swift; sourceTree = "<group>"; };
 		E79A7C624E31B53EDC3AD5B7 /* Program.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Program.swift; sourceTree = "<group>"; };
 		EE26DFC10D79B87DFF9A2ACF /* ProgramListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramListViewModel.swift; sourceTree = "<group>"; };
+		F600E9E479637F14E71E2864 /* WorkoutExecutionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutExecutionView.swift; sourceTree = "<group>"; };
 		FA66AE5ACEF8F10E9CBB555B /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -233,6 +239,7 @@
 			children = (
 				169C4098FF01C9704CA039FB /* Programs */,
 				2B640C5198D20559D571ABB2 /* Shell */,
+				BCE4CEDF44D57CE632F529E2 /* Workouts */,
 			);
 			path = Features;
 			sourceTree = "<group>";
@@ -254,6 +261,16 @@
 				57FC1C61C870746D85314F63 /* Programs */,
 			);
 			path = Resources;
+			sourceTree = "<group>";
+		};
+		BCE4CEDF44D57CE632F529E2 /* Workouts */ = {
+			isa = PBXGroup;
+			children = (
+				F600E9E479637F14E71E2864 /* WorkoutExecutionView.swift */,
+				23C77DFF6F55C69781249BF1 /* WorkoutExecutionViewModel.swift */,
+				44B2AAB0FEC53F881F02C1A5 /* WorkoutSummaryView.swift */,
+			);
+			path = Workouts;
 			sourceTree = "<group>";
 		};
 		BCF2D88DE55EBCD5F8196C84 /* Repositories */ = {
@@ -455,6 +472,9 @@
 				3978926D25EE8429137DE9FF /* SwiftDataWorkoutRepository.swift in Sources */,
 				35F7120D99DD863F41920B85 /* User.swift in Sources */,
 				31505F6907BCB93B44087ECF /* WeightCalculations.swift in Sources */,
+				58D144FC8038C566D8BAB4CB /* WorkoutExecutionView.swift in Sources */,
+				BC5E4C2F2C20830D028CE69E /* WorkoutExecutionViewModel.swift in Sources */,
+				8B070DD5C4018F8302A5BCDD /* WorkoutSummaryView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
