@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 77;
+	objectVersion = 63;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -127,10 +127,10 @@
 		B505719BD04F61B067DA2491 /* SundeeFundee.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SundeeFundee.entitlements; sourceTree = "<group>"; };
 		B6EDF76C2A7A135CEBE4365C /* Maxes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Maxes.swift; sourceTree = "<group>"; };
 		B75299B558602C0FC9B4A225 /* PlaceholderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceholderTests.swift; sourceTree = "<group>"; };
-		BD43C5FF1DD1826489EC84DA /* SundeeFundeTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = SundeeFundeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		BD43C5FF1DD1826489EC84DA /* SundeeFundeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SundeeFundeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C09382122916ED8040375F8E /* ProgramRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramRepository.swift; sourceTree = "<group>"; };
 		C45D5676126D1932B823CB77 /* BusinessLogicTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BusinessLogicTests.swift; sourceTree = "<group>"; };
-		C99B9014B8F76C3124C8DA6A /* SundeeFundee.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = SundeeFundee.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		C99B9014B8F76C3124C8DA6A /* SundeeFundee.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SundeeFundee.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		CB4DB4845EAF8A0ACA731441 /* MetricsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricsService.swift; sourceTree = "<group>"; };
 		CDBCB8CEF6A70B16D8F96BB7 /* ActiveCycle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveCycle.swift; sourceTree = "<group>"; };
 		D16BAB9EF7570DE98192141A /* CompletedWorkout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompletedWorkout.swift; sourceTree = "<group>"; };
@@ -483,7 +483,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 1600;
+				LastUpgradeCheck = 2620;
 				TargetAttributes = {
 					6A65F4B4731A18FE7E162E4E = {
 						DevelopmentTeam = "";
@@ -505,7 +505,6 @@
 			);
 			mainGroup = 022B8D4226C03C2A2C898E93;
 			minimizedProjectReferenceProxies = 1;
-			preferredProjectObjectVersion = 77;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -650,6 +649,7 @@
 				DEVELOPMENT_TEAM = "";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -664,6 +664,7 @@
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 6.0;
@@ -768,6 +769,7 @@
 				DEVELOPMENT_TEAM = "";
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -789,6 +791,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 6.0;

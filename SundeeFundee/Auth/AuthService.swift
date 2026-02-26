@@ -42,6 +42,8 @@ final class AuthService: NSObject, ObservableObject {
         case .revoked, .notFound:
             KeychainHelper.deleteAppleUserID()
             return .signedOut
+        case .transferred:
+            <#code#>
         @unknown default:
             return .signedOut
         }
