@@ -13,8 +13,8 @@ struct AppRootView: View {
                 LoadingView()
             case .signedOut:
                 SignInView()
-            case .needsOnboarding:
-                Text("Onboarding — Phase 3") // placeholder until Phase 3
+            case .needsOnboarding(let userID, _):
+                OnboardingFlowView(userID: userID)
             case .authenticated:
                 Text("Main App — Phase 6+") // placeholder until shell is built
             case .guest:
