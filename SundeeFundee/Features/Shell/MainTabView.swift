@@ -26,7 +26,7 @@ struct MainTabView: View {
             }
 
             NavigationStack {
-                CyclePlaceholderView()
+                CycleTrackingView()
             }
             .tabItem {
                 Label("Cycle", systemImage: "circle.dotted")
