@@ -10,6 +10,11 @@ struct WorkoutExecutionView: View {
 
     @State private var showFinishConfirm = false
 
+    init(viewModel: WorkoutExecutionViewModel) {
+        _viewModel = State(initialValue: viewModel)
+        _showFinishConfirm = State(initialValue: false)
+    }
+
     var body: some View {
         ZStack {
             AppTheme.Colors.cream.ignoresSafeArea()
@@ -17,9 +22,7 @@ struct WorkoutExecutionView: View {
             ScrollView {
                 VStack(spacing: AppTheme.Spacing.lg) {
                     sessionHeader
-                    ForEach(viewModel.session.exercises, id: \.exercise) { exercise in
-                        ExerciseSetCard(viewModel: viewModel, exercise: exercise)
-                    }
+                    ForEach(viewModel.session.exercises, id: \.exercise, content: exerciseCard(for:))
                     finishButton
                         .padding(.bottom, AppTheme.Spacing.xl)
                 }
@@ -30,35 +33,53 @@ struct WorkoutExecutionView: View {
             if viewModel.showRestTimer {
                 RestTimerOverlay(
                     seconds: $viewModel.restTimerSeconds,
-                    onDismiss: { viewModel.dismissRestTimer() }
+                    onDismiss: viewModel.dismissRestTimer
                 )
             }
         }
         .navigationTitle(viewModel.session.sessionName)
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(viewModel.isSaving)
-        .sheet(isPresented: $viewModel.showPlateCalc) {
-            PlateCalculatorSheet(weightKg: viewModel.plateCalcWeightKg)
-        }
-        .confirmationDialog("Finish Workout?", isPresented: $showFinishConfirm) {
-            Button("Save & Finish") {
-                let userID = appState.currentUserID ?? ""
-                viewModel.finishWorkout(modelContext: modelContext, userID: userID)
-            }
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text("Your progress will be saved.")
-        }
-        .navigationDestination(isPresented: $viewModel.isFinished) {
-            if let workout = viewModel.completedWorkout {
-                WorkoutSummaryView(workout: workout)
-            } else {
-                Text("Workout saved!")
-            }
-        }
+        .sheet(isPresented: $viewModel.showPlateCalc, content: plateCalculatorSheet)
+        .confirmationDialog(
+            "Finish Workout?",
+            isPresented: $showFinishConfirm,
+            actions: finishConfirmationActions,
+            message: finishConfirmationMessage
+        )
+        .navigationDestination(isPresented: $viewModel.isFinished, destination: summaryDestination)
     }
 
     // MARK: - Subviews
+
+    private func exerciseCard(for exercise: ProgramExercise) -> some View {
+        ExerciseSetCard(viewModel: viewModel, exercise: exercise)
+    }
+
+    private func plateCalculatorSheet() -> some View {
+        PlateCalculatorSheet(weightKg: viewModel.plateCalcWeightKg)
+    }
+
+    @ViewBuilder
+    private func finishConfirmationActions() -> some View {
+        Button(
+            "Save & Finish",
+            action: Self.finishConfirmationAction(
+                viewModel: viewModel,
+                appState: appState,
+                modelContext: modelContext
+            )
+        )
+    }
+
+    private func finishConfirmationMessage() -> some View {
+        Text("Your progress will be saved.")
+    }
+
+    @ViewBuilder
+    private func summaryDestination() -> some View {
+        Self.summaryDestinationView(workout: viewModel.completedWorkout)
+    }
 
     private var sessionHeader: some View {
         VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
@@ -74,12 +95,59 @@ struct WorkoutExecutionView: View {
     }
 
     private var finishButton: some View {
-        Button(viewModel.isSaving ? "Saving…" : "Finish Workout") {
-            showFinishConfirm = true
-        }
+        Button(
+            Self.finishButtonTitle(isSaving: viewModel.isSaving),
+            action: Self.finishButtonAction(isPresented: $showFinishConfirm)
+        )
         .buttonStyle(PrimaryButtonStyle())
         .disabled(viewModel.isSaving)
     }
+
+    static func finishButtonTitle(isSaving: Bool) -> String {
+        isSaving ? "Saving…" : "Finish Workout"
+    }
+
+    static func finishButtonAction(isPresented: Binding<Bool>) -> () -> Void {
+        { presentFinishConfirmation(&isPresented.wrappedValue) }
+    }
+
+    static func presentFinishConfirmation(_ isPresented: inout Bool) {
+        isPresented = true
+    }
+
+    static func finishConfirmationAction(
+        viewModel: WorkoutExecutionViewModel,
+        appState: AppState,
+        modelContext: ModelContext
+    ) -> () -> Void {
+        { finishWorkout(viewModel: viewModel, appState: appState, modelContext: modelContext) }
+    }
+
+    static func cancelFinishAction() {}
+
+    static func finishWorkout(viewModel: WorkoutExecutionViewModel, appState: AppState, modelContext: ModelContext) {
+        let userID = appState.currentUserID ?? ""
+        viewModel.finishWorkout(modelContext: modelContext, userID: userID)
+    }
+
+    enum SummaryDestinationState: Equatable {
+        case summary
+        case fallback
+    }
+
+    static func summaryDestinationState(workout: CompletedWorkout?) -> SummaryDestinationState {
+        workout == nil ? .fallback : .summary
+    }
+
+    @ViewBuilder
+    static func summaryDestinationView(workout: CompletedWorkout?) -> some View {
+        if let workout {
+            WorkoutSummaryView(workout: workout)
+        } else {
+            Text("Workout saved!")
+        }
+    }
+
 }
 
 // MARK: - ExerciseSetCard
@@ -89,7 +157,10 @@ struct ExerciseSetCard: View {
     let exercise: ProgramExercise
 
     var sets: [SetExecutionState] {
-        viewModel.exerciseSets[exercise.exercise] ?? []
+        if let sets = viewModel.exerciseSets[exercise.exercise] {
+            return sets
+        }
+        return []
     }
 
     var body: some View {
@@ -107,10 +178,8 @@ struct ExerciseSetCard: View {
                     }
                 }
                 Spacer()
-                if let kg = sets.first?.prescribedWeightKg {
-                    Button {
-                        viewModel.openPlateCalc(forWeight: kg)
-                    } label: {
+                if let kg = Self.plateCalculatorWeight(for: sets) {
+                    Button(action: Self.plateCalculatorAction(viewModel: viewModel, weightKg: kg)) {
                         Image(systemName: "scalemass.fill")
                             .foregroundStyle(AppTheme.Colors.accentOrange)
                     }
@@ -139,20 +208,70 @@ struct ExerciseSetCard: View {
             Divider()
 
             // Set rows
-            ForEach(sets.indices, id: \.self) { idx in
-                SetRow(
-                    setNumber: idx + 1,
-                    state: sets[idx],
-                    onRepsChange: { viewModel.updateActualReps($0, exerciseName: exercise.exercise, setIndex: idx) },
-                    onWeightChange: { viewModel.updateActualWeight($0, exerciseName: exercise.exercise, setIndex: idx) },
-                    onToggle: { viewModel.toggleSetCompleted(exerciseName: exercise.exercise, setIndex: idx) }
-                )
-            }
+            ForEach(sets.indices, id: \.self, content: rowView(for:))
         }
         .padding(AppTheme.Spacing.md)
         .background(AppTheme.Colors.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: AppTheme.CornerRadius.card))
         .shadow(color: .black.opacity(0.06), radius: 4, x: 0, y: 2)
+    }
+
+    private func rowView(for idx: Int) -> some View {
+        SetRow(
+            setNumber: idx + 1,
+            state: sets[idx],
+            onRepsChange: Self.repsChangeAction(
+                viewModel: viewModel,
+                exerciseName: exercise.exercise,
+                setIndex: idx
+            ),
+            onWeightChange: Self.weightChangeAction(
+                viewModel: viewModel,
+                exerciseName: exercise.exercise,
+                setIndex: idx
+            ),
+            onToggle: Self.toggleAction(
+                viewModel: viewModel,
+                exerciseName: exercise.exercise,
+                setIndex: idx
+            )
+        )
+    }
+
+    static func plateCalculatorWeight(for sets: [SetExecutionState]) -> Double? {
+        sets.first?.prescribedWeightKg
+    }
+
+    static func plateCalculatorAction(viewModel: WorkoutExecutionViewModel, weightKg: Double) -> () -> Void {
+        { openPlateCalculator(viewModel: viewModel, weightKg: weightKg) }
+    }
+
+    static func openPlateCalculator(viewModel: WorkoutExecutionViewModel, weightKg: Double) {
+        viewModel.openPlateCalc(forWeight: weightKg)
+    }
+
+    static func repsChangeAction(
+        viewModel: WorkoutExecutionViewModel,
+        exerciseName: String,
+        setIndex: Int
+    ) -> (Int) -> Void {
+        { viewModel.updateActualReps($0, exerciseName: exerciseName, setIndex: setIndex) }
+    }
+
+    static func weightChangeAction(
+        viewModel: WorkoutExecutionViewModel,
+        exerciseName: String,
+        setIndex: Int
+    ) -> (Double) -> Void {
+        { viewModel.updateActualWeight($0, exerciseName: exerciseName, setIndex: setIndex) }
+    }
+
+    static func toggleAction(
+        viewModel: WorkoutExecutionViewModel,
+        exerciseName: String,
+        setIndex: Int
+    ) -> () -> Void {
+        { viewModel.toggleSetCompleted(exerciseName: exerciseName, setIndex: setIndex) }
     }
 }
 
@@ -167,6 +286,22 @@ struct SetRow: View {
 
     @State private var repsText: String = ""
     @State private var weightText: String = ""
+
+    init(
+        setNumber: Int,
+        state: SetExecutionState,
+        onRepsChange: @escaping (Int) -> Void,
+        onWeightChange: @escaping (Double) -> Void,
+        onToggle: @escaping () -> Void
+    ) {
+        self.setNumber = setNumber
+        self.state = state
+        self.onRepsChange = onRepsChange
+        self.onWeightChange = onWeightChange
+        self.onToggle = onToggle
+        _repsText = State(initialValue: "")
+        _weightText = State(initialValue: "")
+    }
 
     var body: some View {
         HStack(spacing: AppTheme.Spacing.sm) {
@@ -187,8 +322,8 @@ struct SetRow: View {
                 .padding(6)
                 .background(AppTheme.Colors.separator.opacity(0.3))
                 .clipShape(RoundedRectangle(cornerRadius: 6))
-                .onChange(of: repsText) { _, new in
-                    if let r = Int(new) { onRepsChange(r) }
+                .onChange(of: repsText) { oldValue, newValue in
+                    Self.repsTextChangeHandler(onRepsChange: onRepsChange)(oldValue, newValue)
                 }
 
             TextField("–", text: $weightText)
@@ -198,8 +333,8 @@ struct SetRow: View {
                 .padding(6)
                 .background(AppTheme.Colors.separator.opacity(0.3))
                 .clipShape(RoundedRectangle(cornerRadius: 6))
-                .onChange(of: weightText) { _, new in
-                    if let w = Double(new) { onWeightChange(w) }
+                .onChange(of: weightText) { oldValue, newValue in
+                    Self.weightTextChangeHandler(onWeightChange: onWeightChange)(oldValue, newValue)
                 }
 
             Button(action: onToggle) {
@@ -210,13 +345,43 @@ struct SetRow: View {
             .frame(width: 32)
             .accessibilityLabel(state.isCompleted ? "Set completed" : "Mark set complete")
         }
-        .onAppear {
-            repsText = state.actualReps.map { "\($0)" } ?? ""
-            weightText = state.actualWeightKg.map { formatWeight($0) } ?? ""
+        .onAppear(perform: applyInitialTextValues)
+    }
+
+    private func applyInitialTextValues() {
+        let initialValues = Self.initialTextValues(for: state)
+        repsText = initialValues.repsText
+        weightText = initialValues.weightText
+    }
+
+    static func initialTextValues(for state: SetExecutionState) -> (repsText: String, weightText: String) {
+        (
+            state.actualReps.map { "\($0)" } ?? "",
+            state.actualWeightKg.map { formatWeight($0) } ?? ""
+        )
+    }
+
+    static func repsTextChangeHandler(onRepsChange: @escaping (Int) -> Void) -> (String, String) -> Void {
+        { _, new in
+            if let reps = parseReps(new) { onRepsChange(reps) }
         }
     }
 
-    private func formatWeight(_ kg: Double) -> String {
+    static func weightTextChangeHandler(onWeightChange: @escaping (Double) -> Void) -> (String, String) -> Void {
+        { _, new in
+            if let weight = parseWeight(new) { onWeightChange(weight) }
+        }
+    }
+
+    static func parseReps(_ value: String) -> Int? {
+        Int(value)
+    }
+
+    static func parseWeight(_ value: String) -> Double? {
+        Double(value)
+    }
+
+    static func formatWeight(_ kg: Double) -> String {
         kg == kg.rounded() ? "\(Int(kg))" : String(format: "%.1f", kg)
     }
 }
@@ -229,6 +394,12 @@ struct RestTimerOverlay: View {
     @State private var timeLeft: Int = 0
     @State private var timer: Timer?
 
+    init(seconds: Binding<Int>, onDismiss: @escaping () -> Void) {
+        _seconds = seconds
+        self.onDismiss = onDismiss
+        _timeLeft = State(initialValue: 0)
+    }
+
     var body: some View {
         ZStack {
             Color.black.opacity(0.5).ignoresSafeArea()
@@ -239,7 +410,7 @@ struct RestTimerOverlay: View {
 
                 Text(timeString)
                     .font(.system(size: 64, weight: .bold, design: .monospaced))
-                    .foregroundStyle(timeLeft > 10 ? .white : AppTheme.Colors.accentOrange)
+                    .foregroundStyle(Self.timerColor(timeLeft: timeLeft))
 
                 Button("Skip Rest", action: onDismiss)
                     .buttonStyle(SecondaryButtonStyle())
@@ -247,28 +418,61 @@ struct RestTimerOverlay: View {
             }
             .padding(AppTheme.Spacing.xl)
         }
-        .onAppear {
-            timeLeft = seconds
-            startTimer()
-        }
-        .onDisappear { timer?.invalidate() }
+        .onAppear(perform: handleAppear)
+        .onDisappear(perform: invalidateTimer)
     }
 
     private var timeString: String {
+        Self.timeString(for: timeLeft)
+    }
+
+    private func handleAppear() {
+        timeLeft = seconds
+        startTimer()
+    }
+
+    private func invalidateTimer() {
+        timer?.invalidate()
+    }
+
+    static func timeString(for timeLeft: Int) -> String {
         let m = timeLeft / 60
         let s = timeLeft % 60
         return String(format: "%d:%02d", m, s)
     }
 
+    static func timerColor(timeLeft: Int) -> Color {
+        timeLeft > 10 ? .white : AppTheme.Colors.accentOrange
+    }
+
     private func startTimer() {
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
-            if timeLeft > 0 {
-                timeLeft -= 1
-            } else {
-                timer?.invalidate()
-                onDismiss()
-            }
+            timeLeft = Self.processTick(
+                timeLeft: timeLeft,
+                invalidateTimer: { timer?.invalidate() },
+                onDismiss: onDismiss
+            )
         }
+    }
+
+    static func nextTick(timeLeft: Int) -> (timeLeft: Int, shouldDismiss: Bool) {
+        if timeLeft > 0 {
+            return (timeLeft - 1, false)
+        }
+        return (0, true)
+    }
+
+    static func processTick(
+        timeLeft: Int,
+        invalidateTimer: () -> Void,
+        onDismiss: () -> Void
+    ) -> Int {
+        let tick = nextTick(timeLeft: timeLeft)
+        if tick.shouldDismiss {
+            invalidateTimer()
+            onDismiss()
+        }
+        return tick.timeLeft
     }
 }
 
@@ -293,26 +497,17 @@ struct PlateCalculatorSheet: View {
                     .background(AppTheme.Colors.cardBackground)
                     .clipShape(RoundedRectangle(cornerRadius: AppTheme.CornerRadius.card))
 
-                if plates.isEmpty {
-                    Text("Bar only (\(Int(PlateCalculation.standardBarKg)) kg)")
-                        .font(AppTheme.Fonts.subheading)
-                        .foregroundStyle(AppTheme.Colors.navy.opacity(0.6))
-                } else {
+                if Self.hasPlates(plates) {
                     VStack(spacing: AppTheme.Spacing.sm) {
-                        ForEach(plates, id: \.weight) { plate in
-                            HStack {
-                                Text("\(plate.count)×")
-                                    .foregroundStyle(AppTheme.Colors.accentOrange)
-                                Text("\(formatWeight(plate.weight)) kg plate")
-                                    .foregroundStyle(AppTheme.Colors.navy)
-                                Spacer()
-                            }
-                            .font(AppTheme.Fonts.subheading)
-                        }
+                        ForEach(plates, id: \.weight, content: plateRow(for:))
                     }
                     .padding(AppTheme.Spacing.md)
                     .background(AppTheme.Colors.cardBackground)
                     .clipShape(RoundedRectangle(cornerRadius: AppTheme.CornerRadius.card))
+                } else {
+                    Text(Self.barOnlyText(barKg: PlateCalculation.standardBarKg))
+                        .font(AppTheme.Fonts.subheading)
+                        .foregroundStyle(AppTheme.Colors.navy.opacity(0.6))
                 }
 
                 Spacer()
@@ -323,13 +518,32 @@ struct PlateCalculatorSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") { dismiss() }
+                    Button("Done", action: dismiss.callAsFunction)
                 }
             }
         }
     }
 
-    private func formatWeight(_ kg: Double) -> String {
+    private func plateRow(for plate: (weight: Double, count: Int)) -> some View {
+        HStack {
+            Text("\(plate.count)×")
+                .foregroundStyle(AppTheme.Colors.accentOrange)
+            Text("\(Self.formatWeight(plate.weight)) kg plate")
+                .foregroundStyle(AppTheme.Colors.navy)
+            Spacer()
+        }
+        .font(AppTheme.Fonts.subheading)
+    }
+
+    static func hasPlates(_ plates: [(weight: Double, count: Int)]) -> Bool {
+        !plates.isEmpty
+    }
+
+    static func formatWeight(_ kg: Double) -> String {
         kg == kg.rounded() ? "\(Int(kg))" : String(format: "%.2g", kg)
+    }
+
+    static func barOnlyText(barKg: Double) -> String {
+        "Bar only (\(Int(barKg)) kg)"
     }
 }

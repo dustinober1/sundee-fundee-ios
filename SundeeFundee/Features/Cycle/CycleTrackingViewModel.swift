@@ -18,13 +18,22 @@ final class CycleTrackingViewModel {
     var showAddPeriodLog = false
     var showAddSymptomLog = false
 
+    private let repositoryFactory: (ModelContext) -> any CycleRepository
     private var modelContext: ModelContext?
     private var userID: String = ""
+
+    init(
+        repositoryFactory: @escaping (ModelContext) -> any CycleRepository = {
+            SwiftDataCycleRepository(context: $0)
+        }
+    ) {
+        self.repositoryFactory = repositoryFactory
+    }
 
     func load(modelContext: ModelContext, userID: String = "") async {
         self.modelContext = modelContext
         self.userID = userID
-        let repo = SwiftDataCycleRepository(context: modelContext)
+        let repo = repositoryFactory(modelContext)
 
         periodLogs = (try? repo.fetchPeriodLogs()) ?? []
         symptomLogs = (try? repo.fetchSymptomLogs()) ?? []
@@ -54,7 +63,7 @@ final class CycleTrackingViewModel {
             endDate: endDate,
             flowLevel: flowLevel
         )
-        let repo = SwiftDataCycleRepository(context: ctx)
+        let repo = repositoryFactory(ctx)
         try? repo.savePeriodLog(log)
         periodLogs.insert(log, at: 0)
         refreshCycleStatus()
@@ -62,7 +71,7 @@ final class CycleTrackingViewModel {
 
     func deletePeriodLogs(at offsets: IndexSet) {
         guard let ctx = modelContext else { return }
-        let repo = SwiftDataCycleRepository(context: ctx)
+        let repo = repositoryFactory(ctx)
         for idx in offsets {
             let log = periodLogs[idx]
             try? repo.deletePeriodLog(log)
@@ -83,14 +92,14 @@ final class CycleTrackingViewModel {
             severity: severity,
             notes: notes
         )
-        let repo = SwiftDataCycleRepository(context: ctx)
+        let repo = repositoryFactory(ctx)
         try? repo.saveSymptomLog(log)
         symptomLogs.insert(log, at: 0)
     }
 
     func deleteSymptomLogs(at offsets: IndexSet) {
         guard let ctx = modelContext else { return }
-        let repo = SwiftDataCycleRepository(context: ctx)
+        let repo = repositoryFactory(ctx)
         for idx in offsets {
             let log = symptomLogs[idx]
             try? repo.deleteSymptomLog(log)
@@ -110,7 +119,7 @@ final class CycleTrackingViewModel {
             lutealPhaseLengthDays: lutealPhaseLength,
             isTrackingEnabled: adaptationEnabled
         )
-        let repo = SwiftDataCycleRepository(context: ctx)
+        let repo = repositoryFactory(ctx)
         try? repo.saveCycleSettings(settings)
         refreshCycleStatus()
     }
@@ -119,7 +128,7 @@ final class CycleTrackingViewModel {
 
     private func refreshCycleStatus() {
         guard let ctx = modelContext,
-              let repo = Optional(SwiftDataCycleRepository(context: ctx)),
+              let repo = Optional(repositoryFactory(ctx)),
               let settings = try? repo.fetchCycleSettings(),
               !periodLogs.isEmpty else {
             cycleStatus = nil

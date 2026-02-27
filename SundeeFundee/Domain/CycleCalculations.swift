@@ -36,10 +36,6 @@ struct PhaseRecommendation {
 
 enum CycleCalculations {
 
-    private static let defaultFollicularStart = 6
-    private static let defaultOvulationStart  = 13
-    private static let defaultLutealStart     = 16
-
     /// Returns nil if no period logs are available.
     static func calculateCycleStatus(
         periodLogs: [PeriodLog],
@@ -76,7 +72,7 @@ enum CycleCalculations {
             cycleStartDate = start
         }
 
-        guard let cycleStart = cycleStartDate else { return nil }
+        let cycleStart = cycleStartDate!
 
         let cycleDay  = daysBetween(cycleStart, ref) + 1
         let boundaries = getPhaseBoundaries(settings: settings)
@@ -86,7 +82,7 @@ enum CycleCalculations {
         var phaseEndDay   = settings.averageCycleLengthDays
 
         for phase in CyclePhase.allCases {
-            guard let b = boundaries[phase] else { continue }
+            let b = boundaries[phase]!
             if cycleDay >= b.start && cycleDay <= b.end {
                 currentPhase  = phase
                 phaseStartDay = b.start
@@ -98,11 +94,11 @@ enum CycleCalculations {
         let daysUntilNext: Int
         switch currentPhase {
         case .menstrual:
-            daysUntilNext = (boundaries[.follicular]?.start ?? defaultFollicularStart) - cycleDay
+            daysUntilNext = boundaries[.follicular]!.start - cycleDay
         case .follicular:
-            daysUntilNext = (boundaries[.ovulation]?.start  ?? defaultOvulationStart)  - cycleDay
+            daysUntilNext = boundaries[.ovulation]!.start - cycleDay
         case .ovulation:
-            daysUntilNext = (boundaries[.luteal]?.start     ?? defaultLutealStart)      - cycleDay
+            daysUntilNext = boundaries[.luteal]!.start - cycleDay
         case .luteal:
             daysUntilNext = settings.averageCycleLengthDays - cycleDay + 1
         }
@@ -190,7 +186,7 @@ enum CycleCalculations {
     }
 
     private static func daysBetween(_ from: Date, _ to: Date) -> Int {
-        Calendar.current.dateComponents([.day], from: startOfDay(from), to: startOfDay(to)).day ?? 0
+        Calendar.current.dateComponents([.day], from: startOfDay(from), to: startOfDay(to)).day!
     }
 
     private static func isWithin(_ target: Date, start: Date, end: Date) -> Bool {

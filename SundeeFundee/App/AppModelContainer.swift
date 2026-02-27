@@ -8,67 +8,83 @@ import CloudKit
 /// - Development (no entitlements): Uses local persistent store (no CloudKit sync).
 enum AppModelContainer {
 
-    static let shared: ModelContainer = {
+    enum ContainerRequest: Equatable {
+        case testsInMemory
+        case cloudKit
+        case localPersistent
+        case fallbackInMemory
+    }
+
+    static let shared: ModelContainer = makeSharedContainer()
+
+    static func makeSharedContainer(
+        isRunningTests: Bool = isRunningTests,
+        useCloudKit: Bool = false,
+        makeContainer: (ContainerRequest) throws -> ModelContainer = { try Self.makeContainer(for: $0) },
+        deleteStoreFiles: () throws -> Void = { try Self.deleteStoreFiles() },
+        log: (String) -> Void = { print($0) }
+    ) -> ModelContainer {
         // Tests get their own in-memory container immediately.
         if isRunningTests {
-            let schema = Schema(allModels)
-            let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
             do {
-                return try ModelContainer(for: schema, configurations: [config])
+                return try makeContainer(.testsInMemory)
             } catch {
-                print("AppModelContainer: test in-memory container failed: \(error).")
+                log("AppModelContainer: test in-memory container failed: \(error).")
             }
         }
 
         // Tier 1 — Local persistent store (no CloudKit sync).
         // Used during development when CloudKit entitlements are not available.
         // Enable CloudKit in production by setting this flag to true.
-        let useCloudKit = false
         if useCloudKit {
             do {
-                let schema = Schema(allModels)
-                let cloudConfig = ModelConfiguration(
-                    schema: schema,
-                    isStoredInMemoryOnly: false,
-                    cloudKitDatabase: .private("iCloud.com.sundeefundee.app")
-                )
-                return try ModelContainer(for: schema, migrationPlan: AppSchemaMigrationPlan.self, configurations: [cloudConfig])
+                return try makeContainer(.cloudKit)
             } catch {
-                print("AppModelContainer: CloudKit container failed: \(error). Trying local persistent store.")
+                log("AppModelContainer: CloudKit container failed: \(error). Trying local persistent store.")
             }
         }
 
         // Tier 2 — Local persistent store (no CloudKit sync).
         do {
-            let schema = Schema(allModels)
-            let localConfig = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-            return try ModelContainer(for: schema, configurations: [localConfig])
+            return try makeContainer(.localPersistent)
         } catch {
-            print("AppModelContainer: local persistent container failed: \(error).")
-            print("Attempting to delete corrupted store files and create fresh one...")
-            
+            log("AppModelContainer: local persistent container failed: \(error).")
+            log("Attempting to delete corrupted store files and create fresh one...")
+
             // Delete the corrupted store files and try again
             do {
                 try deleteStoreFiles()
-                let schema = Schema(allModels)
-                let localConfig = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-                let container = try ModelContainer(for: schema, configurations: [localConfig])
-                print("AppModelContainer: Created fresh local store after clearing corrupted data.")
+                let container = try makeContainer(.localPersistent)
+                log("AppModelContainer: Created fresh local store after clearing corrupted data.")
                 return container
             } catch {
-                print("AppModelContainer: Failed to create fresh store: \(error). Falling back to in-memory.")
+                log("AppModelContainer: Failed to create fresh store: \(error). Falling back to in-memory.")
             }
         }
 
         // Tier 3 — In-memory store (data lost on restart; last resort).
+        return try! makeContainer(.fallbackInMemory)
+    }
+
+    static func makeContainer(for request: ContainerRequest) throws -> ModelContainer {
         let schema = Schema(allModels)
-        let memConfig = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
-        do {
-            return try ModelContainer(for: schema, configurations: [memConfig])
-        } catch {
-            fatalError("Failed to create ModelContainer: \(error)")
+
+        switch request {
+        case .testsInMemory, .fallbackInMemory:
+            let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
+            return try ModelContainer(for: schema, configurations: [config])
+        case .cloudKit:
+            let cloudConfig = ModelConfiguration(
+                schema: schema,
+                isStoredInMemoryOnly: false,
+                cloudKitDatabase: .private("iCloud.com.sundeefundee.app")
+            )
+            return try ModelContainer(for: schema, migrationPlan: AppSchemaMigrationPlan.self, configurations: [cloudConfig])
+        case .localPersistent:
+            let localConfig = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false, cloudKitDatabase: .none)
+            return try ModelContainer(for: schema, configurations: [localConfig])
         }
-    }()
+    }
 
     /// In-memory container for previews and unit tests.
     ///
@@ -77,7 +93,7 @@ enum AppModelContainer {
     /// production model compatibility.
     static func preview() -> ModelContainer {
         let emptySchema = Schema([] as [any PersistentModel.Type])
-        let config = ModelConfiguration(schema: emptySchema, isStoredInMemoryOnly: true)
+        let config = ModelConfiguration(schema: emptySchema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
         return try! ModelContainer(for: emptySchema, configurations: [config])
     }
 
@@ -93,7 +109,7 @@ enum AppModelContainer {
     private static func deleteStoreFiles() throws {
         let fileManager = FileManager.default
         let urls = fileManager.urls(for: .documentDirectory, in: .userDomainMask)
-        guard let documentsDirectory = urls.first else { return }
+        let documentsDirectory = urls.first!
         
         let storeURL = documentsDirectory.appendingPathComponent("default.store")
         let walURL = documentsDirectory.appendingPathComponent("default.store-wal")

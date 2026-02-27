@@ -3,9 +3,13 @@ import SwiftData
 
 /// Dashboard — home screen showing active enrollment, cycle phase, and recent workouts.
 struct DashboardView: View {
-    @State private var viewModel = DashboardViewModel()
+    @State private var viewModel: DashboardViewModel
     @Environment(\.modelContext) private var modelContext
     @Environment(AppState.self) private var appState
+
+    init(viewModel: DashboardViewModel = DashboardViewModel()) {
+        _viewModel = State(initialValue: viewModel)
+    }
 
     var body: some View {
         ZStack {
@@ -13,11 +17,13 @@ struct DashboardView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: AppTheme.Spacing.lg) {
                     greetingHeader
-                    if let enrollment = viewModel.activeEnrollment,
-                       let program = viewModel.activeProgram {
+                    if let state = Self.activeEnrollmentState(
+                        enrollment: viewModel.activeEnrollment,
+                        program: viewModel.activeProgram
+                    ) {
                         ActiveEnrollmentCard(
-                            enrollment: enrollment,
-                            program: program,
+                            enrollment: state.enrollment,
+                            program: state.program,
                             nextSession: viewModel.nextSession,
                             cyclePhase: viewModel.currentCyclePhase
                         )
@@ -43,7 +49,33 @@ struct DashboardView: View {
             }
         }
         .task { await viewModel.load(modelContext: modelContext) }
-        .refreshable { await viewModel.load(modelContext: modelContext) }
+        .refreshable(action: Self.refreshAction(viewModel: viewModel, modelContext: modelContext))
+    }
+
+    @MainActor
+    private final class RefreshPerformer: @unchecked Sendable {
+        let viewModel: DashboardViewModel
+        let modelContext: ModelContext
+
+        init(viewModel: DashboardViewModel, modelContext: ModelContext) {
+            self.viewModel = viewModel
+            self.modelContext = modelContext
+        }
+
+        func refresh() async {
+            await viewModel.load(modelContext: modelContext)
+        }
+    }
+
+    @MainActor
+    static func refreshAction(viewModel: DashboardViewModel, modelContext: ModelContext) -> @Sendable () async -> Void {
+        let performer = RefreshPerformer(viewModel: viewModel, modelContext: modelContext)
+        return { await performer.refresh() }
+    }
+
+    @MainActor
+    static func performRefresh(viewModel: DashboardViewModel, modelContext: ModelContext) async {
+        await viewModel.load(modelContext: modelContext)
     }
 
     // MARK: - Subviews
@@ -71,7 +103,7 @@ struct DashboardView: View {
                 .font(AppTheme.Fonts.subheading)
                 .foregroundStyle(AppTheme.Colors.navy)
 
-            if viewModel.recentWorkouts.isEmpty {
+            if Self.shouldShowEmptyRecentWorkouts(viewModel.recentWorkouts) {
                 Text("No workouts yet. Enroll in a program to get started.")
                     .font(AppTheme.Fonts.caption)
                     .foregroundStyle(AppTheme.Colors.navy.opacity(0.5))
@@ -85,7 +117,23 @@ struct DashboardView: View {
     }
 
     private var greeting: String {
-        let hour = Calendar.current.component(.hour, from: Date())
+        Self.greeting(for: Date(), calendar: .current)
+    }
+
+    static func activeEnrollmentState(
+        enrollment: EnrolledProgram?,
+        program: Program?
+    ) -> (enrollment: EnrolledProgram, program: Program)? {
+        guard let enrollment, let program else { return nil }
+        return (enrollment, program)
+    }
+
+    static func shouldShowEmptyRecentWorkouts(_ workouts: [CompletedWorkout]) -> Bool {
+        workouts.isEmpty
+    }
+
+    static func greeting(for date: Date, calendar: Calendar = .current) -> String {
+        let hour = calendar.component(.hour, from: date)
         switch hour {
         case 0..<12: return "Good morning"
         case 12..<17: return "Good afternoon"
@@ -164,9 +212,13 @@ struct ActiveEnrollmentCard: View {
     }
 
     private var progressFraction: Double {
-        let total = Double(program.durationWeeks)
+        Self.progressFraction(currentWeek: enrollment.currentWeek, durationWeeks: program.durationWeeks)
+    }
+
+    static func progressFraction(currentWeek: Int, durationWeeks: Int) -> Double {
+        let total = Double(durationWeeks)
         guard total > 0 else { return 0 }
-        return min(1.0, Double(enrollment.currentWeek - 1) / total)
+        return min(1.0, Double(currentWeek - 1) / total)
     }
 }
 
@@ -221,6 +273,10 @@ struct CyclePhaseBadge: View {
     }
 
     private var badgeColor: Color {
+        Self.badgeColor(for: phase)
+    }
+
+    static func badgeColor(for phase: CyclePhase) -> Color {
         switch phase {
         case .menstrual:  return Color(red: 0.75, green: 0.15, blue: 0.20)
         case .follicular: return Color(red: 0.20, green: 0.55, blue: 0.80)

@@ -6,6 +6,18 @@ struct BenchmarksView: View {
     @State private var viewModel = BenchmarksViewModel()
     @Environment(\.modelContext) private var modelContext
     @State private var showAdd = false
+    
+    static func deleteAction(viewModel: BenchmarksViewModel, entry: Benchmark) -> () -> Void {
+        { viewModel.delete(entry) }
+    }
+    
+    static func addSheetContent(viewModel: BenchmarksViewModel) -> () -> AddBenchmarkSheet {
+        { AddBenchmarkSheet(viewModel: viewModel) }
+    }
+
+    static func presentAddSheetAction(isPresented: Binding<Bool>) -> () -> Void {
+        { isPresented.wrappedValue = true }
+    }
 
     var body: some View {
         ZStack {
@@ -24,9 +36,7 @@ struct BenchmarksView: View {
                                 ForEach(group.entries) { entry in
                                     BenchmarkEntryRow(entry: entry)
                                         .swipeActions(edge: .trailing) {
-                                            Button(role: .destructive) {
-                                                viewModel.delete(entry)
-                                            } label: {
+                                            Button(role: .destructive, action: Self.deleteAction(viewModel: viewModel, entry: entry)) {
                                                 Label("Delete", systemImage: "trash")
                                             }
                                         }
@@ -44,15 +54,13 @@ struct BenchmarksView: View {
         .navigationTitle("Benchmarks")
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                Button { showAdd = true } label: {
+                Button(action: Self.presentAddSheetAction(isPresented: $showAdd)) {
                     Image(systemName: "plus")
                 }
                 .accessibilityLabel("Add benchmark")
             }
         }
-        .sheet(isPresented: $showAdd) {
-            AddBenchmarkSheet(viewModel: viewModel)
-        }
+        .sheet(isPresented: $showAdd, content: Self.addSheetContent(viewModel: viewModel))
         .task { await viewModel.load(modelContext: modelContext) }
     }
 }
@@ -114,15 +122,56 @@ struct AddBenchmarkSheet: View {
     @Bindable var viewModel: BenchmarksViewModel
     @Environment(\.dismiss) private var dismiss
 
-    @State private var benchmarkName = ""
-    @State private var selectedExercise = WeightliftingExerciseCatalog.all.first?.id ?? ""
-    @State private var weightKg = ""
-    @State private var reps = 1
-    @State private var notes = ""
+    @State private var benchmarkName: String
+    @State private var selectedExercise: String
+    @State private var weightKg: String
+    @State private var reps: Int
+    @State private var notes: String
+    
+    init(
+        viewModel: BenchmarksViewModel,
+        benchmarkName: String = "",
+        selectedExercise: String = WeightliftingExerciseCatalog.defaultExerciseID,
+        weightKg: String = "",
+        reps: Int = 1,
+        notes: String = ""
+    ) {
+        self.viewModel = viewModel
+        _benchmarkName = State(initialValue: benchmarkName)
+        _selectedExercise = State(initialValue: selectedExercise)
+        _weightKg = State(initialValue: weightKg)
+        _reps = State(initialValue: reps)
+        _notes = State(initialValue: notes)
+    }
 
     private var canSave: Bool {
-        !benchmarkName.trimmingCharacters(in: .whitespaces).isEmpty &&
-        Double(weightKg) != nil
+        Self.canSave(benchmarkName: benchmarkName, weightKg: weightKg)
+    }
+    
+    static func canSave(benchmarkName: String, weightKg: String) -> Bool {
+        !benchmarkName.trimmingCharacters(in: .whitespaces).isEmpty && Double(weightKg) != nil
+    }
+    
+    static func saveAction(
+        viewModel: BenchmarksViewModel,
+        benchmarkName: String,
+        selectedExercise: String,
+        weightKg: String,
+        reps: Int,
+        notes: String,
+        dismiss: @escaping () -> Void
+    ) -> () -> Void {
+        {
+            guard Self.canSave(benchmarkName: benchmarkName, weightKg: weightKg), let kg = Double(weightKg) else { return }
+            viewModel.add(
+                name: benchmarkName.trimmingCharacters(in: .whitespaces),
+                exercise: selectedExercise,
+                weightKg: kg,
+                reps: reps,
+                notes: notes
+            )
+            dismiss()
+        }
     }
 
     var body: some View {
@@ -154,20 +203,18 @@ struct AddBenchmarkSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    Button("Cancel", action: dismiss.callAsFunction)
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
-                        guard canSave, let kg = Double(weightKg) else { return }
-                        viewModel.add(
-                            name: benchmarkName.trimmingCharacters(in: .whitespaces),
-                            exercise: selectedExercise,
-                            weightKg: kg,
-                            reps: reps,
-                            notes: notes
-                        )
-                        dismiss()
-                    }
+                    Button("Save", action: Self.saveAction(
+                        viewModel: viewModel,
+                        benchmarkName: benchmarkName,
+                        selectedExercise: selectedExercise,
+                        weightKg: weightKg,
+                        reps: reps,
+                        notes: notes,
+                        dismiss: dismiss.callAsFunction
+                    ))
                     .disabled(!canSave)
                 }
             }

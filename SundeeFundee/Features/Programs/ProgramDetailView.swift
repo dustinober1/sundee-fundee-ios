@@ -7,7 +7,13 @@ struct ProgramDetailView: View {
     @Bindable var viewModel: ProgramListViewModel
 
     @Environment(\.modelContext) private var modelContext
-    @State private var showCancelConfirm = false
+    @State private var showCancelConfirm: Bool
+    
+    init(program: Program, viewModel: ProgramListViewModel, showCancelConfirm: Bool = false) {
+        self.program = program
+        self.viewModel = viewModel
+        _showCancelConfirm = State(initialValue: showCancelConfirm)
+    }
 
     private var isActiveEnrollment: Bool {
         viewModel.activeEnrollment?.programID == program.id
@@ -18,6 +24,25 @@ struct ProgramDetailView: View {
             return active.programID != program.id
         }
         return false
+    }
+    
+    static func presentCancelConfirmationAction(isPresented: Binding<Bool>) -> () -> Void {
+        { Self.presentCancelConfirmation(isPresented) }
+    }
+    
+    static func performEnrollAction(
+        _ viewModel: ProgramListViewModel,
+        in program: Program,
+        modelContext: ModelContext
+    ) -> () -> Void {
+        { Self.performEnroll(viewModel, in: program, modelContext: modelContext) }
+    }
+    
+    static func performCancelEnrollmentAction(
+        _ viewModel: ProgramListViewModel,
+        modelContext: ModelContext
+    ) -> () -> Void {
+        { Self.performCancelEnrollment(viewModel, modelContext: modelContext) }
     }
 
     var body: some View {
@@ -69,10 +94,11 @@ struct ProgramDetailView: View {
             isPresented: $showCancelConfirm,
             titleVisibility: .visible
         ) {
-            Button("Cancel Enrollment", role: .destructive) {
-                Task { await viewModel.cancelEnrollment(modelContext: modelContext) }
-            }
-            Button("Keep Going", role: .cancel) {}
+            Button(
+                "Cancel Enrollment",
+                role: .destructive,
+                action: Self.performCancelEnrollmentAction(viewModel, modelContext: modelContext)
+            )
         } message: {
             Text("Your progress will be saved. You can re-enroll later.")
         }
@@ -86,9 +112,7 @@ struct ProgramDetailView: View {
                     .font(AppTheme.Fonts.subheading)
                     .foregroundStyle(AppTheme.Colors.accentOrange)
 
-                Button("Cancel Enrollment") {
-                    showCancelConfirm = true
-                }
+                Button("Cancel Enrollment", action: Self.presentCancelConfirmationAction(isPresented: $showCancelConfirm))
                 .buttonStyle(DestructiveButtonStyle())
             }
             .frame(maxWidth: .infinity)
@@ -99,19 +123,34 @@ struct ProgramDetailView: View {
                     .foregroundStyle(AppTheme.Colors.navy.opacity(0.6))
                     .multilineTextAlignment(.center)
 
-                Button("Switch to This Program") {
-                    Task { await viewModel.enroll(in: program, modelContext: modelContext) }
-                }
+                Button(
+                    "Switch to This Program",
+                    action: Self.performEnrollAction(viewModel, in: program, modelContext: modelContext)
+                )
                 .buttonStyle(PrimaryButtonStyle())
             }
             .frame(maxWidth: .infinity)
         } else {
-            Button("Start Program") {
-                Task { await viewModel.enroll(in: program, modelContext: modelContext) }
-            }
+            Button("Start Program", action: Self.performEnrollAction(viewModel, in: program, modelContext: modelContext))
             .buttonStyle(PrimaryButtonStyle())
             .frame(maxWidth: .infinity)
         }
+    }
+
+    static func presentCancelConfirmation(_ isPresented: inout Bool) {
+        isPresented = true
+    }
+    
+    static func presentCancelConfirmation(_ isPresented: Binding<Bool>) {
+        isPresented.wrappedValue = true
+    }
+
+    static func performEnroll(_ viewModel: ProgramListViewModel, in program: Program, modelContext: ModelContext) {
+        Task { await viewModel.enroll(in: program, modelContext: modelContext) }
+    }
+
+    static func performCancelEnrollment(_ viewModel: ProgramListViewModel, modelContext: ModelContext) {
+        Task { await viewModel.cancelEnrollment(modelContext: modelContext) }
     }
 }
 

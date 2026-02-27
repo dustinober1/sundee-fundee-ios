@@ -2,22 +2,38 @@ import SwiftUI
 
 /// Browse and enroll in available programs.
 struct ProgramListView: View {
-    @State private var viewModel = ProgramListViewModel()
+    @State private var viewModel: ProgramListViewModel
     @Environment(\.modelContext) private var modelContext
+
+    enum ContentState: Equatable {
+        case loading
+        case error(String)
+        case empty
+        case loaded
+    }
+
+    init(viewModel: ProgramListViewModel = ProgramListViewModel()) {
+        _viewModel = State(initialValue: viewModel)
+    }
 
     var body: some View {
         ZStack {
             AppTheme.Colors.cream.ignoresSafeArea()
 
             Group {
-                if viewModel.isLoading {
+                switch Self.contentState(
+                    isLoading: viewModel.isLoading,
+                    errorMessage: viewModel.errorMessage,
+                    programCount: viewModel.programs.count
+                ) {
+                case .loading:
                     ProgressView()
                         .tint(AppTheme.Colors.accentOrange)
-                } else if let error = viewModel.errorMessage {
+                case .error(let error):
                     ContentUnavailableView(error, systemImage: "exclamationmark.triangle")
-                } else if viewModel.programs.isEmpty {
-                    ContentUnavailableView("No Programs", systemImage: "list.bullet.rectangle.portrait")
-                } else {
+                case .empty:
+                    Self.emptyStateView()
+                case .loaded:
                     ScrollView {
                         LazyVStack(spacing: AppTheme.Spacing.md) {
                             ForEach(viewModel.programs) { program in
@@ -38,9 +54,24 @@ struct ProgramListView: View {
         }
         .navigationTitle("Programs")
         .navigationDestination(for: Program.self) { program in
-            ProgramDetailView(program: program, viewModel: viewModel)
+            Self.detailDestination(program: program, viewModel: viewModel)
         }
         .task { await viewModel.load(modelContext: modelContext) }
+    }
+
+    static func contentState(isLoading: Bool, errorMessage: String?, programCount: Int) -> ContentState {
+        if isLoading { return .loading }
+        if let errorMessage { return .error(errorMessage) }
+        return programCount == 0 ? .empty : .loaded
+    }
+
+    static func detailDestination(program: Program, viewModel: ProgramListViewModel) -> ProgramDetailView {
+        ProgramDetailView(program: program, viewModel: viewModel)
+    }
+
+    @ViewBuilder
+    static func emptyStateView() -> some View {
+        ContentUnavailableView("No Programs", systemImage: "list.bullet.rectangle.portrait")
     }
 }
 
@@ -62,7 +93,7 @@ struct ProgramCardView: View {
                         .foregroundStyle(AppTheme.Colors.navy.opacity(0.6))
                 }
                 Spacer()
-                if isEnrolled {
+                if Self.showsActiveBadge(isEnrolled: isEnrolled) {
                     Label("Active", systemImage: "checkmark.circle.fill")
                         .font(AppTheme.Fonts.caption)
                         .foregroundStyle(AppTheme.Colors.accentOrange)
@@ -86,5 +117,9 @@ struct ProgramCardView: View {
         .background(AppTheme.Colors.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: AppTheme.CornerRadius.card))
         .shadow(color: .black.opacity(0.06), radius: 4, x: 0, y: 2)
+    }
+
+    static func showsActiveBadge(isEnrolled: Bool) -> Bool {
+        isEnrolled
     }
 }

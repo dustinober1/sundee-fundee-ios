@@ -35,10 +35,16 @@ final class WorkoutExecutionViewModel {
     // One-rep max reference values (keyed by exercise name)
     var oneRepMaxes: [String: Double] = [:]
 
-    init(session: ProgramSession, enrollment: EnrolledProgram, program: Program) {
+    init(
+        session: ProgramSession,
+        enrollment: EnrolledProgram,
+        program: Program,
+        oneRepMaxes: [String: Double] = [:]
+    ) {
         self.session = session
         self.enrollment = enrollment
         self.program = program
+        self.oneRepMaxes = oneRepMaxes
         initializeSets()
     }
 

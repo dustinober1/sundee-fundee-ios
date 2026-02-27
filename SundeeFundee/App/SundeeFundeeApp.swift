@@ -8,26 +8,45 @@ struct SundeeFundeeApp: App {
     let container: ModelContainer?
 
     init() {
-        let runningTests = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil || NSClassFromString("XCTestCase") != nil
-        if runningTests {
+        self.init(
+            isRunningTests: Self.isRunningTests,
+            startMetrics: { MetricsService.shared.start() }
+        )
+    }
+
+    init(
+        isRunningTests: Bool = Self.isRunningTests,
+        sharedContainer: () -> ModelContainer = { AppModelContainer.shared },
+        startMetrics: () -> Void = { MetricsService.shared.start() }
+    ) {
+        if isRunningTests {
             // Avoid creating any ModelContainer during unit tests to bypass CloudKit validation.
             container = nil
         } else {
-            container = AppModelContainer.shared
+            container = sharedContainer()
         }
 
-        MetricsService.shared.start()
+        startMetrics()
+    }
+
+    private static var isRunningTests: Bool {
+        ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil || NSClassFromString("XCTestCase") != nil
+    }
+
+    @ViewBuilder
+    static func rootView(container: ModelContainer?) -> some View {
+        if let container {
+            AppRootView()
+                .modelContainer(container)
+        } else {
+            // Tests: render nothing to avoid modelContext access without a container
+            Color.clear
+        }
     }
 
     var body: some Scene {
         WindowGroup {
-            if let container = container {
-                AppRootView()
-                    .modelContainer(container)
-            } else {
-                // Tests: render nothing to avoid modelContext access without a container
-                Color.clear
-            }
+            Self.rootView(container: container)
         }
     }
 }

@@ -2,6 +2,23 @@ import Foundation
 import AuthenticationServices
 import SwiftData
 
+protocol AppleIDCredentialProviding {
+    var user: String { get }
+    var fullName: PersonNameComponents? { get }
+    var email: String? { get }
+}
+
+extension ASAuthorizationAppleIDCredential: AppleIDCredentialProviding {}
+
+@MainActor
+protocol AppleAuthorizationControlling: AnyObject {
+    var delegate: ASAuthorizationControllerDelegate? { get set }
+    var presentationContextProvider: ASAuthorizationControllerPresentationContextProviding? { get set }
+    func performRequests()
+}
+
+extension ASAuthorizationController: AppleAuthorizationControlling {}
+
 /// Handles Sign in with Apple and session restoration.
 ///
 /// This service is injected into the environment via AppState and called
@@ -10,18 +27,128 @@ import SwiftData
 @MainActor
 final class AuthService: NSObject, ObservableObject {
 
+    struct AppleSignInCredential {
+        let userID: String
+        let fullName: PersonNameComponents?
+        let email: String?
+    }
+
+    struct Dependencies {
+        typealias AppleSignInPerformer = @MainActor (
+            _ request: ASAuthorizationAppleIDRequest,
+            _ presentationAnchor: ASPresentationAnchor,
+            _ completion: @escaping (Result<AppleSignInCredential, Error>) -> Void
+        ) -> AnyObject
+        typealias AuthorizationControllerFactory = @MainActor ([ASAuthorizationRequest]) -> any AppleAuthorizationControlling
+
+        @MainActor
+        static var makeAuthorizationController: AuthorizationControllerFactory = { requests in
+            ASAuthorizationController(authorizationRequests: requests)
+        }
+
+        let saveAppleUserID: (String) -> Void
+        let loadAppleUserID: () -> String?
+        let deleteAppleUserID: () -> Void
+        let credentialStateForUserID: (String) async -> ASAuthorizationAppleIDProvider.CredentialState
+        let makeUUID: () -> String
+        let performAppleSignInRequest: AppleSignInPerformer
+
+        init(
+            saveAppleUserID: @escaping (String) -> Void,
+            loadAppleUserID: @escaping () -> String?,
+            deleteAppleUserID: @escaping () -> Void,
+            credentialStateForUserID: @escaping (String) async -> ASAuthorizationAppleIDProvider.CredentialState,
+            makeUUID: @escaping () -> String,
+            performAppleSignInRequest: @escaping AppleSignInPerformer = Dependencies.defaultPerformAppleSignInRequest
+        ) {
+            self.saveAppleUserID = saveAppleUserID
+            self.loadAppleUserID = loadAppleUserID
+            self.deleteAppleUserID = deleteAppleUserID
+            self.credentialStateForUserID = credentialStateForUserID
+            self.makeUUID = makeUUID
+            self.performAppleSignInRequest = performAppleSignInRequest
+        }
+
+        @MainActor
+        private static func defaultPerformAppleSignInRequest(
+            request: ASAuthorizationAppleIDRequest,
+            presentationAnchor: ASPresentationAnchor,
+            completion: @escaping (Result<AppleSignInCredential, Error>) -> Void
+        ) -> AnyObject {
+            let controller = makeAuthorizationController([request])
+            let delegate = AppleSignInDelegate(
+                presentationAnchor: presentationAnchor,
+                completion: completion
+            )
+            controller.delegate = delegate
+            controller.presentationContextProvider = delegate
+            controller.performRequests()
+            return delegate
+        }
+
+        @MainActor static let live = Dependencies(
+            saveAppleUserID: KeychainHelper.saveAppleUserID,
+            loadAppleUserID: KeychainHelper.loadAppleUserID,
+            deleteAppleUserID: KeychainHelper.deleteAppleUserID,
+            credentialStateForUserID: { userID in
+                (try? await ASAuthorizationAppleIDProvider().credentialState(forUserID: userID)) ?? .notFound
+            },
+            makeUUID: { UUID().uuidString }
+        )
+    }
+
+    enum SessionRestorationAction: Equatable {
+        case resolveAuthorized
+        case signedOut(shouldDeleteStoredUserID: Bool)
+    }
+
+    private let dependencies: Dependencies
+
+    init(dependencies: Dependencies = .live) {
+        self.dependencies = dependencies
+        super.init()
+    }
+
     // MARK: - Public
 
     /// Process an ASAuthorizationAppleIDCredential obtained from SwiftUI's SignInWithAppleButton.
     func resolveAfterCredential(
-        credential: ASAuthorizationAppleIDCredential,
+        credential: any AppleIDCredentialProviding,
         modelContext: ModelContext
     ) async -> AuthState {
-        KeychainHelper.saveAppleUserID(credential.user)
-        return await resolveAuthState(
-            appleUserID: credential.user,
+        await resolveAfterCredential(
+            userID: credential.user,
             fullName: credential.fullName,
             email: credential.email,
+            modelContext: modelContext
+        )
+    }
+
+    func resolveAfterCredential(
+        userID: String,
+        fullName: PersonNameComponents? = nil,
+        email: String? = nil,
+        modelContext: ModelContext
+    ) async -> AuthState {
+        await resolveAfterAppleSignIn(
+            appleUserID: userID,
+            fullName: fullName,
+            email: email,
+            modelContext: modelContext
+        )
+    }
+
+    func resolveAfterAppleSignIn(
+        appleUserID: String,
+        fullName: PersonNameComponents? = nil,
+        email: String? = nil,
+        modelContext: ModelContext
+    ) async -> AuthState {
+        dependencies.saveAppleUserID(appleUserID)
+        return await resolveAuthState(
+            appleUserID: appleUserID,
+            fullName: fullName,
+            email: email,
             modelContext: modelContext
         )
     }
@@ -29,25 +156,31 @@ final class AuthService: NSObject, ObservableObject {
     /// Attempt to restore the previous session from the keychain.
     /// Returns `.signedOut` if no stored credential or the credential was revoked.
     func restoreSession(modelContext: ModelContext) async -> AuthState {
-        guard let appleUserID = KeychainHelper.loadAppleUserID() else {
+        guard let appleUserID = dependencies.loadAppleUserID() else {
             return .signedOut
         }
 
-        // Check the credential is still valid with Apple.
-        let state = (try? await ASAuthorizationAppleIDProvider()
-            .credentialState(forUserID: appleUserID)) ?? .notFound
-        switch state {
-        case .authorized:
+        switch Self.sessionRestorationAction(for: await dependencies.credentialStateForUserID(appleUserID)) {
+        case .resolveAuthorized:
             return await resolveAuthState(appleUserID: appleUserID, modelContext: modelContext)
-        case .revoked, .notFound:
-            KeychainHelper.deleteAppleUserID()
+        case .signedOut(let shouldDeleteStoredUserID):
+            if shouldDeleteStoredUserID {
+                dependencies.deleteAppleUserID()
+            }
             return .signedOut
-        case .transferred:
-            // Treat transferred as signedOut for now; handle migration if needed later.
-            KeychainHelper.deleteAppleUserID()
-            return .signedOut
+        }
+    }
+
+    static func sessionRestorationAction(
+        for credentialState: ASAuthorizationAppleIDProvider.CredentialState
+    ) -> SessionRestorationAction {
+        switch credentialState {
+        case .authorized:
+            return .resolveAuthorized
+        case .revoked, .notFound, .transferred:
+            return .signedOut(shouldDeleteStoredUserID: true)
         @unknown default:
-            return .signedOut
+            return .signedOut(shouldDeleteStoredUserID: false)
         }
     }
 
@@ -61,43 +194,35 @@ final class AuthService: NSObject, ObservableObject {
         request.requestedScopes = [.fullName, .email]
 
         return try await withCheckedThrowingContinuation { continuation in
-            let controller = ASAuthorizationController(authorizationRequests: [request])
-            let delegate = AppleSignInDelegate(
-                presentationAnchor: presentationAnchor,
-                modelContext: modelContext,
-                completion: { [weak self] result in
-                    guard let self else { return }
-                    switch result {
-                    case .success(let credential):
-                        Task { @MainActor in
-                            KeychainHelper.saveAppleUserID(credential.user)
-                            let state = await self.resolveAuthState(
-                                appleUserID: credential.user,
-                                fullName: credential.fullName,
-                                email: credential.email,
-                                modelContext: modelContext
-                            )
-                            continuation.resume(returning: state)
-                        }
-                    case .failure(let error):
-                        continuation.resume(throwing: error)
+            self.pendingDelegate = dependencies.performAppleSignInRequest(
+                request,
+                presentationAnchor
+            ) { [weak self] result in
+                guard let self else { return }
+                switch result {
+                case .success(let credential):
+                    Task { @MainActor in
+                        let state = await self.resolveAfterAppleSignIn(
+                            appleUserID: credential.userID,
+                            fullName: credential.fullName,
+                            email: credential.email,
+                            modelContext: modelContext
+                        )
+                        continuation.resume(returning: state)
                     }
+                case .failure(let error):
+                    continuation.resume(throwing: error)
                 }
-            )
-            controller.delegate = delegate
-            controller.presentationContextProvider = delegate
-            controller.performRequests()
-            // Retain delegate for the duration of the request
-            self.pendingDelegate = delegate
+            }
         }
     }
 
     // MARK: - Private
 
-    private var pendingDelegate: AppleSignInDelegate?
+    private var pendingDelegate: AnyObject?
 
     /// Look up or create a User record and return the appropriate AuthState.
-    private func resolveAuthState(
+    func resolveAuthState(
         appleUserID: String,
         fullName: PersonNameComponents? = nil,
         email: String? = nil,
@@ -109,16 +234,12 @@ final class AuthService: NSObject, ObservableObject {
         let existing = try? modelContext.fetch(descriptor)
 
         if let user = existing?.first {
-            return user.onboardingComplete
-                ? .authenticated(userID: user.id)
-                : .needsOnboarding(userID: user.id, appleUserID: appleUserID)
+            return Self.authState(for: user, appleUserID: appleUserID)
         }
 
         // New user: create a stub record and send to onboarding.
-        let userID = UUID().uuidString
-        let displayName = [fullName?.givenName, fullName?.familyName]
-            .compactMap { $0 }
-            .joined(separator: " ")
+        let userID = dependencies.makeUUID()
+        let displayName = Self.displayName(from: fullName)
 
         let newUser = User(
             id: userID,
@@ -134,25 +255,34 @@ final class AuthService: NSObject, ObservableObject {
 
         return .needsOnboarding(userID: userID, appleUserID: appleUserID)
     }
+
+    static func authState(for user: User, appleUserID: String) -> AuthState {
+        user.onboardingComplete
+            ? .authenticated(userID: user.id)
+            : .needsOnboarding(userID: user.id, appleUserID: appleUserID)
+    }
+
+    static func displayName(from fullName: PersonNameComponents?) -> String {
+        [fullName?.givenName, fullName?.familyName]
+            .compactMap { $0 }
+            .joined(separator: " ")
+    }
 }
 
 // MARK: - Delegate
 
-private final class AppleSignInDelegate: NSObject,
+final class AppleSignInDelegate: NSObject,
     ASAuthorizationControllerDelegate,
     ASAuthorizationControllerPresentationContextProviding
 {
     private let presentationAnchor: ASPresentationAnchor
-    private let modelContext: ModelContext
-    let completion: (Result<ASAuthorizationAppleIDCredential, Error>) -> Void
+    let completion: (Result<AuthService.AppleSignInCredential, Error>) -> Void
 
     init(
         presentationAnchor: ASPresentationAnchor,
-        modelContext: ModelContext,
-        completion: @escaping (Result<ASAuthorizationAppleIDCredential, Error>) -> Void
+        completion: @escaping (Result<AuthService.AppleSignInCredential, Error>) -> Void
     ) {
         self.presentationAnchor = presentationAnchor
-        self.modelContext = modelContext
         self.completion = completion
     }
 
@@ -164,11 +294,15 @@ private final class AppleSignInDelegate: NSObject,
         controller: ASAuthorizationController,
         didCompleteWithAuthorization authorization: ASAuthorization
     ) {
-        guard let credential = authorization.credential as? ASAuthorizationAppleIDCredential else {
+        guard let credential = authorization.credential as? any AppleIDCredentialProviding else {
             completion(.failure(AuthError.invalidCredential))
             return
         }
-        completion(.success(credential))
+        completion(.success(.init(
+            userID: credential.user,
+            fullName: credential.fullName,
+            email: credential.email
+        )))
     }
 
     func authorizationController(

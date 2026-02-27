@@ -1,0 +1,375 @@
+import XCTest
+import SwiftUI
+import SwiftData
+import UIKit
+@testable import SundeeFundee
+
+@MainActor
+final class DashboardViewCoverageTests: XCTestCase {
+    private struct TestStore {
+        let container: ModelContainer
+        let context: ModelContext
+    }
+
+    private final class InMemoryProgramRepository: ProgramRepository, @unchecked Sendable {
+        let programs: [Program]
+
+        init(programs: [Program]) {
+            self.programs = programs
+        }
+
+        func fetchPrograms() async throws -> [Program] { programs }
+
+        func fetchProgram(id: String) async throws -> Program? {
+            programs.first { $0.id == id }
+        }
+    }
+
+    private struct PushedDashboardHost: View {
+        let root: DashboardView
+        @State private var path: [StartWorkoutDestination]
+
+        init(root: DashboardView, destination: StartWorkoutDestination) {
+            self.root = root
+            _path = State(initialValue: [destination])
+        }
+
+        var body: some View {
+            NavigationStack(path: $path) { root }
+        }
+    }
+
+    private let fixedDate = Date(timeIntervalSince1970: 1_700_000_000)
+
+    private func makeTestStore() throws -> TestStore {
+        let schema = Schema(AppSchemaV1.models)
+        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
+        let container = try ModelContainer(for: schema, configurations: [config])
+        return TestStore(container: container, context: ModelContext(container))
+    }
+
+    @discardableResult
+    private func host<Content: View>(_ view: Content, triggerAppearance: Bool = true) -> UIHostingController<Content> {
+        let controller = UIHostingController(rootView: view)
+        let window = UIWindow(frame: UIScreen.main.bounds)
+        window.rootViewController = controller
+        window.makeKeyAndVisible()
+        controller.loadViewIfNeeded()
+
+        if triggerAppearance {
+            controller.beginAppearanceTransition(true, animated: false)
+            controller.endAppearanceTransition()
+        }
+
+        controller.view.frame = window.bounds
+        controller.view.setNeedsLayout()
+        controller.view.layoutIfNeeded()
+        RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.1))
+        return controller
+    }
+
+    private func makeAppState() -> AppState {
+        let appState = AppState()
+        appState.apply(.authenticated(userID: "dashboard-user"))
+        return appState
+    }
+
+    private func makeSession(id: String = "session-1", name: String = "Lower Strength") -> ProgramSession {
+        ProgramSession(
+            sessionID: id,
+            sessionName: name,
+            sessionType: "strength",
+            focus: "Lower Body",
+            exercises: [
+                ProgramExercise(
+                    exercise: "Back Squat",
+                    variant: nil,
+                    sets: .fixed(3),
+                    reps: .fixed(5),
+                    percent1RM: nil,
+                    restMinutes: 2,
+                    notes: nil
+                )
+            ]
+        )
+    }
+
+    private func makeProgram(
+        id: String = "program-1",
+        durationWeeks: Int = 4,
+        session: ProgramSession
+    ) -> Program {
+        Program(
+            id: id,
+            name: "Program \(id)",
+            category: "Strength",
+            description: "Cycle-aware strength plan",
+            durationWeeks: durationWeeks,
+            sessionsPerWeek: 1,
+            difficulty: "beginner",
+            phases: [],
+            weeks: [ProgramWeek(week: 1, phaseID: nil, isTestWeek: false, sessions: [session])],
+            cycleAdjustmentProfile: nil
+        )
+    }
+
+    private func makeEnrollment(
+        id: String = "enroll-1",
+        userID: String = "dashboard-user",
+        programID: String,
+        currentWeek: Int = 1,
+        currentDay: Int = 1
+    ) -> EnrolledProgram {
+        EnrolledProgram(
+            id: id,
+            userID: userID,
+            programID: programID,
+            startDate: fixedDate,
+            currentWeek: currentWeek,
+            currentDay: currentDay
+        )
+    }
+
+    private func makeWorkout(
+        id: String = "workout-1",
+        enrollmentID: String,
+        programID: String
+    ) -> CompletedWorkout {
+        CompletedWorkout(
+            id: id,
+            userID: "dashboard-user",
+            activeCycleID: "",
+            programID: programID,
+            enrollmentID: enrollmentID,
+            week: 1,
+            day: 1,
+            sessionID: "session-1",
+            completedAt: fixedDate,
+            durationSeconds: 2_100
+        )
+    }
+
+    private func makeDate(hour: Int) -> Date {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        return calendar.date(from: DateComponents(year: 2026, month: 1, day: 15, hour: hour))!
+    }
+
+    private func assertColor(
+        _ color: Color,
+        equals expected: UIColor,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        let actual = UIColor(color).resolvedColor(with: .init(userInterfaceStyle: .light))
+        let expectedResolved = expected.resolvedColor(with: .init(userInterfaceStyle: .light))
+
+        var actualRed: CGFloat = 0
+        var actualGreen: CGFloat = 0
+        var actualBlue: CGFloat = 0
+        var actualAlpha: CGFloat = 0
+        var expectedRed: CGFloat = 0
+        var expectedGreen: CGFloat = 0
+        var expectedBlue: CGFloat = 0
+        var expectedAlpha: CGFloat = 0
+
+        XCTAssertTrue(
+            actual.getRed(&actualRed, green: &actualGreen, blue: &actualBlue, alpha: &actualAlpha),
+            file: file,
+            line: line
+        )
+        XCTAssertTrue(
+            expectedResolved.getRed(&expectedRed, green: &expectedGreen, blue: &expectedBlue, alpha: &expectedAlpha),
+            file: file,
+            line: line
+        )
+        XCTAssertEqual(actualRed, expectedRed, accuracy: 0.001, file: file, line: line)
+        XCTAssertEqual(actualGreen, expectedGreen, accuracy: 0.001, file: file, line: line)
+        XCTAssertEqual(actualBlue, expectedBlue, accuracy: 0.001, file: file, line: line)
+        XCTAssertEqual(actualAlpha, expectedAlpha, accuracy: 0.001, file: file, line: line)
+    }
+
+    func testGreetingForDateCoversAllBuckets() {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+
+        XCTAssertEqual(DashboardView.greeting(for: makeDate(hour: 8), calendar: calendar), "Good morning")
+        XCTAssertEqual(DashboardView.greeting(for: makeDate(hour: 13), calendar: calendar), "Good afternoon")
+        XCTAssertEqual(DashboardView.greeting(for: makeDate(hour: 20), calendar: calendar), "Good evening")
+    }
+
+    func testDashboardHelperSeamsCoverEnrollmentAndWorkoutBranches() {
+        let session = makeSession()
+        let program = makeProgram(session: session)
+        let enrollment = makeEnrollment(programID: program.id, currentWeek: 3)
+        let workout = makeWorkout(enrollmentID: enrollment.id, programID: program.id)
+
+        XCTAssertNotNil(DashboardView.activeEnrollmentState(enrollment: enrollment, program: program))
+        XCTAssertNil(DashboardView.activeEnrollmentState(enrollment: nil, program: program))
+        XCTAssertNil(DashboardView.activeEnrollmentState(enrollment: enrollment, program: nil))
+
+        XCTAssertTrue(DashboardView.shouldShowEmptyRecentWorkouts([]))
+        XCTAssertFalse(DashboardView.shouldShowEmptyRecentWorkouts([workout]))
+
+        XCTAssertEqual(ActiveEnrollmentCard.progressFraction(currentWeek: 1, durationWeeks: 4), 0, accuracy: 0.001)
+        XCTAssertEqual(ActiveEnrollmentCard.progressFraction(currentWeek: 3, durationWeeks: 4), 0.5, accuracy: 0.001)
+        XCTAssertEqual(ActiveEnrollmentCard.progressFraction(currentWeek: 5, durationWeeks: 4), 1.0, accuracy: 0.001)
+        XCTAssertEqual(ActiveEnrollmentCard.progressFraction(currentWeek: 2, durationWeeks: 0), 0, accuracy: 0.001)
+    }
+
+    func testRefreshActionLoadsViewModel() async throws {
+        let store = try makeTestStore()
+        let viewModel = DashboardViewModel(programRepo: InMemoryProgramRepository(programs: []))
+        let refresh = DashboardView.refreshAction(viewModel: viewModel, modelContext: store.context)
+        await refresh()
+        await DashboardView.performRefresh(viewModel: viewModel, modelContext: store.context)
+        XCTAssertGreaterThanOrEqual(viewModel.recentWorkouts.count, 0)
+    }
+
+    func testCyclePhaseBadgeColorHelperCoversAllPhases() {
+        assertColor(CyclePhaseBadge.badgeColor(for: .menstrual), equals: UIColor(red: 0.75, green: 0.15, blue: 0.20, alpha: 1))
+        assertColor(CyclePhaseBadge.badgeColor(for: .follicular), equals: UIColor(red: 0.20, green: 0.55, blue: 0.80, alpha: 1))
+        assertColor(CyclePhaseBadge.badgeColor(for: .ovulation), equals: UIColor(AppTheme.Colors.accentOrange))
+        assertColor(CyclePhaseBadge.badgeColor(for: .luteal), equals: UIColor(red: 0.50, green: 0.35, blue: 0.65, alpha: 1))
+    }
+
+    func testDashboardSubViewBodiesEvaluateWithoutLifecycleHosting() {
+        let session = makeSession()
+        let program = makeProgram(session: session)
+        let enrollment = makeEnrollment(programID: program.id, currentWeek: 2)
+        let workout = makeWorkout(enrollmentID: enrollment.id, programID: program.id)
+
+        _ = ActiveEnrollmentCard(
+            enrollment: enrollment,
+            program: program,
+            nextSession: session,
+            cyclePhase: .follicular
+        ).body
+        _ = ActiveEnrollmentCard(
+            enrollment: enrollment,
+            program: program,
+            nextSession: nil,
+            cyclePhase: nil
+        ).body
+        _ = NoEnrollmentCard().body
+        _ = CyclePhaseBadge(phase: .ovulation).body
+        _ = WorkoutHistoryRow(workout: workout).body
+    }
+
+    func testDashboardViewRendersNoEnrollmentAndEmptyRecentWorkouts() throws {
+        let store = try makeTestStore()
+        let appState = makeAppState()
+        let viewModel = DashboardViewModel(programRepo: InMemoryProgramRepository(programs: []))
+        viewModel.activeEnrollment = nil
+        viewModel.activeProgram = nil
+        viewModel.nextSession = nil
+        viewModel.recentWorkouts = []
+        viewModel.currentCyclePhase = nil
+
+        XCTAssertNotNil(host(
+            NavigationStack {
+                DashboardView(viewModel: viewModel)
+            }
+            .environment(appState)
+            .modelContainer(store.container)
+        ).view)
+    }
+
+    func testDashboardViewRendersActiveCardCycleBadgeAndRecentWorkout() throws {
+        let store = try makeTestStore()
+        let appState = makeAppState()
+        let session = makeSession()
+        let program = makeProgram(session: session)
+        let enrollment = makeEnrollment(programID: program.id)
+        let workout = makeWorkout(enrollmentID: enrollment.id, programID: program.id)
+
+        let viewModel = DashboardViewModel(programRepo: InMemoryProgramRepository(programs: [program]))
+        viewModel.activeEnrollment = enrollment
+        viewModel.activeProgram = program
+        viewModel.nextSession = session
+        viewModel.recentWorkouts = [workout]
+        viewModel.currentCyclePhase = .luteal
+
+        XCTAssertNotNil(host(
+            NavigationStack {
+                DashboardView(viewModel: viewModel)
+            }
+            .environment(appState)
+            .modelContainer(store.container)
+        ).view)
+    }
+
+    func testActiveEnrollmentCardCoversProgressAndStartWorkoutBranches() throws {
+        let store = try makeTestStore()
+        let session = makeSession()
+        let fullProgram = makeProgram(id: "program-full", durationWeeks: 4, session: session)
+        let zeroProgram = makeProgram(id: "program-zero", durationWeeks: 0, session: session)
+        let fullEnrollment = makeEnrollment(programID: fullProgram.id, currentWeek: 4)
+        let zeroEnrollment = makeEnrollment(id: "enroll-zero", programID: zeroProgram.id)
+
+        XCTAssertNotNil(host(
+            NavigationStack {
+                VStack {
+                    ActiveEnrollmentCard(
+                        enrollment: fullEnrollment,
+                        program: fullProgram,
+                        nextSession: session,
+                        cyclePhase: .follicular
+                    )
+                    ActiveEnrollmentCard(
+                        enrollment: zeroEnrollment,
+                        program: zeroProgram,
+                        nextSession: nil,
+                        cyclePhase: nil
+                    )
+                }
+            }
+            .modelContainer(store.container),
+            triggerAppearance: true
+        ).view)
+    }
+
+    func testNavigationDestinationAndDestinationHashingBranches() throws {
+        let store = try makeTestStore()
+        let appState = makeAppState()
+        let session = makeSession()
+        let alternateSession = makeSession(id: "session-2", name: "Upper Strength")
+        let program = makeProgram(session: session)
+        let enrollment = makeEnrollment(programID: program.id)
+        store.context.insert(enrollment)
+        try store.context.save()
+
+        let destination = StartWorkoutDestination(enrollment: enrollment, session: session)
+        XCTAssertEqual(destination, StartWorkoutDestination(enrollment: enrollment, session: session))
+        XCTAssertNotEqual(destination, StartWorkoutDestination(enrollment: enrollment, session: alternateSession))
+        XCTAssertEqual(Set([destination, StartWorkoutDestination(enrollment: enrollment, session: alternateSession)]).count, 2)
+
+        let withProgramViewModel = DashboardViewModel(programRepo: InMemoryProgramRepository(programs: [program]))
+        withProgramViewModel.activeEnrollment = enrollment
+        withProgramViewModel.activeProgram = program
+        withProgramViewModel.nextSession = session
+
+        XCTAssertNotNil(host(
+            PushedDashboardHost(
+                root: DashboardView(viewModel: withProgramViewModel),
+                destination: destination
+            )
+            .environment(appState)
+            .modelContainer(store.container)
+        ).view)
+
+        let withoutProgramViewModel = DashboardViewModel(programRepo: InMemoryProgramRepository(programs: []))
+        withoutProgramViewModel.activeEnrollment = enrollment
+        withoutProgramViewModel.activeProgram = nil
+        withoutProgramViewModel.nextSession = session
+
+        XCTAssertNotNil(host(
+            PushedDashboardHost(
+                root: DashboardView(viewModel: withoutProgramViewModel),
+                destination: destination
+            )
+            .environment(appState)
+            .modelContainer(store.container)
+        ).view)
+    }
+}

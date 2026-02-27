@@ -8,9 +8,41 @@ struct MaxLiftsView: View {
     @State private var searchText = ""
     @State private var showAddMax = false
 
+    static func filteredExercises(searchText: String, exerciseNames: [String]) -> [String] {
+        guard !searchText.isEmpty else { return exerciseNames }
+        return exerciseNames.filter { $0.localizedCaseInsensitiveContains(searchText) }
+    }
+    
+    static func exerciseDestination(viewModel: MaxLiftsViewModel) -> (String) -> ExerciseDetailView {
+        { exercise in
+            ExerciseDetailView(exercise: exercise, viewModel: viewModel)
+        }
+    }
+    
+    static func addSheetContent(viewModel: MaxLiftsViewModel) -> () -> AddLiftMaxSheet {
+        { AddLiftMaxSheet(viewModel: viewModel) }
+    }
+
+    static func presentAddSheetAction(isPresented: Binding<Bool>) -> () -> Void {
+        { isPresented.wrappedValue = true }
+    }
+
+    static func emptyStateTitle(searchText: String) -> String {
+        searchText.isEmpty ? "No Lift Data" : "No Results"
+    }
+
+    static func emptyStateDescription(searchText: String) -> String {
+        searchText.isEmpty
+            ? "Complete workouts to automatically track your 1RM."
+            : "Try a different search term."
+    }
+
+    static func personalRecords(for exercise: String, records: [String: [PersonalRecord]]) -> [PersonalRecord] {
+        records[exercise, default: []]
+    }
+    
     private var filteredExercises: [String] {
-        guard !searchText.isEmpty else { return viewModel.exerciseNames }
-        return viewModel.exerciseNames.filter { $0.localizedCaseInsensitiveContains(searchText) }
+        Self.filteredExercises(searchText: searchText, exerciseNames: viewModel.exerciseNames)
     }
 
     var body: some View {
@@ -19,11 +51,9 @@ struct MaxLiftsView: View {
             List {
                 if filteredExercises.isEmpty {
                     ContentUnavailableView(
-                        searchText.isEmpty ? "No Lift Data" : "No Results",
+                        Self.emptyStateTitle(searchText: searchText),
                         systemImage: "dumbbell",
-                        description: Text(searchText.isEmpty
-                            ? "Complete workouts to automatically track your 1RM."
-                            : "Try a different search term.")
+                        description: Text(Self.emptyStateDescription(searchText: searchText))
                     )
                     .listRowBackground(Color.clear)
                 } else {
@@ -32,7 +62,7 @@ struct MaxLiftsView: View {
                             LiftMaxRow(
                                 exercise: exercise,
                                 oneRepMax: viewModel.oneRepMaxes[exercise],
-                                prs: viewModel.personalRecords[exercise] ?? []
+                                prs: Self.personalRecords(for: exercise, records: viewModel.personalRecords)
                             )
                         }
                     }
@@ -45,18 +75,14 @@ struct MaxLiftsView: View {
         .navigationTitle("Lift Maxes")
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                Button { showAddMax = true } label: {
+                Button(action: Self.presentAddSheetAction(isPresented: $showAddMax)) {
                     Image(systemName: "plus")
                 }
                 .accessibilityLabel("Add lift max")
             }
         }
-        .navigationDestination(for: String.self) { exercise in
-            ExerciseDetailView(exercise: exercise, viewModel: viewModel)
-        }
-        .sheet(isPresented: $showAddMax) {
-            AddLiftMaxSheet(viewModel: viewModel)
-        }
+        .navigationDestination(for: String.self, destination: Self.exerciseDestination(viewModel: viewModel))
+        .sheet(isPresented: $showAddMax, content: Self.addSheetContent(viewModel: viewModel))
         .task { await viewModel.load(modelContext: modelContext) }
     }
 }
@@ -163,10 +189,44 @@ struct AddLiftMaxSheet: View {
     @Bindable var viewModel: MaxLiftsViewModel
     @Environment(\.dismiss) private var dismiss
 
-    @State private var selectedExercise = WeightliftingExerciseCatalog.all.first?.id ?? ""
-    @State private var weightKg = ""
-    @State private var reps = 1
-    @State private var isEstimated = false
+    @State private var selectedExercise: String
+    @State private var weightKg: String
+    @State private var reps: Int
+    @State private var isEstimated: Bool
+    
+    init(
+        viewModel: MaxLiftsViewModel,
+        selectedExercise: String = WeightliftingExerciseCatalog.defaultExerciseID,
+        weightKg: String = "",
+        reps: Int = 1,
+        isEstimated: Bool = false
+    ) {
+        self.viewModel = viewModel
+        _selectedExercise = State(initialValue: selectedExercise)
+        _weightKg = State(initialValue: weightKg)
+        _reps = State(initialValue: reps)
+        _isEstimated = State(initialValue: isEstimated)
+    }
+    
+    static func saveAction(
+        viewModel: MaxLiftsViewModel,
+        selectedExercise: String,
+        weightKg: String,
+        reps: Int,
+        isEstimated: Bool,
+        dismiss: @escaping () -> Void
+    ) -> () -> Void {
+        {
+            guard let kg = Double(weightKg) else { return }
+            viewModel.addMax(
+                exercise: selectedExercise,
+                weightKg: kg,
+                reps: reps,
+                isEstimated: isEstimated
+            )
+            dismiss()
+        }
+    }
 
     var body: some View {
         NavigationStack {
@@ -192,19 +252,17 @@ struct AddLiftMaxSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    Button("Cancel", action: dismiss.callAsFunction)
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
-                        guard let kg = Double(weightKg) else { return }
-                        viewModel.addMax(
-                            exercise: selectedExercise,
-                            weightKg: kg,
-                            reps: reps,
-                            isEstimated: isEstimated
-                        )
-                        dismiss()
-                    }
+                    Button("Save", action: Self.saveAction(
+                        viewModel: viewModel,
+                        selectedExercise: selectedExercise,
+                        weightKg: weightKg,
+                        reps: reps,
+                        isEstimated: isEstimated,
+                        dismiss: dismiss.callAsFunction
+                    ))
                 }
             }
         }

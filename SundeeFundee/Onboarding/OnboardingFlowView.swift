@@ -21,6 +21,26 @@ struct OnboardingFlowView: View {
     @State private var cycleTrackingEnabled: Bool = false
     @State private var isSaving = false
 
+    init(
+        userID: String,
+        initialStep: OnboardingStep = .name,
+        initialName: String = "",
+        initialExperienceLevel: ExperienceLevel = .beginner,
+        initialPrimaryGoal: PrimaryGoal = .strength,
+        initialGender: Gender = .preferNotToSay,
+        initialCycleTrackingEnabled: Bool = false,
+        initialIsSaving: Bool = false
+    ) {
+        self.userID = userID
+        _step = State(initialValue: initialStep)
+        _name = State(initialValue: initialName)
+        _experienceLevel = State(initialValue: initialExperienceLevel)
+        _primaryGoal = State(initialValue: initialPrimaryGoal)
+        _gender = State(initialValue: initialGender)
+        _cycleTrackingEnabled = State(initialValue: initialCycleTrackingEnabled)
+        _isSaving = State(initialValue: initialIsSaving)
+    }
+
     enum OnboardingStep: Int, CaseIterable {
         case name, experience, goal, gender, cycle
     }
@@ -52,14 +72,12 @@ struct OnboardingFlowView: View {
 
                     // Navigation buttons
                     HStack {
-                        if step.rawValue > 0 {
-                            Button("Back") { withAnimation { previousStep() } }
+                        if Self.showsBackButton(for: step) {
+                            Button("Back", action: previousStepAnimatedAction)
                                 .foregroundStyle(AppTheme.Color.textSecondary)
                         }
                         Spacer()
-                        Button(isLastStep ? "Get Started" : "Next") {
-                            withAnimation { nextStep() }
-                        }
+                        Button(Self.actionTitle(for: step, gender: gender), action: nextStepAnimatedAction)
                         .buttonStyle(PrimaryButtonStyle())
                         .disabled(!canAdvance || isSaving)
                     }
@@ -80,7 +98,7 @@ struct OnboardingFlowView: View {
                 TextField("Your name", text: $name)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                     .submitLabel(.next)
-                    .onSubmit { if canAdvance { withAnimation { nextStep() } } }
+                    .onSubmit(submitNameStepAction)
             }
         case .experience:
             OnboardingStepView(title: "Experience level", subtitle: "How long have you been strength training?") {
@@ -89,7 +107,7 @@ struct OnboardingFlowView: View {
                         title: level.displayName,
                         subtitle: level.subtitle,
                         isSelected: experienceLevel == level
-                    ) { experienceLevel = level }
+                    , action: Self.selectionAction(binding: $experienceLevel, value: level))
                 }
             }
         case .goal:
@@ -99,7 +117,7 @@ struct OnboardingFlowView: View {
                         title: goal.displayName,
                         subtitle: goal.subtitle,
                         isSelected: primaryGoal == goal
-                    ) { primaryGoal = goal }
+                    , action: Self.selectionAction(binding: $primaryGoal, value: goal))
                 }
             }
         case .gender:
@@ -109,7 +127,7 @@ struct OnboardingFlowView: View {
                         title: g.displayName,
                         subtitle: nil,
                         isSelected: gender == g
-                    ) { gender = g }
+                    , action: Self.selectionAction(binding: $gender, value: g))
                 }
             }
         case .cycle:
@@ -121,70 +139,234 @@ struct OnboardingFlowView: View {
                     title: "Yes, enable cycle tracking",
                     subtitle: "Log your cycle and get phase-specific load adjustments.",
                     isSelected: cycleTrackingEnabled
-                ) { cycleTrackingEnabled = true }
+                , action: Self.selectionAction(binding: $cycleTrackingEnabled, value: true))
 
                 SelectionRow(
                     title: "No thanks",
                     subtitle: "Follow the standard programme without cycle adjustments.",
                     isSelected: !cycleTrackingEnabled
-                ) { cycleTrackingEnabled = false }
+                , action: Self.selectionAction(binding: $cycleTrackingEnabled, value: false))
             }
         }
     }
 
     // MARK: - Navigation
 
-    private var visibleSteps: [OnboardingStep] {
+    static func visibleSteps(for gender: Gender) -> [OnboardingStep] {
         if gender == .male { return OnboardingStep.allCases.filter { $0 != .cycle } }
         return OnboardingStep.allCases
     }
 
-    private var isLastStep: Bool {
-        step == visibleSteps.last
+    static func canAdvanceFromName(_ name: String) -> Bool {
+        !name.trimmingCharacters(in: .whitespaces).isEmpty
+    }
+
+    static func showsBackButton(for step: OnboardingStep) -> Bool {
+        step.rawValue > 0
+    }
+
+    static func actionTitle(for step: OnboardingStep, gender: Gender) -> String {
+        isLastStep(step, gender: gender) ? "Get Started" : "Next"
+    }
+
+    static func isLastStep(_ step: OnboardingStep, gender: Gender) -> Bool {
+        step == visibleSteps(for: gender).last
+    }
+
+    static func nextVisibleStep(from step: OnboardingStep, gender: Gender) -> OnboardingStep? {
+        let steps = visibleSteps(for: gender)
+        guard let current = steps.firstIndex(of: step), current < steps.count - 1 else { return nil }
+        return steps[current + 1]
+    }
+
+    static func previousVisibleStep(from step: OnboardingStep, gender: Gender) -> OnboardingStep? {
+        let steps = visibleSteps(for: gender)
+        guard let current = steps.firstIndex(of: step), current > 0 else { return nil }
+        return steps[current - 1]
+    }
+
+    static func resolvedCycleTrackingEnabled(gender: Gender, requestedValue: Bool) -> Bool {
+        gender != .male && requestedValue
+    }
+
+    static func selectionAction<T: Equatable>(binding: Binding<T>, value: T) -> () -> Void {
+        { binding.wrappedValue = value }
+    }
+
+    nonisolated static func trimmedName(_ name: String) -> String {
+        name.trimmingCharacters(in: .whitespaces)
+    }
+
+    nonisolated static func applyOnboardingAnswers(
+        to user: User,
+        name: String,
+        experienceLevel: ExperienceLevel,
+        primaryGoal: PrimaryGoal,
+        gender: Gender,
+        cycleTrackingEnabled: Bool,
+        updatedAt: Date = .now
+    ) {
+        user.name = trimmedName(name)
+        user.experienceLevel = experienceLevel
+        user.primaryGoal = primaryGoal
+        user.gender = gender
+        user.cycleTrackingEnabled = resolvedCycleTrackingEnabled(
+            gender: gender,
+            requestedValue: cycleTrackingEnabled
+        )
+        user.onboardingComplete = true
+        user.profileUpdatedAt = updatedAt
+    }
+
+    @MainActor
+    @discardableResult
+    static func persistOnboardingAnswers(
+        userID: String,
+        name: String,
+        experienceLevel: ExperienceLevel,
+        primaryGoal: PrimaryGoal,
+        gender: Gender,
+        cycleTrackingEnabled: Bool,
+        modelContext: ModelContext,
+        appState: AppState,
+        updatedAt: Date = .now
+    ) -> Bool {
+        let descriptor = FetchDescriptor<User>(
+            predicate: #Predicate { $0.id == userID }
+        )
+        guard let user = (try? modelContext.fetch(descriptor))?.first else { return false }
+        applyOnboardingAnswers(
+            to: user,
+            name: name,
+            experienceLevel: experienceLevel,
+            primaryGoal: primaryGoal,
+            gender: gender,
+            cycleTrackingEnabled: cycleTrackingEnabled,
+            updatedAt: updatedAt
+        )
+        try? modelContext.save()
+        appState.apply(.authenticated(userID: userID))
+        return true
+    }
+
+    private var visibleSteps: [OnboardingStep] {
+        Self.visibleSteps(for: gender)
     }
 
     private var canAdvance: Bool {
         switch step {
-        case .name: return !name.trimmingCharacters(in: .whitespaces).isEmpty
+        case .name: return Self.canAdvanceFromName(name)
         default: return true
         }
     }
 
-    private func nextStep() {
-        guard let current = visibleSteps.firstIndex(of: step) else { return }
-        if current < visibleSteps.count - 1 {
-            step = visibleSteps[current + 1]
-        } else {
-            saveAndFinish()
-        }
+    var currentStep: OnboardingStep {
+        step
     }
 
-    private func previousStep() {
-        guard let current = visibleSteps.firstIndex(of: step), current > 0 else { return }
-        step = visibleSteps[current - 1]
+    var isSavingState: Bool {
+        isSaving
+    }
+
+    @discardableResult
+    func submitNameStep() -> Bool {
+        if canAdvance {
+            return nextStepAnimated()
+        }
+        return false
+    }
+
+    @discardableResult
+    func nextStepAnimated() -> Bool {
+        withAnimation { nextStep() }
+    }
+
+    @discardableResult
+    func previousStepAnimated() -> Bool {
+        withAnimation { previousStep() }
+    }
+
+    @discardableResult
+    func nextStep(saveAndFinish: () -> Void) -> Bool {
+        if let next = Self.nextVisibleStep(from: step, gender: gender) {
+            step = next
+            return true
+        }
+        saveAndFinish()
+        return false
+    }
+
+    @discardableResult
+    func nextStep() -> Bool {
+        guard let next = Self.nextVisibleStep(from: step, gender: gender) else { return false }
+        step = next
+        return true
+    }
+
+    @discardableResult
+    func nextStepWithPersistence(appState: AppState, modelContext: ModelContext) -> Bool {
+        nextStep(saveAndFinish: { _ = saveAndFinish(appState: appState, modelContext: modelContext) })
+    }
+
+    @discardableResult
+    func previousStep() -> Bool {
+        guard let previous = Self.previousVisibleStep(from: step, gender: gender) else { return false }
+        step = previous
+        return true
     }
 
     // MARK: - Persistence
 
-    private func saveAndFinish() {
+    @discardableResult
+    func saveAndFinish(
+        persistAnswers: (
+            _ userID: String,
+            _ name: String,
+            _ experienceLevel: ExperienceLevel,
+            _ primaryGoal: PrimaryGoal,
+            _ gender: Gender,
+            _ cycleTrackingEnabled: Bool
+        ) -> Bool
+    ) -> Bool {
         isSaving = true
-        let descriptor = FetchDescriptor<User>(
-            predicate: #Predicate { $0.id == userID }
+        let persisted = persistAnswers(
+            userID,
+            name,
+            experienceLevel,
+            primaryGoal,
+            gender,
+            cycleTrackingEnabled
         )
-        guard let user = (try? modelContext.fetch(descriptor))?.first else {
-            isSaving = false; return
-        }
-        user.name = name.trimmingCharacters(in: .whitespaces)
-        user.experienceLevel = experienceLevel
-        user.primaryGoal = primaryGoal
-        user.gender = gender
-        user.cycleTrackingEnabled = gender != .male && cycleTrackingEnabled
-        user.onboardingComplete = true
-        user.profileUpdatedAt = .now
-        try? modelContext.save()
-        appState.apply(.authenticated(userID: userID))
         isSaving = false
+        return persisted
     }
+
+    @discardableResult
+    func saveAndFinish(appState: AppState, modelContext: ModelContext) -> Bool {
+        saveAndFinish { userID, name, experienceLevel, primaryGoal, gender, cycleTrackingEnabled in
+            Self.persistOnboardingAnswers(
+                userID: userID,
+                name: name,
+                experienceLevel: experienceLevel,
+                primaryGoal: primaryGoal,
+                gender: gender,
+                cycleTrackingEnabled: cycleTrackingEnabled,
+                modelContext: modelContext,
+                appState: appState
+            )
+        }
+    }
+
+    func previousStepAnimatedAction() { _ = previousStepAnimated() }
+    func nextStepAnimatedAction() {
+        _ = withAnimation {
+            Self.isLastStep(currentStep, gender: gender)
+                ? nextStepWithPersistence(appState: appState, modelContext: modelContext)
+                : nextStep()
+        }
+    }
+    func submitNameStepAction() { _ = submitNameStep() }
+
 }
 
 // MARK: - Sub-components

@@ -6,11 +6,18 @@ import CloudKit
 /// Loads programs bundled as JSON in the app target.
 /// Used as the primary source when CloudKit is unavailable.
 final class BundledProgramRepository: ProgramRepository, @unchecked Sendable {
+    private let bundle: Bundle
+    private let resourceName: String
     private var cache: [Program]?
+
+    init(bundle: Bundle = .main, resourceName: String = "programs") {
+        self.bundle = bundle
+        self.resourceName = resourceName
+    }
 
     func fetchPrograms() async throws -> [Program] {
         if let cache { return cache }
-        guard let url = Bundle.main.url(forResource: "programs", withExtension: "json") else {
+        guard let url = bundle.url(forResource: resourceName, withExtension: "json") else {
             return []
         }
         let data = try Data(contentsOf: url)
@@ -30,17 +37,49 @@ final class BundledProgramRepository: ProgramRepository, @unchecked Sendable {
 /// Fetches programs from CloudKit Public Database.
 /// Falls back to the bundled repository if CloudKit is unavailable.
 final class CloudKitProgramRepository: ProgramRepository, @unchecked Sendable {
-    private let container: CKContainer
-    private let fallback: BundledProgramRepository
+    typealias CloudRecordFetcher = @Sendable (CKQuery) async throws -> [(CKRecord.ID, Result<CKRecord, Error>)]
+    typealias CloudQueryExecutor = @Sendable (CKQuery) async throws -> [(CKRecord.ID, Result<CKRecord, Error>)]
 
-    init(containerID: String = "iCloud.com.sundeefundee.app") {
-        container = CKContainer(identifier: containerID)
-        fallback = BundledProgramRepository()
+    private let cloudFetcher: () async throws -> [Program]
+    private let fallback: ProgramRepository
+
+    init(
+        containerID: String = "iCloud.com.sundeefundee.app",
+        fallback: ProgramRepository = BundledProgramRepository(),
+        cloudQueryExecutor: CloudQueryExecutor? = nil
+    ) {
+        self.fallback = fallback
+        self.cloudFetcher = {
+            try await Self.fetchFromCloudKit { query in
+                if let cloudQueryExecutor {
+                    return try await cloudQueryExecutor(query)
+                }
+                return try await CKContainer(identifier: containerID).publicCloudDatabase.records(matching: query).matchResults
+            }
+        }
+    }
+
+    init(
+        fallback: ProgramRepository,
+        cloudRecordFetcher: @escaping CloudRecordFetcher
+    ) {
+        self.fallback = fallback
+        self.cloudFetcher = {
+            try await Self.fetchFromCloudKit(cloudRecordFetcher)
+        }
+    }
+
+    init(
+        fallback: ProgramRepository,
+        cloudFetcher: @escaping () async throws -> [Program]
+    ) {
+        self.fallback = fallback
+        self.cloudFetcher = cloudFetcher
     }
 
     func fetchPrograms() async throws -> [Program] {
         do {
-            return try await fetchFromCloudKit()
+            return try await cloudFetcher()
         } catch {
             // Fall back to bundled programs when CloudKit is unavailable
             return try await fallback.fetchPrograms()
@@ -52,13 +91,12 @@ final class CloudKitProgramRepository: ProgramRepository, @unchecked Sendable {
         return all.first { $0.id == id }
     }
 
-    private func fetchFromCloudKit() async throws -> [Program] {
-        let publicDB = container.publicCloudDatabase
+    private static func fetchFromCloudKit(_ cloudRecordFetcher: CloudRecordFetcher) async throws -> [Program] {
         let query = CKQuery(recordType: "Program", predicate: NSPredicate(value: true))
         query.sortDescriptors = [NSSortDescriptor(key: "name", ascending: true)]
 
-        let result = try await publicDB.records(matching: query)
-        return try result.matchResults.compactMap { _, recordResult -> Program? in
+        let matchResults = try await cloudRecordFetcher(query)
+        return try matchResults.compactMap { _, recordResult -> Program? in
             let record = try recordResult.get()
             return try Program(from: record)
         }

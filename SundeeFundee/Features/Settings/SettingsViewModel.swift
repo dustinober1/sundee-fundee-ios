@@ -28,7 +28,7 @@ final class SettingsViewModel {
         let injuryDescriptor = FetchDescriptor<InjuryProfile>(
             sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
         )
-        injuryProfiles = (try? modelContext.fetch(injuryDescriptor)) ?? []
+        injuryProfiles = try! modelContext.fetch(injuryDescriptor)
     }
 
     func saveProfile() async {

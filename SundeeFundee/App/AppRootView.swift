@@ -4,29 +4,65 @@ import SwiftData
 /// Routes between loading, sign-in, onboarding, and main app based on AppState.
 struct AppRootView: View {
     @Environment(\.modelContext) private var modelContext
-    @State private var appState = AppState()
+    @State private var appState: AppState
+    private let shouldRestoreSession: Bool
+
+    init(initialAppState: AppState = AppState(), shouldRestoreSession: Bool = true) {
+        _appState = State(initialValue: initialAppState)
+        self.shouldRestoreSession = shouldRestoreSession
+    }
+
+    enum Destination: Equatable {
+        case loading
+        case signedOut
+        case onboarding(userID: String)
+        case mainTabs
+    }
+
+    static func destination(for authState: AuthState) -> Destination {
+        switch authState {
+        case .loading:
+            .loading
+        case .signedOut:
+            .signedOut
+        case .needsOnboarding(let userID, _):
+            .onboarding(userID: userID)
+        case .authenticated, .guest:
+            .mainTabs
+        }
+    }
+
+    @MainActor
+    static func restoreSession(into appState: AppState, modelContext: ModelContext) async {
+        let state = await appState.authService.restoreSession(modelContext: modelContext)
+        appState.apply(state)
+    }
+
+    @MainActor
+    static func restoreSessionIfNeeded(
+        shouldRestoreSession: Bool,
+        appState: AppState,
+        modelContext: ModelContext
+    ) async {
+        guard shouldRestoreSession else { return }
+        await restoreSession(into: appState, modelContext: modelContext)
+    }
 
     var body: some View {
         Group {
-            switch appState.authState {
+            switch Self.destination(for: appState.authState) {
             case .loading:
                 LoadingView()
             case .signedOut:
                 SignInView()
-            case .needsOnboarding(let userID, _):
+            case .onboarding(let userID):
                 OnboardingFlowView(userID: userID)
-            case .authenticated:
-                MainTabView()
-            case .guest:
+            case .mainTabs:
                 MainTabView()
             }
         }
         .environment(appState)
-        .task {
-            // Restore session on cold launch.
-            let state = await appState.authService.restoreSession(modelContext: modelContext)
-            appState.apply(state)
-        }
+        .task { await Self.restoreSessionIfNeeded(shouldRestoreSession: shouldRestoreSession, appState: appState, modelContext: modelContext) }
     }
 }
 

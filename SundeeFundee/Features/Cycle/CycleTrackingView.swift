@@ -6,6 +6,47 @@ struct CycleTrackingView: View {
     @State private var viewModel = CycleTrackingViewModel()
     @Environment(\.modelContext) private var modelContext
     @State private var selectedTab = 0
+    
+    enum SectionTab: Int {
+        case periodLog = 0
+        case symptoms = 1
+        case settings = 2
+    }
+    
+    static func sectionTab(for index: Int) -> SectionTab {
+        SectionTab(rawValue: index) ?? .settings
+    }
+    
+    @ViewBuilder
+    static func sectionView(for index: Int, viewModel: CycleTrackingViewModel) -> some View {
+        switch sectionTab(for: index) {
+        case .periodLog:
+            PeriodLogSection(viewModel: viewModel)
+        case .symptoms:
+            SymptomLogSection(viewModel: viewModel)
+        case .settings:
+            CycleSettingsSection(viewModel: viewModel)
+        }
+    }
+    
+    static func primaryAction(for index: Int, viewModel: CycleTrackingViewModel) -> (() -> Void)? {
+        switch sectionTab(for: index) {
+        case .periodLog:
+            { viewModel.showAddPeriodLog = true }
+        case .symptoms:
+            { viewModel.showAddSymptomLog = true }
+        case .settings:
+            nil
+        }
+    }
+    
+    static func periodSheetContent(viewModel: CycleTrackingViewModel) -> () -> AddPeriodLogSheet {
+        { AddPeriodLogSheet(viewModel: viewModel) }
+    }
+    
+    static func symptomSheetContent(viewModel: CycleTrackingViewModel) -> () -> AddSymptomLogSheet {
+        { AddSymptomLogSheet(viewModel: viewModel) }
+    }
 
     var body: some View {
         ZStack {
@@ -28,38 +69,21 @@ struct CycleTrackingView: View {
                 .padding(.bottom, AppTheme.Spacing.sm)
 
                 // Content
-                switch selectedTab {
-                case 0:
-                    PeriodLogSection(viewModel: viewModel)
-                case 1:
-                    SymptomLogSection(viewModel: viewModel)
-                default:
-                    CycleSettingsSection(viewModel: viewModel)
-                }
+                Self.sectionView(for: selectedTab, viewModel: viewModel)
             }
         }
         .navigationTitle("Cycle")
         .toolbar {
-            if selectedTab == 0 {
+            if let action = Self.primaryAction(for: selectedTab, viewModel: viewModel) {
                 ToolbarItem(placement: .primaryAction) {
-                    Button { viewModel.showAddPeriodLog = true } label: {
-                        Image(systemName: "plus")
-                    }
-                }
-            } else if selectedTab == 1 {
-                ToolbarItem(placement: .primaryAction) {
-                    Button { viewModel.showAddSymptomLog = true } label: {
+                    Button(action: action) {
                         Image(systemName: "plus")
                     }
                 }
             }
         }
-        .sheet(isPresented: $viewModel.showAddPeriodLog) {
-            AddPeriodLogSheet(viewModel: viewModel)
-        }
-        .sheet(isPresented: $viewModel.showAddSymptomLog) {
-            AddSymptomLogSheet(viewModel: viewModel)
-        }
+        .sheet(isPresented: $viewModel.showAddPeriodLog, content: Self.periodSheetContent(viewModel: viewModel))
+        .sheet(isPresented: $viewModel.showAddSymptomLog, content: Self.symptomSheetContent(viewModel: viewModel))
         .task { await viewModel.load(modelContext: modelContext) }
     }
 }
@@ -113,6 +137,12 @@ struct PhaseStatusHeader: View {
 
 struct PeriodLogSection: View {
     @Bindable var viewModel: CycleTrackingViewModel
+    
+    static func deleteAction(viewModel: CycleTrackingViewModel) -> (IndexSet) -> Void {
+        { idx in
+            viewModel.deletePeriodLogs(at: idx)
+        }
+    }
 
     var body: some View {
         List {
@@ -127,9 +157,7 @@ struct PeriodLogSection: View {
                 ForEach(viewModel.periodLogs) { log in
                     PeriodLogRow(log: log)
                 }
-                .onDelete { idx in
-                    viewModel.deletePeriodLogs(at: idx)
-                }
+                .onDelete(perform: Self.deleteAction(viewModel: viewModel))
             }
         }
         .listStyle(.plain)
@@ -165,6 +193,12 @@ struct PeriodLogRow: View {
 
 struct SymptomLogSection: View {
     @Bindable var viewModel: CycleTrackingViewModel
+    
+    static func deleteAction(viewModel: CycleTrackingViewModel) -> (IndexSet) -> Void {
+        { idx in
+            viewModel.deleteSymptomLogs(at: idx)
+        }
+    }
 
     var body: some View {
         List {
@@ -179,9 +213,7 @@ struct SymptomLogSection: View {
                 ForEach(viewModel.symptomLogs) { log in
                     SymptomLogRow(log: log)
                 }
-                .onDelete { idx in
-                    viewModel.deleteSymptomLogs(at: idx)
-                }
+                .onDelete(perform: Self.deleteAction(viewModel: viewModel))
             }
         }
         .listStyle(.plain)
@@ -226,6 +258,12 @@ struct SeverityDots: View {
 
 struct CycleSettingsSection: View {
     @Bindable var viewModel: CycleTrackingViewModel
+    
+    static func saveSettingsAction(viewModel: CycleTrackingViewModel) -> () -> Void {
+        {
+            Task { await viewModel.saveSettings() }
+        }
+    }
 
     var body: some View {
         Form {
@@ -251,9 +289,7 @@ struct CycleSettingsSection: View {
                     .tint(AppTheme.Colors.accentOrange)
             }
             Section {
-                Button("Save Settings") {
-                    Task { await viewModel.saveSettings() }
-                }
+                Button("Save Settings", action: Self.saveSettingsAction(viewModel: viewModel))
                 .buttonStyle(PrimaryButtonStyle())
             }
             .listRowBackground(Color.clear)
@@ -268,10 +304,53 @@ struct AddPeriodLogSheet: View {
     @Bindable var viewModel: CycleTrackingViewModel
     @Environment(\.dismiss) private var dismiss
 
-    @State private var startDate = Date()
-    @State private var endDate: Date? = nil
-    @State private var flowLevel = FlowLevel.medium
-    @State private var hasEndDate = false
+    @State private var startDate: Date
+    @State private var endDate: Date?
+    @State private var flowLevel: FlowLevel
+    @State private var hasEndDate: Bool
+    
+    init(
+        viewModel: CycleTrackingViewModel,
+        startDate: Date = Date(),
+        endDate: Date? = nil,
+        flowLevel: FlowLevel = .medium,
+        hasEndDate: Bool = false
+    ) {
+        self.viewModel = viewModel
+        _startDate = State(initialValue: startDate)
+        _endDate = State(initialValue: endDate)
+        _flowLevel = State(initialValue: flowLevel)
+        _hasEndDate = State(initialValue: hasEndDate)
+    }
+    
+    static func endDateBinding(startDate: Date, endDate: Binding<Date?>) -> Binding<Date> {
+        Binding(
+            get: { endDate.wrappedValue ?? startDate },
+            set: { endDate.wrappedValue = $0 }
+        )
+    }
+    
+    static func resolvedEndDate(hasEndDate: Bool, endDate: Date?) -> Date? {
+        hasEndDate ? endDate : nil
+    }
+    
+    static func saveAction(
+        viewModel: CycleTrackingViewModel,
+        startDate: Date,
+        endDate: Date?,
+        hasEndDate: Bool,
+        flowLevel: FlowLevel,
+        dismiss: @escaping () -> Void
+    ) -> () -> Void {
+        {
+            viewModel.addPeriodLog(
+                startDate: startDate,
+                endDate: Self.resolvedEndDate(hasEndDate: hasEndDate, endDate: endDate),
+                flowLevel: flowLevel
+            )
+            dismiss()
+        }
+    }
 
     var body: some View {
         NavigationStack {
@@ -279,10 +358,11 @@ struct AddPeriodLogSheet: View {
                 DatePicker("Start Date", selection: $startDate, displayedComponents: .date)
                 Toggle("Period ended", isOn: $hasEndDate)
                 if hasEndDate {
-                    DatePicker("End Date", selection: Binding(
-                        get: { endDate ?? startDate },
-                        set: { endDate = $0 }
-                    ), displayedComponents: .date)
+                    DatePicker(
+                        "End Date",
+                        selection: Self.endDateBinding(startDate: startDate, endDate: $endDate),
+                        displayedComponents: .date
+                    )
                 }
                 Picker("Flow Level", selection: $flowLevel) {
                     Text("Light").tag(FlowLevel.light)
@@ -296,17 +376,17 @@ struct AddPeriodLogSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    Button("Cancel", action: dismiss.callAsFunction)
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
-                        viewModel.addPeriodLog(
-                            startDate: startDate,
-                            endDate: hasEndDate ? endDate : nil,
-                            flowLevel: flowLevel
-                        )
-                        dismiss()
-                    }
+                    Button("Save", action: Self.saveAction(
+                        viewModel: viewModel,
+                        startDate: startDate,
+                        endDate: endDate,
+                        hasEndDate: hasEndDate,
+                        flowLevel: flowLevel,
+                        dismiss: dismiss.callAsFunction
+                    ))
                 }
             }
         }
@@ -319,13 +399,54 @@ struct AddSymptomLogSheet: View {
     @Bindable var viewModel: CycleTrackingViewModel
     @Environment(\.dismiss) private var dismiss
 
-    @State private var symptomID = "fatigue"
-    @State private var severity = 3
-    @State private var date = Date()
-    @State private var notes = ""
+    @State private var symptomID: String
+    @State private var severity: Int
+    @State private var date: Date
+    @State private var notes: String
 
-    private let symptoms = ["fatigue", "cramps", "bloating", "mood_changes", "headache",
-                            "breast_tenderness", "back_pain", "nausea", "spotting"]
+    private let symptoms: [String]
+    
+    static let defaultSymptoms = ["fatigue", "cramps", "bloating", "mood_changes", "headache",
+                                  "breast_tenderness", "back_pain", "nausea", "spotting"]
+    
+    init(
+        viewModel: CycleTrackingViewModel,
+        symptomID: String = "fatigue",
+        severity: Int = 3,
+        date: Date = Date(),
+        notes: String = "",
+        symptoms: [String] = Self.defaultSymptoms
+    ) {
+        self.viewModel = viewModel
+        _symptomID = State(initialValue: symptomID)
+        _severity = State(initialValue: severity)
+        _date = State(initialValue: date)
+        _notes = State(initialValue: notes)
+        self.symptoms = symptoms
+    }
+    
+    static func normalizedNotes(_ notes: String) -> String? {
+        notes.isEmpty ? nil : notes
+    }
+    
+    static func saveAction(
+        viewModel: CycleTrackingViewModel,
+        symptomID: String,
+        severity: Int,
+        date: Date,
+        notes: String,
+        dismiss: @escaping () -> Void
+    ) -> () -> Void {
+        {
+            viewModel.addSymptomLog(
+                symptomID: symptomID,
+                severity: severity,
+                date: date,
+                notes: Self.normalizedNotes(notes)
+            )
+            dismiss()
+        }
+    }
 
     var body: some View {
         NavigationStack {
@@ -350,18 +471,17 @@ struct AddSymptomLogSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    Button("Cancel", action: dismiss.callAsFunction)
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
-                        viewModel.addSymptomLog(
-                            symptomID: symptomID,
-                            severity: severity,
-                            date: date,
-                            notes: notes.isEmpty ? nil : notes
-                        )
-                        dismiss()
-                    }
+                    Button("Save", action: Self.saveAction(
+                        viewModel: viewModel,
+                        symptomID: symptomID,
+                        severity: severity,
+                        date: date,
+                        notes: notes,
+                        dismiss: dismiss.callAsFunction
+                    ))
                 }
             }
         }

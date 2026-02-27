@@ -16,8 +16,8 @@ final class MaxLiftsViewModel {
         self.userID = userID
         let repo = SwiftDataLiftRepository(context: modelContext)
 
-        let orms = (try? repo.fetchOneRepMaxes()) ?? []
-        let prs = (try? repo.fetchPersonalRecords()) ?? []
+        let orms = try! repo.fetchOneRepMaxes()
+        let prs = try! repo.fetchPersonalRecords()
 
         // Build exercise name index from tracked data — weightlifting moves only
         var names = Set<String>()
@@ -26,15 +26,8 @@ final class MaxLiftsViewModel {
         exerciseNames = names.sorted()
 
         // Build lookup dicts (latest 1RM per exercise)
-        var ormDict: [String: OneRepMax] = [:]
-        for orm in orms {
-            if let existing = ormDict[orm.exerciseID] {
-                if orm.date > existing.date { ormDict[orm.exerciseID] = orm }
-            } else {
-                ormDict[orm.exerciseID] = orm
-            }
-        }
-        oneRepMaxes = ormDict
+        oneRepMaxes = Dictionary(grouping: orms, by: \.exerciseID)
+            .compactMapValues { $0.max(by: { $0.date < $1.date }) }
 
         // Group PRs by exercise
         var prDict: [String: [PersonalRecord]] = [:]

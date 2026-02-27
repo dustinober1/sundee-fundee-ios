@@ -21,8 +21,17 @@ final class BenchmarksViewModel {
     var groups: [BenchmarkGroup] = []
     var isLoading = false
 
+    private let repositoryFactory: (ModelContext) -> any BenchmarkRepository
     private var modelContext: ModelContext?
     private var userID: String = ""
+
+    init(
+        repositoryFactory: @escaping (ModelContext) -> any BenchmarkRepository = {
+            SwiftDataBenchmarkRepository(context: $0)
+        }
+    ) {
+        self.repositoryFactory = repositoryFactory
+    }
 
     func load(modelContext: ModelContext, userID: String = "") async {
         self.modelContext = modelContext
@@ -30,7 +39,7 @@ final class BenchmarksViewModel {
         isLoading = true
         defer { isLoading = false }
 
-        let repo = SwiftDataBenchmarkRepository(context: modelContext)
+        let repo = repositoryFactory(modelContext)
         let all = (try? repo.fetchBenchmarks()) ?? []
 
         // Group by name, preserving insertion order of first occurrence
@@ -41,7 +50,7 @@ final class BenchmarksViewModel {
             seen[b.name, default: []].append(b)
         }
         groups = order.map { name in
-            BenchmarkGroup(name: name, entries: seen[name] ?? [])
+            BenchmarkGroup(name: name, entries: seen[name]!)
         }
     }
 
@@ -55,7 +64,7 @@ final class BenchmarksViewModel {
             reps: reps,
             notes: notes
         )
-        let repo = SwiftDataBenchmarkRepository(context: ctx)
+        let repo = repositoryFactory(ctx)
         try? repo.save(benchmark)
 
         // Insert at the top of the relevant group
@@ -69,16 +78,19 @@ final class BenchmarksViewModel {
 
     func delete(_ benchmark: Benchmark) {
         guard let ctx = modelContext else { return }
-        let repo = SwiftDataBenchmarkRepository(context: ctx)
+        let repo = repositoryFactory(ctx)
         try? repo.delete(benchmark)
 
-        for (gi, group) in groups.enumerated() {
-            let filtered = group.entries.filter { $0.id != benchmark.id }
-            if filtered.isEmpty {
-                groups.remove(at: gi)
-            } else {
-                groups[gi] = BenchmarkGroup(name: group.name, entries: filtered)
-            }
+        guard let groupIndex = groups.firstIndex(where: { group in
+            group.entries.contains(where: { $0.id == benchmark.id })
+        }) else { return }
+
+        let group = groups[groupIndex]
+        let filtered = group.entries.filter { $0.id != benchmark.id }
+        if filtered.isEmpty {
+            groups.remove(at: groupIndex)
+        } else {
+            groups[groupIndex] = BenchmarkGroup(name: group.name, entries: filtered)
         }
     }
 }

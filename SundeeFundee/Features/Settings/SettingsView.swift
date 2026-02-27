@@ -8,6 +8,41 @@ struct SettingsView: View {
     @Environment(AppState.self) private var appState
     @State private var showSignOutConfirm = false
     @State private var seedMessage: String?
+    
+    static func presentSignOutConfirmation(_ isPresented: inout Bool) {
+        isPresented = true
+    }
+
+    static func presentSignOutConfirmationAction(isPresented: Binding<Bool>) -> () -> Void {
+        { isPresented.wrappedValue = true }
+    }
+    
+    #if DEBUG
+    static func seedDataAction(modelContext: ModelContext, seedMessage: Binding<String?>) -> () -> Void {
+        {
+            Task {
+                await DebugSeedData.seed(modelContext: modelContext)
+                seedMessage.wrappedValue = "Sample data seeded!"
+            }
+        }
+    }
+    
+    static func clearDataAction(modelContext: ModelContext, seedMessage: Binding<String?>) -> () -> Void {
+        {
+            DebugSeedData.clearAll(modelContext: modelContext)
+            seedMessage.wrappedValue = "All data cleared."
+        }
+    }
+    
+    @ViewBuilder
+    static func debugMessageView(_ message: String?) -> some View {
+        if let msg = message {
+            Text(msg)
+                .font(AppTheme.Fonts.caption)
+                .foregroundStyle(AppTheme.Colors.accentOrange)
+        }
+    }
+    #endif
 
     var body: some View {
         ZStack {
@@ -46,9 +81,11 @@ struct SettingsView: View {
                 // Account
                 Section("Account") {
                     if appState.currentUserID != nil {
-                        Button("Sign Out", role: .destructive) {
-                            showSignOutConfirm = true
-                        }
+                        Button(
+                            "Sign Out",
+                            role: .destructive,
+                            action: Self.presentSignOutConfirmationAction(isPresented: $showSignOutConfirm)
+                        )
                     } else {
                         Text("Guest Mode")
                             .foregroundStyle(AppTheme.Colors.navy.opacity(0.5))
@@ -57,21 +94,9 @@ struct SettingsView: View {
 
                 #if DEBUG
                 Section("Debug") {
-                    Button("Seed Sample Data") {
-                        Task {
-                            await DebugSeedData.seed(modelContext: modelContext)
-                            seedMessage = "Sample data seeded!"
-                        }
-                    }
-                    Button("Clear All Data", role: .destructive) {
-                        DebugSeedData.clearAll(modelContext: modelContext)
-                        seedMessage = "All data cleared."
-                    }
-                    if let msg = seedMessage {
-                        Text(msg)
-                            .font(AppTheme.Fonts.caption)
-                            .foregroundStyle(AppTheme.Colors.accentOrange)
-                    }
+                    Button("Seed Sample Data", action: Self.seedDataAction(modelContext: modelContext, seedMessage: $seedMessage))
+                    Button("Clear All Data", role: .destructive, action: Self.clearDataAction(modelContext: modelContext, seedMessage: $seedMessage))
+                    Self.debugMessageView(seedMessage)
                 }
                 #endif
 
@@ -90,8 +115,7 @@ struct SettingsView: View {
         }
         .navigationTitle("Settings")
         .confirmationDialog("Sign Out?", isPresented: $showSignOutConfirm) {
-            Button("Sign Out", role: .destructive) { appState.signOut() }
-            Button("Cancel", role: .cancel) {}
+            Button("Sign Out", role: .destructive, action: appState.signOut)
         }
         .task { await viewModel.load(modelContext: modelContext, userID: appState.currentUserID ?? "") }
     }
@@ -102,6 +126,15 @@ struct SettingsView: View {
 struct EditProfileView: View {
     @Bindable var viewModel: SettingsViewModel
     @Environment(\.dismiss) private var dismiss
+    
+    static func saveAction(viewModel: SettingsViewModel, dismiss: @escaping () -> Void) -> () -> Void {
+        {
+            Task {
+                await viewModel.saveProfile()
+                dismiss()
+            }
+        }
+    }
 
     var body: some View {
         Form {
@@ -129,12 +162,7 @@ struct EditProfileView: View {
         .navigationTitle("Edit Profile")
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
-                Button("Save") {
-                    Task {
-                        await viewModel.saveProfile()
-                        dismiss()
-                    }
-                }
+                Button("Save", action: Self.saveAction(viewModel: viewModel, dismiss: dismiss.callAsFunction))
             }
         }
     }
@@ -144,7 +172,26 @@ struct EditProfileView: View {
 
 struct InjuryProfilesView: View {
     @Bindable var viewModel: SettingsViewModel
-    @State private var showAdd = false
+    @State private var showAdd: Bool
+    
+    init(viewModel: SettingsViewModel, showAdd: Bool = false) {
+        self.viewModel = viewModel
+        _showAdd = State(initialValue: showAdd)
+    }
+    
+    static func presentAddSheetAction(isPresented: Binding<Bool>) -> () -> Void {
+        { isPresented.wrappedValue = true }
+    }
+    
+    static func destination(viewModel: SettingsViewModel) -> (InjuryProfile) -> EditInjuryView {
+        { injury in
+            EditInjuryView(injury: injury, viewModel: viewModel)
+        }
+    }
+    
+    static func addSheetContent(viewModel: SettingsViewModel) -> () -> AddInjurySheet {
+        { AddInjurySheet(viewModel: viewModel) }
+    }
 
     var body: some View {
         ZStack {
@@ -171,15 +218,11 @@ struct InjuryProfilesView: View {
         .navigationTitle("Injury Profiles")
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                Button { showAdd = true } label: { Image(systemName: "plus") }
+                Button(action: Self.presentAddSheetAction(isPresented: $showAdd)) { Image(systemName: "plus") }
             }
         }
-        .navigationDestination(for: InjuryProfile.self) { injury in
-            EditInjuryView(injury: injury, viewModel: viewModel)
-        }
-        .sheet(isPresented: $showAdd) {
-            AddInjurySheet(viewModel: viewModel)
-        }
+        .navigationDestination(for: InjuryProfile.self, destination: Self.destination(viewModel: viewModel))
+        .sheet(isPresented: $showAdd, content: Self.addSheetContent(viewModel: viewModel))
     }
 }
 
@@ -222,6 +265,31 @@ struct EditInjuryView: View {
         _limitations = State(initialValue: injury.movementLimitations)
         _recoveryGoal = State(initialValue: injury.recoveryGoal)
     }
+    
+    static func resolveAction(
+        injury: InjuryProfile,
+        viewModel: SettingsViewModel,
+        dismiss: @escaping () -> Void
+    ) -> () -> Void {
+        {
+            viewModel.resolveInjury(injury)
+            dismiss()
+        }
+    }
+    
+    static func saveAction(
+        injury: InjuryProfile,
+        viewModel: SettingsViewModel,
+        location: String,
+        limitations: String,
+        recoveryGoal: String,
+        dismiss: @escaping () -> Void
+    ) -> () -> Void {
+        {
+            viewModel.updateInjury(injury, location: location, limitations: limitations, recoveryGoal: recoveryGoal)
+            dismiss()
+        }
+    }
 
     var body: some View {
         Form {
@@ -238,10 +306,11 @@ struct EditInjuryView: View {
             }
             if injury.isActive {
                 Section {
-                    Button("Mark as Resolved", role: .destructive) {
-                        viewModel.resolveInjury(injury)
-                        dismiss()
-                    }
+                    Button("Mark as Resolved", role: .destructive, action: Self.resolveAction(
+                        injury: injury,
+                        viewModel: viewModel,
+                        dismiss: dismiss.callAsFunction
+                    ))
                 }
                 .listRowBackground(Color.clear)
             }
@@ -251,10 +320,14 @@ struct EditInjuryView: View {
         .navigationTitle("Edit Injury")
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
-                Button("Save") {
-                    viewModel.updateInjury(injury, location: location, limitations: limitations, recoveryGoal: recoveryGoal)
-                    dismiss()
-                }
+                Button("Save", action: Self.saveAction(
+                    injury: injury,
+                    viewModel: viewModel,
+                    location: location,
+                    limitations: limitations,
+                    recoveryGoal: recoveryGoal,
+                    dismiss: dismiss.callAsFunction
+                ))
             }
         }
     }
@@ -264,9 +337,35 @@ struct AddInjurySheet: View {
     @Bindable var viewModel: SettingsViewModel
     @Environment(\.dismiss) private var dismiss
 
-    @State private var location = ""
-    @State private var limitations = ""
-    @State private var recoveryGoal = ""
+    @State private var location: String
+    @State private var limitations: String
+    @State private var recoveryGoal: String
+    
+    init(
+        viewModel: SettingsViewModel,
+        location: String = "",
+        limitations: String = "",
+        recoveryGoal: String = ""
+    ) {
+        self.viewModel = viewModel
+        _location = State(initialValue: location)
+        _limitations = State(initialValue: limitations)
+        _recoveryGoal = State(initialValue: recoveryGoal)
+    }
+    
+    static func saveAction(
+        viewModel: SettingsViewModel,
+        location: String,
+        limitations: String,
+        recoveryGoal: String,
+        dismiss: @escaping () -> Void
+    ) -> () -> Void {
+        {
+            guard !location.isEmpty else { return }
+            viewModel.addInjury(location: location, limitations: limitations, recoveryGoal: recoveryGoal)
+            dismiss()
+        }
+    }
 
     var body: some View {
         NavigationStack {
@@ -288,13 +387,15 @@ struct AddInjurySheet: View {
             .navigationTitle("Add Injury")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
+                ToolbarItem(placement: .cancellationAction) { Button("Cancel", action: dismiss.callAsFunction) }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
-                        guard !location.isEmpty else { return }
-                        viewModel.addInjury(location: location, limitations: limitations, recoveryGoal: recoveryGoal)
-                        dismiss()
-                    }
+                    Button("Save", action: Self.saveAction(
+                        viewModel: viewModel,
+                        location: location,
+                        limitations: limitations,
+                        recoveryGoal: recoveryGoal,
+                        dismiss: dismiss.callAsFunction
+                    ))
                 }
             }
         }

@@ -3,6 +3,18 @@ import MetricKit
 
 /// Subscribes to MetricKit diagnostics payloads and logs them for Xcode Organizer review.
 final class MetricsService: NSObject, MXMetricManagerSubscriber, @unchecked Sendable {
+    struct MetricPayloadSummary: Sendable {
+        let begin: Date
+        let end: Date
+        let cpuTime: Measurement<UnitDuration>?
+        let peakMemory: Measurement<UnitInformationStorage>?
+    }
+
+    struct DiagnosticPayloadSummary: Sendable {
+        let crashCount: Int?
+        let hangCount: Int?
+    }
+
     static let shared = MetricsService()
 
     private override init() {
@@ -20,32 +32,86 @@ final class MetricsService: NSObject, MXMetricManagerSubscriber, @unchecked Send
     // MARK: - MXMetricManagerSubscriber
 
     func didReceive(_ payloads: [MXMetricPayload]) {
-        for payload in payloads {
-            // payloads are automatically available in Xcode Organizer
-            // Log a summary for debugging purposes only
-            #if DEBUG
-            print("[MetricsService] Received metric payload for \(payload.timeStampBegin) – \(payload.timeStampEnd)")
-            if let cpu = payload.cpuMetrics {
-                print("  CPU time: \(cpu.cumulativeCPUTime)")
-            }
-            if let memory = payload.memoryMetrics {
-                print("  Peak memory: \(memory.peakMemoryUsage)")
-            }
-            #endif
-        }
+        #if DEBUG
+        logMetricPayloads(payloads.map {
+            MetricPayloadSummary(
+                begin: $0.timeStampBegin,
+                end: $0.timeStampEnd,
+                cpuTime: $0.cpuMetrics?.cumulativeCPUTime,
+                peakMemory: $0.memoryMetrics?.peakMemoryUsage
+            )
+        })
+        #endif
     }
 
     func didReceive(_ payloads: [MXDiagnosticPayload]) {
+        #if DEBUG
+        logDiagnosticPayloads(payloads.map {
+            DiagnosticPayloadSummary(
+                crashCount: $0.crashDiagnostics?.count,
+                hangCount: $0.hangDiagnostics?.count
+            )
+        })
+        #endif
+    }
+
+    func logMetricPayloads(
+        _ payloads: [MetricPayloadSummary],
+        printer: (String) -> Void = { print($0) }
+    ) {
         for payload in payloads {
-            #if DEBUG
-            print("[MetricsService] Received diagnostic payload")
-            if let crashes = payload.crashDiagnostics {
-                print("  Crashes: \(crashes.count)")
+            for line in metricSummaryLines(
+                begin: payload.begin,
+                end: payload.end,
+                cpuTime: payload.cpuTime,
+                peakMemory: payload.peakMemory
+            ) {
+                printer(line)
             }
-            if let hangs = payload.hangDiagnostics {
-                print("  Hangs: \(hangs.count)")
-            }
-            #endif
         }
+    }
+
+    func logDiagnosticPayloads(
+        _ payloads: [DiagnosticPayloadSummary],
+        printer: (String) -> Void = { print($0) }
+    ) {
+        for payload in payloads {
+            for line in diagnosticSummaryLines(
+                crashCount: payload.crashCount,
+                hangCount: payload.hangCount
+            ) {
+                printer(line)
+            }
+        }
+    }
+
+    func metricSummaryLines(
+        begin: Date,
+        end: Date,
+        cpuTime: Measurement<UnitDuration>?,
+        peakMemory: Measurement<UnitInformationStorage>?
+    ) -> [String] {
+        var lines = ["[MetricsService] Received metric payload for \(begin) – \(end)"]
+        if let cpuTime {
+            lines.append("  CPU time: \(cpuTime)")
+        }
+        if let peakMemory {
+            lines.append("  Peak memory: \(peakMemory)")
+        }
+        return lines
+    }
+
+    func diagnosticSummaryLines(
+        crashCount: Int?,
+        hangCount: Int?
+    ) -> [String] {
+        var lines = ["[MetricsService] Received diagnostic payload"]
+        if let crashCount {
+            lines.append("  Crashes: \(crashCount)")
+        }
+        if let hangCount {
+            lines.append("  Hangs: \(hangCount)")
+        }
+        return lines
     }
 }

@@ -90,6 +90,13 @@ enum InjuryAdaptationEngine {
     ]
 
     private static let safeBodyweight = ["Air Squats", "Bird-Dogs", "Bodyweight Lunges"]
+    private static let contraindicatedExerciseKeywords: [String: [String]] = [
+        "knee": ["squat", "lunge", "leg press", "step-up"],
+        "shoulder": ["press", "bench", "overhead"],
+        "back": ["deadlift", "good morning", "hinge", "row"],
+        "spine": ["deadlift", "good morning", "hinge", "row"],
+        "hip": ["deadlift", "hinge", "lunge", "hip thrust"],
+    ]
 
     // MARK: - Private — session / exercise adaptation
 
@@ -126,15 +133,21 @@ enum InjuryAdaptationEngine {
     private static func isContraindicated(_ exerciseID: String, injuries: [InjuryProfile]) -> Bool {
         // For the initial port we use a simplified keyword check.
         // Full category-based check requires an exercise definition catalogue.
+        let exerciseName = exerciseID.lowercased()
         for injury in injuries {
             let loc = injury.location.lowercased()
             for (key, rule) in contraindicationRules {
                 guard loc.contains(key) else { continue }
                 for keyword in rule.muscleGroupKeywords {
-                    if exerciseID.lowercased().contains(keyword) { return true }
+                    if exerciseName.contains(keyword) { return true }
                 }
                 for cat in rule.categories {
-                    if exerciseID.lowercased().contains(cat.lowercased()) { return true }
+                    if exerciseName.contains(cat.lowercased()) { return true }
+                }
+                if let keywords = contraindicatedExerciseKeywords[key] {
+                    for keyword in keywords {
+                        if exerciseName.contains(keyword) { return true }
+                    }
                 }
             }
         }

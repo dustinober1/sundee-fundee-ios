@@ -89,8 +89,10 @@ struct WorkoutSummaryView: View {
                     Text(exercise)
                         .font(AppTheme.Fonts.body)
                         .foregroundStyle(AppTheme.Colors.navy)
-                    ForEach(viewModel.groupedSets[exercise] ?? [], id: \.id) { set in
-                        SetSummaryRow(set: set)
+                    if let sets = viewModel.groupedSets[exercise] {
+                        ForEach(sets, id: \.id) { set in
+                            SetSummaryRow(set: set)
+                        }
                     }
                 }
                 .padding(AppTheme.Spacing.sm)
@@ -101,7 +103,7 @@ struct WorkoutSummaryView: View {
     }
 
     private var doneButton: some View {
-        Button("Done") { dismiss() }
+        Button("Done", action: dismiss.callAsFunction)
             .buttonStyle(PrimaryButtonStyle())
             .padding(.bottom, AppTheme.Spacing.xl)
     }
@@ -128,12 +130,9 @@ struct SetSummaryRow: View {
             Text("Set \(set.setIndex + 1)")
                 .foregroundStyle(AppTheme.Colors.navy.opacity(0.5))
             Spacer()
-            if let reps = set.actualReps {
-                Text("\(reps) reps")
-            } else {
-                Text(set.prescribedReps)
-                    .foregroundStyle(AppTheme.Colors.navy.opacity(0.5))
-            }
+            let repsDisplay = Self.repsDisplay(for: set)
+            Text(repsDisplay.text)
+                .foregroundStyle(repsDisplay.isFallback ? AppTheme.Colors.navy.opacity(0.5) : AppTheme.Colors.navy)
             if let kg = set.actualWeightKg {
                 Text("@ \(kg == kg.rounded() ? "\(Int(kg))" : String(format: "%.1f", kg))kg")
                     .foregroundStyle(AppTheme.Colors.accentOrange)
@@ -141,6 +140,13 @@ struct SetSummaryRow: View {
         }
         .font(AppTheme.Fonts.caption)
         .foregroundStyle(AppTheme.Colors.navy)
+    }
+
+    static func repsDisplay(for set: CompletedSet) -> (text: String, isFallback: Bool) {
+        if let reps = set.actualReps {
+            return ("\(reps) reps", false)
+        }
+        return (set.prescribedReps, true)
     }
 }
 

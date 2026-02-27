@@ -54,6 +54,7 @@ enum WeightliftingExerciseCatalog {
 
     /// Set of canonical exercise IDs for O(1) membership tests.
     static let exerciseIDs: Set<String> = Set(all.map(\.id))
+    static let defaultExerciseID: String = all.first!.id
 
     /// Exercises sorted alphabetically within each category, then by category order.
     static var sortedByCategory: [Entry] {

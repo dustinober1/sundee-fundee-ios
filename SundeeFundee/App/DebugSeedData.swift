@@ -12,7 +12,7 @@ enum DebugSeedData {
     @MainActor
     static func seed(modelContext: ModelContext) async {
         // Avoid double-seeding
-        let existingUsers = (try? modelContext.fetch(FetchDescriptor<User>())) ?? []
+        let existingUsers = try! modelContext.fetch(FetchDescriptor<User>())
         if !existingUsers.isEmpty { return }
 
         let userID = UUID().uuidString
@@ -80,7 +80,7 @@ enum DebugSeedData {
         modelContext.insert(cycleSettings)
 
         // 5. A recent period log for cycle phase display
-        let periodStart = Calendar.current.date(byAdding: .day, value: -3, to: .now) ?? .now
+        let periodStart = Calendar.current.date(byAdding: .day, value: -3, to: .now)!
         let periodLog = PeriodLog(
             id: UUID().uuidString,
             userID: userID,
@@ -95,11 +95,7 @@ enum DebugSeedData {
     static func clearAll(modelContext: ModelContext) {
         let types: [any PersistentModel.Type] = AppSchemaV1.models
         for type in types {
-            do {
-                try modelContext.delete(model: type)
-            } catch {
-                print("DebugSeedData: failed to clear \(type): \(error)")
-            }
+            try? modelContext.delete(model: type)
         }
         try? modelContext.save()
     }

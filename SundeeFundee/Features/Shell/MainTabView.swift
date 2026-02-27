@@ -2,51 +2,76 @@ import SwiftUI
 
 /// Root tab shell — shown when user is authenticated (signed in or guest).
 struct MainTabView: View {
+    enum TabRoute: String, CaseIterable {
+        case dashboard
+        case programs
+        case maxes
+        case benchmarks
+        case cycle
+        case settings
+
+        var title: String {
+            switch self {
+            case .dashboard: "Dashboard"
+            case .programs: "Programs"
+            case .maxes: "Maxes"
+            case .benchmarks: "Benchmarks"
+            case .cycle: "Cycle"
+            case .settings: "Settings"
+            }
+        }
+
+        var systemImage: String {
+            switch self {
+            case .dashboard: "house.fill"
+            case .programs: "list.bullet.rectangle.portrait.fill"
+            case .maxes: "dumbbell.fill"
+            case .benchmarks: "checkmark.seal.fill"
+            case .cycle: "circle.dotted"
+            case .settings: "gearshape.fill"
+            }
+        }
+    }
+
+    static var orderedTabs: [TabRoute] { TabRoute.allCases }
+    private let destinationBuilder: (TabRoute) -> AnyView
+
+    init(destinationBuilder: @escaping (TabRoute) -> AnyView = { tab in
+        AnyView(Self.destination(for: tab))
+    }) {
+        self.destinationBuilder = destinationBuilder
+    }
+
     var body: some View {
         TabView {
-            NavigationStack {
-                DashboardView()
-            }
-            .tabItem {
-                Label("Dashboard", systemImage: "house.fill")
-            }
-
-            NavigationStack {
-                ProgramListView()
-            }
-            .tabItem {
-                Label("Programs", systemImage: "list.bullet.rectangle.portrait.fill")
-            }
-
-            NavigationStack {
-                MaxLiftsView()
-            }
-            .tabItem {
-                Label("Maxes", systemImage: "dumbbell.fill")
-            }
-
-            NavigationStack {
-                BenchmarksView()
-            }
-            .tabItem {
-                Label("Benchmarks", systemImage: "checkmark.seal.fill")
-            }
-
-            NavigationStack {
-                CycleTrackingView()
-            }
-            .tabItem {
-                Label("Cycle", systemImage: "circle.dotted")
-            }
-
-            NavigationStack {
-                SettingsView()
-            }
-            .tabItem {
-                Label("Settings", systemImage: "gearshape.fill")
+            ForEach(Self.orderedTabs, id: \.self) { tab in
+                NavigationStack {
+                    destinationBuilder(tab)
+                }
+                .tabItem {
+                    Label(tab.title, systemImage: tab.systemImage)
+                }
             }
         }
         .tint(AppTheme.Colors.accentOrange)
+    }
+
+    @ViewBuilder
+    static func destination(for tab: TabRoute) -> some View {
+        switch tab {
+        case .dashboard:
+            DashboardView()
+        case .programs:
+            ProgramListView()
+        case .maxes:
+            MaxLiftsView()
+        case .benchmarks:
+            BenchmarksView()
+        case .cycle:
+            CycleTrackingView()
+        case .settings:
+            SettingsView()
+        }
     }
 }
 

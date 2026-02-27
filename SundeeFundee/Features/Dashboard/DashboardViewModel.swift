@@ -33,7 +33,7 @@ final class DashboardViewModel {
         }
 
         // Recent workouts (last 10)
-        let allWorkouts = (try? workoutRepo.fetchWorkouts()) ?? []
+        let allWorkouts = try! workoutRepo.fetchWorkouts()
         recentWorkouts = Array(allWorkouts.prefix(10))
 
         // Cycle phase from period logs
@@ -50,9 +50,7 @@ final class DashboardViewModel {
     // MARK: - Helpers
 
     private func findNextSession(in program: Program, enrollment: EnrolledProgram) -> ProgramSession? {
-        guard let week = program.weeks.first(where: { $0.week == enrollment.currentWeek }) else {
-            return program.weeks.first?.sessions.first
-        }
+        guard let week = program.weeks.first(where: { $0.week == enrollment.currentWeek }) ?? program.weeks.first else { return nil }
         let dayIndex = enrollment.currentDay - 1
         if dayIndex < week.sessions.count {
             return week.sessions[dayIndex]
