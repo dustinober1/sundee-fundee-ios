@@ -25,8 +25,8 @@ struct SundeeFundeeApp: App {
                 AppRootView()
                     .modelContainer(container)
             } else {
-                // Tests or preview without a ModelContainer
-                AppRootView()
+                // Tests: render nothing to avoid modelContext access without a container
+                Color.clear
             }
         }
     }

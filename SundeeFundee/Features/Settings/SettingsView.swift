@@ -7,6 +7,7 @@ struct SettingsView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(AppState.self) private var appState
     @State private var showSignOutConfirm = false
+    @State private var seedMessage: String?
 
     var body: some View {
         ZStack {
@@ -53,6 +54,26 @@ struct SettingsView: View {
                             .foregroundStyle(AppTheme.Colors.navy.opacity(0.5))
                     }
                 }
+
+                #if DEBUG
+                Section("Debug") {
+                    Button("Seed Sample Data") {
+                        Task {
+                            await DebugSeedData.seed(modelContext: modelContext)
+                            seedMessage = "Sample data seeded!"
+                        }
+                    }
+                    Button("Clear All Data", role: .destructive) {
+                        DebugSeedData.clearAll(modelContext: modelContext)
+                        seedMessage = "All data cleared."
+                    }
+                    if let msg = seedMessage {
+                        Text(msg)
+                            .font(AppTheme.Fonts.caption)
+                            .foregroundStyle(AppTheme.Colors.accentOrange)
+                    }
+                }
+                #endif
 
                 Section {
                     HStack {

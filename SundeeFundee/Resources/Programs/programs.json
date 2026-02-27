@@ -47,7 +47,7 @@
             "exercises": [
               { "exercise": "Front Squat", "variant": null, "sets": 3, "reps": 6, "percent1RM": 0.60, "restMinutes": 3, "notes": "3x6 @ 60%. Upright torso." },
               { "exercise": "Walking Lunges", "variant": null, "sets": 3, "reps": 10, "percent1RM": null, "restMinutes": 2, "notes": "10 per leg." },
-              { "exercise": "Leg Curl", "variant": null, "sets": 3, "reps": 12, "percent1RM": null, "restMinutes": 90, "notes": "Full range of motion." }
+              { "exercise": "Leg Curl", "variant": null, "sets": 3, "reps": 12, "percent1RM": null, "restMinutes": 1.5, "notes": "Full range of motion." }
             ]
           },
           {
@@ -58,7 +58,446 @@
             "exercises": [
               { "exercise": "Back Squat", "variant": null, "sets": 4, "reps": 8, "percent1RM": 0.65, "restMinutes": 3, "notes": "4x8 @ 65%." },
               { "exercise": "Good Morning", "variant": null, "sets": 3, "reps": 10, "percent1RM": null, "restMinutes": 2, "notes": "Light weight, strong hip hinge." },
-              { "exercise": "Calf Raise", "variant": null, "sets": 4, "reps": 15, "percent1RM": null, "restMinutes": 60, "notes": "Slow and controlled." }
+              { "exercise": "Calf Raise", "variant": null, "sets": 4, "reps": 15, "percent1RM": null, "restMinutes": 1, "notes": "Slow and controlled." }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 2,
+        "phaseId": "block-1-volume",
+        "isTestWeek": false,
+        "sessions": [
+          {
+            "sessionId": "ss-w2-a",
+            "sessionName": "Session A",
+            "sessionType": "Lift",
+            "focus": "Main Lift + Accessories",
+            "exercises": [
+              { "exercise": "Back Squat", "variant": null, "sets": 3, "reps": 8, "percent1RM": 0.67, "restMinutes": 3, "notes": "3x8 @ 67%. Small jump from week 1." },
+              { "exercise": "Romanian Deadlift", "variant": null, "sets": 3, "reps": 10, "percent1RM": null, "restMinutes": 2, "notes": "Add 2.5 kg from last week if possible." },
+              { "exercise": "Leg Press", "variant": null, "sets": 3, "reps": 12, "percent1RM": null, "restMinutes": 2, "notes": "Controlled descent, full depth." }
+            ]
+          },
+          {
+            "sessionId": "ss-w2-b",
+            "sessionName": "Session B",
+            "sessionType": "Lift",
+            "focus": "Squat Variation + Accessories",
+            "exercises": [
+              { "exercise": "Front Squat", "variant": null, "sets": 3, "reps": 6, "percent1RM": 0.62, "restMinutes": 3, "notes": "3x6 @ 62%. Keep elbows high." },
+              { "exercise": "Walking Lunges", "variant": null, "sets": 3, "reps": 10, "percent1RM": null, "restMinutes": 2, "notes": "10 per leg, longer stride." },
+              { "exercise": "Leg Curl", "variant": null, "sets": 3, "reps": 12, "percent1RM": null, "restMinutes": 1.5, "notes": "Slow eccentric." }
+            ]
+          },
+          {
+            "sessionId": "ss-w2-c",
+            "sessionName": "Session C",
+            "sessionType": "Lift",
+            "focus": "Volume Day",
+            "exercises": [
+              { "exercise": "Back Squat", "variant": null, "sets": 4, "reps": 8, "percent1RM": 0.67, "restMinutes": 3, "notes": "4x8 @ 67%. Build work capacity." },
+              { "exercise": "Good Morning", "variant": null, "sets": 3, "reps": 10, "percent1RM": null, "restMinutes": 2, "notes": "Slight weight increase from week 1." },
+              { "exercise": "Calf Raise", "variant": null, "sets": 4, "reps": 15, "percent1RM": null, "restMinutes": 1, "notes": "Pause at top." }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 3,
+        "phaseId": "block-1-volume",
+        "isTestWeek": false,
+        "sessions": [
+          {
+            "sessionId": "ss-w3-a",
+            "sessionName": "Session A",
+            "sessionType": "Lift",
+            "focus": "Main Lift + Accessories",
+            "exercises": [
+              { "exercise": "Back Squat", "variant": null, "sets": 4, "reps": 6, "percent1RM": 0.70, "restMinutes": 3, "notes": "4x6 @ 70%. Intensity stepping up." },
+              { "exercise": "Romanian Deadlift", "variant": null, "sets": 3, "reps": 8, "percent1RM": null, "restMinutes": 2, "notes": "Heavier, fewer reps this week." },
+              { "exercise": "Leg Press", "variant": null, "sets": 3, "reps": 10, "percent1RM": null, "restMinutes": 2, "notes": "Increase weight from week 2." }
+            ]
+          },
+          {
+            "sessionId": "ss-w3-b",
+            "sessionName": "Session B",
+            "sessionType": "Lift",
+            "focus": "Squat Variation + Accessories",
+            "exercises": [
+              { "exercise": "Front Squat", "variant": null, "sets": 4, "reps": 5, "percent1RM": 0.65, "restMinutes": 3, "notes": "4x5 @ 65%. Building front squat strength." },
+              { "exercise": "Bulgarian Split Squat", "variant": null, "sets": 3, "reps": 8, "percent1RM": null, "restMinutes": 2, "notes": "8 per leg. Focus on balance." },
+              { "exercise": "Leg Curl", "variant": null, "sets": 3, "reps": 10, "percent1RM": null, "restMinutes": 1.5, "notes": "Heavier than week 2." }
+            ]
+          },
+          {
+            "sessionId": "ss-w3-c",
+            "sessionName": "Session C",
+            "sessionType": "Lift",
+            "focus": "Volume Day",
+            "exercises": [
+              { "exercise": "Back Squat", "variant": null, "sets": 5, "reps": 6, "percent1RM": 0.70, "restMinutes": 3, "notes": "5x6 @ 70%. High volume at moderate intensity." },
+              { "exercise": "Good Morning", "variant": null, "sets": 3, "reps": 8, "percent1RM": null, "restMinutes": 2, "notes": "Moderate weight." },
+              { "exercise": "Calf Raise", "variant": null, "sets": 4, "reps": 12, "percent1RM": null, "restMinutes": 1, "notes": "Heavier weight, fewer reps." }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 4,
+        "phaseId": "block-1-volume",
+        "isTestWeek": false,
+        "sessions": [
+          {
+            "sessionId": "ss-w4-a",
+            "sessionName": "Session A",
+            "sessionType": "Lift",
+            "focus": "Main Lift + Accessories",
+            "exercises": [
+              { "exercise": "Back Squat", "variant": null, "sets": 4, "reps": 6, "percent1RM": 0.72, "restMinutes": 3, "notes": "4x6 @ 72%. Peak of volume block." },
+              { "exercise": "Romanian Deadlift", "variant": null, "sets": 3, "reps": 8, "percent1RM": null, "restMinutes": 2, "notes": "Heaviest RDL of block 1." },
+              { "exercise": "Leg Press", "variant": null, "sets": 3, "reps": 10, "percent1RM": null, "restMinutes": 2, "notes": "Push it this week." }
+            ]
+          },
+          {
+            "sessionId": "ss-w4-b",
+            "sessionName": "Session B",
+            "sessionType": "Lift",
+            "focus": "Squat Variation + Accessories",
+            "exercises": [
+              { "exercise": "Front Squat", "variant": null, "sets": 4, "reps": 5, "percent1RM": 0.67, "restMinutes": 3, "notes": "4x5 @ 67%. Last volume-phase front squat." },
+              { "exercise": "Bulgarian Split Squat", "variant": null, "sets": 3, "reps": 8, "percent1RM": null, "restMinutes": 2, "notes": "8 per leg. Increase load." },
+              { "exercise": "Leg Curl", "variant": null, "sets": 3, "reps": 10, "percent1RM": null, "restMinutes": 1.5, "notes": "Heaviest of block 1." }
+            ]
+          },
+          {
+            "sessionId": "ss-w4-c",
+            "sessionName": "Session C",
+            "sessionType": "Lift",
+            "focus": "Volume Day",
+            "exercises": [
+              { "exercise": "Back Squat", "variant": null, "sets": 5, "reps": 6, "percent1RM": 0.72, "restMinutes": 3, "notes": "5x6 @ 72%. Biggest volume day." },
+              { "exercise": "Good Morning", "variant": null, "sets": 3, "reps": 8, "percent1RM": null, "restMinutes": 2, "notes": "Heaviest GMs of block 1." },
+              { "exercise": "Calf Raise", "variant": null, "sets": 4, "reps": 12, "percent1RM": null, "restMinutes": 1, "notes": "Heavy and controlled." }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 5,
+        "phaseId": "block-2-strength",
+        "isTestWeek": false,
+        "sessions": [
+          {
+            "sessionId": "ss-w5-a",
+            "sessionName": "Session A",
+            "sessionType": "Lift",
+            "focus": "Heavy Triples",
+            "exercises": [
+              { "exercise": "Back Squat", "variant": null, "sets": 5, "reps": 3, "percent1RM": 0.78, "restMinutes": 4, "notes": "5x3 @ 78%. Welcome to strength block. Big belt, big bracing." },
+              { "exercise": "Conventional Deadlift", "variant": null, "sets": 3, "reps": 5, "percent1RM": null, "restMinutes": 3, "notes": "Moderate heavy. Support the squat." },
+              { "exercise": "Barbell Row", "variant": null, "sets": 3, "reps": 8, "percent1RM": null, "restMinutes": 2, "notes": "Upper back work for squat stability." }
+            ]
+          },
+          {
+            "sessionId": "ss-w5-b",
+            "sessionName": "Session B",
+            "sessionType": "Lift",
+            "focus": "Squat Variation + Strength",
+            "exercises": [
+              { "exercise": "Front Squat", "variant": null, "sets": 4, "reps": 3, "percent1RM": 0.72, "restMinutes": 3.5, "notes": "4x3 @ 72%. Heavy front squats for bracing." },
+              { "exercise": "Walking Lunges", "variant": null, "sets": 3, "reps": 8, "percent1RM": null, "restMinutes": 2, "notes": "8 per leg, heavier than block 1." },
+              { "exercise": "Leg Curl", "variant": null, "sets": 3, "reps": 8, "percent1RM": null, "restMinutes": 1.5, "notes": "Heavier, fewer reps." }
+            ]
+          },
+          {
+            "sessionId": "ss-w5-c",
+            "sessionName": "Session C",
+            "sessionType": "Lift",
+            "focus": "Back-Off Volume",
+            "exercises": [
+              { "exercise": "Back Squat", "variant": null, "sets": 3, "reps": 6, "percent1RM": 0.72, "restMinutes": 3, "notes": "3x6 @ 72%. Back-off volume to support recovery." },
+              { "exercise": "Romanian Deadlift", "variant": null, "sets": 3, "reps": 8, "percent1RM": null, "restMinutes": 2, "notes": "Moderate weight." },
+              { "exercise": "Calf Raise", "variant": null, "sets": 3, "reps": 12, "percent1RM": null, "restMinutes": 1, "notes": "Maintain calf volume." }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 6,
+        "phaseId": "block-2-strength",
+        "isTestWeek": false,
+        "sessions": [
+          {
+            "sessionId": "ss-w6-a",
+            "sessionName": "Session A",
+            "sessionType": "Lift",
+            "focus": "Heavy Triples",
+            "exercises": [
+              { "exercise": "Back Squat", "variant": null, "sets": 5, "reps": 3, "percent1RM": 0.82, "restMinutes": 4, "notes": "5x3 @ 82%. Grinding territory." },
+              { "exercise": "Conventional Deadlift", "variant": null, "sets": 3, "reps": 5, "percent1RM": null, "restMinutes": 3, "notes": "Heavier than week 5." },
+              { "exercise": "Barbell Row", "variant": null, "sets": 3, "reps": 8, "percent1RM": null, "restMinutes": 2, "notes": "Upper back support." }
+            ]
+          },
+          {
+            "sessionId": "ss-w6-b",
+            "sessionName": "Session B",
+            "sessionType": "Lift",
+            "focus": "Squat Variation + Strength",
+            "exercises": [
+              { "exercise": "Front Squat", "variant": null, "sets": 4, "reps": 3, "percent1RM": 0.75, "restMinutes": 3.5, "notes": "4x3 @ 75%. Stay tight in the hole." },
+              { "exercise": "Bulgarian Split Squat", "variant": null, "sets": 3, "reps": 6, "percent1RM": null, "restMinutes": 2, "notes": "6 per leg, heavy dumbbells." },
+              { "exercise": "Leg Curl", "variant": null, "sets": 3, "reps": 8, "percent1RM": null, "restMinutes": 1.5, "notes": "Maintain hamstring strength." }
+            ]
+          },
+          {
+            "sessionId": "ss-w6-c",
+            "sessionName": "Session C",
+            "sessionType": "Lift",
+            "focus": "Back-Off Volume",
+            "exercises": [
+              { "exercise": "Back Squat", "variant": null, "sets": 3, "reps": 5, "percent1RM": 0.75, "restMinutes": 3, "notes": "3x5 @ 75%. Moderate back-off work." },
+              { "exercise": "Good Morning", "variant": null, "sets": 3, "reps": 8, "percent1RM": null, "restMinutes": 2, "notes": "Posterior chain maintenance." },
+              { "exercise": "Calf Raise", "variant": null, "sets": 3, "reps": 12, "percent1RM": null, "restMinutes": 1, "notes": "Steady state." }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 7,
+        "phaseId": "block-2-strength",
+        "isTestWeek": false,
+        "sessions": [
+          {
+            "sessionId": "ss-w7-a",
+            "sessionName": "Session A",
+            "sessionType": "Lift",
+            "focus": "Heavy Doubles",
+            "exercises": [
+              { "exercise": "Back Squat", "variant": null, "sets": 5, "reps": 2, "percent1RM": 0.85, "restMinutes": 5, "notes": "5x2 @ 85%. Heavy doubles. Full rest between sets." },
+              { "exercise": "Conventional Deadlift", "variant": null, "sets": 3, "reps": 3, "percent1RM": null, "restMinutes": 3, "notes": "Heavy triples. Support the squat." },
+              { "exercise": "Barbell Row", "variant": null, "sets": 3, "reps": 6, "percent1RM": null, "restMinutes": 2, "notes": "Heavy rows for back tightness." }
+            ]
+          },
+          {
+            "sessionId": "ss-w7-b",
+            "sessionName": "Session B",
+            "sessionType": "Lift",
+            "focus": "Squat Variation + Strength",
+            "exercises": [
+              { "exercise": "Front Squat", "variant": null, "sets": 3, "reps": 3, "percent1RM": 0.77, "restMinutes": 3.5, "notes": "3x3 @ 77%. Heavy front squat triples." },
+              { "exercise": "Walking Lunges", "variant": null, "sets": 3, "reps": 6, "percent1RM": null, "restMinutes": 2, "notes": "6 per leg, heavy." },
+              { "exercise": "Leg Curl", "variant": null, "sets": 3, "reps": 8, "percent1RM": null, "restMinutes": 1.5, "notes": "Maintain." }
+            ]
+          },
+          {
+            "sessionId": "ss-w7-c",
+            "sessionName": "Session C",
+            "sessionType": "Lift",
+            "focus": "Back-Off Volume",
+            "exercises": [
+              { "exercise": "Back Squat", "variant": null, "sets": 3, "reps": 5, "percent1RM": 0.75, "restMinutes": 3, "notes": "3x5 @ 75%. Recovery volume." },
+              { "exercise": "Romanian Deadlift", "variant": null, "sets": 3, "reps": 6, "percent1RM": null, "restMinutes": 2, "notes": "Moderate." },
+              { "exercise": "Calf Raise", "variant": null, "sets": 3, "reps": 12, "percent1RM": null, "restMinutes": 1, "notes": "Maintain." }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 8,
+        "phaseId": "block-2-strength",
+        "isTestWeek": false,
+        "sessions": [
+          {
+            "sessionId": "ss-w8-a",
+            "sessionName": "Session A",
+            "sessionType": "Lift",
+            "focus": "Heavy Doubles",
+            "exercises": [
+              { "exercise": "Back Squat", "variant": null, "sets": 4, "reps": 2, "percent1RM": 0.88, "restMinutes": 5, "notes": "4x2 @ 88%. Peak of strength block." },
+              { "exercise": "Conventional Deadlift", "variant": null, "sets": 3, "reps": 3, "percent1RM": null, "restMinutes": 3, "notes": "Heaviest deads of strength block." },
+              { "exercise": "Barbell Row", "variant": null, "sets": 3, "reps": 6, "percent1RM": null, "restMinutes": 2, "notes": "Keep upper back strong." }
+            ]
+          },
+          {
+            "sessionId": "ss-w8-b",
+            "sessionName": "Session B",
+            "sessionType": "Lift",
+            "focus": "Squat Variation + Strength",
+            "exercises": [
+              { "exercise": "Front Squat", "variant": null, "sets": 3, "reps": 2, "percent1RM": 0.80, "restMinutes": 4, "notes": "3x2 @ 80%. Heavy front squat doubles." },
+              { "exercise": "Bulgarian Split Squat", "variant": null, "sets": 3, "reps": 6, "percent1RM": null, "restMinutes": 2, "notes": "6 per leg. Last heavy single-leg work." },
+              { "exercise": "Leg Curl", "variant": null, "sets": 3, "reps": 8, "percent1RM": null, "restMinutes": 1.5, "notes": "Maintain hamstring strength." }
+            ]
+          },
+          {
+            "sessionId": "ss-w8-c",
+            "sessionName": "Session C",
+            "sessionType": "Lift",
+            "focus": "Back-Off Volume",
+            "exercises": [
+              { "exercise": "Back Squat", "variant": null, "sets": 3, "reps": 4, "percent1RM": 0.77, "restMinutes": 3, "notes": "3x4 @ 77%. Moderate back-off." },
+              { "exercise": "Good Morning", "variant": null, "sets": 3, "reps": 6, "percent1RM": null, "restMinutes": 2, "notes": "Moderate heavy." },
+              { "exercise": "Calf Raise", "variant": null, "sets": 3, "reps": 10, "percent1RM": null, "restMinutes": 1, "notes": "Maintain." }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 9,
+        "phaseId": "block-3-peak",
+        "isTestWeek": false,
+        "sessions": [
+          {
+            "sessionId": "ss-w9-a",
+            "sessionName": "Session A",
+            "sessionType": "Lift",
+            "focus": "Heavy Singles Intro",
+            "exercises": [
+              { "exercise": "Back Squat", "variant": null, "sets": 3, "reps": 2, "percent1RM": 0.88, "restMinutes": 5, "notes": "3x2 @ 88%. Peaking block begins. Focus on commands and walkout." },
+              { "exercise": "Conventional Deadlift", "variant": null, "sets": 2, "reps": 3, "percent1RM": null, "restMinutes": 3, "notes": "Light. Just maintain neural drive." },
+              { "exercise": "Barbell Row", "variant": null, "sets": 3, "reps": 6, "percent1RM": null, "restMinutes": 2, "notes": "Moderate. Upper back only." }
+            ]
+          },
+          {
+            "sessionId": "ss-w9-b",
+            "sessionName": "Session B",
+            "sessionType": "Lift",
+            "focus": "Competition Prep",
+            "exercises": [
+              { "exercise": "Back Squat", "variant": "Paused", "sets": 3, "reps": 2, "percent1RM": 0.80, "restMinutes": 4, "notes": "3x2 paused @ 80%. 2-second pause at bottom." },
+              { "exercise": "Front Squat", "variant": null, "sets": 2, "reps": 3, "percent1RM": 0.70, "restMinutes": 3, "notes": "2x3 @ 70%. Light, technique-focused." },
+              { "exercise": "Leg Curl", "variant": null, "sets": 2, "reps": 10, "percent1RM": null, "restMinutes": 1.5, "notes": "Light. Prehab only." }
+            ]
+          },
+          {
+            "sessionId": "ss-w9-c",
+            "sessionName": "Session C",
+            "sessionType": "Lift",
+            "focus": "Light Technique",
+            "exercises": [
+              { "exercise": "Back Squat", "variant": null, "sets": 3, "reps": 3, "percent1RM": 0.72, "restMinutes": 3, "notes": "3x3 @ 72%. Speed and technique. Move the bar fast." },
+              { "exercise": "Good Morning", "variant": null, "sets": 2, "reps": 8, "percent1RM": null, "restMinutes": 2, "notes": "Light posterior chain work." },
+              { "exercise": "Calf Raise", "variant": null, "sets": 3, "reps": 12, "percent1RM": null, "restMinutes": 1, "notes": "Easy." }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 10,
+        "phaseId": "block-3-peak",
+        "isTestWeek": false,
+        "sessions": [
+          {
+            "sessionId": "ss-w10-a",
+            "sessionName": "Session A",
+            "sessionType": "Lift",
+            "focus": "Heavy Singles",
+            "exercises": [
+              { "exercise": "Back Squat", "variant": null, "sets": 3, "reps": 1, "percent1RM": 0.92, "restMinutes": 5, "notes": "3x1 @ 92%. Heavy singles. Full rest. Nail your walkout." },
+              { "exercise": "Conventional Deadlift", "variant": null, "sets": 2, "reps": 2, "percent1RM": null, "restMinutes": 3, "notes": "Moderate heavy doubles." },
+              { "exercise": "Barbell Row", "variant": null, "sets": 2, "reps": 6, "percent1RM": null, "restMinutes": 2, "notes": "Light-moderate." }
+            ]
+          },
+          {
+            "sessionId": "ss-w10-b",
+            "sessionName": "Session B",
+            "sessionType": "Lift",
+            "focus": "Competition Prep",
+            "exercises": [
+              { "exercise": "Back Squat", "variant": "Paused", "sets": 2, "reps": 2, "percent1RM": 0.82, "restMinutes": 4, "notes": "2x2 paused @ 82%. Confidence builders." },
+              { "exercise": "Front Squat", "variant": null, "sets": 2, "reps": 2, "percent1RM": 0.72, "restMinutes": 3, "notes": "2x2 @ 72%. Light technique." },
+              { "exercise": "Leg Curl", "variant": null, "sets": 2, "reps": 10, "percent1RM": null, "restMinutes": 1.5, "notes": "Prehab." }
+            ]
+          },
+          {
+            "sessionId": "ss-w10-c",
+            "sessionName": "Session C",
+            "sessionType": "Lift",
+            "focus": "Light Technique",
+            "exercises": [
+              { "exercise": "Back Squat", "variant": null, "sets": 3, "reps": 2, "percent1RM": 0.72, "restMinutes": 3, "notes": "3x2 @ 72%. Speed work. Explosive out of the hole." },
+              { "exercise": "Romanian Deadlift", "variant": null, "sets": 2, "reps": 6, "percent1RM": null, "restMinutes": 2, "notes": "Light. Maintain." },
+              { "exercise": "Calf Raise", "variant": null, "sets": 2, "reps": 12, "percent1RM": null, "restMinutes": 1, "notes": "Easy." }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 11,
+        "phaseId": "block-3-peak",
+        "isTestWeek": false,
+        "sessions": [
+          {
+            "sessionId": "ss-w11-a",
+            "sessionName": "Session A",
+            "sessionType": "Lift",
+            "focus": "Openers",
+            "exercises": [
+              { "exercise": "Back Squat", "variant": null, "sets": 2, "reps": 1, "percent1RM": 0.95, "restMinutes": 5, "notes": "2x1 @ 95%. Opener practice. This should feel heavy but confident." },
+              { "exercise": "Conventional Deadlift", "variant": null, "sets": 2, "reps": 1, "percent1RM": null, "restMinutes": 3, "notes": "Heavy singles. Match the intensity." },
+              { "exercise": "Barbell Row", "variant": null, "sets": 2, "reps": 6, "percent1RM": null, "restMinutes": 2, "notes": "Light. Just blood flow." }
+            ]
+          },
+          {
+            "sessionId": "ss-w11-b",
+            "sessionName": "Session B",
+            "sessionType": "Lift",
+            "focus": "Competition Prep",
+            "exercises": [
+              { "exercise": "Back Squat", "variant": "Paused", "sets": 2, "reps": 1, "percent1RM": 0.85, "restMinutes": 4, "notes": "2x1 paused @ 85%. Confidence reps." },
+              { "exercise": "Front Squat", "variant": null, "sets": 2, "reps": 2, "percent1RM": 0.70, "restMinutes": 3, "notes": "2x2 @ 70%. Keep it light and snappy." },
+              { "exercise": "Leg Curl", "variant": null, "sets": 2, "reps": 8, "percent1RM": null, "restMinutes": 1.5, "notes": "Light prehab." }
+            ]
+          },
+          {
+            "sessionId": "ss-w11-c",
+            "sessionName": "Session C",
+            "sessionType": "Lift",
+            "focus": "Light Technique",
+            "exercises": [
+              { "exercise": "Back Squat", "variant": null, "sets": 2, "reps": 2, "percent1RM": 0.70, "restMinutes": 3, "notes": "2x2 @ 70%. Light speed work. Stay sharp." },
+              { "exercise": "Good Morning", "variant": null, "sets": 2, "reps": 6, "percent1RM": null, "restMinutes": 2, "notes": "Very light. Just movement." },
+              { "exercise": "Calf Raise", "variant": null, "sets": 2, "reps": 10, "percent1RM": null, "restMinutes": 1, "notes": "Easy." }
+            ]
+          }
+        ]
+      },
+      {
+        "week": 12,
+        "phaseId": "block-3-peak",
+        "isTestWeek": true,
+        "sessions": [
+          {
+            "sessionId": "ss-w12-a",
+            "sessionName": "Session A",
+            "sessionType": "Lift",
+            "focus": "1RM Test Day",
+            "exercises": [
+              { "exercise": "Back Squat", "variant": null, "sets": 1, "reps": 1, "percent1RM": 1.00, "restMinutes": 5, "notes": "Work up to a new 1RM. Warm up: bar → 50% → 60% → 70% → 80% → 90% → attempt." },
+              { "exercise": "Back Squat", "variant": "Back-off", "sets": 2, "reps": 3, "percent1RM": 0.75, "restMinutes": 3, "notes": "2x3 @ 75% of new max. Celebrate, then lock it in." }
+            ]
+          },
+          {
+            "sessionId": "ss-w12-b",
+            "sessionName": "Session B",
+            "sessionType": "Lift",
+            "focus": "Deload / Recovery",
+            "exercises": [
+              { "exercise": "Front Squat", "variant": null, "sets": 2, "reps": 5, "percent1RM": 0.55, "restMinutes": 2, "notes": "2x5 @ 55%. Easy movement. You earned this." },
+              { "exercise": "Walking Lunges", "variant": null, "sets": 2, "reps": 8, "percent1RM": null, "restMinutes": 2, "notes": "8 per leg, bodyweight or light." },
+              { "exercise": "Leg Curl", "variant": null, "sets": 2, "reps": 12, "percent1RM": null, "restMinutes": 1.5, "notes": "Light. Recovery." }
+            ]
+          },
+          {
+            "sessionId": "ss-w12-c",
+            "sessionName": "Session C",
+            "sessionType": "Lift",
+            "focus": "Recovery Day",
+            "exercises": [
+              { "exercise": "Back Squat", "variant": null, "sets": 3, "reps": 5, "percent1RM": 0.55, "restMinutes": 2, "notes": "3x5 @ 55%. Easy deload. Technique only." },
+              { "exercise": "Good Morning", "variant": null, "sets": 2, "reps": 10, "percent1RM": null, "restMinutes": 2, "notes": "Very light. Just move." },
+              { "exercise": "Calf Raise", "variant": null, "sets": 3, "reps": 15, "percent1RM": null, "restMinutes": 1, "notes": "Light and easy. Program complete!" }
             ]
           }
         ]

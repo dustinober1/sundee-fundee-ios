@@ -35,6 +35,11 @@ targets:
         SWIFT_VERSION: "6.0"
     entitlements:
       path: SundeeFundee/Resources/SundeeFundee.entitlements
+      properties:
+        com.apple.developer.icloud-container-identifiers:
+          - iCloud.com.sundeefundee.app
+        com.apple.developer.icloud-services:
+          - CloudKit
     info:
       path: SundeeFundee/Resources/Info.plist
       properties:
