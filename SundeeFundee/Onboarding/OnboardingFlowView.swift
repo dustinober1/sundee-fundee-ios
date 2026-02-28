@@ -185,7 +185,7 @@ struct OnboardingFlowView: View {
         return steps[current - 1]
     }
 
-    static func resolvedCycleTrackingEnabled(gender: Gender, requestedValue: Bool) -> Bool {
+    nonisolated static func resolvedCycleTrackingEnabled(gender: Gender, requestedValue: Bool) -> Bool {
         gender != .male && requestedValue
     }
 

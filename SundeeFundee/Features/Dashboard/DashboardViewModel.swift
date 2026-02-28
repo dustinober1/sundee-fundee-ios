@@ -14,7 +14,7 @@ final class DashboardViewModel {
 
     private let programRepo: any ProgramRepository
 
-    init(programRepo: any ProgramRepository = CloudKitProgramRepository()) {
+    init(programRepo: any ProgramRepository = BundledProgramRepository()) {
         self.programRepo = programRepo
     }
 
@@ -64,7 +64,7 @@ final class DashboardViewModel {
         }
 
         // Recent workouts (last 10)
-        let allWorkouts = try! workoutRepo.fetchWorkouts()
+        let allWorkouts = (try? workoutRepo.fetchWorkouts()) ?? []
         recentWorkouts = Array(allWorkouts.prefix(10))
     }
 

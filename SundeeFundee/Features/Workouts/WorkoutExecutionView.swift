@@ -460,12 +460,14 @@ struct RestTimerOverlay: View {
     }
 
     private func startTimer() {
-        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
-            timeLeft = Self.processTick(
-                timeLeft: timeLeft,
-                invalidateTimer: { timer?.invalidate() },
-                onDismiss: onDismiss
-            )
+        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [self] _ in
+            Task { @MainActor in
+                timeLeft = Self.processTick(
+                    timeLeft: timeLeft,
+                    invalidateTimer: { timer?.invalidate() },
+                    onDismiss: onDismiss
+                )
+            }
         }
     }
 
