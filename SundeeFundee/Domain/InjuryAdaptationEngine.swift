@@ -60,15 +60,15 @@ enum InjuryAdaptationEngine {
 
     private static let regressionTable: [String: [String]] = [
         // Squat variations
-        "Back Squat":                             ["Goblet Squat", "Box Squat", "Leg Press", "Air Squats"],
+        "Back Squat":                             ["Goblet Squat", "Box Squat", "Wall Ball Thrusters", "Air Squats"],
         "Front Squat":                            ["Goblet Squat", "Safety Bar Squat", "Air Squats"],
-        "Walking Lunges":                         ["Stationary Lunges", "Step-Ups", "Leg Press"],
+        "Walking Lunges":                         ["Stationary Lunges", "Step-Ups", "Wall Ball Thrusters"],
         // Hip hinge / posterior chain
         "Romanian Deadlift":                      ["Nordic Curl", "Glute Bridge", "Hip Thrust", "Cable Pull-Through"],
         "Conventional Deadlift (No Straps)":      ["Romanian Deadlift / RDL (No Straps)", "Trap Bar / Hex Bar Deadlift (No Straps)", "Kettlebell Deadlift"],
         "Good Morning":                           ["Cat-Cow", "Bird-Dogs", "Seated Good Morning"],
         // Machine / accessory
-        "Leg Press":                              ["Goblet Squat", "Air Squats", "Step-Ups"],
+        "Wall Ball Thrusters":                    ["Goblet Squat", "Air Squats", "Step-Ups"],
         "Leg Curl":                               ["Nordic Curl", "Glute Bridge", "Swiss Ball Leg Curl"],
         "Calf Raise":                             ["Seated Calf Raise", "Single-Leg Calf Raise"],
         // Upper body press

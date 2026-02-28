@@ -36,7 +36,7 @@
             "exercises": [
               { "exercise": "Back Squat", "variant": null, "sets": 3, "reps": 8, "percent1RM": 0.65, "restMinutes": 3, "notes": "3x8 @ 65%. Focus on consistent depth." },
               { "exercise": "Romanian Deadlift", "variant": null, "sets": 3, "reps": 10, "percent1RM": null, "restMinutes": 2, "notes": "Moderate weight, feel the hamstrings." },
-              { "exercise": "Leg Press", "variant": null, "sets": 3, "reps": 12, "percent1RM": null, "restMinutes": 2, "notes": "Controlled descent." }
+              { "exercise": "Wall Ball Thrusters", "variant": null, "sets": 3, "reps": 12, "percent1RM": null, "restMinutes": 2, "notes": "Full squat depth, explosive drive through the ball." }
             ]
           },
           {
@@ -76,7 +76,7 @@
             "exercises": [
               { "exercise": "Back Squat", "variant": null, "sets": 3, "reps": 8, "percent1RM": 0.67, "restMinutes": 3, "notes": "3x8 @ 67%. Small jump from week 1." },
               { "exercise": "Romanian Deadlift", "variant": null, "sets": 3, "reps": 10, "percent1RM": null, "restMinutes": 2, "notes": "Add 2.5 kg from last week if possible." },
-              { "exercise": "Leg Press", "variant": null, "sets": 3, "reps": 12, "percent1RM": null, "restMinutes": 2, "notes": "Controlled descent, full depth." }
+              { "exercise": "Wall Ball Thrusters", "variant": null, "sets": 3, "reps": 12, "percent1RM": null, "restMinutes": 2, "notes": "Full squat depth, explosive drive through the ball." }
             ]
           },
           {
@@ -116,7 +116,7 @@
             "exercises": [
               { "exercise": "Back Squat", "variant": null, "sets": 4, "reps": 6, "percent1RM": 0.70, "restMinutes": 3, "notes": "4x6 @ 70%. Intensity stepping up." },
               { "exercise": "Romanian Deadlift", "variant": null, "sets": 3, "reps": 8, "percent1RM": null, "restMinutes": 2, "notes": "Heavier, fewer reps this week." },
-              { "exercise": "Leg Press", "variant": null, "sets": 3, "reps": 10, "percent1RM": null, "restMinutes": 2, "notes": "Increase weight from week 2." }
+              { "exercise": "Wall Ball Thrusters", "variant": null, "sets": 3, "reps": 10, "percent1RM": null, "restMinutes": 2, "notes": "Increase ball weight from week 2." }
             ]
           },
           {
@@ -156,7 +156,7 @@
             "exercises": [
               { "exercise": "Back Squat", "variant": null, "sets": 4, "reps": 6, "percent1RM": 0.72, "restMinutes": 3, "notes": "4x6 @ 72%. Peak of volume block." },
               { "exercise": "Romanian Deadlift", "variant": null, "sets": 3, "reps": 8, "percent1RM": null, "restMinutes": 2, "notes": "Heaviest RDL of block 1." },
-              { "exercise": "Leg Press", "variant": null, "sets": 3, "reps": 10, "percent1RM": null, "restMinutes": 2, "notes": "Push it this week." }
+              { "exercise": "Wall Ball Thrusters", "variant": null, "sets": 3, "reps": 10, "percent1RM": null, "restMinutes": 2, "notes": "Push it this week." }
             ]
           },
           {
