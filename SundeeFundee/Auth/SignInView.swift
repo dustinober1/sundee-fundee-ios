@@ -49,8 +49,7 @@ struct SignInView: View {
                     Image("AppLogo")
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 120, height: 120)
-                        .cornerRadius(AppTheme.Radius.lg)
+                        .frame(width: 180, height: 180)
 
                     Text("Sundee Fundee")
                         .font(AppTheme.Font.heading(36))

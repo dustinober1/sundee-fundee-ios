@@ -4,7 +4,7 @@ import SwiftUI
 enum AppTheme {
     // MARK: - Colors
     enum Color {
-        static let cream     = SwiftUI.Color(red: 0.98, green: 0.96, blue: 0.92)
+        static let cream     = SwiftUI.Color(red: 0.957, green: 0.941, blue: 0.875)
         static let navy      = SwiftUI.Color(red: 0.05, green: 0.10, blue: 0.25)
         static let orange    = SwiftUI.Color(red: 0.95, green: 0.45, blue: 0.10)
         static let gold      = SwiftUI.Color(red: 0.85, green: 0.70, blue: 0.30)
