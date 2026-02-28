@@ -69,7 +69,7 @@ enum InjuryAdaptationEngine {
         "Good Morning":                           ["Cat-Cow", "Bird-Dogs", "Seated Good Morning"],
         // Machine / accessory
         "Wall Ball Thrusters":                    ["Goblet Squat", "Air Squats", "Step-Ups"],
-        "Leg Curl":                               ["Nordic Curl", "Glute Bridge", "Swiss Ball Leg Curl"],
+        "Banded Leg Curls":                       ["Nordic Curl", "Glute Bridge", "Swiss Ball Leg Curl"],
         "Calf Raise":                             ["Seated Calf Raise", "Single-Leg Calf Raise"],
         // Upper body press
         "Flat Barbell Bench Press":               ["Dumbbell Bench Press", "Floor Press", "Push-Ups"],
@@ -120,13 +120,14 @@ enum InjuryAdaptationEngine {
         guard isContraindicated(exercise.exercise, injuries: injuries) else { return exercise }
         let replacement = findReplacement(exercise.exercise, injuries: injuries)
         return ProgramExercise(
-            exercise:    replacement.exerciseName,
-            variant:     exercise.variant,
-            sets:        exercise.sets,
-            reps:        exercise.reps,
-            percent1RM:  exercise.percent1RM,
-            restMinutes: exercise.restMinutes,
-            notes:       exercise.notes
+            exercise:      replacement.exerciseName,
+            variant:       exercise.variant,
+            sets:          exercise.sets,
+            reps:          exercise.reps,
+            percent1RM:    exercise.percent1RM,
+            restMinutes:   exercise.restMinutes,
+            notes:         exercise.notes,
+            bodyweightOnly: exercise.bodyweightOnly
         )
     }
 
@@ -189,13 +190,14 @@ enum InjuryAdaptationEngine {
                 for ex in exercises where !seen.contains(ex) {
                     seen.insert(ex)
                     block.append(ProgramExercise(
-                        exercise:    ex,
-                        variant:     nil,
-                        sets:        .fixed(2),
-                        reps:        .fixed(10),
-                        percent1RM:  nil,
-                        restMinutes: 1,
-                        notes:       "Recovery prep — gentle movement only"
+                        exercise:      ex,
+                        variant:       nil,
+                        sets:          .fixed(2),
+                        reps:          .fixed(10),
+                        percent1RM:    nil,
+                        restMinutes:   1,
+                        notes:         "Recovery prep — gentle movement only",
+                        bodyweightOnly: nil
                     ))
                 }
             }

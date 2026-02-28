@@ -15,6 +15,7 @@ protocol WorkoutRepository {
     func fetchWorkouts() throws -> [CompletedWorkout]
     func fetchWorkout(id: UUID) throws -> CompletedWorkout?
     func delete(_ workout: CompletedWorkout) throws
+    func deleteWorkoutWithSets(_ workout: CompletedWorkout) throws
     func save(_ set: CompletedSet) throws
     func fetchSets(for workout: CompletedWorkout) throws -> [CompletedSet]
 }

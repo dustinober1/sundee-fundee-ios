@@ -160,9 +160,35 @@ final class WorkoutExecutionViewModel {
             setIndex += sets.count
         }
 
+        // Advance the enrollment pointer to the next workout
+        let enrollmentRepo = SwiftDataEnrolledProgramRepository(context: modelContext)
+        let next = Self.nextPosition(
+            currentWeek: enrollment.currentWeek,
+            currentDay: enrollment.currentDay,
+            program: program
+        )
+        try? enrollmentRepo.updateProgress(enrollment: enrollment, week: next.week, day: next.day)
+
         isSaving = false
         completedWorkout = workout
         isFinished = true
+    }
+
+    // MARK: - Position helper
+
+    /// Returns the next (week, day) in the program, or the current position if at the end.
+    static func nextPosition(currentWeek: Int, currentDay: Int, program: Program) -> (week: Int, day: Int) {
+        guard let week = program.weeks.first(where: { $0.week == currentWeek }) else {
+            return (currentWeek, currentDay)
+        }
+        if currentDay < week.sessions.count {
+            return (currentWeek, currentDay + 1)
+        }
+        let nextWeek = currentWeek + 1
+        if program.weeks.contains(where: { $0.week == nextWeek }) {
+            return (nextWeek, 1)
+        }
+        return (currentWeek, currentDay) // Already at the end
     }
 
     // MARK: - Helpers

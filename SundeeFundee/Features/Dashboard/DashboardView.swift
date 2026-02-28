@@ -7,6 +7,10 @@ struct DashboardView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(AppState.self) private var appState
 
+    @State private var showSkipConfirmation = false
+    @State private var workoutToDelete: CompletedWorkout?
+    @State private var showDeleteConfirmation = false
+
     init(viewModel: DashboardViewModel = DashboardViewModel()) {
         _viewModel = State(initialValue: viewModel)
     }
@@ -28,7 +32,8 @@ struct DashboardView: View {
                             enrollment: state.enrollment,
                             program: state.program,
                             nextSession: viewModel.nextSession,
-                            cyclePhase: viewModel.currentCyclePhase
+                            cyclePhase: viewModel.currentCyclePhase,
+                            onSkip: { showSkipConfirmation = true }
                         )
                         .accessibilityIdentifier("active-cycle-card")
                     } else {
@@ -53,6 +58,36 @@ struct DashboardView: View {
                     )
                 )
             }
+        }
+        .confirmationDialog("Skip this workout?", isPresented: $showSkipConfirmation, titleVisibility: .visible) {
+            Button("Mark as Skipped") {
+                viewModel.skipWorkout(
+                    modelContext: modelContext,
+                    userID: appState.currentUserID ?? "",
+                    recordAs: .markAsSkipped
+                )
+            }
+            Button("Don't Record") {
+                viewModel.skipWorkout(
+                    modelContext: modelContext,
+                    userID: appState.currentUserID ?? "",
+                    recordAs: .noRecord
+                )
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Skipping will advance you to the next workout in the program.")
+        }
+        .alert("Delete Workout?", isPresented: $showDeleteConfirmation) {
+            Button("Delete", role: .destructive) {
+                if let workout = workoutToDelete {
+                    viewModel.deleteWorkout(workout, modelContext: modelContext)
+                    workoutToDelete = nil
+                }
+            }
+            Button("Cancel", role: .cancel) { workoutToDelete = nil }
+        } message: {
+            Text("This will remove the workout record and roll back your program progress by one session.")
         }
         .task { await viewModel.load(modelContext: modelContext) }
         .refreshable(action: Self.refreshAction(viewModel: viewModel, modelContext: modelContext))
@@ -117,6 +152,14 @@ struct DashboardView: View {
             } else {
                 ForEach(viewModel.recentWorkouts) { workout in
                     WorkoutHistoryRow(workout: workout)
+                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                            Button(role: .destructive) {
+                                workoutToDelete = workout
+                                showDeleteConfirmation = true
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
+                        }
                 }
             }
         }
@@ -155,6 +198,7 @@ struct ActiveEnrollmentCard: View {
     let program: Program
     let nextSession: ProgramSession?
     let cyclePhase: CyclePhase?
+    var onSkip: (() -> Void)? = nil
 
     var body: some View {
         VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
@@ -215,6 +259,15 @@ struct ActiveEnrollmentCard: View {
                 }
                 .buttonStyle(PrimaryButtonStyle())
                 .accessibilityIdentifier("start-workout-button")
+
+                if let onSkip {
+                    Button(action: onSkip) {
+                        Label("Skip Workout", systemImage: "forward.fill")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(SecondaryButtonStyle())
+                    .accessibilityIdentifier("skip-workout-button")
+                }
             }
         }
         .padding(AppTheme.Spacing.md)
@@ -303,20 +356,35 @@ struct CyclePhaseBadge: View {
 struct WorkoutHistoryRow: View {
     let workout: CompletedWorkout
 
+    var isSkipped: Bool { workout.notes == "skipped" }
+
     var body: some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
-                Text("Session \(workout.day) — Week \(workout.week)")
-                    .font(AppTheme.Fonts.body)
-                    .foregroundStyle(AppTheme.Colors.navy)
-                Text(workout.completedAt, style: .relative)
+                HStack(spacing: 6) {
+                    Text("Session \(workout.day) — Week \(workout.week)")
+                        .font(AppTheme.Fonts.body)
+                        .foregroundStyle(isSkipped ? AppTheme.Colors.navy.opacity(0.4) : AppTheme.Colors.navy)
+                    if isSkipped {
+                        Text("Skipped")
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundStyle(AppTheme.Colors.cream)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(AppTheme.Colors.navy.opacity(0.3))
+                            .clipShape(Capsule())
+                    }
+                }
+                Text(workout.completedAt, format: .dateTime.month(.abbreviated).day().hour().minute())
                     .font(AppTheme.Fonts.caption)
                     .foregroundStyle(AppTheme.Colors.navy.opacity(0.5))
             }
             Spacer()
-            Text("\(workout.durationSeconds / 60)m")
-                .font(AppTheme.Fonts.caption)
-                .foregroundStyle(AppTheme.Colors.navy.opacity(0.5))
+            if !isSkipped {
+                Text("\(workout.durationSeconds / 60)m")
+                    .font(AppTheme.Fonts.caption)
+                    .foregroundStyle(AppTheme.Colors.navy.opacity(0.5))
+            }
             Image(systemName: "chevron.right")
                 .font(.caption)
                 .foregroundStyle(AppTheme.Colors.navy.opacity(0.3))

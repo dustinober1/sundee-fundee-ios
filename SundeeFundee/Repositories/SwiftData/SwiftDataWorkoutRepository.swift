@@ -33,6 +33,17 @@ final class SwiftDataWorkoutRepository: WorkoutRepository {
         try context.save()
     }
 
+    func deleteWorkoutWithSets(_ workout: CompletedWorkout) throws {
+        let workoutID = workout.id
+        let setsDescriptor = FetchDescriptor<CompletedSet>(
+            predicate: #Predicate { $0.workoutID == workoutID }
+        )
+        let sets = (try? context.fetch(setsDescriptor)) ?? []
+        sets.forEach { context.delete($0) }
+        context.delete(workout)
+        try context.save()
+    }
+
     func save(_ set: CompletedSet) throws {
         context.insert(set)
         try context.save()

@@ -329,6 +329,306 @@ final class DashboardViewCoverageTests: XCTestCase {
         ).view)
     }
 
+    // MARK: - nextPosition tests
+
+    func testNextPositionAdvancesDayWithinWeek() {
+        let session1 = makeSession(id: "s1")
+        let session2 = makeSession(id: "s2")
+        let program = Program(
+            id: "prog", name: "P", category: "S", description: "",
+            durationWeeks: 2, sessionsPerWeek: 2, difficulty: "beginner",
+            phases: [],
+            weeks: [
+                ProgramWeek(week: 1, phaseID: nil, isTestWeek: false, sessions: [session1, session2]),
+                ProgramWeek(week: 2, phaseID: nil, isTestWeek: false, sessions: [session1])
+            ],
+            cycleAdjustmentProfile: nil
+        )
+        let next = DashboardViewModel.nextPosition(currentWeek: 1, currentDay: 1, program: program)
+        XCTAssertEqual(next.week, 1)
+        XCTAssertEqual(next.day, 2)
+    }
+
+    func testNextPositionAdvancesToNextWeekOnLastDay() {
+        let session = makeSession(id: "s1")
+        let program = Program(
+            id: "prog", name: "P", category: "S", description: "",
+            durationWeeks: 2, sessionsPerWeek: 1, difficulty: "beginner",
+            phases: [],
+            weeks: [
+                ProgramWeek(week: 1, phaseID: nil, isTestWeek: false, sessions: [session]),
+                ProgramWeek(week: 2, phaseID: nil, isTestWeek: false, sessions: [session])
+            ],
+            cycleAdjustmentProfile: nil
+        )
+        let next = DashboardViewModel.nextPosition(currentWeek: 1, currentDay: 1, program: program)
+        XCTAssertEqual(next.week, 2)
+        XCTAssertEqual(next.day, 1)
+    }
+
+    func testNextPositionStaysAtEndOfProgram() {
+        let session = makeSession(id: "s1")
+        let program = Program(
+            id: "prog", name: "P", category: "S", description: "",
+            durationWeeks: 1, sessionsPerWeek: 1, difficulty: "beginner",
+            phases: [],
+            weeks: [ProgramWeek(week: 1, phaseID: nil, isTestWeek: false, sessions: [session])],
+            cycleAdjustmentProfile: nil
+        )
+        let next = DashboardViewModel.nextPosition(currentWeek: 1, currentDay: 1, program: program)
+        XCTAssertEqual(next.week, 1)
+        XCTAssertEqual(next.day, 1)
+    }
+
+    func testNextPositionHandlesUnknownWeek() {
+        let session = makeSession(id: "s1")
+        let program = Program(
+            id: "prog", name: "P", category: "S", description: "",
+            durationWeeks: 1, sessionsPerWeek: 1, difficulty: "beginner",
+            phases: [],
+            weeks: [ProgramWeek(week: 1, phaseID: nil, isTestWeek: false, sessions: [session])],
+            cycleAdjustmentProfile: nil
+        )
+        let next = DashboardViewModel.nextPosition(currentWeek: 99, currentDay: 1, program: program)
+        XCTAssertEqual(next.week, 99)
+        XCTAssertEqual(next.day, 1)
+    }
+
+    // MARK: - previousPosition tests
+
+    func testPreviousPositionDecrementsDayWithinWeek() {
+        let session1 = makeSession(id: "s1")
+        let session2 = makeSession(id: "s2")
+        let program = Program(
+            id: "prog", name: "P", category: "S", description: "",
+            durationWeeks: 2, sessionsPerWeek: 2, difficulty: "beginner",
+            phases: [],
+            weeks: [
+                ProgramWeek(week: 1, phaseID: nil, isTestWeek: false, sessions: [session1, session2]),
+                ProgramWeek(week: 2, phaseID: nil, isTestWeek: false, sessions: [session1])
+            ],
+            cycleAdjustmentProfile: nil
+        )
+        let prev = DashboardViewModel.previousPosition(currentWeek: 1, currentDay: 2, program: program)
+        XCTAssertEqual(prev.week, 1)
+        XCTAssertEqual(prev.day, 1)
+    }
+
+    func testPreviousPositionGoesToLastDayOfPreviousWeek() {
+        let session1 = makeSession(id: "s1")
+        let session2 = makeSession(id: "s2")
+        let program = Program(
+            id: "prog", name: "P", category: "S", description: "",
+            durationWeeks: 2, sessionsPerWeek: 2, difficulty: "beginner",
+            phases: [],
+            weeks: [
+                ProgramWeek(week: 1, phaseID: nil, isTestWeek: false, sessions: [session1, session2]),
+                ProgramWeek(week: 2, phaseID: nil, isTestWeek: false, sessions: [session1])
+            ],
+            cycleAdjustmentProfile: nil
+        )
+        let prev = DashboardViewModel.previousPosition(currentWeek: 2, currentDay: 1, program: program)
+        XCTAssertEqual(prev.week, 1)
+        XCTAssertEqual(prev.day, 2) // last session of week 1
+    }
+
+    func testPreviousPositionStaysAtStartOfProgram() {
+        let session = makeSession(id: "s1")
+        let program = Program(
+            id: "prog", name: "P", category: "S", description: "",
+            durationWeeks: 1, sessionsPerWeek: 1, difficulty: "beginner",
+            phases: [],
+            weeks: [ProgramWeek(week: 1, phaseID: nil, isTestWeek: false, sessions: [session])],
+            cycleAdjustmentProfile: nil
+        )
+        let prev = DashboardViewModel.previousPosition(currentWeek: 1, currentDay: 1, program: program)
+        XCTAssertEqual(prev.week, 1)
+        XCTAssertEqual(prev.day, 1)
+    }
+
+    // MARK: - skipWorkout tests
+
+    func testSkipWorkoutMarkAsSkippedSavesRecord() throws {
+        let store = try makeTestStore()
+        let session = makeSession()
+        let program = makeProgram(session: session)
+        let enrollment = makeEnrollment(programID: program.id)
+        store.context.insert(enrollment)
+        try store.context.save()
+
+        let viewModel = DashboardViewModel(programRepo: InMemoryProgramRepository(programs: [program]))
+        viewModel.activeEnrollment = enrollment
+        viewModel.activeProgram = program
+        viewModel.nextSession = session
+
+        viewModel.skipWorkout(modelContext: store.context, userID: "test-user", recordAs: .markAsSkipped)
+
+        let allWorkouts = try store.context.fetch(FetchDescriptor<CompletedWorkout>())
+        XCTAssertEqual(allWorkouts.count, 1)
+        XCTAssertEqual(allWorkouts.first?.notes, "skipped")
+        XCTAssertEqual(allWorkouts.first?.durationSeconds, 0)
+    }
+
+    func testSkipWorkoutNoRecordDoesNotSaveWorkout() throws {
+        let store = try makeTestStore()
+        let session = makeSession()
+        let program = makeProgram(session: session)
+        let enrollment = makeEnrollment(programID: program.id)
+        store.context.insert(enrollment)
+        try store.context.save()
+
+        let viewModel = DashboardViewModel(programRepo: InMemoryProgramRepository(programs: [program]))
+        viewModel.activeEnrollment = enrollment
+        viewModel.activeProgram = program
+        viewModel.nextSession = session
+
+        viewModel.skipWorkout(modelContext: store.context, userID: "test-user", recordAs: .noRecord)
+
+        let allWorkouts = try store.context.fetch(FetchDescriptor<CompletedWorkout>())
+        XCTAssertEqual(allWorkouts.count, 0)
+    }
+
+    func testSkipWorkoutAdvancesEnrollmentPointer() throws {
+        let store = try makeTestStore()
+        let session1 = makeSession(id: "s1")
+        let session2 = makeSession(id: "s2", name: "Upper Strength")
+        let program = Program(
+            id: "prog-skip", name: "Skip Test", category: "S", description: "",
+            durationWeeks: 1, sessionsPerWeek: 2, difficulty: "beginner",
+            phases: [],
+            weeks: [ProgramWeek(week: 1, phaseID: nil, isTestWeek: false, sessions: [session1, session2])],
+            cycleAdjustmentProfile: nil
+        )
+        let enrollment = makeEnrollment(programID: program.id, currentWeek: 1, currentDay: 1)
+        store.context.insert(enrollment)
+        try store.context.save()
+
+        let viewModel = DashboardViewModel(programRepo: InMemoryProgramRepository(programs: [program]))
+        viewModel.activeEnrollment = enrollment
+        viewModel.activeProgram = program
+        viewModel.nextSession = session1
+
+        viewModel.skipWorkout(modelContext: store.context, userID: "test-user", recordAs: .noRecord)
+
+        XCTAssertEqual(enrollment.currentDay, 2)
+        XCTAssertEqual(enrollment.currentWeek, 1)
+    }
+
+    func testSkipWorkoutDoesNothingWhenNoActiveEnrollment() throws {
+        let store = try makeTestStore()
+        let viewModel = DashboardViewModel(programRepo: InMemoryProgramRepository(programs: []))
+        viewModel.activeEnrollment = nil
+        viewModel.activeProgram = nil
+        // Should not crash
+        viewModel.skipWorkout(modelContext: store.context, userID: "test-user", recordAs: .noRecord)
+        let allWorkouts = try store.context.fetch(FetchDescriptor<CompletedWorkout>())
+        XCTAssertEqual(allWorkouts.count, 0)
+    }
+
+    // MARK: - deleteWorkout tests
+
+    func testDeleteWorkoutRemovesRecordAndRollsBackPointer() throws {
+        let store = try makeTestStore()
+        let session1 = makeSession(id: "s1")
+        let session2 = makeSession(id: "s2", name: "Upper Strength")
+        let program = Program(
+            id: "prog-del", name: "Delete Test", category: "S", description: "",
+            durationWeeks: 1, sessionsPerWeek: 2, difficulty: "beginner",
+            phases: [],
+            weeks: [ProgramWeek(week: 1, phaseID: nil, isTestWeek: false, sessions: [session1, session2])],
+            cycleAdjustmentProfile: nil
+        )
+        // Enrollment is at day 2 (after completing day 1)
+        let enrollment = makeEnrollment(programID: program.id, currentWeek: 1, currentDay: 2)
+        store.context.insert(enrollment)
+        let workout = makeWorkout(enrollmentID: enrollment.id, programID: program.id)
+        store.context.insert(workout)
+        try store.context.save()
+
+        let viewModel = DashboardViewModel(programRepo: InMemoryProgramRepository(programs: [program]))
+        viewModel.activeEnrollment = enrollment
+        viewModel.activeProgram = program
+        viewModel.recentWorkouts = [workout]
+
+        viewModel.deleteWorkout(workout, modelContext: store.context)
+
+        let allWorkouts = try store.context.fetch(FetchDescriptor<CompletedWorkout>())
+        XCTAssertEqual(allWorkouts.count, 0)
+        XCTAssertEqual(enrollment.currentDay, 1)
+        XCTAssertEqual(enrollment.currentWeek, 1)
+    }
+
+    func testDeleteWorkoutDoesNothingWhenNoActiveEnrollment() throws {
+        let store = try makeTestStore()
+        let session = makeSession()
+        let program = makeProgram(session: session)
+        let enrollment = makeEnrollment(programID: program.id)
+        store.context.insert(enrollment)
+        let workout = makeWorkout(enrollmentID: enrollment.id, programID: program.id)
+        store.context.insert(workout)
+        try store.context.save()
+
+        let viewModel = DashboardViewModel(programRepo: InMemoryProgramRepository(programs: []))
+        viewModel.activeEnrollment = nil
+        viewModel.activeProgram = nil
+        // Should not crash or delete
+        viewModel.deleteWorkout(workout, modelContext: store.context)
+        let allWorkouts = try store.context.fetch(FetchDescriptor<CompletedWorkout>())
+        XCTAssertEqual(allWorkouts.count, 1)
+    }
+
+    // MARK: - WorkoutHistoryRow skipped styling
+
+    func testWorkoutHistoryRowIsSkippedProperty() {
+        let session = makeSession()
+        let program = makeProgram(session: session)
+        let enrollment = makeEnrollment(programID: program.id)
+
+        let normalWorkout = makeWorkout(enrollmentID: enrollment.id, programID: program.id)
+        let skippedWorkout = CompletedWorkout(
+            id: "skipped-1",
+            userID: "dashboard-user",
+            activeCycleID: "",
+            programID: program.id,
+            enrollmentID: enrollment.id,
+            week: 1,
+            day: 1,
+            sessionID: "session-1",
+            completedAt: fixedDate,
+            durationSeconds: 0,
+            notes: "skipped"
+        )
+
+        XCTAssertFalse(WorkoutHistoryRow(workout: normalWorkout).isSkipped)
+        XCTAssertTrue(WorkoutHistoryRow(workout: skippedWorkout).isSkipped)
+        _ = WorkoutHistoryRow(workout: normalWorkout).body
+        _ = WorkoutHistoryRow(workout: skippedWorkout).body
+    }
+
+    // MARK: - ActiveEnrollmentCard with onSkip closure
+
+    func testActiveEnrollmentCardWithSkipClosureRendersSkipButton() throws {
+        let store = try makeTestStore()
+        let session = makeSession()
+        let program = makeProgram(session: session)
+        let enrollment = makeEnrollment(programID: program.id)
+
+        var skipCalled = false
+        XCTAssertNotNil(host(
+            NavigationStack {
+                ActiveEnrollmentCard(
+                    enrollment: enrollment,
+                    program: program,
+                    nextSession: session,
+                    cyclePhase: .follicular,
+                    onSkip: { skipCalled = true }
+                )
+            }
+            .modelContainer(store.container)
+        ).view)
+        _ = skipCalled // suppress unused warning
+    }
+
     func testNavigationDestinationAndDestinationHashingBranches() throws {
         let store = try makeTestStore()
         let appState = makeAppState()

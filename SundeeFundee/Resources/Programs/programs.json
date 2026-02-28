@@ -47,7 +47,7 @@
             "exercises": [
               { "exercise": "Front Squat", "variant": null, "sets": 3, "reps": 6, "percent1RM": 0.60, "restMinutes": 3, "notes": "3x6 @ 60%. Upright torso." },
               { "exercise": "Walking Lunges", "variant": null, "sets": 3, "reps": 10, "percent1RM": null, "restMinutes": 2, "notes": "10 per leg." },
-              { "exercise": "Leg Curl", "variant": null, "sets": 3, "reps": 12, "percent1RM": null, "restMinutes": 1.5, "notes": "Full range of motion." }
+              { "exercise": "Banded Leg Curls", "variant": null, "sets": 3, "reps": 12, "percent1RM": null, "restMinutes": 1.5, "notes": "Full range of motion.", "bodyweightOnly": true }
             ]
           },
           {
@@ -87,7 +87,7 @@
             "exercises": [
               { "exercise": "Front Squat", "variant": null, "sets": 3, "reps": 6, "percent1RM": 0.62, "restMinutes": 3, "notes": "3x6 @ 62%. Keep elbows high." },
               { "exercise": "Walking Lunges", "variant": null, "sets": 3, "reps": 10, "percent1RM": null, "restMinutes": 2, "notes": "10 per leg, longer stride." },
-              { "exercise": "Leg Curl", "variant": null, "sets": 3, "reps": 12, "percent1RM": null, "restMinutes": 1.5, "notes": "Slow eccentric." }
+              { "exercise": "Banded Leg Curls", "variant": null, "sets": 3, "reps": 12, "percent1RM": null, "restMinutes": 1.5, "notes": "Slow eccentric.", "bodyweightOnly": true }
             ]
           },
           {
@@ -127,7 +127,7 @@
             "exercises": [
               { "exercise": "Front Squat", "variant": null, "sets": 4, "reps": 5, "percent1RM": 0.65, "restMinutes": 3, "notes": "4x5 @ 65%. Building front squat strength." },
               { "exercise": "Bulgarian Split Squat", "variant": null, "sets": 3, "reps": 8, "percent1RM": null, "restMinutes": 2, "notes": "8 per leg. Focus on balance." },
-              { "exercise": "Leg Curl", "variant": null, "sets": 3, "reps": 10, "percent1RM": null, "restMinutes": 1.5, "notes": "Heavier than week 2." }
+              { "exercise": "Banded Leg Curls", "variant": null, "sets": 3, "reps": 10, "percent1RM": null, "restMinutes": 1.5, "notes": "More resistance than week 2.", "bodyweightOnly": true }
             ]
           },
           {
@@ -167,7 +167,7 @@
             "exercises": [
               { "exercise": "Front Squat", "variant": null, "sets": 4, "reps": 5, "percent1RM": 0.67, "restMinutes": 3, "notes": "4x5 @ 67%. Last volume-phase front squat." },
               { "exercise": "Bulgarian Split Squat", "variant": null, "sets": 3, "reps": 8, "percent1RM": null, "restMinutes": 2, "notes": "8 per leg. Increase load." },
-              { "exercise": "Leg Curl", "variant": null, "sets": 3, "reps": 10, "percent1RM": null, "restMinutes": 1.5, "notes": "Heaviest of block 1." }
+              { "exercise": "Banded Leg Curls", "variant": null, "sets": 3, "reps": 10, "percent1RM": null, "restMinutes": 1.5, "notes": "Most resistance of block 1.", "bodyweightOnly": true }
             ]
           },
           {
@@ -207,7 +207,7 @@
             "exercises": [
               { "exercise": "Front Squat", "variant": null, "sets": 4, "reps": 3, "percent1RM": 0.72, "restMinutes": 3.5, "notes": "4x3 @ 72%. Heavy front squats for bracing." },
               { "exercise": "Walking Lunges", "variant": null, "sets": 3, "reps": 8, "percent1RM": null, "restMinutes": 2, "notes": "8 per leg, heavier than block 1." },
-              { "exercise": "Leg Curl", "variant": null, "sets": 3, "reps": 8, "percent1RM": null, "restMinutes": 1.5, "notes": "Heavier, fewer reps." }
+              { "exercise": "Banded Leg Curls", "variant": null, "sets": 3, "reps": 8, "percent1RM": null, "restMinutes": 1.5, "notes": "More resistance, fewer reps.", "bodyweightOnly": true }
             ]
           },
           {
@@ -247,7 +247,7 @@
             "exercises": [
               { "exercise": "Front Squat", "variant": null, "sets": 4, "reps": 3, "percent1RM": 0.75, "restMinutes": 3.5, "notes": "4x3 @ 75%. Stay tight in the hole." },
               { "exercise": "Bulgarian Split Squat", "variant": null, "sets": 3, "reps": 6, "percent1RM": null, "restMinutes": 2, "notes": "6 per leg, heavy dumbbells." },
-              { "exercise": "Leg Curl", "variant": null, "sets": 3, "reps": 8, "percent1RM": null, "restMinutes": 1.5, "notes": "Maintain hamstring strength." }
+              { "exercise": "Banded Leg Curls", "variant": null, "sets": 3, "reps": 8, "percent1RM": null, "restMinutes": 1.5, "notes": "Maintain hamstring strength.", "bodyweightOnly": true }
             ]
           },
           {
@@ -287,7 +287,7 @@
             "exercises": [
               { "exercise": "Front Squat", "variant": null, "sets": 3, "reps": 3, "percent1RM": 0.77, "restMinutes": 3.5, "notes": "3x3 @ 77%. Heavy front squat triples." },
               { "exercise": "Walking Lunges", "variant": null, "sets": 3, "reps": 6, "percent1RM": null, "restMinutes": 2, "notes": "6 per leg, heavy." },
-              { "exercise": "Leg Curl", "variant": null, "sets": 3, "reps": 8, "percent1RM": null, "restMinutes": 1.5, "notes": "Maintain." }
+              { "exercise": "Banded Leg Curls", "variant": null, "sets": 3, "reps": 8, "percent1RM": null, "restMinutes": 1.5, "notes": "Maintain.", "bodyweightOnly": true }
             ]
           },
           {
@@ -327,7 +327,7 @@
             "exercises": [
               { "exercise": "Front Squat", "variant": null, "sets": 3, "reps": 2, "percent1RM": 0.80, "restMinutes": 4, "notes": "3x2 @ 80%. Heavy front squat doubles." },
               { "exercise": "Bulgarian Split Squat", "variant": null, "sets": 3, "reps": 6, "percent1RM": null, "restMinutes": 2, "notes": "6 per leg. Last heavy single-leg work." },
-              { "exercise": "Leg Curl", "variant": null, "sets": 3, "reps": 8, "percent1RM": null, "restMinutes": 1.5, "notes": "Maintain hamstring strength." }
+              { "exercise": "Banded Leg Curls", "variant": null, "sets": 3, "reps": 8, "percent1RM": null, "restMinutes": 1.5, "notes": "Maintain hamstring strength.", "bodyweightOnly": true }
             ]
           },
           {
@@ -367,7 +367,7 @@
             "exercises": [
               { "exercise": "Back Squat", "variant": "Paused", "sets": 3, "reps": 2, "percent1RM": 0.80, "restMinutes": 4, "notes": "3x2 paused @ 80%. 2-second pause at bottom." },
               { "exercise": "Front Squat", "variant": null, "sets": 2, "reps": 3, "percent1RM": 0.70, "restMinutes": 3, "notes": "2x3 @ 70%. Light, technique-focused." },
-              { "exercise": "Leg Curl", "variant": null, "sets": 2, "reps": 10, "percent1RM": null, "restMinutes": 1.5, "notes": "Light. Prehab only." }
+              { "exercise": "Banded Leg Curls", "variant": null, "sets": 2, "reps": 10, "percent1RM": null, "restMinutes": 1.5, "notes": "Light. Prehab only.", "bodyweightOnly": true }
             ]
           },
           {
@@ -407,7 +407,7 @@
             "exercises": [
               { "exercise": "Back Squat", "variant": "Paused", "sets": 2, "reps": 2, "percent1RM": 0.82, "restMinutes": 4, "notes": "2x2 paused @ 82%. Confidence builders." },
               { "exercise": "Front Squat", "variant": null, "sets": 2, "reps": 2, "percent1RM": 0.72, "restMinutes": 3, "notes": "2x2 @ 72%. Light technique." },
-              { "exercise": "Leg Curl", "variant": null, "sets": 2, "reps": 10, "percent1RM": null, "restMinutes": 1.5, "notes": "Prehab." }
+              { "exercise": "Banded Leg Curls", "variant": null, "sets": 2, "reps": 10, "percent1RM": null, "restMinutes": 1.5, "notes": "Prehab.", "bodyweightOnly": true }
             ]
           },
           {
@@ -447,7 +447,7 @@
             "exercises": [
               { "exercise": "Back Squat", "variant": "Paused", "sets": 2, "reps": 1, "percent1RM": 0.85, "restMinutes": 4, "notes": "2x1 paused @ 85%. Confidence reps." },
               { "exercise": "Front Squat", "variant": null, "sets": 2, "reps": 2, "percent1RM": 0.70, "restMinutes": 3, "notes": "2x2 @ 70%. Keep it light and snappy." },
-              { "exercise": "Leg Curl", "variant": null, "sets": 2, "reps": 8, "percent1RM": null, "restMinutes": 1.5, "notes": "Light prehab." }
+              { "exercise": "Banded Leg Curls", "variant": null, "sets": 2, "reps": 8, "percent1RM": null, "restMinutes": 1.5, "notes": "Light prehab.", "bodyweightOnly": true }
             ]
           },
           {
@@ -486,7 +486,7 @@
             "exercises": [
               { "exercise": "Front Squat", "variant": null, "sets": 2, "reps": 5, "percent1RM": 0.55, "restMinutes": 2, "notes": "2x5 @ 55%. Easy movement. You earned this." },
               { "exercise": "Walking Lunges", "variant": null, "sets": 2, "reps": 8, "percent1RM": null, "restMinutes": 2, "notes": "8 per leg, bodyweight or light." },
-              { "exercise": "Leg Curl", "variant": null, "sets": 2, "reps": 12, "percent1RM": null, "restMinutes": 1.5, "notes": "Light. Recovery." }
+              { "exercise": "Banded Leg Curls", "variant": null, "sets": 2, "reps": 12, "percent1RM": null, "restMinutes": 1.5, "notes": "Light. Recovery.", "bodyweightOnly": true }
             ]
           },
           {

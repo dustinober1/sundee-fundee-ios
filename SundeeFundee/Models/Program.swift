@@ -58,11 +58,32 @@ struct ProgramExercise: Codable {
     let percent1RM: Double?
     let restMinutes: Double?
     let notes: String?
+    let bodyweightOnly: Bool?
+
+    init(
+        exercise: String,
+        variant: String?,
+        sets: ExerciseValue,
+        reps: ExerciseValue,
+        percent1RM: Double?,
+        restMinutes: Double?,
+        notes: String?,
+        bodyweightOnly: Bool? = nil
+    ) {
+        self.exercise = exercise
+        self.variant = variant
+        self.sets = sets
+        self.reps = reps
+        self.percent1RM = percent1RM
+        self.restMinutes = restMinutes
+        self.notes = notes
+        self.bodyweightOnly = bodyweightOnly
+    }
 
     enum CodingKeys: String, CodingKey {
         case exercise, variant, sets, reps
         case percent1RM = "percent1RM"
-        case restMinutes, notes
+        case restMinutes, notes, bodyweightOnly
     }
 }
 

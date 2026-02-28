@@ -85,13 +85,14 @@ struct CycleAdaptationPolicy {
         }
 
         return ProgramExercise(
-            exercise:    exercise.exercise,
-            variant:     exercise.variant,
-            sets:        scaleValue(exercise.sets, multiplier: blendMultiplier(settings.sets)),
-            reps:        scaleValue(exercise.reps, multiplier: blendMultiplier(settings.reps)),
-            percent1RM:  exercise.percent1RM.map { ($0 * blendMultiplier(settings.load)).clamped(to: 0.4...1.1) },
-            restMinutes: exercise.restMinutes,
-            notes:       exercise.notes
+            exercise:      exercise.exercise,
+            variant:       exercise.variant,
+            sets:          scaleValue(exercise.sets, multiplier: blendMultiplier(settings.sets)),
+            reps:          scaleValue(exercise.reps, multiplier: blendMultiplier(settings.reps)),
+            percent1RM:    exercise.percent1RM.map { ($0 * blendMultiplier(settings.load)).clamped(to: 0.4...1.1) },
+            restMinutes:   exercise.restMinutes,
+            notes:         exercise.notes,
+            bodyweightOnly: exercise.bodyweightOnly
         )
     }
 

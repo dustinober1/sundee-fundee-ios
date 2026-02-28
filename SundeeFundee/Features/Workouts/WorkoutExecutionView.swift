@@ -182,7 +182,7 @@ struct ExerciseSetCard: View {
                     }
                 }
                 Spacer()
-                if let kg = Self.plateCalculatorWeight(for: sets) {
+                if !(exercise.bodyweightOnly ?? false), let kg = Self.plateCalculatorWeight(for: sets) {
                     Button(action: Self.plateCalculatorAction(viewModel: viewModel, weightKg: kg)) {
                         Image(systemName: "scalemass.fill")
                             .foregroundStyle(AppTheme.Colors.accentOrange)
@@ -202,8 +202,10 @@ struct ExerciseSetCard: View {
             HStack {
                 Text("Set").frame(width: 30, alignment: .center)
                 Text("Target").frame(maxWidth: .infinity)
-                Text("Reps").frame(width: 70, alignment: .center)
-                Text(viewModel.weightUnit.symbol.uppercased()).frame(width: 80, alignment: .center)
+                if !(exercise.bodyweightOnly ?? false) {
+                    Text("Reps").frame(width: 70, alignment: .center)
+                    Text(viewModel.weightUnit.symbol.uppercased()).frame(width: 80, alignment: .center)
+                }
                 Text("✓").frame(width: 32, alignment: .center)
             }
             .font(AppTheme.Fonts.caption)
@@ -235,6 +237,7 @@ struct ExerciseSetCard: View {
                 setIndex: idx
             ),
             weightUnit: viewModel.weightUnit,
+            bodyweightOnly: exercise.bodyweightOnly ?? false,
             onToggle: Self.toggleAction(
                 viewModel: viewModel,
                 exerciseName: exercise.exercise,
@@ -288,6 +291,7 @@ struct SetRow: View {
     let onRepsChange: (Int) -> Void
     let onWeightChange: (Double) -> Void
     let weightUnit: WeightUnit
+    let bodyweightOnly: Bool
     let onToggle: () -> Void
 
     @State private var repsText: String = ""
@@ -299,6 +303,7 @@ struct SetRow: View {
         onRepsChange: @escaping (Int) -> Void,
         onWeightChange: @escaping (Double) -> Void,
         weightUnit: WeightUnit = .kilograms,
+        bodyweightOnly: Bool = false,
         onToggle: @escaping () -> Void
     ) {
         self.setNumber = setNumber
@@ -306,6 +311,7 @@ struct SetRow: View {
         self.onRepsChange = onRepsChange
         self.onWeightChange = onWeightChange
         self.weightUnit = weightUnit
+        self.bodyweightOnly = bodyweightOnly
         self.onToggle = onToggle
         _repsText = State(initialValue: "")
         _weightText = State(initialValue: "")
@@ -323,27 +329,29 @@ struct SetRow: View {
                 .foregroundStyle(AppTheme.Colors.navy)
                 .frame(maxWidth: .infinity, alignment: .center)
 
-            TextField("–", text: $repsText)
-                .keyboardType(.numberPad)
-                .multilineTextAlignment(.center)
-                .frame(width: 70)
-                .padding(6)
-                .background(AppTheme.Colors.separator.opacity(0.3))
-                .clipShape(RoundedRectangle(cornerRadius: 6))
-                .onChange(of: repsText) { oldValue, newValue in
-                    Self.repsTextChangeHandler(onRepsChange: onRepsChange)(oldValue, newValue)
-                }
+            if !bodyweightOnly {
+                TextField("–", text: $repsText)
+                    .keyboardType(.numberPad)
+                    .multilineTextAlignment(.center)
+                    .frame(width: 70)
+                    .padding(6)
+                    .background(AppTheme.Colors.separator.opacity(0.3))
+                    .clipShape(RoundedRectangle(cornerRadius: 6))
+                    .onChange(of: repsText) { oldValue, newValue in
+                        Self.repsTextChangeHandler(onRepsChange: onRepsChange)(oldValue, newValue)
+                    }
 
-            TextField("–", text: $weightText)
-                .keyboardType(.decimalPad)
-                .multilineTextAlignment(.center)
-                .frame(width: 80)
-                .padding(6)
-                .background(AppTheme.Colors.separator.opacity(0.3))
-                .clipShape(RoundedRectangle(cornerRadius: 6))
-                .onChange(of: weightText) { oldValue, newValue in
-                    Self.weightTextChangeHandler(onWeightChange: onWeightChange, weightUnit: weightUnit)(oldValue, newValue)
-                }
+                TextField("–", text: $weightText)
+                    .keyboardType(.decimalPad)
+                    .multilineTextAlignment(.center)
+                    .frame(width: 80)
+                    .padding(6)
+                    .background(AppTheme.Colors.separator.opacity(0.3))
+                    .clipShape(RoundedRectangle(cornerRadius: 6))
+                    .onChange(of: weightText) { oldValue, newValue in
+                        Self.weightTextChangeHandler(onWeightChange: onWeightChange, weightUnit: weightUnit)(oldValue, newValue)
+                    }
+            }
 
             Button(action: onToggle) {
                 Image(systemName: state.isCompleted ? "checkmark.circle.fill" : "circle")

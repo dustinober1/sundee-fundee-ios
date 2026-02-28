@@ -64,7 +64,8 @@ final class SwiftUISmokeTestsA: XCTestCase {
             reps: reps,
             percent1RM: nil,
             restMinutes: restMinutes,
-            notes: notes
+            notes: notes,
+            bodyweightOnly: nil
         )
     }
 
