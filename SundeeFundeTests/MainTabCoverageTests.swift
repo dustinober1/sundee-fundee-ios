@@ -81,6 +81,27 @@ final class MainTabCoverageTests: XCTestCase {
         XCTAssertNotNil(host(root).view)
     }
 
+    func testOrderedTabsExcludesCycleForMale() {
+        let tabs = MainTabView.orderedTabs(for: .male)
+        XCTAssertFalse(tabs.contains(.cycle))
+        XCTAssertEqual(tabs, [.dashboard, .programs, .maxes, .benchmarks, .settings])
+    }
+
+    func testOrderedTabsIncludesCycleForFemale() {
+        let tabs = MainTabView.orderedTabs(for: .female)
+        XCTAssertTrue(tabs.contains(.cycle))
+    }
+
+    func testOrderedTabsIncludesCycleForPreferNotToSay() {
+        let tabs = MainTabView.orderedTabs(for: .preferNotToSay)
+        XCTAssertTrue(tabs.contains(.cycle))
+    }
+
+    func testOrderedTabsIncludesCycleForNilGender() {
+        let tabs = MainTabView.orderedTabs(for: nil)
+        XCTAssertTrue(tabs.contains(.cycle))
+    }
+
     func testPlaceholderViewsRenderInHostingController() {
         XCTAssertNotNil(host(WorkoutsPlaceholderView()).view)
         XCTAssertNotNil(host(CyclePlaceholderView()).view)
