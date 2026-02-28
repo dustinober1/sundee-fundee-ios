@@ -227,7 +227,7 @@ final class DashboardViewCoverageTests: XCTestCase {
     }
 
     func testCyclePhaseBadgeColorHelperCoversAllPhases() {
-        assertColor(CyclePhaseBadge.badgeColor(for: .menstrual), equals: UIColor(red: 0.75, green: 0.15, blue: 0.20, alpha: 1))
+        assertColor(CyclePhaseBadge.badgeColor(for: .menstrual), equals: UIColor(red: 0.90, green: 0.55, blue: 0.50, alpha: 1))
         assertColor(CyclePhaseBadge.badgeColor(for: .follicular), equals: UIColor(red: 0.20, green: 0.55, blue: 0.80, alpha: 1))
         assertColor(CyclePhaseBadge.badgeColor(for: .ovulation), equals: UIColor(AppTheme.Colors.accentOrange))
         assertColor(CyclePhaseBadge.badgeColor(for: .luteal), equals: UIColor(red: 0.50, green: 0.35, blue: 0.65, alpha: 1))

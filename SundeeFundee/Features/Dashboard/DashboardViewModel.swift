@@ -11,6 +11,7 @@ final class DashboardViewModel {
     var currentCyclePhase: CyclePhase?
     var barbellWeightKg: Double = PlateCalculation.standardBarKg
     var weightUnit: WeightUnit = .kilograms
+    var oneRepMaxes: [String: Double] = [:]
 
     private let programRepo: any ProgramRepository
 
@@ -27,7 +28,16 @@ final class DashboardViewModel {
         // Load current user for gender-based bar weight
         let currentUser = try? userRepo.fetchCurrentUser()
         barbellWeightKg = Self.barbellWeight(for: currentUser?.gender)
-        weightUnit = currentUser?.weightUnit ?? .kilograms
+        weightUnit = currentUser?.weightUnit ?? .pounds
+
+        // Load 1RM data for weight prescriptions (sorted date desc, first per exercise wins)
+        let liftRepo = SwiftDataLiftRepository(context: modelContext)
+        let allMaxes = (try? liftRepo.fetchOneRepMaxes()) ?? []
+        var maxDict: [String: Double] = [:]
+        for orm in allMaxes where maxDict[orm.exerciseID] == nil {
+            maxDict[orm.exerciseID] = orm.weightKg
+        }
+        oneRepMaxes = maxDict
 
         // Load active enrollment
         activeEnrollment = try? enrollmentRepo.fetchActiveEnrollment()

@@ -6,6 +6,8 @@ struct WorkoutSummaryView: View {
     let workout: CompletedWorkout
     @State private var viewModel: WorkoutSummaryViewModel
 
+    @State private var celebrationEvent: CelebrationEvent?
+
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
 
@@ -27,11 +29,22 @@ struct WorkoutSummaryView: View {
                 }
                 .padding(AppTheme.Spacing.md)
             }
+            if let event = celebrationEvent {
+                CelebrationOverlayView(event: event) {
+                    celebrationEvent = nil
+                }
+            }
         }
         .navigationTitle("Workout Complete")
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden()
-        .task { await viewModel.detectPRs(modelContext: modelContext) }
+        .task {
+            await viewModel.detectPRs(modelContext: modelContext)
+            if !viewModel.newPRs.isEmpty {
+                NotificationCenter.default.post(name: .didSaveNewPRs, object: nil)
+            }
+            celebrationEvent = viewModel.primaryCelebrationEvent
+        }
     }
 
     // MARK: - Subviews
@@ -221,5 +234,12 @@ final class WorkoutSummaryViewModel {
             }
         }
         newPRs = detectedPRs
+    }
+
+    var primaryCelebrationEvent: CelebrationEvent? {
+        if let first = newPRs.first {
+            return .newPersonalRecord(exerciseName: first.0, weightKg: first.1)
+        }
+        return .workoutCompleted(durationSeconds: workout.durationSeconds, volumeKg: totalVolumeKg)
     }
 }

@@ -51,7 +51,7 @@ final class User {
         experienceLevel: ExperienceLevel,
         primaryGoal: PrimaryGoal,
         gender: Gender,
-        weightUnit: WeightUnit = .kilograms,
+        weightUnit: WeightUnit = .pounds,
         appleUserID: String,
         cycleTrackingEnabled: Bool = false,
         onboardingComplete: Bool = false,
@@ -87,7 +87,7 @@ final class User {
     }
 
     var weightUnit: WeightUnit {
-        get { WeightUnit(rawValue: weightUnitRaw ?? "") ?? .kilograms }
+        get { WeightUnit(rawValue: weightUnitRaw ?? "") ?? .pounds }
         set { weightUnitRaw = newValue.rawValue }
     }
 

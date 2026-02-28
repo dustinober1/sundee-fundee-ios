@@ -13,6 +13,7 @@ enum AppTheme {
         static let textPrimary   = navy
         static let textSecondary = SwiftUI.Color(red: 0.35, green: 0.38, blue: 0.50)
         static let error     = SwiftUI.Color(red: 0.85, green: 0.15, blue: 0.15)
+        static let warmRose  = SwiftUI.Color(red: 0.90, green: 0.55, blue: 0.50)
     }
 
     /// Semantic aliases (preferred in feature views)
@@ -26,6 +27,7 @@ enum AppTheme {
         static let textPrimary    = Color.textPrimary
         static let textSecondary  = Color.textSecondary
         static let error          = Color.error
+        static let warmRose       = Color.warmRose
     }
 
     // MARK: - Spacing
@@ -71,6 +73,12 @@ enum AppTheme {
         static let caption   = SwiftUI.Font.system(size: 13, weight: .regular)
         static let mono      = SwiftUI.Font.system(size: 14, weight: .medium, design: .monospaced)
     }
+}
+
+// MARK: - Notification Names
+
+extension Notification.Name {
+    static let didSaveNewPRs = Notification.Name("didSaveNewPRs")
 }
 
 // MARK: - View modifiers

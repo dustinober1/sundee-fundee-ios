@@ -7,7 +7,7 @@ final class SettingsViewModel {
     var displayName: String = ""
     var experienceLevel: ExperienceLevel = .beginner
     var primaryGoal: PrimaryGoal = .strength
-    var weightUnit: WeightUnit = .kilograms
+    var weightUnit: WeightUnit = .pounds
     var injuryProfiles: [InjuryProfile] = []
 
     private var modelContext: ModelContext?

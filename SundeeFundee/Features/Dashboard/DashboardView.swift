@@ -17,6 +17,9 @@ struct DashboardView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: AppTheme.Spacing.lg) {
                     greetingHeader
+                    if viewModel.currentCyclePhase == .menstrual {
+                        MenstrualPhaseCard()
+                    }
                     if let state = Self.activeEnrollmentState(
                         enrollment: viewModel.activeEnrollment,
                         program: viewModel.activeProgram
@@ -44,6 +47,7 @@ struct DashboardView: View {
                         session: dest.session,
                         enrollment: dest.enrollment,
                         program: program,
+                        oneRepMaxes: viewModel.oneRepMaxes,
                         barbellWeightKg: viewModel.barbellWeightKg,
                         weightUnit: viewModel.weightUnit
                     )
@@ -197,6 +201,12 @@ struct ActiveEnrollmentCard: View {
                     Text(session.focus)
                         .font(AppTheme.Fonts.caption)
                         .foregroundStyle(AppTheme.Colors.navy.opacity(0.6))
+                    if cyclePhase == .menstrual {
+                        Text("Load adjusted for your phase — go at your pace.")
+                            .font(AppTheme.Fonts.caption)
+                            .italic()
+                            .foregroundStyle(AppTheme.Colors.warmRose)
+                    }
                 }
 
                 NavigationLink(value: StartWorkoutDestination(enrollment: enrollment, session: session)) {
@@ -280,7 +290,7 @@ struct CyclePhaseBadge: View {
 
     static func badgeColor(for phase: CyclePhase) -> Color {
         switch phase {
-        case .menstrual:  return Color(red: 0.75, green: 0.15, blue: 0.20)
+        case .menstrual:  return AppTheme.Colors.warmRose
         case .follicular: return Color(red: 0.20, green: 0.55, blue: 0.80)
         case .ovulation:  return AppTheme.Colors.accentOrange
         case .luteal:     return Color(red: 0.50, green: 0.35, blue: 0.65)
@@ -314,5 +324,41 @@ struct WorkoutHistoryRow: View {
         .padding(AppTheme.Spacing.sm)
         .background(AppTheme.Colors.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: 8))
+    }
+}
+
+// MARK: - MenstrualPhaseCard
+
+struct MenstrualPhaseCard: View {
+    static let supportiveMessages = [
+        "Take it easy today — your program has been gently adjusted.",
+        "Rest is training. Today's lighter load is by design.",
+        "Listen to your body. Lighter weights, same dedication.",
+        "Your strength is still here. Today we train smarter.",
+    ]
+
+    static func message(for date: Date = .now) -> String {
+        let day = Calendar.current.component(.day, from: date)
+        return supportiveMessages[day % supportiveMessages.count]
+    }
+
+    var body: some View {
+        HStack(spacing: AppTheme.Spacing.md) {
+            Image(systemName: "heart.fill")
+                .font(.title2)
+                .foregroundStyle(AppTheme.Colors.warmRose)
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Menstrual Phase")
+                    .font(AppTheme.Fonts.subheading)
+                    .foregroundStyle(AppTheme.Colors.navy)
+                Text(Self.message())
+                    .font(AppTheme.Fonts.caption)
+                    .foregroundStyle(AppTheme.Colors.navy.opacity(0.7))
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(AppTheme.Spacing.md)
+        .background(AppTheme.Colors.warmRose.opacity(0.15))
+        .clipShape(RoundedRectangle(cornerRadius: AppTheme.CornerRadius.card))
     }
 }

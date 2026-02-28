@@ -85,6 +85,9 @@ struct MaxLiftsView: View {
         .navigationDestination(for: String.self, destination: Self.exerciseDestination(viewModel: viewModel))
         .sheet(isPresented: $showAddMax, content: Self.addSheetContent(viewModel: viewModel))
         .task { await viewModel.load(modelContext: modelContext) }
+        .onReceive(NotificationCenter.default.publisher(for: .didSaveNewPRs)) { _ in
+            Task { await viewModel.load(modelContext: modelContext) }
+        }
     }
 }
 
