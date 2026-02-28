@@ -1,4 +1,21 @@
 import SwiftData
+import Foundation
+
+// MARK: - V1 Legacy Model Stub
+
+/// Stub retained for schema migration purposes only.
+/// The live `Benchmark` model was replaced by `BenchmarkResult` in V2.
+/// Do NOT use this type anywhere other than `AppSchemaV1.models`.
+@Model
+final class Benchmark {
+    var id: String = ""
+    var userID: String = ""
+    var name: String = ""
+    var score: Double = 0
+    var notes: String = ""
+    var performedAt: Date = Date()
+    init() {}
+}
 
 /// The initial versioned schema for the Sundee Fundee persistent store.
 ///

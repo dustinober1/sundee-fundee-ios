@@ -82,7 +82,7 @@ enum AppModelContainer {
             return try ModelContainer(for: schema, migrationPlan: AppSchemaMigrationPlan.self, configurations: [cloudConfig])
         case .localPersistent:
             let localConfig = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false, cloudKitDatabase: .none)
-            return try ModelContainer(for: schema, configurations: [localConfig])
+            return try ModelContainer(for: schema, migrationPlan: AppSchemaMigrationPlan.self, configurations: [localConfig])
         }
     }
 
@@ -101,7 +101,7 @@ enum AppModelContainer {
         return ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil || NSClassFromString("XCTestCase") != nil
     }
 
-    private static let allModels: [any PersistentModel.Type] = AppSchemaV1.models
+    private static let allModels: [any PersistentModel.Type] = AppSchemaV2.models
     
     /// Deletes all SwiftData store files for the app.
     ///

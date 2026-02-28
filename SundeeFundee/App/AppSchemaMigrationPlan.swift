@@ -8,11 +8,17 @@ import SwiftData
 /// Custom migrations that transform data require a `custom` stage.
 enum AppSchemaMigrationPlan: SchemaMigrationPlan {
     static var schemas: [any VersionedSchema.Type] {
-        [AppSchemaV1.self]
+        [AppSchemaV1.self, AppSchemaV2.self]
     }
 
     static var stages: [MigrationStage] {
-        // No stages needed yet — V1 is the baseline.
-        []
+        [migrateV1toV2]
     }
+
+    /// V1 → V2: Remove Benchmark, add BenchmarkDefinition and BenchmarkResult.
+    /// No data is preserved — existing freeform benchmark history is discarded.
+    static let migrateV1toV2 = MigrationStage.lightweight(
+        fromVersion: AppSchemaV1.self,
+        toVersion: AppSchemaV2.self
+    )
 }
