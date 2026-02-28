@@ -61,7 +61,7 @@ Domain/ (pure Swift, zero dependencies, 100% tested)
 
 ### Key Directories
 
-- **`App/`** — Entry point, `AppState` (auth routing), `ModelContainer` setup, schema migrations (V1→V6), debug seed data
+- **`App/`** — Entry point, `AppState` (auth routing), `ModelContainer` setup, schema migrations (V1→V7), debug seed data
 - **`Auth/`** — Sign in with Apple, `KeychainHelper`, guest mode
 - **`Domain/`** — All business logic: weight calculations, cycle phase adaptation, injury modification engine, benchmark catalog. No framework dependencies — fully unit tested.
 - **`Models/`** — 14 SwiftData `@Model` types. **Enums must be stored as raw strings** (CloudKit requirement); typed accessors are computed properties.
