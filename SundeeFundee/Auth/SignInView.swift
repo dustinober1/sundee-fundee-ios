@@ -44,8 +44,14 @@ struct SignInView: View {
             VStack(spacing: AppTheme.Spacing.xl) {
                 Spacer()
 
-                // Wordmark
+                // Logo + Wordmark
                 VStack(spacing: AppTheme.Spacing.sm) {
+                    Image("AppLogo")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 120, height: 120)
+                        .cornerRadius(AppTheme.Radius.lg)
+
                     Text("Sundee Fundee")
                         .font(AppTheme.Font.heading(36))
                         .foregroundStyle(AppTheme.Color.navy)
