@@ -10,7 +10,7 @@ struct RepositoryCoverageTests {
 
     @MainActor
     private func makeContainer() throws -> ModelContainer {
-        let schema = Schema(AppSchemaV1.models)
+        let schema = Schema(AppSchemaV2.models)
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
         return try ModelContainer(for: schema, configurations: [config])
     }
@@ -269,22 +269,39 @@ struct RepositoryCoverageTests {
 
     @Test
     @MainActor
-    func benchmarkRepositorySortsAndFilters() throws {
+    func benchmarkDefinitionRepositoryFetchesAndDeletes() throws {
         let container = try makeContainer()
-        let repository = SwiftDataBenchmarkRepository(context: container.mainContext)
+        let repository = SwiftDataBenchmarkDefinitionRepository(context: container.mainContext)
 
-        let old = Benchmark(id: "bm-old", userID: "u1", name: "Baseline", exercise: "Back Squat", weightKg: 100, reps: 3, performedAt: date(10))
-        let middle = Benchmark(id: "bm-middle", userID: "u1", name: "Retest", exercise: "Back Squat", weightKg: 105, reps: 3, performedAt: date(20))
-        let latest = Benchmark(id: "bm-latest", userID: "u1", name: "Baseline", exercise: "Back Squat", weightKg: 110, reps: 2, performedAt: date(30))
-        try repository.save(old)
-        try repository.save(middle)
-        try repository.save(latest)
+        let def1 = BenchmarkDefinition(
+            id: "def-1", userID: "u1", name: "Cindy",
+            category: "General Fitness", workoutDescription: "20 min AMRAP",
+            scoringType: .reps, isPredefined: false, sortOrder: 1
+        )
+        let def2 = BenchmarkDefinition(
+            id: "def-2", userID: "u1", name: "Fran",
+            category: "General Fitness", workoutDescription: "21-15-9",
+            scoringType: .time, isPredefined: false, sortOrder: 2
+        )
+        let def3 = BenchmarkDefinition(
+            id: "def-3", userID: "u2", name: "Grace",
+            category: "Weightlifting", workoutDescription: "30 clean & jerks",
+            scoringType: .time, isPredefined: false, sortOrder: 1
+        )
+        try repository.save(def1)
+        try repository.save(def2)
+        try repository.save(def3)
 
-        #expect(try repository.fetchBenchmarks().map(\.id) == ["bm-latest", "bm-middle", "bm-old"])
-        #expect(try repository.fetchBenchmarks(named: "Baseline").map(\.id) == ["bm-latest", "bm-old"])
+        let allDefs = try repository.fetchAll()
+        #expect(allDefs.count == 3)
+        #expect(allDefs.map(\.id).contains("def-1"))
 
-        try repository.delete(middle)
-        #expect((try repository.fetchBenchmarks()).count == 2)
+        let u1Defs = try repository.fetchUserCreated(userID: "u1")
+        #expect(u1Defs.count == 2)
+        #expect(u1Defs.allSatisfy { $0.userID == "u1" })
+
+        try repository.delete(def2)
+        #expect((try repository.fetchAll()).count == 2)
     }
 
     @Test

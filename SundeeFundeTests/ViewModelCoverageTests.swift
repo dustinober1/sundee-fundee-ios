@@ -19,7 +19,7 @@ private final class ViewModelCoverageTempModel {
 
 @MainActor
 private func makeTestStore() throws -> TestStore {
-    let schema = Schema(AppSchemaV1.models)
+    let schema = Schema(AppSchemaV2.models)
     let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
     let container = try ModelContainer(for: schema, configurations: [config])
     return TestStore(container: container, context: ModelContext(container))
@@ -58,11 +58,11 @@ private enum FakeCoverageError: Error {
     case expectedFailure
 }
 
-private struct ThrowingBenchmarkRepository: BenchmarkRepository {
-    func save(_ benchmark: Benchmark) throws {}
-    func fetchBenchmarks() throws -> [Benchmark] { throw FakeCoverageError.expectedFailure }
-    func fetchBenchmarks(named name: String) throws -> [Benchmark] { [] }
-    func delete(_ benchmark: Benchmark) throws {}
+private struct ThrowingBenchmarkDefinitionRepository: BenchmarkDefinitionRepository {
+    func save(_ definition: BenchmarkDefinition) throws { throw FakeCoverageError.expectedFailure }
+    func fetchAll() throws -> [BenchmarkDefinition] { throw FakeCoverageError.expectedFailure }
+    func fetchUserCreated(userID: String) throws -> [BenchmarkDefinition] { throw FakeCoverageError.expectedFailure }
+    func delete(_ definition: BenchmarkDefinition) throws { throw FakeCoverageError.expectedFailure }
 }
 
 private struct ThrowingCycleRepository: CycleRepository {
@@ -429,85 +429,71 @@ struct DashboardViewModelCoverageTests {
 struct BenchmarksViewModelCoverageTests {
 
     @Test @MainActor
-    func loadGroupsBenchmarksAndAddDeleteMutatesGroups() async throws {
+    func loadCategoryGroupsAndAddDeleteCustomDefinition() async throws {
         let store = try makeTestStore()
-        let now = Date.now
 
-        let aOlder = Benchmark(
-            id: "b1",
+        // Insert a custom user-created definition into the store
+        let customDef = BenchmarkDefinition(
+            id: "custom-1",
             userID: "u1",
-            name: "Squat Test",
-            exercise: "Back Squat",
-            weightKg: 100,
-            reps: 5,
-            performedAt: now.addingTimeInterval(-7200)
+            name: "My Custom WOD",
+            category: BenchmarkCatalog.generalFitness,
+            workoutDescription: "21-15-9 thrusters and pull-ups",
+            scoringType: .time,
+            isPredefined: false,
+            sortOrder: 999
         )
-        let bRecent = Benchmark(
-            id: "b2",
-            userID: "u1",
-            name: "Press Test",
-            exercise: "Bench Press",
-            weightKg: 70,
-            reps: 5,
-            performedAt: now
-        )
-        let aRecent = Benchmark(
-            id: "b3",
-            userID: "u1",
-            name: "Squat Test",
-            exercise: "Back Squat",
-            weightKg: 105,
-            reps: 5,
-            performedAt: now.addingTimeInterval(-3600)
-        )
-
-        store.context.insert(aOlder)
-        store.context.insert(bRecent)
-        store.context.insert(aRecent)
+        store.context.insert(customDef)
         try store.context.save()
 
         let vm = BenchmarksViewModel()
         await vm.load(modelContext: store.context, userID: "u1")
 
-        #expect(vm.groups.map(\.name) == ["Press Test", "Squat Test"])
-        #expect(vm.groups.first(where: { $0.name == "Squat Test" })?.entries.count == 2)
+        // Predefined catalog entries + custom def should be loaded
+        #expect(!vm.categoryGroups.isEmpty)
+        let generalGroup = vm.categoryGroups.first(where: { $0.category == BenchmarkCatalog.generalFitness })
+        #expect(generalGroup != nil)
+        #expect(generalGroup?.definitions.contains(where: { $0.id == "custom-1" }) == true)
 
-        vm.add(name: "Squat Test", exercise: "Back Squat", weightKg: 110, reps: 3, notes: "Top set")
-        #expect(vm.groups.first(where: { $0.name == "Squat Test" })?.entries.count == 3)
-        #expect(vm.groups.first(where: { $0.name == "Squat Test" })?.mostRecent != nil)
+        // Add another custom definition via the view model
+        vm.addCustomDefinition(
+            name: "Row Sprint",
+            category: BenchmarkCatalog.generalFitness,
+            description: "500m row for time",
+            scoringType: .distance
+        )
+        let updatedGroup = vm.categoryGroups.first(where: { $0.category == BenchmarkCatalog.generalFitness })
+        #expect(updatedGroup?.definitions.contains(where: { $0.name == "Row Sprint" }) == true)
 
-        if let added = vm.groups.first(where: { $0.name == "Squat Test" })?.entries.first {
-            vm.delete(added)
+        // Delete the custom definition
+        vm.deleteCustomDefinition(customDef)
+        let afterDelete = vm.categoryGroups.first(where: { $0.category == BenchmarkCatalog.generalFitness })
+        #expect(afterDelete?.definitions.contains(where: { $0.id == "custom-1" }) != true)
+
+        // Deleting a predefined entry is a no-op
+        if let predefined = vm.categoryGroups.flatMap(\.definitions).first(where: { $0.isPredefined }) {
+            let countBefore = vm.categoryGroups.flatMap(\.definitions).count
+            vm.deleteCustomDefinition(predefined)
+            let countAfter = vm.categoryGroups.flatMap(\.definitions).count
+            #expect(countBefore == countAfter)
         }
-        #expect(vm.groups.first(where: { $0.name == "Squat Test" })?.entries.count == 2)
-
-        vm.add(name: "Deadlift Test", exercise: "Deadlift", weightKg: 140, reps: 1, notes: "Single")
-        #expect(vm.groups.first?.name == "Deadlift Test")
-        if let deadlift = vm.groups.first?.entries.first {
-            vm.delete(deadlift)
-        }
-        #expect(vm.groups.contains(where: { $0.name == "Deadlift Test" }) == false)
-        vm.delete(Benchmark(id: "missing", userID: "u1", name: "Ghost", exercise: "Ghost", weightKg: 1, reps: 1))
-
-        #expect(vm.groups.contains(where: { $0.name == "Press Test" }) == true)
     }
 
     @Test @MainActor
-    func loadHandlesRepositoryFailureAndNilContextMutationsNoOp() async throws {
+    func loadHandlesRepositoryFailureGracefully() async throws {
         let store = try makeTestStore()
-        let failingVM = BenchmarksViewModel(repositoryFactory: { _ in ThrowingBenchmarkRepository() })
+        let failingVM = BenchmarksViewModel(
+            definitionRepoFactory: { _ in ThrowingBenchmarkDefinitionRepository() }
+        )
         await failingVM.load(modelContext: store.context, userID: "u1")
-        #expect(failingVM.groups.isEmpty)
+        // Even on failure, predefined catalog entries from BenchmarkCatalog are merged in-memory
+        // but since fetchUserCreated fails, we just confirm loading completes without crash
         #expect(failingVM.isLoading == false)
 
-        let benchmark = Benchmark(id: "single", userID: "u1", name: "Single", exercise: "Back Squat", weightKg: 100, reps: 5)
-        let group = BenchmarksViewModel.BenchmarkGroup(name: "Single", entries: [benchmark])
-        #expect(group.mostRecent?.id == "single")
-
-        let vm = BenchmarksViewModel()
-        vm.add(name: "No Context", exercise: "Back Squat", weightKg: 100, reps: 5, notes: "")
-        vm.delete(benchmark)
-        #expect(vm.groups.isEmpty)
+        // addCustomDefinition with nil context is a no-op
+        let vmNoContext = BenchmarksViewModel()
+        vmNoContext.addCustomDefinition(name: "Ghost", category: "Unknown", description: "", scoringType: .time)
+        #expect(vmNoContext.categoryGroups.isEmpty)
     }
 }
 

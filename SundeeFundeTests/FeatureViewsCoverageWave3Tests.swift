@@ -14,7 +14,7 @@ final class FeatureViewsCoverageWave3Tests: XCTestCase {
     private let fixedDate = Date(timeIntervalSince1970: 1_700_000_000)
 
     private func makeStore() throws -> TestStore {
-        let schema = Schema(AppSchemaV1.models)
+        let schema = Schema(AppSchemaV2.models)
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
         let container = try ModelContainer(for: schema, configurations: [config])
         return TestStore(container: container, context: ModelContext(container))
@@ -245,40 +245,29 @@ final class FeatureViewsCoverageWave3Tests: XCTestCase {
         ).view)
 
         let populatedStore = try makeStore()
-        let benchmarkWithNotes = Benchmark(
-            id: "benchmark-notes",
+        let defTime = BenchmarkDefinition(
+            id: "def-time",
             userID: "benchmark-user",
             name: "Month 1 Baseline",
-            exercise: "Back Squat",
-            weightKg: 102.5,
-            reps: 5,
-            notes: "Best set so far",
-            performedAt: fixedDate
+            category: BenchmarkCatalog.generalFitness,
+            workoutDescription: "21-15-9 thrusters and pull-ups",
+            scoringType: .time,
+            isPredefined: false,
+            sortOrder: 1
         )
-        let benchmarkNoNotes = Benchmark(
-            id: "benchmark-no-notes",
+        let defWeight = BenchmarkDefinition(
+            id: "def-weight",
             userID: "benchmark-user",
-            name: "Month 1 Baseline",
-            exercise: "Bench Press",
-            weightKg: 70,
-            reps: 5,
-            notes: "",
-            performedAt: fixedDate.addingTimeInterval(-3_600)
-        )
-        let secondGroupEntry = Benchmark(
-            id: "benchmark-second-group",
-            userID: "benchmark-user",
-            name: "Cycle Retest",
-            exercise: "Deadlift",
-            weightKg: 150,
-            reps: 3,
-            notes: "",
-            performedAt: fixedDate.addingTimeInterval(-7_200)
+            name: "Strength Test",
+            category: "Weightlifting",
+            workoutDescription: "Max back squat",
+            scoringType: .weight,
+            isPredefined: false,
+            sortOrder: 2
         )
 
-        populatedStore.context.insert(benchmarkWithNotes)
-        populatedStore.context.insert(benchmarkNoNotes)
-        populatedStore.context.insert(secondGroupEntry)
+        populatedStore.context.insert(defTime)
+        populatedStore.context.insert(defWeight)
         try populatedStore.context.save()
 
         XCTAssertNotNil(host(
@@ -287,22 +276,14 @@ final class FeatureViewsCoverageWave3Tests: XCTestCase {
             triggerAppearance: true
         ).view)
 
-        let singleEntryGroup = BenchmarksViewModel.BenchmarkGroup(name: "Single", entries: [secondGroupEntry])
-        let multipleEntriesGroup = BenchmarksViewModel.BenchmarkGroup(
-            name: "Multiple",
-            entries: [benchmarkWithNotes, benchmarkNoNotes]
-        )
-
         XCTAssertNotNil(host(
             VStack {
-                BenchmarkGroupHeader(group: singleEntryGroup)
-                BenchmarkGroupHeader(group: multipleEntriesGroup)
-                BenchmarkEntryRow(entry: benchmarkWithNotes)
-                BenchmarkEntryRow(entry: benchmarkNoNotes)
+                BenchmarkDefinitionRow(definition: defTime)
+                BenchmarkDefinitionRow(definition: defWeight)
             }
         ).view)
 
-        XCTAssertNotNil(host(AddBenchmarkSheet(viewModel: BenchmarksViewModel()), triggerAppearance: true).view)
+        XCTAssertNotNil(host(AddCustomBenchmarkSheet(viewModel: BenchmarksViewModel()), triggerAppearance: true).view)
     }
 
     func testSettingsViewsRenderAdditionalBranches() async throws {
@@ -536,42 +517,27 @@ final class FeatureViewsCoverageWave3Tests: XCTestCase {
         
         let benchmarkVM = BenchmarksViewModel()
         await benchmarkVM.load(modelContext: store.context, userID: "wave7-user")
-        XCTAssertFalse(AddBenchmarkSheet.canSave(benchmarkName: "   ", weightKg: "80"))
-        XCTAssertFalse(AddBenchmarkSheet.canSave(benchmarkName: "Wave7", weightKg: "bad"))
-        XCTAssertTrue(AddBenchmarkSheet.canSave(benchmarkName: "Wave7", weightKg: "80"))
-        var benchmarkDismissed = false
-        AddBenchmarkSheet.saveAction(
-            viewModel: benchmarkVM,
-            benchmarkName: "Wave7",
-            selectedExercise: "Back Squat",
-            weightKg: "bad",
-            reps: 5,
-            notes: "",
-            dismiss: { benchmarkDismissed = true }
-        )()
-        XCTAssertFalse(benchmarkDismissed)
-        AddBenchmarkSheet.saveAction(
-            viewModel: benchmarkVM,
-            benchmarkName: "Wave7",
-            selectedExercise: "Back Squat",
-            weightKg: "102.5",
-            reps: 5,
-            notes: "Strong day",
-            dismiss: { benchmarkDismissed = true }
-        )()
-        XCTAssertTrue(benchmarkDismissed)
-        XCTAssertEqual(benchmarkVM.groups.first?.name, "Wave7")
-        if let addedBenchmark = benchmarkVM.groups.first?.entries.first {
-            BenchmarksView.deleteAction(viewModel: benchmarkVM, entry: addedBenchmark)()
+        // Add a custom definition and verify it appears in categoryGroups
+        benchmarkVM.addCustomDefinition(
+            name: "Wave7 Custom",
+            category: BenchmarkCatalog.generalFitness,
+            description: "Custom wave7 benchmark",
+            scoringType: .time
+        )
+        XCTAssertTrue(benchmarkVM.categoryGroups.contains(where: { group in
+            group.definitions.contains(where: { $0.name == "Wave7 Custom" })
+        }))
+        // Delete the custom definition and verify removal
+        if let customDef = benchmarkVM.categoryGroups
+            .flatMap(\.definitions)
+            .first(where: { $0.name == "Wave7 Custom" && !$0.isPredefined }) {
+            benchmarkVM.deleteCustomDefinition(customDef)
+            XCTAssertFalse(benchmarkVM.categoryGroups.contains(where: { group in
+                group.definitions.contains(where: { $0.name == "Wave7 Custom" })
+            }))
         }
-        XCTAssertTrue(benchmarkVM.groups.isEmpty)
-        var showBenchmarkAdd = false
-        BenchmarksView.presentAddSheetAction(isPresented: Binding(
-            get: { showBenchmarkAdd },
-            set: { showBenchmarkAdd = $0 }
-        ))()
-        XCTAssertTrue(showBenchmarkAdd)
-        XCTAssertNotNil(host(BenchmarksView.addSheetContent(viewModel: benchmarkVM)()).view)
+        // Smoke-test the add sheet renders
+        XCTAssertNotNil(host(AddCustomBenchmarkSheet(viewModel: benchmarkVM)).view)
         
         XCTAssertEqual(
             MaxLiftsView.filteredExercises(
