@@ -66,7 +66,6 @@ struct WorkoutSummaryView: View {
         HStack(spacing: AppTheme.Spacing.md) {
             StatBadge(label: "Duration", value: formatDuration(workout.durationSeconds))
             StatBadge(label: "Sets", value: "\(viewModel.totalSets)")
-            StatBadge(label: "Volume", value: formatVolume(viewModel.totalVolumeKg, unit: viewModel.weightUnit))
         }
     }
 
@@ -128,12 +127,7 @@ struct WorkoutSummaryView: View {
         return m < 60 ? "\(m)m" : "\(m / 60)h \(m % 60)m"
     }
 
-    private func formatVolume(_ kg: Double, unit: WeightUnit) -> String {
-        if unit == .kilograms {
-            return kg >= 1000 ? String(format: "%.1ft", kg / 1000) : "\(Int(kg))kg"
-        }
-        return "\(WeightUnitConversion.format(kilograms: kg, unit: unit, maximumFractionDigits: 1))\(unit.symbol)"
-    }
+
 }
 
 // MARK: - SetSummaryRow
