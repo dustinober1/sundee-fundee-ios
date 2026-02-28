@@ -18,14 +18,15 @@ enum InjuryAdaptationEngine {
         _ program: Program,
         activeInjuries: [InjuryProfile]
     ) -> Program {
-        guard !activeInjuries.isEmpty else { return program }
+        let nonResolved = activeInjuries.filter { $0.recoveryPhase != .resolved }
+        guard !nonResolved.isEmpty else { return program }
 
         let adaptedWeeks = program.weeks.map { week in
             ProgramWeek(
                 week: week.week,
                 phaseID: week.phaseID,
                 isTestWeek: week.isTestWeek,
-                sessions: week.sessions.map { adaptSession($0, injuries: activeInjuries) }
+                sessions: week.sessions.map { adaptSession($0, injuries: nonResolved) }
             )
         }
 
@@ -41,6 +42,98 @@ enum InjuryAdaptationEngine {
             weeks: adaptedWeeks,
             cycleAdjustmentProfile: program.cycleAdjustmentProfile
         )
+    }
+
+    /// Result including both the adapted program and metadata about which exercises were adapted.
+    struct AdaptationResult {
+        let program: Program
+        /// Maps exercise names to their original exercise names for adapted exercises.
+        let adaptedExercises: [String: String]
+    }
+
+    /// Adapts a program and returns metadata identifying which exercises are adaptations.
+    static func adaptProgramWithMetadata(
+        _ program: Program,
+        activeInjuries: [InjuryProfile]
+    ) -> AdaptationResult {
+        let nonResolved = activeInjuries.filter { $0.recoveryPhase != .resolved }
+        guard !nonResolved.isEmpty else {
+            return AdaptationResult(program: program, adaptedExercises: [:])
+        }
+
+        var metadata: [String: String] = [:]
+
+        let adaptedWeeks = program.weeks.map { week in
+            ProgramWeek(
+                week: week.week,
+                phaseID: week.phaseID,
+                isTestWeek: week.isTestWeek,
+                sessions: week.sessions.map { session in
+                    let adapted = adaptSession(session, injuries: nonResolved)
+                    // Track which exercises were replaced
+                    for (original, replacement) in zip(session.exercises, adapted.exercises) {
+                        if original.exercise != replacement.exercise {
+                            metadata[replacement.exercise] = original.exercise
+                        }
+                    }
+                    return adapted
+                }
+            )
+        }
+
+        let adaptedProgram = Program(
+            id: program.id,
+            name: program.name,
+            category: program.category,
+            description: program.description,
+            durationWeeks: program.durationWeeks,
+            sessionsPerWeek: program.sessionsPerWeek,
+            difficulty: program.difficulty,
+            phases: program.phases,
+            weeks: adaptedWeeks,
+            cycleAdjustmentProfile: program.cycleAdjustmentProfile
+        )
+
+        return AdaptationResult(program: adaptedProgram, adaptedExercises: metadata)
+    }
+
+    // MARK: - Clinical synonym normalization
+
+    private static let clinicalSynonyms: [String: String] = [
+        "acl": "knee", "mcl": "knee", "pcl": "knee", "meniscus": "knee",
+        "patella": "knee", "patellar": "knee", "quad": "knee", "quadriceps": "knee",
+        "rotator cuff": "shoulder", "labrum": "shoulder", "deltoid": "shoulder",
+        "supraspinatus": "shoulder", "infraspinatus": "shoulder", "bicep tendon": "shoulder",
+        "lumbar": "back", "lower back": "back", "upper back": "back",
+        "thoracic": "back", "cervical": "back", "disc": "back", "herniated": "back",
+        "sciatica": "back", "spinal": "spine", "vertebra": "spine", "vertebrae": "spine",
+        "sacroiliac": "hip", "si joint": "hip", "groin": "hip", "labral": "hip",
+        "hip flexor": "hip", "piriformis": "hip",
+        "achilles": "ankle", "plantar": "ankle", "calf": "ankle",
+        "carpal": "wrist", "carpal tunnel": "wrist", "forearm": "wrist",
+    ]
+
+    /// Maps free-text injury locations to engine contraindication keys
+    /// using clinical synonym matching.
+    static func normalizedBodyRegions(from injuries: [InjuryProfile]) -> [String] {
+        var regions = Set<String>()
+        let knownKeys = Set(contraindicationRules.keys)
+
+        for injury in injuries {
+            let loc = injury.location.lowercased()
+
+            // Direct match against known keys
+            for key in knownKeys where loc.contains(key) {
+                regions.insert(key)
+            }
+
+            // Clinical synonym matching
+            for (synonym, region) in clinicalSynonyms where loc.contains(synonym) {
+                regions.insert(region)
+            }
+        }
+
+        return Array(regions)
     }
 
     // MARK: - Private — contraindication tables
@@ -122,12 +215,41 @@ enum InjuryAdaptationEngine {
         _ session: ProgramSession,
         injuries: [InjuryProfile]
     ) -> ProgramSession {
-        ProgramSession(
+        // Partition injuries by phase for different treatment
+        let acuteInjuries = injuries.filter { $0.recoveryPhase == .acute }
+        let rehabInjuries = injuries.filter { $0.recoveryPhase == .rehab }
+        let lightLoadInjuries = injuries.filter { $0.recoveryPhase == .lightLoad }
+        let returnToPlayInjuries = injuries.filter { $0.recoveryPhase == .returnToPlay }
+
+        // Acute + rehab + lightLoad: replace exercises
+        let replacementInjuries = acuteInjuries + rehabInjuries + lightLoadInjuries
+        var adaptedExercises = session.exercises.map { adaptExercise($0, injuries: replacementInjuries) }
+
+        // Apply load/volume multipliers for the most restrictive phase
+        let mostRestrictivePhase = mostRestrictive(phases: injuries.map(\.recoveryPhase))
+        if let phase = mostRestrictivePhase, phase != .resolved {
+            adaptedExercises = adaptedExercises.map { LoadAdjustmentPolicy.applyMultipliers($0, phase: phase) }
+        }
+
+        // rehab: prepend full recovery prep block
+        var finalExercises = adaptedExercises
+        if !rehabInjuries.isEmpty {
+            let prepBlock = buildRecoveryPrepBlock(injuries: rehabInjuries)
+            finalExercises = prepBlock + finalExercises
+        }
+
+        // returnToPlay: no replacement, but prepend recovery prep as warmup
+        if !returnToPlayInjuries.isEmpty {
+            let warmupBlock = buildRecoveryPrepBlock(injuries: returnToPlayInjuries)
+            finalExercises = warmupBlock + finalExercises
+        }
+
+        return ProgramSession(
             sessionID:   session.sessionID,
             sessionName: session.sessionName,
             sessionType: session.sessionType,
             focus:       session.focus,
-            exercises:   session.exercises.map { adaptExercise($0, injuries: injuries) }
+            exercises:   finalExercises
         )
     }
 
@@ -192,6 +314,15 @@ enum InjuryAdaptationEngine {
 
         return ReplacementResult(exerciseName: exerciseID,
                                  reason: "Consult your coach — no safe automatic replacement found for \(locations) injury.")
+    }
+
+    // MARK: - Phase helpers
+
+    private static let phaseOrder: [RecoveryPhase] = [.acute, .rehab, .lightLoad, .returnToPlay, .resolved]
+
+    /// Returns the most restrictive (earliest) phase from a list.
+    static func mostRestrictive(phases: [RecoveryPhase]) -> RecoveryPhase? {
+        phases.min { (phaseOrder.firstIndex(of: $0) ?? 0) < (phaseOrder.firstIndex(of: $1) ?? 0) }
     }
 
     // MARK: - Recovery prep block

@@ -52,6 +52,7 @@ targets:
         NSHealthUpdateUsageDescription: "Sundee Fundee writes workout data to Apple Health."
     dependencies:
       - sdk: CloudKit.framework
+      - sdk: HealthKit.framework
 
   SundeeFundeTests:
     type: bundle.unit-test

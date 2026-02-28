@@ -16,6 +16,11 @@ final class InjuryProfile {
     var createdAt: Date
     var updatedAt: Date
     var resolvedAt: Date?
+    /// Five-phase recovery arc: acute → rehab → lightLoad → returnToPlay → resolved.
+    /// Default "acute" for new injuries and backward compat with existing records.
+    var recoveryPhaseRaw: String
+    /// Structured body regions, comma-separated raw values from BodyLocation.Region.
+    var locationRegionsRaw: String
     /// IDs of injury disclaimers the user has acknowledged, stored as comma-separated string.
     var acknowledgedDisclaimerIDsRaw: String
 
@@ -39,6 +44,8 @@ final class InjuryProfile {
         self.createdAt = createdAt
         self.updatedAt = updatedAt
         self.resolvedAt = resolvedAt
+        self.recoveryPhaseRaw = RecoveryPhase.acute.rawValue
+        self.locationRegionsRaw = ""
         self.acknowledgedDisclaimerIDsRaw = ""
     }
 
@@ -47,7 +54,17 @@ final class InjuryProfile {
         set { statusRaw = newValue.rawValue }
     }
 
-    var isActive: Bool { status == .active }
+    var recoveryPhase: RecoveryPhase {
+        get { RecoveryPhase(rawValue: recoveryPhaseRaw) ?? .acute }
+        set { recoveryPhaseRaw = newValue.rawValue }
+    }
+
+    var locationRegions: [BodyLocation.Region] {
+        get { BodyLocation.parseRegions(locationRegionsRaw) }
+        set { locationRegionsRaw = BodyLocation.encodeRegions(newValue) }
+    }
+
+    var isActive: Bool { recoveryPhase != .resolved }
 
     var isComplete: Bool {
         !location.trimmingCharacters(in: .whitespaces).isEmpty &&

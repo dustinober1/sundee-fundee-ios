@@ -12,7 +12,8 @@ enum CycleProgramGenerator {
         settings: CycleSettings?,
         preferences: CycleAdaptationPreferences?,
         periodLogs: [PeriodLog],
-        referenceDate: Date = .now
+        referenceDate: Date = .now,
+        readinessScore: Double? = nil
     ) -> Program {
         // Guest users or opt-out: return unchanged
         guard let preferences, preferences.adaptationEnabled else { return program }
@@ -43,7 +44,7 @@ enum CycleProgramGenerator {
             referenceDate: referenceDate
         )
 
-        let readiness = policy.resolveReadinessTier(readinessScore: nil)
+        let readiness = policy.resolveReadinessTier(readinessScore: readinessScore)
 
         // Adapt each week's sessions
         let adaptedWeeks = program.weeks.map { week in

@@ -10,6 +10,7 @@ struct DashboardView: View {
     @State private var showSkipConfirmation = false
     @State private var workoutToDelete: CompletedWorkout?
     @State private var showDeleteConfirmation = false
+    @State private var injuryForCheckIn: InjuryProfile?
 
     init(viewModel: DashboardViewModel = DashboardViewModel()) {
         _viewModel = State(initialValue: viewModel)
@@ -23,6 +24,11 @@ struct DashboardView: View {
                     greetingHeader
                     if viewModel.currentCyclePhase == .menstrual {
                         MenstrualPhaseCard()
+                    }
+                    if !viewModel.activeInjuriesNeedingCheckIn.isEmpty {
+                        PainCheckInCard(injuries: viewModel.activeInjuriesNeedingCheckIn) { injury in
+                            injuryForCheckIn = injury
+                        }
                     }
                     if let state = Self.activeEnrollmentState(
                         enrollment: viewModel.activeEnrollment,
@@ -38,6 +44,9 @@ struct DashboardView: View {
                         .accessibilityIdentifier("active-cycle-card")
                     } else {
                         NoEnrollmentCard()
+                    }
+                    if let rehabSession = viewModel.rehabSession {
+                        RehabSessionCard(session: rehabSession)
                     }
                     recentWorkoutsSection
                 }
@@ -88,6 +97,14 @@ struct DashboardView: View {
             Button("Cancel", role: .cancel) { workoutToDelete = nil }
         } message: {
             Text("This will remove the workout record and roll back your program progress by one session.")
+        }
+        .sheet(item: $injuryForCheckIn) { injury in
+            PainCheckInView(injury: injury) { level, notes in
+                let repo = SwiftDataPainLogRepository(context: modelContext)
+                let log = PainLog(injuryProfileID: injury.id, painLevel: level, notes: notes)
+                try? repo.save(log)
+                Task { await viewModel.load(modelContext: modelContext) }
+            }
         }
         .task { await viewModel.load(modelContext: modelContext) }
         .refreshable(action: Self.refreshAction(viewModel: viewModel, modelContext: modelContext))
@@ -392,6 +409,83 @@ struct WorkoutHistoryRow: View {
         .padding(AppTheme.Spacing.sm)
         .background(AppTheme.Colors.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: 8))
+    }
+}
+
+// MARK: - RehabSessionCard
+
+struct RehabSessionCard: View {
+    let session: ProgramSession
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
+            HStack(spacing: AppTheme.Spacing.sm) {
+                Image(systemName: "figure.cooldown")
+                    .font(.title2)
+                    .foregroundStyle(AppTheme.Colors.accentOrange)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Rehab Session Available")
+                        .font(AppTheme.Fonts.subheading)
+                        .foregroundStyle(AppTheme.Colors.navy)
+                    Text("\(session.exercises.count) exercises — ~10-15 min")
+                        .font(AppTheme.Fonts.caption)
+                        .foregroundStyle(AppTheme.Colors.navy.opacity(0.6))
+                }
+            }
+            Text("Recovery-focused session for your active injuries.")
+                .font(AppTheme.Fonts.caption)
+                .foregroundStyle(AppTheme.Colors.navy.opacity(0.5))
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(AppTheme.Spacing.md)
+        .background(AppTheme.Colors.accentOrange.opacity(0.1))
+        .clipShape(RoundedRectangle(cornerRadius: AppTheme.CornerRadius.card))
+    }
+}
+
+// MARK: - PainCheckInCard
+
+struct PainCheckInCard: View {
+    let injuries: [InjuryProfile]
+    let onCheckIn: (InjuryProfile) -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
+            HStack(spacing: AppTheme.Spacing.sm) {
+                Image(systemName: "bandage")
+                    .font(.title2)
+                    .foregroundStyle(AppTheme.Colors.accentOrange)
+                Text("Pain Check-In")
+                    .font(AppTheme.Fonts.subheading)
+                    .foregroundStyle(AppTheme.Colors.navy)
+            }
+            Text("How are your injuries feeling today?")
+                .font(AppTheme.Fonts.caption)
+                .foregroundStyle(AppTheme.Colors.navy.opacity(0.6))
+            ForEach(injuries) { injury in
+                Button {
+                    onCheckIn(injury)
+                } label: {
+                    HStack {
+                        Text(injury.location)
+                            .font(AppTheme.Fonts.body)
+                            .foregroundStyle(AppTheme.Colors.navy)
+                        Spacer()
+                        Text("Log pain")
+                            .font(AppTheme.Fonts.caption)
+                            .foregroundStyle(AppTheme.Colors.accentOrange)
+                        Image(systemName: "chevron.right")
+                            .font(.caption)
+                            .foregroundStyle(AppTheme.Colors.accentOrange)
+                    }
+                    .padding(.vertical, 4)
+                }
+            }
+        }
+        .padding(AppTheme.Spacing.md)
+        .background(AppTheme.Colors.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: AppTheme.CornerRadius.card))
+        .shadow(color: .black.opacity(0.08), radius: 6, x: 0, y: 3)
     }
 }
 

@@ -205,6 +205,14 @@ struct InjuryProfilesView: View {
         ZStack {
             AppTheme.Colors.cream.ignoresSafeArea()
             List {
+                ForEach(viewModel.transitionSuggestions, id: \.injuryID) { suggestion in
+                    PhaseTransitionBanner(
+                        suggestion: suggestion,
+                        injuryName: viewModel.injuryProfiles.first(where: { $0.id == suggestion.injuryID })?.location ?? "Injury",
+                        onAccept: { viewModel.acceptTransition(suggestion) },
+                        onDismiss: { viewModel.dismissTransition(suggestion) }
+                    )
+                }
                 if viewModel.injuryProfiles.isEmpty {
                     ContentUnavailableView(
                         "No Injury Profiles",
@@ -215,7 +223,7 @@ struct InjuryProfilesView: View {
                 } else {
                     ForEach(viewModel.injuryProfiles) { injury in
                         NavigationLink(value: injury) {
-                            InjuryRow(injury: injury)
+                            InjuryRow(injury: injury, painLogs: viewModel.painLogs[injury.id] ?? [])
                         }
                     }
                 }
@@ -236,6 +244,7 @@ struct InjuryProfilesView: View {
 
 struct InjuryRow: View {
     let injury: InjuryProfile
+    var painLogs: [PainLog] = []
 
     var body: some View {
         HStack {
@@ -247,13 +256,90 @@ struct InjuryRow: View {
                     .font(AppTheme.Fonts.caption)
                     .foregroundStyle(AppTheme.Colors.navy.opacity(0.5))
                     .lineLimit(1)
+                if !painLogs.isEmpty {
+                    HStack(spacing: 4) {
+                        PainSparkline(data: PainTrendAnalyzer.sparklineData(logs: painLogs))
+                        if let latest = painLogs.first {
+                            Text("\(latest.painLevel)/10")
+                                .font(AppTheme.Fonts.caption)
+                                .foregroundStyle(AppTheme.Colors.navy.opacity(0.6))
+                        }
+                    }
+                }
             }
             Spacer()
-            Text(injury.isActive ? "Active" : "Resolved")
-                .font(AppTheme.Fonts.caption)
-                .foregroundStyle(injury.isActive ? AppTheme.Colors.accentOrange : AppTheme.Colors.navy.opacity(0.4))
+            VStack(alignment: .trailing, spacing: 2) {
+                Text(injury.isActive ? "Active" : "Resolved")
+                    .font(AppTheme.Fonts.caption)
+                    .foregroundStyle(injury.isActive ? AppTheme.Colors.accentOrange : AppTheme.Colors.navy.opacity(0.4))
+                if injury.isActive {
+                    Text(injury.recoveryPhase.displayName)
+                        .font(AppTheme.Fonts.caption)
+                        .foregroundStyle(AppTheme.Colors.navy.opacity(0.5))
+                }
+            }
         }
         .padding(.vertical, 4)
+    }
+}
+
+// MARK: - PainSparkline
+
+struct PainSparkline: View {
+    let data: [Int]
+
+    var body: some View {
+        Canvas { context, size in
+            guard data.count >= 2 else { return }
+            let maxVal = Double(max(data.max() ?? 10, 1))
+            let stepX = size.width / Double(data.count - 1)
+            var path = Path()
+            for (index, value) in data.enumerated() {
+                let x = stepX * Double(index)
+                let y = size.height - (Double(value) / maxVal) * size.height
+                if index == 0 { path.move(to: CGPoint(x: x, y: y)) }
+                else { path.addLine(to: CGPoint(x: x, y: y)) }
+            }
+            context.stroke(path, with: .color(Color(AppTheme.Colors.accentOrange)), lineWidth: 1.5)
+        }
+        .frame(width: 50, height: 20)
+    }
+}
+
+// MARK: - PainCheckInView
+
+struct PainCheckInView: View {
+    let injury: InjuryProfile
+    let onSubmit: (Int, String?) -> Void
+    @State private var painLevel: Int = 5
+    @State private var notes: String = ""
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("How's your \(injury.location) feeling?") {
+                    Stepper("Pain Level: \(painLevel)/10", value: $painLevel, in: 1...10)
+                }
+                Section("Notes (optional)") {
+                    TextField("Any observations...", text: $notes, axis: .vertical)
+                        .lineLimit(2...4)
+                }
+            }
+            .scrollContentBackground(.hidden)
+            .background(AppTheme.Colors.cream)
+            .navigationTitle("Pain Check-In")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("Cancel", action: dismiss.callAsFunction) }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Log") {
+                        onSubmit(painLevel, notes.isEmpty ? nil : notes)
+                        dismiss()
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -265,6 +351,7 @@ struct EditInjuryView: View {
     @State private var location: String
     @State private var limitations: String
     @State private var recoveryGoal: String
+    @State private var selectedPhase: RecoveryPhase
 
     init(injury: InjuryProfile, viewModel: SettingsViewModel) {
         self.injury = injury
@@ -272,8 +359,9 @@ struct EditInjuryView: View {
         _location = State(initialValue: injury.location)
         _limitations = State(initialValue: injury.movementLimitations)
         _recoveryGoal = State(initialValue: injury.recoveryGoal)
+        _selectedPhase = State(initialValue: injury.recoveryPhase)
     }
-    
+
     static func resolveAction(
         injury: InjuryProfile,
         viewModel: SettingsViewModel,
@@ -284,17 +372,18 @@ struct EditInjuryView: View {
             dismiss()
         }
     }
-    
+
     static func saveAction(
         injury: InjuryProfile,
         viewModel: SettingsViewModel,
         location: String,
         limitations: String,
         recoveryGoal: String,
+        selectedPhase: RecoveryPhase,
         dismiss: @escaping () -> Void
     ) -> () -> Void {
         {
-            viewModel.updateInjury(injury, location: location, limitations: limitations, recoveryGoal: recoveryGoal)
+            viewModel.updateInjury(injury, location: location, limitations: limitations, recoveryGoal: recoveryGoal, recoveryPhase: selectedPhase)
             dismiss()
         }
     }
@@ -312,15 +401,12 @@ struct EditInjuryView: View {
                 TextField("e.g. Return to full squats in 8 weeks", text: $recoveryGoal, axis: .vertical)
                     .lineLimit(2...4)
             }
-            if injury.isActive {
-                Section {
-                    Button("Mark as Resolved", role: .destructive, action: Self.resolveAction(
-                        injury: injury,
-                        viewModel: viewModel,
-                        dismiss: dismiss.callAsFunction
-                    ))
+            Section("Recovery Phase") {
+                Picker("Phase", selection: $selectedPhase) {
+                    ForEach(RecoveryPhase.allCases, id: \.self) { phase in
+                        Text(phase.displayName).tag(phase)
+                    }
                 }
-                .listRowBackground(Color.clear)
             }
         }
         .scrollContentBackground(.hidden)
@@ -334,6 +420,7 @@ struct EditInjuryView: View {
                     location: location,
                     limitations: limitations,
                     recoveryGoal: recoveryGoal,
+                    selectedPhase: selectedPhase,
                     dismiss: dismiss.callAsFunction
                 ))
             }
@@ -348,29 +435,34 @@ struct AddInjurySheet: View {
     @State private var location: String
     @State private var limitations: String
     @State private var recoveryGoal: String
-    
+    @State private var selectedRegions: Set<BodyLocation.Region>
+
     init(
         viewModel: SettingsViewModel,
         location: String = "",
         limitations: String = "",
-        recoveryGoal: String = ""
+        recoveryGoal: String = "",
+        selectedRegions: Set<BodyLocation.Region> = []
     ) {
         self.viewModel = viewModel
         _location = State(initialValue: location)
         _limitations = State(initialValue: limitations)
         _recoveryGoal = State(initialValue: recoveryGoal)
+        _selectedRegions = State(initialValue: selectedRegions)
     }
-    
+
     static func saveAction(
         viewModel: SettingsViewModel,
         location: String,
         limitations: String,
         recoveryGoal: String,
+        selectedRegions: Set<BodyLocation.Region>,
         dismiss: @escaping () -> Void
     ) -> () -> Void {
         {
-            guard !location.isEmpty else { return }
-            viewModel.addInjury(location: location, limitations: limitations, recoveryGoal: recoveryGoal)
+            let effectiveLocation = selectedRegions.isEmpty ? location : selectedRegions.map(\.displayName).sorted().joined(separator: ", ")
+            guard !effectiveLocation.isEmpty else { return }
+            viewModel.addInjury(location: effectiveLocation, limitations: limitations, recoveryGoal: recoveryGoal, locationRegions: Array(selectedRegions))
             dismiss()
         }
     }
@@ -378,8 +470,11 @@ struct AddInjurySheet: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("Injury Location") {
-                    TextField("e.g. Lower back, Left knee", text: $location)
+                Section("Body Region") {
+                    BodyMapView(selectedRegions: $selectedRegions)
+                }
+                Section("Additional Notes") {
+                    TextField("e.g. ACL tear, rotator cuff", text: $location)
                 }
                 Section("Movement Limitations") {
                     TextField("e.g. No deadlifts, avoid twisting", text: $limitations, axis: .vertical)
@@ -402,11 +497,46 @@ struct AddInjurySheet: View {
                         location: location,
                         limitations: limitations,
                         recoveryGoal: recoveryGoal,
+                        selectedRegions: selectedRegions,
                         dismiss: dismiss.callAsFunction
                     ))
                 }
             }
         }
+    }
+}
+
+// MARK: - PhaseTransitionBanner
+
+struct PhaseTransitionBanner: View {
+    let suggestion: PhaseTransitionAdvisor.Suggestion
+    let injuryName: String
+    let onAccept: () -> Void
+    let onDismiss: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Image(systemName: "arrow.up.circle.fill")
+                    .foregroundStyle(AppTheme.Colors.accentOrange)
+                Text("Ready to advance?")
+                    .font(AppTheme.Fonts.body)
+                    .foregroundStyle(AppTheme.Colors.navy)
+            }
+            Text("\(injuryName): \(suggestion.currentPhase.displayName) → \(suggestion.suggestedPhase.displayName)")
+                .font(AppTheme.Fonts.caption)
+                .foregroundStyle(AppTheme.Colors.navy.opacity(0.7))
+            HStack(spacing: 12) {
+                Button("Advance", action: onAccept)
+                    .buttonStyle(PrimaryButtonStyle())
+                Button("Not Yet", action: onDismiss)
+                    .buttonStyle(SecondaryButtonStyle())
+            }
+        }
+        .padding(AppTheme.Spacing.md)
+        .background(AppTheme.Colors.accentOrange.opacity(0.1))
+        .clipShape(RoundedRectangle(cornerRadius: AppTheme.CornerRadius.card))
+        .listRowBackground(Color.clear)
     }
 }
 

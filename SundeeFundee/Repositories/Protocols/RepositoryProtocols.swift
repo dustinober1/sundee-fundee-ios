@@ -82,6 +82,56 @@ protocol BenchmarkResultRepository {
     func delete(_ result: BenchmarkResult) throws
 }
 
+// MARK: - InjuryRepository
+
+protocol InjuryRepository {
+    func fetchActiveInjuries(userID: String) throws -> [InjuryProfile]
+    func fetchAll(userID: String) throws -> [InjuryProfile]
+    func save(_ injury: InjuryProfile) throws
+    func resolve(_ injury: InjuryProfile) throws
+}
+
+// MARK: - PainLogRepository
+
+protocol PainLogRepository {
+    func save(_ log: PainLog) throws
+    func fetchLogs(injuryProfileID: String) throws -> [PainLog]
+    func fetchAllLogs() throws -> [PainLog]
+}
+
+// MARK: - ReadinessRepository
+
+struct ReadinessMetrics {
+    let sleepHours: Double?
+    let hrvRMSSD: Double?
+    let restingHeartRate: Double?
+
+    /// Computes a 1-10 readiness score from available metrics.
+    var readinessScore: Double? {
+        var components: [Double] = []
+
+        if let sleep = sleepHours {
+            // 7-9 hours is optimal; scale 0-10
+            components.append(min(10, max(0, (sleep / 9.0) * 10)))
+        }
+        if let hrv = hrvRMSSD {
+            // Higher HRV is better; typical range 20-100ms
+            components.append(min(10, max(0, (hrv / 80.0) * 10)))
+        }
+        if let rhr = restingHeartRate {
+            // Lower RHR is better; typical range 50-80
+            components.append(min(10, max(0, ((90 - rhr) / 40.0) * 10)))
+        }
+
+        guard !components.isEmpty else { return nil }
+        return components.reduce(0, +) / Double(components.count)
+    }
+}
+
+protocol ReadinessRepository: Sendable {
+    func fetchLatestMetrics() async throws -> ReadinessMetrics
+}
+
 // MARK: - ProgramRepository
 
 protocol ProgramRepository: Sendable {

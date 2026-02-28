@@ -19,7 +19,7 @@ private final class ViewModelCoverageTempModel {
 
 @MainActor
 private func makeTestStore() throws -> TestStore {
-    let schema = Schema(AppSchemaV2.models)
+    let schema = Schema(AppSchemaV6.models)
     let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
     let container = try ModelContainer(for: schema, configurations: [config])
     return TestStore(container: container, context: ModelContext(container))

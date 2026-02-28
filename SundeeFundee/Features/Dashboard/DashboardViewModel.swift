@@ -19,11 +19,16 @@ final class DashboardViewModel {
     var barbellWeightKg: Double = PlateCalculation.standardBarKg
     var weightUnit: WeightUnit = .kilograms
     var oneRepMaxes: [String: Double] = [:]
+    var activeInjuriesNeedingCheckIn: [InjuryProfile] = []
+    var rehabSession: ProgramSession?
+    var readinessScore: Double?
 
     private let programRepo: any ProgramRepository
+    private let readinessRepo: (any ReadinessRepository)?
 
-    init(programRepo: any ProgramRepository = BundledProgramRepository()) {
+    init(programRepo: any ProgramRepository = BundledProgramRepository(), readinessRepo: (any ReadinessRepository)? = nil) {
         self.programRepo = programRepo
+        self.readinessRepo = readinessRepo
     }
 
     func load(modelContext: ModelContext) async {
@@ -70,16 +75,43 @@ final class DashboardViewModel {
             adaptationEnabled: true
         )
 
+        // Load active injuries for adaptation
+        let injuryRepo = SwiftDataInjuryRepository(context: modelContext)
+        let activeInjuries = (try? injuryRepo.fetchActiveInjuries(userID: currentUser?.id ?? "")) ?? []
+
+        // Check which injuries need pain check-in (no log in last 24h)
+        let painLogRepo = SwiftDataPainLogRepository(context: modelContext)
+        activeInjuriesNeedingCheckIn = activeInjuries.filter { injury in
+            let logs = (try? painLogRepo.fetchLogs(injuryProfileID: injury.id)) ?? []
+            return !PainTrendAnalyzer.hasRecentLog(logs: logs)
+        }
+
+        // Fetch readiness metrics from HealthKit if available
+        if let readinessRepo {
+            let metrics = try? await readinessRepo.fetchLatestMetrics()
+            readinessScore = metrics?.readinessScore
+        }
+
+        // Generate rehab mini-session if injuries in rehab phase
+        rehabSession = RehabSessionGenerator.generateSession(injuries: activeInjuries)
+
         if let enrollment = activeEnrollment {
             var program = try? await programRepo.fetchProgram(id: enrollment.programID)
             if let raw = program {
-                program = CycleProgramGenerator.adaptProgram(
+                // Cycle adaptation first
+                var adapted = CycleProgramGenerator.adaptProgram(
                     raw,
                     phase: currentCyclePhase,
                     settings: cycleSettings,
                     preferences: effectiveCyclePrefs,
-                    periodLogs: periodLogs
+                    periodLogs: periodLogs,
+                    readinessScore: readinessScore
                 )
+                // Injury adaptation second (injury caps override cycle boosts)
+                if !activeInjuries.isEmpty {
+                    adapted = InjuryAdaptationEngine.adaptProgram(adapted, activeInjuries: activeInjuries)
+                }
+                program = adapted
             }
             activeProgram = program
             if let adapted = activeProgram {

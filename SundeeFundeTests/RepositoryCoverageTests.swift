@@ -10,7 +10,7 @@ struct RepositoryCoverageTests {
 
     @MainActor
     private func makeContainer() throws -> ModelContainer {
-        let schema = Schema(AppSchemaV2.models)
+        let schema = Schema(AppSchemaV6.models)
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
         return try ModelContainer(for: schema, configurations: [config])
     }

@@ -14,7 +14,7 @@ final class FeatureViewsCoverageWave3Tests: XCTestCase {
     private let fixedDate = Date(timeIntervalSince1970: 1_700_000_000)
 
     private func makeStore() throws -> TestStore {
-        let schema = Schema(AppSchemaV2.models)
+        let schema = Schema(AppSchemaV6.models)
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
         let container = try ModelContainer(for: schema, configurations: [config])
         return TestStore(container: container, context: ModelContext(container))
@@ -646,6 +646,7 @@ final class FeatureViewsCoverageWave3Tests: XCTestCase {
             location: "Updated Knee",
             limitations: "Light range",
             recoveryGoal: "Return to full depth",
+            selectedPhase: .acute,
             dismiss: { editDismissed = true }
         )()
         XCTAssertTrue(editDismissed)
@@ -657,6 +658,7 @@ final class FeatureViewsCoverageWave3Tests: XCTestCase {
             location: "",
             limitations: "",
             recoveryGoal: "",
+            selectedRegions: [],
             dismiss: { addInjuryDismissed = true }
         )()
         XCTAssertFalse(addInjuryDismissed)
@@ -665,6 +667,7 @@ final class FeatureViewsCoverageWave3Tests: XCTestCase {
             location: "Ankle",
             limitations: "Avoid plyos",
             recoveryGoal: "Stable landing",
+            selectedRegions: [],
             dismiss: { addInjuryDismissed = true }
         )()
         XCTAssertTrue(addInjuryDismissed)
