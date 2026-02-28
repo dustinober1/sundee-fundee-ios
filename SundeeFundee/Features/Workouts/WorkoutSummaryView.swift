@@ -234,6 +234,6 @@ final class WorkoutSummaryViewModel {
         if let first = newPRs.first {
             return .newPersonalRecord(exerciseName: first.0, weightKg: first.1)
         }
-        return .workoutCompleted(durationSeconds: workout.durationSeconds, volumeKg: totalVolumeKg)
+        return .workoutCompleted(durationSeconds: workout.durationSeconds)
     }
 }

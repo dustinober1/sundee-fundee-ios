@@ -340,20 +340,16 @@ struct WeightliftingExerciseCatalogTests {
 @Suite("CelebrationEvent.subtitle")
 struct CelebrationEventSubtitleTests {
 
-    @Test func workoutCompletedSubtitleUsesKilograms() {
-        let event = CelebrationEvent.workoutCompleted(durationSeconds: 3600, volumeKg: 1000)
+    @Test func workoutCompletedSubtitleShowsDuration() {
+        let event = CelebrationEvent.workoutCompleted(durationSeconds: 3600)
         let subtitle = event.subtitle(unit: .kilograms)
-        #expect(subtitle.contains("60min"))
-        #expect(subtitle.contains("kg"))
-        #expect(!subtitle.contains("lb"))
+        #expect(subtitle.contains("60 min"))
     }
 
-    @Test func workoutCompletedSubtitleUsesPounds() {
-        let event = CelebrationEvent.workoutCompleted(durationSeconds: 1800, volumeKg: 100)
+    @Test func workoutCompletedSubtitleZeroDuration() {
+        let event = CelebrationEvent.workoutCompleted(durationSeconds: 0)
         let subtitle = event.subtitle(unit: .pounds)
-        #expect(subtitle.contains("30min"))
-        #expect(subtitle.contains("lb"))
-        #expect(!subtitle.contains("kg"))
+        #expect(subtitle.contains("saved"))
     }
 
     @Test func newPersonalRecordSubtitleUsesKilograms() {

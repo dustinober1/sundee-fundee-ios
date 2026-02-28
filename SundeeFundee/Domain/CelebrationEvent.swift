@@ -1,7 +1,7 @@
 import Foundation
 
 enum CelebrationEvent: Equatable, Sendable {
-    case workoutCompleted(durationSeconds: Int, volumeKg: Double)
+    case workoutCompleted(durationSeconds: Int)
     case newPersonalRecord(exerciseName: String, weightKg: Double)
     case programCompleted(programName: String)
     case weightMilestone(exerciseName: String, thresholdKg: Double)
@@ -25,10 +25,9 @@ enum CelebrationEvent: Equatable, Sendable {
 
     func subtitle(unit: WeightUnit) -> String {
         switch self {
-        case .workoutCompleted(let secs, let vol):
+        case .workoutCompleted(let secs):
             let minutes = secs / 60
-            let formatted = WeightUnitConversion.formatWithUnit(kilograms: vol, unit: unit, maximumFractionDigits: 0)
-            return "\(minutes)min | \(formatted) total volume"
+            return minutes > 0 ? "Completed in \(minutes) min" : "Workout saved!"
         case .newPersonalRecord(let name, let kg):
             let formatted = WeightUnitConversion.formatWithUnit(kilograms: kg, unit: unit)
             return "\(name) — \(formatted) estimated 1RM"
