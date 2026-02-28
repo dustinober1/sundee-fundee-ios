@@ -1,3 +1,4 @@
+import SwiftData
 import SwiftUI
 
 /// Root tab shell — shown when user is authenticated (signed in or guest).
@@ -33,7 +34,20 @@ struct MainTabView: View {
         }
     }
 
-    static var orderedTabs: [TabRoute] { TabRoute.allCases }
+    static var orderedTabs: [TabRoute] { orderedTabs(for: nil) }
+
+    static func orderedTabs(for gender: Gender?) -> [TabRoute] {
+        if gender == .male {
+            return TabRoute.allCases.filter { $0 != .cycle }
+        }
+        return TabRoute.allCases
+    }
+    @Query private var users: [User]
+
+    private var currentGender: Gender? {
+        users.first?.gender
+    }
+
     private let destinationBuilder: (TabRoute) -> AnyView
 
     init(destinationBuilder: @escaping (TabRoute) -> AnyView = { tab in
@@ -44,7 +58,7 @@ struct MainTabView: View {
 
     var body: some View {
         TabView {
-            ForEach(Self.orderedTabs, id: \.self) { tab in
+            ForEach(Self.orderedTabs(for: currentGender), id: \.self) { tab in
                 NavigationStack {
                     destinationBuilder(tab)
                 }

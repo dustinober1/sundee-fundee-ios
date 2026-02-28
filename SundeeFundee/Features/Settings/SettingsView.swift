@@ -127,6 +127,10 @@ struct EditProfileView: View {
     @Bindable var viewModel: SettingsViewModel
     @Environment(\.dismiss) private var dismiss
     
+    static func shouldHideCycleToggle(for gender: Gender) -> Bool {
+        gender == .male
+    }
+
     static func saveAction(viewModel: SettingsViewModel, dismiss: @escaping () -> Void) -> () -> Void {
         {
             Task {
@@ -163,6 +167,23 @@ struct EditProfileView: View {
                     }
                 }
                 .pickerStyle(.segmented)
+            }
+            Section("Biological Sex") {
+                Picker("Sex", selection: $viewModel.gender) {
+                    ForEach(Gender.allCases, id: \.self) { gender in
+                        Text(gender.displayName).tag(gender)
+                    }
+                }
+                .onChange(of: viewModel.gender) { _, newValue in
+                    if newValue == .male {
+                        viewModel.cycleTrackingEnabled = false
+                    }
+                }
+            }
+            if !Self.shouldHideCycleToggle(for: viewModel.gender) {
+                Section("Cycle Tracking") {
+                    Toggle("Enable cycle-aware training", isOn: $viewModel.cycleTrackingEnabled)
+                }
             }
         }
         .scrollContentBackground(.hidden)
