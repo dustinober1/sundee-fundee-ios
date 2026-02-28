@@ -23,7 +23,7 @@ struct WorkoutSummaryView: View {
                 VStack(spacing: AppTheme.Spacing.lg) {
                     completionHeader
                     statsRow
-                    if !viewModel.newPRs.isEmpty { prBanner }
+                    if !viewModel.newPRs.isEmpty || !viewModel.newConditioningPRs.isEmpty { prBanner }
                     setBreakdown
                     doneButton
                 }
@@ -40,7 +40,7 @@ struct WorkoutSummaryView: View {
         .navigationBarBackButtonHidden()
         .task {
             await viewModel.detectPRs(modelContext: modelContext)
-            if !viewModel.newPRs.isEmpty {
+            if !viewModel.newPRs.isEmpty || !viewModel.newConditioningPRs.isEmpty {
                 NotificationCenter.default.post(name: .didSaveNewPRs, object: nil)
             }
             celebrationEvent = viewModel.primaryCelebrationEvent
@@ -79,6 +79,16 @@ struct WorkoutSummaryView: View {
                     Text(exercise)
                     Spacer()
                     Text(WeightUnitConversion.formatWithUnit(kilograms: value, unit: viewModel.weightUnit))
+                        .foregroundStyle(AppTheme.Colors.accentOrange)
+                }
+                .font(AppTheme.Fonts.body)
+                .foregroundStyle(AppTheme.Colors.navy)
+            }
+            ForEach(viewModel.newConditioningPRs, id: \.0) { (exercise, value, scoringType) in
+                HStack {
+                    Text(exercise)
+                    Spacer()
+                    Text(scoringType.formatValue(value))
                         .foregroundStyle(AppTheme.Colors.accentOrange)
                 }
                 .font(AppTheme.Fonts.body)
@@ -173,6 +183,7 @@ struct SetSummaryRow: View {
 final class WorkoutSummaryViewModel {
     let workout: CompletedWorkout
     var newPRs: [(String, Double)] = []
+    var newConditioningPRs: [(String, Double, ConditioningScoringType)] = []
     var groupedSets: [String: [CompletedSet]] = [:]
     var totalSets: Int = 0
     var totalVolumeKg: Double = 0
@@ -228,11 +239,48 @@ final class WorkoutSummaryViewModel {
             }
         }
         newPRs = detectedPRs
+
+        // Auto-detect conditioning PRs
+        var detectedConditioningPRs: [(String, Double, ConditioningScoringType)] = []
+        for (exercise, exerciseSets) in grouped {
+            guard let scoringType = ConditioningExerciseCatalog.scoringType(for: exercise) else { continue }
+
+            let bestValue: Double? = {
+                switch scoringType {
+                case .reps:
+                    return exerciseSets.compactMap { $0.actualReps.map(Double.init) }.max()
+                case .time:
+                    return exerciseSets.compactMap { $0.actualTimeSeconds }.filter { $0 > 0 }.min()
+                }
+            }()
+
+            guard let newValue = bestValue else { continue }
+
+            let existing = try? liftRepo.fetchConditioningPR(exercise: exercise)
+            if scoringType.isBetterThan(newValue: newValue, existingValue: existing?.bestValue) {
+                let pr = ConditioningPR(
+                    id: UUID().uuidString,
+                    userID: workout.userID,
+                    exerciseID: exercise,
+                    scoringType: scoringType,
+                    bestValue: newValue,
+                    weightKg: exerciseSets.first?.actualWeightKg,
+                    achievedAt: workout.completedAt,
+                    workoutID: workout.id
+                )
+                try? liftRepo.saveConditioningPR(pr)
+                detectedConditioningPRs.append((exercise, newValue, scoringType))
+            }
+        }
+        newConditioningPRs = detectedConditioningPRs
     }
 
     var primaryCelebrationEvent: CelebrationEvent? {
         if let first = newPRs.first {
             return .newPersonalRecord(exerciseName: first.0, weightKg: first.1)
+        }
+        if let first = newConditioningPRs.first {
+            return .newConditioningPR(exerciseName: first.0, value: first.1, scoringType: first.2)
         }
         return .workoutCompleted(durationSeconds: workout.durationSeconds)
     }

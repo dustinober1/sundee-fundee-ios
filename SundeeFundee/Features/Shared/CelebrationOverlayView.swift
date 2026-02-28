@@ -118,6 +118,7 @@ struct CelebrationOverlayView: View {
         case .newPersonalRecord: return "trophy.fill"
         case .programCompleted: return "star.fill"
         case .weightMilestone: return "flame.fill"
+        case .newConditioningPR: return "trophy.fill"
         }
     }
 
