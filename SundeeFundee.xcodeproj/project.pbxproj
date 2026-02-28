@@ -76,6 +76,9 @@
 		C34485EFC98690D769B8B90D /* ViewModelCoverageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5533059CBDA1637C94B14128 /* ViewModelCoverageTests.swift */; };
 		CB776D58BC5BDBDBD9B5D3A5 /* Benchmark.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3A9ACCDB214D83FC2593926 /* Benchmark.swift */; };
 		BD11223344556677889900BD /* BenchmarkDefinition.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC11223344556677889900AC /* BenchmarkDefinition.swift */; };
+		EE22334455667788990011EE /* BenchmarkCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF22334455667788990011FF /* BenchmarkCatalog.swift */; };
+		EE33445566778899001122EE /* BenchmarkDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF33445566778899001122FF /* BenchmarkDetailView.swift */; };
+		EE44556677889900112233EE /* BenchmarkDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF44556677889900112233FF /* BenchmarkDetailViewModel.swift */; };
 		CF0ECE5C2BF9B3E2BC42DA56 /* DomainCoverageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0853FAE104810510C018960 /* DomainCoverageTests.swift */; };
 		D03B53707FF4C6FCE513D02C /* AppModelContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C622B6A0C64BA37AEAEF044 /* AppModelContainer.swift */; };
 		D2ADE6487FB9DD6319D81FA4 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4D25ACD9D39C9AB1DA0F1386 /* Assets.xcassets */; };
@@ -162,6 +165,9 @@
 		A0B4C1F90A22734734B23231 /* RepositoryProtocols.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RepositoryProtocols.swift; sourceTree = "<group>"; };
 		A3A9ACCDB214D83FC2593926 /* Benchmark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Benchmark.swift; sourceTree = "<group>"; };
 		AC11223344556677889900AC /* BenchmarkDefinition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BenchmarkDefinition.swift; sourceTree = "<group>"; };
+		FF22334455667788990011FF /* BenchmarkCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BenchmarkCatalog.swift; sourceTree = "<group>"; };
+		FF33445566778899001122FF /* BenchmarkDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BenchmarkDetailView.swift; sourceTree = "<group>"; };
+		FF44556677889900112233FF /* BenchmarkDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BenchmarkDetailViewModel.swift; sourceTree = "<group>"; };
 		A45D0BF2A4A803CFAF9F115B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		A49C6CE7BE8E30D0775C5F27 /* SwiftDataEnrolledProgramRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftDataEnrolledProgramRepository.swift; sourceTree = "<group>"; };
 		A595115D72C6220739A44F49 /* AppTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTheme.swift; sourceTree = "<group>"; };
@@ -287,6 +293,7 @@
 				9185B33B347E99EC19EDC8E2 /* CycleProgramGenerator.swift */,
 				276F03F12261E20C6ACF6703 /* InjuryAdaptationEngine.swift */,
 				98B8629FCE5ECAD8EB13BD22 /* WeightliftingExerciseCatalog.swift */,
+				FF22334455667788990011FF /* BenchmarkCatalog.swift */,
 				7F3295F09F711668D384648E /* Calculations */,
 			);
 			path = Domain;
@@ -360,6 +367,8 @@
 			children = (
 				FCC38E727F4692C9396D9572 /* BenchmarksView.swift */,
 				B171C2099E66B35EE98A3A3A /* BenchmarksViewModel.swift */,
+				FF33445566778899001122FF /* BenchmarkDetailView.swift */,
+				FF44556677889900112233FF /* BenchmarkDetailViewModel.swift */,
 			);
 			path = Benchmarks;
 			sourceTree = "<group>";
@@ -616,8 +625,11 @@
 				766DE2BEB88044B71AF369C3 /* AuthService.swift in Sources */,
 				CB776D58BC5BDBDBD9B5D3A5 /* Benchmark.swift in Sources */,
 				BD11223344556677889900BD /* BenchmarkDefinition.swift in Sources */,
+				EE22334455667788990011EE /* BenchmarkCatalog.swift in Sources */,
 				1E5A4C536F627FCD8FFBF634 /* BenchmarksView.swift in Sources */,
 				52364086E18080C4EC49AECF /* BenchmarksViewModel.swift in Sources */,
+				EE33445566778899001122EE /* BenchmarkDetailView.swift in Sources */,
+				EE44556677889900112233EE /* BenchmarkDetailViewModel.swift in Sources */,
 				31711AC2F1895D8FFDA2CE3D /* ButtonStyles.swift in Sources */,
 				3A9441E40CA4388FA2C73B92 /* CompletedWorkout.swift in Sources */,
 				0050529D52C6D1AD4079C359 /* CycleAdaptationPolicy.swift in Sources */,

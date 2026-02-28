@@ -16,7 +16,7 @@ enum BenchmarkCatalog {
 
     // MARK: - Predefined Definitions
 
-    static let predefined: [BenchmarkDefinition] = {
+    nonisolated(unsafe) static let predefined: [BenchmarkDefinition] = {
         var entries: [BenchmarkDefinition] = []
         var order = 0
 
