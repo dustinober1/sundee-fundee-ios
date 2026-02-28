@@ -716,4 +716,18 @@ final class FeatureViewsCoverageWave3Tests: XCTestCase {
         XCTAssertNotNil(host(SettingsView.debugMessageView(nil)).view)
         #endif
     }
+
+    func testEditProfileViewShowsGenderPicker() async throws {
+        let vm = SettingsViewModel()
+        vm.gender = .female
+        vm.cycleTrackingEnabled = true
+        let view = NavigationStack { EditProfileView(viewModel: vm) }
+        XCTAssertNotNil(host(view).view)
+    }
+
+    func testShouldHideCycleToggleForGenders() {
+        XCTAssertTrue(EditProfileView.shouldHideCycleToggle(for: .male))
+        XCTAssertFalse(EditProfileView.shouldHideCycleToggle(for: .female))
+        XCTAssertFalse(EditProfileView.shouldHideCycleToggle(for: .preferNotToSay))
+    }
 }
