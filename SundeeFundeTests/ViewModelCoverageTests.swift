@@ -25,6 +25,14 @@ private func makeTestStore() throws -> TestStore {
     return TestStore(container: container, context: ModelContext(container))
 }
 
+@MainActor
+private func makeV7TestStore() throws -> TestStore {
+    let schema = Schema(AppSchemaV7.models)
+    let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
+    let container = try ModelContainer(for: schema, configurations: [config])
+    return TestStore(container: container, context: ModelContext(container))
+}
+
 private struct FakeProgramRepositoryError: LocalizedError {
     var errorDescription: String? { "Program fetch failed" }
 }
@@ -661,6 +669,67 @@ struct MaxLiftsViewModelCoverageTests {
         let guardVM = MaxLiftsViewModel()
         guardVM.addMax(exercise: "Back Squat", weightKg: 100, reps: 1, isEstimated: true)
         #expect(guardVM.exerciseNames.isEmpty)
+    }
+
+    @Test @MainActor
+    func loadConditioningPRsPopulatesState() async throws {
+        let store = try makeV7TestStore()
+        let pr = ConditioningPR(id: "cpr1", userID: "u1", exerciseID: "Wall Ball", scoringType: .reps, bestValue: 100)
+        store.context.insert(pr)
+        try store.context.save()
+
+        let vm = MaxLiftsViewModel()
+        await vm.load(modelContext: store.context, userID: "u1")
+
+        #expect(vm.conditioningPRs.count == 1)
+        #expect(vm.conditioningExerciseNames == ["Wall Ball"])
+    }
+}
+
+@Suite("WorkoutSummaryViewModel Coverage")
+struct WorkoutSummaryViewModelCoverageTests {
+
+    @Test @MainActor
+    func primaryCelebrationEvent_workoutCompleted() {
+        let workout = CompletedWorkout(id: "w1", userID: "u1", activeCycleID: "c1", programID: "p1", week: 1, day: 1, sessionID: "s1", durationSeconds: 120)
+        let vm = WorkoutSummaryViewModel(workout: workout)
+        // No PRs set, should return workoutCompleted
+        #expect(vm.primaryCelebrationEvent == .workoutCompleted(durationSeconds: 120))
+    }
+
+    @Test @MainActor
+    func primaryCelebrationEvent_conditioningPR() {
+        let workout = CompletedWorkout(id: "w1", userID: "u1", activeCycleID: "c1", programID: "p1", week: 1, day: 1, sessionID: "s1", durationSeconds: 60)
+        let vm = WorkoutSummaryViewModel(workout: workout)
+        vm.newConditioningPRs = [("Wall Ball", 100, .reps)]
+        let event = vm.primaryCelebrationEvent
+        #expect(event == .newConditioningPR(exerciseName: "Wall Ball", value: 100, scoringType: .reps))
+    }
+
+    @Test @MainActor
+    func primaryCelebrationEvent_weightPRTakesPriority() {
+        let workout = CompletedWorkout(id: "w1", userID: "u1", activeCycleID: "c1", programID: "p1", week: 1, day: 1, sessionID: "s1", durationSeconds: 60)
+        let vm = WorkoutSummaryViewModel(workout: workout)
+        vm.newPRs = [("Back Squat", 120)]
+        vm.newConditioningPRs = [("Wall Ball", 100, .reps)]
+        let event = vm.primaryCelebrationEvent
+        #expect(event == .newPersonalRecord(exerciseName: "Back Squat", weightKg: 120))
+    }
+
+    @Test @MainActor
+    func detectPRs_conditioningExercise() async throws {
+        let store = try makeV7TestStore()
+        let workout = CompletedWorkout(id: "w1", userID: "u1", activeCycleID: "c1", programID: "p1", week: 1, day: 1, sessionID: "s1", durationSeconds: 60)
+        store.context.insert(workout)
+        let set = CompletedSet(id: "s1", userID: "u1", workoutID: "w1", exerciseName: "Wall Ball", setIndex: 0, prescribedReps: "50", actualReps: 55)
+        store.context.insert(set)
+        try store.context.save()
+
+        let vm = WorkoutSummaryViewModel(workout: workout)
+        await vm.detectPRs(modelContext: store.context)
+
+        #expect(vm.newConditioningPRs.count == 1)
+        #expect(vm.newConditioningPRs.first?.0 == "Wall Ball")
     }
 }
 

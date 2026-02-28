@@ -730,4 +730,37 @@ final class FeatureViewsCoverageWave3Tests: XCTestCase {
         XCTAssertFalse(EditProfileView.shouldHideCycleToggle(for: .female))
         XCTAssertFalse(EditProfileView.shouldHideCycleToggle(for: .preferNotToSay))
     }
+
+    // MARK: - CelebrationOverlayView conditioning PR
+
+    func testCelebrationOverlayViewConditioningPR() {
+        let event = CelebrationEvent.newConditioningPR(exerciseName: "Wall Ball", value: 100, scoringType: .reps)
+        let view = CelebrationOverlayView(event: event, weightUnit: .pounds)
+        XCTAssertNotNil(host(view).view)
+    }
+
+    // MARK: - ConditioningPRRow
+
+    private func makeV7Store() throws -> TestStore {
+        let schema = Schema(AppSchemaV7.models)
+        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
+        let container = try ModelContainer(for: schema, configurations: [config])
+        return TestStore(container: container, context: ModelContext(container))
+    }
+
+    func testConditioningPRRowRendersReps() throws {
+        let store = try makeV7Store()
+        let pr = ConditioningPR(id: "1", userID: "u", exerciseID: "Wall Ball", scoringType: .reps, bestValue: 100)
+        store.context.insert(pr)
+        let view = ConditioningPRRow(pr: pr)
+        XCTAssertNotNil(host(view).view)
+    }
+
+    func testConditioningPRRowRendersTimeWithWeight() throws {
+        let store = try makeV7Store()
+        let pr = ConditioningPR(id: "2", userID: "u", exerciseID: "400m Run", scoringType: .time, bestValue: 90, weightKg: 20)
+        store.context.insert(pr)
+        let view = ConditioningPRRow(pr: pr)
+        XCTAssertNotNil(host(view).view)
+    }
 }

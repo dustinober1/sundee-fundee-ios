@@ -171,6 +171,41 @@ struct RepositoryCoverageTests {
         #expect(try repository.fetchPersonalRecords(exercise: "Back Squat").map(\.id) == ["pr-new", "pr-old"])
     }
 
+    @MainActor
+    private func makeV7Container() throws -> ModelContainer {
+        let schema = Schema(AppSchemaV7.models)
+        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
+        return try ModelContainer(for: schema, configurations: [config])
+    }
+
+    @Test
+    @MainActor
+    func conditioningPRRepositorySaveFetchAll() throws {
+        let container = try makeV7Container()
+        let repository = SwiftDataLiftRepository(context: container.mainContext)
+
+        let pr1 = ConditioningPR(id: "cpr-1", userID: "u1", exerciseID: "Wall Ball", scoringType: .reps, bestValue: 100, achievedAt: date(10))
+        let pr2 = ConditioningPR(id: "cpr-2", userID: "u1", exerciseID: "400m Run", scoringType: .time, bestValue: 90, achievedAt: date(20))
+        try repository.saveConditioningPR(pr1)
+        try repository.saveConditioningPR(pr2)
+
+        #expect(try repository.fetchAllConditioningPRs().map(\.id) == ["cpr-2", "cpr-1"])
+        #expect(try repository.fetchConditioningPR(exercise: "Wall Ball")?.id == "cpr-1")
+        #expect(try repository.fetchConditioningPR(exercise: "Unknown") == nil)
+    }
+
+    @Test
+    @MainActor
+    func conditioningPRModelAccessors() throws {
+        let container = try makeV7Container()
+        let pr = ConditioningPR(id: "1", userID: "u", exerciseID: "Wall Ball", scoringType: .reps, bestValue: 100)
+        container.mainContext.insert(pr)
+        #expect(pr.scoringType == .reps)
+        #expect(pr.scoringTypeRaw == "reps")
+        pr.scoringType = .time
+        #expect(pr.scoringTypeRaw == "time")
+    }
+
     @Test
     @MainActor
     func cycleRepositoryFetchesCurrentAndLatestLogs() throws {
