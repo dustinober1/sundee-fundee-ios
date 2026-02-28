@@ -50,6 +50,9 @@ protocol LiftRepository {
     func savePersonalRecord(_ pr: PersonalRecord) throws
     func fetchPersonalRecords() throws -> [PersonalRecord]
     func fetchPersonalRecords(exercise: String) throws -> [PersonalRecord]
+    func saveConditioningPR(_ pr: ConditioningPR) throws
+    func fetchConditioningPR(exercise: String) throws -> ConditioningPR?
+    func fetchAllConditioningPRs() throws -> [ConditioningPR]
 }
 
 // MARK: - EnrolledProgramRepository

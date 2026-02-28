@@ -73,4 +73,26 @@ final class SwiftDataLiftRepository: LiftRepository {
         )
         return try context.fetch(descriptor)
     }
+
+    // MARK: - ConditioningPR
+
+    func saveConditioningPR(_ pr: ConditioningPR) throws {
+        context.insert(pr)
+        try context.save()
+    }
+
+    func fetchConditioningPR(exercise: String) throws -> ConditioningPR? {
+        let descriptor = FetchDescriptor<ConditioningPR>(
+            predicate: #Predicate { $0.exerciseID == exercise },
+            sortBy: [SortDescriptor(\.achievedAt, order: .reverse)]
+        )
+        return try context.fetch(descriptor).first
+    }
+
+    func fetchAllConditioningPRs() throws -> [ConditioningPR] {
+        let descriptor = FetchDescriptor<ConditioningPR>(
+            sortBy: [SortDescriptor(\.achievedAt, order: .reverse)]
+        )
+        return try context.fetch(descriptor)
+    }
 }
