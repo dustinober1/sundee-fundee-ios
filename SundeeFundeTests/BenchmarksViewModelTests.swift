@@ -21,7 +21,7 @@ struct BenchmarksViewModelTests {
         await vm.load(modelContext: ctx, userID: "u1")
         #expect(!vm.categoryGroups.isEmpty)
         let names = vm.categoryGroups.map(\.category)
-        #expect(names.contains("CrossFit WOD"))
+        #expect(names.contains("Classic WODs"))
         #expect(names.contains("Strength"))
     }
 

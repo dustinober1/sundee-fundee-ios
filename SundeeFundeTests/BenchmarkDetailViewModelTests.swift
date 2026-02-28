@@ -19,7 +19,7 @@ struct BenchmarkDetailViewModelTests {
             id: "predefined-fran",
             userID: "",
             name: "Fran",
-            category: "CrossFit WOD",
+            category: "Classic WODs",
             workoutDescription: "21-15-9: Thrusters + Pull-ups",
             scoringType: .time,
             isPredefined: true,
@@ -110,7 +110,7 @@ struct BenchmarkDetailViewModelTests {
     @Test
     func formattedScoreForReps() {
         let cindyDef = BenchmarkDefinition(
-            id: "c", userID: "", name: "Cindy", category: "CrossFit WOD",
+            id: "c", userID: "", name: "Cindy", category: "Classic WODs",
             workoutDescription: "", scoringType: .reps, isPredefined: true, sortOrder: 0
         )
         let vm = BenchmarkDetailViewModel(definition: cindyDef)

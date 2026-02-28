@@ -16,7 +16,7 @@ struct BenchmarkDefinitionTests {
         let def = BenchmarkDefinition(
             userID: "",
             name: "Fran",
-            category: "CrossFit WOD",
+            category: "Classic WODs",
             workoutDescription: "21-15-9: Thrusters + Pull-ups",
             scoringType: .time,
             isPredefined: true,
@@ -31,7 +31,7 @@ struct BenchmarkDefinitionTests {
         let def = BenchmarkDefinition(
             userID: "",
             name: "Fran",
-            category: "CrossFit WOD",
+            category: "Classic WODs",
             workoutDescription: "21-15-9",
             scoringType: .time,
             isPredefined: true,

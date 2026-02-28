@@ -8,7 +8,7 @@ enum BenchmarkCatalog {
 
     // MARK: - Category Constants
 
-    static let crossfitWOD    = "CrossFit WOD"
+    static let crossfitWOD    = "Classic WODs"
     static let strength       = "Strength"
     static let endurance      = "Endurance"
     static let gymnastics     = "Gymnastics"
@@ -34,7 +34,7 @@ enum BenchmarkCatalog {
             order += 1
         }
 
-        // CrossFit WODs — Time
+        // Classic WODs — Time
         add("Fran",   crossfitWOD, "21-15-9 reps for time: Thrusters (95/65 lb), Pull-ups", .time)
         add("Helen",  crossfitWOD, "3 rounds for time: 400m Run, 21 KB Swings (53/35 lb), 12 Pull-ups", .time)
         add("Grace",  crossfitWOD, "For time: 30 Clean & Jerks (135/95 lb)", .time)
@@ -43,7 +43,7 @@ enum BenchmarkCatalog {
         add("Murph",  crossfitWOD, "For time: 1-Mile Run, 100 Pull-ups, 200 Push-ups, 300 Air Squats, 1-Mile Run. Partition as needed. With 20/14 lb vest.", .time)
         add("Annie",  crossfitWOD, "50-40-30-20-10 reps for time: Double-Unders, Sit-ups", .time)
 
-        // CrossFit WODs — Reps/Rounds
+        // Classic WODs — Reps/Rounds
         add("Cindy",          crossfitWOD, "AMRAP 20 min: 5 Pull-ups, 10 Push-ups, 15 Air Squats. Score = total rounds + partial reps.", .reps)
         add("Fight Gone Bad", crossfitWOD, "3 rounds, 1 min each station: Wall Ball (20/14 lb), SDHP (75/55 lb), Box Jump (20\"), Push Press (75/55 lb), Row (calories). 1 min rest between rounds. Score = total reps.", .reps)
 
