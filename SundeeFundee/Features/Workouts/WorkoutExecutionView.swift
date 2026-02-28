@@ -57,7 +57,7 @@ struct WorkoutExecutionView: View {
     }
 
     private func plateCalculatorSheet() -> some View {
-        PlateCalculatorSheet(weightKg: viewModel.plateCalcWeightKg)
+        PlateCalculatorSheet(weightKg: viewModel.plateCalcWeightKg, barbellWeightKg: viewModel.barbellWeightKg)
     }
 
     @ViewBuilder
@@ -480,16 +480,22 @@ struct RestTimerOverlay: View {
 
 struct PlateCalculatorSheet: View {
     let weightKg: Double
+    let barbellWeightKg: Double
     @Environment(\.dismiss) private var dismiss
 
+    init(weightKg: Double, barbellWeightKg: Double = PlateCalculation.standardBarKg) {
+        self.weightKg = weightKg
+        self.barbellWeightKg = barbellWeightKg
+    }
+
     private var plates: [(weight: Double, count: Int)] {
-        PlateCalculation.platesPerSide(totalWeightKg: weightKg)
+        PlateCalculation.platesPerSide(totalWeightKg: weightKg, barbellWeightKg: barbellWeightKg)
     }
 
     var body: some View {
         NavigationStack {
             VStack(spacing: AppTheme.Spacing.lg) {
-                Text(PlateCalculation.description(totalWeightKg: weightKg))
+                Text(PlateCalculation.description(totalWeightKg: weightKg, barbellWeightKg: barbellWeightKg))
                     .font(AppTheme.Fonts.body)
                     .foregroundStyle(AppTheme.Colors.navy)
                     .multilineTextAlignment(.center)
@@ -505,7 +511,7 @@ struct PlateCalculatorSheet: View {
                     .background(AppTheme.Colors.cardBackground)
                     .clipShape(RoundedRectangle(cornerRadius: AppTheme.CornerRadius.card))
                 } else {
-                    Text(Self.barOnlyText(barKg: PlateCalculation.standardBarKg))
+                    Text(Self.barOnlyText(barKg: barbellWeightKg))
                         .font(AppTheme.Fonts.subheading)
                         .foregroundStyle(AppTheme.Colors.navy.opacity(0.6))
                 }

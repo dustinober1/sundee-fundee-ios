@@ -308,3 +308,30 @@ struct WeightliftingExerciseCatalogTests {
         if let s = squatIdx, let h = hingeIdx { #expect(s < h) }
     }
 }
+
+// MARK: - DashboardViewModel barbell weight tests
+
+@Suite("DashboardViewModel.barbellWeight")
+@MainActor
+struct DashboardViewModelBarbellWeightTests {
+
+    @Test func femaleBarbellWeightIs15() {
+        let weight = DashboardViewModel.barbellWeight(for: .female)
+        #expect(weight == 15.0)
+    }
+
+    @Test func maleBarbellWeightIs20() {
+        let weight = DashboardViewModel.barbellWeight(for: .male)
+        #expect(weight == 20.0)
+    }
+
+    @Test func preferNotToSayBarbellWeightIs20() {
+        let weight = DashboardViewModel.barbellWeight(for: .preferNotToSay)
+        #expect(weight == 20.0)
+    }
+
+    @Test func nilGenderBarbellWeightIs20() {
+        let weight = DashboardViewModel.barbellWeight(for: nil)
+        #expect(weight == 20.0)
+    }
+}

@@ -9,6 +9,7 @@ final class DashboardViewModel {
     var nextSession: ProgramSession?
     var recentWorkouts: [CompletedWorkout] = []
     var currentCyclePhase: CyclePhase?
+    var barbellWeightKg: Double = PlateCalculation.standardBarKg
 
     private let programRepo: any ProgramRepository
 
@@ -20,31 +21,53 @@ final class DashboardViewModel {
         let enrollmentRepo = SwiftDataEnrolledProgramRepository(context: modelContext)
         let workoutRepo = SwiftDataWorkoutRepository(context: modelContext)
         let cycleRepo = SwiftDataCycleRepository(context: modelContext)
+        let userRepo = SwiftDataUserRepository(context: modelContext)
+
+        // Load current user for gender-based bar weight
+        let currentUser = try? userRepo.fetchCurrentUser()
+        barbellWeightKg = Self.barbellWeight(for: currentUser?.gender)
 
         // Load active enrollment
         activeEnrollment = try? enrollmentRepo.fetchActiveEnrollment()
 
-        // Load the program for the active enrollment
+        // Cycle data
+        let periodLogs = (try? cycleRepo.fetchPeriodLogs()) ?? []
+        let cycleSettings = try? cycleRepo.fetchCycleSettings()
+        let cyclePrefs = try? cycleRepo.fetchCycleAdaptationPreferences()
+
+        if let settings = cycleSettings {
+            let result = CycleCalculations.calculateCycleStatus(
+                periodLogs: periodLogs,
+                settings: settings
+            )
+            currentCyclePhase = result?.currentPhase
+        }
+
+        // Load the program for the active enrollment, adapted for cycle phase
         if let enrollment = activeEnrollment {
-            activeProgram = try? await programRepo.fetchProgram(id: enrollment.programID)
-            if let program = activeProgram {
-                nextSession = findNextSession(in: program, enrollment: enrollment)
+            var program = try? await programRepo.fetchProgram(id: enrollment.programID)
+            if let raw = program {
+                program = CycleProgramGenerator.adaptProgram(
+                    raw,
+                    phase: currentCyclePhase,
+                    settings: cycleSettings,
+                    preferences: cyclePrefs,
+                    periodLogs: periodLogs
+                )
+            }
+            activeProgram = program
+            if let adapted = activeProgram {
+                nextSession = findNextSession(in: adapted, enrollment: enrollment)
             }
         }
 
         // Recent workouts (last 10)
         let allWorkouts = try! workoutRepo.fetchWorkouts()
         recentWorkouts = Array(allWorkouts.prefix(10))
+    }
 
-        // Cycle phase from period logs
-        if let logs = try? cycleRepo.fetchPeriodLogs(),
-           let settings = try? cycleRepo.fetchCycleSettings() {
-            let result = CycleCalculations.calculateCycleStatus(
-                periodLogs: logs,
-                settings: settings
-            )
-            currentCyclePhase = result?.currentPhase
-        }
+    static func barbellWeight(for gender: Gender?) -> Double {
+        gender == .female ? PlateCalculation.womenBarKg : PlateCalculation.standardBarKg
     }
 
     // MARK: - Helpers

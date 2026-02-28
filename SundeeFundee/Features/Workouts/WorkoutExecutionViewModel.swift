@@ -20,6 +20,7 @@ final class WorkoutExecutionViewModel {
     let session: ProgramSession
     let enrollment: EnrolledProgram
     let program: Program
+    let barbellWeightKg: Double
 
     var exerciseSets: [String: [SetExecutionState]] = [:]
     var startTime: Date = .now
@@ -39,12 +40,14 @@ final class WorkoutExecutionViewModel {
         session: ProgramSession,
         enrollment: EnrolledProgram,
         program: Program,
-        oneRepMaxes: [String: Double] = [:]
+        oneRepMaxes: [String: Double] = [:],
+        barbellWeightKg: Double = PlateCalculation.standardBarKg
     ) {
         self.session = session
         self.enrollment = enrollment
         self.program = program
         self.oneRepMaxes = oneRepMaxes
+        self.barbellWeightKg = barbellWeightKg
         initializeSets()
     }
 
