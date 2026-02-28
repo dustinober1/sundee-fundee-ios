@@ -23,7 +23,21 @@ struct BenchmarkDefinitionTests {
             sortOrder: 0
         )
         #expect(def.name == "Fran")
-        #expect(def.scoringType == BenchmarkScoringType.time.rawValue)
+        #expect(def.scoringTypeRaw == BenchmarkScoringType.time.rawValue)
         #expect(def.isPredefined == true)
+    }
+
+    @Test func scoringTypeComputedPropertyMatchesInit() {
+        let def = BenchmarkDefinition(
+            userID: "",
+            name: "Fran",
+            category: "CrossFit WOD",
+            workoutDescription: "21-15-9",
+            scoringType: .time,
+            isPredefined: true,
+            sortOrder: 0
+        )
+        #expect(def.scoringType == .time)
+        #expect(def.scoringTypeRaw == "time")
     }
 }

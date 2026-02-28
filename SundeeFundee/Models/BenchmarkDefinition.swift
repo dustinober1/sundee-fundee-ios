@@ -25,7 +25,7 @@ final class BenchmarkDefinition {
     var category: String
     var workoutDescription: String
     /// Raw value of `BenchmarkScoringType`.
-    var scoringType: String
+    var scoringTypeRaw: String
     var isPredefined: Bool
     var sortOrder: Int
 
@@ -44,12 +44,14 @@ final class BenchmarkDefinition {
         self.name = name
         self.category = category
         self.workoutDescription = workoutDescription
-        self.scoringType = scoringType.rawValue
+        self.scoringTypeRaw = scoringType.rawValue
         self.isPredefined = isPredefined
         self.sortOrder = sortOrder
     }
 
-    var resolvedScoringType: BenchmarkScoringType {
-        BenchmarkScoringType(rawValue: scoringType) ?? .time
+    var scoringType: BenchmarkScoringType {
+        // Falls back to .time for unknown raw values (e.g. future enum cases on old records).
+        assert(BenchmarkScoringType(rawValue: scoringTypeRaw) != nil, "Unknown BenchmarkScoringType raw value: \(scoringTypeRaw)")
+        return BenchmarkScoringType(rawValue: scoringTypeRaw) ?? .time
     }
 }

@@ -3,7 +3,7 @@ import Foundation
 
 /// A logged result for a named benchmark workout.
 ///
-/// `scoreValue` interpretation depends on `BenchmarkDefinition.resolvedScoringType`:
+/// `scoreValue` interpretation depends on `BenchmarkDefinition.scoringType`:
 /// - `.time` / `.distance` → total seconds (lower is better)
 /// - `.weight` → kilograms (higher is better)
 /// - `.reps` → count cast as Double (higher is better)
