@@ -1,0 +1,4 @@
+app_identifier "com.sundeefundee.app"
+apple_id ENV["APPLE_ID"]          # Set in GitHub Secrets: APPLE_ID
+team_id ENV["APPLE_TEAM_ID"]      # Set in GitHub Secrets: APPLE_TEAM_ID
+itc_team_id ENV["APPLE_TEAM_ID"]  # Same for App Store Connect

@@ -23,6 +23,7 @@
 		3122780411BF4B082698B3BE /* SwiftDataLiftRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85FB3DE87F4A09C063BA0765 /* SwiftDataLiftRepository.swift */; };
 		31505F6907BCB93B44087ECF /* WeightCalculations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDE3BB6E8105A1F1B02BD4A /* WeightCalculations.swift */; };
 		31711AC2F1895D8FFDA2CE3D /* ButtonStyles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F886F044DA162B3990BD14D /* ButtonStyles.swift */; };
+		3171B3EB5F9FB6E5E43568DB /* LegalContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 665E7A777D41FE5BE4093B7C /* LegalContent.swift */; };
 		35F7120D99DD863F41920B85 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AA39C1CC2588484E7774CF5 /* User.swift */; };
 		3978926D25EE8429137DE9FF /* SwiftDataWorkoutRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 177C37A3D267D4BE118A2E9F /* SwiftDataWorkoutRepository.swift */; };
 		3A9441E40CA4388FA2C73B92 /* CompletedWorkout.swift in Sources */ = {isa = PBXBuildFile; fileRef = D16BAB9EF7570DE98192141A /* CompletedWorkout.swift */; };
@@ -77,6 +78,7 @@
 		D88D33D87A00F2EDA606897E /* DashboardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A852A0B4C615F1D32036D1D6 /* DashboardViewModel.swift */; };
 		DD2A7D93D3A7C9B1000670A6 /* KeychainHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5AA0B73DAFAAB5029C55DFF /* KeychainHelper.swift */; };
 		E040470F4170DAC53DD93506 /* WeightliftingExerciseCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98B8629FCE5ECAD8EB13BD22 /* WeightliftingExerciseCatalog.swift */; };
+		E53E4CF5763A173DA83992E9 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 5BDADDDF96B2ECD3783DE0D2 /* PrivacyInfo.xcprivacy */; };
 		E5F449AEEA29A58A4B10D5D1 /* ProgramRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = C09382122916ED8040375F8E /* ProgramRepository.swift */; };
 		ED28D5048826C99F4AF78806 /* CloudKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A087E3D80C040517C19344A7 /* CloudKit.framework */; };
 		F7AEA19AF9ECE7E4A49A9861 /* CycleModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18228C01CE4329F639652F6D /* CycleModels.swift */; };
@@ -124,12 +126,14 @@
 		4D51A32BDB2684AEE4452690 /* AppInfraCoverageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppInfraCoverageTests.swift; sourceTree = "<group>"; };
 		53AE80F4CD24ED2C384C12D6 /* SundeeFundeeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SundeeFundeeApp.swift; sourceTree = "<group>"; };
 		5533059CBDA1637C94B14128 /* ViewModelCoverageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewModelCoverageTests.swift; sourceTree = "<group>"; };
+		5BDADDDF96B2ECD3783DE0D2 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		5DB1FEAD646663C29A83BEA8 /* SwiftUISmokeTestsB.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftUISmokeTestsB.swift; sourceTree = "<group>"; };
 		5E49072C83948F5C5119FBB9 /* UICriticalFlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UICriticalFlowTests.swift; sourceTree = "<group>"; };
 		5EA6C16D1835102BA7816B7E /* ProgramDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramDetailView.swift; sourceTree = "<group>"; };
 		5F1B65069425B81601B09ECE /* programs.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = programs.json; sourceTree = "<group>"; };
 		5F886F044DA162B3990BD14D /* ButtonStyles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ButtonStyles.swift; sourceTree = "<group>"; };
 		62C498309D514E52B0277ABD /* FeatureViewsCoverageWave3Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureViewsCoverageWave3Tests.swift; sourceTree = "<group>"; };
+		665E7A777D41FE5BE4093B7C /* LegalContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegalContent.swift; sourceTree = "<group>"; };
 		702EA15486E24E608EADC326 /* ProgramListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramListView.swift; sourceTree = "<group>"; };
 		7242123D2586EF28493E5FE8 /* SettingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewModel.swift; sourceTree = "<group>"; };
 		745F2F666C9657BEF7407740 /* CycleCalculations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleCalculations.swift; sourceTree = "<group>"; };
@@ -205,6 +209,7 @@
 		0A842251E765DE33F486816E /* Settings */ = {
 			isa = PBXGroup;
 			children = (
+				665E7A777D41FE5BE4093B7C /* LegalContent.swift */,
 				8919593E29B9EE334ECE4DDF /* SettingsView.swift */,
 				7242123D2586EF28493E5FE8 /* SettingsViewModel.swift */,
 			);
@@ -359,6 +364,7 @@
 			children = (
 				4D25ACD9D39C9AB1DA0F1386 /* Assets.xcassets */,
 				A45D0BF2A4A803CFAF9F115B /* Info.plist */,
+				5BDADDDF96B2ECD3783DE0D2 /* PrivacyInfo.xcprivacy */,
 				B505719BD04F61B067DA2491 /* SundeeFundee.entitlements */,
 				57FC1C61C870746D85314F63 /* Programs */,
 			);
@@ -572,6 +578,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D2ADE6487FB9DD6319D81FA4 /* Assets.xcassets in Resources */,
+				E53E4CF5763A173DA83992E9 /* PrivacyInfo.xcprivacy in Resources */,
 				9DECC5EBF919AD81D7EE5D81 /* programs.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -609,6 +616,7 @@
 				1E26D44D83981BB2631E923F /* InjuryAdaptationEngine.swift in Sources */,
 				B3FBCBDA5E4A927FF9725DD5 /* InjuryProfile.swift in Sources */,
 				DD2A7D93D3A7C9B1000670A6 /* KeychainHelper.swift in Sources */,
+				3171B3EB5F9FB6E5E43568DB /* LegalContent.swift in Sources */,
 				FA53392D925CD3BFCDD31669 /* MainTabView.swift in Sources */,
 				58C988AB86EB0742368C7667 /* MaxLiftsView.swift in Sources */,
 				162D675C992A12FBC721AF6F /* MaxLiftsViewModel.swift in Sources */,

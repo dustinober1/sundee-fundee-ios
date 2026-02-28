@@ -1,0 +1,59 @@
+default_platform :ios
+
+platform :ios do
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Beta lane — builds and uploads to TestFlight
+  # Trigger: push a tag matching v* (e.g. v1.0.0) or run manually
+  # ─────────────────────────────────────────────────────────────────────────────
+  desc "Build and upload to TestFlight"
+  lane :beta do
+    # Set up CI environment (keychains, temp code sign identity)
+    setup_ci
+
+    # Sync certificates and provisioning profiles via match
+    # Uses App Store distribution cert stored in MATCH_REPO (private Git repo)
+    # Set MATCH_PASSWORD and MATCH_GIT_URL in GitHub Secrets
+    match(
+      type: "appstore",
+      readonly: is_ci,
+      git_url: ENV["MATCH_GIT_URL"],
+      password: ENV["MATCH_PASSWORD"],
+      app_identifier: "com.sundeefundee.app"
+    )
+
+    # Bump build number using App Store Connect API
+    increment_build_number(
+      build_number: latest_testflight_build_number + 1
+    )
+
+    # Build the app
+    build_app(
+      scheme: "SundeeFundee",
+      project: "SundeeFundee.xcodeproj",
+      configuration: "Release",
+      export_method: "app-store",
+      clean: true
+    )
+
+    # Upload to TestFlight
+    upload_to_testflight(
+      api_key_path: nil, # Uses APPLE_KEY_ID, APPLE_ISSUER_ID, APPLE_KEY_CONTENT env vars
+      skip_waiting_for_build_processing: true,
+      changelog: ENV["TESTFLIGHT_NOTES"] || "New build."
+    )
+  end
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Tests lane — run unit tests only (no signing required)
+  # ─────────────────────────────────────────────────────────────────────────────
+  desc "Run unit tests"
+  lane :tests do
+    run_tests(
+      scheme: "SundeeFundee",
+      project: "SundeeFundee.xcodeproj",
+      devices: ["iPhone 16 Pro"],
+      only_testing: ["SundeeFundeTests"],
+      code_coverage: true
+    )
+  end
+end

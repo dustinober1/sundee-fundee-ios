@@ -430,29 +430,9 @@ struct LegalView: View {
 
     private var content: String {
         switch page {
-        case .terms:
-            return """
-            By using Sundee Fundee, you agree to these Terms of Service. \
-            The app is provided for informational and fitness tracking purposes only. \
-            You are responsible for exercising safely and within your physical capabilities.
-            """
-        case .privacy:
-            return """
-            Your data is stored privately in iCloud using CloudKit. \
-            We do not sell or share your personal health or workout data with third parties. \
-            You may delete your data at any time through iOS Settings > iCloud > Manage Storage.
-            """
-        case .medical:
-            return """
-            ⚠️ Medical Disclaimer\n\n\
-            Sundee Fundee is not a medical application. \
-            The training recommendations provided are for general fitness purposes only and \
-            should not be construed as medical advice.\n\n\
-            Consult a qualified healthcare professional before starting any new exercise program, \
-            especially if you have existing injuries, medical conditions, or are pregnant.\n\n\
-            The cycle-aware training features are based on general research and may not apply \
-            to your individual physiology. Always listen to your body.
-            """
+        case .terms:   return LegalContent.termsOfService
+        case .privacy: return LegalContent.privacyPolicy
+        case .medical: return LegalContent.medicalDisclaimer
         }
     }
 }

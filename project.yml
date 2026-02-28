@@ -40,13 +40,17 @@ targets:
           - iCloud.com.sundeefundee.app
         com.apple.developer.icloud-services:
           - CloudKit
+        com.apple.developer.applesignin:
+          - Default
     info:
       path: SundeeFundee/Resources/Info.plist
       properties:
         CFBundleDisplayName: Sundee Fundee
         CFBundleShortVersionString: "$(MARKETING_VERSION)"
         CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
-        UILaunchStoryboardName: ""
+        ITSAppUsesNonExemptEncryption: false
+        UILaunchScreen:
+          UIColorName: LaunchBackground
         UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: false
         NSHealthShareUsageDescription: "Sundee Fundee uses health data to provide cycle-aware training recommendations."
