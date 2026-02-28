@@ -90,80 +90,105 @@ struct BodyMapView: View {
 
     // MARK: - Hotspot positions
     //
-    // Source image: 640×480px. Front figure: left half. Back figure: right half.
+    // Source image: 640×640px. Front figure: left half. Back figure: right half.
     // Crop window used in BodyDiagramImage:
-    //   Front: x=55..297 (cropW=242), y=10..478 (cropH=468)
-    //   Back:  x=348..590 (cropW=242), y=10..478 (cropH=468)
+    //   Front: x=50..330 (cropW=280), y=15..620 (cropH=605)
+    //   Back:  x=320..580 (cropW=260), y=15..620 (cropH=605)
     //
-    // Pixel measurements from the source image (front/back figure coords):
+    // Pixel positions measured from actual image data:
     //   px = (srcX - cropStartX) / cropW  → 0..1 within the crop
     //   py = (srcY - cropY) / cropH       → 0..1 within the crop
     //
-    // Front figure approximate source pixel centers:
-    //   Head:           161, 38   → px=0.438, py=0.060
-    //   Neck:           161, 78   → px=0.438, py=0.145
-    //   Chest:          161,135   → px=0.438, py=0.267
-    //   L.Shoulder:     111,115   → px=0.231, py=0.224
-    //   R.Shoulder:     210,115   → px=0.640, py=0.224  (mirrored: 1-0.640=0.360 from right)
-    //   L.Elbow:         84,185   → px=0.120, py=0.374
-    //   R.Elbow:        237,185   → px=0.752, py=0.374
-    //   L.Wrist:         67,248   → px=0.050, py=0.509
-    //   R.Wrist:        255,248   → px=0.826, py=0.509
-    //   L.Hip:          140,260   → px=0.351, py=0.534
-    //   R.Hip:          182,260   → px=0.524, py=0.534
-    //   L.Knee:         133,356   → px=0.322, py=0.739
-    //   R.Knee:         189,356   → px=0.554, py=0.739
-    //   L.Ankle:        128,440   → px=0.302, py=0.919
-    //   R.Ankle:        194,440   → px=0.574, py=0.919
+    // NOTE: figure faces viewer → figure's LEFT arm appears on screen RIGHT (higher px).
     //
-    // Back figure approximate source pixel centers (offset by 348 for cropX):
-    //   Head:           479, 38   → px=(479-348)/242=0.541, py=0.060
-    //   Neck:           479, 78   → px=0.541, py=0.145
-    //   UpperBack:      479,130   → px=0.541, py=0.256
-    //   LowerBack:      479,200   → px=0.541, py=0.406
-    //   L.Shoulder:     432,115   → px=(432-348)/242=0.347, py=0.224
-    //   R.Shoulder:     526,115   → px=(526-348)/242=0.736, py=0.224
-    //   L.Elbow:        408,185   → px=0.248, py=0.374
-    //   R.Elbow:        550,185   → px=0.835, py=0.374
-    //   L.Wrist:        392,248   → px=0.182, py=0.509
-    //   R.Wrist:        566,248   → px=0.901, py=0.509
-    //   L.Hip:          458,260   → px=0.455, py=0.534
-    //   R.Hip:          500,260   → px=0.628, py=0.534
-    //   L.Knee:         452,356   → px=0.430, py=0.739
-    //   R.Knee:         506,356   → px=0.653, py=0.739
-    //   L.Ankle:        449,440   → px=0.417, py=0.919
-    //   R.Ankle:        509,440   → px=0.665, py=0.919
+    // Front figure pixel centers (srcX, srcY):
+    //   Head:           176, 40   → px=0.450, py=0.041
+    //   Chest:          176,145   → px=0.450, py=0.215
+    //   L.Shoulder:     127,125   → px=0.275, py=0.182
+    //   R.Shoulder:     227,125   → px=0.632, py=0.182
+    //   L.Elbow:        117,220   → px=0.239, py=0.339
+    //   R.Elbow:        236,220   → px=0.664, py=0.339
+    //   L.Wrist:         94,295   → px=0.157, py=0.463
+    //   R.Wrist:        287,295   → px=0.846, py=0.463
+    //   L.Hip:          150,338   → px=0.357, py=0.534
+    //   R.Hip:          202,338   → px=0.543, py=0.534
+    //   L.Knee:         135,450   → px=0.304, py=0.719
+    //   R.Knee:         218,450   → px=0.600, py=0.719
+    //   L.Ankle:        137,560   → px=0.311, py=0.901
+    //   R.Ankle:        216,560   → px=0.593, py=0.901
+    //
+    // Back figure pixel centers (srcX, srcY):
+    //   Head:           434, 40   → px=0.438, py=0.041
+    //   Neck:           434, 90   → px=0.438, py=0.124
+    //   UpperBack:      435,148   → px=0.442, py=0.220
+    //   LowerBack:      434,235   → px=0.438, py=0.364
+    //   L.Shoulder:     388,120   → px=0.262, py=0.174
+    //   R.Shoulder:     490,120   → px=0.654, py=0.174
+    //   L.Elbow:        373,225   → px=0.204, py=0.347
+    //   R.Elbow:        496,225   → px=0.677, py=0.347
+    //   L.Wrist:        350,300   → px=0.115, py=0.471
+    //   R.Wrist:        530,300   → px=0.808, py=0.471
+    //   L.Hip:          404,350   → px=0.323, py=0.554
+    //   R.Hip:          465,350   → px=0.558, py=0.554
+    //   L.Knee:         392,450   → px=0.277, py=0.719
+    //   R.Knee:         477,450   → px=0.604, py=0.719
+    //   L.Ankle:        394,560   → px=0.285, py=0.901
+    //   R.Ankle:        475,560   → px=0.596, py=0.901
 
     // swiftlint:disable cyclomatic_complexity
     private func regionPosition(_ region: BodyLocation.Region, width: CGFloat, height: CGFloat) -> CGPoint {
+        // "left" / "right" are from the figure's anatomical perspective.
+        // The figure faces the viewer, so figure's LEFT appears on screen RIGHT (higher x).
+        // px values are normalized within the crop window (0..1).
+        // All coordinates measured from the actual 640×640 pixel image.
         let (px, py): (CGFloat, CGFloat) = {
             switch region {
-            // --- Front view ---
-            case .head:           return (0.438, 0.060)
-            case .chest:          return (0.438, 0.267)
-            case .leftShoulder:   return (0.231, 0.224)
-            case .rightShoulder:  return (0.645, 0.224)
-            case .leftElbow:      return (0.120, 0.374)
-            case .rightElbow:     return (0.752, 0.374)
-            case .leftWrist:      return (0.050, 0.509)
-            case .rightWrist:     return (0.826, 0.509)
-            case .leftHip:        return (0.351, 0.534)
-            case .rightHip:       return (0.524, 0.534)
-            case .leftKnee:       return (0.322, 0.739)
-            case .rightKnee:      return (0.554, 0.739)
-            case .leftAnkle:      return (0.302, 0.919)
-            case .rightAnkle:     return (0.574, 0.919)
-            // --- Back-only ---
-            case .neck:           return (0.541, 0.145)
-            case .upperBack:      return (0.541, 0.256)
-            case .lowerBack:      return (0.541, 0.406)
+            case .head:
+                return showingFront ? (0.450, 0.041) : (0.438, 0.041)
+            case .neck:
+                return (0.438, 0.124)   // back view only
+            case .chest:
+                return (0.450, 0.215)
+            case .upperBack:
+                return (0.442, 0.220)
+            case .lowerBack:
+                return (0.438, 0.364)
+            // leftShoulder = figure's anatomical left = screen RIGHT (higher px)
+            case .leftShoulder:
+                return showingFront ? (0.655, 0.200) : (0.654, 0.174)
+            // rightShoulder = figure's anatomical right = screen LEFT (lower px)
+            case .rightShoulder:
+                return showingFront ? (0.166, 0.200) : (0.262, 0.174)
+            case .leftElbow:
+                return showingFront ? (0.664, 0.339) : (0.677, 0.347)
+            case .rightElbow:
+                return showingFront ? (0.239, 0.339) : (0.204, 0.347)
+            case .leftWrist:
+                return showingFront ? (0.846, 0.463) : (0.808, 0.471)
+            case .rightWrist:
+                return showingFront ? (0.157, 0.463) : (0.115, 0.471)
+            // leftHip = figure's anatomical left = screen RIGHT
+            case .leftHip:
+                return showingFront ? (0.543, 0.534) : (0.558, 0.554)
+            case .rightHip:
+                return showingFront ? (0.357, 0.534) : (0.323, 0.554)
+            case .leftKnee:
+                return showingFront ? (0.600, 0.719) : (0.604, 0.719)
+            case .rightKnee:
+                return showingFront ? (0.304, 0.719) : (0.277, 0.719)
+            case .leftAnkle:
+                return showingFront ? (0.593, 0.901) : (0.596, 0.901)
+            case .rightAnkle:
+                return showingFront ? (0.311, 0.901) : (0.285, 0.901)
             }
         }()
-        // Map normalized crop coords → canvas pixel position
+        // Map normalized crop coords → canvas pixel position.
+        // Use the per-view crop width so hotspots match the rendered image exactly.
+        let cropW = showingFront ? BodyDiagramImage.frontCropW : BodyDiagramImage.backCropW
         let scaleH = height / BodyDiagramImage.cropH
-        let scaleW = width / BodyDiagramImage.cropW * 0.92
+        let scaleW = width / cropW
         let scale = min(scaleH, scaleW)
-        let scaledW = BodyDiagramImage.cropW * scale
+        let scaledW = cropW * scale
         let scaledH = BodyDiagramImage.cropH * scale
         let xPad = (width - scaledW) / 2
         let yPad = max((height - scaledH) / 2, 4)
@@ -178,22 +203,27 @@ private struct BodyDiagramImage: View {
     let showingFront: Bool
 
     private let imgW: CGFloat = 640
-    private let imgH: CGFloat = 480
+    private let imgH: CGFloat = 640
 
-    // Crop window shared with hotspot position math
-    static let cropH: CGFloat = 468
-    static let cropW: CGFloat = 242
-    private var cropX: CGFloat { showingFront ? 55 : 348 }
-    private let cropY: CGFloat = 10
+    // Crop window shared with hotspot position math.
+    // Front figure: x=50..330 (w=280). Back figure: x=320..580 (w=260).
+    // Both figures span y=15..620 (h=605).
+    static let cropH: CGFloat = 605
+    static let frontCropW: CGFloat = 280
+    static let backCropW: CGFloat = 260
+    static var cropW: CGFloat { 280 }   // kept for layout sizing; use the wider front crop
+    private var cropX: CGFloat { showingFront ? 50 : 320 }
+    private var thisCropW: CGFloat { showingFront ? Self.frontCropW : Self.backCropW }
+    private let cropY: CGFloat = 15
 
     var body: some View {
         GeometryReader { geo in
             let canvasW = geo.size.width
             let canvasH = geo.size.height
             let scaleH = canvasH / Self.cropH
-            let scaleW = canvasW / Self.cropW * 0.92
+            let scaleW = canvasW / thisCropW
             let scale = min(scaleH, scaleW)
-            let scaledW = Self.cropW * scale
+            let scaledW = thisCropW * scale
             let scaledH = Self.cropH * scale
             let xPad = (canvasW - scaledW) / 2
             let yPad = max((canvasH - scaledH) / 2, 4)
@@ -243,6 +273,7 @@ private struct RegionHotspot: View {
                             )
                     )
                     .frame(width: zoneW, height: zoneH)
+                    .contentShape(Ellipse())
                     .scaleEffect(isSelected ? 1.08 : 1.0)
                     .animation(.spring(response: 0.2, dampingFraction: 0.65), value: isSelected)
 
@@ -263,37 +294,38 @@ private struct RegionHotspot: View {
             }
         }
         .buttonStyle(.plain)
+        .contentShape(Rectangle())
         .position(position)
     }
 
     // Ellipse size — roughly proportional to the anatomical area
     private var zoneW: CGFloat {
         switch region {
-        case .head:                          return 36
-        case .chest, .upperBack:             return 46
-        case .lowerBack:                     return 42
-        case .leftShoulder, .rightShoulder:  return 28
-        case .leftHip, .rightHip:            return 28
-        case .leftKnee, .rightKnee:          return 26
-        case .leftElbow, .rightElbow:        return 22
-        case .leftAnkle, .rightAnkle:        return 20
-        case .leftWrist, .rightWrist:        return 20
-        case .neck:                          return 24
+        case .head:                          return 32
+        case .chest, .upperBack:             return 34
+        case .lowerBack:                     return 34
+        case .leftShoulder, .rightShoulder:  return 26
+        case .leftHip, .rightHip:            return 26
+        case .leftKnee, .rightKnee:          return 24
+        case .leftElbow, .rightElbow:        return 20
+        case .leftAnkle, .rightAnkle:        return 18
+        case .leftWrist, .rightWrist:        return 18
+        case .neck:                          return 22
         }
     }
 
     private var zoneH: CGFloat {
         switch region {
-        case .head:                          return 40
-        case .chest, .upperBack:             return 36
-        case .lowerBack:                     return 30
-        case .leftShoulder, .rightShoulder:  return 24
-        case .leftHip, .rightHip:            return 24
-        case .leftKnee, .rightKnee:          return 28
-        case .leftElbow, .rightElbow:        return 22
-        case .leftAnkle, .rightAnkle:        return 22
-        case .leftWrist, .rightWrist:        return 18
-        case .neck:                          return 20
+        case .head:                          return 34
+        case .chest, .upperBack:             return 28
+        case .lowerBack:                     return 28
+        case .leftShoulder, .rightShoulder:  return 22
+        case .leftHip, .rightHip:            return 22
+        case .leftKnee, .rightKnee:          return 26
+        case .leftElbow, .rightElbow:        return 20
+        case .leftAnkle, .rightAnkle:        return 20
+        case .leftWrist, .rightWrist:        return 16
+        case .neck:                          return 18
         }
     }
 

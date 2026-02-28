@@ -673,6 +673,32 @@ final class FeatureViewsCoverageWave3Tests: XCTestCase {
         XCTAssertTrue(addInjuryDismissed)
         XCTAssertTrue(settingsVM.injuryProfiles.contains(where: { $0.location == "Ankle" }))
         
+        // BodyMapView: render with pre-selected regions (exercises summary text branch)
+        var selectedRegions: Set<BodyLocation.Region> = [.leftKnee, .lowerBack]
+        XCTAssertNotNil(host(BodyMapView(selectedRegions: Binding(
+            get: { selectedRegions },
+            set: { selectedRegions = $0 }
+        ))).view)
+        // Also render with empty selection (no summary text branch)
+        var emptyRegions: Set<BodyLocation.Region> = []
+        XCTAssertNotNil(host(BodyMapView(selectedRegions: Binding(
+            get: { emptyRegions },
+            set: { emptyRegions = $0 }
+        ))).view)
+        
+        // AddInjurySheet.saveAction with selectedRegions non-empty (uses region display names as location)
+        addInjuryDismissed = false
+        AddInjurySheet.saveAction(
+            viewModel: settingsVM,
+            location: "",
+            limitations: "Avoid loading",
+            recoveryGoal: "Full recovery",
+            selectedRegions: [.leftKnee, .rightKnee],
+            dismiss: { addInjuryDismissed = true }
+        )()
+        XCTAssertTrue(addInjuryDismissed)
+        XCTAssertTrue(settingsVM.injuryProfiles.contains(where: { $0.location.contains("Knee") }))
+        
         #if DEBUG
         var seedMessage: String? = nil
         SettingsView.clearDataAction(modelContext: store.context, seedMessage: Binding(

@@ -215,7 +215,7 @@
 		C1CC978831B9C4E2A1AFB8A3 /* LoadAdjustmentPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadAdjustmentPolicy.swift; sourceTree = "<group>"; };
 		C285E84F6B95988BFADB3F5B /* BodyMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyMapView.swift; sourceTree = "<group>"; };
 		C45D5676126D1932B823CB77 /* BusinessLogicTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BusinessLogicTests.swift; sourceTree = "<group>"; };
-		C99B9014B8F76C3124C8DA6A /* SundeeFundee.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = SundeeFundee.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		C99B9014B8F76C3124C8DA6A /* SundeeFundee.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SundeeFundee.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		CB4DB4845EAF8A0ACA731441 /* MetricsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricsService.swift; sourceTree = "<group>"; };
 		CDBCB8CEF6A70B16D8F96BB7 /* ActiveCycle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveCycle.swift; sourceTree = "<group>"; };
 		CEE3A9811CFCBAD2D17FE90B /* InjurySystemCoverageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InjurySystemCoverageTests.swift; sourceTree = "<group>"; };
@@ -640,7 +640,6 @@
 				LastUpgradeCheck = 1600;
 				TargetAttributes = {
 					6A65F4B4731A18FE7E162E4E = {
-						DevelopmentTeam = "";
 						ProvisioningStyle = Automatic;
 					};
 					EE1176E8ECDB4AAD106EE29F = {
@@ -874,6 +873,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = SundeeFundee/Resources/SundeeFundee.Debug.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = 87VVCMCW3F;
 				INFOPLIST_FILE = SundeeFundee/Resources/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
