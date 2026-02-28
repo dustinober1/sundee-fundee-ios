@@ -33,6 +33,7 @@
 		45229EECE5D7216C48A5F6FC /* PlateCalculation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 852A5F052505B69DD46A8EF0 /* PlateCalculation.swift */; };
 		48F9AC1D2E3C53001A5ACDE9 /* CycleTrackingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3C444355A14630DF9BA5181 /* CycleTrackingViewModel.swift */; };
 		4A267C81E25F24B87C7CDFFA /* DashboardViewCoverageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E95383149227234A8AA8D021 /* DashboardViewCoverageTests.swift */; };
+		EE11223344556677889900EE /* BenchmarkRepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF11223344556677889900FF /* BenchmarkRepositoryTests.swift */; };
 		4B036080B9FA88575CD5F2CD /* RepositoryCoverageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 929B5F4FFA5E37764F0CFD53 /* RepositoryCoverageTests.swift */; };
 		4B3F26D30D988C4B86E762DD /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9569D427008F9C98778B1B62 /* DashboardView.swift */; };
 		5206F60EE3E61744E9B0179D /* UICriticalFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E49072C83948F5C5119FBB9 /* UICriticalFlowTests.swift */; };
@@ -59,7 +60,8 @@
 		949139796F6B381980E7A830 /* Maxes.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6EDF76C2A7A135CEBE4365C /* Maxes.swift */; };
 		9749F04E35AC845835E41DD4 /* ProgramWorkoutViewCoverageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E6BD7FDEC48F00EAC345968 /* ProgramWorkoutViewCoverageTests.swift */; };
 		991F4470B1B59A45BD49FC2E /* DebugSeedData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 896D59CDB62FEF04052F5483 /* DebugSeedData.swift */; };
-		9C4CB2ABAD51FF884E2FD69B /* SwiftDataBenchmarkRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80AC2100CA21E9D7CBF73283 /* SwiftDataBenchmarkRepository.swift */; };
+		AA11223344556677889900AA /* SwiftDataBenchmarkDefinitionRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB11223344556677889900BB /* SwiftDataBenchmarkDefinitionRepository.swift */; };
+		CC11223344556677889900CC /* SwiftDataBenchmarkResultRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD11223344556677889900DD /* SwiftDataBenchmarkResultRepository.swift */; };
 		9DECC5EBF919AD81D7EE5D81 /* programs.json in Resources */ = {isa = PBXBuildFile; fileRef = 5F1B65069425B81601B09ECE /* programs.json */; };
 		A1B9AF2CD29CA287A8DD1E56 /* CycleCalculations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 745F2F666C9657BEF7407740 /* CycleCalculations.swift */; };
 		A3FA9EED08F58B73BE717256 /* EnrolledProgram.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CC3DF4CA337E185D6494F40 /* EnrolledProgram.swift */; };
@@ -140,13 +142,15 @@
 		7242123D2586EF28493E5FE8 /* SettingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewModel.swift; sourceTree = "<group>"; };
 		745F2F666C9657BEF7407740 /* CycleCalculations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleCalculations.swift; sourceTree = "<group>"; };
 		7EF56B4F72044C21280B76D4 /* AppSchemaV1.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSchemaV1.swift; sourceTree = "<group>"; };
-		80AC2100CA21E9D7CBF73283 /* SwiftDataBenchmarkRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftDataBenchmarkRepository.swift; sourceTree = "<group>"; };
+		BB11223344556677889900BB /* SwiftDataBenchmarkDefinitionRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftDataBenchmarkDefinitionRepository.swift; sourceTree = "<group>"; };
+		DD11223344556677889900DD /* SwiftDataBenchmarkResultRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftDataBenchmarkResultRepository.swift; sourceTree = "<group>"; };
 		852A5F052505B69DD46A8EF0 /* PlateCalculation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlateCalculation.swift; sourceTree = "<group>"; };
 		85FB3DE87F4A09C063BA0765 /* SwiftDataLiftRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftDataLiftRepository.swift; sourceTree = "<group>"; };
 		8919593E29B9EE334ECE4DDF /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		896D59CDB62FEF04052F5483 /* DebugSeedData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugSeedData.swift; sourceTree = "<group>"; };
 		8AA39C1CC2588484E7774CF5 /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		9185B33B347E99EC19EDC8E2 /* CycleProgramGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleProgramGenerator.swift; sourceTree = "<group>"; };
+		FF11223344556677889900FF /* BenchmarkRepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BenchmarkRepositoryTests.swift; sourceTree = "<group>"; };
 		929B5F4FFA5E37764F0CFD53 /* RepositoryCoverageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RepositoryCoverageTests.swift; sourceTree = "<group>"; };
 		9569D427008F9C98778B1B62 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
 		98B8629FCE5ECAD8EB13BD22 /* WeightliftingExerciseCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightliftingExerciseCatalog.swift; sourceTree = "<group>"; };
@@ -287,7 +291,8 @@
 		792DA71AF878EF5E5E5F5495 /* SwiftData */ = {
 			isa = PBXGroup;
 			children = (
-				80AC2100CA21E9D7CBF73283 /* SwiftDataBenchmarkRepository.swift */,
+				BB11223344556677889900BB /* SwiftDataBenchmarkDefinitionRepository.swift */,
+				DD11223344556677889900DD /* SwiftDataBenchmarkResultRepository.swift */,
 				26BB8436C4B1AD7E5CD21AB0 /* SwiftDataCycleRepository.swift */,
 				A49C6CE7BE8E30D0775C5F27 /* SwiftDataEnrolledProgramRepository.swift */,
 				85FB3DE87F4A09C063BA0765 /* SwiftDataLiftRepository.swift */,
@@ -410,6 +415,7 @@
 				30E8246998C3CC41511E352B /* ModelRepoObservabilityCoverageWave4Tests.swift */,
 				B75299B558602C0FC9B4A225 /* PlaceholderTests.swift */,
 				3E6BD7FDEC48F00EAC345968 /* ProgramWorkoutViewCoverageTests.swift */,
+				FF11223344556677889900FF /* BenchmarkRepositoryTests.swift */,
 				929B5F4FFA5E37764F0CFD53 /* RepositoryCoverageTests.swift */,
 				1972B6569BC8AF5EC8707373 /* SwiftUISmokeTestsA.swift */,
 				5DB1FEAD646663C29A83BEA8 /* SwiftUISmokeTestsB.swift */,
@@ -638,7 +644,8 @@
 				634F60689600C8908D02C45C /* SettingsViewModel.swift in Sources */,
 				6D132998DC635FE6065128BC /* SignInView.swift in Sources */,
 				05B28BACF7A04E963A0C0920 /* SundeeFundeeApp.swift in Sources */,
-				9C4CB2ABAD51FF884E2FD69B /* SwiftDataBenchmarkRepository.swift in Sources */,
+				AA11223344556677889900AA /* SwiftDataBenchmarkDefinitionRepository.swift in Sources */,
+				CC11223344556677889900CC /* SwiftDataBenchmarkResultRepository.swift in Sources */,
 				0DE8238906625B12DF941A7A /* SwiftDataCycleRepository.swift in Sources */,
 				723768005002BAFC38E3FE29 /* SwiftDataEnrolledProgramRepository.swift in Sources */,
 				3122780411BF4B082698B3BE /* SwiftDataLiftRepository.swift in Sources */,
@@ -671,6 +678,7 @@
 				6FC67514A2518886C6346FEE /* ModelRepoObservabilityCoverageWave4Tests.swift in Sources */,
 				D33BBF3880A570A0E74C748C /* PlaceholderTests.swift in Sources */,
 				9749F04E35AC845835E41DD4 /* ProgramWorkoutViewCoverageTests.swift in Sources */,
+				EE11223344556677889900EE /* BenchmarkRepositoryTests.swift in Sources */,
 				4B036080B9FA88575CD5F2CD /* RepositoryCoverageTests.swift in Sources */,
 				42F1538B6F56AC76366588FE /* SwiftUISmokeTestsA.swift in Sources */,
 				66660E19C25C174C4BA524E8 /* SwiftUISmokeTestsB.swift in Sources */,

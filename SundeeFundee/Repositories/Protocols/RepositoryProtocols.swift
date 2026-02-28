@@ -64,13 +64,21 @@ protocol EnrolledProgramRepository {
     func delete(_ enrollment: EnrolledProgram) throws
 }
 
-// MARK: - BenchmarkRepository
+// MARK: - BenchmarkDefinitionRepository
 
-protocol BenchmarkRepository {
-    func save(_ benchmark: Benchmark) throws
-    func fetchBenchmarks() throws -> [Benchmark]
-    func fetchBenchmarks(named name: String) throws -> [Benchmark]
-    func delete(_ benchmark: Benchmark) throws
+protocol BenchmarkDefinitionRepository {
+    func save(_ definition: BenchmarkDefinition) throws
+    func fetchAll() throws -> [BenchmarkDefinition]
+    func fetchUserCreated(userID: String) throws -> [BenchmarkDefinition]
+    func delete(_ definition: BenchmarkDefinition) throws
+}
+
+// MARK: - BenchmarkResultRepository
+
+protocol BenchmarkResultRepository {
+    func save(_ result: BenchmarkResult) throws
+    func fetchResults(forDefinitionID definitionID: String) throws -> [BenchmarkResult]
+    func delete(_ result: BenchmarkResult) throws
 }
 
 // MARK: - ProgramRepository
