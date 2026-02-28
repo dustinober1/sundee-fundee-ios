@@ -56,6 +56,7 @@ enum InjuryAdaptationEngine {
         "back":     ContraindicationRule(categories: ["Hinge Variations", "Deadlift Variations"], muscleGroupKeywords: ["back"]),
         "spine":    ContraindicationRule(categories: ["Hinge Variations", "Deadlift Variations"], muscleGroupKeywords: ["back"]),
         "hip":      ContraindicationRule(categories: [], muscleGroupKeywords: ["glutes", "hamstrings"]),
+        "wrist":    ContraindicationRule(categories: ["Olympic Weightlifting"], muscleGroupKeywords: []),
     ]
 
     private static let regressionTable: [String: [String]] = [
@@ -63,14 +64,30 @@ enum InjuryAdaptationEngine {
         "Back Squat":                             ["Goblet Squat", "Box Squat", "Wall Ball Thrusters", "Air Squats"],
         "Front Squat":                            ["Goblet Squat", "Safety Bar Squat", "Air Squats"],
         "Walking Lunges":                         ["Stationary Lunges", "Step-Ups", "Wall Ball Thrusters"],
-        // Hip hinge / posterior chain
-        "Romanian Deadlift":                      ["Nordic Curl", "Glute Bridge", "Hip Thrust", "Cable Pull-Through"],
-        "Conventional Deadlift (No Straps)":      ["Romanian Deadlift / RDL (No Straps)", "Trap Bar / Hex Bar Deadlift (No Straps)", "Kettlebell Deadlift"],
+        // Hip hinge
+        "Romanian Deadlift (No Straps)":          ["Nordic Curl", "Glute Bridge", "Hip Thrust", "Cable Pull-Through"],
+        "Romanian Deadlift (With Straps)":        ["Nordic Curl", "Glute Bridge", "Hip Thrust", "Cable Pull-Through"],
+        "Conventional Deadlift (No Straps)":      ["Romanian Deadlift (No Straps)", "Trap Bar Deadlift (No Straps)", "Kettlebell Deadlift"],
+        "Conventional Deadlift (With Straps)":    ["Romanian Deadlift (No Straps)", "Trap Bar Deadlift (No Straps)", "Kettlebell Deadlift"],
+        "Sumo Deadlift (No Straps)":              ["Romanian Deadlift (No Straps)", "Trap Bar Deadlift (No Straps)", "Kettlebell Deadlift"],
+        "Sumo Deadlift (With Straps)":            ["Romanian Deadlift (No Straps)", "Trap Bar Deadlift (No Straps)", "Kettlebell Deadlift"],
+        "Trap Bar Deadlift (No Straps)":          ["Romanian Deadlift (No Straps)", "Trap Bar Deadlift (No Straps)", "Kettlebell Deadlift"],
+        "Trap Bar Deadlift (With Straps)":        ["Romanian Deadlift (No Straps)", "Trap Bar Deadlift (No Straps)", "Kettlebell Deadlift"],
         "Good Morning":                           ["Cat-Cow", "Bird-Dogs", "Seated Good Morning"],
         // Machine / accessory
         "Wall Ball Thrusters":                    ["Goblet Squat", "Air Squats", "Step-Ups"],
         "Banded Leg Curls":                       ["Nordic Curl", "Glute Bridge", "Swiss Ball Leg Curl"],
         "Plated Calf Step Up":                    ["Seated Calf Raise", "Single-Leg Calf Raise"],
+        // Olympic Weightlifting
+        "Squat Snatch":                               ["Power Snatch", "Hang Snatch", "Overhead Squat"],
+        "Squat Clean":                                ["Power Clean", "Hang Clean", "Front Squat"],
+        "Power Clean":                                ["Hang Clean", "Kettlebell Deadlift", "Hip Thrust"],
+        "Power Snatch":                               ["Hang Snatch", "Kettlebell Deadlift", "Hip Thrust"],
+        "Hang Clean":                                 ["Kettlebell Deadlift", "Hip Thrust", "Cable Pull-Through"],
+        "Hang Snatch":                                ["Kettlebell Deadlift", "Hip Thrust", "Cable Pull-Through"],
+        "Split Jerk":                                 ["Push Press", "Push Jerk", "Strict Press"],
+        "Push Jerk":                                  ["Push Press", "Strict Press", "Dumbbell Overhead Press"],
+        "Clean and Jerk":                             ["Power Clean", "Push Press", "Front Squat"],
         // Upper body press
         "Flat Barbell Bench Press":               ["Dumbbell Bench Press", "Floor Press", "Push-Ups"],
         "Strict Press / Military Press":          ["Lateral Raises", "Z-Press", "Seated Dumbbell Press"],
@@ -92,10 +109,11 @@ enum InjuryAdaptationEngine {
     private static let safeBodyweight = ["Air Squats", "Bird-Dogs", "Bodyweight Lunges"]
     private static let contraindicatedExerciseKeywords: [String: [String]] = [
         "knee": ["squat", "lunge", "leg press", "step-up"],
-        "shoulder": ["press", "bench", "overhead"],
+        "shoulder": ["press", "bench", "overhead", "clean", "snatch", "jerk"],
         "back": ["deadlift", "good morning", "hinge", "row"],
         "spine": ["deadlift", "good morning", "hinge", "row"],
         "hip": ["deadlift", "hinge", "lunge", "hip thrust"],
+        "wrist": ["clean", "snatch", "jerk"],
     ]
 
     // MARK: - Private — session / exercise adaptation

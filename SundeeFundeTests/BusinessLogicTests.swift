@@ -241,11 +241,11 @@ struct InjuryAdaptationEngineTests {
     }
 
     @Test func romanianDeadliftReplacedForBackInjury() {
-        let program = makeSingleExerciseProgram("Romanian Deadlift")
+        let program = makeSingleExerciseProgram("Romanian Deadlift (No Straps)")
         let adapted = InjuryAdaptationEngine.adaptProgram(program, activeInjuries: [makeInjury(location: "back")])
         let exercise = adapted.weeks.first?.sessions.first?.exercises.first?.exercise ?? ""
         // Should be replaced with a back-safe alternative
-        #expect(exercise != "Romanian Deadlift")
+        #expect(exercise != "Romanian Deadlift (No Straps)")
     }
 
     @Test func walkingLungesReplacedForKneeInjury() {
@@ -278,6 +278,25 @@ struct InjuryAdaptationEngineTests {
         let block = InjuryAdaptationEngine.buildRecoveryPrepBlock(injuries: [knee, shoulder])
         // Should include exercises for both locations, de-duplicated
         #expect(block.count >= 3)
+    }
+
+    @Test func sqautCleanReplacedForShoulderInjury() {
+        let program = makeSingleExerciseProgram("Squat Clean")
+        let adapted = InjuryAdaptationEngine.adaptProgram(program, activeInjuries: [makeInjury(location: "shoulder")])
+        let exercise = adapted.weeks.first?.sessions.first?.exercises.first?.exercise ?? ""
+        #expect(exercise != "Squat Clean")
+    }
+
+    @Test func cleanAndJerkReplacedForWristInjury() {
+        let program = makeSingleExerciseProgram("Clean and Jerk")
+        let adapted = InjuryAdaptationEngine.adaptProgram(program, activeInjuries: [makeInjury(location: "wrist")])
+        let exercise = adapted.weeks.first?.sessions.first?.exercises.first?.exercise ?? ""
+        #expect(exercise != "Clean and Jerk")
+    }
+
+    @Test func recoveryPrepBlockWristHasExercises() {
+        let block = InjuryAdaptationEngine.buildRecoveryPrepBlock(injuries: [makeInjury(location: "wrist")])
+        #expect(!block.isEmpty)
     }
 
     // MARK: - Helper
@@ -319,7 +338,16 @@ struct WeightliftingExerciseCatalogTests {
     }
 
     @Test func romanianDeadliftIsWeightlifting() {
-        #expect(WeightliftingExerciseCatalog.isWeightliftingExercise("Romanian Deadlift") == true)
+        #expect(WeightliftingExerciseCatalog.isWeightliftingExercise("Romanian Deadlift (No Straps)") == true)
+    }
+
+    @Test func cleanAndJerkIsWeightlifting() {
+        #expect(WeightliftingExerciseCatalog.isWeightliftingExercise("Clean and Jerk") == true)
+    }
+
+    @Test func olympicCategoryExists() {
+        let olympicEntries = WeightliftingExerciseCatalog.all.filter { $0.category == .olympic }
+        #expect(olympicEntries.count == 9)
     }
 
     @Test func catalogIsNonEmpty() {

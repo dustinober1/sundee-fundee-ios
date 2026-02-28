@@ -11,6 +11,7 @@ enum WeightliftingExerciseCatalog {
         case press    = "Press"
         case pull     = "Pull"
         case carry    = "Carry"
+        case olympic  = "Olympic Weightlifting"
     }
 
     struct Entry: Identifiable {
@@ -27,10 +28,14 @@ enum WeightliftingExerciseCatalog {
         Entry(id: "Pause Squat",           category: .squat),
         Entry(id: "Goblet Squat",          category: .squat),
         // Hip hinge
-        Entry(id: "Conventional Deadlift", category: .hinge),
-        Entry(id: "Romanian Deadlift",     category: .hinge),
-        Entry(id: "Sumo Deadlift",         category: .hinge),
-        Entry(id: "Trap Bar Deadlift",     category: .hinge),
+        Entry(id: "Conventional Deadlift (No Straps)", category: .hinge),
+        Entry(id: "Conventional Deadlift (With Straps)", category: .hinge),
+        Entry(id: "Romanian Deadlift (No Straps)",     category: .hinge),
+        Entry(id: "Romanian Deadlift (With Straps)",     category: .hinge),
+        Entry(id: "Sumo Deadlift (No Straps)",         category: .hinge),
+        Entry(id: "Sumo Deadlift (With Straps)",         category: .hinge),
+        Entry(id: "Trap Bar Deadlift (No Straps)",     category: .hinge),
+        Entry(id: "Trap Bar Deadlift (With Straps)",     category: .hinge),
         Entry(id: "Good Morning",          category: .hinge),
         Entry(id: "Hip Thrust",            category: .hinge),
         // Press
@@ -50,6 +55,16 @@ enum WeightliftingExerciseCatalog {
         // Carry
         Entry(id: "Farmers Carry",         category: .carry),
         Entry(id: "Suitcase Carry",        category: .carry),
+        // Olympic Weightlifting
+        Entry(id: "Squat Snatch",          category: .olympic),
+        Entry(id: "Squat Clean",           category: .olympic),
+        Entry(id: "Power Clean",           category: .olympic),
+        Entry(id: "Power Snatch",          category: .olympic),
+        Entry(id: "Hang Clean",            category: .olympic),
+        Entry(id: "Hang Snatch",           category: .olympic),
+        Entry(id: "Split Jerk",            category: .olympic),
+        Entry(id: "Push Jerk",             category: .olympic),
+        Entry(id: "Clean and Jerk",        category: .olympic),
     ]
 
     /// Set of canonical exercise IDs for O(1) membership tests.
@@ -58,7 +73,7 @@ enum WeightliftingExerciseCatalog {
 
     /// Exercises sorted alphabetically within each category, then by category order.
     static var sortedByCategory: [Entry] {
-        let order: [Category] = [.squat, .hinge, .press, .pull, .carry]
+        let order: [Category] = [.squat, .hinge, .press, .pull, .carry, .olympic]
         return order.flatMap { cat in
             all.filter { $0.category == cat }.sorted { $0.id < $1.id }
         }

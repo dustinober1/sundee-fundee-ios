@@ -43,8 +43,8 @@ enum DebugSeedData {
         let maxes: [(String, Double)] = [
             ("Back Squat", 100),
             ("Front Squat", 80),
-            ("Conventional Deadlift", 120),
-            ("Romanian Deadlift", 90),
+            ("Conventional Deadlift (No Straps)", 120),
+            ("Romanian Deadlift (No Straps)", 90),
             ("Bench Press", 70),
             ("Overhead Press", 45),
             ("Barbell Row", 65),

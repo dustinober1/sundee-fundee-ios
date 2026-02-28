@@ -628,7 +628,7 @@ struct MaxLiftsViewModelCoverageTests {
         let romanianPR = PersonalRecord(
             id: "pr1",
             userID: "u1",
-            exerciseID: "Romanian Deadlift",
+            exerciseID: "Romanian Deadlift (No Straps)",
             repMaxType: .five,
             weightKg: 120,
             reps: 5,
@@ -644,9 +644,9 @@ struct MaxLiftsViewModelCoverageTests {
         let vm = MaxLiftsViewModel()
         await vm.load(modelContext: store.context, userID: "u1")
 
-        #expect(vm.exerciseNames == ["Back Squat", "Romanian Deadlift"])
+        #expect(vm.exerciseNames == ["Back Squat", "Romanian Deadlift (No Straps)"])
         #expect(vm.oneRepMaxes["Back Squat"]?.weightKg == 110)
-        #expect(vm.personalRecords["Romanian Deadlift"]?.count == 1)
+        #expect(vm.personalRecords["Romanian Deadlift (No Straps)"]?.count == 1)
 
         vm.addMax(exercise: "Front Squat", weightKg: 95, reps: 1, isEstimated: true)
         #expect(vm.exerciseNames.contains("Front Squat"))

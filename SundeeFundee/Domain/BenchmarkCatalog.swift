@@ -49,10 +49,10 @@ enum BenchmarkCatalog {
 
         // Strength — Weight (1RM)
         add("1RM Back Squat",     strength, "Find your 1-rep max back squat.", .weight)
-        add("1RM Deadlift",       strength, "Find your 1-rep max conventional deadlift.", .weight)
+        add("1RM Conventional Deadlift (No Straps)", strength, "Find your 1-rep max conventional deadlift without straps.", .weight)
         add("1RM Bench Press",    strength, "Find your 1-rep max flat barbell bench press.", .weight)
         add("1RM Overhead Press", strength, "Find your 1-rep max strict barbell overhead press.", .weight)
-        add("1RM Clean & Jerk",   strength, "Find your 1-rep max clean & jerk.", .weight)
+        add("1RM Clean and Jerk",   strength, "Find your 1-rep max clean and jerk.", .weight)
         add("1RM Snatch",         strength, "Find your 1-rep max snatch.", .weight)
 
         // Endurance — Time/Distance

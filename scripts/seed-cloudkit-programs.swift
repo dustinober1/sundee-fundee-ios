@@ -65,7 +65,7 @@ let programs: [SeedProgram] = [
                 "name": "Squat A",
                 "exercises": [
                   { "name": "Back Squat", "sets": 4, "reps": 8, "percent1RM": 0.70 },
-                  { "name": "Romanian Deadlift", "sets": 3, "reps": 10, "percent1RM": 0.60 },
+                  { "name": "Romanian Deadlift (No Straps)", "sets": 3, "reps": 10, "percent1RM": 0.60 },
                   { "name": "Leg Press", "sets": 3, "reps": 12, "percent1RM": 0.55 }
                 ]
               }
@@ -80,7 +80,7 @@ let programs: [SeedProgram] = [
                 "name": "Squat A",
                 "exercises": [
                   { "name": "Back Squat", "sets": 5, "reps": 5, "percent1RM": 0.80 },
-                  { "name": "Romanian Deadlift", "sets": 4, "reps": 6, "percent1RM": 0.70 },
+                  { "name": "Romanian Deadlift (No Straps)", "sets": 4, "reps": 6, "percent1RM": 0.70 },
                   { "name": "Bulgarian Split Squat", "sets": 3, "reps": 8, "percent1RM": 0.55 }
                 ]
               }

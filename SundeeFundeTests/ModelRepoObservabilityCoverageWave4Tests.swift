@@ -201,17 +201,17 @@ struct ModelRepoObservabilityCoverageWave4Tests {
         #expect(user.experienceLevel == .intermediate)
         #expect(user.primaryGoal == .hypertrophy)
         #expect(user.gender == .female)
-        #expect(user.weightUnit == .kilograms)
+        #expect(user.weightUnit == .pounds)
         #expect(user.hasRequiredOnboardingAnswers)
 
         user.experienceLevel = .advanced
         user.primaryGoal = .weightLoss
         user.gender = .preferNotToSay
-        user.weightUnit = .pounds
+        user.weightUnit = .kilograms
         #expect(user.experienceLevelRaw == "advanced")
         #expect(user.primaryGoalRaw == "weight_loss")
         #expect(user.genderRaw == "prefer_not_to_say")
-        #expect(user.weightUnitRaw == "lb")
+        #expect(user.weightUnitRaw == "kg")
 
         user.experienceLevelRaw = "invalid"
         user.primaryGoalRaw = "invalid"
@@ -220,7 +220,7 @@ struct ModelRepoObservabilityCoverageWave4Tests {
         #expect(user.experienceLevel == .beginner)
         #expect(user.primaryGoal == .strength)
         #expect(user.gender == .preferNotToSay)
-        #expect(user.weightUnit == .kilograms)
+        #expect(user.weightUnit == .pounds)
 
         user.name = "   "
         #expect(user.hasRequiredOnboardingAnswers == false)
