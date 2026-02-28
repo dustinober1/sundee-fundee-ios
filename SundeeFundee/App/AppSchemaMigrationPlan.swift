@@ -8,11 +8,11 @@ import SwiftData
 /// Custom migrations that transform data require a `custom` stage.
 enum AppSchemaMigrationPlan: SchemaMigrationPlan {
     static var schemas: [any VersionedSchema.Type] {
-        [AppSchemaV1.self, AppSchemaV6.self]
+        [AppSchemaV1.self, AppSchemaV6.self, AppSchemaV7.self]
     }
 
     static var stages: [MigrationStage] {
-        [migrateV1toV6]
+        [migrateV1toV6, migrateV6toV7]
     }
 
     /// V1 → V6: Lightweight migration covering all schema additions since V1.
@@ -22,5 +22,11 @@ enum AppSchemaMigrationPlan: SchemaMigrationPlan {
     static let migrateV1toV6 = MigrationStage.lightweight(
         fromVersion: AppSchemaV1.self,
         toVersion: AppSchemaV6.self
+    )
+
+    /// V6 → V7: Adds ConditioningPR model and conditioning fields to CompletedSet.
+    static let migrateV6toV7 = MigrationStage.lightweight(
+        fromVersion: AppSchemaV6.self,
+        toVersion: AppSchemaV7.self
     )
 }

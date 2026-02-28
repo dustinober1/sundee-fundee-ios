@@ -87,3 +87,41 @@ final class LiftMax {
         self.date = date
     }
 }
+
+/// Auto-detected conditioning personal record (reps-based or time-based).
+@Model
+final class ConditioningPR {
+    var id: String
+    var userID: String
+    var exerciseID: String
+    var scoringTypeRaw: String       // "time" or "reps" — CloudKit-safe
+    var bestValue: Double            // seconds for time, count for reps
+    var weightKg: Double?            // optional: for weighted conditioning
+    var achievedAt: Date
+    var workoutID: String?
+
+    init(
+        id: String,
+        userID: String,
+        exerciseID: String,
+        scoringType: ConditioningScoringType,
+        bestValue: Double,
+        weightKg: Double? = nil,
+        achievedAt: Date = .now,
+        workoutID: String? = nil
+    ) {
+        self.id = id
+        self.userID = userID
+        self.exerciseID = exerciseID
+        self.scoringTypeRaw = scoringType.rawValue
+        self.bestValue = bestValue
+        self.weightKg = weightKg
+        self.achievedAt = achievedAt
+        self.workoutID = workoutID
+    }
+
+    var scoringType: ConditioningScoringType {
+        get { ConditioningScoringType(rawValue: scoringTypeRaw) ?? .reps }
+        set { scoringTypeRaw = newValue.rawValue }
+    }
+}

@@ -55,6 +55,8 @@ final class CompletedSet {
     var actualWeightKg: Double?
     var isCompleted: Bool
     var completedAt: Date
+    var actualTimeSeconds: Double?
+    var scoringTypeRaw: String?
 
     init(
         id: String,
@@ -67,7 +69,9 @@ final class CompletedSet {
         prescribedWeightKg: Double? = nil,
         actualWeightKg: Double? = nil,
         isCompleted: Bool = false,
-        completedAt: Date = .now
+        completedAt: Date = .now,
+        actualTimeSeconds: Double? = nil,
+        scoringTypeRaw: String? = nil
     ) {
         self.id = id
         self.userID = userID
@@ -80,5 +84,7 @@ final class CompletedSet {
         self.actualWeightKg = actualWeightKg
         self.isCompleted = isCompleted
         self.completedAt = completedAt
+        self.actualTimeSeconds = actualTimeSeconds
+        self.scoringTypeRaw = scoringTypeRaw
     }
 }
