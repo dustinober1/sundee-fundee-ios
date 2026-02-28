@@ -76,6 +76,8 @@ xcodebuild build \
   -destination 'platform=iOS Simulator,name=iPhone 16 Pro'
 ```
 
+Debug builds use `SundeeFundee.Debug.entitlements` (no iCloud or Sign in with Apple capability), which allows Personal Team development signing. Release builds keep full production entitlements.
+
 ### Run Tests
 
 ```bash

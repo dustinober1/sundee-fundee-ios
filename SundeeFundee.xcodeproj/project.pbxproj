@@ -784,7 +784,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_ENTITLEMENTS = SundeeFundee/Resources/SundeeFundee.entitlements;
+				CODE_SIGN_ENTITLEMENTS = SundeeFundee/Resources/SundeeFundee.Debug.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				INFOPLIST_FILE = SundeeFundee/Resources/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;

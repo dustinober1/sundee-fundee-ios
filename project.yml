@@ -31,17 +31,12 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.sundeefundee.app
         INFOPLIST_FILE: SundeeFundee/Resources/Info.plist
-        CODE_SIGN_ENTITLEMENTS: SundeeFundee/Resources/SundeeFundee.entitlements
         SWIFT_VERSION: "6.0"
-    entitlements:
-      path: SundeeFundee/Resources/SundeeFundee.entitlements
-      properties:
-        com.apple.developer.icloud-container-identifiers:
-          - iCloud.com.sundeefundee.app
-        com.apple.developer.icloud-services:
-          - CloudKit
-        com.apple.developer.applesignin:
-          - Default
+      configs:
+        Debug:
+          CODE_SIGN_ENTITLEMENTS: SundeeFundee/Resources/SundeeFundee.Debug.entitlements
+        Release:
+          CODE_SIGN_ENTITLEMENTS: SundeeFundee/Resources/SundeeFundee.entitlements
     info:
       path: SundeeFundee/Resources/Info.plist
       properties:
