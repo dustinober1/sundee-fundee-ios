@@ -67,6 +67,18 @@ struct MaxLiftsView: View {
                             )
                         }
                     }
+
+                    if !viewModel.conditioningExerciseNames.isEmpty {
+                        Section {
+                            ForEach(viewModel.conditioningPRs, id: \.id) { pr in
+                                ConditioningPRRow(pr: pr)
+                            }
+                        } header: {
+                            Text("Conditioning PRs")
+                                .font(AppTheme.Fonts.subheading)
+                                .foregroundStyle(AppTheme.Colors.navy)
+                        }
+                    }
                 }
             }
             .listStyle(.plain)
@@ -156,6 +168,37 @@ struct PRBadge: View {
             .padding(.vertical, 2)
             .background(AppTheme.Colors.accentOrange)
             .clipShape(Capsule())
+    }
+}
+
+// MARK: - ConditioningPRRow
+
+struct ConditioningPRRow: View {
+    let pr: ConditioningPR
+
+    var body: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(pr.exerciseID)
+                    .font(AppTheme.Fonts.body)
+                    .foregroundStyle(AppTheme.Colors.navy)
+                if let kg = pr.weightKg, kg > 0 {
+                    Text("@ \(Int(kg)) kg")
+                        .font(AppTheme.Fonts.caption)
+                        .foregroundStyle(AppTheme.Colors.navy.opacity(0.5))
+                }
+            }
+            Spacer()
+            VStack(alignment: .trailing, spacing: 2) {
+                Text(pr.scoringType.formatValue(pr.bestValue))
+                    .font(AppTheme.Fonts.subheading)
+                    .foregroundStyle(AppTheme.Colors.accentOrange)
+                Text(pr.achievedAt, style: .date)
+                    .font(AppTheme.Fonts.caption)
+                    .foregroundStyle(AppTheme.Colors.navy.opacity(0.5))
+            }
+        }
+        .padding(.vertical, 4)
     }
 }
 
