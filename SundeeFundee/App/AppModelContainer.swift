@@ -108,12 +108,12 @@ enum AppModelContainer {
     /// Call this when the store is corrupted or when you want to reset all local data.
     private static func deleteStoreFiles() throws {
         let fileManager = FileManager.default
-        let urls = fileManager.urls(for: .documentDirectory, in: .userDomainMask)
-        let documentsDirectory = urls.first!
+        let urls = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask)
+        let appSupportDirectory = urls.first!
         
-        let storeURL = documentsDirectory.appendingPathComponent("default.store")
-        let walURL = documentsDirectory.appendingPathComponent("default.store-wal")
-        let shmURL = documentsDirectory.appendingPathComponent("default.store-shm")
+        let storeURL = appSupportDirectory.appendingPathComponent("default.store")
+        let walURL = appSupportDirectory.appendingPathComponent("default.store-wal")
+        let shmURL = appSupportDirectory.appendingPathComponent("default.store-shm")
         
         for url in [storeURL, walURL, shmURL] {
             if fileManager.fileExists(atPath: url.path) {

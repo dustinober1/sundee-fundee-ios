@@ -93,7 +93,7 @@ enum DebugSeedData {
 
     @MainActor
     static func clearAll(modelContext: ModelContext) {
-        let types: [any PersistentModel.Type] = AppSchemaV1.models
+        let types: [any PersistentModel.Type] = AppSchemaV2.models
         for type in types {
             try? modelContext.delete(model: type)
         }
