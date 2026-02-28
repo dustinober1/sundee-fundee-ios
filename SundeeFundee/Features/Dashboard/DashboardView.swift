@@ -152,12 +152,12 @@ struct DashboardView: View {
             } else {
                 ForEach(viewModel.recentWorkouts) { workout in
                     WorkoutHistoryRow(workout: workout)
-                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                        .contextMenu {
                             Button(role: .destructive) {
                                 workoutToDelete = workout
                                 showDeleteConfirmation = true
                             } label: {
-                                Label("Delete", systemImage: "trash")
+                                Label("Delete Workout", systemImage: "trash")
                             }
                         }
                 }

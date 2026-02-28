@@ -168,19 +168,20 @@ final class DashboardViewModel {
     // MARK: - Delete workout
 
     func deleteWorkout(_ workout: CompletedWorkout, modelContext: ModelContext) {
-        guard let enrollment = activeEnrollment, let program = activeProgram else { return }
-
-        let prev = Self.previousPosition(
-            currentWeek: enrollment.currentWeek,
-            currentDay: enrollment.currentDay,
-            program: program
-        )
-
         let workoutRepo = SwiftDataWorkoutRepository(context: modelContext)
         try? workoutRepo.deleteWorkoutWithSets(workout)
 
-        let enrollmentRepo = SwiftDataEnrolledProgramRepository(context: modelContext)
-        try? enrollmentRepo.updateProgress(enrollment: enrollment, week: prev.week, day: prev.day)
+        // Roll back enrollment progress only when the deleted workout matches the active enrollment
+        if let enrollment = activeEnrollment, let program = activeProgram,
+           workout.enrollmentID == enrollment.id {
+            let prev = Self.previousPosition(
+                currentWeek: enrollment.currentWeek,
+                currentDay: enrollment.currentDay,
+                program: program
+            )
+            let enrollmentRepo = SwiftDataEnrolledProgramRepository(context: modelContext)
+            try? enrollmentRepo.updateProgress(enrollment: enrollment, week: prev.week, day: prev.day)
+        }
 
         Task { await load(modelContext: modelContext) }
     }

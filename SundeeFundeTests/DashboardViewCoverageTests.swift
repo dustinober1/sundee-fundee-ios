@@ -558,7 +558,7 @@ final class DashboardViewCoverageTests: XCTestCase {
         XCTAssertEqual(enrollment.currentWeek, 1)
     }
 
-    func testDeleteWorkoutDoesNothingWhenNoActiveEnrollment() throws {
+    func testDeleteWorkoutDeletesRecordEvenWithNoActiveEnrollment() throws {
         let store = try makeTestStore()
         let session = makeSession()
         let program = makeProgram(session: session)
@@ -571,10 +571,10 @@ final class DashboardViewCoverageTests: XCTestCase {
         let viewModel = DashboardViewModel(programRepo: InMemoryProgramRepository(programs: []))
         viewModel.activeEnrollment = nil
         viewModel.activeProgram = nil
-        // Should not crash or delete
+        // Workout should be deleted even with no active enrollment
         viewModel.deleteWorkout(workout, modelContext: store.context)
         let allWorkouts = try store.context.fetch(FetchDescriptor<CompletedWorkout>())
-        XCTAssertEqual(allWorkouts.count, 1)
+        XCTAssertEqual(allWorkouts.count, 0)
     }
 
     // MARK: - WorkoutHistoryRow skipped styling
