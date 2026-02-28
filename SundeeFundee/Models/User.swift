@@ -15,6 +15,20 @@ enum Gender: String, Codable, CaseIterable {
     case male, female, preferNotToSay = "prefer_not_to_say"
 }
 
+enum WeightUnit: String, Codable, CaseIterable {
+    case kilograms = "kg"
+    case pounds = "lb"
+
+    var displayName: String {
+        switch self {
+        case .kilograms: return "Kilograms (kg)"
+        case .pounds: return "Pounds (lb)"
+        }
+    }
+
+    var symbol: String { rawValue }
+}
+
 // MARK: - User
 
 @Model
@@ -24,6 +38,7 @@ final class User {
     var experienceLevelRaw: String
     var primaryGoalRaw: String
     var genderRaw: String
+    var weightUnitRaw: String?
     var appleUserID: String
     var cycleTrackingEnabled: Bool
     var onboardingComplete: Bool
@@ -36,6 +51,7 @@ final class User {
         experienceLevel: ExperienceLevel,
         primaryGoal: PrimaryGoal,
         gender: Gender,
+        weightUnit: WeightUnit = .kilograms,
         appleUserID: String,
         cycleTrackingEnabled: Bool = false,
         onboardingComplete: Bool = false,
@@ -47,6 +63,7 @@ final class User {
         self.experienceLevelRaw = experienceLevel.rawValue
         self.primaryGoalRaw = primaryGoal.rawValue
         self.genderRaw = gender.rawValue
+        self.weightUnitRaw = weightUnit.rawValue
         self.appleUserID = appleUserID
         self.cycleTrackingEnabled = cycleTrackingEnabled
         self.onboardingComplete = onboardingComplete
@@ -67,6 +84,11 @@ final class User {
     var gender: Gender {
         get { Gender(rawValue: genderRaw) ?? .preferNotToSay }
         set { genderRaw = newValue.rawValue }
+    }
+
+    var weightUnit: WeightUnit {
+        get { WeightUnit(rawValue: weightUnitRaw ?? "") ?? .kilograms }
+        set { weightUnitRaw = newValue.rawValue }
     }
 
     var hasRequiredOnboardingAnswers: Bool {

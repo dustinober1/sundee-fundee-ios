@@ -7,6 +7,7 @@ final class SettingsViewModel {
     var displayName: String = ""
     var experienceLevel: ExperienceLevel = .beginner
     var primaryGoal: PrimaryGoal = .strength
+    var weightUnit: WeightUnit = .kilograms
     var injuryProfiles: [InjuryProfile] = []
 
     private var modelContext: ModelContext?
@@ -23,6 +24,7 @@ final class SettingsViewModel {
             displayName = user.name
             experienceLevel = user.experienceLevel
             primaryGoal = user.primaryGoal
+            weightUnit = user.weightUnit
         }
 
         let injuryDescriptor = FetchDescriptor<InjuryProfile>(
@@ -37,6 +39,7 @@ final class SettingsViewModel {
             user.name = displayName
             user.experienceLevel = experienceLevel
             user.primaryGoal = primaryGoal
+            user.weightUnit = weightUnit
             try? ctx.save()
         }
     }

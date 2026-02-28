@@ -156,6 +156,14 @@ struct EditProfileView: View {
                     }
                 }
             }
+            Section("Weight Unit") {
+                Picker("Unit", selection: $viewModel.weightUnit) {
+                    ForEach(WeightUnit.allCases, id: \.self) { unit in
+                        Text(unit.symbol.uppercased()).tag(unit)
+                    }
+                }
+                .pickerStyle(.segmented)
+            }
         }
         .scrollContentBackground(.hidden)
         .background(AppTheme.Colors.cream)

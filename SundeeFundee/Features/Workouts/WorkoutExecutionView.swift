@@ -57,7 +57,11 @@ struct WorkoutExecutionView: View {
     }
 
     private func plateCalculatorSheet() -> some View {
-        PlateCalculatorSheet(weightKg: viewModel.plateCalcWeightKg, barbellWeightKg: viewModel.barbellWeightKg)
+        PlateCalculatorSheet(
+            weightKg: viewModel.plateCalcWeightKg,
+            barbellWeightKg: viewModel.barbellWeightKg,
+            weightUnit: viewModel.weightUnit
+        )
     }
 
     @ViewBuilder
@@ -199,7 +203,7 @@ struct ExerciseSetCard: View {
                 Text("Set").frame(width: 30, alignment: .center)
                 Text("Target").frame(maxWidth: .infinity)
                 Text("Reps").frame(width: 70, alignment: .center)
-                Text("Kg").frame(width: 80, alignment: .center)
+                Text(viewModel.weightUnit.symbol.uppercased()).frame(width: 80, alignment: .center)
                 Text("✓").frame(width: 32, alignment: .center)
             }
             .font(AppTheme.Fonts.caption)
@@ -230,6 +234,7 @@ struct ExerciseSetCard: View {
                 exerciseName: exercise.exercise,
                 setIndex: idx
             ),
+            weightUnit: viewModel.weightUnit,
             onToggle: Self.toggleAction(
                 viewModel: viewModel,
                 exerciseName: exercise.exercise,
@@ -282,6 +287,7 @@ struct SetRow: View {
     let state: SetExecutionState
     let onRepsChange: (Int) -> Void
     let onWeightChange: (Double) -> Void
+    let weightUnit: WeightUnit
     let onToggle: () -> Void
 
     @State private var repsText: String = ""
@@ -292,12 +298,14 @@ struct SetRow: View {
         state: SetExecutionState,
         onRepsChange: @escaping (Int) -> Void,
         onWeightChange: @escaping (Double) -> Void,
+        weightUnit: WeightUnit = .kilograms,
         onToggle: @escaping () -> Void
     ) {
         self.setNumber = setNumber
         self.state = state
         self.onRepsChange = onRepsChange
         self.onWeightChange = onWeightChange
+        self.weightUnit = weightUnit
         self.onToggle = onToggle
         _repsText = State(initialValue: "")
         _weightText = State(initialValue: "")
@@ -334,7 +342,7 @@ struct SetRow: View {
                 .background(AppTheme.Colors.separator.opacity(0.3))
                 .clipShape(RoundedRectangle(cornerRadius: 6))
                 .onChange(of: weightText) { oldValue, newValue in
-                    Self.weightTextChangeHandler(onWeightChange: onWeightChange)(oldValue, newValue)
+                    Self.weightTextChangeHandler(onWeightChange: onWeightChange, weightUnit: weightUnit)(oldValue, newValue)
                 }
 
             Button(action: onToggle) {
@@ -349,15 +357,18 @@ struct SetRow: View {
     }
 
     private func applyInitialTextValues() {
-        let initialValues = Self.initialTextValues(for: state)
+        let initialValues = Self.initialTextValues(for: state, weightUnit: weightUnit)
         repsText = initialValues.repsText
         weightText = initialValues.weightText
     }
 
-    static func initialTextValues(for state: SetExecutionState) -> (repsText: String, weightText: String) {
+    static func initialTextValues(
+        for state: SetExecutionState,
+        weightUnit: WeightUnit = .kilograms
+    ) -> (repsText: String, weightText: String) {
         (
             state.actualReps.map { "\($0)" } ?? "",
-            state.actualWeightKg.map { formatWeight($0) } ?? ""
+            state.actualWeightKg.map { formatWeight($0, weightUnit: weightUnit) } ?? ""
         )
     }
 
@@ -367,9 +378,12 @@ struct SetRow: View {
         }
     }
 
-    static func weightTextChangeHandler(onWeightChange: @escaping (Double) -> Void) -> (String, String) -> Void {
+    static func weightTextChangeHandler(
+        onWeightChange: @escaping (Double) -> Void,
+        weightUnit: WeightUnit = .kilograms
+    ) -> (String, String) -> Void {
         { _, new in
-            if let weight = parseWeight(new) { onWeightChange(weight) }
+            if let weight = parseWeight(new, weightUnit: weightUnit) { onWeightChange(weight) }
         }
     }
 
@@ -377,12 +391,12 @@ struct SetRow: View {
         Int(value)
     }
 
-    static func parseWeight(_ value: String) -> Double? {
-        Double(value)
+    static func parseWeight(_ value: String, weightUnit: WeightUnit = .kilograms) -> Double? {
+        WeightUnitConversion.parseInputToKilograms(value, unit: weightUnit)
     }
 
-    static func formatWeight(_ kg: Double) -> String {
-        kg == kg.rounded() ? "\(Int(kg))" : String(format: "%.1f", kg)
+    static func formatWeight(_ kg: Double, weightUnit: WeightUnit = .kilograms) -> String {
+        WeightUnitConversion.format(kilograms: kg, unit: weightUnit, maximumFractionDigits: 1)
     }
 }
 
@@ -481,11 +495,17 @@ struct RestTimerOverlay: View {
 struct PlateCalculatorSheet: View {
     let weightKg: Double
     let barbellWeightKg: Double
+    let weightUnit: WeightUnit
     @Environment(\.dismiss) private var dismiss
 
-    init(weightKg: Double, barbellWeightKg: Double = PlateCalculation.standardBarKg) {
+    init(
+        weightKg: Double,
+        barbellWeightKg: Double = PlateCalculation.standardBarKg,
+        weightUnit: WeightUnit = .kilograms
+    ) {
         self.weightKg = weightKg
         self.barbellWeightKg = barbellWeightKg
+        self.weightUnit = weightUnit
     }
 
     private var plates: [(weight: Double, count: Int)] {
@@ -495,7 +515,12 @@ struct PlateCalculatorSheet: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: AppTheme.Spacing.lg) {
-                Text(PlateCalculation.description(totalWeightKg: weightKg, barbellWeightKg: barbellWeightKg))
+                Text(Self.description(
+                    totalWeightKg: weightKg,
+                    barbellWeightKg: barbellWeightKg,
+                    plates: plates,
+                    weightUnit: weightUnit
+                ))
                     .font(AppTheme.Fonts.body)
                     .foregroundStyle(AppTheme.Colors.navy)
                     .multilineTextAlignment(.center)
@@ -511,7 +536,7 @@ struct PlateCalculatorSheet: View {
                     .background(AppTheme.Colors.cardBackground)
                     .clipShape(RoundedRectangle(cornerRadius: AppTheme.CornerRadius.card))
                 } else {
-                    Text(Self.barOnlyText(barKg: barbellWeightKg))
+                    Text(Self.barOnlyText(barKg: barbellWeightKg, weightUnit: weightUnit))
                         .font(AppTheme.Fonts.subheading)
                         .foregroundStyle(AppTheme.Colors.navy.opacity(0.6))
                 }
@@ -534,7 +559,7 @@ struct PlateCalculatorSheet: View {
         HStack {
             Text("\(plate.count)×")
                 .foregroundStyle(AppTheme.Colors.accentOrange)
-            Text("\(Self.formatWeight(plate.weight)) kg plate")
+            Text("\(Self.formatWeight(plate.weight, weightUnit: weightUnit)) \(weightUnit.symbol) plate")
                 .foregroundStyle(AppTheme.Colors.navy)
             Spacer()
         }
@@ -545,11 +570,26 @@ struct PlateCalculatorSheet: View {
         !plates.isEmpty
     }
 
-    static func formatWeight(_ kg: Double) -> String {
-        kg == kg.rounded() ? "\(Int(kg))" : String(format: "%.2g", kg)
+    static func formatWeight(_ kg: Double, weightUnit: WeightUnit = .kilograms) -> String {
+        WeightUnitConversion.format(kilograms: kg, unit: weightUnit, maximumFractionDigits: 2)
     }
 
-    static func barOnlyText(barKg: Double) -> String {
-        "Bar only (\(Int(barKg)) kg)"
+    static func barOnlyText(barKg: Double, weightUnit: WeightUnit = .kilograms) -> String {
+        "Bar only (\(formatWeight(barKg, weightUnit: weightUnit)) \(weightUnit.symbol))"
+    }
+
+    static func description(
+        totalWeightKg: Double,
+        barbellWeightKg: Double,
+        plates: [(weight: Double, count: Int)],
+        weightUnit: WeightUnit = .kilograms
+    ) -> String {
+        if plates.isEmpty {
+            return barOnlyText(barKg: barbellWeightKg, weightUnit: weightUnit)
+        }
+        let parts = plates.map { plate in
+            "\(plate.count)×\(formatWeight(plate.weight, weightUnit: weightUnit))\(weightUnit.symbol)"
+        }
+        return "\(formatWeight(totalWeightKg, weightUnit: weightUnit)) \(weightUnit.symbol) total • \(parts.joined(separator: " + ")) per side"
     }
 }

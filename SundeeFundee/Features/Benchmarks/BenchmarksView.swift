@@ -34,7 +34,7 @@ struct BenchmarksView: View {
                         ForEach(viewModel.groups) { group in
                             Section {
                                 ForEach(group.entries) { entry in
-                                    BenchmarkEntryRow(entry: entry)
+                                    BenchmarkEntryRow(entry: entry, weightUnit: viewModel.weightUnit)
                                         .swipeActions(edge: .trailing) {
                                             Button(role: .destructive, action: Self.deleteAction(viewModel: viewModel, entry: entry)) {
                                                 Label("Delete", systemImage: "trash")
@@ -88,6 +88,12 @@ struct BenchmarkGroupHeader: View {
 
 struct BenchmarkEntryRow: View {
     let entry: Benchmark
+    let weightUnit: WeightUnit
+
+    init(entry: Benchmark, weightUnit: WeightUnit = .kilograms) {
+        self.entry = entry
+        self.weightUnit = weightUnit
+    }
 
     var body: some View {
         HStack {
@@ -104,7 +110,7 @@ struct BenchmarkEntryRow: View {
             }
             Spacer()
             VStack(alignment: .trailing, spacing: 2) {
-                Text(String(format: "%.1f kg × %d", entry.weightKg, entry.reps))
+                Text("\(WeightUnitConversion.formatWithUnit(kilograms: entry.weightKg, unit: weightUnit)) × \(entry.reps)")
                     .font(AppTheme.Fonts.subheading)
                     .foregroundStyle(AppTheme.Colors.accentOrange)
                 Text(entry.performedAt, style: .date)
@@ -159,10 +165,12 @@ struct AddBenchmarkSheet: View {
         weightKg: String,
         reps: Int,
         notes: String,
+        weightUnit: WeightUnit = .kilograms,
         dismiss: @escaping () -> Void
     ) -> () -> Void {
         {
-            guard Self.canSave(benchmarkName: benchmarkName, weightKg: weightKg), let kg = Double(weightKg) else { return }
+            guard Self.canSave(benchmarkName: benchmarkName, weightKg: weightKg),
+                  let kg = WeightUnitConversion.parseInputToKilograms(weightKg, unit: weightUnit) else { return }
             viewModel.add(
                 name: benchmarkName.trimmingCharacters(in: .whitespaces),
                 exercise: selectedExercise,
@@ -189,7 +197,7 @@ struct AddBenchmarkSheet: View {
                     .pickerStyle(.navigationLink)
                 }
                 Section("Performance") {
-                    TextField("Weight (kg)", text: $weightKg)
+                    TextField("Weight (\(viewModel.weightUnit.symbol))", text: $weightKg)
                         .keyboardType(.decimalPad)
                     Stepper("Reps: \(reps)", value: $reps, in: 1...20)
                 }
@@ -213,6 +221,7 @@ struct AddBenchmarkSheet: View {
                         weightKg: weightKg,
                         reps: reps,
                         notes: notes,
+                        weightUnit: viewModel.weightUnit,
                         dismiss: dismiss.callAsFunction
                     ))
                     .disabled(!canSave)

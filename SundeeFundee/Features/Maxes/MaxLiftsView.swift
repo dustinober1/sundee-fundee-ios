@@ -62,7 +62,8 @@ struct MaxLiftsView: View {
                             LiftMaxRow(
                                 exercise: exercise,
                                 oneRepMax: viewModel.oneRepMaxes[exercise],
-                                prs: Self.personalRecords(for: exercise, records: viewModel.personalRecords)
+                                prs: Self.personalRecords(for: exercise, records: viewModel.personalRecords),
+                                weightUnit: viewModel.weightUnit
                             )
                         }
                     }
@@ -93,6 +94,19 @@ struct LiftMaxRow: View {
     let exercise: String
     let oneRepMax: OneRepMax?
     let prs: [PersonalRecord]
+    let weightUnit: WeightUnit
+
+    init(
+        exercise: String,
+        oneRepMax: OneRepMax?,
+        prs: [PersonalRecord],
+        weightUnit: WeightUnit = .kilograms
+    ) {
+        self.exercise = exercise
+        self.oneRepMax = oneRepMax
+        self.prs = prs
+        self.weightUnit = weightUnit
+    }
 
     var body: some View {
         HStack {
@@ -102,14 +116,14 @@ struct LiftMaxRow: View {
                     .foregroundStyle(AppTheme.Colors.navy)
                 HStack(spacing: AppTheme.Spacing.sm) {
                     ForEach(prs.prefix(3)) { pr in
-                        PRBadge(pr: pr)
+                        PRBadge(pr: pr, weightUnit: weightUnit)
                     }
                 }
             }
             Spacer()
             if let orm = oneRepMax {
                 VStack(alignment: .trailing, spacing: 2) {
-                    Text(String(format: "%.1f kg", orm.weightKg))
+                    Text(WeightUnitConversion.formatWithUnit(kilograms: orm.weightKg, unit: weightUnit))
                         .font(AppTheme.Fonts.subheading)
                         .foregroundStyle(AppTheme.Colors.navy)
                     Text("Est. 1RM")
@@ -124,9 +138,15 @@ struct LiftMaxRow: View {
 
 struct PRBadge: View {
     let pr: PersonalRecord
+    let weightUnit: WeightUnit
+
+    init(pr: PersonalRecord, weightUnit: WeightUnit = .kilograms) {
+        self.pr = pr
+        self.weightUnit = weightUnit
+    }
 
     var body: some View {
-        Text("\(pr.reps)RM: \(String(format: "%.1f", pr.weightKg))kg")
+        Text("\(pr.reps)RM: \(WeightUnitConversion.formatWithUnit(kilograms: pr.weightKg, unit: weightUnit, maximumFractionDigits: 1))")
             .font(AppTheme.Fonts.caption)
             .foregroundStyle(AppTheme.Colors.navy)   // navy on orange passes WCAG AA (~4.7:1)
             .padding(.horizontal, 6)
@@ -149,7 +169,7 @@ struct ExerciseDetailView: View {
                 if let orm = viewModel.oneRepMaxes[exercise] {
                     Section("Estimated 1RM") {
                         HStack {
-                            Text(String(format: "%.1f kg", orm.weightKg))
+                            Text(WeightUnitConversion.formatWithUnit(kilograms: orm.weightKg, unit: viewModel.weightUnit))
                                 .font(AppTheme.Fonts.heading)
                                 .foregroundStyle(AppTheme.Colors.navy)
                             Spacer()
@@ -169,7 +189,7 @@ struct ExerciseDetailView: View {
                                     .font(AppTheme.Fonts.body)
                                     .foregroundStyle(AppTheme.Colors.navy)
                                 Spacer()
-                                Text(String(format: "%.1f kg", pr.weightKg))
+                                Text(WeightUnitConversion.formatWithUnit(kilograms: pr.weightKg, unit: viewModel.weightUnit))
                                     .font(AppTheme.Fonts.subheading)
                                     .foregroundStyle(AppTheme.Colors.accentOrange)
                             }
@@ -214,10 +234,11 @@ struct AddLiftMaxSheet: View {
         weightKg: String,
         reps: Int,
         isEstimated: Bool,
+        weightUnit: WeightUnit = .kilograms,
         dismiss: @escaping () -> Void
     ) -> () -> Void {
         {
-            guard let kg = Double(weightKg) else { return }
+            guard let kg = WeightUnitConversion.parseInputToKilograms(weightKg, unit: weightUnit) else { return }
             viewModel.addMax(
                 exercise: selectedExercise,
                 weightKg: kg,
@@ -240,7 +261,7 @@ struct AddLiftMaxSheet: View {
                     .pickerStyle(.navigationLink)
                 }
                 Section("Performance") {
-                    TextField("Weight (kg)", text: $weightKg)
+                    TextField("Weight (\(viewModel.weightUnit.symbol))", text: $weightKg)
                         .keyboardType(.decimalPad)
                     Stepper("Reps: \(reps)", value: $reps, in: 1...20)
                     Toggle("Estimated (via Epley formula)", isOn: $isEstimated)
@@ -261,6 +282,7 @@ struct AddLiftMaxSheet: View {
                         weightKg: weightKg,
                         reps: reps,
                         isEstimated: isEstimated,
+                        weightUnit: viewModel.weightUnit,
                         dismiss: dismiss.callAsFunction
                     ))
                 }

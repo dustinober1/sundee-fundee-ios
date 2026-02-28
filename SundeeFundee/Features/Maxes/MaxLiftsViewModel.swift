@@ -7,6 +7,7 @@ final class MaxLiftsViewModel {
     var exerciseNames: [String] = []
     var oneRepMaxes: [String: OneRepMax] = [:]
     var personalRecords: [String: [PersonalRecord]] = [:]
+    var weightUnit: WeightUnit = .kilograms
 
     private var modelContext: ModelContext?
     private var userID: String = ""
@@ -15,9 +16,11 @@ final class MaxLiftsViewModel {
         self.modelContext = modelContext
         self.userID = userID
         let repo = SwiftDataLiftRepository(context: modelContext)
+        let userRepo = SwiftDataUserRepository(context: modelContext)
 
         let orms = try! repo.fetchOneRepMaxes()
         let prs = try! repo.fetchPersonalRecords()
+        weightUnit = (try? userRepo.fetchCurrentUser())?.weightUnit ?? .kilograms
 
         // Build exercise name index from tracked data — weightlifting moves only
         var names = Set<String>()

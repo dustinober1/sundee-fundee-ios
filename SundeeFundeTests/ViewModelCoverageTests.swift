@@ -664,6 +664,7 @@ struct SettingsViewModelCoverageTests {
             experienceLevel: .beginner,
             primaryGoal: .strength,
             gender: .preferNotToSay,
+            weightUnit: .pounds,
             appleUserID: "apple-u1"
         )
         let existingInjury = InjuryProfile(
@@ -682,15 +683,18 @@ struct SettingsViewModelCoverageTests {
 
         #expect(vm.displayName == "Dustin")
         #expect(vm.injuryProfiles.count == 1)
+        #expect(vm.weightUnit == .pounds)
 
         vm.displayName = "Updated Name"
         vm.experienceLevel = .advanced
         vm.primaryGoal = .endurance
+        vm.weightUnit = .kilograms
         await vm.saveProfile()
 
         #expect(user.name == "Updated Name")
         #expect(user.experienceLevel == .advanced)
         #expect(user.primaryGoal == .endurance)
+        #expect(user.weightUnit == .kilograms)
 
         vm.addInjury(location: "back", limitations: "no heavy deadlifts", recoveryGoal: "return to pull")
         #expect(vm.injuryProfiles.count == 2)

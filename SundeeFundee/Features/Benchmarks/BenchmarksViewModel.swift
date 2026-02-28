@@ -20,6 +20,7 @@ final class BenchmarksViewModel {
 
     var groups: [BenchmarkGroup] = []
     var isLoading = false
+    var weightUnit: WeightUnit = .kilograms
 
     private let repositoryFactory: (ModelContext) -> any BenchmarkRepository
     private var modelContext: ModelContext?
@@ -41,6 +42,8 @@ final class BenchmarksViewModel {
 
         let repo = repositoryFactory(modelContext)
         let all = (try? repo.fetchBenchmarks()) ?? []
+        let userRepo = SwiftDataUserRepository(context: modelContext)
+        weightUnit = (try? userRepo.fetchCurrentUser())?.weightUnit ?? .kilograms
 
         // Group by name, preserving insertion order of first occurrence
         var seen: [String: [Benchmark]] = [:]

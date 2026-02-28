@@ -44,7 +44,8 @@ struct DashboardView: View {
                         session: dest.session,
                         enrollment: dest.enrollment,
                         program: program,
-                        barbellWeightKg: viewModel.barbellWeightKg
+                        barbellWeightKg: viewModel.barbellWeightKg,
+                        weightUnit: viewModel.weightUnit
                     )
                 )
             }

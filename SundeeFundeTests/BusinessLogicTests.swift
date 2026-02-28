@@ -80,6 +80,32 @@ struct EpleyFormulaTests {
     }
 }
 
+// MARK: - WeightUnitConversion tests
+
+@Suite("WeightUnitConversion")
+struct WeightUnitConversionTests {
+
+    @Test func convertsKgToLbAndBack() {
+        let pounds = WeightUnitConversion.value(fromKilograms: 100, unit: .pounds)
+        #expect(abs(pounds - 220.46) < 0.01)
+
+        let kilograms = WeightUnitConversion.kilograms(from: pounds, unit: .pounds)
+        #expect(abs(kilograms - 100) < 0.001)
+    }
+
+    @Test func parsesUserInputToKilograms() {
+        #expect(WeightUnitConversion.parseInputToKilograms("100", unit: .kilograms) == 100)
+        let fromPounds = WeightUnitConversion.parseInputToKilograms("225", unit: .pounds)
+        #expect(abs((fromPounds ?? 0) - 102.06) < 0.01)
+        #expect(WeightUnitConversion.parseInputToKilograms("bad", unit: .pounds) == nil)
+    }
+
+    @Test func formatsWithUnitSuffix() {
+        #expect(WeightUnitConversion.formatWithUnit(kilograms: 80, unit: .kilograms).hasSuffix("kg"))
+        #expect(WeightUnitConversion.formatWithUnit(kilograms: 80, unit: .pounds).hasSuffix("lb"))
+    }
+}
+
 // MARK: - PlateCalculation tests
 
 @Suite("PlateCalculation")

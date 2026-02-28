@@ -45,6 +45,7 @@
 		66660E19C25C174C4BA524E8 /* SwiftUISmokeTestsB.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DB1FEAD646663C29A83BEA8 /* SwiftUISmokeTestsB.swift */; };
 		6BF362B1C82D428DBC8CCD13 /* OnboardingEligibilityEvaluator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E9555CE9EC2982C2B6DCDAE /* OnboardingEligibilityEvaluator.swift */; };
 		6D132998DC635FE6065128BC /* SignInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110F2999B2AA30421DABB2AC /* SignInView.swift */; };
+		6DFA5E4CD22AA7E83698B5EF /* WeightUnitConversion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 616A3F0BB4993EF89C49872B /* WeightUnitConversion.swift */; };
 		6F0300107FFD213C3825103B /* RepositoryProtocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0B4C1F90A22734734B23231 /* RepositoryProtocols.swift */; };
 		6FC67514A2518886C6346FEE /* ModelRepoObservabilityCoverageWave4Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30E8246998C3CC41511E352B /* ModelRepoObservabilityCoverageWave4Tests.swift */; };
 		723768005002BAFC38E3FE29 /* SwiftDataEnrolledProgramRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = A49C6CE7BE8E30D0775C5F27 /* SwiftDataEnrolledProgramRepository.swift */; };
@@ -132,6 +133,7 @@
 		5EA6C16D1835102BA7816B7E /* ProgramDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramDetailView.swift; sourceTree = "<group>"; };
 		5F1B65069425B81601B09ECE /* programs.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = programs.json; sourceTree = "<group>"; };
 		5F886F044DA162B3990BD14D /* ButtonStyles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ButtonStyles.swift; sourceTree = "<group>"; };
+		616A3F0BB4993EF89C49872B /* WeightUnitConversion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightUnitConversion.swift; sourceTree = "<group>"; };
 		62C498309D514E52B0277ABD /* FeatureViewsCoverageWave3Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureViewsCoverageWave3Tests.swift; sourceTree = "<group>"; };
 		665E7A777D41FE5BE4093B7C /* LegalContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegalContent.swift; sourceTree = "<group>"; };
 		702EA15486E24E608EADC326 /* ProgramListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramListView.swift; sourceTree = "<group>"; };
@@ -300,6 +302,7 @@
 			children = (
 				852A5F052505B69DD46A8EF0 /* PlateCalculation.swift */,
 				9BDE3BB6E8105A1F1B02BD4A /* WeightCalculations.swift */,
+				616A3F0BB4993EF89C49872B /* WeightUnitConversion.swift */,
 			);
 			path = Calculations;
 			sourceTree = "<group>";
@@ -643,6 +646,7 @@
 				3978926D25EE8429137DE9FF /* SwiftDataWorkoutRepository.swift in Sources */,
 				35F7120D99DD863F41920B85 /* User.swift in Sources */,
 				31505F6907BCB93B44087ECF /* WeightCalculations.swift in Sources */,
+				6DFA5E4CD22AA7E83698B5EF /* WeightUnitConversion.swift in Sources */,
 				E040470F4170DAC53DD93506 /* WeightliftingExerciseCatalog.swift in Sources */,
 				58D144FC8038C566D8BAB4CB /* WorkoutExecutionView.swift in Sources */,
 				BC5E4C2F2C20830D028CE69E /* WorkoutExecutionViewModel.swift in Sources */,

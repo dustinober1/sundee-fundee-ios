@@ -10,6 +10,7 @@ final class DashboardViewModel {
     var recentWorkouts: [CompletedWorkout] = []
     var currentCyclePhase: CyclePhase?
     var barbellWeightKg: Double = PlateCalculation.standardBarKg
+    var weightUnit: WeightUnit = .kilograms
 
     private let programRepo: any ProgramRepository
 
@@ -26,6 +27,7 @@ final class DashboardViewModel {
         // Load current user for gender-based bar weight
         let currentUser = try? userRepo.fetchCurrentUser()
         barbellWeightKg = Self.barbellWeight(for: currentUser?.gender)
+        weightUnit = currentUser?.weightUnit ?? .kilograms
 
         // Load active enrollment
         activeEnrollment = try? enrollmentRepo.fetchActiveEnrollment()

@@ -53,7 +53,7 @@ struct WorkoutSummaryView: View {
         HStack(spacing: AppTheme.Spacing.md) {
             StatBadge(label: "Duration", value: formatDuration(workout.durationSeconds))
             StatBadge(label: "Sets", value: "\(viewModel.totalSets)")
-            StatBadge(label: "Volume", value: formatVolume(viewModel.totalVolumeKg))
+            StatBadge(label: "Volume", value: formatVolume(viewModel.totalVolumeKg, unit: viewModel.weightUnit))
         }
     }
 
@@ -66,7 +66,7 @@ struct WorkoutSummaryView: View {
                 HStack {
                     Text(exercise)
                     Spacer()
-                    Text(String(format: "%.1f kg", value))
+                    Text(WeightUnitConversion.formatWithUnit(kilograms: value, unit: viewModel.weightUnit))
                         .foregroundStyle(AppTheme.Colors.accentOrange)
                 }
                 .font(AppTheme.Fonts.body)
@@ -91,7 +91,7 @@ struct WorkoutSummaryView: View {
                         .foregroundStyle(AppTheme.Colors.navy)
                     if let sets = viewModel.groupedSets[exercise] {
                         ForEach(sets, id: \.id) { set in
-                            SetSummaryRow(set: set)
+                            SetSummaryRow(set: set, weightUnit: viewModel.weightUnit)
                         }
                     }
                 }
@@ -115,8 +115,11 @@ struct WorkoutSummaryView: View {
         return m < 60 ? "\(m)m" : "\(m / 60)h \(m % 60)m"
     }
 
-    private func formatVolume(_ kg: Double) -> String {
-        kg >= 1000 ? String(format: "%.1ft", kg / 1000) : "\(Int(kg))kg"
+    private func formatVolume(_ kg: Double, unit: WeightUnit) -> String {
+        if unit == .kilograms {
+            return kg >= 1000 ? String(format: "%.1ft", kg / 1000) : "\(Int(kg))kg"
+        }
+        return "\(WeightUnitConversion.format(kilograms: kg, unit: unit, maximumFractionDigits: 1))\(unit.symbol)"
     }
 }
 
@@ -124,6 +127,12 @@ struct WorkoutSummaryView: View {
 
 struct SetSummaryRow: View {
     let set: CompletedSet
+    let weightUnit: WeightUnit
+
+    init(set: CompletedSet, weightUnit: WeightUnit = .kilograms) {
+        self.set = set
+        self.weightUnit = weightUnit
+    }
 
     var body: some View {
         HStack {
@@ -134,7 +143,7 @@ struct SetSummaryRow: View {
             Text(repsDisplay.text)
                 .foregroundStyle(repsDisplay.isFallback ? AppTheme.Colors.navy.opacity(0.5) : AppTheme.Colors.navy)
             if let kg = set.actualWeightKg {
-                Text("@ \(kg == kg.rounded() ? "\(Int(kg))" : String(format: "%.1f", kg))kg")
+                Text("@ \(WeightUnitConversion.format(kilograms: kg, unit: weightUnit, maximumFractionDigits: 1))\(weightUnit.symbol)")
                     .foregroundStyle(AppTheme.Colors.accentOrange)
             }
         }
@@ -160,6 +169,7 @@ final class WorkoutSummaryViewModel {
     var groupedSets: [String: [CompletedSet]] = [:]
     var totalSets: Int = 0
     var totalVolumeKg: Double = 0
+    var weightUnit: WeightUnit = .kilograms
 
     init(workout: CompletedWorkout) {
         self.workout = workout
@@ -168,6 +178,8 @@ final class WorkoutSummaryViewModel {
     func detectPRs(modelContext: ModelContext) async {
         let workoutRepo = SwiftDataWorkoutRepository(context: modelContext)
         let liftRepo = SwiftDataLiftRepository(context: modelContext)
+        let userRepo = SwiftDataUserRepository(context: modelContext)
+        weightUnit = (try? userRepo.fetchCurrentUser())?.weightUnit ?? .kilograms
 
         guard let sets = try? workoutRepo.fetchSets(for: workout) else { return }
 

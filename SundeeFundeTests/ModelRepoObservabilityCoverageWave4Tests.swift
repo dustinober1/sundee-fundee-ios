@@ -201,21 +201,26 @@ struct ModelRepoObservabilityCoverageWave4Tests {
         #expect(user.experienceLevel == .intermediate)
         #expect(user.primaryGoal == .hypertrophy)
         #expect(user.gender == .female)
+        #expect(user.weightUnit == .kilograms)
         #expect(user.hasRequiredOnboardingAnswers)
 
         user.experienceLevel = .advanced
         user.primaryGoal = .weightLoss
         user.gender = .preferNotToSay
+        user.weightUnit = .pounds
         #expect(user.experienceLevelRaw == "advanced")
         #expect(user.primaryGoalRaw == "weight_loss")
         #expect(user.genderRaw == "prefer_not_to_say")
+        #expect(user.weightUnitRaw == "lb")
 
         user.experienceLevelRaw = "invalid"
         user.primaryGoalRaw = "invalid"
         user.genderRaw = "invalid"
+        user.weightUnitRaw = "invalid"
         #expect(user.experienceLevel == .beginner)
         #expect(user.primaryGoal == .strength)
         #expect(user.gender == .preferNotToSay)
+        #expect(user.weightUnit == .kilograms)
 
         user.name = "   "
         #expect(user.hasRequiredOnboardingAnswers == false)
