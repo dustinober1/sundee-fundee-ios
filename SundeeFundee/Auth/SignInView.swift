@@ -72,7 +72,7 @@ struct SignInView: View {
                         onCompletion: handleAppleResultAction(appState: appState, modelContext: modelContext)
                     )
                     .signInWithAppleButtonStyle(.black)
-                    .frame(height: 50)
+                    .frame(maxWidth: 375, minHeight: 50, maxHeight: 50)
                     .cornerRadius(AppTheme.Radius.sm)
                     .disabled(Self.controlsDisabled(isBusy: isBusy))
 
