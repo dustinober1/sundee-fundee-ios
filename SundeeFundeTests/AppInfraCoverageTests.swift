@@ -216,4 +216,21 @@ struct AppInfraCoverageTests {
         #expect(try modelCount(PeriodLog.self, in: context) == 0)
     }
     #endif
+
+    @Test
+    func appSchemaV7_containsConditioningPR() {
+        let modelTypes = AppSchemaV7.models
+        #expect(modelTypes.contains(where: { $0 == ConditioningPR.self }))
+    }
+
+    @Test
+    func appSchemaV7_versionIdentifier() {
+        #expect(AppSchemaV7.versionIdentifier == Schema.Version(7, 0, 0))
+    }
+
+    @Test
+    func migrationPlan_includesV6toV7() {
+        #expect(AppSchemaMigrationPlan.schemas.count == 3)
+        #expect(AppSchemaMigrationPlan.stages.count == 2)
+    }
 }

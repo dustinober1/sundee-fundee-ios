@@ -7,6 +7,8 @@ final class MaxLiftsViewModel {
     var exerciseNames: [String] = []
     var oneRepMaxes: [String: OneRepMax] = [:]
     var personalRecords: [String: [PersonalRecord]] = [:]
+    var conditioningPRs: [ConditioningPR] = []
+    var conditioningExerciseNames: [String] = []
     var weightUnit: WeightUnit = .kilograms
 
     private var modelContext: ModelContext?
@@ -38,6 +40,11 @@ final class MaxLiftsViewModel {
             prDict[pr.exerciseID, default: []].append(pr)
         }
         personalRecords = prDict
+
+        // Load conditioning PRs
+        let cPRs = try! repo.fetchAllConditioningPRs()
+        conditioningPRs = cPRs
+        conditioningExerciseNames = Array(Set(cPRs.map(\.exerciseID))).sorted()
     }
 
     func addMax(exercise: String, weightKg: Double, reps: Int, isEstimated: Bool) {

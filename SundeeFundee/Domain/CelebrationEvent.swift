@@ -5,6 +5,7 @@ enum CelebrationEvent: Equatable, Sendable {
     case newPersonalRecord(exerciseName: String, weightKg: Double)
     case programCompleted(programName: String)
     case weightMilestone(exerciseName: String, thresholdKg: Double)
+    case newConditioningPR(exerciseName: String, value: Double, scoringType: ConditioningScoringType)
 
     var title: String {
         switch self {
@@ -16,6 +17,8 @@ enum CelebrationEvent: Equatable, Sendable {
             return "Program Complete!"
         case .weightMilestone:
             return "Weight Milestone!"
+        case .newConditioningPR:
+            return "New Conditioning PR!"
         }
     }
 
@@ -36,6 +39,8 @@ enum CelebrationEvent: Equatable, Sendable {
         case .weightMilestone(let name, let kg):
             let formatted = WeightUnitConversion.formatWithUnit(kilograms: kg, unit: unit, maximumFractionDigits: 0)
             return "\(name) hit \(formatted)!"
+        case .newConditioningPR(let name, let value, let scoringType):
+            return "\(name) — \(scoringType.formatValue(value))"
         }
     }
 }

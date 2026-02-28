@@ -450,3 +450,117 @@ struct DashboardViewModelBarbellWeightTests {
         #expect(weight == 20.0)
     }
 }
+
+// MARK: - ConditioningScoringType tests
+
+@Suite("ConditioningScoringType")
+struct ConditioningScoringTypeTests {
+
+    @Test func rawValues() {
+        #expect(ConditioningScoringType.time.rawValue == "time")
+        #expect(ConditioningScoringType.reps.rawValue == "reps")
+    }
+
+    @Test func isBetterThanTimeNilExisting() {
+        #expect(ConditioningScoringType.time.isBetterThan(newValue: 90, existingValue: nil) == true)
+    }
+
+    @Test func isBetterThanTimeLowerWins() {
+        #expect(ConditioningScoringType.time.isBetterThan(newValue: 80, existingValue: 90) == true)
+        #expect(ConditioningScoringType.time.isBetterThan(newValue: 100, existingValue: 90) == false)
+    }
+
+    @Test func isBetterThanRepsNilExisting() {
+        #expect(ConditioningScoringType.reps.isBetterThan(newValue: 50, existingValue: nil) == true)
+    }
+
+    @Test func isBetterThanRepsHigherWins() {
+        #expect(ConditioningScoringType.reps.isBetterThan(newValue: 100, existingValue: 90) == true)
+        #expect(ConditioningScoringType.reps.isBetterThan(newValue: 80, existingValue: 90) == false)
+    }
+
+    @Test func formatValueTime() {
+        #expect(ConditioningScoringType.time.formatValue(90) == "1:30")
+        #expect(ConditioningScoringType.time.formatValue(45) == "0:45")
+        #expect(ConditioningScoringType.time.formatValue(3600) == "60:00")
+    }
+
+    @Test func formatValueReps() {
+        #expect(ConditioningScoringType.reps.formatValue(100) == "100 reps")
+        #expect(ConditioningScoringType.reps.formatValue(1) == "1 rep")
+    }
+}
+
+// MARK: - ConditioningExerciseCatalog tests
+
+@Suite("ConditioningExerciseCatalog")
+struct ConditioningExerciseCatalogTests {
+
+    @Test func wallBallIsConditioning() {
+        #expect(ConditioningExerciseCatalog.isConditioningExercise("Wall Ball") == true)
+    }
+
+    @Test func backSquatIsNotConditioning() {
+        #expect(ConditioningExerciseCatalog.isConditioningExercise("Back Squat") == false)
+    }
+
+    @Test func scoringTypeForRepsExercise() {
+        #expect(ConditioningExerciseCatalog.scoringType(for: "Burpee") == .reps)
+    }
+
+    @Test func scoringTypeForTimeExercise() {
+        #expect(ConditioningExerciseCatalog.scoringType(for: "400m Run") == .time)
+    }
+
+    @Test func scoringTypeForUnknownExercise() {
+        #expect(ConditioningExerciseCatalog.scoringType(for: "Unknown") == nil)
+    }
+
+    @Test func catalogIsNonEmpty() {
+        #expect(ConditioningExerciseCatalog.all.isEmpty == false)
+    }
+}
+
+// MARK: - CelebrationEvent conditioning PR tests
+
+@Suite("CelebrationEvent.conditioningPR")
+struct CelebrationEventConditioningPRTests {
+
+    @Test func conditioningPR_title() {
+        let event = CelebrationEvent.newConditioningPR(exerciseName: "Wall Ball", value: 100, scoringType: .reps)
+        #expect(event.title == "New Conditioning PR!")
+    }
+
+    @Test func conditioningPR_subtitle_reps() {
+        let event = CelebrationEvent.newConditioningPR(exerciseName: "Wall Ball", value: 100, scoringType: .reps)
+        #expect(event.subtitle == "Wall Ball — 100 reps")
+    }
+
+    @Test func conditioningPR_subtitle_time() {
+        let event = CelebrationEvent.newConditioningPR(exerciseName: "1-Mile Run", value: 390, scoringType: .time)
+        #expect(event.subtitle == "1-Mile Run — 6:30")
+    }
+
+    @Test func conditioningPR_subtitle_unitIndependent() {
+        let event = CelebrationEvent.newConditioningPR(exerciseName: "Burpee", value: 50, scoringType: .reps)
+        #expect(event.subtitle(unit: .kilograms) == event.subtitle(unit: .pounds))
+    }
+}
+
+// MARK: - CompletedSet conditioning fields tests
+
+@Suite("CompletedSet.conditioningFields")
+struct CompletedSetConditioningFieldsTests {
+
+    @Test func defaultNil() {
+        let set = CompletedSet(id: "1", userID: "u", workoutID: "w", exerciseName: "Squat", setIndex: 0, prescribedReps: "5")
+        #expect(set.actualTimeSeconds == nil)
+        #expect(set.scoringTypeRaw == nil)
+    }
+
+    @Test func canBeSet() {
+        let set = CompletedSet(id: "1", userID: "u", workoutID: "w", exerciseName: "Wall Ball", setIndex: 0, prescribedReps: "100", actualTimeSeconds: 180, scoringTypeRaw: "time")
+        #expect(set.actualTimeSeconds == 180)
+        #expect(set.scoringTypeRaw == "time")
+    }
+}
