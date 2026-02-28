@@ -114,6 +114,6 @@ struct BenchmarkDetailViewModelTests {
             workoutDescription: "", scoringType: .reps, isPredefined: true, sortOrder: 0
         )
         let vm = BenchmarkDetailViewModel(definition: cindyDef)
-        #expect(vm.formatted(score: 20, for: .reps) == "20 rds")
+        #expect(vm.formatted(score: 20, for: .reps) == "20 reps")
     }
 }

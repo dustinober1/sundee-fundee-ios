@@ -49,7 +49,9 @@ final class BenchmarksViewModel {
             guard let entries = grouped[cat], !entries.isEmpty else { return nil }
             return CategoryGroup(category: cat, definitions: entries.sorted { $0.sortOrder < $1.sortOrder })
         }
-        // Append user-created categories not in the predefined order
+        // Note: AddCustomBenchmarkSheet currently limits category selection to BenchmarkCatalog.categoryOrder,
+        // so this branch is not reachable through the standard UI. Preserved for future extensibility
+        // if custom categories are added.
         let known = Set(BenchmarkCatalog.categoryOrder)
         for (cat, entries) in grouped where !known.contains(cat) {
             categoryGroups.append(CategoryGroup(category: cat, definitions: entries))

@@ -79,7 +79,7 @@ final class BenchmarkDetailViewModel {
         case .weight:
             return String(format: "%.1f kg", score)
         case .reps:
-            return "\(Int(score)) rds"
+            return "\(Int(score)) reps"
         }
     }
 }
