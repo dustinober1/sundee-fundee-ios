@@ -19,7 +19,7 @@ xcodegen generate
 xcodebuild build \
   -project SundeeFundee.xcodeproj \
   -scheme SundeeFundee \
-  -destination 'platform=iOS Simulator,name=iPhone 16 Pro'
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
 ```
 
 ### Test
@@ -28,14 +28,14 @@ xcodebuild build \
 xcodebuild test \
   -project SundeeFundee.xcodeproj \
   -scheme SundeeFundee \
-  -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
   -only-testing:SundeeFundeTests
 
 # Run a single test class
 xcodebuild test \
   -project SundeeFundee.xcodeproj \
   -scheme SundeeFundee \
-  -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
   -only-testing:SundeeFundeTests/BusinessLogicTests
 ```
 
@@ -61,7 +61,7 @@ Domain/ (pure Swift, zero dependencies, 100% tested)
 
 ### Key Directories
 
-- **`App/`** — Entry point, `AppState` (auth routing), `ModelContainer` setup, schema migrations (V1→V2), debug seed data
+- **`App/`** — Entry point, `AppState` (auth routing), `ModelContainer` setup, schema migrations (V1→V6), debug seed data
 - **`Auth/`** — Sign in with Apple, `KeychainHelper`, guest mode
 - **`Domain/`** — All business logic: weight calculations, cycle phase adaptation, injury modification engine, benchmark catalog. No framework dependencies — fully unit tested.
 - **`Models/`** — 14 SwiftData `@Model` types. **Enums must be stored as raw strings** (CloudKit requirement); typed accessors are computed properties.
