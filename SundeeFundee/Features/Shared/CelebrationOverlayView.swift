@@ -46,6 +46,7 @@ struct ConfettiParticle: Sendable {
 
 struct CelebrationOverlayView: View {
     let event: CelebrationEvent
+    var weightUnit: WeightUnit = .pounds
     var onDismiss: () -> Void = {}
 
     @State private var particles: [ConfettiParticle] = []
@@ -89,7 +90,7 @@ struct CelebrationOverlayView: View {
                     .font(AppTheme.Fonts.heading)
                     .foregroundStyle(AppTheme.Colors.gold)
 
-                Text(event.subtitle)
+                Text(event.subtitle(unit: weightUnit))
                     .font(AppTheme.Fonts.body)
                     .foregroundStyle(AppTheme.Colors.cream)
                     .multilineTextAlignment(.center)

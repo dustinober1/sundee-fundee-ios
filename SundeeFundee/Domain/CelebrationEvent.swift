@@ -20,16 +20,23 @@ enum CelebrationEvent: Equatable, Sendable {
     }
 
     var subtitle: String {
+        subtitle(unit: .kilograms)
+    }
+
+    func subtitle(unit: WeightUnit) -> String {
         switch self {
         case .workoutCompleted(let secs, let vol):
             let minutes = secs / 60
-            return "\(minutes)min | \(Int(vol))kg total volume"
+            let formatted = WeightUnitConversion.formatWithUnit(kilograms: vol, unit: unit, maximumFractionDigits: 0)
+            return "\(minutes)min | \(formatted) total volume"
         case .newPersonalRecord(let name, let kg):
-            return "\(name) — \(String(format: "%.1f", kg))kg estimated 1RM"
+            let formatted = WeightUnitConversion.formatWithUnit(kilograms: kg, unit: unit)
+            return "\(name) — \(formatted) estimated 1RM"
         case .programCompleted(let name):
             return "You finished \(name). Time to level up!"
         case .weightMilestone(let name, let kg):
-            return "\(name) hit \(Int(kg))kg!"
+            let formatted = WeightUnitConversion.formatWithUnit(kilograms: kg, unit: unit, maximumFractionDigits: 0)
+            return "\(name) hit \(formatted)!"
         }
     }
 }

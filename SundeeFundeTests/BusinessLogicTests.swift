@@ -335,6 +335,71 @@ struct WeightliftingExerciseCatalogTests {
     }
 }
 
+// MARK: - CelebrationEvent subtitle tests
+
+@Suite("CelebrationEvent.subtitle")
+struct CelebrationEventSubtitleTests {
+
+    @Test func workoutCompletedSubtitleUsesKilograms() {
+        let event = CelebrationEvent.workoutCompleted(durationSeconds: 3600, volumeKg: 1000)
+        let subtitle = event.subtitle(unit: .kilograms)
+        #expect(subtitle.contains("60min"))
+        #expect(subtitle.contains("kg"))
+        #expect(!subtitle.contains("lb"))
+    }
+
+    @Test func workoutCompletedSubtitleUsesPounds() {
+        let event = CelebrationEvent.workoutCompleted(durationSeconds: 1800, volumeKg: 100)
+        let subtitle = event.subtitle(unit: .pounds)
+        #expect(subtitle.contains("30min"))
+        #expect(subtitle.contains("lb"))
+        #expect(!subtitle.contains("kg"))
+    }
+
+    @Test func newPersonalRecordSubtitleUsesKilograms() {
+        let event = CelebrationEvent.newPersonalRecord(exerciseName: "Back Squat", weightKg: 100)
+        let subtitle = event.subtitle(unit: .kilograms)
+        #expect(subtitle.contains("Back Squat"))
+        #expect(subtitle.contains("kg"))
+        #expect(!subtitle.contains("lb"))
+    }
+
+    @Test func newPersonalRecordSubtitleUsesPounds() {
+        let event = CelebrationEvent.newPersonalRecord(exerciseName: "Deadlift", weightKg: 100)
+        let subtitle = event.subtitle(unit: .pounds)
+        #expect(subtitle.contains("Deadlift"))
+        #expect(subtitle.contains("lb"))
+        #expect(!subtitle.contains("kg"))
+    }
+
+    @Test func programCompletedSubtitleIsUnitIndependent() {
+        let event = CelebrationEvent.programCompleted(programName: "5/3/1")
+        #expect(event.subtitle(unit: .kilograms) == event.subtitle(unit: .pounds))
+        #expect(event.subtitle(unit: .kilograms).contains("5/3/1"))
+    }
+
+    @Test func weightMilestoneSubtitleUsesKilograms() {
+        let event = CelebrationEvent.weightMilestone(exerciseName: "Bench Press", thresholdKg: 100)
+        let subtitle = event.subtitle(unit: .kilograms)
+        #expect(subtitle.contains("Bench Press"))
+        #expect(subtitle.contains("kg"))
+        #expect(!subtitle.contains("lb"))
+    }
+
+    @Test func weightMilestoneSubtitleUsesPounds() {
+        let event = CelebrationEvent.weightMilestone(exerciseName: "Bench Press", thresholdKg: 100)
+        let subtitle = event.subtitle(unit: .pounds)
+        #expect(subtitle.contains("Bench Press"))
+        #expect(subtitle.contains("lb"))
+        #expect(!subtitle.contains("kg"))
+    }
+
+    @Test func defaultSubtitlePropertyUsesKilograms() {
+        let event = CelebrationEvent.newPersonalRecord(exerciseName: "Squat", weightKg: 80)
+        #expect(event.subtitle == event.subtitle(unit: .kilograms))
+    }
+}
+
 // MARK: - DashboardViewModel barbell weight tests
 
 @Suite("DashboardViewModel.barbellWeight")

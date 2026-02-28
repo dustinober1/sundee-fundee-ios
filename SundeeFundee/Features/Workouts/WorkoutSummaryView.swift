@@ -30,7 +30,7 @@ struct WorkoutSummaryView: View {
                 .padding(AppTheme.Spacing.md)
             }
             if let event = celebrationEvent {
-                CelebrationOverlayView(event: event) {
+                CelebrationOverlayView(event: event, weightUnit: viewModel.weightUnit) {
                     celebrationEvent = nil
                 }
             }
@@ -192,7 +192,7 @@ final class WorkoutSummaryViewModel {
         let workoutRepo = SwiftDataWorkoutRepository(context: modelContext)
         let liftRepo = SwiftDataLiftRepository(context: modelContext)
         let userRepo = SwiftDataUserRepository(context: modelContext)
-        weightUnit = (try? userRepo.fetchCurrentUser())?.weightUnit ?? .kilograms
+        weightUnit = (try? userRepo.fetchCurrentUser())?.weightUnit ?? .pounds
 
         guard let sets = try? workoutRepo.fetchSets(for: workout) else { return }
 

@@ -20,7 +20,7 @@ final class MaxLiftsViewModel {
 
         let orms = try! repo.fetchOneRepMaxes()
         let prs = try! repo.fetchPersonalRecords()
-        weightUnit = (try? userRepo.fetchCurrentUser())?.weightUnit ?? .kilograms
+        weightUnit = (try? userRepo.fetchCurrentUser())?.weightUnit ?? .pounds
 
         // Build exercise name index from tracked data — weightlifting moves only
         var names = Set<String>()
