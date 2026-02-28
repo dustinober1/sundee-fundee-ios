@@ -3,35 +3,31 @@ import SwiftData
 
 /// View model for the Benchmarks screen.
 ///
-/// Benchmarks are grouped by their `name` field so users can see how they
-/// perform on the same test across multiple dates.
+/// Merges predefined catalog entries with user-created definitions stored in SwiftData,
+/// groups them by category, and provides actions for managing custom definitions.
 @MainActor
 @Observable
 final class BenchmarksViewModel {
 
-    /// A named benchmark group with its associated results.
-    struct BenchmarkGroup: Identifiable {
-        var id: String { name }
-        let name: String
-        let entries: [Benchmark]
-
-        var mostRecent: Benchmark? { entries.first }
+    struct CategoryGroup: Identifiable {
+        var id: String { category }
+        let category: String
+        var definitions: [BenchmarkDefinition]
     }
 
-    var groups: [BenchmarkGroup] = []
+    var categoryGroups: [CategoryGroup] = []
     var isLoading = false
-    var weightUnit: WeightUnit = .kilograms
 
-    private let repositoryFactory: (ModelContext) -> any BenchmarkRepository
     private var modelContext: ModelContext?
     private var userID: String = ""
+    private let definitionRepoFactory: (ModelContext) -> any BenchmarkDefinitionRepository
 
     init(
-        repositoryFactory: @escaping (ModelContext) -> any BenchmarkRepository = {
-            SwiftDataBenchmarkRepository(context: $0)
+        definitionRepoFactory: @escaping (ModelContext) -> any BenchmarkDefinitionRepository = {
+            SwiftDataBenchmarkDefinitionRepository(context: $0)
         }
     ) {
-        self.repositoryFactory = repositoryFactory
+        self.definitionRepoFactory = definitionRepoFactory
     }
 
     func load(modelContext: ModelContext, userID: String = "") async {
@@ -40,60 +36,55 @@ final class BenchmarksViewModel {
         isLoading = true
         defer { isLoading = false }
 
-        let repo = repositoryFactory(modelContext)
-        let all = (try? repo.fetchBenchmarks()) ?? []
-        let userRepo = SwiftDataUserRepository(context: modelContext)
-        weightUnit = (try? userRepo.fetchCurrentUser())?.weightUnit ?? .kilograms
+        let repo = definitionRepoFactory(modelContext)
+        let userCreated = (try? repo.fetchUserCreated(userID: userID)) ?? []
 
-        // Group by name, preserving insertion order of first occurrence
-        var seen: [String: [Benchmark]] = [:]
-        var order: [String] = []
-        for b in all {
-            if seen[b.name] == nil { order.append(b.name) }
-            seen[b.name, default: []].append(b)
+        // Merge predefined + user-created, grouped by category in display order
+        var grouped: [String: [BenchmarkDefinition]] = [:]
+        for def in BenchmarkCatalog.predefined + userCreated {
+            grouped[def.category, default: []].append(def)
         }
-        groups = order.map { name in
-            BenchmarkGroup(name: name, entries: seen[name]!)
+
+        categoryGroups = BenchmarkCatalog.categoryOrder.compactMap { cat in
+            guard let entries = grouped[cat], !entries.isEmpty else { return nil }
+            return CategoryGroup(category: cat, definitions: entries.sorted { $0.sortOrder < $1.sortOrder })
+        }
+        // Append user-created categories not in the predefined order
+        let known = Set(BenchmarkCatalog.categoryOrder)
+        for (cat, entries) in grouped where !known.contains(cat) {
+            categoryGroups.append(CategoryGroup(category: cat, definitions: entries))
         }
     }
 
-    func add(name: String, exercise: String, weightKg: Double, reps: Int, notes: String) {
+    func addCustomDefinition(name: String, category: String, description: String, scoringType: BenchmarkScoringType) {
         guard let ctx = modelContext else { return }
-        let benchmark = Benchmark(
+        let def = BenchmarkDefinition(
             userID: userID,
             name: name,
-            exercise: exercise,
-            weightKg: weightKg,
-            reps: reps,
-            notes: notes
+            category: category,
+            workoutDescription: description,
+            scoringType: scoringType,
+            isPredefined: false,
+            sortOrder: Int.max
         )
-        let repo = repositoryFactory(ctx)
-        try? repo.save(benchmark)
+        let repo = definitionRepoFactory(ctx)
+        try? repo.save(def)
 
-        // Insert at the top of the relevant group
-        if let idx = groups.firstIndex(where: { $0.name == name }) {
-            let updated = [benchmark] + groups[idx].entries
-            groups[idx] = BenchmarkGroup(name: name, entries: updated)
+        if let idx = categoryGroups.firstIndex(where: { $0.category == category }) {
+            categoryGroups[idx].definitions.append(def)
         } else {
-            groups.insert(BenchmarkGroup(name: name, entries: [benchmark]), at: 0)
+            categoryGroups.append(CategoryGroup(category: category, definitions: [def]))
         }
     }
 
-    func delete(_ benchmark: Benchmark) {
-        guard let ctx = modelContext else { return }
-        let repo = repositoryFactory(ctx)
-        try? repo.delete(benchmark)
+    func deleteCustomDefinition(_ definition: BenchmarkDefinition) {
+        guard !definition.isPredefined, let ctx = modelContext else { return }
+        let repo = definitionRepoFactory(ctx)
+        try? repo.delete(definition)
 
-        guard let groupIndex = groups.firstIndex(where: { group in
-            group.entries.contains(where: { $0.id == benchmark.id })
-        }) else { return }
-
-        let group = groups[groupIndex]
-        let filtered = group.entries.filter { $0.id != benchmark.id }
-        if filtered.isEmpty {
-            groups.remove(at: groupIndex)
-        } else {
-            groups[groupIndex] = BenchmarkGroup(name: group.name, entries: filtered)
+        for idx in categoryGroups.indices {
+            categoryGroups[idx].definitions.removeAll { $0.id == definition.id }
         }
+        categoryGroups.removeAll { $0.definitions.isEmpty }
     }
 }
