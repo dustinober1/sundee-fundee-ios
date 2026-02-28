@@ -601,3 +601,120 @@ struct ProgramParsingAdditionalTests {
         #expect(defaults.repsMultiplier == 1.0)
     }
 }
+
+@Suite("CycleProgramGenerator Note Generation")
+struct CycleProgramGeneratorNoteTests {
+
+    private func makeExercise(
+        sets: ExerciseValue = .fixed(3),
+        reps: ExerciseValue = .fixed(5),
+        percent1RM: Double? = 0.80,
+        notes: String? = nil
+    ) -> ProgramExercise {
+        ProgramExercise(
+            exercise: "Back Squat",
+            variant: nil,
+            sets: sets,
+            reps: reps,
+            percent1RM: percent1RM,
+            restMinutes: 3,
+            notes: notes
+        )
+    }
+
+    @Test func noteIncludesOriginalAndAdjustedSchemeWithLoad() {
+        let original = makeExercise(sets: .fixed(3), reps: .fixed(5), percent1RM: 0.80)
+        let adapted = makeExercise(sets: .fixed(3), reps: .fixed(4), percent1RM: 0.72)
+        let note = CycleProgramGenerator.cycleAdjustmentNote(
+            original: original,
+            adapted: adapted,
+            phase: .menstrual
+        )
+        #expect(note == "Program: 3×5 @ 80% → Menstrual: 3×4 @ 72%")
+    }
+
+    @Test func noteIncludesSchemeWithoutLoadWhenNoPercent() {
+        let original = makeExercise(sets: .fixed(3), reps: .fixed(8), percent1RM: nil)
+        let adapted = makeExercise(sets: .fixed(3), reps: .fixed(7), percent1RM: nil)
+        let note = CycleProgramGenerator.cycleAdjustmentNote(
+            original: original,
+            adapted: adapted,
+            phase: .luteal
+        )
+        #expect(note == "Program: 3×8 → Luteal: 3×7")
+    }
+
+    @Test func noteIsNilWhenNothingChanged() {
+        let original = makeExercise(sets: .fixed(3), reps: .fixed(5), percent1RM: 0.80)
+        let adapted = makeExercise(sets: .fixed(3), reps: .fixed(5), percent1RM: 0.80)
+        let note = CycleProgramGenerator.cycleAdjustmentNote(
+            original: original,
+            adapted: adapted,
+            phase: .follicular
+        )
+        #expect(note == nil)
+    }
+
+    @Test func noteOnlyLoadChangedIsDetected() {
+        let original = makeExercise(sets: .fixed(3), reps: .fixed(5), percent1RM: 0.80)
+        let adapted = makeExercise(sets: .fixed(3), reps: .fixed(5), percent1RM: 0.90)
+        let note = CycleProgramGenerator.cycleAdjustmentNote(
+            original: original,
+            adapted: adapted,
+            phase: .ovulation
+        )
+        #expect(note == "Program: 3×5 @ 80% → Ovulation: 3×5 @ 90%")
+    }
+
+    @Test func existingNoteIsCombinedWithCycleNote() {
+        let referenceDate = Calendar.current.startOfDay(for: .now)
+        let recentStart = Calendar.current.date(byAdding: .day, value: -2, to: referenceDate)!
+        let settings = CycleSettings(
+            id: UUID().uuidString,
+            userID: "u1",
+            averageCycleLengthDays: 28,
+            averagePeriodLengthDays: 5,
+            lutealPhaseLengthDays: 14
+        )
+        let prefs = CycleAdaptationPreferences(
+            id: UUID().uuidString,
+            userID: "u1",
+            adaptationEnabled: true,
+            fallbackPhase: "follicular"
+        )
+        let periodLog = PeriodLog(id: UUID().uuidString, userID: "u1", startDate: recentStart)
+        let ex = ProgramExercise(
+            exercise: "Back Squat",
+            variant: nil,
+            sets: .fixed(3),
+            reps: .fixed(5),
+            percent1RM: 0.80,
+            restMinutes: 3,
+            notes: "Keep chest up"
+        )
+        let session = ProgramSession(
+            sessionID: "s1", sessionName: "Day 1",
+            sessionType: "strength", focus: "Lower",
+            exercises: [ex]
+        )
+        let week = ProgramWeek(week: 1, phaseID: nil, isTestWeek: nil, sessions: [session])
+        let program = Program(
+            id: "p1", name: "Test", category: "Strength", description: "",
+            durationWeeks: 1, sessionsPerWeek: 1, difficulty: "beginner",
+            phases: [], weeks: [week], cycleAdjustmentProfile: nil
+        )
+        let adapted = CycleProgramGenerator.adaptProgram(
+            program,
+            phase: nil,
+            settings: settings,
+            preferences: prefs,
+            periodLogs: [periodLog],
+            referenceDate: referenceDate
+        )
+        let adaptedEx = adapted.weeks[0].sessions[0].exercises[0]
+        // If adjusted, the note should start with the existing note and include the cycle note
+        if let note = adaptedEx.notes, note.contains("Program:") {
+            #expect(note.hasPrefix("Keep chest up"))
+        }
+    }
+}

@@ -423,6 +423,32 @@ struct DashboardViewModelCoverageTests {
 
         #expect(vm.nextSession?.sessionID == "w1s1")
     }
+
+    @Test @MainActor
+    func loadUsesDefaultEnabledPrefsWhenNoCycleAdaptationPreferencesSaved() async throws {
+        let store = try makeTestStore()
+        let session = makeSession(id: "s1")
+        let program = makeProgram(id: "p1", weeks: [makeWeek(1, sessions: [session])])
+        let enrollment = EnrolledProgram(
+            id: "e1", userID: "u1", programID: "p1", startDate: .now,
+            currentWeek: 1, currentDay: 1
+        )
+        store.context.insert(enrollment)
+        // Insert cycle settings and a period log so adaptation can run, but no CycleAdaptationPreferences
+        store.context.insert(CycleSettings(id: "cs1", userID: "u1"))
+        store.context.insert(PeriodLog(
+            id: "pl1", userID: "u1",
+            startDate: Calendar.current.startOfDay(for: .now)
+        ))
+        try store.context.save()
+
+        let vm = DashboardViewModel(programRepo: FakeProgramRepository(programs: [program]))
+        await vm.load(modelContext: store.context)
+
+        // Program should still load — the nil prefs fallback must not skip adaptation entirely
+        #expect(vm.activeProgram?.id == "p1")
+        #expect(vm.nextSession?.sessionID == "s1")
+    }
 }
 
 @Suite("BenchmarksViewModel Coverage")

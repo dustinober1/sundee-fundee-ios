@@ -58,12 +58,31 @@ enum CycleProgramGenerator {
                         sessionType: session.sessionType,
                         focus: session.focus,
                         exercises: session.exercises.map { ex in
-                            policy.applyPhaseAdjustment(
+                            let adapted = policy.applyPhaseAdjustment(
                                 exercise: ex,
                                 phase: effectivePhase,
                                 readinessTier: readiness,
                                 confidence: confidence,
                                 profile: program.cycleAdjustmentProfile
+                            )
+                            let cycleNote = Self.cycleAdjustmentNote(
+                                original: ex,
+                                adapted: adapted,
+                                phase: effectivePhase
+                            )
+                            guard let cycleNote else { return adapted }
+                            let combinedNote = [ex.notes, cycleNote]
+                                .compactMap { $0 }
+                                .joined(separator: " · ")
+                            return ProgramExercise(
+                                exercise: adapted.exercise,
+                                variant: adapted.variant,
+                                sets: adapted.sets,
+                                reps: adapted.reps,
+                                percent1RM: adapted.percent1RM,
+                                restMinutes: adapted.restMinutes,
+                                notes: combinedNote,
+                                bodyweightOnly: adapted.bodyweightOnly
                             )
                         }
                     )
@@ -83,5 +102,41 @@ enum CycleProgramGenerator {
             weeks: adaptedWeeks,
             cycleAdjustmentProfile: program.cycleAdjustmentProfile
         )
+    }
+
+    // MARK: - Note generation
+
+    /// Returns a note string describing the original prescription and the cycle-adjusted values,
+    /// or nil if no meaningful adjustment was made.
+    static func cycleAdjustmentNote(
+        original: ProgramExercise,
+        adapted: ProgramExercise,
+        phase: CyclePhase
+    ) -> String? {
+        let origSets = original.sets.description
+        let origReps = original.reps.description
+        let adaptSets = adapted.sets.description
+        let adaptReps = adapted.reps.description
+
+        let origLoad: String? = original.percent1RM.map { "\(Int(($0 * 100).rounded()))%" }
+        let adaptLoad: String? = adapted.percent1RM.map { "\(Int(($0 * 100).rounded()))%" }
+
+        let setsChanged = origSets != adaptSets
+        let repsChanged = origReps != adaptReps
+        let loadChanged = origLoad != adaptLoad
+
+        guard setsChanged || repsChanged || loadChanged else { return nil }
+
+        let origScheme = formatScheme(sets: origSets, reps: origReps, load: origLoad)
+        let adaptScheme = formatScheme(sets: adaptSets, reps: adaptReps, load: adaptLoad)
+
+        return "Program: \(origScheme) → \(phase.displayName): \(adaptScheme)"
+    }
+
+    private static func formatScheme(sets: String, reps: String, load: String?) -> String {
+        if let load {
+            return "\(sets)×\(reps) @ \(load)"
+        }
+        return "\(sets)×\(reps)"
     }
 }

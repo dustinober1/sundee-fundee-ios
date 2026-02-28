@@ -62,7 +62,14 @@ final class DashboardViewModel {
             currentCyclePhase = result?.currentPhase
         }
 
-        // Load the program for the active enrollment, adapted for cycle phase
+        // Load the program for the active enrollment, adapted for cycle phase.
+        // Use a default enabled preferences when none has been saved yet (e.g. guest users).
+        let effectiveCyclePrefs = cyclePrefs ?? CycleAdaptationPreferences(
+            id: "default",
+            userID: "",
+            adaptationEnabled: true
+        )
+
         if let enrollment = activeEnrollment {
             var program = try? await programRepo.fetchProgram(id: enrollment.programID)
             if let raw = program {
@@ -70,7 +77,7 @@ final class DashboardViewModel {
                     raw,
                     phase: currentCyclePhase,
                     settings: cycleSettings,
-                    preferences: cyclePrefs,
+                    preferences: effectiveCyclePrefs,
                     periodLogs: periodLogs
                 )
             }
