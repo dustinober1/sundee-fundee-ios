@@ -307,7 +307,7 @@ struct WeightliftingExerciseCatalogTests {
     }
 
     @Test func calfRaiseIsNotWeightlifting() {
-        #expect(WeightliftingExerciseCatalog.isWeightliftingExercise("Calf Raise") == false)
+        #expect(WeightliftingExerciseCatalog.isWeightliftingExercise("Plated Calf Step Up") == false)
     }
 
     @Test func wallBallThrustersIsNotWeightlifting() {

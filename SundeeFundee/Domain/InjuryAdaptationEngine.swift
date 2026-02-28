@@ -70,7 +70,7 @@ enum InjuryAdaptationEngine {
         // Machine / accessory
         "Wall Ball Thrusters":                    ["Goblet Squat", "Air Squats", "Step-Ups"],
         "Banded Leg Curls":                       ["Nordic Curl", "Glute Bridge", "Swiss Ball Leg Curl"],
-        "Calf Raise":                             ["Seated Calf Raise", "Single-Leg Calf Raise"],
+        "Plated Calf Step Up":                    ["Seated Calf Raise", "Single-Leg Calf Raise"],
         // Upper body press
         "Flat Barbell Bench Press":               ["Dumbbell Bench Press", "Floor Press", "Push-Ups"],
         "Strict Press / Military Press":          ["Lateral Raises", "Z-Press", "Seated Dumbbell Press"],

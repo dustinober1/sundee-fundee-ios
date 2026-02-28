@@ -58,7 +58,7 @@
             "exercises": [
               { "exercise": "Back Squat", "variant": null, "sets": 4, "reps": 8, "percent1RM": 0.65, "restMinutes": 3, "notes": "4x8 @ 65%." },
               { "exercise": "Good Morning", "variant": null, "sets": 3, "reps": 10, "percent1RM": null, "restMinutes": 2, "notes": "Light weight, strong hip hinge." },
-              { "exercise": "Calf Raise", "variant": null, "sets": 4, "reps": 15, "percent1RM": null, "restMinutes": 1, "notes": "Slow and controlled." }
+              { "exercise": "Plated Calf Step Up", "variant": null, "sets": 4, "reps": 15, "percent1RM": null, "restMinutes": 1, "notes": "Slow and controlled." }
             ]
           }
         ]
@@ -98,7 +98,7 @@
             "exercises": [
               { "exercise": "Back Squat", "variant": null, "sets": 4, "reps": 8, "percent1RM": 0.67, "restMinutes": 3, "notes": "4x8 @ 67%. Build work capacity." },
               { "exercise": "Good Morning", "variant": null, "sets": 3, "reps": 10, "percent1RM": null, "restMinutes": 2, "notes": "Slight weight increase from week 1." },
-              { "exercise": "Calf Raise", "variant": null, "sets": 4, "reps": 15, "percent1RM": null, "restMinutes": 1, "notes": "Pause at top." }
+              { "exercise": "Plated Calf Step Up", "variant": null, "sets": 4, "reps": 15, "percent1RM": null, "restMinutes": 1, "notes": "Pause at top." }
             ]
           }
         ]
@@ -138,7 +138,7 @@
             "exercises": [
               { "exercise": "Back Squat", "variant": null, "sets": 5, "reps": 6, "percent1RM": 0.70, "restMinutes": 3, "notes": "5x6 @ 70%. High volume at moderate intensity." },
               { "exercise": "Good Morning", "variant": null, "sets": 3, "reps": 8, "percent1RM": null, "restMinutes": 2, "notes": "Moderate weight." },
-              { "exercise": "Calf Raise", "variant": null, "sets": 4, "reps": 12, "percent1RM": null, "restMinutes": 1, "notes": "Heavier weight, fewer reps." }
+              { "exercise": "Plated Calf Step Up", "variant": null, "sets": 4, "reps": 12, "percent1RM": null, "restMinutes": 1, "notes": "Heavier weight, fewer reps." }
             ]
           }
         ]
@@ -178,7 +178,7 @@
             "exercises": [
               { "exercise": "Back Squat", "variant": null, "sets": 5, "reps": 6, "percent1RM": 0.72, "restMinutes": 3, "notes": "5x6 @ 72%. Biggest volume day." },
               { "exercise": "Good Morning", "variant": null, "sets": 3, "reps": 8, "percent1RM": null, "restMinutes": 2, "notes": "Heaviest GMs of block 1." },
-              { "exercise": "Calf Raise", "variant": null, "sets": 4, "reps": 12, "percent1RM": null, "restMinutes": 1, "notes": "Heavy and controlled." }
+              { "exercise": "Plated Calf Step Up", "variant": null, "sets": 4, "reps": 12, "percent1RM": null, "restMinutes": 1, "notes": "Heavy and controlled." }
             ]
           }
         ]
@@ -218,7 +218,7 @@
             "exercises": [
               { "exercise": "Back Squat", "variant": null, "sets": 3, "reps": 6, "percent1RM": 0.72, "restMinutes": 3, "notes": "3x6 @ 72%. Back-off volume to support recovery." },
               { "exercise": "Romanian Deadlift", "variant": null, "sets": 3, "reps": 8, "percent1RM": null, "restMinutes": 2, "notes": "Moderate weight." },
-              { "exercise": "Calf Raise", "variant": null, "sets": 3, "reps": 12, "percent1RM": null, "restMinutes": 1, "notes": "Maintain calf volume." }
+              { "exercise": "Plated Calf Step Up", "variant": null, "sets": 3, "reps": 12, "percent1RM": null, "restMinutes": 1, "notes": "Maintain calf volume." }
             ]
           }
         ]
@@ -258,7 +258,7 @@
             "exercises": [
               { "exercise": "Back Squat", "variant": null, "sets": 3, "reps": 5, "percent1RM": 0.75, "restMinutes": 3, "notes": "3x5 @ 75%. Moderate back-off work." },
               { "exercise": "Good Morning", "variant": null, "sets": 3, "reps": 8, "percent1RM": null, "restMinutes": 2, "notes": "Posterior chain maintenance." },
-              { "exercise": "Calf Raise", "variant": null, "sets": 3, "reps": 12, "percent1RM": null, "restMinutes": 1, "notes": "Steady state." }
+              { "exercise": "Plated Calf Step Up", "variant": null, "sets": 3, "reps": 12, "percent1RM": null, "restMinutes": 1, "notes": "Steady state." }
             ]
           }
         ]
@@ -298,7 +298,7 @@
             "exercises": [
               { "exercise": "Back Squat", "variant": null, "sets": 3, "reps": 5, "percent1RM": 0.75, "restMinutes": 3, "notes": "3x5 @ 75%. Recovery volume." },
               { "exercise": "Romanian Deadlift", "variant": null, "sets": 3, "reps": 6, "percent1RM": null, "restMinutes": 2, "notes": "Moderate." },
-              { "exercise": "Calf Raise", "variant": null, "sets": 3, "reps": 12, "percent1RM": null, "restMinutes": 1, "notes": "Maintain." }
+              { "exercise": "Plated Calf Step Up", "variant": null, "sets": 3, "reps": 12, "percent1RM": null, "restMinutes": 1, "notes": "Maintain." }
             ]
           }
         ]
@@ -338,7 +338,7 @@
             "exercises": [
               { "exercise": "Back Squat", "variant": null, "sets": 3, "reps": 4, "percent1RM": 0.77, "restMinutes": 3, "notes": "3x4 @ 77%. Moderate back-off." },
               { "exercise": "Good Morning", "variant": null, "sets": 3, "reps": 6, "percent1RM": null, "restMinutes": 2, "notes": "Moderate heavy." },
-              { "exercise": "Calf Raise", "variant": null, "sets": 3, "reps": 10, "percent1RM": null, "restMinutes": 1, "notes": "Maintain." }
+              { "exercise": "Plated Calf Step Up", "variant": null, "sets": 3, "reps": 10, "percent1RM": null, "restMinutes": 1, "notes": "Maintain." }
             ]
           }
         ]
@@ -378,7 +378,7 @@
             "exercises": [
               { "exercise": "Back Squat", "variant": null, "sets": 3, "reps": 3, "percent1RM": 0.72, "restMinutes": 3, "notes": "3x3 @ 72%. Speed and technique. Move the bar fast." },
               { "exercise": "Good Morning", "variant": null, "sets": 2, "reps": 8, "percent1RM": null, "restMinutes": 2, "notes": "Light posterior chain work." },
-              { "exercise": "Calf Raise", "variant": null, "sets": 3, "reps": 12, "percent1RM": null, "restMinutes": 1, "notes": "Easy." }
+              { "exercise": "Plated Calf Step Up", "variant": null, "sets": 3, "reps": 12, "percent1RM": null, "restMinutes": 1, "notes": "Easy." }
             ]
           }
         ]
@@ -418,7 +418,7 @@
             "exercises": [
               { "exercise": "Back Squat", "variant": null, "sets": 3, "reps": 2, "percent1RM": 0.72, "restMinutes": 3, "notes": "3x2 @ 72%. Speed work. Explosive out of the hole." },
               { "exercise": "Romanian Deadlift", "variant": null, "sets": 2, "reps": 6, "percent1RM": null, "restMinutes": 2, "notes": "Light. Maintain." },
-              { "exercise": "Calf Raise", "variant": null, "sets": 2, "reps": 12, "percent1RM": null, "restMinutes": 1, "notes": "Easy." }
+              { "exercise": "Plated Calf Step Up", "variant": null, "sets": 2, "reps": 12, "percent1RM": null, "restMinutes": 1, "notes": "Easy." }
             ]
           }
         ]
@@ -458,7 +458,7 @@
             "exercises": [
               { "exercise": "Back Squat", "variant": null, "sets": 2, "reps": 2, "percent1RM": 0.70, "restMinutes": 3, "notes": "2x2 @ 70%. Light speed work. Stay sharp." },
               { "exercise": "Good Morning", "variant": null, "sets": 2, "reps": 6, "percent1RM": null, "restMinutes": 2, "notes": "Very light. Just movement." },
-              { "exercise": "Calf Raise", "variant": null, "sets": 2, "reps": 10, "percent1RM": null, "restMinutes": 1, "notes": "Easy." }
+              { "exercise": "Plated Calf Step Up", "variant": null, "sets": 2, "reps": 10, "percent1RM": null, "restMinutes": 1, "notes": "Easy." }
             ]
           }
         ]
@@ -497,7 +497,7 @@
             "exercises": [
               { "exercise": "Back Squat", "variant": null, "sets": 3, "reps": 5, "percent1RM": 0.55, "restMinutes": 2, "notes": "3x5 @ 55%. Easy deload. Technique only." },
               { "exercise": "Good Morning", "variant": null, "sets": 2, "reps": 10, "percent1RM": null, "restMinutes": 2, "notes": "Very light. Just move." },
-              { "exercise": "Calf Raise", "variant": null, "sets": 3, "reps": 15, "percent1RM": null, "restMinutes": 1, "notes": "Light and easy. Program complete!" }
+              { "exercise": "Plated Calf Step Up", "variant": null, "sets": 3, "reps": 15, "percent1RM": null, "restMinutes": 1, "notes": "Light and easy. Program complete!" }
             ]
           }
         ]

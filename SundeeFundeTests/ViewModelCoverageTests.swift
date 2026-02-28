@@ -595,7 +595,7 @@ struct MaxLiftsViewModelCoverageTests {
         let calfRaise = OneRepMax(
             id: "orm3",
             userID: "u1",
-            exerciseID: "Calf Raise",
+            exerciseID: "Plated Calf Step Up",
             weightKg: 70,
             date: now
         )
