@@ -8,6 +8,8 @@ final class SettingsViewModel {
     var experienceLevel: ExperienceLevel = .beginner
     var primaryGoal: PrimaryGoal = .strength
     var weightUnit: WeightUnit = .pounds
+    var gender: Gender = .preferNotToSay
+    var cycleTrackingEnabled: Bool = false
     var injuryProfiles: [InjuryProfile] = []
 
     private var modelContext: ModelContext?
@@ -25,6 +27,8 @@ final class SettingsViewModel {
             experienceLevel = user.experienceLevel
             primaryGoal = user.primaryGoal
             weightUnit = user.weightUnit
+            gender = user.gender
+            cycleTrackingEnabled = user.cycleTrackingEnabled
         }
 
         let injuryRepo = SwiftDataInjuryRepository(context: modelContext)
@@ -40,6 +44,8 @@ final class SettingsViewModel {
             user.experienceLevel = experienceLevel
             user.primaryGoal = primaryGoal
             user.weightUnit = weightUnit
+            user.gender = gender
+            user.cycleTrackingEnabled = cycleTrackingEnabled
             try? ctx.save()
         }
     }

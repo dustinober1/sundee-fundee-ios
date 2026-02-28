@@ -751,4 +751,55 @@ struct SettingsViewModelCoverageTests {
         )
         #expect(vm.injuryProfiles.isEmpty)
     }
+
+    @Test("loads gender and cycleTrackingEnabled from user")
+    @MainActor
+    func loadsGenderAndCycleTracking() async throws {
+        let store = try makeTestStore()
+        let user = User(
+            id: "u-gender",
+            name: "Test",
+            experienceLevel: .beginner,
+            primaryGoal: .strength,
+            gender: .female,
+            appleUserID: "apple-gender",
+            cycleTrackingEnabled: true
+        )
+        store.context.insert(user)
+        try store.context.save()
+
+        let vm = SettingsViewModel()
+        await vm.load(modelContext: store.context, userID: user.id)
+
+        #expect(vm.gender == .female)
+        #expect(vm.cycleTrackingEnabled == true)
+    }
+
+    @Test("saveProfile persists gender and cycleTrackingEnabled")
+    @MainActor
+    func savesGenderAndCycleTracking() async throws {
+        let store = try makeTestStore()
+        let user = User(
+            id: "u-gender2",
+            name: "Test",
+            experienceLevel: .beginner,
+            primaryGoal: .strength,
+            gender: .female,
+            appleUserID: "apple-gender2",
+            cycleTrackingEnabled: true
+        )
+        store.context.insert(user)
+        try store.context.save()
+
+        let vm = SettingsViewModel()
+        await vm.load(modelContext: store.context, userID: user.id)
+        vm.gender = .male
+        vm.cycleTrackingEnabled = false
+        await vm.saveProfile()
+
+        let repo = SwiftDataUserRepository(context: store.context)
+        let saved = try repo.fetchCurrentUser()
+        #expect(saved?.gender == .male)
+        #expect(saved?.cycleTrackingEnabled == false)
+    }
 }
