@@ -91,33 +91,4 @@ final class CloudKitWODRepository: WODRepository, @unchecked Sendable {
     }
 }
 
-// MARK: - CKRecord -> WOD decoding
-
-extension WOD {
-    init(from record: CKRecord) throws {
-        guard
-            let id = record["id"] as? String,
-            let date = record["date"] as? String,
-            let title = record["title"] as? String,
-            let description = record["description"] as? String,
-            let exercisesJSON = record["exercisesJSON"] as? String,
-            let exercisesData = exercisesJSON.data(using: .utf8)
-        else {
-            throw WODDecodingError.missingFields
-        }
-
-        let exercises = try JSONDecoder().decode([ProgramExercise].self, from: exercisesData)
-
-        self.init(
-            id: id,
-            date: date,
-            title: title,
-            description: description,
-            exercises: exercises
-        )
-    }
-}
-
-enum WODDecodingError: Error {
-    case missingFields
-}
+// CKRecord → WOD decoding is now provided by SundeeFundeeShared

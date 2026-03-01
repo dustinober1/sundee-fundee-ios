@@ -104,6 +104,7 @@
 		CBB81A553D871E08894CB3F2 /* BenchmarkDetailViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AC0AC5D54C5AD7A36EBF2C7 /* BenchmarkDetailViewModelTests.swift */; };
 		CC9A0ED4071A649951114A1F /* LoadAdjustmentPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1CC978831B9C4E2A1AFB8A3 /* LoadAdjustmentPolicy.swift */; };
 		CF0ECE5C2BF9B3E2BC42DA56 /* DomainCoverageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0853FAE104810510C018960 /* DomainCoverageTests.swift */; };
+		CFDF444DB32D9E05ACF7EAA4 /* SundeeFundeeShared in Frameworks */ = {isa = PBXBuildFile; productRef = 5E6F3FC7910C527D25A7B3A9 /* SundeeFundeeShared */; };
 		D03B53707FF4C6FCE513D02C /* AppModelContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C622B6A0C64BA37AEAEF044 /* AppModelContainer.swift */; };
 		D2ADE6487FB9DD6319D81FA4 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4D25ACD9D39C9AB1DA0F1386 /* Assets.xcassets */; };
 		D33BBF3880A570A0E74C748C /* PlaceholderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B75299B558602C0FC9B4A225 /* PlaceholderTests.swift */; };
@@ -242,6 +243,7 @@
 		CF3B913976B56343316CF331 /* MainTabCoverageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabCoverageTests.swift; sourceTree = "<group>"; };
 		D16BAB9EF7570DE98192141A /* CompletedWorkout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompletedWorkout.swift; sourceTree = "<group>"; };
 		D64DF9E2AE5C41BB24352DF6 /* SwiftDataUserRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftDataUserRepository.swift; sourceTree = "<group>"; };
+		DF36DBA9CC09C98EB2F0F97A /* SundeeFundeeShared */ = {isa = PBXFileReference; lastKnownFileType = folder; name = SundeeFundeeShared; path = ../SundeeFundeeShared; sourceTree = SOURCE_ROOT; };
 		E0853FAE104810510C018960 /* DomainCoverageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DomainCoverageTests.swift; sourceTree = "<group>"; };
 		E22612881A7957274240FC8D /* MaxLiftsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaxLiftsViewModel.swift; sourceTree = "<group>"; };
 		E5AA0B73DAFAAB5029C55DFF /* KeychainHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainHelper.swift; sourceTree = "<group>"; };
@@ -262,6 +264,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CFDF444DB32D9E05ACF7EAA4 /* SundeeFundeeShared in Frameworks */,
 				ED28D5048826C99F4AF78806 /* CloudKit.framework in Frameworks */,
 				ADF9EFF11D301F669277047E /* HealthKit.framework in Frameworks */,
 			);
@@ -273,6 +276,7 @@
 		022B8D4226C03C2A2C898E93 = {
 			isa = PBXGroup;
 			children = (
+				F06D23E8ED1C14D186B84039 /* Packages */,
 				DEA45E21D11C2110AA682199 /* SundeeFundee */,
 				C66005991728DE75DBCD47BF /* SundeeFundeTests */,
 				EBBFA2F0009DF6E32BDD17A5 /* Frameworks */,
@@ -628,6 +632,14 @@
 			path = WODs;
 			sourceTree = "<group>";
 		};
+		F06D23E8ED1C14D186B84039 /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				DF36DBA9CC09C98EB2F0F97A /* SundeeFundeeShared */,
+			);
+			name = Packages;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -645,6 +657,7 @@
 			);
 			name = SundeeFundee;
 			packageProductDependencies = (
+				5E6F3FC7910C527D25A7B3A9 /* SundeeFundeeShared */,
 			);
 			productName = SundeeFundee;
 			productReference = C99B9014B8F76C3124C8DA6A /* SundeeFundee.app */;
@@ -697,6 +710,9 @@
 			);
 			mainGroup = 022B8D4226C03C2A2C898E93;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				5EE44B39FD2753D29F1D8CA2 /* XCLocalSwiftPackageReference "../SundeeFundeeShared" */,
+			);
 			preferredProjectObjectVersion = 77;
 			projectDirPath = "";
 			projectRoot = "";
@@ -1092,6 +1108,20 @@
 			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		5EE44B39FD2753D29F1D8CA2 /* XCLocalSwiftPackageReference "../SundeeFundeeShared" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../SundeeFundeeShared;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		5E6F3FC7910C527D25A7B3A9 /* SundeeFundeeShared */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = SundeeFundeeShared;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = A23AA027FBDBC591792DA380 /* Project object */;
 }
