@@ -36,6 +36,7 @@ jobs:
         with:
           repository: dustinober1/sundee-fundee-shared
           path: SundeeFundee/Packages/SundeeFundeeShared
+          token: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
 
       - name: Generate Xcode project
         run: bundle exec xcodegen generate
