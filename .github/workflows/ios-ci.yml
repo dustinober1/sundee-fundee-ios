@@ -15,6 +15,11 @@ jobs:
       - name: Install XcodeGen
         run: brew install xcodegen
 
+      - name: Fetch Shared Package
+        run: |
+          mkdir -p SundeeFundee/Packages
+          git clone https://github.com/dustinober1/sundee-fundee-shared.git SundeeFundee/Packages/SundeeFundeeShared
+
       - name: Generate Xcode project
         run: xcodegen generate --quiet
 
