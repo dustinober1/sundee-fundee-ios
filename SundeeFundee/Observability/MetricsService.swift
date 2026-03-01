@@ -1,5 +1,6 @@
 import Foundation
 import MetricKit
+import os
 
 /// Subscribes to MetricKit diagnostics payloads and logs them for Xcode Organizer review.
 final class MetricsService: NSObject, MXMetricManagerSubscriber, @unchecked Sendable {
@@ -14,6 +15,8 @@ final class MetricsService: NSObject, MXMetricManagerSubscriber, @unchecked Send
         let crashCount: Int?
         let hangCount: Int?
     }
+
+    private static let logger = Logger(subsystem: "com.sundeefundee.app", category: "MetricsService")
 
     static let shared = MetricsService()
 
@@ -57,7 +60,7 @@ final class MetricsService: NSObject, MXMetricManagerSubscriber, @unchecked Send
 
     func logMetricPayloads(
         _ payloads: [MetricPayloadSummary],
-        printer: (String) -> Void = { print($0) }
+        printer: (String) -> Void = { MetricsService.logger.debug("\($0, privacy: .private)") }
     ) {
         for payload in payloads {
             for line in metricSummaryLines(
@@ -73,7 +76,7 @@ final class MetricsService: NSObject, MXMetricManagerSubscriber, @unchecked Send
 
     func logDiagnosticPayloads(
         _ payloads: [DiagnosticPayloadSummary],
-        printer: (String) -> Void = { print($0) }
+        printer: (String) -> Void = { MetricsService.logger.debug("\($0, privacy: .private)") }
     ) {
         for payload in payloads {
             for line in diagnosticSummaryLines(
