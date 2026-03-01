@@ -15,13 +15,6 @@ jobs:
       - name: Install XcodeGen
         run: brew install xcodegen
 
-      - name: Checkout Shared Package
-        uses: actions/checkout@v4
-        with:
-          repository: dustinober1/sundee-fundee-shared
-          path: SundeeFundee/Packages/SundeeFundeeShared
-          token: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
-
       - name: Generate Xcode project
         run: xcodegen generate --quiet
 

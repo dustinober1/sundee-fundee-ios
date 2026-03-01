@@ -243,23 +243,6 @@ struct ExerciseDetailView: View {
                         }
                     }
                 }
-
-                let history = viewModel.liftMaxHistory[exercise] ?? []
-                if !history.isEmpty {
-                    Section("History") {
-                        ForEach(history, id: \.id) { entry in
-                            HStack {
-                                Text(entry.date, style: .date)
-                                    .font(AppTheme.Fonts.body)
-                                    .foregroundStyle(AppTheme.Colors.navy)
-                                Spacer()
-                                Text(WeightUnitConversion.formatWithUnit(kilograms: entry.weightKg, unit: viewModel.weightUnit))
-                                    .font(AppTheme.Fonts.subheading)
-                                    .foregroundStyle(AppTheme.Colors.navy)
-                            }
-                        }
-                    }
-                }
             }
             .scrollContentBackground(.hidden)
         }

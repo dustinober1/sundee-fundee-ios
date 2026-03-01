@@ -44,7 +44,6 @@ protocol LiftRepository {
     func saveLiftMax(_ max: LiftMax) throws
     func fetchLiftMaxes() throws -> [LiftMax]
     func fetchLiftMax(exercise: String) throws -> LiftMax?
-    func fetchLiftMaxes(exercise: String) throws -> [LiftMax]
     func saveOneRepMax(_ max: OneRepMax) throws
     func fetchOneRepMaxes() throws -> [OneRepMax]
     func fetchOneRepMax(exercise: String) throws -> OneRepMax?

@@ -30,14 +30,6 @@ final class SwiftDataLiftRepository: LiftRepository {
         return try context.fetch(descriptor).first
     }
 
-    func fetchLiftMaxes(exercise: String) throws -> [LiftMax] {
-        let descriptor = FetchDescriptor<LiftMax>(
-            predicate: #Predicate { $0.exerciseID == exercise },
-            sortBy: [SortDescriptor(\.date, order: .reverse)]
-        )
-        return try context.fetch(descriptor)
-    }
-
     // MARK: - OneRepMax
 
     func saveOneRepMax(_ max: OneRepMax) throws {

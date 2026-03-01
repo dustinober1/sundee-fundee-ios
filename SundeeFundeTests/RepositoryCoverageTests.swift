@@ -151,8 +151,6 @@ struct RepositoryCoverageTests {
 
         #expect(try repository.fetchLiftMaxes().map(\.id) == ["lift-other", "lift-new", "lift-old"])
         #expect(try repository.fetchLiftMax(exercise: "Back Squat")?.id == "lift-new")
-        #expect(try repository.fetchLiftMaxes(exercise: "Back Squat").map(\.id) == ["lift-new", "lift-old"])
-        #expect(try repository.fetchLiftMaxes(exercise: "Bench Press").count == 1)
 
         let ormOld = OneRepMax(id: "orm-old", userID: "u1", exerciseID: "Back Squat", weightKg: 115, date: date(40))
         let ormNew = OneRepMax(id: "orm-new", userID: "u1", exerciseID: "Back Squat", weightKg: 120, date: date(50))
