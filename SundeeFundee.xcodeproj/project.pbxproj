@@ -239,7 +239,7 @@
 		CF3B913976B56343316CF331 /* MainTabCoverageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabCoverageTests.swift; sourceTree = "<group>"; };
 		D16BAB9EF7570DE98192141A /* CompletedWorkout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompletedWorkout.swift; sourceTree = "<group>"; };
 		D64DF9E2AE5C41BB24352DF6 /* SwiftDataUserRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftDataUserRepository.swift; sourceTree = "<group>"; };
-		DF36DBA9CC09C98EB2F0F97A /* SundeeFundeeShared */ = {isa = PBXFileReference; lastKnownFileType = folder; name = SundeeFundeeShared; path = ../SundeeFundeeShared; sourceTree = SOURCE_ROOT; };
+		DF36DBA9CC09C98EB2F0F97A /* SundeeFundeeShared */ = {isa = PBXFileReference; lastKnownFileType = folder; name = SundeeFundeeShared; path = SundeeFundee/Packages/SundeeFundeeShared; sourceTree = SOURCE_ROOT; };
 		E0853FAE104810510C018960 /* DomainCoverageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DomainCoverageTests.swift; sourceTree = "<group>"; };
 		E22612881A7957274240FC8D /* MaxLiftsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaxLiftsViewModel.swift; sourceTree = "<group>"; };
 		E5AA0B73DAFAAB5029C55DFF /* KeychainHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainHelper.swift; sourceTree = "<group>"; };
@@ -705,7 +705,7 @@
 			mainGroup = 022B8D4226C03C2A2C898E93;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				5EE44B39FD2753D29F1D8CA2 /* XCLocalSwiftPackageReference "../SundeeFundeeShared" */,
+				E536FEABE5F9F34B00E46C5E /* XCLocalSwiftPackageReference "SundeeFundee/Packages/SundeeFundeeShared" */,
 			);
 			preferredProjectObjectVersion = 77;
 			projectDirPath = "";
@@ -1102,9 +1102,9 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		5EE44B39FD2753D29F1D8CA2 /* XCLocalSwiftPackageReference "../SundeeFundeeShared" */ = {
+		E536FEABE5F9F34B00E46C5E /* XCLocalSwiftPackageReference "SundeeFundee/Packages/SundeeFundeeShared" */ = {
 			isa = XCLocalSwiftPackageReference;
-			relativePath = ../SundeeFundeeShared;
+			relativePath = SundeeFundee/Packages/SundeeFundeeShared;
 		};
 /* End XCLocalSwiftPackageReference section */
 
