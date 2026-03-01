@@ -51,6 +51,9 @@ targets:
         ITSAppUsesNonExemptEncryption: false
         UILaunchScreen:
           UIColorName: LaunchBackground
+        UIRequiresFullScreen: true
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
         UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: false
         NSHealthShareUsageDescription: "Sundee Fundee uses health data to provide cycle-aware training recommendations."
