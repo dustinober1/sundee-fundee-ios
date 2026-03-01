@@ -322,15 +322,17 @@ struct AddLiftMaxSheet: View {
                     Button("Cancel", action: dismiss.callAsFunction)
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save", action: Self.saveAction(
-                        viewModel: viewModel,
-                        selectedExercise: selectedExercise,
-                        weightKg: weightKg,
-                        reps: reps,
-                        isEstimated: isEstimated,
-                        weightUnit: viewModel.weightUnit,
-                        dismiss: dismiss.callAsFunction
-                    ))
+                    Button("Save") {
+                        Self.saveAction(
+                            viewModel: viewModel,
+                            selectedExercise: selectedExercise,
+                            weightKg: weightKg,
+                            reps: reps,
+                            isEstimated: isEstimated,
+                            weightUnit: viewModel.weightUnit,
+                            dismiss: dismiss.callAsFunction
+                        )()
+                    }
                 }
             }
         }
