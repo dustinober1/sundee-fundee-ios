@@ -15,8 +15,14 @@ jobs:
       - name: Install XcodeGen
         run: brew install xcodegen
 
-      - name: Clone SundeeFundeeShared
-        run: git clone https://github.com/dustinober1/sundee-fundee-shared.git SundeeFundee/Packages/SundeeFundeeShared
+      - name: Checkout SundeeFundeeShared
+        uses: actions/checkout@v4
+        with:
+          repository: dustinober1/sundee-fundee-shared
+          path: SundeeFundee/Packages/SundeeFundeeShared
+          # Note: If the repo is private, a personal access token (PAT) must be provided:
+          # token: ${{ secrets.PAT_TOKEN }}
+          # Assuming it's public for now based on the previous git clone attempt.
 
       - name: Generate Xcode project
         run: xcodegen generate --quiet
