@@ -20,8 +20,8 @@ final class MaxLiftsViewModel {
         let repo = SwiftDataLiftRepository(context: modelContext)
         let userRepo = SwiftDataUserRepository(context: modelContext)
 
-        let orms = try! repo.fetchOneRepMaxes()
-        let prs = try! repo.fetchPersonalRecords()
+        let orms = (try? repo.fetchOneRepMaxes()) ?? []
+        let prs = (try? repo.fetchPersonalRecords()) ?? []
         weightUnit = (try? userRepo.fetchCurrentUser())?.weightUnit ?? .pounds
 
         // Build exercise name index from tracked data — weightlifting moves only
@@ -42,7 +42,7 @@ final class MaxLiftsViewModel {
         personalRecords = prDict
 
         // Load conditioning PRs
-        let cPRs = try! repo.fetchAllConditioningPRs()
+        let cPRs = (try? repo.fetchAllConditioningPRs()) ?? []
         conditioningPRs = cPRs
         conditioningExerciseNames = Array(Set(cPRs.map(\.exerciseID))).sorted()
     }

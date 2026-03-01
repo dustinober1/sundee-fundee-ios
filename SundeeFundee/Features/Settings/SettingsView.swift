@@ -445,6 +445,15 @@ struct EditInjuryView: View {
                     dismiss: dismiss.callAsFunction
                 ))
             }
+            if injury.isActive {
+                ToolbarItem(placement: .bottomBar) {
+                    Button("Resolve Injury", role: .destructive, action: Self.resolveAction(
+                        injury: injury,
+                        viewModel: viewModel,
+                        dismiss: dismiss.callAsFunction
+                    ))
+                }
+            }
         }
     }
 }
@@ -470,6 +479,10 @@ struct AddInjurySheet: View {
         _limitations = State(initialValue: limitations)
         _recoveryGoal = State(initialValue: recoveryGoal)
         _selectedRegions = State(initialValue: selectedRegions)
+    }
+
+    static func canSave(location: String, selectedRegions: Set<BodyLocation.Region>) -> Bool {
+        !selectedRegions.isEmpty || !location.trimmingCharacters(in: .whitespaces).isEmpty
     }
 
     static func saveAction(
@@ -521,6 +534,7 @@ struct AddInjurySheet: View {
                         selectedRegions: selectedRegions,
                         dismiss: dismiss.callAsFunction
                     ))
+                    .disabled(!Self.canSave(location: location, selectedRegions: selectedRegions))
                 }
             }
         }

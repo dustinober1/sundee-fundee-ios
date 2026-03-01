@@ -275,6 +275,10 @@ struct AddLiftMaxSheet: View {
         _isEstimated = State(initialValue: isEstimated)
     }
     
+    static func canSave(weightKg: String, weightUnit: WeightUnit) -> Bool {
+        WeightUnitConversion.parseInputToKilograms(weightKg, unit: weightUnit) != nil
+    }
+
     static func saveAction(
         viewModel: MaxLiftsViewModel,
         selectedExercise: String,
@@ -334,6 +338,7 @@ struct AddLiftMaxSheet: View {
                             dismiss: dismiss.callAsFunction
                         )()
                     }
+                    .disabled(!Self.canSave(weightKg: weightKg, weightUnit: viewModel.weightUnit))
                 }
             }
         }

@@ -160,6 +160,12 @@ final class DashboardViewModel {
         return program.weeks.first(where: { $0.week == nextWeekNum })?.sessions.first
     }
 
+    var isAtLastSession: Bool {
+        guard let enrollment = activeEnrollment, let program = activeProgram else { return false }
+        let next = Self.nextPosition(currentWeek: enrollment.currentWeek, currentDay: enrollment.currentDay, program: program)
+        return next.week == enrollment.currentWeek && next.day == enrollment.currentDay
+    }
+
     // MARK: - Position helpers
 
     /// Returns the next (week, day) position in the program, or the current position if already at the end.

@@ -8,6 +8,7 @@ struct DashboardView: View {
     @Environment(AppState.self) private var appState
 
     @State private var showSkipConfirmation = false
+    @State private var showLastSessionAlert = false
     @State private var workoutToDelete: CompletedWorkout?
     @State private var showDeleteConfirmation = false
     @State private var injuryForCheckIn: InjuryProfile?
@@ -39,7 +40,13 @@ struct DashboardView: View {
                             program: state.program,
                             nextSession: viewModel.nextSession,
                             cyclePhase: viewModel.currentCyclePhase,
-                            onSkip: { showSkipConfirmation = true }
+                            onSkip: {
+                                if viewModel.isAtLastSession {
+                                    showLastSessionAlert = true
+                                } else {
+                                    showSkipConfirmation = true
+                                }
+                            }
                         )
                         .accessibilityIdentifier("active-cycle-card")
                     } else {
@@ -110,6 +117,18 @@ struct DashboardView: View {
             Button("Cancel", role: .cancel) { workoutToDelete = nil }
         } message: {
             Text("This will remove the workout record and roll back your program progress by one session.")
+        }
+        .alert("Last Session", isPresented: $showLastSessionAlert) {
+            Button("Skip & Complete Program") {
+                viewModel.skipWorkout(
+                    modelContext: modelContext,
+                    userID: appState.currentUserID ?? "",
+                    recordAs: .markAsSkipped
+                )
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This is the last session in the program. Skipping it will complete the program.")
         }
         .sheet(item: $injuryForCheckIn) { injury in
             PainCheckInView(injury: injury) { level, notes in

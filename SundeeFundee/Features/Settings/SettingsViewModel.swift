@@ -99,15 +99,39 @@ final class SettingsViewModel {
 
     var transitionSuggestions: [PhaseTransitionAdvisor.Suggestion] = []
 
+    private static let dismissedTransitionsKey = "dismissedPhaseTransitions"
+
+    private static func loadDismissedTransitions() -> [String: String] {
+        UserDefaults.standard.dictionary(forKey: dismissedTransitionsKey) as? [String: String] ?? [:]
+    }
+
+    private static func saveDismissedTransition(injuryID: String, phase: String) {
+        var dismissed = loadDismissedTransitions()
+        dismissed[injuryID] = phase
+        UserDefaults.standard.set(dismissed, forKey: dismissedTransitionsKey)
+    }
+
+    private static func clearDismissedTransition(injuryID: String) {
+        var dismissed = loadDismissedTransitions()
+        dismissed.removeValue(forKey: injuryID)
+        UserDefaults.standard.set(dismissed, forKey: dismissedTransitionsKey)
+    }
+
     func evaluateTransitions() {
+        let dismissed = Self.loadDismissedTransitions()
         transitionSuggestions = injuryProfiles.compactMap { injury in
             guard injury.isActive else { return nil }
             let logs = painLogs[injury.id] ?? []
-            return PhaseTransitionAdvisor.evaluateTransition(
+            guard let suggestion = PhaseTransitionAdvisor.evaluateTransition(
                 injuryID: injury.id,
                 currentPhase: injury.recoveryPhase,
                 painLogs: logs
-            )
+            ) else { return nil }
+            // Skip if user already dismissed this specific transition
+            if dismissed[injury.id] == suggestion.suggestedPhase.rawValue {
+                return nil
+            }
+            return suggestion
         }
     }
 
@@ -117,10 +141,12 @@ final class SettingsViewModel {
         injury.recoveryPhase = suggestion.suggestedPhase
         injury.updatedAt = .now
         try? ctx.save()
+        Self.clearDismissedTransition(injuryID: suggestion.injuryID)
         transitionSuggestions.removeAll { $0.injuryID == suggestion.injuryID }
     }
 
     func dismissTransition(_ suggestion: PhaseTransitionAdvisor.Suggestion) {
+        Self.saveDismissedTransition(injuryID: suggestion.injuryID, phase: suggestion.suggestedPhase.rawValue)
         transitionSuggestions.removeAll { $0.injuryID == suggestion.injuryID }
     }
 

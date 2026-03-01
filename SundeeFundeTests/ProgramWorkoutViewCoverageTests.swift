@@ -220,7 +220,7 @@ final class ProgramWorkoutViewCoverageTests: XCTestCase {
         switchVM.programs = [primaryProgram, secondaryProgram]
         switchVM.activeEnrollment = makeEnrollment(programID: secondaryProgram.id, id: "enrolled-other")
         XCTAssertNotNil(host(NavigationStack { ProgramDetailView(program: primaryProgram, viewModel: switchVM) }, container: container).0.view)
-        ProgramDetailView.performEnrollAction(switchVM, in: primaryProgram, modelContext: container.mainContext)()
+        ProgramDetailView.performEnrollAction(switchVM, in: primaryProgram, modelContext: container.mainContext, userID: "")()
         waitForTasks()
         XCTAssertEqual(switchVM.activeEnrollment?.programID, primaryProgram.id)
         ProgramDetailView.performCancelEnrollmentAction(switchVM, modelContext: container.mainContext)()

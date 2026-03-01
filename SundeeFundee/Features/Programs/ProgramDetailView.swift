@@ -7,6 +7,7 @@ struct ProgramDetailView: View {
     @Bindable var viewModel: ProgramListViewModel
 
     @Environment(\.modelContext) private var modelContext
+    @Environment(AppState.self) private var appState
     @State private var showCancelConfirm: Bool
     
     init(program: Program, viewModel: ProgramListViewModel, showCancelConfirm: Bool = false) {
@@ -33,9 +34,10 @@ struct ProgramDetailView: View {
     static func performEnrollAction(
         _ viewModel: ProgramListViewModel,
         in program: Program,
-        modelContext: ModelContext
+        modelContext: ModelContext,
+        userID: String
     ) -> () -> Void {
-        { Self.performEnroll(viewModel, in: program, modelContext: modelContext) }
+        { Self.performEnroll(viewModel, in: program, modelContext: modelContext, userID: userID) }
     }
     
     static func performCancelEnrollmentAction(
@@ -125,13 +127,13 @@ struct ProgramDetailView: View {
 
                 Button(
                     "Switch to This Program",
-                    action: Self.performEnrollAction(viewModel, in: program, modelContext: modelContext)
+                    action: Self.performEnrollAction(viewModel, in: program, modelContext: modelContext, userID: appState.currentUserID ?? "")
                 )
                 .buttonStyle(PrimaryButtonStyle())
             }
             .frame(maxWidth: .infinity)
         } else {
-            Button("Start Program", action: Self.performEnrollAction(viewModel, in: program, modelContext: modelContext))
+            Button("Start Program", action: Self.performEnrollAction(viewModel, in: program, modelContext: modelContext, userID: appState.currentUserID ?? ""))
             .buttonStyle(PrimaryButtonStyle())
             .frame(maxWidth: .infinity)
         }
@@ -145,8 +147,8 @@ struct ProgramDetailView: View {
         isPresented.wrappedValue = true
     }
 
-    static func performEnroll(_ viewModel: ProgramListViewModel, in program: Program, modelContext: ModelContext) {
-        Task { await viewModel.enroll(in: program, modelContext: modelContext) }
+    static func performEnroll(_ viewModel: ProgramListViewModel, in program: Program, modelContext: ModelContext, userID: String) {
+        Task { await viewModel.enroll(in: program, modelContext: modelContext, userID: userID) }
     }
 
     static func performCancelEnrollment(_ viewModel: ProgramListViewModel, modelContext: ModelContext) {

@@ -34,7 +34,7 @@ final class ProgramListViewModel {
         }
     }
 
-    func enroll(in program: Program, modelContext: ModelContext) async {
+    func enroll(in program: Program, modelContext: ModelContext, userID: String = "") async {
         let repo = SwiftDataEnrolledProgramRepository(context: modelContext)
         enrollmentRepo = repo
 
@@ -45,7 +45,7 @@ final class ProgramListViewModel {
 
         let enrollment = EnrolledProgram(
             id: UUID().uuidString,
-            userID: "",          // filled by auth context in later phases
+            userID: userID,
             programID: program.id,
             startDate: .now,
             currentWeek: 1,
