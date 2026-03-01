@@ -45,6 +45,9 @@ struct DashboardView: View {
                     } else {
                         NoEnrollmentCard()
                     }
+                    if let wod = viewModel.todayWOD {
+                        WODCard(wod: wod, oneRepMaxes: viewModel.oneRepMaxes, barbellWeightKg: viewModel.barbellWeightKg, weightUnit: viewModel.weightUnit)
+                    }
                     if let rehabSession = viewModel.rehabSession {
                         RehabSessionCard(session: rehabSession)
                     }
@@ -67,6 +70,16 @@ struct DashboardView: View {
                     )
                 )
             }
+        }
+        .navigationDestination(for: StartWODDestination.self) { dest in
+            WODExecutionView(
+                viewModel: WODExecutionViewModel(
+                    wod: dest.wod,
+                    oneRepMaxes: viewModel.oneRepMaxes,
+                    barbellWeightKg: viewModel.barbellWeightKg,
+                    weightUnit: viewModel.weightUnit
+                )
+            )
         }
         .confirmationDialog("Skip this workout?", isPresented: $showSkipConfirmation, titleVisibility: .visible) {
             Button("Mark as Skipped") {
@@ -481,6 +494,60 @@ struct PainCheckInCard: View {
                     .padding(.vertical, 4)
                 }
             }
+        }
+        .padding(AppTheme.Spacing.md)
+        .background(AppTheme.Colors.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: AppTheme.CornerRadius.card))
+        .shadow(color: .black.opacity(0.08), radius: 6, x: 0, y: 3)
+    }
+}
+
+// MARK: - StartWODDestination
+
+struct StartWODDestination: Hashable {
+    let wod: WOD
+}
+
+// MARK: - WODCard
+
+struct WODCard: View {
+    let wod: WOD
+    let oneRepMaxes: [String: Double]
+    let barbellWeightKg: Double
+    let weightUnit: WeightUnit
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("WORKOUT OF THE DAY")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(AppTheme.Colors.accentOrange)
+                        .tracking(1.5)
+                    Text(wod.title)
+                        .font(AppTheme.Fonts.subheading)
+                        .foregroundStyle(AppTheme.Colors.navy)
+                }
+                Spacer()
+                Image(systemName: "flame.fill")
+                    .font(.title2)
+                    .foregroundStyle(AppTheme.Colors.accentOrange)
+            }
+
+            Text(wod.description)
+                .font(AppTheme.Fonts.caption)
+                .foregroundStyle(AppTheme.Colors.navy.opacity(0.6))
+
+            Text("\(wod.exercises.count) exercises")
+                .font(AppTheme.Fonts.caption)
+                .foregroundStyle(AppTheme.Colors.navy.opacity(0.5))
+
+            NavigationLink(value: StartWODDestination(wod: wod)) {
+                Label("Start WOD", systemImage: "play.fill")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(PrimaryButtonStyle())
+            .accessibilityIdentifier("start-wod-button")
         }
         .padding(AppTheme.Spacing.md)
         .background(AppTheme.Colors.cardBackground)

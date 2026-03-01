@@ -22,13 +22,20 @@ final class DashboardViewModel {
     var activeInjuriesNeedingCheckIn: [InjuryProfile] = []
     var rehabSession: ProgramSession?
     var readinessScore: Double?
+    var todayWOD: WOD?
 
     private let programRepo: any ProgramRepository
     private let readinessRepo: (any ReadinessRepository)?
+    private let wodRepo: any WODRepository
 
-    init(programRepo: any ProgramRepository = BundledProgramRepository(), readinessRepo: (any ReadinessRepository)? = nil) {
+    init(
+        programRepo: any ProgramRepository = BundledProgramRepository(),
+        readinessRepo: (any ReadinessRepository)? = nil,
+        wodRepo: any WODRepository = BundledWODRepository()
+    ) {
         self.programRepo = programRepo
         self.readinessRepo = readinessRepo
+        self.wodRepo = wodRepo
     }
 
     func load(modelContext: ModelContext) async {
@@ -119,9 +126,21 @@ final class DashboardViewModel {
             }
         }
 
+        // Load today's WOD
+        let allWODs = (try? await wodRepo.fetchWODs()) ?? []
+        todayWOD = Self.findTodayWOD(from: allWODs)
+
         // Recent workouts (last 10)
         let allWorkouts = (try? workoutRepo.fetchWorkouts()) ?? []
         recentWorkouts = Array(allWorkouts.prefix(10))
+    }
+
+    static func findTodayWOD(from wods: [WOD], now: Date = .now) -> WOD? {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        formatter.timeZone = .current
+        let todayString = formatter.string(from: now)
+        return wods.first { $0.date == todayString }
     }
 
     static func barbellWeight(for gender: Gender?) -> Double {

@@ -141,3 +141,9 @@ protocol ProgramRepository: Sendable {
     func fetchPrograms() async throws -> [Program]
     func fetchProgram(id: String) async throws -> Program?
 }
+
+// MARK: - WODRepository
+
+protocol WODRepository: Sendable {
+    func fetchWODs() async throws -> [WOD]
+}
