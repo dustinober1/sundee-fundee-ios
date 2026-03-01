@@ -60,18 +60,17 @@ final class MaxLiftsViewModel {
         )
         try? repo.saveLiftMax(liftMax)
 
-        // If reps == 1, also update OneRepMax
-        if reps == 1 {
-            let orm = OneRepMax(
-                id: UUID().uuidString,
-                userID: userID,
-                exerciseID: exercise,
-                weightKg: weightKg,
-                isEstimated: isEstimated
-            )
-            try? repo.saveOneRepMax(orm)
-            oneRepMaxes[exercise] = orm
-        }
+        // Compute the 1RM: actual weight for reps == 1, Epley estimate for reps > 1
+        let estimated1RM = EpleyFormula.estimated1RM(weight: weightKg, reps: reps)
+        let orm = OneRepMax(
+            id: UUID().uuidString,
+            userID: userID,
+            exerciseID: exercise,
+            weightKg: estimated1RM,
+            isEstimated: reps > 1 || isEstimated
+        )
+        try? repo.saveOneRepMax(orm)
+        oneRepMaxes[exercise] = orm
 
         if !exerciseNames.contains(exercise) {
             exerciseNames.append(exercise)

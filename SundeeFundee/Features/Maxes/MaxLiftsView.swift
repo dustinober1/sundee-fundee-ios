@@ -224,6 +224,7 @@ struct ExerciseDetailView: View {
                                 .foregroundStyle(AppTheme.Colors.navy.opacity(0.5))
                         }
                     }
+
                 }
 
                 let prs = viewModel.personalRecords[exercise] ?? []
