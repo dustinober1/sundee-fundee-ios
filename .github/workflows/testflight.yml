@@ -31,6 +31,11 @@ jobs:
           ruby-version: "3.3"
           bundler-cache: true  # Runs `bundle install` and caches gems
 
+      - name: Clone Shared Package
+        run: |
+          mkdir -p SundeeFundee/Packages/SundeeFundeeShared
+          git clone https://github.com/dustinober1/sundee-fundee-shared.git SundeeFundee/Packages/SundeeFundeeShared
+
       - name: Generate Xcode project
         run: bundle exec xcodegen generate
 
