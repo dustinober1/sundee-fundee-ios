@@ -21,8 +21,7 @@ jobs:
           repository: dustinober1/sundee-fundee-shared
           path: SundeeFundee/Packages/SundeeFundeeShared
           # Note: If the repo is private, a personal access token (PAT) must be provided:
-          # token: ${{ secrets.PAT_TOKEN }}
-          # Assuming it's public for now based on the previous git clone attempt.
+          token: ${{ secrets.PAT_TOKEN }}
 
       - name: Generate Xcode project
         run: xcodegen generate --quiet
