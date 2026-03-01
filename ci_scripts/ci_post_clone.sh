@@ -13,13 +13,13 @@ fi
 echo "Installing XcodeGen..."
 brew install xcodegen
 
-# Clone the shared package (sibling dependency)
-# Xcode Cloud clones the main repo but not sibling directories.
-# The package is referenced as ../SundeeFundeeShared in project.yml
+# Clone the shared package into the expected location
+# The package is referenced as SundeeFundee/Packages/SundeeFundeeShared in project.yml
 echo "Cloning SundeeFundeeShared package..."
-cd "$CI_PRIMARY_REPOSITORY_PATH/.."
-if [ ! -d "SundeeFundeeShared" ]; then
-    git clone https://github.com/dustinober1/sundee-fundee-shared.git SundeeFundeeShared
+SHARED_PKG_DIR="$CI_PRIMARY_REPOSITORY_PATH/SundeeFundee/Packages/SundeeFundeeShared"
+mkdir -p "$(dirname "$SHARED_PKG_DIR")"
+if [ ! -d "$SHARED_PKG_DIR" ]; then
+    git clone https://github.com/dustinober1/sundee-fundee-shared.git "$SHARED_PKG_DIR"
 fi
 
 # Generate the Xcode project
