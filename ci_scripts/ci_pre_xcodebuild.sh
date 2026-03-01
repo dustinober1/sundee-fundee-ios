@@ -10,7 +10,7 @@ if [ ! -d "$CI_PRIMARY_REPOSITORY_PATH/SundeeFundee.xcodeproj" ]; then
 fi
 
 # Verify shared package is available
-if [ ! -d "$CI_PRIMARY_REPOSITORY_PATH/../SundeeFundeeShared" ]; then
+if [ ! -d "$CI_PRIMARY_REPOSITORY_PATH/SundeeFundee/Packages/SundeeFundeeShared" ]; then
     echo "ERROR: SundeeFundeeShared not found."
     exit 1
 fi
