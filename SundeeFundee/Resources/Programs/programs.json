@@ -1449,7 +1449,8 @@
                 "reps": 12,
                 "percent1RM": null,
                 "restMinutes": 1.5,
-                "notes": "Glute activation."
+                "notes": "Glute activation.",
+                "bodyweightOnly": true
               }
             ]
           },
@@ -1561,7 +1562,8 @@
                 "reps": 12,
                 "percent1RM": null,
                 "restMinutes": 1.5,
-                "notes": "Add pause at top."
+                "notes": "Add pause at top.",
+                "bodyweightOnly": true
               }
             ]
           },
@@ -1673,7 +1675,8 @@
                 "reps": 12,
                 "percent1RM": null,
                 "restMinutes": 1.5,
-                "notes": "Focus on glute squeeze."
+                "notes": "Focus on glute squeeze.",
+                "bodyweightOnly": true
               }
             ]
           },
@@ -1785,7 +1788,8 @@
                 "reps": 10,
                 "percent1RM": null,
                 "restMinutes": 1.5,
-                "notes": "Strong glute contraction."
+                "notes": "Strong glute contraction.",
+                "bodyweightOnly": true
               }
             ]
           },
@@ -2276,7 +2280,8 @@
                 "reps": 12,
                 "percent1RM": null,
                 "restMinutes": 1.5,
-                "notes": "Light, recovery focused."
+                "notes": "Light, recovery focused.",
+                "bodyweightOnly": true
               }
             ]
           }
