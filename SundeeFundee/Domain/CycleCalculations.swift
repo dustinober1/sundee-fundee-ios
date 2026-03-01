@@ -186,7 +186,7 @@ enum CycleCalculations {
     }
 
     private static func daysBetween(_ from: Date, _ to: Date) -> Int {
-        Calendar.current.dateComponents([.day], from: startOfDay(from), to: startOfDay(to)).day!
+        Calendar.current.dateComponents([.day], from: startOfDay(from), to: startOfDay(to)).day ?? 0
     }
 
     private static func isWithin(_ target: Date, start: Date, end: Date) -> Bool {
