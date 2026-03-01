@@ -96,7 +96,6 @@
 		B9E61D62E60802347D809D8E /* AppAuthCoverageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 094C754F0BC0AE7DBE67619B /* AppAuthCoverageTests.swift */; };
 		BC5E4C2F2C20830D028CE69E /* WorkoutExecutionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23C77DFF6F55C69781249BF1 /* WorkoutExecutionViewModel.swift */; };
 		C0642CF4E32CF08D12A89E54 /* WODTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4723D125F23601A6E38FACB /* WODTests.swift */; };
-		C19330737B736C397192E502 /* ConditioningExerciseCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35CF295480162AC7E70D6B91 /* ConditioningExerciseCatalog.swift */; };
 		C1F2A077075C42F56652C9BE /* MetricsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB4DB4845EAF8A0ACA731441 /* MetricsService.swift */; };
 		C34485EFC98690D769B8B90D /* ViewModelCoverageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5533059CBDA1637C94B14128 /* ViewModelCoverageTests.swift */; };
 		C98DC013548FE006A5B6E292 /* InjurySystemCoverageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEE3A9811CFCBAD2D17FE90B /* InjurySystemCoverageTests.swift */; };
@@ -110,7 +109,6 @@
 		D33BBF3880A570A0E74C748C /* PlaceholderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B75299B558602C0FC9B4A225 /* PlaceholderTests.swift */; };
 		D88D33D87A00F2EDA606897E /* DashboardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A852A0B4C615F1D32036D1D6 /* DashboardViewModel.swift */; };
 		DD2A7D93D3A7C9B1000670A6 /* KeychainHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5AA0B73DAFAAB5029C55DFF /* KeychainHelper.swift */; };
-		E040470F4170DAC53DD93506 /* WeightliftingExerciseCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98B8629FCE5ECAD8EB13BD22 /* WeightliftingExerciseCatalog.swift */; };
 		E53E4CF5763A173DA83992E9 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 5BDADDDF96B2ECD3783DE0D2 /* PrivacyInfo.xcprivacy */; };
 		E53EEB3B17615D690E2A68EF /* BenchmarksViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E94E8DB6BA255C051526D5F1 /* BenchmarksViewModelTests.swift */; };
 		E5D941700C2A00567A4C026D /* BenchmarkCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97194354FCB48D8C2AEB8666 /* BenchmarkCatalog.swift */; };
@@ -162,7 +160,6 @@
 		302AD04E972A024BA91E2FD5 /* BenchmarkDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BenchmarkDetailView.swift; sourceTree = "<group>"; };
 		30E8246998C3CC41511E352B /* ModelRepoObservabilityCoverageWave4Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelRepoObservabilityCoverageWave4Tests.swift; sourceTree = "<group>"; };
 		3231B6FFDA72065ECDA67FEC /* AppRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRootView.swift; sourceTree = "<group>"; };
-		35CF295480162AC7E70D6B91 /* ConditioningExerciseCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConditioningExerciseCatalog.swift; sourceTree = "<group>"; };
 		3930E4513F75B95B07D303F1 /* InjuryProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InjuryProfile.swift; sourceTree = "<group>"; };
 		3E6BD7FDEC48F00EAC345968 /* ProgramWorkoutViewCoverageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramWorkoutViewCoverageTests.swift; sourceTree = "<group>"; };
 		3E9555CE9EC2982C2B6DCDAE /* OnboardingEligibilityEvaluator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingEligibilityEvaluator.swift; sourceTree = "<group>"; };
@@ -207,7 +204,6 @@
 		9643063350451DBFB018B10B /* BenchmarkModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BenchmarkModelTests.swift; sourceTree = "<group>"; };
 		97194354FCB48D8C2AEB8666 /* BenchmarkCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BenchmarkCatalog.swift; sourceTree = "<group>"; };
 		976D337F775FA892654569C4 /* SwiftDataInjuryRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftDataInjuryRepository.swift; sourceTree = "<group>"; };
-		98B8629FCE5ECAD8EB13BD22 /* WeightliftingExerciseCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightliftingExerciseCatalog.swift; sourceTree = "<group>"; };
 		9A0B15CA1FCB6AD3A1241A11 /* WODExecutionViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WODExecutionViewModelTests.swift; sourceTree = "<group>"; };
 		9BDE3BB6E8105A1F1B02BD4A /* WeightCalculations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightCalculations.swift; sourceTree = "<group>"; };
 		9CB57A671A6700E3BB93108A /* CelebrationEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CelebrationEvent.swift; sourceTree = "<group>"; };
@@ -362,7 +358,6 @@
 				97194354FCB48D8C2AEB8666 /* BenchmarkCatalog.swift */,
 				EE156C0DBAE3CFD705CD9B38 /* BodyLocation.swift */,
 				9CB57A671A6700E3BB93108A /* CelebrationEvent.swift */,
-				35CF295480162AC7E70D6B91 /* ConditioningExerciseCatalog.swift */,
 				04C582617701447ED4C8D80F /* CycleAdaptationPolicy.swift */,
 				745F2F666C9657BEF7407740 /* CycleCalculations.swift */,
 				9185B33B347E99EC19EDC8E2 /* CycleProgramGenerator.swift */,
@@ -372,7 +367,6 @@
 				688EA0E2D3143A50FCD11F66 /* PhaseTransitionAdvisor.swift */,
 				4D15EFA5B8F0DF968F2D2EB8 /* RecoveryPhase.swift */,
 				BE7D61FE04FB299E8A81806F /* RehabSessionGenerator.swift */,
-				98B8629FCE5ECAD8EB13BD22 /* WeightliftingExerciseCatalog.swift */,
 				7F3295F09F711668D384648E /* Calculations */,
 			);
 			path = Domain;
@@ -765,7 +759,6 @@
 				61D3B028B583D726A2ECC378 /* CelebrationEvent.swift in Sources */,
 				71FCC4BD6122C95D547F0979 /* CelebrationOverlayView.swift in Sources */,
 				3A9441E40CA4388FA2C73B92 /* CompletedWorkout.swift in Sources */,
-				C19330737B736C397192E502 /* ConditioningExerciseCatalog.swift in Sources */,
 				0050529D52C6D1AD4079C359 /* CycleAdaptationPolicy.swift in Sources */,
 				A1B9AF2CD29CA287A8DD1E56 /* CycleCalculations.swift in Sources */,
 				F7AEA19AF9ECE7E4A49A9861 /* CycleModels.swift in Sources */,
@@ -821,7 +814,6 @@
 				3462503452B85A01E1BBCBC9 /* WODRepository.swift in Sources */,
 				31505F6907BCB93B44087ECF /* WeightCalculations.swift in Sources */,
 				6DFA5E4CD22AA7E83698B5EF /* WeightUnitConversion.swift in Sources */,
-				E040470F4170DAC53DD93506 /* WeightliftingExerciseCatalog.swift in Sources */,
 				58D144FC8038C566D8BAB4CB /* WorkoutExecutionView.swift in Sources */,
 				BC5E4C2F2C20830D028CE69E /* WorkoutExecutionViewModel.swift in Sources */,
 				8B070DD5C4018F8302A5BCDD /* WorkoutSummaryView.swift in Sources */,
