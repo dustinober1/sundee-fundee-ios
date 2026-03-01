@@ -661,7 +661,8 @@ struct MaxLiftsViewModelCoverageTests {
         #expect(vm.oneRepMaxes["Front Squat"]?.weightKg == 95)
 
         vm.addMax(exercise: "Tempo Squat", weightKg: 80, reps: 3, isEstimated: false)
-        #expect(vm.oneRepMaxes["Tempo Squat"] == nil)
+        // Epley: 80 * (1 + 3/30) = 88 — stored even for non-catalog exercises
+        #expect(vm.oneRepMaxes["Tempo Squat"]?.weightKg == 88)
     }
 
     @Test @MainActor
@@ -683,6 +684,87 @@ struct MaxLiftsViewModelCoverageTests {
 
         #expect(vm.conditioningPRs.count == 1)
         #expect(vm.conditioningExerciseNames == ["Wall Ball"])
+    }
+
+    @Test @MainActor
+    func loadSelectsHighestNotLatestOneRepMax() async throws {
+        let store = try makeTestStore()
+        let now = Date.now
+
+        // Insert a higher but older ORM and a lower but newer ORM
+        let higherOlder = OneRepMax(
+            id: "orm-high",
+            userID: "u1",
+            exerciseID: "Back Squat",
+            weightKg: 150,
+            date: now.addingTimeInterval(-86_400)
+        )
+        let lowerNewer = OneRepMax(
+            id: "orm-low",
+            userID: "u1",
+            exerciseID: "Back Squat",
+            weightKg: 120,
+            date: now
+        )
+        store.context.insert(higherOlder)
+        store.context.insert(lowerNewer)
+        try store.context.save()
+
+        let vm = MaxLiftsViewModel()
+        await vm.load(modelContext: store.context, userID: "u1")
+
+        // Should pick the highest weight, not the latest date
+        #expect(vm.oneRepMaxes["Back Squat"]?.weightKg == 150)
+    }
+
+    @Test @MainActor
+    func addMaxDoesNotOverwriteHigherExisting() async throws {
+        let store = try makeTestStore()
+        let vm = MaxLiftsViewModel()
+        await vm.load(modelContext: store.context, userID: "u1")
+
+        // Add a high max first
+        vm.addMax(exercise: "Back Squat", weightKg: 150, reps: 1, isEstimated: false)
+        #expect(vm.oneRepMaxes["Back Squat"]?.weightKg == 150)
+
+        // Add a lower max — should NOT overwrite
+        vm.addMax(exercise: "Back Squat", weightKg: 100, reps: 1, isEstimated: false)
+        #expect(vm.oneRepMaxes["Back Squat"]?.weightKg == 150)
+
+        // Add a higher max — SHOULD overwrite
+        vm.addMax(exercise: "Back Squat", weightKg: 200, reps: 1, isEstimated: false)
+        #expect(vm.oneRepMaxes["Back Squat"]?.weightKg == 200)
+    }
+
+    @Test @MainActor
+    func addMaxTracksLiftMaxHistory() async throws {
+        let store = try makeTestStore()
+        let vm = MaxLiftsViewModel()
+        await vm.load(modelContext: store.context, userID: "u1")
+
+        vm.addMax(exercise: "Back Squat", weightKg: 100, reps: 1, isEstimated: false)
+        vm.addMax(exercise: "Back Squat", weightKg: 120, reps: 1, isEstimated: false)
+
+        #expect(vm.liftMaxHistory["Back Squat"]?.count == 2)
+        // Most recent entry is first (inserted at index 0)
+        #expect(vm.liftMaxHistory["Back Squat"]?.first?.weightKg == 120)
+    }
+
+    @Test @MainActor
+    func loadPopulatesLiftMaxHistory() async throws {
+        let store = try makeTestStore()
+        let now = Date.now
+
+        let lm1 = LiftMax(id: "lm1", userID: "u1", exerciseID: "Back Squat", weightKg: 100, date: now.addingTimeInterval(-86_400))
+        let lm2 = LiftMax(id: "lm2", userID: "u1", exerciseID: "Back Squat", weightKg: 120, date: now)
+        store.context.insert(lm1)
+        store.context.insert(lm2)
+        try store.context.save()
+
+        let vm = MaxLiftsViewModel()
+        await vm.load(modelContext: store.context, userID: "u1")
+
+        #expect(vm.liftMaxHistory["Back Squat"]?.count == 2)
     }
 }
 

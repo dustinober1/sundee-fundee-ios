@@ -7,6 +7,7 @@ final class MaxLiftsViewModel {
     var exerciseNames: [String] = []
     var oneRepMaxes: [String: OneRepMax] = [:]
     var personalRecords: [String: [PersonalRecord]] = [:]
+    var liftMaxHistory: [String: [LiftMax]] = [:]
     var conditioningPRs: [ConditioningPR] = []
     var conditioningExerciseNames: [String] = []
     var weightUnit: WeightUnit = .kilograms
@@ -30,9 +31,13 @@ final class MaxLiftsViewModel {
         prs.forEach  { if WeightliftingExerciseCatalog.isWeightliftingExercise($0.exerciseID) { names.insert($0.exerciseID) } }
         exerciseNames = names.sorted()
 
-        // Build lookup dicts (latest 1RM per exercise)
+        // Build lookup dicts (highest 1RM per exercise)
         oneRepMaxes = Dictionary(grouping: orms, by: \.exerciseID)
-            .compactMapValues { $0.max(by: { $0.date < $1.date }) }
+            .compactMapValues { $0.max(by: { $0.weightKg < $1.weightKg }) }
+
+        // Build lift max history grouped by exercise
+        let allLiftMaxes = (try? repo.fetchLiftMaxes()) ?? []
+        liftMaxHistory = Dictionary(grouping: allLiftMaxes, by: \.exerciseID)
 
         // Group PRs by exercise
         var prDict: [String: [PersonalRecord]] = [:]
@@ -59,6 +64,7 @@ final class MaxLiftsViewModel {
             weightKg: weightKg
         )
         try? repo.saveLiftMax(liftMax)
+        liftMaxHistory[exercise, default: []].insert(liftMax, at: 0)
 
         // Compute the 1RM: actual weight for reps == 1, Epley estimate for reps > 1
         let estimated1RM = EpleyFormula.estimated1RM(weight: weightKg, reps: reps)
@@ -70,7 +76,11 @@ final class MaxLiftsViewModel {
             isEstimated: reps > 1 || isEstimated
         )
         try? repo.saveOneRepMax(orm)
-        oneRepMaxes[exercise] = orm
+        if let existing = oneRepMaxes[exercise] {
+            if estimated1RM > existing.weightKg { oneRepMaxes[exercise] = orm }
+        } else {
+            oneRepMaxes[exercise] = orm
+        }
 
         if !exerciseNames.contains(exercise) {
             exerciseNames.append(exercise)
