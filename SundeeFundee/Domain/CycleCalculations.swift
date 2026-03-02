@@ -182,7 +182,7 @@ enum CycleCalculations {
     }
 
     private static func addDays(_ date: Date, _ days: Int) -> Date {
-        Calendar.current.date(byAdding: .day, value: days, to: startOfDay(date))!
+        Calendar.current.date(byAdding: .day, value: days, to: startOfDay(date)) ?? date
     }
 
     private static func daysBetween(_ from: Date, _ to: Date) -> Int {
