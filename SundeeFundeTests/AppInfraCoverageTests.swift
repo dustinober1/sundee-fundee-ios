@@ -230,7 +230,21 @@ struct AppInfraCoverageTests {
 
     @Test
     func migrationPlan_includesV6toV7() {
-        #expect(AppSchemaMigrationPlan.schemas.count == 3)
-        #expect(AppSchemaMigrationPlan.stages.count == 2)
+        #expect(AppSchemaMigrationPlan.schemas.count == 4)
+        #expect(AppSchemaMigrationPlan.stages.count == 3)
+    }
+
+    @Test
+    func appSchemaV8_containsPerceivedEffort() {
+        let models = AppSchemaV8.models
+        #expect(models.contains(where: { $0 == CompletedWorkout.self }))
+        #expect(AppSchemaV8.versionIdentifier == Schema.Version(8, 0, 0))
+    }
+
+    @Test
+    func migrationPlanIncludesV8() {
+        let schemas = AppSchemaMigrationPlan.schemas
+        #expect(schemas.count == 4)
+        #expect(schemas.last is AppSchemaV8.Type)
     }
 }
