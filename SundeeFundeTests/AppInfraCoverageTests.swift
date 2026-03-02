@@ -184,7 +184,6 @@ struct AppInfraCoverageTests {
         _ = ImageRenderer(content: Button("Delete") {}.buttonStyle(DestructiveButtonStyle())).uiImage
     }
 
-    #if DEBUG
     @Test @MainActor
     func debugSeedDataSeedsOnceAndClearRemovesRecords() async throws {
         let container = try makeContainer()
@@ -215,7 +214,6 @@ struct AppInfraCoverageTests {
         #expect(try modelCount(CycleSettings.self, in: context) == 0)
         #expect(try modelCount(PeriodLog.self, in: context) == 0)
     }
-    #endif
 
     @Test
     func appSchemaV7_containsConditioningPR() {
