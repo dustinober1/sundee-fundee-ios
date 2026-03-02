@@ -101,6 +101,14 @@ struct PainTrendAnalyzerTests {
         #expect(result.readingCount == 0)
     }
 
+    @Test func emptyLogsWithCustomWindowSizeReturnsDefault() {
+        let result = PainTrendAnalyzer.analyzeTrend(logs: [], windowSize: 3)
+        #expect(result.trailingAverage == 0)
+        #expect(result.isImproving == false)
+        #expect(result.latestPainLevel == nil)
+        #expect(result.readingCount == 0)
+    }
+
     @Test func singleLogNotImproving() {
         let logs = makeLogs(levels: [5])
         let result = PainTrendAnalyzer.analyzeTrend(logs: logs)
