@@ -28,6 +28,7 @@ jobs:
           repository: dustinober1/sundee-fundee-shared
           token: ${{ secrets.PAT_TOKEN || github.token }}
           path: SundeeFundee/Packages/SundeeFundeeShared
+          persist-credentials: false
 
       - name: Select Xcode
         run: sudo xcode-select -s /Applications/Xcode_16.app/Contents/Developer
