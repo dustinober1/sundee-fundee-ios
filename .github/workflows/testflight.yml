@@ -27,7 +27,7 @@ jobs:
       - name: Clone Shared Package
         run: |
           mkdir -p SundeeFundee/Packages
-          git clone https://${{ secrets.PAT_TOKEN || github.token }}@github.com/dustinober1/sundee-fundee-shared.git SundeeFundee/Packages/SundeeFundeeShared
+          git clone https://x-access-token:${{ secrets.PAT_TOKEN || github.token }}@github.com/dustinober1/sundee-fundee-shared.git SundeeFundee/Packages/SundeeFundeeShared
 
       - name: Select Xcode
         run: sudo xcode-select -s /Applications/Xcode_16.app/Contents/Developer
