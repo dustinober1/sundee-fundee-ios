@@ -82,7 +82,7 @@ enum CycleCalculations {
         var phaseEndDay   = settings.averageCycleLengthDays
 
         for phase in CyclePhase.allCases {
-            let b = boundaries[phase]!
+            guard let b = boundaries[phase] else { continue }
             if cycleDay >= b.start && cycleDay <= b.end {
                 currentPhase  = phase
                 phaseStartDay = b.start
