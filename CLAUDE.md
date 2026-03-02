@@ -40,10 +40,9 @@ xcodebuild test \
 ```
 
 ### Deploy
-```bash
-bundle exec fastlane beta     # Build + upload to TestFlight
-bundle exec fastlane tests    # Run tests with coverage report
-```
+TestFlight builds are deployed via **Xcode Cloud** (manual trigger only):
+- In Xcode: Product → Xcode Cloud → Start Build
+- Xcode Cloud handles signing, building, and uploading to TestFlight automatically
 
 ## Architecture
 
