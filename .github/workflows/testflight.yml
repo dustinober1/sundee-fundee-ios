@@ -22,13 +22,6 @@ jobs:
         with:
           fetch-depth: 0  # Full history needed for build number increment
 
-      - name: Checkout SundeeFundeeShared
-        uses: actions/checkout@v4
-        with:
-          repository: dustinober1/sundee-fundee-shared
-          token: ${{ secrets.PAT_TOKEN || github.token }}
-          path: SundeeFundee/Packages/SundeeFundeeShared
-
       - name: Select Xcode
         run: sudo xcode-select -s /Applications/Xcode_16.app/Contents/Developer
 

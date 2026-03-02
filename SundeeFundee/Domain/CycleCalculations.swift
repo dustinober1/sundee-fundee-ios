@@ -63,17 +63,16 @@ enum CycleCalculations {
             }
         }
 
-        let cycleStart: Date
-        if let unwrapped = cycleStartDate {
-            cycleStart = unwrapped
-        } else {
+        if cycleStartDate == nil {
             let most  = sorted[0]
             var start = startOfDay(most.startDate)
             let daysSince = daysBetween(start, ref)
             let completed = daysSince / settings.averageCycleLengthDays
             start = addDays(start, completed * settings.averageCycleLengthDays)
-            cycleStart = start
+            cycleStartDate = start
         }
+
+        guard let cycleStart = cycleStartDate else { return nil }
 
         let cycleDay  = daysBetween(cycleStart, ref) + 1
         let boundaries = getPhaseBoundaries(settings: settings)
