@@ -31,6 +31,13 @@ jobs:
           ruby-version: "3.3"
           bundler-cache: true  # Runs `bundle install` and caches gems
 
+      - name: Checkout SundeeFundeeShared
+        uses: actions/checkout@v4
+        with:
+          repository: dustinober1/sundee-fundee-shared
+          token: ${{ secrets.PAT_TOKEN }}
+          path: SundeeFundee/Packages/SundeeFundeeShared
+
       - name: Generate Xcode project
         run: bundle exec xcodegen generate
 
