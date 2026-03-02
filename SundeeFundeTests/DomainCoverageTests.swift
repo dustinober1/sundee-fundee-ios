@@ -20,6 +20,27 @@ struct WeightCalculationsAdditionalTests {
         #expect(WeightCalculations.isPersonalRecord(weight: 105, previousMax: 100) == true)
         #expect(WeightCalculations.isPersonalRecord(weight: 100, previousMax: 100) == false)
     }
+
+    @Test func detectPlateauCoversEdgeCasesAndHappyPaths() {
+        // Less than 3 elements -> false
+        #expect(WeightCalculations.detectPlateau(weights: []) == false)
+        #expect(WeightCalculations.detectPlateau(weights: [100]) == false)
+        #expect(WeightCalculations.detectPlateau(weights: [100, 100]) == false)
+
+        // Exact 3 elements, plateau (diff < 5) -> true
+        #expect(WeightCalculations.detectPlateau(weights: [100, 100, 100]) == true)
+        #expect(WeightCalculations.detectPlateau(weights: [100, 102.5, 104]) == true)
+
+        // Exact 3 elements, no plateau (diff >= 5) -> false
+        #expect(WeightCalculations.detectPlateau(weights: [100, 102.5, 105]) == false)
+        #expect(WeightCalculations.detectPlateau(weights: [100, 100, 105]) == false)
+
+        // More than 3 elements, last 3 are plateau -> true
+        #expect(WeightCalculations.detectPlateau(weights: [50, 60, 100, 102.5, 104]) == true)
+
+        // More than 3 elements, last 3 are not plateau -> false
+        #expect(WeightCalculations.detectPlateau(weights: [100, 100, 100, 102.5, 105]) == false)
+    }
 }
 
 @Suite("PlateCalculation Additional")
