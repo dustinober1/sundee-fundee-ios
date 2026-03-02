@@ -47,6 +47,7 @@ struct SundeeFundeeApp: App {
     var body: some Scene {
         WindowGroup {
             Self.rootView(container: container)
+                .preferredColorScheme(.light)
         }
     }
 }
