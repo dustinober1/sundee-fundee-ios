@@ -27,6 +27,20 @@ struct BenchmarkDefinitionTests {
         #expect(def.isPredefined == true)
     }
 
+    @Test func roundsAndRepsScoringTypeRoundTrips() {
+        let def = BenchmarkDefinition(
+            userID: "",
+            name: "AMRAP",
+            category: "Classic WODs",
+            workoutDescription: "",
+            scoringType: .roundsAndReps,
+            isPredefined: false,
+            sortOrder: 0
+        )
+        #expect(def.scoringType == .roundsAndReps)
+        #expect(def.scoringTypeRaw == "roundsAndReps")
+    }
+
     @Test func scoringTypeComputedPropertyMatchesInit() {
         let def = BenchmarkDefinition(
             userID: "",

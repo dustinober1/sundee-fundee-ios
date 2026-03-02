@@ -72,7 +72,7 @@ enum CycleCalculations {
             cycleStartDate = start
         }
 
-        let cycleStart = cycleStartDate!
+        let cycleStart = cycleStartDate ?? ref
 
         let cycleDay  = daysBetween(cycleStart, ref) + 1
         let boundaries = getPhaseBoundaries(settings: settings)
@@ -82,7 +82,7 @@ enum CycleCalculations {
         var phaseEndDay   = settings.averageCycleLengthDays
 
         for phase in CyclePhase.allCases {
-            let b = boundaries[phase]!
+            guard let b = boundaries[phase] else { continue }
             if cycleDay >= b.start && cycleDay <= b.end {
                 currentPhase  = phase
                 phaseStartDay = b.start
@@ -182,11 +182,11 @@ enum CycleCalculations {
     }
 
     private static func addDays(_ date: Date, _ days: Int) -> Date {
-        Calendar.current.date(byAdding: .day, value: days, to: startOfDay(date))!
+        Calendar.current.date(byAdding: .day, value: days, to: startOfDay(date)) ?? date
     }
 
     private static func daysBetween(_ from: Date, _ to: Date) -> Int {
-        Calendar.current.dateComponents([.day], from: startOfDay(from), to: startOfDay(to)).day!
+        Calendar.current.dateComponents([.day], from: startOfDay(from), to: startOfDay(to)).day ?? 0
     }
 
     private static func isWithin(_ target: Date, start: Date, end: Date) -> Bool {

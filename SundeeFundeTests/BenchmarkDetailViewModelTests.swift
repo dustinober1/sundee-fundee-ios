@@ -116,4 +116,34 @@ struct BenchmarkDetailViewModelTests {
         let vm = BenchmarkDetailViewModel(definition: cindyDef)
         #expect(vm.formatted(score: 20, for: .reps) == "20 reps")
     }
+
+    @Test
+    func formattedScoreForRoundsAndReps() {
+        let def = BenchmarkDefinition(
+            id: "r", userID: "", name: "AMRAP 20",
+            category: "Classic WODs", workoutDescription: "",
+            scoringType: .roundsAndReps, isPredefined: true, sortOrder: 0
+        )
+        let vm = BenchmarkDetailViewModel(definition: def)
+        // 3 rounds + 19 reps = 3 * 10000 + 19 = 30019
+        #expect(vm.formatted(score: 30019, for: .roundsAndReps) == "3 + 19")
+        #expect(vm.formatted(score: 10000, for: .roundsAndReps) == "1 + 0")
+        #expect(vm.formatted(score: 50, for: .roundsAndReps) == "0 + 50")
+    }
+
+    @Test
+    func bestResultForRoundsAndRepsIsHighest() async throws {
+        let def = BenchmarkDefinition(
+            id: "r", userID: "", name: "AMRAP 20",
+            category: "Classic WODs", workoutDescription: "",
+            scoringType: .roundsAndReps, isPredefined: true, sortOrder: 0
+        )
+        let ctx = try makeContext()
+        let vm = BenchmarkDetailViewModel(definition: def)
+        await vm.load(modelContext: ctx, userID: "u1")
+        vm.logResult(scoreValue: 20019, notes: "") // 2 + 19
+        vm.logResult(scoreValue: 30005, notes: "") // 3 + 5
+        vm.logResult(scoreValue: 20050, notes: "") // 2 + 50
+        #expect(vm.bestResult?.scoreValue == 30005)
+    }
 }
