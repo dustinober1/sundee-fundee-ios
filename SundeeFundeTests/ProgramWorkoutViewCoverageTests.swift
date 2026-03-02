@@ -2,6 +2,7 @@ import XCTest
 import SwiftUI
 import SwiftData
 import UIKit
+import Testing
 @testable import SundeeFundee
 
 @MainActor
@@ -520,5 +521,19 @@ final class ProgramWorkoutViewCoverageTests: XCTestCase {
             container: container
         ).0.view)
         waitForTasks()
+    }
+}
+
+@Suite("SpicyRatingView Coverage")
+struct SpicyRatingViewCoverageTests {
+    @Test
+    func spicyLabelReturnsCorrectText() {
+        #expect(SpicyRatingView.label(for: 1) == "Mild")
+        #expect(SpicyRatingView.label(for: 2) == "Warm")
+        #expect(SpicyRatingView.label(for: 3) == "Medium")
+        #expect(SpicyRatingView.label(for: 4) == "Hot")
+        #expect(SpicyRatingView.label(for: 5) == "Inferno")
+        #expect(SpicyRatingView.label(for: 0) == "")
+        #expect(SpicyRatingView.label(for: 6) == "")
     }
 }
