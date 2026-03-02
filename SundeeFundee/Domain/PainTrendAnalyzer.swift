@@ -22,7 +22,7 @@ enum PainTrendAnalyzer {
         }
 
         let recent = Array(logs.prefix(windowSize))
-        let average = Double(recent.map(\.painLevel).reduce(0, +)) / Double(recent.count)
+        let average = Double(recent.reduce(0) { $0 + $1.painLevel }) / Double(recent.count)
         let latest = logs.first?.painLevel
 
         // Compare first half vs second half of window to determine trend
@@ -31,8 +31,8 @@ enum PainTrendAnalyzer {
             let midpoint = recent.count / 2
             let newerHalf = recent.prefix(midpoint)
             let olderHalf = recent.suffix(from: midpoint)
-            let newerAvg = Double(newerHalf.map(\.painLevel).reduce(0, +)) / Double(newerHalf.count)
-            let olderAvg = Double(olderHalf.map(\.painLevel).reduce(0, +)) / Double(olderHalf.count)
+            let newerAvg = Double(newerHalf.reduce(0) { $0 + $1.painLevel }) / Double(newerHalf.count)
+            let olderAvg = Double(olderHalf.reduce(0) { $0 + $1.painLevel }) / Double(olderHalf.count)
             improving = newerAvg < olderAvg
         } else {
             improving = false
@@ -54,6 +54,6 @@ enum PainTrendAnalyzer {
 
     /// Returns the last N pain levels for sparkline display.
     static func sparklineData(logs: [PainLog], count: Int = 7) -> [Int] {
-        Array(logs.prefix(count).map(\.painLevel).reversed())
+        logs.prefix(count).reversed().map(\.painLevel)
     }
 }
