@@ -3,8 +3,20 @@ name: iOS CI
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'site/**'
   pull_request:
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'site/**'
   workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build-and-test:
@@ -12,12 +24,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Checkout SundeeFundeeShared
+      - name: Checkout private shared package
         uses: actions/checkout@v4
         with:
           repository: dustinober1/sundee-fundee-shared
-          token: ${{ secrets.PAT_TOKEN }}
+          token: ${{ secrets.PAT_TOKEN || github.token }}
           path: SundeeFundee/Packages/SundeeFundeeShared
+          persist-credentials: false
 
       - name: Install XcodeGen
         run: brew install xcodegen

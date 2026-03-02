@@ -115,7 +115,7 @@ struct LiftMaxRow: View {
         exercise: String,
         oneRepMax: OneRepMax?,
         prs: [PersonalRecord],
-        weightUnit: WeightUnit = .kilograms
+        weightUnit: WeightUnit = .pounds
     ) {
         self.exercise = exercise
         self.oneRepMax = oneRepMax
@@ -155,7 +155,7 @@ struct PRBadge: View {
     let pr: PersonalRecord
     let weightUnit: WeightUnit
 
-    init(pr: PersonalRecord, weightUnit: WeightUnit = .kilograms) {
+    init(pr: PersonalRecord, weightUnit: WeightUnit = .pounds) {
         self.pr = pr
         self.weightUnit = weightUnit
     }
@@ -302,7 +302,7 @@ struct AddLiftMaxSheet: View {
         weightKg: String,
         reps: Int,
         isEstimated: Bool,
-        weightUnit: WeightUnit = .kilograms,
+        weightUnit: WeightUnit = .pounds,
         dismiss: @escaping () -> Void
     ) -> () -> Void {
         {

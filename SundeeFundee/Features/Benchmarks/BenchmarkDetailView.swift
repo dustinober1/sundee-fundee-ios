@@ -162,28 +162,35 @@ struct LogBenchmarkResultSheet: View {
     let definition: BenchmarkDefinition
     @Environment(\.dismiss) private var dismiss
 
-    @State private var minutes: Int = 0
-    @State private var seconds: Int = 0
+    @State private var minutes: String = ""
+    @State private var seconds: String = ""
     @State private var weightKg: String = ""
     @State private var repCount: Int = 1
+    @State private var rounds: String = ""
+    @State private var roundsReps: String = ""
     @State private var performedAt: Date = .now
     @State private var notes: String = ""
 
     private var scoringType: BenchmarkScoringType { definition.scoringType }
 
+    private var parsedMinutes: Int { Int(minutes) ?? 0 }
+    private var parsedSeconds: Int { min(Int(seconds) ?? 0, 59) }
+
     private var canSave: Bool {
         switch scoringType {
-        case .time, .distance: return minutes > 0 || seconds > 0
+        case .time, .distance: return parsedMinutes > 0 || parsedSeconds > 0
         case .weight:          return Double(weightKg) != nil
         case .reps:            return repCount > 0
+        case .roundsAndReps:   return (Int(rounds) ?? 0) > 0 || (Int(roundsReps) ?? 0) > 0
         }
     }
 
     private var scoreValue: Double {
         switch scoringType {
-        case .time, .distance: return Double(minutes * 60 + seconds)
+        case .time, .distance: return Double(parsedMinutes * 60 + parsedSeconds)
         case .weight:          return Double(weightKg) ?? 0
         case .reps:            return Double(repCount)
+        case .roundsAndReps:   return Double((Int(rounds) ?? 0) * 10000 + (Int(roundsReps) ?? 0))
         }
     }
 
@@ -194,14 +201,25 @@ struct LogBenchmarkResultSheet: View {
                     switch scoringType {
                     case .time, .distance:
                         HStack {
-                            Stepper("Min: \(minutes)", value: $minutes, in: 0...999)
-                            Stepper("Sec: \(seconds)", value: $seconds, in: 0...59)
+                            TextField("Min", text: $minutes)
+                                .keyboardType(.numberPad)
+                            TextField("Sec", text: $seconds)
+                                .keyboardType(.numberPad)
                         }
                     case .weight:
                         TextField("Weight (kg)", text: $weightKg)
                             .keyboardType(.decimalPad)
                     case .reps:
                         Stepper("Reps / Rounds: \(repCount)", value: $repCount, in: 1...9999)
+                    case .roundsAndReps:
+                        HStack {
+                            TextField("Rounds", text: $rounds)
+                                .keyboardType(.numberPad)
+                            Text("+")
+                                .foregroundStyle(AppTheme.Colors.navy)
+                            TextField("Reps", text: $roundsReps)
+                                .keyboardType(.numberPad)
+                        }
                     }
                 }
                 Section("Date") {

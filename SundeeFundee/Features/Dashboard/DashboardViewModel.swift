@@ -17,7 +17,7 @@ final class DashboardViewModel {
     var recentWorkouts: [CompletedWorkout] = []
     var currentCyclePhase: CyclePhase?
     var barbellWeightKg: Double = PlateCalculation.standardBarKg
-    var weightUnit: WeightUnit = .kilograms
+    var weightUnit: WeightUnit = .pounds
     var oneRepMaxes: [String: Double] = [:]
     var activeInjuriesNeedingCheckIn: [InjuryProfile] = []
     var rehabSession: ProgramSession?

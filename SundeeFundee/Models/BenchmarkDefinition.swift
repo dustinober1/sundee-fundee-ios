@@ -12,6 +12,8 @@ enum BenchmarkScoringType: String, Codable, CaseIterable {
     case weight
     /// Fixed distance, logged as time in seconds — lower is better.
     case distance
+    /// AMRAP-style — stored as rounds * 10000 + reps (Double). Higher is better.
+    case roundsAndReps
 }
 
 /// A named benchmark workout definition — either predefined (ships with the app)
