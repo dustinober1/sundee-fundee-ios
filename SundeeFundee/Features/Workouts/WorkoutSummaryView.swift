@@ -23,6 +23,7 @@ struct WorkoutSummaryView: View {
                 VStack(spacing: AppTheme.Spacing.lg) {
                     completionHeader
                     statsRow
+                    spicyRating
                     if !viewModel.newPRs.isEmpty || !viewModel.newConditioningPRs.isEmpty { prBanner }
                     setBreakdown
                     doneButton
@@ -67,6 +68,13 @@ struct WorkoutSummaryView: View {
             StatBadge(label: "Duration", value: formatDuration(workout.durationSeconds))
             StatBadge(label: "Sets", value: "\(viewModel.totalSets)")
         }
+    }
+
+    private var spicyRating: some View {
+        SpicyRatingView(rating: Bindable(viewModel).perceivedEffort)
+            .onChange(of: viewModel.perceivedEffort) {
+                viewModel.saveSpicyRating(modelContext: modelContext)
+            }
     }
 
     private var prBanner: some View {
@@ -188,9 +196,16 @@ final class WorkoutSummaryViewModel {
     var totalSets: Int = 0
     var totalVolumeKg: Double = 0
     var weightUnit: WeightUnit = .pounds
+    var perceivedEffort: Int? = nil
 
     init(workout: CompletedWorkout) {
         self.workout = workout
+        self.perceivedEffort = workout.perceivedEffort
+    }
+
+    func saveSpicyRating(modelContext: ModelContext) {
+        workout.perceivedEffort = perceivedEffort
+        try? modelContext.save()
     }
 
     func detectPRs(modelContext: ModelContext) async {

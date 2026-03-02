@@ -26,6 +26,14 @@ private func makeTestStore() throws -> TestStore {
 }
 
 @MainActor
+private func makeV8TestStore() throws -> TestStore {
+    let schema = Schema(AppSchemaV8.models)
+    let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
+    let container = try ModelContainer(for: schema, configurations: [config])
+    return TestStore(container: container, context: ModelContext(container))
+}
+
+@MainActor
 private func makeV7TestStore() throws -> TestStore {
     let schema = Schema(AppSchemaV7.models)
     let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
@@ -796,6 +804,38 @@ struct WorkoutSummaryViewModelCoverageTests {
         vm.newConditioningPRs = [("Wall Ball", 100, .reps)]
         let event = vm.primaryCelebrationEvent
         #expect(event == .newPersonalRecord(exerciseName: "Back Squat", weightKg: 120))
+    }
+
+    @Test @MainActor
+    func saveSpicyRatingPersistsEffortOnWorkout() throws {
+        let store = try makeV8TestStore()
+        let workout = CompletedWorkout(
+            id: "w1", userID: "u1", activeCycleID: "",
+            programID: "p1", week: 1, day: 1, sessionID: "s1"
+        )
+        store.context.insert(workout)
+        try store.context.save()
+
+        let vm = WorkoutSummaryViewModel(workout: workout)
+        vm.perceivedEffort = 4
+        vm.saveSpicyRating(modelContext: store.context)
+
+        #expect(workout.perceivedEffort == 4)
+    }
+
+    @Test @MainActor
+    func spicyRatingInitializesFromWorkout() throws {
+        let store = try makeV8TestStore()
+        let workout = CompletedWorkout(
+            id: "w2", userID: "u1", activeCycleID: "",
+            programID: "p1", week: 1, day: 1, sessionID: "s1",
+            perceivedEffort: 3
+        )
+        store.context.insert(workout)
+        try store.context.save()
+
+        let vm = WorkoutSummaryViewModel(workout: workout)
+        #expect(vm.perceivedEffort == 3)
     }
 
     @Test @MainActor
