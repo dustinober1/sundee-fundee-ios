@@ -18,6 +18,7 @@ jobs:
           repository: dustinober1/sundee-fundee-shared
           token: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
           path: SundeeFundee/Packages/SundeeFundeeShared
+          ref: main
 
       - name: Install XcodeGen
         run: brew install xcodegen
