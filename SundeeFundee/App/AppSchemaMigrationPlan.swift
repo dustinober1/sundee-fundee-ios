@@ -8,11 +8,11 @@ import SwiftData
 /// Custom migrations that transform data require a `custom` stage.
 enum AppSchemaMigrationPlan: SchemaMigrationPlan {
     static var schemas: [any VersionedSchema.Type] {
-        [AppSchemaV1.self, AppSchemaV6.self, AppSchemaV7.self]
+        [AppSchemaV1.self, AppSchemaV6.self, AppSchemaV7.self, AppSchemaV8.self]
     }
 
     static var stages: [MigrationStage] {
-        [migrateV1toV6, migrateV6toV7]
+        [migrateV1toV6, migrateV6toV7, migrateV7toV8]
     }
 
     /// V1 → V6: Lightweight migration covering all schema additions since V1.
@@ -28,5 +28,11 @@ enum AppSchemaMigrationPlan: SchemaMigrationPlan {
     static let migrateV6toV7 = MigrationStage.lightweight(
         fromVersion: AppSchemaV6.self,
         toVersion: AppSchemaV7.self
+    )
+
+    /// V7 → V8: Adds perceivedEffort (spicy rating) to CompletedWorkout.
+    static let migrateV7toV8 = MigrationStage.lightweight(
+        fromVersion: AppSchemaV7.self,
+        toVersion: AppSchemaV8.self
     )
 }
