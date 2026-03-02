@@ -103,14 +103,14 @@ final class WODTests: XCTestCase {
 
     // MARK: - Date filtering
 
-    private let dateFormatter: DateFormatter = {
+    private static let dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
         return formatter
     }()
 
     func testFindTodayWODFindsMatchingDate() {
-        let todayString = dateFormatter.string(from: .now)
+        let todayString = Self.dateFormatter.string(from: .now)
 
         let todayWOD = WOD(id: "wod-today", date: todayString, title: "Today", description: "", exercises: [])
         let otherWOD = WOD(id: "wod-other", date: "2020-01-01", title: "Other", description: "", exercises: [])
@@ -131,7 +131,7 @@ final class WODTests: XCTestCase {
     }
 
     func testFindTodayWODUsesSpecificDate() {
-        let specificDate = dateFormatter.date(from: "2026-06-15")!
+        let specificDate = Self.dateFormatter.date(from: "2026-06-15")!
 
         let wod = WOD(id: "wod-june", date: "2026-06-15", title: "June", description: "", exercises: [])
         let result = DashboardViewModel.findTodayWOD(from: [wod], now: specificDate)
