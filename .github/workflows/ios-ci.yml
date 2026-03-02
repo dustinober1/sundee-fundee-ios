@@ -12,13 +12,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          token: ${{ secrets.PAT_TOKEN }}
+          token: ${{ secrets.PAT_TOKEN || github.token }}
           submodules: recursive
 
       - name: Clone Shared Package
         run: |
           mkdir -p SundeeFundee/Packages
-          git clone https://${{ secrets.PAT_TOKEN }}@github.com/dustinober1/sundee-fundee-shared.git SundeeFundee/Packages/SundeeFundeeShared
+          git clone https://${{ secrets.PAT_TOKEN || github.token }}@github.com/dustinober1/sundee-fundee-shared.git SundeeFundee/Packages/SundeeFundeeShared
 
       - name: Install XcodeGen
         run: brew install xcodegen
