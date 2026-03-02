@@ -12,6 +12,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Checkout private shared package
+        uses: actions/checkout@v4
+        with:
+          repository: dustinober1/sundee-fundee-shared
+          token: ${{ secrets.PAT_TOKEN }}
+          path: SundeeFundee/Packages/SundeeFundeeShared
+
       - name: Install XcodeGen
         run: brew install xcodegen
 
