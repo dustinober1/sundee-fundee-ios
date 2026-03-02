@@ -11,9 +11,16 @@ jobs:
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PAT_TOKEN }}
 
       - name: Install XcodeGen
         run: brew install xcodegen
+
+      - name: Clone Shared Package
+        run: |
+          mkdir -p Packages
+          git clone https://${{ secrets.PAT_TOKEN }}@github.com/dustinober1/sundee-fundee-shared.git Packages/SundeeFundeeShared
 
       - name: Generate Xcode project
         run: xcodegen generate --quiet
