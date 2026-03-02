@@ -146,7 +146,7 @@ struct SetSummaryRow: View {
     let set: CompletedSet
     let weightUnit: WeightUnit
 
-    init(set: CompletedSet, weightUnit: WeightUnit = .kilograms) {
+    init(set: CompletedSet, weightUnit: WeightUnit = .pounds) {
         self.set = set
         self.weightUnit = weightUnit
     }
@@ -187,7 +187,7 @@ final class WorkoutSummaryViewModel {
     var groupedSets: [String: [CompletedSet]] = [:]
     var totalSets: Int = 0
     var totalVolumeKg: Double = 0
-    var weightUnit: WeightUnit = .kilograms
+    var weightUnit: WeightUnit = .pounds
 
     init(workout: CompletedWorkout) {
         self.workout = workout

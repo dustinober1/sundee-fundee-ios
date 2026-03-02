@@ -10,7 +10,7 @@ final class MaxLiftsViewModel {
     var liftMaxHistory: [String: [LiftMax]] = [:]
     var conditioningPRs: [ConditioningPR] = []
     var conditioningExerciseNames: [String] = []
-    var weightUnit: WeightUnit = .kilograms
+    var weightUnit: WeightUnit = .pounds
 
     private var modelContext: ModelContext?
     private var userID: String = ""

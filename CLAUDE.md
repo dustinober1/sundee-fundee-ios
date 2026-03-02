@@ -40,10 +40,9 @@ xcodebuild test \
 ```
 
 ### Deploy
-```bash
-bundle exec fastlane beta     # Build + upload to TestFlight
-bundle exec fastlane tests    # Run tests with coverage report
-```
+TestFlight builds are deployed via **Xcode Cloud** (manual trigger only):
+- In Xcode: Product → Xcode Cloud → Start Build
+- Xcode Cloud handles signing, building, and uploading to TestFlight automatically
 
 ## Architecture
 
@@ -93,6 +92,8 @@ Programs are delivered via two channels:
 - `Domain/` code is tested in isolation via pure Swift unit tests — no mocking needed.
 - ViewModels, Repositories, Auth/Onboarding flows, and critical UI paths each have dedicated test wave files.
 - When adding new `Domain/` types or public methods, add coverage in the corresponding `*CoverageTests.swift` file.
+- When changing default parameter values, update all test call sites to pass the value explicitly — tests that omit the parameter will silently use the new default and may break.
+- **Never ignore pre-existing failures.** If test runs, builds, or CI surface issues that predate your changes, investigate and resolve them — do not dismiss them as "pre-existing." Every identified problem is your responsibility to address.
 
 ### Project Generation
 
@@ -100,6 +101,7 @@ The Xcode project is generated from `project.yml` via XcodeGen. **Never edit `.x
 
 ### Coding Conventions
 
+- **Benchmark `roundsAndReps` scoring** encodes as `rounds * 10000 + reps` in a single `Double`. Higher is better. Decode: `rounds = Int(value) / 10000`, `reps = Int(value) % 10000`.
 - **Never use `try!`** in production code — always use `(try? ...) ?? defaultValue` for repository calls. SwiftData context errors should degrade gracefully, not crash.
 - **Disable buttons for invalid input** rather than silently failing on save. Follow the pattern in `AddCustomBenchmarkSheet` (`.disabled(condition)`).
 - **Thread `userID`** from `AppState` through all data-writing operations. Use `appState.currentUserID ?? ""` at the call site; never hardcode empty strings in ViewModels or Repositories.

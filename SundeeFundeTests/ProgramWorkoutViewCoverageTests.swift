@@ -348,17 +348,18 @@ final class ProgramWorkoutViewCoverageTests: XCTestCase {
 
         XCTAssertEqual(SetRow.parseReps("8"), 8)
         XCTAssertNil(SetRow.parseReps("x"))
-        XCTAssertEqual(SetRow.parseWeight("82.5") ?? 0, 82.5, accuracy: 0.001)
-        XCTAssertNil(SetRow.parseWeight("x"))
-        XCTAssertEqual(SetRow.formatWeight(80), "80")
-        XCTAssertEqual(SetRow.formatWeight(80.5), "80.5")
+        XCTAssertEqual(SetRow.parseWeight("82.5", weightUnit: .kilograms) ?? 0, 82.5, accuracy: 0.001)
+        XCTAssertNil(SetRow.parseWeight("x", weightUnit: .kilograms))
+        XCTAssertEqual(SetRow.formatWeight(80, weightUnit: .kilograms), "80")
+        XCTAssertEqual(SetRow.formatWeight(80.5, weightUnit: .kilograms), "80.5")
         let initialTexts = SetRow.initialTextValues(
             for: SetExecutionState(
                 prescribedReps: "5",
                 prescribedWeightKg: 100,
                 actualReps: 6,
                 actualWeightKg: 102.5
-            )
+            ),
+            weightUnit: .kilograms
         )
         XCTAssertEqual(initialTexts.repsText, "6")
         XCTAssertEqual(initialTexts.weightText, "102.5")
@@ -368,7 +369,8 @@ final class ProgramWorkoutViewCoverageTests: XCTestCase {
                 prescribedWeightKg: nil,
                 actualReps: nil,
                 actualWeightKg: nil
-            )
+            ),
+            weightUnit: .kilograms
         )
         XCTAssertEqual(emptyInitialTexts.repsText, "")
         XCTAssertEqual(emptyInitialTexts.weightText, "")
@@ -380,7 +382,7 @@ final class ProgramWorkoutViewCoverageTests: XCTestCase {
         XCTAssertEqual(parsedReps, [11])
 
         var parsedWeights: [Double] = []
-        let weightHandler = SetRow.weightTextChangeHandler(onWeightChange: { parsedWeights.append($0) })
+        let weightHandler = SetRow.weightTextChangeHandler(onWeightChange: { parsedWeights.append($0) }, weightUnit: .kilograms)
         weightHandler("", "75.5")
         weightHandler("75.5", "bad")
         XCTAssertEqual(parsedWeights.count, 1)
@@ -412,10 +414,10 @@ final class ProgramWorkoutViewCoverageTests: XCTestCase {
 
         XCTAssertFalse(PlateCalculatorSheet.hasPlates([]))
         _ = PlateCalculatorSheet.hasPlates([(weight: 20, count: 1)])
-        XCTAssertEqual(PlateCalculatorSheet.formatWeight(15), "15")
-        XCTAssertEqual(PlateCalculatorSheet.formatWeight(2.5), "2.5")
+        XCTAssertEqual(PlateCalculatorSheet.formatWeight(15, weightUnit: .kilograms), "15")
+        XCTAssertEqual(PlateCalculatorSheet.formatWeight(2.5, weightUnit: .kilograms), "2.5")
         XCTAssertEqual(
-            PlateCalculatorSheet.barOnlyText(barKg: PlateCalculation.standardBarKg),
+            PlateCalculatorSheet.barOnlyText(barKg: PlateCalculation.standardBarKg, weightUnit: .kilograms),
             "Bar only (\(Int(PlateCalculation.standardBarKg)) kg)"
         )
 
