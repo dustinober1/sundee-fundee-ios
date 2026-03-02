@@ -19,7 +19,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: dustinober1/sundee-fundee-shared
-          token: ${{ secrets.PAT_TOKEN }}
+          token: ${{ secrets.PAT_TOKEN || github.token }}
           path: SundeeFundee/Packages/SundeeFundeeShared
 
       - name: Generate Xcode project
