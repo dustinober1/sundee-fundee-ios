@@ -125,6 +125,7 @@ struct ModelRepoObservabilityCoverageWave4Tests {
 
         profile.status = .resolved
         #expect(profile.statusRaw == "resolved")
+        profile.recoveryPhase = .resolved
         #expect(profile.isActive == false)
 
         profile.statusRaw = "invalid"
