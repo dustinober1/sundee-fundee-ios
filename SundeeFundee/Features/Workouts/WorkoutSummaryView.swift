@@ -223,10 +223,10 @@ final class WorkoutSummaryViewModel {
         }
         groupedSets = grouped
         totalSets = sets.count
-        totalVolumeKg = sets.compactMap { set -> Double? in
-            guard let reps = set.actualReps, let kg = set.actualWeightKg else { return nil }
-            return Double(reps) * kg
-        }.reduce(0, +)
+        totalVolumeKg = sets.reduce(0) { total, set in
+            guard let reps = set.actualReps, let kg = set.actualWeightKg else { return total }
+            return total + (Double(reps) * kg)
+        }
 
         // Auto-detect PRs: compute Epley 1RM per exercise, compare to stored max
         var detectedPRs: [(String, Double)] = []
