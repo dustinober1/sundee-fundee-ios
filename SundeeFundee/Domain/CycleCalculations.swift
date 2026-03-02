@@ -72,7 +72,7 @@ enum CycleCalculations {
             cycleStartDate = start
         }
 
-        let cycleStart = cycleStartDate ?? startOfDay(referenceDate)
+        let cycleStart = cycleStartDate ?? ref
 
         let cycleDay  = daysBetween(cycleStart, ref) + 1
         let boundaries = getPhaseBoundaries(settings: settings)
