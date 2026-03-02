@@ -14,6 +14,7 @@ final class CompletedWorkout {
     var completedAt: Date
     var durationSeconds: Int
     var notes: String?
+    var perceivedEffort: Int?
 
     init(
         id: String,
@@ -26,7 +27,8 @@ final class CompletedWorkout {
         sessionID: String,
         completedAt: Date = .now,
         durationSeconds: Int = 0,
-        notes: String? = nil
+        notes: String? = nil,
+        perceivedEffort: Int? = nil
     ) {
         self.id = id
         self.userID = userID
@@ -39,6 +41,7 @@ final class CompletedWorkout {
         self.completedAt = completedAt
         self.durationSeconds = durationSeconds
         self.notes = notes
+        self.perceivedEffort = perceivedEffort
     }
 }
 
