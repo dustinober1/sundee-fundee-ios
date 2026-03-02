@@ -43,7 +43,7 @@ final class WorkoutExecutionViewModel {
         program: Program,
         oneRepMaxes: [String: Double] = [:],
         barbellWeightKg: Double = PlateCalculation.standardBarKg,
-        weightUnit: WeightUnit = .kilograms
+        weightUnit: WeightUnit = .pounds
     ) {
         self.session = session
         self.enrollment = enrollment

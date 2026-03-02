@@ -98,7 +98,8 @@ struct BenchmarkDefinitionRow: View {
         case .time:     return "For time"
         case .reps:     return "Max reps / rounds"
         case .weight:   return "Max weight"
-        case .distance: return "For time"
+        case .distance:      return "For time"
+        case .roundsAndReps: return "Rounds + Reps"
         }
     }
 }
@@ -134,6 +135,7 @@ struct AddCustomBenchmarkSheet: View {
                         Text("Max reps / rounds").tag(BenchmarkScoringType.reps)
                         Text("Max weight").tag(BenchmarkScoringType.weight)
                         Text("Distance (time)").tag(BenchmarkScoringType.distance)
+                        Text("Rounds + Reps").tag(BenchmarkScoringType.roundsAndReps)
                     }
                     .pickerStyle(.segmented)
                 }

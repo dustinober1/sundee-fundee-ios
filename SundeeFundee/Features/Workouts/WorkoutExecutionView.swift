@@ -302,7 +302,7 @@ struct SetRow: View {
         state: SetExecutionState,
         onRepsChange: @escaping (Int) -> Void,
         onWeightChange: @escaping (Double) -> Void,
-        weightUnit: WeightUnit = .kilograms,
+        weightUnit: WeightUnit = .pounds,
         bodyweightOnly: Bool = false,
         onToggle: @escaping () -> Void
     ) {
@@ -372,7 +372,7 @@ struct SetRow: View {
 
     static func initialTextValues(
         for state: SetExecutionState,
-        weightUnit: WeightUnit = .kilograms
+        weightUnit: WeightUnit = .pounds
     ) -> (repsText: String, weightText: String) {
         (
             state.actualReps.map { "\($0)" } ?? "",
@@ -388,7 +388,7 @@ struct SetRow: View {
 
     static func weightTextChangeHandler(
         onWeightChange: @escaping (Double) -> Void,
-        weightUnit: WeightUnit = .kilograms
+        weightUnit: WeightUnit = .pounds
     ) -> (String, String) -> Void {
         { _, new in
             if let weight = parseWeight(new, weightUnit: weightUnit) { onWeightChange(weight) }
@@ -399,11 +399,11 @@ struct SetRow: View {
         Int(value)
     }
 
-    static func parseWeight(_ value: String, weightUnit: WeightUnit = .kilograms) -> Double? {
+    static func parseWeight(_ value: String, weightUnit: WeightUnit = .pounds) -> Double? {
         WeightUnitConversion.parseInputToKilograms(value, unit: weightUnit)
     }
 
-    static func formatWeight(_ kg: Double, weightUnit: WeightUnit = .kilograms) -> String {
+    static func formatWeight(_ kg: Double, weightUnit: WeightUnit = .pounds) -> String {
         WeightUnitConversion.format(kilograms: kg, unit: weightUnit, maximumFractionDigits: 1)
     }
 }
@@ -511,7 +511,7 @@ struct PlateCalculatorSheet: View {
     init(
         weightKg: Double,
         barbellWeightKg: Double = PlateCalculation.standardBarKg,
-        weightUnit: WeightUnit = .kilograms
+        weightUnit: WeightUnit = .pounds
     ) {
         self.weightKg = weightKg
         self.barbellWeightKg = barbellWeightKg
@@ -580,11 +580,11 @@ struct PlateCalculatorSheet: View {
         !plates.isEmpty
     }
 
-    static func formatWeight(_ kg: Double, weightUnit: WeightUnit = .kilograms) -> String {
+    static func formatWeight(_ kg: Double, weightUnit: WeightUnit = .pounds) -> String {
         WeightUnitConversion.format(kilograms: kg, unit: weightUnit, maximumFractionDigits: 2)
     }
 
-    static func barOnlyText(barKg: Double, weightUnit: WeightUnit = .kilograms) -> String {
+    static func barOnlyText(barKg: Double, weightUnit: WeightUnit = .pounds) -> String {
         "Bar only (\(formatWeight(barKg, weightUnit: weightUnit)) \(weightUnit.symbol))"
     }
 
@@ -592,7 +592,7 @@ struct PlateCalculatorSheet: View {
         totalWeightKg: Double,
         barbellWeightKg: Double,
         plates: [(weight: Double, count: Int)],
-        weightUnit: WeightUnit = .kilograms
+        weightUnit: WeightUnit = .pounds
     ) -> String {
         if plates.isEmpty {
             return barOnlyText(barKg: barbellWeightKg, weightUnit: weightUnit)

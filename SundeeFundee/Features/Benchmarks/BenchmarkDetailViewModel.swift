@@ -42,7 +42,7 @@ final class BenchmarkDetailViewModel {
         switch definition.scoringType {
         case .time, .distance:
             return results.min(by: { $0.scoreValue < $1.scoreValue })
-        case .weight, .reps:
+        case .weight, .reps, .roundsAndReps:
             return results.max(by: { $0.scoreValue < $1.scoreValue })
         }
     }
@@ -80,6 +80,11 @@ final class BenchmarkDetailViewModel {
             return String(format: "%.1f kg", score)
         case .reps:
             return "\(Int(score)) reps"
+        case .roundsAndReps:
+            let total = Int(score)
+            let rounds = total / 10000
+            let reps = total % 10000
+            return "\(rounds) + \(reps)"
         }
     }
 }

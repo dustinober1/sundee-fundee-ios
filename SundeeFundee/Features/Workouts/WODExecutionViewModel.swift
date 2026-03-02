@@ -24,7 +24,7 @@ final class WODExecutionViewModel {
         wod: WOD,
         oneRepMaxes: [String: Double] = [:],
         barbellWeightKg: Double = PlateCalculation.standardBarKg,
-        weightUnit: WeightUnit = .kilograms
+        weightUnit: WeightUnit = .pounds
     ) {
         self.wod = wod
         self.oneRepMaxes = oneRepMaxes
