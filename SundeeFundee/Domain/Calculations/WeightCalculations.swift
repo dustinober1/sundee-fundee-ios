@@ -36,9 +36,9 @@ enum WeightCalculations {
         actualWeight: Double,
         prescribedWeight: Double?
     ) -> Bool {
-        let repsOk   = actualReps >= prescribedReps
-        let weightOk = prescribedWeight == nil || actualWeight >= prescribedWeight!
-        return repsOk && weightOk
+        let repsOk = actualReps >= prescribedReps
+        guard let prescribedWeight = prescribedWeight else { return repsOk }
+        return repsOk && actualWeight >= prescribedWeight
     }
 
     static func isPersonalRecord(weight: Double, previousMax: Double) -> Bool {
