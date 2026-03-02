@@ -135,11 +135,15 @@ final class DashboardViewModel {
         recentWorkouts = Array(allWorkouts.prefix(10))
     }
 
-    static func findTodayWOD(from wods: [WOD], now: Date = .now) -> WOD? {
+    private static let dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
         formatter.timeZone = .current
-        let todayString = formatter.string(from: now)
+        return formatter
+    }()
+
+    static func findTodayWOD(from wods: [WOD], now: Date = .now) -> WOD? {
+        let todayString = dateFormatter.string(from: now)
         return wods.first { $0.date == todayString }
     }
 
