@@ -9,14 +9,22 @@ enum KeychainHelper {
 
     static func saveAppleUserID(_ userID: String) {
         let data = Data(userID.utf8)
-        let query: [String: Any] = [
+
+        let deleteQuery: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: appleUserIDKey,
+        ]
+        SecItemDelete(deleteQuery as CFDictionary)
+
+        let addQuery: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
             kSecAttrAccount as String: appleUserIDKey,
             kSecValueData as String: data,
+            kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlockedThisDeviceOnly,
         ]
-        SecItemDelete(query as CFDictionary)
-        SecItemAdd(query as CFDictionary, nil)
+        SecItemAdd(addQuery as CFDictionary, nil)
     }
 
     static func loadAppleUserID() -> String? {
