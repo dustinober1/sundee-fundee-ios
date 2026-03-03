@@ -40,9 +40,11 @@ jobs:
         run: brew install xcodegen
 
       - name: Generate Xcode project
+        if: ${{ env.PAT_TOKEN != '' }}
         run: xcodegen generate --quiet
 
       - name: Build
+        if: ${{ env.PAT_TOKEN != '' }}
         run: |
           xcodebuild build \
             -project SundeeFundee.xcodeproj \
@@ -52,6 +54,7 @@ jobs:
             | xcpretty || cat
 
       - name: Test
+        if: ${{ env.PAT_TOKEN != '' }}
         run: |
           set -o pipefail
           xcodebuild test \
@@ -65,6 +68,7 @@ jobs:
             | xcpretty || cat
 
       - name: Enforce 100% app line coverage
+        if: ${{ env.PAT_TOKEN != '' }}
         run: |
           RESULT_BUNDLE_PATH="SundeeFundeeTests.xcresult"
           if [ ! -d "$RESULT_BUNDLE_PATH" ]; then
