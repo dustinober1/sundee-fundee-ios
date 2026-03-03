@@ -63,16 +63,16 @@ enum CycleCalculations {
             }
         }
 
-        if cycleStartDate == nil {
+        let cycleStart: Date
+        if let foundDate = cycleStartDate {
+            cycleStart = foundDate
+        } else {
             let most  = sorted[0]
-            var start = startOfDay(most.startDate)
+            let start = startOfDay(most.startDate)
             let daysSince = daysBetween(start, ref)
             let completed = daysSince / settings.averageCycleLengthDays
-            start = addDays(start, completed * settings.averageCycleLengthDays)
-            cycleStartDate = start
+            cycleStart = addDays(start, completed * settings.averageCycleLengthDays)
         }
-
-        let cycleStart = cycleStartDate ?? ref
 
         let cycleDay  = daysBetween(cycleStart, ref) + 1
         let boundaries = getPhaseBoundaries(settings: settings)
@@ -94,11 +94,11 @@ enum CycleCalculations {
         let daysUntilNext: Int
         switch currentPhase {
         case .menstrual:
-            daysUntilNext = boundaries[.follicular]!.start - cycleDay
+            daysUntilNext = (boundaries[.follicular]?.start ?? (cycleDay + 1)) - cycleDay
         case .follicular:
-            daysUntilNext = boundaries[.ovulation]!.start - cycleDay
+            daysUntilNext = (boundaries[.ovulation]?.start ?? (cycleDay + 1)) - cycleDay
         case .ovulation:
-            daysUntilNext = boundaries[.luteal]!.start - cycleDay
+            daysUntilNext = (boundaries[.luteal]?.start ?? (cycleDay + 1)) - cycleDay
         case .luteal:
             daysUntilNext = settings.averageCycleLengthDays - cycleDay + 1
         }
