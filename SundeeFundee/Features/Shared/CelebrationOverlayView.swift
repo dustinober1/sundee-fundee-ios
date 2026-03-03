@@ -29,16 +29,25 @@ struct ConfettiParticle: Sendable {
             state = state &* 6364136223846793005 &+ 1442695040888963407
             return Double((state >> 33) & 0x7FFFFFFF) / Double(0x7FFFFFFF)
         }
-        return (0..<count).map { _ in
-            ConfettiParticle(
-                x: nextRandom(),
-                y: -nextRandom() * 0.3,
-                size: 4 + nextRandom() * 8,
-                rotation: nextRandom() * 360,
-                color: ConfettiColor.allCases[Int(nextRandom() * 3) % 3],
-                speed: 100 + nextRandom() * 200
+
+        let colors = ConfettiColor.allCases
+        var particles = [ConfettiParticle]()
+        particles.reserveCapacity(count)
+
+        for _ in 0..<count {
+            particles.append(
+                ConfettiParticle(
+                    x: nextRandom(),
+                    y: -nextRandom() * 0.3,
+                    size: 4 + nextRandom() * 8,
+                    rotation: nextRandom() * 360,
+                    color: colors[Int(nextRandom() * 3) % 3],
+                    speed: 100 + nextRandom() * 200
+                )
             )
         }
+
+        return particles
     }
 }
 
