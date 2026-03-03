@@ -55,6 +55,22 @@ struct WeightCalculationsTests {
 
     @Test func detectPlateauInsufficientData() {
         #expect(WeightCalculations.detectPlateau(weights: [80, 80]) == false)
+        #expect(WeightCalculations.detectPlateau(weights: [80]) == false)
+        #expect(WeightCalculations.detectPlateau(weights: []) == false)
+    }
+
+    @Test func detectPlateauExactly5() {
+        #expect(WeightCalculations.detectPlateau(weights: [100, 102, 105]) == false)
+    }
+
+    @Test func detectPlateauMoreThan3Elements() {
+        #expect(WeightCalculations.detectPlateau(weights: [50, 60, 100, 102, 104]) == true)
+        #expect(WeightCalculations.detectPlateau(weights: [100, 100, 100, 105, 110]) == false)
+    }
+
+    @Test func detectPlateauNegativeOrZeroWeights() {
+        #expect(WeightCalculations.detectPlateau(weights: [0, 0, 0]) == true)
+        #expect(WeightCalculations.detectPlateau(weights: [-10, -8, -6]) == true)
     }
 }
 
