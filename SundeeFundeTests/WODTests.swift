@@ -137,4 +137,26 @@ final class WODTests: XCTestCase {
         let result = DashboardViewModel.findTodayWOD(from: [wod], now: specificDate)
         XCTAssertEqual(result?.id, "wod-june")
     }
+
+    // MARK: - Performance
+
+    func testDateFormatterPerformance() {
+        // Measure performance with standard caching implementation
+        measure {
+            for _ in 0..<1000 {
+                _ = Self.dateFormatter.string(from: .now)
+            }
+        }
+    }
+
+    func testDateFormatterUncachedPerformance() {
+        // Baseline: what happens without caching
+        measure {
+            for _ in 0..<1000 {
+                let formatter = DateFormatter()
+                formatter.dateFormat = "yyyy-MM-dd"
+                _ = formatter.string(from: .now)
+            }
+        }
+    }
 }
