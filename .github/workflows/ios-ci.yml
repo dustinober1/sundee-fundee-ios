@@ -25,10 +25,13 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Checkout private shared package
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
         uses: actions/checkout@v4
         with:
           repository: dustinober1/sundee-fundee-shared
-          token: ${{ secrets.PAT_TOKEN || github.token }}
+          token: ${{ secrets.PAT_TOKEN || 'dummy' }}
           path: SundeeFundee/Packages/SundeeFundeeShared
           persist-credentials: false
 
