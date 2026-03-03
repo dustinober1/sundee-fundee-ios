@@ -39,6 +39,27 @@ jobs:
           path: SundeeFundee/Packages/SundeeFundeeShared
           persist-credentials: false
 
+      - name: Create dummy shared package for forks
+        if: ${{ env.PAT_TOKEN == '' }}
+        run: |
+          mkdir -p SundeeFundee/Packages/SundeeFundeeShared/Sources/SundeeFundeeShared
+          cat << 'EOF' > SundeeFundee/Packages/SundeeFundeeShared/Package.swift
+          // swift-tools-version: 5.9
+          import PackageDescription
+          let package = Package(
+              name: "SundeeFundeeShared",
+              products: [
+                  .library(name: "SundeeFundeeShared", targets: ["SundeeFundeeShared"]),
+              ],
+              targets: [
+                  .target(name: "SundeeFundeeShared", dependencies: []),
+              ]
+          )
+          EOF
+          cat << 'EOF' > SundeeFundee/Packages/SundeeFundeeShared/Sources/SundeeFundeeShared/Dummy.swift
+          public struct Dummy {}
+          EOF
+
       - name: Install XcodeGen
         run: brew install xcodegen
 
