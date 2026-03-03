@@ -36,8 +36,13 @@ enum WeightCalculations {
         actualWeight: Double,
         prescribedWeight: Double?
     ) -> Bool {
-        let repsOk   = actualReps >= prescribedReps
-        let weightOk = prescribedWeight == nil || actualWeight >= prescribedWeight!
+        let repsOk = actualReps >= prescribedReps
+        let weightOk: Bool
+        if let prescribedWeight {
+            weightOk = actualWeight >= prescribedWeight
+        } else {
+            weightOk = true
+        }
         return repsOk && weightOk
     }
 
