@@ -21,7 +21,7 @@ enum PainTrendAnalyzer {
             return TrendResult(trailingAverage: 0, isImproving: false, latestPainLevel: nil, readingCount: 0)
         }
 
-        let recent = Array(logs.prefix(windowSize))
+        let recent = logs.prefix(windowSize)
         let average = Double(recent.reduce(0) { $0 + $1.painLevel }) / Double(recent.count)
         let latest = logs.first?.painLevel
 
@@ -30,7 +30,7 @@ enum PainTrendAnalyzer {
         if recent.count >= 2 {
             let midpoint = recent.count / 2
             let newerHalf = recent.prefix(midpoint)
-            let olderHalf = recent.suffix(from: midpoint)
+            let olderHalf = recent.dropFirst(midpoint)
             let newerAvg = Double(newerHalf.reduce(0) { $0 + $1.painLevel }) / Double(newerHalf.count)
             let olderAvg = Double(olderHalf.reduce(0) { $0 + $1.painLevel }) / Double(olderHalf.count)
             improving = newerAvg < olderAvg
