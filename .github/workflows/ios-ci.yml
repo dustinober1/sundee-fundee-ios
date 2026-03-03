@@ -26,9 +26,12 @@ jobs:
 
       - name: Checkout private shared package
         uses: actions/checkout@v4
+        env:
+          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+        if: ${{ secrets.PAT_TOKEN != '' }}
         with:
           repository: dustinober1/sundee-fundee-shared
-          token: ${{ secrets.PAT_TOKEN || github.token }}
+          token: ${{ secrets.PAT_TOKEN || 'dummy' }}
           path: SundeeFundee/Packages/SundeeFundeeShared
           persist-credentials: false
 
