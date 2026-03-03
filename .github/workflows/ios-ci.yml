@@ -21,17 +21,17 @@ concurrency:
 jobs:
   build-and-test:
     runs-on: macos-15
+    env:
+      PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
     steps:
       - uses: actions/checkout@v4
 
       - name: Checkout private shared package
-        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        if: ${{ env.PAT_TOKEN != '' }}
         uses: actions/checkout@v4
-        env:
-          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
         with:
           repository: dustinober1/sundee-fundee-shared
-          token: ${{ env.PAT_TOKEN || 'dummy' }}
+          token: ${{ secrets.PAT_TOKEN || 'dummy' }}
           path: SundeeFundee/Packages/SundeeFundeeShared
           persist-credentials: false
 
