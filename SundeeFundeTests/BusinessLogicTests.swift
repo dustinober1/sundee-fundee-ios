@@ -116,6 +116,11 @@ struct PlateCalculationTests {
         #expect(plates.isEmpty)
     }
 
+    @Test func emptyForLighterThanBar() {
+        let plates = PlateCalculation.platesPerSide(totalWeightKg: 10, barbellWeightKg: 20)
+        #expect(plates.isEmpty)
+    }
+
     @Test func oneHundredKgPlates() {
         // 100 kg total, 20 kg bar → 40 kg on each side
         // Available kg plates: [25, 20, 15, 10, 5, 2.5, 1.25]
