@@ -19,7 +19,7 @@ xcodegen generate
 xcodebuild build \
   -project SundeeFundee.xcodeproj \
   -scheme SundeeFundee \
-  -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
+  -destination 'platform=iOS Simulator,name=iPhone 16 Pro'
 ```
 
 ### Test
@@ -28,14 +28,14 @@ xcodebuild build \
 xcodebuild test \
   -project SundeeFundee.xcodeproj \
   -scheme SundeeFundee \
-  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+  -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
   -only-testing:SundeeFundeTests
 
 # Run a single test class
 xcodebuild test \
   -project SundeeFundee.xcodeproj \
   -scheme SundeeFundee \
-  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+  -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
   -only-testing:SundeeFundeTests/BusinessLogicTests
 ```
 
@@ -60,12 +60,12 @@ Domain/ (pure Swift, zero dependencies, 100% tested)
 
 ### Key Directories
 
-- **`App/`** — Entry point, `AppState` (auth routing), `ModelContainer` setup, schema migrations (V1→V7), debug seed data
+- **`App/`** — Entry point, `AppState` (auth routing), `ModelContainer` setup, schema migrations (V1→V8), debug seed data
 - **`Auth/`** — Sign in with Apple, `KeychainHelper`, guest mode
-- **`Domain/`** — All business logic: weight calculations, cycle phase adaptation, injury modification engine, benchmark catalog. No framework dependencies — fully unit tested.
-- **`Models/`** — 14 SwiftData `@Model` types. **Enums must be stored as raw strings** (CloudKit requirement); typed accessors are computed properties.
+- **`Domain/`** — All business logic: weight calculations, cycle phase adaptation, injury modification engine, benchmark catalog, pain trend analysis, rehab session generation, phase transition advice. No framework dependencies — fully unit tested.
+- **`Models/`** — 18 SwiftData `@Model` types. **Enums must be stored as raw strings** (CloudKit requirement); typed accessors are computed properties.
 - **`Repositories/`** — Protocol-based data access layer with SwiftData implementations. `ProgramRepository` fetches from CloudKit Public DB with bundled `programs.json` fallback.
-- **`Features/`** — One subdirectory per tab: Dashboard, Programs, Workouts, Cycle, Maxes, Settings + Shell (tab bar)
+- **`Features/`** — One subdirectory per tab: Dashboard, Programs, Workouts, Cycle, Maxes, Benchmarks, Settings + Shell (tab bar). `Shared/` contains reusable components (e.g., `SpicyRatingView`).
 - **`Theme/`** — Art Deco design tokens: cream/navy/orange palette
 
 ### Auth & Routing
@@ -85,6 +85,8 @@ Domain/ (pure Swift, zero dependencies, 100% tested)
 Programs are delivered via two channels:
 1. Bundled `Resources/Programs/programs.json` (always available)
 2. CloudKit Public DB (admin-seeded, for remote updates)
+
+WODs (Workouts of the Day) are delivered via bundled `Resources/WODs/wods.json`, matched by date.
 
 ### Testing
 
