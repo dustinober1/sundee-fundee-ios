@@ -51,13 +51,13 @@ enum CycleCalculations {
 
         for period in sorted {
             let pStart = startOfDay(period.startDate)
-            let pEnd   = period.endDate.map { startOfDay($0) }
-                      ?? addDays(pStart, settings.averagePeriodLengthDays - 1)
+            guard let pEnd = period.endDate.map({ startOfDay($0) })
+                          ?? addDays(pStart, settings.averagePeriodLengthDays - 1) else { return nil }
 
             if isWithin(ref, start: pStart, end: pEnd) {
                 cycleStartDate = pStart; break
             }
-            let nextExpected = addDays(pStart, settings.averageCycleLengthDays)
+            guard let nextExpected = addDays(pStart, settings.averageCycleLengthDays) else { return nil }
             if ref > pEnd && ref < nextExpected {
                 cycleStartDate = pStart; break
             }
@@ -65,11 +65,11 @@ enum CycleCalculations {
 
         if cycleStartDate == nil {
             let most  = sorted[0]
-            var start = startOfDay(most.startDate)
+            let start = startOfDay(most.startDate)
             let daysSince = daysBetween(start, ref)
             let completed = daysSince / settings.averageCycleLengthDays
-            start = addDays(start, completed * settings.averageCycleLengthDays)
-            cycleStartDate = start
+            guard let advancedStart = addDays(start, completed * settings.averageCycleLengthDays) else { return nil }
+            cycleStartDate = advancedStart
         }
 
         let cycleStart = cycleStartDate ?? ref
@@ -103,13 +103,19 @@ enum CycleCalculations {
             daysUntilNext = settings.averageCycleLengthDays - cycleDay + 1
         }
 
+        guard let predictedNextPeriod = addDays(cycleStart, settings.averageCycleLengthDays),
+              let phaseStartDate = addDays(cycleStart, phaseStartDay - 1),
+              let phaseEndDate = addDays(cycleStart, phaseEndDay - 1) else {
+            return nil
+        }
+
         return CycleStatusResult(
             currentPhase:       currentPhase,
             cycleDay:           cycleDay,
             daysUntilNextPhase: max(0, daysUntilNext),
-            predictedNextPeriod: addDays(cycleStart, settings.averageCycleLengthDays),
-            phaseStartDate:      addDays(cycleStart, phaseStartDay - 1),
-            phaseEndDate:        addDays(cycleStart, phaseEndDay   - 1)
+            predictedNextPeriod: predictedNextPeriod,
+            phaseStartDate:      phaseStartDate,
+            phaseEndDate:        phaseEndDate
         )
     }
 
@@ -181,8 +187,8 @@ enum CycleCalculations {
         Calendar.current.startOfDay(for: date)
     }
 
-    private static func addDays(_ date: Date, _ days: Int) -> Date {
-        Calendar.current.date(byAdding: .day, value: days, to: startOfDay(date)) ?? date
+    private static func addDays(_ date: Date, _ days: Int) -> Date? {
+        Calendar.current.date(byAdding: .day, value: days, to: startOfDay(date))
     }
 
     private static func daysBetween(_ from: Date, _ to: Date) -> Int {
