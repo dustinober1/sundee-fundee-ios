@@ -39,17 +39,33 @@ final class DashboardViewModel {
     }
 
     func load(modelContext: ModelContext) async {
-        let enrollmentRepo = SwiftDataEnrolledProgramRepository(context: modelContext)
-        let workoutRepo = SwiftDataWorkoutRepository(context: modelContext)
-        let cycleRepo = SwiftDataCycleRepository(context: modelContext)
-        let userRepo = SwiftDataUserRepository(context: modelContext)
+        let currentUser = loadUserConfiguration(modelContext: modelContext)
+        loadOneRepMaxes(modelContext: modelContext)
+        loadEnrollment(modelContext: modelContext)
 
-        // Load current user for gender-based bar weight
+        let cycleData = loadCycleData(modelContext: modelContext)
+        let activeInjuries = loadInjuries(modelContext: modelContext, currentUser: currentUser)
+        await loadReadinessMetrics()
+
+        await loadActiveProgram(
+            periodLogs: cycleData.periodLogs,
+            cycleSettings: cycleData.cycleSettings,
+            effectiveCyclePrefs: cycleData.effectiveCyclePrefs,
+            activeInjuries: activeInjuries
+        )
+
+        await loadWODAndRecentWorkouts(modelContext: modelContext)
+    }
+
+    private func loadUserConfiguration(modelContext: ModelContext) -> User? {
+        let userRepo = SwiftDataUserRepository(context: modelContext)
         let currentUser = try? userRepo.fetchCurrentUser()
         barbellWeightKg = Self.barbellWeight(for: currentUser?.gender)
         weightUnit = currentUser?.weightUnit ?? .pounds
+        return currentUser
+    }
 
-        // Load 1RM data for weight prescriptions (sorted date desc, first per exercise wins)
+    private func loadOneRepMaxes(modelContext: ModelContext) {
         let liftRepo = SwiftDataLiftRepository(context: modelContext)
         let allMaxes = (try? liftRepo.fetchOneRepMaxes()) ?? []
         var maxDict: [String: Double] = [:]
@@ -57,11 +73,15 @@ final class DashboardViewModel {
             maxDict[orm.exerciseID] = orm.weightKg
         }
         oneRepMaxes = maxDict
+    }
 
-        // Load active enrollment
+    private func loadEnrollment(modelContext: ModelContext) {
+        let enrollmentRepo = SwiftDataEnrolledProgramRepository(context: modelContext)
         activeEnrollment = try? enrollmentRepo.fetchActiveEnrollment()
+    }
 
-        // Cycle data
+    private func loadCycleData(modelContext: ModelContext) -> (periodLogs: [PeriodLog], cycleSettings: CycleSettings?, effectiveCyclePrefs: CycleAdaptationPreferences) {
+        let cycleRepo = SwiftDataCycleRepository(context: modelContext)
         let periodLogs = (try? cycleRepo.fetchPeriodLogs()) ?? []
         let cycleSettings = try? cycleRepo.fetchCycleSettings()
         let cyclePrefs = try? cycleRepo.fetchCycleAdaptationPreferences()
@@ -74,63 +94,70 @@ final class DashboardViewModel {
             currentCyclePhase = result?.currentPhase
         }
 
-        // Load the program for the active enrollment, adapted for cycle phase.
-        // Use a default enabled preferences when none has been saved yet (e.g. guest users).
         let effectiveCyclePrefs = cyclePrefs ?? CycleAdaptationPreferences(
             id: "default",
             userID: "",
             adaptationEnabled: true
         )
 
-        // Load active injuries for adaptation
+        return (periodLogs, cycleSettings, effectiveCyclePrefs)
+    }
+
+    private func loadInjuries(modelContext: ModelContext, currentUser: User?) -> [InjuryProfile] {
         let injuryRepo = SwiftDataInjuryRepository(context: modelContext)
         let activeInjuries = (try? injuryRepo.fetchActiveInjuries(userID: currentUser?.id ?? "")) ?? []
 
-        // Check which injuries need pain check-in (no log in last 24h)
         let painLogRepo = SwiftDataPainLogRepository(context: modelContext)
         activeInjuriesNeedingCheckIn = activeInjuries.filter { injury in
             let logs = (try? painLogRepo.fetchLogs(injuryProfileID: injury.id)) ?? []
             return !PainTrendAnalyzer.hasRecentLog(logs: logs)
         }
 
-        // Fetch readiness metrics from HealthKit if available
+        rehabSession = RehabSessionGenerator.generateSession(injuries: activeInjuries)
+        return activeInjuries
+    }
+
+    private func loadReadinessMetrics() async {
         if let readinessRepo {
             let metrics = try? await readinessRepo.fetchLatestMetrics()
             readinessScore = metrics?.readinessScore
         }
+    }
 
-        // Generate rehab mini-session if injuries in rehab phase
-        rehabSession = RehabSessionGenerator.generateSession(injuries: activeInjuries)
+    private func loadActiveProgram(
+        periodLogs: [PeriodLog],
+        cycleSettings: CycleSettings?,
+        effectiveCyclePrefs: CycleAdaptationPreferences,
+        activeInjuries: [InjuryProfile]
+    ) async {
+        guard let enrollment = activeEnrollment else { return }
 
-        if let enrollment = activeEnrollment {
-            var program = try? await programRepo.fetchProgram(id: enrollment.programID)
-            if let raw = program {
-                // Cycle adaptation first
-                var adapted = CycleProgramGenerator.adaptProgram(
-                    raw,
-                    phase: currentCyclePhase,
-                    settings: cycleSettings,
-                    preferences: effectiveCyclePrefs,
-                    periodLogs: periodLogs,
-                    readinessScore: readinessScore
-                )
-                // Injury adaptation second (injury caps override cycle boosts)
-                if !activeInjuries.isEmpty {
-                    adapted = InjuryAdaptationEngine.adaptProgram(adapted, activeInjuries: activeInjuries)
-                }
-                program = adapted
+        var program = try? await programRepo.fetchProgram(id: enrollment.programID)
+        if let raw = program {
+            var adapted = CycleProgramGenerator.adaptProgram(
+                raw,
+                phase: currentCyclePhase,
+                settings: cycleSettings,
+                preferences: effectiveCyclePrefs,
+                periodLogs: periodLogs,
+                readinessScore: readinessScore
+            )
+            if !activeInjuries.isEmpty {
+                adapted = InjuryAdaptationEngine.adaptProgram(adapted, activeInjuries: activeInjuries)
             }
-            activeProgram = program
-            if let adapted = activeProgram {
-                nextSession = findNextSession(in: adapted, enrollment: enrollment)
-            }
+            program = adapted
         }
+        activeProgram = program
+        if let adapted = activeProgram {
+            nextSession = findNextSession(in: adapted, enrollment: enrollment)
+        }
+    }
 
-        // Load today's WOD
+    private func loadWODAndRecentWorkouts(modelContext: ModelContext) async {
         let allWODs = (try? await wodRepo.fetchWODs()) ?? []
         todayWOD = Self.findTodayWOD(from: allWODs)
 
-        // Recent workouts (last 10)
+        let workoutRepo = SwiftDataWorkoutRepository(context: modelContext)
         let allWorkouts = (try? workoutRepo.fetchWorkouts()) ?? []
         recentWorkouts = Array(allWorkouts.prefix(10))
     }
