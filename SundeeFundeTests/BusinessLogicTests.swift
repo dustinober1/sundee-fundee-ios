@@ -191,6 +191,44 @@ struct CycleCalculationsTests {
         let rec = CycleCalculations.getPhaseRecommendation(.ovulation)
         #expect(rec.intensityRecommendation == "peak")
     }
+
+    @Test func phaseBoundariesStandardCycle() {
+        let settings = makeSettings(cycleDays: 28, periodDays: 5, lutealDays: 14)
+        let boundaries = CycleCalculations.getPhaseBoundaries(settings: settings)
+
+        // ovDay = 28 - 14 = 14
+        // ovStart = max(5 + 2, 14 - 2) = max(7, 12) = 12
+        // ovEnd = min(14 + 2, 28 - 14 + 2) = min(16, 16) = 16
+
+        #expect(boundaries[.menstrual]?.start == 1)
+        #expect(boundaries[.menstrual]?.end == 5)
+
+        #expect(boundaries[.follicular]?.start == 6)
+        #expect(boundaries[.follicular]?.end == 11)
+
+        #expect(boundaries[.ovulation]?.start == 12)
+        #expect(boundaries[.ovulation]?.end == 16)
+
+        #expect(boundaries[.luteal]?.start == 17)
+        #expect(boundaries[.luteal]?.end == 28)
+    }
+
+    @Test func phaseBoundariesShortCycle() {
+        let settings = makeSettings(cycleDays: 21, periodDays: 3, lutealDays: 10)
+        let boundaries = CycleCalculations.getPhaseBoundaries(settings: settings)
+
+        #expect(boundaries[.menstrual]?.start == 1)
+        #expect(boundaries[.menstrual]?.end == 3)
+
+        #expect(boundaries[.follicular]?.start == 4)
+        #expect(boundaries[.follicular]?.end == 8)
+
+        #expect(boundaries[.ovulation]?.start == 9)
+        #expect(boundaries[.ovulation]?.end == 13)
+
+        #expect(boundaries[.luteal]?.start == 14)
+        #expect(boundaries[.luteal]?.end == 21)
+    }
 }
 
 // MARK: - CycleAdaptationPolicy tests
