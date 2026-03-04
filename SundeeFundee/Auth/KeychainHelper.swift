@@ -17,6 +17,7 @@ enum KeychainHelper {
         ]
         SecItemDelete(deleteQuery as CFDictionary)
 
+        // Explicitly define kSecAttrAccessible to avoid falling back to insecure OS defaults.
         let addQuery: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
