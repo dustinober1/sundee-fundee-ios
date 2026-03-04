@@ -605,6 +605,99 @@ final class DashboardViewCoverageTests: XCTestCase {
         _ = WorkoutHistoryRow(workout: skippedWorkout).body
     }
 
+    // MARK: - averageEffort / ratedCount / EffortTrendsCard
+
+    func testAverageEffortReturnsNilForEmptyWorkouts() {
+        XCTAssertNil(DashboardView.averageEffort(from: []))
+    }
+
+    func testAverageEffortReturnsNilWhenNoWorkoutsHaveRatings() {
+        let w1 = makeWorkout(id: "w1", enrollmentID: "e1", programID: "p1")
+        let w2 = makeWorkout(id: "w2", enrollmentID: "e1", programID: "p1")
+        XCTAssertNil(DashboardView.averageEffort(from: [w1, w2]))
+    }
+
+    func testAverageEffortComputesCorrectlyForMixedRatings() {
+        let w1 = CompletedWorkout(
+            id: "r1", userID: "u", activeCycleID: "", programID: "p",
+            week: 1, day: 1, sessionID: "s", completedAt: fixedDate,
+            durationSeconds: 100, perceivedEffort: 3
+        )
+        let w2 = CompletedWorkout(
+            id: "r2", userID: "u", activeCycleID: "", programID: "p",
+            week: 1, day: 2, sessionID: "s", completedAt: fixedDate,
+            durationSeconds: 100, perceivedEffort: 5
+        )
+        let w3 = makeWorkout(id: "r3", enrollmentID: "e", programID: "p") // no rating
+        let avg = DashboardView.averageEffort(from: [w1, w2, w3])
+        XCTAssertEqual(avg!, 4.0, accuracy: 0.001)
+        XCTAssertEqual(DashboardView.ratedCount(from: [w1, w2, w3]), 2)
+    }
+
+    func testAverageEffortComputesCorrectlyForAllRated() {
+        let w1 = CompletedWorkout(
+            id: "a1", userID: "u", activeCycleID: "", programID: "p",
+            week: 1, day: 1, sessionID: "s", completedAt: fixedDate,
+            durationSeconds: 100, perceivedEffort: 2
+        )
+        let w2 = CompletedWorkout(
+            id: "a2", userID: "u", activeCycleID: "", programID: "p",
+            week: 1, day: 2, sessionID: "s", completedAt: fixedDate,
+            durationSeconds: 100, perceivedEffort: 4
+        )
+        let avg = DashboardView.averageEffort(from: [w1, w2])
+        XCTAssertEqual(avg!, 3.0, accuracy: 0.001)
+        XCTAssertEqual(DashboardView.ratedCount(from: [w1, w2]), 2)
+    }
+
+    func testEffortTrendsCardFormattedAverage() {
+        XCTAssertEqual(EffortTrendsCard.formattedAverage(3.5), "3.5 / 5")
+        XCTAssertEqual(EffortTrendsCard.formattedAverage(1.0), "1.0 / 5")
+    }
+
+    func testEffortTrendsCardRatedSummary() {
+        XCTAssertEqual(EffortTrendsCard.ratedSummary(rated: 7, total: 10), "7 of 10 workouts rated")
+    }
+
+    func testEffortTrendsCardBodyRenders() throws {
+        let store = try makeTestStore()
+        XCTAssertNotNil(host(
+            EffortTrendsCard(averageEffort: 3.5, ratedCount: 5, totalCount: 10)
+                .modelContainer(store.container)
+        ).view)
+    }
+
+    func testWorkoutHistoryRowShowsSpicyBadgeWhenRated() {
+        let ratedWorkout = CompletedWorkout(
+            id: "rated-1", userID: "u", activeCycleID: "", programID: "p",
+            week: 1, day: 1, sessionID: "s", completedAt: fixedDate,
+            durationSeconds: 2100, perceivedEffort: 4
+        )
+        _ = WorkoutHistoryRow(workout: ratedWorkout).body
+    }
+
+    func testDashboardRendersEffortTrendsCardWhenRatingsExist() throws {
+        let store = try makeTestStore()
+        let appState = makeAppState()
+        let viewModel = DashboardViewModel(programRepo: InMemoryProgramRepository(programs: []))
+        let ratedWorkout = CompletedWorkout(
+            id: "dash-rated", userID: "u", activeCycleID: "", programID: "p",
+            week: 1, day: 1, sessionID: "s", completedAt: fixedDate,
+            durationSeconds: 2100, perceivedEffort: 3
+        )
+        viewModel.recentWorkouts = [ratedWorkout]
+        viewModel.activeEnrollment = nil
+        viewModel.activeProgram = nil
+
+        XCTAssertNotNil(host(
+            NavigationStack {
+                DashboardView(viewModel: viewModel)
+            }
+            .environment(appState)
+            .modelContainer(store.container)
+        ).view)
+    }
+
     // MARK: - ActiveEnrollmentCard with onSkip closure
 
     func testActiveEnrollmentCardWithSkipClosureRendersSkipButton() throws {

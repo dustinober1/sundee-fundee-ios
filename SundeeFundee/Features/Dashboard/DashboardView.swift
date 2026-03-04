@@ -58,6 +58,13 @@ struct DashboardView: View {
                     if let rehabSession = viewModel.rehabSession {
                         RehabSessionCard(session: rehabSession)
                     }
+                    if let avg = Self.averageEffort(from: viewModel.recentWorkouts) {
+                        EffortTrendsCard(
+                            averageEffort: avg,
+                            ratedCount: Self.ratedCount(from: viewModel.recentWorkouts),
+                            totalCount: viewModel.recentWorkouts.count
+                        )
+                    }
                     recentWorkoutsSection
                 }
                 .padding(AppTheme.Spacing.md)
@@ -228,6 +235,18 @@ struct DashboardView: View {
 
     static func shouldShowEmptyRecentWorkouts(_ workouts: [CompletedWorkout]) -> Bool {
         workouts.isEmpty
+    }
+
+    /// Average perceived effort across workouts that have a rating. Returns nil when none are rated.
+    static func averageEffort(from workouts: [CompletedWorkout]) -> Double? {
+        let rated = workouts.compactMap(\.perceivedEffort)
+        guard !rated.isEmpty else { return nil }
+        return Double(rated.reduce(0, +)) / Double(rated.count)
+    }
+
+    /// Number of workouts that have a spicy rating.
+    static func ratedCount(from workouts: [CompletedWorkout]) -> Int {
+        workouts.filter { $0.perceivedEffort != nil }.count
     }
 
     static func greeting(for date: Date, calendar: Calendar = .current) -> String {
@@ -430,9 +449,22 @@ struct WorkoutHistoryRow: View {
             }
             Spacer()
             if !isSkipped {
-                Text("\(workout.durationSeconds / 60)m")
-                    .font(AppTheme.Fonts.caption)
-                    .foregroundStyle(AppTheme.Colors.navy.opacity(0.5))
+                HStack(spacing: 4) {
+                    if let effort = workout.perceivedEffort {
+                        Image(systemName: "flame.fill")
+                            .font(.system(size: 10))
+                            .foregroundStyle(AppTheme.Colors.accentOrange)
+                        Text(SpicyRatingView.label(for: effort))
+                            .font(AppTheme.Fonts.caption)
+                            .foregroundStyle(AppTheme.Colors.accentOrange)
+                        Text("·")
+                            .font(AppTheme.Fonts.caption)
+                            .foregroundStyle(AppTheme.Colors.navy.opacity(0.3))
+                    }
+                    Text("\(workout.durationSeconds / 60)m")
+                        .font(AppTheme.Fonts.caption)
+                        .foregroundStyle(AppTheme.Colors.navy.opacity(0.5))
+                }
             }
             Image(systemName: "chevron.right")
                 .font(.caption)
@@ -472,6 +504,55 @@ struct RehabSessionCard: View {
         .padding(AppTheme.Spacing.md)
         .background(AppTheme.Colors.accentOrange.opacity(0.1))
         .clipShape(RoundedRectangle(cornerRadius: AppTheme.CornerRadius.card))
+    }
+}
+
+// MARK: - EffortTrendsCard
+
+struct EffortTrendsCard: View {
+    let averageEffort: Double
+    let ratedCount: Int
+    let totalCount: Int
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
+            Text("EFFORT TRENDS")
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundStyle(AppTheme.Colors.accentOrange)
+                .tracking(1.5)
+
+            HStack(spacing: AppTheme.Spacing.md) {
+                HStack(spacing: 4) {
+                    ForEach(1...5, id: \.self) { level in
+                        Image(systemName: Double(level) <= averageEffort.rounded() ? "flame.fill" : "flame")
+                            .font(.system(size: 20))
+                            .foregroundStyle(Double(level) <= averageEffort.rounded() ? AppTheme.Colors.accentOrange : AppTheme.Colors.navy.opacity(0.2))
+                    }
+                }
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(Self.formattedAverage(averageEffort))
+                        .font(AppTheme.Fonts.subheading)
+                        .foregroundStyle(AppTheme.Colors.navy)
+                    Text(Self.ratedSummary(rated: ratedCount, total: totalCount))
+                        .font(AppTheme.Fonts.caption)
+                        .foregroundStyle(AppTheme.Colors.navy.opacity(0.5))
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(AppTheme.Spacing.md)
+        .background(AppTheme.Colors.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: AppTheme.CornerRadius.card))
+        .shadow(color: .black.opacity(0.08), radius: 6, x: 0, y: 3)
+    }
+
+    static func formattedAverage(_ value: Double) -> String {
+        String(format: "%.1f / 5", value)
+    }
+
+    static func ratedSummary(rated: Int, total: Int) -> String {
+        "\(rated) of \(total) workouts rated"
     }
 }
 
