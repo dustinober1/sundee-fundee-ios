@@ -212,11 +212,17 @@ final class WorkoutSummaryViewModel {
         let workoutRepo = SwiftDataWorkoutRepository(context: modelContext)
         let liftRepo = SwiftDataLiftRepository(context: modelContext)
         let userRepo = SwiftDataUserRepository(context: modelContext)
+
         weightUnit = (try? userRepo.fetchCurrentUser())?.weightUnit ?? .pounds
 
         guard let sets = try? workoutRepo.fetchSets(for: workout) else { return }
 
-        // Build grouped set view
+        buildGroupedSets(from: sets)
+        detectWeightPRs(liftRepo: liftRepo)
+        detectConditioningPRs(liftRepo: liftRepo)
+    }
+
+    private func buildGroupedSets(from sets: [CompletedSet]) {
         var grouped: [String: [CompletedSet]] = [:]
         for set in sets {
             grouped[set.exerciseName, default: []].append(set)
@@ -227,10 +233,11 @@ final class WorkoutSummaryViewModel {
             guard let reps = set.actualReps, let kg = set.actualWeightKg else { return total }
             return total + (Double(reps) * kg)
         }
+    }
 
-        // Auto-detect PRs: compute Epley 1RM per exercise, compare to stored max
+    private func detectWeightPRs(liftRepo: LiftRepository) {
         var detectedPRs: [(String, Double)] = []
-        for (exercise, exerciseSets) in grouped {
+        for (exercise, exerciseSets) in groupedSets {
             let best1RM = exerciseSets.compactMap { set -> Double? in
                 guard let reps = set.actualReps, reps > 0,
                       let kg = set.actualWeightKg, kg > 0 else { return nil }
@@ -241,7 +248,6 @@ final class WorkoutSummaryViewModel {
 
             let existing = try? liftRepo.fetchOneRepMax(exercise: exercise)
             if EpleyFormula.isPR(newEstimate: new1RM, currentMax: existing?.weightKg) {
-                // Save updated 1RM
                 let orm = OneRepMax(
                     id: UUID().uuidString,
                     userID: workout.userID,
@@ -254,10 +260,11 @@ final class WorkoutSummaryViewModel {
             }
         }
         newPRs = detectedPRs
+    }
 
-        // Auto-detect conditioning PRs
+    private func detectConditioningPRs(liftRepo: LiftRepository) {
         var detectedConditioningPRs: [(String, Double, ConditioningScoringType)] = []
-        for (exercise, exerciseSets) in grouped {
+        for (exercise, exerciseSets) in groupedSets {
             guard let scoringType = ConditioningExerciseCatalog.scoringType(for: exercise) else { continue }
 
             let bestValue: Double? = {
