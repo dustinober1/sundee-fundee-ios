@@ -293,6 +293,65 @@ struct CycleAdaptationPolicyAdditionalTests {
         )
         #expect(abs((adapted.percent1RM ?? 0) - 0.96) < 0.0001)
     }
+
+    @Test func blendMultiplierClampsCorrectly() {
+        // Readiness scale for .high is 1.2
+        // Confidence scale for .high is 1.0
+        // blendMultiplier(target) = (1.0 + (target - 1.0) * 1.2 * 1.0).clamped(to: 0.75...1.25)
+
+        // Let's force target bounds using a custom profile
+        // - loadMultiplier: 2.0 -> math gives 1.0 + (1.0 * 1.2) = 2.2 -> clamped to 1.25
+        // - setsMultiplier: 0.1 -> math gives 1.0 + (-0.9 * 1.2) = 1.0 - 1.08 = -0.08 -> clamped to 0.75
+        // - repsMultiplier: 1.0 -> math gives 1.0 + (0 * 1.2) = 1.0 -> no clamp (1.0)
+        let extremeProfile = ProgramCycleAdjustmentProfile(
+            fallbackPhase: "ovulation",
+            lowConfidenceScale: 1.0,
+            phaseSettings: [
+                "ovulation": ProgramPhaseAdjustmentSettings(
+                    loadMultiplier: 2.0,
+                    setsMultiplier: 0.1,
+                    repsMultiplier: 1.0
+                )
+            ]
+        )
+
+        let exercise = ProgramExercise(
+            exercise: "Test Exercise",
+            variant: nil,
+            sets: .fixed(100), // 100 * 0.75 = 75
+            reps: .fixed(10),  // 10 * 1.0 = 10
+            percent1RM: 0.80,  // 0.80 * 1.25 = 1.0
+            restMinutes: 3,
+            notes: nil
+        )
+
+        let adapted = policy.applyPhaseAdjustment(
+            exercise: exercise,
+            phase: .ovulation,
+            readinessTier: .high,
+            confidence: .high,
+            profile: extremeProfile
+        )
+
+        // loadMultiplier clamped to 1.25 -> percent1RM = 0.80 * 1.25 = 1.0
+        #expect(abs((adapted.percent1RM ?? 0) - 1.0) < 0.0001)
+
+        // setsMultiplier clamped to 0.75 -> sets = 100 * 0.75 = 75
+        switch adapted.sets {
+        case .fixed(let n):
+            #expect(n == 75)
+        default:
+            Issue.record("Expected sets to be .fixed")
+        }
+
+        // repsMultiplier evaluates to 1.0 -> reps = 10 * 1.0 = 10
+        switch adapted.reps {
+        case .fixed(let n):
+            #expect(n == 10)
+        default:
+            Issue.record("Expected reps to be .fixed")
+        }
+    }
 }
 
 @Suite("CycleProgramGenerator Additional")
