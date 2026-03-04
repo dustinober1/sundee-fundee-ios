@@ -94,11 +94,11 @@ enum CycleCalculations {
         let daysUntilNext: Int
         switch currentPhase {
         case .menstrual:
-            daysUntilNext = boundaries[.follicular]!.start - cycleDay
+            daysUntilNext = (boundaries[.follicular]?.start ?? cycleDay) - cycleDay
         case .follicular:
-            daysUntilNext = boundaries[.ovulation]!.start - cycleDay
+            daysUntilNext = (boundaries[.ovulation]?.start ?? cycleDay) - cycleDay
         case .ovulation:
-            daysUntilNext = boundaries[.luteal]!.start - cycleDay
+            daysUntilNext = (boundaries[.luteal]?.start ?? cycleDay) - cycleDay
         case .luteal:
             daysUntilNext = settings.averageCycleLengthDays - cycleDay + 1
         }
@@ -186,7 +186,8 @@ enum CycleCalculations {
     }
 
     private static func daysBetween(_ from: Date, _ to: Date) -> Int {
-        Calendar.current.dateComponents([.day], from: startOfDay(from), to: startOfDay(to)).day ?? 0
+        let components = Calendar.current.dateComponents([.day], from: startOfDay(from), to: startOfDay(to))
+        return components.day ?? 0
     }
 
     private static func isWithin(_ target: Date, start: Date, end: Date) -> Bool {
