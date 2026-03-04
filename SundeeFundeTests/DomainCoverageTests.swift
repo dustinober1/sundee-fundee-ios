@@ -798,3 +798,32 @@ struct CycleProgramGeneratorNoteTests {
         }
     }
 }
+
+@Suite("Comparable Extension Tests")
+struct ComparableExtensionTests {
+
+    @Test func comparableClampedExtension() {
+        let intRange = 5...10
+
+        // Below lower bound
+        #expect(3.clamped(to: intRange) == 5)
+
+        // Equal to lower bound
+        #expect(5.clamped(to: intRange) == 5)
+
+        // Within range
+        #expect(7.clamped(to: intRange) == 7)
+
+        // Equal to upper bound
+        #expect(10.clamped(to: intRange) == 10)
+
+        // Above upper bound
+        #expect(12.clamped(to: intRange) == 10)
+
+        // Test with Double
+        let doubleRange = 0.5...1.5
+        #expect(0.1.clamped(to: doubleRange) == 0.5)
+        #expect(1.0.clamped(to: doubleRange) == 1.0)
+        #expect(2.0.clamped(to: doubleRange) == 1.5)
+    }
+}
