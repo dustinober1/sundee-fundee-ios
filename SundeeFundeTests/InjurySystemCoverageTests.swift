@@ -110,6 +110,33 @@ struct PainTrendAnalyzerTests {
         #expect(result.readingCount == 1)
     }
 
+    @Test func windowSizeOneWithMultipleLogs() {
+        let logs = makeLogs(levels: [5, 4, 3])
+        let result = PainTrendAnalyzer.analyzeTrend(logs: logs, windowSize: 1)
+        #expect(result.trailingAverage == 5.0)
+        #expect(result.isImproving == false)
+        #expect(result.latestPainLevel == 5)
+        #expect(result.readingCount == 3)
+    }
+
+    @Test func twoLogsImprovingTrend() {
+        let logs = makeLogs(levels: [2, 4])
+        let result = PainTrendAnalyzer.analyzeTrend(logs: logs)
+        #expect(result.trailingAverage == 3.0)
+        #expect(result.isImproving == true)
+        #expect(result.latestPainLevel == 2)
+        #expect(result.readingCount == 2)
+    }
+
+    @Test func twoLogsWorseningTrend() {
+        let logs = makeLogs(levels: [4, 2])
+        let result = PainTrendAnalyzer.analyzeTrend(logs: logs)
+        #expect(result.trailingAverage == 3.0)
+        #expect(result.isImproving == false)
+        #expect(result.latestPainLevel == 4)
+        #expect(result.readingCount == 2)
+    }
+
     @Test func improvingTrend() {
         // Newest first: 2, 3, 4, 5, 6, 7, 8 — newer half lower = improving
         let logs = makeLogs(levels: [2, 3, 4, 5, 6, 7, 8])
