@@ -71,20 +71,27 @@ struct OnboardingFlowView: View {
                     }
 
                     // Navigation buttons
-                    HStack {
-                        if Self.showsBackButton(for: step) {
-                            Button("Back", action: previousStepAnimatedAction)
-                                .foregroundStyle(AppTheme.Color.textSecondary)
-                        }
-                        Spacer()
-                        Button(Self.actionTitle(for: step, gender: gender), action: nextStepAnimatedAction)
-                        .buttonStyle(PrimaryButtonStyle())
-                        .disabled(!canAdvance || isSaving)
-                    }
-                    .padding(AppTheme.Spacing.xl)
+                    navigationButtons
+                        .padding(AppTheme.Spacing.xl)
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
+        }
+    }
+
+    // MARK: - Navigation Buttons
+
+    @ViewBuilder
+    private var navigationButtons: some View {
+        HStack {
+            if Self.showsBackButton(for: step) {
+                Button("Back", action: previousStepAnimatedAction)
+                    .foregroundStyle(AppTheme.Color.textSecondary)
+            }
+            Spacer()
+            Button(Self.actionTitle(for: step, gender: gender), action: nextStepAnimatedAction)
+            .buttonStyle(PrimaryButtonStyle())
+            .disabled(!canAdvance || isSaving)
         }
     }
 
