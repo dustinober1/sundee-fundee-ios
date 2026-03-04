@@ -54,7 +54,32 @@ struct WeightCalculationsTests {
     }
 
     @Test func detectPlateauInsufficientData() {
+        #expect(WeightCalculations.detectPlateau(weights: []) == false)
+        #expect(WeightCalculations.detectPlateau(weights: [80]) == false)
         #expect(WeightCalculations.detectPlateau(weights: [80, 80]) == false)
+    }
+
+    @Test func detectPlateauExactlyFiveDifference() {
+        // Difference is exactly 5.0 (not less than 5)
+        #expect(WeightCalculations.detectPlateau(weights: [80, 80, 85]) == false)
+        #expect(WeightCalculations.detectPlateau(weights: [85, 80, 85]) == false)
+    }
+
+    @Test func detectPlateauNegativeWeights() {
+        // Handled cleanly despite negative values (if they somehow exist)
+        #expect(WeightCalculations.detectPlateau(weights: [-10, -10, -12]) == true)
+        #expect(WeightCalculations.detectPlateau(weights: [-10, -15, -20]) == false)
+    }
+
+    @Test func detectPlateauLargeArrays() {
+        // Only checks the last 3 elements
+        #expect(WeightCalculations.detectPlateau(weights: [100, 110, 120, 130, 80, 80, 82]) == true)
+        #expect(WeightCalculations.detectPlateau(weights: [80, 80, 82, 100, 110, 120, 130]) == false)
+    }
+
+    @Test func detectPlateauDecimalDifferences() {
+        #expect(WeightCalculations.detectPlateau(weights: [100.0, 102.5, 104.9]) == true)
+        #expect(WeightCalculations.detectPlateau(weights: [100.0, 102.5, 105.0]) == false)
     }
 }
 
