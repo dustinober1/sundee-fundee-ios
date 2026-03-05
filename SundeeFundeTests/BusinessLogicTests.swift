@@ -81,6 +81,28 @@ struct WeightCalculationsTests {
         #expect(WeightCalculations.detectPlateau(weights: [100.0, 102.5, 104.9]) == true)
         #expect(WeightCalculations.detectPlateau(weights: [100.0, 102.5, 105.0]) == false)
     }
+
+    @Test func detectPlateauAllIdenticalWeights() {
+        #expect(WeightCalculations.detectPlateau(weights: [50, 50, 50]) == true)
+    }
+
+    @Test func detectPlateauAscendingWeights() {
+        #expect(WeightCalculations.detectPlateau(weights: [100, 102, 104]) == true)
+        #expect(WeightCalculations.detectPlateau(weights: [100, 103, 106]) == false)
+    }
+
+    @Test func detectPlateauShortArrays() {
+        // Less than 3 elements should return false
+        #expect(WeightCalculations.detectPlateau(weights: []) == false)
+        #expect(WeightCalculations.detectPlateau(weights: [100]) == false)
+        #expect(WeightCalculations.detectPlateau(weights: [100, 100]) == false)
+    }
+
+    @Test func detectPlateauLongArrays() {
+        // Only the last 3 elements are evaluated
+        #expect(WeightCalculations.detectPlateau(weights: [50, 60, 100, 100, 100]) == true)
+        #expect(WeightCalculations.detectPlateau(weights: [100, 100, 100, 100, 105, 110]) == false)
+    }
 }
 
 // MARK: - EpleyFormula tests
