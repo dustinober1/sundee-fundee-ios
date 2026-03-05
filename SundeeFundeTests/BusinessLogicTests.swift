@@ -189,6 +189,18 @@ struct CycleCalculationsTests {
         #expect(result == nil)
     }
 
+    @Test func zeroAverageCycleLengthDoesNotCrash() {
+        // Issue: Zero average length cycle edge case
+        let result = CycleCalculations.calculateCycleStatus(
+            periodLogs: [makePeriodLog(startOffset: -60)], // Ensure we fall into the else block for cycleStartDate
+            settings: makeSettings(cycleDays: 0, periodDays: 5, lutealDays: 14)
+        )
+        // We just want to ensure it doesn't crash from division by zero, and it returns safely
+        #expect(result != nil)
+        // With length max(1, 0) -> 1, completed = 60 / 1 = 60, cycle start = 60 * 1 = 60, cycle day = 61
+        // (the values don't matter as much as the crash not occurring)
+    }
+
     @Test func detectsMenstrualPhase() {
         // Period started today → day 1 → menstrual
         let log = makePeriodLog(startOffset: 0)

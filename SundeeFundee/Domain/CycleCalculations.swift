@@ -70,8 +70,9 @@ enum CycleCalculations {
             let most  = sorted[0]
             var start = startOfDay(most.startDate)
             let daysSince = daysBetween(start, ref)
-            let completed = daysSince / settings.averageCycleLengthDays
-            start = addDays(start, completed * settings.averageCycleLengthDays)
+            let safeCycleLength = max(1, settings.averageCycleLengthDays)
+            let completed = daysSince / safeCycleLength
+            start = addDays(start, completed * safeCycleLength)
             cycleStart = start
         }
 
