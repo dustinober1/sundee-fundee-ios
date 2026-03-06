@@ -52,6 +52,7 @@ struct DashboardView: View {
                     } else {
                         NoEnrollmentCard()
                     }
+                    AIWorkoutCTACard()
                     if let wod = viewModel.todayWOD {
                         WODCard(wod: wod, oneRepMaxes: viewModel.oneRepMaxes, barbellWeightKg: viewModel.barbellWeightKg, weightUnit: viewModel.weightUnit)
                     }
@@ -84,6 +85,13 @@ struct DashboardView: View {
                     )
                 )
             }
+        }
+        .navigationDestination(for: StartAIWorkoutDestination.self) { _ in
+            AIWorkoutFlowView(
+                userID: appState.currentUserID ?? "",
+                barbellWeightKg: viewModel.barbellWeightKg,
+                weightUnit: viewModel.weightUnit
+            )
         }
         .navigationDestination(for: StartWODDestination.self) { dest in
             WODExecutionView(
@@ -689,5 +697,48 @@ struct MenstrualPhaseCard: View {
         .padding(AppTheme.Spacing.md)
         .background(AppTheme.Colors.warmRose.opacity(0.15))
         .clipShape(RoundedRectangle(cornerRadius: AppTheme.CornerRadius.card))
+    }
+}
+
+// MARK: - StartAIWorkoutDestination
+
+struct StartAIWorkoutDestination: Hashable {}
+
+// MARK: - AIWorkoutCTACard
+
+struct AIWorkoutCTACard: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("AI WORKOUT")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(AppTheme.Colors.accentOrange)
+                        .tracking(1.5)
+                    Text("Custom Session")
+                        .font(AppTheme.Fonts.subheading)
+                        .foregroundStyle(AppTheme.Colors.navy)
+                }
+                Spacer()
+                Image(systemName: "sparkles")
+                    .font(.title2)
+                    .foregroundStyle(AppTheme.Colors.accentOrange)
+            }
+
+            Text("Generate a personalized workout based on your goals, maxes, and how you're feeling today.")
+                .font(AppTheme.Fonts.caption)
+                .foregroundStyle(AppTheme.Colors.navy.opacity(0.6))
+
+            NavigationLink(value: StartAIWorkoutDestination()) {
+                Label("New AI Workout", systemImage: "sparkles")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(PrimaryButtonStyle())
+            .accessibilityIdentifier("start-ai-workout-button")
+        }
+        .padding(AppTheme.Spacing.md)
+        .background(AppTheme.Colors.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: AppTheme.CornerRadius.card))
+        .shadow(color: .black.opacity(0.08), radius: 6, x: 0, y: 3)
     }
 }

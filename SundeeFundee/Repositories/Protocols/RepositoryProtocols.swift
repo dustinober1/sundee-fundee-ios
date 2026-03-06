@@ -148,3 +148,12 @@ protocol ProgramRepository: Sendable {
 protocol WODRepository: Sendable {
     func fetchWODs() async throws -> [WOD]
 }
+
+// MARK: - AIWorkoutServiceProtocol
+
+protocol AIWorkoutServiceProtocol: Sendable {
+    func generateWorkout(context: WorkoutGenerationContext) async throws -> GeneratedWorkout
+    func fetchHistory(userID: String) async throws -> [GeneratedWorkout]
+    func toggleFavorite(workoutID: String, isFavorite: Bool) async throws
+    func fetchFavorites(userID: String) async throws -> [GeneratedWorkout]
+}

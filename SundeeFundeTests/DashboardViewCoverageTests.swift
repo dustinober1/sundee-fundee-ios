@@ -722,6 +722,23 @@ final class DashboardViewCoverageTests: XCTestCase {
         _ = skipCalled // suppress unused warning
     }
 
+    func testAIWorkoutCTACardRendersWithoutCrash() throws {
+        let store = try makeTestStore()
+        XCTAssertNotNil(host(
+            NavigationStack {
+                AIWorkoutCTACard()
+            }
+            .modelContainer(store.container)
+        ).view)
+    }
+
+    func testStartAIWorkoutDestinationHashable() {
+        let a = StartAIWorkoutDestination()
+        let b = StartAIWorkoutDestination()
+        XCTAssertEqual(a, b)
+        XCTAssertEqual(a.hashValue, b.hashValue)
+    }
+
     func testNavigationDestinationAndDestinationHashingBranches() throws {
         let store = try makeTestStore()
         let appState = makeAppState()

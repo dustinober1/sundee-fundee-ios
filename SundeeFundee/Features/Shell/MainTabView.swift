@@ -6,6 +6,7 @@ struct MainTabView: View {
     enum TabRoute: String, CaseIterable {
         case dashboard
         case programs
+        case history
         case maxes
         case benchmarks
         case cycle
@@ -15,6 +16,7 @@ struct MainTabView: View {
             switch self {
             case .dashboard: "Dashboard"
             case .programs: "Programs"
+            case .history: "History"
             case .maxes: "Maxes"
             case .benchmarks: "Benchmarks"
             case .cycle: "Cycle"
@@ -26,6 +28,7 @@ struct MainTabView: View {
             switch self {
             case .dashboard: "house.fill"
             case .programs: "list.bullet.rectangle.portrait.fill"
+            case .history: "clock.fill"
             case .maxes: "dumbbell.fill"
             case .benchmarks: "checkmark.seal.fill"
             case .cycle: "circle.dotted"
@@ -37,10 +40,12 @@ struct MainTabView: View {
     static var orderedTabs: [TabRoute] { orderedTabs(for: nil) }
 
     static func orderedTabs(for gender: Gender?) -> [TabRoute] {
-        if gender == .male {
-            return TabRoute.allCases.filter { $0 != .cycle }
+        var tabs: [TabRoute] = [.dashboard, .history, .maxes, .benchmarks]
+        if gender != .male {
+            tabs.append(.cycle)
         }
-        return TabRoute.allCases
+        tabs.append(.settings)
+        return tabs
     }
     @Query private var users: [User]
 
@@ -77,6 +82,11 @@ struct MainTabView: View {
             DashboardView()
         case .programs:
             ProgramListView()
+        case .history:
+            WorkoutHistoryView(
+                userID: "",
+                aiService: FirebaseAIWorkoutService()
+            )
         case .maxes:
             MaxLiftsView()
         case .benchmarks:

@@ -18,8 +18,9 @@ struct SetExecutionState {
 @Observable
 final class WorkoutExecutionViewModel {
     let session: ProgramSession
-    let enrollment: EnrolledProgram
-    let program: Program
+    let enrollment: EnrolledProgram?
+    let program: Program?
+    let generatedWorkout: GeneratedWorkout?
     let barbellWeightKg: Double
     let weightUnit: WeightUnit
 
@@ -48,10 +49,69 @@ final class WorkoutExecutionViewModel {
         self.session = session
         self.enrollment = enrollment
         self.program = program
+        self.generatedWorkout = nil
         self.oneRepMaxes = oneRepMaxes
         self.barbellWeightKg = barbellWeightKg
         self.weightUnit = weightUnit
         initializeSets()
+    }
+
+    init(
+        generatedWorkout: GeneratedWorkout,
+        barbellWeightKg: Double = PlateCalculation.standardBarKg,
+        weightUnit: WeightUnit = .pounds
+    ) {
+        self.generatedWorkout = generatedWorkout
+        self.session = Self.mapToSession(generatedWorkout)
+        self.enrollment = nil
+        self.program = nil
+        self.barbellWeightKg = barbellWeightKg
+        self.weightUnit = weightUnit
+        initializeAISets(from: generatedWorkout)
+    }
+
+    private static func mapToSession(_ workout: GeneratedWorkout) -> ProgramSession {
+        let exercises = workout.exercises.map { ex in
+            ProgramExercise(
+                exercise: ex.name,
+                variant: nil,
+                sets: .fixed(ex.sets),
+                reps: parseReps(ex.reps),
+                percent1RM: nil,
+                restMinutes: ex.restMinutes,
+                notes: ex.notes,
+                bodyweightOnly: ex.bodyweightOnly
+            )
+        }
+        return ProgramSession(
+            sessionID: workout.id,
+            sessionName: "AI Workout",
+            sessionType: "strength",
+            focus: workout.questionnaire.focus.rawValue,
+            exercises: exercises
+        )
+    }
+
+    private static func parseReps(_ reps: String) -> ExerciseValue {
+        if reps.uppercased() == "AMRAP" { return .amrap }
+        if let fixed = Int(reps) { return .fixed(fixed) }
+        let parts = reps.split(separator: "-").compactMap { Int($0) }
+        if parts.count == 2 { return .range(parts[0], parts[1]) }
+        return .text(reps)
+    }
+
+    private func initializeAISets(from workout: GeneratedWorkout) {
+        for exercise in workout.exercises {
+            let sets = (0..<exercise.sets).map { _ in
+                SetExecutionState(
+                    prescribedReps: exercise.reps,
+                    prescribedWeightKg: exercise.weightKg,
+                    actualReps: Int(exercise.reps) ?? 0,
+                    actualWeightKg: exercise.weightKg
+                )
+            }
+            exerciseSets[exercise.name] = sets
+        }
     }
 
     // MARK: - Setup
@@ -124,14 +184,19 @@ final class WorkoutExecutionViewModel {
         guard !isSaving else { return }
         isSaving = true
 
+        let programID = program?.id ?? "ai-generated"
+        let enrollmentID = enrollment?.id
+        let week = enrollment?.currentWeek ?? 0
+        let day = enrollment?.currentDay ?? 0
+
         let workout = CompletedWorkout(
             id: UUID().uuidString,
             userID: userID,
             activeCycleID: "",
-            programID: program.id,
-            enrollmentID: enrollment.id,
-            week: enrollment.currentWeek,
-            day: enrollment.currentDay,
+            programID: programID,
+            enrollmentID: enrollmentID,
+            week: week,
+            day: day,
             sessionID: session.sessionID,
             completedAt: .now,
             durationSeconds: Int(Date.now.timeIntervalSince(startTime)),
@@ -160,14 +225,16 @@ final class WorkoutExecutionViewModel {
             setIndex += sets.count
         }
 
-        // Advance the enrollment pointer to the next workout
-        let enrollmentRepo = SwiftDataEnrolledProgramRepository(context: modelContext)
-        let next = Self.nextPosition(
-            currentWeek: enrollment.currentWeek,
-            currentDay: enrollment.currentDay,
-            program: program
-        )
-        try? enrollmentRepo.updateProgress(enrollment: enrollment, week: next.week, day: next.day)
+        // Advance the enrollment pointer to the next workout (program path only)
+        if let enrollment, let program {
+            let enrollmentRepo = SwiftDataEnrolledProgramRepository(context: modelContext)
+            let next = Self.nextPosition(
+                currentWeek: enrollment.currentWeek,
+                currentDay: enrollment.currentDay,
+                program: program
+            )
+            try? enrollmentRepo.updateProgress(enrollment: enrollment, week: next.week, day: next.day)
+        }
 
         isSaving = false
         completedWorkout = workout
