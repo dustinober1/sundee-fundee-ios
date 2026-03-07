@@ -48,6 +48,7 @@ final class DashboardViewModel {
         await loadReadinessMetrics()
 
         await loadActiveProgram(
+            modelContext: modelContext,
             periodLogs: cycleData.periodLogs,
             cycleSettings: cycleData.cycleSettings,
             effectiveCyclePrefs: cycleData.effectiveCyclePrefs,
@@ -125,6 +126,7 @@ final class DashboardViewModel {
     }
 
     private func loadActiveProgram(
+        modelContext: ModelContext,
         periodLogs: [PeriodLog],
         cycleSettings: CycleSettings?,
         effectiveCyclePrefs: CycleAdaptationPreferences,
@@ -133,6 +135,15 @@ final class DashboardViewModel {
         guard let enrollment = activeEnrollment else { return }
 
         var program = try? await programRepo.fetchProgram(id: enrollment.programID)
+
+        if program == nil {
+            // Program no longer exists — cancel orphaned enrollment
+            let enrollmentRepo = SwiftDataEnrolledProgramRepository(context: modelContext)
+            try? enrollmentRepo.cancel(enrollment)
+            activeEnrollment = nil
+            return
+        }
+
         if let raw = program {
             var adapted = CycleProgramGenerator.adaptProgram(
                 raw,
