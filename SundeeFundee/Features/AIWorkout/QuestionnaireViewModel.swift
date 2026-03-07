@@ -20,7 +20,7 @@ final class QuestionnaireViewModel {
 
     static let timeOptions: [Int] = [30, 45, 60, 75]
 
-    init(aiService: any AIWorkoutServiceProtocol = FirebaseAIWorkoutService()) {
+    init(aiService: any AIWorkoutServiceProtocol) {
         self.aiService = aiService
     }
 
@@ -56,6 +56,7 @@ final class QuestionnaireViewModel {
         let injuries = buildInjuries(injuryRepo: injuryRepo, userID: userID)
 
         return WorkoutGenerationContext(
+            userID: userID,
             timeMinutes: timeMinutes,
             focus: focus,
             energyLevel: energyLevel,

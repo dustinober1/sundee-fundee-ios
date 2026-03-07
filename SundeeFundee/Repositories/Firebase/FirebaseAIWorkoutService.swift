@@ -1,81 +1,62 @@
 import Foundation
+import SwiftData
 
 // MARK: - AIWorkoutServiceError
 
 enum AIWorkoutServiceError: Error {
     case notAuthenticated
-    case networkUnavailable
-    case invalidResponse
-    case serverError(String)
+    case encodingFailed
+    case decodingFailed
 }
 
-// MARK: - FirebaseAIWorkoutService
+// MARK: - SwiftDataAIWorkoutService
 
-/// Cloud-backed AI workout service that calls a Firebase Cloud Function
-/// to generate workouts via Claude API.
+/// AI workout service backed by SwiftData + CloudKit.
 ///
-/// Falls back to `OfflineWorkoutGenerator` when the network is unavailable.
-/// Stores generated workouts in Firestore for history and favorites.
-final class FirebaseAIWorkoutService: AIWorkoutServiceProtocol, @unchecked Sendable {
+/// Generates workouts on-device using `OfflineWorkoutGenerator` and persists
+/// them to the user's CloudKit private database via SwiftData.
+final class SwiftDataAIWorkoutService: AIWorkoutServiceProtocol, @unchecked Sendable {
 
-    private var workoutHistory: [GeneratedWorkout] = []
-    private let lock = NSLock()
+    private let modelContext: ModelContext
+
+    init(modelContext: ModelContext) {
+        self.modelContext = modelContext
+    }
 
     func generateWorkout(context: WorkoutGenerationContext) async throws -> GeneratedWorkout {
-        // TODO: Call Firebase Cloud Function when Firebase SDK is integrated
-        // For now, use the offline generator
         let workout = OfflineWorkoutGenerator.generate(from: context)
-        lock.withLock { workoutHistory.insert(workout, at: 0) }
+        guard let record = GeneratedWorkoutRecord.from(workout, userID: context.userID) else {
+            throw AIWorkoutServiceError.encodingFailed
+        }
+        modelContext.insert(record)
+        try? modelContext.save()
         return workout
     }
 
     func fetchHistory(userID: String) async throws -> [GeneratedWorkout] {
-        // TODO: Query Firestore when Firebase SDK is integrated
-        lock.withLock { workoutHistory }
+        let descriptor = FetchDescriptor<GeneratedWorkoutRecord>(
+            predicate: #Predicate { $0.userID == userID },
+            sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
+        )
+        let records = (try? modelContext.fetch(descriptor)) ?? []
+        return records.compactMap { $0.toGeneratedWorkout() }
     }
 
     func toggleFavorite(workoutID: String, isFavorite: Bool) async throws {
-        // TODO: Update Firestore when Firebase SDK is integrated
-        lock.withLock {
-            if let index = workoutHistory.firstIndex(where: { $0.id == workoutID }) {
-                workoutHistory[index].isFavorite = isFavorite
-            }
-        }
+        let descriptor = FetchDescriptor<GeneratedWorkoutRecord>(
+            predicate: #Predicate { $0.id == workoutID }
+        )
+        guard let record = try? modelContext.fetch(descriptor).first else { return }
+        record.isFavorite = isFavorite
+        try? modelContext.save()
     }
 
     func fetchFavorites(userID: String) async throws -> [GeneratedWorkout] {
-        // TODO: Query Firestore when Firebase SDK is integrated
-        lock.withLock { workoutHistory.filter(\.isFavorite) }
-    }
-}
-
-// MARK: - OfflineAIWorkoutService
-
-/// Pure offline implementation for use without network.
-final class OfflineAIWorkoutService: AIWorkoutServiceProtocol, @unchecked Sendable {
-
-    private var workoutHistory: [GeneratedWorkout] = []
-    private let lock = NSLock()
-
-    func generateWorkout(context: WorkoutGenerationContext) async throws -> GeneratedWorkout {
-        let workout = OfflineWorkoutGenerator.generate(from: context)
-        lock.withLock { workoutHistory.insert(workout, at: 0) }
-        return workout
-    }
-
-    func fetchHistory(userID: String) async throws -> [GeneratedWorkout] {
-        lock.withLock { workoutHistory }
-    }
-
-    func toggleFavorite(workoutID: String, isFavorite: Bool) async throws {
-        lock.withLock {
-            if let index = workoutHistory.firstIndex(where: { $0.id == workoutID }) {
-                workoutHistory[index].isFavorite = isFavorite
-            }
-        }
-    }
-
-    func fetchFavorites(userID: String) async throws -> [GeneratedWorkout] {
-        lock.withLock { workoutHistory.filter(\.isFavorite) }
+        let descriptor = FetchDescriptor<GeneratedWorkoutRecord>(
+            predicate: #Predicate { $0.userID == userID && $0.isFavorite == true },
+            sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
+        )
+        let records = (try? modelContext.fetch(descriptor)) ?? []
+        return records.compactMap { $0.toGeneratedWorkout() }
     }
 }

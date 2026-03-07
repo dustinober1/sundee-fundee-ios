@@ -10,23 +10,21 @@ struct AIWorkoutFlowView: View {
     @State private var path = NavigationPath()
     @State private var generatedWorkout: GeneratedWorkout?
 
-    private let aiService: any AIWorkoutServiceProtocol
-
     init(
         userID: String,
         barbellWeightKg: Double = PlateCalculation.standardBarKg,
-        weightUnit: WeightUnit = .pounds,
-        aiService: any AIWorkoutServiceProtocol = FirebaseAIWorkoutService()
+        weightUnit: WeightUnit = .pounds
     ) {
         self.userID = userID
         self.barbellWeightKg = barbellWeightKg
         self.weightUnit = weightUnit
-        self.aiService = aiService
     }
 
     var body: some View {
+        let aiService = SwiftDataAIWorkoutService(modelContext: modelContext)
         QuestionnaireView(
             userID: userID,
+            aiService: aiService,
             onWorkoutGenerated: { workout in
                 generatedWorkout = workout
             }
@@ -35,7 +33,7 @@ struct AIWorkoutFlowView: View {
             WorkoutPreviewView(
                 viewModel: WorkoutPreviewViewModel(workout: workout, aiService: aiService),
                 userID: userID,
-                onStartWorkout: { finalWorkout in
+                onStartWorkout: { _ in
                     // Navigate to workout execution — handled by parent
                 },
                 onRegenerate: {
