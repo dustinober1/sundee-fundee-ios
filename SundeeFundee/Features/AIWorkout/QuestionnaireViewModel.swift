@@ -12,6 +12,8 @@ final class QuestionnaireViewModel {
     var selectedSkills: [String] = []
 
     // State
+    var showPaywall = false
+    var generationBlockReason: GenerationBlockReason?
     var isGenerating = false
     var generatedWorkout: GeneratedWorkout?
     var errorMessage: String?
@@ -195,5 +197,54 @@ final class QuestionnaireViewModel {
 
     var canGenerate: Bool {
         timeMinutes > 0
+    }
+
+    // MARK: - Generation Gating
+
+    enum GenerationBlockReason: Equatable {
+        case needsSubscription
+        case dailyLimitReached(upgradeAvailable: Bool)
+    }
+
+    enum GenerationGateResult: Equatable {
+        case allowed
+        case blocked(GenerationBlockReason)
+    }
+
+    static func canGenerateAI(tier: SubscriptionTier, todayCount: Int) -> GenerationGateResult {
+        if tier == .free {
+            return .blocked(.needsSubscription)
+        }
+        if todayCount >= tier.dailyAILimit {
+            let canUpgrade = tier < .pro
+            return .blocked(.dailyLimitReached(upgradeAvailable: canUpgrade))
+        }
+        return .allowed
+    }
+
+    static func countTodayGenerations(modelContext: ModelContext, userID: String) -> Int {
+        let startOfDay = Calendar.current.startOfDay(for: Date())
+        let descriptor = FetchDescriptor<GeneratedWorkoutRecord>(
+            predicate: #Predicate { $0.userID == userID && $0.createdAt >= startOfDay }
+        )
+        return (try? modelContext.fetch(descriptor))?.count ?? 0
+    }
+
+    func generateWorkoutGated(tier: SubscriptionTier, todayCount: Int) {
+        let gate = Self.canGenerateAI(tier: tier, todayCount: todayCount)
+        switch gate {
+        case .allowed:
+            showPaywall = false
+            generationBlockReason = nil
+        case .blocked(let reason):
+            generationBlockReason = reason
+            switch reason {
+            case .needsSubscription, .dailyLimitReached(upgradeAvailable: true):
+                showPaywall = true
+            case .dailyLimitReached(upgradeAvailable: false):
+                showPaywall = false
+                errorMessage = "You've reached today's limit. Come back tomorrow!"
+            }
+        }
     }
 }

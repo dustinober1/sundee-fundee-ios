@@ -1,4 +1,5 @@
 import Foundation
+import SwiftData
 import Testing
 @testable import SundeeFundee
 
@@ -88,5 +89,64 @@ struct SubscriptionServiceTests {
         let service = SubscriptionService()
         #expect(service.currentTier == .pro)
         Self.resetUserDefaults()
+    }
+}
+
+@Suite("QuestionnaireViewModel Gating")
+struct QuestionnaireViewModelGatingTests {
+
+    @Test @MainActor func canGenerateAIReturnsFalseForFree() {
+        let result = QuestionnaireViewModel.canGenerateAI(tier: .free, todayCount: 0)
+        #expect(result == .blocked(.needsSubscription))
+    }
+
+    @Test @MainActor func canGenerateAIReturnsTrueForPlusUnderLimit() {
+        let result = QuestionnaireViewModel.canGenerateAI(tier: .plus, todayCount: 0)
+        #expect(result == .allowed)
+    }
+
+    @Test @MainActor func canGenerateAIReturnsFalseForPlusAtLimit() {
+        let result = QuestionnaireViewModel.canGenerateAI(tier: .plus, todayCount: 1)
+        #expect(result == .blocked(.dailyLimitReached(upgradeAvailable: true)))
+    }
+
+    @Test @MainActor func canGenerateAIReturnsTrueForProUnderLimit() {
+        let result = QuestionnaireViewModel.canGenerateAI(tier: .pro, todayCount: 2)
+        #expect(result == .allowed)
+    }
+
+    @Test @MainActor func canGenerateAIReturnsFalseForProAtLimit() {
+        let result = QuestionnaireViewModel.canGenerateAI(tier: .pro, todayCount: 3)
+        #expect(result == .blocked(.dailyLimitReached(upgradeAvailable: false)))
+    }
+}
+
+@Suite("QuestionnaireViewModel Generate with Gating")
+struct QuestionnaireViewModelGenerateGatingTests {
+
+    @Test @MainActor func freeUserShowsPaywall() {
+        let service = MockAIWorkoutService()
+        let vm = QuestionnaireViewModel(aiService: service)
+        vm.generateWorkoutGated(tier: .free, todayCount: 0)
+        #expect(vm.showPaywall == true)
+        #expect(vm.generationBlockReason == .needsSubscription)
+        #expect(vm.generatedWorkout == nil)
+    }
+
+    @Test @MainActor func plusUserAtLimitShowsPaywall() {
+        let service = MockAIWorkoutService()
+        let vm = QuestionnaireViewModel(aiService: service)
+        vm.generateWorkoutGated(tier: .plus, todayCount: 1)
+        #expect(vm.showPaywall == true)
+        #expect(vm.generationBlockReason == .dailyLimitReached(upgradeAvailable: true))
+    }
+
+    @Test @MainActor func proUserAtLimitShowsLimitMessage() {
+        let service = MockAIWorkoutService()
+        let vm = QuestionnaireViewModel(aiService: service)
+        vm.generateWorkoutGated(tier: .pro, todayCount: 3)
+        #expect(vm.showPaywall == false)
+        #expect(vm.generationBlockReason == .dailyLimitReached(upgradeAvailable: false))
+        #expect(vm.errorMessage == "You've reached today's limit. Come back tomorrow!")
     }
 }
