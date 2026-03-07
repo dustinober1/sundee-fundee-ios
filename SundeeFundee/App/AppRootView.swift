@@ -6,6 +6,7 @@ struct AppRootView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var appState: AppState
     private let shouldRestoreSession: Bool
+    @State private var subscriptionService = SubscriptionService()
 
     init(initialAppState: AppState = AppState(), shouldRestoreSession: Bool = true) {
         _appState = State(initialValue: initialAppState)
@@ -64,7 +65,9 @@ struct AppRootView: View {
             }
         }
         .environment(appState)
+        .environment(subscriptionService)
         .task { await Self.restoreSessionIfNeeded(shouldRestoreSession: shouldRestoreSession, appState: appState, modelContext: modelContext) }
+        .task { await subscriptionService.loadStatus() }
     }
 }
 
