@@ -276,7 +276,7 @@ final class WorkoutExecutionViewModel {
 
         // Mark as eligible for contribution (actual contribution happens in UI after user approval)
         let workoutRecords = (try? modelContext.fetch(FetchDescriptor<GeneratedWorkoutRecord>())) ?? []
-        if let record = workoutRecords.first(where: { $0.id == generatedWorkout.id }) {
+        if workoutRecords.first(where: { $0.id == generatedWorkout.id }) != nil {
             // Will be set to true after user confirms sharing in UI
             // record.contributedToDatabase = true
         }

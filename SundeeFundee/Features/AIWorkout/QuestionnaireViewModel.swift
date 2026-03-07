@@ -186,7 +186,6 @@ final class QuestionnaireViewModel {
         let completedCount = workouts.filter { $0.completedAt >= twentyEightDaysAgo }.count
         let expectedSessions = 4 * 4  // 4 weeks × 4 sessions/week default
 
-        guard expectedSessions > 0 else { return nil }
         return Double(completedCount) / Double(expectedSessions)
     }
 

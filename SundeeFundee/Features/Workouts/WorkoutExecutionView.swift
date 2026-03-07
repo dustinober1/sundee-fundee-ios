@@ -182,7 +182,7 @@ struct ExerciseSetCard: View {
                     }
                 }
                 Spacer()
-                if !(exercise.bodyweightOnly ?? false), let kg = Self.plateCalculatorWeight(for: sets) {
+                if !(exercise.bodyweightOnly), let kg = Self.plateCalculatorWeight(for: sets) {
                     Button(action: Self.plateCalculatorAction(viewModel: viewModel, weightKg: kg)) {
                         Image(systemName: "scalemass.fill")
                             .foregroundStyle(AppTheme.Colors.accentOrange)
@@ -202,7 +202,7 @@ struct ExerciseSetCard: View {
             HStack {
                 Text("Set").frame(width: 30, alignment: .center)
                 Text("Target").frame(maxWidth: .infinity)
-                if !(exercise.bodyweightOnly ?? false) {
+                if !(exercise.bodyweightOnly) {
                     Text("Reps").frame(width: 70, alignment: .center)
                     Text(viewModel.weightUnit.symbol.uppercased()).frame(width: 80, alignment: .center)
                 }
@@ -237,7 +237,7 @@ struct ExerciseSetCard: View {
                 setIndex: idx
             ),
             weightUnit: viewModel.weightUnit,
-            bodyweightOnly: exercise.bodyweightOnly ?? false,
+            bodyweightOnly: exercise.bodyweightOnly,
             onToggle: Self.toggleAction(
                 viewModel: viewModel,
                 exerciseName: exercise.exercise,

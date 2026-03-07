@@ -121,7 +121,7 @@ struct WODExerciseSetCard: View {
                     }
                 }
                 Spacer()
-                if !(exercise.bodyweightOnly ?? false), let kg = sets.first?.prescribedWeightKg {
+                if !exercise.bodyweightOnly, let kg = sets.first?.prescribedWeightKg {
                     Button { viewModel.openPlateCalc(forWeight: kg) } label: {
                         Image(systemName: "scalemass.fill")
                             .foregroundStyle(AppTheme.Colors.accentOrange)
@@ -139,7 +139,7 @@ struct WODExerciseSetCard: View {
             HStack {
                 Text("Set").frame(width: 30, alignment: .center)
                 Text("Target").frame(maxWidth: .infinity)
-                if !(exercise.bodyweightOnly ?? false) {
+                if !exercise.bodyweightOnly {
                     Text("Reps").frame(width: 70, alignment: .center)
                     Text(viewModel.weightUnit.symbol.uppercased()).frame(width: 80, alignment: .center)
                 }
@@ -157,7 +157,7 @@ struct WODExerciseSetCard: View {
                     onRepsChange: { viewModel.updateActualReps($0, exerciseName: exercise.exercise, setIndex: idx) },
                     onWeightChange: { viewModel.updateActualWeight($0, exerciseName: exercise.exercise, setIndex: idx) },
                     weightUnit: viewModel.weightUnit,
-                    bodyweightOnly: exercise.bodyweightOnly ?? false,
+                    bodyweightOnly: exercise.bodyweightOnly,
                     onToggle: { viewModel.toggleSetCompleted(exerciseName: exercise.exercise, setIndex: idx) }
                 )
             }
