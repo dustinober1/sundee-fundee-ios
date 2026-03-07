@@ -24,8 +24,10 @@ enum AppModelContainer {
         deleteStoreFiles: () throws -> Void = { try Self.deleteStoreFiles() },
         log: (String) -> Void = { print($0) }
     ) -> ModelContainer {
+        log("[AppModelContainer] Creating ModelContainer...")
         // Tests get their own in-memory container immediately.
         if isRunningTests {
+            log("[AppModelContainer] Running in test mode, creating in-memory container.")
             do {
                 return try makeContainer(.testsInMemory)
             } catch {
@@ -45,8 +47,11 @@ enum AppModelContainer {
         }
 
         // Tier 2 — Local persistent store (no CloudKit sync).
+        log("[AppModelContainer] Attempting to create local persistent store...")
         do {
-            return try makeContainer(.localPersistent)
+            let container = try makeContainer(.localPersistent)
+            log("[AppModelContainer] Local persistent store created successfully.")
+            return container
         } catch {
             log("AppModelContainer: local persistent container failed: \(error).")
             log("Attempting to delete corrupted store files and create fresh one...")
@@ -82,7 +87,7 @@ enum AppModelContainer {
             return try ModelContainer(for: schema, migrationPlan: AppSchemaMigrationPlan.self, configurations: [cloudConfig])
         case .localPersistent:
             let localConfig = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false, cloudKitDatabase: .none)
-            return try ModelContainer(for: schema, migrationPlan: AppSchemaMigrationPlan.self, configurations: [localConfig])
+            return try ModelContainer(for: schema, configurations: [localConfig])
         }
     }
 
@@ -111,15 +116,35 @@ enum AppModelContainer {
         let urls = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask)
         let appSupportDirectory = urls.first!
         
+        print("[AppModelContainer] Application Support directory: \(appSupportDirectory.path)")
+        
+        // List all files in the directory for debugging
+        do {
+            let files = try fileManager.contentsOfDirectory(at: appSupportDirectory, includingPropertiesForKeys: nil)
+            print("[AppModelContainer] Files in Application Support: \(files.map { $0.lastPathComponent })")
+        } catch {
+            print("[AppModelContainer] Could not list directory: \(error)")
+        }
+
         let storeURL = appSupportDirectory.appendingPathComponent("default.store")
         let walURL = appSupportDirectory.appendingPathComponent("default.store-wal")
         let shmURL = appSupportDirectory.appendingPathComponent("default.store-shm")
-        
+
         for url in [storeURL, walURL, shmURL] {
             if fileManager.fileExists(atPath: url.path) {
                 try fileManager.removeItem(at: url)
-                print("AppModelContainer: Deleted \(url.lastPathComponent)")
+                print("[AppModelContainer] Deleted \(url.lastPathComponent)")
             }
+        }
+    }
+    
+    /// Force delete all store files - call this from SundeeFundeeApp.init() if needed
+    public static func forceClearStore() {
+        do {
+            try deleteStoreFiles()
+            print("[AppModelContainer] Successfully cleared store files.")
+        } catch {
+            print("[AppModelContainer] Failed to clear store files: \(error)")
         }
     }
 }

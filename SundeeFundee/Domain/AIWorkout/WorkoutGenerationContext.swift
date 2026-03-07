@@ -10,6 +10,11 @@ enum WorkoutFocus: String, Codable, Sendable, CaseIterable {
     case pull
     case core
     case conditioning
+    case strength
+    case olympicLifts = "olympic_lifts"
+    case gymnastics
+    case mobility
+    case stretching
 
     var displayName: String {
         switch self {
@@ -20,6 +25,11 @@ enum WorkoutFocus: String, Codable, Sendable, CaseIterable {
         case .pull: "Pull"
         case .core: "Core"
         case .conditioning: "Conditioning"
+        case .strength: "Strength"
+        case .olympicLifts: "Olympic Lifts"
+        case .gymnastics: "Gymnastics"
+        case .mobility: "Mobility"
+        case .stretching: "Stretching"
         }
     }
 }

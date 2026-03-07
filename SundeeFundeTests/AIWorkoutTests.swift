@@ -60,6 +60,11 @@ struct WorkoutFocusTests {
         #expect(WorkoutFocus.pull.rawValue == "pull")
         #expect(WorkoutFocus.core.rawValue == "core")
         #expect(WorkoutFocus.conditioning.rawValue == "conditioning")
+        #expect(WorkoutFocus.strength.rawValue == "strength")
+        #expect(WorkoutFocus.olympicLifts.rawValue == "olympic_lifts")
+        #expect(WorkoutFocus.gymnastics.rawValue == "gymnastics")
+        #expect(WorkoutFocus.mobility.rawValue == "mobility")
+        #expect(WorkoutFocus.stretching.rawValue == "stretching")
     }
 }
 

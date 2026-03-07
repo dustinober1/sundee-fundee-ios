@@ -19,7 +19,7 @@ final class QuestionnaireViewModel {
 
     private let aiService: any AIWorkoutServiceProtocol
 
-    static let timeOptions: [Int] = [30, 45, 60, 75]
+    static let timeOptions: [Int] = [15, 30, 45, 60, 75, 90]
     static let skillOptions: [String] = [
         "Handstands", "Pull-ups", "Muscle-ups", "Pistol Squats",
         "Double-Unders", "Snatch", "Clean & Jerk", "L-Sit",

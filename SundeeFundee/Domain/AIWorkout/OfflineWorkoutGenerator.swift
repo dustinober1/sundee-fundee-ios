@@ -140,6 +140,11 @@ enum OfflineWorkoutGenerator {
         case .pull: pool = pullTemplates
         case .core: pool = coreTemplates
         case .conditioning: pool = conditioningTemplates
+        case .strength: pool = pushTemplates + pullTemplates + lowerBodyTemplates
+        case .olympicLifts: pool = conditioningTemplates + upperBodyTemplates
+        case .gymnastics: pool = pullTemplates + coreTemplates
+        case .mobility: pool = coreTemplates
+        case .stretching: pool = coreTemplates
         }
 
         return filterForEquipment(templates: pool, equipment: equipment)

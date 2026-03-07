@@ -182,7 +182,7 @@ struct QuestionnaireView: View {
     }
 
     static func timeLabel(minutes: Int) -> String {
-        minutes >= 75 ? "75+" : "\(minutes)"
+        minutes >= 90 ? "90+" : "\(minutes)"
     }
 
     private func focusCard(_ focus: WorkoutFocus) -> some View {

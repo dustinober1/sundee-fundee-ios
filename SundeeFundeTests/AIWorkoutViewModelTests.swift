@@ -192,7 +192,7 @@ struct QuestionnaireViewModelTests {
 
     @Test @MainActor func timeOptionsAreSorted() {
         let options = QuestionnaireViewModel.timeOptions
-        #expect(options == [30, 45, 60, 75])
+        #expect(options == [15, 30, 45, 60, 75, 90])
     }
 }
 
@@ -202,14 +202,16 @@ struct QuestionnaireViewModelTests {
 struct QuestionnaireViewStaticTests {
 
     @Test func timeLabelNormal() {
+        #expect(QuestionnaireView.timeLabel(minutes: 15) == "15")
         #expect(QuestionnaireView.timeLabel(minutes: 30) == "30")
         #expect(QuestionnaireView.timeLabel(minutes: 45) == "45")
         #expect(QuestionnaireView.timeLabel(minutes: 60) == "60")
+        #expect(QuestionnaireView.timeLabel(minutes: 75) == "75")
     }
 
-    @Test func timeLabelSeventyFivePlus() {
-        #expect(QuestionnaireView.timeLabel(minutes: 75) == "75+")
-        #expect(QuestionnaireView.timeLabel(minutes: 90) == "75+")
+    @Test func timeLabelNinetyPlus() {
+        #expect(QuestionnaireView.timeLabel(minutes: 90) == "90+")
+        #expect(QuestionnaireView.timeLabel(minutes: 120) == "90+")
     }
 }
 

@@ -34,7 +34,9 @@ struct AppRootView: View {
 
     @MainActor
     static func restoreSession(into appState: AppState, modelContext: ModelContext) async {
+        print("[AppRootView] Starting session restoration...")
         let state = await appState.authService.restoreSession(modelContext: modelContext)
+        print("[AppRootView] Session restored to: \(state)")
         appState.apply(state)
     }
 
@@ -79,6 +81,9 @@ struct LoadingView: View {
                 ProgressView()
                     .tint(AppTheme.Color.orange)
             }
+        }
+        .onAppear {
+            print("[LoadingView] LoadingView appeared - waiting for auth state...")
         }
     }
 }
