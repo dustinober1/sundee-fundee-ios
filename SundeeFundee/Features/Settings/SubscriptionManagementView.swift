@@ -1,7 +1,6 @@
 import SwiftUI
 import StoreKit
 
-/// Subscription management — show current tier, upgrade option, restore purchases.
 struct SubscriptionManagementView: View {
     @Environment(SubscriptionService.self) private var subscriptionService
     @State private var products: [Product] = []
@@ -13,38 +12,51 @@ struct SubscriptionManagementView: View {
             AppTheme.Colors.cream.ignoresSafeArea()
 
             Form {
-                Section("Current Subscription") {
+                Section("Current Plan") {
                     HStack {
                         Text("Status")
                         Spacer()
-                        Text(subscriptionService.isPremium ? "Premium" : "Free")
+                        Text(subscriptionService.currentTier.displayName)
                             .foregroundStyle(subscriptionService.isPremium ? AppTheme.Colors.accentOrange : AppTheme.Colors.navy.opacity(0.6))
                             .fontWeight(.semibold)
                     }
+                    if subscriptionService.isPremium {
+                        HStack {
+                            Text("AI Workouts")
+                            Spacer()
+                            Text(Self.dailyLimitText(for: subscriptionService.currentTier))
+                                .foregroundStyle(AppTheme.Colors.navy.opacity(0.6))
+                        }
+                    }
                 }
 
-                if !subscriptionService.isPremium {
-                    Section("Upgrade to Premium") {
+                if subscriptionService.currentTier < .pro {
+                    Section("Choose a Plan") {
                         VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
-                            Text("Get unlimited AI workout generation")
-                                .font(AppTheme.Fonts.body)
+                            BulletPoint("AI-powered personalized workouts")
+                            BulletPoint("Tailored to your goals and maxes")
+                            BulletPoint("Cycle-phase aware training")
 
-                            BulletPoint("Unlimited personalized workouts")
-                            BulletPoint("Advanced prompt context (benchmarks, cycle phase)")
-                            BulletPoint("Skill-focused training programs")
-
-                            if let product = products.first {
+                            ForEach(upgradeProducts, id: \.id) { product in
                                 Button(action: { purchaseSubscription(product) }) {
                                     if isLoading {
                                         ProgressView()
                                             .frame(maxWidth: .infinity)
                                     } else {
-                                        Text("Subscribe for \(product.displayPrice)")
-                                            .frame(maxWidth: .infinity)
-                                            .padding(AppTheme.Spacing.md)
-                                            .background(AppTheme.Colors.accentOrange)
-                                            .foregroundStyle(AppTheme.Colors.cream)
-                                            .cornerRadius(AppTheme.Spacing.sm)
+                                        VStack(spacing: 4) {
+                                            Text(Self.tierName(for: product.id))
+                                                .font(AppTheme.Fonts.subheading)
+                                            Text("\(product.displayPrice)/month")
+                                                .font(AppTheme.Fonts.caption)
+                                            Text("2-week free trial")
+                                                .font(.system(size: 10, weight: .medium))
+                                                .foregroundStyle(AppTheme.Colors.cream.opacity(0.8))
+                                        }
+                                        .frame(maxWidth: .infinity)
+                                        .padding(AppTheme.Spacing.md)
+                                        .background(AppTheme.Colors.accentOrange)
+                                        .foregroundStyle(AppTheme.Colors.cream)
+                                        .cornerRadius(AppTheme.Spacing.sm)
                                     }
                                 }
                                 .disabled(isLoading)
@@ -75,10 +87,27 @@ struct SubscriptionManagementView: View {
         }
     }
 
+    private var upgradeProducts: [Product] {
+        products
+            .filter { SubscriptionTier.from(productID: $0.id) > subscriptionService.currentTier }
+            .sorted { $0.price < $1.price }
+    }
+
+    static func dailyLimitText(for tier: SubscriptionTier) -> String {
+        switch tier {
+        case .free: "None"
+        case .plus: "1 per day"
+        case .pro: "3 per day"
+        }
+    }
+
+    static func tierName(for productID: String) -> String {
+        SubscriptionTier.from(productID: productID).displayName
+    }
+
     private func loadProducts() async {
         do {
-            let allProducts = try await Product.products(for: SubscriptionTier.allProductIDs)
-            products = allProducts
+            products = try await Product.products(for: SubscriptionTier.allProductIDs)
         } catch {
             message = "Failed to load products: \(error.localizedDescription)"
         }

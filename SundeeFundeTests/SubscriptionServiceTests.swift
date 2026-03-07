@@ -179,3 +179,50 @@ struct QuestionnaireViewModelGenerateGatingTests {
         #expect(vm.errorMessage == "You've reached today's limit. Come back tomorrow!")
     }
 }
+
+@Suite("SubscriptionManagementView Statics")
+struct SubscriptionManagementViewStaticTests {
+
+    @Test func dailyLimitTextForFree() {
+        #expect(SubscriptionManagementView.dailyLimitText(for: .free) == "None")
+    }
+
+    @Test func dailyLimitTextForPlus() {
+        #expect(SubscriptionManagementView.dailyLimitText(for: .plus) == "1 per day")
+    }
+
+    @Test func dailyLimitTextForPro() {
+        #expect(SubscriptionManagementView.dailyLimitText(for: .pro) == "3 per day")
+    }
+
+    @Test func tierNameFromProductID() {
+        #expect(SubscriptionManagementView.tierName(for: "com.sundeefundee.plus.monthly") == "Plus")
+        #expect(SubscriptionManagementView.tierName(for: "com.sundeefundee.pro.monthly") == "Pro")
+    }
+}
+
+@Suite("AIWorkoutCTACard Statics")
+struct AIWorkoutCTACardStaticTests {
+
+    @Test func ctaTextForFree() {
+        #expect(AIWorkoutCTACard.ctaText(for: .free) == "Upgrade to Unlock")
+    }
+
+    @Test func ctaTextForPlus() {
+        #expect(AIWorkoutCTACard.ctaText(for: .plus) == "New AI Workout")
+    }
+
+    @Test func ctaTextForPro() {
+        #expect(AIWorkoutCTACard.ctaText(for: .pro) == "New AI Workout")
+    }
+
+    @Test func subtitleForFree() {
+        let subtitle = AIWorkoutCTACard.subtitleText(for: .free)
+        #expect(subtitle.contains("Upgrade"))
+    }
+
+    @Test func subtitleForPaid() {
+        let subtitle = AIWorkoutCTACard.subtitleText(for: .plus)
+        #expect(subtitle.contains("personalized"))
+    }
+}
