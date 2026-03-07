@@ -101,8 +101,8 @@ struct GeminiPromptBuilderTests {
 
     @Test func userPromptIncludesMaxes() {
         let maxes = [
-            ExerciseMax(name: "Back Squat", weightKg: 100),
-            ExerciseMax(name: "Bench Press", weightKg: 80)
+            ExerciseMax(name: "Back Squat", weightLb: 100),
+            ExerciseMax(name: "Bench Press", weightLb: 80)
         ]
         let context = makeContext(maxes: maxes)
         let prompt = GeminiPromptBuilder.userPrompt(from: context)
@@ -230,7 +230,7 @@ struct GeminiPromptBuilderTests {
         #expect(itemProps?["name"] != nil)
         #expect(itemProps?["sets"] != nil)
         #expect(itemProps?["reps"] != nil)
-        #expect(itemProps?["weightKg"] != nil)
+        #expect(itemProps?["weightLb"] != nil)
         #expect(itemProps?["restMinutes"] != nil)
         #expect(itemProps?["notes"] != nil)
         #expect(itemProps?["reasoning"] != nil)

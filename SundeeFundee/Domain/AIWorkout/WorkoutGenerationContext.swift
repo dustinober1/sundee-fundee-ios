@@ -83,7 +83,7 @@ enum EquipmentAccess: String, Codable, Sendable, CaseIterable {
 
 struct ExerciseMax: Codable, Sendable {
     let name: String
-    let weightKg: Double
+    let weightLb: Double
 }
 
 struct RecentWorkoutSummary: Codable, Sendable {

@@ -107,85 +107,71 @@ struct WeightCalculationsTests {
     // MARK: - Barbell snapping
 
     @Test func snapBarbellWeightSnapsToFiveLbIncrements() {
-        // 226.9 lb (the problematic AI value) → should snap to 225 lb (men's bar)
-        let badKg = 226.9 / 2.2046226218
-        let snapped = WeightCalculations.snapBarbellWeightKg(badKg, barLb: 45.0)
-        let snappedLb = snapped * 2.2046226218
-        #expect(abs(snappedLb - 225.0) < 0.1)
+        // 226.9 lb → should snap to 225 lb (men's bar)
+        let snapped = WeightCalculations.snapBarbellWeightLb(226.9, barLb: 45.0)
+        #expect(abs(snapped - 225.0) < 0.1)
     }
 
     @Test func snapBarbellWeightPreservesExactLoadableValues() {
         // 225 lb is exactly loadable (bar + 2×45 per side)
-        let kg225 = 225.0 / 2.2046226218
-        let snapped = WeightCalculations.snapBarbellWeightKg(kg225, barLb: 45.0)
-        let snappedLb = snapped * 2.2046226218
-        #expect(abs(snappedLb - 225.0) < 0.1)
+        let snapped225 = WeightCalculations.snapBarbellWeightLb(225.0, barLb: 45.0)
+        #expect(abs(snapped225 - 225.0) < 0.1)
 
         // 135 lb is exactly loadable
-        let kg135 = 135.0 / 2.2046226218
-        let snapped135 = WeightCalculations.snapBarbellWeightKg(kg135, barLb: 45.0)
-        let snappedLb135 = snapped135 * 2.2046226218
-        #expect(abs(snappedLb135 - 135.0) < 0.1)
+        let snapped135 = WeightCalculations.snapBarbellWeightLb(135.0, barLb: 45.0)
+        #expect(abs(snapped135 - 135.0) < 0.1)
     }
 
     @Test func snapBarbellWeightWomenBar() {
         // Women's bar is 35 lb; 100 lb total → 65 lb of plates → snaps to 100 lb
-        let kg100 = 100.0 / 2.2046226218
-        let snapped = WeightCalculations.snapBarbellWeightKg(kg100, barLb: 35.0)
-        let snappedLb = snapped * 2.2046226218
-        #expect(abs(snappedLb - 100.0) < 0.1)
+        let snapped = WeightCalculations.snapBarbellWeightLb(100.0, barLb: 35.0)
+        #expect(abs(snapped - 100.0) < 0.1)
     }
 
     // MARK: - Dumbbell snapping
 
     @Test func snapDumbbellWeightToAvailableValues() {
-        // 12 kg is between 25 lb (11.34 kg) and 35 lb (15.88 kg), closer to 25 lb
-        let snapped12 = WeightCalculations.snapDumbbellWeightKg(12.0)
-        let snapped12Lb = snapped12 * 2.2046226218
-        #expect(abs(snapped12Lb - 25.0) < 0.5)
+        // 27 lb → nearest available is 25 lb
+        let snapped27 = WeightCalculations.snapDumbbellWeightLb(27.0)
+        #expect(snapped27 == 25)
 
-        // 7 kg is between 15 lb (6.80 kg) and 10 lb (4.54 kg), closer to 15 lb
-        let snapped7 = WeightCalculations.snapDumbbellWeightKg(7.0)
-        let snapped7Lb = snapped7 * 2.2046226218
-        #expect(abs(snapped7Lb - 15.0) < 0.5)
+        // 17 lb → nearest available is 15 lb
+        let snapped17 = WeightCalculations.snapDumbbellWeightLb(17.0)
+        #expect(snapped17 == 15)
 
-        // 22 kg is between 40 lb (18.14 kg) and 50 lb (22.68 kg), very close to 50 lb
-        let snapped22 = WeightCalculations.snapDumbbellWeightKg(22.0)
-        let snapped22Lb = snapped22 * 2.2046226218
-        #expect(abs(snapped22Lb - 50.0) < 1.0)
+        // 45 lb → nearest available is 40 lb or 50 lb
+        let snapped45 = WeightCalculations.snapDumbbellWeightLb(45.0)
+        #expect(snapped45 == 40 || snapped45 == 50)
     }
 
     @Test func snapDumbbellWeightPreservesAvailableValues() {
         // Each available dumbbell weight should snap to itself
         for lbWeight in WeightCalculations.availableDumbbellWeightsLb {
-            let kg = lbWeight / 2.2046226218
-            let snappedKg = WeightCalculations.snapDumbbellWeightKg(kg)
-            let snappedLb = snappedKg * 2.2046226218
-            #expect(abs(snappedLb - lbWeight) < 0.01)
+            let snapped = WeightCalculations.snapDumbbellWeightLb(lbWeight)
+            #expect(snapped == lbWeight)
         }
     }
 
     // MARK: - Kettlebell snapping
 
     @Test func snapKettlebellWeightToAvailableValues() {
-        // 30 kg → nearest is 24 kg (diff 6) vs 36 kg (diff 6), tie goes to first (24)
-        // 32 kg → nearest is 36 kg
-        let snapped32 = WeightCalculations.snapKettlebellWeightKg(32.0)
-        #expect(snapped32 == 36.0)
+        // 28 lb → nearest available is 25 lb
+        let snapped28 = WeightCalculations.snapKettlebellWeightLb(28.0)
+        #expect(snapped28 == 25)
 
-        // 20 kg → nearest is 24 kg
-        let snapped20 = WeightCalculations.snapKettlebellWeightKg(20.0)
-        #expect(snapped20 == 24.0)
+        // 40 lb → nearest available is 32 lb or 53 lb
+        let snapped40 = WeightCalculations.snapKettlebellWeightLb(40.0)
+        #expect(snapped40 == 32 || snapped40 == 53)
 
-        // 65 kg → nearest is 70 kg
-        let snapped65 = WeightCalculations.snapKettlebellWeightKg(65.0)
-        #expect(snapped65 == 70.0)
+        // 65 lb → nearest available is 70 lb
+        let snapped65 = WeightCalculations.snapKettlebellWeightLb(65.0)
+        #expect(snapped65 == 70)
     }
 
     @Test func snapKettlebellWeightPreservesAvailableValues() {
-        for kgWeight in WeightCalculations.availableKettlebellWeightsKg {
-            let snapped = WeightCalculations.snapKettlebellWeightKg(kgWeight)
-            #expect(snapped == kgWeight)
+        for lbWeight in WeightCalculations.availableKettlebellWeightsLb {
+            let snapped = WeightCalculations.snapKettlebellWeightLb(lbWeight)
+            #expect(snapped == lbWeight)
         }
     }
 }

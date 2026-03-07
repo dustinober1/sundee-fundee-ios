@@ -20,10 +20,21 @@ final class SwiftDataAIWorkoutService: AIWorkoutServiceProtocol, @unchecked Send
 
     private let modelContext: ModelContext
     private let geminiService: GeminiWorkoutService
+    private let sharedRepository: (any SharedWorkoutRepository)?
 
-    init(modelContext: ModelContext, geminiService: GeminiWorkoutService = GeminiWorkoutService()) {
+    init(
+        modelContext: ModelContext,
+        geminiService: GeminiWorkoutService = GeminiWorkoutService(),
+        sharedRepository: (any SharedWorkoutRepository)? = nil
+    ) {
         self.modelContext = modelContext
         self.geminiService = geminiService
+        self.sharedRepository = sharedRepository
+    }
+
+    /// Builds the stripped workout for public contribution. Static for testability.
+    static func buildContribution(from workout: GeneratedWorkout) -> GeneratedWorkout? {
+        return workout.strippedForSharing()
     }
 
     static func generateWithFallback(
@@ -44,6 +55,18 @@ final class SwiftDataAIWorkoutService: AIWorkoutServiceProtocol, @unchecked Send
         }
         modelContext.insert(record)
         try? modelContext.save()
+
+        // Auto-contribute anonymized copy to public DB
+        if let sharedRepository {
+            do {
+                try await sharedRepository.contribute(workout, userID: context.userID)
+                record.contributedToDatabase = true
+                try? modelContext.save()
+            } catch {
+                print("[AIWorkoutService] Public contribution failed: \(error)")
+            }
+        }
+
         return workout
     }
 

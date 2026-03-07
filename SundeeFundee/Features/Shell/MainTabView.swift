@@ -115,7 +115,10 @@ struct HistoryTabView: View {
     var body: some View {
         WorkoutHistoryView(
             userID: currentUser?.id ?? "",
-            aiService: SwiftDataAIWorkoutService(modelContext: modelContext),
+            aiService: SwiftDataAIWorkoutService(
+                modelContext: modelContext,
+                sharedRepository: CloudKitSharedWorkoutRepository(modelContext: modelContext)
+            ),
             weightUnit: weightUnit,
             barbellWeightKg: barbellWeightKg
         )

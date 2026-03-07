@@ -3,7 +3,7 @@ export interface WorkoutContext {
   focus: string;
   energyLevel: string;
   equipment: string;
-  maxes: Array<{ name: string; weightKg: number }>;
+  maxes: Array<{ name: string; weightLb: number }>;
   recentWorkouts: Array<{
     date: string;
     focus: string;
@@ -33,8 +33,20 @@ RULES:
 - Respect the user's time constraint
 - Account for recent training volume (avoid overtraining same muscle groups)
 - Adjust intensity based on energy level and cycle phase
-- All weights must be in kg, rounded to nearest 5kg
-- Provide brief, actionable coaching reasoning for each exercise
+- All weights must be in POUNDS (lbs)
+
+BARBELL weights:
+- Men use a 45 lb bar, women use a 35 lb bar
+- Available plates per side: 45, 25, 15, 10, 5, 2.5 lb
+- Total weight MUST equal bar + (plates per side × 2), where plates per side sum to a multiple of 2.5 lb
+- Valid total lb examples (men's bar): 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125, 130, 135, 140, 145, 150, 155, 160, 165, 170, 175, 180, 185, 190, 195, 200, 205, 210, 215, 220, 225, 230, 235, 240, 245, 250, 255, 260, 265, 270, 275, 280, 285, 290, 295, 300, 315, 335, 365, 405
+- NEVER prescribe a barbell weight that cannot be built with the plates above
+
+DUMBBELL weights — ONLY use these exact lb values: 10, 15, 20, 25, 35, 40, 50, 70
+- NEVER prescribe dumbbell weights between these values (e.g., 30 lb, 45 lb are not available)
+
+KETTLEBELL weights — ONLY use these exact lb values: 15, 25, 32, 53, 70
+- NEVER prescribe a kettlebell weight other than 15, 25, 32, 53, or 70 lb
 
 CYCLE PHASE GUIDELINES (if applicable):
 - Menstrual: Reduce load ~10%, shorter sessions, focus on movement quality
@@ -56,7 +68,7 @@ Return ONLY valid JSON matching this exact schema (no markdown, no backticks):
       "name": "Exercise Name",
       "sets": 3,
       "reps": "8-10",
-      "weightKg": 60,
+      "weightLb": 135,
       "restMinutes": 2.0,
       "notes": "Optional form cue or modification",
       "reasoning": "Why this exercise was chosen",
@@ -83,7 +95,7 @@ export function buildUserPrompt(context: WorkoutContext): string {
 
   if (context.maxes.length > 0) {
     const maxLines = context.maxes
-      .map((m) => `  - ${m.name}: ${m.weightKg}kg`)
+      .map((m) => `  - ${m.name}: ${m.weightLb} lb`)
       .join("\n");
     parts.push(`\nKNOWN 1RM MAXES:\n${maxLines}`);
   }

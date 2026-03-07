@@ -96,7 +96,9 @@ final class QuestionnaireViewModel {
         return orms.compactMap { orm in
             guard !seen.contains(orm.exerciseID) else { return nil }
             seen.insert(orm.exerciseID)
-            return ExerciseMax(name: orm.exerciseID, weightKg: orm.weightKg)
+            // Convert kg to lbs for LLM
+            let weightLb = orm.weightKg * 2.2046226218
+            return ExerciseMax(name: orm.exerciseID, weightLb: weightLb)
         }
     }
 

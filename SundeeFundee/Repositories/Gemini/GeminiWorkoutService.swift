@@ -52,6 +52,7 @@ final class GeminiWorkoutService: Sendable {
 
         let body: [String: Any] = [
             "_userID": context.userID,
+            "model": "gemini-3.1-flash-lite-preview",
             "contents": [
                 ["role": "user", "parts": [["text": userPrompt]]]
             ],

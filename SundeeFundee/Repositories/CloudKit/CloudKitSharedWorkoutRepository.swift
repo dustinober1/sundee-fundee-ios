@@ -24,22 +24,43 @@ final class CloudKitSharedWorkoutRepository: SharedWorkoutRepository, @unchecked
         }
     }
 
+    /// Payload for contributing a workout to CloudKit Public DB.
+    struct ContributePayload {
+        let userID: String
+        let workoutJSON: String
+        let focusRaw: String
+        let durationMinutes: Int
+        let equipmentRaw: String
+    }
+
+    /// Builds an anonymized, weight-stripped payload for public sharing.
+    /// Extracted as a static method for testability.
+    static func buildContributePayload(from workout: GeneratedWorkout) -> ContributePayload {
+        let stripped = workout.strippedForSharing()
+        let jsonData = (try? JSONEncoder().encode(stripped)) ?? Data()
+        let jsonString = String(data: jsonData, encoding: .utf8) ?? "{}"
+        return ContributePayload(
+            userID: "",
+            workoutJSON: jsonString,
+            focusRaw: workout.questionnaire.focus.rawValue,
+            durationMinutes: workout.questionnaire.timeMinutes,
+            equipmentRaw: workout.questionnaire.equipment.rawValue
+        )
+    }
+
     /// Contribute a completed workout to CloudKit Public DB (anonymously).
     func contribute(_ workout: GeneratedWorkout, userID: String) async throws {
         let container = CKContainer(identifier: containerID)
         let publicDB = container.publicCloudDatabase
 
-        guard let workoutJSON = try? JSONEncoder().encode(workout),
-              let jsonString = String(data: workoutJSON, encoding: .utf8) else {
-            throw RepositoryError.encodingFailed
-        }
+        let payload = Self.buildContributePayload(from: workout)
 
         let record = CKRecord(recordType: "SharedWorkoutTemplate")
-        record["userID"] = ""  // Anonymous
-        record["workoutJSON"] = jsonString
-        record["focusRaw"] = workout.questionnaire.focus.rawValue
-        record["durationMinutes"] = workout.totalEstimatedMinutes
-        record["equipmentRaw"] = workout.questionnaire.equipment.rawValue
+        record["userID"] = payload.userID
+        record["workoutJSON"] = payload.workoutJSON
+        record["focusRaw"] = payload.focusRaw
+        record["durationMinutes"] = payload.durationMinutes
+        record["equipmentRaw"] = payload.equipmentRaw
         record["createdAt"] = Date.now
 
         try await publicDB.save(record)
@@ -47,13 +68,13 @@ final class CloudKitSharedWorkoutRepository: SharedWorkoutRepository, @unchecked
         // Cache locally
         let cached = SharedWorkoutTemplateRecord(
             id: record.recordID.recordName,
-            userID: "",
+            userID: payload.userID,
             createdAt: Date.now,
             downloadedAt: Date.now,
-            workoutJSON: jsonString,
-            focusRaw: workout.questionnaire.focus.rawValue,
-            durationMinutes: workout.totalEstimatedMinutes,
-            equipmentRaw: workout.questionnaire.equipment.rawValue
+            workoutJSON: payload.workoutJSON,
+            focusRaw: payload.focusRaw,
+            durationMinutes: payload.durationMinutes,
+            equipmentRaw: payload.equipmentRaw
         )
         modelContext.insert(cached)
         try? modelContext.save()

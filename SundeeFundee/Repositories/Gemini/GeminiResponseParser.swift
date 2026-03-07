@@ -31,7 +31,7 @@ enum GeminiResponseParser {
         let name: String
         let sets: Int
         let reps: String
-        let weightKg: Double?
+        let weightLb: Double?
         let restMinutes: Double?
         let notes: String?
         let reasoning: String?
@@ -80,7 +80,7 @@ enum GeminiResponseParser {
                 name: rawExercise.name,
                 sets: rawExercise.sets,
                 reps: rawExercise.reps,
-                weightKg: rawExercise.weightKg,
+                weightLb: rawExercise.weightLb,
                 restMinutes: rawExercise.restMinutes,
                 notes: rawExercise.notes,
                 reasoning: rawExercise.reasoning,

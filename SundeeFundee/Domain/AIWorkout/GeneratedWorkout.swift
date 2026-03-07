@@ -35,7 +35,7 @@ struct GeneratedExercise: Codable, Sendable, Identifiable, Equatable, Hashable {
     var name: String
     var sets: Int
     var reps: String  // "8-10", "5", "AMRAP"
-    var weightKg: Double?
+    var weightLb: Double?
     var restMinutes: Double?
     var notes: String?
     let reasoning: String?
@@ -46,7 +46,7 @@ struct GeneratedExercise: Codable, Sendable, Identifiable, Equatable, Hashable {
         name: String,
         sets: Int,
         reps: String,
-        weightKg: Double? = nil,
+        weightLb: Double? = nil,
         restMinutes: Double? = nil,
         notes: String? = nil,
         reasoning: String? = nil,
@@ -56,7 +56,7 @@ struct GeneratedExercise: Codable, Sendable, Identifiable, Equatable, Hashable {
         self.name = name
         self.sets = sets
         self.reps = reps
-        self.weightKg = weightKg
+        self.weightLb = weightLb
         self.restMinutes = restMinutes
         self.notes = notes
         self.reasoning = reasoning
@@ -84,15 +84,15 @@ struct GeneratedExercise: Codable, Sendable, Identifiable, Equatable, Hashable {
     /// Returns a copy with the weight snapped to the nearest physically loadable value.
     /// - Parameter barLb: Bar weight in pounds (45 for men's, 35 for women's).
     func withSnappedWeight(barLb: Double = 45.0) -> GeneratedExercise {
-        guard let raw = weightKg, raw > 0, !bodyweightOnly else { return self }
+        guard let raw = weightLb, raw > 0, !bodyweightOnly else { return self }
         var copy = self
         switch equipmentType {
         case .barbell:
-            copy.weightKg = WeightCalculations.snapBarbellWeightKg(raw, barLb: barLb)
+            copy.weightLb = WeightCalculations.snapBarbellWeightLb(raw, barLb: barLb)
         case .dumbbell:
-            copy.weightKg = WeightCalculations.snapDumbbellWeightKg(raw)
+            copy.weightLb = WeightCalculations.snapDumbbellWeightLb(raw)
         case .kettlebell:
-            copy.weightKg = WeightCalculations.snapKettlebellWeightKg(raw)
+            copy.weightLb = WeightCalculations.snapKettlebellWeightLb(raw)
         case .other:
             break
         }
@@ -127,6 +127,32 @@ struct GeneratedWorkout: Codable, Sendable, Identifiable, Equatable, Hashable {
         self.coachingSummary = coachingSummary
         self.exercises = exercises
         self.questionnaire = questionnaire
+    }
+
+    /// Returns a copy with all weight data stripped for anonymous sharing.
+    /// Generates a new ID so the shared copy is independent of the original.
+    func strippedForSharing() -> GeneratedWorkout {
+        let strippedExercises = exercises.map { exercise in
+            GeneratedExercise(
+                name: exercise.name,
+                sets: exercise.sets,
+                reps: exercise.reps,
+                weightLb: nil,
+                restMinutes: exercise.restMinutes,
+                notes: exercise.notes,
+                reasoning: nil,
+                bodyweightOnly: exercise.bodyweightOnly
+            )
+        }
+        return GeneratedWorkout(
+            id: UUID().uuidString,
+            createdAt: createdAt,
+            isFavorite: false,
+            isCompleted: false,
+            coachingSummary: coachingSummary,
+            exercises: strippedExercises,
+            questionnaire: questionnaire
+        )
     }
 
     var totalEstimatedMinutes: Int {

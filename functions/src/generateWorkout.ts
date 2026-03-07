@@ -14,7 +14,7 @@ interface GeneratedExercise {
   name: string;
   sets: number;
   reps: string;
-  weightKg: number | null;
+  weightLb: number | null;
   restMinutes: number | null;
   notes: string | null;
   reasoning: string | null;
@@ -135,7 +135,7 @@ function validateWorkout(
     data.coachingSummary = "AI-generated workout session.";
   }
 
-  const maxDict = new Map(context.maxes.map((m) => [m.name, m.weightKg]));
+  const maxDict = new Map(context.maxes.map((m) => [m.name, m.weightLb]));
   const injuredLocations = context.activeInjuries.map((i) =>
     i.location.toLowerCase()
   );
@@ -158,10 +158,10 @@ function validateWorkout(
     })
     .map((ex) => {
       // Cap weights at known maxes
-      if (ex.weightKg) {
+      if (ex.weightLb) {
         const orm = maxDict.get(ex.name);
-        if (orm && ex.weightKg > orm) {
-          ex.weightKg = Math.round((orm * 0.8) / 5) * 5;
+        if (orm && ex.weightLb > orm) {
+          ex.weightLb = Math.round((orm * 0.8) / 5) * 5;
         }
       }
       ex.sets = Math.max(1, Math.min(10, ex.sets || 3));

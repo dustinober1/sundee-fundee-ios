@@ -22,7 +22,7 @@ final class WorkoutPreviewViewModel {
 
     func updateWeight(_ weight: Double, forExerciseID id: String) {
         guard let index = workout.exercises.firstIndex(where: { $0.id == id }) else { return }
-        workout.exercises[index].weightKg = weight
+        workout.exercises[index].weightLb = weight
     }
 
     func updateReps(_ reps: String, forExerciseID id: String) {
@@ -72,8 +72,9 @@ final class WorkoutPreviewViewModel {
 
     static func exerciseSummary(_ exercise: GeneratedExercise, weightUnit: WeightUnit = .pounds) -> String {
         var parts = ["\(exercise.sets) x \(exercise.reps)"]
-        if let weight = exercise.weightKg, weight > 0 {
-            let displayed = WeightUnitConversion.format(kilograms: weight, unit: weightUnit, maximumFractionDigits: 1)
+        if let weight = exercise.weightLb, weight > 0 {
+            let kg = weight / 2.2046226218
+            let displayed = WeightUnitConversion.format(kilograms: kg, unit: weightUnit, maximumFractionDigits: 1)
             parts.append("\(displayed) \(weightUnit.symbol)")
         }
         return parts.joined(separator: " @ ")

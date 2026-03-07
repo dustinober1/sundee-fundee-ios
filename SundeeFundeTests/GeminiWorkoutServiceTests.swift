@@ -49,7 +49,7 @@ struct GeminiWorkoutServiceTests {
             focus: .fullBody,
             energyLevel: .medium,
             equipment: .fullGym,
-            maxes: [ExerciseMax(name: "Back Squat", weightKg: 100)],
+            maxes: [ExerciseMax(name: "Back Squat", weightLb: 100)],
             recentWorkouts: [],
             cyclePhase: "follicular",
             readinessTier: nil,
@@ -63,7 +63,7 @@ struct GeminiWorkoutServiceTests {
 
     private func geminiResponse(summary: String = "AI session", exerciseName: String = "Back Squat") -> Data {
         let json = """
-        {"candidates":[{"content":{"parts":[{"text":"{\\"coachingSummary\\":\\"\(summary)\\",\\"exercises\\":[{\\"name\\":\\"\(exerciseName)\\",\\"sets\\":4,\\"reps\\":\\"5\\",\\"weightKg\\":80,\\"restMinutes\\":3.0,\\"bodyweightOnly\\":false}]}"}]}}]}
+        {"candidates":[{"content":{"parts":[{"text":"{\\"coachingSummary\\":\\"\(summary)\\",\\"exercises\\":[{\\"name\\":\\"\(exerciseName)\\",\\"sets\\":4,\\"reps\\":\\"5\\",\\"weightLb\\":80,\\"restMinutes\\":3.0,\\"bodyweightOnly\\":false}]}"}]}}]}
         """
         return Data(json.utf8)
     }
@@ -90,7 +90,7 @@ struct GeminiWorkoutServiceTests {
         #expect(workout.exercises[0].name == "Back Squat")
         #expect(workout.exercises[0].sets == 4)
         #expect(workout.exercises[0].reps == "5")
-        #expect(workout.exercises[0].weightKg == 80)
+        #expect(workout.exercises[0].weightLb == 80)
         #expect(workout.questionnaire.timeMinutes == 45)
         #expect(workout.questionnaire.focus == .fullBody)
         #expect(workout.questionnaire.energyLevel == .medium)
@@ -253,7 +253,7 @@ struct SwiftDataAIWorkoutServiceGeminiTests {
             focus: .fullBody,
             energyLevel: .medium,
             equipment: .fullGym,
-            maxes: [ExerciseMax(name: "Back Squat", weightKg: 100)],
+            maxes: [ExerciseMax(name: "Back Squat", weightLb: 100)],
             recentWorkouts: [],
             cyclePhase: "follicular",
             readinessTier: nil,
@@ -267,7 +267,7 @@ struct SwiftDataAIWorkoutServiceGeminiTests {
 
     private func geminiResponse(summary: String) -> Data {
         let json = """
-        {"candidates":[{"content":{"parts":[{"text":"{\\"coachingSummary\\":\\"\(summary)\\",\\"exercises\\":[{\\"name\\":\\"Back Squat\\",\\"sets\\":4,\\"reps\\":\\"5\\",\\"weightKg\\":80,\\"restMinutes\\":3.0,\\"bodyweightOnly\\":false}]}"}]}}]}
+        {"candidates":[{"content":{"parts":[{"text":"{\\"coachingSummary\\":\\"\(summary)\\",\\"exercises\\":[{\\"name\\":\\"Back Squat\\",\\"sets\\":4,\\"reps\\":\\"5\\",\\"weightLb\\":80,\\"restMinutes\\":3.0,\\"bodyweightOnly\\":false}]}"}]}}]}
         """
         return Data(json.utf8)
     }

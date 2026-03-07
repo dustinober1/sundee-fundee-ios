@@ -105,9 +105,9 @@ final class WorkoutExecutionViewModel {
             let sets = (0..<exercise.sets).map { _ in
                 SetExecutionState(
                     prescribedReps: exercise.reps,
-                    prescribedWeightKg: exercise.weightKg,
+                    prescribedWeightKg: exercise.weightLb,
                     actualReps: Int(exercise.reps) ?? 0,
-                    actualWeightKg: exercise.weightKg
+                    actualWeightKg: exercise.weightLb
                 )
             }
             exerciseSets[exercise.name] = sets

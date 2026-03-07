@@ -14,7 +14,7 @@ struct WorkoutGenerationContextTests {
             focus: .fullBody,
             energyLevel: .medium,
             equipment: .fullGym,
-            maxes: [ExerciseMax(name: "Back Squat", weightKg: 100)],
+            maxes: [ExerciseMax(name: "Back Squat", weightLb: 100)],
             recentWorkouts: [RecentWorkoutSummary(date: .now, focus: "legs", exercises: ["Squat"], durationMinutes: 60)],
             cyclePhase: "follicular",
             readinessTier: "neutral",
@@ -142,7 +142,7 @@ struct GeneratedWorkoutTests {
                     name: "Back Squat",
                     sets: 4,
                     reps: "5",
-                    weightKg: 100,
+                    weightLb: 100,
                     restMinutes: 3.0,
                     notes: "Focus on depth",
                     reasoning: "Compound movement for quad development",
@@ -164,7 +164,7 @@ struct GeneratedWorkoutTests {
         #expect(decoded.isFavorite == true)
         #expect(decoded.exercises.count == 1)
         #expect(decoded.exercises.first?.name == "Back Squat")
-        #expect(decoded.exercises.first?.weightKg == 100)
+        #expect(decoded.exercises.first?.weightLb == 100)
         #expect(decoded.questionnaire.focus == .lowerBody)
     }
 
@@ -244,7 +244,7 @@ struct GeneratedExerciseTests {
         let ex = GeneratedExercise(name: "Push-Up", sets: 3, reps: "10")
         #expect(!ex.id.isEmpty)
         #expect(ex.name == "Push-Up")
-        #expect(ex.weightKg == nil)
+        #expect(ex.weightLb == nil)
         #expect(ex.bodyweightOnly == false)
         #expect(ex.restMinutes == nil)
         #expect(ex.notes == nil)
@@ -257,7 +257,7 @@ struct GeneratedExerciseTests {
             name: "Back Squat",
             sets: 5,
             reps: "3",
-            weightKg: 120,
+            weightLb: 120,
             restMinutes: 3.5,
             notes: "Brace core",
             reasoning: "Heavy compound",
@@ -266,7 +266,7 @@ struct GeneratedExerciseTests {
         #expect(ex.id == "custom-id")
         #expect(ex.sets == 5)
         #expect(ex.reps == "3")
-        #expect(ex.weightKg == 120)
+        #expect(ex.weightLb == 120)
         #expect(ex.restMinutes == 3.5)
         #expect(ex.notes == "Brace core")
         #expect(ex.reasoning == "Heavy compound")
@@ -314,39 +314,36 @@ struct GeneratedExerciseSnappingTests {
 
     @Test func barbellWeightSnapsToLoadableTotal() {
         // 226.9 lb → men's bar → should snap to 225 lb
-        let badKg = 226.9 / 2.2046226218
-        let ex = GeneratedExercise(name: "Back Squat", sets: 4, reps: "5", weightKg: badKg)
+        let ex = GeneratedExercise(name: "Back Squat", sets: 4, reps: "5", weightLb: 226.9)
         let snapped = ex.withSnappedWeight()
-        let snappedLb = (snapped.weightKg ?? 0) * 2.2046226218
-        #expect(abs(snappedLb - 225.0) < 0.1)
+        #expect(abs((snapped.weightLb ?? 0) - 225.0) < 0.1)
     }
 
     @Test func dumbbellWeightSnapsToAvailableIncrement() {
-        // 14 kg ≈ 30.9 lb → nearest available is 35 lb (15.88 kg)
-        let ex = GeneratedExercise(name: "Dumbbell Row", sets: 3, reps: "10", weightKg: 14.0)
+        // 31 lb → nearest available dumbbell is 35 lb
+        let ex = GeneratedExercise(name: "Dumbbell Row", sets: 3, reps: "10", weightLb: 31.0)
         let snapped = ex.withSnappedWeight()
-        let snappedLb = (snapped.weightKg ?? 0) * 2.2046226218
-        #expect(abs(snappedLb - 35.0) < 0.5)
+        #expect(snapped.weightLb == 35)
     }
 
-    @Test func kettlebellWeightSnapsToAvailableKg() {
-        // 30 kg → nearest available kettlebell (24 or 36 kg)
-        let ex = GeneratedExercise(name: "Kettlebell Swings", sets: 4, reps: "15", weightKg: 30.0)
+    @Test func kettlebellWeightSnapsToAvailableLb() {
+        // 60 lb → nearest available kettlebell
+        let ex = GeneratedExercise(name: "Kettlebell Swings", sets: 4, reps: "15", weightLb: 60.0)
         let snapped = ex.withSnappedWeight()
-        let validKg: [Double] = [24, 36, 52, 70]
-        #expect(validKg.contains(snapped.weightKg ?? 0))
+        let validLb: [Double] = [15, 25, 32, 53, 70]
+        #expect(validLb.contains(snapped.weightLb ?? 0))
     }
 
     @Test func bodyweightExerciseUnaffectedBySnapping() {
         let ex = GeneratedExercise(name: "Pull-Up", sets: 3, reps: "AMRAP", bodyweightOnly: true)
         let snapped = ex.withSnappedWeight()
-        #expect(snapped.weightKg == nil)
+        #expect(snapped.weightLb == nil)
     }
 
     @Test func nilWeightUnaffectedBySnapping() {
-        let ex = GeneratedExercise(name: "Back Squat", sets: 3, reps: "5", weightKg: nil)
+        let ex = GeneratedExercise(name: "Back Squat", sets: 3, reps: "5", weightLb: nil)
         let snapped = ex.withSnappedWeight()
-        #expect(snapped.weightKg == nil)
+        #expect(snapped.weightLb == nil)
     }
 }
 
@@ -470,28 +467,28 @@ struct OfflineWorkoutGeneratorTests {
     }
 
     @Test func applyMaxesCalculatesWeights() {
-        let maxes = [ExerciseMax(name: "Back Squat", weightKg: 100)]
+        let maxes = [ExerciseMax(name: "Back Squat", weightLb: 100)]
         let context = makeContext(focus: .lowerBody, equipment: .fullGym, maxes: maxes)
         let workout = OfflineWorkoutGenerator.generate(from: context)
 
         let squat = workout.exercises.first { $0.name == "Back Squat" }
         if let squat {
-            #expect(squat.weightKg != nil)
-            #expect(squat.weightKg! > 0)
-            #expect(squat.weightKg! <= 100)
+            #expect(squat.weightLb != nil)
+            #expect(squat.weightLb! > 0)
+            #expect(squat.weightLb! <= 100)
         }
     }
 
     @Test func lowEnergyReducesWeights() {
-        let maxes = [ExerciseMax(name: "Back Squat", weightKg: 100)]
+        let maxes = [ExerciseMax(name: "Back Squat", weightLb: 100)]
         let normalCtx = makeContext(focus: .lowerBody, energyLevel: .medium, maxes: maxes)
         let lowCtx = makeContext(focus: .lowerBody, energyLevel: .low, maxes: maxes)
 
         let normalWorkout = OfflineWorkoutGenerator.generate(from: normalCtx)
         let lowWorkout = OfflineWorkoutGenerator.generate(from: lowCtx)
 
-        let normalSquatWeight = normalWorkout.exercises.first { $0.name == "Back Squat" }?.weightKg
-        let lowSquatWeight = lowWorkout.exercises.first { $0.name == "Back Squat" }?.weightKg
+        let normalSquatWeight = normalWorkout.exercises.first { $0.name == "Back Squat" }?.weightLb
+        let lowSquatWeight = lowWorkout.exercises.first { $0.name == "Back Squat" }?.weightLb
 
         if let normalWeight = normalSquatWeight, let lowWeight = lowSquatWeight {
             #expect(lowWeight <= normalWeight)
@@ -500,24 +497,24 @@ struct OfflineWorkoutGeneratorTests {
 
     @Test func highEnergyMaintainsOrIncreasesWeights() {
         let exercises = [
-            GeneratedExercise(name: "Squat", sets: 3, reps: "5", weightKg: 100)
+            GeneratedExercise(name: "Squat", sets: 3, reps: "5", weightLb: 100)
         ]
         let adjusted = OfflineWorkoutGenerator.applyEnergyLevel(exercises: exercises, energy: .high)
-        #expect(adjusted.first!.weightKg! >= 100)
+        #expect(adjusted.first!.weightLb! >= 100)
     }
 
     @Test func mediumEnergyDoesNotChangeWeights() {
         let exercises = [
-            GeneratedExercise(name: "Squat", sets: 3, reps: "5", weightKg: 100)
+            GeneratedExercise(name: "Squat", sets: 3, reps: "5", weightLb: 100)
         ]
         let adjusted = OfflineWorkoutGenerator.applyEnergyLevel(exercises: exercises, energy: .medium)
-        #expect(adjusted.first!.weightKg == 100)
+        #expect(adjusted.first!.weightLb == 100)
     }
 
     @Test func kneeInjurySubstitution() {
         let injuries = [InjurySummary(location: "knee", phase: "rehab", restrictions: ["squat"])]
         let exercises = [
-            GeneratedExercise(name: "Back Squat", sets: 4, reps: "5", weightKg: 100),
+            GeneratedExercise(name: "Back Squat", sets: 4, reps: "5", weightLb: 100),
             GeneratedExercise(name: "Pull-Up", sets: 3, reps: "AMRAP", bodyweightOnly: true),
         ]
 
@@ -532,7 +529,7 @@ struct OfflineWorkoutGeneratorTests {
     @Test func shoulderInjurySubstitution() {
         let injuries = [InjurySummary(location: "shoulder", phase: "lightLoad", restrictions: ["press"])]
         let exercises = [
-            GeneratedExercise(name: "Flat Barbell Bench Press", sets: 4, reps: "5", weightKg: 80),
+            GeneratedExercise(name: "Flat Barbell Bench Press", sets: 4, reps: "5", weightLb: 80),
             GeneratedExercise(name: "Barbell Row", sets: 3, reps: "8"),
         ]
 
@@ -546,7 +543,7 @@ struct OfflineWorkoutGeneratorTests {
 
     @Test func noInjuriesDoesNotModify() {
         let exercises = [
-            GeneratedExercise(name: "Back Squat", sets: 4, reps: "5", weightKg: 100)
+            GeneratedExercise(name: "Back Squat", sets: 4, reps: "5", weightLb: 100)
         ]
         let adapted = OfflineWorkoutGenerator.applyInjurySubstitutions(exercises: exercises, injuries: [])
         #expect(adapted.count == 1)
@@ -555,58 +552,58 @@ struct OfflineWorkoutGeneratorTests {
 
     @Test func cyclePhaseAdjustmentMenstrual() {
         let exercises = [
-            GeneratedExercise(name: "Squat", sets: 3, reps: "5", weightKg: 100)
+            GeneratedExercise(name: "Squat", sets: 3, reps: "5", weightLb: 100)
         ]
         let adjusted = OfflineWorkoutGenerator.applyCyclePhase(exercises: exercises, phase: "menstrual", readiness: nil)
-        #expect(adjusted.first!.weightKg! < 100)
+        #expect(adjusted.first!.weightLb! < 100)
     }
 
     @Test func cyclePhaseAdjustmentOvulation() {
         let exercises = [
-            GeneratedExercise(name: "Squat", sets: 3, reps: "5", weightKg: 100)
+            GeneratedExercise(name: "Squat", sets: 3, reps: "5", weightLb: 100)
         ]
         let adjusted = OfflineWorkoutGenerator.applyCyclePhase(exercises: exercises, phase: "ovulation", readiness: nil)
-        #expect(adjusted.first!.weightKg! > 100)
+        #expect(adjusted.first!.weightLb! > 100)
     }
 
     @Test func cyclePhaseNilDoesNotModify() {
         let exercises = [
-            GeneratedExercise(name: "Squat", sets: 3, reps: "5", weightKg: 100)
+            GeneratedExercise(name: "Squat", sets: 3, reps: "5", weightLb: 100)
         ]
         let adjusted = OfflineWorkoutGenerator.applyCyclePhase(exercises: exercises, phase: nil, readiness: nil)
-        #expect(adjusted.first!.weightKg == 100)
+        #expect(adjusted.first!.weightLb == 100)
     }
 
     @Test func follicularPhaseDoesNotModify() {
         let exercises = [
-            GeneratedExercise(name: "Squat", sets: 3, reps: "5", weightKg: 100)
+            GeneratedExercise(name: "Squat", sets: 3, reps: "5", weightLb: 100)
         ]
         let adjusted = OfflineWorkoutGenerator.applyCyclePhase(exercises: exercises, phase: "follicular", readiness: nil)
-        #expect(adjusted.first!.weightKg == 100)
+        #expect(adjusted.first!.weightLb == 100)
     }
 
     @Test func lowReadinessReducesWeight() {
         let exercises = [
-            GeneratedExercise(name: "Squat", sets: 3, reps: "5", weightKg: 100)
+            GeneratedExercise(name: "Squat", sets: 3, reps: "5", weightLb: 100)
         ]
         let adjusted = OfflineWorkoutGenerator.applyCyclePhase(exercises: exercises, phase: "follicular", readiness: "low")
-        #expect(adjusted.first!.weightKg! < 100)
+        #expect(adjusted.first!.weightLb! < 100)
     }
 
     @Test func highReadinessIncreasesWeight() {
         let exercises = [
-            GeneratedExercise(name: "Squat", sets: 3, reps: "5", weightKg: 100)
+            GeneratedExercise(name: "Squat", sets: 3, reps: "5", weightLb: 100)
         ]
         let adjusted = OfflineWorkoutGenerator.applyCyclePhase(exercises: exercises, phase: "follicular", readiness: "high")
-        #expect(adjusted.first!.weightKg! > 100)
+        #expect(adjusted.first!.weightLb! > 100)
     }
 
     @Test func unknownPhaseDoesNotModify() {
         let exercises = [
-            GeneratedExercise(name: "Squat", sets: 3, reps: "5", weightKg: 100)
+            GeneratedExercise(name: "Squat", sets: 3, reps: "5", weightLb: 100)
         ]
         let adjusted = OfflineWorkoutGenerator.applyCyclePhase(exercises: exercises, phase: "unknown", readiness: nil)
-        #expect(adjusted.first!.weightKg == 100)
+        #expect(adjusted.first!.weightLb == 100)
     }
 
     @Test func scaleForTimeShortSession() {
@@ -639,11 +636,10 @@ struct OfflineWorkoutGeneratorTests {
         let templates = OfflineWorkoutGenerator.selectTemplates(focus: .upperBody, equipment: .homeDumbbells)
         let exercises = OfflineWorkoutGenerator.applyWeights(exercises: templates, maxes: [], equipment: .homeDumbbells)
 
-        // Default dumbbell weight is 25 lb (11.34 kg), snapped from the available dumbbell inventory.
-        let expectedKg = 25.0 / 2.2046226218  // 25 lb in kg
+        // Default dumbbell weight is 25 lb, snapped from the available dumbbell inventory.
         for ex in exercises where !ex.bodyweightOnly {
-            if let w = ex.weightKg {
-                #expect(abs(w - expectedKg) < 0.01)
+            if let w = ex.weightLb {
+                #expect(w == 25)
             }
         }
     }
@@ -681,8 +677,8 @@ struct OfflineWorkoutGeneratorTests {
     @Test func backInjurySubstitution() {
         let injuries = [InjurySummary(location: "back", phase: "rehab", restrictions: ["deadlift"])]
         let exercises = [
-            GeneratedExercise(name: "Conventional Deadlift (No Straps)", sets: 4, reps: "5", weightKg: 100),
-            GeneratedExercise(name: "Barbell Row", sets: 3, reps: "8", weightKg: 60),
+            GeneratedExercise(name: "Conventional Deadlift (No Straps)", sets: 4, reps: "5", weightLb: 100),
+            GeneratedExercise(name: "Barbell Row", sets: 3, reps: "8", weightLb: 60),
             GeneratedExercise(name: "Pull-Up", sets: 3, reps: "AMRAP", bodyweightOnly: true),
         ]
 
@@ -695,10 +691,10 @@ struct OfflineWorkoutGeneratorTests {
 
     @Test func lutealPhaseReducesWeight() {
         let exercises = [
-            GeneratedExercise(name: "Squat", sets: 3, reps: "5", weightKg: 100)
+            GeneratedExercise(name: "Squat", sets: 3, reps: "5", weightLb: 100)
         ]
         let adjusted = OfflineWorkoutGenerator.applyCyclePhase(exercises: exercises, phase: "luteal", readiness: nil)
-        #expect(adjusted.first!.weightKg! < 100)
+        #expect(adjusted.first!.weightLb! < 100)
     }
 
     @Test func bodyweightExercisesUnaffectedByPhase() {
@@ -706,13 +702,13 @@ struct OfflineWorkoutGeneratorTests {
             GeneratedExercise(name: "Push-Up", sets: 3, reps: "15", bodyweightOnly: true)
         ]
         let adjusted = OfflineWorkoutGenerator.applyCyclePhase(exercises: exercises, phase: "menstrual", readiness: nil)
-        #expect(adjusted.first!.weightKg == nil)
+        #expect(adjusted.first!.weightLb == nil)
     }
 
     @Test func hipInjurySubstitution() {
         let injuries = [InjurySummary(location: "hip", phase: "rehab", restrictions: ["hip"])]
         let exercises = [
-            GeneratedExercise(name: "Hip Thrust", sets: 3, reps: "10", weightKg: 80),
+            GeneratedExercise(name: "Hip Thrust", sets: 3, reps: "10", weightLb: 80),
             GeneratedExercise(name: "Pull-Up", sets: 3, reps: "AMRAP", bodyweightOnly: true),
         ]
 
@@ -724,8 +720,8 @@ struct OfflineWorkoutGeneratorTests {
     @Test func wristInjurySubstitution() {
         let injuries = [InjurySummary(location: "wrist", phase: "acute", restrictions: ["clean"])]
         let exercises = [
-            GeneratedExercise(name: "Power Clean", sets: 3, reps: "3", weightKg: 60),
-            GeneratedExercise(name: "Back Squat", sets: 3, reps: "5", weightKg: 100),
+            GeneratedExercise(name: "Power Clean", sets: 3, reps: "3", weightLb: 60),
+            GeneratedExercise(name: "Back Squat", sets: 3, reps: "5", weightLb: 100),
         ]
 
         let adapted = OfflineWorkoutGenerator.applyInjurySubstitutions(exercises: exercises, injuries: injuries)
@@ -750,7 +746,7 @@ struct OfflineWorkoutGeneratorTests {
     @Test func spineInjurySubstitution() {
         let injuries = [InjurySummary(location: "spine", phase: "rehab", restrictions: ["deadlift"])]
         let exercises = [
-            GeneratedExercise(name: "Conventional Deadlift (No Straps)", sets: 3, reps: "5", weightKg: 100),
+            GeneratedExercise(name: "Conventional Deadlift (No Straps)", sets: 3, reps: "5", weightLb: 100),
         ]
         let adapted = OfflineWorkoutGenerator.applyInjurySubstitutions(exercises: exercises, injuries: injuries)
         let deadliftPresent = adapted.contains { $0.name == "Conventional Deadlift (No Straps)" }
@@ -760,7 +756,7 @@ struct OfflineWorkoutGeneratorTests {
     @Test func unknownLocationDoesNotFilter() {
         let injuries = [InjurySummary(location: "elbow", phase: "rehab", restrictions: [])]
         let exercises = [
-            GeneratedExercise(name: "Back Squat", sets: 3, reps: "5", weightKg: 100),
+            GeneratedExercise(name: "Back Squat", sets: 3, reps: "5", weightLb: 100),
         ]
         let adapted = OfflineWorkoutGenerator.applyInjurySubstitutions(exercises: exercises, injuries: injuries)
         #expect(adapted.count == 1)
@@ -768,9 +764,134 @@ struct OfflineWorkoutGeneratorTests {
 
     @Test func neutralReadinessDoesNotModify() {
         let exercises = [
-            GeneratedExercise(name: "Squat", sets: 3, reps: "5", weightKg: 100)
+            GeneratedExercise(name: "Squat", sets: 3, reps: "5", weightLb: 100)
         ]
         let adjusted = OfflineWorkoutGenerator.applyCyclePhase(exercises: exercises, phase: "follicular", readiness: "neutral")
-        #expect(adjusted.first!.weightKg == 100)
+        #expect(adjusted.first!.weightLb == 100)
+    }
+}
+
+// MARK: - GeneratedWorkout Sharing Tests
+
+@Suite("GeneratedWorkout Sharing")
+struct GeneratedWorkoutSharingTests {
+
+    @Test func strippedForSharingNilsAllWeights() {
+        let workout = GeneratedWorkout(
+            coachingSummary: "Test workout",
+            exercises: [
+                GeneratedExercise(name: "Back Squat", sets: 3, reps: "5", weightLb: 225),
+                GeneratedExercise(name: "DB Bench", sets: 3, reps: "8", weightLb: 50),
+                GeneratedExercise(name: "Plank", sets: 3, reps: "60s", bodyweightOnly: true),
+            ],
+            questionnaire: QuestionnaireAnswers(
+                timeMinutes: 45, focus: .fullBody, energyLevel: .medium, equipment: .fullGym
+            )
+        )
+
+        let stripped = workout.strippedForSharing()
+
+        #expect(stripped.exercises.count == 3)
+        for exercise in stripped.exercises {
+            #expect(exercise.weightLb == nil)
+        }
+        #expect(stripped.coachingSummary == "Test workout")
+        #expect(stripped.questionnaire.focus == .fullBody)
+        #expect(stripped.id != workout.id, "Stripped workout gets a new ID")
+    }
+
+    @Test func strippedForSharingNilsReasoning() {
+        let workout = GeneratedWorkout(
+            coachingSummary: "Test",
+            exercises: [
+                GeneratedExercise(name: "Squat", sets: 3, reps: "5", weightLb: 225, reasoning: "Heavy compound"),
+            ],
+            questionnaire: QuestionnaireAnswers(
+                timeMinutes: 45, focus: .fullBody, energyLevel: .medium, equipment: .fullGym
+            )
+        )
+        let stripped = workout.strippedForSharing()
+        #expect(stripped.exercises[0].reasoning == nil)
+    }
+
+    @Test func strippedForSharingPreservesStructure() {
+        let workout = GeneratedWorkout(
+            coachingSummary: "Upper day",
+            exercises: [
+                GeneratedExercise(
+                    name: "Bench Press", sets: 4, reps: "6",
+                    weightLb: 185, restMinutes: 2.0, notes: "Pause at bottom",
+                    reasoning: "Progressive overload"
+                ),
+            ],
+            questionnaire: QuestionnaireAnswers(
+                timeMinutes: 30, focus: .push, energyLevel: .high, equipment: .fullGym
+            )
+        )
+
+        let stripped = workout.strippedForSharing()
+        let ex = stripped.exercises[0]
+
+        #expect(ex.name == "Bench Press")
+        #expect(ex.sets == 4)
+        #expect(ex.reps == "6")
+        #expect(ex.weightLb == nil)
+        #expect(ex.restMinutes == 2.0)
+        #expect(ex.notes == "Pause at bottom")
+        #expect(ex.bodyweightOnly == false)
+    }
+}
+
+// MARK: - CloudKitSharedWorkoutRepository Tests
+
+@Suite("CloudKitSharedWorkoutRepository.contributePayload")
+struct SharedWorkoutContributePayloadTests {
+
+    @Test func contributePayloadStripsWeights() throws {
+        let workout = GeneratedWorkout(
+            coachingSummary: "Heavy day",
+            exercises: [
+                GeneratedExercise(name: "Deadlift", sets: 5, reps: "3", weightLb: 315),
+                GeneratedExercise(name: "Pull-ups", sets: 4, reps: "8", bodyweightOnly: true),
+            ],
+            questionnaire: QuestionnaireAnswers(
+                timeMinutes: 60, focus: .strength, energyLevel: .high, equipment: .fullGym
+            )
+        )
+
+        let payload = CloudKitSharedWorkoutRepository.buildContributePayload(from: workout)
+
+        #expect(payload.focusRaw == "strength")
+        #expect(payload.equipmentRaw == "full_gym")
+        #expect(payload.userID == "")
+
+        let data = payload.workoutJSON.data(using: .utf8)!
+        let decoded = try JSONDecoder().decode(GeneratedWorkout.self, from: data)
+        for exercise in decoded.exercises {
+            #expect(exercise.weightLb == nil)
+        }
+    }
+}
+
+// MARK: - Auto-Contribution Tests
+
+@Suite("SwiftDataAIWorkoutService auto-contribution")
+struct AutoContributionTests {
+
+    @Test func buildContributionStripsWeights() {
+        let result = SwiftDataAIWorkoutService.buildContribution(
+            from: GeneratedWorkout(
+                coachingSummary: "Test",
+                exercises: [
+                    GeneratedExercise(name: "Squat", sets: 3, reps: "5", weightLb: 200),
+                ],
+                questionnaire: QuestionnaireAnswers(
+                    timeMinutes: 30, focus: .strength, energyLevel: .medium, equipment: .fullGym
+                )
+            )
+        )
+
+        #expect(result != nil)
+        #expect(result!.exercises[0].weightLb == nil, "Contribution should have weights stripped")
     }
 }

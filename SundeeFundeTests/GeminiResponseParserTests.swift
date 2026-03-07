@@ -38,7 +38,7 @@ struct GeminiResponseParserTests {
                 "name": "Barbell Squat",
                 "sets": 4,
                 "reps": "8-10",
-                "weightKg": 60.0,
+                "weightLb": 60.0,
                 "restMinutes": 2.0,
                 "notes": "Keep your core tight.",
                 "reasoning": "Compound lower body movement.",
@@ -71,7 +71,7 @@ struct GeminiResponseParserTests {
         #expect(exercise.name == "Barbell Squat")
         #expect(exercise.sets == 4)
         #expect(exercise.reps == "8-10")
-        #expect(exercise.weightKg == 60.0)
+        #expect(exercise.weightLb == 60.0)
         #expect(exercise.restMinutes == 2.0)
         #expect(exercise.notes == "Keep your core tight.")
         #expect(exercise.reasoning == "Compound lower body movement.")
@@ -98,7 +98,7 @@ struct GeminiResponseParserTests {
 
         let exercise = workout.exercises[0]
         #expect(exercise.name == "Push-ups")
-        #expect(exercise.weightKg == nil)
+        #expect(exercise.weightLb == nil)
         #expect(exercise.restMinutes == nil)
         #expect(exercise.notes == nil)
         #expect(exercise.bodyweightOnly == true)

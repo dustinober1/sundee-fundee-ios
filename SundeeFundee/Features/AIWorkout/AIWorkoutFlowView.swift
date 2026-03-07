@@ -21,7 +21,10 @@ struct AIWorkoutFlowView: View {
     }
 
     var body: some View {
-        let aiService = SwiftDataAIWorkoutService(modelContext: modelContext)
+        let aiService = SwiftDataAIWorkoutService(
+            modelContext: modelContext,
+            sharedRepository: CloudKitSharedWorkoutRepository(modelContext: modelContext)
+        )
         QuestionnaireView(
             userID: userID,
             aiService: aiService,
