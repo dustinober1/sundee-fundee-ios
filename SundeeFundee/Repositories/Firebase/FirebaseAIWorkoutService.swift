@@ -25,35 +25,27 @@ final class FirebaseAIWorkoutService: AIWorkoutServiceProtocol, @unchecked Senda
         // TODO: Call Firebase Cloud Function when Firebase SDK is integrated
         // For now, use the offline generator
         let workout = OfflineWorkoutGenerator.generate(from: context)
-        lock.lock()
-        workoutHistory.insert(workout, at: 0)
-        lock.unlock()
+        lock.withLock { workoutHistory.insert(workout, at: 0) }
         return workout
     }
 
     func fetchHistory(userID: String) async throws -> [GeneratedWorkout] {
         // TODO: Query Firestore when Firebase SDK is integrated
-        lock.lock()
-        let history = workoutHistory
-        lock.unlock()
-        return history
+        lock.withLock { workoutHistory }
     }
 
     func toggleFavorite(workoutID: String, isFavorite: Bool) async throws {
         // TODO: Update Firestore when Firebase SDK is integrated
-        lock.lock()
-        if let index = workoutHistory.firstIndex(where: { $0.id == workoutID }) {
-            workoutHistory[index].isFavorite = isFavorite
+        lock.withLock {
+            if let index = workoutHistory.firstIndex(where: { $0.id == workoutID }) {
+                workoutHistory[index].isFavorite = isFavorite
+            }
         }
-        lock.unlock()
     }
 
     func fetchFavorites(userID: String) async throws -> [GeneratedWorkout] {
         // TODO: Query Firestore when Firebase SDK is integrated
-        lock.lock()
-        let favorites = workoutHistory.filter(\.isFavorite)
-        lock.unlock()
-        return favorites
+        lock.withLock { workoutHistory.filter(\.isFavorite) }
     }
 }
 
@@ -67,31 +59,23 @@ final class OfflineAIWorkoutService: AIWorkoutServiceProtocol, @unchecked Sendab
 
     func generateWorkout(context: WorkoutGenerationContext) async throws -> GeneratedWorkout {
         let workout = OfflineWorkoutGenerator.generate(from: context)
-        lock.lock()
-        workoutHistory.insert(workout, at: 0)
-        lock.unlock()
+        lock.withLock { workoutHistory.insert(workout, at: 0) }
         return workout
     }
 
     func fetchHistory(userID: String) async throws -> [GeneratedWorkout] {
-        lock.lock()
-        let history = workoutHistory
-        lock.unlock()
-        return history
+        lock.withLock { workoutHistory }
     }
 
     func toggleFavorite(workoutID: String, isFavorite: Bool) async throws {
-        lock.lock()
-        if let index = workoutHistory.firstIndex(where: { $0.id == workoutID }) {
-            workoutHistory[index].isFavorite = isFavorite
+        lock.withLock {
+            if let index = workoutHistory.firstIndex(where: { $0.id == workoutID }) {
+                workoutHistory[index].isFavorite = isFavorite
+            }
         }
-        lock.unlock()
     }
 
     func fetchFavorites(userID: String) async throws -> [GeneratedWorkout] {
-        lock.lock()
-        let favorites = workoutHistory.filter(\.isFavorite)
-        lock.unlock()
-        return favorites
+        lock.withLock { workoutHistory.filter(\.isFavorite) }
     }
 }

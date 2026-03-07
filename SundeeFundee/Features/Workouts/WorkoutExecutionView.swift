@@ -91,7 +91,7 @@ struct WorkoutExecutionView: View {
                 .font(AppTheme.Fonts.caption)
                 .foregroundStyle(AppTheme.Colors.accentOrange)
                 .textCase(.uppercase)
-            Text("Week \(viewModel.enrollment.currentWeek) • Day \(viewModel.enrollment.currentDay)")
+            Text("Week \(viewModel.enrollment?.currentWeek ?? 0) • Day \(viewModel.enrollment?.currentDay ?? 0)")
                 .font(AppTheme.Fonts.body)
                 .foregroundStyle(AppTheme.Colors.navy.opacity(0.6))
         }

@@ -30,7 +30,7 @@ enum OfflineWorkoutGenerator {
 
     // MARK: - Exercise Templates
 
-    private struct ExerciseTemplate {
+    struct ExerciseTemplate {
         let name: String
         let defaultSets: Int
         let defaultReps: String
@@ -241,7 +241,7 @@ enum OfflineWorkoutGenerator {
     ) -> [GeneratedExercise] {
         guard !injuries.isEmpty else { return exercises }
 
-        let injuredLocations = injuries.map(\.location.lowercased)
+        let injuredLocations = injuries.map { $0.location.lowercased() }
 
         return exercises.compactMap { exercise in
             let name = exercise.name.lowercased()
