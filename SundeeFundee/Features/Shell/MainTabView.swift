@@ -5,7 +5,6 @@ import SwiftUI
 
 /// Root tab shell — shown when user is authenticated (signed in or guest).
 struct MainTabView: View {
-    @Environment(\.modelContext) private var modelContext
     enum TabRoute: String, CaseIterable {
         case dashboard
         case programs
@@ -58,6 +57,8 @@ struct MainTabView: View {
 
     private let destinationBuilder: (TabRoute) -> AnyView
 
+    /// Default init — history tab uses `SwiftDataAIWorkoutService` via a child view
+    /// that captures `modelContext` at render time.
     init(destinationBuilder: @escaping (TabRoute) -> AnyView = { tab in
         AnyView(Self.destination(for: tab))
     }) {
@@ -65,18 +66,10 @@ struct MainTabView: View {
     }
 
     var body: some View {
-        let aiService = SwiftDataAIWorkoutService(modelContext: modelContext)
         TabView {
             ForEach(Self.orderedTabs(for: currentGender), id: \.self) { tab in
                 NavigationStack {
-                    if tab == .history {
-                        WorkoutHistoryView(
-                            userID: users.first?.id ?? "",
-                            aiService: aiService
-                        )
-                    } else {
-                        destinationBuilder(tab)
-                    }
+                    destinationBuilder(tab)
                 }
                 .tabItem {
                     Label(tab.title, systemImage: tab.systemImage)
@@ -94,10 +87,7 @@ struct MainTabView: View {
         case .programs:
             ProgramListView()
         case .history:
-            // WorkoutHistoryView requires a modelContext-aware service;
-            // use AIWorkoutHistoryPlaceholderView as the static destination.
-            // The real WorkoutHistoryView is composed in MainTabView.body where modelContext is available.
-            AIWorkoutHistoryPlaceholderView()
+            HistoryTabView()
         case .maxes:
             MaxLiftsView()
         case .benchmarks:
@@ -112,17 +102,17 @@ struct MainTabView: View {
 
 // MARK: - Placeholder views (replaced in later phases)
 
-struct AIWorkoutHistoryPlaceholderView: View {
+/// Wrapper that defers `SwiftDataAIWorkoutService` construction until the view
+/// renders, so it can capture `modelContext` from the environment.
+struct HistoryTabView: View {
+    @Environment(\.modelContext) private var modelContext
+    @Query private var users: [User]
+
     var body: some View {
-        ZStack {
-            AppTheme.Colors.cream.ignoresSafeArea()
-            ContentUnavailableView(
-                "No Workouts Yet",
-                systemImage: "dumbbell",
-                description: Text("Generate your first AI workout to see it here.")
-            )
-        }
-        .navigationTitle("History")
+        WorkoutHistoryView(
+            userID: users.first?.id ?? "",
+            aiService: SwiftDataAIWorkoutService(modelContext: modelContext)
+        )
     }
 }
 
