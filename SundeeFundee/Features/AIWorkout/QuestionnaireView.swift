@@ -3,6 +3,7 @@ import SwiftData
 
 struct QuestionnaireView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(SubscriptionService.self) private var subscriptionService
     @State private var viewModel: QuestionnaireViewModel
     let userID: String
     var onWorkoutGenerated: (GeneratedWorkout) -> Void = { _ in }
@@ -36,6 +37,11 @@ struct QuestionnaireView: View {
         }
         .navigationTitle("New Workout")
         .navigationBarTitleDisplayMode(.inline)
+        .sheet(isPresented: $viewModel.showPaywall) {
+            if let reason = viewModel.generationBlockReason {
+                PaywallView(reason: reason)
+            }
+        }
         .onChange(of: viewModel.generatedWorkout) { _, workout in
             if let workout {
                 onWorkoutGenerated(workout)
@@ -133,8 +139,17 @@ struct QuestionnaireView: View {
                 .tint(AppTheme.Colors.accentOrange)
             } else {
                 Button {
-                    Task {
-                        await viewModel.generateWorkout(modelContext: modelContext, userID: userID)
+                    let todayCount = QuestionnaireViewModel.countTodayGenerations(
+                        modelContext: modelContext, userID: userID
+                    )
+                    viewModel.generateWorkoutGated(
+                        tier: subscriptionService.currentTier,
+                        todayCount: todayCount
+                    )
+                    if viewModel.generationBlockReason == nil {
+                        Task {
+                            await viewModel.generateWorkout(modelContext: modelContext, userID: userID)
+                        }
                     }
                 } label: {
                     if viewModel.isGenerating {
