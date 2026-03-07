@@ -103,6 +103,7 @@
 		A12BF7539DADDE5ED4A6AA85 /* AIWorkoutViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D04A7D236192EDDBCD0F346 /* AIWorkoutViewModelTests.swift */; };
 		A1B9AF2CD29CA287A8DD1E56 /* CycleCalculations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 745F2F666C9657BEF7407740 /* CycleCalculations.swift */; };
 		A3FA9EED08F58B73BE717256 /* EnrolledProgram.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CC3DF4CA337E185D6494F40 /* EnrolledProgram.swift */; };
+		A764EAEACAA7C38A78C4A9A9 /* SundeeFundee.storekit in Resources */ = {isa = PBXBuildFile; fileRef = 607461998404BF185267C222 /* SundeeFundee.storekit */; };
 		A9AFA4869ECE39AA74FBA709 /* BenchmarkDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 302AD04E972A024BA91E2FD5 /* BenchmarkDetailView.swift */; };
 		AA60A4043C487AC7BD47C0D1 /* OfflineWorkoutGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BE16254287A1EB2111F6ECA /* OfflineWorkoutGenerator.swift */; };
 		ABD91D701AAC10F1E21BBE59 /* CycleProgramGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9185B33B347E99EC19EDC8E2 /* CycleProgramGenerator.swift */; };
@@ -224,6 +225,7 @@
 		5F1B65069425B81601B09ECE /* programs.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = programs.json; sourceTree = "<group>"; };
 		5F2063B2D582F627881D16AB /* PainTrendAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PainTrendAnalyzer.swift; sourceTree = "<group>"; };
 		5F886F044DA162B3990BD14D /* ButtonStyles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ButtonStyles.swift; sourceTree = "<group>"; };
+		607461998404BF185267C222 /* SundeeFundee.storekit */ = {isa = PBXFileReference; path = SundeeFundee.storekit; sourceTree = "<group>"; };
 		616A3F0BB4993EF89C49872B /* WeightUnitConversion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightUnitConversion.swift; sourceTree = "<group>"; };
 		62C498309D514E52B0277ABD /* FeatureViewsCoverageWave3Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureViewsCoverageWave3Tests.swift; sourceTree = "<group>"; };
 		665E7A777D41FE5BE4093B7C /* LegalContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegalContent.swift; sourceTree = "<group>"; };
@@ -573,6 +575,7 @@
 				5BDADDDF96B2ECD3783DE0D2 /* PrivacyInfo.xcprivacy */,
 				0D02D55549E45865DA337162 /* SundeeFundee.Debug.entitlements */,
 				B505719BD04F61B067DA2491 /* SundeeFundee.entitlements */,
+				607461998404BF185267C222 /* SundeeFundee.storekit */,
 				57FC1C61C870746D85314F63 /* Programs */,
 				EC8DDB5D54262B3ABE79B53C /* WODs */,
 			);
@@ -860,6 +863,7 @@
 			files = (
 				D2ADE6487FB9DD6319D81FA4 /* Assets.xcassets in Resources */,
 				E53E4CF5763A173DA83992E9 /* PrivacyInfo.xcprivacy in Resources */,
+				A764EAEACAA7C38A78C4A9A9 /* SundeeFundee.storekit in Resources */,
 				9DECC5EBF919AD81D7EE5D81 /* programs.json in Resources */,
 				B89CFF68547F261506071DE7 /* wods.json in Resources */,
 			);

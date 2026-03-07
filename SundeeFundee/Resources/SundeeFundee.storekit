@@ -1,0 +1,85 @@
+{
+  "identifier" : "8A3F2B1E-4D5C-4E6F-9A8B-7C2D3E4F5A6B",
+  "type" : "com.apple.dt.storekitconfiguration.file",
+  "version" : 3,
+  "subscriptionGroups" : [
+    {
+      "id" : "sundee-fundee-premium",
+      "localizations" : [
+        {
+          "description" : "Access AI-powered personalized workouts",
+          "displayName" : "Sundee Fundee Premium",
+          "locale" : "en_US"
+        }
+      ],
+      "name" : "Sundee Fundee Premium",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [],
+          "codeOffers" : [],
+          "displayPrice" : "4.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "plus-monthly-001",
+          "introductoryOffer" : {
+            "displayPrice" : "0",
+            "internalID" : "plus-trial-001",
+            "numberOfPeriods" : 1,
+            "paymentMode" : "free",
+            "subscriptionPeriod" : "P2W"
+          },
+          "localizations" : [
+            {
+              "description" : "1 AI workout per day, cycle tracking, crowdsourced workouts",
+              "displayName" : "Plus",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.sundeefundee.plus.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Plus Monthly",
+          "subscriptionGroupID" : "sundee-fundee-premium",
+          "type" : "RecurringSubscription"
+        },
+        {
+          "adHocOffers" : [],
+          "codeOffers" : [],
+          "displayPrice" : "9.99",
+          "familyShareable" : false,
+          "groupNumber" : 2,
+          "internalID" : "pro-monthly-001",
+          "introductoryOffer" : {
+            "displayPrice" : "0",
+            "internalID" : "pro-trial-001",
+            "numberOfPeriods" : 1,
+            "paymentMode" : "free",
+            "subscriptionPeriod" : "P2W"
+          },
+          "localizations" : [
+            {
+              "description" : "3 AI workouts per day, all Plus features included",
+              "displayName" : "Pro",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.sundeefundee.pro.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Pro Monthly",
+          "subscriptionGroupID" : "sundee-fundee-premium",
+          "type" : "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "settings" : {
+    "_askToBuyEnabled" : false,
+    "_billingIssuesEnabled" : false,
+    "_failTransactionsEnabled" : false,
+    "_locale" : "en_US",
+    "_renewalBehavior" : {
+      "type" : "default"
+    },
+    "_storefront" : "USA",
+    "_storeKitErrors" : []
+  }
+}
