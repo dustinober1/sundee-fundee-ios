@@ -3,13 +3,23 @@
     "PreToolUse": [
       {
         "matcher": "Edit|Write",
-        "command": "if echo \"$TOOL_INPUT\" | grep -q '\\.xcodeproj'; then echo 'BLOCK: Edit project.yml instead of .xcodeproj directly' >&2; exit 1; fi"
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if echo \"$TOOL_INPUT\" | grep -q '\\.xcodeproj'; then echo 'BLOCK: Edit project.yml instead of .xcodeproj directly' >&2; exit 1; fi"
+          }
+        ]
       }
     ],
     "PostToolUse": [
       {
         "matcher": "Edit|Write",
-        "command": "if echo \"$TOOL_INPUT\" | grep -q 'project.yml'; then cd /Users/dustinober/Projects/Sundee-Fundee && xcodegen generate --quiet 2>/dev/null; fi"
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if echo \"$TOOL_INPUT\" | grep -q 'project.yml'; then cd /Users/dustinober/Projects/Sundee-Fundee && xcodegen generate --quiet 2>/dev/null; fi"
+          }
+        ]
       }
     ]
   }
