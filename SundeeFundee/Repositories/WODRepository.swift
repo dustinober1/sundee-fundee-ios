@@ -48,6 +48,9 @@ final class CloudKitWODRepository: WODRepository, @unchecked Sendable {
                 if let cloudQueryExecutor {
                     return try await cloudQueryExecutor(query)
                 }
+                guard FileManager.default.ubiquityIdentityToken != nil else {
+                    throw CKError(.notAuthenticated)
+                }
                 return try await CKContainer(identifier: containerID).publicCloudDatabase.records(matching: query).matchResults
             }
         }

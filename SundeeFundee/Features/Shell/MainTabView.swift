@@ -117,7 +117,9 @@ struct HistoryTabView: View {
             userID: currentUser?.id ?? "",
             aiService: SwiftDataAIWorkoutService(
                 modelContext: modelContext,
-                sharedRepository: CloudKitSharedWorkoutRepository(modelContext: modelContext)
+                sharedRepository: FileManager.default.ubiquityIdentityToken != nil
+                    ? CloudKitSharedWorkoutRepository(modelContext: modelContext)
+                    : nil
             ),
             weightUnit: weightUnit,
             barbellWeightKg: barbellWeightKg

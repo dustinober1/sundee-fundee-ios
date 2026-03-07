@@ -21,9 +21,13 @@ struct AIWorkoutFlowView: View {
     }
 
     var body: some View {
+        let sharedRepo: CloudKitSharedWorkoutRepository? =
+            FileManager.default.ubiquityIdentityToken != nil
+            ? CloudKitSharedWorkoutRepository(modelContext: modelContext)
+            : nil
         let aiService = SwiftDataAIWorkoutService(
             modelContext: modelContext,
-            sharedRepository: CloudKitSharedWorkoutRepository(modelContext: modelContext)
+            sharedRepository: sharedRepo
         )
         QuestionnaireView(
             userID: userID,
