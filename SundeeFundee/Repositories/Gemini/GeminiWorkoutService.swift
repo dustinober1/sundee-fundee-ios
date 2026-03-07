@@ -11,7 +11,7 @@ enum GeminiServiceError: Error, Equatable {
 
 final class GeminiWorkoutService: Sendable {
 
-    static let proxyURL = URL(string: "https://workout-proxy.sundee-fundee.workers.dev/generate-workout")!
+    static let proxyURL = URL(string: "https://workout-proxy.sundeefundee.workers.dev/generate-workout")!
 
     private let session: URLSession
     private let timeoutInterval: TimeInterval
