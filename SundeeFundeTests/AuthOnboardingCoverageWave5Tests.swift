@@ -399,7 +399,7 @@ struct AuthOnboardingCoverageWave5Tests {
 
         let signInContext = try makeContext()
         let signInState = AppState()
-        var view = SignInView()
+        let view = SignInView()
         _ = view.handleAppleResult(
             .failure(NSError(domain: "wave5", code: 1001, userInfo: [NSLocalizedDescriptionKey: "Cancelled"])),
             appState: signInState,

@@ -370,9 +370,12 @@ struct ModelRepoObservabilityCoverageWave4Tests {
     @Test
     func cloudKitProgramRepositoryContainerInitializerWithoutExecutorFallsBack() async throws {
         let fallback = StubProgramRepository(programs: [makeProgram(id: "fallback-default", name: "Fallback Default")])
+        // Inject a throwing executor to simulate CloudKit being unavailable without
+        // calling CKContainer(identifier:), which traps in the test environment.
         let repository = CloudKitProgramRepository(
             containerID: "iCloud.invalid.sundeefundee.coverage",
-            fallback: fallback
+            fallback: fallback,
+            cloudQueryExecutor: { _ in throw CKError(.networkUnavailable) }
         )
 
         #expect(try await repository.fetchProgram(id: "fallback-default")?.id == "fallback-default")
