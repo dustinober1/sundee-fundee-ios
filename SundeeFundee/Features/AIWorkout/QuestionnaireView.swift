@@ -3,9 +3,19 @@ import SwiftData
 
 struct QuestionnaireView: View {
     @Environment(\.modelContext) private var modelContext
-    @State private var viewModel = QuestionnaireViewModel()
+    @State private var viewModel: QuestionnaireViewModel
     let userID: String
     var onWorkoutGenerated: (GeneratedWorkout) -> Void = { _ in }
+
+    init(
+        userID: String,
+        aiService: any AIWorkoutServiceProtocol,
+        onWorkoutGenerated: @escaping (GeneratedWorkout) -> Void = { _ in }
+    ) {
+        self.userID = userID
+        self.onWorkoutGenerated = onWorkoutGenerated
+        _viewModel = State(initialValue: QuestionnaireViewModel(aiService: aiService))
+    }
 
     var body: some View {
         ZStack {

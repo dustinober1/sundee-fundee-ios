@@ -12,7 +12,7 @@ final class WorkoutPreviewViewModel {
 
     init(
         workout: GeneratedWorkout,
-        aiService: any AIWorkoutServiceProtocol = FirebaseAIWorkoutService()
+        aiService: any AIWorkoutServiceProtocol
     ) {
         self.workout = workout
         self.aiService = aiService

@@ -1,8 +1,11 @@
 import SwiftData
 import SwiftUI
 
+// MARK: - MainTabView
+
 /// Root tab shell — shown when user is authenticated (signed in or guest).
 struct MainTabView: View {
+    @Environment(\.modelContext) private var modelContext
     enum TabRoute: String, CaseIterable {
         case dashboard
         case programs
@@ -62,10 +65,18 @@ struct MainTabView: View {
     }
 
     var body: some View {
+        let aiService = SwiftDataAIWorkoutService(modelContext: modelContext)
         TabView {
             ForEach(Self.orderedTabs(for: currentGender), id: \.self) { tab in
                 NavigationStack {
-                    destinationBuilder(tab)
+                    if tab == .history {
+                        WorkoutHistoryView(
+                            userID: users.first?.id ?? "",
+                            aiService: aiService
+                        )
+                    } else {
+                        destinationBuilder(tab)
+                    }
                 }
                 .tabItem {
                     Label(tab.title, systemImage: tab.systemImage)
@@ -83,10 +94,10 @@ struct MainTabView: View {
         case .programs:
             ProgramListView()
         case .history:
-            WorkoutHistoryView(
-                userID: "",
-                aiService: FirebaseAIWorkoutService()
-            )
+            // WorkoutHistoryView requires a modelContext-aware service;
+            // use AIWorkoutHistoryPlaceholderView as the static destination.
+            // The real WorkoutHistoryView is composed in MainTabView.body where modelContext is available.
+            AIWorkoutHistoryPlaceholderView()
         case .maxes:
             MaxLiftsView()
         case .benchmarks:
@@ -100,6 +111,20 @@ struct MainTabView: View {
 }
 
 // MARK: - Placeholder views (replaced in later phases)
+
+struct AIWorkoutHistoryPlaceholderView: View {
+    var body: some View {
+        ZStack {
+            AppTheme.Colors.cream.ignoresSafeArea()
+            ContentUnavailableView(
+                "No Workouts Yet",
+                systemImage: "dumbbell",
+                description: Text("Generate your first AI workout to see it here.")
+            )
+        }
+        .navigationTitle("History")
+    }
+}
 
 struct WorkoutsPlaceholderView: View {
     var body: some View {
