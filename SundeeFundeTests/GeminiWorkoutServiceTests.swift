@@ -206,3 +206,133 @@ struct GeminiWorkoutServiceTests {
         #expect(GeminiWorkoutService.proxyURL.absoluteString.contains("generate-workout"))
     }
 }
+
+// MARK: - FallbackMockURLProtocol
+
+final class FallbackMockURLProtocol: URLProtocol, @unchecked Sendable {
+    nonisolated(unsafe) static var requestHandler: ((URLRequest) throws -> (HTTPURLResponse, Data))?
+
+    override class func canInit(with request: URLRequest) -> Bool { true }
+    override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
+
+    override func startLoading() {
+        guard let handler = Self.requestHandler else {
+            client?.urlProtocolDidFinishLoading(self)
+            return
+        }
+        do {
+            let (response, data) = try handler(request)
+            client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
+            client?.urlProtocol(self, didLoad: data)
+            client?.urlProtocolDidFinishLoading(self)
+        } catch {
+            client?.urlProtocol(self, didFailWithError: error)
+        }
+    }
+
+    override func stopLoading() {}
+}
+
+// MARK: - SwiftDataAIWorkoutService Gemini Integration
+
+@Suite("SwiftDataAIWorkoutService Gemini Integration", .serialized)
+struct SwiftDataAIWorkoutServiceGeminiTests {
+
+    // MARK: - Helpers
+
+    private func makeSession() -> URLSession {
+        let config = URLSessionConfiguration.ephemeral
+        config.protocolClasses = [FallbackMockURLProtocol.self]
+        return URLSession(configuration: config)
+    }
+
+    private func makeContext() -> WorkoutGenerationContext {
+        WorkoutGenerationContext(
+            userID: "user-1",
+            timeMinutes: 45,
+            focus: .fullBody,
+            energyLevel: .medium,
+            equipment: .fullGym,
+            maxes: [ExerciseMax(name: "Back Squat", weightKg: 100)],
+            recentWorkouts: [],
+            cyclePhase: "follicular",
+            readinessTier: nil,
+            activeInjuries: [],
+            experienceLevel: "intermediate",
+            primaryGoal: "strength",
+            gender: "female",
+            weightUnit: "kg"
+        )
+    }
+
+    private func geminiResponse(summary: String) -> Data {
+        let json = """
+        {"candidates":[{"content":{"parts":[{"text":"{\\"coachingSummary\\":\\"\(summary)\\",\\"exercises\\":[{\\"name\\":\\"Back Squat\\",\\"sets\\":4,\\"reps\\":\\"5\\",\\"weightKg\\":80,\\"restMinutes\\":3.0,\\"bodyweightOnly\\":false}]}"}]}}]}
+        """
+        return Data(json.utf8)
+    }
+
+    // MARK: - Tests
+
+    @Test("Falls back to offline on network error")
+    func fallsBackToOfflineOnNetworkError() async {
+        FallbackMockURLProtocol.requestHandler = { _ in
+            throw URLError(.notConnectedToInternet)
+        }
+
+        let service = GeminiWorkoutService(session: makeSession())
+        let context = makeContext()
+        let workout = await SwiftDataAIWorkoutService.generateWithFallback(
+            context: context,
+            geminiService: service
+        )
+
+        #expect(workout.coachingSummary.contains("offline"))
+        #expect(!workout.exercises.isEmpty)
+    }
+
+    @Test("Uses Gemini when available")
+    func usesGeminiWhenAvailable() async {
+        FallbackMockURLProtocol.requestHandler = { _ in
+            let response = HTTPURLResponse(
+                url: GeminiWorkoutService.proxyURL,
+                statusCode: 200,
+                httpVersion: nil,
+                headerFields: nil
+            )!
+            return (response, geminiResponse(summary: "AI-powered session"))
+        }
+
+        let service = GeminiWorkoutService(session: makeSession())
+        let context = makeContext()
+        let workout = await SwiftDataAIWorkoutService.generateWithFallback(
+            context: context,
+            geminiService: service
+        )
+
+        #expect(workout.coachingSummary == "AI-powered session")
+    }
+
+    @Test("Falls back to offline on HTTP error")
+    func fallsBackOnHTTPError() async {
+        FallbackMockURLProtocol.requestHandler = { _ in
+            let response = HTTPURLResponse(
+                url: GeminiWorkoutService.proxyURL,
+                statusCode: 500,
+                httpVersion: nil,
+                headerFields: nil
+            )!
+            return (response, Data())
+        }
+
+        let service = GeminiWorkoutService(session: makeSession())
+        let context = makeContext()
+        let workout = await SwiftDataAIWorkoutService.generateWithFallback(
+            context: context,
+            geminiService: service
+        )
+
+        #expect(workout.coachingSummary.contains("offline"))
+        #expect(!workout.exercises.isEmpty)
+    }
+}

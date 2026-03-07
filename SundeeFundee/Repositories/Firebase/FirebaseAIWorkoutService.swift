@@ -13,18 +13,32 @@ enum AIWorkoutServiceError: Error {
 
 /// AI workout service backed by SwiftData + CloudKit.
 ///
-/// Generates workouts on-device using `OfflineWorkoutGenerator` and persists
-/// them to the user's CloudKit private database via SwiftData.
+/// Generates workouts via `GeminiWorkoutService` when online, falling back
+/// to `OfflineWorkoutGenerator` on any error. Persists results to the user's
+/// CloudKit private database via SwiftData.
 final class SwiftDataAIWorkoutService: AIWorkoutServiceProtocol, @unchecked Sendable {
 
     private let modelContext: ModelContext
+    private let geminiService: GeminiWorkoutService
 
-    init(modelContext: ModelContext) {
+    init(modelContext: ModelContext, geminiService: GeminiWorkoutService = GeminiWorkoutService()) {
         self.modelContext = modelContext
+        self.geminiService = geminiService
+    }
+
+    static func generateWithFallback(
+        context: WorkoutGenerationContext,
+        geminiService: GeminiWorkoutService
+    ) async -> GeneratedWorkout {
+        do {
+            return try await geminiService.generate(from: context)
+        } catch {
+            return OfflineWorkoutGenerator.generate(from: context)
+        }
     }
 
     func generateWorkout(context: WorkoutGenerationContext) async throws -> GeneratedWorkout {
-        let workout = OfflineWorkoutGenerator.generate(from: context)
+        let workout = await Self.generateWithFallback(context: context, geminiService: geminiService)
         guard let record = GeneratedWorkoutRecord.from(workout, userID: context.userID) else {
             throw AIWorkoutServiceError.encodingFailed
         }
