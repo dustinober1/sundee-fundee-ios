@@ -77,7 +77,7 @@ struct SubscriptionManagementView: View {
 
     private func loadProducts() async {
         do {
-            let allProducts = try await Product.products(for: [SubscriptionTier.premium.rawValue])
+            let allProducts = try await Product.products(for: SubscriptionTier.allProductIDs)
             products = allProducts
         } catch {
             message = "Failed to load products: \(error.localizedDescription)"

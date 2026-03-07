@@ -126,6 +126,7 @@
 		CB776D58BC5BDBDBD9B5D3A5 /* Benchmark.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3A9ACCDB214D83FC2593926 /* Benchmark.swift */; };
 		CBB81A553D871E08894CB3F2 /* BenchmarkDetailViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AC0AC5D54C5AD7A36EBF2C7 /* BenchmarkDetailViewModelTests.swift */; };
 		CC9A0ED4071A649951114A1F /* LoadAdjustmentPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1CC978831B9C4E2A1AFB8A3 /* LoadAdjustmentPolicy.swift */; };
+		CCB96A2B94F7FC1D46559A11 /* SubscriptionServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5660C516B203AD32D911401 /* SubscriptionServiceTests.swift */; };
 		CF0ECE5C2BF9B3E2BC42DA56 /* DomainCoverageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0853FAE104810510C018960 /* DomainCoverageTests.swift */; };
 		D03B53707FF4C6FCE513D02C /* AppModelContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C622B6A0C64BA37AEAEF044 /* AppModelContainer.swift */; };
 		D2ADE6487FB9DD6319D81FA4 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4D25ACD9D39C9AB1DA0F1386 /* Assets.xcassets */; };
@@ -292,6 +293,7 @@
 		CFFE2E7E3E8BCB7A3D1252A5 /* SharedTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedTypes.swift; sourceTree = "<group>"; };
 		D16BAB9EF7570DE98192141A /* CompletedWorkout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompletedWorkout.swift; sourceTree = "<group>"; };
 		D430046505247167CB5A1D7A /* WorkoutDatabaseView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutDatabaseView.swift; sourceTree = "<group>"; };
+		D5660C516B203AD32D911401 /* SubscriptionServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionServiceTests.swift; sourceTree = "<group>"; };
 		D64DF9E2AE5C41BB24352DF6 /* SwiftDataUserRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftDataUserRepository.swift; sourceTree = "<group>"; };
 		DA21F3E6D7F052240BB8EA89 /* WorkoutGenerationContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutGenerationContext.swift; sourceTree = "<group>"; };
 		E0853FAE104810510C018960 /* DomainCoverageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DomainCoverageTests.swift; sourceTree = "<group>"; };
@@ -620,6 +622,7 @@
 				B75299B558602C0FC9B4A225 /* PlaceholderTests.swift */,
 				3E6BD7FDEC48F00EAC345968 /* ProgramWorkoutViewCoverageTests.swift */,
 				929B5F4FFA5E37764F0CFD53 /* RepositoryCoverageTests.swift */,
+				D5660C516B203AD32D911401 /* SubscriptionServiceTests.swift */,
 				1972B6569BC8AF5EC8707373 /* SwiftUISmokeTestsA.swift */,
 				5DB1FEAD646663C29A83BEA8 /* SwiftUISmokeTestsB.swift */,
 				5E49072C83948F5C5119FBB9 /* UICriticalFlowTests.swift */,
@@ -995,6 +998,7 @@
 				D33BBF3880A570A0E74C748C /* PlaceholderTests.swift in Sources */,
 				9749F04E35AC845835E41DD4 /* ProgramWorkoutViewCoverageTests.swift in Sources */,
 				4B036080B9FA88575CD5F2CD /* RepositoryCoverageTests.swift in Sources */,
+				CCB96A2B94F7FC1D46559A11 /* SubscriptionServiceTests.swift in Sources */,
 				42F1538B6F56AC76366588FE /* SwiftUISmokeTestsA.swift in Sources */,
 				66660E19C25C174C4BA524E8 /* SwiftUISmokeTestsB.swift in Sources */,
 				5206F60EE3E61744E9B0179D /* UICriticalFlowTests.swift in Sources */,

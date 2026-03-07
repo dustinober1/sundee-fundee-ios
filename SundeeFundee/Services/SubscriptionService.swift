@@ -3,74 +3,109 @@ import StoreKit
 
 // MARK: - Subscription Tier
 
-enum SubscriptionTier: String, Sendable {
+enum SubscriptionTier: String, Sendable, Comparable {
     case free
-    case premium = "com.sundeefundee.premium.monthly"
+    case plus
+    case pro
 
     var displayName: String {
         switch self {
         case .free: return "Free"
-        case .premium: return "Premium"
+        case .plus: return "Plus"
+        case .pro: return "Pro"
         }
+    }
+
+    var dailyAILimit: Int {
+        switch self {
+        case .free: 0
+        case .plus: 1
+        case .pro: 3
+        }
+    }
+
+    var productID: String? {
+        switch self {
+        case .free: nil
+        case .plus: "com.sundeefundee.plus.monthly"
+        case .pro: "com.sundeefundee.pro.monthly"
+        }
+    }
+
+    static let allProductIDs: Set<String> = [
+        "com.sundeefundee.plus.monthly",
+        "com.sundeefundee.pro.monthly"
+    ]
+
+    static func from(productID: String) -> SubscriptionTier {
+        switch productID {
+        case "com.sundeefundee.plus.monthly": .plus
+        case "com.sundeefundee.pro.monthly": .pro
+        default: .free
+        }
+    }
+
+    static func highest(_ tiers: [SubscriptionTier]) -> SubscriptionTier {
+        tiers.max() ?? .free
+    }
+
+    static func < (lhs: SubscriptionTier, rhs: SubscriptionTier) -> Bool {
+        let order: [SubscriptionTier] = [.free, .plus, .pro]
+        return (order.firstIndex(of: lhs) ?? 0) < (order.firstIndex(of: rhs) ?? 0)
     }
 }
 
 // MARK: - SubscriptionService
 
-/// Manages StoreKit 2 in-app subscriptions and entitlements.
-/// Observes transaction updates in real-time and maintains local cache in UserDefaults.
 @Observable @MainActor
 final class SubscriptionService {
-    private static let isPremiumKey = "com.sundeefundee.subscription.isPremium"
+    private static let tierKey = "com.sundeefundee.subscription.tier"
 
-    var isPremium: Bool = false
+    private(set) var currentTier: SubscriptionTier = .free
+    var isPremium: Bool { currentTier != .free }
     private var transactionTask: Task<Void, Never>?
 
     init() {
-        self.isPremium = UserDefaults.standard.bool(forKey: Self.isPremiumKey)
+        let raw = UserDefaults.standard.string(forKey: Self.tierKey) ?? "free"
+        self.currentTier = SubscriptionTier(rawValue: raw) ?? .free
         startObservingTransactions()
     }
 
-    /// Load subscription status from StoreKit, checking current entitlements.
     func loadStatus() async {
-        var foundPremium = false
+        var activeTiers: [SubscriptionTier] = []
         for await verificationResult in Transaction.currentEntitlements {
             guard case .verified(let transaction) = verificationResult else { continue }
-            if transaction.productID == SubscriptionTier.premium.rawValue,
-               transaction.revocationDate == nil {
-                foundPremium = true
-                break
+            if transaction.revocationDate == nil {
+                activeTiers.append(SubscriptionTier.from(productID: transaction.productID))
             }
         }
-        setIsPremium(foundPremium)
+        setTier(SubscriptionTier.highest(activeTiers))
     }
 
-    /// Purchase a product by its ID.
     func purchase(_ product: Product) async throws {
         let result = try await product.purchase()
-
         switch result {
         case .success(let verification):
             let transaction = try checkVerified(verification)
             await transaction.finish()
-            setIsPremium(true)
-
-        case .userCancelled:
+            setTier(SubscriptionTier.from(productID: transaction.productID))
+        case .userCancelled, .pending:
             break
-
-        case .pending:
-            break
-
         @unknown default:
             break
         }
     }
 
-    /// Restore previous purchases from the App Store.
     func restorePurchases() async throws {
         try await AppStore.sync()
         await loadStatus()
     }
+
+    #if DEBUG
+    func setTierForTesting(_ tier: SubscriptionTier) {
+        setTier(tier)
+    }
+    #endif
 
     // MARK: - Private
 
@@ -79,8 +114,11 @@ final class SubscriptionService {
             for await update in Transaction.updates {
                 guard let self else { return }
                 if case .verified(let transaction) = update {
-                    if transaction.productID == SubscriptionTier.premium.rawValue {
-                        self.setIsPremium(transaction.revocationDate == nil)
+                    let tier = SubscriptionTier.from(productID: transaction.productID)
+                    if transaction.revocationDate == nil {
+                        self.setTier(tier)
+                    } else {
+                        await self.loadStatus()
                     }
                     await transaction.finish()
                 }
@@ -88,9 +126,9 @@ final class SubscriptionService {
         }
     }
 
-    private func setIsPremium(_ value: Bool) {
-        self.isPremium = value
-        UserDefaults.standard.set(value, forKey: Self.isPremiumKey)
+    private func setTier(_ tier: SubscriptionTier) {
+        self.currentTier = tier
+        UserDefaults.standard.set(tier.rawValue, forKey: Self.tierKey)
     }
 
     private func checkVerified<T>(_ result: VerificationResult<T>) throws -> T {
