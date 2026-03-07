@@ -465,6 +465,35 @@ struct DashboardViewModelCoverageTests {
         #expect(vm.activeProgram?.id == "p1")
         #expect(vm.nextSession?.sessionID == "s1")
     }
+
+    @Test @MainActor
+    func loadCancelsOrphanedEnrollmentWhenProgramNotFound() async throws {
+        let store = try makeTestStore()
+
+        // Create enrollment referencing a program ID that doesn't exist
+        let enrollment = EnrolledProgram(
+            id: "orphan1",
+            userID: "u1",
+            programID: "deleted-program",
+            startDate: .now,
+            currentWeek: 1,
+            currentDay: 1
+        )
+        store.context.insert(enrollment)
+        try store.context.save()
+
+        // FakeProgramRepository has no programs — fetchProgram returns nil
+        let vm = DashboardViewModel(programRepo: FakeProgramRepository(programs: []))
+        await vm.load(modelContext: store.context)
+
+        #expect(vm.activeEnrollment == nil, "Orphaned enrollment should be cleared")
+        #expect(vm.activeProgram == nil, "No program should be loaded")
+
+        // Verify enrollment was canceled in SwiftData
+        let enrollmentRepo = SwiftDataEnrolledProgramRepository(context: store.context)
+        let active = try? enrollmentRepo.fetchActiveEnrollment()
+        #expect(active == nil, "Orphaned enrollment should be canceled in the database")
+    }
 }
 
 @Suite("BenchmarksViewModel Coverage")
