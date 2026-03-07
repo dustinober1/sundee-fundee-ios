@@ -190,7 +190,7 @@ struct QuestionnaireViewModelTests {
         #expect(vm.canGenerate == true)
     }
 
-    @Test func timeOptionsAreSorted() {
+    @Test @MainActor func timeOptionsAreSorted() {
         let options = QuestionnaireViewModel.timeOptions
         #expect(options == [30, 45, 60, 75])
     }
