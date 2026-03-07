@@ -61,7 +61,7 @@ Run:
 xcodebuild test \
   -project SundeeFundee.xcodeproj \
   -scheme SundeeFundee \
-  -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
   -only-testing:SundeeFundeTests/MainTabCoverageTests
 ```
 
@@ -115,7 +115,7 @@ Run:
 xcodebuild test \
   -project SundeeFundee.xcodeproj \
   -scheme SundeeFundee \
-  -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
   -only-testing:SundeeFundeTests/MainTabCoverageTests
 ```
 
@@ -193,7 +193,7 @@ Run:
 xcodebuild test \
   -project SundeeFundee.xcodeproj \
   -scheme SundeeFundee \
-  -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
   -only-testing:SundeeFundeTests/ViewModelCoverageTests
 ```
 
@@ -229,7 +229,7 @@ Run:
 xcodebuild test \
   -project SundeeFundee.xcodeproj \
   -scheme SundeeFundee \
-  -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
   -only-testing:SundeeFundeTests/ViewModelCoverageTests
 ```
 
@@ -332,7 +332,7 @@ Run:
 xcodebuild test \
   -project SundeeFundee.xcodeproj \
   -scheme SundeeFundee \
-  -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
   -only-testing:SundeeFundeTests/FeatureViewsCoverageWave3Tests
 ```
 
@@ -356,7 +356,7 @@ Run:
 xcodebuild test \
   -project SundeeFundee.xcodeproj \
   -scheme SundeeFundee \
-  -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
   -only-testing:SundeeFundeTests
 ```
 

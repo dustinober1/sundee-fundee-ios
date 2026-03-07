@@ -73,7 +73,7 @@ open SundeeFundee.xcodeproj
 xcodebuild build \
   -project SundeeFundee.xcodeproj \
   -scheme SundeeFundee \
-  -destination 'platform=iOS Simulator,name=iPhone 16 Pro'
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
 ```
 
 Debug builds use `SundeeFundee.Debug.entitlements` (no iCloud or Sign in with Apple capability), which allows Personal Team development signing. Release builds keep full production entitlements.
@@ -84,7 +84,7 @@ Debug builds use `SundeeFundee.Debug.entitlements` (no iCloud or Sign in with Ap
 xcodebuild test \
   -project SundeeFundee.xcodeproj \
   -scheme SundeeFundee \
-  -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
   -only-testing:SundeeFundeTests
 ```
 

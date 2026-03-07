@@ -53,7 +53,7 @@ jobs:
           xcodebuild build \
             -project SundeeFundee.xcodeproj \
             -scheme SundeeFundee \
-            -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
+            -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
             CODE_SIGNING_ALLOWED=NO \
             | xcpretty || cat
 
@@ -64,7 +64,7 @@ jobs:
           xcodebuild test \
             -project SundeeFundee.xcodeproj \
             -scheme SundeeFundee \
-            -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
+            -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
             -only-testing:SundeeFundeTests \
             -enableCodeCoverage YES \
             -resultBundlePath SundeeFundeeTests.xcresult \

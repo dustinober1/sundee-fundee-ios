@@ -32,7 +32,7 @@
 
 - [ ] Paste content from `scripts/appstore-metadata.md` into App Store Connect
 - [ ] Upload screenshots (see `scripts/screenshot-guide.md` for capture instructions)
-  - Required: 1320×2868 (6.9" iPhone 16 Pro Max)
+  - Required: 1320×2868 (6.9" iPhone 17 Pro Max)
   - Recommended: 1242×2208 (5.5" iPhone 8 Plus)
 - [ ] Complete age rating questionnaire (answers in `scripts/appstore-metadata.md`)
 

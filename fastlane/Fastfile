@@ -51,7 +51,7 @@ platform :ios do
     run_tests(
       scheme: "SundeeFundee",
       project: "SundeeFundee.xcodeproj",
-      devices: ["iPhone 16 Pro"],
+      devices: ["iPhone 17 Pro"],
       only_testing: ["SundeeFundeTests"],
       code_coverage: true
     )

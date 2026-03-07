@@ -8,7 +8,7 @@ Step-by-step instructions for capturing App Store screenshots.
 
 | Device | Resolution | Status |
 |---|---|---|
-| iPhone 6.9" (iPhone 16 Pro Max) | 1320×2868 px | **Required** |
+| iPhone 6.9" (iPhone 17 Pro Max) | 1320×2868 px | **Required** |
 | iPhone 5.5" (iPhone 8 Plus) | 1242×2208 px | Recommended |
 
 App Store Connect requires at least the 6.9" size. The 5.5" size covers older devices.
@@ -23,7 +23,7 @@ Run the app in the simulator with DEBUG mode. In Settings → Debug:
 - This gives all screens meaningful content for screenshots
 
 ### 2. Simulator Settings
-- **Simulator**: iPhone 16 Pro Max (6.9") → required size
+- **Simulator**: iPhone 17 Pro Max (6.9") → required size
 - **Simulator**: iPhone 8 Plus (5.5") → optional
 - **Appearance**: Light mode for primary set; optionally repeat in dark mode
 - **Status bar**: Simulator → Features → Toggle In-Call Status Bar (keep it clean)
