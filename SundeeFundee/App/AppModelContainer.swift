@@ -98,10 +98,10 @@ enum AppModelContainer {
     }
 
     private static var isRunningTests: Bool {
-        return ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil || NSClassFromString("XCTestCase") != nil
+        ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
     }
 
-    private static let allModels: [any PersistentModel.Type] = AppSchemaV9.models
+    private static let allModels: [any PersistentModel.Type] = AppSchemaV10.models
     
     /// Deletes all SwiftData store files for the app.
     ///
