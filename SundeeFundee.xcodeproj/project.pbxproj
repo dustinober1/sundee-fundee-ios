@@ -20,6 +20,7 @@
 		12449A977192B879C000DC11 /* AIWorkoutFlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFF8658262181011EAEAF4B7 /* AIWorkoutFlowView.swift */; };
 		12E3AA290E0DEB0FA9C7F0B0 /* PainLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 139E2827E408A709CC590203 /* PainLog.swift */; };
 		146209E9E45A14F4FF73F3D1 /* FeatureViewsCoverageWave3Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62C498309D514E52B0277ABD /* FeatureViewsCoverageWave3Tests.swift */; };
+		14D272663D2713A810E947A1 /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCFAD972297913608BA8DF9C /* PaywallView.swift */; };
 		15C720F93712D6F63EA3FFCD /* ProgramDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA6C16D1835102BA7816B7E /* ProgramDetailView.swift */; };
 		162D675C992A12FBC721AF6F /* MaxLiftsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E22612881A7957274240FC8D /* MaxLiftsViewModel.swift */; };
 		1B2D1F87D17A6543DC74BD59 /* SharedTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFFE2E7E3E8BCB7A3D1252A5 /* SharedTypes.swift */; };
@@ -287,6 +288,7 @@
 		C49AB5093EAC55C2FA168025 /* WODRepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WODRepositoryTests.swift; sourceTree = "<group>"; };
 		C99B9014B8F76C3124C8DA6A /* SundeeFundee.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = SundeeFundee.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		CB4DB4845EAF8A0ACA731441 /* MetricsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricsService.swift; sourceTree = "<group>"; };
+		CCFAD972297913608BA8DF9C /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallView.swift; sourceTree = "<group>"; };
 		CDBCB8CEF6A70B16D8F96BB7 /* ActiveCycle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveCycle.swift; sourceTree = "<group>"; };
 		CEE3A9811CFCBAD2D17FE90B /* InjurySystemCoverageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InjurySystemCoverageTests.swift; sourceTree = "<group>"; };
 		CF3B913976B56343316CF331 /* MainTabCoverageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabCoverageTests.swift; sourceTree = "<group>"; };
@@ -383,6 +385,14 @@
 				FA66AE5ACEF8F10E9CBB555B /* MainTabView.swift */,
 			);
 			path = Shell;
+			sourceTree = "<group>";
+		};
+		44E55D1B1EF8B363412D5323 /* Subscription */ = {
+			isa = PBXGroup;
+			children = (
+				CCFAD972297913608BA8DF9C /* PaywallView.swift */,
+			);
+			path = Subscription;
 			sourceTree = "<group>";
 		};
 		46005ECFBACB05DE836B6E58 /* Services */ = {
@@ -530,6 +540,7 @@
 				0A842251E765DE33F486816E /* Settings */,
 				5E1EE7ACE7B08667FE56D80A /* Shared */,
 				2B640C5198D20559D571ABB2 /* Shell */,
+				44E55D1B1EF8B363412D5323 /* Subscription */,
 				BCE4CEDF44D57CE632F529E2 /* Workouts */,
 			);
 			path = Features;
@@ -922,6 +933,7 @@
 				8810FD17BC17B670A1FA43D4 /* OnboardingFlowView.swift in Sources */,
 				12E3AA290E0DEB0FA9C7F0B0 /* PainLog.swift in Sources */,
 				79B071C17D8532685984EDEB /* PainTrendAnalyzer.swift in Sources */,
+				14D272663D2713A810E947A1 /* PaywallView.swift in Sources */,
 				119C00830236AA8B0580016E /* PhaseTransitionAdvisor.swift in Sources */,
 				45229EECE5D7216C48A5F6FC /* PlateCalculation.swift in Sources */,
 				8F55C3C1B9309AB75A09961E /* Program.swift in Sources */,

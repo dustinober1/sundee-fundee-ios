@@ -92,6 +92,35 @@ struct SubscriptionServiceTests {
     }
 }
 
+@Suite("PaywallView Statics")
+struct PaywallViewStaticTests {
+
+    @Test func headlineForNeedsSubscription() {
+        let headline = PaywallView.headline(for: .needsSubscription)
+        #expect(headline == "Unlock AI-Powered Workouts")
+    }
+
+    @Test func headlineForDailyLimit() {
+        let headline = PaywallView.headline(for: .dailyLimitReached(upgradeAvailable: true))
+        #expect(headline == "Need More Workouts?")
+    }
+
+    @Test func subtitleForNeedsSubscription() {
+        let subtitle = PaywallView.subtitle(for: .needsSubscription)
+        #expect(subtitle.contains("personalized"))
+    }
+
+    @Test func subtitleForDailyLimit() {
+        let subtitle = PaywallView.subtitle(for: .dailyLimitReached(upgradeAvailable: true))
+        #expect(subtitle.contains("Pro"))
+    }
+
+    @Test func tierNameFromProductID() {
+        #expect(PaywallView.tierName(for: "com.sundeefundee.plus.monthly") == "Plus")
+        #expect(PaywallView.tierName(for: "com.sundeefundee.pro.monthly") == "Pro")
+    }
+}
+
 @Suite("QuestionnaireViewModel Gating")
 struct QuestionnaireViewModelGatingTests {
 
