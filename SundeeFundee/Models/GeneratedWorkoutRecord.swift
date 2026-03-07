@@ -32,6 +32,7 @@ final class GeneratedWorkoutRecord {
         guard let data = workoutJSON.data(using: .utf8) else { return nil }
         var workout = try? JSONDecoder().decode(GeneratedWorkout.self, from: data)
         workout?.isFavorite = isFavorite
+        workout?.isCompleted = isCompleted
         return workout
     }
 

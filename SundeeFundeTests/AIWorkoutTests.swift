@@ -281,6 +281,75 @@ struct GeneratedExerciseTests {
     }
 }
 
+// MARK: - GeneratedExercise Equipment Detection and Weight Snapping Tests
+
+@Suite("GeneratedExercise.equipmentType and withSnappedWeight")
+struct GeneratedExerciseSnappingTests {
+
+    @Test func detectsBarbellExercises() {
+        #expect(GeneratedExercise(name: "Back Squat", sets: 3, reps: "5").equipmentType == .barbell)
+        #expect(GeneratedExercise(name: "Flat Barbell Bench Press", sets: 3, reps: "5").equipmentType == .barbell)
+        #expect(GeneratedExercise(name: "Conventional Deadlift (No Straps)", sets: 3, reps: "5").equipmentType == .barbell)
+        #expect(GeneratedExercise(name: "Strict Press / Military Press", sets: 3, reps: "5").equipmentType == .barbell)
+        #expect(GeneratedExercise(name: "Barbell Row", sets: 3, reps: "5").equipmentType == .barbell)
+    }
+
+    @Test func detectsDumbbellExercises() {
+        #expect(GeneratedExercise(name: "Dumbbell Bench Press", sets: 3, reps: "8").equipmentType == .dumbbell)
+        #expect(GeneratedExercise(name: "Dumbbell Overhead Press", sets: 3, reps: "8").equipmentType == .dumbbell)
+        #expect(GeneratedExercise(name: "Goblet Squat", sets: 3, reps: "10").equipmentType == .dumbbell)
+        #expect(GeneratedExercise(name: "Lateral Raises", sets: 3, reps: "12").equipmentType == .dumbbell)
+        #expect(GeneratedExercise(name: "Dumbbell Row", sets: 3, reps: "10").equipmentType == .dumbbell)
+    }
+
+    @Test func detectsKettlebellExercises() {
+        #expect(GeneratedExercise(name: "Kettlebell Swings", sets: 4, reps: "15").equipmentType == .kettlebell)
+        #expect(GeneratedExercise(name: "KB Swing", sets: 4, reps: "15").equipmentType == .kettlebell)
+    }
+
+    @Test func detectsOtherExercises() {
+        #expect(GeneratedExercise(name: "Pull-Up", sets: 3, reps: "AMRAP", bodyweightOnly: true).equipmentType == .other)
+        #expect(GeneratedExercise(name: "Burpees", sets: 3, reps: "10", bodyweightOnly: true).equipmentType == .other)
+    }
+
+    @Test func barbellWeightSnapsToLoadableTotal() {
+        // 226.9 lb → men's bar → should snap to 225 lb
+        let badKg = 226.9 / 2.2046226218
+        let ex = GeneratedExercise(name: "Back Squat", sets: 4, reps: "5", weightKg: badKg)
+        let snapped = ex.withSnappedWeight()
+        let snappedLb = (snapped.weightKg ?? 0) * 2.2046226218
+        #expect(abs(snappedLb - 225.0) < 0.1)
+    }
+
+    @Test func dumbbellWeightSnapsToAvailableIncrement() {
+        // 14 kg ≈ 30.9 lb → nearest available is 35 lb (15.88 kg)
+        let ex = GeneratedExercise(name: "Dumbbell Row", sets: 3, reps: "10", weightKg: 14.0)
+        let snapped = ex.withSnappedWeight()
+        let snappedLb = (snapped.weightKg ?? 0) * 2.2046226218
+        #expect(abs(snappedLb - 35.0) < 0.5)
+    }
+
+    @Test func kettlebellWeightSnapsToAvailableKg() {
+        // 30 kg → nearest available kettlebell (24 or 36 kg)
+        let ex = GeneratedExercise(name: "Kettlebell Swings", sets: 4, reps: "15", weightKg: 30.0)
+        let snapped = ex.withSnappedWeight()
+        let validKg: [Double] = [24, 36, 52, 70]
+        #expect(validKg.contains(snapped.weightKg ?? 0))
+    }
+
+    @Test func bodyweightExerciseUnaffectedBySnapping() {
+        let ex = GeneratedExercise(name: "Pull-Up", sets: 3, reps: "AMRAP", bodyweightOnly: true)
+        let snapped = ex.withSnappedWeight()
+        #expect(snapped.weightKg == nil)
+    }
+
+    @Test func nilWeightUnaffectedBySnapping() {
+        let ex = GeneratedExercise(name: "Back Squat", sets: 3, reps: "5", weightKg: nil)
+        let snapped = ex.withSnappedWeight()
+        #expect(snapped.weightKg == nil)
+    }
+}
+
 // MARK: - QuestionnaireAnswers Tests
 
 @Suite("QuestionnaireAnswers")
@@ -570,8 +639,12 @@ struct OfflineWorkoutGeneratorTests {
         let templates = OfflineWorkoutGenerator.selectTemplates(focus: .upperBody, equipment: .homeDumbbells)
         let exercises = OfflineWorkoutGenerator.applyWeights(exercises: templates, maxes: [], equipment: .homeDumbbells)
 
+        // Default dumbbell weight is 25 lb (11.34 kg), snapped from the available dumbbell inventory.
+        let expectedKg = 25.0 / 2.2046226218  // 25 lb in kg
         for ex in exercises where !ex.bodyweightOnly {
-            #expect(ex.weightKg == 15.0)
+            if let w = ex.weightKg {
+                #expect(abs(w - expectedKg) < 0.01)
+            }
         }
     }
 

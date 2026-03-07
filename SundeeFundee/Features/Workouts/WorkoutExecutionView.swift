@@ -519,7 +519,7 @@ struct PlateCalculatorSheet: View {
     }
 
     private var plates: [(weight: Double, count: Int)] {
-        PlateCalculation.platesPerSide(totalWeightKg: weightKg, barbellWeightKg: barbellWeightKg)
+        PlateCalculation.platesPerSide(totalWeightKg: weightKg, barbellWeightKg: barbellWeightKg, weightUnit: weightUnit)
     }
 
     var body: some View {
@@ -569,7 +569,7 @@ struct PlateCalculatorSheet: View {
         HStack {
             Text("\(plate.count)×")
                 .foregroundStyle(AppTheme.Colors.accentOrange)
-            Text("\(Self.formatWeight(plate.weight, weightUnit: weightUnit)) \(weightUnit.symbol) plate")
+            Text("\(Self.formatPlateWeight(plate.weight)) \(weightUnit.symbol) plate")
                 .foregroundStyle(AppTheme.Colors.navy)
             Spacer()
         }
@@ -580,8 +580,16 @@ struct PlateCalculatorSheet: View {
         !plates.isEmpty
     }
 
+    /// Formats a plate weight that is already in the display unit (not kg).
+    static func formatPlateWeight(_ value: Double) -> String {
+        value.truncatingRemainder(dividingBy: 1) == 0
+            ? "\(Int(value))"
+            : WeightUnitConversion.formatValue(value, maximumFractionDigits: 2)
+    }
+
+    /// Formats a weight in kg for display in the given unit.
     static func formatWeight(_ kg: Double, weightUnit: WeightUnit = .pounds) -> String {
-        WeightUnitConversion.format(kilograms: kg, unit: weightUnit, maximumFractionDigits: 2)
+        WeightUnitConversion.format(kilograms: kg, unit: weightUnit, maximumFractionDigits: 1)
     }
 
     static func barOnlyText(barKg: Double, weightUnit: WeightUnit = .pounds) -> String {
@@ -598,7 +606,7 @@ struct PlateCalculatorSheet: View {
             return barOnlyText(barKg: barbellWeightKg, weightUnit: weightUnit)
         }
         let parts = plates.map { plate in
-            "\(plate.count)×\(formatWeight(plate.weight, weightUnit: weightUnit))\(weightUnit.symbol)"
+            "\(plate.count)×\(formatPlateWeight(plate.weight))\(weightUnit.symbol)"
         }
         return "\(formatWeight(totalWeightKg, weightUnit: weightUnit)) \(weightUnit.symbol) total • \(parts.joined(separator: " + ")) per side"
     }

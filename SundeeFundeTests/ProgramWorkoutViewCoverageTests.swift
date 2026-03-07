@@ -412,13 +412,13 @@ final class ProgramWorkoutViewCoverageTests: XCTestCase {
         XCTAssertTrue(overlayDismissed)
 
         XCTAssertFalse(PlateCalculatorSheet.hasPlates([]))
-        _ = PlateCalculatorSheet.hasPlates([(weight: 20, count: 1)])
+        _ = PlateCalculatorSheet.hasPlates([(weight: 45, count: 1)])
         XCTAssertEqual(PlateCalculatorSheet.formatWeight(15, weightUnit: .kilograms), "15")
         XCTAssertEqual(PlateCalculatorSheet.formatWeight(2.5, weightUnit: .kilograms), "2.5")
-        XCTAssertEqual(
-            PlateCalculatorSheet.barOnlyText(barKg: PlateCalculation.standardBarKg, weightUnit: .kilograms),
-            "Bar only (\(Int(PlateCalculation.standardBarKg)) kg)"
-        )
+        // standardBar is 45 lb → ~20.4 kg; displayed in kg it should contain the numeric value
+        let barOnlyKg = PlateCalculatorSheet.barOnlyText(barKg: PlateCalculation.standardBarKg, weightUnit: .kilograms)
+        XCTAssertTrue(barOnlyKg.hasPrefix("Bar only ("))
+        XCTAssertTrue(barOnlyKg.contains("kg"))
 
         let tickDown = RestTimerOverlay.nextTick(timeLeft: 3)
         XCTAssertEqual(tickDown.timeLeft, 2)

@@ -132,21 +132,29 @@ struct WorkoutPreviewViewModelTests {
         #expect(vm.expandedExerciseID == "ex-2")
     }
 
-    @Test @MainActor func exerciseSummaryWithWeight() {
+    @Test @MainActor func exerciseSummaryWithWeightLb() {
         let ex = GeneratedExercise(name: "Squat", sets: 4, reps: "5", weightKg: 100)
-        let summary = WorkoutPreviewViewModel.exerciseSummary(ex)
-        #expect(summary == "4 x 5 @ 100kg")
+        let summary = WorkoutPreviewViewModel.exerciseSummary(ex, weightUnit: .pounds)
+        // 100 kg ≈ 220.5 lb
+        #expect(summary.hasPrefix("4 x 5 @"))
+        #expect(summary.contains("lb"))
+    }
+
+    @Test @MainActor func exerciseSummaryWithWeightKg() {
+        let ex = GeneratedExercise(name: "Squat", sets: 4, reps: "5", weightKg: 100)
+        let summary = WorkoutPreviewViewModel.exerciseSummary(ex, weightUnit: .kilograms)
+        #expect(summary == "4 x 5 @ 100 kg")
     }
 
     @Test @MainActor func exerciseSummaryBodyweight() {
         let ex = GeneratedExercise(name: "Pull-Up", sets: 3, reps: "AMRAP", bodyweightOnly: true)
-        let summary = WorkoutPreviewViewModel.exerciseSummary(ex)
+        let summary = WorkoutPreviewViewModel.exerciseSummary(ex, weightUnit: .pounds)
         #expect(summary == "3 x AMRAP")
     }
 
     @Test @MainActor func exerciseSummaryZeroWeight() {
         let ex = GeneratedExercise(name: "Test", sets: 3, reps: "10", weightKg: 0)
-        let summary = WorkoutPreviewViewModel.exerciseSummary(ex)
+        let summary = WorkoutPreviewViewModel.exerciseSummary(ex, weightUnit: .pounds)
         #expect(summary == "3 x 10")
     }
 

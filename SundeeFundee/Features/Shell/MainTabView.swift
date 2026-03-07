@@ -108,10 +108,16 @@ struct HistoryTabView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var users: [User]
 
+    private var currentUser: User? { users.first }
+    private var weightUnit: WeightUnit { currentUser?.weightUnit ?? .pounds }
+    private var barbellWeightKg: Double { DashboardViewModel.barbellWeight(for: currentUser?.gender) }
+
     var body: some View {
         WorkoutHistoryView(
-            userID: users.first?.id ?? "",
-            aiService: SwiftDataAIWorkoutService(modelContext: modelContext)
+            userID: currentUser?.id ?? "",
+            aiService: SwiftDataAIWorkoutService(modelContext: modelContext),
+            weightUnit: weightUnit,
+            barbellWeightKg: barbellWeightKg
         )
     }
 }

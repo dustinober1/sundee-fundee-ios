@@ -4,9 +4,27 @@ struct WorkoutHistoryView: View {
     @State var workouts: [GeneratedWorkout] = []
     @State private var isLoading = false
     @State private var selectedFocus: WorkoutFocus?
+    @State private var selectedWorkout: GeneratedWorkout?
+    @State private var workoutToStart: GeneratedWorkout?
     let userID: String
     let aiService: any AIWorkoutServiceProtocol
+    let weightUnit: WeightUnit
+    let barbellWeightKg: Double
     var onSelectWorkout: (GeneratedWorkout) -> Void = { _ in }
+
+    init(
+        userID: String,
+        aiService: any AIWorkoutServiceProtocol,
+        weightUnit: WeightUnit = .pounds,
+        barbellWeightKg: Double = PlateCalculation.standardBarKg,
+        onSelectWorkout: @escaping (GeneratedWorkout) -> Void = { _ in }
+    ) {
+        self.userID = userID
+        self.aiService = aiService
+        self.weightUnit = weightUnit
+        self.barbellWeightKg = barbellWeightKg
+        self.onSelectWorkout = onSelectWorkout
+    }
 
     var body: some View {
         ZStack {
@@ -28,6 +46,28 @@ struct WorkoutHistoryView: View {
         .navigationBarTitleDisplayMode(.inline)
         .task { await loadHistory() }
         .refreshable { await loadHistory() }
+        .navigationDestination(item: $selectedWorkout) { workout in
+            WorkoutPreviewView(
+                viewModel: WorkoutPreviewViewModel(workout: workout, aiService: aiService),
+                userID: userID,
+                weightUnit: weightUnit,
+                onStartWorkout: { started in
+                    workoutToStart = started
+                },
+                onRegenerate: {
+                    selectedWorkout = nil
+                }
+            )
+        }
+        .navigationDestination(item: $workoutToStart) { workout in
+            WorkoutExecutionView(
+                viewModel: WorkoutExecutionViewModel(
+                    generatedWorkout: workout,
+                    barbellWeightKg: barbellWeightKg,
+                    weightUnit: weightUnit
+                )
+            )
+        }
     }
 
     private var filteredWorkouts: [GeneratedWorkout] {
@@ -43,7 +83,10 @@ struct WorkoutHistoryView: View {
         VStack(spacing: 0) {
             focusFilter
             List(filteredWorkouts) { workout in
-                Button { onSelectWorkout(workout) } label: {
+                Button {
+                    onSelectWorkout(workout)
+                    selectedWorkout = workout
+                } label: {
                     historyRow(workout)
                 }
                 .listRowBackground(AppTheme.Colors.cream)
@@ -84,7 +127,7 @@ struct WorkoutHistoryView: View {
     private func historyRow(_ workout: GeneratedWorkout) -> some View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
-                HStack {
+                HStack(spacing: AppTheme.Spacing.xs) {
                     Text(workout.questionnaire.focus.displayName)
                         .font(AppTheme.Fonts.body)
                         .fontWeight(.medium)
@@ -94,16 +137,30 @@ struct WorkoutHistoryView: View {
                             .font(.caption2)
                             .foregroundStyle(AppTheme.Colors.warmRose)
                     }
+                    if workout.isCompleted {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.caption2)
+                            .foregroundStyle(AppTheme.Colors.accentOrange)
+                    }
                 }
                 Text(Self.dateLabel(workout.createdAt))
                     .font(AppTheme.Fonts.caption)
                     .foregroundStyle(AppTheme.Colors.textSecondary)
             }
             Spacer()
-            Text("\(workout.exercises.count) exercises")
-                .font(AppTheme.Fonts.caption)
-                .foregroundStyle(AppTheme.Colors.textSecondary)
+            VStack(alignment: .trailing, spacing: 2) {
+                Text("\(workout.exercises.count) exercises")
+                    .font(AppTheme.Fonts.caption)
+                    .foregroundStyle(AppTheme.Colors.textSecondary)
+                Text(Self.durationLabel(workout.questionnaire.timeMinutes))
+                    .font(AppTheme.Fonts.caption)
+                    .foregroundStyle(AppTheme.Colors.textSecondary)
+            }
         }
+    }
+
+    static func durationLabel(_ minutes: Int) -> String {
+        "\(minutes) min"
     }
 
     private static let dateFormatter: DateFormatter = {

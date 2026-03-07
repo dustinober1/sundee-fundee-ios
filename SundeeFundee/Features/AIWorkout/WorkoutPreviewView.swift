@@ -3,8 +3,23 @@ import SwiftUI
 struct WorkoutPreviewView: View {
     @State var viewModel: WorkoutPreviewViewModel
     let userID: String
+    let weightUnit: WeightUnit
     var onStartWorkout: (GeneratedWorkout) -> Void = { _ in }
     var onRegenerate: () -> Void = {}
+
+    init(
+        viewModel: WorkoutPreviewViewModel,
+        userID: String,
+        weightUnit: WeightUnit = .pounds,
+        onStartWorkout: @escaping (GeneratedWorkout) -> Void = { _ in },
+        onRegenerate: @escaping () -> Void = {}
+    ) {
+        _viewModel = State(initialValue: viewModel)
+        self.userID = userID
+        self.weightUnit = weightUnit
+        self.onStartWorkout = onStartWorkout
+        self.onRegenerate = onRegenerate
+    }
 
     var body: some View {
         ZStack {
@@ -84,7 +99,7 @@ struct WorkoutPreviewView: View {
                             .font(AppTheme.Fonts.body)
                             .fontWeight(.medium)
                             .foregroundStyle(AppTheme.Colors.navy)
-                        Text(WorkoutPreviewViewModel.exerciseSummary(exercise))
+                        Text(WorkoutPreviewViewModel.exerciseSummary(exercise, weightUnit: weightUnit))
                             .font(AppTheme.Fonts.caption)
                             .foregroundStyle(AppTheme.Colors.textSecondary)
                     }

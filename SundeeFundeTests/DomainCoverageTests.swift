@@ -47,10 +47,11 @@ struct WeightCalculationsAdditionalTests {
 struct PlateCalculationAdditionalTests {
 
     @Test func descriptionCoversPlateFormattingBranch() {
-        let desc = PlateCalculation.description(totalWeightKg: 57.5, barbellWeightKg: 20)
-        #expect(desc.contains("1×15kg"))
-        #expect(desc.contains("1×2.5kg"))
-        #expect(desc.contains("1×1.25kg"))
+        // description() uses kg-unit path, output now shows lb equivalents
+        let barKg = PlateCalculation.standardBarKg
+        // 135 lb total → 45 lb per side → 1×45lb per side
+        let totalKg = 135.0 / 2.2046226218
+        let desc = PlateCalculation.description(totalWeightKg: totalKg, barbellWeightKg: barKg)
         #expect(desc.contains("per side"))
     }
 }

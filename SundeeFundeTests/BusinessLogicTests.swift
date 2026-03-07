@@ -103,6 +103,91 @@ struct WeightCalculationsTests {
         #expect(WeightCalculations.detectPlateau(weights: [50, 60, 100, 100, 100]) == true)
         #expect(WeightCalculations.detectPlateau(weights: [100, 100, 100, 100, 105, 110]) == false)
     }
+
+    // MARK: - Barbell snapping
+
+    @Test func snapBarbellWeightSnapsToFiveLbIncrements() {
+        // 226.9 lb (the problematic AI value) → should snap to 225 lb (men's bar)
+        let badKg = 226.9 / 2.2046226218
+        let snapped = WeightCalculations.snapBarbellWeightKg(badKg, barLb: 45.0)
+        let snappedLb = snapped * 2.2046226218
+        #expect(abs(snappedLb - 225.0) < 0.1)
+    }
+
+    @Test func snapBarbellWeightPreservesExactLoadableValues() {
+        // 225 lb is exactly loadable (bar + 2×45 per side)
+        let kg225 = 225.0 / 2.2046226218
+        let snapped = WeightCalculations.snapBarbellWeightKg(kg225, barLb: 45.0)
+        let snappedLb = snapped * 2.2046226218
+        #expect(abs(snappedLb - 225.0) < 0.1)
+
+        // 135 lb is exactly loadable
+        let kg135 = 135.0 / 2.2046226218
+        let snapped135 = WeightCalculations.snapBarbellWeightKg(kg135, barLb: 45.0)
+        let snappedLb135 = snapped135 * 2.2046226218
+        #expect(abs(snappedLb135 - 135.0) < 0.1)
+    }
+
+    @Test func snapBarbellWeightWomenBar() {
+        // Women's bar is 35 lb; 100 lb total → 65 lb of plates → snaps to 100 lb
+        let kg100 = 100.0 / 2.2046226218
+        let snapped = WeightCalculations.snapBarbellWeightKg(kg100, barLb: 35.0)
+        let snappedLb = snapped * 2.2046226218
+        #expect(abs(snappedLb - 100.0) < 0.1)
+    }
+
+    // MARK: - Dumbbell snapping
+
+    @Test func snapDumbbellWeightToAvailableValues() {
+        // 12 kg is between 25 lb (11.34 kg) and 35 lb (15.88 kg), closer to 25 lb
+        let snapped12 = WeightCalculations.snapDumbbellWeightKg(12.0)
+        let snapped12Lb = snapped12 * 2.2046226218
+        #expect(abs(snapped12Lb - 25.0) < 0.5)
+
+        // 7 kg is between 15 lb (6.80 kg) and 10 lb (4.54 kg), closer to 15 lb
+        let snapped7 = WeightCalculations.snapDumbbellWeightKg(7.0)
+        let snapped7Lb = snapped7 * 2.2046226218
+        #expect(abs(snapped7Lb - 15.0) < 0.5)
+
+        // 22 kg is between 40 lb (18.14 kg) and 50 lb (22.68 kg), very close to 50 lb
+        let snapped22 = WeightCalculations.snapDumbbellWeightKg(22.0)
+        let snapped22Lb = snapped22 * 2.2046226218
+        #expect(abs(snapped22Lb - 50.0) < 1.0)
+    }
+
+    @Test func snapDumbbellWeightPreservesAvailableValues() {
+        // Each available dumbbell weight should snap to itself
+        for lbWeight in WeightCalculations.availableDumbbellWeightsLb {
+            let kg = lbWeight / 2.2046226218
+            let snappedKg = WeightCalculations.snapDumbbellWeightKg(kg)
+            let snappedLb = snappedKg * 2.2046226218
+            #expect(abs(snappedLb - lbWeight) < 0.01)
+        }
+    }
+
+    // MARK: - Kettlebell snapping
+
+    @Test func snapKettlebellWeightToAvailableValues() {
+        // 30 kg → nearest is 24 kg (diff 6) vs 36 kg (diff 6), tie goes to first (24)
+        // 32 kg → nearest is 36 kg
+        let snapped32 = WeightCalculations.snapKettlebellWeightKg(32.0)
+        #expect(snapped32 == 36.0)
+
+        // 20 kg → nearest is 24 kg
+        let snapped20 = WeightCalculations.snapKettlebellWeightKg(20.0)
+        #expect(snapped20 == 24.0)
+
+        // 65 kg → nearest is 70 kg
+        let snapped65 = WeightCalculations.snapKettlebellWeightKg(65.0)
+        #expect(snapped65 == 70.0)
+    }
+
+    @Test func snapKettlebellWeightPreservesAvailableValues() {
+        for kgWeight in WeightCalculations.availableKettlebellWeightsKg {
+            let snapped = WeightCalculations.snapKettlebellWeightKg(kgWeight)
+            #expect(snapped == kgWeight)
+        }
+    }
 }
 
 // MARK: - EpleyFormula tests
@@ -159,28 +244,51 @@ struct WeightUnitConversionTests {
 struct PlateCalculationTests {
 
     @Test func emptyForBarOnly() {
-        let plates = PlateCalculation.platesPerSide(totalWeightKg: 20, barbellWeightKg: 20)
+        // Use kg path: totalWeightKg == barbellWeightKg → no plates
+        let barKg = PlateCalculation.standardBarKg
+        let plates = PlateCalculation.platesPerSideKg(totalWeightKg: barKg, barbellWeightKg: barKg)
         #expect(plates.isEmpty)
     }
 
     @Test func emptyForLighterThanBar() {
-        let plates = PlateCalculation.platesPerSide(totalWeightKg: 10, barbellWeightKg: 20)
+        // Weight less than the bar → no plates
+        let barKg = PlateCalculation.standardBarKg
+        let plates = PlateCalculation.platesPerSideKg(totalWeightKg: barKg - 5, barbellWeightKg: barKg)
         #expect(plates.isEmpty)
     }
 
-    @Test func oneHundredKgPlates() {
-        // 100 kg total, 20 kg bar → 40 kg on each side
-        // Available kg plates: [25, 20, 15, 10, 5, 2.5, 1.25]
-        // 40 = 1×25 + 1×15
-        let plates = PlateCalculation.platesPerSide(totalWeightKg: 100, barbellWeightKg: 20)
+    @Test func lbPlatesForLbUnit() {
+        // 225 lb total, 45 lb bar → 90 lb per side → 2×45
+        let totalKg = 225.0 / 2.2046226218
+        let barKg = PlateCalculation.standardBarKg
+        let plates = PlateCalculation.platesPerSide(totalWeightKg: totalKg, barbellWeightKg: barKg, weightUnit: .pounds)
         let dict = Dictionary(uniqueKeysWithValues: plates.map { ($0.weight, $0.count) })
-        #expect(dict[25.0] == 1)
-        #expect(dict[15.0] == 1)
+        #expect(dict[45.0] == 2)
+    }
+
+    @Test func lbPlatesBreakdown() {
+        // 135 lb total, 45 lb bar → 45 lb per side → 1×45
+        let totalKg = 135.0 / 2.2046226218
+        let barKg = PlateCalculation.standardBarKg
+        let plates = PlateCalculation.platesPerSide(totalWeightKg: totalKg, barbellWeightKg: barKg, weightUnit: .pounds)
+        let dict = Dictionary(uniqueKeysWithValues: plates.map { ($0.weight, $0.count) })
+        #expect(dict[45.0] == 1)
     }
 
     @Test func descriptionBarOnly() {
-        let desc = PlateCalculation.description(totalWeightKg: 20, barbellWeightKg: 20)
+        let barKg = PlateCalculation.standardBarKg
+        let desc = PlateCalculation.description(totalWeightKg: barKg, barbellWeightKg: barKg)
         #expect(desc.contains("Bar only"))
+    }
+
+    @Test func standardBarIsFortyFiveLb() {
+        let lb = PlateCalculation.standardBarKg * 2.2046226218
+        #expect(abs(lb - 45.0) < 0.01)
+    }
+
+    @Test func womenBarIsThirtyFiveLb() {
+        let lb = PlateCalculation.womenBarKg * 2.2046226218
+        #expect(abs(lb - 35.0) < 0.01)
     }
 }
 
@@ -531,24 +639,26 @@ struct CelebrationEventSubtitleTests {
 @MainActor
 struct DashboardViewModelBarbellWeightTests {
 
-    @Test func femaleBarbellWeightIs15() {
+    @Test func femaleBarbellWeightIs35Lb() {
+        // Women's bar is 35 lb (~15.876 kg)
         let weight = DashboardViewModel.barbellWeight(for: .female)
-        #expect(weight == 15.0)
+        #expect(abs(weight - PlateCalculation.womenBarKg) < 0.001)
     }
 
-    @Test func maleBarbellWeightIs20() {
+    @Test func maleBarbellWeightIs45Lb() {
+        // Men's bar is 45 lb (~20.412 kg)
         let weight = DashboardViewModel.barbellWeight(for: .male)
-        #expect(weight == 20.0)
+        #expect(abs(weight - PlateCalculation.standardBarKg) < 0.001)
     }
 
-    @Test func preferNotToSayBarbellWeightIs20() {
+    @Test func preferNotToSayBarbellWeightIs45Lb() {
         let weight = DashboardViewModel.barbellWeight(for: .preferNotToSay)
-        #expect(weight == 20.0)
+        #expect(abs(weight - PlateCalculation.standardBarKg) < 0.001)
     }
 
-    @Test func nilGenderBarbellWeightIs20() {
+    @Test func nilGenderBarbellWeightIs45Lb() {
         let weight = DashboardViewModel.barbellWeight(for: nil)
-        #expect(weight == 20.0)
+        #expect(abs(weight - PlateCalculation.standardBarKg) < 0.001)
     }
 }
 

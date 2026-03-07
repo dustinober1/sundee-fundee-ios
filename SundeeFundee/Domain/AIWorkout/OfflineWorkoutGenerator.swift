@@ -192,13 +192,19 @@ enum OfflineWorkoutGenerator {
             if !template.bodyweightOnly {
                 if let key = template.maxKey, let orm = maxDict[key] {
                     let percentage = defaultPercentage(for: template.defaultReps)
-                    weightKg = WeightCalculations.roundToNearestFive(orm * percentage)
+                    let raw = orm * percentage
+                    weightKg = template.requiresBarbell
+                        ? WeightCalculations.snapBarbellWeightKg(raw)
+                        : WeightCalculations.roundToNearestFive(raw)
+                } else if template.requiresDumbbells {
+                    // Default to 25 lb dumbbell (nearest available conservative default)
+                    weightKg = WeightCalculations.snapDumbbellWeightKg(11.34)
                 } else if equipment == .homeDumbbells {
-                    weightKg = 15.0  // conservative default for dumbbells
+                    weightKg = WeightCalculations.snapDumbbellWeightKg(11.34)
                 }
             }
 
-            return GeneratedExercise(
+            let exercise = GeneratedExercise(
                 name: template.name,
                 sets: template.defaultSets,
                 reps: template.defaultReps,
@@ -208,6 +214,8 @@ enum OfflineWorkoutGenerator {
                 reasoning: nil,
                 bodyweightOnly: template.bodyweightOnly
             )
+            // Snap to physically loadable weight for any equipment type detected from the name.
+            return exercise.withSnappedWeight()
         }
     }
 
@@ -233,7 +241,9 @@ enum OfflineWorkoutGenerator {
         return exercises.map { ex in
             var modified = ex
             if let weight = ex.weightKg {
-                modified.weightKg = WeightCalculations.roundToNearestFive(weight * multiplier)
+                let raw = WeightCalculations.roundToNearestFive(weight * multiplier)
+                modified.weightKg = raw
+                modified = modified.withSnappedWeight()
             }
             return modified
         }
@@ -330,7 +340,9 @@ enum OfflineWorkoutGenerator {
         return exercises.map { ex in
             var modified = ex
             if let weight = ex.weightKg {
-                modified.weightKg = WeightCalculations.roundToNearestFive(weight * combined)
+                let raw = WeightCalculations.roundToNearestFive(weight * combined)
+                modified.weightKg = raw
+                modified = modified.withSnappedWeight()
             }
             return modified
         }

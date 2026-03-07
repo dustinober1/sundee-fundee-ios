@@ -70,10 +70,11 @@ final class WorkoutPreviewViewModel {
 
     // MARK: - Display Helpers
 
-    static func exerciseSummary(_ exercise: GeneratedExercise) -> String {
+    static func exerciseSummary(_ exercise: GeneratedExercise, weightUnit: WeightUnit = .pounds) -> String {
         var parts = ["\(exercise.sets) x \(exercise.reps)"]
         if let weight = exercise.weightKg, weight > 0 {
-            parts.append("\(Int(weight))kg")
+            let displayed = WeightUnitConversion.format(kilograms: weight, unit: weightUnit, maximumFractionDigits: 1)
+            parts.append("\(displayed) \(weightUnit.symbol)")
         }
         return parts.joined(separator: " @ ")
     }
@@ -83,6 +84,7 @@ final class WorkoutPreviewViewModel {
         if minutes < 1 {
             return "\(Int(minutes * 60))s rest"
         }
-        return "\(String(format: "%.1g", minutes))min rest"
+        let formatted = minutes.truncatingRemainder(dividingBy: 1) == 0 ? String(Int(minutes)) : String(minutes)
+        return "\(formatted)min rest"
     }
 }

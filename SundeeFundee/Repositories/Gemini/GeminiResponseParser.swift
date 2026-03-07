@@ -75,7 +75,7 @@ enum GeminiResponseParser {
         questionnaire: QuestionnaireAnswers
     ) -> GeneratedWorkout {
         let exercises = raw.exercises.map { rawExercise in
-            GeneratedExercise(
+            let exercise = GeneratedExercise(
                 id: UUID().uuidString,
                 name: rawExercise.name,
                 sets: rawExercise.sets,
@@ -86,6 +86,8 @@ enum GeminiResponseParser {
                 reasoning: rawExercise.reasoning,
                 bodyweightOnly: rawExercise.bodyweightOnly
             )
+            // Snap to physically loadable weights regardless of what the AI returned.
+            return exercise.withSnappedWeight()
         }
 
         return GeneratedWorkout(

@@ -19,6 +19,15 @@ struct QuestionnaireAnswers: Codable, Sendable, Equatable, Hashable {
     }
 }
 
+// MARK: - ExerciseEquipmentType
+
+enum ExerciseEquipmentType {
+    case barbell
+    case dumbbell
+    case kettlebell
+    case other
+}
+
 // MARK: - GeneratedExercise
 
 struct GeneratedExercise: Codable, Sendable, Identifiable, Equatable, Hashable {
@@ -53,6 +62,42 @@ struct GeneratedExercise: Codable, Sendable, Identifiable, Equatable, Hashable {
         self.reasoning = reasoning
         self.bodyweightOnly = bodyweightOnly
     }
+
+    /// Infers the primary equipment type from the exercise name.
+    var equipmentType: ExerciseEquipmentType {
+        let n = name.lowercased()
+        if n.contains("kettlebell") || n.contains("kb ") || n.contains("kb swing") || n.contains("kb snatch") {
+            return .kettlebell
+        }
+        if n.contains("dumbbell") || n.contains("db ") || n.contains("goblet") || n.contains("lateral raise") {
+            return .dumbbell
+        }
+        if n.contains("barbell") || n.contains("bench press") || n.contains("back squat") ||
+           n.contains("front squat") || n.contains("deadlift") || n.contains("strict press") ||
+           n.contains("military press") || n.contains("barbell row") || n.contains("hip thrust") ||
+           n.contains("romanian deadlift") || n.contains("overhead press") {
+            return .barbell
+        }
+        return .other
+    }
+
+    /// Returns a copy with the weight snapped to the nearest physically loadable value.
+    /// - Parameter barLb: Bar weight in pounds (45 for men's, 35 for women's).
+    func withSnappedWeight(barLb: Double = 45.0) -> GeneratedExercise {
+        guard let raw = weightKg, raw > 0, !bodyweightOnly else { return self }
+        var copy = self
+        switch equipmentType {
+        case .barbell:
+            copy.weightKg = WeightCalculations.snapBarbellWeightKg(raw, barLb: barLb)
+        case .dumbbell:
+            copy.weightKg = WeightCalculations.snapDumbbellWeightKg(raw)
+        case .kettlebell:
+            copy.weightKg = WeightCalculations.snapKettlebellWeightKg(raw)
+        case .other:
+            break
+        }
+        return copy
+    }
 }
 
 // MARK: - GeneratedWorkout
@@ -61,6 +106,7 @@ struct GeneratedWorkout: Codable, Sendable, Identifiable, Equatable, Hashable {
     let id: String
     let createdAt: Date
     var isFavorite: Bool
+    var isCompleted: Bool
     let coachingSummary: String
     var exercises: [GeneratedExercise]
     let questionnaire: QuestionnaireAnswers
@@ -69,6 +115,7 @@ struct GeneratedWorkout: Codable, Sendable, Identifiable, Equatable, Hashable {
         id: String = UUID().uuidString,
         createdAt: Date = .now,
         isFavorite: Bool = false,
+        isCompleted: Bool = false,
         coachingSummary: String,
         exercises: [GeneratedExercise],
         questionnaire: QuestionnaireAnswers
@@ -76,6 +123,7 @@ struct GeneratedWorkout: Codable, Sendable, Identifiable, Equatable, Hashable {
         self.id = id
         self.createdAt = createdAt
         self.isFavorite = isFavorite
+        self.isCompleted = isCompleted
         self.coachingSummary = coachingSummary
         self.exercises = exercises
         self.questionnaire = questionnaire
