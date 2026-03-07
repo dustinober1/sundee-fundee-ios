@@ -63,6 +63,16 @@ struct SettingsView: View {
                     NavigationLink("Lift Maxes") {
                         MaxLiftsView()
                     }
+                    NavigationLink("Body Weight") {
+                        BodyWeightSettingView(viewModel: viewModel)
+                    }
+                }
+
+                // Subscription
+                Section("Premium") {
+                    NavigationLink("Manage Subscription") {
+                        SubscriptionManagementView()
+                    }
                 }
 
                 // Legal
@@ -167,6 +177,14 @@ struct EditProfileView: View {
                     }
                 }
                 .pickerStyle(.segmented)
+            }
+            Section("Body Weight (optional)") {
+                HStack {
+                    TextField("Body weight", value: $viewModel.bodyWeight, format: .number)
+                        .keyboardType(.decimalPad)
+                    Text(viewModel.weightUnit.symbol)
+                        .foregroundStyle(AppTheme.Colors.navy.opacity(0.5))
+                }
             }
             Section("Biological Sex") {
                 Picker("Sex", selection: $viewModel.gender) {

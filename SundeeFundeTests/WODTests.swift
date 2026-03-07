@@ -79,7 +79,8 @@ final class WODTests: XCTestCase {
                     reps: .fixed(5),
                     percent1RM: 0.80,
                     restMinutes: 3,
-                    notes: nil
+                    notes: nil,
+                    bodyweightOnly: false
                 )
             ]
         )

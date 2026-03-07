@@ -25,7 +25,7 @@ final class MainTabCoverageTests: XCTestCase {
     }
 
     private func makeContainer() throws -> ModelContainer {
-        let schema = Schema(AppSchemaV1.models)
+        let schema = Schema(AppSchemaV10.models)
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
         return try ModelContainer(for: schema, configurations: [config])
     }

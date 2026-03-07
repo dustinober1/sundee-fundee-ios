@@ -71,7 +71,7 @@ final class WODRepositoryTests: XCTestCase {
         """
         record["exercisesJSON"] = exercisesJSON as CKRecordValue
 
-        let wod = try WOD(from: record)
+        let wod = try WOD(record: record)
         XCTAssertEqual(wod.id, "wod-ck")
         XCTAssertEqual(wod.date, "2026-03-01")
         XCTAssertEqual(wod.title, "CK WOD")
@@ -84,7 +84,7 @@ final class WODRepositoryTests: XCTestCase {
         record["id"] = "wod-bad" as CKRecordValue
         // Missing other required fields
 
-        XCTAssertThrowsError(try WOD(from: record))
+        XCTAssertThrowsError(try WOD(record: record))
     }
 
     // MARK: - CloudKit record fetcher init

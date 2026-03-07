@@ -10,6 +10,7 @@ final class SettingsViewModel {
     var weightUnit: WeightUnit = .pounds
     var gender: Gender = .preferNotToSay
     var cycleTrackingEnabled: Bool = false
+    var bodyWeight: Double? = nil
     var injuryProfiles: [InjuryProfile] = []
 
     private var modelContext: ModelContext?
@@ -29,6 +30,7 @@ final class SettingsViewModel {
             weightUnit = user.weightUnit
             gender = user.gender
             cycleTrackingEnabled = user.cycleTrackingEnabled
+            bodyWeight = user.bodyWeightKg
         }
 
         let injuryRepo = SwiftDataInjuryRepository(context: modelContext)
@@ -46,6 +48,7 @@ final class SettingsViewModel {
             user.weightUnit = weightUnit
             user.gender = gender
             user.cycleTrackingEnabled = cycleTrackingEnabled
+            user.bodyWeightKg = bodyWeight
             try? ctx.save()
         }
     }

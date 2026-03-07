@@ -86,7 +86,7 @@ final class CloudKitWODRepository: WODRepository, @unchecked Sendable {
         let matchResults = try await cloudRecordFetcher(query)
         return try matchResults.compactMap { _, recordResult -> WOD? in
             let record = try recordResult.get()
-            return try WOD(from: record)
+            return try WOD(record: record)
         }
     }
 }

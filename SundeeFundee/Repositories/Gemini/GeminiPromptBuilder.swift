@@ -78,6 +78,53 @@ enum GeminiPromptBuilder {
             sections.append(recentSection.trimmingCharacters(in: .newlines))
         }
 
+        // Skills to practice
+        if !context.desiredSkills.isEmpty {
+            let skillsSection = """
+                Skills to Practice: \(context.desiredSkills.joined(separator: ", "))
+                Include structured skill work for each — progressions appropriate for the user's experience level.
+                """
+            sections.append(skillsSection)
+        }
+
+        // Body weight
+        if let bodyWeight = context.bodyWeightKg {
+            sections.append("Body Weight: \(bodyWeight) kg")
+        }
+
+        // Benchmark history
+        if !context.benchmarkSummaries.isEmpty {
+            var benchmarkSection = "Benchmark History:\n"
+            for benchmark in context.benchmarkSummaries {
+                benchmarkSection += "- \(benchmark.name): \(benchmark.bestScore) (\(benchmark.scoringType))\n"
+            }
+            sections.append(benchmarkSection.trimmingCharacters(in: .newlines))
+        }
+
+        // Recent pain activity
+        if !context.recentPainActivity.isEmpty {
+            var painSection = "Recent Pain Activity (last 7 days):\n"
+            let formatter = DateFormatter()
+            formatter.dateStyle = .short
+            for pain in context.recentPainActivity {
+                let dateStr = formatter.string(from: pain.lastRecordedDate)
+                painSection += "- \(pain.injuryID): pain level \(pain.lastPainLevel) on \(dateStr)\n"
+            }
+            sections.append(painSection.trimmingCharacters(in: .newlines))
+        }
+
+        // Training consistency
+        if let rate = context.workoutCompletionRate {
+            let percentage = Int(rate * 100)
+            var consistencySection = "Training Consistency: \(percentage)% (last 28 days)"
+            if rate < 0.6 {
+                consistencySection += "\nReduce volume — user has low completion rate."
+            } else if rate > 0.9 {
+                consistencySection += "\nCan increase intensity/volume — user is highly consistent."
+            }
+            sections.append(consistencySection)
+        }
+
         return sections.joined(separator: "\n\n")
     }
 

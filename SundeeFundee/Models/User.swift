@@ -44,6 +44,8 @@ final class User {
     var onboardingComplete: Bool
     var createdAt: Date
     var profileUpdatedAt: Date?
+    var subscriptionTierRaw: String?
+    var bodyWeightKg: Double?
 
     init(
         id: String,
@@ -56,7 +58,9 @@ final class User {
         cycleTrackingEnabled: Bool = false,
         onboardingComplete: Bool = false,
         createdAt: Date = .now,
-        profileUpdatedAt: Date? = nil
+        profileUpdatedAt: Date? = nil,
+        subscriptionTierRaw: String? = nil,
+        bodyWeightKg: Double? = nil
     ) {
         self.id = id
         self.name = name
@@ -69,6 +73,8 @@ final class User {
         self.onboardingComplete = onboardingComplete
         self.createdAt = createdAt
         self.profileUpdatedAt = profileUpdatedAt
+        self.subscriptionTierRaw = subscriptionTierRaw
+        self.bodyWeightKg = bodyWeightKg
     }
 
     var experienceLevel: ExperienceLevel {

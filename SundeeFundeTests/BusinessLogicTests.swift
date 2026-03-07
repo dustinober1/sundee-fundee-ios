@@ -410,11 +410,10 @@ struct InjuryAdaptationEngineTests {
         let session = ProgramSession(sessionID: "s1", sessionName: "Day 1",
                                      sessionType: "strength", focus: "Lower",
                                      exercises: [ex])
-        let week = ProgramWeek(week: 1, phaseID: nil, isTestWeek: nil, sessions: [session])
+        let week = ProgramWeek(week: 1, phaseID: "", isTestWeek: false, sessions: [session])
         return Program(id: "p1", name: "Test", category: "Test",
                        description: "", durationWeeks: 1, sessionsPerWeek: 1,
-                       difficulty: "beginner", phases: [], weeks: [week],
-                       cycleAdjustmentProfile: nil)
+                       difficulty: "beginner", phases: [], cycleAdjustmentProfile: nil, weeks: [week])
     }
 }
 

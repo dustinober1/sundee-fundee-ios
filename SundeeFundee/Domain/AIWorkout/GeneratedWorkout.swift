@@ -7,6 +7,16 @@ struct QuestionnaireAnswers: Codable, Sendable, Equatable, Hashable {
     let focus: WorkoutFocus
     let energyLevel: EnergyLevel
     let equipment: EquipmentAccess
+    let desiredSkills: [String]?
+
+    init(timeMinutes: Int, focus: WorkoutFocus, energyLevel: EnergyLevel,
+         equipment: EquipmentAccess, desiredSkills: [String]? = nil) {
+        self.timeMinutes = timeMinutes
+        self.focus = focus
+        self.energyLevel = energyLevel
+        self.equipment = equipment
+        self.desiredSkills = desiredSkills
+    }
 }
 
 // MARK: - GeneratedExercise

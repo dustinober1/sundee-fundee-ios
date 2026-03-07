@@ -218,11 +218,21 @@ final class WorkoutExecutionViewModel {
                     prescribedReps: set.prescribedReps,
                     actualReps: set.actualReps,
                     prescribedWeightKg: set.prescribedWeightKg,
-                    actualWeightKg: set.actualWeightKg
+                    actualWeightKg: set.actualWeightKg,
+                    generatedWorkoutID: generatedWorkout?.id
                 )
                 try? workoutRepo.save(completedSet)
             }
             setIndex += sets.count
+        }
+
+        // Mark AI workout record as completed
+        if let generatedWorkout {
+            let workoutRecords = (try? modelContext.fetch(FetchDescriptor<GeneratedWorkoutRecord>())) ?? []
+            if let record = workoutRecords.first(where: { $0.id == generatedWorkout.id }) {
+                record.isCompleted = true
+                try? modelContext.save()
+            }
         }
 
         // Advance the enrollment pointer to the next workout (program path only)
@@ -256,6 +266,20 @@ final class WorkoutExecutionViewModel {
             return (nextWeek, 1)
         }
         return (currentWeek, currentDay) // Already at the end
+    }
+
+    // MARK: - AI Workout Contribution
+
+    /// Called after AI workout completion to consider contributing to shared database.
+    func considerContributing(modelContext: ModelContext, userID: String) {
+        guard let generatedWorkout, !(generatedWorkout.questionnaire.desiredSkills?.isEmpty ?? true) else { return }
+
+        // Mark as eligible for contribution (actual contribution happens in UI after user approval)
+        let workoutRecords = (try? modelContext.fetch(FetchDescriptor<GeneratedWorkoutRecord>())) ?? []
+        if let record = workoutRecords.first(where: { $0.id == generatedWorkout.id }) {
+            // Will be set to true after user confirms sharing in UI
+            // record.contributedToDatabase = true
+        }
     }
 
     // MARK: - Helpers

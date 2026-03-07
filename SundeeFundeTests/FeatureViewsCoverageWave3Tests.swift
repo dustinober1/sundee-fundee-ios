@@ -14,7 +14,7 @@ final class FeatureViewsCoverageWave3Tests: XCTestCase {
     private let fixedDate = Date(timeIntervalSince1970: 1_700_000_000)
 
     private func makeStore() throws -> TestStore {
-        let schema = Schema(AppSchemaV6.models)
+        let schema = Schema(AppSchemaV10.models)
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
         let container = try ModelContainer(for: schema, configurations: [config])
         return TestStore(container: container, context: ModelContext(container))
@@ -742,7 +742,7 @@ final class FeatureViewsCoverageWave3Tests: XCTestCase {
     // MARK: - ConditioningPRRow
 
     private func makeV7Store() throws -> TestStore {
-        let schema = Schema(AppSchemaV7.models)
+        let schema = Schema(AppSchemaV10.models)
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
         let container = try ModelContainer(for: schema, configurations: [config])
         return TestStore(container: container, context: ModelContext(container))

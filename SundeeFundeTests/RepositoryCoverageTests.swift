@@ -10,7 +10,7 @@ struct RepositoryCoverageTests {
 
     @MainActor
     private func makeContainer() throws -> ModelContainer {
-        let schema = Schema(AppSchemaV6.models)
+        let schema = Schema(AppSchemaV10.models)
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
         return try ModelContainer(for: schema, configurations: [config])
     }
@@ -175,7 +175,7 @@ struct RepositoryCoverageTests {
 
     @MainActor
     private func makeV7Container() throws -> ModelContainer {
-        let schema = Schema(AppSchemaV7.models)
+        let schema = Schema(AppSchemaV10.models)
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
         return try ModelContainer(for: schema, configurations: [config])
     }
@@ -343,7 +343,7 @@ struct RepositoryCoverageTests {
 
     @Test
     func programRecordDecodingSupportsOptionalMetadata() throws {
-        let program = try Program(from: makeProgramRecord())
+        let program = try Program(record: makeProgramRecord())
         #expect(program.id == "program-1")
         #expect(program.weeks.first?.phaseID == "base")
         #expect(program.phases.first?.id == "base")
@@ -356,7 +356,7 @@ struct RepositoryCoverageTests {
         record["phasesJSON"] = "not-json" as NSString
         record["cycleAdjustmentProfileJSON"] = "not-json" as NSString
 
-        let program = try Program(from: record)
+        let program = try Program(record: record)
         #expect(program.phases.isEmpty)
         #expect(program.cycleAdjustmentProfile?.fallbackPhase == nil)
     }
@@ -367,7 +367,7 @@ struct RepositoryCoverageTests {
         record["id"] = "incomplete" as NSString
 
         do {
-            _ = try Program(from: record)
+            _ = try Program(record: record)
             Issue.record("Expected missing fields error")
         } catch ProgramDecodingError.missingFields {
             // expected

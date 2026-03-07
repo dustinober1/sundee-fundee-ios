@@ -37,7 +37,8 @@ final class GeminiWorkoutService: Sendable {
             timeMinutes: context.timeMinutes,
             focus: context.focus,
             energyLevel: context.energyLevel,
-            equipment: context.equipment
+            equipment: context.equipment,
+            desiredSkills: context.desiredSkills.isEmpty ? nil : context.desiredSkills
         )
 
         return try GeminiResponseParser.parse(data: data, questionnaire: questionnaire)

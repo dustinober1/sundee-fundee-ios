@@ -10,7 +10,7 @@ import UIKit
 struct AuthOnboardingCoverageWave3Tests {
     @MainActor
     private func makeContext() throws -> ModelContext {
-        let schema = Schema(AppSchemaV1.models)
+        let schema = Schema(AppSchemaV10.models)
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
         let container = try ModelContainer(for: schema, configurations: [config])
         return ModelContext(container)
@@ -209,7 +209,7 @@ struct AuthOnboardingCoverageWave3Tests {
 
     @MainActor
     private func makeContainer() throws -> ModelContainer {
-        let schema = Schema(AppSchemaV1.models)
+        let schema = Schema(AppSchemaV10.models)
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
         return try ModelContainer(for: schema, configurations: [config])
     }

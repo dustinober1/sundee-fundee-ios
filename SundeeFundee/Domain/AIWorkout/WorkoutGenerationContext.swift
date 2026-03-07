@@ -89,6 +89,18 @@ struct InjurySummary: Codable, Sendable {
     let restrictions: [String]
 }
 
+struct BenchmarkSummary: Codable, Sendable {
+    let name: String
+    let bestScore: Double
+    let scoringType: String
+}
+
+struct PainActivitySummary: Codable, Sendable {
+    let injuryID: String
+    let lastPainLevel: Int
+    let lastRecordedDate: Date
+}
+
 // MARK: - WorkoutGenerationContext
 
 struct WorkoutGenerationContext: Codable, Sendable {
@@ -107,4 +119,40 @@ struct WorkoutGenerationContext: Codable, Sendable {
     let primaryGoal: String
     let gender: String
     let weightUnit: String
+
+    let desiredSkills: [String]
+    let benchmarkSummaries: [BenchmarkSummary]
+    let bodyWeightKg: Double?
+    let recentPainActivity: [PainActivitySummary]
+    let workoutCompletionRate: Double?
+
+    init(
+        userID: String, timeMinutes: Int, focus: WorkoutFocus, energyLevel: EnergyLevel,
+        equipment: EquipmentAccess, maxes: [ExerciseMax], recentWorkouts: [RecentWorkoutSummary],
+        cyclePhase: String?, readinessTier: String?, activeInjuries: [InjurySummary],
+        experienceLevel: String, primaryGoal: String, gender: String, weightUnit: String,
+        desiredSkills: [String] = [], benchmarkSummaries: [BenchmarkSummary] = [],
+        bodyWeightKg: Double? = nil, recentPainActivity: [PainActivitySummary] = [],
+        workoutCompletionRate: Double? = nil
+    ) {
+        self.userID = userID
+        self.timeMinutes = timeMinutes
+        self.focus = focus
+        self.energyLevel = energyLevel
+        self.equipment = equipment
+        self.maxes = maxes
+        self.recentWorkouts = recentWorkouts
+        self.cyclePhase = cyclePhase
+        self.readinessTier = readinessTier
+        self.activeInjuries = activeInjuries
+        self.experienceLevel = experienceLevel
+        self.primaryGoal = primaryGoal
+        self.gender = gender
+        self.weightUnit = weightUnit
+        self.desiredSkills = desiredSkills
+        self.benchmarkSummaries = benchmarkSummaries
+        self.bodyWeightKg = bodyWeightKg
+        self.recentPainActivity = recentPainActivity
+        self.workoutCompletionRate = workoutCompletionRate
+    }
 }

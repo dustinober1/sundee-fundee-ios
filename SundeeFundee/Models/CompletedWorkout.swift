@@ -60,6 +60,7 @@ final class CompletedSet {
     var completedAt: Date
     var actualTimeSeconds: Double?
     var scoringTypeRaw: String?
+    var generatedWorkoutID: String?
 
     init(
         id: String,
@@ -74,7 +75,8 @@ final class CompletedSet {
         isCompleted: Bool = false,
         completedAt: Date = .now,
         actualTimeSeconds: Double? = nil,
-        scoringTypeRaw: String? = nil
+        scoringTypeRaw: String? = nil,
+        generatedWorkoutID: String? = nil
     ) {
         self.id = id
         self.userID = userID
@@ -89,5 +91,6 @@ final class CompletedSet {
         self.completedAt = completedAt
         self.actualTimeSeconds = actualTimeSeconds
         self.scoringTypeRaw = scoringTypeRaw
+        self.generatedWorkoutID = generatedWorkoutID
     }
 }

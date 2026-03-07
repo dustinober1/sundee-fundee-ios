@@ -21,7 +21,7 @@ final class WODExecutionViewModelTests: XCTestCase {
         reps: ExerciseValue = .fixed(5),
         percent1RM: Double? = nil,
         restMinutes: Double? = 2.0,
-        bodyweightOnly: Bool? = false
+        bodyweightOnly: Bool = false
     ) -> ProgramExercise {
         ProgramExercise(
             exercise: name,
@@ -36,7 +36,7 @@ final class WODExecutionViewModelTests: XCTestCase {
     }
 
     private func makeTestStore() throws -> (container: ModelContainer, context: ModelContext) {
-        let schema = Schema(AppSchemaV1.models)
+        let schema = Schema(AppSchemaV10.models)
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
         let container = try ModelContainer(for: schema, configurations: [config])
         return (container, ModelContext(container))

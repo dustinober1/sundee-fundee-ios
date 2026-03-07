@@ -27,15 +27,15 @@ final class SwiftUISmokeTestsA: XCTestCase {
     private let fixedDate = Date(timeIntervalSince1970: 1_700_000_000)
 
     private func makeTestStore() throws -> TestStore {
-        let schema = Schema(AppSchemaV1.models)
+        let schema = Schema(AppSchemaV10.models)
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
         let container = try ModelContainer(for: schema, configurations: [config])
         return TestStore(container: container, context: ModelContext(container))
     }
 
     @discardableResult
-    private func host<Content: View>(_ view: Content, triggerAppearance: Bool = false) -> UIHostingController<Content> {
-        let controller = UIHostingController(rootView: view)
+    private func host<Content: View>(_ view: Content, triggerAppearance: Bool = false) -> UIHostingController<some View> {
+        let controller = UIHostingController(rootView: view.environment(AppState()))
         controller.loadViewIfNeeded()
 
         if triggerAppearance {
@@ -65,7 +65,7 @@ final class SwiftUISmokeTestsA: XCTestCase {
             percent1RM: nil,
             restMinutes: restMinutes,
             notes: notes,
-            bodyweightOnly: nil
+            bodyweightOnly: false
         )
     }
 
@@ -96,11 +96,11 @@ final class SwiftUISmokeTestsA: XCTestCase {
             sessionsPerWeek: 1,
             difficulty: "beginner",
             phases: phases,
+            cycleAdjustmentProfile: nil,
             weeks: [
                 ProgramWeek(week: 1, phaseID: "phase-1", isTestWeek: false, sessions: [session]),
                 ProgramWeek(week: 2, phaseID: "phase-1", isTestWeek: false, sessions: [session])
-            ],
-            cycleAdjustmentProfile: nil
+            ]
         )
     }
 
@@ -233,7 +233,7 @@ final class SwiftUISmokeTestsA: XCTestCase {
                 .modelContainer(store.container),
             triggerAppearance: true
         ).view)
-        _ = ProgramDetailView(program: program, viewModel: activeVM).body
+        // ProgramDetailView.body requires @Environment(AppState.self); tested via host() above
 
         let switchingVM = ProgramListViewModel(programRepo: repository)
         switchingVM.activeEnrollment = makeEnrollment(id: "enroll-other", programID: "different-program")
@@ -242,7 +242,7 @@ final class SwiftUISmokeTestsA: XCTestCase {
                 .modelContainer(store.container),
             triggerAppearance: true
         ).view)
-        _ = ProgramDetailView(program: program, viewModel: switchingVM).body
+        // ProgramDetailView.body requires @Environment(AppState.self); tested via host() above
 
         let freshVM = ProgramListViewModel(programRepo: repository)
         XCTAssertNotNil(host(
@@ -250,7 +250,7 @@ final class SwiftUISmokeTestsA: XCTestCase {
                 .modelContainer(store.container),
             triggerAppearance: true
         ).view)
-        _ = ProgramDetailView(program: program, viewModel: freshVM).body
+        // ProgramDetailView.body requires @Environment(AppState.self); tested via host() above
     }
 
     func testWorkoutExecutionAndSummaryHost() throws {
@@ -281,7 +281,7 @@ final class SwiftUISmokeTestsA: XCTestCase {
                 .modelContainer(store.container),
             triggerAppearance: true
         ).view)
-        _ = WorkoutExecutionView(viewModel: restVM).body
+        // WorkoutExecutionView.body requires @Environment(AppState.self); tested via host() above
 
         let workoutSubviews = host(
             VStack {

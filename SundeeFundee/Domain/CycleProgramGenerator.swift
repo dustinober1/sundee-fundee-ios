@@ -100,8 +100,8 @@ enum CycleProgramGenerator {
             sessionsPerWeek: program.sessionsPerWeek,
             difficulty: program.difficulty,
             phases: program.phases,
-            weeks: adaptedWeeks,
-            cycleAdjustmentProfile: program.cycleAdjustmentProfile
+            cycleAdjustmentProfile: program.cycleAdjustmentProfile,
+            weeks: adaptedWeeks
         )
     }
 

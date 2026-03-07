@@ -157,3 +157,19 @@ protocol AIWorkoutServiceProtocol: Sendable {
     func toggleFavorite(workoutID: String, isFavorite: Bool) async throws
     func fetchFavorites(userID: String) async throws -> [GeneratedWorkout]
 }
+
+// MARK: - SharedWorkoutRepository
+
+protocol SharedWorkoutRepository: Sendable {
+    func fetchShared(focus: String?, maxDuration: Int?) async throws -> [SharedWorkoutTemplate]
+    func contribute(_ workout: GeneratedWorkout, userID: String) async throws
+}
+
+// MARK: - SharedWorkoutTemplate (lightweight DTO)
+
+struct SharedWorkoutTemplate: Identifiable, Sendable {
+    let id: String
+    let workout: GeneratedWorkout
+    let durationMinutes: Int
+    let downloadedAt: Date
+}

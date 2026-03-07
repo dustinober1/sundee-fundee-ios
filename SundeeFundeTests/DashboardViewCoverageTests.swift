@@ -42,7 +42,7 @@ final class DashboardViewCoverageTests: XCTestCase {
     private let fixedDate = Date(timeIntervalSince1970: 1_700_000_000)
 
     private func makeTestStore() throws -> TestStore {
-        let schema = Schema(AppSchemaV1.models)
+        let schema = Schema(AppSchemaV10.models)
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
         let container = try ModelContainer(for: schema, configurations: [config])
         return TestStore(container: container, context: ModelContext(container))
@@ -108,8 +108,8 @@ final class DashboardViewCoverageTests: XCTestCase {
             sessionsPerWeek: 1,
             difficulty: "beginner",
             phases: [],
-            weeks: [ProgramWeek(week: 1, phaseID: nil, isTestWeek: false, sessions: [session])],
-            cycleAdjustmentProfile: nil
+            cycleAdjustmentProfile: nil,
+            weeks: [ProgramWeek(week: 1, phaseID: "", isTestWeek: false, sessions: [session])]
         )
     }
 
@@ -338,11 +338,11 @@ final class DashboardViewCoverageTests: XCTestCase {
             id: "prog", name: "P", category: "S", description: "",
             durationWeeks: 2, sessionsPerWeek: 2, difficulty: "beginner",
             phases: [],
+            cycleAdjustmentProfile: nil,
             weeks: [
-                ProgramWeek(week: 1, phaseID: nil, isTestWeek: false, sessions: [session1, session2]),
-                ProgramWeek(week: 2, phaseID: nil, isTestWeek: false, sessions: [session1])
-            ],
-            cycleAdjustmentProfile: nil
+                ProgramWeek(week: 1, phaseID: "", isTestWeek: false, sessions: [session1, session2]),
+                ProgramWeek(week: 2, phaseID: "", isTestWeek: false, sessions: [session1])
+            ]
         )
         let next = DashboardViewModel.nextPosition(currentWeek: 1, currentDay: 1, program: program)
         XCTAssertEqual(next.week, 1)
@@ -355,11 +355,11 @@ final class DashboardViewCoverageTests: XCTestCase {
             id: "prog", name: "P", category: "S", description: "",
             durationWeeks: 2, sessionsPerWeek: 1, difficulty: "beginner",
             phases: [],
+            cycleAdjustmentProfile: nil,
             weeks: [
-                ProgramWeek(week: 1, phaseID: nil, isTestWeek: false, sessions: [session]),
-                ProgramWeek(week: 2, phaseID: nil, isTestWeek: false, sessions: [session])
-            ],
-            cycleAdjustmentProfile: nil
+                ProgramWeek(week: 1, phaseID: "", isTestWeek: false, sessions: [session]),
+                ProgramWeek(week: 2, phaseID: "", isTestWeek: false, sessions: [session])
+            ]
         )
         let next = DashboardViewModel.nextPosition(currentWeek: 1, currentDay: 1, program: program)
         XCTAssertEqual(next.week, 2)
@@ -372,8 +372,8 @@ final class DashboardViewCoverageTests: XCTestCase {
             id: "prog", name: "P", category: "S", description: "",
             durationWeeks: 1, sessionsPerWeek: 1, difficulty: "beginner",
             phases: [],
-            weeks: [ProgramWeek(week: 1, phaseID: nil, isTestWeek: false, sessions: [session])],
-            cycleAdjustmentProfile: nil
+            cycleAdjustmentProfile: nil,
+            weeks: [ProgramWeek(week: 1, phaseID: "", isTestWeek: false, sessions: [session])]
         )
         let next = DashboardViewModel.nextPosition(currentWeek: 1, currentDay: 1, program: program)
         XCTAssertEqual(next.week, 1)
@@ -386,8 +386,8 @@ final class DashboardViewCoverageTests: XCTestCase {
             id: "prog", name: "P", category: "S", description: "",
             durationWeeks: 1, sessionsPerWeek: 1, difficulty: "beginner",
             phases: [],
-            weeks: [ProgramWeek(week: 1, phaseID: nil, isTestWeek: false, sessions: [session])],
-            cycleAdjustmentProfile: nil
+            cycleAdjustmentProfile: nil,
+            weeks: [ProgramWeek(week: 1, phaseID: "", isTestWeek: false, sessions: [session])]
         )
         let next = DashboardViewModel.nextPosition(currentWeek: 99, currentDay: 1, program: program)
         XCTAssertEqual(next.week, 99)
@@ -403,11 +403,11 @@ final class DashboardViewCoverageTests: XCTestCase {
             id: "prog", name: "P", category: "S", description: "",
             durationWeeks: 2, sessionsPerWeek: 2, difficulty: "beginner",
             phases: [],
+            cycleAdjustmentProfile: nil,
             weeks: [
-                ProgramWeek(week: 1, phaseID: nil, isTestWeek: false, sessions: [session1, session2]),
-                ProgramWeek(week: 2, phaseID: nil, isTestWeek: false, sessions: [session1])
-            ],
-            cycleAdjustmentProfile: nil
+                ProgramWeek(week: 1, phaseID: "", isTestWeek: false, sessions: [session1, session2]),
+                ProgramWeek(week: 2, phaseID: "", isTestWeek: false, sessions: [session1])
+            ]
         )
         let prev = DashboardViewModel.previousPosition(currentWeek: 1, currentDay: 2, program: program)
         XCTAssertEqual(prev.week, 1)
@@ -421,11 +421,11 @@ final class DashboardViewCoverageTests: XCTestCase {
             id: "prog", name: "P", category: "S", description: "",
             durationWeeks: 2, sessionsPerWeek: 2, difficulty: "beginner",
             phases: [],
+            cycleAdjustmentProfile: nil,
             weeks: [
-                ProgramWeek(week: 1, phaseID: nil, isTestWeek: false, sessions: [session1, session2]),
-                ProgramWeek(week: 2, phaseID: nil, isTestWeek: false, sessions: [session1])
-            ],
-            cycleAdjustmentProfile: nil
+                ProgramWeek(week: 1, phaseID: "", isTestWeek: false, sessions: [session1, session2]),
+                ProgramWeek(week: 2, phaseID: "", isTestWeek: false, sessions: [session1])
+            ]
         )
         let prev = DashboardViewModel.previousPosition(currentWeek: 2, currentDay: 1, program: program)
         XCTAssertEqual(prev.week, 1)
@@ -438,8 +438,8 @@ final class DashboardViewCoverageTests: XCTestCase {
             id: "prog", name: "P", category: "S", description: "",
             durationWeeks: 1, sessionsPerWeek: 1, difficulty: "beginner",
             phases: [],
-            weeks: [ProgramWeek(week: 1, phaseID: nil, isTestWeek: false, sessions: [session])],
-            cycleAdjustmentProfile: nil
+            cycleAdjustmentProfile: nil,
+            weeks: [ProgramWeek(week: 1, phaseID: "", isTestWeek: false, sessions: [session])]
         )
         let prev = DashboardViewModel.previousPosition(currentWeek: 1, currentDay: 1, program: program)
         XCTAssertEqual(prev.week, 1)
@@ -496,8 +496,8 @@ final class DashboardViewCoverageTests: XCTestCase {
             id: "prog-skip", name: "Skip Test", category: "S", description: "",
             durationWeeks: 1, sessionsPerWeek: 2, difficulty: "beginner",
             phases: [],
-            weeks: [ProgramWeek(week: 1, phaseID: nil, isTestWeek: false, sessions: [session1, session2])],
-            cycleAdjustmentProfile: nil
+            cycleAdjustmentProfile: nil,
+            weeks: [ProgramWeek(week: 1, phaseID: "", isTestWeek: false, sessions: [session1, session2])]
         )
         let enrollment = makeEnrollment(programID: program.id, currentWeek: 1, currentDay: 1)
         store.context.insert(enrollment)
@@ -535,8 +535,8 @@ final class DashboardViewCoverageTests: XCTestCase {
             id: "prog-del", name: "Delete Test", category: "S", description: "",
             durationWeeks: 1, sessionsPerWeek: 2, difficulty: "beginner",
             phases: [],
-            weeks: [ProgramWeek(week: 1, phaseID: nil, isTestWeek: false, sessions: [session1, session2])],
-            cycleAdjustmentProfile: nil
+            cycleAdjustmentProfile: nil,
+            weeks: [ProgramWeek(week: 1, phaseID: "", isTestWeek: false, sessions: [session1, session2])]
         )
         // Enrollment is at day 2 (after completing day 1)
         let enrollment = makeEnrollment(programID: program.id, currentWeek: 1, currentDay: 2)

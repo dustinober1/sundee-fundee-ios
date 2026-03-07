@@ -273,6 +273,12 @@ final class WorkoutSummaryViewModel {
                     return exerciseSets.compactMap { $0.actualReps.map(Double.init) }.max()
                 case .time:
                     return exerciseSets.compactMap { $0.actualTimeSeconds }.filter { $0 > 0 }.min()
+                case .distance:
+                    return exerciseSets.compactMap { $0.actualTimeSeconds }.max()
+                case .roundsAndReps:
+                    return exerciseSets.compactMap { $0.actualReps.map(Double.init) }.max()
+                case .weight:
+                    return exerciseSets.compactMap { $0.actualWeightKg }.max()
                 }
             }()
 

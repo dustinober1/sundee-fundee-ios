@@ -268,7 +268,7 @@ struct CycleAdaptationPolicyAdditionalTests {
             fallbackPhase: "follicular",
             lowConfidenceScale: 0.7,
             phaseSettings: [
-                "ovulation": ProgramPhaseAdjustmentSettings(
+                "ovulation": PhaseSettings(
                     loadMultiplier: 1.20,
                     setsMultiplier: 1.00,
                     repsMultiplier: 1.00
@@ -307,7 +307,7 @@ struct CycleAdaptationPolicyAdditionalTests {
             fallbackPhase: "ovulation",
             lowConfidenceScale: 1.0,
             phaseSettings: [
-                "ovulation": ProgramPhaseAdjustmentSettings(
+                "ovulation": PhaseSettings(
                     loadMultiplier: 2.0,
                     setsMultiplier: 0.1,
                     repsMultiplier: 1.0
@@ -403,7 +403,7 @@ struct CycleProgramGeneratorAdditionalTests {
             focus: "Lower",
             exercises: [ex]
         )
-        let week = ProgramWeek(week: 1, phaseID: nil, isTestWeek: nil, sessions: [session])
+        let week = ProgramWeek(week: 1, phaseID: "", isTestWeek: false, sessions: [session])
         return Program(
             id: "p-cycle",
             name: "Cycle Test",
@@ -413,8 +413,7 @@ struct CycleProgramGeneratorAdditionalTests {
             sessionsPerWeek: 1,
             difficulty: "beginner",
             phases: [],
-            weeks: [week],
-            cycleAdjustmentProfile: profile
+            cycleAdjustmentProfile: profile, weeks: [week]
         )
     }
 
@@ -548,7 +547,7 @@ struct ProgramParsingAdditionalTests {
             focus: "Lower",
             exercises: [exercise]
         )
-        let week = ProgramWeek(week: 1, phaseID: nil, isTestWeek: nil, sessions: [session])
+        let week = ProgramWeek(week: 1, phaseID: "", isTestWeek: false, sessions: [session])
         return Program(
             id: id,
             name: name,
@@ -558,8 +557,7 @@ struct ProgramParsingAdditionalTests {
             sessionsPerWeek: 1,
             difficulty: "beginner",
             phases: [],
-            weeks: [week],
-            cycleAdjustmentProfile: nil
+            cycleAdjustmentProfile: nil, weeks: [week]
         )
     }
 
@@ -628,7 +626,7 @@ struct ProgramParsingAdditionalTests {
         let program = try JSONDecoder().decode(Program.self, from: Data(json.utf8))
         let session = program.weeks[0].sessions[0]
         #expect(program.weeks[0].phaseID == "base")
-        #expect(session.id == "s1")
+        #expect(session.sessionID == "s1")
         #expect(fixedValue(session.exercises[0].sets) == 3)
         #expect(rangeValue(session.exercises[0].reps) == [5, 7])
         #expect(isAMRAP(session.exercises[1].sets) == true)
@@ -675,7 +673,7 @@ struct ProgramParsingAdditionalTests {
         #expect(profile.lowConfidenceScale == 0.7)
         #expect(profile.phaseSettings.isEmpty)
 
-        let defaults = ProgramPhaseAdjustmentSettings()
+        let defaults = PhaseSettings()
         #expect(defaults.loadMultiplier == 1.0)
         #expect(defaults.setsMultiplier == 1.0)
         #expect(defaults.repsMultiplier == 1.0)
@@ -777,11 +775,11 @@ struct CycleProgramGeneratorNoteTests {
             sessionType: "strength", focus: "Lower",
             exercises: [ex]
         )
-        let week = ProgramWeek(week: 1, phaseID: nil, isTestWeek: nil, sessions: [session])
+        let week = ProgramWeek(week: 1, phaseID: "", isTestWeek: false, sessions: [session])
         let program = Program(
             id: "p1", name: "Test", category: "Strength", description: "",
             durationWeeks: 1, sessionsPerWeek: 1, difficulty: "beginner",
-            phases: [], weeks: [week], cycleAdjustmentProfile: nil
+            phases: [], cycleAdjustmentProfile: nil, weeks: [week]
         )
         let adapted = CycleProgramGenerator.adaptProgram(
             program,

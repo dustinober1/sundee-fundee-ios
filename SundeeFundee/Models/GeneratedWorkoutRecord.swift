@@ -14,13 +14,17 @@ final class GeneratedWorkoutRecord {
     var isFavorite: Bool
     /// JSON-encoded `GeneratedWorkout` struct.
     var workoutJSON: String
+    var isCompleted: Bool
+    var contributedToDatabase: Bool
 
-    init(id: String, userID: String, createdAt: Date, isFavorite: Bool, workoutJSON: String) {
+    init(id: String, userID: String, createdAt: Date, isFavorite: Bool, workoutJSON: String, isCompleted: Bool = false, contributedToDatabase: Bool = false) {
         self.id = id
         self.userID = userID
         self.createdAt = createdAt
         self.isFavorite = isFavorite
         self.workoutJSON = workoutJSON
+        self.isCompleted = isCompleted
+        self.contributedToDatabase = contributedToDatabase
     }
 
     /// Decodes the stored JSON back into the domain struct.
@@ -32,7 +36,7 @@ final class GeneratedWorkoutRecord {
     }
 
     /// Creates a record from a domain struct.
-    static func from(_ workout: GeneratedWorkout, userID: String) -> GeneratedWorkoutRecord? {
+    static func from(_ workout: GeneratedWorkout, userID: String, isCompleted: Bool = false, contributedToDatabase: Bool = false) -> GeneratedWorkoutRecord? {
         guard let data = try? JSONEncoder().encode(workout),
               let json = String(data: data, encoding: .utf8) else { return nil }
         return GeneratedWorkoutRecord(
@@ -40,7 +44,9 @@ final class GeneratedWorkoutRecord {
             userID: userID,
             createdAt: workout.createdAt,
             isFavorite: workout.isFavorite,
-            workoutJSON: json
+            workoutJSON: json,
+            isCompleted: isCompleted,
+            contributedToDatabase: contributedToDatabase
         )
     }
 }

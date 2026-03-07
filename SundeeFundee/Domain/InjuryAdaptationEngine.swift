@@ -39,8 +39,8 @@ enum InjuryAdaptationEngine {
             sessionsPerWeek: program.sessionsPerWeek,
             difficulty: program.difficulty,
             phases: program.phases,
-            weeks: adaptedWeeks,
-            cycleAdjustmentProfile: program.cycleAdjustmentProfile
+            cycleAdjustmentProfile: program.cycleAdjustmentProfile,
+            weeks: adaptedWeeks
         )
     }
 
@@ -90,8 +90,8 @@ enum InjuryAdaptationEngine {
             sessionsPerWeek: program.sessionsPerWeek,
             difficulty: program.difficulty,
             phases: program.phases,
-            weeks: adaptedWeeks,
-            cycleAdjustmentProfile: program.cycleAdjustmentProfile
+            cycleAdjustmentProfile: program.cycleAdjustmentProfile,
+            weeks: adaptedWeeks
         )
 
         return AdaptationResult(program: adaptedProgram, adaptedExercises: metadata)
@@ -346,7 +346,7 @@ enum InjuryAdaptationEngine {
                         percent1RM:    nil,
                         restMinutes:   1,
                         notes:         "Recovery prep — gentle movement only",
-                        bodyweightOnly: nil
+                        bodyweightOnly: true
                     ))
                 }
             }

@@ -40,7 +40,7 @@ final class ProgramWorkoutViewCoverageTests: XCTestCase {
     }
 
     private func makeContainer() throws -> ModelContainer {
-        let schema = Schema(AppSchemaV1.models)
+        let schema = Schema(AppSchemaV10.models)
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
         return try ModelContainer(for: schema, configurations: [config])
     }
@@ -52,10 +52,8 @@ final class ProgramWorkoutViewCoverageTests: XCTestCase {
         appState: AppState? = nil,
         triggerAppearance: Bool = true
     ) -> (UIHostingController<AnyView>, UIWindow) {
-        var root = AnyView(view.modelContainer(container))
-        if let appState {
-            root = AnyView(root.environment(appState))
-        }
+        let state = appState ?? AppState()
+        var root = AnyView(view.modelContainer(container).environment(state))
 
         let controller = UIHostingController(rootView: root)
         let window = UIWindow(frame: UIScreen.main.bounds)
@@ -147,11 +145,11 @@ final class ProgramWorkoutViewCoverageTests: XCTestCase {
             sessionsPerWeek: 2,
             difficulty: "beginner",
             phases: phases,
+            cycleAdjustmentProfile: nil,
             weeks: [
-                ProgramWeek(week: 1, phaseID: phases.first?.id, isTestWeek: false, sessions: [session]),
-                ProgramWeek(week: 2, phaseID: phases.first?.id, isTestWeek: false, sessions: [session])
-            ],
-            cycleAdjustmentProfile: nil
+                ProgramWeek(week: 1, phaseID: phases.first?.id ?? "", isTestWeek: false, sessions: [session]),
+                ProgramWeek(week: 2, phaseID: phases.first?.id ?? "", isTestWeek: false, sessions: [session])
+            ]
         )
     }
 

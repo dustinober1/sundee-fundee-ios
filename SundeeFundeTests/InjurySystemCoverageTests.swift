@@ -390,8 +390,8 @@ struct InjuryAdaptationEngineExtendedTests {
     private func makeProgram(_ exerciseName: String) -> Program {
         let ex = ProgramExercise(exercise: exerciseName, variant: nil, sets: .fixed(3), reps: .fixed(5), percent1RM: 0.80, restMinutes: 3, notes: nil)
         let session = ProgramSession(sessionID: "s1", sessionName: "Day 1", sessionType: "strength", focus: "Lower", exercises: [ex])
-        let week = ProgramWeek(week: 1, phaseID: nil, isTestWeek: nil, sessions: [session])
-        return Program(id: "p1", name: "Test", category: "Test", description: "", durationWeeks: 1, sessionsPerWeek: 1, difficulty: "beginner", phases: [], weeks: [week], cycleAdjustmentProfile: nil)
+        let week = ProgramWeek(week: 1, phaseID: "", isTestWeek: false, sessions: [session])
+        return Program(id: "p1", name: "Test", category: "Test", description: "", durationWeeks: 1, sessionsPerWeek: 1, difficulty: "beginner", phases: [], cycleAdjustmentProfile: nil, weeks: [week])
     }
 
     @Test func normalizedBodyRegionsBasicLocations() {

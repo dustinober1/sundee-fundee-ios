@@ -36,7 +36,12 @@ struct GeminiPromptBuilderTests {
             experienceLevel: experienceLevel,
             primaryGoal: primaryGoal,
             gender: gender,
-            weightUnit: weightUnit
+            weightUnit: weightUnit,
+            desiredSkills: [],
+            benchmarkSummaries: [],
+            bodyWeightKg: nil,
+            recentPainActivity: [],
+            workoutCompletionRate: nil
         )
     }
 

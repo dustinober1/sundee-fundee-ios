@@ -16,8 +16,7 @@ struct ModelRepoObservabilityCoverageWave4Tests {
             sessionsPerWeek: 1,
             difficulty: "beginner",
             phases: [],
-            weeks: [],
-            cycleAdjustmentProfile: nil
+            cycleAdjustmentProfile: nil, weeks: []
         )
     }
 
@@ -385,7 +384,7 @@ struct ModelRepoObservabilityCoverageWave4Tests {
         missingFieldRecord["id"] = "missing-fields" as NSString
 
         do {
-            _ = try Program(from: missingFieldRecord)
+            _ = try Program(record: missingFieldRecord)
             Issue.record("Expected missing fields decoding error")
         } catch ProgramDecodingError.missingFields {
             // expected
@@ -399,7 +398,7 @@ struct ModelRepoObservabilityCoverageWave4Tests {
             phasesJSON: "{bad-json",
             cycleAdjustmentProfileJSON: "{bad-json"
         )
-        let program = try Program(from: recordWithInvalidOptionals)
+        let program = try Program(record: recordWithInvalidOptionals)
         #expect(program.phases.isEmpty)
         #expect(program.cycleAdjustmentProfile == nil)
     }

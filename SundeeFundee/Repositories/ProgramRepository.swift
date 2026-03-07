@@ -98,7 +98,7 @@ final class CloudKitProgramRepository: ProgramRepository, @unchecked Sendable {
         let matchResults = try await cloudRecordFetcher(query)
         return try matchResults.compactMap { _, recordResult -> Program? in
             let record = try recordResult.get()
-            return try Program(from: record)
+            return try Program(record: record)
         }
     }
 }

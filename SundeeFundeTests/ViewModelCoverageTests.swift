@@ -19,7 +19,7 @@ private final class ViewModelCoverageTempModel {
 
 @MainActor
 private func makeTestStore() throws -> TestStore {
-    let schema = Schema(AppSchemaV6.models)
+    let schema = Schema(AppSchemaV10.models)
     let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
     let container = try ModelContainer(for: schema, configurations: [config])
     return TestStore(container: container, context: ModelContext(container))
@@ -27,7 +27,7 @@ private func makeTestStore() throws -> TestStore {
 
 @MainActor
 private func makeV8TestStore() throws -> TestStore {
-    let schema = Schema(AppSchemaV8.models)
+    let schema = Schema(AppSchemaV10.models)
     let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
     let container = try ModelContainer(for: schema, configurations: [config])
     return TestStore(container: container, context: ModelContext(container))
@@ -35,7 +35,7 @@ private func makeV8TestStore() throws -> TestStore {
 
 @MainActor
 private func makeV7TestStore() throws -> TestStore {
-    let schema = Schema(AppSchemaV7.models)
+    let schema = Schema(AppSchemaV10.models)
     let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
     let container = try ModelContainer(for: schema, configurations: [config])
     return TestStore(container: container, context: ModelContext(container))
@@ -132,7 +132,7 @@ private func makeSession(
 }
 
 private func makeWeek(_ week: Int, sessions: [ProgramSession]) -> ProgramWeek {
-    ProgramWeek(week: week, phaseID: nil, isTestWeek: nil, sessions: sessions)
+    ProgramWeek(week: week, phaseID: "", isTestWeek: false, sessions: sessions)
 }
 
 private func makeProgram(id: String = "p1", weeks: [ProgramWeek]) -> Program {
@@ -145,8 +145,8 @@ private func makeProgram(id: String = "p1", weeks: [ProgramWeek]) -> Program {
         sessionsPerWeek: weeks.first?.sessions.count ?? 1,
         difficulty: "beginner",
         phases: [],
-        weeks: weeks,
-        cycleAdjustmentProfile: nil
+        cycleAdjustmentProfile: nil,
+        weeks: weeks
     )
 }
 
