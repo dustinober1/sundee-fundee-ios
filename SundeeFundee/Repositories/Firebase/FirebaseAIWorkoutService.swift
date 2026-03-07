@@ -56,14 +56,14 @@ final class SwiftDataAIWorkoutService: AIWorkoutServiceProtocol, @unchecked Send
         modelContext.insert(record)
         try? modelContext.save()
 
-        // Auto-contribute anonymized copy to public DB
+        // Fire-and-forget: contribute anonymized copy to public DB
         if let sharedRepository {
-            do {
-                try await sharedRepository.contribute(workout, userID: context.userID)
-                record.contributedToDatabase = true
-                try? modelContext.save()
-            } catch {
-                print("[AIWorkoutService] Public contribution failed: \(error)")
+            Task.detached { [sharedRepository] in
+                do {
+                    try await sharedRepository.contribute(workout, userID: context.userID)
+                } catch {
+                    print("[AIWorkoutService] Public contribution failed: \(error)")
+                }
             }
         }
 
