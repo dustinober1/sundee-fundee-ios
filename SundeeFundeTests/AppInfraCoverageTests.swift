@@ -230,8 +230,8 @@ struct AppInfraCoverageTests {
 
     @Test
     func migrationPlan_includesV6toV7() {
-        #expect(AppSchemaMigrationPlan.schemas.count == 4)
-        #expect(AppSchemaMigrationPlan.stages.count == 3)
+        #expect(AppSchemaMigrationPlan.schemas.count == 5)
+        #expect(AppSchemaMigrationPlan.stages.count == 4)
     }
 
     @Test
@@ -242,9 +242,9 @@ struct AppInfraCoverageTests {
     }
 
     @Test
-    func migrationPlanIncludesV8() {
+    func migrationPlanIncludesV9() {
         let schemas = AppSchemaMigrationPlan.schemas
-        #expect(schemas.count == 4)
-        #expect(schemas.last is AppSchemaV8.Type)
+        #expect(schemas.count == 5)
+        #expect(schemas.last is AppSchemaV9.Type)
     }
 }
