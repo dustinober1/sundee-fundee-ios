@@ -707,6 +707,9 @@ struct StartAIWorkoutDestination: Hashable {}
 // MARK: - AIWorkoutCTACard
 
 struct AIWorkoutCTACard: View {
+    @Environment(SubscriptionService.self) private var subscriptionService
+    @State private var showPaywall = false
+
     var body: some View {
         VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
             HStack {
@@ -725,20 +728,43 @@ struct AIWorkoutCTACard: View {
                     .foregroundStyle(AppTheme.Colors.accentOrange)
             }
 
-            Text("Generate a personalized workout based on your goals, maxes, and how you're feeling today.")
+            Text(Self.subtitleText(for: subscriptionService.currentTier))
                 .font(AppTheme.Fonts.caption)
                 .foregroundStyle(AppTheme.Colors.navy.opacity(0.6))
 
-            NavigationLink(value: StartAIWorkoutDestination()) {
-                Label("New AI Workout", systemImage: "sparkles")
-                    .frame(maxWidth: .infinity)
+            if subscriptionService.currentTier == .free {
+                Button {
+                    showPaywall = true
+                } label: {
+                    Label(Self.ctaText(for: .free), systemImage: "lock.fill")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(PrimaryButtonStyle())
+            } else {
+                NavigationLink(value: StartAIWorkoutDestination()) {
+                    Label(Self.ctaText(for: subscriptionService.currentTier), systemImage: "sparkles")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(PrimaryButtonStyle())
+                .accessibilityIdentifier("start-ai-workout-button")
             }
-            .buttonStyle(PrimaryButtonStyle())
-            .accessibilityIdentifier("start-ai-workout-button")
         }
         .padding(AppTheme.Spacing.md)
         .background(AppTheme.Colors.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: AppTheme.CornerRadius.card))
         .shadow(color: .black.opacity(0.08), radius: 6, x: 0, y: 3)
+        .sheet(isPresented: $showPaywall) {
+            PaywallView(reason: .needsSubscription)
+        }
+    }
+
+    static func ctaText(for tier: SubscriptionTier) -> String {
+        tier == .free ? "Upgrade to Unlock" : "New AI Workout"
+    }
+
+    static func subtitleText(for tier: SubscriptionTier) -> String {
+        tier == .free
+            ? "Upgrade to unlock AI-powered workouts tailored to your goals."
+            : "Generate a personalized workout based on your goals, maxes, and how you're feeling today."
     }
 }

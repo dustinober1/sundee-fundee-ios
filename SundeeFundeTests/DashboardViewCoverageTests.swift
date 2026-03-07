@@ -271,6 +271,7 @@ final class DashboardViewCoverageTests: XCTestCase {
                 DashboardView(viewModel: viewModel)
             }
             .environment(appState)
+            .environment(SubscriptionService())
             .modelContainer(store.container)
         ).view)
     }
@@ -295,6 +296,7 @@ final class DashboardViewCoverageTests: XCTestCase {
                 DashboardView(viewModel: viewModel)
             }
             .environment(appState)
+            .environment(SubscriptionService())
             .modelContainer(store.container)
         ).view)
     }
@@ -694,6 +696,7 @@ final class DashboardViewCoverageTests: XCTestCase {
                 DashboardView(viewModel: viewModel)
             }
             .environment(appState)
+            .environment(SubscriptionService())
             .modelContainer(store.container)
         ).view)
     }
@@ -724,10 +727,12 @@ final class DashboardViewCoverageTests: XCTestCase {
 
     func testAIWorkoutCTACardRendersWithoutCrash() throws {
         let store = try makeTestStore()
+        let service = SubscriptionService()
         XCTAssertNotNil(host(
             NavigationStack {
                 AIWorkoutCTACard()
             }
+            .environment(service)
             .modelContainer(store.container)
         ).view)
     }
@@ -765,6 +770,7 @@ final class DashboardViewCoverageTests: XCTestCase {
                 destination: destination
             )
             .environment(appState)
+            .environment(SubscriptionService())
             .modelContainer(store.container)
         ).view)
 
@@ -779,6 +785,7 @@ final class DashboardViewCoverageTests: XCTestCase {
                 destination: destination
             )
             .environment(appState)
+            .environment(SubscriptionService())
             .modelContainer(store.container)
         ).view)
     }
