@@ -122,11 +122,12 @@ enum CycleCalculations {
 
         let ovDay        = cycleLen - lutealLen
         let ovStart      = max(periodLen + 2, ovDay - 2)
-        let ovEnd        = min(ovDay + 2, cycleLen - lutealLen + 2)
+        let ovEnd        = max(ovStart, min(ovDay + 2, cycleLen - lutealLen + 2))
+        let follicularEnd = max(periodLen + 1, ovStart - 1)
 
         return [
             .menstrual:  PhaseBoundary(start: 1,              end: periodLen),
-            .follicular: PhaseBoundary(start: periodLen + 1,  end: ovStart - 1),
+            .follicular: PhaseBoundary(start: periodLen + 1,  end: follicularEnd),
             .ovulation:  PhaseBoundary(start: ovStart,        end: ovEnd),
             .luteal:     PhaseBoundary(start: ovEnd + 1,      end: cycleLen),
         ]

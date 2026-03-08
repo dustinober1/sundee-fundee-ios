@@ -12,9 +12,10 @@ enum OfflineWorkoutGenerator {
         let withWeights = applyWeights(exercises: scaled, maxes: context.maxes, equipment: context.equipment)
         let adjusted = applyEnergyLevel(exercises: withWeights, energy: context.energyLevel)
         let adapted = applyInjurySubstitutions(exercises: adjusted, injuries: context.activeInjuries)
+        let droppedCount = adjusted.count - adapted.count
         let phaseAdjusted = applyCyclePhase(exercises: adapted, phase: context.cyclePhase, readiness: context.readinessTier)
 
-        let summary = buildCoachingSummary(context: context, exerciseCount: phaseAdjusted.count)
+        let summary = buildCoachingSummary(context: context, exerciseCount: phaseAdjusted.count, droppedForInjury: droppedCount)
 
         return GeneratedWorkout(
             coachingSummary: summary,
@@ -350,7 +351,7 @@ enum OfflineWorkoutGenerator {
 
     // MARK: - Coaching Summary
 
-    static func buildCoachingSummary(context: WorkoutGenerationContext, exerciseCount: Int) -> String {
+    static func buildCoachingSummary(context: WorkoutGenerationContext, exerciseCount: Int, droppedForInjury: Int = 0) -> String {
         var parts: [String] = []
 
         parts.append("Generated offline: \(exerciseCount)-exercise \(context.focus.displayName.lowercased()) session targeting ~\(context.timeMinutes) minutes.")
@@ -371,6 +372,10 @@ enum OfflineWorkoutGenerator {
         if !context.activeInjuries.isEmpty {
             let locations = context.activeInjuries.map(\.location).joined(separator: ", ")
             parts.append("Exercises modified for \(locations) injury considerations.")
+        }
+
+        if droppedForInjury > 0 {
+            parts.append("\(droppedForInjury) exercise\(droppedForInjury == 1 ? " was" : "s were") removed due to injury constraints with no safe substitute available.")
         }
 
         return parts.joined(separator: " ")

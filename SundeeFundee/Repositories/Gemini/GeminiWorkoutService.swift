@@ -27,8 +27,10 @@ final class GeminiWorkoutService: Sendable {
     }
 
     func generate(from context: WorkoutGenerationContext) async throws -> GeneratedWorkout {
+        try Task.checkCancellation()
         let request = try buildRequest(from: context)
         let (data, response) = try await session.data(for: request)
+        try Task.checkCancellation()
 
         guard let httpResponse = response as? HTTPURLResponse else {
             throw GeminiServiceError.invalidResponse

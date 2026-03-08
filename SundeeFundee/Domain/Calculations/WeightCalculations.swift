@@ -91,7 +91,8 @@ enum WeightCalculations {
     static func detectPlateau(weights: [Double]) -> Bool {
         guard weights.count >= 3 else { return false }
         let last3 = Array(weights.suffix(3))
-        return (last3.max()! - last3.min()!) < 5
+        guard let maxVal = last3.max(), let minVal = last3.min() else { return false }
+        return (maxVal - minVal) < 5
     }
 }
 

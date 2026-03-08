@@ -14,7 +14,8 @@ final class SwiftDataUserRepository: UserRepository {
     }
 
     func fetchCurrentUser() throws -> User? {
-        let descriptor = FetchDescriptor<User>(sortBy: [SortDescriptor(\.createdAt, order: .reverse)])
+        var descriptor = FetchDescriptor<User>(sortBy: [SortDescriptor(\.createdAt, order: .reverse)])
+        descriptor.fetchLimit = 1
         return try context.fetch(descriptor).first
     }
 

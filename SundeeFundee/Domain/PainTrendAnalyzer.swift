@@ -25,12 +25,13 @@ enum PainTrendAnalyzer {
         let average = Double(recent.reduce(0) { $0 + $1.painLevel }) / Double(recent.count)
         let latest = logs.first?.painLevel
 
-        // Compare first half vs second half of window to determine trend
+        // Compare first half vs second half of window to determine trend.
+        // For odd counts, drop the middle element so both halves are equally sized.
         let improving: Bool
         if recent.count >= 2 {
-            let midpoint = recent.count / 2
-            let newerHalf = recent.prefix(midpoint)
-            let olderHalf = recent.dropFirst(midpoint)
+            let halfSize = recent.count / 2
+            let newerHalf = recent.prefix(halfSize)
+            let olderHalf = recent.suffix(halfSize)
             let newerAvg = Double(newerHalf.reduce(0) { $0 + $1.painLevel }) / Double(newerHalf.count)
             let olderAvg = Double(olderHalf.reduce(0) { $0 + $1.painLevel }) / Double(olderHalf.count)
             improving = newerAvg < olderAvg
