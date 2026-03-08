@@ -24,7 +24,9 @@ struct WODExecutionView: View {
                 ScrollView {
                     VStack(spacing: AppTheme.Spacing.lg) {
                         wodHeader
-                        ForEach(viewModel.wod.exercises, id: \.exercise, content: exerciseCard(for:))
+                        ForEach(Array(viewModel.wod.exercises.enumerated()), id: \.offset) { index, exercise in
+                            WODExerciseSetCard(viewModel: viewModel, exercise: exercise, exerciseIndex: index)
+                        }
                         finishButton
                             .padding(.bottom, AppTheme.Spacing.xl)
                     }
@@ -95,10 +97,6 @@ struct WODExecutionView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    private func exerciseCard(for exercise: ProgramExercise) -> some View {
-        WODExerciseSetCard(viewModel: viewModel, exercise: exercise)
-    }
-
     private var finishButton: some View {
         Button(viewModel.isSaving ? "Saving..." : "Finish WOD") {
             showFinishConfirm = true
@@ -113,9 +111,10 @@ struct WODExecutionView: View {
 struct WODExerciseSetCard: View {
     @Bindable var viewModel: WODExecutionViewModel
     let exercise: ProgramExercise
+    let exerciseIndex: Int
 
     var sets: [SetExecutionState] {
-        viewModel.exerciseSets[exercise.exercise] ?? []
+        viewModel.exerciseSets[exerciseIndex] ?? []
     }
 
     var body: some View {
@@ -165,11 +164,11 @@ struct WODExerciseSetCard: View {
                 SetRow(
                     setNumber: idx + 1,
                     state: sets[idx],
-                    onRepsChange: { viewModel.updateActualReps($0, exerciseName: exercise.exercise, setIndex: idx) },
-                    onWeightChange: { viewModel.updateActualWeight($0, exerciseName: exercise.exercise, setIndex: idx) },
+                    onRepsChange: { viewModel.updateActualReps($0, exerciseIndex: exerciseIndex, setIndex: idx) },
+                    onWeightChange: { viewModel.updateActualWeight($0, exerciseIndex: exerciseIndex, setIndex: idx) },
                     weightUnit: viewModel.weightUnit,
                     bodyweightOnly: exercise.bodyweightOnly,
-                    onToggle: { viewModel.toggleSetCompleted(exerciseName: exercise.exercise, setIndex: idx) }
+                    onToggle: { viewModel.toggleSetCompleted(exerciseIndex: exerciseIndex, setIndex: idx) }
                 )
             }
         }

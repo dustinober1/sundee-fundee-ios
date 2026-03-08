@@ -48,14 +48,14 @@ final class WODExecutionViewModelTests: XCTestCase {
         let exercises = [makeExercise(sets: .fixed(4))]
         let vm = WODExecutionViewModel(wod: makeWOD(exercises: exercises))
 
-        XCTAssertEqual(vm.exerciseSets["Back Squat"]?.count, 4)
+        XCTAssertEqual(vm.exerciseSets[0]?.count, 4)
     }
 
     func testInitializeSetsDefaultsTo3WhenNotFixed() {
         let exercises = [makeExercise(sets: .amrap)]
         let vm = WODExecutionViewModel(wod: makeWOD(exercises: exercises))
 
-        XCTAssertEqual(vm.exerciseSets["Back Squat"]?.count, 3)
+        XCTAssertEqual(vm.exerciseSets[0]?.count, 3)
     }
 
     func testInitializeSetsWithWeight() {
@@ -65,7 +65,7 @@ final class WODExecutionViewModelTests: XCTestCase {
             oneRepMaxes: ["Back Squat": 100]
         )
 
-        let sets = vm.exerciseSets["Back Squat"]!
+        let sets = vm.exerciseSets[0]!
         XCTAssertNotNil(sets[0].prescribedWeightKg)
     }
 
@@ -73,7 +73,7 @@ final class WODExecutionViewModelTests: XCTestCase {
         let exercises = [makeExercise()]
         let vm = WODExecutionViewModel(wod: makeWOD(exercises: exercises))
 
-        let sets = vm.exerciseSets["Back Squat"]!
+        let sets = vm.exerciseSets[0]!
         XCTAssertNil(sets[0].prescribedWeightKg)
     }
 
@@ -83,25 +83,25 @@ final class WODExecutionViewModelTests: XCTestCase {
         let exercises = [makeExercise()]
         let vm = WODExecutionViewModel(wod: makeWOD(exercises: exercises))
 
-        vm.updateActualReps(8, exerciseName: "Back Squat", setIndex: 0)
-        XCTAssertEqual(vm.exerciseSets["Back Squat"]?[0].actualReps, 8)
+        vm.updateActualReps(8, exerciseIndex: 0, setIndex: 0)
+        XCTAssertEqual(vm.exerciseSets[0]?[0].actualReps, 8)
     }
 
     func testUpdateActualWeight() {
         let exercises = [makeExercise()]
         let vm = WODExecutionViewModel(wod: makeWOD(exercises: exercises))
 
-        vm.updateActualWeight(100, exerciseName: "Back Squat", setIndex: 0)
-        XCTAssertEqual(vm.exerciseSets["Back Squat"]?[0].actualWeightKg, 100)
+        vm.updateActualWeight(100, exerciseIndex: 0, setIndex: 0)
+        XCTAssertEqual(vm.exerciseSets[0]?[0].actualWeightKg, 100)
     }
 
     func testToggleSetCompleted() {
         let exercises = [makeExercise()]
         let vm = WODExecutionViewModel(wod: makeWOD(exercises: exercises))
 
-        XCTAssertFalse(vm.exerciseSets["Back Squat"]![0].isCompleted)
-        vm.toggleSetCompleted(exerciseName: "Back Squat", setIndex: 0)
-        XCTAssertTrue(vm.exerciseSets["Back Squat"]![0].isCompleted)
+        XCTAssertFalse(vm.exerciseSets[0]![0].isCompleted)
+        vm.toggleSetCompleted(exerciseIndex: 0, setIndex: 0)
+        XCTAssertTrue(vm.exerciseSets[0]![0].isCompleted)
         XCTAssertTrue(vm.showRestTimer)
     }
 
@@ -109,8 +109,8 @@ final class WODExecutionViewModelTests: XCTestCase {
         let exercises = [makeExercise()]
         let vm = WODExecutionViewModel(wod: makeWOD(exercises: exercises))
 
-        vm.toggleSetCompleted(exerciseName: "Nonexistent", setIndex: 0)
-        vm.toggleSetCompleted(exerciseName: "Back Squat", setIndex: 99)
+        vm.toggleSetCompleted(exerciseIndex: 99, setIndex: 0)
+        vm.toggleSetCompleted(exerciseIndex: 0, setIndex: 99)
     }
 
     // MARK: - Rest timer
@@ -144,10 +144,10 @@ final class WODExecutionViewModelTests: XCTestCase {
         let vm = WODExecutionViewModel(wod: makeWOD(exercises: exercises))
 
         XCTAssertFalse(vm.allSetsCompleted)
-        vm.toggleSetCompleted(exerciseName: "Back Squat", setIndex: 0)
+        vm.toggleSetCompleted(exerciseIndex: 0, setIndex: 0)
         vm.dismissRestTimer()
         XCTAssertFalse(vm.allSetsCompleted)
-        vm.toggleSetCompleted(exerciseName: "Back Squat", setIndex: 1)
+        vm.toggleSetCompleted(exerciseIndex: 0, setIndex: 1)
         XCTAssertTrue(vm.allSetsCompleted)
     }
 
@@ -191,6 +191,20 @@ final class WODExecutionViewModelTests: XCTestCase {
 
         let allWorkouts = try store.context.fetch(FetchDescriptor<CompletedWorkout>())
         XCTAssertEqual(allWorkouts.count, 2) // Not ideal but tests the guard path
+    }
+
+    // MARK: - Duplicate exercise names
+
+    func testDuplicateExerciseNamesGetSeparateSets() {
+        let exercises = [
+            makeExercise(name: "Deadlift", sets: .fixed(2), percent1RM: 0.65),
+            makeExercise(name: "Deadlift", sets: .fixed(2), percent1RM: 0.75),
+        ]
+        let vm = WODExecutionViewModel(wod: makeWOD(exercises: exercises))
+
+        XCTAssertEqual(vm.exerciseSets[0]?.count, 2)
+        XCTAssertEqual(vm.exerciseSets[1]?.count, 2)
+        XCTAssertEqual(vm.exerciseSets.count, 2)
     }
 
     // MARK: - Weight unit

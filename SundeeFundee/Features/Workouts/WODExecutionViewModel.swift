@@ -8,7 +8,9 @@ final class WODExecutionViewModel {
     let barbellWeightKg: Double
     let weightUnit: WeightUnit
 
-    var exerciseSets: [String: [SetExecutionState]] = [:]
+    /// Keyed by exercise index (position in wod.exercises array) to support
+    /// duplicate exercise names (e.g. multiple Deadlift entries at different percentages).
+    var exerciseSets: [Int: [SetExecutionState]] = [:]
     var startTime: Date = .now
     var isSaving = false
     var isFinished = false
@@ -40,7 +42,7 @@ final class WODExecutionViewModel {
     // MARK: - Setup
 
     private func initializeSets() {
-        for exercise in wod.exercises {
+        for (index, exercise) in wod.exercises.enumerated() {
             let count = exercise.sets.fixedCount ?? 3
             let prescribed = exercise.reps.description
             let weight = targetWeight(for: exercise)
@@ -52,26 +54,27 @@ final class WODExecutionViewModel {
                     actualWeightKg: weight
                 )
             }
-            exerciseSets[exercise.exercise] = sets
+            exerciseSets[index] = sets
         }
     }
 
     // MARK: - Set mutations
 
-    func updateActualReps(_ reps: Int, exerciseName: String, setIndex: Int) {
-        exerciseSets[exerciseName]?[setIndex].actualReps = reps
+    func updateActualReps(_ reps: Int, exerciseIndex: Int, setIndex: Int) {
+        exerciseSets[exerciseIndex]?[setIndex].actualReps = reps
     }
 
-    func updateActualWeight(_ weight: Double, exerciseName: String, setIndex: Int) {
-        exerciseSets[exerciseName]?[setIndex].actualWeightKg = weight
+    func updateActualWeight(_ weight: Double, exerciseIndex: Int, setIndex: Int) {
+        exerciseSets[exerciseIndex]?[setIndex].actualWeightKg = weight
     }
 
-    func toggleSetCompleted(exerciseName: String, setIndex: Int) {
-        guard var sets = exerciseSets[exerciseName], setIndex < sets.count else { return }
+    func toggleSetCompleted(exerciseIndex: Int, setIndex: Int) {
+        guard var sets = exerciseSets[exerciseIndex], setIndex < sets.count else { return }
         sets[setIndex].isCompleted.toggle()
-        exerciseSets[exerciseName] = sets
+        exerciseSets[exerciseIndex] = sets
 
-        if sets[setIndex].isCompleted, let exercise = currentExercise(named: exerciseName) {
+        if sets[setIndex].isCompleted, exerciseIndex < wod.exercises.count {
+            let exercise = wod.exercises[exerciseIndex]
             let restSecs = Int((exercise.restMinutes ?? 2.0) * 60)
             startRestTimer(seconds: restSecs)
         }
@@ -123,8 +126,8 @@ final class WODExecutionViewModel {
         try? workoutRepo.save(workout)
 
         var setIndex = 0
-        for exercise in wod.exercises {
-            let sets = exerciseSets[exercise.exercise] ?? []
+        for (exIdx, exercise) in wod.exercises.enumerated() {
+            let sets = exerciseSets[exIdx] ?? []
             for (i, set) in sets.enumerated() {
                 let completedSet = CompletedSet(
                     id: UUID().uuidString,
@@ -148,10 +151,6 @@ final class WODExecutionViewModel {
     }
 
     // MARK: - Helpers
-
-    private func currentExercise(named: String) -> ProgramExercise? {
-        wod.exercises.first { $0.exercise == named }
-    }
 
     private func targetWeight(for exercise: ProgramExercise) -> Double? {
         guard let pct = exercise.percent1RM,
