@@ -62,4 +62,14 @@ struct WOD: Codable, Identifiable, Sendable, Hashable {
         exercises = try container.decode([ProgramExercise].self, forKey: .exercises)
         templateType = (try? container.decodeIfPresent(String.self, forKey: .templateType)) ?? "strength"
     }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(date, forKey: .date)
+        try container.encode(title, forKey: .title)
+        try container.encode(description, forKey: .description)
+        try container.encode(exercises, forKey: .exercises)
+        try container.encode(templateType, forKey: .templateType)
+    }
 }
