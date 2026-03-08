@@ -411,6 +411,7 @@ struct CyclePhaseBadge: View {
             .padding(.vertical, 4)
             .background(badgeColor)
             .clipShape(Capsule())
+            .accessibilityLabel("Cycle phase: \(phase.displayName)")
     }
 
     private var badgeColor: Color {

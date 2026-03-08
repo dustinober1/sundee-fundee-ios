@@ -21,6 +21,8 @@ struct SpicyRatingView: View {
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel("\(level) pepper\(level == 1 ? "" : "s")")
+                    .accessibilityHint(rating == level ? "Double tap to deselect" : "Double tap to rate \(level) out of 5")
+                    .accessibilityAddTraits(rating == level ? .isSelected : [])
                 }
             }
 

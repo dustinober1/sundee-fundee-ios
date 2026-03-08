@@ -130,7 +130,9 @@ struct SettingsView: View {
         }
         .navigationTitle("Settings")
         .confirmationDialog("Sign Out?", isPresented: $showSignOutConfirm) {
-            Button("Sign Out", role: .destructive, action: appState.signOut)
+            Button("Sign Out", role: .destructive) {
+                appState.signOut(modelContext: modelContext)
+            }
         }
         .confirmationDialog(
             "Delete Account & All Data?",

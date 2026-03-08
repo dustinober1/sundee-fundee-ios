@@ -23,7 +23,14 @@ final class AppState {
         currentUserID = nil
     }
 
-    func signOut() {
+    func signOut(modelContext: ModelContext? = nil) {
+        if let modelContext {
+            let allModelTypes: [any PersistentModel.Type] = AppSchemaV10.models
+            for type in allModelTypes {
+                try? modelContext.delete(model: type)
+            }
+            try? modelContext.save()
+        }
         KeychainHelper.deleteAppleUserID()
         authState = .signedOut
         currentUserID = nil

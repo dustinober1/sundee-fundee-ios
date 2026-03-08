@@ -35,7 +35,7 @@ struct CycleAdaptationPolicy {
         confidence: AdaptationConfidence,
         lowConfidenceScale: Double = 0.7
     ) -> Double {
-        let base = Self.confidenceScales[confidence]!
+        let base = Self.confidenceScales[confidence] ?? 1.0
         guard confidence == .low else { return base }
         return (base * lowConfidenceScale).clamped(to: 0.1...1.0)
     }
@@ -74,7 +74,7 @@ struct CycleAdaptationPolicy {
         profile: ProgramCycleAdjustmentProfile?
     ) -> ProgramExercise {
         let settings = resolvePhaseSettings(phase: phase, profile: profile)
-        let rs = Self.readinessScales[readinessTier]!
+        let rs = Self.readinessScales[readinessTier] ?? 1.0
         let cs = resolveConfidenceScale(
             confidence: confidence,
             lowConfidenceScale: profile?.lowConfidenceScale ?? 0.7
@@ -105,7 +105,7 @@ struct CycleAdaptationPolicy {
         if let ps = profile?.phaseSettings[phase.rawValue] {
             return (ps.loadMultiplier, ps.setsMultiplier, ps.repsMultiplier)
         }
-        return Self.baselinePhaseSettings[phase]!
+        return Self.baselinePhaseSettings[phase] ?? (1.0, 1.0, 1.0)
     }
 
     private func scaleValue(_ value: ExerciseValue, multiplier: Double) -> ExerciseValue {

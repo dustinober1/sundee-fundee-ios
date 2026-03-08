@@ -65,13 +65,14 @@ enum AppTheme {
         }
     }
 
-    /// Named font styles used throughout feature views
+    /// Named font styles used throughout feature views.
+    /// Uses Dynamic Type text styles for accessibility compliance.
     enum Fonts {
-        static let heading   = SwiftUI.Font.system(size: 22, weight: .bold, design: .serif)
-        static let subheading = SwiftUI.Font.system(size: 17, weight: .semibold, design: .serif)
-        static let body      = SwiftUI.Font.system(size: 15, weight: .regular)
-        static let caption   = SwiftUI.Font.system(size: 13, weight: .regular)
-        static let mono      = SwiftUI.Font.system(size: 14, weight: .medium, design: .monospaced)
+        static let heading   = SwiftUI.Font.system(.title2, design: .serif, weight: .bold)
+        static let subheading = SwiftUI.Font.system(.headline, design: .serif, weight: .semibold)
+        static let body      = SwiftUI.Font.system(.body, weight: .regular)
+        static let caption   = SwiftUI.Font.system(.caption, weight: .regular)
+        static let mono      = SwiftUI.Font.system(.footnote, design: .monospaced, weight: .medium)
     }
 }
 

@@ -68,7 +68,13 @@ enum AppModelContainer {
         }
 
         // Tier 3 — In-memory store (data lost on restart; last resort).
-        return try! makeContainer(.fallbackInMemory)
+        do {
+            let container = try makeContainer(.fallbackInMemory)
+            log("AppModelContainer: Using volatile in-memory store — data will not persist.")
+            return container
+        } catch {
+            fatalError("AppModelContainer: Cannot create any ModelContainer (even in-memory): \(error)")
+        }
     }
 
     static func makeContainer(for request: ContainerRequest) throws -> ModelContainer {
@@ -99,7 +105,11 @@ enum AppModelContainer {
     static func preview() -> ModelContainer {
         let emptySchema = Schema([] as [any PersistentModel.Type])
         let config = ModelConfiguration(schema: emptySchema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
-        return try! ModelContainer(for: emptySchema, configurations: [config])
+        do {
+            return try ModelContainer(for: emptySchema, configurations: [config])
+        } catch {
+            fatalError("AppModelContainer.preview: in-memory container failed: \(error)")
+        }
     }
 
     private static var isRunningTests: Bool {

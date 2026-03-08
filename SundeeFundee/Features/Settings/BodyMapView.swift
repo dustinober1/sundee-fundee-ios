@@ -296,6 +296,9 @@ private struct RegionHotspot: View {
         .buttonStyle(.plain)
         .contentShape(Rectangle())
         .position(position)
+        .accessibilityLabel(region.displayName)
+        .accessibilityHint(isSelected ? "Selected. Double tap to deselect" : "Double tap to select")
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 
     // Ellipse size — roughly proportional to the anatomical area

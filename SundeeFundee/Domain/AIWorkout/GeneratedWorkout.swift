@@ -149,10 +149,29 @@ struct GeneratedWorkout: Codable, Sendable, Identifiable, Equatable, Hashable {
             createdAt: createdAt,
             isFavorite: false,
             isCompleted: false,
-            coachingSummary: coachingSummary,
+            coachingSummary: Self.stripHealthReferences(from: coachingSummary),
             exercises: strippedExercises,
             questionnaire: questionnaire
         )
+    }
+
+    /// Removes cycle phase and injury references from a coaching summary for anonymous sharing.
+    static func stripHealthReferences(from summary: String) -> String {
+        var result = summary
+        let healthPatterns = [
+            #"Adjusted for \w+ phase\."#,
+            #"Exercises modified for .+ injury considerations\."#,
+        ]
+        for pattern in healthPatterns {
+            if let regex = try? NSRegularExpression(pattern: pattern) {
+                result = regex.stringByReplacingMatches(
+                    in: result,
+                    range: NSRange(result.startIndex..., in: result),
+                    withTemplate: ""
+                )
+            }
+        }
+        return result.replacingOccurrences(of: "  ", with: " ").trimmingCharacters(in: .whitespaces)
     }
 
     var totalEstimatedMinutes: Int {
