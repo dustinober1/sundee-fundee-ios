@@ -1,7 +1,7 @@
 import Foundation
 
 enum WeightUnitConversion {
-    private static let poundsPerKilogram = 2.2046226218
+    static let poundsPerKilogram = 2.2046226218
 
     static func value(fromKilograms kilograms: Double, unit: WeightUnit) -> Double {
         switch unit {

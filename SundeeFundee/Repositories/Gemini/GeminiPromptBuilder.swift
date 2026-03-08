@@ -106,7 +106,7 @@ enum GeminiPromptBuilder {
 
         // Body weight
         if let bodyWeight = context.bodyWeightKg {
-            let bodyWeightLb = bodyWeight * 2.2046226218
+            let bodyWeightLb = bodyWeight * WeightUnitConversion.poundsPerKilogram
             sections.append("Body Weight: \(Int(bodyWeightLb.rounded())) lb")
         }
 

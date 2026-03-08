@@ -73,7 +73,7 @@ final class WorkoutPreviewViewModel {
     static func exerciseSummary(_ exercise: GeneratedExercise, weightUnit: WeightUnit = .pounds) -> String {
         var parts = ["\(exercise.sets) x \(exercise.reps)"]
         if let weight = exercise.weightLb, weight > 0 {
-            let kg = weight / 2.2046226218
+            let kg = weight / WeightUnitConversion.poundsPerKilogram
             let displayed = WeightUnitConversion.format(kilograms: kg, unit: weightUnit, maximumFractionDigits: 1)
             parts.append("\(displayed) \(weightUnit.symbol)")
         }
