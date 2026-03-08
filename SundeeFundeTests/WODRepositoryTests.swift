@@ -87,6 +87,84 @@ final class WODRepositoryTests: XCTestCase {
         XCTAssertThrowsError(try WOD(record: record))
     }
 
+    // MARK: - filterPublished
+
+    func testFilterPublishedExcludesDrafts() {
+        let now = makeDateFromString("2026-03-08")
+        let wods = [
+            WOD(id: "1", date: "2026-03-08", title: "Draft", description: "d", exercises: [], templateType: "strength", publishDate: "2026-03-08", status: "draft"),
+            WOD(id: "2", date: "2026-03-08", title: "Published", description: "p", exercises: [], templateType: "strength", publishDate: "2026-03-08", status: "published")
+        ]
+        let result = CloudKitWODRepository.filterPublished(wods, now: now)
+        XCTAssertEqual(result.count, 1)
+        XCTAssertEqual(result[0].id, "2")
+    }
+
+    func testFilterPublishedExcludesFuturePublishDates() {
+        let now = makeDateFromString("2026-03-08")
+        let wods = [
+            WOD(id: "1", date: "2026-03-10", title: "Future", description: "f", exercises: [], templateType: "strength", publishDate: "2026-03-10", status: "published"),
+            WOD(id: "2", date: "2026-03-07", title: "Past", description: "p", exercises: [], templateType: "strength", publishDate: "2026-03-07", status: "published")
+        ]
+        let result = CloudKitWODRepository.filterPublished(wods, now: now)
+        XCTAssertEqual(result.count, 1)
+        XCTAssertEqual(result[0].id, "2")
+    }
+
+    func testFilterPublishedKeepsTodayAndPast() {
+        let now = makeDateFromString("2026-03-08")
+        let wods = [
+            WOD(id: "1", date: "2026-03-08", title: "Today", description: "t", exercises: [], templateType: "strength", publishDate: "2026-03-08", status: "published"),
+            WOD(id: "2", date: "2026-03-01", title: "Past", description: "p", exercises: [], templateType: "strength", publishDate: "2026-03-01", status: "published")
+        ]
+        let result = CloudKitWODRepository.filterPublished(wods, now: now)
+        XCTAssertEqual(result.count, 2)
+    }
+
+    func testFilterPublishedEmptyArrayReturnsEmpty() {
+        let now = makeDateFromString("2026-03-08")
+        let result = CloudKitWODRepository.filterPublished([], now: now)
+        XCTAssertTrue(result.isEmpty)
+    }
+
+    func testCloudKitWODRepositoryAppliesFilterOnCloudData() async throws {
+        let cloudWODs = [
+            WOD(id: "pub", date: "2026-03-01", title: "Published", description: "test", exercises: [], templateType: "strength", publishDate: "2026-03-01", status: "published"),
+            WOD(id: "draft", date: "2026-03-01", title: "Draft", description: "test", exercises: [], templateType: "strength", publishDate: "2026-03-01", status: "draft")
+        ]
+        let fallback = InMemoryWODRepository(wods: [])
+        let repo = CloudKitWODRepository(
+            fallback: fallback,
+            cloudFetcher: { cloudWODs }
+        )
+        let wods = try await repo.fetchWODs()
+        XCTAssertEqual(wods.count, 1)
+        XCTAssertEqual(wods[0].id, "pub")
+    }
+
+    func testCloudKitWODRepositoryAppliesFilterOnFallbackData() async throws {
+        let fallbackWODs = [
+            WOD(id: "pub", date: "2026-03-01", title: "Published", description: "test", exercises: [], templateType: "strength", publishDate: "2026-03-01", status: "published"),
+            WOD(id: "draft", date: "2026-03-01", title: "Draft", description: "test", exercises: [], templateType: "strength", publishDate: "2026-03-01", status: "draft")
+        ]
+        let fallback = InMemoryWODRepository(wods: fallbackWODs)
+        let repo = CloudKitWODRepository(
+            fallback: fallback,
+            cloudFetcher: { throw NSError(domain: "test", code: 1) }
+        )
+        let wods = try await repo.fetchWODs()
+        XCTAssertEqual(wods.count, 1)
+        XCTAssertEqual(wods[0].id, "pub")
+    }
+
+    // MARK: - Helpers
+
+    private func makeDateFromString(_ dateString: String) -> Date {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter.date(from: dateString)!
+    }
+
     // MARK: - CloudKit record fetcher init
 
     func testCloudKitWODRepositoryRecordFetcherInit() async throws {

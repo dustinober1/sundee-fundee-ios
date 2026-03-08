@@ -76,10 +76,19 @@ final class CloudKitWODRepository: WODRepository, @unchecked Sendable {
 
     func fetchWODs() async throws -> [WOD] {
         do {
-            return try await cloudFetcher()
+            let wods = try await cloudFetcher()
+            return Self.filterPublished(wods)
         } catch {
-            return try await fallback.fetchWODs()
+            let wods = try await fallback.fetchWODs()
+            return Self.filterPublished(wods)
         }
+    }
+
+    static func filterPublished(_ wods: [WOD], now: Date = Date()) -> [WOD] {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        let todayString = formatter.string(from: now)
+        return wods.filter { $0.status == "published" && $0.publishDate <= todayString }
     }
 
     private static func fetchFromCloudKit(_ cloudRecordFetcher: CloudRecordFetcher) async throws -> [WOD] {
