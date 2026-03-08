@@ -37,6 +37,7 @@ export default function WODEditor({ date }: WODEditorProps) {
   const [formData, setFormData] = useState<WODFormData>(emptyFormData(date));
   const [inputText, setInputText] = useState('');
   const [isExisting, setIsExisting] = useState(false);
+  const [originalDate, setOriginalDate] = useState<string | undefined>(undefined);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [generating, setGenerating] = useState(false);
@@ -68,6 +69,7 @@ export default function WODEditor({ date }: WODEditorProps) {
           exercises: existing.exercises,
         });
         setIsExisting(true);
+        setOriginalDate(existing.date);
       }
     } catch {
       // No existing WOD, that's fine
@@ -135,8 +137,9 @@ export default function WODEditor({ date }: WODEditorProps) {
     setSaving(true);
     setMessage(null);
     try {
-      await saveWOD({ ...formData, status });
+      await saveWOD({ ...formData, status }, originalDate);
       setIsExisting(true);
+      setOriginalDate(formData.date);
       setFormData((prev) => ({ ...prev, status }));
       setMessage({
         type: 'success',
@@ -298,8 +301,8 @@ export default function WODEditor({ date }: WODEditorProps) {
 
       {/* Form */}
       <div className="art-deco-card p-5 space-y-5">
-        {/* Title & Description */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Title, Date & Publish Date */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-medium text-navy mb-1">Title *</label>
             <input
@@ -307,6 +310,15 @@ export default function WODEditor({ date }: WODEditorProps) {
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               placeholder="e.g. Heavy Squat Day"
+              className="w-full px-3 py-2 border border-navy/20 rounded-md bg-white text-navy text-sm focus:outline-none focus:ring-2 focus:ring-orange"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-navy mb-1">WOD Date</label>
+            <input
+              type="date"
+              value={formData.date}
+              onChange={(e) => setFormData({ ...formData, date: e.target.value, publishDate: e.target.value })}
               className="w-full px-3 py-2 border border-navy/20 rounded-md bg-white text-navy text-sm focus:outline-none focus:ring-2 focus:ring-orange"
             />
           </div>

@@ -88,6 +88,18 @@ Programs are delivered via two channels:
 
 WODs (Workouts of the Day) are delivered via bundled `Resources/WODs/wods.json`, matched by date.
 
+### WOD Admin Dashboard
+
+A Next.js web dashboard at `wod-dashboard/` writes WODs to CloudKit Public DB via CloudKit JS SDK. Run locally with `cd wod-dashboard && npm run dev`. AI workout generation proxies through the Cloudflare Worker (see below).
+
+### Cloudflare Worker Proxy
+
+`workout-proxy.sundeefundee.workers.dev/generate-workout` proxies Gemini API calls. Uses native Gemini format (`contents`, `systemInstruction`, `generationConfig`), NOT OpenAI-compatible format.
+
+### Submodule: SundeeFundeeShared
+
+`SundeeFundee/Packages/SundeeFundeeShared/` is a git submodule. To commit changes: first `cd` into the submodule and commit there, then `git add SundeeFundee/Packages/SundeeFundeeShared` in the main repo.
+
 ### Testing
 
 - **100% line coverage is enforced** in CI (GitHub Actions parses `xccov` output).
@@ -102,6 +114,10 @@ WODs (Workouts of the Day) are delivered via bundled `Resources/WODs/wods.json`,
 The Xcode project is generated from `project.yml` via XcodeGen. **Never edit `.xcodeproj` directly** — modify `project.yml` and run `xcodegen generate`.
 
 ### Coding Conventions
+
+- **Custom `init(from decoder:)` requires `encode(to:)`** — Adding a custom Decodable init prevents auto-synthesis of Encodable. Always add both when customizing Codable.
+- **CloudKit Public DB writes require user auth** — API token alone only allows reads. Use CloudKit JS SDK with Apple ID sign-in for writes.
+- **SourceKit diagnostics are often false positives** — Always verify with `xcodebuild build` before acting on "Cannot find type" or "No such module" SourceKit errors.
 
 - **Benchmark `roundsAndReps` scoring** encodes as `rounds * 10000 + reps` in a single `Double`. Higher is better. Decode: `rounds = Int(value) / 10000`, `reps = Int(value) % 10000`.
 - **Never use `try!`** in production code — always use `(try? ...) ?? defaultValue` for repository calls. SwiftData context errors should degrade gracefully, not crash.

@@ -31,7 +31,7 @@ final class DashboardViewModel {
     init(
         programRepo: any ProgramRepository = BundledProgramRepository(),
         readinessRepo: (any ReadinessRepository)? = nil,
-        wodRepo: any WODRepository = BundledWODRepository()
+        wodRepo: any WODRepository = CloudKitWODRepository()
     ) {
         self.programRepo = programRepo
         self.readinessRepo = readinessRepo
