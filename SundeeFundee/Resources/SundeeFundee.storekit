@@ -35,7 +35,7 @@
               "locale" : "en_US"
             }
           ],
-          "productID" : "com.sundeefundee.plus.monthly",
+          "productID" : "com.sundeefundee.app.plus.monthly",
           "recurringSubscriptionPeriod" : "P1M",
           "referenceName" : "Plus Monthly",
           "subscriptionGroupID" : "sundee-fundee-premium",
@@ -62,7 +62,7 @@
               "locale" : "en_US"
             }
           ],
-          "productID" : "com.sundeefundee.pro.monthly",
+          "productID" : "com.sundeefundee.app.pro.monthly",
           "recurringSubscriptionPeriod" : "P1M",
           "referenceName" : "Pro Monthly",
           "subscriptionGroupID" : "sundee-fundee-premium",
