@@ -23,3 +23,64 @@ body {
 h1, h2, h3, h4 {
   font-family: Georgia, 'Times New Roman', serif;
 }
+
+/* Art Deco card style — reusable across components */
+.art-deco-card {
+  background: #FFFEF8;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(13, 26, 64, 0.1);
+  box-shadow:
+    0 1px 3px rgba(13, 26, 64, 0.06),
+    0 4px 12px rgba(13, 26, 64, 0.03);
+  position: relative;
+}
+
+.art-deco-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    var(--color-gold) 0%,
+    var(--color-orange) 50%,
+    var(--color-gold) 100%
+  );
+  border-radius: 0.75rem 0.75rem 0 0;
+}
+
+/* Art Deco divider — a subtle geometric accent line */
+.art-deco-divider {
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--color-gold) 20%,
+    var(--color-orange) 50%,
+    var(--color-gold) 80%,
+    transparent 100%
+  );
+  margin: 1rem 0;
+}
+
+/* Scrollbar styling for Art Deco theme */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-cream-dark);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(13, 26, 64, 0.2);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(13, 26, 64, 0.35);
+}

@@ -73,7 +73,7 @@ export default function AdminList({ initialAdmins }: AdminListProps) {
       )}
 
       {/* Add Admin Form */}
-      <div className="bg-white rounded-xl shadow-sm border border-navy/10 p-5 mb-6">
+      <div className="art-deco-card p-5 mb-6">
         <h2 className="text-lg font-bold text-navy mb-4">Add Admin</h2>
         <div className="flex items-end gap-3">
           <div className="flex-1">
@@ -110,7 +110,7 @@ export default function AdminList({ initialAdmins }: AdminListProps) {
       </div>
 
       {/* Admin List */}
-      <div className="bg-white rounded-xl shadow-sm border border-navy/10 overflow-hidden">
+      <div className="art-deco-card overflow-hidden">
         <div className="px-5 py-4 border-b border-navy/10">
           <h2 className="text-lg font-bold text-navy">Current Admins</h2>
         </div>

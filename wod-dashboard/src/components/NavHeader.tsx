@@ -12,10 +12,11 @@ export default function NavHeader() {
   ];
 
   return (
-    <header className="bg-navy text-cream border-b-4 border-orange">
+    <header className="bg-navy text-cream">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="flex items-center gap-3">
+            <span className="text-gold text-lg">&#9670;</span>
             <span className="text-2xl font-bold tracking-wide" style={{ fontFamily: 'Georgia, serif' }}>
               Sundee Fundee
             </span>
@@ -45,6 +46,13 @@ export default function NavHeader() {
           </nav>
         </div>
       </div>
+      {/* Art Deco gold-orange gradient border */}
+      <div
+        className="h-1"
+        style={{
+          background: 'linear-gradient(90deg, #D9B34A 0%, #F2731A 50%, #D9B34A 100%)',
+        }}
+      />
     </header>
   );
 }

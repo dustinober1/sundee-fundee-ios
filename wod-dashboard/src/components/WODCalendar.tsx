@@ -167,7 +167,13 @@ export default function WODCalendar() {
       </div>
 
       {loading && (
-        <div className="text-center py-12 text-navy/60">Loading WODs...</div>
+        <div className="text-center py-12 text-navy/60 flex flex-col items-center gap-2">
+          <svg className="animate-spin h-6 w-6 text-orange" viewBox="0 0 24 24" fill="none">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+          </svg>
+          Loading WODs...
+        </div>
       )}
 
       {error && (
@@ -183,7 +189,7 @@ export default function WODCalendar() {
       )}
 
       {!loading && !error && (
-        <div className="bg-white rounded-xl shadow-lg border border-navy/10 overflow-hidden">
+        <div className="art-deco-card overflow-hidden">
           {/* Day headers */}
           <div className="grid grid-cols-7 bg-navy text-cream">
             {DAYS_OF_WEEK.map((day) => (
@@ -217,7 +223,7 @@ export default function WODCalendar() {
                   key={dateStr}
                   onClick={() => handleDayClick(day)}
                   className={`min-h-[100px] p-2 border border-navy/5 text-left transition-colors hover:bg-orange/10 cursor-pointer group ${
-                    isToday ? 'bg-orange/5 ring-2 ring-inset ring-orange' : 'bg-white'
+                    isToday ? 'bg-orange/5 ring-2 ring-inset ring-orange' : 'bg-cream/60'
                   }`}
                 >
                   <div className="flex items-start justify-between">

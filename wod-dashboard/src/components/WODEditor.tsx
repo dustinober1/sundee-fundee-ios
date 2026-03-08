@@ -41,12 +41,16 @@ export default function WODEditor({ date }: WODEditorProps) {
   const [saving, setSaving] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [modeOverride, setModeOverride] = useState<'auto' | 'parser' | 'ai'>('auto');
 
-  const inputMode = inputText.trim()
+  const detectedMode = inputText.trim()
     ? isStructuredInput(inputText)
       ? 'parser'
       : 'ai'
     : null;
+
+  const inputMode = modeOverride === 'auto' ? detectedMode : (inputText.trim() ? modeOverride : null);
+  const effectiveMode = inputMode; // Used for generate logic
 
   const loadExisting = useCallback(async () => {
     try {
@@ -81,7 +85,7 @@ export default function WODEditor({ date }: WODEditorProps) {
     setGenerating(true);
     setMessage(null);
     try {
-      if (isStructuredInput(inputText)) {
+      if (effectiveMode === 'parser') {
         // Use parser
         const parsed = parseWorkoutText(inputText);
         const exercises: ProgramExercise[] = parsed.exercises.map((ex) => ({
@@ -176,7 +180,13 @@ export default function WODEditor({ date }: WODEditorProps) {
 
   if (loading) {
     return (
-      <div className="text-center py-12 text-navy/60">Loading...</div>
+      <div className="text-center py-12 text-navy/60 flex flex-col items-center gap-2">
+        <svg className="animate-spin h-6 w-6 text-orange" viewBox="0 0 24 24" fill="none">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+        </svg>
+        Loading...
+      </div>
     );
   }
 
@@ -226,22 +236,43 @@ export default function WODEditor({ date }: WODEditorProps) {
       )}
 
       {/* Text input + Generate */}
-      <div className="bg-white rounded-xl shadow-sm border border-navy/10 p-5 mb-6">
-        <div className="flex items-center justify-between mb-2">
+      <div className="art-deco-card p-5 mb-6">
+        <div className="flex items-center justify-between mb-3">
           <label className="block text-sm font-bold text-navy">
             Quick Input
           </label>
-          {inputMode && (
-            <span
-              className={`px-2 py-0.5 rounded text-xs font-bold tracking-wider ${
-                inputMode === 'parser'
-                  ? 'bg-navy text-cream'
-                  : 'bg-orange text-cream'
-              }`}
-            >
-              {inputMode === 'parser' ? 'PARSER' : 'AI'}
-            </span>
-          )}
+          <div className="flex items-center gap-2">
+            {/* Mode toggle */}
+            <div className="flex items-center bg-cream-dark/50 rounded-lg p-0.5 text-xs font-medium">
+              {(['auto', 'parser', 'ai'] as const).map((mode) => (
+                <button
+                  key={mode}
+                  onClick={() => setModeOverride(mode)}
+                  className={`px-2.5 py-1 rounded-md transition-colors capitalize ${
+                    modeOverride === mode
+                      ? mode === 'ai'
+                        ? 'bg-orange text-cream'
+                        : 'bg-navy text-cream'
+                      : 'text-navy/60 hover:text-navy'
+                  }`}
+                >
+                  {mode}
+                </button>
+              ))}
+            </div>
+            {/* Active mode indicator */}
+            {inputMode && (
+              <span
+                className={`px-2 py-0.5 rounded text-xs font-bold tracking-wider ${
+                  inputMode === 'parser'
+                    ? 'bg-navy text-cream'
+                    : 'bg-orange text-cream'
+                }`}
+              >
+                {inputMode === 'parser' ? 'PARSER' : 'AI'}
+              </span>
+            )}
+          </div>
         </div>
         <textarea
           value={inputText}
@@ -253,14 +284,20 @@ export default function WODEditor({ date }: WODEditorProps) {
         <button
           onClick={handleGenerate}
           disabled={!inputText.trim() || generating}
-          className="mt-2 px-4 py-2 bg-orange text-cream font-medium rounded-md hover:bg-orange/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-sm"
+          className="mt-2 px-4 py-2 bg-orange text-cream font-medium rounded-md hover:bg-orange/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-sm inline-flex items-center gap-2"
         >
-          {generating ? 'Generating...' : 'Generate'}
+          {generating && (
+            <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+          )}
+          {generating ? 'Generating...' : inputMode === 'parser' ? 'Parse Workout' : inputMode === 'ai' ? 'Generate with AI' : 'Generate'}
         </button>
       </div>
 
       {/* Form */}
-      <div className="bg-white rounded-xl shadow-sm border border-navy/10 p-5 space-y-5">
+      <div className="art-deco-card p-5 space-y-5">
         {/* Title & Description */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
