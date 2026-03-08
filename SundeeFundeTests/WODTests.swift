@@ -1,4 +1,5 @@
 import XCTest
+import CloudKit
 @testable import SundeeFundee
 
 @MainActor
@@ -88,6 +89,81 @@ final class WODTests: XCTestCase {
         let decoded = try JSONDecoder().decode(WOD.self, from: data)
         XCTAssertEqual(decoded.id, wod.id)
         XCTAssertEqual(decoded.exercises.count, 1)
+    }
+
+    // MARK: - templateType
+
+    func testWODDecodesWithTemplateType() throws {
+        let json = """
+        {
+            "id": "wod-tt",
+            "date": "2026-03-01",
+            "title": "AMRAP Day",
+            "description": "As many rounds as possible.",
+            "exercises": [],
+            "templateType": "amrap"
+        }
+        """
+        let data = json.data(using: .utf8)!
+        let wod = try JSONDecoder().decode(WOD.self, from: data)
+        XCTAssertEqual(wod.templateType, "amrap")
+    }
+
+    func testWODDecodesWithoutTemplateTypeDefaultsToStrength() throws {
+        let json = """
+        {
+            "id": "wod-no-tt",
+            "date": "2026-03-01",
+            "title": "Leg Day",
+            "description": "No template type in JSON.",
+            "exercises": []
+        }
+        """
+        let data = json.data(using: .utf8)!
+        let wod = try JSONDecoder().decode(WOD.self, from: data)
+        XCTAssertEqual(wod.templateType, "strength")
+    }
+
+    func testWODInitDefaultsTemplateTypeToStrength() {
+        let wod = WOD(id: "wod-def", date: "2026-03-01", title: "Default", description: "", exercises: [])
+        XCTAssertEqual(wod.templateType, "strength")
+    }
+
+    func testWODInitAcceptsCustomTemplateType() {
+        let wod = WOD(id: "wod-cust", date: "2026-03-01", title: "Custom", description: "", exercises: [], templateType: "emom")
+        XCTAssertEqual(wod.templateType, "emom")
+    }
+
+    func testWODCKRecordWithTemplateType() throws {
+        let record = CKRecord(recordType: "WOD")
+        record["id"] = "wod-ck-tt" as CKRecordValue
+        record["date"] = "2026-03-01" as CKRecordValue
+        record["title"] = "CK TT" as CKRecordValue
+        record["description"] = "With templateType" as CKRecordValue
+        record["exercisesJSON"] = "[]" as CKRecordValue
+        record["templateType"] = "forTime" as CKRecordValue
+
+        let wod = try WOD(record: record)
+        XCTAssertEqual(wod.templateType, "forTime")
+    }
+
+    func testWODCKRecordWithoutTemplateTypeDefaultsToStrength() throws {
+        let record = CKRecord(recordType: "WOD")
+        record["id"] = "wod-ck-nott" as CKRecordValue
+        record["date"] = "2026-03-01" as CKRecordValue
+        record["title"] = "CK No TT" as CKRecordValue
+        record["description"] = "Without templateType" as CKRecordValue
+        record["exercisesJSON"] = "[]" as CKRecordValue
+
+        let wod = try WOD(record: record)
+        XCTAssertEqual(wod.templateType, "strength")
+    }
+
+    func testWODRoundTripPreservesTemplateType() throws {
+        let wod = WOD(id: "wod-rt-tt", date: "2026-03-01", title: "RT", description: "", exercises: [], templateType: "circuit")
+        let data = try JSONEncoder().encode(wod)
+        let decoded = try JSONDecoder().decode(WOD.self, from: data)
+        XCTAssertEqual(decoded.templateType, "circuit")
     }
 
     // MARK: - Hashable / Equatable

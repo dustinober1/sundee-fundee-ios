@@ -13,16 +13,18 @@ struct WOD: Codable, Identifiable, Sendable, Hashable {
     let title: String
     let description: String
     let exercises: [ProgramExercise]
+    let templateType: String
 
     static func == (lhs: WOD, rhs: WOD) -> Bool { lhs.id == rhs.id }
     func hash(into hasher: inout Hasher) { hasher.combine(id) }
 
-    init(id: String, date: String, title: String, description: String, exercises: [ProgramExercise]) {
+    init(id: String, date: String, title: String, description: String, exercises: [ProgramExercise], templateType: String = "strength") {
         self.id = id
         self.date = date
         self.title = title
         self.description = description
         self.exercises = exercises
+        self.templateType = templateType
     }
 
     init(record: CKRecord) throws {
@@ -36,6 +38,7 @@ struct WOD: Codable, Identifiable, Sendable, Hashable {
         self.date = date
         self.title = title
         self.description = description
+        self.templateType = (record["templateType"] as? String) ?? "strength"
 
         if let exercisesJSON = record["exercisesJSON"] as? String,
            let data = exercisesJSON.data(using: .utf8),
@@ -44,5 +47,19 @@ struct WOD: Codable, Identifiable, Sendable, Hashable {
         } else {
             self.exercises = []
         }
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case id, date, title, description, exercises, templateType
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        date = try container.decode(String.self, forKey: .date)
+        title = try container.decode(String.self, forKey: .title)
+        description = try container.decode(String.self, forKey: .description)
+        exercises = try container.decode([ProgramExercise].self, forKey: .exercises)
+        templateType = (try? container.decodeIfPresent(String.self, forKey: .templateType)) ?? "strength"
     }
 }
