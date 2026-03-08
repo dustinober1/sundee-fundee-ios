@@ -166,6 +166,118 @@ final class WODTests: XCTestCase {
         XCTAssertEqual(decoded.templateType, "circuit")
     }
 
+    // MARK: - publishDate & status
+
+    func testWODDecodesWithoutPublishDateDefaultsToDate() throws {
+        let json = """
+        {
+            "id": "wod-no-pd",
+            "date": "2026-03-01",
+            "title": "No PD",
+            "description": "Missing publishDate.",
+            "exercises": []
+        }
+        """
+        let data = json.data(using: .utf8)!
+        let wod = try JSONDecoder().decode(WOD.self, from: data)
+        XCTAssertEqual(wod.publishDate, "2026-03-01")
+    }
+
+    func testWODDecodesWithExplicitPublishDate() throws {
+        let json = """
+        {
+            "id": "wod-pd",
+            "date": "2026-03-01",
+            "title": "With PD",
+            "description": "Has publishDate.",
+            "exercises": [],
+            "publishDate": "2026-02-25"
+        }
+        """
+        let data = json.data(using: .utf8)!
+        let wod = try JSONDecoder().decode(WOD.self, from: data)
+        XCTAssertEqual(wod.publishDate, "2026-02-25")
+    }
+
+    func testWODDecodesWithoutStatusDefaultsToPublished() throws {
+        let json = """
+        {
+            "id": "wod-no-status",
+            "date": "2026-03-01",
+            "title": "No Status",
+            "description": "Missing status.",
+            "exercises": []
+        }
+        """
+        let data = json.data(using: .utf8)!
+        let wod = try JSONDecoder().decode(WOD.self, from: data)
+        XCTAssertEqual(wod.status, "published")
+    }
+
+    func testWODDecodesWithDraftStatus() throws {
+        let json = """
+        {
+            "id": "wod-draft",
+            "date": "2026-03-01",
+            "title": "Draft WOD",
+            "description": "Draft status.",
+            "exercises": [],
+            "status": "draft"
+        }
+        """
+        let data = json.data(using: .utf8)!
+        let wod = try JSONDecoder().decode(WOD.self, from: data)
+        XCTAssertEqual(wod.status, "draft")
+    }
+
+    func testWODRoundTripPreservesPublishDateAndStatus() throws {
+        let wod = WOD(id: "wod-rt-ps", date: "2026-03-01", title: "RT", description: "", exercises: [], publishDate: "2026-02-20", status: "draft")
+        let data = try JSONEncoder().encode(wod)
+        let decoded = try JSONDecoder().decode(WOD.self, from: data)
+        XCTAssertEqual(decoded.publishDate, "2026-02-20")
+        XCTAssertEqual(decoded.status, "draft")
+    }
+
+    func testWODInitDefaultsPublishDateToDate() {
+        let wod = WOD(id: "wod-def-pd", date: "2026-03-01", title: "Default", description: "", exercises: [])
+        XCTAssertEqual(wod.publishDate, "2026-03-01")
+        XCTAssertEqual(wod.status, "published")
+    }
+
+    func testWODInitAcceptsCustomPublishDateAndStatus() {
+        let wod = WOD(id: "wod-cust-ps", date: "2026-03-01", title: "Custom", description: "", exercises: [], publishDate: "2026-02-15", status: "draft")
+        XCTAssertEqual(wod.publishDate, "2026-02-15")
+        XCTAssertEqual(wod.status, "draft")
+    }
+
+    func testWODCKRecordWithPublishDateAndStatus() throws {
+        let record = CKRecord(recordType: "WOD")
+        record["id"] = "wod-ck-ps" as CKRecordValue
+        record["date"] = "2026-03-01" as CKRecordValue
+        record["title"] = "CK PS" as CKRecordValue
+        record["description"] = "With publishDate and status" as CKRecordValue
+        record["exercisesJSON"] = "[]" as CKRecordValue
+        record["publishDate"] = "2026-02-28" as CKRecordValue
+        record["status"] = "draft" as CKRecordValue
+
+        let wod = try WOD(record: record)
+        XCTAssertEqual(wod.publishDate, "2026-02-28")
+        XCTAssertEqual(wod.status, "draft")
+    }
+
+    func testWODCKRecordWithoutPublishDateAndStatusDefaults() throws {
+        let record = CKRecord(recordType: "WOD")
+        record["id"] = "wod-ck-nops" as CKRecordValue
+        record["date"] = "2026-03-01" as CKRecordValue
+        record["title"] = "CK No PS" as CKRecordValue
+        record["description"] = "Without publishDate and status" as CKRecordValue
+        record["exercisesJSON"] = "[]" as CKRecordValue
+
+        let wod = try WOD(record: record)
+        XCTAssertEqual(wod.publishDate, "2026-03-01")
+        XCTAssertEqual(wod.status, "published")
+    }
+
     // MARK: - Hashable / Equatable
 
     func testWODHashableAndEquatable() {
