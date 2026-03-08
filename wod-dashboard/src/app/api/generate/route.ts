@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+const PROXY_URL = 'https://workout-proxy.sundeefundee.workers.dev/generate-workout';
+
 export async function POST(request: NextRequest) {
   const { prompt } = await request.json();
 
@@ -29,33 +31,29 @@ Generate a structured workout in JSON format matching this schema:
 }
 Respond with ONLY valid JSON, no markdown fences, no explanation.`;
 
-  const gatewayUrl = process.env.CLOUDFLARE_AI_GATEWAY_URL;
-  const apiKey = process.env.GEMINI_API_KEY;
-
-  if (!gatewayUrl || !apiKey) {
-    return NextResponse.json({ error: 'AI service not configured' }, { status: 500 });
-  }
-
   try {
-    const response = await fetch(gatewayUrl, {
+    const response = await fetch(PROXY_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
+        model: 'gemini-3.1-flash-lite-preview',
         contents: [
-          { role: 'user', parts: [{ text: systemPrompt + '\n\nUser request: ' + prompt }] }
+          { role: 'user', parts: [{ text: prompt }] },
         ],
+        systemInstruction: {
+          parts: [{ text: systemPrompt }],
+        },
         generationConfig: {
-          temperature: 0.7,
-          maxOutputTokens: 2048,
+          responseMimeType: 'application/json',
         },
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('AI Gateway error:', errorText);
+      console.error('Workout proxy error:', errorText);
       return NextResponse.json({ error: 'AI generation failed' }, { status: 502 });
     }
 

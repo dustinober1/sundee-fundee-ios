@@ -17,19 +17,23 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'CloudKit API token not configured' }, { status: 500 });
   }
 
-  const url = `${CLOUDKIT_BASE_URL}/database/1/${CONTAINER_ID}/${environment}/public${path}`;
+  const url = `${CLOUDKIT_BASE_URL}/database/1/${CONTAINER_ID}/${environment}/public${path}?ckAPIToken=${apiToken}`;
 
   try {
     const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiToken}`,
       },
       body: body ? JSON.stringify(body) : undefined,
     });
 
     const data = await response.json();
+
+    if (!response.ok) {
+      console.error('CloudKit API error:', JSON.stringify(data));
+    }
+
     return NextResponse.json(data, { status: response.status });
   } catch (error) {
     console.error('CloudKit proxy error:', error);
