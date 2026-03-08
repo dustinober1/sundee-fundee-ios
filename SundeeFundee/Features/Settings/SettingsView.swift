@@ -7,6 +7,7 @@ struct SettingsView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(AppState.self) private var appState
     @State private var showSignOutConfirm = false
+    @State private var showDeleteAccountConfirm = false
     @State private var seedMessage: String?
     
     static func presentSignOutConfirmation(_ isPresented: inout Bool) {
@@ -100,6 +101,10 @@ struct SettingsView: View {
                         Text("Guest Mode")
                             .foregroundStyle(AppTheme.Colors.navy.opacity(0.5))
                     }
+                    Button("Delete Account & All Data", role: .destructive) {
+                        showDeleteAccountConfirm = true
+                    }
+                    .foregroundStyle(.red)
                 }
 
                 #if DEBUG
@@ -126,6 +131,17 @@ struct SettingsView: View {
         .navigationTitle("Settings")
         .confirmationDialog("Sign Out?", isPresented: $showSignOutConfirm) {
             Button("Sign Out", role: .destructive, action: appState.signOut)
+        }
+        .confirmationDialog(
+            "Delete Account & All Data?",
+            isPresented: $showDeleteAccountConfirm,
+            titleVisibility: .visible
+        ) {
+            Button("Delete Everything", role: .destructive) {
+                appState.deleteAccountAndData(modelContext: modelContext)
+            }
+        } message: {
+            Text("This will permanently delete your profile, workouts, benchmarks, injury data, and all other app data. This action cannot be undone.")
         }
         .task { await viewModel.load(modelContext: modelContext, userID: appState.currentUserID ?? "") }
     }

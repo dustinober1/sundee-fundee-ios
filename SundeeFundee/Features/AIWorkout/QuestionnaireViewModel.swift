@@ -13,11 +13,22 @@ final class QuestionnaireViewModel {
 
     // State
     var showPaywall = false
+    var showDataConsentAlert = false
     var generationBlockReason: GenerationBlockReason?
     var isGenerating = false
     var generatedWorkout: GeneratedWorkout?
     var errorMessage: String?
     var currentPage: Int = 0
+
+    private static let aiDataConsentKey = "com.sundeefundee.ai.dataConsent"
+
+    static func hasAIDataConsent() -> Bool {
+        UserDefaults.standard.bool(forKey: aiDataConsentKey)
+    }
+
+    static func grantAIDataConsent() {
+        UserDefaults.standard.set(true, forKey: aiDataConsentKey)
+    }
 
     private let aiService: any AIWorkoutServiceProtocol
 

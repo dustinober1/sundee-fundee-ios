@@ -115,6 +115,39 @@ struct GeminiWorkoutServiceTests {
         _ = try await service.generate(from: makeContext())
     }
 
+    @Test("Request body does not contain _userID")
+    func requestBodyOmitsUserID() async throws {
+        MockURLProtocol.requestHandler = { request in
+            var bodyString = ""
+            if let httpBody = request.httpBody {
+                bodyString = String(data: httpBody, encoding: .utf8) ?? ""
+            } else if let stream = request.httpBodyStream {
+                stream.open()
+                let bufferSize = 4096
+                let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: bufferSize)
+                defer { buffer.deallocate(); stream.close() }
+                var data = Data()
+                while stream.hasBytesAvailable {
+                    let read = stream.read(buffer, maxLength: bufferSize)
+                    if read > 0 { data.append(buffer, count: read) }
+                }
+                bodyString = String(data: data, encoding: .utf8) ?? ""
+            }
+            #expect(!bodyString.contains("_userID"))
+            #expect(!bodyString.contains("user-1"))
+            let response = HTTPURLResponse(
+                url: GeminiWorkoutService.proxyURL,
+                statusCode: 200,
+                httpVersion: nil,
+                headerFields: nil
+            )!
+            return (response, geminiResponse())
+        }
+
+        let service = GeminiWorkoutService(session: makeSession())
+        _ = try await service.generate(from: makeContext())
+    }
+
     @Test("Request body contains user prompt content")
     func requestBodyContainsPromptContent() async throws {
         MockURLProtocol.requestHandler = { request in

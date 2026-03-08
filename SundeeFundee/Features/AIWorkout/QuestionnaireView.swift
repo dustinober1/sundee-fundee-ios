@@ -42,6 +42,29 @@ struct QuestionnaireView: View {
                 PaywallView(reason: reason)
             }
         }
+        .alert(
+            "AI Workout Data Usage",
+            isPresented: $viewModel.showDataConsentAlert
+        ) {
+            Button("I Agree") {
+                QuestionnaireViewModel.grantAIDataConsent()
+                let todayCount = QuestionnaireViewModel.countTodayGenerations(
+                    modelContext: modelContext, userID: userID
+                )
+                viewModel.generateWorkoutGated(
+                    tier: subscriptionService.currentTier,
+                    todayCount: todayCount
+                )
+                if viewModel.generationBlockReason == nil {
+                    Task {
+                        await viewModel.generateWorkout(modelContext: modelContext, userID: userID)
+                    }
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("To generate a personalized workout, your training data (cycle phase, injuries, pain levels, body weight, and performance history) will be sent to our secure AI service for processing. This data is not stored on the server. See our Privacy Policy for details.")
+        }
         .onChange(of: viewModel.generatedWorkout) { _, workout in
             if let workout {
                 onWorkoutGenerated(workout)
@@ -139,16 +162,20 @@ struct QuestionnaireView: View {
                 .tint(AppTheme.Colors.accentOrange)
             } else {
                 Button {
-                    let todayCount = QuestionnaireViewModel.countTodayGenerations(
-                        modelContext: modelContext, userID: userID
-                    )
-                    viewModel.generateWorkoutGated(
-                        tier: subscriptionService.currentTier,
-                        todayCount: todayCount
-                    )
-                    if viewModel.generationBlockReason == nil {
-                        Task {
-                            await viewModel.generateWorkout(modelContext: modelContext, userID: userID)
+                    if !QuestionnaireViewModel.hasAIDataConsent() {
+                        viewModel.showDataConsentAlert = true
+                    } else {
+                        let todayCount = QuestionnaireViewModel.countTodayGenerations(
+                            modelContext: modelContext, userID: userID
+                        )
+                        viewModel.generateWorkoutGated(
+                            tier: subscriptionService.currentTier,
+                            todayCount: todayCount
+                        )
+                        if viewModel.generationBlockReason == nil {
+                            Task {
+                                await viewModel.generateWorkout(modelContext: modelContext, userID: userID)
+                            }
                         }
                     }
                 } label: {

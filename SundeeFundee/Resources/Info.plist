@@ -23,9 +23,9 @@
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>NSHealthShareUsageDescription</key>
-	<string>Sundee Fundee uses health data to provide cycle-aware training recommendations.</string>
+	<string>Sundee Fundee reads your menstrual cycle data from Apple Health to provide personalized training recommendations that adapt to your cycle phase, optimizing workout intensity and volume based on hormonal fluctuations.</string>
 	<key>NSHealthUpdateUsageDescription</key>
-	<string>Sundee Fundee writes workout data to Apple Health.</string>
+	<string>Sundee Fundee writes completed workout data (exercises, sets, reps, and duration) to Apple Health to maintain a comprehensive record of your fitness activity alongside other health metrics.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

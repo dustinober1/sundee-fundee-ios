@@ -132,7 +132,7 @@ struct AppInfraCoverageTests {
             }
         }
         let autoDetectedApp = SundeeFundeeApp()
-        #expect(autoDetectedApp.container == nil)
+        #expect(autoDetectedApp.container != nil)
         _ = autoDetectedApp.body
 
         #expect(metricsStarts == 2)

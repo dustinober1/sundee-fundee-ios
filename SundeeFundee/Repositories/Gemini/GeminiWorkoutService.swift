@@ -11,7 +11,12 @@ enum GeminiServiceError: Error, Equatable {
 
 final class GeminiWorkoutService: Sendable {
 
-    static let proxyURL = URL(string: "https://workout-proxy.sundeefundee.workers.dev/generate-workout")!
+    static let proxyURL: URL = {
+        guard let url = URL(string: "https://workout-proxy.sundeefundee.workers.dev/generate-workout") else {
+            fatalError("Invalid proxy URL literal")
+        }
+        return url
+    }()
 
     private let session: URLSession
     private let timeoutInterval: TimeInterval
@@ -51,7 +56,6 @@ final class GeminiWorkoutService: Sendable {
         let systemPrompt = GeminiPromptBuilder.systemPrompt
 
         let body: [String: Any] = [
-            "_userID": context.userID,
             "model": "gemini-3.1-flash-lite-preview",
             "contents": [
                 ["role": "user", "parts": [["text": userPrompt]]]

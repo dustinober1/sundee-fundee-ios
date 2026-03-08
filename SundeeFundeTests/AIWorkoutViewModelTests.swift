@@ -203,6 +203,23 @@ struct QuestionnaireViewModelTests {
         let options = QuestionnaireViewModel.timeOptions
         #expect(options == [15, 30, 45, 60, 75, 90])
     }
+
+    @Test @MainActor func aiDataConsentRoundTrip() {
+        // Clear any existing consent
+        UserDefaults.standard.removeObject(forKey: "com.sundeefundee.ai.dataConsent")
+        #expect(QuestionnaireViewModel.hasAIDataConsent() == false)
+
+        QuestionnaireViewModel.grantAIDataConsent()
+        #expect(QuestionnaireViewModel.hasAIDataConsent() == true)
+
+        // Clean up
+        UserDefaults.standard.removeObject(forKey: "com.sundeefundee.ai.dataConsent")
+    }
+
+    @Test @MainActor func showDataConsentAlertDefaultsFalse() {
+        let vm = QuestionnaireViewModel(aiService: MockAIWorkoutService())
+        #expect(vm.showDataConsentAlert == false)
+    }
 }
 
 // MARK: - QuestionnaireView static tests

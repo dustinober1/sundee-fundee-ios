@@ -120,6 +120,41 @@ struct AppAuthCoverageTests {
     }
 
     @Test @MainActor
+    func deleteAccountAndDataClearsStateAndKeychain() throws {
+        let schema = Schema(AppSchemaV10.models)
+        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
+        let container = try ModelContainer(for: schema, configurations: [config])
+        let ctx = ModelContext(container)
+
+        // Insert a user
+        let user = User(
+            id: "delete-test",
+            name: "Delete Me",
+            experienceLevel: .beginner,
+            primaryGoal: .strength,
+            gender: .preferNotToSay,
+            appleUserID: "apple-delete",
+            onboardingComplete: true
+        )
+        ctx.insert(user)
+        try? ctx.save()
+
+        let state = AppState()
+        state.apply(.authenticated(userID: "delete-test"))
+        #expect(state.currentUserID == "delete-test")
+
+        state.deleteAccountAndData(modelContext: ctx)
+
+        #expect(state.currentUserID == nil)
+        if case .signedOut = state.authState {} else {
+            Issue.record("Expected signedOut after delete")
+        }
+
+        let remaining = (try? ctx.fetch(FetchDescriptor<User>())) ?? []
+        #expect(remaining.isEmpty)
+    }
+
+    @Test @MainActor
     func appSchemaAndContainerMetadataIsAccessible() {
         #expect(AppSchemaV1.versionIdentifier == Schema.Version(1, 0, 0))
         #expect(AppSchemaV1.models.count == 15)

@@ -29,6 +29,20 @@ final class AppState {
         currentUserID = nil
     }
 
+    func deleteAccountAndData(modelContext: ModelContext) {
+        let allModelTypes: [any PersistentModel.Type] = AppSchemaV10.models
+        for type in allModelTypes {
+            try? modelContext.delete(model: type)
+        }
+        try? modelContext.save()
+        KeychainHelper.deleteAppleUserID()
+        UserDefaults.standard.removeObject(forKey: "com.sundeefundee.subscription.tier")
+        UserDefaults.standard.removeObject(forKey: "dismissedPhaseTransitions")
+        UserDefaults.standard.removeObject(forKey: "com.sundeefundee.ai.dataConsent")
+        authState = .signedOut
+        currentUserID = nil
+    }
+
     func apply(_ state: AuthState) {
         authState = state
         if case .authenticated(let id) = state { currentUserID = id }
