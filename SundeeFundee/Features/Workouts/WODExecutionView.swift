@@ -19,14 +19,25 @@ struct WODExecutionView: View {
         ZStack {
             AppTheme.Colors.cream.ignoresSafeArea()
 
-            ScrollView {
-                VStack(spacing: AppTheme.Spacing.lg) {
-                    wodHeader
-                    ForEach(viewModel.wod.exercises, id: \.exercise, content: exerciseCard(for:))
-                    finishButton
-                        .padding(.bottom, AppTheme.Spacing.xl)
+            switch viewModel.resolvedTemplateType {
+            case .strength:
+                ScrollView {
+                    VStack(spacing: AppTheme.Spacing.lg) {
+                        wodHeader
+                        ForEach(viewModel.wod.exercises, id: \.exercise, content: exerciseCard(for:))
+                        finishButton
+                            .padding(.bottom, AppTheme.Spacing.xl)
+                    }
+                    .padding(AppTheme.Spacing.md)
                 }
-                .padding(AppTheme.Spacing.md)
+            case .amrap:
+                AMRAPTimerView(exercises: viewModel.wod.exercises)
+            case .emom:
+                EMOMTimerView(exercises: viewModel.wod.exercises)
+            case .forTime:
+                ForTimeTimerView(exercises: viewModel.wod.exercises)
+            case .circuit:
+                CircuitGroupView(exercises: viewModel.wod.exercises)
             }
 
             if viewModel.showRestTimer {

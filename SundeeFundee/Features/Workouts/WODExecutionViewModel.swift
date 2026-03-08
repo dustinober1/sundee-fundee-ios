@@ -20,6 +20,10 @@ final class WODExecutionViewModel {
 
     var oneRepMaxes: [String: Double] = [:]
 
+    var resolvedTemplateType: WODTemplateType {
+        WODTemplateType.from(wod.templateType)
+    }
+
     init(
         wod: WOD,
         oneRepMaxes: [String: Double] = [:],

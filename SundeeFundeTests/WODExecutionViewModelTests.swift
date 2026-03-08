@@ -204,4 +204,76 @@ final class WODExecutionViewModelTests: XCTestCase {
         let vm = WODExecutionViewModel(wod: makeWOD(), barbellWeightKg: 15)
         XCTAssertEqual(vm.barbellWeightKg, 15)
     }
+
+    // MARK: - Template type
+
+    func testResolvedTemplateTypeDefaultsToStrength() {
+        let vm = WODExecutionViewModel(wod: makeWOD())
+        XCTAssertEqual(vm.resolvedTemplateType, .strength)
+    }
+
+    func testResolvedTemplateTypeReturnsAMRAP() {
+        let wod = WOD(
+            id: "wod-amrap",
+            date: "2026-03-08",
+            title: "AMRAP WOD",
+            description: "As many rounds as possible",
+            exercises: [],
+            templateType: "amrap"
+        )
+        let vm = WODExecutionViewModel(wod: wod)
+        XCTAssertEqual(vm.resolvedTemplateType, .amrap)
+    }
+
+    func testResolvedTemplateTypeReturnsEMOM() {
+        let wod = WOD(
+            id: "wod-emom",
+            date: "2026-03-08",
+            title: "EMOM WOD",
+            description: "Every minute on the minute",
+            exercises: [],
+            templateType: "emom"
+        )
+        let vm = WODExecutionViewModel(wod: wod)
+        XCTAssertEqual(vm.resolvedTemplateType, .emom)
+    }
+
+    func testResolvedTemplateTypeReturnsForTime() {
+        let wod = WOD(
+            id: "wod-fortime",
+            date: "2026-03-08",
+            title: "For Time WOD",
+            description: "Complete for time",
+            exercises: [],
+            templateType: "forTime"
+        )
+        let vm = WODExecutionViewModel(wod: wod)
+        XCTAssertEqual(vm.resolvedTemplateType, .forTime)
+    }
+
+    func testResolvedTemplateTypeReturnsCircuit() {
+        let wod = WOD(
+            id: "wod-circuit",
+            date: "2026-03-08",
+            title: "Circuit WOD",
+            description: "Circuit training",
+            exercises: [],
+            templateType: "circuit"
+        )
+        let vm = WODExecutionViewModel(wod: wod)
+        XCTAssertEqual(vm.resolvedTemplateType, .circuit)
+    }
+
+    func testResolvedTemplateTypeFallsBackToStrengthForUnknown() {
+        let wod = WOD(
+            id: "wod-unknown",
+            date: "2026-03-08",
+            title: "Unknown WOD",
+            description: "Unknown type",
+            exercises: [],
+            templateType: "unknownType"
+        )
+        let vm = WODExecutionViewModel(wod: wod)
+        XCTAssertEqual(vm.resolvedTemplateType, .strength)
+    }
 }

@@ -737,6 +737,38 @@ final class DashboardViewCoverageTests: XCTestCase {
         ).view)
     }
 
+    // MARK: - WODCard template badge
+
+    func testTemplateBadgeTextStrength() {
+        let wod = WOD(id: "1", date: "2026-03-08", title: "T", description: "D", exercises: [], templateType: "strength")
+        XCTAssertEqual(WODCard.templateBadgeText(for: wod), "Strength")
+    }
+
+    func testTemplateBadgeTextAMRAP() {
+        let wod = WOD(id: "2", date: "2026-03-08", title: "T", description: "D", exercises: [], templateType: "amrap")
+        XCTAssertEqual(WODCard.templateBadgeText(for: wod), "AMRAP")
+    }
+
+    func testTemplateBadgeTextEMOM() {
+        let wod = WOD(id: "3", date: "2026-03-08", title: "T", description: "D", exercises: [], templateType: "emom")
+        XCTAssertEqual(WODCard.templateBadgeText(for: wod), "EMOM")
+    }
+
+    func testTemplateBadgeTextForTime() {
+        let wod = WOD(id: "4", date: "2026-03-08", title: "T", description: "D", exercises: [], templateType: "forTime")
+        XCTAssertEqual(WODCard.templateBadgeText(for: wod), "For Time")
+    }
+
+    func testTemplateBadgeTextCircuit() {
+        let wod = WOD(id: "5", date: "2026-03-08", title: "T", description: "D", exercises: [], templateType: "circuit")
+        XCTAssertEqual(WODCard.templateBadgeText(for: wod), "Circuit")
+    }
+
+    func testTemplateBadgeTextDefaultsToStrength() {
+        let wod = WOD(id: "6", date: "2026-03-08", title: "T", description: "D", exercises: [])
+        XCTAssertEqual(WODCard.templateBadgeText(for: wod), "Strength")
+    }
+
     func testStartAIWorkoutDestinationHashable() {
         let a = StartAIWorkoutDestination()
         let b = StartAIWorkoutDestination()

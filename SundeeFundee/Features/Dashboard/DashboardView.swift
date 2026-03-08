@@ -643,6 +643,14 @@ struct WODCard: View {
                     .foregroundStyle(AppTheme.Colors.accentOrange)
             }
 
+            Text(Self.templateBadgeText(for: wod))
+                .font(AppTheme.Fonts.caption)
+                .foregroundStyle(AppTheme.Colors.cream)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 2)
+                .background(AppTheme.Colors.accentOrange)
+                .clipShape(RoundedRectangle(cornerRadius: 4))
+
             Text(wod.description)
                 .font(AppTheme.Fonts.caption)
                 .foregroundStyle(AppTheme.Colors.navy.opacity(0.6))
@@ -662,6 +670,10 @@ struct WODCard: View {
         .background(AppTheme.Colors.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: AppTheme.CornerRadius.card))
         .shadow(color: .black.opacity(0.08), radius: 6, x: 0, y: 3)
+    }
+
+    static func templateBadgeText(for wod: WOD) -> String {
+        WODTemplateType.from(wod.templateType).displayName
     }
 }
 
