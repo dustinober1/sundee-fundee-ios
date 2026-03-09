@@ -143,6 +143,17 @@ enum GeminiPromptBuilder {
             sections.append(consistencySection)
         }
 
+        // Travel mode constraints
+        if context.travelModeEnabled {
+            sections.append("""
+                TRAVEL MODE ACTIVE:
+                - User is traveling — minimize space requirements
+                - Avoid exercises requiring jumping or loud impacts (no box jumps, burpees with jumps, or dropping weights)
+                - Prefer exercises that can be done in a small room or hotel gym
+                - Keep noise levels low — no slamming or dropping weights
+                """)
+        }
+
         return sections.joined(separator: "\n\n")
     }
 

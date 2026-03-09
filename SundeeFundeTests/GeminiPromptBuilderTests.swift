@@ -20,7 +20,8 @@ struct GeminiPromptBuilderTests {
         experienceLevel: String = "intermediate",
         primaryGoal: String = "strength",
         gender: String = "female",
-        weightUnit: String = "kg"
+        weightUnit: String = "kg",
+        travelModeEnabled: Bool = false
     ) -> WorkoutGenerationContext {
         WorkoutGenerationContext(
             userID: "user-1",
@@ -41,7 +42,8 @@ struct GeminiPromptBuilderTests {
             benchmarkSummaries: [],
             bodyWeightKg: nil,
             recentPainActivity: [],
-            workoutCompletionRate: nil
+            workoutCompletionRate: nil,
+            travelModeEnabled: travelModeEnabled
         )
     }
 
@@ -301,5 +303,27 @@ struct GeminiPromptBuilderTests {
         #expect(prompt.contains("shoulder"))
         #expect(prompt.contains("press"))
         #expect(prompt.contains("overhead"))
+    }
+
+    // MARK: - Travel Mode
+
+    @Test func travelModeAddsSpaceConstraints() {
+        let context = makeContext(equipment: .hotelGym, travelModeEnabled: true)
+        let prompt = GeminiPromptBuilder.userPrompt(from: context)
+        #expect(prompt.contains("traveling"))
+        #expect(prompt.contains("minimize space"))
+        #expect(prompt.contains("jumping"))
+    }
+
+    @Test func travelModeOffDoesNotAddConstraints() {
+        let context = makeContext(equipment: .fullGym)
+        let prompt = GeminiPromptBuilder.userPrompt(from: context)
+        #expect(!prompt.contains("TRAVEL MODE"))
+    }
+
+    @Test func hotelGymEquipmentDisplaysInPrompt() {
+        let context = makeContext(equipment: .hotelGym)
+        let prompt = GeminiPromptBuilder.userPrompt(from: context)
+        #expect(prompt.contains("Hotel Gym"))
     }
 }
