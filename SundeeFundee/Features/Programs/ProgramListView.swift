@@ -24,7 +24,7 @@ struct ProgramListView: View {
                 switch Self.contentState(
                     isLoading: viewModel.isLoading,
                     errorMessage: viewModel.errorMessage,
-                    programCount: viewModel.programs.count
+                    programCount: viewModel.filteredPrograms.count
                 ) {
                 case .loading:
                     ProgressView()
@@ -36,7 +36,7 @@ struct ProgramListView: View {
                 case .loaded:
                     ScrollView {
                         LazyVStack(spacing: AppTheme.Spacing.md) {
-                            ForEach(ProgramAvailability.sortedPrograms(viewModel.programs)) { program in
+                            ForEach(ProgramAvailability.sortedPrograms(viewModel.filteredPrograms)) { program in
                                 NavigationLink(value: program) {
                                     ProgramCardView(
                                         program: program,
@@ -54,6 +54,7 @@ struct ProgramListView: View {
             }
         }
         .navigationTitle("Programs")
+        .searchable(text: $viewModel.searchText, prompt: "Search programs")
         .navigationDestination(for: Program.self) { program in
             Self.detailDestination(program: program, viewModel: viewModel)
         }

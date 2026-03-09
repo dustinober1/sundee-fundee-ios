@@ -5,9 +5,23 @@ import SwiftData
 @Observable
 final class ProgramListViewModel {
     var programs: [Program] = []
+    var searchText: String = ""
     var activeEnrollment: EnrolledProgram?
     var isLoading = false
     var errorMessage: String?
+
+    var filteredPrograms: [Program] {
+        Self.filterPrograms(programs, searchText: searchText)
+    }
+
+    static func filterPrograms(_ programs: [Program], searchText: String) -> [Program] {
+        guard !searchText.isEmpty else { return programs }
+        let query = searchText.lowercased()
+        return programs.filter {
+            $0.name.lowercased().contains(query) ||
+            $0.category.lowercased().contains(query)
+        }
+    }
 
     private let programRepo: any ProgramRepository
     private var enrollmentRepo: (any EnrolledProgramRepository)?
