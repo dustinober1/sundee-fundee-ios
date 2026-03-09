@@ -117,11 +117,21 @@ A Next.js web dashboard at `wod-dashboard/` writes WODs to CloudKit Public DB vi
 
 The Xcode project is generated from `project.yml` via XcodeGen. **Never edit `.xcodeproj` directly** — modify `project.yml` and run `xcodegen generate`.
 
+### Schema Migrations
+
+To add a new SwiftData property:
+1. Add the property to the `@Model` class (with default value for lightweight migration)
+2. Copy `AppSchemaV{N}.swift` → `AppSchemaV{N+1}.swift`, bump `versionIdentifier`
+3. Add the new schema + lightweight `MigrationStage` to `AppSchemaMigrationPlan.swift`
+4. Update `AppModelContainer.swift` to reference the new schema version
+
 ### Coding Conventions
 
 - **Custom `init(from decoder:)` requires `encode(to:)`** — Adding a custom Decodable init prevents auto-synthesis of Encodable. Always add both when customizing Codable.
 - **CloudKit Public DB writes require user auth** — API token alone only allows reads. Use CloudKit JS SDK with Apple ID sign-in for writes.
 - **SourceKit diagnostics are often false positives** — Always verify with `xcodebuild build` before acting on "Cannot find type" or "No such module" SourceKit errors.
+- **Swift Testing runner partitions show "Executed 0 tests"** — this is normal. Look for the aggregate "Executed N tests" line to confirm pass/fail.
+- `SundeeFundee/Packages/` showing as untracked in `git status` is expected — it's a git submodule.
 
 - **Benchmark `roundsAndReps` scoring** encodes as `rounds * 10000 + reps` in a single `Double`. Higher is better. Decode: `rounds = Int(value) / 10000`, `reps = Int(value) % 10000`.
 - **Never use `try!`** in production code — always use `(try? ...) ?? defaultValue` for repository calls. SwiftData context errors should degrade gracefully, not crash.
