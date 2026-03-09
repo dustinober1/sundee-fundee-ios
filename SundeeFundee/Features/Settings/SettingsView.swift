@@ -69,6 +69,13 @@ struct SettingsView: View {
                     }
                 }
 
+                // Equipment
+                Section("Equipment") {
+                    NavigationLink("Barbells") {
+                        BarbellPresetsView(viewModel: viewModel)
+                    }
+                }
+
                 // Subscription
                 Section("Premium") {
                     NavigationLink("Manage Subscription") {

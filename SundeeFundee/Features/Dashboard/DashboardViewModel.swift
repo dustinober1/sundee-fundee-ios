@@ -23,10 +23,12 @@ final class DashboardViewModel {
     var rehabSession: ProgramSession?
     var readinessScore: Double?
     var todayWOD: WOD?
+    var gender: Gender?
 
     private let programRepo: any ProgramRepository
     private let readinessRepo: (any ReadinessRepository)?
     private let wodRepo: any WODRepository
+    private(set) var barbellRepo: (any BarbellRepository)?
 
     var upcomingProgram: Program?
 
@@ -68,6 +70,13 @@ final class DashboardViewModel {
         let currentUser = try? userRepo.fetchCurrentUser()
         barbellWeightKg = Self.barbellWeight(for: currentUser?.gender)
         weightUnit = currentUser?.weightUnit ?? .pounds
+        gender = currentUser?.gender
+
+        // Seed built-in barbell presets if needed
+        let repo = SwiftDataBarbellRepository(context: modelContext)
+        repo.seedBuiltInPresets(userID: currentUser?.id ?? "")
+        barbellRepo = repo
+
         return currentUser
     }
 

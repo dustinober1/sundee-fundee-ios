@@ -81,7 +81,10 @@ struct DashboardView: View {
                         program: program,
                         oneRepMaxes: viewModel.oneRepMaxes,
                         barbellWeightKg: viewModel.barbellWeightKg,
-                        weightUnit: viewModel.weightUnit
+                        weightUnit: viewModel.weightUnit,
+                        barbellRepo: viewModel.barbellRepo,
+                        userID: appState.currentUserID ?? "",
+                        gender: viewModel.gender
                     )
                 )
             }
@@ -90,7 +93,8 @@ struct DashboardView: View {
             AIWorkoutFlowView(
                 userID: appState.currentUserID ?? "",
                 barbellWeightKg: viewModel.barbellWeightKg,
-                weightUnit: viewModel.weightUnit
+                weightUnit: viewModel.weightUnit,
+                gender: viewModel.gender
             )
         }
         .navigationDestination(for: Program.self) { program in

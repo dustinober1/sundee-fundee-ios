@@ -160,8 +160,8 @@ struct AppAuthCoverageTests {
         #expect(AppSchemaV1.models.count == 15)
         #expect(AppSchemaV1.models.map { String(describing: $0) }.contains("User"))
 
-        #expect(AppSchemaMigrationPlan.schemas.count == 6)
+        #expect(AppSchemaMigrationPlan.schemas.count == 7)
         #expect(String(describing: AppSchemaMigrationPlan.schemas[0]) == String(describing: AppSchemaV1.self))
-        #expect(AppSchemaMigrationPlan.stages.count == 5)
+        #expect(AppSchemaMigrationPlan.stages.count == 6)
     }
 }

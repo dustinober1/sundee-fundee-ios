@@ -41,6 +41,7 @@ struct WorkoutExecutionView: View {
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(viewModel.isSaving)
         .sheet(isPresented: $viewModel.showPlateCalc, content: plateCalculatorSheet)
+        .onAppear { viewModel.loadBarbellPresets() }
         .confirmationDialog(
             "Finish Workout?",
             isPresented: $showFinishConfirm,
@@ -59,8 +60,11 @@ struct WorkoutExecutionView: View {
     private func plateCalculatorSheet() -> some View {
         PlateCalculatorSheet(
             weightKg: viewModel.plateCalcWeightKg,
-            barbellWeightKg: viewModel.barbellWeightKg,
-            weightUnit: viewModel.weightUnit
+            barbellWeightKg: viewModel.selectedBarbellWeightKg,
+            weightUnit: viewModel.weightUnit,
+            presets: viewModel.barbellPresets,
+            selectedPresetID: viewModel.selectedPresetID,
+            onBarChange: { viewModel.updateBarSelection(presetID: $0) }
         )
     }
 
@@ -242,6 +246,12 @@ struct ExerciseSetCard: View {
                 viewModel: viewModel,
                 exerciseName: exercise.exercise,
                 setIndex: idx
+            ),
+            onPlateCalc: exercise.bodyweightOnly ? nil : Self.actualWeightPlateCalcAction(
+                viewModel: viewModel,
+                exerciseName: exercise.exercise,
+                setIndex: idx,
+                sets: sets
             )
         )
     }
@@ -281,6 +291,18 @@ struct ExerciseSetCard: View {
     ) -> () -> Void {
         { viewModel.toggleSetCompleted(exerciseName: exerciseName, setIndex: setIndex) }
     }
+
+    static func actualWeightPlateCalcAction(
+        viewModel: WorkoutExecutionViewModel,
+        exerciseName: String,
+        setIndex: Int,
+        sets: [SetExecutionState]
+    ) -> () -> Void {
+        {
+            let weightKg = sets[setIndex].actualWeightKg ?? sets[setIndex].prescribedWeightKg ?? 0
+            viewModel.openPlateCalcForActual(exerciseName: exerciseName, weightKg: weightKg)
+        }
+    }
 }
 
 // MARK: - SetRow
@@ -293,6 +315,7 @@ struct SetRow: View {
     let weightUnit: WeightUnit
     let bodyweightOnly: Bool
     let onToggle: () -> Void
+    let onPlateCalc: (() -> Void)?
 
     @State private var repsText: String = ""
     @State private var weightText: String = ""
@@ -304,7 +327,8 @@ struct SetRow: View {
         onWeightChange: @escaping (Double) -> Void,
         weightUnit: WeightUnit = .pounds,
         bodyweightOnly: Bool = false,
-        onToggle: @escaping () -> Void
+        onToggle: @escaping () -> Void,
+        onPlateCalc: (() -> Void)? = nil
     ) {
         self.setNumber = setNumber
         self.state = state
@@ -313,6 +337,7 @@ struct SetRow: View {
         self.weightUnit = weightUnit
         self.bodyweightOnly = bodyweightOnly
         self.onToggle = onToggle
+        self.onPlateCalc = onPlateCalc
         _repsText = State(initialValue: "")
         _weightText = State(initialValue: "")
     }
@@ -341,16 +366,26 @@ struct SetRow: View {
                         Self.repsTextChangeHandler(onRepsChange: onRepsChange)(oldValue, newValue)
                     }
 
-                TextField("–", text: $weightText)
-                    .keyboardType(.decimalPad)
-                    .multilineTextAlignment(.center)
-                    .frame(width: 80)
-                    .padding(6)
-                    .background(AppTheme.Colors.separator.opacity(0.3))
-                    .clipShape(RoundedRectangle(cornerRadius: 6))
-                    .onChange(of: weightText) { oldValue, newValue in
-                        Self.weightTextChangeHandler(onWeightChange: onWeightChange, weightUnit: weightUnit)(oldValue, newValue)
+                HStack(spacing: 2) {
+                    TextField("–", text: $weightText)
+                        .keyboardType(.decimalPad)
+                        .multilineTextAlignment(.center)
+                        .onChange(of: weightText) { oldValue, newValue in
+                            Self.weightTextChangeHandler(onWeightChange: onWeightChange, weightUnit: weightUnit)(oldValue, newValue)
+                        }
+                    if let onPlateCalc {
+                        Button(action: onPlateCalc) {
+                            Image(systemName: "scalemass.fill")
+                                .font(.caption2)
+                                .foregroundStyle(AppTheme.Colors.accentOrange)
+                        }
+                        .buttonStyle(.plain)
                     }
+                }
+                .frame(width: 80)
+                .padding(6)
+                .background(AppTheme.Colors.separator.opacity(0.3))
+                .clipShape(RoundedRectangle(cornerRadius: 6))
             }
 
             Button(action: onToggle) {
@@ -506,28 +541,77 @@ struct PlateCalculatorSheet: View {
     let weightKg: Double
     let barbellWeightKg: Double
     let weightUnit: WeightUnit
+    let presets: [BarbellPresetDTO]
+    let selectedPresetID: String?
+    let onBarChange: ((String) -> Void)?
     @Environment(\.dismiss) private var dismiss
 
     init(
         weightKg: Double,
         barbellWeightKg: Double = PlateCalculation.standardBarKg,
-        weightUnit: WeightUnit = .pounds
+        weightUnit: WeightUnit = .pounds,
+        presets: [BarbellPresetDTO] = [],
+        selectedPresetID: String? = nil,
+        onBarChange: ((String) -> Void)? = nil
     ) {
         self.weightKg = weightKg
         self.barbellWeightKg = barbellWeightKg
         self.weightUnit = weightUnit
+        self.presets = presets
+        self.selectedPresetID = selectedPresetID
+        self.onBarChange = onBarChange
+    }
+
+    private var effectiveBarbellKg: Double {
+        if let selectedPresetID,
+           let preset = presets.first(where: { $0.id == selectedPresetID }) {
+            return preset.weightKg
+        }
+        return barbellWeightKg
     }
 
     private var plates: [(weight: Double, count: Int)] {
-        PlateCalculation.platesPerSide(totalWeightKg: weightKg, barbellWeightKg: barbellWeightKg, weightUnit: weightUnit)
+        PlateCalculation.platesPerSide(totalWeightKg: weightKg, barbellWeightKg: effectiveBarbellKg, weightUnit: weightUnit)
     }
 
     var body: some View {
         NavigationStack {
             VStack(spacing: AppTheme.Spacing.lg) {
+                if !presets.isEmpty {
+                    Menu {
+                        ForEach(presets, id: \.id) { preset in
+                            Button(Self.presetLabel(preset: preset, weightUnit: weightUnit)) {
+                                onBarChange?(preset.id)
+                            }
+                        }
+                    } label: {
+                        HStack {
+                            Image(systemName: "scalemass.fill")
+                                .foregroundStyle(AppTheme.Colors.accentOrange)
+                            if let selectedPresetID,
+                               let preset = presets.first(where: { $0.id == selectedPresetID }) {
+                                Text(Self.presetLabel(preset: preset, weightUnit: weightUnit))
+                                    .font(AppTheme.Fonts.body)
+                                    .foregroundStyle(AppTheme.Colors.navy)
+                            } else {
+                                Text("Select Bar Type")
+                                    .font(AppTheme.Fonts.body)
+                                    .foregroundStyle(AppTheme.Colors.navy)
+                            }
+                            Image(systemName: "chevron.down")
+                                .font(.caption)
+                                .foregroundStyle(AppTheme.Colors.navy.opacity(0.5))
+                        }
+                        .padding(AppTheme.Spacing.sm)
+                        .frame(maxWidth: .infinity)
+                        .background(AppTheme.Colors.cardBackground)
+                        .clipShape(RoundedRectangle(cornerRadius: AppTheme.CornerRadius.card))
+                    }
+                }
+
                 Text(Self.description(
                     totalWeightKg: weightKg,
-                    barbellWeightKg: barbellWeightKg,
+                    barbellWeightKg: effectiveBarbellKg,
                     plates: plates,
                     weightUnit: weightUnit
                 ))
@@ -546,7 +630,7 @@ struct PlateCalculatorSheet: View {
                     .background(AppTheme.Colors.cardBackground)
                     .clipShape(RoundedRectangle(cornerRadius: AppTheme.CornerRadius.card))
                 } else {
-                    Text(Self.barOnlyText(barKg: barbellWeightKg, weightUnit: weightUnit))
+                    Text(Self.barOnlyText(barKg: effectiveBarbellKg, weightUnit: weightUnit))
                         .font(AppTheme.Fonts.subheading)
                         .foregroundStyle(AppTheme.Colors.navy.opacity(0.6))
                 }
@@ -594,6 +678,11 @@ struct PlateCalculatorSheet: View {
 
     static func barOnlyText(barKg: Double, weightUnit: WeightUnit = .pounds) -> String {
         "Bar only (\(formatWeight(barKg, weightUnit: weightUnit)) \(weightUnit.symbol))"
+    }
+
+    static func presetLabel(preset: BarbellPresetDTO, weightUnit: WeightUnit) -> String {
+        let weight = WeightUnitConversion.format(kilograms: preset.weightKg, unit: weightUnit, maximumFractionDigits: 1)
+        return "\(preset.name) (\(weight) \(weightUnit.symbol))"
     }
 
     static func description(

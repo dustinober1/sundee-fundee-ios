@@ -34,6 +34,13 @@ final class WorkoutExecutionViewModel {
     var showPlateCalc = false
     var plateCalcWeightKg: Double = 60
     var errorMessage: String?
+    var plateCalcExerciseName: String = ""
+    var barbellPresets: [BarbellPresetDTO] = []
+    var selectedPresetID: String?
+
+    private var barbellRepo: BarbellRepository?
+    private var userID: String = ""
+    private var gender: Gender?
 
     // One-rep max reference values (keyed by exercise name)
     var oneRepMaxes: [String: Double] = [:]
@@ -44,7 +51,10 @@ final class WorkoutExecutionViewModel {
         program: Program,
         oneRepMaxes: [String: Double] = [:],
         barbellWeightKg: Double = PlateCalculation.standardBarKg,
-        weightUnit: WeightUnit = .pounds
+        weightUnit: WeightUnit = .pounds,
+        barbellRepo: BarbellRepository? = nil,
+        userID: String = "",
+        gender: Gender? = nil
     ) {
         self.session = session
         self.enrollment = enrollment
@@ -53,13 +63,19 @@ final class WorkoutExecutionViewModel {
         self.oneRepMaxes = oneRepMaxes
         self.barbellWeightKg = barbellWeightKg
         self.weightUnit = weightUnit
+        self.barbellRepo = barbellRepo
+        self.userID = userID
+        self.gender = gender
         initializeSets()
     }
 
     init(
         generatedWorkout: GeneratedWorkout,
         barbellWeightKg: Double = PlateCalculation.standardBarKg,
-        weightUnit: WeightUnit = .pounds
+        weightUnit: WeightUnit = .pounds,
+        barbellRepo: BarbellRepository? = nil,
+        userID: String = "",
+        gender: Gender? = nil
     ) {
         self.generatedWorkout = generatedWorkout
         self.session = Self.mapToSession(generatedWorkout)
@@ -67,6 +83,9 @@ final class WorkoutExecutionViewModel {
         self.program = nil
         self.barbellWeightKg = barbellWeightKg
         self.weightUnit = weightUnit
+        self.barbellRepo = barbellRepo
+        self.userID = userID
+        self.gender = gender
         initializeAISets(from: generatedWorkout)
     }
 
@@ -172,6 +191,57 @@ final class WorkoutExecutionViewModel {
     func openPlateCalc(forWeight kg: Double) {
         plateCalcWeightKg = kg
         showPlateCalc = true
+    }
+
+    func loadBarbellPresets() {
+        guard let repo = barbellRepo else { return }
+        barbellPresets = (try? repo.fetchPresets(userID: userID)) ?? []
+    }
+
+    func openPlateCalcForActual(exerciseName: String, weightKg: Double) {
+        plateCalcExerciseName = exerciseName
+        plateCalcWeightKg = weightKg
+
+        if let repo = barbellRepo {
+            if let mapping = try? repo.fetchMapping(exerciseName: exerciseName, userID: userID) {
+                selectedPresetID = mapping.barbellPresetID
+            } else {
+                let suggestedName = BarbellDefaults.suggestedPresetName(for: exerciseName, gender: gender)
+                if let preset = barbellPresets.first(where: { $0.name == suggestedName }) {
+                    selectedPresetID = preset.id
+                    let mapping = ExerciseBarMappingDTO(
+                        id: UUID().uuidString,
+                        userID: userID,
+                        exerciseName: exerciseName,
+                        barbellPresetID: preset.id
+                    )
+                    try? repo.saveMapping(mapping)
+                } else {
+                    selectedPresetID = barbellPresets.first?.id
+                }
+            }
+        }
+
+        showPlateCalc = true
+    }
+
+    func updateBarSelection(presetID: String) {
+        selectedPresetID = presetID
+        guard let repo = barbellRepo, !plateCalcExerciseName.isEmpty else { return }
+        let mapping = ExerciseBarMappingDTO(
+            id: UUID().uuidString,
+            userID: userID,
+            exerciseName: plateCalcExerciseName,
+            barbellPresetID: presetID
+        )
+        try? repo.saveMapping(mapping)
+    }
+
+    var selectedBarbellWeightKg: Double {
+        if let id = selectedPresetID, let preset = barbellPresets.first(where: { $0.id == id }) {
+            return preset.weightKg
+        }
+        return barbellWeightKg
     }
 
     // MARK: - Completion
