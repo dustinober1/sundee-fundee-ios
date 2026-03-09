@@ -12,6 +12,7 @@ final class SettingsViewModel {
     var cycleTrackingEnabled: Bool = false
     var bodyWeight: Double? = nil
     var injuryProfiles: [InjuryProfile] = []
+    var barbellPresets: [BarbellPresetDTO] = []
 
     private var modelContext: ModelContext?
     private var userID: String = ""
@@ -36,6 +37,9 @@ final class SettingsViewModel {
         let injuryRepo = SwiftDataInjuryRepository(context: modelContext)
         injuryProfiles = (try? injuryRepo.fetchAll(userID: userID)) ?? []
         loadPainLogs()
+        let barbellRepo = SwiftDataBarbellRepository(context: modelContext)
+        barbellRepo.seedBuiltInPresets(userID: userID)
+        barbellPresets = (try? barbellRepo.fetchPresets(userID: userID)) ?? []
         evaluateTransitions()
     }
 
@@ -160,6 +164,28 @@ final class SettingsViewModel {
         if let idx = injuryProfiles.firstIndex(where: { $0.id == injury.id }) {
             injuryProfiles[idx] = injury
         }
+    }
+    func addCustomBarbell(name: String, weightKg: Double) {
+        guard let ctx = modelContext else { return }
+        let repo = SwiftDataBarbellRepository(context: ctx)
+        let maxOrder = barbellPresets.map(\.sortOrder).max() ?? 0
+        let preset = BarbellPresetDTO(
+            id: UUID().uuidString,
+            userID: userID,
+            name: name,
+            weightKg: weightKg,
+            isBuiltIn: false,
+            sortOrder: maxOrder + 1
+        )
+        try? repo.savePreset(preset)
+        barbellPresets = (try? repo.fetchPresets(userID: userID)) ?? []
+    }
+
+    func deleteCustomBarbell(id: String) {
+        guard let ctx = modelContext else { return }
+        let repo = SwiftDataBarbellRepository(context: ctx)
+        try? repo.deletePreset(id: id)
+        barbellPresets = (try? repo.fetchPresets(userID: userID)) ?? []
     }
 }
 
