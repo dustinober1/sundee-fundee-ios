@@ -226,6 +226,29 @@ struct QuestionnaireViewModelTests {
         let vm = QuestionnaireViewModel(aiService: MockAIWorkoutService())
         #expect(vm.showDataConsentAlert == false)
     }
+
+    @Test @MainActor func availableEquipmentTravelModeFiltersToTwoOptions() {
+        let options = QuestionnaireViewModel.availableEquipment(travelMode: true)
+        #expect(options == [.bodyweightOnly, .hotelGym])
+    }
+
+    @Test @MainActor func availableEquipmentNormalModeShowsAll() {
+        let options = QuestionnaireViewModel.availableEquipment(travelMode: false)
+        #expect(options == EquipmentAccess.allCases)
+    }
+
+    @Test @MainActor func defaultTimeTravelModeIs30() {
+        #expect(QuestionnaireViewModel.defaultTimeMinutes(travelMode: true) == 30)
+    }
+
+    @Test @MainActor func defaultTimeNormalModeIs45() {
+        #expect(QuestionnaireViewModel.defaultTimeMinutes(travelMode: false) == 45)
+    }
+
+    @Test @MainActor func travelModeEnabledDefaultsFalse() {
+        let vm = QuestionnaireViewModel(aiService: MockAIWorkoutService())
+        #expect(vm.travelModeEnabled == false)
+    }
 }
 
 // MARK: - QuestionnaireView static tests

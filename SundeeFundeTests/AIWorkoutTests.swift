@@ -102,8 +102,58 @@ struct EquipmentAccessTests {
     @Test func rawValues() {
         #expect(EquipmentAccess.fullGym.rawValue == "full_gym")
         #expect(EquipmentAccess.homeDumbbells.rawValue == "home_dumbbells")
+        #expect(EquipmentAccess.hotelGym.rawValue == "hotel_gym")
         #expect(EquipmentAccess.bodyweightOnly.rawValue == "bodyweight_only")
         #expect(EquipmentAccess.outdoor.rawValue == "outdoor")
+    }
+
+    @Test func hotelGymHasDisplayName() {
+        #expect(EquipmentAccess.hotelGym.displayName == "Hotel Gym")
+    }
+
+    @Test func hotelGymHasIcon() {
+        #expect(EquipmentAccess.hotelGym.icon == "bed.double")
+    }
+
+    @Test func hotelGymRawValueEncodes() throws {
+        let context = WorkoutGenerationContext(
+            userID: "u1", timeMinutes: 30, focus: .fullBody, energyLevel: .medium,
+            equipment: .hotelGym, maxes: [], recentWorkouts: [], cyclePhase: nil,
+            readinessTier: nil, activeInjuries: [], experienceLevel: "beginner",
+            primaryGoal: "strength", gender: "male", weightUnit: "lb"
+        )
+        let data = try JSONEncoder().encode(context)
+        let decoded = try JSONDecoder().decode(WorkoutGenerationContext.self, from: data)
+        #expect(decoded.equipment == .hotelGym)
+    }
+}
+
+// MARK: - TravelMode WorkoutGenerationContext Tests
+
+@Suite("WorkoutGenerationContext TravelMode")
+struct WorkoutGenerationContextTravelModeTests {
+
+    @Test func travelModeEnabledEncodesDecodes() throws {
+        let context = WorkoutGenerationContext(
+            userID: "u1", timeMinutes: 30, focus: .fullBody, energyLevel: .medium,
+            equipment: .hotelGym, maxes: [], recentWorkouts: [], cyclePhase: nil,
+            readinessTier: nil, activeInjuries: [], experienceLevel: "beginner",
+            primaryGoal: "strength", gender: "male", weightUnit: "lb",
+            travelModeEnabled: true
+        )
+        let data = try JSONEncoder().encode(context)
+        let decoded = try JSONDecoder().decode(WorkoutGenerationContext.self, from: data)
+        #expect(decoded.travelModeEnabled == true)
+    }
+
+    @Test func travelModeDefaultsToFalse() {
+        let context = WorkoutGenerationContext(
+            userID: "u1", timeMinutes: 30, focus: .fullBody, energyLevel: .medium,
+            equipment: .fullGym, maxes: [], recentWorkouts: [], cyclePhase: nil,
+            readinessTier: nil, activeInjuries: [], experienceLevel: "beginner",
+            primaryGoal: "strength", gender: "male", weightUnit: "lb"
+        )
+        #expect(context.travelModeEnabled == false)
     }
 }
 
@@ -374,7 +424,8 @@ struct OfflineWorkoutGeneratorTests {
         maxes: [ExerciseMax] = [],
         cyclePhase: String? = nil,
         readinessTier: String? = nil,
-        injuries: [InjurySummary] = []
+        injuries: [InjurySummary] = [],
+        travelModeEnabled: Bool = false
     ) -> WorkoutGenerationContext {
         WorkoutGenerationContext(
             userID: "user-1",
@@ -390,7 +441,8 @@ struct OfflineWorkoutGeneratorTests {
             experienceLevel: "intermediate",
             primaryGoal: "strength",
             gender: "female",
-            weightUnit: "kg"
+            weightUnit: "kg",
+            travelModeEnabled: travelModeEnabled
         )
     }
 
@@ -768,6 +820,45 @@ struct OfflineWorkoutGeneratorTests {
         ]
         let adjusted = OfflineWorkoutGenerator.applyCyclePhase(exercises: exercises, phase: "follicular", readiness: "neutral")
         #expect(adjusted.first!.weightLb == 100)
+    }
+
+    // MARK: - Hotel Gym / Travel Mode
+
+    @Test func hotelGymFilterExcludesBarbellExercises() {
+        let templates = OfflineWorkoutGenerator.selectTemplates(focus: .upperBody, equipment: .hotelGym)
+        let hasBarbellExercise = templates.contains { $0.requiresBarbell }
+        #expect(!hasBarbellExercise)
+    }
+
+    @Test func hotelGymFilterAllowsBodyweightExercises() {
+        let templates = OfflineWorkoutGenerator.selectTemplates(focus: .upperBody, equipment: .hotelGym)
+        let hasBodyweight = templates.contains { $0.bodyweightOnly }
+        #expect(hasBodyweight)
+    }
+
+    @Test func hotelGymFilterAllowsDumbbellExercises() {
+        let templates = OfflineWorkoutGenerator.selectTemplates(focus: .upperBody, equipment: .hotelGym)
+        let hasDumbbell = templates.contains { $0.requiresDumbbells }
+        #expect(hasDumbbell)
+    }
+
+    @Test func generateHotelGymProducesExercises() {
+        let context = makeContext(equipment: .hotelGym)
+        let workout = OfflineWorkoutGenerator.generate(from: context)
+        #expect(!workout.exercises.isEmpty)
+        #expect(workout.questionnaire.equipment == .hotelGym)
+    }
+
+    @Test func coachingSummaryMentionsTravelMode() {
+        let context = makeContext(equipment: .hotelGym, travelModeEnabled: true)
+        let summary = OfflineWorkoutGenerator.buildCoachingSummary(context: context, exerciseCount: 5)
+        #expect(summary.contains("Travel mode"))
+    }
+
+    @Test func coachingSummaryOmitsTravelWhenDisabled() {
+        let context = makeContext(equipment: .fullGym, travelModeEnabled: false)
+        let summary = OfflineWorkoutGenerator.buildCoachingSummary(context: context, exerciseCount: 5)
+        #expect(!summary.contains("Travel mode"))
     }
 }
 
