@@ -8,6 +8,7 @@ export default function NavHeader() {
 
   const links = [
     { href: '/', label: 'Calendar' },
+    { href: '/programs', label: 'Programs' },
     { href: '/admin', label: 'Admin' },
   ];
 

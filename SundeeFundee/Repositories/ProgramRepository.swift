@@ -101,7 +101,10 @@ final class CloudKitProgramRepository: ProgramRepository, @unchecked Sendable {
         let matchResults = try await cloudRecordFetcher(query)
         return try matchResults.compactMap { _, recordResult -> Program? in
             let record = try recordResult.get()
-            return try Program(record: record)
+            let program = try Program(record: record)
+            // Filter out drafts — treat nil status as published (backward compat)
+            if let status = program.status, status == "draft" { return nil }
+            return program
         }
     }
 }

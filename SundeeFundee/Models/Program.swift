@@ -21,17 +21,25 @@ struct Program: Codable, Identifiable, Sendable, Hashable {
     let phases: [ProgramPhase]
     let cycleAdjustmentProfile: ProgramCycleAdjustmentProfile?
     let weeks: [ProgramWeek]
+    let status: String?
+    let startDate: String?
+    let endDate: String?
+    let createdAt: String?
+    let updatedAt: String?
 
     enum CodingKeys: String, CodingKey {
         case id, name, category, description, durationWeeks, sessionsPerWeek
         case difficulty, phases, cycleAdjustmentProfile, weeks
+        case status, startDate, endDate, createdAt, updatedAt
     }
 
     init(
         id: String, name: String, category: String, description: String,
         durationWeeks: Int, sessionsPerWeek: Int, difficulty: String,
         phases: [ProgramPhase] = [], cycleAdjustmentProfile: ProgramCycleAdjustmentProfile? = nil,
-        weeks: [ProgramWeek]
+        weeks: [ProgramWeek],
+        status: String? = nil, startDate: String? = nil, endDate: String? = nil,
+        createdAt: String? = nil, updatedAt: String? = nil
     ) {
         self.id = id
         self.name = name
@@ -43,6 +51,11 @@ struct Program: Codable, Identifiable, Sendable, Hashable {
         self.phases = phases
         self.cycleAdjustmentProfile = cycleAdjustmentProfile
         self.weeks = weeks
+        self.status = status
+        self.startDate = startDate
+        self.endDate = endDate
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
     }
 
     /// Decode a Program from a CloudKit record with individual fields.
@@ -83,6 +96,12 @@ struct Program: Codable, Identifiable, Sendable, Hashable {
         } else {
             self.cycleAdjustmentProfile = nil
         }
+
+        self.status = record["status"] as? String
+        self.startDate = record["startDate"] as? String
+        self.endDate = record["endDate"] as? String
+        self.createdAt = record["createdAt"] as? String
+        self.updatedAt = record["updatedAt"] as? String
     }
 }
 

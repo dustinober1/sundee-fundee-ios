@@ -407,6 +407,77 @@ struct ModelRepoObservabilityCoverageWave4Tests {
     }
 
     @Test
+    func programNewOptionalFieldsDefaultToNil() {
+        let program = makeProgram(id: "no-status", name: "No Status")
+        #expect(program.status == nil)
+        #expect(program.createdAt == nil)
+        #expect(program.updatedAt == nil)
+    }
+
+    @Test
+    func programNewOptionalFieldsSetExplicitly() {
+        let program = Program(
+            id: "with-status", name: "With Status", category: "Strength",
+            description: "", durationWeeks: 1, sessionsPerWeek: 1,
+            difficulty: "beginner", weeks: [],
+            status: "published", createdAt: "2026-01-01T00:00:00Z", updatedAt: "2026-03-08T00:00:00Z"
+        )
+        #expect(program.status == "published")
+        #expect(program.createdAt == "2026-01-01T00:00:00Z")
+        #expect(program.updatedAt == "2026-03-08T00:00:00Z")
+    }
+
+    @Test
+    func programCKRecordReadsStatusFields() throws {
+        let record = makeProgramRecord(id: "status-test", name: "Status Test")
+        record["status"] = "published" as NSString
+        record["createdAt"] = "2026-01-01T00:00:00Z" as NSString
+        record["updatedAt"] = "2026-03-08T00:00:00Z" as NSString
+
+        let program = try Program(record: record)
+        #expect(program.status == "published")
+        #expect(program.createdAt == "2026-01-01T00:00:00Z")
+        #expect(program.updatedAt == "2026-03-08T00:00:00Z")
+    }
+
+    @Test
+    func programCKRecordOmitsNilStatusFields() throws {
+        let record = makeProgramRecord(id: "no-status-ck", name: "No Status CK")
+        let program = try Program(record: record)
+        #expect(program.status == nil)
+        #expect(program.createdAt == nil)
+        #expect(program.updatedAt == nil)
+    }
+
+    @Test
+    func cloudKitProgramRepositoryFiltersDraftPrograms() async throws {
+        let draftRecord = makeProgramRecord(id: "draft-program", name: "Draft Program")
+        draftRecord["status"] = "draft" as NSString
+
+        let publishedRecord = makeProgramRecord(id: "published-program", name: "Published Program")
+        publishedRecord["status"] = "published" as NSString
+
+        let noStatusRecord = makeProgramRecord(id: "no-status-program", name: "No Status Program")
+
+        let repository = CloudKitProgramRepository(
+            fallback: StubProgramRepository(programs: []),
+            cloudRecordFetcher: { _ in
+                [
+                    (draftRecord.recordID, .success(draftRecord)),
+                    (publishedRecord.recordID, .success(publishedRecord)),
+                    (noStatusRecord.recordID, .success(noStatusRecord)),
+                ]
+            }
+        )
+
+        let programs = try await repository.fetchPrograms()
+        let ids = programs.map(\.id)
+        #expect(!ids.contains("draft-program"))
+        #expect(ids.contains("published-program"))
+        #expect(ids.contains("no-status-program"))
+    }
+
+    @Test
     func metricsServiceHandlesPayloadsWithAndWithoutDiagnostics() {
         MetricsService.shared.start()
         MetricsService.shared.didReceive([] as [MXMetricPayload])
