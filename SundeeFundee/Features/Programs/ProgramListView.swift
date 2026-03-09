@@ -80,6 +80,7 @@ struct ProgramListView: View {
 struct ProgramCardView: View {
     let program: Program
     let isEnrolled: Bool
+    var availability: ProgramAvailability = .active
 
     var body: some View {
         VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
@@ -97,6 +98,10 @@ struct ProgramCardView: View {
                     Label("Active", systemImage: "checkmark.circle.fill")
                         .font(AppTheme.Fonts.caption)
                         .foregroundStyle(AppTheme.Colors.accentOrange)
+                } else if let badgeInfo = Self.availabilityBadge(availability) {
+                    Label(badgeInfo.text, systemImage: badgeInfo.icon)
+                        .font(AppTheme.Fonts.caption)
+                        .foregroundStyle(badgeInfo.color)
                 }
             }
 
@@ -112,6 +117,12 @@ struct ProgramCardView: View {
             }
             .font(AppTheme.Fonts.caption)
             .foregroundStyle(AppTheme.Colors.navy.opacity(0.6))
+
+            if case .upcoming(let startDate) = availability {
+                Text("Starts Sun, \(ProgramAvailability.formattedStartDate(startDate))")
+                    .font(AppTheme.Fonts.caption)
+                    .foregroundStyle(AppTheme.Colors.accentOrange)
+            }
         }
         .padding(AppTheme.Spacing.md)
         .background(AppTheme.Colors.cardBackground)
@@ -121,5 +132,16 @@ struct ProgramCardView: View {
 
     static func showsActiveBadge(isEnrolled: Bool) -> Bool {
         isEnrolled
+    }
+
+    static func availabilityBadge(_ availability: ProgramAvailability) -> (text: String, icon: String, color: Color)? {
+        switch availability {
+        case .upcoming:
+            return ("Coming Soon", "clock.fill", AppTheme.Colors.accentOrange)
+        case .past:
+            return ("Past Program", "clock.arrow.circlepath", AppTheme.Colors.navy.opacity(0.4))
+        case .active:
+            return nil
+        }
     }
 }
