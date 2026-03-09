@@ -21,6 +21,9 @@ struct WorkoutExecutionView: View {
 
             ScrollView {
                 VStack(spacing: AppTheme.Spacing.lg) {
+                    if let tier = ReadinessAdjustmentBanner.todayTier() {
+                        ReadinessAdjustmentBanner(tier: tier)
+                    }
                     sessionHeader
                     ForEach(viewModel.session.exercises, id: \.exercise, content: exerciseCard(for:))
                     finishButton

@@ -23,6 +23,9 @@ struct WODExecutionView: View {
             case .strength:
                 ScrollView {
                     VStack(spacing: AppTheme.Spacing.lg) {
+                        if let tier = ReadinessAdjustmentBanner.todayTier() {
+                            ReadinessAdjustmentBanner(tier: tier)
+                        }
                         wodHeader
                         ForEach(Array(viewModel.wod.exercises.enumerated()), id: \.offset) { index, exercise in
                             WODExerciseSetCard(viewModel: viewModel, exercise: exercise, exerciseIndex: index)
