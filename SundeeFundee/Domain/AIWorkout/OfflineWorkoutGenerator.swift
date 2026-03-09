@@ -380,6 +380,10 @@ enum OfflineWorkoutGenerator {
             parts.append("\(droppedForInjury) exercise\(droppedForInjury == 1 ? " was" : "s were") removed due to injury constraints with no safe substitute available.")
         }
 
+        if context.travelModeEnabled {
+            parts.append("Travel mode: exercises selected for minimal space and equipment.")
+        }
+
         return parts.joined(separator: " ")
     }
 }
