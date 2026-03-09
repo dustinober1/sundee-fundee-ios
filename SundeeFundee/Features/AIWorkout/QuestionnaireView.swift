@@ -70,6 +70,16 @@ struct QuestionnaireView: View {
                 onWorkoutGenerated(workout)
             }
         }
+        .task {
+            let userRepo = SwiftDataUserRepository(context: modelContext)
+            if let user = try? userRepo.fetchCurrentUser() {
+                viewModel.travelModeEnabled = user.travelModeEnabled
+                if user.travelModeEnabled {
+                    viewModel.timeMinutes = QuestionnaireViewModel.defaultTimeMinutes(travelMode: true)
+                    viewModel.equipment = .bodyweightOnly
+                }
+            }
+        }
     }
 
     // MARK: - Page Indicator
@@ -91,6 +101,19 @@ struct QuestionnaireView: View {
     private var page1: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: AppTheme.Spacing.lg) {
+                if viewModel.travelModeEnabled {
+                    HStack(spacing: AppTheme.Spacing.xs) {
+                        Image(systemName: "suitcase.fill")
+                        Text("Travel Mode")
+                            .font(AppTheme.Fonts.caption)
+                    }
+                    .foregroundStyle(AppTheme.Colors.cream)
+                    .padding(.horizontal, AppTheme.Spacing.md)
+                    .padding(.vertical, AppTheme.Spacing.xs)
+                    .background(AppTheme.Colors.navy)
+                    .clipShape(Capsule())
+                }
+
                 sectionHeader("How long do you have?")
 
                 HStack(spacing: AppTheme.Spacing.sm) {
@@ -130,7 +153,7 @@ struct QuestionnaireView: View {
                 sectionHeader("What equipment do you have?")
 
                 VStack(spacing: AppTheme.Spacing.sm) {
-                    ForEach(EquipmentAccess.allCases, id: \.self) { equip in
+                    ForEach(QuestionnaireViewModel.availableEquipment(travelMode: viewModel.travelModeEnabled), id: \.self) { equip in
                         equipmentRow(equip)
                     }
                 }

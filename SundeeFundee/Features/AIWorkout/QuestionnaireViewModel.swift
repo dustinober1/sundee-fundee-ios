@@ -10,6 +10,7 @@ final class QuestionnaireViewModel {
     var energyLevel: EnergyLevel = .medium
     var equipment: EquipmentAccess = .fullGym
     var selectedSkills: [String] = []
+    var travelModeEnabled: Bool = false
 
     // State
     var showPaywall = false
@@ -38,6 +39,17 @@ final class QuestionnaireViewModel {
         "Double-Unders", "Snatch", "Clean & Jerk", "L-Sit",
         "Box Jumps", "Rope Climb"
     ]
+
+    static func availableEquipment(travelMode: Bool) -> [EquipmentAccess] {
+        if travelMode {
+            return [.bodyweightOnly, .hotelGym]
+        }
+        return EquipmentAccess.allCases
+    }
+
+    static func defaultTimeMinutes(travelMode: Bool) -> Int {
+        travelMode ? 30 : 45
+    }
 
     init(aiService: any AIWorkoutServiceProtocol) {
         self.aiService = aiService
