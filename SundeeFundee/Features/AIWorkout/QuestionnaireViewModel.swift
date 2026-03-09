@@ -89,7 +89,7 @@ final class QuestionnaireViewModel {
             maxes: maxes,
             recentWorkouts: recentWorkouts,
             cyclePhase: cyclePhase,
-            readinessTier: nil,
+            readinessTier: ReadinessSurvey.todayTierStringForAI(),
             activeInjuries: injuries,
             experienceLevel: currentUser?.experienceLevel.rawValue ?? "beginner",
             primaryGoal: currentUser?.primaryGoal.rawValue ?? "strength",

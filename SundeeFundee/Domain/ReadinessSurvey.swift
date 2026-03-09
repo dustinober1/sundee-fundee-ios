@@ -88,6 +88,18 @@ enum ReadinessSurvey {
         }
     }
 
+    static func tierStringForAI(_ tier: AdaptationReadinessTier) -> String {
+        switch tier {
+        case .low: "fatigued"
+        case .neutral: "normal"
+        case .high: "prime"
+        }
+    }
+
+    static func todayTierStringForAI(defaults: UserDefaults = .standard) -> String? {
+        loadTodayResult(defaults: defaults).map { tierStringForAI($0.tier) }
+    }
+
     static func adjustmentBannerText(for tier: AdaptationReadinessTier) -> String? {
         switch tier {
         case .low: "Volume reduced 40% — low readiness"

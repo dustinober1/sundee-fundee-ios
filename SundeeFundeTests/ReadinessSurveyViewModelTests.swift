@@ -58,6 +58,13 @@ final class ReadinessSurveyViewModelTests: XCTestCase {
         XCTAssertEqual(vm.sleepQuality, 8)
     }
 
+    func testReadinessTierStringForAIContext() {
+        XCTAssertEqual(ReadinessSurvey.tierStringForAI(.low), "fatigued")
+        XCTAssertEqual(ReadinessSurvey.tierStringForAI(.neutral), "normal")
+        XCTAssertEqual(ReadinessSurvey.tierStringForAI(.high), "prime")
+        XCTAssertNil(ReadinessSurvey.todayTierStringForAI(defaults: freshDefaults()))
+    }
+
     func testHasExistingScoreToday() {
         let defaults = freshDefaults()
         XCTAssertFalse(ReadinessSurveyViewModel.hasScoreToday(defaults: defaults))
