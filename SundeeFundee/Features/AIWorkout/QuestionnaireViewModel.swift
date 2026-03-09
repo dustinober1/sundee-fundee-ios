@@ -99,7 +99,8 @@ final class QuestionnaireViewModel {
             benchmarkSummaries: benchmarks,
             bodyWeightKg: currentUser?.bodyWeightKg,
             recentPainActivity: recentPain,
-            workoutCompletionRate: completionRate
+            workoutCompletionRate: completionRate,
+            travelModeEnabled: currentUser?.travelModeEnabled ?? false
         )
     }
 

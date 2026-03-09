@@ -138,6 +138,7 @@ struct WorkoutGenerationContext: Codable, Sendable {
     let bodyWeightKg: Double?
     let recentPainActivity: [PainActivitySummary]
     let workoutCompletionRate: Double?
+    let travelModeEnabled: Bool
 
     init(
         userID: String, timeMinutes: Int, focus: WorkoutFocus, energyLevel: EnergyLevel,
@@ -146,7 +147,8 @@ struct WorkoutGenerationContext: Codable, Sendable {
         experienceLevel: String, primaryGoal: String, gender: String, weightUnit: String,
         desiredSkills: [String] = [], benchmarkSummaries: [BenchmarkSummary] = [],
         bodyWeightKg: Double? = nil, recentPainActivity: [PainActivitySummary] = [],
-        workoutCompletionRate: Double? = nil
+        workoutCompletionRate: Double? = nil,
+        travelModeEnabled: Bool = false
     ) {
         self.userID = userID
         self.timeMinutes = timeMinutes
@@ -167,5 +169,6 @@ struct WorkoutGenerationContext: Codable, Sendable {
         self.bodyWeightKg = bodyWeightKg
         self.recentPainActivity = recentPainActivity
         self.workoutCompletionRate = workoutCompletionRate
+        self.travelModeEnabled = travelModeEnabled
     }
 }
