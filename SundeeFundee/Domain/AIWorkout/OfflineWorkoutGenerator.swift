@@ -158,6 +158,8 @@ enum OfflineWorkoutGenerator {
                 return true
             case .homeDumbbells:
                 return !template.requiresBarbell
+            case .hotelGym:
+                return !template.requiresBarbell
             case .bodyweightOnly:
                 return template.bodyweightOnly
             case .outdoor:

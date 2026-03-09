@@ -57,6 +57,7 @@ enum EnergyLevel: String, Codable, Sendable, CaseIterable {
 enum EquipmentAccess: String, Codable, Sendable, CaseIterable {
     case fullGym = "full_gym"
     case homeDumbbells = "home_dumbbells"
+    case hotelGym = "hotel_gym"
     case bodyweightOnly = "bodyweight_only"
     case outdoor
 
@@ -64,6 +65,7 @@ enum EquipmentAccess: String, Codable, Sendable, CaseIterable {
         switch self {
         case .fullGym: "Full Gym"
         case .homeDumbbells: "Home Dumbbells"
+        case .hotelGym: "Hotel Gym"
         case .bodyweightOnly: "Bodyweight Only"
         case .outdoor: "Outdoor"
         }
@@ -73,6 +75,7 @@ enum EquipmentAccess: String, Codable, Sendable, CaseIterable {
         switch self {
         case .fullGym: "building.2"
         case .homeDumbbells: "dumbbell"
+        case .hotelGym: "bed.double"
         case .bodyweightOnly: "figure.strengthtraining.traditional"
         case .outdoor: "sun.max"
         }
