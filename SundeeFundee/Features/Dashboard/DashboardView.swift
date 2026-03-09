@@ -12,6 +12,7 @@ struct DashboardView: View {
     @State private var workoutToDelete: CompletedWorkout?
     @State private var showDeleteConfirmation = false
     @State private var injuryForCheckIn: InjuryProfile?
+    @State private var showReadinessSurvey = false
 
     init(viewModel: DashboardViewModel = DashboardViewModel()) {
         _viewModel = State(initialValue: viewModel)
@@ -23,6 +24,9 @@ struct DashboardView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: AppTheme.Spacing.lg) {
                     greetingHeader
+                    ReadinessCard(result: viewModel.todayReadiness) {
+                        showReadinessSurvey = true
+                    }
                     if viewModel.currentCyclePhase == .menstrual {
                         MenstrualPhaseCard()
                     }
@@ -160,6 +164,20 @@ struct DashboardView: View {
                 Task { await viewModel.load(modelContext: modelContext) }
             }
         }
+        .sheet(isPresented: $showReadinessSurvey) {
+            ReadinessSurveySheet(
+                viewModel: ReadinessSurveyViewModel(
+                    healthKitScore: viewModel.readinessScore
+                ),
+                onSubmit: { result in
+                    viewModel.todayReadiness = result
+                    showReadinessSurvey = false
+                },
+                onSkip: {
+                    showReadinessSurvey = false
+                }
+            )
+        }
         .task { await viewModel.load(modelContext: modelContext) }
         .refreshable(action: Self.refreshAction(viewModel: viewModel, modelContext: modelContext))
     }
@@ -246,6 +264,10 @@ struct DashboardView: View {
     ) -> (enrollment: EnrolledProgram, program: Program)? {
         guard let enrollment, let program else { return nil }
         return (enrollment, program)
+    }
+
+    static func shouldShowReadinessGate(defaults: UserDefaults = .standard) -> Bool {
+        !ReadinessSurveyViewModel.hasScoreToday(defaults: defaults)
     }
 
     static func shouldShowEmptyRecentWorkouts(_ workouts: [CompletedWorkout]) -> Bool {

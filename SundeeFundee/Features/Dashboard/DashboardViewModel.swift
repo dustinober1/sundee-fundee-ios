@@ -23,6 +23,7 @@ final class DashboardViewModel {
     var rehabSession: ProgramSession?
     var readinessScore: Double?
     var todayWOD: WOD?
+    var todayReadiness: ReadinessResult? = ReadinessSurvey.loadTodayResult()
     var gender: Gender?
 
     private let programRepo: any ProgramRepository
@@ -52,6 +53,7 @@ final class DashboardViewModel {
         let cycleData = loadCycleData(modelContext: modelContext)
         let activeInjuries = loadInjuries(modelContext: modelContext, currentUser: currentUser)
         await loadReadinessMetrics()
+        todayReadiness = ReadinessSurvey.loadTodayResult()
 
         await loadActiveProgram(
             modelContext: modelContext,
@@ -166,7 +168,7 @@ final class DashboardViewModel {
                 settings: cycleSettings,
                 preferences: effectiveCyclePrefs,
                 periodLogs: periodLogs,
-                readinessScore: readinessScore
+                readinessScore: todayReadiness?.score ?? readinessScore
             )
             if !activeInjuries.isEmpty {
                 adapted = InjuryAdaptationEngine.adaptProgram(adapted, activeInjuries: activeInjuries)
