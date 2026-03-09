@@ -174,3 +174,30 @@ struct SharedWorkoutTemplate: Identifiable, Sendable {
     let durationMinutes: Int
     let downloadedAt: Date
 }
+
+// MARK: - BarbellRepository
+
+struct BarbellPresetDTO {
+    let id: String
+    let userID: String
+    let name: String
+    let weightKg: Double
+    let isBuiltIn: Bool
+    let sortOrder: Int
+}
+
+struct ExerciseBarMappingDTO {
+    let id: String
+    let userID: String
+    let exerciseName: String
+    let barbellPresetID: String
+}
+
+protocol BarbellRepository {
+    func fetchPresets(userID: String) throws -> [BarbellPresetDTO]
+    func savePreset(_ preset: BarbellPresetDTO) throws
+    func deletePreset(id: String) throws
+    func fetchMapping(exerciseName: String, userID: String) throws -> ExerciseBarMappingDTO?
+    func saveMapping(_ mapping: ExerciseBarMappingDTO) throws
+    func seedBuiltInPresets(userID: String)
+}
