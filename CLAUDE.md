@@ -65,7 +65,7 @@ Domain/ (pure Swift, zero dependencies, 100% tested)
 - **`Domain/`** — All business logic: weight calculations, cycle phase adaptation, injury modification engine, benchmark catalog, pain trend analysis, rehab session generation, phase transition advice. No framework dependencies — fully unit tested.
 - **`Models/`** — 18 SwiftData `@Model` types. **Enums must be stored as raw strings** (CloudKit requirement); typed accessors are computed properties.
 - **`Repositories/`** — Protocol-based data access layer with SwiftData implementations. `ProgramRepository` fetches from CloudKit Public DB with bundled `programs.json` fallback.
-- **`Features/`** — One subdirectory per tab: Dashboard, Programs, Workouts, Cycle, Maxes, Benchmarks, Settings + Shell (tab bar). `Shared/` contains reusable components (e.g., `SpicyRatingView`).
+- **`Features/`** — One subdirectory per tab: Dashboard, Programs, History, Workouts, Cycle, Maxes, Benchmarks, Settings + Shell (tab bar). `Shared/` contains reusable components (e.g., `SpicyRatingView`).
 - **`Theme/`** — Art Deco design tokens: cream/navy/orange palette
 
 ### Auth & Routing
@@ -79,6 +79,10 @@ Domain/ (pure Swift, zero dependencies, 100% tested)
 
 - Enum properties on `@Model` types **must be stored as `String` raw values** — CloudKit does not support Swift enums directly.
 - Release entitlements enable CloudKit + Sign in with Apple; Debug entitlements are empty (supports Personal Team signing without paid capabilities).
+
+### History Tab
+
+The History tab (`UnifiedHistoryView` + `UnifiedHistoryViewModel`) shows all completed workouts in a single chronological list, regardless of source (AI-generated or program sessions). It queries both `GeneratedWorkoutRecord` and `CompletedWorkout` from SwiftData and merges them via the `HistoryItem` domain type. Supports source filtering (All/AI/Program), swipe-to-delete, and edit-mode bulk delete.
 
 ### Programs
 

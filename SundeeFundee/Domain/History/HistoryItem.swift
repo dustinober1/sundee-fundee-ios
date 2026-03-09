@@ -9,7 +9,7 @@ enum HistoryItemSource: Hashable, Sendable {
 
 // MARK: - HistoryItem
 
-struct HistoryItem: Identifiable, Sendable {
+struct HistoryItem: Identifiable, Hashable, Sendable {
     let id: String
     let title: String
     let source: HistoryItemSource

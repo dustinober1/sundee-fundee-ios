@@ -35,6 +35,28 @@ struct ProgramListView: View {
                     Self.emptyStateView()
                 case .loaded:
                     ScrollView {
+                        if !viewModel.enrollments.isEmpty {
+                            VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
+                                Text("My Programs")
+                                    .font(AppTheme.Fonts.subheading)
+                                    .foregroundStyle(AppTheme.Colors.navy)
+                                    .padding(.horizontal, AppTheme.Spacing.md)
+
+                                ForEach(viewModel.enrollments, id: \.id) { enrollment in
+                                    enrolledProgramRow(enrollment)
+                                }
+                            }
+                            .padding(.top, AppTheme.Spacing.sm)
+
+                            Divider()
+                                .padding(.vertical, AppTheme.Spacing.sm)
+
+                            Text("All Programs")
+                                .font(AppTheme.Fonts.subheading)
+                                .foregroundStyle(AppTheme.Colors.navy)
+                                .padding(.horizontal, AppTheme.Spacing.md)
+                        }
+
                         LazyVStack(spacing: AppTheme.Spacing.md) {
                             ForEach(ProgramAvailability.sortedPrograms(viewModel.filteredPrograms)) { program in
                                 NavigationLink(value: program) {
@@ -59,6 +81,49 @@ struct ProgramListView: View {
             Self.detailDestination(program: program, viewModel: viewModel)
         }
         .task { await viewModel.load(modelContext: modelContext) }
+    }
+
+    private func enrolledProgramRow(_ enrollment: EnrolledProgram) -> some View {
+        let programName = viewModel.filteredPrograms.first(where: { $0.id == enrollment.programID })?.name
+            ?? viewModel.programs.first(where: { $0.id == enrollment.programID })?.name
+            ?? "Unknown Program"
+
+        return HStack {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(programName)
+                    .font(AppTheme.Fonts.body)
+                    .fontWeight(.medium)
+                    .foregroundStyle(AppTheme.Colors.navy)
+                HStack(spacing: AppTheme.Spacing.xs) {
+                    Text(enrollment.status.rawValue.capitalized)
+                        .font(.caption2)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(enrollment.isActive
+                            ? AppTheme.Colors.accentOrange.opacity(0.15)
+                            : AppTheme.Colors.navy.opacity(0.1))
+                        .foregroundStyle(enrollment.isActive
+                            ? AppTheme.Colors.accentOrange
+                            : AppTheme.Colors.navy)
+                        .cornerRadius(4)
+                    Text("Week \(enrollment.currentWeek), Day \(enrollment.currentDay)")
+                        .font(AppTheme.Fonts.caption)
+                        .foregroundStyle(AppTheme.Colors.textSecondary)
+                }
+            }
+            Spacer()
+            Button {
+                viewModel.removeEnrollment(enrollment, modelContext: modelContext)
+            } label: {
+                Image(systemName: "trash")
+                    .foregroundStyle(.red)
+            }
+        }
+        .padding(.horizontal, AppTheme.Spacing.md)
+        .padding(.vertical, AppTheme.Spacing.sm)
+        .background(AppTheme.Colors.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: AppTheme.CornerRadius.card))
+        .padding(.horizontal, AppTheme.Spacing.md)
     }
 
     static func contentState(isLoading: Bool, errorMessage: String?, programCount: Int) -> ContentState {

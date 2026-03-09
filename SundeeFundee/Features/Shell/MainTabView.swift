@@ -109,20 +109,20 @@ struct HistoryTabView: View {
     @Query private var users: [User]
 
     private var currentUser: User? { users.first }
-    private var weightUnit: WeightUnit { currentUser?.weightUnit ?? .pounds }
-    private var barbellWeightKg: Double { DashboardViewModel.barbellWeight(for: currentUser?.gender) }
 
     var body: some View {
-        WorkoutHistoryView(
-            userID: currentUser?.id ?? "",
-            aiService: SwiftDataAIWorkoutService(
-                modelContext: modelContext,
-                sharedRepository: FileManager.default.ubiquityIdentityToken != nil
-                    ? CloudKitSharedWorkoutRepository(modelContext: modelContext)
-                    : nil
-            ),
-            weightUnit: weightUnit,
-            barbellWeightKg: barbellWeightKg
+        UnifiedHistoryView(
+            viewModel: UnifiedHistoryViewModel(
+                userID: currentUser?.id ?? "",
+                aiService: SwiftDataAIWorkoutService(
+                    modelContext: modelContext,
+                    sharedRepository: FileManager.default.ubiquityIdentityToken != nil
+                        ? CloudKitSharedWorkoutRepository(modelContext: modelContext)
+                        : nil
+                ),
+                workoutRepo: SwiftDataWorkoutRepository(context: modelContext),
+                programRepo: CloudKitProgramRepository()
+            )
         )
     }
 }

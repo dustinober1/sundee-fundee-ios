@@ -7,6 +7,7 @@ final class ProgramListViewModel {
     var programs: [Program] = []
     var searchText: String = ""
     var activeEnrollment: EnrolledProgram?
+    var enrollments: [EnrolledProgram] = []
     var isLoading = false
     var errorMessage: String?
 
@@ -42,9 +43,7 @@ final class ProgramListViewModel {
         }
 
         if let ctx = modelContext {
-            let repo = SwiftDataEnrolledProgramRepository(context: ctx)
-            enrollmentRepo = repo
-            activeEnrollment = try? repo.fetchActiveEnrollment()
+            loadEnrollments(modelContext: ctx)
         }
     }
 
@@ -74,5 +73,21 @@ final class ProgramListViewModel {
         let repo = SwiftDataEnrolledProgramRepository(context: modelContext)
         try? repo.cancel(enrollment)
         activeEnrollment = nil
+    }
+
+    func loadEnrollments(modelContext: ModelContext) {
+        let repo = SwiftDataEnrolledProgramRepository(context: modelContext)
+        enrollmentRepo = repo
+        enrollments = (try? repo.fetchAllEnrollments()) ?? []
+        activeEnrollment = try? repo.fetchActiveEnrollment()
+    }
+
+    func removeEnrollment(_ enrollment: EnrolledProgram, modelContext: ModelContext) {
+        let repo = SwiftDataEnrolledProgramRepository(context: modelContext)
+        try? repo.delete(enrollment)
+        enrollments.removeAll { $0.id == enrollment.id }
+        if activeEnrollment?.id == enrollment.id {
+            activeEnrollment = nil
+        }
     }
 }
