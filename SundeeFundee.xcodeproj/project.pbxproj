@@ -105,6 +105,7 @@
 		775BF355E6EC474197B944A3 /* WODsViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D781DE10DF17698A8DE5272E /* WODsViewModelTests.swift */; };
 		79B071C17D8532685984EDEB /* PainTrendAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F2063B2D582F627881D16AB /* PainTrendAnalyzer.swift */; };
 		7C0AA04E299BE79E9ED6BAE1 /* AppSchemaV9.swift in Sources */ = {isa = PBXBuildFile; fileRef = 381DDAC45B9F290286FA4044 /* AppSchemaV9.swift */; };
+		7F185B41E336E896CECD582D /* ReadinessAdjustmentBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 070CA38874244F568CC4CA02 /* ReadinessAdjustmentBanner.swift */; };
 		7F4D8D30D5DDE1FF2CF92913 /* BarbellViewModelCoverageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B48A631E31E386FDBF30842F /* BarbellViewModelCoverageTests.swift */; };
 		7F51A67CCC79EB0C5272E637 /* ReadinessSurveyViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A837B36E80FFCD51246B05B /* ReadinessSurveyViewModelTests.swift */; };
 		85A1E3125F13871696262D1A /* ReadinessSurvey.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFACFF1F3C598B2EEC2C79B5 /* ReadinessSurvey.swift */; };
@@ -183,6 +184,7 @@
 		FA89EB1188866D89FF413F15 /* SpicyRatingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FBB90912CB2B98DE1132BAF /* SpicyRatingView.swift */; };
 		FAA36AAAA724BCC82CBF599B /* UnifiedHistoryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92928DE888F105F2CE015CCF /* UnifiedHistoryViewModel.swift */; };
 		FB51905AEA3B1A88B4502E6D /* WODTemplateType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 511AE93749C8F25A18DBAECA /* WODTemplateType.swift */; };
+		FCA41D0A646260B930B9E56E /* ReadinessCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A89B7BACDBD017EB90E7F9A /* ReadinessCard.swift */; };
 		FCED2A5DBA39A0E4177DF1B7 /* QuestionnaireView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11E35725A51E2EB7B64E8BE2 /* QuestionnaireView.swift */; };
 		FD012FB20EDC77E448673EF8 /* AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = A595115D72C6220739A44F49 /* AppTheme.swift */; };
 		FECBD6F23806C94C02DAF5A6 /* SwiftDataUserRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = D64DF9E2AE5C41BB24352DF6 /* SwiftDataUserRepository.swift */; };
@@ -204,6 +206,7 @@
 		034904E0C73193305D8EC436 /* BodyWeightSettingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyWeightSettingView.swift; sourceTree = "<group>"; };
 		04C582617701447ED4C8D80F /* CycleAdaptationPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleAdaptationPolicy.swift; sourceTree = "<group>"; };
 		0556528CA65E4E0B2B91FE48 /* SubscriptionManagementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionManagementView.swift; sourceTree = "<group>"; };
+		070CA38874244F568CC4CA02 /* ReadinessAdjustmentBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadinessAdjustmentBanner.swift; sourceTree = "<group>"; };
 		094C754F0BC0AE7DBE67619B /* AppAuthCoverageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppAuthCoverageTests.swift; sourceTree = "<group>"; };
 		0AC0AC5D54C5AD7A36EBF2C7 /* BenchmarkDetailViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BenchmarkDetailViewModelTests.swift; sourceTree = "<group>"; };
 		0D02D55549E45865DA337162 /* SundeeFundee.Debug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SundeeFundee.Debug.entitlements; sourceTree = "<group>"; };
@@ -263,6 +266,7 @@
 		5533059CBDA1637C94B14128 /* ViewModelCoverageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewModelCoverageTests.swift; sourceTree = "<group>"; };
 		57FA9E11B8FF03AA1DEE29CB /* WODExecutionViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WODExecutionViewModel.swift; sourceTree = "<group>"; };
 		59CC9A3DC776EC24192A6D46 /* wods.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = wods.json; sourceTree = "<group>"; };
+		5A89B7BACDBD017EB90E7F9A /* ReadinessCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadinessCard.swift; sourceTree = "<group>"; };
 		5BDADDDF96B2ECD3783DE0D2 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		5DB1FEAD646663C29A83BEA8 /* SwiftUISmokeTestsB.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftUISmokeTestsB.swift; sourceTree = "<group>"; };
 		5E49072C83948F5C5119FBB9 /* UICriticalFlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UICriticalFlowTests.swift; sourceTree = "<group>"; };
@@ -413,6 +417,7 @@
 		06AD14236DDC0825F7610CDE /* Readiness */ = {
 			isa = PBXGroup;
 			children = (
+				5A89B7BACDBD017EB90E7F9A /* ReadinessCard.swift */,
 				6A41F3902E06CACAB9B9686F /* ReadinessSurveySheet.swift */,
 				459873A5C15107524386044E /* ReadinessSurveyViewModel.swift */,
 			);
@@ -523,6 +528,7 @@
 			isa = PBXGroup;
 			children = (
 				12AE3DA414F404CCFFB261C5 /* CelebrationOverlayView.swift */,
+				070CA38874244F568CC4CA02 /* ReadinessAdjustmentBanner.swift */,
 				1FBB90912CB2B98DE1132BAF /* SpicyRatingView.swift */,
 			);
 			path = Shared;
@@ -1084,6 +1090,8 @@
 				E5F449AEEA29A58A4B10D5D1 /* ProgramRepository.swift in Sources */,
 				FCED2A5DBA39A0E4177DF1B7 /* QuestionnaireView.swift in Sources */,
 				E34DD9B67001EDC2ADA05F6A /* QuestionnaireViewModel.swift in Sources */,
+				7F185B41E336E896CECD582D /* ReadinessAdjustmentBanner.swift in Sources */,
+				FCA41D0A646260B930B9E56E /* ReadinessCard.swift in Sources */,
 				85A1E3125F13871696262D1A /* ReadinessSurvey.swift in Sources */,
 				8DD00A5208FC2271A9766F8E /* ReadinessSurveySheet.swift in Sources */,
 				564A3F287B6DA53E428B7B15 /* ReadinessSurveyViewModel.swift in Sources */,
