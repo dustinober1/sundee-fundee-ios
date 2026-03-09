@@ -78,6 +78,10 @@ struct SettingsView: View {
                             }
                         }
                     ))
+                    Toggle("Travel Mode", isOn: $viewModel.travelModeEnabled)
+                        .onChange(of: viewModel.travelModeEnabled) { _, _ in
+                            Task { await viewModel.saveProfile() }
+                        }
                 }
 
                 // Equipment

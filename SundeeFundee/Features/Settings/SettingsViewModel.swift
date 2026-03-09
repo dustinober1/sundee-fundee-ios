@@ -11,6 +11,7 @@ final class SettingsViewModel {
     var gender: Gender = .preferNotToSay
     var cycleTrackingEnabled: Bool = false
     var bodyWeight: Double? = nil
+    var travelModeEnabled: Bool = false
     var injuryProfiles: [InjuryProfile] = []
     var barbellPresets: [BarbellPresetDTO] = []
 
@@ -33,6 +34,7 @@ final class SettingsViewModel {
             gender = user.gender
             cycleTrackingEnabled = user.cycleTrackingEnabled
             bodyWeight = user.bodyWeightKg
+            travelModeEnabled = user.travelModeEnabled
         }
 
         let injuryRepo = SwiftDataInjuryRepository(context: modelContext)
@@ -55,6 +57,7 @@ final class SettingsViewModel {
             user.gender = gender
             user.cycleTrackingEnabled = cycleTrackingEnabled
             user.bodyWeightKg = bodyWeight
+            user.travelModeEnabled = travelModeEnabled
             try? ctx.save()
         }
     }
