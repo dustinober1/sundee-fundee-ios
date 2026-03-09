@@ -46,6 +46,7 @@ final class User {
     var profileUpdatedAt: Date?
     var subscriptionTierRaw: String?
     var bodyWeightKg: Double?
+    var travelModeEnabled: Bool
 
     init(
         id: String,
@@ -60,7 +61,8 @@ final class User {
         createdAt: Date = .now,
         profileUpdatedAt: Date? = nil,
         subscriptionTierRaw: String? = nil,
-        bodyWeightKg: Double? = nil
+        bodyWeightKg: Double? = nil,
+        travelModeEnabled: Bool = false
     ) {
         self.id = id
         self.name = name
@@ -75,6 +77,7 @@ final class User {
         self.profileUpdatedAt = profileUpdatedAt
         self.subscriptionTierRaw = subscriptionTierRaw
         self.bodyWeightKg = bodyWeightKg
+        self.travelModeEnabled = travelModeEnabled
     }
 
     var experienceLevel: ExperienceLevel {

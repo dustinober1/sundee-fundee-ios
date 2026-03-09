@@ -8,11 +8,11 @@ import SwiftData
 /// Custom migrations that transform data require a `custom` stage.
 enum AppSchemaMigrationPlan: SchemaMigrationPlan {
     static var schemas: [any VersionedSchema.Type] {
-        [AppSchemaV1.self, AppSchemaV6.self, AppSchemaV7.self, AppSchemaV8.self, AppSchemaV9.self, AppSchemaV10.self, AppSchemaV11.self]
+        [AppSchemaV1.self, AppSchemaV6.self, AppSchemaV7.self, AppSchemaV8.self, AppSchemaV9.self, AppSchemaV10.self, AppSchemaV11.self, AppSchemaV12.self]
     }
 
     static var stages: [MigrationStage] {
-        [migrateV1toV6, migrateV6toV7, migrateV7toV8, migrateV8toV9, migrateV9toV10, migrateV10toV11]
+        [migrateV1toV6, migrateV6toV7, migrateV7toV8, migrateV8toV9, migrateV9toV10, migrateV10toV11, migrateV11toV12]
     }
 
     /// V1 → V6: Lightweight migration covering all schema additions since V1.
@@ -56,5 +56,11 @@ enum AppSchemaMigrationPlan: SchemaMigrationPlan {
     static let migrateV10toV11 = MigrationStage.lightweight(
         fromVersion: AppSchemaV10.self,
         toVersion: AppSchemaV11.self
+    )
+
+    /// V11 → V12: Adds travelModeEnabled to User.
+    static let migrateV11toV12 = MigrationStage.lightweight(
+        fromVersion: AppSchemaV11.self,
+        toVersion: AppSchemaV12.self
     )
 }
