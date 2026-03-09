@@ -54,6 +54,7 @@
 		36626C35D6F11C19883D38F0 /* AppSchemaV6.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C077973F1C02C910E08A519 /* AppSchemaV6.swift */; };
 		36F9A5919EED3EFD3EE15912 /* UnifiedHistoryCoverageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A81D0921A3D9F95512E51B7 /* UnifiedHistoryCoverageTests.swift */; };
 		3978926D25EE8429137DE9FF /* SwiftDataWorkoutRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 177C37A3D267D4BE118A2E9F /* SwiftDataWorkoutRepository.swift */; };
+		3A736D4D6E35A65B670BDFCF /* BarbellUICoverageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632C6D65120116B3A54081D5 /* BarbellUICoverageTests.swift */; };
 		3A9441E40CA4388FA2C73B92 /* CompletedWorkout.swift in Sources */ = {isa = PBXBuildFile; fileRef = D16BAB9EF7570DE98192141A /* CompletedWorkout.swift */; };
 		3B3C510AD45D7FE9B1B5F4A5 /* AppSchemaMigrationPlan.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7BD0ECF7B475013E0EA880F /* AppSchemaMigrationPlan.swift */; };
 		3C53F6C5B43D351DA380EF68 /* ProgramListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE26DFC10D79B87DFF9A2ACF /* ProgramListViewModel.swift */; };
@@ -261,6 +262,7 @@
 		607461998404BF185267C222 /* SundeeFundee.storekit */ = {isa = PBXFileReference; path = SundeeFundee.storekit; sourceTree = "<group>"; };
 		616A3F0BB4993EF89C49872B /* WeightUnitConversion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightUnitConversion.swift; sourceTree = "<group>"; };
 		62C498309D514E52B0277ABD /* FeatureViewsCoverageWave3Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureViewsCoverageWave3Tests.swift; sourceTree = "<group>"; };
+		632C6D65120116B3A54081D5 /* BarbellUICoverageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarbellUICoverageTests.swift; sourceTree = "<group>"; };
 		665E7A777D41FE5BE4093B7C /* LegalContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegalContent.swift; sourceTree = "<group>"; };
 		677570AE2327A5E1019DCD11 /* GeminiResponseParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeminiResponseParser.swift; sourceTree = "<group>"; };
 		688EA0E2D3143A50FCD11F66 /* PhaseTransitionAdvisor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhaseTransitionAdvisor.swift; sourceTree = "<group>"; };
@@ -691,6 +693,7 @@
 				AC51B34DAECCC0AAA7F22868 /* AuthOnboardingViewCoverageTests.swift */,
 				F364A9C78205A297F015C584 /* BarbellDefaultsTests.swift */,
 				E5C843472A4D5ED54D15C3BC /* BarbellRepositoryCoverageTests.swift */,
+				632C6D65120116B3A54081D5 /* BarbellUICoverageTests.swift */,
 				B48A631E31E386FDBF30842F /* BarbellViewModelCoverageTests.swift */,
 				0AC0AC5D54C5AD7A36EBF2C7 /* BenchmarkDetailViewModelTests.swift */,
 				9643063350451DBFB018B10B /* BenchmarkModelTests.swift */,
@@ -1095,6 +1098,7 @@
 				2DE56C95D21DF86C7CB5C7D6 /* AuthOnboardingViewCoverageTests.swift in Sources */,
 				04D99A1F1B8F31C0547C8A88 /* BarbellDefaultsTests.swift in Sources */,
 				EF1581C1C7D3293713467D41 /* BarbellRepositoryCoverageTests.swift in Sources */,
+				3A736D4D6E35A65B670BDFCF /* BarbellUICoverageTests.swift in Sources */,
 				7F4D8D30D5DDE1FF2CF92913 /* BarbellViewModelCoverageTests.swift in Sources */,
 				CBB81A553D871E08894CB3F2 /* BenchmarkDetailViewModelTests.swift in Sources */,
 				F08D0D038A8FEF9C8970D64E /* BenchmarkModelTests.swift in Sources */,
