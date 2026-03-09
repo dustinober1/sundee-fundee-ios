@@ -17,6 +17,7 @@ final class SettingsViewModel {
     private var modelContext: ModelContext?
     private var userID: String = ""
     private var currentUser: User?
+    private var barbellRepo: (any BarbellRepository)?
 
     func load(modelContext: ModelContext, userID: String) async {
         self.modelContext = modelContext
@@ -37,9 +38,10 @@ final class SettingsViewModel {
         let injuryRepo = SwiftDataInjuryRepository(context: modelContext)
         injuryProfiles = (try? injuryRepo.fetchAll(userID: userID)) ?? []
         loadPainLogs()
-        let barbellRepo = SwiftDataBarbellRepository(context: modelContext)
-        barbellRepo.seedBuiltInPresets(userID: userID)
-        barbellPresets = (try? barbellRepo.fetchPresets(userID: userID)) ?? []
+        let repo = SwiftDataBarbellRepository(context: modelContext)
+        repo.seedBuiltInPresets(userID: userID)
+        barbellRepo = repo
+        barbellPresets = (try? repo.fetchPresets(userID: userID)) ?? []
         evaluateTransitions()
     }
 
@@ -166,8 +168,7 @@ final class SettingsViewModel {
         }
     }
     func addCustomBarbell(name: String, weightKg: Double) {
-        guard let ctx = modelContext else { return }
-        let repo = SwiftDataBarbellRepository(context: ctx)
+        guard let repo = barbellRepo else { return }
         let maxOrder = barbellPresets.map(\.sortOrder).max() ?? 0
         let preset = BarbellPresetDTO(
             id: UUID().uuidString,
@@ -182,8 +183,7 @@ final class SettingsViewModel {
     }
 
     func deleteCustomBarbell(id: String) {
-        guard let ctx = modelContext else { return }
-        let repo = SwiftDataBarbellRepository(context: ctx)
+        guard let repo = barbellRepo else { return }
         try? repo.deletePreset(id: id)
         barbellPresets = (try? repo.fetchPresets(userID: userID)) ?? []
     }

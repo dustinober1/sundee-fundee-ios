@@ -82,7 +82,7 @@ struct DashboardView: View {
                         oneRepMaxes: viewModel.oneRepMaxes,
                         barbellWeightKg: viewModel.barbellWeightKg,
                         weightUnit: viewModel.weightUnit,
-                        barbellRepo: SwiftDataBarbellRepository(context: modelContext),
+                        barbellRepo: viewModel.barbellRepo,
                         userID: appState.currentUserID ?? "",
                         gender: viewModel.gender
                     )

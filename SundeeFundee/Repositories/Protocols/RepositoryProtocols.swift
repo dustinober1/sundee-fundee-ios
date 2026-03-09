@@ -177,7 +177,7 @@ struct SharedWorkoutTemplate: Identifiable, Sendable {
 
 // MARK: - BarbellRepository
 
-struct BarbellPresetDTO {
+struct BarbellPresetDTO: Sendable {
     let id: String
     let userID: String
     let name: String
@@ -186,7 +186,7 @@ struct BarbellPresetDTO {
     let sortOrder: Int
 }
 
-struct ExerciseBarMappingDTO {
+struct ExerciseBarMappingDTO: Sendable {
     let id: String
     let userID: String
     let exerciseName: String

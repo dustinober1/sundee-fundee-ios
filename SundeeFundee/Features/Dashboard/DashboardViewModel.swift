@@ -28,6 +28,7 @@ final class DashboardViewModel {
     private let programRepo: any ProgramRepository
     private let readinessRepo: (any ReadinessRepository)?
     private let wodRepo: any WODRepository
+    private(set) var barbellRepo: (any BarbellRepository)?
 
     var upcomingProgram: Program?
 
@@ -72,8 +73,9 @@ final class DashboardViewModel {
         gender = currentUser?.gender
 
         // Seed built-in barbell presets if needed
-        let barbellRepo = SwiftDataBarbellRepository(context: modelContext)
-        barbellRepo.seedBuiltInPresets(userID: currentUser?.id ?? "")
+        let repo = SwiftDataBarbellRepository(context: modelContext)
+        repo.seedBuiltInPresets(userID: currentUser?.id ?? "")
+        barbellRepo = repo
 
         return currentUser
     }

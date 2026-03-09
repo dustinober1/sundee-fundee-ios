@@ -38,7 +38,7 @@ Built-in presets:
 | exerciseName | String | Exercise key |
 | barbellPresetID | String | References BarbellPreset.id |
 
-Schema migration: V8 → V9, lightweight (new empty tables).
+Schema migration: V10 → V11, lightweight (new empty tables).
 
 ## Smart Defaults (Domain)
 

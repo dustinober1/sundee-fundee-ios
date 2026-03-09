@@ -2,67 +2,6 @@ import Testing
 import Foundation
 @testable import SundeeFundee
 
-// MARK: - Helpers (mirror BarbellViewModelCoverageTests)
-
-private func makeExercise(
-    name: String = "Back Squat",
-    sets: ExerciseValue = .fixed(3),
-    reps: ExerciseValue = .fixed(5),
-    percent1RM: Double? = nil,
-    restMinutes: Double? = 2
-) -> ProgramExercise {
-    ProgramExercise(
-        exercise: name,
-        variant: nil,
-        sets: sets,
-        reps: reps,
-        percent1RM: percent1RM,
-        restMinutes: restMinutes,
-        notes: nil
-    )
-}
-
-private func makeSession(id: String = "s1") -> ProgramSession {
-    ProgramSession(
-        sessionID: id,
-        sessionName: "Session \(id)",
-        sessionType: "strength",
-        focus: "Lower",
-        exercises: [makeExercise()]
-    )
-}
-
-private func makeWeek(_ week: Int, sessions: [ProgramSession]) -> ProgramWeek {
-    ProgramWeek(week: week, phaseID: "", isTestWeek: false, sessions: sessions)
-}
-
-private func makeProgram(id: String = "p1", weeks: [ProgramWeek]) -> Program {
-    Program(
-        id: id,
-        name: "Program \(id)",
-        category: "Strength",
-        description: "",
-        durationWeeks: weeks.count,
-        sessionsPerWeek: weeks.first?.sessions.count ?? 1,
-        difficulty: "beginner",
-        phases: [],
-        cycleAdjustmentProfile: nil,
-        weeks: weeks
-    )
-}
-
-@MainActor
-private func makeVM() -> WorkoutExecutionViewModel {
-    let session = makeSession()
-    let program = makeProgram(weeks: [makeWeek(1, sessions: [session])])
-    let enrollment = EnrolledProgram(id: "e1", userID: "u1", programID: "p1", startDate: .now)
-    return WorkoutExecutionViewModel(
-        session: session,
-        enrollment: enrollment,
-        program: program
-    )
-}
-
 // MARK: - PlateCalculatorSheet.presetLabel
 
 @Suite("PlateCalculatorSheet.presetLabel")
@@ -156,7 +95,7 @@ struct AddBarbellSheetCanSaveTests {
 struct ExerciseSetCardActualWeightPlateCalcTests {
 
     @Test func actionUsesActualWeightWhenAvailable() {
-        let vm = makeVM()
+        let vm = makeBarbellTestVM()
         let sets = [SetExecutionState(
             prescribedReps: "5",
             prescribedWeightKg: 80.0,
@@ -172,7 +111,7 @@ struct ExerciseSetCardActualWeightPlateCalcTests {
     }
 
     @Test func actionFallsToPrescribedWeight() {
-        let vm = makeVM()
+        let vm = makeBarbellTestVM()
         let sets = [SetExecutionState(
             prescribedReps: "5",
             prescribedWeightKg: 80.0,
@@ -186,7 +125,7 @@ struct ExerciseSetCardActualWeightPlateCalcTests {
     }
 
     @Test func actionDefaultsToZeroWhenNoWeights() {
-        let vm = makeVM()
+        let vm = makeBarbellTestVM()
         let sets = [SetExecutionState(
             prescribedReps: "5",
             prescribedWeightKg: nil,
