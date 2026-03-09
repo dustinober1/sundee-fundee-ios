@@ -828,4 +828,45 @@ final class DashboardViewCoverageTests: XCTestCase {
             .modelContainer(store.container)
         ).view)
     }
+
+    // MARK: - Readiness Card Coverage
+
+    func testReadinessCardShowsCheckInWhenNoScore() {
+        let result: ReadinessResult? = nil
+        XCTAssertNil(result)
+    }
+
+    func testReadinessCardShowsScoreWhenPresent() {
+        let result = ReadinessResult(score: 7.5, tier: .neutral)
+        XCTAssertEqual(result.score, 7.5)
+        XCTAssertEqual(ReadinessSurvey.tierDisplayName(result.tier), "Normal")
+    }
+
+    func testShouldShowReadinessGateWithNoScore() {
+        let defaults = UserDefaults(suiteName: "test-gate-\(UUID().uuidString)")!
+        XCTAssertTrue(DashboardView.shouldShowReadinessGate(defaults: defaults))
+    }
+
+    func testShouldNotShowReadinessGateWithScore() {
+        let defaults = UserDefaults(suiteName: "test-gate-\(UUID().uuidString)")!
+        ReadinessSurvey.saveTodayResult(ReadinessResult(score: 6.0, tier: .neutral), defaults: defaults)
+        XCTAssertFalse(DashboardView.shouldShowReadinessGate(defaults: defaults))
+    }
+
+    func testReadinessAdjustmentBannerTodayTierNilWhenNoScore() {
+        let defaults = UserDefaults(suiteName: "test-banner-\(UUID().uuidString)")!
+        XCTAssertNil(ReadinessAdjustmentBanner.todayTier(defaults: defaults))
+    }
+
+    func testReadinessAdjustmentBannerTodayTierNilForNeutral() {
+        let defaults = UserDefaults(suiteName: "test-banner-\(UUID().uuidString)")!
+        ReadinessSurvey.saveTodayResult(ReadinessResult(score: 5.0, tier: .neutral), defaults: defaults)
+        XCTAssertNil(ReadinessAdjustmentBanner.todayTier(defaults: defaults))
+    }
+
+    func testReadinessAdjustmentBannerTodayTierReturnsLow() {
+        let defaults = UserDefaults(suiteName: "test-banner-\(UUID().uuidString)")!
+        ReadinessSurvey.saveTodayResult(ReadinessResult(score: 2.0, tier: .low), defaults: defaults)
+        XCTAssertEqual(ReadinessAdjustmentBanner.todayTier(defaults: defaults), .low)
+    }
 }
