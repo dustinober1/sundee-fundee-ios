@@ -6,6 +6,7 @@ struct AIWorkoutFlowView: View {
     let userID: String
     let barbellWeightKg: Double
     let weightUnit: WeightUnit
+    let gender: Gender?
 
     @State private var generatedWorkout: GeneratedWorkout?
     @State private var workoutToStart: GeneratedWorkout?
@@ -13,11 +14,13 @@ struct AIWorkoutFlowView: View {
     init(
         userID: String,
         barbellWeightKg: Double = PlateCalculation.standardBarKg,
-        weightUnit: WeightUnit = .pounds
+        weightUnit: WeightUnit = .pounds,
+        gender: Gender? = nil
     ) {
         self.userID = userID
         self.barbellWeightKg = barbellWeightKg
         self.weightUnit = weightUnit
+        self.gender = gender
     }
 
     var body: some View {
@@ -54,7 +57,10 @@ struct AIWorkoutFlowView: View {
                 viewModel: WorkoutExecutionViewModel(
                     generatedWorkout: workout,
                     barbellWeightKg: barbellWeightKg,
-                    weightUnit: weightUnit
+                    weightUnit: weightUnit,
+                    barbellRepo: SwiftDataBarbellRepository(context: modelContext),
+                    userID: userID,
+                    gender: gender
                 )
             )
         }
