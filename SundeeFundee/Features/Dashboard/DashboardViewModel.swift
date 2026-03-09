@@ -35,7 +35,11 @@ final class DashboardViewModel {
 
     init(
         programRepo: any ProgramRepository = CloudKitProgramRepository(),
-        readinessRepo: (any ReadinessRepository)? = nil,
+        readinessRepo: (any ReadinessRepository)? = {
+            guard UserDefaults.standard.bool(forKey: "healthkit-readiness-enabled"),
+                  HealthKitReadinessRepository.isAvailable else { return nil }
+            return HealthKitReadinessRepository()
+        }(),
         wodRepo: any WODRepository = CloudKitWODRepository()
     ) {
         self.programRepo = programRepo

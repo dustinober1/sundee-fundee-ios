@@ -67,6 +67,17 @@ struct SettingsView: View {
                     NavigationLink("Body Weight") {
                         BodyWeightSettingView(viewModel: viewModel)
                     }
+                    Toggle("HealthKit Readiness", isOn: Binding(
+                        get: { UserDefaults.standard.bool(forKey: "healthkit-readiness-enabled") },
+                        set: { newValue in
+                            UserDefaults.standard.set(newValue, forKey: "healthkit-readiness-enabled")
+                            if newValue {
+                                Task {
+                                    try? await HealthKitReadinessRepository().requestAuthorization()
+                                }
+                            }
+                        }
+                    ))
                 }
 
                 // Equipment
