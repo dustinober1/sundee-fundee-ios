@@ -30,6 +30,12 @@ final class MockAIWorkoutService: AIWorkoutServiceProtocol, @unchecked Sendable 
     func fetchFavorites(userID: String) async throws -> [GeneratedWorkout] {
         lock.withLock { history.filter(\.isFavorite) }
     }
+
+    func deleteWorkout(workoutID: String) async throws {
+        lock.withLock {
+            history.removeAll { $0.id == workoutID }
+        }
+    }
 }
 
 // MARK: - WorkoutPreviewViewModel Tests

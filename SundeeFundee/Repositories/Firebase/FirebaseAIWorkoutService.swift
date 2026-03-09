@@ -96,4 +96,13 @@ final class SwiftDataAIWorkoutService: AIWorkoutServiceProtocol, @unchecked Send
         let records = (try? modelContext.fetch(descriptor)) ?? []
         return records.compactMap { $0.toGeneratedWorkout() }
     }
+
+    func deleteWorkout(workoutID: String) async throws {
+        let descriptor = FetchDescriptor<GeneratedWorkoutRecord>(
+            predicate: #Predicate { $0.id == workoutID }
+        )
+        guard let record = try? modelContext.fetch(descriptor).first else { return }
+        modelContext.delete(record)
+        try? modelContext.save()
+    }
 }

@@ -156,6 +156,7 @@ protocol AIWorkoutServiceProtocol: Sendable {
     func fetchHistory(userID: String) async throws -> [GeneratedWorkout]
     func toggleFavorite(workoutID: String, isFavorite: Bool) async throws
     func fetchFavorites(userID: String) async throws -> [GeneratedWorkout]
+    func deleteWorkout(workoutID: String) async throws
 }
 
 // MARK: - SharedWorkoutRepository
