@@ -8,6 +8,7 @@ struct MainTabView: View {
     enum TabRoute: String, CaseIterable {
         case dashboard
         case programs
+        case wods
         case history
         case maxes
         case benchmarks
@@ -18,6 +19,7 @@ struct MainTabView: View {
             switch self {
             case .dashboard: "Dashboard"
             case .programs: "Programs"
+            case .wods: "WODs"
             case .history: "History"
             case .maxes: "Maxes"
             case .benchmarks: "Benchmarks"
@@ -30,6 +32,7 @@ struct MainTabView: View {
             switch self {
             case .dashboard: "house.fill"
             case .programs: "list.bullet.rectangle.portrait.fill"
+            case .wods: "flame.fill"
             case .history: "clock.fill"
             case .maxes: "dumbbell.fill"
             case .benchmarks: "checkmark.seal.fill"
@@ -42,7 +45,7 @@ struct MainTabView: View {
     static var orderedTabs: [TabRoute] { orderedTabs(for: nil) }
 
     static func orderedTabs(for gender: Gender?) -> [TabRoute] {
-        var tabs: [TabRoute] = [.dashboard, .programs, .history, .maxes, .benchmarks]
+        var tabs: [TabRoute] = [.dashboard, .programs, .wods, .history, .maxes, .benchmarks]
         if gender != .male {
             tabs.append(.cycle)
         }
@@ -86,6 +89,8 @@ struct MainTabView: View {
             DashboardView()
         case .programs:
             ProgramListView()
+        case .wods:
+            WODsView()
         case .history:
             HistoryTabView()
         case .maxes:

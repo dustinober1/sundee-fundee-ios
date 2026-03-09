@@ -82,6 +82,7 @@
 		5BC573DA724BD60BCBB4AC7E /* RecoveryPhase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D15EFA5B8F0DF968F2D2EB8 /* RecoveryPhase.swift */; };
 		5CC78E0F0CD6924FA629DBCF /* AppSchemaV1.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EF56B4F72044C21280B76D4 /* AppSchemaV1.swift */; };
 		5CCD8713C325A06A06B5BD8F /* AppSchemaV11.swift in Sources */ = {isa = PBXBuildFile; fileRef = C60EB6FC02D5DE9DC803BFAC /* AppSchemaV11.swift */; };
+		5D71700DBC82835338C86888 /* WODsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DEAB8E706FEAB3741A26528 /* WODsViewModel.swift */; };
 		6164E8D136C53BF06AB781B7 /* WODTemplateTypeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EE933F7EED85D7F98B97566 /* WODTemplateTypeTests.swift */; };
 		61D3B028B583D726A2ECC378 /* CelebrationEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CB57A671A6700E3BB93108A /* CelebrationEvent.swift */; };
 		634F60689600C8908D02C45C /* SettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7242123D2586EF28493E5FE8 /* SettingsViewModel.swift */; };
@@ -99,6 +100,7 @@
 		723768005002BAFC38E3FE29 /* SwiftDataEnrolledProgramRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = A49C6CE7BE8E30D0775C5F27 /* SwiftDataEnrolledProgramRepository.swift */; };
 		7431CC711346EF54D82C51A4 /* AuthOnboardingCoverageWave3Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2801B56804910FE655DE38A8 /* AuthOnboardingCoverageWave3Tests.swift */; };
 		766DE2BEB88044B71AF369C3 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2516C1A819184F9F55D78137 /* AuthService.swift */; };
+		775BF355E6EC474197B944A3 /* WODsViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D781DE10DF17698A8DE5272E /* WODsViewModelTests.swift */; };
 		79B071C17D8532685984EDEB /* PainTrendAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F2063B2D582F627881D16AB /* PainTrendAnalyzer.swift */; };
 		7C0AA04E299BE79E9ED6BAE1 /* AppSchemaV9.swift in Sources */ = {isa = PBXBuildFile; fileRef = 381DDAC45B9F290286FA4044 /* AppSchemaV9.swift */; };
 		7F4D8D30D5DDE1FF2CF92913 /* BarbellViewModelCoverageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B48A631E31E386FDBF30842F /* BarbellViewModelCoverageTests.swift */; };
@@ -108,6 +110,7 @@
 		8B070DD5C4018F8302A5BCDD /* WorkoutSummaryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44B2AAB0FEC53F881F02C1A5 /* WorkoutSummaryView.swift */; };
 		8F55C3C1B9309AB75A09961E /* Program.swift in Sources */ = {isa = PBXBuildFile; fileRef = E79A7C624E31B53EDC3AD5B7 /* Program.swift */; };
 		91014B19D3FD5B371E8026C5 /* CycleTrackingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF28E5F37EF015A5700134A1 /* CycleTrackingView.swift */; };
+		9228EB2A9E6DE2A40B52795D /* WODsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF01481EB7F09359268E5EF6 /* WODsView.swift */; };
 		94257FA3158D6808CA6FE05B /* GeneratedWorkout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CCFB09C96387A007E8FBA66 /* GeneratedWorkout.swift */; };
 		949139796F6B381980E7A830 /* Maxes.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6EDF76C2A7A135CEBE4365C /* Maxes.swift */; };
 		9749F04E35AC845835E41DD4 /* ProgramWorkoutViewCoverageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E6BD7FDEC48F00EAC345968 /* ProgramWorkoutViewCoverageTests.swift */; };
@@ -289,6 +292,7 @@
 		896D59CDB62FEF04052F5483 /* DebugSeedData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugSeedData.swift; sourceTree = "<group>"; };
 		8AA39C1CC2588484E7774CF5 /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		8D20D4FC9F086DD5F59F0C82 /* SwiftDataPainLogRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftDataPainLogRepository.swift; sourceTree = "<group>"; };
+		8DEAB8E706FEAB3741A26528 /* WODsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WODsViewModel.swift; sourceTree = "<group>"; };
 		9185B33B347E99EC19EDC8E2 /* CycleProgramGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleProgramGenerator.swift; sourceTree = "<group>"; };
 		92928DE888F105F2CE015CCF /* UnifiedHistoryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnifiedHistoryViewModel.swift; sourceTree = "<group>"; };
 		929B5F4FFA5E37764F0CFD53 /* RepositoryCoverageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RepositoryCoverageTests.swift; sourceTree = "<group>"; };
@@ -345,9 +349,11 @@
 		D430046505247167CB5A1D7A /* WorkoutDatabaseView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutDatabaseView.swift; sourceTree = "<group>"; };
 		D5660C516B203AD32D911401 /* SubscriptionServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionServiceTests.swift; sourceTree = "<group>"; };
 		D64DF9E2AE5C41BB24352DF6 /* SwiftDataUserRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftDataUserRepository.swift; sourceTree = "<group>"; };
+		D781DE10DF17698A8DE5272E /* WODsViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WODsViewModelTests.swift; sourceTree = "<group>"; };
 		D86416E8B931F89C2ED3687F /* SwiftDataBarbellRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftDataBarbellRepository.swift; sourceTree = "<group>"; };
 		DA21F3E6D7F052240BB8EA89 /* WorkoutGenerationContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutGenerationContext.swift; sourceTree = "<group>"; };
 		DCB2266340B2E640084FB4FF /* AMRAPTimerViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AMRAPTimerViewTests.swift; sourceTree = "<group>"; };
+		DF01481EB7F09359268E5EF6 /* WODsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WODsView.swift; sourceTree = "<group>"; };
 		E0853FAE104810510C018960 /* DomainCoverageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DomainCoverageTests.swift; sourceTree = "<group>"; };
 		E16835AF5B88FE6E46E578C6 /* ProgramAvailability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramAvailability.swift; sourceTree = "<group>"; };
 		E22612881A7957274240FC8D /* MaxLiftsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaxLiftsViewModel.swift; sourceTree = "<group>"; };
@@ -440,6 +446,15 @@
 				FA66AE5ACEF8F10E9CBB555B /* MainTabView.swift */,
 			);
 			path = Shell;
+			sourceTree = "<group>";
+		};
+		2B6E58DFEAC6EB85F5FCE734 /* WODs */ = {
+			isa = PBXGroup;
+			children = (
+				DF01481EB7F09359268E5EF6 /* WODsView.swift */,
+				8DEAB8E706FEAB3741A26528 /* WODsViewModel.swift */,
+			);
+			path = WODs;
 			sourceTree = "<group>";
 		};
 		44E55D1B1EF8B363412D5323 /* Subscription */ = {
@@ -604,6 +619,7 @@
 				5E1EE7ACE7B08667FE56D80A /* Shared */,
 				2B640C5198D20559D571ABB2 /* Shell */,
 				44E55D1B1EF8B363412D5323 /* Subscription */,
+				2B6E58DFEAC6EB85F5FCE734 /* WODs */,
 				BCE4CEDF44D57CE632F529E2 /* Workouts */,
 			);
 			path = Features;
@@ -726,6 +742,7 @@
 				5533059CBDA1637C94B14128 /* ViewModelCoverageTests.swift */,
 				9A0B15CA1FCB6AD3A1241A11 /* WODExecutionViewModelTests.swift */,
 				C49AB5093EAC55C2FA168025 /* WODRepositoryTests.swift */,
+				D781DE10DF17698A8DE5272E /* WODsViewModelTests.swift */,
 				9EE933F7EED85D7F98B97566 /* WODTemplateTypeTests.swift */,
 				B4723D125F23601A6E38FACB /* WODTests.swift */,
 			);
@@ -1074,6 +1091,8 @@
 				ACD430921521DF3F6C899DE0 /* WODExecutionViewModel.swift in Sources */,
 				3462503452B85A01E1BBCBC9 /* WODRepository.swift in Sources */,
 				FB51905AEA3B1A88B4502E6D /* WODTemplateType.swift in Sources */,
+				9228EB2A9E6DE2A40B52795D /* WODsView.swift in Sources */,
+				5D71700DBC82835338C86888 /* WODsViewModel.swift in Sources */,
 				31505F6907BCB93B44087ECF /* WeightCalculations.swift in Sources */,
 				6DFA5E4CD22AA7E83698B5EF /* WeightUnitConversion.swift in Sources */,
 				AF262F833A6FA8B1CDDA14A3 /* WorkoutDatabaseView.swift in Sources */,
@@ -1134,6 +1153,7 @@
 				2497CA6AF9D0C6156E36A255 /* WODRepositoryTests.swift in Sources */,
 				6164E8D136C53BF06AB781B7 /* WODTemplateTypeTests.swift in Sources */,
 				C0642CF4E32CF08D12A89E54 /* WODTests.swift in Sources */,
+				775BF355E6EC474197B944A3 /* WODsViewModelTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
