@@ -28,8 +28,10 @@ final class DashboardViewModel {
     private let readinessRepo: (any ReadinessRepository)?
     private let wodRepo: any WODRepository
 
+    var upcomingProgram: Program?
+
     init(
-        programRepo: any ProgramRepository = BundledProgramRepository(),
+        programRepo: any ProgramRepository = CloudKitProgramRepository(),
         readinessRepo: (any ReadinessRepository)? = nil,
         wodRepo: any WODRepository = CloudKitWODRepository()
     ) {
@@ -43,19 +45,22 @@ final class DashboardViewModel {
         loadOneRepMaxes(modelContext: modelContext)
         loadEnrollment(modelContext: modelContext)
 
+        let allPrograms = (try? await programRepo.fetchPrograms()) ?? []
+
         let cycleData = loadCycleData(modelContext: modelContext)
         let activeInjuries = loadInjuries(modelContext: modelContext, currentUser: currentUser)
         await loadReadinessMetrics()
 
         await loadActiveProgram(
             modelContext: modelContext,
+            allPrograms: allPrograms,
             periodLogs: cycleData.periodLogs,
             cycleSettings: cycleData.cycleSettings,
             effectiveCyclePrefs: cycleData.effectiveCyclePrefs,
             activeInjuries: activeInjuries
         )
 
-        await loadWODAndRecentWorkouts(modelContext: modelContext)
+        await loadWODAndRecentWorkouts(modelContext: modelContext, allPrograms: allPrograms)
     }
 
     private func loadUserConfiguration(modelContext: ModelContext) -> User? {
@@ -127,6 +132,7 @@ final class DashboardViewModel {
 
     private func loadActiveProgram(
         modelContext: ModelContext,
+        allPrograms: [Program],
         periodLogs: [PeriodLog],
         cycleSettings: CycleSettings?,
         effectiveCyclePrefs: CycleAdaptationPreferences,
@@ -134,7 +140,7 @@ final class DashboardViewModel {
     ) async {
         guard let enrollment = activeEnrollment else { return }
 
-        var program = try? await programRepo.fetchProgram(id: enrollment.programID)
+        var program = allPrograms.first { $0.id == enrollment.programID }
 
         if program == nil {
             // Program no longer exists — cancel orphaned enrollment
@@ -164,13 +170,19 @@ final class DashboardViewModel {
         }
     }
 
-    private func loadWODAndRecentWorkouts(modelContext: ModelContext) async {
+    private func loadWODAndRecentWorkouts(modelContext: ModelContext, allPrograms: [Program]) async {
         let allWODs = (try? await wodRepo.fetchWODs()) ?? []
         todayWOD = Self.findTodayWOD(from: allWODs)
 
         let workoutRepo = SwiftDataWorkoutRepository(context: modelContext)
         let allWorkouts = (try? workoutRepo.fetchWorkouts()) ?? []
         recentWorkouts = Array(allWorkouts.prefix(10))
+
+        if activeEnrollment == nil {
+            upcomingProgram = ProgramAvailability.nextUpcomingProgram(from: allPrograms)
+        } else {
+            upcomingProgram = nil
+        }
     }
 
     private static let dateFormatter: DateFormatter = {

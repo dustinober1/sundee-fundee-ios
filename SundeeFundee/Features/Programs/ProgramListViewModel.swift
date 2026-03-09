@@ -12,7 +12,7 @@ final class ProgramListViewModel {
     private let programRepo: any ProgramRepository
     private var enrollmentRepo: (any EnrolledProgramRepository)?
 
-    init(programRepo: any ProgramRepository = BundledProgramRepository()) {
+    init(programRepo: any ProgramRepository = CloudKitProgramRepository()) {
         self.programRepo = programRepo
     }
 

@@ -50,7 +50,7 @@ struct DashboardView: View {
                         )
                         .accessibilityIdentifier("active-cycle-card")
                     } else {
-                        NoEnrollmentCard()
+                        NoEnrollmentCard(upcomingProgram: viewModel.upcomingProgram)
                     }
                     AIWorkoutCTACard()
                     if let wod = viewModel.todayWOD {
@@ -92,6 +92,9 @@ struct DashboardView: View {
                 barbellWeightKg: viewModel.barbellWeightKg,
                 weightUnit: viewModel.weightUnit
             )
+        }
+        .navigationDestination(for: Program.self) { program in
+            ProgramDetailView(program: program, viewModel: ProgramListViewModel())
         }
         .navigationDestination(for: StartWODDestination.self) { dest in
             WODExecutionView(
@@ -378,23 +381,62 @@ struct StartWorkoutDestination: Hashable {
 // MARK: - NoEnrollmentCard
 
 struct NoEnrollmentCard: View {
+    var upcomingProgram: Program? = nil
+
     var body: some View {
-        VStack(spacing: AppTheme.Spacing.sm) {
-            Image(systemName: "list.bullet.rectangle.portrait")
-                .font(.largeTitle)
-                .foregroundStyle(AppTheme.Colors.navy.opacity(0.3))
-            Text("No Active Program")
-                .font(AppTheme.Fonts.subheading)
-                .foregroundStyle(AppTheme.Colors.navy)
-            Text("Browse and enroll in a program to start training.")
-                .font(AppTheme.Fonts.caption)
-                .foregroundStyle(AppTheme.Colors.navy.opacity(0.5))
-                .multilineTextAlignment(.center)
+        if let program = upcomingProgram,
+           case .upcoming(let startDate) = ProgramAvailability.status(for: program) {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
+                HStack(spacing: AppTheme.Spacing.sm) {
+                    Image(systemName: "clock.fill")
+                        .font(.title2)
+                        .foregroundStyle(AppTheme.Colors.accentOrange)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("COMING SOON")
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundStyle(AppTheme.Colors.accentOrange)
+                            .tracking(1.5)
+                        Text(program.name)
+                            .font(AppTheme.Fonts.subheading)
+                            .foregroundStyle(AppTheme.Colors.navy)
+                    }
+                }
+                Text("Starts \(ProgramAvailability.formattedStartDate(startDate))")
+                    .font(AppTheme.Fonts.body)
+                    .foregroundStyle(AppTheme.Colors.navy.opacity(0.7))
+                Text("\(program.durationWeeks) weeks · \(program.sessionsPerWeek)x/week · \(program.difficulty)")
+                    .font(AppTheme.Fonts.caption)
+                    .foregroundStyle(AppTheme.Colors.navy.opacity(0.5))
+
+                NavigationLink(value: program) {
+                    Label("View Program", systemImage: "arrow.right")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(PrimaryButtonStyle())
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(AppTheme.Spacing.md)
+            .background(AppTheme.Colors.cardBackground)
+            .clipShape(RoundedRectangle(cornerRadius: AppTheme.CornerRadius.card))
+            .shadow(color: .black.opacity(0.08), radius: 6, x: 0, y: 3)
+        } else {
+            VStack(spacing: AppTheme.Spacing.sm) {
+                Image(systemName: "list.bullet.rectangle.portrait")
+                    .font(.largeTitle)
+                    .foregroundStyle(AppTheme.Colors.navy.opacity(0.3))
+                Text("No Active Program")
+                    .font(AppTheme.Fonts.subheading)
+                    .foregroundStyle(AppTheme.Colors.navy)
+                Text("Browse and enroll in a program to start training.")
+                    .font(AppTheme.Fonts.caption)
+                    .foregroundStyle(AppTheme.Colors.navy.opacity(0.5))
+                    .multilineTextAlignment(.center)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(AppTheme.Spacing.xl)
+            .background(AppTheme.Colors.cardBackground)
+            .clipShape(RoundedRectangle(cornerRadius: AppTheme.CornerRadius.card))
         }
-        .frame(maxWidth: .infinity)
-        .padding(AppTheme.Spacing.xl)
-        .background(AppTheme.Colors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: AppTheme.CornerRadius.card))
     }
 }
 

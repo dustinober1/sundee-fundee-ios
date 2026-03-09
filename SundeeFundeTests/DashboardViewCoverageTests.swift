@@ -252,6 +252,13 @@ final class DashboardViewCoverageTests: XCTestCase {
             cyclePhase: nil
         ).body
         _ = NoEnrollmentCard().body
+        let upcomingProgram = Program(
+            id: "upcoming-teaser", name: "Upcoming Program", category: "Strength",
+            description: "Future program", durationWeeks: 4, sessionsPerWeek: 3,
+            difficulty: "beginner", weeks: [],
+            startDate: "2099-06-15", endDate: "2099-07-13"
+        )
+        _ = NoEnrollmentCard(upcomingProgram: upcomingProgram).body
         _ = CyclePhaseBadge(phase: .ovulation).body
         _ = WorkoutHistoryRow(workout: workout).body
     }

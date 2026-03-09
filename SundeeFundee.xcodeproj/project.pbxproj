@@ -107,6 +107,7 @@
 		A0CEFAF5AE5DB7CE5939EA74 /* AppSchemaV7.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76D54E3232C6CB7F97DBD10C /* AppSchemaV7.swift */; };
 		A12BF7539DADDE5ED4A6AA85 /* AIWorkoutViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D04A7D236192EDDBCD0F346 /* AIWorkoutViewModelTests.swift */; };
 		A1B9AF2CD29CA287A8DD1E56 /* CycleCalculations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 745F2F666C9657BEF7407740 /* CycleCalculations.swift */; };
+		A33F8B0BA64A366EA7B74225 /* ProgramAvailability.swift in Sources */ = {isa = PBXBuildFile; fileRef = E16835AF5B88FE6E46E578C6 /* ProgramAvailability.swift */; };
 		A3FA9EED08F58B73BE717256 /* EnrolledProgram.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CC3DF4CA337E185D6494F40 /* EnrolledProgram.swift */; };
 		A764EAEACAA7C38A78C4A9A9 /* SundeeFundee.storekit in Resources */ = {isa = PBXBuildFile; fileRef = 607461998404BF185267C222 /* SundeeFundee.storekit */; };
 		A79F08BE0364B60E09174CF9 /* AMRAPTimerViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCB2266340B2E640084FB4FF /* AMRAPTimerViewTests.swift */; };
@@ -321,6 +322,7 @@
 		DA21F3E6D7F052240BB8EA89 /* WorkoutGenerationContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutGenerationContext.swift; sourceTree = "<group>"; };
 		DCB2266340B2E640084FB4FF /* AMRAPTimerViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AMRAPTimerViewTests.swift; sourceTree = "<group>"; };
 		E0853FAE104810510C018960 /* DomainCoverageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DomainCoverageTests.swift; sourceTree = "<group>"; };
+		E16835AF5B88FE6E46E578C6 /* ProgramAvailability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramAvailability.swift; sourceTree = "<group>"; };
 		E22612881A7957274240FC8D /* MaxLiftsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaxLiftsViewModel.swift; sourceTree = "<group>"; };
 		E5AA0B73DAFAAB5029C55DFF /* KeychainHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainHelper.swift; sourceTree = "<group>"; };
 		E761DCE6C9B0B7BDFAEA0579 /* AppSchemaV8.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSchemaV8.swift; sourceTree = "<group>"; };
@@ -474,6 +476,7 @@
 				C1CC978831B9C4E2A1AFB8A3 /* LoadAdjustmentPolicy.swift */,
 				5F2063B2D582F627881D16AB /* PainTrendAnalyzer.swift */,
 				688EA0E2D3143A50FCD11F66 /* PhaseTransitionAdvisor.swift */,
+				E16835AF5B88FE6E46E578C6 /* ProgramAvailability.swift */,
 				4D15EFA5B8F0DF968F2D2EB8 /* RecoveryPhase.swift */,
 				BE7D61FE04FB299E8A81806F /* RehabSessionGenerator.swift */,
 				511AE93749C8F25A18DBAECA /* WODTemplateType.swift */,
@@ -975,6 +978,7 @@
 				119C00830236AA8B0580016E /* PhaseTransitionAdvisor.swift in Sources */,
 				45229EECE5D7216C48A5F6FC /* PlateCalculation.swift in Sources */,
 				8F55C3C1B9309AB75A09961E /* Program.swift in Sources */,
+				A33F8B0BA64A366EA7B74225 /* ProgramAvailability.swift in Sources */,
 				15C720F93712D6F63EA3FFCD /* ProgramDetailView.swift in Sources */,
 				222B3ACAC8A4DF85F4CEEA89 /* ProgramListView.swift in Sources */,
 				3C53F6C5B43D351DA380EF68 /* ProgramListViewModel.swift in Sources */,
@@ -1125,7 +1129,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				MARKETING_VERSION = 1.1.1;
+				MARKETING_VERSION = 1.1.2;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1249,7 +1253,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				MARKETING_VERSION = 1.1.1;
+				MARKETING_VERSION = 1.1.2;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;

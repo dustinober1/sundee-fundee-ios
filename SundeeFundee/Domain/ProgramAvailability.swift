@@ -67,9 +67,13 @@ enum ProgramAvailability: Equatable, Sendable {
         dateFormatter.date(from: string)
     }
 
-    static func formattedStartDate(_ date: Date) -> String {
+    private static let displayFormatter: DateFormatter = {
         let f = DateFormatter()
-        f.dateFormat = "MMM d"
-        return f.string(from: date)
+        f.dateFormat = "EEE, MMM d"
+        return f
+    }()
+
+    static func formattedStartDate(_ date: Date) -> String {
+        displayFormatter.string(from: date)
     }
 }

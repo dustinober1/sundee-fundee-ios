@@ -68,6 +68,22 @@ struct ProgramDetailView: View {
                     StatBadge(label: "Level", value: program.difficulty)
                 }
 
+                if let startString = program.startDate,
+                   let start = ProgramAvailability.parseDate(startString) {
+                    HStack(spacing: AppTheme.Spacing.sm) {
+                        Image(systemName: "calendar")
+                            .foregroundStyle(AppTheme.Colors.accentOrange)
+                        if let endString = program.endDate,
+                           let end = ProgramAvailability.parseDate(endString) {
+                            Text("\(Self.formatFullDate(start)) to \(Self.formatFullDate(end))")
+                        } else {
+                            Text("Starts \(Self.formatFullDate(start))")
+                        }
+                    }
+                    .font(AppTheme.Fonts.caption)
+                    .foregroundStyle(AppTheme.Colors.navy.opacity(0.6))
+                }
+
                 // Phases
                 if !program.phases.isEmpty {
                     VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
@@ -106,6 +122,10 @@ struct ProgramDetailView: View {
         }
     }
 
+    private var programAvailability: ProgramAvailability {
+        ProgramAvailability.status(for: program)
+    }
+
     @ViewBuilder
     private var enrollmentCTA: some View {
         if isActiveEnrollment {
@@ -113,6 +133,12 @@ struct ProgramDetailView: View {
                 Label("Currently enrolled", systemImage: "checkmark.circle.fill")
                     .font(AppTheme.Fonts.subheading)
                     .foregroundStyle(AppTheme.Colors.accentOrange)
+
+                if case .upcoming(let startDate) = programAvailability {
+                    Text("Program starts \(ProgramAvailability.formattedStartDate(startDate))")
+                        .font(AppTheme.Fonts.caption)
+                        .foregroundStyle(AppTheme.Colors.navy.opacity(0.6))
+                }
 
                 Button("Cancel Enrollment", action: Self.presentCancelConfirmationAction(isPresented: $showCancelConfirm))
                 .buttonStyle(DestructiveButtonStyle())
@@ -126,16 +152,32 @@ struct ProgramDetailView: View {
                     .multilineTextAlignment(.center)
 
                 Button(
-                    "Switch to This Program",
+                    Self.enrollButtonLabel(programAvailability),
                     action: Self.performEnrollAction(viewModel, in: program, modelContext: modelContext, userID: appState.currentUserID ?? "")
                 )
                 .buttonStyle(PrimaryButtonStyle())
             }
             .frame(maxWidth: .infinity)
         } else {
-            Button("Start Program", action: Self.performEnrollAction(viewModel, in: program, modelContext: modelContext, userID: appState.currentUserID ?? ""))
-            .buttonStyle(PrimaryButtonStyle())
+            VStack(spacing: AppTheme.Spacing.sm) {
+                if case .upcoming(let startDate) = programAvailability {
+                    Text("Program starts \(ProgramAvailability.formattedStartDate(startDate))")
+                        .font(AppTheme.Fonts.caption)
+                        .foregroundStyle(AppTheme.Colors.navy.opacity(0.6))
+                }
+                Button(Self.enrollButtonLabel(programAvailability), action: Self.performEnrollAction(viewModel, in: program, modelContext: modelContext, userID: appState.currentUserID ?? ""))
+                .buttonStyle(PrimaryButtonStyle())
+            }
             .frame(maxWidth: .infinity)
+        }
+    }
+
+    static func enrollButtonLabel(_ availability: ProgramAvailability) -> String {
+        switch availability {
+        case .upcoming(let startDate):
+            return "Enroll — Starts \(ProgramAvailability.formattedStartDate(startDate))"
+        case .active, .past:
+            return "Start Program"
         }
     }
 
@@ -153,6 +195,16 @@ struct ProgramDetailView: View {
 
     static func performCancelEnrollment(_ viewModel: ProgramListViewModel, modelContext: ModelContext) {
         Task { await viewModel.cancelEnrollment(modelContext: modelContext) }
+    }
+
+    private static let fullDateFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "MMM d, yyyy"
+        return f
+    }()
+
+    static func formatFullDate(_ date: Date) -> String {
+        fullDateFormatter.string(from: date)
     }
 }
 

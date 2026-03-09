@@ -542,6 +542,140 @@ struct ModelRepoObservabilityCoverageWave4Tests {
         MetricsService.shared.logMetricPayloads([])
         MetricsService.shared.logDiagnosticPayloads([])
     }
+
+    // MARK: - ProgramAvailability
+
+    @Test
+    func programAvailabilityReturnsUpcomingForFutureStartDate() {
+        let program = Program(
+            id: "upcoming-1", name: "Future Program", category: "Strength",
+            description: "", durationWeeks: 4, sessionsPerWeek: 3,
+            difficulty: "beginner", weeks: [],
+            startDate: "2099-06-15", endDate: "2099-07-13"
+        )
+        let now = Date(timeIntervalSince1970: 1_700_000_000)
+        let status = ProgramAvailability.status(for: program, now: now)
+        if case .upcoming = status {
+            // expected
+        } else {
+            Issue.record("Expected .upcoming but got \(status)")
+        }
+    }
+
+    @Test
+    func programAvailabilityReturnsActiveForCurrentProgram() {
+        let program = Program(
+            id: "active-1", name: "Active Program", category: "Strength",
+            description: "", durationWeeks: 4, sessionsPerWeek: 3,
+            difficulty: "beginner", weeks: [],
+            startDate: "2020-01-01", endDate: "2099-12-31"
+        )
+        #expect(ProgramAvailability.status(for: program) == .active)
+    }
+
+    @Test
+    func programAvailabilityReturnsPastForExpiredProgram() {
+        let program = Program(
+            id: "past-1", name: "Past Program", category: "Strength",
+            description: "", durationWeeks: 4, sessionsPerWeek: 3,
+            difficulty: "beginner", weeks: [],
+            startDate: "2020-01-01", endDate: "2020-02-01"
+        )
+        #expect(ProgramAvailability.status(for: program) == .past)
+    }
+
+    @Test
+    func programAvailabilityReturnsActiveForNoDates() {
+        let program = makeProgram(id: "no-dates", name: "No Dates")
+        #expect(ProgramAvailability.status(for: program) == .active)
+    }
+
+    @Test
+    func programAvailabilitySortsProgramsCorrectly() {
+        let active = Program(
+            id: "active", name: "A", category: "S", description: "",
+            durationWeeks: 4, sessionsPerWeek: 3, difficulty: "beginner", weeks: [],
+            startDate: "2020-01-01", endDate: "2099-12-31"
+        )
+        let upcoming = Program(
+            id: "upcoming", name: "B", category: "S", description: "",
+            durationWeeks: 4, sessionsPerWeek: 3, difficulty: "beginner", weeks: [],
+            startDate: "2099-06-15", endDate: "2099-07-13"
+        )
+        let past = Program(
+            id: "past", name: "C", category: "S", description: "",
+            durationWeeks: 4, sessionsPerWeek: 3, difficulty: "beginner", weeks: [],
+            startDate: "2020-01-01", endDate: "2020-02-01"
+        )
+
+        let sorted = ProgramAvailability.sortedPrograms([past, upcoming, active])
+        #expect(sorted.map(\.id) == ["active", "upcoming", "past"])
+    }
+
+    @Test
+    func programAvailabilityNextUpcomingFindsEarliestFuture() {
+        let now = Date(timeIntervalSince1970: 1_700_000_000)
+        let sooner = Program(
+            id: "sooner", name: "S", category: "S", description: "",
+            durationWeeks: 4, sessionsPerWeek: 3, difficulty: "beginner", weeks: [],
+            startDate: "2099-01-01"
+        )
+        let later = Program(
+            id: "later", name: "L", category: "S", description: "",
+            durationWeeks: 4, sessionsPerWeek: 3, difficulty: "beginner", weeks: [],
+            startDate: "2099-06-01"
+        )
+        let active = makeProgram(id: "active", name: "Active")
+
+        let result = ProgramAvailability.nextUpcomingProgram(from: [later, active, sooner], now: now)
+        #expect(result?.id == "sooner")
+    }
+
+    @Test
+    func programAvailabilityFormattedStartDate() {
+        let date = ProgramAvailability.parseDate("2026-03-15")!
+        let formatted = ProgramAvailability.formattedStartDate(date)
+        #expect(formatted == "Sun, Mar 15")
+    }
+
+    @Test
+    func programAvailabilityParseDateHandlesInvalid() {
+        #expect(ProgramAvailability.parseDate("not-a-date") == nil)
+        #expect(ProgramAvailability.parseDate("") == nil)
+    }
+
+    @Test
+    func programDetailViewEnrollButtonLabelShowsDateForUpcoming() {
+        let date = ProgramAvailability.parseDate("2026-06-14")!
+        let label = ProgramDetailView.enrollButtonLabel(.upcoming(startDate: date))
+        #expect(label.contains("Enroll"))
+        #expect(label.contains("Sun, Jun 14"))
+
+        let activeLabel = ProgramDetailView.enrollButtonLabel(.active)
+        #expect(activeLabel == "Start Program")
+
+        let pastLabel = ProgramDetailView.enrollButtonLabel(.past)
+        #expect(pastLabel == "Start Program")
+    }
+
+    @Test
+    func programDetailViewFormatFullDate() {
+        let date = ProgramAvailability.parseDate("2026-03-15")!
+        let formatted = ProgramDetailView.formatFullDate(date)
+        #expect(formatted == "Mar 15, 2026")
+    }
+
+    @Test
+    func programCardViewAvailabilityBadge() {
+        let upcomingBadge = ProgramCardView.availabilityBadge(.upcoming(startDate: .now))
+        #expect(upcomingBadge?.text == "Coming Soon")
+
+        let pastBadge = ProgramCardView.availabilityBadge(.past)
+        #expect(pastBadge?.text == "Past Program")
+
+        let activeBadge = ProgramCardView.availabilityBadge(.active)
+        #expect(activeBadge == nil)
+    }
 }
 
 private enum StubProgramRepositoryError: Error {

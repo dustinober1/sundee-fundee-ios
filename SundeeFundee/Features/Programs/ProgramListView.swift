@@ -36,11 +36,12 @@ struct ProgramListView: View {
                 case .loaded:
                     ScrollView {
                         LazyVStack(spacing: AppTheme.Spacing.md) {
-                            ForEach(viewModel.programs) { program in
+                            ForEach(ProgramAvailability.sortedPrograms(viewModel.programs)) { program in
                                 NavigationLink(value: program) {
                                     ProgramCardView(
                                         program: program,
-                                        isEnrolled: viewModel.activeEnrollment?.programID == program.id
+                                        isEnrolled: viewModel.activeEnrollment?.programID == program.id,
+                                        availability: ProgramAvailability.status(for: program)
                                     )
                                 }
                                 .buttonStyle(.plain)
@@ -119,7 +120,7 @@ struct ProgramCardView: View {
             .foregroundStyle(AppTheme.Colors.navy.opacity(0.6))
 
             if case .upcoming(let startDate) = availability {
-                Text("Starts Sun, \(ProgramAvailability.formattedStartDate(startDate))")
+                Text("Starts \(ProgramAvailability.formattedStartDate(startDate))")
                     .font(AppTheme.Fonts.caption)
                     .foregroundStyle(AppTheme.Colors.accentOrange)
             }
