@@ -24,6 +24,11 @@ struct DashboardView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: AppTheme.Spacing.lg) {
                     greetingHeader
+                    if viewModel.travelModeEnabled {
+                        TravelModeBanner {
+                            viewModel.toggleTravelMode(modelContext: modelContext, enabled: false)
+                        }
+                    }
                     ReadinessCard(result: viewModel.todayReadiness) {
                         showReadinessSurvey = true
                     }
@@ -847,5 +852,37 @@ struct AIWorkoutCTACard: View {
         tier == .free
             ? "Upgrade to unlock AI-powered workouts tailored to your goals."
             : "Generate a personalized workout based on your goals, maxes, and how you're feeling today."
+    }
+}
+
+// MARK: - TravelModeBanner
+
+struct TravelModeBanner: View {
+    let onTurnOff: () -> Void
+
+    var body: some View {
+        HStack(spacing: AppTheme.Spacing.sm) {
+            Image(systemName: "suitcase.fill")
+                .font(.title3)
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Travel Mode Active")
+                    .font(AppTheme.Fonts.body)
+                Text("Limited equipment — bodyweight & hotel gym only")
+                    .font(AppTheme.Fonts.caption)
+                    .opacity(0.8)
+            }
+            Spacer()
+            Button("Turn Off", action: onTurnOff)
+                .font(AppTheme.Fonts.caption)
+                .padding(.horizontal, AppTheme.Spacing.sm)
+                .padding(.vertical, AppTheme.Spacing.xs)
+                .background(AppTheme.Colors.accentOrange)
+                .foregroundStyle(AppTheme.Colors.cream)
+                .clipShape(Capsule())
+        }
+        .foregroundStyle(AppTheme.Colors.cream)
+        .padding(AppTheme.Spacing.md)
+        .background(AppTheme.Colors.navy)
+        .clipShape(RoundedRectangle(cornerRadius: AppTheme.CornerRadius.card))
     }
 }

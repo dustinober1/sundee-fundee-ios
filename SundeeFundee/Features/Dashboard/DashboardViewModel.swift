@@ -25,6 +25,7 @@ final class DashboardViewModel {
     var todayWOD: WOD?
     var todayReadiness: ReadinessResult? = ReadinessSurvey.loadTodayResult()
     var gender: Gender?
+    var travelModeEnabled: Bool = false
 
     private let programRepo: any ProgramRepository
     private let readinessRepo: (any ReadinessRepository)?
@@ -77,6 +78,7 @@ final class DashboardViewModel {
         barbellWeightKg = Self.barbellWeight(for: currentUser?.gender)
         weightUnit = currentUser?.weightUnit ?? .pounds
         gender = currentUser?.gender
+        travelModeEnabled = currentUser?.travelModeEnabled ?? false
 
         // Seed built-in barbell presets if needed
         let repo = SwiftDataBarbellRepository(context: modelContext)
@@ -262,6 +264,17 @@ final class DashboardViewModel {
             return (prevWeek, prevWeekData.sessions.count)
         }
         return (currentWeek, currentDay) // Already at the start
+    }
+
+    // MARK: - Travel Mode
+
+    func toggleTravelMode(modelContext: ModelContext, enabled: Bool) {
+        let userRepo = SwiftDataUserRepository(context: modelContext)
+        if let user = try? userRepo.fetchCurrentUser() {
+            user.travelModeEnabled = enabled
+            try? modelContext.save()
+            travelModeEnabled = enabled
+        }
     }
 
     // MARK: - Skip workout
