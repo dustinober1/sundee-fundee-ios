@@ -8,7 +8,7 @@
  */
 
 import React from 'react';
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSession } from '@/src/auth/AuthContext';
 import * as colors from '@/src/theme/colors';
@@ -18,6 +18,15 @@ export default function SettingsScreen(): React.JSX.Element {
   const router = useRouter();
 
   function handleSignOut(): void {
+    if (Platform.OS === 'web') {
+      // Alert.alert is a no-op on web — use window.confirm instead
+      const confirmed = window.confirm('Are you sure you want to sign out?');
+      if (confirmed) {
+        void signOut();
+      }
+      return;
+    }
+
     Alert.alert(
       'Sign Out',
       'Are you sure you want to sign out?',
@@ -31,8 +40,6 @@ export default function SettingsScreen(): React.JSX.Element {
           style: 'destructive',
           onPress: () => {
             void signOut();
-            // After signOut: onAuthStateChanged sets user to null
-            // The protected route guard in (app)/_layout.tsx will redirect to /sign-in
           },
         },
       ],

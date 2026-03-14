@@ -23,9 +23,10 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { Redirect, useRouter } from 'expo-router';
 import { AuthButton } from '@/src/components/AuthButton';
 import { OfflineBanner } from '@/src/components/OfflineBanner';
+import { useSession } from '@/src/auth/AuthContext';
 import { useAppleSignIn } from '@/src/auth/useAppleSignIn';
 import { useGoogleSignIn } from '@/src/auth/useGoogleSignIn';
 import { useEmailAuth } from '@/src/auth/useEmailAuth';
@@ -36,6 +37,12 @@ import * as colors from '@/src/theme/colors';
 
 export default function SignInScreen(): React.JSX.Element {
   const router = useRouter();
+  const { user, isLoading: sessionLoading } = useSession();
+
+  // If already authenticated, redirect to the app
+  if (!sessionLoading && user) {
+    return <Redirect href="/(app)/(tabs)" />;
+  }
 
   // Email form state
   const [email, setEmail] = useState('');
