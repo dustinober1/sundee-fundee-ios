@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: "Completed 02-02: cycle subdomain port"
-last_updated: "2026-03-14T20:58:45.088Z"
+stopped_at: "Completed 02-03: injury domain port"
+last_updated: "2026-03-14T20:59:40.143Z"
 last_activity: "2026-03-14 — Completed Plan 01-03: Auth UI, protected routes, tab shell, settings sign-out, cross-platform verification"
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 7
-  completed_plans: 5
+  completed_plans: 6
   percent: 14
 ---
 
@@ -55,6 +55,7 @@ Progress: [██░░░░░░░░] 14%
 | Phase 01-foundation-and-infrastructure P01-03 | 60 | 3 tasks | 18 files |
 | Phase 02-domain-layer-port P01 | 6 | 2 tasks | 12 files |
 | Phase 02-domain-layer-port P02 | 9 | 2 tasks | 8 files |
+| Phase 02-domain-layer-port P03 | 10 | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -87,6 +88,8 @@ Recent decisions affecting current work:
 - [Phase 02-domain-layer-port]: blendMultiplier formula clamp(1 + (target-1)*rs*cs, 0.75, 1.25) matches Swift CycleAdaptationPolicy exactly
 - [Phase 02-domain-layer-port]: RN ProgramExercise.weight (ExerciseValue) replaces Swift percent1RM (Double) — adaptation scales absolute weights, not percentages
 - [Phase 02-domain-layer-port]: adaptProgram always adapts regardless of adaptationEnabled flag — caller decides whether to invoke
+- [Phase 02-domain-layer-port]: InjuryProfile gains optional location string field for Swift CloudKit parity — adaptation engine uses free-text location matching
+- [Phase 02-domain-layer-port]: Barrel index.ts files marked with istanbul ignore file — pure re-exports produce no executable statements for Istanbul
 
 ### Pending Todos
 
@@ -102,6 +105,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-14T20:58:38.927Z
-Stopped at: Completed 02-02: cycle subdomain port
+Last session: 2026-03-14T20:59:36.020Z
+Stopped at: Completed 02-03: injury domain port
 Resume file: None

@@ -86,11 +86,11 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Injury Management
 
 - [ ] **INJR-01**: User can create injury profiles with body location and recovery phase
-- [ ] **INJR-02**: Injury adaptation engine automatically substitutes or removes contraindicated exercises
+- [x] **INJR-02**: Injury adaptation engine automatically substitutes or removes contraindicated exercises
 - [ ] **INJR-03**: User can log pain levels for active injuries
-- [ ] **INJR-04**: App analyzes pain trends over time and surfaces insights
-- [ ] **INJR-05**: Phase transition advisor suggests when to progress recovery phase
-- [ ] **INJR-06**: App generates targeted rehab sessions based on injury profile
+- [x] **INJR-04**: App analyzes pain trends over time and surfaces insights
+- [x] **INJR-05**: Phase transition advisor suggests when to progress recovery phase
+- [x] **INJR-06**: App generates targeted rehab sessions based on injury profile
 
 ### AI Workouts
 
@@ -175,10 +175,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CYAD-01 | Phase 2 | Complete |
 | CYAD-02 | Phase 2 | Complete |
 | CYAD-03 | Phase 2 | Complete |
-| INJR-02 | Phase 2 | Pending |
-| INJR-04 | Phase 2 | Pending |
-| INJR-05 | Phase 2 | Pending |
-| INJR-06 | Phase 2 | Pending |
+| INJR-02 | Phase 2 | Complete |
+| INJR-04 | Phase 2 | Complete |
+| INJR-05 | Phase 2 | Complete |
+| INJR-06 | Phase 2 | Complete |
 | WORK-06 | Phase 2 | Complete |
 | MAX-03 | Phase 2 | Complete |
 | ONBD-01 | Phase 3 | Pending |
