@@ -81,14 +81,54 @@ export function bodyLocationEngineKey(location: BodyLocation): BodyLocationEngin
 /** User biological sex (for bar weight defaults and cycle features) */
 export type Gender = 'female' | 'male' | 'other';
 
-/** Workout focus category */
-export type WorkoutFocus = 'strength' | 'hypertrophy' | 'endurance' | 'power' | 'mobility';
+/**
+ * Workout focus category — matches Swift WorkoutGenerationContext.WorkoutFocus raw values.
+ * String union used instead of TypeScript enum for better serialization.
+ */
+export type WorkoutFocus =
+  | 'upper_body'
+  | 'lower_body'
+  | 'full_body'
+  | 'push'
+  | 'pull'
+  | 'core'
+  | 'conditioning'
+  | 'strength'
+  | 'olympic_lifts'
+  | 'gymnastics'
+  | 'mobility'
+  | 'stretching';
 
-/** Subjective energy level */
-export type EnergyLevel = 'low' | 'moderate' | 'high';
+/** Human-readable display name for a WorkoutFocus value */
+export function workoutFocusDisplayName(focus: WorkoutFocus): string {
+  switch (focus) {
+    case 'upper_body': return 'Upper Body';
+    case 'lower_body': return 'Lower Body';
+    case 'full_body': return 'Full Body';
+    case 'push': return 'Push';
+    case 'pull': return 'Pull';
+    case 'core': return 'Core';
+    case 'conditioning': return 'Conditioning';
+    case 'strength': return 'Strength';
+    case 'olympic_lifts': return 'Olympic Lifts';
+    case 'gymnastics': return 'Gymnastics';
+    case 'mobility': return 'Mobility';
+    case 'stretching': return 'Stretching';
+  }
+}
 
-/** Available gym equipment */
-export type EquipmentAccess = 'full' | 'limited' | 'home' | 'none';
+/** Subjective energy level — matches Swift EnergyLevel */
+export type EnergyLevel = 'low' | 'medium' | 'high';
+
+/**
+ * Available gym equipment — matches Swift EquipmentAccess raw values.
+ */
+export type EquipmentAccess =
+  | 'full_gym'
+  | 'home_dumbbells'
+  | 'hotel_gym'
+  | 'bodyweight_only'
+  | 'outdoor';
 
 /** Adaptation readiness tier derived from readiness survey */
 export type ReadinessTier = 'low' | 'neutral' | 'high';
@@ -97,14 +137,25 @@ export type ReadinessTier = 'low' | 'neutral' | 'high';
 // Benchmark types
 // ---------------------------------------------------------------------------
 
-export type BenchmarkScoringType = 'forTime' | 'amrap' | 'maxLoad' | 'roundsAndReps';
+/**
+ * Benchmark scoring type — matches Swift BenchmarkScoringType raw values.
+ * - time: lower is better, stored as total seconds
+ * - reps: higher is better, whole number
+ * - weight: higher is better, stored as kilograms
+ * - distance: fixed distance, logged as time (lower is better)
+ * - roundsAndReps: AMRAP-style, encoded as rounds * 10000 + reps (higher is better)
+ */
+export type BenchmarkScoringType = 'time' | 'reps' | 'weight' | 'distance' | 'roundsAndReps';
 
 export interface BenchmarkDefinition {
   id: string;
+  userID: string;
   name: string;
-  description: string;
+  category: string;
+  workoutDescription: string;
   scoringType: BenchmarkScoringType;
-  category?: string;
+  isPredefined: boolean;
+  sortOrder: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -163,6 +214,8 @@ export interface InjuryProfile {
   recoveryPhase: RecoveryPhase;
   injuryDate: Date;
   notes?: string;
+  /** Free-text location string stored for CloudKit (e.g. "knee", "shoulder"). */
+  location?: string;
 }
 
 export interface PainLog {
@@ -183,6 +236,8 @@ export interface ProgramExercise {
   weight?: ExerciseValue;
   restSeconds?: number;
   contrindicatedFor?: BodyLocationEngineKey[];
+  /** Bodyweight-only exercise — no external load used */
+  bodyweightOnly?: boolean;
 }
 
 export interface ProgramSession {
@@ -196,6 +251,10 @@ export interface Program {
   id: string;
   name: string;
   sessions: ProgramSession[];
+  /** ISO date string 'yyyy-MM-dd' for program start, if scheduled */
+  startDate?: string;
+  /** ISO date string 'yyyy-MM-dd' for program end, if scheduled */
+  endDate?: string;
 }
 
 // ---------------------------------------------------------------------------

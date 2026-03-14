@@ -1,0 +1,71 @@
+{
+  "blendMultiplier": [
+    {
+      "description": "Full application: target 0.8, readinessScale 1.0, confidenceScale 1.0 → 0.8",
+      "target": 0.8,
+      "readinessScale": 1.0,
+      "confidenceScale": 1.0,
+      "expected": 0.8
+    },
+    {
+      "description": "No-op: target 1.0, readinessScale 1.0, confidenceScale 1.0 → 1.0",
+      "target": 1.0,
+      "readinessScale": 1.0,
+      "confidenceScale": 1.0,
+      "expected": 1.0
+    },
+    {
+      "description": "Above max: target 1.5, readinessScale 1.0, confidenceScale 1.0 → clamps to 1.25",
+      "target": 1.5,
+      "readinessScale": 1.0,
+      "confidenceScale": 1.0,
+      "expected": 1.25
+    },
+    {
+      "description": "Below min: target 0.5, readinessScale 1.0, confidenceScale 1.0 → clamps to 0.75",
+      "target": 0.5,
+      "readinessScale": 1.0,
+      "confidenceScale": 1.0,
+      "expected": 0.75
+    },
+    {
+      "description": "Half readiness scale: target 0.8, readinessScale 0.5, confidenceScale 1.0 → blended",
+      "target": 0.8,
+      "readinessScale": 0.5,
+      "confidenceScale": 1.0,
+      "expected": 0.9
+    },
+    {
+      "description": "Zero readiness scale: target 0.8, readinessScale 0.0, confidenceScale 1.0 → 1.0 (no adjustment)",
+      "target": 0.8,
+      "readinessScale": 0.0,
+      "confidenceScale": 1.0,
+      "expected": 1.0
+    },
+    {
+      "description": "Zero confidence: target 0.8, readinessScale 1.0, confidenceScale 0.0 → 1.0",
+      "target": 0.8,
+      "readinessScale": 1.0,
+      "confidenceScale": 0.0,
+      "expected": 1.0
+    },
+    {
+      "description": "Boost: target 1.12, readinessScale 1.2, confidenceScale 1.0 → clamps to 1.25",
+      "target": 1.12,
+      "readinessScale": 1.2,
+      "confidenceScale": 1.0,
+      "expected": 1.1440000000000001
+    }
+  ],
+  "resolveReadinessTier": [
+    { "score": null,  "expected": "neutral" },
+    { "score": 3,     "expected": "low"     },
+    { "score": 2,     "expected": "low"     },
+    { "score": 1,     "expected": "low"     },
+    { "score": 4,     "expected": "neutral" },
+    { "score": 5,     "expected": "neutral" },
+    { "score": 7,     "expected": "neutral" },
+    { "score": 8,     "expected": "high"    },
+    { "score": 10,    "expected": "high"    }
+  ]
+}
