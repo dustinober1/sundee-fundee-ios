@@ -8,7 +8,7 @@
 import { useState, useCallback } from 'react';
 import auth, { AppleAuthProvider } from '@react-native-firebase/auth';
 import {
-  AppleAuthentication,
+  signInAsync as appleSignInAsync,
   AppleAuthenticationScope,
 } from 'expo-apple-authentication';
 import * as SecureStore from 'expo-secure-store';
@@ -28,17 +28,18 @@ export function useAppleSignIn(): AppleSignInState {
     setIsLoading(true);
     setError(null);
     try {
-      const appleCredential = await AppleAuthentication.signInAsync({
+      const appleCredential = await appleSignInAsync({
         requestedScopes: [
           AppleAuthenticationScope.FULL_NAME,
           AppleAuthenticationScope.EMAIL,
         ],
       });
 
-      const { identityToken, nonce, fullName } = appleCredential;
+      const { identityToken, fullName } = appleCredential;
 
       // Create Firebase credential from Apple identity token
-      const credential = AppleAuthProvider.credential(identityToken, nonce);
+      // The second argument is an optional raw nonce (not provided by expo-apple-authentication)
+      const credential = AppleAuthProvider.credential(identityToken, undefined);
 
       // Sign in to Firebase with Apple credential
       const result = await auth().signInWithCredential(credential);

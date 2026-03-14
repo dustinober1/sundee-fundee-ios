@@ -17,7 +17,10 @@ jest.mock('expo-secure-store', () => ({
 }));
 
 import auth, { AppleAuthProvider } from '@react-native-firebase/auth';
-import { AppleAuthentication, AppleAuthenticationScope } from 'expo-apple-authentication';
+import {
+  signInAsync as appleSignInAsync,
+  AppleAuthenticationScope,
+} from 'expo-apple-authentication';
 import * as SecureStore from 'expo-secure-store';
 import { useAppleSignIn } from '../useAppleSignIn';
 
@@ -26,7 +29,7 @@ const mockAuthInstance = auth();
 describe('useAppleSignIn', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (AppleAuthentication.signInAsync as jest.Mock).mockResolvedValue({
+    (appleSignInAsync as jest.Mock).mockResolvedValue({
       user: 'apple-user-id',
       email: 'test@privaterelay.appleid.com',
       fullName: {
@@ -47,14 +50,14 @@ describe('useAppleSignIn', () => {
     });
   });
 
-  it('signIn calls AppleAuthentication.signInAsync with correct scopes', async () => {
+  it('signIn calls signInAsync with correct scopes', async () => {
     const { result } = renderHook(() => useAppleSignIn());
 
     await act(async () => {
       await result.current.signIn();
     });
 
-    expect(AppleAuthentication.signInAsync).toHaveBeenCalledWith({
+    expect(appleSignInAsync).toHaveBeenCalledWith({
       requestedScopes: [
         AppleAuthenticationScope.FULL_NAME,
         AppleAuthenticationScope.EMAIL,
@@ -71,7 +74,7 @@ describe('useAppleSignIn', () => {
 
     expect(AppleAuthProvider.credential).toHaveBeenCalledWith(
       'mock-identity-token',
-      expect.anything()
+      undefined
     );
   });
 
