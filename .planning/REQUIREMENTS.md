@@ -1,0 +1,174 @@
+# Requirements: Sundee Fundee React Native
+
+**Defined:** 2026-03-14
+**Core Value:** Users get personalized, cycle-aware strength training that adapts to their body — available on any platform, online or offline.
+
+## v1 Requirements
+
+Requirements for initial release. Each maps to roadmap phases.
+
+### Authentication
+
+- [ ] **AUTH-01**: User can sign up with email and password
+- [ ] **AUTH-02**: User can sign in with Apple (iOS)
+- [ ] **AUTH-03**: User can sign in with Google (Android + Web)
+- [ ] **AUTH-04**: User can continue as guest without creating an account
+- [ ] **AUTH-05**: User session persists across app restart
+- [ ] **AUTH-06**: User can sign out from any screen
+- [ ] **AUTH-07**: User data syncs across devices when authenticated
+
+### Onboarding
+
+- [ ] **ONBD-01**: User completes profile setup (name, experience level, goal, gender)
+- [ ] **ONBD-02**: User can opt into cycle tracking during onboarding
+- [ ] **ONBD-03**: Onboarding steps adapt based on user selections (e.g., skip cycle for male users)
+
+### Workout Core
+
+- [ ] **WORK-01**: User can log sets with reps and weight for any exercise
+- [ ] **WORK-02**: User can start a rest timer between sets that works in background
+- [ ] **WORK-03**: Rest timer survives screen lock and app backgrounding
+- [ ] **WORK-04**: User can search and filter exercise library (200+ exercises)
+- [ ] **WORK-05**: User can create custom exercises
+- [ ] **WORK-06**: App auto-detects personal records on set completion
+- [ ] **WORK-07**: User can view workout history in chronological order
+- [ ] **WORK-08**: User can filter history by source (AI/Program/Custom)
+- [ ] **WORK-09**: User can delete workouts from history
+- [ ] **WORK-10**: User can view progress charts per exercise (volume/load over time)
+- [ ] **WORK-11**: All workout logging works offline without data loss
+- [ ] **WORK-12**: User can build custom workout routines with drag-and-drop ordering
+
+### Workout Execution
+
+- [ ] **EXEC-01**: User can execute ForTime workouts with countdown timer
+- [ ] **EXEC-02**: User can execute AMRAP workouts with countdown timer
+- [ ] **EXEC-03**: User can execute EMOM workouts with interval timer
+- [ ] **EXEC-04**: Timer state preserves through screen lock
+
+### Programs
+
+- [ ] **PROG-01**: User can browse program catalog from Firestore
+- [ ] **PROG-02**: User can enroll in a program and track weekly progress
+- [ ] **PROG-03**: User can view current session with exercises, sets, and target weights
+- [ ] **PROG-04**: Programs include structured weeks, sessions, and progression schemes
+
+### Benchmarks
+
+- [ ] **BNCH-01**: User can browse benchmark catalog (named workouts)
+- [ ] **BNCH-02**: User can record benchmark results with scoring (ForTime, AMRAP rounds+reps, MaxLoad)
+- [ ] **BNCH-03**: User can view benchmark result history and track improvement
+- [ ] **BNCH-04**: User can create custom benchmarks
+
+### WODs
+
+- [ ] **WODS-01**: User can view daily Workout of the Day from Firestore
+- [ ] **WODS-02**: WODs are matched by date and refreshed from Firestore
+
+### Cycle Tracking
+
+- [ ] **CYCL-01**: User can log period start and end dates
+- [ ] **CYCL-02**: User can log daily symptoms (energy, mood, cramps, etc.)
+- [ ] **CYCL-03**: App infers current cycle phase from period logs (follicular, ovulatory, luteal, menstrual)
+- [ ] **CYCL-04**: User can view current phase and predicted upcoming phases
+- [ ] **CYCL-05**: Cycle features only visible to users who opted in
+
+### Cycle Adaptation
+
+- [ ] **CYAD-01**: Workout load automatically adjusts based on current cycle phase
+- [ ] **CYAD-02**: Set and rep targets scale with phase-specific multipliers
+- [ ] **CYAD-03**: Adaptation integrates with readiness score for fine-tuning
+
+### Readiness
+
+- [ ] **READ-01**: User can complete daily readiness survey (sleep, energy, stress, motivation)
+- [ ] **READ-02**: Readiness score feeds into workout adaptation intensity
+
+### Injury Management
+
+- [ ] **INJR-01**: User can create injury profiles with body location and recovery phase
+- [ ] **INJR-02**: Injury adaptation engine automatically substitutes or removes contraindicated exercises
+- [ ] **INJR-03**: User can log pain levels for active injuries
+- [ ] **INJR-04**: App analyzes pain trends over time and surfaces insights
+- [ ] **INJR-05**: Phase transition advisor suggests when to progress recovery phase
+- [ ] **INJR-06**: App generates targeted rehab sessions based on injury profile
+
+### AI Workouts
+
+- [ ] **AIWK-01**: User can generate a personalized workout via AI (Gemini)
+- [ ] **AIWK-02**: AI incorporates cycle phase, injuries, and readiness into workout generation
+- [ ] **AIWK-03**: User can specify preferences (time, focus, equipment, energy level)
+- [ ] **AIWK-04**: App falls back to templated workouts when offline
+- [ ] **AIWK-05**: Generated workouts are saved to history
+
+### One-Rep Max
+
+- [ ] **MAX-01**: User can track one-rep max for any lift
+- [ ] **MAX-02**: User can view 1RM history over time
+- [ ] **MAX-03**: App estimates 1RM from logged sets using standard formulas
+
+### Subscriptions
+
+- [ ] **SUBS-01**: User can subscribe via in-app purchase (RevenueCat) on iOS and Android
+- [ ] **SUBS-02**: User can subscribe via Stripe web checkout at lower price point
+- [ ] **SUBS-03**: Subscription entitlements sync between mobile and web
+- [ ] **SUBS-04**: Premium features gated behind subscription (paywall)
+- [ ] **SUBS-05**: User can manage subscription from settings
+
+### Platform & Design
+
+- [ ] **PLAT-01**: App runs on iOS with native feel
+- [ ] **PLAT-02**: App runs on Android with platform-appropriate conventions
+- [ ] **PLAT-03**: App runs on Web with responsive layout
+- [ ] **PLAT-04**: Refreshed Art Deco design (cream/navy/orange palette evolved)
+- [ ] **PLAT-05**: User can switch between lbs and kg
+- [ ] **PLAT-06**: User can export workout data (CSV or JSON)
+- [ ] **PLAT-07**: User can delete account with full data wipe
+
+## v2 Requirements
+
+Deferred to future release. Tracked but not in current roadmap.
+
+### Health Integration
+
+- **HLTH-01**: App writes completed workout data to HealthKit (iOS) / Health Connect (Android)
+- **HLTH-02**: App reads HRV, sleep, and VO2max from HealthKit for readiness scoring
+
+### Social
+
+- **SOCL-01**: Users can compare program progress with shared leaderboard
+- **SOCL-02**: Users can share workout summaries
+
+### Content
+
+- **CONT-01**: Exercise library includes animated video demos
+- **CONT-02**: Cycle-phase nutrition guidance (educational, not tracking)
+
+## Out of Scope
+
+| Feature | Reason |
+|---------|--------|
+| Data migration from iOS CloudKit | Fresh start — small user base, clean break simplifies architecture |
+| Native watch apps (Apple Watch, Wear OS) | Separate SDKs, limited RN support — defer post-launch |
+| Social feed / friend activity | Moderation cost; shifts product identity from training tool to social network |
+| Real-time coaching / live classes | Requires instructors, streaming infra — separate product |
+| Nutrition tracking / macro logging | Distinct domain; dilutes strength training focus |
+| Real-time multiplayer workouts | WebRTC complexity; niche use case |
+| Gamification (points/levels/badges) | PRs are the natural reward loop; badges require maintenance |
+| Maintaining the native iOS Swift app | Will be replaced by React Native version |
+
+## Traceability
+
+Which phases cover which requirements. Updated during roadmap creation.
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| (populated during roadmap creation) | | |
+
+**Coverage:**
+- v1 requirements: 56 total
+- Mapped to phases: 0
+- Unmapped: 56
+
+---
+*Requirements defined: 2026-03-14*
+*Last updated: 2026-03-14 after initial definition*
