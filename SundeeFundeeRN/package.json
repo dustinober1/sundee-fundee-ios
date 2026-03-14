@@ -34,7 +34,9 @@
     "react-native-screens": "~4.23.0"
   },
   "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.0",
     "@types/react": "~19.2.2",
+    "firebase-admin": "^13.7.0",
     "typescript": "~5.9.2"
   },
   "private": true
