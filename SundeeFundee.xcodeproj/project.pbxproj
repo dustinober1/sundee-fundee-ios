@@ -340,7 +340,7 @@
 		B505719BD04F61B067DA2491 /* SundeeFundee.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SundeeFundee.entitlements; sourceTree = "<group>"; };
 		B6EDF76C2A7A135CEBE4365C /* Maxes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Maxes.swift; sourceTree = "<group>"; };
 		B75299B558602C0FC9B4A225 /* PlaceholderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceholderTests.swift; sourceTree = "<group>"; };
-		BD43C5FF1DD1826489EC84DA /* SundeeFundeTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = SundeeFundeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		BD43C5FF1DD1826489EC84DA /* SundeeFundeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SundeeFundeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		BE7D61FE04FB299E8A81806F /* RehabSessionGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RehabSessionGenerator.swift; sourceTree = "<group>"; };
 		BFF8658262181011EAEAF4B7 /* AIWorkoutFlowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIWorkoutFlowView.swift; sourceTree = "<group>"; };
 		C09382122916ED8040375F8E /* ProgramRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramRepository.swift; sourceTree = "<group>"; };
@@ -959,7 +959,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 1600;
+				LastUpgradeCheck = 2630;
 				TargetAttributes = {
 					6A65F4B4731A18FE7E162E4E = {
 						DevelopmentTeam = 87VVCMCW3F;
@@ -1211,6 +1211,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -1247,6 +1248,7 @@
 				DEVELOPMENT_TEAM = 87VVCMCW3F;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -1261,6 +1263,7 @@
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 6.0;
@@ -1331,6 +1334,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -1367,6 +1371,7 @@
 				DEVELOPMENT_TEAM = 87VVCMCW3F;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -1388,6 +1393,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 6.0;
