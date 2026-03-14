@@ -296,8 +296,15 @@ test.each(cases.cases)('estimated1RM w=%d r=%d', ({ weight, reps, expected1RM })
 
 ### Pitfall 2: Floating-Point Rounding Differences (Swift vs JS)
 **What goes wrong:** Swift's `Double` and JavaScript's `number` are both IEEE 754 double-precision, but rounding functions differ. Swift `(value).rounded()` uses "round half to even" (banker's rounding). JavaScript `Math.round()` uses "round half away from zero."
-**Why it happens:** `0.5.rounded()` in Swift is `0.0`; `Math.round(0.5)` in JavaScript is `1`.
-**How to avoid:** For the 4-decimal-place parity threshold, the difference only matters if a value lands exactly on 0.5 at the 4th decimal. Use `toBeCloseTo(expected, 4)` in Jest — this tolerates up to 0.00001 difference. Flag any case where Swift rounds a rep count differently.
+**Why it happens:** `0.5.rounded()` in Swift is `0.0`; `Math.round(0.5)` in JavaScript is `1`. For negative numbers: Swift `-0.5.rounded()` is `0.0`; JS `Math.round(-0.5)` is `0`.
+**How to avoid:** For the 4-decimal-place parity threshold, the difference only matters if a value lands exactly on 0.5 at the 4th decimal. Use `toBeCloseTo(expected, 4)` in Jest — this tolerates up to 0.00001 difference. For cases where exact rounding match is needed (weight snapping), use a `swiftRound` helper:
+```typescript
+// Matches Swift rounded() behavior for positive values (sufficient for weight/reps)
+export const swiftRound = (value: number): number => {
+  return value >= 0 ? Math.round(value) : -Math.round(-value);
+};
+```
+*(Source: Gemini research — important for weight snapping functions)*
 **Warning signs:** 1RM fixture cases with reps = 1 (weight returned as-is), or cases where `round(n * multiplier)` produces values ending in .5.
 
 ### Pitfall 3: Swift `prefix()` / `suffix()` on Arrays
@@ -336,7 +343,20 @@ test.each(cases.cases)('estimated1RM w=%d r=%d', ({ weight, reps, expected1RM })
 
 Verified patterns derived directly from the Swift source files:
 
-### EpleyFormula 1RM Estimation (MAX-03)
+### 1RM Estimation Formulas (MAX-03) — Full Reference
+
+| Formula | Equation | Valid Rep Range |
+|---------|----------|-----------------|
+| **Epley** | `weight × (1 + reps / 30)` | reps > 1 |
+| **Brzycki** | `weight × (36 / (37 - reps))` | 2 ≤ reps ≤ 36 |
+| **Lombardi** | `weight × reps^0.10` | reps ≥ 1 |
+| **Mayhew** | `weight × (100 / (52.2 + 41.9 × e^(-0.055 × reps)))` | reps ≥ 1 |
+| **O'Conner** | `weight × (1 + reps / 40)` | reps ≥ 1 |
+| **Wathen** | `weight × (100 / (48.8 + 53.8 × e^(-0.075 × reps)))` | reps ≥ 1 |
+| **Lander** | `weight × (100 / (101.3 - 2.67123 × reps))` | 2 ≤ reps ≤ 10 |
+
+*(Source: Qwen research — cross-referenced with WeightCalculations.swift)*
+
 ```typescript
 // Mirrors: EpleyFormula.estimated1RM — weight × (1 + reps / 30)
 // Swift: guard reps > 1 else { return weight }
@@ -565,3 +585,4 @@ Full inventory of all 23 files and their TypeScript destination:
 
 **Research date:** 2026-03-14
 **Valid until:** 2026-04-14 (stable domain — no library churn expected)
+**Research sources:** Claude (primary researcher — read all 23 Swift files), Gemini 2.5 Pro (supplemental — swiftRound helper, enum patterns), Qwen (supplemental — full 1RM formula table, wave structure, fixture schemas)
