@@ -116,9 +116,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Platform & Design
 
-- [ ] **PLAT-01**: App runs on iOS with native feel
-- [ ] **PLAT-02**: App runs on Android with platform-appropriate conventions
-- [ ] **PLAT-03**: App runs on Web with responsive layout
+- [x] **PLAT-01**: App runs on iOS with native feel
+- [x] **PLAT-02**: App runs on Android with platform-appropriate conventions
+- [x] **PLAT-03**: App runs on Web with responsive layout
 - [ ] **PLAT-04**: Refreshed Art Deco design (cream/navy/orange palette evolved)
 - [ ] **PLAT-05**: User can switch between lbs and kg
 - [ ] **PLAT-06**: User can export workout data (CSV or JSON)
@@ -169,9 +169,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AUTH-05 | Phase 1 | Pending |
 | AUTH-06 | Phase 1 | Pending |
 | AUTH-07 | Phase 1 | Pending |
-| PLAT-01 | Phase 1 | Pending |
-| PLAT-02 | Phase 1 | Pending |
-| PLAT-03 | Phase 1 | Pending |
+| PLAT-01 | Phase 1 | Complete |
+| PLAT-02 | Phase 1 | Complete |
+| PLAT-03 | Phase 1 | Complete |
 | CYAD-01 | Phase 2 | Pending |
 | CYAD-02 | Phase 2 | Pending |
 | CYAD-03 | Phase 2 | Pending |
