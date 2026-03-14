@@ -18,7 +18,7 @@ const mockQuerySnapshot = {
   forEach: jest.fn(),
 };
 
-const mockDocumentRef = {
+const mockDocumentRef: Record<string, jest.Mock | unknown> = {
   id: 'mock-doc-id',
   get: jest.fn().mockResolvedValue(mockDocumentSnapshot),
   set: jest.fn().mockResolvedValue(undefined),
@@ -28,9 +28,11 @@ const mockDocumentRef = {
     callback(mockDocumentSnapshot);
     return jest.fn(); // Returns unsubscribe function
   }),
+  // Support subcollections: collection().doc().collection()
+  collection: jest.fn(),
 };
 
-const mockCollectionRef = {
+const mockCollectionRef: Record<string, jest.Mock | unknown> = {
   doc: jest.fn().mockReturnValue(mockDocumentRef),
   get: jest.fn().mockResolvedValue(mockQuerySnapshot),
   add: jest.fn().mockResolvedValue(mockDocumentRef),
@@ -42,6 +44,12 @@ const mockCollectionRef = {
     return jest.fn(); // Returns unsubscribe function
   }),
 };
+
+// Wire up subcollection support:
+// collection().doc() returns mockDocumentRef, and mockDocumentRef.collection() returns mockCollectionRef
+// This allows chaining: collection('users').doc(uid).collection('workouts').doc(id).set(...)
+(mockDocumentRef.collection as jest.Mock).mockReturnValue(mockCollectionRef);
+(mockCollectionRef.doc as jest.Mock).mockReturnValue(mockDocumentRef);
 
 const mockFirestoreInstance = {
   collection: jest.fn().mockReturnValue(mockCollectionRef),

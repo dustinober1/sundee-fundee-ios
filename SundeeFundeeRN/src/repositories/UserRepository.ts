@@ -6,6 +6,10 @@
  *   - FirestoreUserRepo: authenticated users (syncs to Firestore /users/{uid})
  *   - LocalUserRepo: guest users (persists to AsyncStorage)
  */
+import type { Gender } from '../domain/types';
+
+export type ExperienceLevel = 'beginner' | 'intermediate' | 'advanced';
+export type PrimaryGoal = 'strength' | 'muscle' | 'endurance' | 'weightLoss' | 'general';
 
 export interface UserProfile {
   uid: string;
@@ -17,6 +21,13 @@ export interface UserProfile {
   /** ISO 8601 timestamp of last sign-in */
   lastSignInAt: string;
   authProvider: 'apple' | 'google' | 'email' | 'anonymous';
+  /** Onboarding fields — optional so existing code is not broken */
+  name?: string;
+  experienceLevel?: ExperienceLevel;
+  primaryGoal?: PrimaryGoal;
+  gender?: Gender;
+  cycleOptIn?: boolean;
+  hasCompletedOnboarding?: boolean;
 }
 
 export interface UserRepository {
