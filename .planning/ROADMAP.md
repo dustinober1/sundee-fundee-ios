@@ -12,7 +12,7 @@ This roadmap covers the full rewrite of Sundee Fundee from native iOS (Swift 6 +
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Foundation and Infrastructure** - Firebase, Auth, EAS build, security rules, RevenueCat + Stripe pipeline
+- [x] **Phase 1: Foundation and Infrastructure** - Firebase, Auth, EAS build, security rules, RevenueCat + Stripe pipeline
 - [ ] **Phase 2: Domain Layer Port** - Full TypeScript port of all iOS domain logic with 100% test coverage
 - [ ] **Phase 3: Data Layer and Offline Architecture** - Repository interfaces, Firestore + AsyncStorage implementations, offline guarantee
 - [ ] **Phase 4: Core Workout Loop** - Exercise library, workout logging, timers, PR detection, history, progress charts
@@ -32,12 +32,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. User can sign out from the settings screen on any platform
   4. Authenticated user data syncs to Firestore and is visible on a second device after sign-in
   5. EAS development build runs on iOS Simulator, Android Emulator, and web — React Native Firebase SDK is used (not JS SDK); Expo Go is not used at any point
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 
 Plans:
 - [x] 01-01-PLAN.md — Scaffold Expo project with Firebase, EAS, Firestore rules, RevenueCat, and test infrastructure
-- [ ] 01-02-PLAN.md — Build auth layer: SessionProvider, auth hooks (Apple, Google, Email, Guest), and tests
-- [ ] 01-03-PLAN.md — Build auth UI, protected routes, tab shell, settings with sign-out, and cross-platform verification
+- [x] 01-02-PLAN.md — Build auth layer: SessionProvider, auth hooks (Apple, Google, Email, Guest), and tests
+- [x] 01-03-PLAN.md — Build auth UI, protected routes, tab shell, settings with sign-out, and cross-platform verification
 
 ### Phase 2: Domain Layer Port
 **Goal**: All iOS business logic exists as tested TypeScript with verified numeric/date parity against the Swift originals
@@ -118,7 +118,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation and Infrastructure | 2/3 | In Progress|  |
+| 1. Foundation and Infrastructure | 3/3 | Complete   | 2026-03-14 |
 | 2. Domain Layer Port | 0/TBD | Not started | - |
 | 3. Data Layer and Offline Architecture | 0/TBD | Not started | - |
 | 4. Core Workout Loop | 0/TBD | Not started | - |
