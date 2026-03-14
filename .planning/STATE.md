@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Phase 3 context gathered
-last_updated: "2026-03-14T22:17:43.758Z"
+stopped_at: Completed 03-01-PLAN.md
+last_updated: "2026-03-14T22:47:28.516Z"
 last_activity: "2026-03-14 — Completed Plan 01-03: Auth UI, protected routes, tab shell, settings sign-out, cross-platform verification"
 progress:
   total_phases: 7
   completed_phases: 2
-  total_plans: 8
-  completed_plans: 8
+  total_plans: 10
+  completed_plans: 9
   percent: 14
 ---
 
@@ -58,6 +58,7 @@ Progress: [██░░░░░░░░] 14%
 | Phase 02-domain-layer-port P03 | 10 | 2 tasks | 10 files |
 | Phase 02-domain-layer-port P02-04 | 13 | 2 tasks | 19 files |
 | Phase 02-domain-layer-port P05 | 5 | 1 tasks | 2 files |
+| Phase 03-data-layer-and-offline-architecture P03-01 | 7 | 2 tasks | 27 files |
 
 ## Accumulated Context
 
@@ -95,6 +96,10 @@ Recent decisions affecting current work:
 - [Phase 02-domain-layer-port]: WorkoutFocus, EnergyLevel, EquipmentAccess, BenchmarkScoringType in types/index.ts updated to match Swift raw enum values
 - [Phase 02-domain-layer-port]: ReadinessSurvey storage functions omitted from domain layer — saveTodayResult/loadTodayResult belong in Phase 3 repository layer
 - [Phase 02-domain-layer-port]: Explicit named re-exports with adaptCycleProgram/adaptInjuryProgram aliases used in barrel — export * from both cycle and injury caused TypeError: Cannot redefine property: adaptProgram
+- [Phase 03-data-layer-and-offline-architecture]: Settings merged into /users/{uid} to avoid extra Firestore read on startup
+- [Phase 03-data-layer-and-offline-architecture]: ReadinessSurvey uses date string as Firestore doc ID for O(1) point lookups
+- [Phase 03-data-layer-and-offline-architecture]: migrateGuestDataToFirestore: AsyncStorage only cleared after successful batch.commit() to preserve data on failure
+- [Phase 03-data-layer-and-offline-architecture]: Web Firestore uses persistentLocalCache for IndexedDB offline persistence; instance cached to prevent double-init
 
 ### Pending Todos
 
@@ -110,6 +115,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-14T22:17:43.750Z
-Stopped at: Phase 3 context gathered
-Resume file: .planning/phases/03-data-layer-and-offline-architecture/03-CONTEXT.md
+Last session: 2026-03-14T22:47:28.513Z
+Stopped at: Completed 03-01-PLAN.md
+Resume file: None

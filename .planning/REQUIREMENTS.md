@@ -19,8 +19,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Onboarding
 
-- [ ] **ONBD-01**: User completes profile setup (name, experience level, goal, gender)
-- [ ] **ONBD-02**: User can opt into cycle tracking during onboarding
+- [x] **ONBD-01**: User completes profile setup (name, experience level, goal, gender)
+- [x] **ONBD-02**: User can opt into cycle tracking during onboarding
 - [ ] **ONBD-03**: Onboarding steps adapt based on user selections (e.g., skip cycle for male users)
 
 ### Workout Core
@@ -35,7 +35,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **WORK-08**: User can filter history by source (AI/Program/Custom)
 - [ ] **WORK-09**: User can delete workouts from history
 - [ ] **WORK-10**: User can view progress charts per exercise (volume/load over time)
-- [ ] **WORK-11**: All workout logging works offline without data loss
+- [x] **WORK-11**: All workout logging works offline without data loss
 - [ ] **WORK-12**: User can build custom workout routines with drag-and-drop ordering
 
 ### Workout Execution
@@ -181,10 +181,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | INJR-06 | Phase 2 | Complete |
 | WORK-06 | Phase 2 | Complete |
 | MAX-03 | Phase 2 | Complete |
-| ONBD-01 | Phase 3 | Pending |
-| ONBD-02 | Phase 3 | Pending |
+| ONBD-01 | Phase 3 | Complete |
+| ONBD-02 | Phase 3 | Complete |
 | ONBD-03 | Phase 3 | Pending |
-| WORK-11 | Phase 3 | Pending |
+| WORK-11 | Phase 3 | Complete |
 | WORK-01 | Phase 4 | Pending |
 | WORK-02 | Phase 4 | Pending |
 | WORK-03 | Phase 4 | Pending |
