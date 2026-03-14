@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: "Completed 02-04: remaining domain modules port and top-level barrel"
-last_updated: "2026-03-14T21:04:01.498Z"
+stopped_at: "Completed 02-05: domain barrel gap closure and types coverage"
+last_updated: "2026-03-14T21:57:03.807Z"
 last_activity: "2026-03-14 — Completed Plan 01-03: Auth UI, protected routes, tab shell, settings sign-out, cross-platform verification"
 progress:
   total_phases: 7
   completed_phases: 2
-  total_plans: 7
-  completed_plans: 7
+  total_plans: 8
+  completed_plans: 8
   percent: 14
 ---
 
@@ -57,6 +57,7 @@ Progress: [██░░░░░░░░] 14%
 | Phase 02-domain-layer-port P02 | 9 | 2 tasks | 8 files |
 | Phase 02-domain-layer-port P03 | 10 | 2 tasks | 10 files |
 | Phase 02-domain-layer-port P02-04 | 13 | 2 tasks | 19 files |
+| Phase 02-domain-layer-port P05 | 5 | 1 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -93,6 +94,7 @@ Recent decisions affecting current work:
 - [Phase 02-domain-layer-port]: Barrel index.ts files marked with istanbul ignore file — pure re-exports produce no executable statements for Istanbul
 - [Phase 02-domain-layer-port]: WorkoutFocus, EnergyLevel, EquipmentAccess, BenchmarkScoringType in types/index.ts updated to match Swift raw enum values
 - [Phase 02-domain-layer-port]: ReadinessSurvey storage functions omitted from domain layer — saveTodayResult/loadTodayResult belong in Phase 3 repository layer
+- [Phase 02-domain-layer-port]: Explicit named re-exports with adaptCycleProgram/adaptInjuryProgram aliases used in barrel — export * from both cycle and injury caused TypeError: Cannot redefine property: adaptProgram
 
 ### Pending Todos
 
@@ -108,6 +110,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-14T21:04:01.496Z
-Stopped at: Completed 02-04: remaining domain modules port and top-level barrel
+Last session: 2026-03-14T21:56:59.994Z
+Stopped at: Completed 02-05: domain barrel gap closure and types coverage
 Resume file: None
