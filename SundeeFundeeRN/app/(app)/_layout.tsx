@@ -15,8 +15,7 @@
 import { useEffect, useState } from 'react';
 import { Redirect, Stack } from 'expo-router';
 import { useSession } from '@/src/auth/AuthContext';
-import { FirestoreUserRepo } from '@/src/repositories/FirestoreUserRepo';
-import { LocalUserRepo } from '@/src/repositories/LocalUserRepo';
+import { getOnboardingProfileRepo } from '@/src/repositories/OnboardingProfileRepo';
 
 export default function AppLayout(): React.JSX.Element | null {
   const { user, isLoading, isGuest } = useSession();
@@ -38,9 +37,8 @@ export default function AppLayout(): React.JSX.Element | null {
     async function checkOnboarding(): Promise<void> {
       if (!user) return;
       try {
-        const profile = isGuest
-          ? await new LocalUserRepo().getUser(user.uid)
-          : await new FirestoreUserRepo().getUser(user.uid);
+        const repo = getOnboardingProfileRepo(isGuest);
+        const profile = await repo.getProfile(user.uid);
 
         if (!cancelled) {
           setOnboardingComplete(profile?.hasCompletedOnboarding === true);
