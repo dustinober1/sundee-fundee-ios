@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 03-01-PLAN.md
-last_updated: "2026-03-14T22:47:28.516Z"
-last_activity: "2026-03-14 — Completed Plan 01-03: Auth UI, protected routes, tab shell, settings sign-out, cross-platform verification"
+stopped_at: Completed 03-02-PLAN.md
+last_updated: "2026-03-14T23:30:00.000Z"
+last_activity: "2026-03-14 — Completed Plan 03-02: 5-step onboarding flow with Art Deco styling, atomic persistence, gender-adaptive step skipping, routing bug fixes"
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 10
-  completed_plans: 9
-  percent: 14
+  completed_plans: 10
+  percent: 16
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-03-14)
 
 ## Current Position
 
-Phase: 1 of 7 (Foundation and Infrastructure) — COMPLETE
-Plan: 3 of 3 in current phase (all plans done)
-Status: Phase 1 complete, ready for Phase 2
-Last activity: 2026-03-14 — Completed Plan 01-03: Auth UI, protected routes, tab shell, settings sign-out, cross-platform verification
+Phase: 3 of 7 (Data Layer and Offline Architecture) — IN PROGRESS
+Plan: 2 of 3 in current phase (Plans 01 and 02 done)
+Status: Phase 3 Plan 02 complete
+Last activity: 2026-03-14 — Completed Plan 03-02: 5-step onboarding flow with Art Deco styling, atomic persistence, gender-adaptive step skipping, routing bug fixes
 
-Progress: [██░░░░░░░░] 14%
+Progress: [███░░░░░░░] 16%
 
 ## Performance Metrics
 
@@ -100,6 +100,10 @@ Recent decisions affecting current work:
 - [Phase 03-data-layer-and-offline-architecture]: ReadinessSurvey uses date string as Firestore doc ID for O(1) point lookups
 - [Phase 03-data-layer-and-offline-architecture]: migrateGuestDataToFirestore: AsyncStorage only cleared after successful batch.commit() to preserve data on failure
 - [Phase 03-data-layer-and-offline-architecture]: Web Firestore uses persistentLocalCache for IndexedDB offline persistence; instance cached to prevent double-init
+- [03-02]: OnboardingContext saves all draft data atomically on final step — no partial persistence during multi-step wizard
+- [03-02]: getNextStep() returns null as completion signal — screens call completeOnboarding() when null, not a named done route
+- [03-02]: (app)/_layout.tsx reads hasCompletedOnboarding via getOnboardingProfileRepo (not LocalUserRepo) — same storage key as write path to prevent onboarding loop
+- [03-02]: app/_layout.tsx no longer gates Stack render on onboardingComplete — blank-page bug when unauthenticated; all routing owned by (app)/_layout.tsx
 
 ### Pending Todos
 
@@ -115,6 +119,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-14T22:47:28.513Z
-Stopped at: Completed 03-01-PLAN.md
+Last session: 2026-03-14T23:30:00.000Z
+Stopped at: Completed 03-02-PLAN.md
 Resume file: None

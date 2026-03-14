@@ -21,7 +21,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [x] **ONBD-01**: User completes profile setup (name, experience level, goal, gender)
 - [x] **ONBD-02**: User can opt into cycle tracking during onboarding
-- [ ] **ONBD-03**: Onboarding steps adapt based on user selections (e.g., skip cycle for male users)
+- [x] **ONBD-03**: Onboarding steps adapt based on user selections (e.g., skip cycle for male users)
 
 ### Workout Core
 
@@ -183,7 +183,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MAX-03 | Phase 2 | Complete |
 | ONBD-01 | Phase 3 | Complete |
 | ONBD-02 | Phase 3 | Complete |
-| ONBD-03 | Phase 3 | Pending |
+| ONBD-03 | Phase 3 | Complete |
 | WORK-11 | Phase 3 | Complete |
 | WORK-01 | Phase 4 | Pending |
 | WORK-02 | Phase 4 | Pending |
