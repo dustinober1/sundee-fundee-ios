@@ -27,3 +27,4 @@ GoogleService-Info.plist
 # Misc
 *.log
 .worktrees/
+my-upload-key.jks

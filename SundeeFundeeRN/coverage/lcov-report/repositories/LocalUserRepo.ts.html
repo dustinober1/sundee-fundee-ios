@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>7/7</span>
+                <span class='fraction'>0/7</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>2/2</span>
+                <span class='fraction'>0/2</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>3/3</span>
+                <span class='fraction'>0/3</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>7/7</span>
+                <span class='fraction'>0/7</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line high'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -112,14 +112,14 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -129,18 +129,18 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">/**
@@ -152,14 +152,14 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { UserProfile, UserRepository } from './UserRepository';
 &nbsp;
-const USER_PROFILE_KEY = 'user_profile';
+const USER_PROFILE_KEY = <span class="cstat-no" title="statement not covered" >'user_profile';</span>
 &nbsp;
 export class LocalUserRepo implements UserRepository {
   /**
    * Stores the user profile to AsyncStorage as a JSON string.
    */
-  async createOrUpdateUser(profile: UserProfile): Promise&lt;void&gt; {
-    await AsyncStorage.setItem(USER_PROFILE_KEY, JSON.stringify(profile));
+<span class="fstat-no" title="function not covered" >  as</span>ync createOrUpdateUser(profile: UserProfile): Promise&lt;void&gt; {
+<span class="cstat-no" title="statement not covered" >    await AsyncStorage.setItem(USER_PROFILE_KEY, JSON.stringify(profile));</span>
   }
 &nbsp;
   /**
@@ -168,19 +168,19 @@ export class LocalUserRepo implements UserRepository {
    * Note: uid parameter is accepted for interface compliance but not used
    * (local storage always has at most one guest profile).
    */
-  async getUser(_uid: string): Promise&lt;UserProfile | null&gt; {
-    const raw = await AsyncStorage.getItem(USER_PROFILE_KEY);
-    if (!raw) {
-      return null;
+<span class="fstat-no" title="function not covered" >  as</span>ync getUser(_uid: string): Promise&lt;UserProfile | null&gt; {
+    const raw = <span class="cstat-no" title="statement not covered" >await AsyncStorage.getItem(USER_PROFILE_KEY);</span>
+<span class="cstat-no" title="statement not covered" >    if (!raw) {</span>
+<span class="cstat-no" title="statement not covered" >      return null;</span>
     }
-    return JSON.parse(raw) as UserProfile;
+<span class="cstat-no" title="statement not covered" >    return JSON.parse(raw) as UserProfile;</span>
   }
 &nbsp;
   /**
    * Removes the user profile from AsyncStorage.
    */
-  async deleteUser(_uid: string): Promise&lt;void&gt; {
-    await AsyncStorage.removeItem(USER_PROFILE_KEY);
+<span class="fstat-no" title="function not covered" >  as</span>ync deleteUser(_uid: string): Promise&lt;void&gt; {
+<span class="cstat-no" title="statement not covered" >    await AsyncStorage.removeItem(USER_PROFILE_KEY);</span>
   }
 }
 &nbsp;</pre></td></tr></table></pre>
@@ -190,7 +190,7 @@ export class LocalUserRepo implements UserRepository {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-14T14:54:09.183Z
+                at 2026-03-14T20:57:39.534Z
             </div>
         <script src="../prettify.js"></script>
         <script>

@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>6/6</span>
+                <span class='fraction'>0/9</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>2/2</span>
+                <span class='fraction'>0/2</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>3/3</span>
+                <span class='fraction'>0/3</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>6/6</span>
+                <span class='fraction'>0/9</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line high'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -104,7 +104,10 @@
 <a name='L39'></a><a href='#L39'>39</a>
 <a name='L40'></a><a href='#L40'>40</a>
 <a name='L41'></a><a href='#L41'>41</a>
-<a name='L42'></a><a href='#L42'>42</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L42'></a><a href='#L42'>42</a>
+<a name='L43'></a><a href='#L43'>43</a>
+<a name='L44'></a><a href='#L44'>44</a>
+<a name='L45'></a><a href='#L45'>45</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -120,7 +123,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -131,18 +135,20 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">/**
@@ -152,7 +158,7 @@
  * Used for authenticated users (Apple, Google, Email) to satisfy AUTH-07:
  * "Authenticated user data syncs to Firestore and is visible on a second device after sign-in."
  */
-import firestore from '@react-native-firebase/firestore';
+import { getFirestoreInstance } from '../firebase/firestore';
 import type { UserProfile, UserRepository } from './UserRepository';
 &nbsp;
 export class FirestoreUserRepo implements UserRepository {
@@ -160,8 +166,9 @@ export class FirestoreUserRepo implements UserRepository {
    * Creates or updates a user document at /users/{uid}.
    * Uses { merge: true } to avoid overwriting fields set by other clients.
    */
-  async createOrUpdateUser(profile: UserProfile): Promise&lt;void&gt; {
-    await firestore()
+<span class="fstat-no" title="function not covered" >  as</span>ync createOrUpdateUser(profile: UserProfile): Promise&lt;void&gt; {
+    const db = <span class="cstat-no" title="statement not covered" >getFirestoreInstance();</span>
+<span class="cstat-no" title="statement not covered" >    await db</span>
       .collection('users')
       .doc(profile.uid)
       .set(profile, { merge: true });
@@ -171,19 +178,21 @@ export class FirestoreUserRepo implements UserRepository {
    * Retrieves a user profile from /users/{uid}.
    * Returns null if the document does not exist.
    */
-  async getUser(uid: string): Promise&lt;UserProfile | null&gt; {
-    const doc = await firestore().collection('users').doc(uid).get();
-    if (!doc.exists) {
-      return null;
+<span class="fstat-no" title="function not covered" >  as</span>ync getUser(uid: string): Promise&lt;UserProfile | null&gt; {
+    const db = <span class="cstat-no" title="statement not covered" >getFirestoreInstance();</span>
+    const doc = <span class="cstat-no" title="statement not covered" >await db.collection('users').doc(uid).get();</span>
+<span class="cstat-no" title="statement not covered" >    if (!doc.exists) {</span>
+<span class="cstat-no" title="statement not covered" >      return null;</span>
     }
-    return doc.data() as UserProfile;
+<span class="cstat-no" title="statement not covered" >    return doc.data() as UserProfile;</span>
   }
 &nbsp;
   /**
    * Deletes a user document from /users/{uid}.
    */
-  async deleteUser(uid: string): Promise&lt;void&gt; {
-    await firestore().collection('users').doc(uid).delete();
+<span class="fstat-no" title="function not covered" >  as</span>ync deleteUser(uid: string): Promise&lt;void&gt; {
+    const db = <span class="cstat-no" title="statement not covered" >getFirestoreInstance();</span>
+<span class="cstat-no" title="statement not covered" >    await db.collection('users').doc(uid).delete();</span>
   }
 }
 &nbsp;</pre></td></tr></table></pre>
@@ -193,7 +202,7 @@ export class FirestoreUserRepo implements UserRepository {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-14T14:54:09.183Z
+                at 2026-03-14T20:57:39.534Z
             </div>
         <script src="../prettify.js"></script>
         <script>
