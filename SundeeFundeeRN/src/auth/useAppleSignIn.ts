@@ -6,7 +6,10 @@
  * (Apple only provides full name on first sign-in per user decision).
  */
 import { useState, useCallback } from 'react';
-import auth, { AppleAuthProvider } from '@react-native-firebase/auth';
+import {
+  signInWithCredential,
+  AppleAuthProvider,
+} from '../firebase/auth';
 import {
   signInAsync as appleSignInAsync,
   AppleAuthenticationScope,
@@ -42,7 +45,7 @@ export function useAppleSignIn(): AppleSignInState {
       const credential = AppleAuthProvider.credential(identityToken, undefined);
 
       // Sign in to Firebase with Apple credential
-      const result = await auth().signInWithCredential(credential);
+      const user = await signInWithCredential(credential);
 
       // Store display name to SecureStore — Apple provides fullName only once
       if (fullName?.givenName) {
@@ -52,7 +55,7 @@ export function useAppleSignIn(): AppleSignInState {
         await SecureStore.setItemAsync('apple_display_name', displayName);
       }
 
-      return result.user;
+      return user;
     } catch (err) {
       const message = getAuthErrorMessage(err);
       setError(message);

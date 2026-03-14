@@ -36,8 +36,16 @@ export function getFirestoreInstance(): FirestoreInstance {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { getFirestore } = require('firebase/firestore');
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { getApp } = require('firebase/app');
-    return getFirestore(getApp());
+    const { getApps, initializeApp } = require('firebase/app');
+    const existing = getApps();
+    const app = existing.length > 0
+      ? existing[0]
+      : initializeApp({
+          apiKey: process.env.EXPO_PUBLIC_FIREBASE_WEB_API_KEY ?? '',
+          authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN ?? '',
+          projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID ?? '',
+        });
+    return getFirestore(app);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-require-imports

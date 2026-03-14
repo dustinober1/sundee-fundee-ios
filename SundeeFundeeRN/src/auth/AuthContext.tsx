@@ -14,14 +14,17 @@ import React, {
   useState,
   useCallback,
 } from 'react';
-import auth from '@react-native-firebase/auth';
-import type { FirebaseAuthTypes } from '@react-native-firebase/auth';
+import {
+  onAuthStateChanged,
+  signOut as firebaseSignOut,
+  type AuthUser,
+} from '../firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface Session {
-  user: FirebaseAuthTypes.User | null;
+  user: AuthUser | null;
   isLoading: boolean;
   isGuest: boolean;
   signOut: () => Promise<void>;
@@ -37,18 +40,18 @@ interface SessionProviderProps {
   children: React.ReactNode;
   /** Optional callback invoked whenever a user signs in (non-null). Used by
    *  the root layout to persist user data to Firestore or AsyncStorage. */
-  onUserSignIn?: (user: FirebaseAuthTypes.User) => void;
+  onUserSignIn?: (user: AuthUser) => void;
 }
 
 export function SessionProvider({
   children,
   onUserSignIn,
 }: SessionProviderProps): React.JSX.Element {
-  const [user, setUser] = useState<FirebaseAuthTypes.User | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = auth().onAuthStateChanged((firebaseUser) => {
+    const unsubscribe = onAuthStateChanged((firebaseUser) => {
       setUser(firebaseUser);
       setIsLoading(false);
       if (firebaseUser && onUserSignIn) {
@@ -60,7 +63,7 @@ export function SessionProvider({
   }, [onUserSignIn]);
 
   const signOut = useCallback(async (): Promise<void> => {
-    await auth().signOut();
+    await firebaseSignOut();
     await AsyncStorage.clear();
   }, []);
 

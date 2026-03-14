@@ -10,7 +10,7 @@
 import { useCallback, useEffect } from 'react';
 import { Platform } from 'react-native';
 import { Stack } from 'expo-router';
-import type { FirebaseAuthTypes } from '@react-native-firebase/auth';
+import type { AuthUser } from '@/src/firebase/auth';
 
 import { SessionProvider } from '@/src/auth/AuthContext';
 import { FirestoreUserRepo } from '@/src/repositories/FirestoreUserRepo';
@@ -59,7 +59,7 @@ function configureRevenueCat(): void {
  * Falls back to 'anonymous' when no provider data is available.
  */
 function deriveAuthProvider(
-  user: FirebaseAuthTypes.User
+  user: AuthUser
 ): UserProfile['authProvider'] {
   if (user.isAnonymous) return 'anonymous';
   const providerId = user.providerData?.[0]?.providerId ?? '';
@@ -72,7 +72,7 @@ function deriveAuthProvider(
 /**
  * Build a UserProfile from a Firebase User.
  */
-function buildUserProfile(user: FirebaseAuthTypes.User): UserProfile {
+function buildUserProfile(user: AuthUser): UserProfile {
   return {
     uid: user.uid,
     email: user.email ?? null,
@@ -97,7 +97,7 @@ export default function RootLayout(): React.JSX.Element {
    * Errors are non-fatal: a failed write should not crash the app.
    */
   const handleUserSignIn = useCallback(
-    async (user: FirebaseAuthTypes.User): Promise<void> => {
+    async (user: AuthUser): Promise<void> => {
       try {
         const profile = buildUserProfile(user);
         if (user.isAnonymous) {

@@ -83,6 +83,24 @@ export function getCurrentUser(): AuthUser | null {
   return auth().currentUser;
 }
 
+/**
+ * Send email verification to the given user.
+ */
+export async function sendEmailVerification(user: AuthUser): Promise<void> {
+  await user.sendEmailVerification();
+}
+
+/**
+ * Link an anonymous user with a credential to convert to a permanent account.
+ */
+export async function linkWithCredential(
+  user: AuthUser,
+  credential: AuthCredential
+): Promise<AuthUser> {
+  const result = await user.linkWithCredential(credential);
+  return result.user;
+}
+
 // Re-export auth providers for credential creation
 export const AppleAuthProvider = auth.AppleAuthProvider;
 export const GoogleAuthProvider = auth.GoogleAuthProvider;

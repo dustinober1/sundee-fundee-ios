@@ -5,7 +5,12 @@
  * Unverified users are signed out immediately after signIn per locked decision.
  */
 import { useState, useCallback } from 'react';
-import auth from '@react-native-firebase/auth';
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  sendEmailVerification,
+} from '../firebase/auth';
 import { getAuthErrorMessage } from './authErrors';
 
 export interface EmailAuthState {
@@ -24,8 +29,8 @@ export function useEmailAuth(): EmailAuthState {
       setIsLoading(true);
       setError(null);
       try {
-        const result = await auth().createUserWithEmailAndPassword(email, password);
-        await result.user.sendEmailVerification();
+        const user = await createUserWithEmailAndPassword(email, password);
+        await sendEmailVerification(user);
         return { needsVerification: true };
       } catch (err) {
         setError(getAuthErrorMessage(err));
@@ -42,16 +47,16 @@ export function useEmailAuth(): EmailAuthState {
       setIsLoading(true);
       setError(null);
       try {
-        const result = await auth().signInWithEmailAndPassword(email, password);
-        if (!result.user.emailVerified) {
+        const user = await signInWithEmailAndPassword(email, password);
+        if (!user.emailVerified) {
           // Sign out unverified users immediately — per locked decision
-          await auth().signOut();
+          await signOut();
           const message = 'Please verify your email before signing in.';
           setError(message);
           // Throw to signal failure without double-setting error in catch
           throw Object.assign(new Error(message), { _verificationError: true });
         }
-        return result.user;
+        return user;
       } catch (err) {
         // If error was already set by verification gate, don't overwrite it
         if (err instanceof Error && (err as Error & { _verificationError?: boolean })._verificationError) {

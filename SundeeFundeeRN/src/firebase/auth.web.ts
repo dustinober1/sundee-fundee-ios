@@ -16,6 +16,8 @@ import {
   signInAnonymously as fbSignInAnonymously,
   signOut as fbSignOut,
   onAuthStateChanged as fbOnAuthStateChanged,
+  sendEmailVerification as fbSendEmailVerification,
+  linkWithCredential as fbLinkWithCredential,
   OAuthProvider,
   GoogleAuthProvider as FbGoogleAuthProvider,
   User,
@@ -111,6 +113,24 @@ export async function signOut(): Promise<void> {
  */
 export function getCurrentUser(): AuthUser | null {
   return getAuthInstance().currentUser;
+}
+
+/**
+ * Send email verification to the given user.
+ */
+export async function sendEmailVerification(user: AuthUser): Promise<void> {
+  await fbSendEmailVerification(user);
+}
+
+/**
+ * Link an anonymous user with a credential to convert to a permanent account.
+ */
+export async function linkWithCredential(
+  user: AuthUser,
+  credential: AuthCredential
+): Promise<AuthUser> {
+  const result = await fbLinkWithCredential(user, credential);
+  return result.user;
 }
 
 // Auth providers for credential creation (web equivalents)

@@ -5,7 +5,10 @@
  * extracts idToken, creates a Firebase Google credential, and signs in.
  */
 import { useState, useCallback } from 'react';
-import auth, { GoogleAuthProvider } from '@react-native-firebase/auth';
+import {
+  signInWithCredential,
+  GoogleAuthProvider,
+} from '../firebase/auth';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { getAuthErrorMessage } from './authErrors';
 
@@ -43,9 +46,9 @@ export function useGoogleSignIn(): GoogleSignInState {
 
       // Create Firebase credential and sign in
       const credential = GoogleAuthProvider.credential(idToken);
-      const result = await auth().signInWithCredential(credential);
+      const user = await signInWithCredential(credential);
 
-      return result.user;
+      return user;
     } catch (err) {
       const message = getAuthErrorMessage(err);
       setError(message);
