@@ -1,0 +1,50 @@
+{
+  "description": "Parity test cases for weight calculation functions",
+  "roundToNearestFive": [
+    { "input": 0, "expected": 0 },
+    { "input": 1, "expected": 0 },
+    { "input": 2, "expected": 0 },
+    { "input": 2.5, "expected": 5 },
+    { "input": 3, "expected": 5 },
+    { "input": 5, "expected": 5 },
+    { "input": 7, "expected": 5 },
+    { "input": 7.5, "expected": 10 },
+    { "input": 10, "expected": 10 },
+    { "input": 22, "expected": 20 },
+    { "input": 22.5, "expected": 25 },
+    { "input": 23, "expected": 25 },
+    { "input": 100, "expected": 100 },
+    { "input": 122, "expected": 120 },
+    { "input": 123, "expected": 125 },
+    { "input": 125, "expected": 125 },
+    { "input": 127, "expected": 125 },
+    { "input": 127.5, "expected": 130 }
+  ],
+  "snapBarbellWeightLb": [
+    { "lb": 45, "barLb": 45, "expected": 45 },
+    { "lb": 50, "barLb": 45, "expected": 50 },
+    { "lb": 135, "barLb": 45, "expected": 135 },
+    { "lb": 136, "barLb": 45, "expected": 135 },
+    { "lb": 138, "barLb": 45, "expected": 140 },
+    { "lb": 140, "barLb": 45, "expected": 140 },
+    { "lb": 225, "barLb": 45, "expected": 225 },
+    { "lb": 228, "barLb": 45, "expected": 230 },
+    { "lb": 150, "barLb": 45, "expected": 150 },
+    { "lb": 30, "barLb": 45, "expected": 45 },
+    { "lb": 100, "barLb": 35, "expected": 100 },
+    { "lb": 103, "barLb": 35, "expected": 105 }
+  ],
+  "isPersonalRecord": [
+    { "weight": 120, "previousMax": 100, "expected": true },
+    { "weight": 80, "previousMax": 100, "expected": false },
+    { "weight": 100, "previousMax": 100, "expected": false },
+    { "weight": 100.1, "previousMax": 100, "expected": true }
+  ],
+  "plateCalculation225lb": {
+    "totalWeightLb": 225,
+    "barLb": 45,
+    "expectedPlatesPerSide": [
+      { "weight": 45, "count": 2 }
+    ]
+  }
+}
