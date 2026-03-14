@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/9</span>
+                <span class='fraction'>9/9</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/2</span>
+                <span class='fraction'>2/2</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/3</span>
+                <span class='fraction'>3/3</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/9</span>
+                <span class='fraction'>9/9</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -123,8 +123,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -135,20 +135,20 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">/**
@@ -166,9 +166,9 @@ export class FirestoreUserRepo implements UserRepository {
    * Creates or updates a user document at /users/{uid}.
    * Uses { merge: true } to avoid overwriting fields set by other clients.
    */
-<span class="fstat-no" title="function not covered" >  as</span>ync createOrUpdateUser(profile: UserProfile): Promise&lt;void&gt; {
-    const db = <span class="cstat-no" title="statement not covered" >getFirestoreInstance();</span>
-<span class="cstat-no" title="statement not covered" >    await db</span>
+  async createOrUpdateUser(profile: UserProfile): Promise&lt;void&gt; {
+    const db = getFirestoreInstance();
+    await db
       .collection('users')
       .doc(profile.uid)
       .set(profile, { merge: true });
@@ -178,21 +178,21 @@ export class FirestoreUserRepo implements UserRepository {
    * Retrieves a user profile from /users/{uid}.
    * Returns null if the document does not exist.
    */
-<span class="fstat-no" title="function not covered" >  as</span>ync getUser(uid: string): Promise&lt;UserProfile | null&gt; {
-    const db = <span class="cstat-no" title="statement not covered" >getFirestoreInstance();</span>
-    const doc = <span class="cstat-no" title="statement not covered" >await db.collection('users').doc(uid).get();</span>
-<span class="cstat-no" title="statement not covered" >    if (!doc.exists) {</span>
-<span class="cstat-no" title="statement not covered" >      return null;</span>
+  async getUser(uid: string): Promise&lt;UserProfile | null&gt; {
+    const db = getFirestoreInstance();
+    const doc = await db.collection('users').doc(uid).get();
+    if (!doc.exists) {
+      return null;
     }
-<span class="cstat-no" title="statement not covered" >    return doc.data() as UserProfile;</span>
+    return doc.data() as UserProfile;
   }
 &nbsp;
   /**
    * Deletes a user document from /users/{uid}.
    */
-<span class="fstat-no" title="function not covered" >  as</span>ync deleteUser(uid: string): Promise&lt;void&gt; {
-    const db = <span class="cstat-no" title="statement not covered" >getFirestoreInstance();</span>
-<span class="cstat-no" title="statement not covered" >    await db.collection('users').doc(uid).delete();</span>
+  async deleteUser(uid: string): Promise&lt;void&gt; {
+    const db = getFirestoreInstance();
+    await db.collection('users').doc(uid).delete();
   }
 }
 &nbsp;</pre></td></tr></table></pre>
@@ -202,7 +202,7 @@ export class FirestoreUserRepo implements UserRepository {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-14T20:57:39.534Z
+                at 2026-03-14T22:53:52.367Z
             </div>
         <script src="../prettify.js"></script>
         <script>
