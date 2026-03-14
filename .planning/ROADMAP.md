@@ -32,7 +32,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. User can sign out from the settings screen on any platform
   4. Authenticated user data syncs to Firestore and is visible on a second device after sign-in
   5. EAS development build runs on iOS Simulator, Android Emulator, and web — React Native Firebase SDK is used (not JS SDK); Expo Go is not used at any point
-**Plans**: TBD
+**Plans:** 3 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Scaffold Expo project with Firebase, EAS, Firestore rules, RevenueCat, and test infrastructure
+- [ ] 01-02-PLAN.md — Build auth layer: SessionProvider, auth hooks (Apple, Google, Email, Guest), and tests
+- [ ] 01-03-PLAN.md — Build auth UI, protected routes, tab shell, settings with sign-out, and cross-platform verification
 
 ### Phase 2: Domain Layer Port
 **Goal**: All iOS business logic exists as tested TypeScript with verified numeric/date parity against the Swift originals
@@ -113,7 +118,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation and Infrastructure | 0/TBD | Not started | - |
+| 1. Foundation and Infrastructure | 0/3 | Planning complete | - |
 | 2. Domain Layer Port | 0/TBD | Not started | - |
 | 3. Data Layer and Offline Architecture | 0/TBD | Not started | - |
 | 4. Core Workout Loop | 0/TBD | Not started | - |
