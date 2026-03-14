@@ -14,7 +14,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **AUTH-03**: User can sign in with Google (Android + Web)
 - [x] **AUTH-04**: User can continue as guest without creating an account
 - [x] **AUTH-05**: User session persists across app restart
-- [ ] **AUTH-06**: User can sign out from any screen
+- [x] **AUTH-06**: User can sign out from any screen
 - [x] **AUTH-07**: User data syncs across devices when authenticated
 
 ### Onboarding
@@ -167,7 +167,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AUTH-03 | Phase 1 | Complete |
 | AUTH-04 | Phase 1 | Complete |
 | AUTH-05 | Phase 1 | Complete |
-| AUTH-06 | Phase 1 | Pending |
+| AUTH-06 | Phase 1 | Complete |
 | AUTH-07 | Phase 1 | Complete |
 | PLAT-01 | Phase 1 | Complete |
 | PLAT-02 | Phase 1 | Complete |
