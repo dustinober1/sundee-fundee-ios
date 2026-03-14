@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: "Completed 02-01: calculations subdomain port"
-last_updated: "2026-03-14T20:47:20.118Z"
+stopped_at: "Completed 02-02: cycle subdomain port"
+last_updated: "2026-03-14T20:58:45.088Z"
 last_activity: "2026-03-14 — Completed Plan 01-03: Auth UI, protected routes, tab shell, settings sign-out, cross-platform verification"
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 7
-  completed_plans: 4
+  completed_plans: 5
   percent: 14
 ---
 
@@ -54,6 +54,7 @@ Progress: [██░░░░░░░░] 14%
 | Phase 01-foundation-and-infrastructure P01-02 | 7 | 3 tasks | 19 files |
 | Phase 01-foundation-and-infrastructure P01-03 | 60 | 3 tasks | 18 files |
 | Phase 02-domain-layer-port P01 | 6 | 2 tasks | 12 files |
+| Phase 02-domain-layer-port P02 | 9 | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -83,6 +84,9 @@ Recent decisions affecting current work:
 - [Phase 02-domain-layer-port]: Equidistant snap ties break toward first match (matching Swift min(by:) strict-less-than semantics)
 - [Phase 02-domain-layer-port]: String unions used for all domain types instead of TypeScript enums — better serialization and narrowing
 - [Phase 02-domain-layer-port]: Locale-dependent formatting omitted from weight-unit-conversion.ts — belongs in UI layer
+- [Phase 02-domain-layer-port]: blendMultiplier formula clamp(1 + (target-1)*rs*cs, 0.75, 1.25) matches Swift CycleAdaptationPolicy exactly
+- [Phase 02-domain-layer-port]: RN ProgramExercise.weight (ExerciseValue) replaces Swift percent1RM (Double) — adaptation scales absolute weights, not percentages
+- [Phase 02-domain-layer-port]: adaptProgram always adapts regardless of adaptationEnabled flag — caller decides whether to invoke
 
 ### Pending Todos
 
@@ -98,6 +102,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-14T20:47:20.116Z
-Stopped at: Completed 02-01: calculations subdomain port
+Last session: 2026-03-14T20:58:38.927Z
+Stopped at: Completed 02-02: cycle subdomain port
 Resume file: None

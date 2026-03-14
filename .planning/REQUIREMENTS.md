@@ -74,9 +74,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Cycle Adaptation
 
-- [ ] **CYAD-01**: Workout load automatically adjusts based on current cycle phase
-- [ ] **CYAD-02**: Set and rep targets scale with phase-specific multipliers
-- [ ] **CYAD-03**: Adaptation integrates with readiness score for fine-tuning
+- [x] **CYAD-01**: Workout load automatically adjusts based on current cycle phase
+- [x] **CYAD-02**: Set and rep targets scale with phase-specific multipliers
+- [x] **CYAD-03**: Adaptation integrates with readiness score for fine-tuning
 
 ### Readiness
 
@@ -172,9 +172,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PLAT-01 | Phase 1 | Complete |
 | PLAT-02 | Phase 1 | Complete |
 | PLAT-03 | Phase 1 | Complete |
-| CYAD-01 | Phase 2 | Pending |
-| CYAD-02 | Phase 2 | Pending |
-| CYAD-03 | Phase 2 | Pending |
+| CYAD-01 | Phase 2 | Complete |
+| CYAD-02 | Phase 2 | Complete |
+| CYAD-03 | Phase 2 | Complete |
 | INJR-02 | Phase 2 | Pending |
 | INJR-04 | Phase 2 | Pending |
 | INJR-05 | Phase 2 | Pending |
