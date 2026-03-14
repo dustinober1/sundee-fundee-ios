@@ -30,7 +30,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **WORK-03**: Rest timer survives screen lock and app backgrounding
 - [ ] **WORK-04**: User can search and filter exercise library (200+ exercises)
 - [ ] **WORK-05**: User can create custom exercises
-- [ ] **WORK-06**: App auto-detects personal records on set completion
+- [x] **WORK-06**: App auto-detects personal records on set completion
 - [ ] **WORK-07**: User can view workout history in chronological order
 - [ ] **WORK-08**: User can filter history by source (AI/Program/Custom)
 - [ ] **WORK-09**: User can delete workouts from history
@@ -104,7 +104,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [ ] **MAX-01**: User can track one-rep max for any lift
 - [ ] **MAX-02**: User can view 1RM history over time
-- [ ] **MAX-03**: App estimates 1RM from logged sets using standard formulas
+- [x] **MAX-03**: App estimates 1RM from logged sets using standard formulas
 
 ### Subscriptions
 
@@ -179,8 +179,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | INJR-04 | Phase 2 | Pending |
 | INJR-05 | Phase 2 | Pending |
 | INJR-06 | Phase 2 | Pending |
-| WORK-06 | Phase 2 | Pending |
-| MAX-03 | Phase 2 | Pending |
+| WORK-06 | Phase 2 | Complete |
+| MAX-03 | Phase 2 | Complete |
 | ONBD-01 | Phase 3 | Pending |
 | ONBD-02 | Phase 3 | Pending |
 | ONBD-03 | Phase 3 | Pending |

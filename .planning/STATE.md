@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Phase 2 context gathered
-last_updated: "2026-03-14T20:17:53.334Z"
+stopped_at: "Completed 02-01: calculations subdomain port"
+last_updated: "2026-03-14T20:47:20.118Z"
 last_activity: "2026-03-14 — Completed Plan 01-03: Auth UI, protected routes, tab shell, settings sign-out, cross-platform verification"
 progress:
   total_phases: 7
   completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
+  total_plans: 7
+  completed_plans: 4
   percent: 14
 ---
 
@@ -53,6 +53,7 @@ Progress: [██░░░░░░░░] 14%
 | Phase 01-foundation-and-infrastructure P01-01 | 10 | 3 tasks | 25 files |
 | Phase 01-foundation-and-infrastructure P01-02 | 7 | 3 tasks | 19 files |
 | Phase 01-foundation-and-infrastructure P01-03 | 60 | 3 tasks | 18 files |
+| Phase 02-domain-layer-port P01 | 6 | 2 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -79,6 +80,9 @@ Recent decisions affecting current work:
 - [01-03]: sign-in.tsx needs explicit useEffect redirect — onAuthStateChanged context updates do not auto-trigger Expo Router navigation
 - [01-03]: Alert.alert is a no-op on web — use window.confirm fallback for all confirmation dialogs in web-compatible screens
 - [01-03]: All auth hooks must import from src/firebase/auth.ts platform wrapper — direct @react-native-firebase/auth imports cause web bundle failure
+- [Phase 02-domain-layer-port]: Equidistant snap ties break toward first match (matching Swift min(by:) strict-less-than semantics)
+- [Phase 02-domain-layer-port]: String unions used for all domain types instead of TypeScript enums — better serialization and narrowing
+- [Phase 02-domain-layer-port]: Locale-dependent formatting omitted from weight-unit-conversion.ts — belongs in UI layer
 
 ### Pending Todos
 
@@ -94,6 +98,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-14T20:17:53.331Z
-Stopped at: Phase 2 context gathered
-Resume file: .planning/phases/02-domain-layer-port/02-CONTEXT.md
+Last session: 2026-03-14T20:47:20.116Z
+Stopped at: Completed 02-01: calculations subdomain port
+Resume file: None

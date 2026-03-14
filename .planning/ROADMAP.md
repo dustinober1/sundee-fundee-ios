@@ -49,7 +49,7 @@ Plans:
   3. Benchmark scoring (ForTime, AMRAP roundsAndReps, MaxLoad) produces identical numeric results to Swift implementation with no floating-point drift
   4. 1RM estimation formulas (Epley, Brzycki, etc.) match Swift outputs to at least 4 decimal places on 50+ test cases
   5. All ported domain files have 100% line coverage in Jest; CI enforces coverage threshold
-**Plans:** 4 plans
+**Plans:** 1/4 plans executed
 
 Plans:
 - [ ] 02-01-PLAN.md — Install date-fns, define shared domain types, port calculations subdomain with parity fixtures
@@ -125,7 +125,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation and Infrastructure | 3/3 | Complete   | 2026-03-14 |
-| 2. Domain Layer Port | 0/4 | Not started | - |
+| 2. Domain Layer Port | 1/4 | In Progress|  |
 | 3. Data Layer and Offline Architecture | 0/TBD | Not started | - |
 | 4. Core Workout Loop | 0/TBD | Not started | - |
 | 5. Differentiating Features | 0/TBD | Not started | - |
