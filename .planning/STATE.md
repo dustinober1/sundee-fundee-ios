@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: "Completed 02-03: injury domain port"
-last_updated: "2026-03-14T20:59:40.143Z"
+stopped_at: "Completed 02-04: remaining domain modules port and top-level barrel"
+last_updated: "2026-03-14T21:04:01.498Z"
 last_activity: "2026-03-14 — Completed Plan 01-03: Auth UI, protected routes, tab shell, settings sign-out, cross-platform verification"
 progress:
   total_phases: 7
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 7
-  completed_plans: 6
+  completed_plans: 7
   percent: 14
 ---
 
@@ -56,6 +56,7 @@ Progress: [██░░░░░░░░] 14%
 | Phase 02-domain-layer-port P01 | 6 | 2 tasks | 12 files |
 | Phase 02-domain-layer-port P02 | 9 | 2 tasks | 8 files |
 | Phase 02-domain-layer-port P03 | 10 | 2 tasks | 10 files |
+| Phase 02-domain-layer-port P02-04 | 13 | 2 tasks | 19 files |
 
 ## Accumulated Context
 
@@ -90,6 +91,8 @@ Recent decisions affecting current work:
 - [Phase 02-domain-layer-port]: adaptProgram always adapts regardless of adaptationEnabled flag — caller decides whether to invoke
 - [Phase 02-domain-layer-port]: InjuryProfile gains optional location string field for Swift CloudKit parity — adaptation engine uses free-text location matching
 - [Phase 02-domain-layer-port]: Barrel index.ts files marked with istanbul ignore file — pure re-exports produce no executable statements for Istanbul
+- [Phase 02-domain-layer-port]: WorkoutFocus, EnergyLevel, EquipmentAccess, BenchmarkScoringType in types/index.ts updated to match Swift raw enum values
+- [Phase 02-domain-layer-port]: ReadinessSurvey storage functions omitted from domain layer — saveTodayResult/loadTodayResult belong in Phase 3 repository layer
 
 ### Pending Todos
 
@@ -105,6 +108,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-14T20:59:36.020Z
-Stopped at: Completed 02-03: injury domain port
+Last session: 2026-03-14T21:04:01.496Z
+Stopped at: Completed 02-04: remaining domain modules port and top-level barrel
 Resume file: None
