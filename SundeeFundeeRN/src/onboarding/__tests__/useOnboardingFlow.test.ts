@@ -82,6 +82,14 @@ describe('getNextStep', () => {
   it('returns null for unknown step', () => {
     expect(getNextStep('unknown', baseDraft)).toBeNull();
   });
+
+  it('returns null when step is the last item in ONBOARDING_STEPS array', () => {
+    // step-cycle is both caught by the explicit check and by the overflow guard.
+    // This test verifies that requesting from any valid last-position step
+    // returns null via the bounds check (defensive branch coverage).
+    const lastStep = ONBOARDING_STEPS[ONBOARDING_STEPS.length - 1];
+    expect(getNextStep(lastStep, baseDraft)).toBeNull();
+  });
 });
 
 describe('getTotalSteps', () => {

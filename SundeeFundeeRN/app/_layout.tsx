@@ -5,10 +5,11 @@
  * 1. Initialize RevenueCat on mount (iOS and Android only; web deferred to Phase 6)
  * 2. Wrap the app in SessionProvider (real AuthContext from Plan 02)
  * 3. Wire UserRepository: authenticated users → Firestore, guests → AsyncStorage
- * 4. Render the root Stack navigator via expo-router
+ * 4. Check hasCompletedOnboarding and expose it via state for routing decisions
+ * 5. Render the root Stack navigator via expo-router (includes onboarding route group)
  */
-import { useCallback, useEffect } from 'react';
-import { Platform } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
+import { Platform, View } from 'react-native';
 import { Stack } from 'expo-router';
 import type { AuthUser } from '@/src/firebase/auth';
 
@@ -16,6 +17,7 @@ import { SessionProvider } from '@/src/auth/AuthContext';
 import { FirestoreUserRepo } from '@/src/repositories/FirestoreUserRepo';
 import { LocalUserRepo } from '@/src/repositories/LocalUserRepo';
 import type { UserProfile } from '@/src/repositories/UserRepository';
+import { CREAM } from '@/src/theme/colors';
 
 // ─── RevenueCat Configuration ─────────────────────────────────────────────────
 
@@ -87,6 +89,16 @@ function buildUserProfile(user: AuthUser): UserProfile {
 // ─── Root Layout ──────────────────────────────────────────────────────────────
 
 export default function RootLayout(): React.JSX.Element {
+  /**
+   * null  = profile not yet loaded (show splash, prevent routing flicker)
+   * false = user exists but hasCompletedOnboarding is false
+   * true  = onboarding is done, skip to app
+   *
+   * CRITICAL: Never default to false — this would flash the onboarding flow
+   * for returning users while the profile loads.
+   */
+  const [onboardingComplete, setOnboardingComplete] = useState<boolean | null>(null);
+
   useEffect(() => {
     configureRevenueCat();
   }, []);
@@ -95,21 +107,31 @@ export default function RootLayout(): React.JSX.Element {
    * Called by SessionProvider whenever a user signs in (non-null user).
    * Routes to Firestore (authenticated users) or AsyncStorage (guest users).
    * Errors are non-fatal: a failed write should not crash the app.
+   *
+   * Also reads back hasCompletedOnboarding to gate routing.
    */
   const handleUserSignIn = useCallback(
     async (user: AuthUser): Promise<void> => {
       try {
         const profile = buildUserProfile(user);
+        let savedProfile: UserProfile | null;
+
         if (user.isAnonymous) {
           const repo = new LocalUserRepo();
           await repo.createOrUpdateUser(profile);
+          savedProfile = await repo.getUser(user.uid);
         } else {
           const repo = new FirestoreUserRepo();
           await repo.createOrUpdateUser(profile);
+          savedProfile = await repo.getUser(user.uid);
         }
+
+        setOnboardingComplete(savedProfile?.hasCompletedOnboarding === true);
       } catch (error) {
         // Log but do not surface — user is already signed in at this point
+        // Default to false (show onboarding) rather than crashing
         console.warn('[RootLayout] Failed to persist user profile:', error);
+        setOnboardingComplete(false);
       }
     },
     []
@@ -117,11 +139,17 @@ export default function RootLayout(): React.JSX.Element {
 
   return (
     <SessionProvider onUserSignIn={handleUserSignIn}>
-      <Stack>
-        <Stack.Screen name="sign-in" options={{ headerShown: false }} />
-        <Stack.Screen name="verify-email" options={{ headerShown: false }} />
-        <Stack.Screen name="(app)" options={{ headerShown: false }} />
-      </Stack>
+      {/* Show a blank CREAM splash while profile loads to prevent routing flicker */}
+      {onboardingComplete === null ? (
+        <View style={{ flex: 1, backgroundColor: CREAM }} />
+      ) : (
+        <Stack>
+          <Stack.Screen name="sign-in" options={{ headerShown: false }} />
+          <Stack.Screen name="verify-email" options={{ headerShown: false }} />
+          <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
+          <Stack.Screen name="(app)" options={{ headerShown: false }} />
+        </Stack>
+      )}
     </SessionProvider>
   );
 }
