@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 01-01-PLAN.md
-last_updated: "2026-03-14T14:38:32.487Z"
+stopped_at: Completed 01-02-PLAN.md
+last_updated: "2026-03-14T14:48:30.256Z"
 last_activity: "2026-03-14 — Completed Plan 01-01: Expo project scaffolded with Firebase, security rules, EAS, and Jest infrastructure"
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 3
-  completed_plans: 1
+  completed_plans: 2
   percent: 5
 ---
 
@@ -51,6 +51,7 @@ Progress: [█░░░░░░░░░] 5%
 
 *Updated after each plan completion*
 | Phase 01-foundation-and-infrastructure P01-01 | 10 | 3 tasks | 25 files |
+| Phase 01-foundation-and-infrastructure P01-02 | 7 | 3 tasks | 19 files |
 
 ## Accumulated Context
 
@@ -71,6 +72,8 @@ Recent decisions affecting current work:
 - [Phase 01-foundation-and-infrastructure]: Platform-specific file extensions (auth.native.ts/auth.web.ts) used — Metro resolver handles platform selection automatically, prevents @react-native-firebase/auth from bundling on web
 - [Phase 01-foundation-and-infrastructure]: Jest setup.js pre-stubs Expo SDK 55 WinterCG globals to fix import-outside-scope errors during jest-expo setupFiles phase
 - [Phase 01-foundation-and-infrastructure]: react-native-purchases installed with --legacy-peer-deps due to React 19 peer support gap in RevenueCat SDK v9
+- [Phase 01-foundation-and-infrastructure]: SessionProvider accepts onUserSignIn callback not inline repo logic — keeps AuthContext pure, RootLayout handles data concerns
+- [Phase 01-foundation-and-infrastructure]: expo-apple-authentication exports standalone functions (signInAsync) not object — named function imports required
 
 ### Pending Todos
 
@@ -86,6 +89,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-14T14:38:32.485Z
-Stopped at: Completed 01-01-PLAN.md
+Last session: 2026-03-14T14:48:21.277Z
+Stopped at: Completed 01-02-PLAN.md
 Resume file: None

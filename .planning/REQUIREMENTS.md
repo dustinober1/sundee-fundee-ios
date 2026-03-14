@@ -9,13 +9,13 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Authentication
 
-- [ ] **AUTH-01**: User can sign up with email and password
-- [ ] **AUTH-02**: User can sign in with Apple (iOS)
-- [ ] **AUTH-03**: User can sign in with Google (Android + Web)
-- [ ] **AUTH-04**: User can continue as guest without creating an account
-- [ ] **AUTH-05**: User session persists across app restart
+- [x] **AUTH-01**: User can sign up with email and password
+- [x] **AUTH-02**: User can sign in with Apple (iOS)
+- [x] **AUTH-03**: User can sign in with Google (Android + Web)
+- [x] **AUTH-04**: User can continue as guest without creating an account
+- [x] **AUTH-05**: User session persists across app restart
 - [ ] **AUTH-06**: User can sign out from any screen
-- [ ] **AUTH-07**: User data syncs across devices when authenticated
+- [x] **AUTH-07**: User data syncs across devices when authenticated
 
 ### Onboarding
 
@@ -162,13 +162,13 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AUTH-01 | Phase 1 | Pending |
-| AUTH-02 | Phase 1 | Pending |
-| AUTH-03 | Phase 1 | Pending |
-| AUTH-04 | Phase 1 | Pending |
-| AUTH-05 | Phase 1 | Pending |
+| AUTH-01 | Phase 1 | Complete |
+| AUTH-02 | Phase 1 | Complete |
+| AUTH-03 | Phase 1 | Complete |
+| AUTH-04 | Phase 1 | Complete |
+| AUTH-05 | Phase 1 | Complete |
 | AUTH-06 | Phase 1 | Pending |
-| AUTH-07 | Phase 1 | Pending |
+| AUTH-07 | Phase 1 | Complete |
 | PLAT-01 | Phase 1 | Complete |
 | PLAT-02 | Phase 1 | Complete |
 | PLAT-03 | Phase 1 | Complete |
