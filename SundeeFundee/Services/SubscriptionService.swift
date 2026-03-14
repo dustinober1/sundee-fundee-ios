@@ -83,16 +83,26 @@ final class SubscriptionService {
     }
 
     func purchase(_ product: Product) async throws {
+        print("[SubscriptionService] Starting purchase for product: \(product.id)")
         let result = try await product.purchase()
+        print("[SubscriptionService] Purchase result: \(result)")
         switch result {
         case .success(let verification):
+            print("[SubscriptionService] Purchase succeeded, verifying transaction...")
             let transaction = try checkVerified(verification)
+            print("[SubscriptionService] Transaction verified: \(transaction.id)")
             await transaction.finish()
             setTier(SubscriptionTier.from(productID: transaction.productID))
-        case .userCancelled, .pending:
-            break
+            print("[SubscriptionService] Tier set to: \(SubscriptionTier.from(productID: transaction.productID))")
+        case .userCancelled:
+            print("[SubscriptionService] Purchase cancelled by user")
+            throw PurchaseError.userCancelled
+        case .pending:
+            print("[SubscriptionService] Purchase pending")
+            throw PurchaseError.pending
         @unknown default:
-            break
+            print("[SubscriptionService] Unknown purchase result")
+            throw PurchaseError.unknown
         }
     }
 
@@ -145,4 +155,20 @@ final class SubscriptionService {
 
 enum SubscriptionError: Error {
     case unverifiedTransaction
+}
+
+// MARK: - PurchaseError
+
+enum PurchaseError: Error, LocalizedError {
+    case userCancelled
+    case pending
+    case unknown
+    
+    var errorDescription: String? {
+        switch self {
+        case .userCancelled: return "Purchase was cancelled"
+        case .pending: return "Purchase is pending"
+        case .unknown: return "An unknown error occurred"
+        }
+    }
 }

@@ -5,6 +5,7 @@ struct SubscriptionManagementView: View {
     @Environment(SubscriptionService.self) private var subscriptionService
     @State private var products: [Product] = []
     @State private var isLoading = false
+    @State private var isFetchingProducts = true
     @State private var message: String?
 
     var body: some View {
@@ -37,29 +38,38 @@ struct SubscriptionManagementView: View {
                             BulletPoint("Tailored to your goals and maxes")
                             BulletPoint("Cycle-phase aware training")
 
-                            ForEach(upgradeProducts, id: \.id) { product in
-                                Button(action: { purchaseSubscription(product) }) {
-                                    if isLoading {
-                                        ProgressView()
+                            if isFetchingProducts {
+                                ProgressView("Loading plans...")
+                                    .padding()
+                            } else if products.isEmpty {
+                                Text("Unable to load subscription plans. Please check your connection.")
+                                    .font(AppTheme.Fonts.caption)
+                                    .foregroundStyle(AppTheme.Colors.error)
+                            } else {
+                                ForEach(upgradeProducts, id: \.id) { product in
+                                    Button(action: { purchaseSubscription(product) }) {
+                                        if isLoading {
+                                            ProgressView()
+                                                .frame(maxWidth: .infinity)
+                                        } else {
+                                            VStack(spacing: 4) {
+                                                Text(Self.tierName(for: product.id))
+                                                    .font(AppTheme.Fonts.subheading)
+                                                Text("\(product.displayPrice)/month")
+                                                    .font(AppTheme.Fonts.caption)
+                                                Text("2-week free trial")
+                                                    .font(.system(size: 10, weight: .medium))
+                                                    .foregroundStyle(AppTheme.Colors.cream.opacity(0.8))
+                                            }
                                             .frame(maxWidth: .infinity)
-                                    } else {
-                                        VStack(spacing: 4) {
-                                            Text(Self.tierName(for: product.id))
-                                                .font(AppTheme.Fonts.subheading)
-                                            Text("\(product.displayPrice)/month")
-                                                .font(AppTheme.Fonts.caption)
-                                            Text("2-week free trial")
-                                                .font(.system(size: 10, weight: .medium))
-                                                .foregroundStyle(AppTheme.Colors.cream.opacity(0.8))
+                                            .padding(AppTheme.Spacing.md)
+                                            .background(AppTheme.Colors.accentOrange)
+                                            .foregroundStyle(AppTheme.Colors.cream)
+                                            .cornerRadius(AppTheme.Spacing.sm)
                                         }
-                                        .frame(maxWidth: .infinity)
-                                        .padding(AppTheme.Spacing.md)
-                                        .background(AppTheme.Colors.accentOrange)
-                                        .foregroundStyle(AppTheme.Colors.cream)
-                                        .cornerRadius(AppTheme.Spacing.sm)
                                     }
+                                    .disabled(isLoading)
                                 }
-                                .disabled(isLoading)
                             }
                         }
                         .padding(AppTheme.Spacing.sm)
@@ -107,20 +117,32 @@ struct SubscriptionManagementView: View {
 
     private func loadProducts() async {
         do {
+            print("[SubscriptionManagementView] Loading products...")
             products = try await Product.products(for: SubscriptionTier.allProductIDs)
+            print("[SubscriptionManagementView] Loaded \(products.count) products")
+            isFetchingProducts = false
         } catch {
+            print("[SubscriptionManagementView] Failed to load products: \(error)")
             message = "Failed to load products: \(error.localizedDescription)"
+            isFetchingProducts = false
         }
     }
 
     private func purchaseSubscription(_ product: Product) {
+        print("[SubscriptionManagementView] Purchase initiated for: \(product.id)")
         isLoading = true
+        message = nil
         Task {
             do {
                 try await subscriptionService.purchase(product)
+                print("[SubscriptionManagementView] Purchase successful")
                 message = "Thank you for subscribing!"
             } catch {
-                message = "Purchase failed: \(error.localizedDescription)"
+                print("[SubscriptionManagementView] Purchase failed: \(error)")
+                // Don't show error for user cancellation
+                if !error.localizedDescription.contains("cancel") {
+                    message = "Purchase failed: \(error.localizedDescription)"
+                }
             }
             isLoading = false
         }

@@ -7,6 +7,7 @@ struct PaywallView: View {
     let reason: QuestionnaireViewModel.GenerationBlockReason
     @State private var products: [Product] = []
     @State private var isLoading = false
+    @State private var isFetchingProducts = true
     @State private var message: String?
 
     var body: some View {
@@ -91,26 +92,36 @@ struct PaywallView: View {
 
     private var productButtons: some View {
         VStack(spacing: AppTheme.Spacing.sm) {
-            ForEach(products.sorted(by: { $0.price < $1.price }), id: \.id) { product in
-                Button {
-                    purchaseProduct(product)
-                } label: {
-                    VStack(spacing: 4) {
-                        Text(Self.tierName(for: product.id))
-                            .font(AppTheme.Fonts.subheading)
-                        Text("\(product.displayPrice)/month")
-                            .font(AppTheme.Fonts.caption)
-                        Text("2-week free trial")
-                            .font(.system(size: 10, weight: .medium))
-                            .foregroundStyle(.white.opacity(0.8))
+            if isFetchingProducts {
+                ProgressView("Loading products...")
+                    .padding()
+            } else if products.isEmpty {
+                Text("Unable to load subscription products. Please check your connection.")
+                    .font(AppTheme.Fonts.caption)
+                    .foregroundStyle(AppTheme.Colors.error)
+                    .multilineTextAlignment(.center)
+            } else {
+                ForEach(products.sorted(by: { $0.price < $1.price }), id: \.id) { product in
+                    Button {
+                        purchaseProduct(product)
+                    } label: {
+                        VStack(spacing: 4) {
+                            Text(Self.tierName(for: product.id))
+                                .font(AppTheme.Fonts.subheading)
+                            Text("\(product.displayPrice)/month")
+                                .font(AppTheme.Fonts.caption)
+                            Text("2-week free trial")
+                                .font(.system(size: 10, weight: .medium))
+                                .foregroundStyle(.white.opacity(0.8))
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, AppTheme.Spacing.md)
+                        .background(AppTheme.Colors.accentOrange)
+                        .foregroundStyle(.white)
+                        .clipShape(RoundedRectangle(cornerRadius: AppTheme.CornerRadius.button))
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, AppTheme.Spacing.md)
-                    .background(AppTheme.Colors.accentOrange)
-                    .foregroundStyle(.white)
-                    .clipShape(RoundedRectangle(cornerRadius: AppTheme.CornerRadius.button))
+                    .disabled(isLoading)
                 }
-                .disabled(isLoading)
             }
 
             if let message {
@@ -162,20 +173,32 @@ struct PaywallView: View {
 
     private func loadProducts() async {
         do {
+            print("[PaywallView] Loading products...")
             products = try await Product.products(for: SubscriptionTier.allProductIDs)
+            print("[PaywallView] Loaded \(products.count) products: \(products.map { $0.id })")
+            isFetchingProducts = false
         } catch {
-            message = "Failed to load products."
+            print("[PaywallView] Failed to load products: \(error)")
+            message = "Failed to load products: \(error.localizedDescription)"
+            isFetchingProducts = false
         }
     }
 
     private func purchaseProduct(_ product: Product) {
+        print("[PaywallView] Purchase initiated for: \(product.id)")
         isLoading = true
+        message = nil
         Task {
             do {
                 try await subscriptionService.purchase(product)
+                print("[PaywallView] Purchase successful")
                 dismiss()
             } catch {
-                message = "Purchase failed: \(error.localizedDescription)"
+                print("[PaywallView] Purchase failed: \(error)")
+                // Don't show error for user cancellation
+                if !error.localizedDescription.contains("cancel") {
+                    message = "Purchase failed: \(error.localizedDescription)"
+                }
             }
             isLoading = false
         }

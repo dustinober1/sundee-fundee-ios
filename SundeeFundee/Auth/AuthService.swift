@@ -124,6 +124,7 @@ final class AuthService: NSObject, ObservableObject {
         )
     }
 
+    @MainActor
     func resolveAfterCredential(
         userID: String,
         fullName: PersonNameComponents? = nil,
@@ -138,6 +139,7 @@ final class AuthService: NSObject, ObservableObject {
         )
     }
 
+    @MainActor
     func resolveAfterAppleSignIn(
         appleUserID: String,
         fullName: PersonNameComponents? = nil,
@@ -155,6 +157,7 @@ final class AuthService: NSObject, ObservableObject {
 
     /// Attempt to restore the previous session from the keychain.
     /// Returns `.signedOut` if no stored credential or the credential was revoked.
+    @MainActor
     func restoreSession(modelContext: ModelContext) async -> AuthState {
         guard let appleUserID = dependencies.loadAppleUserID() else {
             return .signedOut
@@ -222,6 +225,7 @@ final class AuthService: NSObject, ObservableObject {
     private var pendingDelegate: AnyObject?
 
     /// Look up or create a User record and return the appropriate AuthState.
+    @MainActor
     func resolveAuthState(
         appleUserID: String,
         fullName: PersonNameComponents? = nil,
