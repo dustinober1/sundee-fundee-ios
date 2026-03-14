@@ -162,13 +162,84 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (populated during roadmap creation) | | |
+| AUTH-01 | Phase 1 | Pending |
+| AUTH-02 | Phase 1 | Pending |
+| AUTH-03 | Phase 1 | Pending |
+| AUTH-04 | Phase 1 | Pending |
+| AUTH-05 | Phase 1 | Pending |
+| AUTH-06 | Phase 1 | Pending |
+| AUTH-07 | Phase 1 | Pending |
+| PLAT-01 | Phase 1 | Pending |
+| PLAT-02 | Phase 1 | Pending |
+| PLAT-03 | Phase 1 | Pending |
+| CYAD-01 | Phase 2 | Pending |
+| CYAD-02 | Phase 2 | Pending |
+| CYAD-03 | Phase 2 | Pending |
+| INJR-02 | Phase 2 | Pending |
+| INJR-04 | Phase 2 | Pending |
+| INJR-05 | Phase 2 | Pending |
+| INJR-06 | Phase 2 | Pending |
+| WORK-06 | Phase 2 | Pending |
+| MAX-03 | Phase 2 | Pending |
+| ONBD-01 | Phase 3 | Pending |
+| ONBD-02 | Phase 3 | Pending |
+| ONBD-03 | Phase 3 | Pending |
+| WORK-11 | Phase 3 | Pending |
+| WORK-01 | Phase 4 | Pending |
+| WORK-02 | Phase 4 | Pending |
+| WORK-03 | Phase 4 | Pending |
+| WORK-04 | Phase 4 | Pending |
+| WORK-05 | Phase 4 | Pending |
+| WORK-07 | Phase 4 | Pending |
+| WORK-08 | Phase 4 | Pending |
+| WORK-09 | Phase 4 | Pending |
+| WORK-10 | Phase 4 | Pending |
+| WORK-12 | Phase 4 | Pending |
+| EXEC-01 | Phase 4 | Pending |
+| EXEC-02 | Phase 4 | Pending |
+| EXEC-03 | Phase 4 | Pending |
+| EXEC-04 | Phase 4 | Pending |
+| MAX-01 | Phase 4 | Pending |
+| MAX-02 | Phase 4 | Pending |
+| CYCL-01 | Phase 5 | Pending |
+| CYCL-02 | Phase 5 | Pending |
+| CYCL-03 | Phase 5 | Pending |
+| CYCL-04 | Phase 5 | Pending |
+| CYCL-05 | Phase 5 | Pending |
+| READ-01 | Phase 5 | Pending |
+| READ-02 | Phase 5 | Pending |
+| INJR-01 | Phase 5 | Pending |
+| INJR-03 | Phase 5 | Pending |
+| AIWK-01 | Phase 5 | Pending |
+| AIWK-02 | Phase 5 | Pending |
+| AIWK-03 | Phase 5 | Pending |
+| AIWK-04 | Phase 5 | Pending |
+| AIWK-05 | Phase 5 | Pending |
+| PROG-01 | Phase 5 | Pending |
+| PROG-02 | Phase 5 | Pending |
+| PROG-03 | Phase 5 | Pending |
+| PROG-04 | Phase 5 | Pending |
+| BNCH-01 | Phase 5 | Pending |
+| BNCH-02 | Phase 5 | Pending |
+| BNCH-03 | Phase 5 | Pending |
+| BNCH-04 | Phase 5 | Pending |
+| WODS-01 | Phase 5 | Pending |
+| WODS-02 | Phase 5 | Pending |
+| SUBS-01 | Phase 6 | Pending |
+| SUBS-02 | Phase 6 | Pending |
+| SUBS-03 | Phase 6 | Pending |
+| SUBS-04 | Phase 6 | Pending |
+| SUBS-05 | Phase 6 | Pending |
+| PLAT-04 | Phase 7 | Pending |
+| PLAT-05 | Phase 7 | Pending |
+| PLAT-06 | Phase 7 | Pending |
+| PLAT-07 | Phase 7 | Pending |
 
 **Coverage:**
-- v1 requirements: 56 total
-- Mapped to phases: 0
-- Unmapped: 56
+- v1 requirements: 72 total (note: requirements file previously stated 56 — actual count from requirements list is 72)
+- Mapped to phases: 72
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-14*
-*Last updated: 2026-03-14 after initial definition*
+*Last updated: 2026-03-14 after roadmap creation — traceability populated*
