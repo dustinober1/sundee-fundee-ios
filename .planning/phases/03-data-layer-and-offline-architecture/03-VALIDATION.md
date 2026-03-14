@@ -46,7 +46,7 @@ created: 2026-03-14
 | 03-01-06 | 01 | 1 | AUTH-07 | unit | `npx jest --testPathPattern="repoFactory"` | ❌ W0 | ⬜ pending |
 | 03-02-01 | 02 | 2 | ONBD-03 | unit | `npx jest --testPathPattern="onboarding"` | ❌ W0 | ⬜ pending |
 | 03-02-02 | 02 | 2 | ONBD-01 | type | `npx tsc --noEmit` | ❌ W0 | ⬜ pending |
-| 03-03-01 | 03 | 2 | AUTH-07 | unit | `npx jest --testPathPattern="migration"` | ❌ W0 | ⬜ pending |
+| 03-01-07 | 01 | 1 | AUTH-07 | unit | `npx jest --testPathPattern="migration"` | ❌ W0 | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
