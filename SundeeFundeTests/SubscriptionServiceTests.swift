@@ -19,14 +19,14 @@ struct SubscriptionTierTests {
     }
 
     @Test func productIDs() {
-        #expect(SubscriptionTier.plus.productID == "com.sundeefundee.app.plus.monthly")
-        #expect(SubscriptionTier.pro.productID == "com.sundeefundee.app.pro.monthly")
+        #expect(SubscriptionTier.plus.productID == "com.sundeefundee.plusmonthly")
+        #expect(SubscriptionTier.pro.productID == "com.sundeefundee.pro.monthly")
         #expect(SubscriptionTier.free.productID == nil)
     }
 
     @Test func tierFromProductID() {
-        #expect(SubscriptionTier.from(productID: "com.sundeefundee.app.plus.monthly") == .plus)
-        #expect(SubscriptionTier.from(productID: "com.sundeefundee.app.pro.monthly") == .pro)
+        #expect(SubscriptionTier.from(productID: "com.sundeefundee.plusmonthly") == .plus)
+        #expect(SubscriptionTier.from(productID: "com.sundeefundee.pro.monthly") == .pro)
         #expect(SubscriptionTier.from(productID: "com.sundeefundee.unknown") == .free)
     }
 
@@ -46,8 +46,8 @@ struct SubscriptionTierTests {
 
     @Test func allProductIDs() {
         #expect(SubscriptionTier.allProductIDs.count == 2)
-        #expect(SubscriptionTier.allProductIDs.contains("com.sundeefundee.app.plus.monthly"))
-        #expect(SubscriptionTier.allProductIDs.contains("com.sundeefundee.app.pro.monthly"))
+        #expect(SubscriptionTier.allProductIDs.contains("com.sundeefundee.plusmonthly"))
+        #expect(SubscriptionTier.allProductIDs.contains("com.sundeefundee.pro.monthly"))
     }
 }
 
@@ -116,8 +116,8 @@ struct PaywallViewStaticTests {
     }
 
     @Test func tierNameFromProductID() {
-        #expect(PaywallView.tierName(for: "com.sundeefundee.app.plus.monthly") == "Plus")
-        #expect(PaywallView.tierName(for: "com.sundeefundee.app.pro.monthly") == "Pro")
+        #expect(PaywallView.tierName(for: "com.sundeefundee.plusmonthly") == "Plus")
+        #expect(PaywallView.tierName(for: "com.sundeefundee.pro.monthly") == "Pro")
     }
 }
 
@@ -196,8 +196,8 @@ struct SubscriptionManagementViewStaticTests {
     }
 
     @Test func tierNameFromProductID() {
-        #expect(SubscriptionManagementView.tierName(for: "com.sundeefundee.app.plus.monthly") == "Plus")
-        #expect(SubscriptionManagementView.tierName(for: "com.sundeefundee.app.pro.monthly") == "Pro")
+        #expect(SubscriptionManagementView.tierName(for: "com.sundeefundee.plusmonthly") == "Plus")
+        #expect(SubscriptionManagementView.tierName(for: "com.sundeefundee.pro.monthly") == "Pro")
     }
 }
 

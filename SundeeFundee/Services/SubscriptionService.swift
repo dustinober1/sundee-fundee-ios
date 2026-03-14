@@ -27,20 +27,20 @@ enum SubscriptionTier: String, Sendable, Comparable {
     var productID: String? {
         switch self {
         case .free: nil
-        case .plus: "com.sundeefundee.app.plus.monthly"
-        case .pro: "com.sundeefundee.app.pro.monthly"
+        case .plus: "com.sundeefundee.plusmonthly"
+        case .pro: "com.sundeefundee.pro.monthly"
         }
     }
 
     static let allProductIDs: Set<String> = [
-        "com.sundeefundee.app.plus.monthly",
-        "com.sundeefundee.app.pro.monthly"
+        "com.sundeefundee.plusmonthly",
+        "com.sundeefundee.pro.monthly"
     ]
 
     static func from(productID: String) -> SubscriptionTier {
         switch productID {
-        case "com.sundeefundee.app.plus.monthly": .plus
-        case "com.sundeefundee.app.pro.monthly": .pro
+        case "com.sundeefundee.plusmonthly": .plus
+        case "com.sundeefundee.pro.monthly": .pro
         default: .free
         }
     }
