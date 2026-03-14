@@ -32,18 +32,10 @@ const testRecord: WorkoutRecord = {
 
 describe('FirestoreWorkoutRepo', () => {
   let repo: FirestoreWorkoutRepo;
-  let mockUserDoc: ReturnType<typeof mockFirestoreInstance.collection>['doc'];
-  let mockWorkoutsCollection: ReturnType<typeof mockFirestoreInstance.collection>;
-  let mockWorkoutDoc: ReturnType<typeof mockFirestoreInstance.collection>['doc'];
 
   beforeEach(() => {
     jest.clearAllMocks();
     repo = new FirestoreWorkoutRepo();
-
-    // The mock chains: collection('users').doc(uid).collection('workouts').doc(id)
-    mockWorkoutDoc = mockFirestoreInstance.collection('users').doc('test-uid');
-    mockUserDoc = mockFirestoreInstance.collection('users').doc('test-uid');
-    mockWorkoutsCollection = mockFirestoreInstance.collection('users');
   });
 
   it('saveWorkout calls firestore with subcollection path /users/{uid}/workouts/{id}', async () => {
@@ -53,22 +45,25 @@ describe('FirestoreWorkoutRepo', () => {
   });
 
   it('getWorkout returns workout record when document exists', async () => {
+    // The mock chains all return the same mockDocumentRef via the subcollection mock wiring
+    const mockDocRef = mockFirestoreInstance.collection('users').doc('test-uid');
     const mockDocSnapshot = {
       exists: true,
       data: jest.fn().mockReturnValue(testRecord),
     };
-    (mockWorkoutDoc.get as jest.Mock).mockResolvedValue(mockDocSnapshot);
+    (mockDocRef.get as jest.Mock).mockResolvedValue(mockDocSnapshot);
 
     const result = await repo.getWorkout('test-uid', 'workout-1');
     expect(result).toEqual(testRecord);
   });
 
   it('getWorkout returns null when document does not exist', async () => {
+    const mockDocRef = mockFirestoreInstance.collection('users').doc('test-uid');
     const mockDocSnapshot = {
       exists: false,
       data: jest.fn().mockReturnValue(undefined),
     };
-    (mockWorkoutDoc.get as jest.Mock).mockResolvedValue(mockDocSnapshot);
+    (mockDocRef.get as jest.Mock).mockResolvedValue(mockDocSnapshot);
 
     const result = await repo.getWorkout('test-uid', 'nonexistent');
     expect(result).toBeNull();
