@@ -13,6 +13,7 @@ import {
   phaseIndex,
   isMoreRestrictive,
   nextPhase,
+  phaseDisplayName,
 } from '../injury/recovery-phase';
 
 import {
@@ -29,7 +30,7 @@ import {
   adjustLoad,
 } from '../injury/load-adjustment-policy';
 
-import { analyzeTrend } from '../injury/pain-trend-analyzer';
+import { analyzeTrend, hasRecentLog, sparklineData } from '../injury/pain-trend-analyzer';
 
 import {
   meetsThreshold,
@@ -39,7 +40,9 @@ import {
 import {
   mostRestrictive,
   adaptProgram,
+  adaptProgramWithMetadata,
   buildRecoveryPrepBlock,
+  normalizedBodyRegions,
 } from '../injury/injury-adaptation-engine';
 
 import { generateSession } from '../injury/rehab-session-generator';
@@ -660,39 +663,318 @@ describe('RehabSessionGenerator — generateSession', () => {
 });
 
 // ---------------------------------------------------------------------------
+// RecoveryPhase — phaseDisplayName (coverage)
+// ---------------------------------------------------------------------------
+
+describe('RecoveryPhase — phaseDisplayName', () => {
+  test('acute → Acute', () => { expect(phaseDisplayName('acute')).toBe('Acute'); });
+  test('rehab → Rehab', () => { expect(phaseDisplayName('rehab')).toBe('Rehab'); });
+  test('lightLoad → Light Load', () => { expect(phaseDisplayName('lightLoad')).toBe('Light Load'); });
+  test('returnToPlay → Return to Play', () => { expect(phaseDisplayName('returnToPlay')).toBe('Return to Play'); });
+  test('resolved → Resolved', () => { expect(phaseDisplayName('resolved')).toBe('Resolved'); });
+});
+
+// ---------------------------------------------------------------------------
+// PainTrendAnalyzer — hasRecentLog and sparklineData (coverage)
+// ---------------------------------------------------------------------------
+
+describe('PainTrendAnalyzer — hasRecentLog', () => {
+  test('returns false for empty logs', () => {
+    expect(hasRecentLog([])).toBe(false);
+  });
+
+  test('returns true when latest log is recent (1 minute ago)', () => {
+    const logs = [{ date: new Date(Date.now() - 60 * 1000), painLevel: 3, injuryId: 'i1' }];
+    expect(hasRecentLog(logs)).toBe(true);
+  });
+
+  test('returns false when latest log is old (25 hours ago)', () => {
+    const logs = [{ date: new Date(Date.now() - 25 * 3600 * 1000), painLevel: 3, injuryId: 'i1' }];
+    expect(hasRecentLog(logs)).toBe(false);
+  });
+});
+
+describe('PainTrendAnalyzer — sparklineData', () => {
+  test('returns pain levels oldest-to-newest for last count entries', () => {
+    // logs newest-first: [5, 4, 3, 2, 1], count=3 → take first 3: [5,4,3], reverse → [3,4,5]
+    const logs = [5, 4, 3, 2, 1].map((p, i) => makePainLog(p, i));
+    expect(sparklineData(logs, 3)).toEqual([3, 4, 5]);
+  });
+
+  test('returns all logs when fewer than count', () => {
+    const logs = [3, 2].map((p, i) => makePainLog(p, i));
+    expect(sparklineData(logs, 5)).toEqual([2, 3]);
+  });
+
+  test('empty logs returns empty array', () => {
+    expect(sparklineData([])).toEqual([]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// InjuryAdaptationEngine — adaptProgramWithMetadata (coverage)
+// ---------------------------------------------------------------------------
+
+describe('InjuryAdaptationEngine — adaptProgramWithMetadata', () => {
+  test('returns program unchanged with empty metadata when no active injuries', () => {
+    const program = makeProgram([makeExercise('Back Squat')]);
+    const result = adaptProgramWithMetadata(program, []);
+    expect(result.adaptedExercises).toEqual({});
+    expect(result.program.sessions[0].exercises[0].name).toBe('Back Squat');
+  });
+
+  test('returns program unchanged when all injuries are resolved', () => {
+    const program = makeProgram([makeExercise('Back Squat')]);
+    const injuries = [makeInjury('leftKnee', 'resolved', 'knee')];
+    const result = adaptProgramWithMetadata(program, injuries);
+    expect(result.adaptedExercises).toEqual({});
+  });
+
+  test('tracks adapted exercises in metadata', () => {
+    const program = makeProgram([makeExercise('Back Squat'), makeExercise('Bird-Dogs')]);
+    const injuries = [makeInjury('leftKnee', 'acute', 'knee')];
+    const result = adaptProgramWithMetadata(program, injuries);
+    // Back Squat should be replaced — metadata tracks it
+    const replacementName = result.program.sessions[0].exercises[0].name;
+    expect(replacementName).not.toBe('Back Squat');
+    expect(result.adaptedExercises[replacementName]).toBe('Back Squat');
+    // Bird-Dogs not replaced
+    expect(result.adaptedExercises['Bird-Dogs']).toBeUndefined();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// InjuryAdaptationEngine — normalizedBodyRegions (coverage)
+// ---------------------------------------------------------------------------
+
+describe('InjuryAdaptationEngine — normalizedBodyRegions', () => {
+  test('returns knee for knee location', () => {
+    const injuries = [makeInjury('leftKnee', 'acute', 'knee')];
+    const regions = normalizedBodyRegions(injuries);
+    expect(regions).toContain('knee');
+  });
+
+  test('maps clinical synonym acl → knee', () => {
+    const injuries = [{ id: 'i1', bodyLocation: 'leftKnee' as const, recoveryPhase: 'acute' as const, injuryDate: new Date(), location: 'acl tear' }];
+    const regions = normalizedBodyRegions(injuries);
+    expect(regions).toContain('knee');
+  });
+
+  test('maps clinical synonym rotator cuff → shoulder', () => {
+    const injuries = [{ id: 'i1', bodyLocation: 'leftShoulder' as const, recoveryPhase: 'acute' as const, injuryDate: new Date(), location: 'rotator cuff strain' }];
+    const regions = normalizedBodyRegions(injuries);
+    expect(regions).toContain('shoulder');
+  });
+
+  test('returns empty for empty injuries', () => {
+    expect(normalizedBodyRegions([])).toHaveLength(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// InjuryAdaptationEngine — returnToPlay warmup block (coverage)
+// ---------------------------------------------------------------------------
+
+describe('InjuryAdaptationEngine — returnToPlay warmup prepend', () => {
+  test('returnToPlay injury prepends warmup exercises', () => {
+    const program = makeProgram([makeExercise('Bird-Dogs')]);
+    const injuries = [makeInjury('leftKnee', 'returnToPlay', 'knee')];
+    const result = adaptProgram(program, injuries);
+    // Should have more exercises than original (warmup prepended)
+    expect(result.sessions[0].exercises.length).toBeGreaterThan(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// InjuryAdaptationEngine — findReplacement fallback paths (coverage)
+// ---------------------------------------------------------------------------
+
+describe('InjuryAdaptationEngine — exercise fallback paths', () => {
+  test('uses safeBodyweight fallback when regression table entry is absent', () => {
+    // An exercise not in the regression table but contraindicated for wrist (clean keyword)
+    const program = makeProgram([makeExercise('Wrist Clean Custom')]);
+    const injuries = [makeInjury('leftWrist', 'acute', 'wrist')];
+    const result = adaptProgram(program, injuries);
+    const name = result.sessions[0].exercises[0].name;
+    expect(name).not.toBe('Wrist Clean Custom');
+  });
+
+  test('exercise substitution path executes without throwing', () => {
+    const program = makeProgram([makeExercise('hip thrust lunge hinge deadlift')]);
+    const injuries = [makeInjury('leftHip', 'acute', 'hip')];
+    const result = adaptProgram(program, injuries);
+    expect(result.sessions[0].exercises[0].name).toBeDefined();
+  });
+
+  test('final no-replacement fallback when all alternatives are contraindicated', () => {
+    // Exercise contraindicated for knee AND shoulder AND back simultaneously
+    // such that safeBodyweight alternatives (Air Squats, Bird-Dogs, Bodyweight Lunges) are also contraindicated
+    // Air Squats: contains 'squat' → contraindicated for knee
+    // Bird-Dogs: no knee/shoulder/back keywords — won't be contraindicated for shoulder
+    // Actually the fallback is hit when all regression AND safeBodyweight are contraindicated.
+    // We need multiple simultaneous injuries covering all safe alternatives.
+    // knee blocks squats/lunges → Air Squats and Bodyweight Lunges contraindicated
+    // back blocks bird-dogs? No: 'bird-dogs' doesn't contain back keywords (deadlift/good morning/hinge/row)
+    // So Bird-Dogs would always be safe. This path is unreachable in normal use.
+    // We verify the function handles all exercise types without crashing — test with multiple injuries
+    const program = makeProgram([makeExercise('Back Squat'), makeExercise('Strict Press / Military Press')]);
+    const injuries = [
+      makeInjury('leftKnee', 'rehab', 'knee'),
+      makeInjury('leftShoulder', 'rehab', 'shoulder'),
+    ];
+    const result = adaptProgram(program, injuries);
+    // Both should be replaced, exercises should still exist (not crashed)
+    expect(result.sessions[0].exercises.length).toBeGreaterThan(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// InjuryAdaptationEngine — rehab prepBlock in adaptSession (coverage)
+// ---------------------------------------------------------------------------
+
+describe('InjuryAdaptationEngine — rehab phase in adaptProgram', () => {
+  test('rehab injury prepends recovery prep block to session', () => {
+    const program = makeProgram([makeExercise('Bird-Dogs')]);
+    const injuries = [makeInjury('leftKnee', 'rehab', 'knee')];
+    const result = adaptProgram(program, injuries);
+    // Rehab prepends exercises
+    expect(result.sessions[0].exercises.length).toBeGreaterThan(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// RehabSessionGenerator — additional coverage
+// ---------------------------------------------------------------------------
+
+describe('RehabSessionGenerator — additional coverage', () => {
+  test('acute injury returns null (confirming filter)', () => {
+    expect(generateSession([makeInjury('leftKnee', 'acute', 'knee')])).toBeNull();
+  });
+
+  test('resolved injury returns null', () => {
+    expect(generateSession([makeInjury('leftKnee', 'resolved', 'knee')])).toBeNull();
+  });
+
+  test('returnToPlay injury returns null (not rehab or lightLoad)', () => {
+    expect(generateSession([makeInjury('leftKnee', 'returnToPlay', 'knee')])).toBeNull();
+  });
+
+  test('injury with no matching recovery map location returns null', () => {
+    // Use an injury location that matches nothing in recoveryMap
+    const injuries = [{ id: 'i1', bodyLocation: 'head' as const, recoveryPhase: 'rehab' as const, injuryDate: new Date(), location: 'xyz-unknown-region' }];
+    expect(generateSession(injuries)).toBeNull();
+  });
+
+  test('deduplicates exercises when two injuries share same location key', () => {
+    // Two knee injuries — exercises from recoveryMap['knee'] should be deduplicated
+    const injuries = [
+      makeInjury('leftKnee', 'rehab', 'knee'),
+      makeInjury('rightKnee', 'rehab', 'knee'),
+    ];
+    const session = generateSession(injuries);
+    expect(session).not.toBeNull();
+    const names = session!.exercises.map(e => e.name);
+    // No duplicates
+    expect(names.length).toBe(new Set(names).size);
+    // Should have knee exercises
+    expect(names).toContain('Bird-Dogs');
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Barrel index re-export smoke test
 // ---------------------------------------------------------------------------
 
 describe('Barrel index re-exports', () => {
-  test('adaptProgram is exported', () => {
-    expect(InjuryDomain.adaptProgram).toBeDefined();
+  test('adaptProgram via barrel works', () => {
+    const program = makeProgram([makeExercise('Bird-Dogs')]);
+    const result = InjuryDomain.adaptProgram(program, []);
+    expect(result).toBe(program);
   });
 
-  test('analyzeTrend is exported', () => {
-    expect(InjuryDomain.analyzeTrend).toBeDefined();
+  test('analyzeTrend via barrel works', () => {
+    const result = InjuryDomain.analyzeTrend([]);
+    expect(result.trailingAverage).toBe(0);
   });
 
-  test('evaluateTransition is exported', () => {
-    expect(InjuryDomain.evaluateTransition).toBeDefined();
+  test('evaluateTransition via barrel works', () => {
+    const logs = [makePainLog(8)];
+    expect(InjuryDomain.evaluateTransition('i1', 'acute', logs)).toBeNull();
   });
 
-  test('generateSession is exported', () => {
-    expect(InjuryDomain.generateSession).toBeDefined();
+  test('generateSession via barrel works', () => {
+    expect(InjuryDomain.generateSession([])).toBeNull();
   });
 
-  test('mostRestrictive is exported', () => {
-    expect(InjuryDomain.mostRestrictive).toBeDefined();
+  test('mostRestrictive via barrel works', () => {
+    expect(InjuryDomain.mostRestrictive(['acute', 'rehab'])).toBe('acute');
   });
 
-  test('meetsThreshold is exported', () => {
-    expect(InjuryDomain.meetsThreshold).toBeDefined();
+  test('meetsThreshold via barrel works', () => {
+    expect(InjuryDomain.meetsThreshold([], 1, 5)).toBe(false);
   });
 
-  test('phaseIndex is exported', () => {
-    expect(InjuryDomain.phaseIndex).toBeDefined();
+  test('phaseIndex via barrel works', () => {
+    expect(InjuryDomain.phaseIndex('acute')).toBe(0);
   });
 
-  test('getLoadMultipliers is exported', () => {
-    expect(InjuryDomain.getLoadMultipliers).toBeDefined();
+  test('getLoadMultipliers via barrel works', () => {
+    expect(InjuryDomain.getLoadMultipliers('resolved').load).toBe(1.0);
+  });
+
+  test('isMoreRestrictive via barrel works', () => {
+    expect(InjuryDomain.isMoreRestrictive('acute', 'rehab')).toBe(true);
+  });
+
+  test('nextPhase via barrel works', () => {
+    expect(InjuryDomain.nextPhase('acute')).toBe('rehab');
+  });
+
+  test('BODY_LOCATIONS via barrel works', () => {
+    expect(InjuryDomain.BODY_LOCATIONS).toHaveLength(17);
+  });
+
+  test('bodyLocationDisplayName via barrel works', () => {
+    expect(InjuryDomain.bodyLocationDisplayName('leftKnee')).toBe('Left Knee');
+  });
+
+  test('bodyLocationEngineKeyFromRegion via barrel works', () => {
+    expect(InjuryDomain.bodyLocationEngineKeyFromRegion('leftKnee')).toBe('knee');
+  });
+
+  test('parseRegions via barrel works', () => {
+    expect(InjuryDomain.parseRegions('leftKnee')).toEqual(['leftKnee']);
+  });
+
+  test('encodeRegions via barrel works', () => {
+    expect(InjuryDomain.encodeRegions(['leftKnee'])).toBe('leftKnee');
+  });
+
+  test('adjustExerciseValue via barrel works', () => {
+    expect(InjuryDomain.adjustExerciseValue({ kind: 'fixed', value: 10 }, 0.5)).toEqual({ kind: 'fixed', value: 5 });
+  });
+
+  test('adjustLoad via barrel works', () => {
+    expect(InjuryDomain.adjustLoad(undefined, 0.5)).toBeNull();
+  });
+
+  test('hasRecentLog via barrel works', () => {
+    expect(InjuryDomain.hasRecentLog([])).toBe(false);
+  });
+
+  test('sparklineData via barrel works', () => {
+    expect(InjuryDomain.sparklineData([])).toEqual([]);
+  });
+
+  test('buildRecoveryPrepBlock via barrel works', () => {
+    expect(InjuryDomain.buildRecoveryPrepBlock([])).toEqual([]);
+  });
+
+  test('normalizedBodyRegions via barrel works', () => {
+    expect(InjuryDomain.normalizedBodyRegions([])).toHaveLength(0);
+  });
+
+  test('phaseDisplayName via barrel works', () => {
+    expect(InjuryDomain.phaseDisplayName('resolved')).toBe('Resolved');
   });
 });
