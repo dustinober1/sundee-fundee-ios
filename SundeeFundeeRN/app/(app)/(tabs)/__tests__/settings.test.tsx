@@ -1,5 +1,5 @@
 /**
- * Tests for Settings screen subscription management section.
+ * Tests for Settings screen subscription management, export data, and danger zone sections.
  */
 import React from 'react';
 import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
@@ -25,12 +25,46 @@ jest.mock('@/src/repositories/SettingsRepo', () => ({
     getSettings: jest.fn().mockResolvedValue(null),
     saveSettings: jest.fn().mockResolvedValue(undefined),
   }),
-  DEFAULT_SETTINGS: { defaultRestDuration: 90 },
+  DEFAULT_SETTINGS: { defaultRestDuration: 90, weightUnit: 'lb' },
 }));
 
 // Mock expo-router
+const mockRouterReplace = jest.fn();
+const mockRouterPush = jest.fn();
 jest.mock('expo-router', () => ({
-  useRouter: () => ({ push: jest.fn() }),
+  useRouter: () => ({ push: mockRouterPush, replace: mockRouterReplace }),
+}));
+
+// Mock export data module (including react-native-zip-archive dependency)
+const mockExportUserData = jest.fn().mockResolvedValue(undefined);
+jest.mock('@/src/export/exportData', () => ({
+  exportUserData: (...args: unknown[]) => mockExportUserData(...args),
+}));
+
+// Mock repository factories
+jest.mock('@/src/repositories/WorkoutRepo', () => ({
+  getWorkoutRepo: jest.fn(() => ({})),
+}));
+jest.mock('@/src/repositories/ExerciseMaxRepo', () => ({
+  getExerciseMaxRepo: jest.fn(() => ({})),
+}));
+jest.mock('@/src/repositories/BenchmarkRepo', () => ({
+  getBenchmarkRepo: jest.fn(() => ({})),
+}));
+jest.mock('@/src/repositories/CycleRepo', () => ({
+  getCycleRepo: jest.fn(() => ({})),
+}));
+jest.mock('@/src/repositories/InjuryRepo', () => ({
+  getInjuryRepo: jest.fn(() => ({})),
+}));
+jest.mock('@/src/repositories/ReadinessRepo', () => ({
+  getReadinessRepo: jest.fn(() => ({})),
+}));
+
+// Mock callCloudFunction (platform-aware service)
+const mockCallCloudFunction = jest.fn().mockResolvedValue(undefined);
+jest.mock('@/src/services/callCloudFunction', () => ({
+  callCloudFunction: (...args: unknown[]) => mockCallCloudFunction(...args),
 }));
 
 // Alert mock
@@ -42,6 +76,13 @@ const defaultSession = {
   user: { uid: 'test-uid', displayName: 'Test User', email: 'test@test.com', isAnonymous: false },
   isLoading: false,
   isGuest: false,
+  signOut: jest.fn(),
+};
+
+const guestSession = {
+  user: { uid: 'guest-uid', displayName: null, email: null, isAnonymous: true },
+  isLoading: false,
+  isGuest: true,
   signOut: jest.fn(),
 };
 
@@ -206,6 +247,168 @@ describe('SettingsScreen - Subscription section', () => {
 
     await waitFor(() => {
       expect(Purchases.restorePurchases).toHaveBeenCalledTimes(1);
+    });
+  });
+});
+
+describe('SettingsScreen - Data section', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseSession.mockReturnValue(defaultSession);
+    mockUseEntitlementContext.mockReturnValue(freeEntitlements);
+    (AsyncStorage.getItem as jest.Mock).mockResolvedValue(null);
+    Object.defineProperty(Platform, 'OS', { value: 'ios', configurable: true });
+  });
+
+  it('renders "Export Data" button', async () => {
+    const { getByTestId } = render(<SettingsScreen />);
+    await waitFor(() => {
+      expect(getByTestId('export-data-button')).toBeTruthy();
+    });
+  });
+
+  it('shows export format picker when Export Data is tapped', async () => {
+    const { getByTestId } = render(<SettingsScreen />);
+
+    await waitFor(() => {
+      expect(getByTestId('export-data-button')).toBeTruthy();
+    });
+
+    await act(async () => {
+      fireEvent.press(getByTestId('export-data-button'));
+    });
+
+    await waitFor(() => {
+      expect(getByTestId('export-csv-option')).toBeTruthy();
+      expect(getByTestId('export-json-option')).toBeTruthy();
+    });
+  });
+
+  it('calls exportUserData with csv format when CSV option is selected', async () => {
+    const { getByTestId } = render(<SettingsScreen />);
+
+    await waitFor(() => expect(getByTestId('export-data-button')).toBeTruthy());
+
+    await act(async () => { fireEvent.press(getByTestId('export-data-button')); });
+    await waitFor(() => expect(getByTestId('export-csv-option')).toBeTruthy());
+
+    await act(async () => { fireEvent.press(getByTestId('export-csv-option')); });
+
+    await waitFor(() => {
+      expect(mockExportUserData).toHaveBeenCalledWith(
+        'test-uid',
+        'csv',
+        'lb',
+        expect.any(Object)
+      );
+    });
+  });
+
+  it('calls exportUserData with json format when JSON option is selected', async () => {
+    const { getByTestId } = render(<SettingsScreen />);
+
+    await waitFor(() => expect(getByTestId('export-data-button')).toBeTruthy());
+
+    await act(async () => { fireEvent.press(getByTestId('export-data-button')); });
+    await waitFor(() => expect(getByTestId('export-json-option')).toBeTruthy());
+
+    await act(async () => { fireEvent.press(getByTestId('export-json-option')); });
+
+    await waitFor(() => {
+      expect(mockExportUserData).toHaveBeenCalledWith(
+        'test-uid',
+        'json',
+        'lb',
+        expect.any(Object)
+      );
+    });
+  });
+});
+
+describe('SettingsScreen - Danger Zone', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseEntitlementContext.mockReturnValue(freeEntitlements);
+    (AsyncStorage.getItem as jest.Mock).mockResolvedValue(null);
+    Object.defineProperty(Platform, 'OS', { value: 'ios', configurable: true });
+  });
+
+  it('shows "Delete Account" button for authenticated users', async () => {
+    mockUseSession.mockReturnValue(defaultSession);
+    const { getByTestId } = render(<SettingsScreen />);
+    await waitFor(() => {
+      expect(getByTestId('delete-account-button')).toBeTruthy();
+    });
+  });
+
+  it('shows "Clear Local Data" button for guest users', async () => {
+    mockUseSession.mockReturnValue(guestSession);
+    const { getByTestId } = render(<SettingsScreen />);
+    await waitFor(() => {
+      expect(getByTestId('clear-local-data-button')).toBeTruthy();
+    });
+  });
+
+  it('opens delete confirmation modal when Delete Account is tapped', async () => {
+    mockUseSession.mockReturnValue(defaultSession);
+    const { getByTestId } = render(<SettingsScreen />);
+
+    await waitFor(() => expect(getByTestId('delete-account-button')).toBeTruthy());
+
+    await act(async () => { fireEvent.press(getByTestId('delete-account-button')); });
+
+    await waitFor(() => {
+      expect(getByTestId('delete-confirm-input')).toBeTruthy();
+      expect(getByTestId('delete-confirm-button')).toBeTruthy();
+    });
+  });
+
+  it('Confirm button is disabled until "DELETE" is typed', async () => {
+    mockUseSession.mockReturnValue(defaultSession);
+    const { getByTestId } = render(<SettingsScreen />);
+
+    await waitFor(() => expect(getByTestId('delete-account-button')).toBeTruthy());
+    await act(async () => { fireEvent.press(getByTestId('delete-account-button')); });
+    await waitFor(() => expect(getByTestId('delete-confirm-button')).toBeTruthy());
+
+    const confirmButton = getByTestId('delete-confirm-button');
+    // Should be disabled (opacity style applied)
+    expect(confirmButton.props.accessibilityState?.disabled ?? confirmButton.props.disabled).toBeTruthy();
+  });
+
+  it('calls deleteAccount Cloud Function and navigates to goodbye on success', async () => {
+    mockUseSession.mockReturnValue(defaultSession);
+    mockCallCloudFunction.mockResolvedValueOnce(undefined);
+
+    const { getByTestId } = render(<SettingsScreen />);
+
+    await waitFor(() => expect(getByTestId('delete-account-button')).toBeTruthy());
+    await act(async () => { fireEvent.press(getByTestId('delete-account-button')); });
+    await waitFor(() => expect(getByTestId('delete-confirm-input')).toBeTruthy());
+
+    // Type DELETE to enable confirm button
+    await act(async () => {
+      fireEvent.changeText(getByTestId('delete-confirm-input'), 'DELETE');
+    });
+
+    await act(async () => {
+      fireEvent.press(getByTestId('delete-confirm-button'));
+    });
+
+    await waitFor(() => {
+      expect(mockCallCloudFunction).toHaveBeenCalledWith('deleteAccount', {});
+      expect(mockRouterReplace).toHaveBeenCalledWith('/goodbye');
+    });
+  });
+
+  it('shows export link in delete confirmation modal', async () => {
+    mockUseSession.mockReturnValue(defaultSession);
+    const { getByTestId } = render(<SettingsScreen />);
+
+    await waitFor(() => expect(getByTestId('delete-account-button')).toBeTruthy());
+    await act(async () => { fireEvent.press(getByTestId('delete-account-button')); });
+    await waitFor(() => {
+      expect(getByTestId('delete-modal-export-link')).toBeTruthy();
     });
   });
 });

@@ -14,6 +14,12 @@
  * - Manage Subscription deep-link (iOS: App Store, Android: Play Store, Web: sundeefundee.com)
  * - Restore Purchases button (mobile only — required by Apple/Google App Review)
  * - TrialEndedModal shown once after trial expiry
+ *
+ * Phase 7 additions:
+ * - Data section: Export Data (CSV zip or JSON) with share sheet / browser download
+ * - Danger Zone section: Delete Account (authenticated) or Clear Local Data (guest)
+ * - Delete Account: two-step confirmation with "DELETE" text input, Cloud Function call
+ * - Goodbye screen on successful deletion
  */
 
 import React, { useCallback, useEffect, useState } from 'react';
@@ -25,6 +31,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -34,6 +41,14 @@ import { useEntitlementContext } from '@/src/entitlements/EntitlementContext';
 import { getSettingsRepo, DEFAULT_SETTINGS, type AppSettings } from '@/src/repositories/SettingsRepo';
 import { PaywallModal } from '@/src/components/paywall/PaywallModal';
 import { TrialEndedModal } from '@/src/components/paywall/TrialEndedModal';
+import { exportUserData } from '@/src/export/exportData';
+import { getWorkoutRepo } from '@/src/repositories/WorkoutRepo';
+import { getExerciseMaxRepo } from '@/src/repositories/ExerciseMaxRepo';
+import { getBenchmarkRepo } from '@/src/repositories/BenchmarkRepo';
+import { getCycleRepo } from '@/src/repositories/CycleRepo';
+import { getInjuryRepo } from '@/src/repositories/InjuryRepo';
+import { getReadinessRepo } from '@/src/repositories/ReadinessRepo';
+import { callCloudFunction } from '@/src/services/callCloudFunction';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as colors from '@/src/theme/colors';
 
@@ -81,6 +96,15 @@ export default function SettingsScreen(): React.JSX.Element {
   const [isRestoring, setIsRestoring] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
   const [showTrialEndedModal, setShowTrialEndedModal] = useState(false);
+
+  // Export data state
+  const [showExportPicker, setShowExportPicker] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+
+  // Delete account state
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const loadSettings = useCallback(async (): Promise<void> => {
     if (!user) return;
@@ -269,9 +293,90 @@ export default function SettingsScreen(): React.JSX.Element {
     setShowTrialEndedModal(false);
   }
 
+  async function handleExportData(format: 'csv' | 'json'): Promise<void> {
+    setShowExportPicker(false);
+    if (!user) return;
+
+    setIsExporting(true);
+    try {
+      const repos = {
+        workoutRepo: getWorkoutRepo(isGuest),
+        maxRepo: getExerciseMaxRepo(isGuest),
+        benchmarkRepo: getBenchmarkRepo(isGuest),
+        cycleRepo: getCycleRepo(isGuest),
+        injuryRepo: getInjuryRepo(isGuest),
+        readinessRepo: getReadinessRepo(isGuest),
+      };
+      await exportUserData(user.uid, format, settings.weightUnit ?? 'lb', repos);
+    } catch {
+      Alert.alert(
+        'Export Failed',
+        'Could not export your data. Please try again.',
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setIsExporting(false);
+    }
+  }
+
+  function handleOpenDeleteModal(): void {
+    setDeleteConfirmText('');
+    setShowDeleteModal(true);
+  }
+
+  function handleCancelDelete(): void {
+    setShowDeleteModal(false);
+    setDeleteConfirmText('');
+  }
+
+  async function handleConfirmDeleteAccount(): Promise<void> {
+    if (deleteConfirmText !== 'DELETE' || !user) return;
+    setIsDeleting(true);
+    try {
+      await callCloudFunction('deleteAccount', {});
+      await AsyncStorage.clear();
+      setShowDeleteModal(false);
+      router.replace('/goodbye');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'An unexpected error occurred.';
+      Alert.alert('Deletion Failed', message, [{ text: 'OK' }]);
+      setIsDeleting(false);
+    }
+  }
+
+  function handleClearLocalData(): void {
+    if (Platform.OS === 'web') {
+      const confirmed = window.confirm(
+        'This will clear all your local workout data. This cannot be undone.'
+      );
+      if (confirmed) {
+        void AsyncStorage.clear().then(() => router.replace('/sign-in'));
+      }
+      return;
+    }
+
+    Alert.alert(
+      'Clear Local Data',
+      'This will clear all your local workout data. This cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Clear Data',
+          style: 'destructive',
+          onPress: () => {
+            void AsyncStorage.clear().then(() => router.replace('/sign-in'));
+          },
+        },
+      ],
+      { cancelable: true }
+    );
+  }
+
   const displayName = isGuest
     ? 'Guest User'
     : (user?.displayName ?? user?.email ?? 'Account');
+
+  const isDeleteConfirmed = deleteConfirmText === 'DELETE';
 
   return (
     <ScrollView
@@ -437,12 +542,32 @@ export default function SettingsScreen(): React.JSX.Element {
         )}
       </View>
 
+      {/* Data section — Export Data */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Data</Text>
+        <TouchableOpacity
+          style={styles.settingRow}
+          onPress={() => setShowExportPicker(true)}
+          activeOpacity={0.7}
+          disabled={isExporting}
+          testID="export-data-button"
+        >
+          <View style={styles.settingInfo}>
+            <Text style={styles.settingLabel}>Export Data</Text>
+            <Text style={styles.settingHint}>
+              {isExporting ? 'Exporting…' : 'Download all your workout history and stats'}
+            </Text>
+          </View>
+          <Text style={styles.chevron}>›</Text>
+        </TouchableOpacity>
+      </View>
+
       {/* App info */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>About</Text>
         <View style={styles.infoRow}>
           <Text style={styles.infoLabel}>Version</Text>
-          <Text style={styles.infoValue}>1.0.0 (Phase 6)</Text>
+          <Text style={styles.infoValue}>1.0.0 (Phase 7)</Text>
         </View>
       </View>
 
@@ -455,6 +580,32 @@ export default function SettingsScreen(): React.JSX.Element {
       >
         <Text style={styles.signOutText}>Sign Out</Text>
       </TouchableOpacity>
+
+      {/* Danger Zone — Delete Account / Clear Local Data */}
+      <View style={[styles.section, styles.dangerSection]}>
+        <Text style={[styles.sectionTitle, styles.dangerSectionTitle]}>Danger Zone</Text>
+        {isGuest ? (
+          /* Guest: Clear Local Data */
+          <TouchableOpacity
+            style={styles.dangerButton}
+            onPress={handleClearLocalData}
+            activeOpacity={0.7}
+            testID="clear-local-data-button"
+          >
+            <Text style={styles.dangerButtonText}>Clear Local Data</Text>
+          </TouchableOpacity>
+        ) : (
+          /* Authenticated: Delete Account */
+          <TouchableOpacity
+            style={styles.dangerButton}
+            onPress={handleOpenDeleteModal}
+            activeOpacity={0.7}
+            testID="delete-account-button"
+          >
+            <Text style={styles.dangerButtonText}>Delete Account</Text>
+          </TouchableOpacity>
+        )}
+      </View>
 
       {/* Rest duration picker modal */}
       <Modal
@@ -539,6 +690,124 @@ export default function SettingsScreen(): React.JSX.Element {
             })}
           </View>
         </TouchableOpacity>
+      </Modal>
+
+      {/* Export format picker modal */}
+      <Modal
+        visible={showExportPicker}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowExportPicker(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowExportPicker(false)}
+        >
+          <View style={styles.pickerSheet}>
+            <Text style={styles.pickerTitle}>Export Format</Text>
+            <TouchableOpacity
+              style={styles.pickerOption}
+              onPress={() => void handleExportData('csv')}
+              activeOpacity={0.7}
+              testID="export-csv-option"
+            >
+              <View>
+                <Text style={styles.pickerOptionText}>Export as CSV (zip)</Text>
+                <Text style={styles.pickerOptionHint}>
+                  7 CSV files: workouts, maxes, benchmarks, and more
+                </Text>
+              </View>
+              <Text style={styles.chevron}>›</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.pickerOption}
+              onPress={() => void handleExportData('json')}
+              activeOpacity={0.7}
+              testID="export-json-option"
+            >
+              <View>
+                <Text style={styles.pickerOptionText}>Export as JSON</Text>
+                <Text style={styles.pickerOptionHint}>
+                  Single file with all your data
+                </Text>
+              </View>
+              <Text style={styles.chevron}>›</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Delete Account confirmation modal */}
+      <Modal
+        visible={showDeleteModal}
+        transparent
+        animationType="slide"
+        onRequestClose={handleCancelDelete}
+      >
+        <View style={styles.deleteModalOverlay}>
+          <View style={styles.deleteModalSheet}>
+            <Text style={styles.deleteModalTitle}>Delete Your Account?</Text>
+            <Text style={styles.deleteModalBody}>
+              This will permanently delete all your data, cancel any active subscriptions, and remove your account.
+            </Text>
+
+            {/* Export data suggestion */}
+            <TouchableOpacity
+              style={styles.deleteExportLink}
+              onPress={() => {
+                setShowDeleteModal(false);
+                setShowExportPicker(true);
+              }}
+              activeOpacity={0.7}
+              testID="delete-modal-export-link"
+            >
+              <Text style={styles.deleteExportLinkText}>
+                Want to save your data first? Export it here.
+              </Text>
+            </TouchableOpacity>
+
+            {/* Type DELETE confirmation */}
+            <Text style={styles.deleteConfirmLabel}>Type DELETE to confirm</Text>
+            <TextInput
+              style={styles.deleteConfirmInput}
+              value={deleteConfirmText}
+              onChangeText={setDeleteConfirmText}
+              placeholder="DELETE"
+              placeholderTextColor={colors.GREY}
+              autoCapitalize="characters"
+              autoCorrect={false}
+              testID="delete-confirm-input"
+            />
+
+            {/* Action buttons */}
+            <View style={styles.deleteModalButtons}>
+              <TouchableOpacity
+                style={styles.deleteCancelButton}
+                onPress={handleCancelDelete}
+                activeOpacity={0.7}
+                testID="delete-cancel-button"
+              >
+                <Text style={styles.deleteCancelText}>Cancel</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.deleteConfirmButton,
+                  !isDeleteConfirmed && styles.deleteConfirmButtonDisabled,
+                ]}
+                onPress={() => void handleConfirmDeleteAccount()}
+                activeOpacity={0.7}
+                disabled={!isDeleteConfirmed || isDeleting}
+                testID="delete-confirm-button"
+              >
+                <Text style={styles.deleteConfirmText}>
+                  {isDeleting ? 'Deleting…' : 'Delete Account'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
       </Modal>
 
       {/* Paywall modal */}
@@ -806,13 +1075,39 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 8,
-    marginBottom: 8,
+    marginBottom: 24,
   },
   signOutText: {
     fontSize: 16,
     fontWeight: '600',
     color: colors.RED,
     letterSpacing: 0.5,
+  },
+  // Danger Zone section
+  dangerSection: {
+    backgroundColor: '#FFF5F5',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#FFCCCC',
+    padding: 16,
+    marginBottom: 8,
+  },
+  dangerSectionTitle: {
+    color: colors.RED,
+  },
+  dangerButton: {
+    paddingVertical: 14,
+    alignItems: 'center',
+    borderRadius: 8,
+    borderWidth: 1.5,
+    borderColor: colors.RED,
+    backgroundColor: '#FFF5F5',
+  },
+  dangerButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: colors.RED,
+    letterSpacing: 0.3,
   },
   // Modal / picker styles
   modalOverlay: {
@@ -856,9 +1151,100 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.ORANGE,
   },
+  pickerOptionHint: {
+    fontSize: 11,
+    color: colors.GREY,
+    marginTop: 2,
+  },
   pickerCheckmark: {
     fontSize: 16,
     color: colors.ORANGE,
     fontWeight: '700',
+  },
+  // Delete Account modal
+  deleteModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  deleteModalSheet: {
+    backgroundColor: colors.CREAM,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingHorizontal: 24,
+    paddingTop: 24,
+    paddingBottom: 40,
+    gap: 16,
+  },
+  deleteModalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.NAVY,
+    textAlign: 'center',
+  },
+  deleteModalBody: {
+    fontSize: 14,
+    color: colors.NAVY_MEDIUM,
+    lineHeight: 20,
+    textAlign: 'center',
+  },
+  deleteExportLink: {
+    alignItems: 'center',
+    paddingVertical: 4,
+  },
+  deleteExportLinkText: {
+    fontSize: 13,
+    color: colors.ORANGE,
+    fontWeight: '600',
+    textDecorationLine: 'underline',
+  },
+  deleteConfirmLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.NAVY,
+  },
+  deleteConfirmInput: {
+    borderWidth: 1.5,
+    borderColor: colors.GREY_LIGHT,
+    borderRadius: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 15,
+    color: colors.NAVY,
+    backgroundColor: colors.CREAM_LIGHT,
+    letterSpacing: 2,
+  },
+  deleteModalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  deleteCancelButton: {
+    flex: 1,
+    paddingVertical: 14,
+    alignItems: 'center',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.GREY_LIGHT,
+    backgroundColor: colors.CREAM_LIGHT,
+  },
+  deleteCancelText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: colors.GREY,
+  },
+  deleteConfirmButton: {
+    flex: 1,
+    paddingVertical: 14,
+    alignItems: 'center',
+    borderRadius: 8,
+    backgroundColor: colors.RED,
+  },
+  deleteConfirmButtonDisabled: {
+    opacity: 0.4,
+  },
+  deleteConfirmText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.CREAM,
   },
 });
