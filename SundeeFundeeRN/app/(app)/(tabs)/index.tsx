@@ -4,11 +4,15 @@
  * Shows welcome message, Start Workout button (navigates to workout-session),
  * timed workout options (ForTime, AMRAP, EMOM), and a recent workout card.
  *
+ * Also shows the daily readiness survey prompt at the top when no survey has
+ * been completed today. Available to ALL users per locked decision (not gated
+ * on cycle tracking). Satisfies CYCL-02 via readiness survey mapping.
+ *
  * Guest users see a contextual upgrade nudge per locked decision:
  * "Create Account option always visible in settings, plus contextual nudges elsewhere"
  */
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   ScrollView,
   StyleSheet,
@@ -17,8 +21,13 @@ import {
   View,
 } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
+import { format } from 'date-fns';
 import { useSession } from '@/src/auth/AuthContext';
 import { getWorkoutRepo, type WorkoutRecord } from '@/src/repositories/WorkoutRepo';
+import { getReadinessRepo } from '@/src/repositories/ReadinessRepo';
+import type { ReadinessResult } from '@/src/domain/readiness/readiness-survey';
+import ReadinessSurveyCard from '@/src/components/readiness/ReadinessSurveyCard';
+import ReadinessSurveyModal from '@/src/components/readiness/ReadinessSurveyModal';
 import * as colors from '@/src/theme/colors';
 
 /** Timed workout mode options presented on the dashboard. */
@@ -39,10 +48,21 @@ export function formatDuration(seconds: number): string {
   return `${m}m ${String(s).padStart(2, '0')}s`;
 }
 
+/** Format a ReadinessResult as a compact badge string, e.g. "Readiness: 7.2/10". */
+export function formatReadinessBadge(result: ReadinessResult): string {
+  const rounded = Math.round(result.score * 10) / 10;
+  return `Readiness: ${rounded}/10`;
+}
+
 export default function DashboardScreen(): React.JSX.Element {
   const { user, isGuest } = useSession();
   const router = useRouter();
   const [lastWorkout, setLastWorkout] = useState<WorkoutRecord | null>(null);
+
+  // Readiness survey state
+  const [showReadinessCard, setShowReadinessCard] = useState(false);
+  const [showSurveyModal, setShowSurveyModal] = useState(false);
+  const [todayReadiness, setTodayReadiness] = useState<ReadinessResult | null>(null);
 
   const displayName = isGuest
     ? 'Guest'
@@ -66,10 +86,29 @@ export default function DashboardScreen(): React.JSX.Element {
     }
   }, [user, isGuest]);
 
+  const checkTodayReadiness = useCallback(async (): Promise<void> => {
+    if (!user) return;
+    try {
+      const todayDate = format(new Date(), 'yyyy-MM-dd');
+      const repo = getReadinessRepo(isGuest);
+      const existing = await repo.getSurveyForDate(user.uid, todayDate);
+      if (existing != null) {
+        setTodayReadiness(existing.result);
+        setShowReadinessCard(false);
+      } else {
+        setShowReadinessCard(true);
+      }
+    } catch {
+      // Non-critical — show card on error so user can still submit
+      setShowReadinessCard(true);
+    }
+  }, [user, isGuest]);
+
   useFocusEffect(
     useCallback(() => {
       void loadLastWorkout();
-    }, [loadLastWorkout])
+      void checkTodayReadiness();
+    }, [loadLastWorkout, checkTodayReadiness])
   );
 
   function handleStartWorkout(): void {
@@ -78,6 +117,12 @@ export default function DashboardScreen(): React.JSX.Element {
 
   function handleStartTimedWorkout(mode: string): void {
     router.push({ pathname: '/workout-session', params: { timerMode: mode } });
+  }
+
+  function handleReadinessSurveyComplete(result: ReadinessResult): void {
+    setShowSurveyModal(false);
+    setShowReadinessCard(false);
+    setTodayReadiness(result);
   }
 
   return (
@@ -93,7 +138,23 @@ export default function DashboardScreen(): React.JSX.Element {
         {!isGuest && user?.email != null && (
           <Text style={styles.email}>{user.email}</Text>
         )}
+        {/* Readiness badge — shown when survey is complete for today */}
+        {todayReadiness != null && (
+          <View style={styles.readinessBadge} testID="readiness-badge">
+            <Text style={styles.readinessBadgeText}>
+              {formatReadinessBadge(todayReadiness)}
+            </Text>
+          </View>
+        )}
       </View>
+
+      {/* Readiness survey card — shown when no survey completed today */}
+      {showReadinessCard && todayReadiness == null && (
+        <ReadinessSurveyCard
+          onPress={() => setShowSurveyModal(true)}
+          onDismiss={() => setShowReadinessCard(false)}
+        />
+      )}
 
       {/* Primary Start Workout CTA */}
       <TouchableOpacity
@@ -162,6 +223,13 @@ export default function DashboardScreen(): React.JSX.Element {
           </TouchableOpacity>
         </View>
       )}
+
+      {/* Readiness survey modal */}
+      <ReadinessSurveyModal
+        visible={showSurveyModal}
+        onComplete={handleReadinessSurveyComplete}
+        onDismiss={() => setShowSurveyModal(false)}
+      />
     </ScrollView>
   );
 }
@@ -197,6 +265,22 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: colors.GREY,
     marginTop: 2,
+  },
+  readinessBadge: {
+    marginTop: 8,
+    alignSelf: 'flex-start',
+    backgroundColor: colors.ORANGE_LIGHT,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.ORANGE,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  readinessBadgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.ORANGE_DARK,
+    letterSpacing: 0.3,
   },
   startWorkoutButton: {
     backgroundColor: colors.ORANGE,
