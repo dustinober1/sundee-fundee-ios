@@ -197,7 +197,7 @@ Plans:
 **Plans:** 1/1 plans complete
 
 Plans:
-- [ ] 12-01-PLAN.md — Add nested painLogs match block to firestore.rules and security rule tests
+- [x] 12-01-PLAN.md — Add nested painLogs match block to firestore.rules and security rule tests
 
 ### Phase 13: Complete Weight Unit Threading
 **Goal:** All screens display weights in the user's chosen unit (lbs or kg) with no hardcoded suffixes
