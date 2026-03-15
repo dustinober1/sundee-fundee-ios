@@ -28,3 +28,5 @@ GoogleService-Info.plist
 *.log
 .worktrees/
 my-upload-key.jks
+.playwright-mcp/
+functions/node_modules/
