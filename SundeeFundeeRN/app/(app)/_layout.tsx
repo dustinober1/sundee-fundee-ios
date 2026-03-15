@@ -87,6 +87,10 @@ export default function AppLayout(): React.JSX.Element | null {
   return (
     <Stack>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen
+        name="timer-mode"
+        options={{ headerShown: false, presentation: 'fullScreenModal' }}
+      />
     </Stack>
   );
 }
