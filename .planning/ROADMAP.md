@@ -194,6 +194,10 @@ Plans:
 **Goal:** Authenticated users can persist pain logs to Firestore; pain trend analysis receives real data
 **Requirements:** INJR-03, INJR-04
 **Gap Closure:** Closes gaps from audit — Firestore security rules must allow writes to 2-level nested subcollections (injuries/{id}/painLogs/{id})
+**Plans:** 1 plan
+
+Plans:
+- [ ] 12-01-PLAN.md — Add nested painLogs match block to firestore.rules and security rule tests
 
 ### Phase 13: Complete Weight Unit Threading
 **Goal:** All screens display weights in the user's chosen unit (lbs or kg) with no hardcoded suffixes
@@ -218,5 +222,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 9. Fix Guest Migration + AI Profile Wiring | 2/2 | Complete   | 2026-03-15 |
 | 10. UI Polish Fixes | 1/1 | Complete    | 2026-03-15 |
 | 11. Wire Guest Upgrade Entry Point | 1/1 | Complete    | 2026-03-15 |
-| 12. Fix Firestore Pain Log Security Rules | 0/0 | Pending |  |
+| 12. Fix Firestore Pain Log Security Rules | 0/1 | Pending |  |
 | 13. Complete Weight Unit Threading | 0/0 | Pending |  |
