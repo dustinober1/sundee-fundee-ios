@@ -18,7 +18,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 4: Core Workout Loop** - Exercise library, workout logging, timers, PR detection, history, progress charts (completed 2026-03-15)
 - [ ] **Phase 5: Differentiating Features** - Cycle tracking/adaptation, injury engine, AI workouts, programs, benchmarks, WODs, readiness
 - [x] **Phase 6: Subscriptions and Monetization** - RevenueCat paywall, Stripe web checkout, entitlement gates, account management (completed 2026-03-15)
-- [ ] **Phase 7: Polish and Pre-Launch** - Art Deco refinement, Android adaptations, App Check, security audit, data export, app store submission
+- [x] **Phase 7: Polish and Pre-Launch** - Art Deco refinement, Android adaptations, App Check, security audit, data export, app store submission (completed 2026-03-15)
 
 ## Phase Details
 
@@ -146,7 +146,7 @@ Plans:
   3. User can export their workout data as CSV or JSON from the settings screen; the exported file contains complete workout history
   4. User can delete their account from settings, which triggers full data wipe from Firestore and revokes Firebase Auth; the app returns to the sign-in screen
   5. App passes Firebase App Check validation (DeviceCheck on iOS, Play Integrity on Android); Firestore security rules audit shows no public access to any user health data collection
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 
 Plans:
 - [ ] 07-01-PLAN.md — Weight unit switching (formatWeight utility + Settings toggle + app-wide threading) and Firebase App Check init
@@ -166,4 +166,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 4. Core Workout Loop | 8/8 | Complete   | 2026-03-15 |
 | 5. Differentiating Features | 6/9 | In Progress|  |
 | 6. Subscriptions and Monetization | 3/3 | Complete   | 2026-03-15 |
-| 7. Polish and Pre-Launch | 2/3 | In Progress|  |
+| 7. Polish and Pre-Launch | 3/3 | Complete   | 2026-03-15 |

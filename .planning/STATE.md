@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 07-polish-and-pre-launch 07-01-PLAN.md
-last_updated: "2026-03-15T19:52:30.531Z"
+stopped_at: Completed 07-polish-and-pre-launch 07-03-PLAN.md
+last_updated: "2026-03-15T20:09:59.894Z"
 last_activity: "2026-03-14 — Completed Plan 03-02: 5-step onboarding flow with Art Deco styling, atomic persistence, gender-adaptive step skipping, routing bug fixes"
 progress:
   total_phases: 7
-  completed_phases: 6
+  completed_phases: 7
   total_plans: 33
-  completed_plans: 32
+  completed_plans: 33
   percent: 16
 ---
 
@@ -81,6 +81,7 @@ Progress: [███░░░░░░░] 16%
 | Phase 06-subscriptions-and-monetization P03 | 35 | 2 tasks | 11 files |
 | Phase 07-polish-and-pre-launch P07-02 | 5 | 1 tasks | 6 files |
 | Phase 07-polish-and-pre-launch P07-01 | 6 | 2 tasks | 9 files |
+| Phase 07-polish-and-pre-launch P07-03 | 14 | 2 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -185,6 +186,9 @@ Recent decisions affecting current work:
 - [Phase 07-polish-and-pre-launch]: formatWeight kg rounding: Math.round(kg * 2) / 2 — 0.5 kg increments match metric gym plate granularity
 - [Phase 07-polish-and-pre-launch]: App Check init: non-fatal failure (warn + continue) — security reduced but app not broken on init error
 - [Phase 07-polish-and-pre-launch]: weightUnit defaults to lb everywhere via optional prop — backward compatible with callers that dont pass it
+- [Phase 07-polish-and-pre-launch]: deleteAccount execution order: RC revoke (best-effort) -> Stripe cancel (best-effort) -> db.recursiveDelete -> admin.auth().deleteUser
+- [Phase 07-polish-and-pre-launch]: jest.mock() factory in test files rather than direct __mocks__ imports ensures same mock reference in test and module under test
+- [Phase 07-polish-and-pre-launch]: testPathIgnorePatterns: /lib/ added to Jest config to exclude compiled test artifacts from runs
 
 ### Pending Todos
 
@@ -200,6 +204,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-15T19:52:30.528Z
-Stopped at: Completed 07-polish-and-pre-launch 07-01-PLAN.md
+Last session: 2026-03-15T20:09:59.890Z
+Stopped at: Completed 07-polish-and-pre-launch 07-03-PLAN.md
 Resume file: None
