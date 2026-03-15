@@ -323,24 +323,11 @@ export default function AIWorkoutConfigScreen(): React.JSX.Element {
 async function callGenerateWorkoutFunction(
   context: WorkoutGenerationContext,
 ): Promise<ReturnType<typeof generateOfflineWorkout>> {
-  if (Platform.OS === 'web') {
-    // Web: use firebase/functions JS SDK
-    const { getFunctions, httpsCallable } = await import('firebase/functions');
-    const { getApps } = await import('firebase/app');
-    const apps = getApps();
-    if (apps.length === 0) throw new Error('Firebase not initialized');
-    const functionsInstance = getFunctions(apps[0]);
-    const fn = httpsCallable(functionsInstance, 'generateWorkout');
-    const result = await fn(context);
-    return result.data as ReturnType<typeof generateOfflineWorkout>;
-  } else {
-    // Native: use @react-native-firebase/functions
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const functions = require('@react-native-firebase/functions').default;
-    const fn = functions().httpsCallable('generateWorkout');
-    const result = await fn(context);
-    return result.data as ReturnType<typeof generateOfflineWorkout>;
-  }
+  const { callCloudFunction } = await import('@/src/services/callCloudFunction');
+  return callCloudFunction<ReturnType<typeof generateOfflineWorkout>>(
+    'generateWorkout',
+    context as unknown as Record<string, unknown>,
+  );
 }
 
 function showOfflineFallbackToast(): void {
