@@ -10,6 +10,9 @@
  *
  * Sign-up mode toggle switches between "Sign In" and "Sign Up" without navigation.
  * After successful auth, onAuthStateChanged in SessionProvider triggers navigation automatically.
+ *
+ * Guest upgrade: When the current user is anonymous, sign-up actions route through
+ * guest.upgrade(credential) to preserve UID and all locally stored data.
  */
 
 import React, { useState } from 'react';
@@ -31,6 +34,11 @@ import { useAppleSignIn } from '@/src/auth/useAppleSignIn';
 import { useGoogleSignIn } from '@/src/auth/useGoogleSignIn';
 import { useEmailAuth } from '@/src/auth/useEmailAuth';
 import { useGuestSignIn } from '@/src/auth/useGuestSignIn';
+import {
+  getCurrentUser,
+  EmailAuthProvider,
+  signInWithCredential as firebaseSignIn,
+} from '@/src/firebase/auth';
 import * as colors from '@/src/theme/colors';
 
 // ─── SignInScreen ─────────────────────────────────────────────────────────────
@@ -63,29 +71,56 @@ export default function SignInScreen(): React.JSX.Element {
 
   async function handleAppleSignIn(): Promise<void> {
     try {
-      await apple.signIn();
+      const credential = await apple.getCredential();
+      const currentUser = getCurrentUser();
+      if (currentUser?.isAnonymous) {
+        // Guest user upgrading to permanent account — preserve UID and data
+        await guest.upgrade(credential);
+      } else {
+        // Normal sign-in: sign in directly with the credential
+        await firebaseSignIn(credential);
+      }
       // Navigation triggered automatically via onAuthStateChanged
     } catch {
-      // Error already set in hook
+      // Error already set in hook or surfaced via guest.error
     }
   }
 
   async function handleGoogleSignIn(): Promise<void> {
     try {
-      await google.signIn();
+      const credential = await google.getCredential();
+      const currentUser = getCurrentUser();
+      if (currentUser?.isAnonymous) {
+        // Guest user upgrading to permanent account — preserve UID and data
+        await guest.upgrade(credential);
+      } else {
+        // Normal sign-in: sign in directly with the credential
+        await firebaseSignIn(credential);
+      }
+      // Navigation triggered automatically via onAuthStateChanged
     } catch {
-      // Error already set in hook
+      // Error already set in hook or surfaced via guest.error
     }
   }
 
   async function handleEmailAuth(): Promise<void> {
     try {
+      const currentUser = getCurrentUser();
       if (isSignUpMode) {
-        const result = await emailAuth.signUp(email, password);
-        if (result.needsVerification) {
-          router.replace('/verify-email');
+        if (currentUser?.isAnonymous) {
+          // Guest user creating account — upgrade via linkWithCredential
+          const credential = EmailAuthProvider.credential(email, password);
+          await guest.upgrade(credential);
+          // Navigation triggered automatically via onAuthStateChanged
+        } else {
+          const result = await emailAuth.signUp(email, password);
+          if (result.needsVerification) {
+            router.replace('/verify-email');
+          }
         }
       } else {
+        // Sign-in mode: always use normal path.
+        // A guest signing in with an existing email account has no upgrade path.
         await emailAuth.signIn(email, password);
         // Navigation triggered automatically via onAuthStateChanged
       }
