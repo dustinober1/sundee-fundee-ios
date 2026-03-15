@@ -185,7 +185,7 @@ Plans:
 **Goal:** Guest users who sign up retain all their locally stored data instead of starting fresh
 **Requirements:** AUTH-07
 **Gap Closure:** Closes gaps from audit — sign-in.tsx auth handlers must detect anonymous user and call guest.upgrade(credential) instead of creating new accounts
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
 - [ ] 11-01-PLAN.md — Refactor auth hooks to expose getCredential, wire isAnonymous guard into sign-in.tsx handlers, add tests
@@ -217,6 +217,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 8. Fix Cycle Adaptation Wiring | 1/1 | Complete   | 2026-03-15 |
 | 9. Fix Guest Migration + AI Profile Wiring | 2/2 | Complete   | 2026-03-15 |
 | 10. UI Polish Fixes | 1/1 | Complete    | 2026-03-15 |
-| 11. Wire Guest Upgrade Entry Point | 0/1 | Pending |  |
+| 11. Wire Guest Upgrade Entry Point | 1/1 | Complete   | 2026-03-15 |
 | 12. Fix Firestore Pain Log Security Rules | 0/0 | Pending |  |
 | 13. Complete Weight Unit Threading | 0/0 | Pending |  |
