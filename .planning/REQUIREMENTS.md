@@ -15,7 +15,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **AUTH-04**: User can continue as guest without creating an account
 - [x] **AUTH-05**: User session persists across app restart
 - [x] **AUTH-06**: User can sign out from any screen
-- [x] **AUTH-07**: User data syncs across devices when authenticated
+- [ ] **AUTH-07**: User data syncs across devices when authenticated
 
 ### Onboarding
 
@@ -74,9 +74,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Cycle Adaptation
 
-- [x] **CYAD-01**: Workout load automatically adjusts based on current cycle phase
-- [x] **CYAD-02**: Set and rep targets scale with phase-specific multipliers
-- [x] **CYAD-03**: Adaptation integrates with readiness score for fine-tuning
+- [ ] **CYAD-01**: Workout load automatically adjusts based on current cycle phase
+- [ ] **CYAD-02**: Set and rep targets scale with phase-specific multipliers
+- [ ] **CYAD-03**: Adaptation integrates with readiness score for fine-tuning
 
 ### Readiness
 
@@ -168,13 +168,13 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AUTH-04 | Phase 1 | Complete |
 | AUTH-05 | Phase 1 | Complete |
 | AUTH-06 | Phase 1 | Complete |
-| AUTH-07 | Phase 1 | Complete |
+| AUTH-07 | Phase 9 | Pending |
 | PLAT-01 | Phase 1 | Complete |
 | PLAT-02 | Phase 1 | Complete |
 | PLAT-03 | Phase 1 | Complete |
-| CYAD-01 | Phase 2 | Complete |
-| CYAD-02 | Phase 2 | Complete |
-| CYAD-03 | Phase 2 | Complete |
+| CYAD-01 | Phase 8 | Pending |
+| CYAD-02 | Phase 8 | Pending |
+| CYAD-03 | Phase 8 | Pending |
 | INJR-02 | Phase 2 | Complete |
 | INJR-04 | Phase 2 | Complete |
 | INJR-05 | Phase 2 | Complete |
@@ -211,7 +211,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | INJR-01 | Phase 5 | Complete |
 | INJR-03 | Phase 5 | Complete |
 | AIWK-01 | Phase 5 | Complete |
-| AIWK-02 | Phase 5 | Complete |
+| AIWK-02 | Phase 9 | Pending |
 | AIWK-03 | Phase 5 | Complete |
 | AIWK-04 | Phase 5 | Complete |
 | AIWK-05 | Phase 5 | Complete |
@@ -231,13 +231,15 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SUBS-04 | Phase 6 | Complete |
 | SUBS-05 | Phase 6 | Complete |
 | PLAT-04 | Phase 7 | Complete |
-| PLAT-05 | Phase 7 | Complete |
+| PLAT-05 | Phase 10 | Pending |
 | PLAT-06 | Phase 7 | Complete |
 | PLAT-07 | Phase 7 | Complete |
 
 **Coverage:**
-- v1 requirements: 72 total (note: requirements file previously stated 56 — actual count from requirements list is 72)
+- v1 requirements: 72 total
 - Mapped to phases: 72
+- Satisfied: 67
+- Pending (gap closure): 5 (CYAD-01, CYAD-02, CYAD-03, AUTH-07, AIWK-02, PLAT-05)
 - Unmapped: 0
 
 ---

@@ -153,6 +153,21 @@ Plans:
 - [ ] 07-02-PLAN.md — Data export module (CSV formatters for all data types, JSON export, zip bundling, cross-platform sharing)
 - [ ] 07-03-PLAN.md — Account deletion Cloud Function, stripeWebhook fix, Settings export/delete UI, goodbye screen, Art Deco polish
 
+### Phase 8: Fix Cycle Adaptation Wiring
+**Goal:** Cycle-aware workout load adjustment actually activates for users who opted into cycle tracking
+**Requirements:** CYAD-01, CYAD-02, CYAD-03
+**Gap Closure:** Closes gaps from audit — replace dead `cycleTrackingEnabled` gate with `profile?.cycleOptIn === true`
+
+### Phase 9: Fix Guest Migration + AI Profile Wiring
+**Goal:** Guest-to-auth upgrade preserves all user data; AI workouts use real user profile instead of hardcoded values
+**Requirements:** AUTH-07, AIWK-02
+**Gap Closure:** Closes gaps from audit — call migrateGuestDataToFirestore after linkWithCredential; read profile in AI workout config
+
+### Phase 10: UI Polish Fixes
+**Goal:** Historical weight display respects user unit preference; goodbye screen has proper navigation; web export bundles into zip
+**Requirements:** PLAT-05
+**Gap Closure:** Closes tech debt from audit — formatWeight in detail views, goodbye.tsx Stack.Screen, web CSV zip
+
 ## Progress
 
 **Execution Order:**
@@ -167,3 +182,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 5. Differentiating Features | 6/9 | In Progress|  |
 | 6. Subscriptions and Monetization | 3/3 | Complete   | 2026-03-15 |
 | 7. Polish and Pre-Launch | 3/3 | Complete   | 2026-03-15 |
+| 8. Fix Cycle Adaptation Wiring | 0/0 | Not Started |  |
+| 9. Fix Guest Migration + AI Profile Wiring | 0/0 | Not Started |  |
+| 10. UI Polish Fixes | 0/0 | Not Started |  |
