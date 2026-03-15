@@ -29,12 +29,12 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **WORK-02**: User can start a rest timer between sets that works in background
 - [x] **WORK-03**: Rest timer survives screen lock and app backgrounding
 - [x] **WORK-04**: User can search and filter exercise library (200+ exercises)
-- [ ] **WORK-05**: User can create custom exercises
+- [x] **WORK-05**: User can create custom exercises
 - [x] **WORK-06**: App auto-detects personal records on set completion
-- [ ] **WORK-07**: User can view workout history in chronological order
-- [ ] **WORK-08**: User can filter history by source (AI/Program/Custom)
-- [ ] **WORK-09**: User can delete workouts from history
-- [ ] **WORK-10**: User can view progress charts per exercise (volume/load over time)
+- [x] **WORK-07**: User can view workout history in chronological order
+- [x] **WORK-08**: User can filter history by source (AI/Program/Custom)
+- [x] **WORK-09**: User can delete workouts from history
+- [x] **WORK-10**: User can view progress charts per exercise (volume/load over time)
 - [x] **WORK-11**: All workout logging works offline without data loss
 - [x] **WORK-12**: User can build custom workout routines with drag-and-drop ordering
 
@@ -103,7 +103,7 @@ Requirements for initial release. Each maps to roadmap phases.
 ### One-Rep Max
 
 - [x] **MAX-01**: User can track one-rep max for any lift
-- [ ] **MAX-02**: User can view 1RM history over time
+- [x] **MAX-02**: User can view 1RM history over time
 - [x] **MAX-03**: App estimates 1RM from logged sets using standard formulas
 
 ### Subscriptions
@@ -189,18 +189,18 @@ Which phases cover which requirements. Updated during roadmap creation.
 | WORK-02 | Phase 4 | Complete |
 | WORK-03 | Phase 4 | Complete |
 | WORK-04 | Phase 4 | Complete |
-| WORK-05 | Phase 4 | Pending |
-| WORK-07 | Phase 4 | Pending |
-| WORK-08 | Phase 4 | Pending |
-| WORK-09 | Phase 4 | Pending |
-| WORK-10 | Phase 4 | Pending |
+| WORK-05 | Phase 4 | Complete |
+| WORK-07 | Phase 4 | Complete |
+| WORK-08 | Phase 4 | Complete |
+| WORK-09 | Phase 4 | Complete |
+| WORK-10 | Phase 4 | Complete |
 | WORK-12 | Phase 4 | Complete |
 | EXEC-01 | Phase 4 | Complete |
 | EXEC-02 | Phase 4 | Complete |
 | EXEC-03 | Phase 4 | Complete |
 | EXEC-04 | Phase 4 | Complete |
 | MAX-01 | Phase 4 | Complete |
-| MAX-02 | Phase 4 | Pending |
+| MAX-02 | Phase 4 | Complete |
 | CYCL-01 | Phase 5 | Pending |
 | CYCL-02 | Phase 5 | Pending |
 | CYCL-03 | Phase 5 | Pending |

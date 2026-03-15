@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 04-03-PLAN.md
-last_updated: "2026-03-15T00:34:34.320Z"
+stopped_at: Completed 04-04-PLAN.md
+last_updated: "2026-03-15T00:35:09.780Z"
 last_activity: "2026-03-14 — Completed Plan 03-02: 5-step onboarding flow with Art Deco styling, atomic persistence, gender-adaptive step skipping, routing bug fixes"
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 18
-  completed_plans: 13
+  completed_plans: 14
   percent: 16
 ---
 
@@ -62,6 +62,7 @@ Progress: [███░░░░░░░] 16%
 | Phase 04-core-workout-loop P04-02 | 3 | 2 tasks | 6 files |
 | Phase 04-core-workout-loop P01 | 5 | 2 tasks | 10 files |
 | Phase 04-core-workout-loop P03 | 3 | 2 tasks | 10 files |
+| Phase 04-core-workout-loop P04-04 | 7 | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -115,6 +116,9 @@ Recent decisions affecting current work:
 - [Phase 04-core-workout-loop]: ExerciseMaxRepo.saveMax skips write when new weight is not strictly higher — avoids regressing PR records on bad data entry
 - [Phase 04-core-workout-loop]: FirestoreExerciseMaxRepo uses compositeId (exerciseId_repRange) as doc ID — ensures one document per max slot, efficient upserts
 - [Phase 04-core-workout-loop]: WorkoutRecord.workout made optional for backward compatibility — existing AI records unchanged, custom records use exercises field
+- [Phase 04-core-workout-loop]: CompletedWorkoutRecord defined in progress domain not WorkoutRepo — keeps domain layer independent of repository types
+- [Phase 04-core-workout-loop]: Volume chart only counts completed sets (set.completed === true) — incomplete sets excluded from volume metrics
+- [Phase 04-core-workout-loop]: Chart data points use string dates (YYYY-MM-DD) not Date objects — safer sorting and serialization
 
 ### Pending Todos
 
@@ -130,6 +134,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-15T00:34:34.318Z
-Stopped at: Completed 04-03-PLAN.md
+Last session: 2026-03-15T00:35:09.777Z
+Stopped at: Completed 04-04-PLAN.md
 Resume file: None
