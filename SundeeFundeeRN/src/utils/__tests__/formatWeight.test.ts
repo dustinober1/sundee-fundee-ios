@@ -21,9 +21,9 @@ describe('formatWeight', () => {
     expect(formatWeight(132.28, 'kg')).toBe('60.0 kg');
   });
 
-  it('rounds kg to nearest 0.5 upward', () => {
-    // 135 lbs → ~61.235 kg → nearest 0.5 = 61.5
-    expect(formatWeight(135, 'kg')).toBe('61.5 kg');
+  it('rounds kg to nearest 0.5 (61.235 rounds down to 61.0)', () => {
+    // 135 lbs → ~61.235 kg → nearest 0.5 = 61.0 (closer to 61 than to 61.5)
+    expect(formatWeight(135, 'kg')).toBe('61.0 kg');
   });
 
   it('rounds kg to nearest 0.5 downward', () => {
