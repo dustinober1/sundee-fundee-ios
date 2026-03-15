@@ -30,6 +30,7 @@ import { getWorkoutRepo, type WorkoutRecord } from '@/src/repositories/WorkoutRe
 import { getReadinessRepo } from '@/src/repositories/ReadinessRepo';
 import { getWODRepo, type WODRecord } from '@/src/repositories/WODRepo';
 import { getCycleRepo, recordToPeriodLog } from '@/src/repositories/CycleRepo';
+import { getOnboardingProfileRepo } from '@/src/repositories/OnboardingProfileRepo';
 import { calculateCycleStatus } from '@/src/domain/cycle/cycle-calculations';
 import type { ReadinessResult } from '@/src/domain/readiness/readiness-survey';
 import type { CycleStatusResult } from '@/src/domain/cycle/cycle-calculations';
@@ -127,12 +128,14 @@ export default function DashboardScreen(): React.JSX.Element {
   const loadCycleStatus = useCallback(async (): Promise<void> => {
     if (!user) return;
     try {
+      const profileRepo = getOnboardingProfileRepo(isGuest);
+      const profile = await profileRepo.getProfile(user.uid);
       const cycleRepo = getCycleRepo(isGuest);
       const [periodLogRecords, cycleSettings] = await Promise.all([
         cycleRepo.getPeriodLogs(user.uid),
         cycleRepo.getCycleSettings(user.uid),
       ]);
-      if (cycleSettings?.cycleTrackingEnabled === true && periodLogRecords.length > 0) {
+      if (profile?.cycleOptIn === true && periodLogRecords.length > 0) {
         const periodLogs = periodLogRecords.map(recordToPeriodLog);
         const status = calculateCycleStatus(periodLogs, cycleSettings);
         setCycleStatus(status);

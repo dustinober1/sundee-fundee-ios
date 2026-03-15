@@ -48,6 +48,7 @@ import type { PRCheckResult } from '@/src/domain/pr-detection/pr-types';
 import { getCycleRepo, recordToPeriodLog } from '@/src/repositories/CycleRepo';
 import { getInjuryRepo, recordToInjuryProfile } from '@/src/repositories/InjuryRepo';
 import { getReadinessRepo } from '@/src/repositories/ReadinessRepo';
+import { getOnboardingProfileRepo } from '@/src/repositories/OnboardingProfileRepo';
 import { calculateCycleStatus } from '@/src/domain/cycle/cycle-calculations';
 import { blendMultiplier, resolveReadinessTier, resolveConfidenceScale } from '@/src/domain/cycle/cycle-adaptation-policy';
 import type { InjuryProfile } from '@/src/domain/types/index';
@@ -135,12 +136,14 @@ export default function WorkoutSessionScreen(): React.JSX.Element {
       let phaseLoadMultiplier = 1.0;
       let phaseLabel = '';
       try {
+        const profileRepo = getOnboardingProfileRepo(isGuest);
+        const profile = await profileRepo.getProfile(user.uid);
         const cycleRepo = getCycleRepo(isGuest);
         const [periodLogRecords, cycleSettings] = await Promise.all([
           cycleRepo.getPeriodLogs(user.uid),
           cycleRepo.getCycleSettings(user.uid),
         ]);
-        if (cycleSettings?.cycleTrackingEnabled === true && periodLogRecords.length > 0) {
+        if (profile?.cycleOptIn === true && periodLogRecords.length > 0) {
           const periodLogs = periodLogRecords.map(recordToPeriodLog);
           const cycleStatus = calculateCycleStatus(periodLogs, cycleSettings);
           if (cycleStatus !== null) {
