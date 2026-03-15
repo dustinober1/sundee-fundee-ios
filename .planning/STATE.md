@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: "Completed 07-02-PLAN.md: data export module with 7 CSV formatters and cross-platform orchestrator"
-last_updated: "2026-03-15T19:51:45.569Z"
+stopped_at: Completed 07-polish-and-pre-launch 07-01-PLAN.md
+last_updated: "2026-03-15T19:52:30.531Z"
 last_activity: "2026-03-14 — Completed Plan 03-02: 5-step onboarding flow with Art Deco styling, atomic persistence, gender-adaptive step skipping, routing bug fixes"
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 33
-  completed_plans: 31
+  completed_plans: 32
   percent: 16
 ---
 
@@ -80,6 +80,7 @@ Progress: [███░░░░░░░] 16%
 | Phase 06-subscriptions-and-monetization P02 | 8 | 2 tasks | 9 files |
 | Phase 06-subscriptions-and-monetization P03 | 35 | 2 tasks | 11 files |
 | Phase 07-polish-and-pre-launch P07-02 | 5 | 1 tasks | 6 files |
+| Phase 07-polish-and-pre-launch P07-01 | 6 | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -181,6 +182,9 @@ Recent decisions affecting current work:
 - [Phase 07-polish-and-pre-launch]: RepoBundle injected as parameter to collectAllUserData/exportUserData — testable without module-level singletons
 - [Phase 07-polish-and-pre-launch]: Web export downloads individual CSV files — browser has no native zip API, react-native-zip-archive is mobile-only
 - [Phase 07-polish-and-pre-launch]: Pain logs fetched per-injury via Promise.all on getPainLogs — no getAllPainLogs on InjuryRepository
+- [Phase 07-polish-and-pre-launch]: formatWeight kg rounding: Math.round(kg * 2) / 2 — 0.5 kg increments match metric gym plate granularity
+- [Phase 07-polish-and-pre-launch]: App Check init: non-fatal failure (warn + continue) — security reduced but app not broken on init error
+- [Phase 07-polish-and-pre-launch]: weightUnit defaults to lb everywhere via optional prop — backward compatible with callers that dont pass it
 
 ### Pending Todos
 
@@ -196,6 +200,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-15T19:51:45.566Z
-Stopped at: Completed 07-02-PLAN.md: data export module with 7 CSV formatters and cross-platform orchestrator
+Last session: 2026-03-15T19:52:30.528Z
+Stopped at: Completed 07-polish-and-pre-launch 07-01-PLAN.md
 Resume file: None
