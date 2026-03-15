@@ -47,26 +47,26 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Programs
 
-- [ ] **PROG-01**: User can browse program catalog from Firestore
+- [x] **PROG-01**: User can browse program catalog from Firestore
 - [ ] **PROG-02**: User can enroll in a program and track weekly progress
 - [ ] **PROG-03**: User can view current session with exercises, sets, and target weights
-- [ ] **PROG-04**: Programs include structured weeks, sessions, and progression schemes
+- [x] **PROG-04**: Programs include structured weeks, sessions, and progression schemes
 
 ### Benchmarks
 
-- [ ] **BNCH-01**: User can browse benchmark catalog (named workouts)
-- [ ] **BNCH-02**: User can record benchmark results with scoring (ForTime, AMRAP rounds+reps, MaxLoad)
+- [x] **BNCH-01**: User can browse benchmark catalog (named workouts)
+- [x] **BNCH-02**: User can record benchmark results with scoring (ForTime, AMRAP rounds+reps, MaxLoad)
 - [ ] **BNCH-03**: User can view benchmark result history and track improvement
 - [ ] **BNCH-04**: User can create custom benchmarks
 
 ### WODs
 
-- [ ] **WODS-01**: User can view daily Workout of the Day from Firestore
-- [ ] **WODS-02**: WODs are matched by date and refreshed from Firestore
+- [x] **WODS-01**: User can view daily Workout of the Day from Firestore
+- [x] **WODS-02**: WODs are matched by date and refreshed from Firestore
 
 ### Cycle Tracking
 
-- [ ] **CYCL-01**: User can log period start and end dates
+- [x] **CYCL-01**: User can log period start and end dates
 - [ ] **CYCL-02**: User can log daily symptoms (energy, mood, cramps, etc.)
 - [ ] **CYCL-03**: App infers current cycle phase from period logs (follicular, ovulatory, luteal, menstrual)
 - [ ] **CYCL-04**: User can view current phase and predicted upcoming phases
@@ -85,9 +85,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Injury Management
 
-- [ ] **INJR-01**: User can create injury profiles with body location and recovery phase
+- [x] **INJR-01**: User can create injury profiles with body location and recovery phase
 - [x] **INJR-02**: Injury adaptation engine automatically substitutes or removes contraindicated exercises
-- [ ] **INJR-03**: User can log pain levels for active injuries
+- [x] **INJR-03**: User can log pain levels for active injuries
 - [x] **INJR-04**: App analyzes pain trends over time and surfaces insights
 - [x] **INJR-05**: Phase transition advisor suggests when to progress recovery phase
 - [x] **INJR-06**: App generates targeted rehab sessions based on injury profile
@@ -201,30 +201,30 @@ Which phases cover which requirements. Updated during roadmap creation.
 | EXEC-04 | Phase 4 | Complete |
 | MAX-01 | Phase 4 | Complete |
 | MAX-02 | Phase 4 | Complete |
-| CYCL-01 | Phase 5 | Pending |
+| CYCL-01 | Phase 5 | Complete |
 | CYCL-02 | Phase 5 | Pending |
 | CYCL-03 | Phase 5 | Pending |
 | CYCL-04 | Phase 5 | Pending |
 | CYCL-05 | Phase 5 | Pending |
 | READ-01 | Phase 5 | Pending |
 | READ-02 | Phase 5 | Pending |
-| INJR-01 | Phase 5 | Pending |
-| INJR-03 | Phase 5 | Pending |
+| INJR-01 | Phase 5 | Complete |
+| INJR-03 | Phase 5 | Complete |
 | AIWK-01 | Phase 5 | Complete |
 | AIWK-02 | Phase 5 | Complete |
 | AIWK-03 | Phase 5 | Pending |
 | AIWK-04 | Phase 5 | Pending |
 | AIWK-05 | Phase 5 | Pending |
-| PROG-01 | Phase 5 | Pending |
+| PROG-01 | Phase 5 | Complete |
 | PROG-02 | Phase 5 | Pending |
 | PROG-03 | Phase 5 | Pending |
-| PROG-04 | Phase 5 | Pending |
-| BNCH-01 | Phase 5 | Pending |
-| BNCH-02 | Phase 5 | Pending |
+| PROG-04 | Phase 5 | Complete |
+| BNCH-01 | Phase 5 | Complete |
+| BNCH-02 | Phase 5 | Complete |
 | BNCH-03 | Phase 5 | Pending |
 | BNCH-04 | Phase 5 | Pending |
-| WODS-01 | Phase 5 | Pending |
-| WODS-02 | Phase 5 | Pending |
+| WODS-01 | Phase 5 | Complete |
+| WODS-02 | Phase 5 | Complete |
 | SUBS-01 | Phase 6 | Pending |
 | SUBS-02 | Phase 6 | Pending |
 | SUBS-03 | Phase 6 | Pending |

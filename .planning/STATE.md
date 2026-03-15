@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: "Completed 05-02: Gemini migration for generateWorkout Cloud Function"
-last_updated: "2026-03-15T13:53:13.778Z"
+stopped_at: Completed 05-01-PLAN.md
+last_updated: "2026-03-15T13:57:18.732Z"
 last_activity: "2026-03-14 — Completed Plan 03-02: 5-step onboarding flow with Art Deco styling, atomic persistence, gender-adaptive step skipping, routing bug fixes"
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 27
-  completed_plans: 19
+  completed_plans: 20
   percent: 16
 ---
 
@@ -68,6 +68,7 @@ Progress: [███░░░░░░░] 16%
 | Phase 04-core-workout-loop P04-07 | 6 | 2 tasks | 10 files |
 | Phase 04-core-workout-loop P04-08 | 12 | 1 tasks | 4 files |
 | Phase 05-differentiating-features P05-02 | 15 | 1 tasks | 7 files |
+| Phase 05-differentiating-features P05-01 | 7 | 2 tasks | 21 files |
 
 ## Accumulated Context
 
@@ -136,6 +137,10 @@ Recent decisions affecting current work:
 - [Phase 04-core-workout-loop]: defaultRestDuration added to AppSettings interface (not a separate key) — keeps settings atomic
 - [Phase 05-differentiating-features]: gemini-2.0-flash with responseMimeType: application/json used for Cloud Function — eliminates text parsing overhead and reduces retry frequency vs Anthropic format
 - [Phase 05-differentiating-features]: minInstances: 1 set on generateWorkout Cloud Function — cold start mitigation for latency-sensitive AI workout generation (GEMINI_API_KEY secret required before deploy)
+- [Phase 05-differentiating-features]: PeriodLogRecord and PainLogRecord wrap domain types with id (UUID) and ISO string dates for Firestore doc IDs and cross-platform date serialization
+- [Phase 05-differentiating-features]: WODRepo factory takes no isGuest parameter — WODs are public read-only data, same Firestore impl for all users
+- [Phase 05-differentiating-features]: FirestoreProgramDocument uses weeks[].sessions[] schema; firestoreProgramToProgram flattens to domain Program.sessions
+- [Phase 05-differentiating-features]: programs.json bundled in src/resources/ — LocalProgramRepo serves programs offline with no network dependency
 
 ### Pending Todos
 
@@ -151,6 +156,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-15T13:53:13.776Z
-Stopped at: Completed 05-02: Gemini migration for generateWorkout Cloud Function
+Last session: 2026-03-15T13:57:18.730Z
+Stopped at: Completed 05-01-PLAN.md
 Resume file: None
