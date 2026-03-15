@@ -40,7 +40,11 @@ import { useEntitlementContext } from '@/src/entitlements/EntitlementContext';
 import { getCycleRepo, recordToPeriodLog } from '@/src/repositories/CycleRepo';
 import { getInjuryRepo, type InjuryProfileRecord } from '@/src/repositories/InjuryRepo';
 import { getReadinessRepo, type ReadinessSurveyRecord } from '@/src/repositories/ReadinessRepo';
-import { getOnboardingProfileRepo } from '@/src/repositories/OnboardingProfileRepo';
+import { getOnboardingProfileRepo, type OnboardingProfile } from '@/src/repositories/OnboardingProfileRepo';
+import { getSettingsRepo, type AppSettings } from '@/src/repositories/SettingsRepo';
+import { getExerciseMaxRepo } from '@/src/repositories/ExerciseMaxRepo';
+import { getWorkoutRepo, type WorkoutRecord } from '@/src/repositories/WorkoutRepo';
+import type { ExerciseMax } from '@/src/domain/pr-detection/pr-types';
 import { calculateCycleStatus } from '@/src/domain/cycle/cycle-calculations';
 import type { CyclePhase, WorkoutFocus, EnergyLevel, EquipmentAccess } from '@/src/domain/types';
 import { generateOfflineWorkout } from '@/src/domain/ai-workout/offline-workout-generator';
@@ -114,6 +118,12 @@ export default function AIWorkoutConfigScreen(): React.JSX.Element {
   const [injuries, setInjuries] = useState<InjuryProfileRecord[]>([]);
   const [readiness, setReadiness] = useState<ReadinessSurveyRecord | null>(null);
 
+  // ── User profile / settings / strength data ───────────────────────────────
+  const [profile, setProfile] = useState<OnboardingProfile | null>(null);
+  const [userSettings, setUserSettings] = useState<AppSettings | null>(null);
+  const [userMaxes, setUserMaxes] = useState<ExerciseMax[]>([]);
+  const [recentWorkouts, setRecentWorkouts] = useState<WorkoutRecord[]>([]);
+
   // ── Generation state ──────────────────────────────────────────────────────
   const [isGenerating, setIsGenerating] = useState(false);
   const generatingRef = useRef(false);
@@ -132,9 +142,10 @@ export default function AIWorkoutConfigScreen(): React.JSX.Element {
     try {
       // Load cycle phase — only if user opted into cycle tracking
       const profileRepo = getOnboardingProfileRepo(isGuest);
-      const profile = await profileRepo.getProfile(uid);
+      const fetchedProfile = await profileRepo.getProfile(uid);
+      setProfile(fetchedProfile);
 
-      if (profile?.cycleOptIn === true) {
+      if (fetchedProfile?.cycleOptIn === true) {
         const cycleRepo = getCycleRepo(isGuest);
         const [periodLogRecords, cycleSettings] = await Promise.all([
           cycleRepo.getPeriodLogs(uid),
@@ -172,6 +183,33 @@ export default function AIWorkoutConfigScreen(): React.JSX.Element {
     } catch {
       // Readiness data unavailable — proceed without it
     }
+
+    try {
+      // Load user settings (weight unit preference)
+      const settingsRepo = getSettingsRepo(isGuest);
+      const s = await settingsRepo.getSettings(uid);
+      setUserSettings(s);
+    } catch {
+      // Settings unavailable — proceed with defaults
+    }
+
+    try {
+      // Load exercise maxes for strength context
+      const maxRepo = getExerciseMaxRepo(isGuest);
+      const m = await maxRepo.getAllMaxes(uid);
+      setUserMaxes(m);
+    } catch {
+      // Maxes unavailable — proceed with empty array
+    }
+
+    try {
+      // Load recent workouts for training split awareness
+      const workoutRepo = getWorkoutRepo(isGuest);
+      const h = await workoutRepo.getHistory(uid, 5);
+      setRecentWorkouts(h);
+    } catch {
+      // Workout history unavailable — proceed with empty array
+    }
   }, [uid, isGuest]);
 
   // ── Generate workout ──────────────────────────────────────────────────────
@@ -203,15 +241,20 @@ export default function AIWorkoutConfigScreen(): React.JSX.Element {
         focus,
         energyLevel,
         equipment,
-        maxes: [],
-        recentWorkouts: [],
+        maxes: userMaxes.map((m) => ({ name: m.exerciseId, weightLb: m.weight })),
+        recentWorkouts: recentWorkouts.slice(0, 5).map((w) => ({
+          date: new Date(w.completedAt),
+          focus: w.workout?.questionnaire?.focus ?? 'full_body',
+          exercises: w.exercises?.map((e) => e.exerciseName) ?? (w.workout?.exercises?.map((e) => e.name) ?? []),
+          durationMinutes: Math.round(w.durationSeconds / 60),
+        })),
         cyclePhase: cyclePhase ?? null,
         readinessTier,
         activeInjuries: activeInjuries.map(injuryToSummary),
-        experienceLevel: 'intermediate',
-        primaryGoal: 'general_fitness',
-        gender: 'female',
-        weightUnit: 'lb',
+        experienceLevel: profile?.experienceLevel ?? 'intermediate',
+        primaryGoal: profile?.primaryGoal ?? 'general_fitness',
+        gender: profile?.gender ?? 'female',
+        weightUnit: userSettings?.weightUnit ?? 'lb',
         desiredSkills: [],
         benchmarkSummaries: [],
         bodyWeightKg: null,
@@ -255,7 +298,7 @@ export default function AIWorkoutConfigScreen(): React.JSX.Element {
       generatingRef.current = false;
       setIsGenerating(false);
     }
-  }, [uid, timeMinutes, focus, energyLevel, equipment, cyclePhase, injuries, readiness, router]);
+  }, [uid, timeMinutes, focus, energyLevel, equipment, cyclePhase, injuries, readiness, router, profile, userSettings, userMaxes, recentWorkouts]);
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
