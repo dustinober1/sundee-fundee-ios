@@ -91,6 +91,14 @@ export default function AppLayout(): React.JSX.Element | null {
         name="timer-mode"
         options={{ headerShown: false, presentation: 'fullScreenModal' }}
       />
+      <Stack.Screen
+        name="workout-session"
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="exercise-picker"
+        options={{ headerShown: false, presentation: 'modal' }}
+      />
     </Stack>
   );
 }
