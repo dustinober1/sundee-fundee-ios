@@ -176,6 +176,10 @@ Plans:
 **Goal:** Historical weight display respects user unit preference; goodbye screen has proper navigation; web export bundles into zip
 **Requirements:** PLAT-05
 **Gap Closure:** Closes tech debt from audit — formatWeight in detail views, goodbye.tsx Stack.Screen, web CSV zip
+**Plans:** 1 plan
+
+Plans:
+- [ ] 10-01-PLAN.md — Fix formatWeight in workout detail, add goodbye Stack.Screen, bundle web CSV export into zip
 
 ## Progress
 
@@ -193,4 +197,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 7. Polish and Pre-Launch | 3/3 | Complete   | 2026-03-15 |
 | 8. Fix Cycle Adaptation Wiring | 1/1 | Complete   | 2026-03-15 |
 | 9. Fix Guest Migration + AI Profile Wiring | 2/2 | Complete   | 2026-03-15 |
-| 10. UI Polish Fixes | 0/0 | Not Started |  |
+| 10. UI Polish Fixes | 0/1 | Not Started |  |
