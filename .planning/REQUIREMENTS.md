@@ -25,10 +25,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Workout Core
 
-- [ ] **WORK-01**: User can log sets with reps and weight for any exercise
-- [ ] **WORK-02**: User can start a rest timer between sets that works in background
-- [ ] **WORK-03**: Rest timer survives screen lock and app backgrounding
-- [ ] **WORK-04**: User can search and filter exercise library (200+ exercises)
+- [x] **WORK-01**: User can log sets with reps and weight for any exercise
+- [x] **WORK-02**: User can start a rest timer between sets that works in background
+- [x] **WORK-03**: Rest timer survives screen lock and app backgrounding
+- [x] **WORK-04**: User can search and filter exercise library (200+ exercises)
 - [ ] **WORK-05**: User can create custom exercises
 - [x] **WORK-06**: App auto-detects personal records on set completion
 - [ ] **WORK-07**: User can view workout history in chronological order
@@ -36,14 +36,14 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **WORK-09**: User can delete workouts from history
 - [ ] **WORK-10**: User can view progress charts per exercise (volume/load over time)
 - [x] **WORK-11**: All workout logging works offline without data loss
-- [ ] **WORK-12**: User can build custom workout routines with drag-and-drop ordering
+- [x] **WORK-12**: User can build custom workout routines with drag-and-drop ordering
 
 ### Workout Execution
 
-- [ ] **EXEC-01**: User can execute ForTime workouts with countdown timer
-- [ ] **EXEC-02**: User can execute AMRAP workouts with countdown timer
-- [ ] **EXEC-03**: User can execute EMOM workouts with interval timer
-- [ ] **EXEC-04**: Timer state preserves through screen lock
+- [x] **EXEC-01**: User can execute ForTime workouts with countdown timer
+- [x] **EXEC-02**: User can execute AMRAP workouts with countdown timer
+- [x] **EXEC-03**: User can execute EMOM workouts with interval timer
+- [x] **EXEC-04**: Timer state preserves through screen lock
 
 ### Programs
 
@@ -102,7 +102,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### One-Rep Max
 
-- [ ] **MAX-01**: User can track one-rep max for any lift
+- [x] **MAX-01**: User can track one-rep max for any lift
 - [ ] **MAX-02**: User can view 1RM history over time
 - [x] **MAX-03**: App estimates 1RM from logged sets using standard formulas
 
@@ -185,21 +185,21 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ONBD-02 | Phase 3 | Complete |
 | ONBD-03 | Phase 3 | Complete |
 | WORK-11 | Phase 3 | Complete |
-| WORK-01 | Phase 4 | Pending |
-| WORK-02 | Phase 4 | Pending |
-| WORK-03 | Phase 4 | Pending |
-| WORK-04 | Phase 4 | Pending |
+| WORK-01 | Phase 4 | Complete |
+| WORK-02 | Phase 4 | Complete |
+| WORK-03 | Phase 4 | Complete |
+| WORK-04 | Phase 4 | Complete |
 | WORK-05 | Phase 4 | Pending |
 | WORK-07 | Phase 4 | Pending |
 | WORK-08 | Phase 4 | Pending |
 | WORK-09 | Phase 4 | Pending |
 | WORK-10 | Phase 4 | Pending |
-| WORK-12 | Phase 4 | Pending |
-| EXEC-01 | Phase 4 | Pending |
-| EXEC-02 | Phase 4 | Pending |
-| EXEC-03 | Phase 4 | Pending |
-| EXEC-04 | Phase 4 | Pending |
-| MAX-01 | Phase 4 | Pending |
+| WORK-12 | Phase 4 | Complete |
+| EXEC-01 | Phase 4 | Complete |
+| EXEC-02 | Phase 4 | Complete |
+| EXEC-03 | Phase 4 | Complete |
+| EXEC-04 | Phase 4 | Complete |
+| MAX-01 | Phase 4 | Complete |
 | MAX-02 | Phase 4 | Pending |
 | CYCL-01 | Phase 5 | Pending |
 | CYCL-02 | Phase 5 | Pending |

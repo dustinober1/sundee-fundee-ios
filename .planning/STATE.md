@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 04-02-PLAN.md — PR Detection and Workout Session Actions
-last_updated: "2026-03-15T00:28:37.523Z"
+stopped_at: Completed 04-01-PLAN.md
+last_updated: "2026-03-15T00:29:24.014Z"
 last_activity: "2026-03-14 — Completed Plan 03-02: 5-step onboarding flow with Art Deco styling, atomic persistence, gender-adaptive step skipping, routing bug fixes"
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 18
-  completed_plans: 11
+  completed_plans: 12
   percent: 16
 ---
 
@@ -60,6 +60,7 @@ Progress: [███░░░░░░░] 16%
 | Phase 02-domain-layer-port P05 | 5 | 1 tasks | 2 files |
 | Phase 03-data-layer-and-offline-architecture P03-01 | 7 | 2 tasks | 27 files |
 | Phase 04-core-workout-loop P04-02 | 3 | 2 tasks | 6 files |
+| Phase 04-core-workout-loop P01 | 5 | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -107,6 +108,9 @@ Recent decisions affecting current work:
 - [03-02]: app/_layout.tsx no longer gates Stack render on onboardingComplete — blank-page bug when unauthenticated; all routing owned by (app)/_layout.tsx
 - [Phase 04-core-workout-loop]: ExerciseMax in pr-detection subdomain is separate from ExerciseMax in ai-workout — different shape with repRange + estimated1RM vs simple name + weightLb
 - [Phase 04-core-workout-loop]: checkForPR takes exerciseId string not exercise name — matches Swift domain pattern of ID-based lookups for correctness across exercise renames
+- [Phase 04-core-workout-loop]: exercises.json bundled as static JSON (202 entries) — no network dependency for exercise catalog
+- [Phase 04-core-workout-loop]: Timer functions accept optional 'now' parameter — enables deterministic unit tests without mocking Date.now
+- [Phase 04-core-workout-loop]: forTime mode uses durationMs=0 sentinel — isTimerComplete always false for stopwatch mode
 
 ### Pending Todos
 
@@ -122,6 +126,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-15T00:28:37.521Z
-Stopped at: Completed 04-02-PLAN.md — PR Detection and Workout Session Actions
+Last session: 2026-03-15T00:29:24.011Z
+Stopped at: Completed 04-01-PLAN.md
 Resume file: None
