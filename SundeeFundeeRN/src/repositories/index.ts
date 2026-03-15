@@ -35,5 +35,17 @@ export { getReadinessRepo } from './ReadinessRepo';
 export { FirestoreReadinessRepo } from './FirestoreReadinessRepo';
 export { LocalReadinessRepo } from './LocalReadinessRepo';
 
+// ─── ExerciseRepo ─────────────────────────────────────────────────────────────
+export type { ExerciseRepository } from './ExerciseRepo';
+export { getExerciseRepo } from './ExerciseRepo';
+export { FirestoreExerciseRepo } from './FirestoreExerciseRepo';
+export { LocalExerciseRepo } from './LocalExerciseRepo';
+
+// ─── ExerciseMaxRepo ──────────────────────────────────────────────────────────
+export type { ExerciseMaxRepository } from './ExerciseMaxRepo';
+export { getExerciseMaxRepo } from './ExerciseMaxRepo';
+export { FirestoreExerciseMaxRepo } from './FirestoreExerciseMaxRepo';
+export { LocalExerciseMaxRepo } from './LocalExerciseMaxRepo';
+
 // ─── Migration ────────────────────────────────────────────────────────────────
 export { migrateGuestDataToFirestore } from './migration';
