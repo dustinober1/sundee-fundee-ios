@@ -599,6 +599,37 @@ const label = delta > 0 ? `↑ ${delta}%` : `↓ ${Math.abs(delta)}%`;
 
 ---
 
+## Cross-Researcher Findings (Gemini + Qwen)
+
+Additional insights gathered from parallel Gemini and Qwen research sessions:
+
+### Body Map Component
+- **`react-native-body-highlighter`** (Gemini): Built on `react-native-svg`, provides front/back interactive body diagram with region IDs that map to `BodyLocation` type. Viable alternative to raw SVG paths.
+- **Custom SVG with `react-native-svg`** (Qwen): Use `Path` + `Pressable` regions with hit detection. More customizable but more implementation effort. Both approaches are valid — planner should choose based on design fidelity needs.
+
+### Firestore Schema Patterns (Qwen)
+- **Pain logs: hybrid embedded + subcollection** — Embed last 7 days in `InjuryProfile` for quick UI access, full history in `painLogs` subcollection for trend analysis. Avoids extra read for common case.
+- **Programs: denormalized** — Nest `weeks[] → sessions[] → exercises[]` inside program doc for single-read catalog browsing. Programs are admin-seeded, read-heavy — denormalization is appropriate.
+- **Benchmarks: user results in user subcollection** — `/users/{uid}/benchmarkResults/{resultId}` with denormalized `benchmarkName` and `scoringType` for display without join.
+- **Security rules additions:** Programs and WODs `allow read: if request.auth != null; allow write: if false;` (admin-only writes via console/CLI).
+
+### Cloud Function Enhancements (Qwen)
+- **Rate limiting per user** — Track requests in `rateLimits` collection, cap at 10/hour per user. Prevents abuse of AI generation endpoint.
+- **`responseMimeType: "application/json"`** — Gemini supports native JSON mode in `generationConfig`, eliminating need for response parsing/validation.
+- **Concurrency setting** — `concurrency: 80` allows single instance to handle 80 concurrent requests, maximizing `minInstances: 1` efficiency.
+
+### Offline Program Catalog (Qwen)
+- **Bundle top 5 programs** as static JSON for offline/guest access, similar to existing `exercises.json` pattern. Firestore programs serve as live catalog with TTL-based cache refresh.
+
+### Navigation (Both)
+- **Expo Router `href: null`** confirmed by both researchers as the correct approach for conditional Cycle tab visibility.
+- **Deep linking scheme** `sundeefundee://` should be configured in `app.json` for program/benchmark/WOD deep links.
+
+### Calendar Theming (Gemini)
+- `react-native-calendars` supports `markingType={'period'}` with `startingDay`/`endingDay` for range visualization — maps directly to period start/end dates without custom logic.
+
+---
+
 ## Sources
 
 ### Primary (HIGH confidence)
