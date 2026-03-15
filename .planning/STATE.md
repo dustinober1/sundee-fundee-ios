@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 04-05-PLAN.md
-last_updated: "2026-03-15T00:46:26.339Z"
+stopped_at: Completed 04-07-PLAN.md
+last_updated: "2026-03-15T00:55:31.987Z"
 last_activity: "2026-03-14 — Completed Plan 03-02: 5-step onboarding flow with Art Deco styling, atomic persistence, gender-adaptive step skipping, routing bug fixes"
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 18
-  completed_plans: 16
+  completed_plans: 17
   percent: 16
 ---
 
@@ -65,6 +65,7 @@ Progress: [███░░░░░░░] 16%
 | Phase 04-core-workout-loop P04-04 | 7 | 2 tasks | 7 files |
 | Phase 04-core-workout-loop P04-06 | 22 | 2 tasks | 10 files |
 | Phase 04-core-workout-loop P04-05 | 8 | 2 tasks | 13 files |
+| Phase 04-core-workout-loop P04-07 | 6 | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -125,6 +126,9 @@ Recent decisions affecting current work:
 - [Phase 04-core-workout-loop]: EMOM schedules N individual notifications per minute (not repeating) — individual schedule per minute for reliability and per-minute cancellation on pause
 - [Phase 04-core-workout-loop]: useFocusEffect + router.setParams used for exercise-picker result passing — Expo Router has no native modal result callback
 - [Phase 04-core-workout-loop]: useRestTimer: 100ms tick interval for display; AppState listener re-syncs from timestamps on foreground
+- [Phase 04-core-workout-loop]: workoutRecordToHistoryItem maps WorkoutRecord.source to HistoryItemSource at UI layer — keeps repository types decoupled from domain types
+- [Phase 04-core-workout-loop]: AI workout detail uses AIExerciseSection — GeneratedExercise.sets is a number not array, requires separate rendering from CompletedExercise
+- [Phase 04-core-workout-loop]: Volume chart shown only when 2+ data points — single point provides no trend information
 
 ### Pending Todos
 
@@ -140,6 +144,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-15T00:46:26.336Z
-Stopped at: Completed 04-05-PLAN.md
+Last session: 2026-03-15T00:55:31.984Z
+Stopped at: Completed 04-07-PLAN.md
 Resume file: None
