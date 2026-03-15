@@ -106,7 +106,18 @@ Plans:
   3. User can generate an AI workout specifying time, focus, equipment, and energy level — the workout incorporates their current cycle phase, active injuries, and readiness score; when offline, a templated fallback workout is generated instead
   4. User can browse the program catalog from Firestore, enroll in a program, and see current session exercises with target weights calculated from their logged 1RMs
   5. User can browse the benchmark catalog, record a result with correct scoring format (ForTime time, AMRAP rounds+reps, MaxLoad weight), view their improvement history, and create custom benchmarks; daily WOD from Firestore is visible on the home feed
-**Plans**: TBD
+**Plans:** 9 plans
+
+Plans:
+- [ ] 05-01-PLAN.md — Create all 5 repositories (Cycle, Injury, Program, Benchmark, WOD) with dual implementations and tests
+- [ ] 05-02-PLAN.md — Migrate Cloud Function from Anthropic to Gemini with minInstances and JSON response mode
+- [ ] 05-03-PLAN.md — Build readiness survey UI (dashboard card + modal) and integrate into dashboard
+- [ ] 05-04-PLAN.md — Build Cycle tab with period calendar, phase banner, 2-cycle forecast, conditional tab visibility
+- [ ] 05-05-PLAN.md — Build injury management: body map, injury profile, pain logging, trend chart, rehab, transition advice
+- [ ] 05-06-PLAN.md — Build program catalog, enrollment with 1RM prompt, and active session with target weights
+- [ ] 05-07-PLAN.md — Build benchmark catalog with scoring-aware recording, history charts, custom creation, and WOD display
+- [ ] 05-08-PLAN.md — Build AI workout generation flow: config cards, adaptation context, Cloud Function call, offline fallback, preview
+- [ ] 05-09-PLAN.md — Wire dashboard integration, workout session adaptation indicators, and end-to-end verification
 
 ### Phase 6: Subscriptions and Monetization
 **Goal**: Users can subscribe via in-app purchase or Stripe web checkout; premium features are gated; entitlements are unified across platforms
@@ -143,6 +154,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 2. Domain Layer Port | 4/5 | In Progress|  |
 | 3. Data Layer and Offline Architecture | 2/2 | Complete   | 2026-03-14 |
 | 4. Core Workout Loop | 8/8 | Complete   | 2026-03-15 |
-| 5. Differentiating Features | 0/TBD | Not started | - |
+| 5. Differentiating Features | 0/9 | Not started | - |
 | 6. Subscriptions and Monetization | 0/TBD | Not started | - |
 | 7. Polish and Pre-Launch | 0/TBD | Not started | - |
