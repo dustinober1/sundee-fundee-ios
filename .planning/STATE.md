@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 05-03-PLAN.md
-last_updated: "2026-03-15T14:05:53.453Z"
+stopped_at: Completed 05-07-PLAN.md
+last_updated: "2026-03-15T14:06:50.632Z"
 last_activity: "2026-03-14 — Completed Plan 03-02: 5-step onboarding flow with Art Deco styling, atomic persistence, gender-adaptive step skipping, routing bug fixes"
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 27
-  completed_plans: 22
+  completed_plans: 24
   percent: 16
 ---
 
@@ -71,6 +71,8 @@ Progress: [███░░░░░░░] 16%
 | Phase 05-differentiating-features P05-01 | 7 | 2 tasks | 21 files |
 | Phase 05-differentiating-features P05-04 | 12 | 2 tasks | 7 files |
 | Phase 05-differentiating-features P05-03 | 12 | 2 tasks | 9 files |
+| Phase 05-differentiating-features P05-07 | 5 | 2 tasks | 8 files |
+| Phase 05-differentiating-features P05-05 | 20 | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -149,6 +151,10 @@ Recent decisions affecting current work:
 - [Phase 05-differentiating-features]: 4-slider readiness survey (sleep/energy/stress/soreness) satisfies READ-01 and CYCL-02 — no separate symptom logging feature needed
 - [Phase 05-differentiating-features]: Step-based slider control instead of @react-native-community/slider — avoids new native dependency, fully testable
 - [Phase 05-differentiating-features]: calculateReadinessScore energyLevel defaults to 5 for backward compatibility with existing 3-param callers
+- [Phase 05-differentiating-features]: formatScore('reps', N) treats N>=10000 as encoded roundsAndReps, otherwise plain reps — single scorer handles both AMRAP and rep-only benchmarks
+- [Phase 05-differentiating-features]: WOD Start expands exercise list inline (not workout-session) — WOD exercises are string[] plain text not structured data
+- [Phase 05-differentiating-features]: BodyMap uses Pressable grid cells instead of react-native-svg (not installed) — plan explicitly offered this as fallback approach
+- [Phase 05-differentiating-features]: recoveryPhaseLabel/recoveryPhaseColor defined in injuries/index.tsx and imported by [id].tsx — single source of truth
 
 ### Pending Todos
 
@@ -164,6 +170,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-15T14:05:53.451Z
-Stopped at: Completed 05-03-PLAN.md
+Last session: 2026-03-15T14:06:44.277Z
+Stopped at: Completed 05-07-PLAN.md
 Resume file: None
