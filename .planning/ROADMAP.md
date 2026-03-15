@@ -84,7 +84,17 @@ Plans:
   3. ForTime, AMRAP, and EMOM workout timers all function correctly; timer state survives screen lock on iOS and Android
   4. App automatically detects and displays a personal record notification when a set completion exceeds the user's previous best weight for that exercise
   5. User can view workout history filtered by source (AI, Program, Custom), delete individual workouts, view per-exercise progress charts, and track 1RM history over time
-**Plans**: TBD
+**Plans:** 8 plans
+
+Plans:
+- [ ] 04-01-PLAN.md — Install deps, create exercise catalog with search/filter, timer domain types, workout session and PR detection contracts
+- [ ] 04-02-PLAN.md — TDD: PR detection logic (multi-rep-range) and workout session state management (add/remove/complete/reorder)
+- [ ] 04-03-PLAN.md — ExerciseRepo + ExerciseMaxRepo with dual implementations, expand WorkoutRecord for custom workouts
+- [ ] 04-04-PLAN.md — Expand history with 'custom' source, filtering, date grouping, progress chart data preparation
+- [ ] 04-05-PLAN.md — Workout logging UI: exercise picker, session screen, set rows, rest timer bar, PR toast
+- [ ] 04-06-PLAN.md — Timed workout modes: ForTime/AMRAP/EMOM timer hook, 3-2-1-Go countdown, full-screen timer UI
+- [ ] 04-07-PLAN.md — History tab, Maxes tab, workout detail, exercise detail with 1RM charts and rep-range PRs
+- [ ] 04-08-PLAN.md — Wire tabs + modals, dashboard entry points, settings rest timer, end-to-end verification checkpoint
 
 ### Phase 5: Differentiating Features
 **Goal**: Cycle-aware training adaptation, injury modification, AI workout generation, programs, benchmarks, WODs, and readiness are all live and integrated
@@ -132,7 +142,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 1. Foundation and Infrastructure | 3/3 | Complete   | 2026-03-14 |
 | 2. Domain Layer Port | 4/5 | In Progress|  |
 | 3. Data Layer and Offline Architecture | 2/2 | Complete   | 2026-03-14 |
-| 4. Core Workout Loop | 0/TBD | Not started | - |
+| 4. Core Workout Loop | 0/8 | Not started | - |
 | 5. Differentiating Features | 0/TBD | Not started | - |
 | 6. Subscriptions and Monetization | 0/TBD | Not started | - |
 | 7. Polish and Pre-Launch | 0/TBD | Not started | - |
