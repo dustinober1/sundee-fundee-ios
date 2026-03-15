@@ -25,6 +25,37 @@ const mockCustomerInfo = {
   firstSeen: new Date().toISOString(),
 };
 
+const mockMonthlyPackage = {
+  identifier: '$rc_monthly',
+  packageType: 'MONTHLY',
+  product: {
+    identifier: 'com.sundeefundee.premium.monthly',
+    priceString: '$9.99',
+    price: 9.99,
+  },
+};
+
+const mockAnnualPackage = {
+  identifier: '$rc_annual',
+  packageType: 'ANNUAL',
+  product: {
+    identifier: 'com.sundeefundee.premium.annual',
+    priceString: '$59.99',
+    price: 59.99,
+  },
+};
+
+const mockOfferings = {
+  current: {
+    identifier: 'default',
+    serverDescription: 'Default offering',
+    availablePackages: [mockMonthlyPackage, mockAnnualPackage],
+    monthly: mockMonthlyPackage,
+    annual: mockAnnualPackage,
+  },
+  all: {},
+};
+
 const Purchases = {
   configure: jest.fn(),
   getCustomerInfo: jest.fn().mockResolvedValue(mockCustomerInfo),
@@ -33,8 +64,14 @@ const Purchases = {
   logOut: jest.fn().mockResolvedValue(mockCustomerInfo),
   setAttributes: jest.fn().mockResolvedValue(undefined),
   purchaseProduct: jest.fn().mockResolvedValue({ customerInfo: mockCustomerInfo }),
+  purchasePackage: jest.fn().mockResolvedValue({ customerInfo: mockCustomerInfo }),
   restorePurchases: jest.fn().mockResolvedValue(mockCustomerInfo),
   isConfigured: jest.fn().mockReturnValue(true),
+  addCustomerInfoUpdateListener: jest.fn().mockReturnValue({ remove: jest.fn() }),
+  getOfferings: jest.fn().mockResolvedValue(mockOfferings),
+  setLogLevel: jest.fn(),
+  LOG_LEVEL: { DEBUG: 'DEBUG', INFO: 'INFO', WARN: 'WARN', ERROR: 'ERROR', VERBOSE: 'VERBOSE' },
 };
 
+export { mockCustomerInfo, mockMonthlyPackage, mockAnnualPackage, mockOfferings };
 export default Purchases;

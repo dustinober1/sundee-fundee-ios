@@ -7,6 +7,8 @@
  * 3. Wire UserRepository: authenticated users → Firestore, guests → AsyncStorage
  * 4. Check hasCompletedOnboarding and expose it via state for routing decisions
  * 5. Render the root Stack navigator via expo-router (includes onboarding route group)
+ * 6. Call Purchases.logIn(user.uid) on non-guest sign-in for RC identity binding
+ * 7. Wrap Stack with EntitlementProvider for app-wide premium status access
  */
 import { useCallback, useEffect } from 'react';
 import { Platform } from 'react-native';
@@ -14,6 +16,7 @@ import { Stack } from 'expo-router';
 import type { AuthUser } from '@/src/firebase/auth';
 
 import { SessionProvider } from '@/src/auth/AuthContext';
+import { EntitlementProvider } from '@/src/entitlements/EntitlementContext';
 import { FirestoreUserRepo } from '@/src/repositories/FirestoreUserRepo';
 import { LocalUserRepo } from '@/src/repositories/LocalUserRepo';
 import type { UserProfile } from '@/src/repositories/UserRepository';
@@ -95,8 +98,8 @@ export default function RootLayout(): React.JSX.Element {
   /**
    * Called by SessionProvider whenever a user signs in (non-null user).
    * Routes to Firestore (authenticated users) or AsyncStorage (guest users).
+   * Wires RevenueCat identity for non-guest, non-web users.
    * Errors are non-fatal: a failed write should not crash the app.
-   *
    */
   const handleUserSignIn = useCallback(
     async (user: AuthUser): Promise<void> => {
@@ -114,18 +117,33 @@ export default function RootLayout(): React.JSX.Element {
         // Log but do not surface — user is already signed in at this point
         console.warn('[RootLayout] Failed to persist user profile:', error);
       }
+
+      // Wire RevenueCat identity for authenticated non-guest mobile users.
+      // Must run after profile persistence (non-fatal if it fails).
+      if (Platform.OS !== 'web' && !user.isAnonymous) {
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-require-imports
+          const Purchases = require('react-native-purchases').default;
+          await Purchases.logIn(user.uid);
+        } catch {
+          // RC logIn failure is non-fatal — entitlement checks will still work
+          // via getCustomerInfo fallback in useEntitlements
+        }
+      }
     },
     []
   );
 
   return (
     <SessionProvider onUserSignIn={handleUserSignIn}>
-      <Stack>
-        <Stack.Screen name="(app)" options={{ headerShown: false }} />
-        <Stack.Screen name="sign-in" options={{ headerShown: false }} />
-        <Stack.Screen name="verify-email" options={{ headerShown: false }} />
-        <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
-      </Stack>
+      <EntitlementProvider>
+        <Stack>
+          <Stack.Screen name="(app)" options={{ headerShown: false }} />
+          <Stack.Screen name="sign-in" options={{ headerShown: false }} />
+          <Stack.Screen name="verify-email" options={{ headerShown: false }} />
+          <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
+        </Stack>
+      </EntitlementProvider>
     </SessionProvider>
   );
 }
