@@ -15,7 +15,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **AUTH-04**: User can continue as guest without creating an account
 - [x] **AUTH-05**: User session persists across app restart
 - [x] **AUTH-06**: User can sign out from any screen
-- [ ] **AUTH-07**: User data syncs across devices when authenticated
+- [x] **AUTH-07**: User data syncs across devices when authenticated
 
 ### Onboarding
 
@@ -168,7 +168,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AUTH-04 | Phase 1 | Complete |
 | AUTH-05 | Phase 1 | Complete |
 | AUTH-06 | Phase 1 | Complete |
-| AUTH-07 | Phase 9 | Pending |
+| AUTH-07 | Phase 9 | Complete |
 | PLAT-01 | Phase 1 | Complete |
 | PLAT-02 | Phase 1 | Complete |
 | PLAT-03 | Phase 1 | Complete |

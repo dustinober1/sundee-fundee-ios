@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Phase 9 context gathered
-last_updated: "2026-03-15T21:15:50.613Z"
+stopped_at: Completed 09-fix-guest-migration-ai-profile/09-01-PLAN.md
+last_updated: "2026-03-15T21:44:44.877Z"
 last_activity: "2026-03-14 — Completed Plan 03-02: 5-step onboarding flow with Art Deco styling, atomic persistence, gender-adaptive step skipping, routing bug fixes"
 progress:
   total_phases: 10
   completed_phases: 8
-  total_plans: 34
-  completed_plans: 34
+  total_plans: 36
+  completed_plans: 35
   percent: 16
 ---
 
@@ -83,6 +83,7 @@ Progress: [███░░░░░░░] 16%
 | Phase 07-polish-and-pre-launch P07-01 | 6 | 2 tasks | 9 files |
 | Phase 07-polish-and-pre-launch P07-03 | 14 | 2 tasks | 12 files |
 | Phase 08-fix-cycle-adaptation-wiring P08-01 | 2 | 2 tasks | 3 files |
+| Phase 09-fix-guest-migration-ai-profile P09-01 | 7 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -191,6 +192,8 @@ Recent decisions affecting current work:
 - [Phase 07-polish-and-pre-launch]: jest.mock() factory in test files rather than direct __mocks__ imports ensures same mock reference in test and module under test
 - [Phase 07-polish-and-pre-launch]: testPathIgnorePatterns: /lib/ added to Jest config to exclude compiled test artifacts from runs
 - [Phase 08-fix-cycle-adaptation-wiring]: [08-01]: Cycle adaptation gate uses profile.cycleOptIn from OnboardingProfileRepo — not cycleSettings.cycleTrackingEnabled which does not exist on the CycleSettings type
+- [Phase 09-fix-guest-migration-ai-profile]: [09-01]: migrateGuestDataToFirestore uses static import not dynamic import — dynamic import() fails in Jest CommonJS mode without --experimental-vm-modules; no circular dependency risk since migration.ts does not import from useGuestSignIn.ts
+- [Phase 09-fix-guest-migration-ai-profile]: [09-01]: jest.mock() factory uses inline jest.fn(), then module is imported after mock declaration — Babel hoisting causes TDZ failure when factory references const variables declared outside it
 
 ### Pending Todos
 
@@ -206,6 +209,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-15T21:15:50.607Z
-Stopped at: Phase 9 context gathered
-Resume file: .planning/phases/09-fix-guest-migration-ai-profile/09-CONTEXT.md
+Last session: 2026-03-15T21:44:44.874Z
+Stopped at: Completed 09-fix-guest-migration-ai-profile/09-01-PLAN.md
+Resume file: None
