@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 05-07-PLAN.md
-last_updated: "2026-03-15T14:06:50.632Z"
+stopped_at: Completed 05-06-PLAN.md
+last_updated: "2026-03-15T14:07:27.002Z"
 last_activity: "2026-03-14 — Completed Plan 03-02: 5-step onboarding flow with Art Deco styling, atomic persistence, gender-adaptive step skipping, routing bug fixes"
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 27
-  completed_plans: 24
+  completed_plans: 25
   percent: 16
 ---
 
@@ -73,6 +73,7 @@ Progress: [███░░░░░░░] 16%
 | Phase 05-differentiating-features P05-03 | 12 | 2 tasks | 9 files |
 | Phase 05-differentiating-features P05-07 | 5 | 2 tasks | 8 files |
 | Phase 05-differentiating-features P05-05 | 20 | 2 tasks | 8 files |
+| Phase 05-differentiating-features P06 | 6 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -155,6 +156,8 @@ Recent decisions affecting current work:
 - [Phase 05-differentiating-features]: WOD Start expands exercise list inline (not workout-session) — WOD exercises are string[] plain text not structured data
 - [Phase 05-differentiating-features]: BodyMap uses Pressable grid cells instead of react-native-svg (not installed) — plan explicitly offered this as fallback approach
 - [Phase 05-differentiating-features]: recoveryPhaseLabel/recoveryPhaseColor defined in injuries/index.tsx and imported by [id].tsx — single source of truth
+- [Phase 05-differentiating-features]: fixed ExerciseValue with value <= 1.0 treated as 1RM percentage — programs.json uses text weights today but future programs can encode percentages as fractions
+- [Phase 05-differentiating-features]: getMissing1RMs excludes text and amrap weights — only fixed percentage ExerciseValues require a 1RM; Skip is first-class action in enrollment flow
 
 ### Pending Todos
 
@@ -170,6 +173,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-15T14:06:44.277Z
-Stopped at: Completed 05-07-PLAN.md
+Last session: 2026-03-15T14:07:26.999Z
+Stopped at: Completed 05-06-PLAN.md
 Resume file: None

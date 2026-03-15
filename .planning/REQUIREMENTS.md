@@ -48,8 +48,8 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Programs
 
 - [x] **PROG-01**: User can browse program catalog from Firestore
-- [ ] **PROG-02**: User can enroll in a program and track weekly progress
-- [ ] **PROG-03**: User can view current session with exercises, sets, and target weights
+- [x] **PROG-02**: User can enroll in a program and track weekly progress
+- [x] **PROG-03**: User can view current session with exercises, sets, and target weights
 - [x] **PROG-04**: Programs include structured weeks, sessions, and progression schemes
 
 ### Benchmarks
@@ -216,8 +216,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AIWK-04 | Phase 5 | Pending |
 | AIWK-05 | Phase 5 | Pending |
 | PROG-01 | Phase 5 | Complete |
-| PROG-02 | Phase 5 | Pending |
-| PROG-03 | Phase 5 | Pending |
+| PROG-02 | Phase 5 | Complete |
+| PROG-03 | Phase 5 | Complete |
 | PROG-04 | Phase 5 | Complete |
 | BNCH-01 | Phase 5 | Complete |
 | BNCH-02 | Phase 5 | Complete |
