@@ -68,9 +68,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [x] **CYCL-01**: User can log period start and end dates
 - [ ] **CYCL-02**: User can log daily symptoms (energy, mood, cramps, etc.)
-- [ ] **CYCL-03**: App infers current cycle phase from period logs (follicular, ovulatory, luteal, menstrual)
-- [ ] **CYCL-04**: User can view current phase and predicted upcoming phases
-- [ ] **CYCL-05**: Cycle features only visible to users who opted in
+- [x] **CYCL-03**: App infers current cycle phase from period logs (follicular, ovulatory, luteal, menstrual)
+- [x] **CYCL-04**: User can view current phase and predicted upcoming phases
+- [x] **CYCL-05**: Cycle features only visible to users who opted in
 
 ### Cycle Adaptation
 
@@ -203,9 +203,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MAX-02 | Phase 4 | Complete |
 | CYCL-01 | Phase 5 | Complete |
 | CYCL-02 | Phase 5 | Pending |
-| CYCL-03 | Phase 5 | Pending |
-| CYCL-04 | Phase 5 | Pending |
-| CYCL-05 | Phase 5 | Pending |
+| CYCL-03 | Phase 5 | Complete |
+| CYCL-04 | Phase 5 | Complete |
+| CYCL-05 | Phase 5 | Complete |
 | READ-01 | Phase 5 | Pending |
 | READ-02 | Phase 5 | Pending |
 | INJR-01 | Phase 5 | Complete |

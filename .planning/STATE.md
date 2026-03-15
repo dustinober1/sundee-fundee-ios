@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 05-01-PLAN.md
-last_updated: "2026-03-15T13:57:18.732Z"
+stopped_at: Completed 05-04-PLAN.md
+last_updated: "2026-03-15T14:04:45.307Z"
 last_activity: "2026-03-14 — Completed Plan 03-02: 5-step onboarding flow with Art Deco styling, atomic persistence, gender-adaptive step skipping, routing bug fixes"
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 27
-  completed_plans: 20
+  completed_plans: 21
   percent: 16
 ---
 
@@ -69,6 +69,7 @@ Progress: [███░░░░░░░] 16%
 | Phase 04-core-workout-loop P04-08 | 12 | 1 tasks | 4 files |
 | Phase 05-differentiating-features P05-02 | 15 | 1 tasks | 7 files |
 | Phase 05-differentiating-features P05-01 | 7 | 2 tasks | 21 files |
+| Phase 05-differentiating-features P05-04 | 12 | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -141,6 +142,9 @@ Recent decisions affecting current work:
 - [Phase 05-differentiating-features]: WODRepo factory takes no isGuest parameter — WODs are public read-only data, same Firestore impl for all users
 - [Phase 05-differentiating-features]: FirestoreProgramDocument uses weeks[].sessions[] schema; firestoreProgramToProgram flattens to domain Program.sessions
 - [Phase 05-differentiating-features]: programs.json bundled in src/resources/ — LocalProgramRepo serves programs offline with no network dependency
+- [Phase 05-differentiating-features]: react-native-calendars markingType=period used for date range marking — best native support for multi-day period visualization
+- [Phase 05-differentiating-features]: Two-tap period logging: pendingStart state pattern avoids modal — taps on calendar are natural and familiar to health app users
+- [Phase 05-differentiating-features]: href: null conditional tab hiding based on cycleOptIn flag loaded from onboarding profile in layout useEffect
 
 ### Pending Todos
 
@@ -156,6 +160,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-15T13:57:18.730Z
-Stopped at: Completed 05-01-PLAN.md
+Last session: 2026-03-15T14:04:27.071Z
+Stopped at: Completed 05-04-PLAN.md
 Resume file: None
