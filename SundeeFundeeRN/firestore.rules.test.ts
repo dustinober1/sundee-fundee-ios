@@ -212,3 +212,80 @@ describe('/wods collection — read-only for authenticated users', () => {
     );
   });
 });
+
+// ─── Pain Log Subcollection ───────────────────────────────────────────────────
+
+describe('Pain log subcollection — /users/{uid}/injuries/{injuryId}/painLogs/{logId}', () => {
+  const ALICE_UID = 'alice-uid-123';
+  const BOB_UID = 'bob-uid-456';
+
+  test('ALLOW: authenticated user can write their own pain log', async () => {
+    const aliceDb = testEnv.authenticatedContext(ALICE_UID).firestore();
+    await assertSucceeds(
+      aliceDb
+        .collection('users')
+        .doc(ALICE_UID)
+        .collection('injuries')
+        .doc('injury-1')
+        .collection('painLogs')
+        .doc('log-1')
+        .set({ painLevel: 4, date: '2026-03-15T00:00:00.000Z', notes: 'knee ache after squats' })
+    );
+  });
+
+  test('ALLOW: authenticated user can read their own pain logs', async () => {
+    const aliceDb = testEnv.authenticatedContext(ALICE_UID).firestore();
+    await assertSucceeds(
+      aliceDb
+        .collection('users')
+        .doc(ALICE_UID)
+        .collection('injuries')
+        .doc('injury-1')
+        .collection('painLogs')
+        .doc('log-1')
+        .get()
+    );
+  });
+
+  test('DENY: user cannot write another user\'s pain log', async () => {
+    const aliceDb = testEnv.authenticatedContext(ALICE_UID).firestore();
+    await assertFails(
+      aliceDb
+        .collection('users')
+        .doc(BOB_UID)
+        .collection('injuries')
+        .doc('injury-1')
+        .collection('painLogs')
+        .doc('log-1')
+        .set({ painLevel: 2, date: '2026-03-15T00:00:00.000Z', notes: 'test' })
+    );
+  });
+
+  test('DENY: user cannot read another user\'s pain logs', async () => {
+    const aliceDb = testEnv.authenticatedContext(ALICE_UID).firestore();
+    await assertFails(
+      aliceDb
+        .collection('users')
+        .doc(BOB_UID)
+        .collection('injuries')
+        .doc('injury-1')
+        .collection('painLogs')
+        .doc('log-1')
+        .get()
+    );
+  });
+
+  test('DENY: unauthenticated user cannot write pain logs', async () => {
+    const unauthedDb = testEnv.unauthenticatedContext().firestore();
+    await assertFails(
+      unauthedDb
+        .collection('users')
+        .doc(ALICE_UID)
+        .collection('injuries')
+        .doc('injury-1')
+        .collection('painLogs')
+        .doc('log-1')
+        .set({ painLevel: 1, date: '2026-03-15T00:00:00.000Z', notes: 'test' })
+    );
+  });
+});
