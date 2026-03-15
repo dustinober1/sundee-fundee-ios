@@ -22,10 +22,10 @@ jest.mock('react-native-zip-archive', () => ({
   zip: jest.fn().mockResolvedValue('file:///cache/export.zip'),
 }));
 
-// Platform mock — default to 'ios', overridden per test
-const mockPlatform = { OS: 'ios' };
+// Platform is mocked via Object.defineProperty per test (see STATE.md decision:
+// "Platform.OS test mocking: Object.defineProperty(Platform, 'OS', {value, configurable:true})")
 jest.mock('react-native', () => ({
-  Platform: mockPlatform,
+  Platform: { OS: 'ios' },
 }));
 
 // ---------------------------------------------------------------------------
@@ -254,7 +254,7 @@ describe('buildCsvFiles', () => {
 describe('exportUserData (json)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (Platform as any).OS = 'ios';
+    Object.defineProperty(Platform, 'OS', { value: 'ios', configurable: true });
   });
 
   it('writes a single JSON file to cache directory', async () => {
@@ -283,7 +283,7 @@ describe('exportUserData (json)', () => {
 describe('exportUserData (csv)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (Platform as any).OS = 'ios';
+    Object.defineProperty(Platform, 'OS', { value: 'ios', configurable: true });
   });
 
   it('writes multiple CSV files to cache directory', async () => {
@@ -314,27 +314,42 @@ describe('exportUserData (csv)', () => {
 // ---------------------------------------------------------------------------
 
 describe('exportUserData (web platform)', () => {
+  const mockClickFn = jest.fn();
+  const mockCreateObjectURL = jest.fn().mockReturnValue('blob:fake');
+  const mockRevokeObjectURL = jest.fn();
+
   beforeEach(() => {
     jest.clearAllMocks();
-    (Platform as any).OS = 'web';
+    mockClickFn.mockClear();
+    mockCreateObjectURL.mockClear();
+    Object.defineProperty(Platform, 'OS', { value: 'web', configurable: true });
 
-    // Mock DOM APIs
+    // Stub DOM APIs on globalThis (jest-expo test env has no jsdom)
     const mockLink = {
       href: '',
       download: '',
-      click: jest.fn(),
+      click: mockClickFn,
       style: {},
     };
-    jest.spyOn(document, 'createElement').mockReturnValue(mockLink as any);
-    jest.spyOn(document.body, 'appendChild').mockImplementation(() => mockLink as any);
-    jest.spyOn(document.body, 'removeChild').mockImplementation(() => mockLink as any);
-    global.URL.createObjectURL = jest.fn().mockReturnValue('blob:fake');
-    global.URL.revokeObjectURL = jest.fn();
+    (global as any).document = {
+      createElement: jest.fn().mockReturnValue(mockLink),
+      body: {
+        appendChild: jest.fn(),
+        removeChild: jest.fn(),
+      },
+    };
+    (global as any).URL = {
+      createObjectURL: mockCreateObjectURL,
+      revokeObjectURL: mockRevokeObjectURL,
+    };
+    (global as any).Blob = class {
+      constructor(public content: string[], public options: { type: string }) {}
+    };
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
-    (Platform as any).OS = 'ios';
+    Object.defineProperty(Platform, 'OS', { value: 'ios', configurable: true });
+    delete (global as any).document;
   });
 
   it('does not call expo-sharing on web', async () => {
@@ -346,6 +361,6 @@ describe('exportUserData (web platform)', () => {
   it('uses URL.createObjectURL for web JSON export', async () => {
     const repos = makeRepos();
     await exportUserData('u1', 'json', 'lb', repos);
-    expect(global.URL.createObjectURL).toHaveBeenCalled();
+    expect(mockCreateObjectURL).toHaveBeenCalled();
   });
 });
