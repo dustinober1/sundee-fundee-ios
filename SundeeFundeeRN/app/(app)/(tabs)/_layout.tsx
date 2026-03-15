@@ -1,16 +1,25 @@
 /**
  * app/(app)/(tabs)/_layout.tsx — Tab bar layout.
  *
- * Phase 1 tabs: Dashboard (index) and Settings.
- * Additional tabs will be added in subsequent phases.
+ * Tabs: Dashboard, History, Maxes, Cycle (conditional), Settings.
+ *
+ * Cycle tab is hidden for users who did not opt into cycle tracking.
+ * Uses `href: null` pattern from Expo Router to conditionally hide tabs.
+ * Loads the user's onboarding profile to check cycleOptIn flag.
  *
  * Styling: NAVY background, ORANGE active tint, CREAM inactive tint.
  * Icons: text/emoji placeholders — proper icons added in Phase 3+ (UI phase).
  */
 
-import { Tabs } from 'expo-router';
+import React, { useEffect, useState } from 'react';
 import { Text } from 'react-native';
+import { Tabs } from 'expo-router';
 import * as colors from '@/src/theme/colors';
+import { useSession } from '@/src/auth/AuthContext';
+import {
+  getOnboardingProfileRepo,
+  type OnboardingProfile,
+} from '@/src/repositories/OnboardingProfileRepo';
 
 function TabIcon({ symbol, focused }: { symbol: string; focused: boolean }): React.JSX.Element {
   return (
@@ -19,6 +28,27 @@ function TabIcon({ symbol, focused }: { symbol: string; focused: boolean }): Rea
 }
 
 export default function TabLayout(): React.JSX.Element {
+  const { user, isGuest } = useSession();
+  const [profile, setProfile] = useState<OnboardingProfile | null>(null);
+
+  // Load user's onboarding profile to check cycle opt-in
+  useEffect(() => {
+    if (!user) return;
+    const loadProfile = async (): Promise<void> => {
+      try {
+        const repo = getOnboardingProfileRepo(isGuest);
+        const p = await repo.getProfile(user.uid);
+        setProfile(p);
+      } catch {
+        setProfile(null);
+      }
+    };
+    void loadProfile();
+  }, [user, isGuest]);
+
+  // Cycle tab is shown only for users who opted in
+  const cycleTabHref = profile?.cycleOptIn === true ? undefined : null;
+
   return (
     <Tabs
       screenOptions={{
@@ -71,6 +101,17 @@ export default function TabLayout(): React.JSX.Element {
             <TabIcon symbol="🏆" focused={focused} />
           ),
           headerTitle: 'Personal Records',
+        }}
+      />
+      <Tabs.Screen
+        name="cycle"
+        options={{
+          title: 'Cycle',
+          href: cycleTabHref,
+          tabBarIcon: ({ focused }) => (
+            <TabIcon symbol="🌙" focused={focused} />
+          ),
+          headerTitle: 'Cycle Tracking',
         }}
       />
       <Tabs.Screen
