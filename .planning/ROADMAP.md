@@ -129,7 +129,12 @@ Plans:
   3. Premium features (cycle adaptation, AI workout generation) are inaccessible to free users; the paywall screen is shown without blocking the first workout attempt
   4. Subscribed user can view, change, or cancel their subscription from the settings screen; restore purchases works after reinstall
   5. Subscription entitlements are consistent across all platforms for the same Firebase UID — a user who subscribed on web has premium access on iOS and Android
-**Plans**: TBD
+**Plans:** 3 plans
+
+Plans:
+- [ ] 06-01-PLAN.md — Build Stripe Cloud Functions (createCheckoutSession + stripeWebhook) with RC entitlement bridge and tests
+- [ ] 06-02-PLAN.md — Upgrade useEntitlements hook with real-time listener, wire RC logIn to auth, build PaywallModal and PremiumBadge
+- [ ] 06-03-PLAN.md — Gate 4 premium features, add Settings subscription management, trial banner, and trial-ended modal
 
 ### Phase 7: Polish and Pre-Launch
 **Goal**: The app looks and feels correct on iOS, Android, and Web; sensitive data is secured; users can manage their data; the app passes App Store and Play Store review
@@ -155,5 +160,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 3. Data Layer and Offline Architecture | 2/2 | Complete   | 2026-03-14 |
 | 4. Core Workout Loop | 8/8 | Complete   | 2026-03-15 |
 | 5. Differentiating Features | 6/9 | In Progress|  |
-| 6. Subscriptions and Monetization | 0/TBD | Not started | - |
+| 6. Subscriptions and Monetization | 0/3 | Not started | - |
 | 7. Polish and Pre-Launch | 0/TBD | Not started | - |
