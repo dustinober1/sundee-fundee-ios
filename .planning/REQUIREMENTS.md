@@ -15,7 +15,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **AUTH-04**: User can continue as guest without creating an account
 - [x] **AUTH-05**: User session persists across app restart
 - [x] **AUTH-06**: User can sign out from any screen
-- [x] **AUTH-07**: User data syncs across devices when authenticated
+- [ ] **AUTH-07**: User data syncs across devices when authenticated
 
 ### Onboarding
 
@@ -87,8 +87,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [x] **INJR-01**: User can create injury profiles with body location and recovery phase
 - [x] **INJR-02**: Injury adaptation engine automatically substitutes or removes contraindicated exercises
-- [x] **INJR-03**: User can log pain levels for active injuries
-- [x] **INJR-04**: App analyzes pain trends over time and surfaces insights
+- [ ] **INJR-03**: User can log pain levels for active injuries
+- [ ] **INJR-04**: App analyzes pain trends over time and surfaces insights
 - [x] **INJR-05**: Phase transition advisor suggests when to progress recovery phase
 - [x] **INJR-06**: App generates targeted rehab sessions based on injury profile
 
@@ -120,7 +120,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **PLAT-02**: App runs on Android with platform-appropriate conventions
 - [x] **PLAT-03**: App runs on Web with responsive layout
 - [x] **PLAT-04**: Refreshed Art Deco design (cream/navy/orange palette evolved)
-- [x] **PLAT-05**: User can switch between lbs and kg
+- [ ] **PLAT-05**: User can switch between lbs and kg
 - [x] **PLAT-06**: User can export workout data (CSV or JSON)
 - [x] **PLAT-07**: User can delete account with full data wipe
 
@@ -168,7 +168,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AUTH-04 | Phase 1 | Complete |
 | AUTH-05 | Phase 1 | Complete |
 | AUTH-06 | Phase 1 | Complete |
-| AUTH-07 | Phase 9 | Complete |
+| AUTH-07 | Phase 11 | Pending |
 | PLAT-01 | Phase 1 | Complete |
 | PLAT-02 | Phase 1 | Complete |
 | PLAT-03 | Phase 1 | Complete |
@@ -176,7 +176,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CYAD-02 | Phase 8 | Complete |
 | CYAD-03 | Phase 8 | Complete |
 | INJR-02 | Phase 2 | Complete |
-| INJR-04 | Phase 2 | Complete |
+| INJR-04 | Phase 12 | Pending |
 | INJR-05 | Phase 2 | Complete |
 | INJR-06 | Phase 2 | Complete |
 | WORK-06 | Phase 2 | Complete |
@@ -209,7 +209,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | READ-01 | Phase 5 | Complete |
 | READ-02 | Phase 5 | Complete |
 | INJR-01 | Phase 5 | Complete |
-| INJR-03 | Phase 5 | Complete |
+| INJR-03 | Phase 12 | Pending |
 | AIWK-01 | Phase 5 | Complete |
 | AIWK-02 | Phase 9 | Complete |
 | AIWK-03 | Phase 5 | Complete |
@@ -231,15 +231,15 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SUBS-04 | Phase 6 | Complete |
 | SUBS-05 | Phase 6 | Complete |
 | PLAT-04 | Phase 7 | Complete |
-| PLAT-05 | Phase 10 | Complete |
+| PLAT-05 | Phase 13 | Pending |
 | PLAT-06 | Phase 7 | Complete |
 | PLAT-07 | Phase 7 | Complete |
 
 **Coverage:**
 - v1 requirements: 72 total
 - Mapped to phases: 72
-- Satisfied: 67
-- Pending (gap closure): 5 (CYAD-01, CYAD-02, CYAD-03, AUTH-07, AIWK-02, PLAT-05)
+- Satisfied: 68
+- Pending (gap closure): 4 (AUTH-07, INJR-03, INJR-04, PLAT-05)
 - Unmapped: 0
 
 ---

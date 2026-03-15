@@ -181,6 +181,21 @@ Plans:
 Plans:
 - [ ] 10-01-PLAN.md — Fix formatWeight in workout detail, add goodbye Stack.Screen, bundle web CSV export into zip
 
+### Phase 11: Wire Guest Upgrade Entry Point
+**Goal:** Guest users who sign up retain all their locally stored data instead of starting fresh
+**Requirements:** AUTH-07
+**Gap Closure:** Closes gaps from audit — sign-in.tsx auth handlers must detect anonymous user and call guest.upgrade(credential) instead of creating new accounts
+
+### Phase 12: Fix Firestore Pain Log Security Rules
+**Goal:** Authenticated users can persist pain logs to Firestore; pain trend analysis receives real data
+**Requirements:** INJR-03, INJR-04
+**Gap Closure:** Closes gaps from audit — Firestore security rules must allow writes to 2-level nested subcollections (injuries/{id}/painLogs/{id})
+
+### Phase 13: Complete Weight Unit Threading
+**Goal:** All screens display weights in the user's chosen unit (lbs or kg) with no hardcoded suffixes
+**Requirements:** PLAT-05
+**Gap Closure:** Closes gaps from audit — thread weightUnit into HistoryCard.tsx and exercise-detail.tsx
+
 ## Progress
 
 **Execution Order:**
@@ -189,12 +204,15 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation and Infrastructure | 3/3 | Complete   | 2026-03-14 |
-| 2. Domain Layer Port | 4/5 | In Progress|  |
+| 2. Domain Layer Port | 5/5 | Complete   | 2026-03-14 |
 | 3. Data Layer and Offline Architecture | 2/2 | Complete   | 2026-03-14 |
 | 4. Core Workout Loop | 8/8 | Complete   | 2026-03-15 |
-| 5. Differentiating Features | 6/9 | In Progress|  |
+| 5. Differentiating Features | 9/9 | Complete   | 2026-03-15 |
 | 6. Subscriptions and Monetization | 3/3 | Complete   | 2026-03-15 |
 | 7. Polish and Pre-Launch | 3/3 | Complete   | 2026-03-15 |
 | 8. Fix Cycle Adaptation Wiring | 1/1 | Complete   | 2026-03-15 |
 | 9. Fix Guest Migration + AI Profile Wiring | 2/2 | Complete   | 2026-03-15 |
 | 10. UI Polish Fixes | 1/1 | Complete    | 2026-03-15 |
+| 11. Wire Guest Upgrade Entry Point | 0/0 | Pending |  |
+| 12. Fix Firestore Pain Log Security Rules | 0/0 | Pending |  |
+| 13. Complete Weight Unit Threading | 0/0 | Pending |  |
