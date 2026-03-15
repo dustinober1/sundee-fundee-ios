@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 04-06-PLAN.md
-last_updated: "2026-03-15T00:42:39.072Z"
+stopped_at: Completed 04-05-PLAN.md
+last_updated: "2026-03-15T00:46:26.339Z"
 last_activity: "2026-03-14 — Completed Plan 03-02: 5-step onboarding flow with Art Deco styling, atomic persistence, gender-adaptive step skipping, routing bug fixes"
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 18
-  completed_plans: 15
+  completed_plans: 16
   percent: 16
 ---
 
@@ -64,6 +64,7 @@ Progress: [███░░░░░░░] 16%
 | Phase 04-core-workout-loop P03 | 3 | 2 tasks | 10 files |
 | Phase 04-core-workout-loop P04-04 | 7 | 2 tasks | 7 files |
 | Phase 04-core-workout-loop P04-06 | 22 | 2 tasks | 10 files |
+| Phase 04-core-workout-loop P04-05 | 8 | 2 tasks | 13 files |
 
 ## Accumulated Context
 
@@ -122,6 +123,8 @@ Recent decisions affecting current work:
 - [Phase 04-core-workout-loop]: Chart data points use string dates (YYYY-MM-DD) not Date objects — safer sorting and serialization
 - [Phase 04-core-workout-loop]: expo-keep-awake activateKeepAwakeAsync called on timer-mode mount, deactivated on unmount — keeps screen awake during active timed workout
 - [Phase 04-core-workout-loop]: EMOM schedules N individual notifications per minute (not repeating) — individual schedule per minute for reliability and per-minute cancellation on pause
+- [Phase 04-core-workout-loop]: useFocusEffect + router.setParams used for exercise-picker result passing — Expo Router has no native modal result callback
+- [Phase 04-core-workout-loop]: useRestTimer: 100ms tick interval for display; AppState listener re-syncs from timestamps on foreground
 
 ### Pending Todos
 
@@ -137,6 +140,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-15T00:42:39.069Z
-Stopped at: Completed 04-06-PLAN.md
+Last session: 2026-03-15T00:46:26.336Z
+Stopped at: Completed 04-05-PLAN.md
 Resume file: None
