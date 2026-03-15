@@ -47,6 +47,10 @@ const GoogleAuthProvider = {
   credential: jest.fn().mockReturnValue({ providerId: 'google.com', token: 'mock-token' }),
 };
 
+const EmailAuthProvider = {
+  credential: jest.fn().mockReturnValue({ providerId: 'password', token: 'mock-email-token' }),
+};
+
 // The default export is a function that returns the auth instance
 const auth = jest.fn().mockReturnValue(mockAuthInstance);
 
@@ -54,8 +58,9 @@ const auth = jest.fn().mockReturnValue(mockAuthInstance);
 Object.assign(auth, {
   AppleAuthProvider,
   GoogleAuthProvider,
+  EmailAuthProvider,
 });
 
-export { AppleAuthProvider, GoogleAuthProvider };
+export { AppleAuthProvider, GoogleAuthProvider, EmailAuthProvider };
 export type { FirebaseAuthTypes } from '@react-native-firebase/auth';
 export default auth;

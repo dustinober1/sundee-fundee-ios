@@ -20,6 +20,7 @@ import {
   linkWithCredential as fbLinkWithCredential,
   OAuthProvider,
   GoogleAuthProvider as FbGoogleAuthProvider,
+  EmailAuthProvider as FbEmailAuthProvider,
   User,
   Auth,
   AuthCredential,
@@ -143,4 +144,9 @@ export const AppleAuthProvider = {
 
 export const GoogleAuthProvider = {
   credential: (idToken: string) => FbGoogleAuthProvider.credential(idToken),
+};
+
+export const EmailAuthProvider = {
+  credential: (email: string, password: string) =>
+    FbEmailAuthProvider.credential(email, password),
 };

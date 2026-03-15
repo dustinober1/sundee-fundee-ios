@@ -104,3 +104,4 @@ export async function linkWithCredential(
 // Re-export auth providers for credential creation
 export const AppleAuthProvider = auth.AppleAuthProvider;
 export const GoogleAuthProvider = auth.GoogleAuthProvider;
+export const EmailAuthProvider = auth.EmailAuthProvider;
