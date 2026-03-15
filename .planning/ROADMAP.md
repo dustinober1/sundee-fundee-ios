@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Foundation and Infrastructure** - Firebase, Auth, EAS build, security rules, RevenueCat + Stripe pipeline
 - [ ] **Phase 2: Domain Layer Port** - Full TypeScript port of all iOS domain logic with 100% test coverage
 - [x] **Phase 3: Data Layer and Offline Architecture** - Repository interfaces, Firestore + AsyncStorage implementations, offline guarantee (completed 2026-03-14)
-- [ ] **Phase 4: Core Workout Loop** - Exercise library, workout logging, timers, PR detection, history, progress charts
+- [x] **Phase 4: Core Workout Loop** - Exercise library, workout logging, timers, PR detection, history, progress charts (completed 2026-03-15)
 - [ ] **Phase 5: Differentiating Features** - Cycle tracking/adaptation, injury engine, AI workouts, programs, benchmarks, WODs, readiness
 - [ ] **Phase 6: Subscriptions and Monetization** - RevenueCat paywall, Stripe web checkout, entitlement gates, account management
 - [ ] **Phase 7: Polish and Pre-Launch** - Art Deco refinement, Android adaptations, App Check, security audit, data export, app store submission
@@ -84,7 +84,7 @@ Plans:
   3. ForTime, AMRAP, and EMOM workout timers all function correctly; timer state survives screen lock on iOS and Android
   4. App automatically detects and displays a personal record notification when a set completion exceeds the user's previous best weight for that exercise
   5. User can view workout history filtered by source (AI, Program, Custom), delete individual workouts, view per-exercise progress charts, and track 1RM history over time
-**Plans:** 7/8 plans executed
+**Plans:** 8/8 plans complete
 
 Plans:
 - [ ] 04-01-PLAN.md — Install deps, create exercise catalog with search/filter, timer domain types, workout session and PR detection contracts
@@ -142,7 +142,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 1. Foundation and Infrastructure | 3/3 | Complete   | 2026-03-14 |
 | 2. Domain Layer Port | 4/5 | In Progress|  |
 | 3. Data Layer and Offline Architecture | 2/2 | Complete   | 2026-03-14 |
-| 4. Core Workout Loop | 7/8 | In Progress|  |
+| 4. Core Workout Loop | 8/8 | Complete   | 2026-03-15 |
 | 5. Differentiating Features | 0/TBD | Not started | - |
 | 6. Subscriptions and Monetization | 0/TBD | Not started | - |
 | 7. Polish and Pre-Launch | 0/TBD | Not started | - |
