@@ -4,9 +4,12 @@
  * Shows welcome message, Start Workout button (navigates to workout-session),
  * timed workout options (ForTime, AMRAP, EMOM), and a recent workout card.
  *
- * Also shows the daily readiness survey prompt at the top when no survey has
- * been completed today. Available to ALL users per locked decision (not gated
- * on cycle tracking). Satisfies CYCL-02 via readiness survey mapping.
+ * Phase 5 integrations:
+ * - ReadinessSurveyCard at top (when no survey today) — ALL users
+ * - CyclePhaseBanner — cycle-opted-in users only
+ * - WODDashboardCard — today's WOD (expands inline, not workout-session)
+ * - AI Workout entry point — navigates to ai-workout/config
+ * - Programs, Benchmarks, Injuries quick-access cards
  *
  * Guest users see a contextual upgrade nudge per locked decision:
  * "Create Account option always visible in settings, plus contextual nudges elsewhere"
@@ -25,9 +28,15 @@ import { format } from 'date-fns';
 import { useSession } from '@/src/auth/AuthContext';
 import { getWorkoutRepo, type WorkoutRecord } from '@/src/repositories/WorkoutRepo';
 import { getReadinessRepo } from '@/src/repositories/ReadinessRepo';
+import { getWODRepo, type WODRecord } from '@/src/repositories/WODRepo';
+import { getCycleRepo, recordToPeriodLog } from '@/src/repositories/CycleRepo';
+import { calculateCycleStatus } from '@/src/domain/cycle/cycle-calculations';
 import type { ReadinessResult } from '@/src/domain/readiness/readiness-survey';
+import type { CycleStatusResult } from '@/src/domain/cycle/cycle-calculations';
 import ReadinessSurveyCard from '@/src/components/readiness/ReadinessSurveyCard';
 import ReadinessSurveyModal from '@/src/components/readiness/ReadinessSurveyModal';
+import CyclePhaseBanner from '@/src/components/cycle/CyclePhaseBanner';
+import { WODDashboardCard } from '@/src/components/wod/WODDashboardCard';
 import * as colors from '@/src/theme/colors';
 
 /** Timed workout mode options presented on the dashboard. */
@@ -63,6 +72,12 @@ export default function DashboardScreen(): React.JSX.Element {
   const [showReadinessCard, setShowReadinessCard] = useState(false);
   const [showSurveyModal, setShowSurveyModal] = useState(false);
   const [todayReadiness, setTodayReadiness] = useState<ReadinessResult | null>(null);
+
+  // Cycle phase banner state
+  const [cycleStatus, setCycleStatus] = useState<CycleStatusResult | null>(null);
+
+  // WOD state
+  const [todayWOD, setTodayWOD] = useState<WODRecord | null>(null);
 
   const displayName = isGuest
     ? 'Guest'
@@ -104,11 +119,44 @@ export default function DashboardScreen(): React.JSX.Element {
     }
   }, [user, isGuest]);
 
+  const loadCycleStatus = useCallback(async (): Promise<void> => {
+    if (!user) return;
+    try {
+      const cycleRepo = getCycleRepo(isGuest);
+      const [periodLogRecords, cycleSettings] = await Promise.all([
+        cycleRepo.getPeriodLogs(user.uid),
+        cycleRepo.getCycleSettings(user.uid),
+      ]);
+      if (cycleSettings?.cycleTrackingEnabled === true && periodLogRecords.length > 0) {
+        const periodLogs = periodLogRecords.map(recordToPeriodLog);
+        const status = calculateCycleStatus(periodLogs, cycleSettings);
+        setCycleStatus(status);
+      } else {
+        setCycleStatus(null);
+      }
+    } catch {
+      setCycleStatus(null);
+    }
+  }, [user, isGuest]);
+
+  const loadTodayWOD = useCallback(async (): Promise<void> => {
+    try {
+      const todayDate = format(new Date(), 'yyyy-MM-dd');
+      const wodRepo = getWODRepo();
+      const wod = await wodRepo.getWODForDate(todayDate);
+      setTodayWOD(wod);
+    } catch {
+      setTodayWOD(null);
+    }
+  }, []);
+
   useFocusEffect(
     useCallback(() => {
       void loadLastWorkout();
       void checkTodayReadiness();
-    }, [loadLastWorkout, checkTodayReadiness])
+      void loadCycleStatus();
+      void loadTodayWOD();
+    }, [loadLastWorkout, checkTodayReadiness, loadCycleStatus, loadTodayWOD])
   );
 
   function handleStartWorkout(): void {
@@ -156,6 +204,23 @@ export default function DashboardScreen(): React.JSX.Element {
         />
       )}
 
+      {/* Cycle phase banner — shown for cycle-opted-in users with logged data */}
+      {cycleStatus !== null && (
+        <CyclePhaseBanner
+          cycleStatus={cycleStatus}
+          onPress={() => router.push('/(app)/(tabs)/cycle')}
+        />
+      )}
+
+      {/* WOD card — today's Workout of the Day */}
+      <WODDashboardCard
+        wod={todayWOD}
+        onStart={() => {
+          // Inline expand is handled inside WODDashboardCard
+        }}
+        onViewAll={() => router.push('/wods')}
+      />
+
       {/* Primary Start Workout CTA */}
       <TouchableOpacity
         style={styles.startWorkoutButton}
@@ -166,6 +231,56 @@ export default function DashboardScreen(): React.JSX.Element {
         <Text style={styles.startWorkoutText}>Start Workout</Text>
         <Text style={styles.startWorkoutSubtext}>Strength • Custom • Open</Text>
       </TouchableOpacity>
+
+      {/* AI Workout entry point */}
+      <TouchableOpacity
+        style={styles.aiWorkoutButton}
+        onPress={() => router.push('/ai-workout/config')}
+        activeOpacity={0.85}
+        testID="ai-workout-button"
+      >
+        <Text style={styles.aiWorkoutTitle}>Generate AI Workout</Text>
+        <Text style={styles.aiWorkoutSubtext}>
+          Personalized for your cycle, readiness, and injuries
+        </Text>
+      </TouchableOpacity>
+
+      {/* Quick access cards: Programs, Benchmarks, Injuries */}
+      <View style={styles.quickAccessSection}>
+        <Text style={styles.sectionTitle}>Quick Access</Text>
+        <View style={styles.quickAccessGrid}>
+          <TouchableOpacity
+            style={styles.quickAccessCard}
+            onPress={() => router.push('/programs')}
+            activeOpacity={0.8}
+            testID="programs-card"
+          >
+            <Text style={styles.quickAccessIcon}>📋</Text>
+            <Text style={styles.quickAccessLabel}>Programs</Text>
+            <Text style={styles.quickAccessSub}>Structured training</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.quickAccessCard}
+            onPress={() => router.push('/benchmarks')}
+            activeOpacity={0.8}
+            testID="benchmarks-card"
+          >
+            <Text style={styles.quickAccessIcon}>🏆</Text>
+            <Text style={styles.quickAccessLabel}>Benchmarks</Text>
+            <Text style={styles.quickAccessSub}>Track your PRs</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.quickAccessCard}
+            onPress={() => router.push('/injuries')}
+            activeOpacity={0.8}
+            testID="injuries-card"
+          >
+            <Text style={styles.quickAccessIcon}>🩹</Text>
+            <Text style={styles.quickAccessLabel}>Injuries</Text>
+            <Text style={styles.quickAccessSub}>Manage & adapt</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
 
       {/* Recent workout card */}
       {lastWorkout != null && (
@@ -245,9 +360,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 32,
     paddingBottom: 40,
+    gap: 16,
   },
   welcomeSection: {
-    marginBottom: 28,
+    marginBottom: 4,
   },
   greeting: {
     fontSize: 16,
@@ -288,7 +404,6 @@ const styles = StyleSheet.create({
     paddingVertical: 22,
     paddingHorizontal: 24,
     alignItems: 'center',
-    marginBottom: 16,
     shadowColor: colors.ORANGE_DARK,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.35,
@@ -308,6 +423,62 @@ const styles = StyleSheet.create({
     opacity: 0.85,
     letterSpacing: 0.3,
   },
+  aiWorkoutButton: {
+    backgroundColor: colors.NAVY,
+    borderRadius: 14,
+    paddingVertical: 18,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: colors.ORANGE,
+  },
+  aiWorkoutTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.CREAM,
+    letterSpacing: 0.5,
+    marginBottom: 4,
+  },
+  aiWorkoutSubtext: {
+    fontSize: 12,
+    color: colors.CREAM,
+    opacity: 0.75,
+    textAlign: 'center',
+    letterSpacing: 0.2,
+  },
+  quickAccessSection: {},
+  quickAccessGrid: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 10,
+  },
+  quickAccessCard: {
+    flex: 1,
+    backgroundColor: colors.CREAM_LIGHT,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: colors.GREY_LIGHT,
+    paddingVertical: 14,
+    paddingHorizontal: 8,
+    alignItems: 'center',
+    gap: 4,
+  },
+  quickAccessIcon: {
+    fontSize: 22,
+    marginBottom: 2,
+  },
+  quickAccessLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.NAVY,
+    textAlign: 'center',
+  },
+  quickAccessSub: {
+    fontSize: 10,
+    color: colors.GREY,
+    textAlign: 'center',
+    lineHeight: 13,
+  },
   recentCard: {
     backgroundColor: colors.CREAM_LIGHT,
     borderRadius: 12,
@@ -315,7 +486,6 @@ const styles = StyleSheet.create({
     borderColor: colors.GREY_LIGHT,
     paddingVertical: 14,
     paddingHorizontal: 16,
-    marginBottom: 24,
   },
   recentLabel: {
     fontSize: 11,
@@ -335,9 +505,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: colors.GREY,
   },
-  timedSection: {
-    marginBottom: 24,
-  },
+  timedSection: {},
   sectionTitle: {
     fontSize: 12,
     fontWeight: '700',

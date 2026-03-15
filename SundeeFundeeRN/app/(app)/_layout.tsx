@@ -122,6 +122,22 @@ export default function AppLayout(): React.JSX.Element | null {
         name="injuries"
         options={{ headerShown: false }}
       />
+      <Stack.Screen
+        name="programs"
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="benchmarks"
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="wods"
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="ai-workout"
+        options={{ headerShown: false }}
+      />
     </Stack>
   );
 }
