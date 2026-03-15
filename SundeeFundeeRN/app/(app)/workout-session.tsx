@@ -12,6 +12,8 @@
  * - Empty state: "Tap + to add your first exercise"
  * - On mount: checks for exercise selected from exercise-picker
  * - Notification permission requested on first workout start
+ * - Pre-workout injury substitution card (if injuries modify exercises)
+ * - Adaptation context loaded on mount: cycle phase multiplier + readiness blend
  */
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
@@ -24,7 +26,8 @@ import {
   Alert,
   ScrollView,
 } from 'react-native';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
+import { format } from 'date-fns';
 import { onExerciseSelected } from '@/src/hooks/useExerciseSelection';
 import * as Notifications from 'expo-notifications';
 import DraggableFlatList, { type RenderItemParams } from 'react-native-draggable-flatlist';
@@ -32,12 +35,20 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { ExerciseCard } from '@/src/components/workout/ExerciseCard';
 import { RestTimerBar } from '@/src/components/workout/RestTimerBar';
 import { PRToast } from '@/src/components/workout/PRToast';
+import { AdaptationIndicator } from '@/src/components/workout/AdaptationIndicator';
+import { InjurySubstitutionCard, type SubstitutionPair } from '@/src/components/injury/InjurySubstitutionCard';
 import { useWorkoutSession } from '@/src/hooks/useWorkoutSession';
 import { useRestTimer } from '@/src/hooks/useRestTimer';
 import { usePRDetection } from '@/src/hooks/usePRDetection';
 import { useSession } from '@/src/auth/AuthContext';
 import type { ActiveExercise } from '@/src/domain/workout-session/session-types';
 import type { PRCheckResult } from '@/src/domain/pr-detection/pr-types';
+import { getCycleRepo, recordToPeriodLog } from '@/src/repositories/CycleRepo';
+import { getInjuryRepo, recordToInjuryProfile } from '@/src/repositories/InjuryRepo';
+import { getReadinessRepo } from '@/src/repositories/ReadinessRepo';
+import { calculateCycleStatus } from '@/src/domain/cycle/cycle-calculations';
+import { blendMultiplier, resolveReadinessTier, resolveConfidenceScale } from '@/src/domain/cycle/cycle-adaptation-policy';
+import type { InjuryProfile } from '@/src/domain/types/index';
 import {
   CREAM,
   NAVY,
@@ -79,6 +90,13 @@ export default function WorkoutSessionScreen(): React.JSX.Element {
     Record<string, { weight: number; reps: number }[]>
   >({});
 
+  // Adaptation context state
+  const [adaptationMultiplier, setAdaptationMultiplier] = useState(1.0);
+  const [adaptationReason, setAdaptationReason] = useState('');
+  const [injurySubstitutions, setInjurySubstitutions] = useState<SubstitutionPair[]>([]);
+  const [injuryForCard, setInjuryForCard] = useState<InjuryProfile | null>(null);
+  const [injuryCardDismissed, setInjuryCardDismissed] = useState(false);
+
   // Current PR toast to show (first in queue)
   const [currentPR, setCurrentPR] = useState<
     (PRCheckResult & { exerciseName: string }) | null
@@ -90,6 +108,117 @@ export default function WorkoutSessionScreen(): React.JSX.Element {
 
   // Track if user has initiated a workout (vs crash recovery)
   const hasStartedRef = useRef(false);
+
+  // ── Load adaptation context on focus ────────────────────────────────────
+  const loadAdaptationContext = useCallback(async (): Promise<void> => {
+    if (!user) return;
+
+    try {
+      const today = format(new Date(), 'yyyy-MM-dd');
+
+      // 1. Load readiness score for today
+      let readinessScore: number | undefined;
+      try {
+        const readinessRepo = getReadinessRepo(isGuest);
+        const survey = await readinessRepo.getSurveyForDate(user.uid, today);
+        readinessScore = survey?.result.score;
+      } catch {
+        // Non-critical — continue without readiness
+      }
+
+      // 2. Load cycle phase multiplier (skip if not tracking)
+      let phaseLoadMultiplier = 1.0;
+      let phaseLabel = '';
+      try {
+        const cycleRepo = getCycleRepo(isGuest);
+        const [periodLogRecords, cycleSettings] = await Promise.all([
+          cycleRepo.getPeriodLogs(user.uid),
+          cycleRepo.getCycleSettings(user.uid),
+        ]);
+        if (cycleSettings?.cycleTrackingEnabled === true && periodLogRecords.length > 0) {
+          const periodLogs = periodLogRecords.map(recordToPeriodLog);
+          const cycleStatus = calculateCycleStatus(periodLogs, cycleSettings);
+          if (cycleStatus !== null) {
+            const phase = cycleStatus.currentPhase;
+            // Use load baseline from BASELINE_PHASE_SETTINGS via blendMultiplier
+            const PHASE_LOAD: Record<string, number> = {
+              menstrual: 0.90,
+              follicular: 1.00,
+              ovulation: 1.12,
+              luteal: 0.97,
+            };
+            const loadTarget = PHASE_LOAD[phase] ?? 1.0;
+            const readinessTier = resolveReadinessTier(readinessScore);
+            const confidenceScale = resolveConfidenceScale('high');
+            const readinessScale = readinessTier === 'low' ? 0.6 : readinessTier === 'high' ? 1.2 : 1.0;
+            phaseLoadMultiplier = blendMultiplier(loadTarget, readinessScale, confidenceScale);
+            phaseLabel = phase.charAt(0).toUpperCase() + phase.slice(1);
+          }
+        }
+      } catch {
+        // Non-critical — continue without cycle adaptation
+      }
+
+      // 3. Load injuries and build substitution list
+      let substitutions: SubstitutionPair[] = [];
+      let primaryInjury: InjuryProfile | null = null;
+      try {
+        const injuryRepo = getInjuryRepo(isGuest);
+        const injuryRecords = await injuryRepo.getInjuries(user.uid);
+        const activeInjuries = injuryRecords
+          .map(recordToInjuryProfile)
+          .filter((inj) => inj.recoveryPhase !== 'resolved');
+        if (activeInjuries.length > 0) {
+          primaryInjury = activeInjuries[0] ?? null;
+          // Build substitution pairs from the adaptation engine's regression table
+          // using a sample of common strength exercises (mirrors Plan 05-05 pattern)
+          const { adaptProgramWithMetadata } = await import('@/src/domain/injury/injury-adaptation-engine');
+          const sampleProgram = {
+            id: 'session',
+            name: 'Session',
+            description: '',
+            sessions: [{
+              id: 's1',
+              name: 'Session',
+              exercises: [
+                { id: 'e1', name: 'Back Squat', sets: 3, reps: { kind: 'fixed' as const, value: 5 }, muscleGroup: 'quads' },
+                { id: 'e2', name: 'Conventional Deadlift (No Straps)', sets: 3, reps: { kind: 'fixed' as const, value: 5 }, muscleGroup: 'back' },
+                { id: 'e3', name: 'Bench Press', sets: 3, reps: { kind: 'fixed' as const, value: 5 }, muscleGroup: 'chest' },
+                { id: 'e4', name: 'Overhead Press', sets: 3, reps: { kind: 'fixed' as const, value: 5 }, muscleGroup: 'shoulders' },
+                { id: 'e5', name: 'Romanian Deadlift (No Straps)', sets: 3, reps: { kind: 'fixed' as const, value: 8 }, muscleGroup: 'hamstrings' },
+              ],
+            }],
+          };
+          const result = adaptProgramWithMetadata(sampleProgram, activeInjuries);
+          substitutions = Object.entries(result.adaptedExercises).map(([replacement, original]) => ({
+            original,
+            replacement,
+          }));
+        }
+      } catch {
+        // Non-critical — continue without injury substitutions
+      }
+
+      // 4. Build reason text and update state
+      const reasonParts: string[] = [];
+      if (phaseLabel) reasonParts.push(`${phaseLabel} phase`);
+      if (readinessScore !== undefined) reasonParts.push(`readiness ${Math.round(readinessScore)}/10`);
+      const reasonText = reasonParts.length > 0 ? reasonParts.join(' + ') : '';
+
+      setAdaptationMultiplier(phaseLoadMultiplier);
+      setAdaptationReason(reasonText);
+      setInjurySubstitutions(substitutions);
+      setInjuryForCard(primaryInjury);
+    } catch {
+      // Fail gracefully — workout loads without adaptation context
+    }
+  }, [user, isGuest]);
+
+  useFocusEffect(
+    useCallback(() => {
+      void loadAdaptationContext();
+    }, [loadAdaptationContext])
+  );
 
   // ── Start workout on mount (or restore from crash) ──────────────────────
   useEffect(() => {
@@ -296,6 +425,39 @@ export default function WorkoutSessionScreen(): React.JSX.Element {
           </TouchableOpacity>
         </View>
 
+        {/* Pre-workout injury substitution card */}
+        {!injuryCardDismissed &&
+          injuryForCard !== null &&
+          injurySubstitutions.length > 0 && (
+            <View style={styles.injuryCardContainer}>
+              <InjurySubstitutionCard
+                injury={injuryForCard}
+                substitutions={injurySubstitutions}
+              />
+              <TouchableOpacity
+                style={styles.dismissButton}
+                onPress={() => setInjuryCardDismissed(true)}
+                accessibilityRole="button"
+                accessibilityLabel="Dismiss injury substitution card"
+              >
+                <Text style={styles.dismissButtonText}>Got it, start workout</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+        {/* Adaptation indicator banner — shown when multiplier differs from 1.0 */}
+        {adaptationMultiplier !== 1.0 && (
+          <View style={styles.adaptationBanner} testID="adaptation-banner">
+            <AdaptationIndicator
+              multiplier={adaptationMultiplier}
+              reason={adaptationReason}
+            />
+            <Text style={styles.adaptationLabel}>
+              Load adjusted for today
+            </Text>
+          </View>
+        )}
+
         {/* Exercise list */}
         {session && session.exercises.length > 0 ? (
           <DraggableFlatList
@@ -448,5 +610,37 @@ const styles = StyleSheet.create({
     color: CREAM,
     fontWeight: '300',
     lineHeight: 32,
+  },
+  injuryCardContainer: {
+    marginHorizontal: 16,
+    marginTop: 12,
+    gap: 10,
+  },
+  dismissButton: {
+    backgroundColor: NAVY,
+    borderRadius: 8,
+    paddingVertical: 10,
+    alignItems: 'center',
+  },
+  dismissButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: CREAM,
+    letterSpacing: 0.3,
+  },
+  adaptationBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: CREAM_LIGHT,
+    borderBottomWidth: 1,
+    borderBottomColor: GREY_LIGHT,
+  },
+  adaptationLabel: {
+    fontSize: 11,
+    color: GREY,
+    fontWeight: '400',
   },
 });
