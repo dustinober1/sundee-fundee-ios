@@ -99,6 +99,14 @@ export default function AppLayout(): React.JSX.Element | null {
         name="exercise-picker"
         options={{ headerShown: false, presentation: 'modal' }}
       />
+      <Stack.Screen
+        name="workout-detail"
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="exercise-detail"
+        options={{ headerShown: false }}
+      />
     </Stack>
   );
 }

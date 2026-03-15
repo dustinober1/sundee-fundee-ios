@@ -54,6 +54,26 @@ export default function TabLayout(): React.JSX.Element {
         }}
       />
       <Tabs.Screen
+        name="history"
+        options={{
+          title: 'History',
+          tabBarIcon: ({ focused }) => (
+            <TabIcon symbol="📋" focused={focused} />
+          ),
+          headerTitle: 'Workout History',
+        }}
+      />
+      <Tabs.Screen
+        name="maxes"
+        options={{
+          title: 'Maxes',
+          tabBarIcon: ({ focused }) => (
+            <TabIcon symbol="🏆" focused={focused} />
+          ),
+          headerTitle: 'Personal Records',
+        }}
+      />
+      <Tabs.Screen
         name="settings"
         options={{
           title: 'Settings',
