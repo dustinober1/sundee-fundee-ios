@@ -5,6 +5,8 @@ const mockSessionCreate = jest.fn().mockResolvedValue({
 
 const mockConstructEvent = jest.fn();
 
+const mockSubscriptionsCancel = jest.fn().mockResolvedValue({ id: "sub_mock", status: "canceled" });
+
 const MockStripe = jest.fn().mockImplementation(() => ({
   checkout: {
     sessions: {
@@ -14,7 +16,10 @@ const MockStripe = jest.fn().mockImplementation(() => ({
   webhooks: {
     constructEvent: mockConstructEvent,
   },
+  subscriptions: {
+    cancel: mockSubscriptionsCancel,
+  },
 }));
 
 export default MockStripe;
-export { mockSessionCreate, mockConstructEvent };
+export { mockSessionCreate, mockConstructEvent, mockSubscriptionsCancel };

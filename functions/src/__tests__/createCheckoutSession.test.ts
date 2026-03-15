@@ -1,13 +1,49 @@
-import { mockSessionCreate } from "../../__mocks__/stripe";
+/**
+ * Tests for createCheckoutSession Cloud Function.
+ *
+ * Uses jest.mock("stripe") to ensure the same mock instance is used
+ * both in the test and inside the module under test.
+ */
 
-// The mock wraps onCall so the handler is directly callable
+// ─── Mock Stripe ──────────────────────────────────────────────────────────────
+
+const mockSessionCreate = jest.fn().mockResolvedValue({
+  id: "cs_test_mock",
+  url: "https://checkout.stripe.com/pay/cs_test_mock",
+});
+
+jest.mock("stripe", () => {
+  const MockStripe = jest.fn().mockImplementation(() => ({
+    checkout: {
+      sessions: {
+        create: mockSessionCreate,
+      },
+    },
+    webhooks: {
+      constructEvent: jest.fn(),
+    },
+  }));
+  return { __esModule: true, default: MockStripe };
+});
+
+// ─── Import the module under test (after mocks) ───────────────────────────────
+
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { createCheckoutSession } = require("../createCheckoutSession");
 
-describe("createCheckoutSession", () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
+// ─── Setup ────────────────────────────────────────────────────────────────────
 
+beforeEach(() => {
+  jest.clearAllMocks();
+  mockSessionCreate.mockResolvedValue({
+    id: "cs_test_mock",
+    url: "https://checkout.stripe.com/pay/cs_test_mock",
+  });
+});
+
+// ─── Tests ────────────────────────────────────────────────────────────────────
+
+describe("createCheckoutSession", () => {
   it("rejects unauthenticated requests with HttpsError unauthenticated", async () => {
     const request = { auth: null, data: {} };
     await expect(createCheckoutSession(request)).rejects.toMatchObject({

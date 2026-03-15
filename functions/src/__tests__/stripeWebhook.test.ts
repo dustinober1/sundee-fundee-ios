@@ -1,32 +1,78 @@
-import { mockConstructEvent } from "../../__mocks__/stripe";
-import adminMock from "../../__mocks__/firebase-admin";
+/**
+ * Tests for stripeWebhook Cloud Function.
+ *
+ * Uses jest.mock("stripe") and jest.mock("firebase-admin") to ensure
+ * the same mock instances are used both in the test and inside the module under test.
+ */
 
-// We need a mutable reference to the set mock so we can verify calls
-let mockDocSet: jest.Mock;
+// ─── Mock fetch ───────────────────────────────────────────────────────────────
+
+const mockFetch = jest.fn().mockResolvedValue({ ok: true, status: 200 });
+global.fetch = mockFetch as unknown as typeof fetch;
+
+// ─── Mock Stripe ──────────────────────────────────────────────────────────────
+
+const mockConstructEvent = jest.fn();
+const mockCheckoutSessionsCreate = jest.fn();
+
+jest.mock("stripe", () => {
+  const MockStripe = jest.fn().mockImplementation(() => ({
+    checkout: {
+      sessions: {
+        create: mockCheckoutSessionsCreate,
+      },
+    },
+    webhooks: {
+      constructEvent: mockConstructEvent,
+    },
+  }));
+  return { __esModule: true, default: MockStripe };
+});
+
+// ─── Mock firebase-admin ──────────────────────────────────────────────────────
+
+const mockDocSet = jest.fn().mockResolvedValue(undefined);
+const mockDoc = jest.fn(() => ({ set: mockDocSet }));
+const mockFirestoreInstance = {
+  collection: jest.fn(() => ({ doc: jest.fn(() => ({ id: "mock-id" })) })),
+  doc: mockDoc,
+};
+
+const mockFirestore = jest.fn(() => mockFirestoreInstance);
+(mockFirestore as unknown as { Timestamp: { now: jest.Mock } }).Timestamp = {
+  now: jest.fn(() => ({ _seconds: 1234567890, _nanoseconds: 0 })),
+};
+
+jest.mock("firebase-admin", () => ({
+  __esModule: true,
+  default: {
+    firestore: mockFirestore,
+    auth: jest.fn(() => ({ deleteUser: jest.fn() })),
+    initializeApp: jest.fn(),
+  },
+  firestore: mockFirestore,
+  auth: jest.fn(() => ({ deleteUser: jest.fn() })),
+}));
+
+// ─── Import the module under test (after mocks) ───────────────────────────────
+
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { stripeWebhook } = require("../stripeWebhook");
+
+// ─── Setup ────────────────────────────────────────────────────────────────────
 
 beforeEach(() => {
   jest.clearAllMocks();
-
-  // Re-build the firestore mock so we can capture doc().set calls
-  mockDocSet = jest.fn().mockResolvedValue(undefined);
-  const mockDoc = jest.fn(() => ({ set: mockDocSet }));
-  const mockFirestoreInstance = {
-    collection: jest.fn(() => ({ doc: jest.fn(() => ({ id: "mock-id" })) })),
-    doc: mockDoc,
-  };
-  (adminMock.firestore as jest.Mock).mockReturnValue(mockFirestoreInstance);
-  (adminMock.firestore as unknown as { Timestamp: { now: jest.Mock } }).Timestamp = {
+  mockFetch.mockResolvedValue({ ok: true, status: 200 });
+  mockDocSet.mockResolvedValue(undefined);
+  mockDoc.mockReturnValue({ set: mockDocSet });
+  mockFirestore.mockReturnValue(mockFirestoreInstance);
+  (mockFirestore as unknown as { Timestamp: { now: jest.Mock } }).Timestamp = {
     now: jest.fn(() => ({ _seconds: 1234567890, _nanoseconds: 0 })),
   };
 });
 
-// Stub global fetch for RC API calls
-const mockFetch = jest.spyOn(global, "fetch").mockImplementation(
-  jest.fn().mockResolvedValue({ ok: true, status: 200 } as Response)
-);
-
-// stripeWebhook is an onRequest handler — the mock returns it directly
-const { stripeWebhook } = require("../stripeWebhook");
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function makeReq(overrides: Partial<{
   headers: Record<string, string | undefined>;
@@ -40,13 +86,14 @@ function makeReq(overrides: Partial<{
 }
 
 function makeRes() {
-  const res = {
+  return {
     status: jest.fn().mockReturnThis(),
     send: jest.fn().mockReturnThis(),
     json: jest.fn().mockReturnThis(),
   };
-  return res;
 }
+
+// ─── Tests ────────────────────────────────────────────────────────────────────
 
 describe("stripeWebhook", () => {
   it("returns 400 when stripe-signature header is missing", async () => {
@@ -68,6 +115,7 @@ describe("stripeWebhook", () => {
 
   it("grants RC entitlement on customer.subscription.created with status active", async () => {
     const subscription = {
+      id: "sub_abc",
       metadata: { firebaseUID: "user-abc" },
       status: "active",
     };
@@ -89,6 +137,7 @@ describe("stripeWebhook", () => {
 
   it("grants RC entitlement on subscription.updated with status trialing", async () => {
     const subscription = {
+      id: "sub_trialing",
       metadata: { firebaseUID: "user-trialing" },
       status: "trialing",
     };
@@ -109,6 +158,7 @@ describe("stripeWebhook", () => {
 
   it("revokes RC entitlement on customer.subscription.deleted", async () => {
     const subscription = {
+      id: "sub_deleted",
       metadata: { firebaseUID: "user-deleted" },
       status: "canceled",
     };
@@ -130,6 +180,7 @@ describe("stripeWebhook", () => {
 
   it("revokes RC entitlement on subscription.updated with status canceled", async () => {
     const subscription = {
+      id: "sub_cancel",
       metadata: { firebaseUID: "user-cancel" },
       status: "canceled",
     };
@@ -150,6 +201,7 @@ describe("stripeWebhook", () => {
 
   it("skips entitlement action when firebaseUID is missing from metadata", async () => {
     const subscription = {
+      id: "sub_no_uid",
       metadata: {},
       status: "active",
     };
@@ -167,8 +219,9 @@ describe("stripeWebhook", () => {
     expect(res.json).toHaveBeenCalledWith({ received: true });
   });
 
-  it("writes premiumEntitlement to Firestore on grant with active:true", async () => {
+  it("writes premiumEntitlement and stripeSubscriptionId to Firestore on grant", async () => {
     const subscription = {
+      id: "sub_grant",
       metadata: { firebaseUID: "user-grant" },
       status: "active",
     };
@@ -182,13 +235,17 @@ describe("stripeWebhook", () => {
     await stripeWebhook(req, res);
 
     expect(mockDocSet).toHaveBeenCalledWith(
-      { premiumEntitlement: { active: true, expiresAt: null, source: "stripe" } },
+      {
+        premiumEntitlement: { active: true, expiresAt: null, source: "stripe" },
+        stripeSubscriptionId: "sub_grant",
+      },
       { merge: true }
     );
   });
 
   it("writes premiumEntitlement to Firestore on revoke with active:false", async () => {
     const subscription = {
+      id: "sub_revoke",
       metadata: { firebaseUID: "user-revoke" },
       status: "canceled",
     };

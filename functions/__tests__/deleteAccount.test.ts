@@ -10,50 +10,57 @@
  */
 
 import { HttpsError } from "firebase-functions/v2/https";
-import admin from "firebase-admin";
-import MockStripe from "stripe";
 
 // ─── Mock fetch ───────────────────────────────────────────────────────────────
 
 const mockFetch = jest.fn();
 global.fetch = mockFetch as unknown as typeof fetch;
 
-// ─── Mock admin.auth().deleteUser ─────────────────────────────────────────────
+// ─── Module-level jest mocks for admin internals ──────────────────────────────
 
-const mockDeleteUser = jest.fn().mockResolvedValue(undefined);
-const mockRecursiveDelete = jest.fn().mockResolvedValue(undefined);
-const mockDocGet = jest.fn();
-const mockDoc = jest.fn();
+const mockDeleteUser = jest.fn();
+const mockRecursiveDelete = jest.fn();
+const mockDocGetFn = jest.fn();
+const mockDocFn = jest.fn(() => ({ get: mockDocGetFn, set: jest.fn() }));
+const mockSubscriptionsCancel = jest.fn();
 
-// Override the firebase-admin mock for this test file to add deleteUser and recursiveDelete
-beforeEach(() => {
-  jest.clearAllMocks();
-
-  // Setup auth mock
-  (admin as unknown as { auth: jest.Mock }).auth = jest.fn(() => ({
-    deleteUser: mockDeleteUser,
-  }));
-
-  // Setup firestore mock with recursiveDelete and doc getter
-  const mockFirestoreInstance = {
-    doc: mockDoc,
+// Override firebase-admin mock to inject our per-test mocks
+jest.mock("firebase-admin", () => {
+  const firestoreInstance = {
+    doc: mockDocFn,
     recursiveDelete: mockRecursiveDelete,
   };
-  (admin.firestore as unknown as jest.Mock).mockReturnValue(mockFirestoreInstance);
+  const firestoreFn = jest.fn(() => firestoreInstance);
+  (firestoreFn as unknown as { FieldValue: unknown }).FieldValue = {
+    serverTimestamp: () => ({ _serverTimestamp: true }),
+  };
+  (firestoreFn as unknown as { Timestamp: { now: jest.Mock } }).Timestamp = {
+    now: jest.fn(() => ({ _seconds: 1234567890, _nanoseconds: 0 })),
+  };
 
-  // Default: user doc has stripeSubscriptionId
-  mockDoc.mockReturnValue({
-    get: mockDocGet,
-  });
-  mockDocGet.mockResolvedValue({
-    data: () => ({ stripeSubscriptionId: "sub_test123" }),
-  });
-
-  // Default: RC revoke succeeds
-  mockFetch.mockResolvedValue({ ok: true, status: 200 });
+  return {
+    __esModule: true,
+    default: {
+      firestore: firestoreFn,
+      auth: jest.fn(() => ({ deleteUser: mockDeleteUser })),
+      initializeApp: jest.fn(),
+    },
+    firestore: firestoreFn,
+    auth: jest.fn(() => ({ deleteUser: mockDeleteUser })),
+  };
 });
 
-// ─── Import after mocks are set up ────────────────────────────────────────────
+// Override stripe mock to inject our cancel mock
+jest.mock("stripe", () => {
+  const MockStripe = jest.fn().mockImplementation(() => ({
+    checkout: { sessions: { create: jest.fn() } },
+    webhooks: { constructEvent: jest.fn() },
+    subscriptions: { cancel: mockSubscriptionsCancel },
+  }));
+  return { __esModule: true, default: MockStripe };
+});
+
+// ─── Import the function under test (after mocks) ────────────────────────────
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const { deleteAccount } = require("../src/deleteAccount");
@@ -67,6 +74,26 @@ interface CallRequest {
 async function callDeleteAccount(request: CallRequest): Promise<unknown> {
   return deleteAccount(request);
 }
+
+// ─── Setup ────────────────────────────────────────────────────────────────────
+
+beforeEach(() => {
+  jest.clearAllMocks();
+
+  // Default: RC revoke succeeds
+  mockFetch.mockResolvedValue({ ok: true, status: 200 });
+
+  // Default: user doc has stripeSubscriptionId
+  mockDocGetFn.mockResolvedValue({
+    data: () => ({ stripeSubscriptionId: "sub_test123" }),
+  });
+  mockDocFn.mockReturnValue({ get: mockDocGetFn, set: jest.fn() });
+
+  // Default: Stripe cancel, recursiveDelete, deleteUser succeed
+  mockSubscriptionsCancel.mockResolvedValue({ id: "sub_test123", status: "canceled" });
+  mockRecursiveDelete.mockResolvedValue(undefined);
+  mockDeleteUser.mockResolvedValue(undefined);
+});
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
@@ -85,79 +112,57 @@ describe("deleteAccount", () => {
   });
 
   describe("full deletion flow", () => {
-    test("calls RC revoke, reads user doc, cancels Stripe, recursiveDelete, deleteUser in order and returns success", async () => {
-      const callOrder: string[] = [];
-
-      mockFetch.mockImplementation(async (url: string, opts: { method: string }) => {
-        if (opts.method === "DELETE") callOrder.push("rc-revoke");
-        return { ok: true, status: 200 };
-      });
-
-      mockDocGet.mockImplementation(async () => {
-        callOrder.push("doc-get");
-        return { data: () => ({ stripeSubscriptionId: "sub_abc" }) };
-      });
-
-      // Get the stripe instance that was created during module load
-      const stripeInstances = (MockStripe as unknown as jest.Mock).mock?.instances;
-      const latestInstance = stripeInstances?.[stripeInstances.length - 1];
-      if (latestInstance?.subscriptions?.cancel) {
-        latestInstance.subscriptions.cancel.mockImplementation(async () => {
-          callOrder.push("stripe-cancel");
-          return {};
-        });
-      }
-
-      mockRecursiveDelete.mockImplementation(async () => {
-        callOrder.push("recursive-delete");
-      });
-
-      mockDeleteUser.mockImplementation(async () => {
-        callOrder.push("delete-user");
-      });
-
+    test("calls RC revoke, reads user doc, cancels Stripe, recursiveDelete, deleteUser and returns success", async () => {
       const result = await callDeleteAccount({ auth: { uid: "user123" } });
       expect(result).toEqual({ success: true });
 
-      // Verify RC was revoked
+      // Verify RC was revoked (fetch called with DELETE to RC API)
       expect(mockFetch).toHaveBeenCalledWith(
         expect.stringContaining("user123"),
         expect.objectContaining({ method: "DELETE" })
       );
 
       // Verify user doc was read for stripeSubscriptionId
-      expect(mockDoc).toHaveBeenCalledWith("users/user123");
-      expect(mockDocGet).toHaveBeenCalled();
+      expect(mockDocFn).toHaveBeenCalledWith("users/user123");
+      expect(mockDocGetFn).toHaveBeenCalled();
+
+      // Verify Stripe subscription was cancelled
+      expect(mockSubscriptionsCancel).toHaveBeenCalledWith("sub_test123");
 
       // Verify Firestore recursive delete was called
       expect(mockRecursiveDelete).toHaveBeenCalled();
 
-      // Verify auth user was deleted
+      // Verify Firebase Auth user was deleted
       expect(mockDeleteUser).toHaveBeenCalledWith("user123");
     });
   });
 
   describe("missing stripeSubscriptionId", () => {
     test("skips Stripe cancel when user doc has no stripeSubscriptionId", async () => {
-      mockDocGet.mockResolvedValue({
+      mockDocGetFn.mockResolvedValue({
         data: () => ({ premiumEntitlement: { active: true } }), // no stripeSubscriptionId
       });
 
       const result = await callDeleteAccount({ auth: { uid: "user456" } });
       expect(result).toEqual({ success: true });
 
-      // Verify Firestore recursive delete and auth delete still happen
+      // Stripe cancel should NOT be called
+      expect(mockSubscriptionsCancel).not.toHaveBeenCalled();
+
+      // Firestore and Auth deletion must still happen
       expect(mockRecursiveDelete).toHaveBeenCalled();
       expect(mockDeleteUser).toHaveBeenCalledWith("user456");
     });
 
     test("skips Stripe cancel when user doc data() returns null", async () => {
-      mockDocGet.mockResolvedValue({
+      mockDocGetFn.mockResolvedValue({
         data: () => null,
       });
 
       const result = await callDeleteAccount({ auth: { uid: "user789" } });
       expect(result).toEqual({ success: true });
+
+      expect(mockSubscriptionsCancel).not.toHaveBeenCalled();
       expect(mockRecursiveDelete).toHaveBeenCalled();
       expect(mockDeleteUser).toHaveBeenCalledWith("user789");
     });
@@ -177,16 +182,12 @@ describe("deleteAccount", () => {
 
     test("Stripe cancel failure does not block deletion — still deletes Firestore and Auth", async () => {
       // User has subscription ID
-      mockDocGet.mockResolvedValue({
+      mockDocGetFn.mockResolvedValue({
         data: () => ({ stripeSubscriptionId: "sub_fail" }),
       });
 
       // Stripe cancel throws
-      const stripeInstances = (MockStripe as unknown as jest.Mock).mock?.instances;
-      const latestInstance = stripeInstances?.[stripeInstances.length - 1];
-      if (latestInstance?.subscriptions?.cancel) {
-        latestInstance.subscriptions.cancel.mockRejectedValue(new Error("Stripe error"));
-      }
+      mockSubscriptionsCancel.mockRejectedValue(new Error("Stripe error"));
 
       const result = await callDeleteAccount({ auth: { uid: "userB" } });
       expect(result).toEqual({ success: true });

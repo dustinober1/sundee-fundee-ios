@@ -92,7 +92,10 @@ export const stripeWebhook = onRequest(
             .firestore()
             .doc(`users/${firebaseUID}`)
             .set(
-              { premiumEntitlement: { active: true, expiresAt: null, source: "stripe" } },
+              {
+                premiumEntitlement: { active: true, expiresAt: null, source: "stripe" },
+                stripeSubscriptionId: subscription.id,
+              },
               { merge: true }
             );
         } catch (err) {
