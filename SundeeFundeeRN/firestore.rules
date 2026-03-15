@@ -17,6 +17,11 @@ service cloud.firestore {
       match /{subcollection}/{docId} {
         allow read, write: if request.auth != null && request.auth.uid == userId;
       }
+
+      // 2-level nested subcollection: pain logs under an injury profile
+      match /injuries/{injuryId}/painLogs/{logId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
     }
 
     // Programs collection: authenticated users can read program data.
