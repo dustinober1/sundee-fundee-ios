@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Phase 6 context gathered
-last_updated: "2026-03-15T16:38:52.334Z"
+stopped_at: Completed 06-01-PLAN.md
+last_updated: "2026-03-15T17:23:00.095Z"
 last_activity: "2026-03-14 — Completed Plan 03-02: 5-step onboarding flow with Art Deco styling, atomic persistence, gender-adaptive step skipping, routing bug fixes"
 progress:
   total_phases: 7
   completed_phases: 5
-  total_plans: 27
-  completed_plans: 27
+  total_plans: 30
+  completed_plans: 28
   percent: 16
 ---
 
@@ -76,6 +76,7 @@ Progress: [███░░░░░░░] 16%
 | Phase 05-differentiating-features P06 | 6 | 2 tasks | 5 files |
 | Phase 05-differentiating-features P05-08 | 15 | 2 tasks | 5 files |
 | Phase 05-differentiating-features P09 | 35 | 3 tasks | 5 files |
+| Phase 06-subscriptions-and-monetization P01 | 3 | 1 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -165,6 +166,9 @@ Recent decisions affecting current work:
 - [Phase 05-differentiating-features]: AdaptationIndicator uses static formatDelta helper — returns 'down 10%' for 0.9, 'up 5%' for 1.05, '' for 1.0 — pure function for test coverage without React rendering
 - [Phase 05-differentiating-features]: Adaptation context loads asynchronously via useFocusEffect — never blocks workout start, gracefully degrades when cycle/injury/readiness data is unavailable
 - [Phase 05-differentiating-features]: Dashboard quick-access grid (Programs/Benchmarks/Injuries) provides navigation entry points alongside tab bar for full Phase 5 feature access
+- [Phase 06-subscriptions-and-monetization]: stripeWebhook uses rawBody (not body) for Stripe signature verification — required by Stripe SDK constructEvent
+- [Phase 06-subscriptions-and-monetization]: past_due included in ACTIVE_STATUSES for grace period — subscriptions not immediately revoked on failed payment
+- [Phase 06-subscriptions-and-monetization]: RC entitlement uses lifetime duration for promotional grant — expiry managed via webhook revoke, not RC TTL
 
 ### Pending Todos
 
@@ -180,6 +184,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-15T16:38:52.330Z
-Stopped at: Phase 6 context gathered
-Resume file: .planning/phases/06-subscriptions-and-monetization/06-CONTEXT.md
+Last session: 2026-03-15T17:23:00.093Z
+Stopped at: Completed 06-01-PLAN.md
+Resume file: None

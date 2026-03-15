@@ -109,8 +109,8 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Subscriptions
 
 - [ ] **SUBS-01**: User can subscribe via in-app purchase (RevenueCat) on iOS and Android
-- [ ] **SUBS-02**: User can subscribe via Stripe web checkout at lower price point
-- [ ] **SUBS-03**: Subscription entitlements sync between mobile and web
+- [x] **SUBS-02**: User can subscribe via Stripe web checkout at lower price point
+- [x] **SUBS-03**: Subscription entitlements sync between mobile and web
 - [ ] **SUBS-04**: Premium features gated behind subscription (paywall)
 - [ ] **SUBS-05**: User can manage subscription from settings
 
@@ -226,8 +226,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | WODS-01 | Phase 5 | Complete |
 | WODS-02 | Phase 5 | Complete |
 | SUBS-01 | Phase 6 | Pending |
-| SUBS-02 | Phase 6 | Pending |
-| SUBS-03 | Phase 6 | Pending |
+| SUBS-02 | Phase 6 | Complete |
+| SUBS-03 | Phase 6 | Complete |
 | SUBS-04 | Phase 6 | Pending |
 | SUBS-05 | Phase 6 | Pending |
 | PLAT-04 | Phase 7 | Pending |
