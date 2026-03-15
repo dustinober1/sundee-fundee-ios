@@ -211,7 +211,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | INJR-01 | Phase 5 | Complete |
 | INJR-03 | Phase 5 | Complete |
 | AIWK-01 | Phase 5 | Complete |
-| AIWK-02 | Phase 9 | Pending |
+| AIWK-02 | Phase 9 | Complete |
 | AIWK-03 | Phase 5 | Complete |
 | AIWK-04 | Phase 5 | Complete |
 | AIWK-05 | Phase 5 | Complete |
