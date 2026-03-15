@@ -121,7 +121,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **PLAT-03**: App runs on Web with responsive layout
 - [ ] **PLAT-04**: Refreshed Art Deco design (cream/navy/orange palette evolved)
 - [ ] **PLAT-05**: User can switch between lbs and kg
-- [ ] **PLAT-06**: User can export workout data (CSV or JSON)
+- [x] **PLAT-06**: User can export workout data (CSV or JSON)
 - [ ] **PLAT-07**: User can delete account with full data wipe
 
 ## v2 Requirements
@@ -232,7 +232,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SUBS-05 | Phase 6 | Complete |
 | PLAT-04 | Phase 7 | Pending |
 | PLAT-05 | Phase 7 | Pending |
-| PLAT-06 | Phase 7 | Pending |
+| PLAT-06 | Phase 7 | Complete |
 | PLAT-07 | Phase 7 | Pending |
 
 **Coverage:**
