@@ -56,8 +56,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [x] **BNCH-01**: User can browse benchmark catalog (named workouts)
 - [x] **BNCH-02**: User can record benchmark results with scoring (ForTime, AMRAP rounds+reps, MaxLoad)
-- [ ] **BNCH-03**: User can view benchmark result history and track improvement
-- [ ] **BNCH-04**: User can create custom benchmarks
+- [x] **BNCH-03**: User can view benchmark result history and track improvement
+- [x] **BNCH-04**: User can create custom benchmarks
 
 ### WODs
 
@@ -221,8 +221,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PROG-04 | Phase 5 | Complete |
 | BNCH-01 | Phase 5 | Complete |
 | BNCH-02 | Phase 5 | Complete |
-| BNCH-03 | Phase 5 | Pending |
-| BNCH-04 | Phase 5 | Pending |
+| BNCH-03 | Phase 5 | Complete |
+| BNCH-04 | Phase 5 | Complete |
 | WODS-01 | Phase 5 | Complete |
 | WODS-02 | Phase 5 | Complete |
 | SUBS-01 | Phase 6 | Pending |
