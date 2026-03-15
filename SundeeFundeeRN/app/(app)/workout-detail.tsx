@@ -31,6 +31,9 @@ import {
 import type { GeneratedExercise } from '@/src/domain/ai-workout/generated-workout';
 import { formatDuration } from '@/src/components/history/HistoryCard';
 import * as colors from '@/src/theme/colors';
+import { formatWeight } from '@/src/utils/formatWeight';
+import { getSettingsRepo } from '@/src/repositories/SettingsRepo';
+import type { WeightUnit } from '@/src/domain/types';
 
 // ─── Date formatting ──────────────────────────────────────────────────────────
 
@@ -75,6 +78,7 @@ export default function WorkoutDetailScreen(): React.JSX.Element {
   const [record, setRecord] = useState<WorkoutRecord | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [weightUnit, setWeightUnit] = useState<WeightUnit>('lb');
 
   useEffect(() => {
     if (!user || !workoutId) return;
@@ -99,6 +103,24 @@ export default function WorkoutDetailScreen(): React.JSX.Element {
 
     void load();
   }, [user, isGuest, workoutId]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    async function loadSettings(): Promise<void> {
+      if (!user) return;
+      try {
+        const settings = await getSettingsRepo(isGuest).getSettings(user.uid);
+        if (settings) {
+          setWeightUnit(settings.weightUnit);
+        }
+      } catch (err) {
+        console.error('[WorkoutDetail] Settings load failed:', err);
+      }
+    }
+
+    void loadSettings();
+  }, [user, isGuest]);
 
   if (isLoading) {
     return (
@@ -153,7 +175,7 @@ export default function WorkoutDetailScreen(): React.JSX.Element {
               <MetaStat label="Exercises" value={String(exerciseCount)} />
             )}
             {record.totalVolume !== undefined && (
-              <MetaStat label="Volume" value={`${record.totalVolume} lbs`} />
+              <MetaStat label="Volume" value={formatWeight(record.totalVolume, weightUnit)} />
             )}
           </View>
         </View>
@@ -164,13 +186,14 @@ export default function WorkoutDetailScreen(): React.JSX.Element {
             <CompletedExerciseSection
               key={`${exercise.exerciseId}-${exIdx}`}
               exercise={exercise}
+              weightUnit={weightUnit}
             />
           ))}
 
         {/* AI workout exercises (prescribed, no logged sets) */}
         {customExercises.length === 0 && aiExercises.length > 0 &&
           aiExercises.map((exercise, exIdx) => (
-            <AIExerciseSection key={`${exercise.id}-${exIdx}`} exercise={exercise} />
+            <AIExerciseSection key={`${exercise.id}-${exIdx}`} exercise={exercise} weightUnit={weightUnit} />
           ))}
 
         {/* Nothing available */}
@@ -190,8 +213,10 @@ export default function WorkoutDetailScreen(): React.JSX.Element {
 
 function CompletedExerciseSection({
   exercise,
+  weightUnit,
 }: {
   exercise: CompletedExercise;
+  weightUnit: WeightUnit;
 }): React.JSX.Element {
   return (
     <View style={styles.exerciseCard}>
@@ -219,7 +244,7 @@ function CompletedExerciseSection({
             <View key={idx} style={[styles.setRow, idx % 2 === 1 && styles.setRowAlt]}>
               <Text style={[styles.setCell, styles.setNumCell]}>{idx + 1}</Text>
               <Text style={[styles.setCell, styles.setWeightCell]}>
-                {set.weight > 0 ? `${set.weight} lbs` : '—'}
+                {set.weight > 0 ? formatWeight(set.weight, weightUnit) : '—'}
               </Text>
               <Text style={[styles.setCell, styles.setRepsCell]}>
                 {set.reps > 0 ? String(set.reps) : '—'}
@@ -241,11 +266,17 @@ function CompletedExerciseSection({
 
 // ─── AIExerciseSection (AI-generated workout prescriptions) ──────────────────
 
-function AIExerciseSection({ exercise }: { exercise: GeneratedExercise }): React.JSX.Element {
+function AIExerciseSection({
+  exercise,
+  weightUnit,
+}: {
+  exercise: GeneratedExercise;
+  weightUnit: WeightUnit;
+}): React.JSX.Element {
   const prescription = `${exercise.sets} × ${exercise.reps}`;
   const weightText =
     exercise.weightLb !== null && exercise.weightLb > 0
-      ? `${exercise.weightLb} lbs`
+      ? formatWeight(exercise.weightLb, weightUnit)
       : exercise.bodyweightOnly
         ? 'Bodyweight'
         : null;
