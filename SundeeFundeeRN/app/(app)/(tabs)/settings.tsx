@@ -8,11 +8,18 @@
  *
  * Phase 4 additions:
  * - Rest Timer section: default rest duration picker (30–300 seconds)
+ *
+ * Phase 6 additions:
+ * - Subscription section: plan info for subscribed users, Unlock Premium for free users
+ * - Manage Subscription deep-link (iOS: App Store, Android: Play Store, Web: sundeefundee.com)
+ * - Restore Purchases button (mobile only — required by Apple/Google App Review)
+ * - TrialEndedModal shown once after trial expiry
  */
 
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   Alert,
+  Linking,
   Modal,
   Platform,
   ScrollView,
@@ -23,11 +30,18 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSession } from '@/src/auth/AuthContext';
+import { useEntitlementContext } from '@/src/entitlements/EntitlementContext';
 import { getSettingsRepo, DEFAULT_SETTINGS, type AppSettings } from '@/src/repositories/SettingsRepo';
+import { PaywallModal } from '@/src/components/paywall/PaywallModal';
+import { TrialEndedModal } from '@/src/components/paywall/TrialEndedModal';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as colors from '@/src/theme/colors';
 
 /** Allowed rest duration values in seconds. */
 const REST_DURATION_OPTIONS = [30, 45, 60, 90, 120, 150, 180, 240, 300];
+
+/** AsyncStorage key to track trial ended modal shown state. */
+const TRIAL_ENDED_MODAL_SHOWN_KEY = 'trialEndedModalShown';
 
 /** Format seconds as a human-readable duration label. */
 export function formatRestDuration(seconds: number): string {
@@ -42,11 +56,24 @@ export function formatRestDuration(seconds: number): string {
   return `${mins}m ${secs}s`;
 }
 
+/** Subscription info loaded from RevenueCat on mobile */
+interface SubscriptionInfo {
+  planName: string;
+  renewalDate: string | null;
+  isTrialing: boolean;
+  managementURL: string | null;
+}
+
 export default function SettingsScreen(): React.JSX.Element {
   const { user, isGuest, signOut } = useSession();
+  const { isPremium } = useEntitlementContext();
   const router = useRouter();
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
   const [showRestPicker, setShowRestPicker] = useState(false);
+  const [subscriptionInfo, setSubscriptionInfo] = useState<SubscriptionInfo | null>(null);
+  const [isRestoring, setIsRestoring] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
+  const [showTrialEndedModal, setShowTrialEndedModal] = useState(false);
 
   const loadSettings = useCallback(async (): Promise<void> => {
     if (!user) return;
@@ -61,9 +88,72 @@ export default function SettingsScreen(): React.JSX.Element {
     }
   }, [user, isGuest]);
 
+  const loadSubscriptionInfo = useCallback(async (): Promise<void> => {
+    if (!user || isGuest || Platform.OS === 'web') return;
+
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const Purchases = require('react-native-purchases').default;
+      const customerInfo = await Purchases.getCustomerInfo();
+      const premiumEntitlement = customerInfo?.entitlements?.active?.premium;
+
+      if (premiumEntitlement) {
+        const productId = premiumEntitlement.productIdentifier ?? '';
+        const planName = productId.includes('annual') ? 'Premium Annual' : 'Premium Monthly';
+        const expirationDate = premiumEntitlement.expirationDate;
+        const renewalDate = expirationDate
+          ? new Date(expirationDate).toLocaleDateString('en-US', {
+              month: 'long',
+              day: 'numeric',
+              year: 'numeric',
+            })
+          : null;
+
+        setSubscriptionInfo({
+          planName,
+          renewalDate,
+          isTrialing: premiumEntitlement.periodType === 'TRIAL',
+          managementURL: customerInfo?.managementURL ?? null,
+        });
+      }
+    } catch {
+      // RevenueCat unavailable — gracefully degrade
+    }
+  }, [user, isGuest]);
+
+  const checkTrialEndedModal = useCallback(async (): Promise<void> => {
+    if (!user || isGuest || Platform.OS === 'web') return;
+
+    try {
+      // Already shown?
+      const alreadyShown = await AsyncStorage.getItem(TRIAL_ENDED_MODAL_SHOWN_KEY);
+      if (alreadyShown === 'true') return;
+
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const Purchases = require('react-native-purchases').default;
+      const customerInfo = await Purchases.getCustomerInfo();
+      const premiumEntitlement = customerInfo?.entitlements?.active?.premium;
+
+      // Trial ended = had premium entitlement that was TRIAL, but no longer active
+      // OR: check all entitlements for expired trial
+      const allPremium = customerInfo?.entitlements?.all?.premium;
+      if (
+        allPremium &&
+        !premiumEntitlement && // not currently active
+        allPremium.periodType === 'TRIAL'
+      ) {
+        setShowTrialEndedModal(true);
+      }
+    } catch {
+      // Non-critical
+    }
+  }, [user, isGuest]);
+
   useEffect(() => {
     void loadSettings();
-  }, [loadSettings]);
+    void loadSubscriptionInfo();
+    void checkTrialEndedModal();
+  }, [loadSettings, loadSubscriptionInfo, checkTrialEndedModal]);
 
   async function handleSelectRestDuration(seconds: number): Promise<void> {
     setShowRestPicker(false);
@@ -111,6 +201,51 @@ export default function SettingsScreen(): React.JSX.Element {
 
   function handleCreateAccount(): void {
     router.push('/sign-in');
+  }
+
+  async function handleManageSubscription(): Promise<void> {
+    if (Platform.OS === 'ios') {
+      await Linking.openURL('itms-apps://apps.apple.com/account/subscriptions');
+    } else if (Platform.OS === 'android' && subscriptionInfo?.managementURL) {
+      await Linking.openURL(subscriptionInfo.managementURL);
+    }
+    // Web: show static text in UI (handled in render)
+  }
+
+  async function handleRestorePurchases(): Promise<void> {
+    if (isRestoring) return;
+    setIsRestoring(true);
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const Purchases = require('react-native-purchases').default;
+      const customerInfo = await Purchases.restorePurchases();
+      const hasActive = Object.keys(customerInfo?.entitlements?.active ?? {}).length > 0;
+
+      Alert.alert(
+        'Restore Purchases',
+        hasActive
+          ? 'Your purchases have been restored successfully.'
+          : 'No purchases found to restore.',
+        [{ text: 'OK' }]
+      );
+    } catch {
+      Alert.alert(
+        'Restore Failed',
+        'Could not restore purchases. Please try again.',
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setIsRestoring(false);
+    }
+  }
+
+  async function handleDismissTrialEndedModal(): Promise<void> {
+    try {
+      await AsyncStorage.setItem(TRIAL_ENDED_MODAL_SHOWN_KEY, 'true');
+    } catch {
+      // Non-critical
+    }
+    setShowTrialEndedModal(false);
   }
 
   const displayName = isGuest
@@ -183,12 +318,86 @@ export default function SettingsScreen(): React.JSX.Element {
         </View>
       </View>
 
+      {/* Subscription section — between Rest Timer and About */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Subscription</Text>
+
+        {isPremium ? (
+          /* Subscribed state */
+          <View style={styles.subscriptionCard}>
+            <View style={styles.subscriptionPlanRow}>
+              <Text style={styles.subscriptionPlanName}>
+                {subscriptionInfo?.isTrialing
+                  ? 'Free Trial'
+                  : (subscriptionInfo?.planName ?? 'Premium')}
+              </Text>
+              <View style={styles.activeBadge}>
+                <Text style={styles.activeBadgeText}>Active</Text>
+              </View>
+            </View>
+            {subscriptionInfo?.renewalDate != null && (
+              <Text style={styles.subscriptionRenewal}>
+                {subscriptionInfo.isTrialing ? 'Expires' : 'Renews'}: {subscriptionInfo.renewalDate}
+              </Text>
+            )}
+
+            {/* Manage Subscription — platform-specific */}
+            {Platform.OS !== 'web' ? (
+              <TouchableOpacity
+                style={styles.manageRow}
+                onPress={() => void handleManageSubscription()}
+                activeOpacity={0.7}
+                testID="manage-subscription-row"
+              >
+                <Text style={styles.manageLabel}>Manage Subscription</Text>
+                <Text style={styles.chevron}>›</Text>
+              </TouchableOpacity>
+            ) : (
+              <View style={styles.manageRow} testID="manage-subscription-row">
+                <Text style={styles.manageLabel}>Manage on sundeefundee.com</Text>
+              </View>
+            )}
+          </View>
+        ) : (
+          /* Non-subscribed state */
+          <View style={styles.unlockCard}>
+            <Text style={styles.unlockTitle}>Unlock Premium</Text>
+            <Text style={styles.unlockBody}>
+              AI Workouts, Cycle Adaptation, Programs, and Injury Adaptation — all in one.
+            </Text>
+            <TouchableOpacity
+              style={styles.viewPlansButton}
+              onPress={() => setShowPaywall(true)}
+              activeOpacity={0.8}
+              testID="view-plans-button"
+            >
+              <Text style={styles.viewPlansText}>View Plans</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Restore Purchases — mobile only (required by Apple/Google App Review) */}
+        {Platform.OS !== 'web' && (
+          <TouchableOpacity
+            style={[styles.restoreButton, isRestoring && styles.restoreButtonDisabled]}
+            onPress={() => void handleRestorePurchases()}
+            activeOpacity={0.7}
+            disabled={isRestoring}
+            testID="restore-purchases-button"
+          >
+            <Text style={styles.restoreText}>
+              {isRestoring ? 'Restoring…' : 'Restore Purchases'}
+            </Text>
+          </TouchableOpacity>
+        )}
+      </View>
+
       {/* App info */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>About</Text>
         <View style={styles.infoRow}>
           <Text style={styles.infoLabel}>Version</Text>
-          <Text style={styles.infoValue}>1.0.0 (Phase 4)</Text>
+          <Text style={styles.infoValue}>1.0.0 (Phase 6)</Text>
         </View>
       </View>
 
@@ -244,6 +453,23 @@ export default function SettingsScreen(): React.JSX.Element {
           </View>
         </TouchableOpacity>
       </Modal>
+
+      {/* Paywall modal */}
+      <PaywallModal
+        visible={showPaywall}
+        onDismiss={() => setShowPaywall(false)}
+        onSubscribed={() => setShowPaywall(false)}
+      />
+
+      {/* Trial Ended modal — shown once after trial expiry */}
+      <TrialEndedModal
+        visible={showTrialEndedModal}
+        onDismiss={() => void handleDismissTrialEndedModal()}
+        onSubscribe={() => {
+          setShowTrialEndedModal(false);
+          setShowPaywall(true);
+        }}
+      />
     </ScrollView>
   );
 }
@@ -370,6 +596,105 @@ const styles = StyleSheet.create({
     color: colors.GREY,
     marginTop: -1,
   },
+  // Subscription section
+  subscriptionCard: {
+    backgroundColor: colors.CREAM_LIGHT,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.GREY_LIGHT,
+    padding: 14,
+    marginBottom: 10,
+    gap: 8,
+  },
+  subscriptionPlanRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  subscriptionPlanName: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.NAVY,
+  },
+  activeBadge: {
+    backgroundColor: '#27AE60',
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  activeBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#fff',
+    letterSpacing: 0.3,
+  },
+  subscriptionRenewal: {
+    fontSize: 13,
+    color: colors.GREY,
+  },
+  manageRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 10,
+    borderTopWidth: 1,
+    borderTopColor: colors.GREY_LIGHT,
+    marginTop: 4,
+  },
+  manageLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.ORANGE,
+  },
+  unlockCard: {
+    backgroundColor: colors.ORANGE_LIGHT,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.ORANGE,
+    padding: 14,
+    marginBottom: 10,
+    gap: 8,
+  },
+  unlockTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.NAVY,
+  },
+  unlockBody: {
+    fontSize: 13,
+    color: colors.NAVY_MEDIUM,
+    lineHeight: 18,
+  },
+  viewPlansButton: {
+    backgroundColor: colors.ORANGE,
+    borderRadius: 8,
+    paddingVertical: 12,
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  viewPlansText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.CREAM,
+    letterSpacing: 0.3,
+  },
+  restoreButton: {
+    paddingVertical: 12,
+    alignItems: 'center',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.GREY_LIGHT,
+    backgroundColor: colors.CREAM_LIGHT,
+  },
+  restoreButtonDisabled: {
+    opacity: 0.6,
+  },
+  restoreText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.GREY,
+  },
+  // App info
   infoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
