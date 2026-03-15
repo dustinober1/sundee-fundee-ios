@@ -9,10 +9,12 @@
  * 5. Render the root Stack navigator via expo-router (includes onboarding route group)
  * 6. Call Purchases.logIn(user.uid) on non-guest sign-in for RC identity binding
  * 7. Wrap Stack with EntitlementProvider for app-wide premium status access
+ * 8. Retry any pending guest-to-auth migration on non-anonymous user sign-in
  */
 import { useCallback, useEffect } from 'react';
 import { Platform } from 'react-native';
 import { Stack } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { AuthUser } from '@/src/firebase/auth';
 
 import { SessionProvider } from '@/src/auth/AuthContext';
@@ -53,6 +55,29 @@ function configureRevenueCat(): void {
   } catch (error) {
     // react-native-purchases not available in this environment
     console.warn('[RevenueCat] SDK not available:', error);
+  }
+}
+
+// ─── Pending Migration Retry ──────────────────────────────────────────────────
+
+/**
+ * Retries a pending guest-to-auth data migration on non-anonymous sign-in.
+ *
+ * Called when a non-anonymous user signs in. If a previous migration attempt
+ * was interrupted (crash, network error), the @sundee/migration_pending flag
+ * will still be set. This function retries the migration silently — failure
+ * just leaves the flag set for the next launch.
+ */
+async function retryPendingMigration(uid: string): Promise<void> {
+  try {
+    const pending = await AsyncStorage.getItem('@sundee/migration_pending');
+    if (pending !== 'true') return;
+    const { migrateGuestDataToFirestore } = await import(
+      '@/src/repositories/migration'
+    );
+    await migrateGuestDataToFirestore(uid);
+  } catch {
+    // Silent — retry on next launch
   }
 }
 
@@ -129,6 +154,13 @@ export default function RootLayout(): React.JSX.Element {
           // RC logIn failure is non-fatal — entitlement checks will still work
           // via getCustomerInfo fallback in useEntitlements
         }
+      }
+
+      // Retry any pending guest-to-auth migration for non-anonymous users.
+      // If a previous migration was interrupted, the pending flag will be set.
+      // Errors are swallowed — retry happens on next launch.
+      if (!user.isAnonymous) {
+        void retryPendingMigration(user.uid);
       }
     },
     []
