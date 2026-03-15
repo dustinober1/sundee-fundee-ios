@@ -1,14 +1,14 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { defineSecret } from "firebase-functions/params";
 import * as admin from "firebase-admin";
-import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import {
   buildSystemPrompt,
   buildUserPrompt,
   WorkoutContext,
 } from "./prompts/workoutPrompt";
 
-const ANTHROPIC_API_KEY = defineSecret("ANTHROPIC_API_KEY");
+const GEMINI_API_KEY = defineSecret("GEMINI_API_KEY");
 
 interface GeneratedExercise {
   name: string;
@@ -28,10 +28,11 @@ interface GeneratedWorkoutResponse {
 
 export const generateWorkout = onCall(
   {
-    secrets: [ANTHROPIC_API_KEY],
+    secrets: [GEMINI_API_KEY],
     memory: "256MiB",
     timeoutSeconds: 60,
-    maxInstances: 10,
+    minInstances: 1,
+    concurrency: 80,
   },
   async (request) => {
     if (!request.auth) {
@@ -48,26 +49,28 @@ export const generateWorkout = onCall(
       );
     }
 
-    const client = new Anthropic({ apiKey: ANTHROPIC_API_KEY.value() });
+    const genAI = new GoogleGenerativeAI(GEMINI_API_KEY.value());
+    const model = genAI.getGenerativeModel(
+      { model: "gemini-2.0-flash" },
+      { apiVersion: "v1beta" }
+    );
 
     let workoutData: GeneratedWorkoutResponse;
     const maxRetries = 2;
 
     for (let attempt = 0; attempt < maxRetries; attempt++) {
       try {
-        const message = await client.messages.create({
-          model: "claude-haiku-4-5-20251001",
-          max_tokens: 2048,
-          system: buildSystemPrompt(),
-          messages: [{ role: "user", content: buildUserPrompt(context) }],
+        const result = await model.generateContent({
+          systemInstruction: buildSystemPrompt(),
+          contents: [{ role: "user", parts: [{ text: buildUserPrompt(context) }] }],
+          generationConfig: {
+            responseMimeType: "application/json",
+            maxOutputTokens: 2048,
+          },
         });
 
-        const textBlock = message.content.find((b) => b.type === "text");
-        if (!textBlock || textBlock.type !== "text") {
-          throw new Error("No text response from Claude");
-        }
-
-        workoutData = JSON.parse(textBlock.text);
+        const responseText = result.response.text();
+        workoutData = JSON.parse(responseText);
         workoutData = validateWorkout(workoutData, context);
         break;
       } catch (error) {
