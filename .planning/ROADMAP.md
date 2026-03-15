@@ -166,6 +166,11 @@ Plans:
 **Goal:** Guest-to-auth upgrade preserves all user data; AI workouts use real user profile instead of hardcoded values
 **Requirements:** AUTH-07, AIWK-02
 **Gap Closure:** Closes gaps from audit — call migrateGuestDataToFirestore after linkWithCredential; read profile in AI workout config
+**Plans:** 2 plans
+
+Plans:
+- [ ] 09-01-PLAN.md — Expand migration to 13 keys with multi-batch support, wire into upgrade() and add _layout.tsx retry
+- [ ] 09-02-PLAN.md — Wire real user profile, settings, maxes, and recent workouts into AI workout config
 
 ### Phase 10: UI Polish Fixes
 **Goal:** Historical weight display respects user unit preference; goodbye screen has proper navigation; web export bundles into zip
@@ -187,5 +192,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 6. Subscriptions and Monetization | 3/3 | Complete   | 2026-03-15 |
 | 7. Polish and Pre-Launch | 3/3 | Complete   | 2026-03-15 |
 | 8. Fix Cycle Adaptation Wiring | 1/1 | Complete   | 2026-03-15 |
-| 9. Fix Guest Migration + AI Profile Wiring | 0/0 | Not Started |  |
+| 9. Fix Guest Migration + AI Profile Wiring | 0/2 | Not Started |  |
 | 10. UI Polish Fixes | 0/0 | Not Started |  |
