@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 06-02-PLAN.md
-last_updated: "2026-03-15T17:28:30.033Z"
+stopped_at: Completed 06-03-PLAN.md
+last_updated: "2026-03-15T17:40:00.892Z"
 last_activity: "2026-03-14 — Completed Plan 03-02: 5-step onboarding flow with Art Deco styling, atomic persistence, gender-adaptive step skipping, routing bug fixes"
 progress:
   total_phases: 7
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 30
-  completed_plans: 29
+  completed_plans: 30
   percent: 16
 ---
 
@@ -78,6 +78,7 @@ Progress: [███░░░░░░░] 16%
 | Phase 05-differentiating-features P09 | 35 | 3 tasks | 5 files |
 | Phase 06-subscriptions-and-monetization P01 | 3 | 1 tasks | 11 files |
 | Phase 06-subscriptions-and-monetization P02 | 8 | 2 tasks | 9 files |
+| Phase 06-subscriptions-and-monetization P03 | 35 | 2 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -173,6 +174,9 @@ Recent decisions affecting current work:
 - [Phase 06-subscriptions-and-monetization]: useEntitlements accepts optional uid param — re-runs effect when uid changes for login/logout cycles
 - [Phase 06-subscriptions-and-monetization]: Platform.OS test mocking: Object.defineProperty(Platform, 'OS', {value, configurable:true}) in beforeEach — jest.mock module path does not intercept imported Platform.OS
 - [Phase 06-subscriptions-and-monetization]: jest.mock factory variables must be named with 'mock' prefix — babel hoisting safety rule blocks access to non-mock-prefixed variables
+- [Phase 06-subscriptions-and-monetization]: jest.spyOn(Linking, 'openURL') used for Linking deep-link testing — mocking full react-native module breaks @testing-library/react-native FlatList
+- [Phase 06-subscriptions-and-monetization]: TrialBanner uses null-return pattern — safe to render unconditionally in dashboard
+- [Phase 06-subscriptions-and-monetization]: Programs catalog gates on enrollment (card tap) not browsing — catalog stays free per user decision
 
 ### Pending Todos
 
@@ -188,6 +192,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-15T17:28:30.030Z
-Stopped at: Completed 06-02-PLAN.md
+Last session: 2026-03-15T17:40:00.889Z
+Stopped at: Completed 06-03-PLAN.md
 Resume file: None

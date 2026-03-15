@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: Data Layer and Offline Architecture** - Repository interfaces, Firestore + AsyncStorage implementations, offline guarantee (completed 2026-03-14)
 - [x] **Phase 4: Core Workout Loop** - Exercise library, workout logging, timers, PR detection, history, progress charts (completed 2026-03-15)
 - [ ] **Phase 5: Differentiating Features** - Cycle tracking/adaptation, injury engine, AI workouts, programs, benchmarks, WODs, readiness
-- [ ] **Phase 6: Subscriptions and Monetization** - RevenueCat paywall, Stripe web checkout, entitlement gates, account management
+- [x] **Phase 6: Subscriptions and Monetization** - RevenueCat paywall, Stripe web checkout, entitlement gates, account management (completed 2026-03-15)
 - [ ] **Phase 7: Polish and Pre-Launch** - Art Deco refinement, Android adaptations, App Check, security audit, data export, app store submission
 
 ## Phase Details
@@ -129,7 +129,7 @@ Plans:
   3. Premium features (cycle adaptation, AI workout generation) are inaccessible to free users; the paywall screen is shown without blocking the first workout attempt
   4. Subscribed user can view, change, or cancel their subscription from the settings screen; restore purchases works after reinstall
   5. Subscription entitlements are consistent across all platforms for the same Firebase UID — a user who subscribed on web has premium access on iOS and Android
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 
 Plans:
 - [ ] 06-01-PLAN.md — Build Stripe Cloud Functions (createCheckoutSession + stripeWebhook) with RC entitlement bridge and tests
@@ -160,5 +160,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 3. Data Layer and Offline Architecture | 2/2 | Complete   | 2026-03-14 |
 | 4. Core Workout Loop | 8/8 | Complete   | 2026-03-15 |
 | 5. Differentiating Features | 6/9 | In Progress|  |
-| 6. Subscriptions and Monetization | 2/3 | In Progress|  |
+| 6. Subscriptions and Monetization | 3/3 | Complete   | 2026-03-15 |
 | 7. Polish and Pre-Launch | 0/TBD | Not started | - |
