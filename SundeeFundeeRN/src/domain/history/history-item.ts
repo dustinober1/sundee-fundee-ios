@@ -13,7 +13,8 @@
 
 export type HistoryItemSource =
   | { kind: 'aiWorkout' }
-  | { kind: 'program'; name: string };
+  | { kind: 'program'; name: string }
+  | { kind: 'custom' };
 
 // ---------------------------------------------------------------------------
 // HistoryItem
@@ -29,6 +30,10 @@ export interface HistoryItem {
   /** Original ID for deletion (not prefixed). */
   originalID: string;
   isAIWorkout: boolean;
+  /** Total volume (sum of weight * reps across all sets) for this workout. */
+  totalVolume?: number;
+  /** Custom workout name, if user-named. */
+  workoutName?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -45,5 +50,7 @@ export function getSourceLabel(source: HistoryItemSource): string {
       return 'AI Workout';
     case 'program':
       return source.name;
+    case 'custom':
+      return 'Custom Workout';
   }
 }
