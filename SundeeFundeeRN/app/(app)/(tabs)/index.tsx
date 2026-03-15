@@ -1,29 +1,91 @@
 /**
- * app/(app)/(tabs)/index.tsx — Dashboard placeholder.
+ * app/(app)/(tabs)/index.tsx — Dashboard.
  *
- * Phase 1: Shows welcome message with user's name or "Guest".
- * Full training dashboard built in later phases.
+ * Shows welcome message, Start Workout button (navigates to workout-session),
+ * timed workout options (ForTime, AMRAP, EMOM), and a recent workout card.
  *
  * Guest users see a contextual upgrade nudge per locked decision:
  * "Create Account option always visible in settings, plus contextual nudges elsewhere"
  */
 
-import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import React, { useCallback, useEffect, useState } from 'react';
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { useSession } from '@/src/auth/AuthContext';
+import { getWorkoutRepo, type WorkoutRecord } from '@/src/repositories/WorkoutRepo';
 import * as colors from '@/src/theme/colors';
+
+/** Timed workout mode options presented on the dashboard. */
+const TIMED_MODES: Array<{ mode: string; label: string; description: string }> = [
+  { mode: 'forTime', label: 'For Time', description: 'Race the clock' },
+  { mode: 'amrap', label: 'AMRAP', description: 'As Many Rounds As Possible' },
+  { mode: 'emom', label: 'EMOM', description: 'Every Minute On the Minute' },
+];
+
+/** Format seconds into h:mm:ss or m:ss string. */
+export function formatDuration(seconds: number): string {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = seconds % 60;
+  if (h > 0) {
+    return `${h}h ${m}m`;
+  }
+  return `${m}m ${String(s).padStart(2, '0')}s`;
+}
 
 export default function DashboardScreen(): React.JSX.Element {
   const { user, isGuest } = useSession();
   const router = useRouter();
+  const [lastWorkout, setLastWorkout] = useState<WorkoutRecord | null>(null);
 
   const displayName = isGuest
     ? 'Guest'
     : (user?.displayName ?? user?.email ?? 'Athlete');
 
+  const loadLastWorkout = useCallback(async (): Promise<void> => {
+    if (!user) return;
+    try {
+      const repo = getWorkoutRepo(isGuest);
+      const history = await repo.getHistory(user.uid);
+      if (history.length > 0) {
+        const sorted = [...history].sort(
+          (a, b) => b.startedAt.getTime() - a.startedAt.getTime()
+        );
+        setLastWorkout(sorted[0] ?? null);
+      } else {
+        setLastWorkout(null);
+      }
+    } catch {
+      setLastWorkout(null);
+    }
+  }, [user, isGuest]);
+
+  useFocusEffect(
+    useCallback(() => {
+      void loadLastWorkout();
+    }, [loadLastWorkout])
+  );
+
+  function handleStartWorkout(): void {
+    router.push('/workout-session');
+  }
+
+  function handleStartTimedWorkout(mode: string): void {
+    router.push({ pathname: '/workout-session', params: { timerMode: mode } });
+  }
+
   return (
-    <View style={styles.container}>
+    <ScrollView
+      style={styles.scrollView}
+      contentContainerStyle={styles.container}
+      showsVerticalScrollIndicator={false}
+    >
       {/* Welcome */}
       <View style={styles.welcomeSection}>
         <Text style={styles.greeting}>Welcome back,</Text>
@@ -33,15 +95,53 @@ export default function DashboardScreen(): React.JSX.Element {
         )}
       </View>
 
-      {/* Training dashboard placeholder */}
-      <View style={styles.placeholderCard}>
-        <Text style={styles.placeholderText}>
-          Your training dashboard will appear here
-        </Text>
-        <Text style={styles.placeholderSubtext}>
-          Program selection, today's workout, and cycle-aware recommendations
-          are coming in Phase 3.
-        </Text>
+      {/* Primary Start Workout CTA */}
+      <TouchableOpacity
+        style={styles.startWorkoutButton}
+        onPress={handleStartWorkout}
+        activeOpacity={0.85}
+        testID="start-workout-button"
+      >
+        <Text style={styles.startWorkoutText}>Start Workout</Text>
+        <Text style={styles.startWorkoutSubtext}>Strength • Custom • Open</Text>
+      </TouchableOpacity>
+
+      {/* Recent workout card */}
+      {lastWorkout != null && (
+        <View style={styles.recentCard}>
+          <Text style={styles.recentLabel}>Last Workout</Text>
+          <Text style={styles.recentTitle} numberOfLines={1}>
+            {lastWorkout.name ?? 'Custom Workout'}
+          </Text>
+          <Text style={styles.recentMeta}>
+            {lastWorkout.startedAt.toLocaleDateString('en-US', {
+              month: 'short',
+              day: 'numeric',
+              year: 'numeric',
+            })}
+            {lastWorkout.durationSeconds != null &&
+              `  ·  ${formatDuration(lastWorkout.durationSeconds)}`}
+          </Text>
+        </View>
+      )}
+
+      {/* Timed workout modes */}
+      <View style={styles.timedSection}>
+        <Text style={styles.sectionTitle}>Timed Workout</Text>
+        <View style={styles.timedGrid}>
+          {TIMED_MODES.map(({ mode, label, description }) => (
+            <TouchableOpacity
+              key={mode}
+              style={styles.timedCard}
+              onPress={() => handleStartTimedWorkout(mode)}
+              activeOpacity={0.8}
+              testID={`timed-mode-${mode}`}
+            >
+              <Text style={styles.timedLabel}>{label}</Text>
+              <Text style={styles.timedDescription}>{description}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
       </View>
 
       {/* Guest upgrade nudge (per locked decision) */}
@@ -62,21 +162,24 @@ export default function DashboardScreen(): React.JSX.Element {
           </TouchableOpacity>
         </View>
       )}
-    </View>
+    </ScrollView>
   );
 }
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  container: {
+  scrollView: {
     flex: 1,
     backgroundColor: colors.CREAM,
+  },
+  container: {
     paddingHorizontal: 24,
     paddingTop: 32,
+    paddingBottom: 40,
   },
   welcomeSection: {
-    marginBottom: 32,
+    marginBottom: 28,
   },
   greeting: {
     fontSize: 16,
@@ -95,27 +198,96 @@ const styles = StyleSheet.create({
     color: colors.GREY,
     marginTop: 2,
   },
-  placeholderCard: {
+  startWorkoutButton: {
+    backgroundColor: colors.ORANGE,
+    borderRadius: 14,
+    paddingVertical: 22,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+    marginBottom: 16,
+    shadowColor: colors.ORANGE_DARK,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  startWorkoutText: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: colors.CREAM,
+    letterSpacing: 0.5,
+    marginBottom: 4,
+  },
+  startWorkoutSubtext: {
+    fontSize: 13,
+    color: colors.CREAM,
+    opacity: 0.85,
+    letterSpacing: 0.3,
+  },
+  recentCard: {
     backgroundColor: colors.CREAM_LIGHT,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: colors.GREY_LIGHT,
-    padding: 24,
-    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
     marginBottom: 24,
   },
-  placeholderText: {
-    fontSize: 16,
+  recentLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.GREY,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+    marginBottom: 4,
+  },
+  recentTitle: {
+    fontSize: 15,
     fontWeight: '600',
     color: colors.NAVY,
-    textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: 2,
   },
-  placeholderSubtext: {
+  recentMeta: {
+    fontSize: 12,
+    color: colors.GREY,
+  },
+  timedSection: {
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.GREY,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+    marginBottom: 10,
+  },
+  timedGrid: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  timedCard: {
+    flex: 1,
+    backgroundColor: colors.CREAM_LIGHT,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: colors.NAVY,
+    paddingVertical: 14,
+    paddingHorizontal: 10,
+    alignItems: 'center',
+  },
+  timedLabel: {
     fontSize: 13,
+    fontWeight: '700',
+    color: colors.NAVY,
+    marginBottom: 3,
+    textAlign: 'center',
+  },
+  timedDescription: {
+    fontSize: 10,
     color: colors.GREY,
     textAlign: 'center',
-    lineHeight: 18,
+    lineHeight: 13,
   },
   upgradeNudge: {
     backgroundColor: colors.ORANGE_LIGHT,

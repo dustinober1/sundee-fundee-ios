@@ -15,11 +15,14 @@ import { LocalSettingsRepo } from './LocalSettingsRepo';
 export interface AppSettings {
   weightUnit: 'lb' | 'kg';
   notificationsEnabled: boolean;
+  /** Default rest timer duration in seconds. Defaults to 90. */
+  defaultRestDuration: number;
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
   weightUnit: 'lb',
   notificationsEnabled: true,
+  defaultRestDuration: 90,
 };
 
 export interface SettingsRepository {

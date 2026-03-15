@@ -14,8 +14,19 @@
 
 import { useEffect, useState } from 'react';
 import { Redirect, Stack } from 'expo-router';
+import * as Notifications from 'expo-notifications';
 import { useSession } from '@/src/auth/AuthContext';
 import { getOnboardingProfileRepo } from '@/src/repositories/OnboardingProfileRepo';
+
+// Configure notifications to display when app is in foreground.
+// Called once at module load — safe to call multiple times (idempotent).
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 
 export default function AppLayout(): React.JSX.Element | null {
   const { user, isLoading, isGuest } = useSession();
