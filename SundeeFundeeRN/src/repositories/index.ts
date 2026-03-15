@@ -18,7 +18,7 @@ export { FirestoreOnboardingProfileRepo } from './FirestoreOnboardingProfileRepo
 export { LocalOnboardingProfileRepo } from './LocalOnboardingProfileRepo';
 
 // ─── WorkoutRepo ──────────────────────────────────────────────────────────────
-export type { WorkoutRecord, WorkoutRepository } from './WorkoutRepo';
+export type { WorkoutRecord, WorkoutRepository, CompletedExercise, CompletedSet } from './WorkoutRepo';
 export { getWorkoutRepo } from './WorkoutRepo';
 export { FirestoreWorkoutRepo } from './FirestoreWorkoutRepo';
 export { LocalWorkoutRepo } from './LocalWorkoutRepo';
