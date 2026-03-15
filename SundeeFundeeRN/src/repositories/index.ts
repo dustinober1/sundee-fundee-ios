@@ -47,5 +47,34 @@ export { getExerciseMaxRepo } from './ExerciseMaxRepo';
 export { FirestoreExerciseMaxRepo } from './FirestoreExerciseMaxRepo';
 export { LocalExerciseMaxRepo } from './LocalExerciseMaxRepo';
 
+// ─── CycleRepo ────────────────────────────────────────────────────────────────
+export type { PeriodLogRecord, CycleRepository } from './CycleRepo';
+export { getCycleRepo, periodLogToRecord, recordToPeriodLog } from './CycleRepo';
+export { FirestoreCycleRepo } from './FirestoreCycleRepo';
+export { LocalCycleRepo } from './LocalCycleRepo';
+
+// ─── InjuryRepo ───────────────────────────────────────────────────────────────
+export type { InjuryProfileRecord, PainLogRecord, InjuryRepository } from './InjuryRepo';
+export { getInjuryRepo, injuryProfileToRecord, recordToInjuryProfile, painLogToRecord, recordToPainLog } from './InjuryRepo';
+export { FirestoreInjuryRepo } from './FirestoreInjuryRepo';
+export { LocalInjuryRepo } from './LocalInjuryRepo';
+
+// ─── ProgramRepo ──────────────────────────────────────────────────────────────
+export type { ProgramWeek, FirestoreProgramDocument, ProgramEnrollment, ProgramRepository } from './ProgramRepo';
+export { getProgramRepo, firestoreProgramToProgram } from './ProgramRepo';
+export { FirestoreProgramRepo } from './FirestoreProgramRepo';
+export { LocalProgramRepo } from './LocalProgramRepo';
+
+// ─── BenchmarkRepo ────────────────────────────────────────────────────────────
+export type { BenchmarkResultRecord, BenchmarkRepository } from './BenchmarkRepo';
+export { getBenchmarkRepo } from './BenchmarkRepo';
+export { FirestoreBenchmarkRepo } from './FirestoreBenchmarkRepo';
+export { LocalBenchmarkRepo } from './LocalBenchmarkRepo';
+
+// ─── WODRepo ──────────────────────────────────────────────────────────────────
+export type { WODRecord, WODRepository } from './WODRepo';
+export { getWODRepo } from './WODRepo';
+export { FirestoreWODRepo } from './FirestoreWODRepo';
+
 // ─── Migration ────────────────────────────────────────────────────────────────
 export { migrateGuestDataToFirestore } from './migration';
