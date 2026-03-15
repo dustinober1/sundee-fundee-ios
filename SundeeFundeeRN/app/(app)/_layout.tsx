@@ -17,6 +17,7 @@ import { Redirect, Stack } from 'expo-router';
 import * as Notifications from 'expo-notifications';
 import { useSession } from '@/src/auth/AuthContext';
 import { getOnboardingProfileRepo } from '@/src/repositories/OnboardingProfileRepo';
+import { initAppCheck } from '@/src/firebase/appCheck';
 
 // Configure notifications to display when app is in foreground.
 // Called once at module load — safe to call multiple times (idempotent).
@@ -36,6 +37,11 @@ export default function AppLayout(): React.JSX.Element | null {
    * false = onboarding needed
    */
   const [onboardingComplete, setOnboardingComplete] = useState<boolean | null>(null);
+
+  // Initialize App Check once — must run before any Firestore calls.
+  useEffect(() => {
+    void initAppCheck();
+  }, []);
 
   useEffect(() => {
     if (!user) {

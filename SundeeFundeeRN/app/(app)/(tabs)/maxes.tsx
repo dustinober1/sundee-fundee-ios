@@ -23,6 +23,9 @@ import { useRouter } from 'expo-router';
 import { useSession } from '@/src/auth/AuthContext';
 import { getExerciseMaxRepo } from '@/src/repositories/ExerciseMaxRepo';
 import type { ExerciseMax } from '@/src/domain/pr-detection/pr-types';
+import { getSettingsRepo, DEFAULT_SETTINGS } from '@/src/repositories/SettingsRepo';
+import type { WeightUnit } from '@/src/domain/types';
+import { formatWeightNumeric } from '@/src/utils/formatWeight';
 import * as colors from '@/src/theme/colors';
 
 // ─── ExerciseSummary — best 1RM per exercise ─────────────────────────────────
@@ -71,6 +74,7 @@ export default function MaxesScreen(): React.JSX.Element {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [weightUnit, setWeightUnit] = useState<WeightUnit>(DEFAULT_SETTINGS.weightUnit);
 
   const loadMaxes = useCallback(async (showRefreshing = false): Promise<void> => {
     if (!user) return;
@@ -91,6 +95,22 @@ export default function MaxesScreen(): React.JSX.Element {
   useEffect(() => {
     void loadMaxes();
   }, [loadMaxes]);
+
+  // Load weight unit preference on mount
+  useEffect(() => {
+    if (!user) return;
+    void (async () => {
+      try {
+        const repo = getSettingsRepo(isGuest);
+        const stored = await repo.getSettings(user.uid);
+        if (stored?.weightUnit) {
+          setWeightUnit(stored.weightUnit);
+        }
+      } catch {
+        // Keep default on error
+      }
+    })();
+  }, [user, isGuest]);
 
   const summaries = buildExerciseSummaries(allMaxes);
 
@@ -149,7 +169,7 @@ export default function MaxesScreen(): React.JSX.Element {
           data={filtered}
           keyExtractor={(item) => item.exerciseId}
           renderItem={({ item }) => (
-            <ExerciseRow summary={item} onPress={handleExerciseTap} />
+            <ExerciseRow summary={item} onPress={handleExerciseTap} weightUnit={weightUnit} />
           )}
           refreshControl={
             <RefreshControl
@@ -172,10 +192,15 @@ export default function MaxesScreen(): React.JSX.Element {
 function ExerciseRow({
   summary,
   onPress,
+  weightUnit,
 }: {
   summary: ExerciseSummary;
   onPress: (s: ExerciseSummary) => void;
+  weightUnit: WeightUnit;
 }): React.JSX.Element {
+  const displayValue = formatWeightNumeric(summary.best1RM, weightUnit);
+  const unitLabel = weightUnit === 'kg' ? 'kg 1RM' : 'lbs 1RM';
+
   return (
     <TouchableOpacity
       style={styles.exerciseRow}
@@ -189,8 +214,8 @@ function ExerciseRow({
         </Text>
       </View>
       <View style={styles.rmContainer}>
-        <Text style={styles.rmValue}>{Math.round(summary.best1RM)}</Text>
-        <Text style={styles.rmUnit}>lbs 1RM</Text>
+        <Text style={styles.rmValue}>{displayValue}</Text>
+        <Text style={styles.rmUnit}>{unitLabel}</Text>
       </View>
       <Text style={styles.chevron}>›</Text>
     </TouchableOpacity>

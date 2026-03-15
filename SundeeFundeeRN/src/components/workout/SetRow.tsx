@@ -18,6 +18,8 @@ import {
   StyleSheet,
 } from 'react-native';
 import type { LoggedSet } from '../../domain/workout-session/session-types';
+import type { WeightUnit } from '../../domain/types';
+import { formatWeightNumeric, parseWeightInput } from '../../utils/formatWeight';
 import {
   CREAM,
   CREAM_LIGHT,
@@ -37,6 +39,8 @@ interface SetRowProps {
   previousWeight?: number;
   previousReps?: number;
   onCompleteSet: (setId: string, weight: number, reps: number) => void;
+  /** User's preferred weight unit — determines input suffix and parsing. Defaults to 'lb'. */
+  weightUnit?: WeightUnit;
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -47,14 +51,20 @@ export function SetRow({
   previousWeight,
   previousReps,
   onCompleteSet,
+  weightUnit = 'lb',
 }: SetRowProps): React.JSX.Element {
-  const [weight, setWeight] = useState(set.completed ? String(set.weight) : '');
+  // Display stored lbs in user's preferred unit when set is completed
+  const displayCompletedWeight = set.completed
+    ? String(formatWeightNumeric(set.weight, weightUnit))
+    : '';
+  const [weight, setWeight] = useState(displayCompletedWeight);
   const [reps, setReps] = useState(set.completed ? String(set.reps) : '');
 
   const isDisabled = set.completed;
 
   const handleComplete = (): void => {
-    const w = parseFloat(weight) || 0;
+    // parseWeightInput converts user's unit input back to stored lbs
+    const w = parseWeightInput(weight, weightUnit) || 0;
     const r = parseInt(reps, 10) || 0;
     onCompleteSet(set.id, w, r);
   };
@@ -74,14 +84,18 @@ export function SetRow({
           style={[styles.input, isDisabled && styles.inputDisabled]}
           value={weight}
           onChangeText={setWeight}
-          placeholder={previousWeight !== undefined ? String(previousWeight) : '-'}
+          placeholder={
+            previousWeight !== undefined
+              ? String(formatWeightNumeric(previousWeight, weightUnit))
+              : '-'
+          }
           placeholderTextColor={GREY}
           keyboardType="decimal-pad"
           editable={!isDisabled}
           accessibilityLabel={`Set ${setNumber} weight`}
           returnKeyType="next"
         />
-        <Text style={styles.inputUnit}>lbs</Text>
+        <Text style={styles.inputUnit}>{weightUnit === 'kg' ? 'kg' : 'lbs'}</Text>
       </View>
 
       {/* Reps input */}

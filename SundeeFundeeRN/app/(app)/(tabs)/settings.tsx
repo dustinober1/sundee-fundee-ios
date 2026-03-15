@@ -40,6 +40,12 @@ import * as colors from '@/src/theme/colors';
 /** Allowed rest duration values in seconds. */
 const REST_DURATION_OPTIONS = [30, 45, 60, 90, 120, 150, 180, 240, 300];
 
+/** Weight unit display options. */
+const WEIGHT_UNIT_OPTIONS: Array<{ value: 'lb' | 'kg'; label: string }> = [
+  { value: 'lb', label: 'lbs' },
+  { value: 'kg', label: 'kg' },
+];
+
 /** AsyncStorage key to track trial ended modal shown state. */
 const TRIAL_ENDED_MODAL_SHOWN_KEY = 'trialEndedModalShown';
 
@@ -70,6 +76,7 @@ export default function SettingsScreen(): React.JSX.Element {
   const router = useRouter();
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
   const [showRestPicker, setShowRestPicker] = useState(false);
+  const [showWeightUnitPicker, setShowWeightUnitPicker] = useState(false);
   const [subscriptionInfo, setSubscriptionInfo] = useState<SubscriptionInfo | null>(null);
   const [isRestoring, setIsRestoring] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
@@ -159,6 +166,20 @@ export default function SettingsScreen(): React.JSX.Element {
     setShowRestPicker(false);
     if (!user) return;
     const updated: AppSettings = { ...settings, defaultRestDuration: seconds };
+    setSettings(updated);
+    try {
+      const repo = getSettingsRepo(isGuest);
+      await repo.saveSettings(user.uid, updated);
+    } catch {
+      // Revert on save error
+      setSettings(settings);
+    }
+  }
+
+  async function handleSelectWeightUnit(unit: 'lb' | 'kg'): Promise<void> {
+    setShowWeightUnitPicker(false);
+    if (!user) return;
+    const updated: AppSettings = { ...settings, weightUnit: unit };
     setSettings(updated);
     try {
       const repo = getSettingsRepo(isGuest);
@@ -318,6 +339,30 @@ export default function SettingsScreen(): React.JSX.Element {
         </View>
       </View>
 
+      {/* Weight Unit section — between Rest Timer and Subscription */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Weight Unit</Text>
+        <View style={styles.settingRow}>
+          <View style={styles.settingInfo}>
+            <Text style={styles.settingLabel}>Display Unit</Text>
+            <Text style={styles.settingHint}>
+              Weights shown throughout the app in your chosen unit
+            </Text>
+          </View>
+          <TouchableOpacity
+            style={styles.settingValue}
+            onPress={() => setShowWeightUnitPicker(true)}
+            activeOpacity={0.7}
+            testID="weight-unit-picker-trigger"
+          >
+            <Text style={styles.settingValueText}>
+              {settings.weightUnit === 'kg' ? 'kg' : 'lbs'}
+            </Text>
+            <Text style={styles.chevron}>›</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
       {/* Subscription section — between Rest Timer and About */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Subscription</Text>
@@ -443,6 +488,48 @@ export default function SettingsScreen(): React.JSX.Element {
                     ]}
                   >
                     {formatRestDuration(seconds)}
+                  </Text>
+                  {isSelected && (
+                    <Text style={styles.pickerCheckmark}>✓</Text>
+                  )}
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Weight unit picker modal */}
+      <Modal
+        visible={showWeightUnitPicker}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowWeightUnitPicker(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowWeightUnitPicker(false)}
+        >
+          <View style={styles.pickerSheet}>
+            <Text style={styles.pickerTitle}>Weight Unit</Text>
+            {WEIGHT_UNIT_OPTIONS.map((option) => {
+              const isSelected = settings.weightUnit === option.value;
+              return (
+                <TouchableOpacity
+                  key={option.value}
+                  style={[styles.pickerOption, isSelected && styles.pickerOptionSelected]}
+                  onPress={() => void handleSelectWeightUnit(option.value)}
+                  activeOpacity={0.7}
+                  testID={`weight-unit-option-${option.value}`}
+                >
+                  <Text
+                    style={[
+                      styles.pickerOptionText,
+                      isSelected && styles.pickerOptionTextSelected,
+                    ]}
+                  >
+                    {option.label}
                   </Text>
                   {isSelected && (
                     <Text style={styles.pickerCheckmark}>✓</Text>

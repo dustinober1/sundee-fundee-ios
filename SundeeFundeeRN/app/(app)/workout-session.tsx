@@ -42,6 +42,8 @@ import { useRestTimer } from '@/src/hooks/useRestTimer';
 import { usePRDetection } from '@/src/hooks/usePRDetection';
 import { useSession } from '@/src/auth/AuthContext';
 import type { ActiveExercise } from '@/src/domain/workout-session/session-types';
+import { getSettingsRepo, DEFAULT_SETTINGS } from '@/src/repositories/SettingsRepo';
+import type { WeightUnit } from '@/src/domain/types';
 import type { PRCheckResult } from '@/src/domain/pr-detection/pr-types';
 import { getCycleRepo, recordToPeriodLog } from '@/src/repositories/CycleRepo';
 import { getInjuryRepo, recordToInjuryProfile } from '@/src/repositories/InjuryRepo';
@@ -101,6 +103,9 @@ export default function WorkoutSessionScreen(): React.JSX.Element {
   const [currentPR, setCurrentPR] = useState<
     (PRCheckResult & { exerciseName: string }) | null
   >(null);
+
+  // Weight unit preference
+  const [weightUnit, setWeightUnit] = useState<WeightUnit>(DEFAULT_SETTINGS.weightUnit);
 
   // Elapsed timer
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
@@ -219,6 +224,22 @@ export default function WorkoutSessionScreen(): React.JSX.Element {
       void loadAdaptationContext();
     }, [loadAdaptationContext])
   );
+
+  // ── Load weight unit preference on mount ────────────────────────────────
+  useEffect(() => {
+    if (!user) return;
+    void (async () => {
+      try {
+        const repo = getSettingsRepo(isGuest);
+        const stored = await repo.getSettings(user.uid);
+        if (stored?.weightUnit) {
+          setWeightUnit(stored.weightUnit);
+        }
+      } catch {
+        // Keep default on error
+      }
+    })();
+  }, [user, isGuest]);
 
   // ── Start workout on mount (or restore from crash) ──────────────────────
   useEffect(() => {
@@ -386,6 +407,7 @@ export default function WorkoutSessionScreen(): React.JSX.Element {
       onRemoveExercise={dispatchRemoveExercise}
       drag={drag}
       isActive={isDragging}
+      weightUnit={weightUnit}
     />
   );
 

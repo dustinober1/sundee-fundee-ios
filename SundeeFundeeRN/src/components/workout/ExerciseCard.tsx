@@ -18,6 +18,7 @@ import {
 } from 'react-native';
 import { SetRow } from './SetRow';
 import type { ActiveExercise } from '../../domain/workout-session/session-types';
+import type { WeightUnit } from '../../domain/types';
 import {
   CREAM,
   CREAM_LIGHT,
@@ -40,6 +41,8 @@ interface ExerciseCardProps {
   /** Drag handle activation function from DraggableFlatList */
   drag?: () => void;
   isActive?: boolean;
+  /** User's preferred weight unit — passed down to SetRow for display and parsing. */
+  weightUnit?: WeightUnit;
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -52,6 +55,7 @@ export function ExerciseCard({
   onRemoveExercise,
   drag,
   isActive = false,
+  weightUnit = 'lb',
 }: ExerciseCardProps): React.JSX.Element {
   const completedCount = exercise.sets.filter((s) => s.completed).length;
 
@@ -113,6 +117,7 @@ export function ExerciseCard({
           onCompleteSet={(setId, weight, reps) =>
             onCompleteSet(exercise.id, setId, weight, reps)
           }
+          weightUnit={weightUnit}
         />
       ))}
 
