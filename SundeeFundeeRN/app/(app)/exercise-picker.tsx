@@ -25,6 +25,7 @@ import { ExerciseSearch } from '@/src/components/exercises/ExerciseSearch';
 import { useSession } from '@/src/auth/AuthContext';
 import { getExerciseRepo } from '@/src/repositories/ExerciseRepo';
 import type { Exercise, MuscleGroup } from '@/src/domain/exercises/exercise-types';
+import { emitExerciseSelected } from '@/src/hooks/useExerciseSelection';
 import exercises from '@/src/resources/exercises.json';
 import { CREAM, NAVY, NAVY_MEDIUM, ORANGE, GREY_LIGHT } from '@/src/theme/colors';
 
@@ -65,15 +66,10 @@ export default function ExercisePickerScreen(): React.JSX.Element {
   }, [user, isGuest]);
 
   const handleSelectExercise = (exercise: Exercise): void => {
-    // Navigate back with selected exercise as params
+    // Emit selection via event bridge, then navigate back.
+    // Expo Router doesn't reliably pass params when navigating "backwards".
+    emitExerciseSelected(exercise);
     router.back();
-    // Use router.setParams to pass data back — parent polls via focus event
-    // Pass as query params since Expo Router doesn't have native "result passing"
-    router.setParams({
-      selectedExerciseId: exercise.id,
-      selectedExerciseName: exercise.name,
-      selectedMuscleGroup: exercise.muscleGroup,
-    });
   };
 
   const handleCreateExercise = async (

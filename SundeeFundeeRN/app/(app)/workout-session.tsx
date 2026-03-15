@@ -24,7 +24,8 @@ import {
   Alert,
   ScrollView,
 } from 'react-native';
-import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { router } from 'expo-router';
+import { onExerciseSelected } from '@/src/hooks/useExerciseSelection';
 import * as Notifications from 'expo-notifications';
 import DraggableFlatList, { type RenderItemParams } from 'react-native-draggable-flatlist';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -56,11 +57,6 @@ const DEFAULT_REST_SECONDS = 90;
 
 export default function WorkoutSessionScreen(): React.JSX.Element {
   const { user, isGuest } = useSession();
-  const params = useLocalSearchParams<{
-    selectedExerciseId?: string;
-    selectedExerciseName?: string;
-    selectedMuscleGroup?: string;
-  }>();
 
   const {
     session,
@@ -135,34 +131,22 @@ export default function WorkoutSessionScreen(): React.JSX.Element {
     };
   }, [isActive]);
 
-  // ── Pick up selected exercise from exercise-picker ───────────────────────
-  useFocusEffect(
-    useCallback(() => {
-      if (
-        params.selectedExerciseId &&
-        params.selectedExerciseName &&
-        params.selectedMuscleGroup
-      ) {
-        const exerciseId = params.selectedExerciseId;
-        const exerciseName = params.selectedExerciseName;
-        const muscleGroup = params.selectedMuscleGroup;
+  // ── Pick up selected exercise from exercise-picker via event bridge ──────
+  useEffect(() => {
+    const unsubscribe = onExerciseSelected((exercise) => {
+      dispatchAddExercise({
+        exerciseId: exercise.id,
+        exerciseName: exercise.name,
+        muscleGroup: exercise.muscleGroup,
+      });
 
-        dispatchAddExercise({ exerciseId, exerciseName, muscleGroup });
-
-        // Load previous values for this exercise
-        void getPreviousValues(exerciseId).then((values) => {
-          setPreviousValuesMap((prev) => ({ ...prev, [exerciseId]: values }));
-        });
-
-        // Clear params to prevent re-adding on subsequent focus
-        router.setParams({
-          selectedExerciseId: undefined,
-          selectedExerciseName: undefined,
-          selectedMuscleGroup: undefined,
-        });
-      }
-    }, [params.selectedExerciseId, params.selectedExerciseName, params.selectedMuscleGroup, dispatchAddExercise, getPreviousValues]),
-  );
+      // Load previous values for ghost-text
+      void getPreviousValues(exercise.id).then((values) => {
+        setPreviousValuesMap((prev) => ({ ...prev, [exercise.id]: values }));
+      });
+    });
+    return unsubscribe;
+  }, [dispatchAddExercise, getPreviousValues]);
 
   // ── PR toast queue management ────────────────────────────────────────────
   useEffect(() => {
