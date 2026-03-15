@@ -157,6 +157,10 @@ Plans:
 **Goal:** Cycle-aware workout load adjustment actually activates for users who opted into cycle tracking
 **Requirements:** CYAD-01, CYAD-02, CYAD-03
 **Gap Closure:** Closes gaps from audit — replace dead `cycleTrackingEnabled` gate with `profile?.cycleOptIn === true`
+**Plans:** 1 plan
+
+Plans:
+- [ ] 08-01-PLAN.md — Fix cycle adaptation gates in workout-session and dashboard, add gate logic tests
 
 ### Phase 9: Fix Guest Migration + AI Profile Wiring
 **Goal:** Guest-to-auth upgrade preserves all user data; AI workouts use real user profile instead of hardcoded values
@@ -182,6 +186,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 5. Differentiating Features | 6/9 | In Progress|  |
 | 6. Subscriptions and Monetization | 3/3 | Complete   | 2026-03-15 |
 | 7. Polish and Pre-Launch | 3/3 | Complete   | 2026-03-15 |
-| 8. Fix Cycle Adaptation Wiring | 0/0 | Not Started |  |
+| 8. Fix Cycle Adaptation Wiring | 0/1 | Not Started |  |
 | 9. Fix Guest Migration + AI Profile Wiring | 0/0 | Not Started |  |
 | 10. UI Polish Fixes | 0/0 | Not Started |  |
