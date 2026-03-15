@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Phase 5 context gathered
-last_updated: "2026-03-15T04:19:30.022Z"
+stopped_at: "Completed 05-02: Gemini migration for generateWorkout Cloud Function"
+last_updated: "2026-03-15T13:53:13.778Z"
 last_activity: "2026-03-14 — Completed Plan 03-02: 5-step onboarding flow with Art Deco styling, atomic persistence, gender-adaptive step skipping, routing bug fixes"
 progress:
   total_phases: 7
   completed_phases: 4
-  total_plans: 18
-  completed_plans: 18
+  total_plans: 27
+  completed_plans: 19
   percent: 16
 ---
 
@@ -67,6 +67,7 @@ Progress: [███░░░░░░░] 16%
 | Phase 04-core-workout-loop P04-05 | 8 | 2 tasks | 13 files |
 | Phase 04-core-workout-loop P04-07 | 6 | 2 tasks | 10 files |
 | Phase 04-core-workout-loop P04-08 | 12 | 1 tasks | 4 files |
+| Phase 05-differentiating-features P05-02 | 15 | 1 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -133,6 +134,8 @@ Recent decisions affecting current work:
 - [Phase 04-core-workout-loop]: Dashboard uses useFocusEffect to refresh last-workout card so it updates after each session
 - [Phase 04-core-workout-loop]: timerMode param passed as router push param to workout-session — keeps screen reusable for open and timed modes
 - [Phase 04-core-workout-loop]: defaultRestDuration added to AppSettings interface (not a separate key) — keeps settings atomic
+- [Phase 05-differentiating-features]: gemini-2.0-flash with responseMimeType: application/json used for Cloud Function — eliminates text parsing overhead and reduces retry frequency vs Anthropic format
+- [Phase 05-differentiating-features]: minInstances: 1 set on generateWorkout Cloud Function — cold start mitigation for latency-sensitive AI workout generation (GEMINI_API_KEY secret required before deploy)
 
 ### Pending Todos
 
@@ -148,6 +151,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-15T04:19:30.019Z
-Stopped at: Phase 5 context gathered
-Resume file: .planning/phases/05-differentiating-features/05-CONTEXT.md
+Last session: 2026-03-15T13:53:13.776Z
+Stopped at: Completed 05-02: Gemini migration for generateWorkout Cloud Function
+Resume file: None

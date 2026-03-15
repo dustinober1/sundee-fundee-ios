@@ -94,8 +94,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### AI Workouts
 
-- [ ] **AIWK-01**: User can generate a personalized workout via AI (Gemini)
-- [ ] **AIWK-02**: AI incorporates cycle phase, injuries, and readiness into workout generation
+- [x] **AIWK-01**: User can generate a personalized workout via AI (Gemini)
+- [x] **AIWK-02**: AI incorporates cycle phase, injuries, and readiness into workout generation
 - [ ] **AIWK-03**: User can specify preferences (time, focus, equipment, energy level)
 - [ ] **AIWK-04**: App falls back to templated workouts when offline
 - [ ] **AIWK-05**: Generated workouts are saved to history
@@ -210,8 +210,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | READ-02 | Phase 5 | Pending |
 | INJR-01 | Phase 5 | Pending |
 | INJR-03 | Phase 5 | Pending |
-| AIWK-01 | Phase 5 | Pending |
-| AIWK-02 | Phase 5 | Pending |
+| AIWK-01 | Phase 5 | Complete |
+| AIWK-02 | Phase 5 | Complete |
 | AIWK-03 | Phase 5 | Pending |
 | AIWK-04 | Phase 5 | Pending |
 | AIWK-05 | Phase 5 | Pending |
