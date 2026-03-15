@@ -144,6 +144,10 @@ export default function AppLayout(): React.JSX.Element | null {
         name="ai-workout"
         options={{ headerShown: false }}
       />
+      <Stack.Screen
+        name="goodbye"
+        options={{ headerShown: false }}
+      />
     </Stack>
   );
 }

@@ -28,6 +28,18 @@ jest.mock('react-native', () => ({
   Platform: { OS: 'ios' },
 }));
 
+// JSZip mock — dynamic import('jszip') in exportData.ts resolves to this mock.
+// Variables must use 'mock' prefix for Babel hoisting safety.
+const mockJsZipFileFn = jest.fn();
+const mockJsZipGenerateAsyncFn = jest.fn().mockResolvedValue(new Uint8Array([1, 2, 3]));
+
+jest.mock('jszip', () => {
+  return jest.fn().mockImplementation(() => ({
+    file: mockJsZipFileFn,
+    generateAsync: mockJsZipGenerateAsyncFn,
+  }));
+});
+
 // ---------------------------------------------------------------------------
 // Imports
 // ---------------------------------------------------------------------------
@@ -312,6 +324,73 @@ describe('exportUserData (csv)', () => {
 // ---------------------------------------------------------------------------
 // exportUserData — web platform
 // ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// exportUserData — web CSV zip (JSZip)
+// ---------------------------------------------------------------------------
+
+describe('exportUserData (web CSV zip)', () => {
+  const mockClickFn = jest.fn();
+  const mockCreateObjectURL = jest.fn().mockReturnValue('blob:zip-fake');
+  const mockRevokeObjectURL = jest.fn();
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockJsZipFileFn.mockClear();
+    mockJsZipGenerateAsyncFn.mockClear();
+    mockJsZipGenerateAsyncFn.mockResolvedValue(new Uint8Array([1, 2, 3]));
+    Object.defineProperty(Platform, 'OS', { value: 'web', configurable: true });
+
+    // Stub DOM APIs
+    const mockLink = {
+      href: '',
+      download: '',
+      click: mockClickFn,
+      style: {},
+    };
+    (global as any).document = {
+      createElement: jest.fn().mockReturnValue(mockLink),
+      body: {
+        appendChild: jest.fn(),
+        removeChild: jest.fn(),
+      },
+    };
+    (global as any).URL = {
+      createObjectURL: mockCreateObjectURL,
+      revokeObjectURL: mockRevokeObjectURL,
+    };
+    (global as any).Blob = class {
+      constructor(public content: unknown[], public options: { type: string }) {}
+    };
+  });
+
+  afterEach(() => {
+    Object.defineProperty(Platform, 'OS', { value: 'ios', configurable: true });
+    delete (global as any).document;
+  });
+
+  it('Test 3: Web CSV export calls JSZip.generateAsync with type blob', async () => {
+    const repos = makeRepos();
+    await exportUserData('u1', 'csv', 'lb', repos);
+
+    // generateAsync should be called exactly once (single zip)
+    expect(mockJsZipGenerateAsyncFn).toHaveBeenCalledWith({ type: 'blob' });
+  });
+
+  it('Test 4: Mobile CSV export still uses react-native-zip-archive (unchanged)', async () => {
+    // Switch back to mobile
+    Object.defineProperty(Platform, 'OS', { value: 'ios', configurable: true });
+    delete (global as any).document;
+
+    const repos = makeRepos();
+    await exportUserData('u1', 'csv', 'lb', repos);
+
+    // Mobile path: zip() from react-native-zip-archive should be called
+    expect(zip).toHaveBeenCalledTimes(1);
+    // JSZip generateAsync should NOT be called on mobile
+    expect(mockJsZipGenerateAsyncFn).not.toHaveBeenCalled();
+  });
+});
 
 describe('exportUserData (web platform)', () => {
   const mockClickFn = jest.fn();

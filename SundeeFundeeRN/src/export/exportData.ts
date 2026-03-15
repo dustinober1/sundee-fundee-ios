@@ -12,6 +12,7 @@ import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import { zip } from 'react-native-zip-archive';
 import { Platform } from 'react-native';
+import JSZip from 'jszip';
 
 import type { WorkoutRepository, WorkoutRecord } from '../repositories/WorkoutRepo';
 import type { ExerciseMaxRepository } from '../repositories/ExerciseMaxRepo';
@@ -142,8 +143,8 @@ function todayDateString(): string {
 // Web download helper
 // ---------------------------------------------------------------------------
 
-function triggerWebDownload(content: string, filename: string, mimeType: string): void {
-  const blob = new Blob([content], { type: mimeType });
+function triggerWebDownload(content: Blob | string, filename: string, mimeType: string): void {
+  const blob = content instanceof Blob ? content : new Blob([content], { type: mimeType });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
@@ -198,10 +199,13 @@ export async function exportUserData(
   const exportDir = `${FileSystem.cacheDirectory}${exportDirName}/`;
 
   if (isWeb) {
-    // On web, download each CSV individually (no zip support in browser without library)
+    // On web, bundle all CSVs into a single zip using JSZip
+    const jszip = new JSZip();
     for (const file of csvFiles) {
-      triggerWebDownload(file.content, file.name, 'text/csv');
+      jszip.file(file.name, file.content);
     }
+    const zipBlob = await jszip.generateAsync({ type: 'blob' });
+    triggerWebDownload(zipBlob, `sundee-fundee-export-${dateStr}.zip`, 'application/zip');
     return;
   }
 
