@@ -118,6 +118,10 @@ export default function AppLayout(): React.JSX.Element | null {
         name="exercise-detail"
         options={{ headerShown: false }}
       />
+      <Stack.Screen
+        name="injuries"
+        options={{ headerShown: false }}
+      />
     </Stack>
   );
 }
