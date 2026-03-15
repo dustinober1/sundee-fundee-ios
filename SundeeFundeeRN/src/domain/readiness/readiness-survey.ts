@@ -22,12 +22,13 @@ export interface ReadinessResult {
 }
 
 // ---------------------------------------------------------------------------
-// Scoring weights (matching Swift constants)
+// Scoring weights (4-slider model: sleep, stress, soreness, energy)
 // ---------------------------------------------------------------------------
 
-const SLEEP_WEIGHT = 0.4;
-const STRESS_WEIGHT = 0.3;
-const SORENESS_WEIGHT = 0.3;
+const SLEEP_WEIGHT = 0.3;
+const STRESS_WEIGHT = 0.25;
+const SORENESS_WEIGHT = 0.25;
+const ENERGY_WEIGHT = 0.2;
 
 // ---------------------------------------------------------------------------
 // Pure functions
@@ -35,23 +36,29 @@ const SORENESS_WEIGHT = 0.3;
 
 /**
  * Calculate a readiness score from survey inputs.
- * Matches Swift ReadinessSurvey.score(sleepQuality:stressLevel:sorenessLevel:).
  *
- * @param sleepQuality  - 0–10 (higher = better sleep)
- * @param stressLevel   - 0–10 (higher = more stressed; inverted in formula)
- * @param sorenessLevel - 0–10 (higher = more soreness; inverted in formula)
+ * Extended to 4 parameters per locked decision (READ-01):
+ * sleep/energy/stress/motivation sliders capture daily readiness.
+ *
+ * @param sleepQuality  - 1–10 (higher = better sleep)
+ * @param stressLevel   - 1–10 (higher = more stressed; inverted in formula)
+ * @param sorenessLevel - 1–10 (higher = more soreness; inverted in formula)
+ * @param energyLevel   - 1–10 (higher = more energy; not inverted)
+ *                        Defaults to 5 for backward compatibility with 3-param callers.
  */
 export function calculateReadinessScore(
   sleepQuality: number,
   stressLevel: number,
   sorenessLevel: number,
+  energyLevel = 5,
 ): ReadinessResult {
   const invertedStress = 10.0 - stressLevel;
   const invertedSoreness = 10.0 - sorenessLevel;
   const raw =
     sleepQuality * SLEEP_WEIGHT +
     invertedStress * STRESS_WEIGHT +
-    invertedSoreness * SORENESS_WEIGHT;
+    invertedSoreness * SORENESS_WEIGHT +
+    energyLevel * ENERGY_WEIGHT;
   const score = clamp(raw, 0, 10);
   return { score, tier: tierFromScore(score) };
 }

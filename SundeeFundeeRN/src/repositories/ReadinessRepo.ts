@@ -17,6 +17,8 @@ export interface ReadinessSurveyRecord {
   /** ISO date string 'yyyy-MM-dd' */
   date: string;
   sleepQuality: number;
+  /** Energy level (1–10, higher = more energised). Added per locked decision: 4-slider survey. */
+  energyLevel: number;
   stressLevel: number;
   sorenessLevel: number;
   result: ReadinessResult;

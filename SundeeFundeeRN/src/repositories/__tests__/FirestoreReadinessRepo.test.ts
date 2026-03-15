@@ -12,6 +12,7 @@ const testRecord: ReadinessSurveyRecord = {
   uid: 'test-uid',
   date: '2026-03-14',
   sleepQuality: 8,
+  energyLevel: 7,
   stressLevel: 3,
   sorenessLevel: 2,
   result: { score: 8.5, tier: 'high' },

@@ -913,11 +913,11 @@ describe('HistoryItem', () => {
 
 describe('ReadinessSurvey', () => {
   describe('calculateReadinessScore', () => {
-    it('calculates score from sleep, stress, soreness', () => {
-      // sleep=8 (weight 0.4), stress=2 (inverted=8, weight 0.3), soreness=3 (inverted=7, weight 0.3)
-      // = 8*0.4 + 8*0.3 + 7*0.3 = 3.2 + 2.4 + 2.1 = 7.7
+    it('calculates score from sleep, stress, soreness (energyLevel defaults to 5)', () => {
+      // sleep=8 (weight 0.3), stress=2 (inverted=8, weight 0.25), soreness=3 (inverted=7, weight 0.25), energy=5 (default, weight 0.2)
+      // = 8*0.3 + 8*0.25 + 7*0.25 + 5*0.2 = 2.4 + 2.0 + 1.75 + 1.0 = 7.15
       const result = calculateReadinessScore(8, 2, 3);
-      expect(result.score).toBeCloseTo(7.7, 4);
+      expect(result.score).toBeCloseTo(7.15, 4);
     });
 
     it('clamps score to [0, 10] range', () => {
@@ -939,8 +939,8 @@ describe('ReadinessSurvey', () => {
     });
 
     it('returns neutral tier for mid-range score', () => {
-      // sleep=5, stress=5 (inverted=5), soreness=5 (inverted=5)
-      // = 5*0.4 + 5*0.3 + 5*0.3 = 2 + 1.5 + 1.5 = 5.0
+      // sleep=5, stress=5 (inverted=5), soreness=5 (inverted=5), energy=5 (default)
+      // = 5*0.3 + 5*0.25 + 5*0.25 + 5*0.2 = 1.5 + 1.25 + 1.25 + 1.0 = 5.0
       const result = calculateReadinessScore(5, 5, 5);
       expect(result.tier).toBe('neutral');
     });
