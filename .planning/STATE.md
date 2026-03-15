@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 11-wire-guest-upgrade-entry-point/11-01-PLAN.md
-last_updated: "2026-03-15T23:10:18.773Z"
+stopped_at: Completed 12-fix-firestore-pain-log-rules/12-01-PLAN.md
+last_updated: "2026-03-15T23:40:23.085Z"
 last_activity: "2026-03-14 — Completed Plan 03-02: 5-step onboarding flow with Art Deco styling, atomic persistence, gender-adaptive step skipping, routing bug fixes"
 progress:
   total_phases: 13
-  completed_phases: 11
-  total_plans: 38
-  completed_plans: 38
+  completed_phases: 12
+  total_plans: 39
+  completed_plans: 39
   percent: 16
 ---
 
@@ -87,6 +87,7 @@ Progress: [███░░░░░░░] 16%
 | Phase 09-fix-guest-migration-ai-profile P09-02 | 7 | 1 tasks | 2 files |
 | Phase 10-ui-polish-fixes P01 | 6 | 2 tasks | 7 files |
 | Phase 11-wire-guest-upgrade-entry-point P01 | 6 | 2 tasks | 7 files |
+| Phase 12-fix-firestore-pain-log-rules P12-01 | 2 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -204,6 +205,8 @@ Recent decisions affecting current work:
 - [Phase 11-wire-guest-upgrade-entry-point]: getCredential() split from signIn() on Apple/Google hooks — pure credential factory allows sign-in.tsx to route credential to guest.upgrade() or firebaseSignIn() without duplicating provider logic
 - [Phase 11-wire-guest-upgrade-entry-point]: sign-in.tsx uses firebaseSignIn(credential) directly in non-guest branch — avoids double Apple/Google auth dialog risk from calling hook.signIn() which would call getCredential() again
 - [Phase 11-wire-guest-upgrade-entry-point]: Email sign-in mode always uses normal emailAuth.signIn path even when user is anonymous — returning users with existing accounts cannot link, no upgrade attempt
+- [Phase 12-fix-firestore-pain-log-rules]: Explicit match /injuries/{injuryId}/painLogs/{logId} used in Firestore rules instead of recursive wildcard — more secure, self-documenting, and limits blast radius
+- [Phase 12-fix-firestore-pain-log-rules]: Outer userId binding from match /users/{userId} reused in nested pain log match condition — avoids re-declaring user context in deeper match blocks
 
 ### Pending Todos
 
@@ -219,6 +222,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-15T23:07:31.711Z
-Stopped at: Completed 11-wire-guest-upgrade-entry-point/11-01-PLAN.md
+Last session: 2026-03-15T23:40:23.082Z
+Stopped at: Completed 12-fix-firestore-pain-log-rules/12-01-PLAN.md
 Resume file: None
