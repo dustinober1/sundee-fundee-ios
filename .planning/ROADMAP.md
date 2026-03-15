@@ -146,7 +146,12 @@ Plans:
   3. User can export their workout data as CSV or JSON from the settings screen; the exported file contains complete workout history
   4. User can delete their account from settings, which triggers full data wipe from Firestore and revokes Firebase Auth; the app returns to the sign-in screen
   5. App passes Firebase App Check validation (DeviceCheck on iOS, Play Integrity on Android); Firestore security rules audit shows no public access to any user health data collection
-**Plans**: TBD
+**Plans:** 3 plans
+
+Plans:
+- [ ] 07-01-PLAN.md — Weight unit switching (formatWeight utility + Settings toggle + app-wide threading) and Firebase App Check init
+- [ ] 07-02-PLAN.md — Data export module (CSV formatters for all data types, JSON export, zip bundling, cross-platform sharing)
+- [ ] 07-03-PLAN.md — Account deletion Cloud Function, stripeWebhook fix, Settings export/delete UI, goodbye screen, Art Deco polish
 
 ## Progress
 
@@ -161,4 +166,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 4. Core Workout Loop | 8/8 | Complete   | 2026-03-15 |
 | 5. Differentiating Features | 6/9 | In Progress|  |
 | 6. Subscriptions and Monetization | 3/3 | Complete   | 2026-03-15 |
-| 7. Polish and Pre-Launch | 0/TBD | Not started | - |
+| 7. Polish and Pre-Launch | 0/3 | Not started | - |
