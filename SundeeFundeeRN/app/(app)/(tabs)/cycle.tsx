@@ -28,6 +28,7 @@ import {
 } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { useSession } from '@/src/auth/AuthContext';
+import { useEntitlementContext } from '@/src/entitlements/EntitlementContext';
 import {
   getCycleRepo,
   periodLogToRecord,
@@ -44,6 +45,8 @@ import PhaseTimeline, {
   buildTimelineBoundaries,
   type TimelineBoundary,
 } from '@/src/components/cycle/PhaseTimeline';
+import { PaywallModal } from '@/src/components/paywall/PaywallModal';
+import { PremiumBadge } from '@/src/components/paywall/PremiumBadge';
 import * as colors from '@/src/theme/colors';
 import { format } from 'date-fns';
 
@@ -61,6 +64,7 @@ function generateId(): string {
 
 export default function CycleScreen(): React.JSX.Element {
   const { user, isGuest } = useSession();
+  const { isPremium } = useEntitlementContext();
 
   const [periodLogs, setPeriodLogs] = useState<PeriodLog[]>([]);
   const [settings, setSettings] = useState<CycleSettings>(DEFAULT_CYCLE_SETTINGS);
@@ -68,6 +72,7 @@ export default function CycleScreen(): React.JSX.Element {
   const [timelineBoundaries, setTimelineBoundaries] = useState<TimelineBoundary[]>([]);
   const [pendingStart, setPendingStart] = useState<string | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(true);
+  const [showPaywall, setShowPaywall] = useState(false);
 
   // ─── Load cycle data on focus ────────────────────────────────────────────
 
@@ -227,6 +232,35 @@ export default function CycleScreen(): React.JSX.Element {
           />
         </View>
       )}
+
+      {/* Cycle Adaptation section — Premium only */}
+      <TouchableOpacity
+        style={styles.adaptationSection}
+        onPress={() => {
+          if (!isPremium) {
+            setShowPaywall(true);
+          }
+        }}
+        activeOpacity={isPremium ? 1 : 0.7}
+        testID="cycle-adaptation-section"
+      >
+        <View style={styles.adaptationHeader}>
+          <Text style={styles.sectionTitle}>Cycle Adaptation</Text>
+          {!isPremium && <PremiumBadge />}
+        </View>
+        <Text style={styles.adaptationBody}>
+          {isPremium
+            ? 'Your workouts automatically adapt based on your current cycle phase — intensity, volume, and exercise selection are optimized for you.'
+            : 'Unlock Premium to automatically adapt your workouts to your cycle phase.'}
+        </Text>
+      </TouchableOpacity>
+
+      {/* Paywall for non-premium users */}
+      <PaywallModal
+        visible={showPaywall}
+        onDismiss={() => setShowPaywall(false)}
+        onSubscribed={() => setShowPaywall(false)}
+      />
     </ScrollView>
   );
 }
@@ -312,5 +346,24 @@ const styles = StyleSheet.create({
     color: colors.NAVY_MEDIUM,
     lineHeight: 19,
     textAlign: 'center',
+  },
+  adaptationSection: {
+    backgroundColor: colors.CREAM_LIGHT,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.GREY_LIGHT,
+    padding: 16,
+    marginBottom: 24,
+  },
+  adaptationHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  adaptationBody: {
+    fontSize: 13,
+    color: colors.NAVY_MEDIUM,
+    lineHeight: 19,
   },
 });

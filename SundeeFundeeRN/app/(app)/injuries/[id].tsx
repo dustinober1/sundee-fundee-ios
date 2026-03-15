@@ -27,6 +27,7 @@ import {
 } from 'react-native';
 import { useFocusEffect, useRouter, useLocalSearchParams } from 'expo-router';
 import { useSession } from '@/src/auth/AuthContext';
+import { useEntitlementContext } from '@/src/entitlements/EntitlementContext';
 import {
   getInjuryRepo,
   recordToInjuryProfile,
@@ -41,6 +42,8 @@ import {
   type SubstitutionPair,
 } from '@/src/components/injury/InjurySubstitutionCard';
 import { BodyMap } from '@/src/components/injury/BodyMap';
+import { PaywallModal } from '@/src/components/paywall/PaywallModal';
+import { PremiumBadge } from '@/src/components/paywall/PremiumBadge';
 import {
   analyzeTrend,
   evaluateTransition,
@@ -91,6 +94,7 @@ const PHASE_DISPLAY_LABELS: Record<RecoveryPhase, string> = {
 
 export default function InjuryProfileScreen(): React.JSX.Element {
   const { user, isGuest } = useSession();
+  const { isPremium } = useEntitlementContext();
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
 
@@ -103,6 +107,7 @@ export default function InjuryProfileScreen(): React.JSX.Element {
   const [rehabSession, setRehabSession] = useState<ProgramSession | null>(null);
   const [showRehabSession, setShowRehabSession] = useState(false);
   const [substitutions, setSubstitutions] = useState<SubstitutionPair[]>([]);
+  const [showPaywall, setShowPaywall] = useState(false);
 
   const loadData = useCallback(async (): Promise<void> => {
     if (!user || !id) return;
@@ -389,8 +394,32 @@ export default function InjuryProfileScreen(): React.JSX.Element {
           </View>
         )}
 
-        {/* ── Section 6: Exercise Substitutions ── */}
-        <InjurySubstitutionCard injury={injury} substitutions={substitutions} />
+        {/* ── Section 6: Adaptation / Exercise Substitutions — Premium only ── */}
+        {isPremium ? (
+          <InjurySubstitutionCard injury={injury} substitutions={substitutions} />
+        ) : (
+          <TouchableOpacity
+            style={styles.adaptationGate}
+            onPress={() => setShowPaywall(true)}
+            activeOpacity={0.7}
+            testID="injury-adaptation-gate"
+          >
+            <View style={styles.adaptationGateHeader}>
+              <Text style={styles.adaptationGateTitle}>Exercise Adaptation</Text>
+              <PremiumBadge />
+            </View>
+            <Text style={styles.adaptationGateBody}>
+              Unlock Premium to get smart exercise substitutions tailored to your {locationLabel} injury.
+            </Text>
+          </TouchableOpacity>
+        )}
+
+        {/* Paywall for non-premium users */}
+        <PaywallModal
+          visible={showPaywall}
+          onDismiss={() => setShowPaywall(false)}
+          onSubscribed={() => setShowPaywall(false)}
+        />
 
         <View style={styles.bottomSpacer} />
       </ScrollView>
@@ -666,5 +695,28 @@ const styles = StyleSheet.create({
   },
   bottomSpacer: {
     height: 40,
+  },
+  adaptationGate: {
+    backgroundColor: colors.CREAM_LIGHT,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.GREY_LIGHT,
+    padding: 16,
+    gap: 8,
+  },
+  adaptationGateHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  adaptationGateTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.NAVY,
+  },
+  adaptationGateBody: {
+    fontSize: 13,
+    color: colors.NAVY_MEDIUM,
+    lineHeight: 18,
   },
 });

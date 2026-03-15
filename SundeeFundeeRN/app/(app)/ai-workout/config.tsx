@@ -36,6 +36,7 @@ import { useRouter } from 'expo-router';
 import * as Network from 'expo-network';
 import { format } from 'date-fns';
 import { useSession } from '@/src/auth/AuthContext';
+import { useEntitlementContext } from '@/src/entitlements/EntitlementContext';
 import { getCycleRepo, recordToPeriodLog } from '@/src/repositories/CycleRepo';
 import { getInjuryRepo, type InjuryProfileRecord } from '@/src/repositories/InjuryRepo';
 import { getReadinessRepo, type ReadinessSurveyRecord } from '@/src/repositories/ReadinessRepo';
@@ -46,6 +47,7 @@ import { generateOfflineWorkout } from '@/src/domain/ai-workout/offline-workout-
 import type { WorkoutGenerationContext, InjurySummary } from '@/src/domain/ai-workout/workout-generation-context';
 import { ConfigCards, type CardOption } from '@/src/components/ai-workout/ConfigCards';
 import { AdaptationChip } from '@/src/components/ai-workout/AdaptationChip';
+import { PaywallModal } from '@/src/components/paywall/PaywallModal';
 import * as colors from '@/src/theme/colors';
 
 // ─── Option definitions ───────────────────────────────────────────────────────
@@ -98,6 +100,7 @@ export function injuryToSummary(injury: InjuryProfileRecord): InjurySummary {
 export default function AIWorkoutConfigScreen(): React.JSX.Element {
   const router = useRouter();
   const { user, isGuest } = useSession();
+  const { isPremium } = useEntitlementContext();
   const uid = user?.uid ?? '';
 
   // ── Config state ──────────────────────────────────────────────────────────
@@ -114,6 +117,9 @@ export default function AIWorkoutConfigScreen(): React.JSX.Element {
   // ── Generation state ──────────────────────────────────────────────────────
   const [isGenerating, setIsGenerating] = useState(false);
   const generatingRef = useRef(false);
+
+  // ── Paywall state ─────────────────────────────────────────────────────────
+  const [showPaywall, setShowPaywall] = useState(false);
 
   // ── Load adaptation context on mount ─────────────────────────────────────
   useEffect(() => {
@@ -170,6 +176,12 @@ export default function AIWorkoutConfigScreen(): React.JSX.Element {
 
   // ── Generate workout ──────────────────────────────────────────────────────
   const handleGenerateWorkout = useCallback(async (): Promise<void> => {
+    // Gate: non-premium users see paywall
+    if (!isPremium) {
+      setShowPaywall(true);
+      return;
+    }
+
     if (generatingRef.current) return;
     generatingRef.current = true;
     setIsGenerating(true);
@@ -314,6 +326,13 @@ export default function AIWorkoutConfigScreen(): React.JSX.Element {
           )}
         </Pressable>
       </View>
+
+      {/* Paywall for non-premium users */}
+      <PaywallModal
+        visible={showPaywall}
+        onDismiss={() => setShowPaywall(false)}
+        onSubscribed={() => setShowPaywall(false)}
+      />
     </View>
   );
 }

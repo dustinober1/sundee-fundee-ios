@@ -22,8 +22,11 @@ import {
 } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useSession } from '@/src/auth/AuthContext';
+import { useEntitlementContext } from '@/src/entitlements/EntitlementContext';
 import { getProgramRepo } from '@/src/repositories/ProgramRepo';
 import type { Program, ProgramSession } from '@/src/repositories/ProgramRepo';
+import { PaywallModal } from '@/src/components/paywall/PaywallModal';
+import { PremiumBadge } from '@/src/components/paywall/PremiumBadge';
 import * as colors from '@/src/theme/colors';
 
 // ─── Filter chip types ──────────────────────────────────────────────────────
@@ -90,9 +93,10 @@ export function getProgramDescription(program: Program): string {
 interface ProgramCardProps {
   program: Program;
   onPress: () => void;
+  showPremiumBadge?: boolean;
 }
 
-function ProgramCard({ program, onPress }: ProgramCardProps): React.JSX.Element {
+function ProgramCard({ program, onPress, showPremiumBadge = false }: ProgramCardProps): React.JSX.Element {
   const sessionCount = program.sessions.length;
   const description = getProgramDescription(program);
 
@@ -105,9 +109,12 @@ function ProgramCard({ program, onPress }: ProgramCardProps): React.JSX.Element 
     >
       <View style={styles.cardAccentBar} />
       <View style={styles.cardContent}>
-        <Text style={styles.cardTitle} numberOfLines={2}>
-          {program.name}
-        </Text>
+        <View style={styles.cardTitleRow}>
+          <Text style={[styles.cardTitle, styles.cardTitleFlex]} numberOfLines={2}>
+            {program.name}
+          </Text>
+          {showPremiumBadge && <PremiumBadge compact />}
+        </View>
         <Text style={styles.cardMeta}>
           {sessionCount} session{sessionCount !== 1 ? 's' : ''}
         </Text>
@@ -123,10 +130,12 @@ function ProgramCard({ program, onPress }: ProgramCardProps): React.JSX.Element 
 
 export default function ProgramCatalogScreen(): React.JSX.Element {
   const { isGuest } = useSession();
+  const { isPremium } = useEntitlementContext();
   const router = useRouter();
   const [programs, setPrograms] = useState<Program[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedFilter, setSelectedFilter] = useState<FilterCategory>('All');
+  const [showPaywall, setShowPaywall] = useState(false);
 
   // Load programs on focus (refreshes on navigation return)
   useFocusEffect(
@@ -207,10 +216,24 @@ export default function ProgramCatalogScreen(): React.JSX.Element {
           renderItem={({ item }) => (
             <ProgramCard
               program={item}
-              onPress={() => router.push(`/programs/${item.id}`)}
+              showPremiumBadge={!isPremium}
+              onPress={() => {
+                if (!isPremium) {
+                  setShowPaywall(true);
+                } else {
+                  router.push(`/programs/${item.id}`);
+                }
+              }}
             />
           )}
           contentContainerStyle={styles.listContent}
+        />
+
+        {/* Paywall for non-premium users */}
+        <PaywallModal
+          visible={showPaywall}
+          onDismiss={() => setShowPaywall(false)}
+          onSubscribed={() => setShowPaywall(false)}
         />
       )}
     </View>
@@ -295,6 +318,16 @@ const styles = StyleSheet.create({
   cardContent: {
     flex: 1,
     padding: 16,
+  },
+  cardTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+    gap: 8,
+  },
+  cardTitleFlex: {
+    flex: 1,
   },
   cardTitle: {
     fontSize: 17,

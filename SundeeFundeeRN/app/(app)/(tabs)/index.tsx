@@ -37,6 +37,8 @@ import ReadinessSurveyCard from '@/src/components/readiness/ReadinessSurveyCard'
 import ReadinessSurveyModal from '@/src/components/readiness/ReadinessSurveyModal';
 import CyclePhaseBanner from '@/src/components/cycle/CyclePhaseBanner';
 import { WODDashboardCard } from '@/src/components/wod/WODDashboardCard';
+import { TrialBanner } from '@/src/components/paywall/TrialBanner';
+import { PaywallModal } from '@/src/components/paywall/PaywallModal';
 import * as colors from '@/src/theme/colors';
 
 /** Timed workout mode options presented on the dashboard. */
@@ -78,6 +80,9 @@ export default function DashboardScreen(): React.JSX.Element {
 
   // WOD state
   const [todayWOD, setTodayWOD] = useState<WODRecord | null>(null);
+
+  // Paywall state (for TrialBanner subscribe CTA)
+  const [showPaywall, setShowPaywall] = useState(false);
 
   const displayName = isGuest
     ? 'Guest'
@@ -195,6 +200,9 @@ export default function DashboardScreen(): React.JSX.Element {
           </View>
         )}
       </View>
+
+      {/* Trial Banner — shown on days 6-7 of free trial */}
+      <TrialBanner onSubscribe={() => setShowPaywall(true)} />
 
       {/* Readiness survey card — shown when no survey completed today */}
       {showReadinessCard && todayReadiness == null && (
@@ -344,6 +352,13 @@ export default function DashboardScreen(): React.JSX.Element {
         visible={showSurveyModal}
         onComplete={handleReadinessSurveyComplete}
         onDismiss={() => setShowSurveyModal(false)}
+      />
+
+      {/* Paywall modal (opened by TrialBanner subscribe CTA) */}
+      <PaywallModal
+        visible={showPaywall}
+        onDismiss={() => setShowPaywall(false)}
+        onSubscribed={() => setShowPaywall(false)}
       />
     </ScrollView>
   );
