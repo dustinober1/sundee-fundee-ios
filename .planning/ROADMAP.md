@@ -230,7 +230,7 @@ Plans:
 **Goal:** Program session screen respects user weight unit preference; no hardcoded 'lbs' remains
 **Requirements:** PLAT-05
 **Gap Closure:** Closes gaps from audit — programs/session.tsx must load weightUnit; fix hardcoded 'lbs' in target-weight.ts and scoring-input.ts
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
 - [ ] 16-01-PLAN.md — Add WeightUnit param to formatTargetWeight and formatScore, thread weightUnit into session.tsx
@@ -257,4 +257,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 13. Complete Weight Unit Threading | 1/1 | Complete    | 2026-03-16 |
 | 14. Fix Readiness Survey Persistence | 1/1 | Complete    | 2026-03-16 |
 | 15. Wire AI Preview Adaptation Context | 1/1 | Complete    | 2026-03-16 |
-| 16. Thread Weight Unit into Program Session | 0/1 | Not Started | — |
+| 16. Thread Weight Unit into Program Session | 1/1 | Complete   | 2026-03-16 |

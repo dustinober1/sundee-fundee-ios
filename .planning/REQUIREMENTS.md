@@ -231,7 +231,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SUBS-04 | Phase 6 | Complete |
 | SUBS-05 | Phase 6 | Complete |
 | PLAT-04 | Phase 7 | Complete |
-| PLAT-05 | Phase 16 | Pending |
+| PLAT-05 | Phase 16 | Complete |
 | PLAT-06 | Phase 7 | Complete |
 | PLAT-07 | Phase 7 | Complete |
 

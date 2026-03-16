@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: verifying
-stopped_at: Completed 15-wire-ai-preview-adaptation-context/15-01-PLAN.md
-last_updated: "2026-03-16T02:24:17.709Z"
+stopped_at: Completed 16-thread-weight-unit-into-program-session/16-01-PLAN.md
+last_updated: "2026-03-16T12:20:28.949Z"
 last_activity: "2026-03-15 — Completed Plan 12-01: Nested painLogs match block in Firestore rules + 5 security rule tests"
 progress:
   total_phases: 16
-  completed_phases: 15
-  total_plans: 42
-  completed_plans: 42
+  completed_phases: 16
+  total_plans: 43
+  completed_plans: 43
   percent: 16
 ---
 
@@ -91,6 +91,7 @@ Progress: [███░░░░░░░] 16%
 | Phase 13-complete-weight-unit-threading P13-01 | 15 | 2 tasks | 7 files |
 | Phase 14-fix-readiness-survey-persistence P14-01 | 2 | 2 tasks | 2 files |
 | Phase 15-wire-ai-preview-adaptation-context P01 | 2 | 2 tasks | 3 files |
+| Phase 16-thread-weight-unit-into-program-session P16-01 | 4 | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -215,6 +216,9 @@ Recent decisions affecting current work:
 - [Phase 13-complete-weight-unit-threading]: settings useEffect pattern reused from maxes.tsx — consistent approach across all screens displaying weights
 - [Phase 14-fix-readiness-survey-persistence]: ReadinessResult has score+tier fields (no label field) — test assertion corrected to use tier
 - [Phase 15-wire-ai-preview-adaptation-context]: SharedWorkoutState extended with adaptation fields rather than re-fetching in preview — anti-pattern per plan research
+- [Phase 16-thread-weight-unit-into-program-session]: jest.MockedFunction refs retrieved after import, not as const vars before jest.mock() — avoids Babel hoisting TDZ failure
+- [Phase 16-thread-weight-unit-into-program-session]: formatTargetWeight and formatScore accept optional unit: WeightUnit = 'lb' — backward compatible with all existing callers
+- [Phase 16-thread-weight-unit-into-program-session]: session.tsx uses Promise.all to load settings alongside program/maxes — single await, no extra round trip
 
 ### Pending Todos
 
@@ -230,6 +234,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-16T02:21:42.129Z
-Stopped at: Completed 15-wire-ai-preview-adaptation-context/15-01-PLAN.md
+Last session: 2026-03-16T12:20:28.945Z
+Stopped at: Completed 16-thread-weight-unit-into-program-session/16-01-PLAN.md
 Resume file: None
