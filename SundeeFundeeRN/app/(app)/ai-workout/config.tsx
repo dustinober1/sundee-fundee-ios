@@ -285,7 +285,14 @@ export default function AIWorkoutConfigScreen(): React.JSX.Element {
 
       // 4. Navigate to preview screen
       // Pass generated workout via global shared state to avoid URL param size limits
-      setSharedWorkout(generatedWorkout, generatedOffline, context);
+      setSharedWorkout(
+        generatedWorkout,
+        generatedOffline,
+        context,
+        cyclePhase,
+        injuries.filter((i) => i.recoveryPhase !== 'resolved'),
+        readiness,
+      );
       router.push('/ai-workout/preview' as never);
     } catch (error) {
       console.error('[AIWorkout] Generation failed:', error);
@@ -412,6 +419,9 @@ interface SharedWorkoutState {
   workout: GeneratedWorkout;
   isOffline: boolean;
   context: WorkoutGenerationContext;
+  adaptationCyclePhase: CyclePhase | undefined;
+  adaptationInjuries: InjuryProfileRecord[];
+  adaptationReadiness: ReadinessSurveyRecord | null;
 }
 
 let _sharedWorkoutState: SharedWorkoutState | null = null;
@@ -420,8 +430,11 @@ export function setSharedWorkout(
   workout: GeneratedWorkout,
   isOffline: boolean,
   context: WorkoutGenerationContext,
+  adaptationCyclePhase: CyclePhase | undefined,
+  adaptationInjuries: InjuryProfileRecord[],
+  adaptationReadiness: ReadinessSurveyRecord | null,
 ): void {
-  _sharedWorkoutState = { workout, isOffline, context };
+  _sharedWorkoutState = { workout, isOffline, context, adaptationCyclePhase, adaptationInjuries, adaptationReadiness };
 }
 
 export function getSharedWorkout(): SharedWorkoutState | null {

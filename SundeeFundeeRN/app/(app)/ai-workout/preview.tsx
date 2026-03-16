@@ -100,9 +100,9 @@ export default function AIWorkoutPreviewScreen(): React.JSX.Element {
     if (shared) {
       setWorkout(shared.workout);
       setIsOffline(shared.isOffline);
-      // Re-use adaptation context from the config context
-      // The WorkoutGenerationContext has cyclePhase and injuries as strings — not full records.
-      // We display the adaptation summary from the coaching summary instead via the chip.
+      setCyclePhase(shared.adaptationCyclePhase);
+      setInjuries(shared.adaptationInjuries);
+      setReadiness(shared.adaptationReadiness);
     }
     // Do NOT clear shared state here — let Start Workout or Regenerate handle it
   }, []);
