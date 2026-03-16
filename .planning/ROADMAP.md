@@ -211,7 +211,11 @@ Plans:
 ### Phase 14: Fix Readiness Survey Persistence
 **Goal:** Readiness survey answers persist to repository and flow through to workout adaptation
 **Requirements:** READ-01, READ-02
-**Gap Closure:** Closes gaps from audit — dashboard handleReadinessSurveyComplete must call ReadinessRepo.saveSurvey()
+**Gap Closure:** Closes gaps from audit — add test coverage proving modal saveSurvey works, dashboard card suppresses, and workout-session receives readiness data
+**Plans:** 1 plan
+
+Plans:
+- [ ] 14-01-PLAN.md — Add readiness persistence pipeline tests (modal save, card suppression, workout-session wiring)
 
 ### Phase 15: Wire AI Preview Adaptation Context
 **Goal:** AI workout preview screen displays active adaptation context (cycle phase, injuries, readiness) in AdaptationChip
