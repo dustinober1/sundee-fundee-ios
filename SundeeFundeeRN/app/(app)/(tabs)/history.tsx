@@ -32,6 +32,8 @@ import {
 } from '@/src/domain/history/history-filter';
 import { SourceFilter } from '@/src/components/history/SourceFilter';
 import { HistoryCard } from '@/src/components/history/HistoryCard';
+import type { WeightUnit } from '@/src/domain/types';
+import { getSettingsRepo, DEFAULT_SETTINGS } from '@/src/repositories/SettingsRepo';
 import * as colors from '@/src/theme/colors';
 
 // ─── WorkoutRecord → HistoryItem conversion ──────────────────────────────────
@@ -82,6 +84,7 @@ export default function HistoryScreen(): React.JSX.Element {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [activeFilter, setActiveFilter] = useState<HistorySourceFilter>('all');
+  const [weightUnit, setWeightUnit] = useState<WeightUnit>(DEFAULT_SETTINGS.weightUnit);
 
   const loadHistory = useCallback(async (showRefreshing = false): Promise<void> => {
     if (!user) return;
@@ -103,6 +106,17 @@ export default function HistoryScreen(): React.JSX.Element {
   useEffect(() => {
     void loadHistory();
   }, [loadHistory]);
+
+  useEffect(() => {
+    if (!user) return;
+    void (async () => {
+      try {
+        const repo = getSettingsRepo(isGuest);
+        const stored = await repo.getSettings(user.uid);
+        if (stored?.weightUnit) setWeightUnit(stored.weightUnit);
+      } catch { /* keep default */ }
+    })();
+  }, [user, isGuest]);
 
   function handleDelete(item: HistoryItem): void {
     if (!user) return;
@@ -179,6 +193,7 @@ export default function HistoryScreen(): React.JSX.Element {
                 item={item}
                 onPress={handleCardPress}
                 onDelete={handleDelete}
+                weightUnit={weightUnit}
               />
             )}
             renderSectionHeader={({ section: { title } }) => (

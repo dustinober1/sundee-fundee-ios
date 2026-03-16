@@ -25,6 +25,8 @@ import {
 import { Swipeable, GestureHandlerRootView } from 'react-native-gesture-handler';
 import type { HistoryItem } from '@/src/domain/history/history-item';
 import { getSourceLabel } from '@/src/domain/history/history-item';
+import { formatWeight } from '@/src/utils/formatWeight';
+import type { WeightUnit } from '@/src/domain/types';
 import * as colors from '@/src/theme/colors';
 
 // ─── Badge color helpers ────────────────────────────────────────────────────
@@ -50,12 +52,9 @@ export function formatDuration(seconds: number): string {
 
 // ─── Volume formatting ──────────────────────────────────────────────────────
 
-export function formatVolume(volume: number | undefined): string | null {
+export function formatVolume(volume: number | undefined, unit: WeightUnit = 'lb'): string | null {
   if (volume === undefined) return null;
-  if (volume >= 1000) {
-    return `${(volume / 1000).toFixed(1)}k lbs`;
-  }
-  return `${volume} lbs`;
+  return formatWeight(volume, unit);
 }
 
 // ─── Props ───────────────────────────────────────────────────────────────────
@@ -64,11 +63,12 @@ interface HistoryCardProps {
   item: HistoryItem;
   onPress: (item: HistoryItem) => void;
   onDelete: (item: HistoryItem) => void;
+  weightUnit?: WeightUnit;
 }
 
 // ─── HistoryCard ─────────────────────────────────────────────────────────────
 
-export function HistoryCard({ item, onPress, onDelete }: HistoryCardProps): React.JSX.Element {
+export function HistoryCard({ item, onPress, onDelete, weightUnit = 'lb' }: HistoryCardProps): React.JSX.Element {
   const swipeableRef = useRef<Swipeable>(null);
 
   function confirmDelete(): void {
@@ -110,7 +110,7 @@ export function HistoryCard({ item, onPress, onDelete }: HistoryCardProps): Reac
   const badgeColor = getBadgeColor(item.source);
   const sourceLabel = getSourceLabel(item.source);
   const durationStr = formatDuration(item.durationSeconds);
-  const volumeStr = formatVolume(item.totalVolume);
+  const volumeStr = formatVolume(item.totalVolume, weightUnit);
   const displayTitle = item.workoutName ?? item.title;
 
   return (
