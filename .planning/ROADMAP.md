@@ -212,7 +212,7 @@ Plans:
 **Goal:** Readiness survey answers persist to repository and flow through to workout adaptation
 **Requirements:** READ-01, READ-02
 **Gap Closure:** Closes gaps from audit — add test coverage proving modal saveSurvey works, dashboard card suppresses, and workout-session receives readiness data
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
 - [ ] 14-01-PLAN.md — Add readiness persistence pipeline tests (modal save, card suppression, workout-session wiring)
@@ -247,6 +247,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 11. Wire Guest Upgrade Entry Point | 1/1 | Complete    | 2026-03-15 |
 | 12. Fix Firestore Pain Log Security Rules | 1/1 | Complete   | 2026-03-15 |
 | 13. Complete Weight Unit Threading | 1/1 | Complete    | 2026-03-16 |
-| 14. Fix Readiness Survey Persistence | 0/0 | Not Started | — |
+| 14. Fix Readiness Survey Persistence | 1/1 | Complete   | 2026-03-16 |
 | 15. Wire AI Preview Adaptation Context | 0/0 | Not Started | — |
 | 16. Thread Weight Unit into Program Session | 0/0 | Not Started | — |

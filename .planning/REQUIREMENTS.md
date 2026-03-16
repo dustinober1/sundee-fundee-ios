@@ -80,8 +80,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Readiness
 
-- [ ] **READ-01**: User can complete daily readiness survey (sleep, energy, stress, motivation)
-- [ ] **READ-02**: Readiness score feeds into workout adaptation intensity
+- [x] **READ-01**: User can complete daily readiness survey (sleep, energy, stress, motivation)
+- [x] **READ-02**: Readiness score feeds into workout adaptation intensity
 
 ### Injury Management
 
@@ -206,8 +206,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CYCL-03 | Phase 5 | Complete |
 | CYCL-04 | Phase 5 | Complete |
 | CYCL-05 | Phase 5 | Complete |
-| READ-01 | Phase 14 | Pending |
-| READ-02 | Phase 14 | Pending |
+| READ-01 | Phase 14 | Complete |
+| READ-02 | Phase 14 | Complete |
 | INJR-01 | Phase 5 | Complete |
 | INJR-03 | Phase 12 | Complete |
 | AIWK-01 | Phase 5 | Complete |
