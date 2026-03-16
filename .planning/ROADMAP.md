@@ -257,4 +257,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 13. Complete Weight Unit Threading | 1/1 | Complete    | 2026-03-16 |
 | 14. Fix Readiness Survey Persistence | 1/1 | Complete    | 2026-03-16 |
 | 15. Wire AI Preview Adaptation Context | 1/1 | Complete    | 2026-03-16 |
-| 16. Thread Weight Unit into Program Session | 1/1 | Complete   | 2026-03-16 |
+| 16. Thread Weight Unit into Program Session | 1/1 | Complete    | 2026-03-16 |
