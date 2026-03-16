@@ -30,12 +30,15 @@ import { getProgramRepo } from '@/src/repositories/ProgramRepo';
 import type { Program, ProgramEnrollment, ProgramSession } from '@/src/repositories/ProgramRepo';
 import { getExerciseMaxRepo } from '@/src/repositories/ExerciseMaxRepo';
 import { getWorkoutRepo } from '@/src/repositories/WorkoutRepo';
+import { getSettingsRepo, DEFAULT_SETTINGS } from '@/src/repositories/SettingsRepo';
 import {
   calculateTargetWeight,
   formatTargetWeight,
 } from '@/src/components/programs/target-weight';
+import { formatWeight } from '@/src/utils/formatWeight';
 import type { ExerciseMax } from '@/src/domain/pr-detection/pr-types';
 import type { ProgramExercise } from '@/src/domain/types/index';
+import type { WeightUnit } from '@/src/domain/types/index';
 import * as colors from '@/src/theme/colors';
 
 // ─── Helper: get current session ────────────────────────────────────────────
@@ -75,6 +78,7 @@ export function getNextEnrollmentPosition(
 interface ExerciseRowProps {
   exercise: ProgramExercise;
   maxes: ExerciseMax[];
+  weightUnit: WeightUnit;
 }
 
 function formatRepsDisplay(exercise: ProgramExercise): string {
@@ -87,7 +91,7 @@ function formatRepsDisplay(exercise: ProgramExercise): string {
   }
 }
 
-export function ExerciseRow({ exercise, maxes }: ExerciseRowProps): React.JSX.Element {
+export function ExerciseRow({ exercise, maxes, weightUnit }: ExerciseRowProps): React.JSX.Element {
   const weight = exercise.weight;
 
   // Determine target weight display
@@ -95,7 +99,7 @@ export function ExerciseRow({ exercise, maxes }: ExerciseRowProps): React.JSX.El
   if (weight && weight.kind === 'fixed' && weight.value <= 1.0) {
     // Percentage weight — calculate from 1RM
     const absolute = calculateTargetWeight(exercise.name, weight.value, maxes);
-    targetWeightDisplay = formatTargetWeight(absolute, weight.value);
+    targetWeightDisplay = formatTargetWeight(absolute, weight.value, weightUnit);
   } else if (weight && weight.kind === 'text') {
     targetWeightDisplay = weight.value;
   } else if (weight && weight.kind === 'range') {
@@ -104,7 +108,7 @@ export function ExerciseRow({ exercise, maxes }: ExerciseRowProps): React.JSX.El
       const lo = calculateTargetWeight(exercise.name, weight.lo, maxes);
       const hi = calculateTargetWeight(exercise.name, weight.hi, maxes);
       if (lo !== null && hi !== null) {
-        targetWeightDisplay = `${lo}–${hi} lbs`;
+        targetWeightDisplay = `${formatWeight(lo, weightUnit)}–${formatWeight(hi, weightUnit)}`;
       } else {
         targetWeightDisplay = `${Math.round(weight.lo * 100)}–${Math.round(weight.hi * 100)}% 1RM`;
       }
@@ -142,6 +146,7 @@ export default function ProgramSessionScreen(): React.JSX.Element {
   const [program, setProgram] = useState<Program | null>(null);
   const [enrollment, setEnrollment] = useState<ProgramEnrollment | null>(null);
   const [maxes, setMaxes] = useState<ExerciseMax[]>([]);
+  const [weightUnit, setWeightUnit] = useState<WeightUnit>(DEFAULT_SETTINGS.weightUnit);
   const [loading, setLoading] = useState(true);
   const [completing, setCompleting] = useState(false);
 
@@ -160,15 +165,17 @@ export default function ProgramSessionScreen(): React.JSX.Element {
             return;
           }
 
-          const [prog, userMaxes] = await Promise.all([
+          const [prog, userMaxes, settings] = await Promise.all([
             getProgramRepo(isGuest).getProgram(enroll.programId),
             getExerciseMaxRepo(isGuest).getAllMaxes(uid),
+            getSettingsRepo(isGuest).getSettings(uid),
           ]);
 
           if (cancelled) return;
           setEnrollment(enroll);
           setProgram(prog);
           setMaxes(userMaxes);
+          if (settings?.weightUnit) setWeightUnit(settings.weightUnit);
         } catch {
           // Graceful degradation
         } finally {
@@ -276,6 +283,7 @@ export default function ProgramSessionScreen(): React.JSX.Element {
             key={exercise.id}
             exercise={exercise}
             maxes={maxes}
+            weightUnit={weightUnit}
           />
         ))}
       </View>

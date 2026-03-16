@@ -10,26 +10,21 @@
 // Module mocks — must come before imports
 // ---------------------------------------------------------------------------
 
-const mockFormatTargetWeight = jest.fn((weight: number | null, percentage: number, unit?: string) => {
-  if (weight === null) return `${Math.round(percentage * 100)}%`;
-  return unit === 'kg' ? `${weight} kg-display` : `${weight} lbs-display`;
-});
-
-const mockFormatWeight = jest.fn((lbs: number, unit: string) => {
-  return unit === 'kg' ? `${lbs} kg-display` : `${lbs} lbs-display`;
-});
-
 jest.mock('@/src/components/programs/target-weight', () => ({
   calculateTargetWeight: jest.fn((name: string, pct: number) => {
-    // Return a value proportional to percentage for range tests
     if (name === 'Back Squat') return Math.round(300 * pct);
     return null;
   }),
-  formatTargetWeight: mockFormatTargetWeight,
+  formatTargetWeight: jest.fn((weight: number | null, percentage: number, unit?: string) => {
+    if (weight === null) return `${Math.round(percentage * 100)}%`;
+    return unit === 'kg' ? `${weight} kg-display` : `${weight} lbs-display`;
+  }),
 }));
 
 jest.mock('@/src/utils/formatWeight', () => ({
-  formatWeight: mockFormatWeight,
+  formatWeight: jest.fn((lbs: number, unit: string) => {
+    return unit === 'kg' ? `${lbs} kg-display` : `${lbs} lbs-display`;
+  }),
 }));
 
 jest.mock('@/src/auth/AuthContext', () => ({
@@ -77,6 +72,8 @@ jest.mock('@/src/theme/colors', () => ({
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import { ExerciseRow } from '../session';
+import { formatTargetWeight } from '@/src/components/programs/target-weight';
+import { formatWeight } from '@/src/utils/formatWeight';
 import type { ProgramExercise } from '@/src/domain/types/index';
 import type { ExerciseMax } from '@/src/domain/pr-detection/pr-types';
 
@@ -111,6 +108,10 @@ const squat1RM: ExerciseMax = {
 
 const maxes: ExerciseMax[] = [squat1RM];
 
+// Typed references to mock functions
+const mockFormatTargetWeight = formatTargetWeight as jest.MockedFunction<typeof formatTargetWeight>;
+const mockFormatWeight = formatWeight as jest.MockedFunction<typeof formatWeight>;
+
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
@@ -118,6 +119,14 @@ const maxes: ExerciseMax[] = [squat1RM];
 describe('ExerciseRow weight unit rendering', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Re-apply mock implementations after clearAllMocks
+    mockFormatTargetWeight.mockImplementation((weight, percentage, unit) => {
+      if (weight === null) return `${Math.round(percentage * 100)}%`;
+      return unit === 'kg' ? `${weight} kg-display` : `${weight} lbs-display`;
+    });
+    mockFormatWeight.mockImplementation((lbs, unit) => {
+      return unit === 'kg' ? `${lbs} kg-display` : `${lbs} lbs-display`;
+    });
   });
 
   it('renders target weight in lbs when weightUnit is lb', () => {
