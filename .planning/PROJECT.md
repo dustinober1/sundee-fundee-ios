@@ -38,7 +38,22 @@ Users get personalized, cycle-aware strength training that adapts to their body 
 
 ### Active
 
-(None — next milestone requirements TBD via `/gsd:new-milestone`)
+- [ ] Device testing & verification sweep (resolve ~30 human verification items from v1.0)
+- [ ] Firestore security rules deployed and validated in production
+- [ ] Push notifications — local (reminders, rest timer, streaks) + remote via FCM (new WOD, subscription expiring)
+- [ ] Firebase Analytics + Crashlytics wired into key user flows
+- [ ] App Store, Play Store, and Web submission prep (metadata, screenshots, EAS builds)
+
+## Current Milestone: v1.1 Launch Readiness
+
+**Goal:** Get the app verified on real devices, instrumented with analytics/crash reporting, add notifications, and submit to all three platforms (iOS, Android, Web).
+
+**Target features:**
+- Device testing & verification sweep
+- Firestore security rules deploy + validation
+- Push notifications (local + remote via FCM)
+- Analytics & crash reporting (Firebase Analytics + Crashlytics)
+- App Store / Play Store / Web submission
 
 ### Out of Scope
 
@@ -57,6 +72,8 @@ Tech stack: React Native + Expo, Firebase (Firestore, Auth, Cloud Functions), Re
 All 10 E2E user flows verified passing.
 
 Known tech debt: ~30 human verification items (device testing), Firestore rules deploy pending, Nyquist validation partial.
+
+v1.1 focus: Launch readiness — verify on real devices, deploy security rules, add notifications + analytics, submit to stores.
 
 ## Key Decisions
 
@@ -83,4 +100,4 @@ Known tech debt: ~30 human verification items (device testing), Firestore rules 
 - **Quality**: High test coverage on Domain logic and critical paths
 
 ---
-*Last updated: 2026-03-16 after v1.0 milestone*
+*Last updated: 2026-03-16 after v1.1 milestone start*
