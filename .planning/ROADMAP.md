@@ -203,7 +203,7 @@ Plans:
 **Goal:** All screens display weights in the user's chosen unit (lbs or kg) with no hardcoded suffixes
 **Requirements:** PLAT-05
 **Gap Closure:** Closes gaps from audit — thread weightUnit into HistoryCard.tsx and exercise-detail.tsx
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
 - [ ] 13-01-PLAN.md — Thread weightUnit into HistoryCard, exercise-detail, and RepRangePRTable with tests
@@ -227,4 +227,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 10. UI Polish Fixes | 1/1 | Complete    | 2026-03-15 |
 | 11. Wire Guest Upgrade Entry Point | 1/1 | Complete    | 2026-03-15 |
 | 12. Fix Firestore Pain Log Security Rules | 1/1 | Complete   | 2026-03-15 |
-| 13. Complete Weight Unit Threading | 0/1 | Pending |  |
+| 13. Complete Weight Unit Threading | 1/1 | Complete   | 2026-03-16 |
