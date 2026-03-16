@@ -221,7 +221,7 @@ Plans:
 **Goal:** AI workout preview screen displays active adaptation context (cycle phase, injuries, readiness) in AdaptationChip
 **Requirements:** CYAD-03, AIWK-05 (display)
 **Gap Closure:** Closes gaps from audit — preview.tsx must unpack shared.context fields into local state
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
 - [ ] 15-01-PLAN.md — Extend SharedWorkoutState with display-ready adaptation records, unpack in preview, add tests
@@ -252,5 +252,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 12. Fix Firestore Pain Log Security Rules | 1/1 | Complete   | 2026-03-15 |
 | 13. Complete Weight Unit Threading | 1/1 | Complete    | 2026-03-16 |
 | 14. Fix Readiness Survey Persistence | 1/1 | Complete    | 2026-03-16 |
-| 15. Wire AI Preview Adaptation Context | 0/1 | Not Started | — |
+| 15. Wire AI Preview Adaptation Context | 1/1 | Complete   | 2026-03-16 |
 | 16. Thread Weight Unit into Program Session | 0/0 | Not Started | — |

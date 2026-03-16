@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: verifying
-stopped_at: Completed 14-fix-readiness-survey-persistence/14-01-PLAN.md
-last_updated: "2026-03-16T02:03:29.067Z"
+stopped_at: Completed 15-wire-ai-preview-adaptation-context/15-01-PLAN.md
+last_updated: "2026-03-16T02:21:42.132Z"
 last_activity: "2026-03-15 — Completed Plan 12-01: Nested painLogs match block in Firestore rules + 5 security rule tests"
 progress:
   total_phases: 16
-  completed_phases: 14
-  total_plans: 41
-  completed_plans: 41
+  completed_phases: 15
+  total_plans: 42
+  completed_plans: 42
   percent: 16
 ---
 
@@ -90,6 +90,7 @@ Progress: [███░░░░░░░] 16%
 | Phase 12-fix-firestore-pain-log-rules P12-01 | 2 | 2 tasks | 2 files |
 | Phase 13-complete-weight-unit-threading P13-01 | 15 | 2 tasks | 7 files |
 | Phase 14-fix-readiness-survey-persistence P14-01 | 2 | 2 tasks | 2 files |
+| Phase 15-wire-ai-preview-adaptation-context P01 | 2 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -213,6 +214,7 @@ Recent decisions affecting current work:
 - [Phase 13-complete-weight-unit-threading]: weightUnit defaults to lb everywhere via optional prop — backward compatible with existing callers
 - [Phase 13-complete-weight-unit-threading]: settings useEffect pattern reused from maxes.tsx — consistent approach across all screens displaying weights
 - [Phase 14-fix-readiness-survey-persistence]: ReadinessResult has score+tier fields (no label field) — test assertion corrected to use tier
+- [Phase 15-wire-ai-preview-adaptation-context]: SharedWorkoutState extended with adaptation fields rather than re-fetching in preview — anti-pattern per plan research
 
 ### Pending Todos
 
@@ -228,6 +230,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-16T02:01:16.742Z
-Stopped at: Completed 14-fix-readiness-survey-persistence/14-01-PLAN.md
+Last session: 2026-03-16T02:21:42.129Z
+Stopped at: Completed 15-wire-ai-preview-adaptation-context/15-01-PLAN.md
 Resume file: None
