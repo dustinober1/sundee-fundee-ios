@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">80% </span>
+                <span class="strong">81.81% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>16/20</span>
+                <span class='fraction'>18/22</span>
             </div>
         
             
@@ -39,14 +39,14 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>2/2</span>
+                <span class='fraction'>3/3</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">80% </span>
+                <span class="strong">81.81% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>16/20</span>
+                <span class='fraction'>18/22</span>
             </div>
         
             
@@ -125,7 +125,26 @@
 <a name='L60'></a><a href='#L60'>60</a>
 <a name='L61'></a><a href='#L61'>61</a>
 <a name='L62'></a><a href='#L62'>62</a>
-<a name='L63'></a><a href='#L63'>63</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L63'></a><a href='#L63'>63</a>
+<a name='L64'></a><a href='#L64'>64</a>
+<a name='L65'></a><a href='#L65'>65</a>
+<a name='L66'></a><a href='#L66'>66</a>
+<a name='L67'></a><a href='#L67'>67</a>
+<a name='L68'></a><a href='#L68'>68</a>
+<a name='L69'></a><a href='#L69'>69</a>
+<a name='L70'></a><a href='#L70'>70</a>
+<a name='L71'></a><a href='#L71'>71</a>
+<a name='L72'></a><a href='#L72'>72</a>
+<a name='L73'></a><a href='#L73'>73</a>
+<a name='L74'></a><a href='#L74'>74</a>
+<a name='L75'></a><a href='#L75'>75</a>
+<a name='L76'></a><a href='#L76'>76</a>
+<a name='L77'></a><a href='#L77'>77</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -149,10 +168,11 @@
 <span class="cline-any cline-yes">8x</span>
 <span class="cline-any cline-yes">8x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">8x</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -171,8 +191,16 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">4x</span>
@@ -192,17 +220,22 @@
  *
  * Configures Google Sign-In, checks Play Services, signs in via GoogleSignin,
  * extracts idToken, creates a Firebase Google credential, and signs in.
+ *
+ * getCredential() returns the AuthCredential without signing in — used by
+ * sign-in.tsx to route through guest.upgrade() for anonymous users.
  */
 import { useState, useCallback } from 'react';
 import {
   signInWithCredential,
   GoogleAuthProvider,
+  type AuthCredential,
 } from '../firebase/auth';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { getAuthErrorMessage } from './authErrors';
 &nbsp;
 export interface GoogleSignInState {
   signIn: () =&gt; Promise&lt;unknown&gt;;
+  getCredential: () =&gt; Promise&lt;AuthCredential&gt;;
   isLoading: boolean;
   error: string | null;
 }
@@ -211,30 +244,39 @@ export function useGoogleSignIn(): GoogleSignInState {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState&lt;string | null&gt;(null);
 &nbsp;
+  /**
+   * getCredential — pure credential factory, no loading/error state management.
+   * Configures Google Sign-In, obtains idToken, and returns Firebase AuthCredential.
+   */
+  const getCredential = useCallback(async (): Promise&lt;AuthCredential&gt; =&gt; {
+    // Configure with the web client ID (required for cross-platform)
+    GoogleSignin.configure({
+      webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+    });
+&nbsp;
+    // Check Play Services availability on Android
+    await GoogleSignin.hasPlayServices({
+      showPlayServicesUpdateDialog: true,
+    });
+&nbsp;
+    // Sign in and extract idToken
+    const signInResult = await GoogleSignin.signIn();
+    const idToken = signInResult.data?.idToken;
+&nbsp;
+    <span class="missing-if-branch" title="if path not taken" >I</span>if (!idToken) {
+<span class="cstat-no" title="statement not covered" >      throw new Error('Google Sign-In did not return an idToken');</span>
+    }
+&nbsp;
+    return GoogleAuthProvider.credential(idToken);
+  }, []);
+&nbsp;
   const signIn = useCallback(async (): Promise&lt;unknown&gt; =&gt; {
     setIsLoading(true);
     setError(null);
     try {
-      // Configure with the web client ID (required for cross-platform)
-      GoogleSignin.configure({
-        webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
-      });
-&nbsp;
-      // Check Play Services availability on Android
-      await GoogleSignin.hasPlayServices({
-        showPlayServicesUpdateDialog: true,
-      });
-&nbsp;
-      // Sign in and extract idToken
-      const signInResult = await GoogleSignin.signIn();
-      const idToken = signInResult.data?.idToken;
-&nbsp;
-      <span class="missing-if-branch" title="if path not taken" >I</span>if (!idToken) {
-<span class="cstat-no" title="statement not covered" >        throw new Error('Google Sign-In did not return an idToken');</span>
-      }
+      const credential = await getCredential();
 &nbsp;
       // Create Firebase credential and sign in
-      const credential = GoogleAuthProvider.credential(idToken);
       const user = await signInWithCredential(credential);
 &nbsp;
       return user;
@@ -245,9 +287,9 @@ export function useGoogleSignIn(): GoogleSignInState {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [getCredential]);
 &nbsp;
-  return { signIn, isLoading, error };
+  return { signIn, getCredential, isLoading, error };
 }
 &nbsp;</pre></td></tr></table></pre>
 
@@ -256,7 +298,7 @@ export function useGoogleSignIn(): GoogleSignInState {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-14T22:53:52.367Z
+                at 2026-03-16T00:07:22.268Z
             </div>
         <script src="../prettify.js"></script>
         <script>

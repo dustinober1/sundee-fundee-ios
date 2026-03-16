@@ -47,8 +47,9 @@ export default function SignInScreen(): React.JSX.Element {
   const router = useRouter();
   const { user, isLoading: sessionLoading } = useSession();
 
-  // If already authenticated, redirect to the app
-  if (!sessionLoading && user) {
+  // If already authenticated (non-guest), redirect to the app.
+  // Anonymous/guest users are allowed through so they can upgrade to a permanent account.
+  if (!sessionLoading && user && !user.isAnonymous) {
     return <Redirect href="/(app)/(tabs)" />;
   }
 
@@ -163,8 +164,8 @@ export default function SignInScreen(): React.JSX.Element {
 
         {/* Auth buttons */}
         <View style={styles.authContainer}>
-          {/* Platform-adaptive: Apple on iOS, Google on Android/Web */}
-          {Platform.OS === 'ios' ? (
+          {/* Apple Sign In — iOS and Web */}
+          {(Platform.OS === 'ios' || Platform.OS === 'web') && (
             <AuthButton
               title="Sign In with Apple"
               onPress={handleAppleSignIn}
@@ -173,7 +174,10 @@ export default function SignInScreen(): React.JSX.Element {
               variant="primary"
               disabled={anyLoading && !apple.isLoading}
             />
-          ) : (
+          )}
+
+          {/* Google Sign In — Android and Web */}
+          {(Platform.OS === 'android' || Platform.OS === 'web') && (
             <AuthButton
               title="Sign In with Google"
               onPress={handleGoogleSignIn}

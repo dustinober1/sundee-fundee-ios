@@ -10,7 +10,6 @@
 
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
-import { zip } from 'react-native-zip-archive';
 import { Platform } from 'react-native';
 import JSZip from 'jszip';
 
@@ -198,27 +197,23 @@ export async function exportUserData(
   const exportDirName = `sundee-export-${dateStr}`;
   const exportDir = `${FileSystem.cacheDirectory}${exportDirName}/`;
 
+  // Bundle all CSVs into a zip using JSZip (cross-platform)
+  const jszip = new JSZip();
+  for (const file of csvFiles) {
+    jszip.file(file.name, file.content);
+  }
+
   if (isWeb) {
-    // On web, bundle all CSVs into a single zip using JSZip
-    const jszip = new JSZip();
-    for (const file of csvFiles) {
-      jszip.file(file.name, file.content);
-    }
     const zipBlob = await jszip.generateAsync({ type: 'blob' });
     triggerWebDownload(zipBlob, `sundee-fundee-export-${dateStr}.zip`, 'application/zip');
     return;
   }
 
-  // Write each CSV to a temp directory
-  await FileSystem.makeDirectoryAsync(exportDir, { intermediates: true });
-  for (const file of csvFiles) {
-    await FileSystem.writeAsStringAsync(`${exportDir}${file.name}`, file.content);
-  }
-
-  // Zip the directory
+  // Native: write zip to cache directory and share
+  const zipBase64 = await jszip.generateAsync({ type: 'base64' });
   const zipPath = `${FileSystem.cacheDirectory}sundee-fundee-export-${dateStr}.zip`;
-  await zip(exportDir, zipPath);
-
-  // Share the zip
+  await FileSystem.writeAsStringAsync(zipPath, zipBase64, {
+    encoding: FileSystem.EncodingType.Base64,
+  });
   await Sharing.shareAsync(zipPath);
 }

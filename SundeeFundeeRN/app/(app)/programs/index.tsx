@@ -228,14 +228,14 @@ export default function ProgramCatalogScreen(): React.JSX.Element {
           )}
           contentContainerStyle={styles.listContent}
         />
-
-        {/* Paywall for non-premium users */}
-        <PaywallModal
-          visible={showPaywall}
-          onDismiss={() => setShowPaywall(false)}
-          onSubscribed={() => setShowPaywall(false)}
-        />
       )}
+
+      {/* Paywall for non-premium users */}
+      <PaywallModal
+        visible={showPaywall}
+        onDismiss={() => setShowPaywall(false)}
+        onSubscribed={() => setShowPaywall(false)}
+      />
     </View>
   );
 }

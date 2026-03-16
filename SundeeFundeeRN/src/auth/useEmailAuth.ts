@@ -31,6 +31,9 @@ export function useEmailAuth(): EmailAuthState {
       try {
         const user = await createUserWithEmailAndPassword(email, password);
         await sendEmailVerification(user);
+        // Sign out immediately so onAuthStateChanged doesn't redirect to dashboard
+        // before the verify-email screen can be shown
+        await signOut();
         return { needsVerification: true };
       } catch (err) {
         setError(getAuthErrorMessage(err));

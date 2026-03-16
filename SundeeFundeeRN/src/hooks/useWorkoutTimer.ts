@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
 import * as Notifications from 'expo-notifications';
-import { Audio } from 'expo-av';
+import { createAudioPlayer } from 'expo-audio';
 import {
   TimerMode,
   TimerState,
@@ -126,44 +126,26 @@ export function useWorkoutTimer(): WorkoutTimerState & WorkoutTimerControls {
 
   // ── Sound helpers ────────────────────────────────────────────────────────
 
-  const playBeep = useCallback(async () => {
+  const playSound = useCallback((source: number) => {
     try {
-      const { sound } = await Audio.Sound.createAsync(
-        require('../assets/sounds/beep.mp3'),
-        { shouldPlay: true },
-      );
-      await sound.playAsync();
-      await sound.unloadAsync();
+      const player = createAudioPlayer(source);
+      player.play();
     } catch {
       // Sound is best-effort — silence failures gracefully
     }
   }, []);
 
-  const playGoSound = useCallback(async () => {
-    try {
-      const { sound } = await Audio.Sound.createAsync(
-        require('../assets/sounds/go.mp3'),
-        { shouldPlay: true },
-      );
-      await sound.playAsync();
-      await sound.unloadAsync();
-    } catch {
-      // Sound is best-effort — silence failures gracefully
-    }
-  }, []);
+  const playBeep = useCallback(() => {
+    playSound(require('../assets/sounds/beep.mp3'));
+  }, [playSound]);
 
-  const playCompleteSound = useCallback(async () => {
-    try {
-      const { sound } = await Audio.Sound.createAsync(
-        require('../assets/sounds/complete.mp3'),
-        { shouldPlay: true },
-      );
-      await sound.playAsync();
-      await sound.unloadAsync();
-    } catch {
-      // Sound is best-effort — silence failures gracefully
-    }
-  }, []);
+  const playGoSound = useCallback(() => {
+    playSound(require('../assets/sounds/go.mp3'));
+  }, [playSound]);
+
+  const playCompleteSound = useCallback(() => {
+    playSound(require('../assets/sounds/complete.mp3'));
+  }, [playSound]);
 
   // ── Tick logic ───────────────────────────────────────────────────────────
 

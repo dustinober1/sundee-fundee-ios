@@ -30,3 +30,4 @@ GoogleService-Info.plist
 my-upload-key.jks
 .playwright-mcp/
 functions/node_modules/
+node_modules

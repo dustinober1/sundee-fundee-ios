@@ -30,11 +30,11 @@ final class MainTabCoverageTests: XCTestCase {
         return try ModelContainer(for: schema, configurations: [config])
     }
 
-    func testTabMetadataAndOrderAreStable() {
-        let tabs = MainTabView.orderedTabs
+    func testPrimaryTabMetadataIsStable() {
+        let tabs = MainTabView.primaryTabs
 
-        XCTAssertEqual(tabs, [.dashboard, .programs, .wods, .history, .maxes, .benchmarks, .cycle, .settings])
-        XCTAssertEqual(tabs.map(\.title), ["Dashboard", "Programs", "WODs", "History", "Maxes", "Benchmarks", "Cycle", "Settings"])
+        XCTAssertEqual(tabs, [.dashboard, .programs, .wods, .history, .more])
+        XCTAssertEqual(tabs.map(\.title), ["Dashboard", "Programs", "WODs", "History", "More"])
         XCTAssertEqual(
             tabs.map(\.systemImage),
             [
@@ -42,17 +42,14 @@ final class MainTabCoverageTests: XCTestCase {
                 "list.bullet.rectangle.portrait.fill",
                 "flame.fill",
                 "clock.fill",
-                "dumbbell.fill",
-                "checkmark.seal.fill",
-                "circle.dotted",
-                "gearshape.fill",
+                "ellipsis.circle.fill",
             ]
         )
     }
 
-    func testDestinationBuilderCoversEveryTabCase() {
-        let destinations = MainTabView.orderedTabs.map { AnyView(MainTabView.destination(for: $0)) }
-        XCTAssertEqual(destinations.count, MainTabView.orderedTabs.count)
+    func testDestinationBuilderCoversEveryPrimaryTabCase() {
+        let destinations = MainTabView.primaryTabs.map { AnyView(MainTabView.destination(for: $0)) }
+        XCTAssertEqual(destinations.count, MainTabView.primaryTabs.count)
     }
 
     func testMainTabHostsAndBuildsAllTabsWithStubDestinations() {
@@ -63,7 +60,9 @@ final class MainTabCoverageTests: XCTestCase {
         }
 
         _ = host(view)
-        XCTAssertEqual(Set(builtTabs), Set(MainTabView.orderedTabs))
+        // The .more tab renders MoreTabView directly and does not call destinationBuilder
+        let expectedBuilderTabs: Set<MainTabView.TabRoute> = [.dashboard, .programs, .wods, .history]
+        XCTAssertEqual(Set(builtTabs), expectedBuilderTabs)
     }
 
     func testMainTabAndPlaceholderBodiesBuildWithoutCrashing() {
@@ -79,29 +78,47 @@ final class MainTabCoverageTests: XCTestCase {
         let container = try makeContainer()
         let root = MainTabView()
             .environment(appState)
+            .environment(SubscriptionService())
             .modelContainer(container)
         XCTAssertNotNil(host(root).view)
     }
 
-    func testOrderedTabsExcludesCycleForMale() {
-        let tabs = MainTabView.orderedTabs(for: .male)
-        XCTAssertFalse(tabs.contains(.cycle))
-        XCTAssertEqual(tabs, [.dashboard, .programs, .wods, .history, .maxes, .benchmarks, .settings])
+    func testMoreRoutesExcludesCycleForMale() {
+        let routes = MainTabView.moreRoutes(for: .male)
+        XCTAssertFalse(routes.contains(.cycle))
+        XCTAssertEqual(routes, [.maxes, .benchmarks, .settings])
     }
 
-    func testOrderedTabsIncludesCycleForFemale() {
-        let tabs = MainTabView.orderedTabs(for: .female)
-        XCTAssertTrue(tabs.contains(.cycle))
+    func testMoreRoutesIncludesCycleForFemale() {
+        let routes = MainTabView.moreRoutes(for: .female)
+        XCTAssertTrue(routes.contains(.cycle))
+        XCTAssertEqual(routes, [.maxes, .benchmarks, .cycle, .settings])
     }
 
-    func testOrderedTabsIncludesCycleForPreferNotToSay() {
-        let tabs = MainTabView.orderedTabs(for: .preferNotToSay)
-        XCTAssertTrue(tabs.contains(.cycle))
+    func testMoreRoutesIncludesCycleForPreferNotToSay() {
+        let routes = MainTabView.moreRoutes(for: .preferNotToSay)
+        XCTAssertTrue(routes.contains(.cycle))
     }
 
-    func testOrderedTabsIncludesCycleForNilGender() {
-        let tabs = MainTabView.orderedTabs(for: nil)
-        XCTAssertTrue(tabs.contains(.cycle))
+    func testMoreRoutesIncludesCycleForNilGender() {
+        let routes = MainTabView.moreRoutes(for: nil)
+        XCTAssertTrue(routes.contains(.cycle))
+    }
+
+    func testMoreRouteMetadataIsCorrect() {
+        let allRoutes: [MainTabView.MoreRoute] = [.maxes, .benchmarks, .cycle, .settings]
+        XCTAssertEqual(allRoutes.map(\.title), ["Maxes", "Benchmarks", "Cycle", "Settings"])
+        XCTAssertEqual(
+            allRoutes.map(\.systemImage),
+            ["dumbbell.fill", "checkmark.seal.fill", "circle.dotted", "gearshape.fill"]
+        )
+    }
+
+    func testMoreDestinationCoversAllRoutes() {
+        let allRoutes: [MainTabView.MoreRoute] = [.maxes, .benchmarks, .cycle, .settings]
+        for route in allRoutes {
+            _ = AnyView(MainTabView.moreDestination(for: route))
+        }
     }
 
     func testPlaceholderViewsRenderInHostingController() {
