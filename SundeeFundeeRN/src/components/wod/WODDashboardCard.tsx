@@ -38,7 +38,7 @@ export function WODDashboardCard({
   const [expanded, setExpanded] = useState(false);
 
   // If no WOD today, render nothing
-  if (wod === null) {
+  if (wod == null) {
     return null;
   }
 

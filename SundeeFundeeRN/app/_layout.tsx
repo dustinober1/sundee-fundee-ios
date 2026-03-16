@@ -16,6 +16,7 @@ import { Platform } from 'react-native';
 import { Stack } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { AuthUser } from '@/src/firebase/auth';
+import { initAppCheck } from '@/src/firebase/appCheck';
 
 import { SessionProvider } from '@/src/auth/AuthContext';
 import { EntitlementProvider } from '@/src/entitlements/EntitlementContext';
@@ -117,6 +118,9 @@ function buildUserProfile(user: AuthUser): UserProfile {
 
 export default function RootLayout(): React.JSX.Element {
   useEffect(() => {
+    // App Check must initialize before any Firebase calls (auth, Firestore).
+    // Moved here from (app)/_layout.tsx so it's ready before the sign-in screen.
+    void initAppCheck();
     configureRevenueCat();
   }, []);
 
