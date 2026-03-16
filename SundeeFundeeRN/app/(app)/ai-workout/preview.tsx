@@ -28,6 +28,9 @@ import {
 import { useRouter } from 'expo-router';
 import { useSession } from '@/src/auth/AuthContext';
 import { getWorkoutRepo } from '@/src/repositories/WorkoutRepo';
+import { getSettingsRepo, DEFAULT_SETTINGS } from '@/src/repositories/SettingsRepo';
+import { formatWeight } from '@/src/utils/formatWeight';
+import type { WeightUnit } from '@/src/domain/types';
 import type { GeneratedWorkout, GeneratedExercise } from '@/src/domain/ai-workout/generated-workout';
 import { totalEstimatedMinutes } from '@/src/domain/ai-workout/generated-workout';
 import { getSharedWorkout, clearSharedWorkout } from './config';
@@ -42,9 +45,10 @@ import * as colors from '@/src/theme/colors';
 interface ExerciseRowProps {
   exercise: GeneratedExercise;
   index: number;
+  weightUnit: WeightUnit;
 }
 
-function ExerciseRow({ exercise, index }: ExerciseRowProps): React.JSX.Element {
+function ExerciseRow({ exercise, index, weightUnit }: ExerciseRowProps): React.JSX.Element {
   const hasSubstitution = exercise.notes?.startsWith('Substituted for');
 
   return (
@@ -64,7 +68,7 @@ function ExerciseRow({ exercise, index }: ExerciseRowProps): React.JSX.Element {
           {exercise.sets} sets × {exercise.reps}
         </Text>
         {exercise.weightLb != null && (
-          <Text style={styles.metaText}> · {exercise.weightLb} lb</Text>
+          <Text style={styles.metaText}> · {formatWeight(exercise.weightLb, weightUnit)}</Text>
         )}
         {exercise.restMinutes != null && (
           <Text style={styles.metaTextMuted}> · {exercise.restMinutes} min rest</Text>
@@ -88,6 +92,7 @@ export default function AIWorkoutPreviewScreen(): React.JSX.Element {
   const [workout, setWorkout] = useState<GeneratedWorkout | null>(null);
   const [isOffline, setIsOffline] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [weightUnit, setWeightUnit] = useState<WeightUnit>(DEFAULT_SETTINGS.weightUnit);
 
   // Adaptation context for AdaptationChip (passed via shared state)
   const [cyclePhase, setCyclePhase] = useState<CyclePhase | undefined>(undefined);
@@ -105,7 +110,19 @@ export default function AIWorkoutPreviewScreen(): React.JSX.Element {
       setReadiness(shared.adaptationReadiness);
     }
     // Do NOT clear shared state here — let Start Workout or Regenerate handle it
-  }, []);
+
+    // Load weight unit preference
+    if (uid) {
+      void (async () => {
+        try {
+          const stored = await getSettingsRepo(isGuest).getSettings(uid);
+          if (stored?.weightUnit) setWeightUnit(stored.weightUnit);
+        } catch {
+          // Keep default
+        }
+      })();
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Start Workout ─────────────────────────────────────────────────────────
   const handleStartWorkout = useCallback(async (): Promise<void> => {
@@ -215,7 +232,7 @@ export default function AIWorkoutPreviewScreen(): React.JSX.Element {
           </View>
         }
         renderItem={({ item, index }) => (
-          <ExerciseRow exercise={item} index={index} />
+          <ExerciseRow exercise={item} index={index} weightUnit={weightUnit} />
         )}
         ListFooterComponent={<View style={{ height: 120 }} />}
       />

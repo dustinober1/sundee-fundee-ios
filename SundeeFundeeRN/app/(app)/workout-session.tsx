@@ -108,6 +108,9 @@ export default function WorkoutSessionScreen(): React.JSX.Element {
   // Weight unit preference
   const [weightUnit, setWeightUnit] = useState<WeightUnit>(DEFAULT_SETTINGS.weightUnit);
 
+  // User-configured rest duration
+  const [restDuration, setRestDuration] = useState(DEFAULT_REST_SECONDS);
+
   // Elapsed timer
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const elapsedIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -228,7 +231,7 @@ export default function WorkoutSessionScreen(): React.JSX.Element {
     }, [loadAdaptationContext])
   );
 
-  // ── Load weight unit preference on mount ────────────────────────────────
+  // ── Load weight unit and rest duration preference on mount ──────────────
   useEffect(() => {
     if (!user) return;
     void (async () => {
@@ -238,8 +241,11 @@ export default function WorkoutSessionScreen(): React.JSX.Element {
         if (stored?.weightUnit) {
           setWeightUnit(stored.weightUnit);
         }
+        if (stored?.defaultRestDuration != null) {
+          setRestDuration(stored.defaultRestDuration);
+        }
       } catch {
-        // Keep default on error
+        // Keep defaults on error
       }
     })();
   }, [user, isGuest]);
@@ -348,8 +354,8 @@ export default function WorkoutSessionScreen(): React.JSX.Element {
       isPersonalRecord: prResult.isWeightPR || prResult.is1RMPR,
     });
 
-    // Auto-start rest timer
-    void restTimer.start(DEFAULT_REST_SECONDS);
+    // Auto-start rest timer with user preference
+    void restTimer.start(restDuration);
   };
 
   // ── Finish workout ───────────────────────────────────────────────────────
@@ -516,7 +522,7 @@ export default function WorkoutSessionScreen(): React.JSX.Element {
         <RestTimerBar
           isActive={restTimer.isActive}
           remainingSeconds={restTimer.remainingSeconds}
-          totalSeconds={DEFAULT_REST_SECONDS}
+          totalSeconds={restDuration}
           onSkip={restTimer.skip}
         />
 

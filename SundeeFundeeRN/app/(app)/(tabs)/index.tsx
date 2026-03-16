@@ -96,7 +96,7 @@ export default function DashboardScreen(): React.JSX.Element {
       const history = await repo.getHistory(user.uid);
       if (history.length > 0) {
         const sorted = [...history].sort(
-          (a, b) => b.startedAt.getTime() - a.startedAt.getTime()
+          (a, b) => new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime()
         );
         setLastWorkout(sorted[0] ?? null);
       } else {
@@ -298,10 +298,10 @@ export default function DashboardScreen(): React.JSX.Element {
         <View style={styles.recentCard}>
           <Text style={styles.recentLabel}>Last Workout</Text>
           <Text style={styles.recentTitle} numberOfLines={1}>
-            {lastWorkout.name ?? 'Custom Workout'}
+            {lastWorkout.workoutName ?? 'Custom Workout'}
           </Text>
           <Text style={styles.recentMeta}>
-            {lastWorkout.startedAt.toLocaleDateString('en-US', {
+            {new Date(lastWorkout.completedAt).toLocaleDateString('en-US', {
               month: 'short',
               day: 'numeric',
               year: 'numeric',

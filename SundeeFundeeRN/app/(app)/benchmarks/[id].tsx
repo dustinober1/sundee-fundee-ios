@@ -31,6 +31,8 @@ import {
   getBenchmarkRepo,
   type BenchmarkResultRecord,
 } from '@/src/repositories/BenchmarkRepo';
+import { getSettingsRepo, DEFAULT_SETTINGS } from '@/src/repositories/SettingsRepo';
+import type { WeightUnit } from '@/src/domain/types';
 import {
   BENCHMARK_CATALOG,
   encodeRoundsAndReps,
@@ -141,12 +143,17 @@ export default function BenchmarkDetailScreen(): React.JSX.Element {
   const [results, setResults] = useState<BenchmarkResultRecord[]>([]);
   const [loadingResults, setLoadingResults] = useState(true);
   const [prMessage, setPrMessage] = useState<string | null>(null);
+  const [weightUnit, setWeightUnit] = useState<WeightUnit>(DEFAULT_SETTINGS.weightUnit);
 
   const loadResults = useCallback(async (): Promise<void> => {
     setLoadingResults(true);
     try {
       const uid = user?.uid ?? '';
-      const loaded = await getBenchmarkRepo(isGuest).getResults(uid, benchmarkId);
+      const [loaded, settings] = await Promise.all([
+        getBenchmarkRepo(isGuest).getResults(uid, benchmarkId),
+        getSettingsRepo(isGuest).getSettings(uid),
+      ]);
+      if (settings?.weightUnit) setWeightUnit(settings.weightUnit);
       // Sort newest first
       const sorted = [...loaded].sort((a, b) => b.date.localeCompare(a.date));
       setResults(sorted);
@@ -291,7 +298,7 @@ export default function BenchmarkDetailScreen(): React.JSX.Element {
       case 'weight':
         return (
           <View style={styles.inputRow}>
-            <Text style={styles.inputLabel}>Weight (lbs)</Text>
+            <Text style={styles.inputLabel}>Weight ({weightUnit === 'kg' ? 'kg' : 'lbs'})</Text>
             <TextInput
               style={styles.input}
               value={weightInput}
@@ -394,7 +401,7 @@ export default function BenchmarkDetailScreen(): React.JSX.Element {
                     </Text>
                   )}
                 </View>
-                <Text style={styles.historyScore}>{formatScore(scoringType, r.score)}</Text>
+                <Text style={styles.historyScore}>{formatScore(scoringType, r.score, weightUnit)}</Text>
               </View>
             ))}
           </View>
@@ -406,7 +413,7 @@ export default function BenchmarkDetailScreen(): React.JSX.Element {
             <ProgressChart
               data={chartData}
               title="Score Progression"
-              yLabel={scoringType === 'weight' ? 'lbs' : scoringType === 'reps' ? 'reps' : ''}
+              yLabel={scoringType === 'weight' ? (weightUnit === 'kg' ? 'kg' : 'lbs') : scoringType === 'reps' ? 'reps' : ''}
             />
           </View>
         )}
