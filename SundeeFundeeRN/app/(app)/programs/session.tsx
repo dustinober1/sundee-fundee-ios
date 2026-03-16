@@ -87,7 +87,7 @@ function formatRepsDisplay(exercise: ProgramExercise): string {
   }
 }
 
-function ExerciseRow({ exercise, maxes }: ExerciseRowProps): React.JSX.Element {
+export function ExerciseRow({ exercise, maxes }: ExerciseRowProps): React.JSX.Element {
   const weight = exercise.weight;
 
   // Determine target weight display
