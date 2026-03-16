@@ -208,6 +208,21 @@ Plans:
 Plans:
 - [ ] 13-01-PLAN.md — Thread weightUnit into HistoryCard, exercise-detail, and RepRangePRTable with tests
 
+### Phase 14: Fix Readiness Survey Persistence
+**Goal:** Readiness survey answers persist to repository and flow through to workout adaptation
+**Requirements:** READ-01, READ-02
+**Gap Closure:** Closes gaps from audit — dashboard handleReadinessSurveyComplete must call ReadinessRepo.saveSurvey()
+
+### Phase 15: Wire AI Preview Adaptation Context
+**Goal:** AI workout preview screen displays active adaptation context (cycle phase, injuries, readiness) in AdaptationChip
+**Requirements:** CYAD-03, AIWK-05 (display)
+**Gap Closure:** Closes gaps from audit — preview.tsx must unpack shared.context fields into local state
+
+### Phase 16: Thread Weight Unit into Program Session
+**Goal:** Program session screen respects user weight unit preference; no hardcoded 'lbs' remains
+**Requirements:** PLAT-05
+**Gap Closure:** Closes gaps from audit — programs/session.tsx must load weightUnit; fix hardcoded 'lbs' in target-weight.ts and scoring-input.ts
+
 ## Progress
 
 **Execution Order:**
@@ -228,3 +243,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 11. Wire Guest Upgrade Entry Point | 1/1 | Complete    | 2026-03-15 |
 | 12. Fix Firestore Pain Log Security Rules | 1/1 | Complete   | 2026-03-15 |
 | 13. Complete Weight Unit Threading | 1/1 | Complete    | 2026-03-16 |
+| 14. Fix Readiness Survey Persistence | 0/0 | Not Started | — |
+| 15. Wire AI Preview Adaptation Context | 0/0 | Not Started | — |
+| 16. Thread Weight Unit into Program Session | 0/0 | Not Started | — |
