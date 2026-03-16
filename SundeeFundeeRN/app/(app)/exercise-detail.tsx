@@ -20,6 +20,9 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSession } from '@/src/auth/AuthContext';
 import { getExerciseMaxRepo } from '@/src/repositories/ExerciseMaxRepo';
 import { getWorkoutRepo } from '@/src/repositories/WorkoutRepo';
+import { formatWeight } from '@/src/utils/formatWeight';
+import type { WeightUnit } from '@/src/domain/types';
+import { getSettingsRepo, DEFAULT_SETTINGS } from '@/src/repositories/SettingsRepo';
 import type { ExerciseMax } from '@/src/domain/pr-detection/pr-types';
 import {
   prepare1RMChartData,
@@ -49,6 +52,19 @@ export default function ExerciseDetailScreen(): React.JSX.Element {
   const [repRangePRs, setRepRangePRs] = useState<RepRangePR[]>([]);
   const [best1RM, setBest1RM] = useState<{ weight: number; date: string } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [weightUnit, setWeightUnit] = useState<WeightUnit>(DEFAULT_SETTINGS.weightUnit);
+
+  useEffect(() => {
+    if (!user) return;
+    void (async () => {
+      try {
+        const settings = await getSettingsRepo(isGuest).getSettings(user.uid);
+        if (settings) setWeightUnit(settings.weightUnit);
+      } catch (err) {
+        console.error('[ExerciseDetail] Settings load failed:', err);
+      }
+    })();
+  }, [user, isGuest]);
 
   useEffect(() => {
     if (!user || !exerciseId) return;
@@ -136,7 +152,7 @@ export default function ExerciseDetailScreen(): React.JSX.Element {
         {best1RM !== null && (
           <View style={styles.prBadgeContainer}>
             <Text style={styles.prBadgeLabel}>Current PR</Text>
-            <Text style={styles.prBadgeValue}>{Math.round(best1RM.weight)} lbs</Text>
+            <Text style={styles.prBadgeValue}>{formatWeight(best1RM.weight, weightUnit)}</Text>
             <Text style={styles.prBadgeDate}>{formatDate(best1RM.date)}</Text>
           </View>
         )}
@@ -148,7 +164,7 @@ export default function ExerciseDetailScreen(): React.JSX.Element {
           <Text style={styles.sectionTitle}>Estimated 1RM Over Time</Text>
           <ProgressChart
             data={rmChartData}
-            yLabel="lbs (estimated)"
+            yLabel={weightUnit === 'kg' ? 'kg (estimated)' : 'lbs (estimated)'}
           />
         </View>
 
@@ -156,7 +172,7 @@ export default function ExerciseDetailScreen(): React.JSX.Element {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Rep Range PRs</Text>
           {repRangePRs.length > 0 ? (
-            <RepRangePRTable prs={repRangePRs} />
+            <RepRangePRTable prs={repRangePRs} weightUnit={weightUnit} />
           ) : (
             <Text style={styles.noDataText}>No PR data available yet.</Text>
           )}
@@ -168,7 +184,7 @@ export default function ExerciseDetailScreen(): React.JSX.Element {
             <Text style={styles.sectionTitle}>Volume Over Time</Text>
             <ProgressChart
               data={volumeChartData}
-              yLabel="total volume (lbs)"
+              yLabel={weightUnit === 'kg' ? 'total volume (kg)' : 'total volume (lbs)'}
             />
           </View>
         )}

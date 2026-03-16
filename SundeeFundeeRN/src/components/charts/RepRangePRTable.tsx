@@ -10,10 +10,13 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import type { RepRangePR } from '@/src/domain/progress/progress-data';
+import { formatWeight } from '@/src/utils/formatWeight';
+import type { WeightUnit } from '@/src/domain/types';
 import * as colors from '@/src/theme/colors';
 
 interface RepRangePRTableProps {
   prs: RepRangePR[];
+  weightUnit?: WeightUnit;
 }
 
 function formatDate(dateStr: string | null): string {
@@ -26,7 +29,7 @@ function formatRepRange(repRange: number): string {
   return repRange === 1 ? '1RM' : `${repRange}RM`;
 }
 
-export function RepRangePRTable({ prs }: RepRangePRTableProps): React.JSX.Element {
+export function RepRangePRTable({ prs, weightUnit = 'lb' }: RepRangePRTableProps): React.JSX.Element {
   // Find the best 1RM to highlight
   const best1RM = prs.find((p) => p.repRange === 1);
   const has1RMPR = best1RM?.weight !== null;
@@ -70,7 +73,7 @@ export function RepRangePRTable({ prs }: RepRangePRTableProps): React.JSX.Elemen
                 pr.weight !== null && isHighlighted && styles.weightTextHighlighted,
               ]}
             >
-              {pr.weight !== null ? `${pr.weight} lbs` : '—'}
+              {pr.weight !== null ? formatWeight(pr.weight, weightUnit) : '—'}
             </Text>
             <Text style={[styles.cell, styles.dateCell, styles.dateText]}>
               {formatDate(pr.date)}
