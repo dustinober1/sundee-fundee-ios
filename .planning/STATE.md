@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Launch Readiness
-status: defining_requirements
-stopped_at: "Defining requirements for v1.1"
+status: ready_to_plan
+stopped_at: "Roadmap created for v1.1 — 7 phases (17-23), 29 requirements mapped"
 last_updated: "2026-03-16"
-last_activity: "2026-03-16 — Milestone v1.1 started"
+last_activity: "2026-03-16 — v1.1 roadmap created; phases 17-23 defined"
 progress:
-  total_phases: 0
+  total_phases: 7
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -21,27 +21,27 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-16)
 
 **Core value:** Users get personalized, cycle-aware strength training that adapts to their body — available on any platform, online or offline.
-**Current focus:** v1.1 Launch Readiness — defining requirements
+**Current focus:** Phase 17 — Device Verification
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-03-16 — Milestone v1.1 started
+Phase: 17 of 23 (Device Verification)
+Plan: 0 of TBD in current phase
+Status: Ready to plan
+Last activity: 2026-03-16 — v1.1 roadmap created; 7 phases defined (17-23), 29 requirements mapped
+
+Progress (v1.1): [░░░░░░░░░░] 0% (0/7 phases complete)
 
 ## Accumulated Context
 
 ### Decisions
 
-Decisions are logged in PROJECT.md Key Decisions table.
-Recent decisions affecting current work:
-
-- [Roadmap]: React Native Firebase (native SDK) required from day one — Expo Go cannot be used
-- [Roadmap]: Firestore security rules on health data written in Phase 1 before any data is stored
-- [Roadmap]: RevenueCat + Stripe webhook pipeline wired in Phase 1 before paywall UI built in Phase 6
-- [Roadmap]: Domain layer ported and 100% tested in Phase 2 before any UI or repository work
-- [Roadmap]: Repository factory pattern required — Firestore for auth users, AsyncStorage for guest
+- [v1.0]: React Native + Expo over Flutter — proven multi-platform, JS/TS ecosystem
+- [v1.0]: Firebase over Supabase — better Expo integration, offline-first
+- [v1.0]: RevenueCat + Stripe dual payments — handles app store complexity
+- [v1.1]: Device verification first — resolve ~30 known items before adding native modules
+- [v1.1]: Phase 18 before 19/20 — native module additions require new EAS build first (hard constraint)
+- [v1.1]: expo-notifications owns all notification display; @react-native-firebase/messaging handles background data only
 
 ### Pending Todos
 
@@ -49,12 +49,14 @@ None yet.
 
 ### Blockers/Concerns
 
-- Firestore security rules must be deployed (`firebase deploy --only firestore:rules`) before any production data
-- ~30 human verification items from v1.0 need triage — some may require code fixes
-- FCM setup requires platform-specific configuration (APNs for iOS, Play Services for Android)
+- [Phase 17]: ~30 human verification items from v1.0 need triage — some may require code fixes
+- [Phase 18]: @react-native-firebase/messaging + /crashlytics + /analytics require new EAS dev build before phases 19/20 can be device-tested
+- [Phase 18]: PrivacyInfo.xcprivacy required for App Store — cycle data must be declared as sensitive health information linked to user identity (ITMS-91053 rejection risk)
+- [Phase 22]: Firestore security rules not yet deployed to production
+- [Phase 23]: First Android Play Store submission must be a manual AAB upload — EAS Submit cannot do a first-ever submission
 
 ## Session Continuity
 
 Last session: 2026-03-16
-Stopped at: Milestone v1.1 started — defining requirements
+Stopped at: Roadmap created — ready to plan Phase 17
 Resume file: None
