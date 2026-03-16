@@ -1,8 +1,8 @@
-# Sundee Fundee — React Native Rewrite
+# Sundee Fundee — React Native
 
 ## What This Is
 
-A full rewrite of Sundee Fundee from native iOS (Swift 6 + SwiftUI) to React Native + Expo, targeting iOS, Android, and Web. Sundee Fundee is a strength training app with hormonal-cycle-aware training recommendations that adapts workouts based on menstrual cycle phase, injuries, and readiness. The rewrite moves from CloudKit/SwiftData to Firebase, adds cross-platform reach, and refreshes the Art Deco design language.
+A cross-platform strength training app with hormonal-cycle-aware training adaptation, injury modification, AI workout generation, and offline-first architecture. Built with React Native + Expo targeting iOS, Android, and Web. Backed by Firebase (Firestore, Auth, Cloud Functions) with RevenueCat + Stripe dual subscription pipeline.
 
 ## Core Value
 
@@ -12,87 +12,75 @@ Users get personalized, cycle-aware strength training that adapts to their body 
 
 ### Validated
 
-<!-- Capabilities proven in the existing iOS app. These must be rebuilt in React Native. -->
-
-- ✓ Sign in with Apple authentication — existing
-- ✓ Guest mode (local-only, no sync) — existing
-- ✓ Onboarding flow (name, experience, goal, gender, cycle opt-in) — existing
-- ✓ Program catalog with structured weekly sessions — existing
-- ✓ Workout execution (ForTime, AMRAP, EMOM timers) — existing
-- ✓ Cycle phase tracking (period logging, symptom tracking, phase inference) — existing
-- ✓ Cycle-aware training adaptation (load/set/rep multipliers by phase) — existing
-- ✓ Injury profile management with recovery phases — existing
-- ✓ Injury adaptation engine (exercise substitution/removal) — existing
-- ✓ AI workout generation via Gemini (with offline fallback) — existing
-- ✓ One-rep max tracking — existing
-- ✓ Benchmark catalog and result tracking — existing
-- ✓ Pain trend analysis — existing
-- ✓ Rehab session generation — existing
-- ✓ Phase transition advisor — existing
-- ✓ Unified history (program + AI workouts, filtering, delete) — existing
-- ✓ WOD (Workout of the Day) feed — existing
-- ✓ Readiness survey with HealthKit integration — existing
-- ✓ Art Deco themed UI (cream/navy/orange palette) — existing
+- ✓ React Native + Expo project scaffold (iOS, Android, Web) — v1.0
+- ✓ Firebase Auth (Apple, Google, Email/Password, Guest mode) — v1.0
+- ✓ Firestore database with offline persistence — v1.0
+- ✓ Full TypeScript port of Domain logic (cycle adaptation, injury engine, benchmarks, pain analysis, rehab generation) — v1.0
+- ✓ Onboarding flow (name, experience, goal, gender, cycle opt-in) — v1.0
+- ✓ Exercise library (202+), workout logging, timers, PR detection — v1.0
+- ✓ Unified history (AI/Program/Custom sources, filtering, delete) — v1.0
+- ✓ Progress charts and 1RM tracking — v1.0
+- ✓ Cycle tracking (period logging, symptom tracking, phase inference, adaptation) — v1.0
+- ✓ Injury management (profiles, substitution, pain logging, trend analysis, rehab, phase transition) — v1.0
+- ✓ AI workout generation via Gemini Cloud Function with offline fallback — v1.0
+- ✓ Programs from Firestore with enrollment and target weight calculation — v1.0
+- ✓ Benchmarks with scoring-aware recording and custom creation — v1.0
+- ✓ WODs from Firestore matched by date — v1.0
+- ✓ Readiness survey feeding into workout adaptation — v1.0
+- ✓ RevenueCat mobile subscriptions + Stripe web checkout — v1.0
+- ✓ Entitlement gating across all platforms — v1.0
+- ✓ Art Deco design (cream/navy/orange palette) — v1.0
+- ✓ Weight unit switching (lbs/kg) threaded through all screens — v1.0
+- ✓ Data export (CSV/JSON with zip bundling) — v1.0
+- ✓ Account deletion with full data wipe — v1.0
+- ✓ Guest-to-auth upgrade with data preservation — v1.0
+- ✓ Firebase App Check (DeviceCheck on iOS, Play Integrity on Android) — v1.0
 
 ### Active
 
-<!-- New capabilities for the React Native version. -->
-
-- [ ] React Native + Expo project scaffold (iOS, Android, Web)
-- [ ] Firebase Auth (Apple, Google, Email/Password, Guest mode)
-- [ ] Firestore database with offline persistence
-- [ ] Full port of Domain logic (cycle adaptation, injury engine, benchmarks, etc.)
-- [ ] Programs stored and managed via Firestore
-- [ ] WODs stored and managed via Firestore
-- [ ] AI workout generation via Firebase Cloud Functions (replacing Cloudflare Worker)
-- [ ] RevenueCat integration for mobile subscriptions (iOS + Android)
-- [ ] Stripe web checkout with lower pricing tier
-- [ ] Google Sign In for Android users
-- [ ] Email/password authentication
-- [ ] Android-specific platform adaptations
-- [ ] Web-specific responsive layout
-- [ ] Refreshed Art Deco design (evolved from current cream/navy/orange)
-- [ ] Offline-first architecture (workouts must work without signal)
+(None — next milestone requirements TBD via `/gsd:new-milestone`)
 
 ### Out of Scope
 
 - CloudKit migration tool — fresh start, no data migration from existing iOS app
-- Flutter rewrite — previously considered, shelved in favor of React Native
-- Native iOS maintenance — existing Swift app will be replaced, not maintained in parallel
+- Native iOS Swift app maintenance — replaced by React Native version
 - Real-time chat/social features — not core to training value
 - Video content/streaming — storage/bandwidth cost, defer to future
-- HealthKit deep integration on Android — no equivalent; use manual readiness survey
 - Wearable integrations (Apple Watch, Wear OS) — defer to post-launch
+- Nutrition tracking / macro logging — distinct domain, dilutes strength training focus
 
 ## Context
 
-- The existing iOS app has a mature Domain layer (~21 files) of pure Swift business logic with zero framework dependencies. This logic (cycle adaptation, injury modification, benchmarks, pain analysis, rehab generation) needs to be ported to TypeScript.
-- The iOS app uses an MVVM + protocol-based repository pattern. The React Native version should use a similar separation of concerns.
-- The Cloudflare Worker proxy (`workout-proxy.sundeefundee.workers.dev`) currently handles Gemini API calls. This will be replaced by Firebase Cloud Functions.
-- The WOD admin dashboard (Next.js at `wod-dashboard/`) currently writes to CloudKit. It will need to be updated to write to Firestore instead.
-- The existing app has 18 SwiftData `@Model` types that need Firestore equivalents.
-- 100% test coverage is enforced on the current iOS app. Testing strategy for RN needs to be defined.
+Shipped v1.0 with 44,211 LOC TypeScript (14,618 test LOC across 72 test files).
+Tech stack: React Native + Expo, Firebase (Firestore, Auth, Cloud Functions), RevenueCat, Stripe, Gemini AI.
+72 requirements satisfied across 16 phases and 43 plans in 30 days.
+All 10 E2E user flows verified passing.
 
-## Constraints
-
-- **Offline**: Must work offline for core workout functionality — gyms have unreliable connectivity
-- **Platform**: React Native + Expo (managed workflow preferred for simplicity)
-- **Backend**: Firebase (Firestore, Auth, Cloud Functions, Cloud Storage)
-- **Payments**: RevenueCat (mobile) + Stripe (web) — dual pricing strategy
-- **Design**: Refreshed Art Deco aesthetic, not a completely new design language
-- **Domain Logic**: All existing business logic must be ported — cycle adaptation, injury engine, benchmarks, pain analysis, rehab generation, phase transition advisor
-- **Quality**: Maintain high test coverage on ported Domain logic
+Known tech debt: ~30 human verification items (device testing), Firestore rules deploy pending, Nyquist validation partial.
 
 ## Key Decisions
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| React Native + Expo over Flutter | Professional multi-platform with web support; JS/TS ecosystem | — Pending |
-| Firebase over Supabase | Better Expo integration, proven at scale, offline persistence built in | — Pending |
-| Fresh start (no data migration) | Small user base, clean break simplifies architecture | — Pending |
-| RevenueCat + Stripe dual payments | RevenueCat handles app store complexity; Stripe web checkout at lower prices incentivizes direct purchase | — Pending |
-| Port Domain logic to TypeScript | Existing pure Swift logic is well-tested and proven; rewrite in TS maintains same algorithms | — Pending |
-| Firebase Cloud Functions for AI | Consolidates backend; removes Cloudflare Worker dependency | — Pending |
+| React Native + Expo over Flutter | Professional multi-platform with web support; JS/TS ecosystem | ✓ Good — delivered iOS/Android/Web from single codebase |
+| Firebase over Supabase | Better Expo integration, proven at scale, offline persistence built in | ✓ Good — offline-first worked well with Firestore |
+| Fresh start (no data migration) | Small user base, clean break simplifies architecture | ✓ Good — no migration complexity |
+| RevenueCat + Stripe dual payments | RevenueCat handles app store complexity; Stripe web checkout at lower prices | ✓ Good — unified entitlements across platforms |
+| Port Domain logic to TypeScript | Existing pure Swift logic is well-tested and proven; rewrite in TS maintains same algorithms | ✓ Good — numeric parity verified |
+| Firebase Cloud Functions for AI | Consolidates backend; removes Cloudflare Worker dependency | ✓ Good — Gemini 2.0 Flash with JSON mode |
+| String unions over TS enums | Better serialization and narrowing for domain types | ✓ Good — cleaner code throughout |
+| Dual repository pattern (Firestore/AsyncStorage) | Supports auth + guest modes with same interface | ✓ Good — seamless offline experience |
+| Module-level shared state for workout passing | Expo Router params have serialization limits | ⚠️ Revisit — works but not ideal for complex state |
+
+## Constraints
+
+- **Offline**: Must work offline for core workout functionality — gyms have unreliable connectivity
+- **Platform**: React Native + Expo (managed workflow)
+- **Backend**: Firebase (Firestore, Auth, Cloud Functions)
+- **Payments**: RevenueCat (mobile) + Stripe (web)
+- **Design**: Art Deco aesthetic (cream/navy/orange)
+- **Domain Logic**: All business logic ported from Swift with numeric parity
+- **Quality**: High test coverage on Domain logic and critical paths
 
 ---
-*Last updated: 2026-03-14 after initialization*
+*Last updated: 2026-03-16 after v1.0 milestone*

@@ -1,27 +1,27 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.0
-milestone_name: milestone
-status: verifying
-stopped_at: Completed 16-thread-weight-unit-into-program-session/16-01-PLAN.md
-last_updated: "2026-03-16T12:23:17.181Z"
-last_activity: "2026-03-15 — Completed Plan 12-01: Nested painLogs match block in Firestore rules + 5 security rule tests"
+milestone_name: MVP
+status: shipped
+stopped_at: "v1.0 milestone completed"
+last_updated: "2026-03-16"
+last_activity: "2026-03-16 — v1.0 MVP milestone shipped"
 progress:
   total_phases: 16
   completed_phases: 16
   total_plans: 43
   completed_plans: 43
-  percent: 16
+  percent: 100
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-14)
+See: .planning/PROJECT.md (updated 2026-03-16)
 
 **Core value:** Users get personalized, cycle-aware strength training that adapts to their body — available on any platform, online or offline.
-**Current focus:** Phase 1 — Foundation and Infrastructure
+**Current focus:** Planning next milestone
 
 ## Current Position
 
