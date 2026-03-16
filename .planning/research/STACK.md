@@ -1,156 +1,208 @@
 # Stack Research
 
 **Domain:** Cross-platform fitness app (iOS, Android, Web) — React Native + Expo + Firebase
-**Researched:** 2026-03-14
-**Confidence:** HIGH (core framework/runtime), MEDIUM (supporting libraries — versions verified via official docs and community sources)
+**Researched:** 2026-03-16
+**Confidence:** HIGH (push notifications, EAS build/submit — verified against official Expo and RNF docs), MEDIUM (Analytics/Crashlytics config plugin — one RNF regression noted and confirmed fixed)
+
+---
+
+## v1.1 Research Scope
+
+This document **supplements** the v1.0 stack (see prior entries for Expo SDK 55, Firebase Auth/Firestore, RevenueCat, TypeScript domain layer). It covers **only new capabilities** needed for the v1.1 Launch Readiness milestone:
+
+1. Push notifications — local (reminders, rest timers, streaks) + remote via FCM (new WOD, subscription expiring)
+2. Firebase Analytics + Crashlytics
+3. EAS production build pipeline
+4. App Store, Play Store, and web store submission
 
 ---
 
 ## Recommended Stack
 
-### Core Technologies
+### Push Notifications
 
 | Technology | Version | Purpose | Why Recommended |
 |------------|---------|---------|-----------------|
-| Expo SDK | 55 (stable) | Universal app framework | SDK 55 ships with RN 0.83 + React 19.2; New Architecture is now mandatory (no legacy opt-out) — start clean, no tech debt. Managed workflow keeps native code in config plugins, avoiding bare workflow maintenance burden. |
-| React Native | 0.83 | Cross-platform runtime | Bundled with Expo SDK 55. Hermes v1 now opt-in; New Architecture (Fabric + JSI) is the only supported mode in SDK 55+. |
-| TypeScript | 5.x (bundled) | Type safety | Required for porting domain logic from Swift with confidence. Expo CLI scaffolds TypeScript by default. |
-| Expo Router | 4.x (bundled with SDK 55) | File-based navigation | Ships inside Expo SDK — no separate install for the router. Handles iOS/Android/Web routing from a single `app/` directory. Typed routes, deep linking, and shared element transitions (Apple Zoom) all built in. |
+| `expo-notifications` | ~55.0.12 (already installed) | Token registration, local notification scheduling, foreground handler | Already in `package.json`. Single API for local and remote on iOS and Android. Handles APNs credential management automatically via EAS. Expo push tokens abstract the FCM/APNs split so you send to one endpoint for both platforms. SDK 54+ requires a development build — Expo Go no longer works for push. |
+| `expo-device` | ~55.0.9 | Detect physical vs simulator at runtime | Simulators do not support push notifications. Required check before calling `getExpoPushTokenAsync` to avoid runtime crash. Not in `package.json` yet — needs install. |
+| `expo-task-manager` | ~55.0.9 | Background task execution for headless notifications | Required to handle FCM data-only messages when app is backgrounded or killed. Pairs with `Notifications.registerTaskAsync`. Not in `package.json` yet — needs install. |
+| `@react-native-firebase/messaging` | ^23.8.8 (match existing RNF version) | Raw FCM token access + background message handling on Android | `expo-notifications` handles most use cases, but `@react-native-firebase/messaging` is needed when you must send FCM data payloads directly (e.g., from Cloud Functions without routing through Expo Push Service). Also required to call `messaging().getToken()` for direct FCM sends from backend. Not in `package.json` yet — needs install. |
 
-### Backend
+**Push architecture decision:** Use `expo-notifications` as the primary token registration and display layer for simplicity. Add `@react-native-firebase/messaging` only for the background data-message handler on Android (FCM silent pushes for WOD delivery). Do NOT use both for notification display — `expo-notifications` and `@react-native-firebase/messaging` both attempt to register Android notification channels, which conflicts. The pattern: expo-notifications owns display; messaging owns background data events.
 
-| Technology | Version | Purpose | Why Recommended |
-|------------|---------|---------|-----------------|
-| React Native Firebase (`@react-native-firebase/*`) | ~21.x (latest stable per npm) | Firestore, Auth, Cloud Functions, Storage | Firestore offline persistence works out of the box on iOS and Android with RNF — no manual enablement needed. The Firebase JS SDK v12 (the web SDK used as alternative) does NOT support native offline persistence in React Native because React Native lacks IndexedDB. RNF uses native SDKs, which have offline-first caching built in. Requires development build (not Expo Go), which is expected for this project. |
-| Firebase Cloud Functions | Node.js 22 runtime | Gemini API proxy, WOD admin writes | Replaces Cloudflare Worker. Functions v2 (2nd gen) uses Cloud Run under the hood — concurrency, traffic splitting, minimum instances. Use callable functions for auth-gated Gemini calls. |
-| Firebase Auth | via `@react-native-firebase/auth` | Apple, Google, Email/Password, Guest | Sign in with Apple + Google Sign-In are first-class in RNF Auth. Guest mode maps to anonymous auth with optional account linking later. |
+**FCM V1 credential requirement (Android):** Expo push service requires a **Google Service Account Key JSON** (not the legacy server key) to relay FCM V1 messages. Set up via `eas credentials` → Android → production → Google Service Account. The `google-services.json` already in the project is for the app-side; the service account key is the server-side credential for EAS. Keep the service account JSON out of git.
 
-**Critical Firebase note:** The Firebase JS SDK (firebase@^12) is viable for web-only or Expo Go prototyping but does NOT provide offline persistence in React Native. For this project's offline-first gym requirement, React Native Firebase (native SDK wrapper) is mandatory.
+**APNs (iOS):** EAS auto-manages APNs auth keys when you run `eas build`. No manual certificate work needed. The `GoogleService-Info.plist` already in the project covers the Firebase SDK side.
 
-### Payments
+**Local notifications for this app:**
 
-| Technology | Version | Purpose | Why Recommended |
-|------------|---------|---------|-----------------|
-| `react-native-purchases` | 9.x | iOS + Android subscriptions | RevenueCat v9.7.6+ added web support via RevenueCat Web Billing (Stripe-backed), meaning a single SDK now covers iOS, Android, and web. This eliminates the need for a separate Stripe direct integration for web if you use RevenueCat's web billing. However, the PROJECT.md calls for Stripe web checkout with lower pricing — see the note below. |
-| `react-native-purchases-ui` | 9.x | Paywall UI components | Pre-built paywall sheets, customer center, and subscription management UI that handle App Store/Play Store flows correctly. |
-| Stripe (via RevenueCat Web Billing) | N/A | Web checkout at lower tier pricing | RevenueCat Web Billing uses Stripe as the processor. Configure a separate web billing app in RevenueCat dashboard with different pricing than the app store products. This provides the dual pricing strategy (lower web price) within the same entitlements system — users stay in sync across platforms. |
-
-**Payments note:** Do NOT implement a raw Stripe integration separately. RevenueCat Web Billing handles Stripe under the hood while keeping entitlements unified. A separate Stripe implementation means manually syncing subscription state across mobile + web — RevenueCat eliminates this.
-
-### State Management
-
-| Technology | Version | Purpose | Why Recommended |
-|------------|---------|---------|-----------------|
-| Zustand | 5.x | Client/UI state | Replaces AppState (Swift) pattern. Handles auth routing state, UI state, user preferences. Zero boilerplate vs Redux. Slice pattern scales to this app's complexity (auth, cycle, workout, injury, settings stores). |
-| TanStack Query (`@tanstack/react-query`) | 5.x | Server state (Firestore queries, AI calls) | Manages loading/error/caching for non-offline Firestore reads (WOD feed, program catalog), AI workout generation, and any REST calls. Pairs with Zustand — Zustand owns local app state, TanStack Query owns server state. |
-
-**What NOT to use:** Redux Toolkit. Significantly more boilerplate than Zustand for the same outcome. The codebase already has a clear MVVM pattern — Zustand stores map directly to the existing ViewModel layer without the action/reducer ceremony.
-
-### Styling
-
-| Technology | Version | Purpose | Why Recommended |
-|------------|---------|---------|-----------------|
-| NativeWind | 4.x (stable) | Tailwind CSS for React Native + Web | Industry standard for cross-platform Tailwind styling in 2026. Works on iOS, Android, and Web from the same utility classes. Enables the Art Deco design tokens (cream/navy/orange) as CSS custom properties reusable across all platforms. |
-| Gluestack UI v3 | 3.x | Accessible base components | Built on NativeWind — copy-paste component architecture, no runtime overhead. Provides accessible primitives (modals, sheets, alerts) that work cross-platform. Use as component foundation, customize with NativeWind classes for Art Deco aesthetic. |
-
-**NativeWind v5 note:** v5 is in preview as of March 2026 (drops babel.config.js requirement for Tailwind v4). Do NOT use v5 yet — wait for stable release. Use NativeWind v4 with Tailwind CSS v3.
-
-### Offline Storage (Local Key-Value)
-
-| Technology | Version | Purpose | Why Recommended |
-|------------|---------|---------|-----------------|
-| `react-native-mmkv` | 3.x | Fast synchronous local storage | 30x faster than AsyncStorage. Synchronous API — no await/Promise, no bridge. Used for: Zustand store persistence, user settings, dismissed UI states, cached readiness survey, offline workout queue. |
-
-**What NOT to use:** `@react-native-async-storage/async-storage` for performance-critical paths. AsyncStorage is async bridge calls — acceptable for infrequent preferences but wrong for workout-execution-loop state where synchronous reads matter.
-
-### Health Integrations (iOS only at launch)
-
-| Technology | Version | Purpose | Why Recommended |
-|------------|---------|---------|-----------------|
-| `@kingstinct/react-native-healthkit` | latest | iOS HealthKit (readiness survey HRV, sleep) | TypeScript-first, actively maintained. Expo config plugin available. Scoped to iOS only — Android path defers to manual readiness survey (matches current iOS app behavior). |
-
-**Android health note:** Google Health Connect (`react-native-health-connect`) requires Google Play approval (5-7 day whitelist propagation), declaration forms, and minimum SDK 26. The PROJECT.md correctly defers deep health integrations on Android — do not attempt Health Connect at launch.
-
-### Testing
-
-| Technology | Version | Purpose | Why Recommended |
-|------------|---------|---------|-----------------|
-| `jest-expo` | bundled with SDK 55 | Jest preset for Expo | Official Expo Jest preset — handles module mocking, native module stubs, and environment setup automatically. |
-| `@testing-library/react-native` | 12.x | Component testing | Simulate user interactions without implementation details. Pairs with jest-expo for integration tests. |
-| `@testing-library/jest-native` | 5.x | DOM-like matchers | Adds `toBeVisible()`, `toHaveTextContent()` etc for readable assertions. |
-
-**Domain layer testing:** The 21-file Domain layer ported to TypeScript can be tested with pure Jest — no React Native testing overhead needed for business logic (cycle adaptation, injury engine, etc.). Same isolation principle as the Swift tests.
+| Notification Type | Mechanism | Notes |
+|------------------|-----------|-------|
+| Rest timer complete | `scheduleNotificationAsync` with `TimeIntervalTrigger` | Fire once after N seconds. Cancel if user leaves workout. |
+| Daily workout reminder | `scheduleNotificationAsync` with `DailyTrigger` | User-configurable time. Cancel + reschedule on settings change. |
+| Streak at-risk reminder | `scheduleNotificationAsync` with `DailyTrigger` | Check if workout logged today; fire at 7 PM if not. Cancel on workout complete. |
+| New WOD available | Remote push via Cloud Function → Expo Push API | Triggered by admin WOD publish. |
+| Subscription expiring | Remote push via Cloud Function → Expo Push API | Triggered by RevenueCat webhook → Cloud Function. |
 
 ---
 
-## Supporting Libraries
+### Analytics and Crash Reporting
 
-| Library | Version | Purpose | When to Use |
-|---------|---------|---------|-------------|
-| `expo-secure-store` | bundled | Encrypted key-value (keychain/keystore) | Auth tokens, user ID, sensitive prefs. Not for high-frequency read/write — use MMKV for that. |
-| `react-native-reanimated` | 3.x (bundled) | Animations | Workout timers, progress rings, transition animations. Required peer dep for NativeWind v4. |
-| `react-native-gesture-handler` | 2.x (bundled) | Swipe/gesture interactions | Swipe-to-delete in history, workout navigation gestures. |
-| `expo-notifications` | bundled | Push notifications | Rest day reminders, WOD availability. Requires development build. |
-| `expo-image` | bundled | Optimized image component | Exercise illustrations, program cover images. Handles caching, progressive loading. |
-| `expo-font` | bundled | Custom font loading | Art Deco typography — load in root layout. |
-| `expo-splash-screen` | bundled | Splash screen control | Hold splash until auth state + fonts resolved — prevents flash of unauthenticated state. |
-| `expo-build-properties` | bundled | Native build configuration | Required for `forceStaticLinking` on iOS when using RNF with Expo SDK 54+. Set in app.json plugins. |
-| `@react-native-google-signin/google-signin` | 14.x | Google Sign-In for Android | Required for Android auth path. iOS uses Sign in with Apple. Has Expo config plugin. |
-| `date-fns` | 4.x | Date manipulation | Cycle phase calculations, workout scheduling, WOD date matching. Lightweight, tree-shakeable, no moment.js bloat. |
-| `zod` | 3.x | Runtime schema validation | Validate Firestore document shapes on read, validate AI-generated workout payloads before use. Critical for safety given Gemini output variability. |
+| Technology | Version | Purpose | Why Recommended |
+|------------|---------|---------|-----------------|
+| `@react-native-firebase/analytics` | ^23.8.8 (match existing RNF version) | User flow instrumentation, funnel analysis, screen tracking | Same RNF package family already in use for Firestore/Auth. Uses the native Firebase Analytics SDK — no separate init needed beyond adding the package and plugin. Automatically captures session counts, app open/close, device info. Zero additional Firebase project setup needed (Analytics is included in every Firebase project). Not in `package.json` yet — needs install. |
+| `@react-native-firebase/crashlytics` | ^23.8.8 (match existing RNF version) | Crash reporting with symbolicated stack traces | Crashlytics is the standard for React Native crash reporting in the Firebase ecosystem. Captures both fatal crashes and non-fatal recorded errors. Uses the native Crashlytics SDK — faster reporting than JS-only solutions. Requires the `@react-native-firebase/crashlytics` config plugin in `app.json`. Not in `package.json` yet — needs install. |
+
+**RNF v23.8 plugin regression (RESOLVED):** Versions 23.8.0–23.8.2 had an Expo config plugin validation error ("Package does not contain a valid config plugin"). This was fixed in 23.8.3 and further patched in 23.8.4. The current npm latest is 23.8.8 — safe to use. Pin to `^23.8.8` (already the version of other RNF packages in the project).
+
+**Crashlytics limitation during development:** When running via `expo-dev-client`, `expo-dev-client` catches JS errors before Crashlytics can report them. Non-fatal recorded errors (`crashlytics().recordError(e)`) still work. Fatal crash reporting only works in production or preview builds — not in development builds.
+
+**Key events to instrument for this app:**
+
+| Event | Where to Fire | Why |
+|-------|--------------|-----|
+| `workout_started` | Workout session screen mount | Funnel top of key user action |
+| `workout_completed` | Post-workout summary save | Primary success metric |
+| `workout_abandoned` | App background during workout | Churn signal |
+| `ai_workout_generated` | After AI generation success | Feature adoption |
+| `subscription_paywall_viewed` | Paywall screen mount | Conversion funnel |
+| `subscription_purchased` | RevenueCat purchase callback | Revenue event |
+| `cycle_phase_changed` | Phase inference update | Feature engagement |
+| `pr_detected` | PR toast trigger | Delight moment / retention signal |
 
 ---
 
-## Development Tools
+### EAS Build Pipeline
 
-| Tool | Purpose | Notes |
-|------|---------|-------|
-| EAS Build | Cloud builds for dev/preview/production | Required for react-native-purchases, RNF, and any custom native module. Development builds replace Expo Go for this project. |
-| EAS Submit | App Store / Play Store submission | Automates signing and upload. |
-| EAS Update | OTA updates (JS bundle only) | Fast patches that bypass app store review. Cannot update native code. Hermes bytecode diffing in SDK 55 reduces update download size by ~75%. |
-| Expo CLI | Local dev server, metro bundler | `npx expo start --dev-client` targets development build. |
-| Firebase Emulator Suite | Local Firestore, Auth, Functions emulation | Run `firebase emulators:start` during development. Eliminates cloud costs during development and enables deterministic testing of Cloud Functions. |
-| Flipper / Expo DevTools | Debugging | Expo DevTools plugins for network inspection. React Query DevTools plugin for cache inspection. SQLite Inspector if using local SQLite. |
+| Technology | Version | Purpose | Why Recommended |
+|------------|---------|---------|-----------------|
+| EAS CLI | 18.4.0 (current on npm) | Cloud builds, submit, credentials management | Project already has EAS configured (`eas.json` with development/preview/production profiles, EAS project ID `dc7c3b9d-ee13-4713-8fab-85389863e18f` in `app.json`). EAS Build auto-manages Android keystore and iOS distribution certificates via `eas credentials`. |
+| EAS Submit | bundled with EAS CLI | Automated App Store and Play Store upload | Uploads `.ipa` and `.aab` to App Store Connect and Google Play Console. Requires App Store Connect API key (iOS) and Google Service Account key (Android). |
+
+**Current `eas.json` is minimal — needs expansion for production submit:**
+
+```json
+{
+  "cli": { "version": ">= 13.0.0" },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "env": { "FIREBASE_APP_CHECK_DEBUG_TOKEN": "<token>" }
+    },
+    "preview": { "distribution": "internal" },
+    "production": {}
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "ascAppId": "<app-store-connect-apple-id>"
+      },
+      "android": {
+        "serviceAccountKeyPath": "./google-play-service-account.json",
+        "track": "internal"
+      }
+    }
+  }
+}
+```
+
+Add the `submit.production` block. The `ascAppId` comes from App Store Connect → App Information → Apple ID (numeric, not bundle ID). The Google Play service account JSON is a separate credential from the FCM service account — it is a service account with Play Developer API access granted in Google Cloud Console.
+
+**iOS submission prerequisites (one-time setup):**
+1. Create App ID in App Store Connect with bundle identifier `com.sundeefundee.app`
+2. Generate App Store Connect API key (under Users and Access → Keys) — store the `.p8` file and note Key ID + Issuer ID
+3. Run `eas credentials` to link the API key — EAS stores it securely, no local file needed after upload
+4. First submission can be automated; no manual Xcode upload required
+
+**Android submission prerequisites (one-time setup):**
+1. Create app in Google Play Console with package `com.sundeefundee.app`
+2. **First upload must be manual** (Google Play API limitation) — upload an `.aab` via Play Console UI to the Internal Testing track
+3. Create a Google Play service account in Google Cloud Console with `Release Manager` role on the Play app
+4. Download the service account JSON; upload via `eas credentials` (keep out of git)
+5. Subsequent builds can use `eas submit --platform android --profile production`
+
+**Recommended build commands for submission:**
+
+```bash
+# Build both platforms for production (triggers EAS cloud build)
+eas build --platform all --profile production
+
+# Auto-submit to stores after build completes
+eas build --platform all --profile production --auto-submit
+
+# Submit an existing build manually
+eas submit --platform ios --profile production --latest
+eas submit --platform android --profile production --latest
+```
+
+---
+
+### app.json Plugin Additions
+
+The `app.json` `plugins` array needs the following additions for the new packages:
+
+```json
+"plugins": [
+  "@react-native-firebase/app",
+  "@react-native-firebase/auth",
+  "@react-native-firebase/crashlytics",
+  [
+    "expo-notifications",
+    {
+      "icon": "./assets/notification-icon.png",
+      "color": "#0D1A40",
+      "enableBackgroundRemoteNotifications": true
+    }
+  ],
+  "expo-apple-authentication",
+  [
+    "expo-build-properties",
+    {
+      "ios": {
+        "useFrameworks": "static",
+        "forceStaticLinking": [
+          "RNFBApp",
+          "RNFBAuth",
+          "RNFBFirestore",
+          "RNFBAppCheck",
+          "RNFBMessaging",
+          "RNFBCrashlytics"
+        ]
+      }
+    }
+  ],
+  "@react-native-google-signin/google-signin",
+  "expo-router",
+  "expo-secure-store",
+  "expo-sharing",
+  "expo-audio"
+]
+```
+
+Key changes:
+- Add `"@react-native-firebase/crashlytics"` plugin (handles Android Gradle setup automatically)
+- Add `expo-notifications` plugin with `enableBackgroundRemoteNotifications: true` (sets `UIBackgroundModes: remote-notification` in iOS Info.plist — required for background FCM handling)
+- Add `"RNFBMessaging"` and `"RNFBCrashlytics"` to `forceStaticLinking` array
 
 ---
 
 ## Installation
 
+Packages not yet in `package.json` that need to be added:
+
 ```bash
-# Bootstrap Expo project (SDK 55, managed workflow)
-npx create-expo-app@latest SundeeFundee --template blank-typescript
-cd SundeeFundee
+# Push notifications (supporting packages)
+npx expo install expo-device expo-task-manager
 
-# React Native Firebase (all required modules)
-npx expo install @react-native-firebase/app @react-native-firebase/auth @react-native-firebase/firestore @react-native-firebase/functions @react-native-firebase/storage
+# FCM messaging (background data messages)
+npx expo install @react-native-firebase/messaging
 
-# Payments
-npx expo install react-native-purchases react-native-purchases-ui
-
-# State management
-npm install zustand @tanstack/react-query
-
-# Storage
-npx expo install react-native-mmkv
-
-# Styling
-npm install nativewind tailwindcss
-npx expo install react-native-reanimated react-native-safe-area-context
-npm install @gluestack-ui/themed @gluestack-style/react
-
-# Auth (Google Sign-In for Android)
-npx expo install @react-native-google-signin/google-signin
-
-# Utilities
-npm install date-fns zod
-
-# Testing
-npx expo install jest-expo jest
-npm install -D @testing-library/react-native @testing-library/jest-native
-
-# Build properties plugin (required for RNF + Expo SDK 55)
-npx expo install expo-build-properties
+# Analytics and crash reporting
+npx expo install @react-native-firebase/analytics @react-native-firebase/crashlytics
 ```
+
+Note: `expo-notifications` is already installed at `~55.0.12`. `expo-constants` is already installed. All `@react-native-firebase/*` packages must stay at the same version — install with `npx expo install` to get the compatible version resolved automatically.
 
 ---
 
@@ -158,14 +210,10 @@ npx expo install expo-build-properties
 
 | Recommended | Alternative | When to Use Alternative |
 |-------------|-------------|-------------------------|
-| React Native Firebase (native SDK) | Firebase JS SDK v12 | Only if targeting web-only or Expo Go prototyping. Not suitable for offline-first mobile with Firestore persistence. |
-| Zustand | Redux Toolkit | If team already has Redux expertise and the codebase will exceed 10+ developers. Zustand's simplicity wins for this team size. |
-| Zustand | Jotai | Jotai is atom-based — better for granular re-renders in very large UIs. Zustand's slice pattern is sufficient and more familiar to the Swift MVVM pattern being ported. |
-| NativeWind v4 | StyleSheet API | If avoiding a build step or targeting an extremely simple UI. NativeWind's cross-platform consistency justifies the setup cost for this project. |
-| MMKV | AsyncStorage | For infrequent, non-performance-critical storage (e.g., GDPR consent flag stored once). AsyncStorage is acceptable for single writes at startup; unacceptable in hot paths. |
-| RevenueCat Web Billing (Stripe) | Stripe SDK directly | Only if requiring payment methods RevenueCat doesn't support (e.g., bank transfers, invoicing). RevenueCat's unified entitlements are worth the 1% fee for this use case. |
-| Expo Router (file-based) | React Navigation | React Navigation is more configurable but requires explicit route registration. Expo Router's file-based approach maps 1:1 to the iOS app's tab structure with less boilerplate. |
-| EAS Build | Local Xcode/Android Studio builds | Local builds are fine for solo development. EAS is required for CI/CD and team collaboration. |
+| `expo-notifications` (primary) + `@react-native-firebase/messaging` (background only) | `@react-native-firebase/messaging` for everything | Use RNF messaging exclusively only if you are NOT using the Expo Push Service and are sending all pushes directly via FCM. This project uses Expo Push Service for simplicity, so `expo-notifications` leads. |
+| Firebase Crashlytics | Sentry | Choose Sentry if you need cross-platform error tracking that includes web errors in the same dashboard. Firebase Crashlytics is native-crash-focused. Since this project already uses Firebase for everything else, Crashlytics avoids adding a new vendor. |
+| Firebase Analytics | Amplitude, Mixpanel | Choose Amplitude or Mixpanel if you need advanced funnel analysis, cohort analysis, or A/B testing infrastructure. Firebase Analytics is sufficient for launch-phase metrics at zero additional cost. |
+| EAS Submit (automated) | Transporter / Xcode Organizer (iOS), Play Console UI (Android) | Manual upload is required only for the first Android upload (API limitation). After that, EAS Submit handles everything. iOS can be fully automated from day one. |
 
 ---
 
@@ -173,39 +221,35 @@ npx expo install expo-build-properties
 
 | Avoid | Why | Use Instead |
 |-------|-----|-------------|
-| Firebase JS SDK for Firestore in React Native | No offline persistence support in RN (requires IndexedDB, which RN lacks). `enableIndexedDbPersistence()` silently fails or throws in RN environments. | React Native Firebase (`@react-native-firebase/firestore`) — native SDK, offline-first by default. |
-| Expo Go for development | react-native-purchases, React Native Firebase, MMKV, and HealthKit all require native code not compiled into Expo Go. Debugging in Expo Go gives false positives for subscription and offline behavior. | EAS development build (`npx expo run:ios` or `eas build --profile development`). |
-| `@react-native-async-storage/async-storage` for hot paths | Asynchronous bridge calls introduce latency in workout execution loops (timer ticks, set logging). Inconsistent behavior under memory pressure. | `react-native-mmkv` for synchronous, high-frequency reads/writes. |
-| Moment.js | 232 kB bundle, no tree-shaking, officially deprecated. | `date-fns` v4 — fully tree-shakeable, TypeScript-native. |
-| React Native Paper | Material Design opinionated — conflicts with Art Deco aesthetic. Significant restyling effort to diverge from MD baseline. | Gluestack UI v3 (unstyled primitives) + NativeWind for full design control. |
-| Redux Toolkit | Excessive boilerplate (actions, reducers, selectors, slices) for state that Zustand handles in 10 lines. 40% bundle size increase vs Zustand per benchmarks. | Zustand v5 with slice pattern. |
-| NativeWind v5 (preview) | Not yet stable as of March 2026. API surface for Tailwind v4 compatibility is still changing. Breaking changes expected before stable release. | NativeWind v4 (stable) + Tailwind CSS v3. Migrate to v5 after stable release. |
-| Google Health Connect at launch | Requires Google Play whitelist approval (5-7 day delay post-submission), declaration form, min SDK 26. No equivalent to HealthKit's readiness data on Android. | Manual readiness survey on Android (matches existing iOS fallback path). |
-| expo-firestore-offline-persistence (npm) | This is a community polyfill for Expo managed workflow + Firebase JS SDK. It's fragile, unmaintained, and a workaround for the wrong Firebase SDK choice. | React Native Firebase solves offline persistence correctly at the native layer. |
+| `expo-firebase-analytics` (npm package) | Deprecated shim that wraps the old `@react-native-firebase/analytics`. No longer maintained. Has a separate `expo-firebase-analytics` package on npm that is not the same as the RNF package. | `@react-native-firebase/analytics` directly. |
+| Both `expo-notifications` and `@react-native-firebase/messaging` for display | Both libraries attempt to register Android notification channels. Concurrent channel registration causes silent notification failures on Android. | expo-notifications for scheduling and display; messaging for background data event handling only. Do not call `messaging().onMessage()` to display notifications — let expo-notifications handle display. |
+| `@react-native-firebase/messaging` as the sole push solution | Loses the Expo push token abstraction. Means you must maintain separate FCM and APNs sending paths in your backend (Cloud Functions). More backend complexity for the same outcome. | expo-notifications + Expo Push Service for token management, with messaging for background-only events. |
+| Storing Google Play service account JSON in git | Contains private keys that allow full Play Store publish access. Leaking this key allows anyone to push app updates to production. | Upload to EAS via `eas credentials` and add the file to `.gitignore`. |
+| Storing FCM service account JSON in git | Contains credentials to send push notifications to all users. | Upload to EAS via `eas credentials`. Pass to Cloud Functions via Firebase environment config, not hardcoded. |
+| `eas build --auto-submit` for Android before first manual upload | Google Play API rejects programmatic uploads until the app exists in Play Console with at least one manual upload. Silently fails with a 403. | Upload the first `.aab` manually to Play Console Internal track, then automate all subsequent submissions. |
+| Sentry for crash reporting alongside Crashlytics | Two crash reporters running simultaneously cause duplicated events and can interfere with each other's symbolication. | Pick one. Crashlytics is already in the Firebase ecosystem — use it. |
 
 ---
 
 ## Stack Patterns by Variant
 
-**For offline workout execution (core requirement):**
-- React Native Firebase Firestore with offline persistence (enabled by default)
-- MMKV for synchronous timer state and current-set state during active workout
-- Do not await Firestore writes during a set — write optimistically, sync in background
+**If push notification permissions are denied:**
+- Do not re-prompt immediately. Store denial in MMKV, surface a soft prompt after the user completes 3 workouts.
+- Local notifications (rest timer) still fire if permission is granted; do not disable the feature entirely on denial.
 
-**For web platform (Expo Router web output):**
-- Firebase JS SDK can be used alongside RNF for web routes only (platform-split files)
-- RevenueCat Web Billing for subscription management on web
-- NativeWind renders Tailwind CSS natively — same classes work on web without changes
+**If running on iOS simulator (no push support):**
+- `expo-device` `isDevice` check must gate `getExpoPushTokenAsync` calls to prevent runtime error.
+- Log a dev-only console warning; do not surface to user.
 
-**For AI workout generation:**
-- Firebase Cloud Functions v2 callable function (replaces Cloudflare Worker)
-- Validate Gemini response with Zod schema before storing
-- Implement offline fallback: if function call fails, use cached recent workout structure
+**If the app is in foreground when a remote push arrives:**
+- `setNotificationHandler` must return `{ shouldShowAlert: true, shouldPlaySound: true, shouldSetBadge: false }` explicitly.
+- Default behavior is to suppress the notification banner in foreground — this must be overridden.
 
-**For domain logic (TypeScript port):**
-- Pure TypeScript modules in `src/domain/` — zero React Native dependencies
-- Test with plain Jest (`jest.config.js` separate from `jest-expo` preset)
-- Same isolation principle as the Swift Domain/ layer — no framework coupling
+**For background FCM data messages (WOD delivery):**
+- Cloud Function sends a data-only message (no `notification` key, only `data` key) to trigger `registerTaskAsync` handler.
+- iOS requires `content-available: 1` in the FCM payload.
+- Android requires `priority: high` in the FCM payload.
+- The background task should write new WOD data to local cache only — do not trigger a Firestore write from a background task.
 
 ---
 
@@ -213,34 +257,31 @@ npx expo install expo-build-properties
 
 | Package | Compatible With | Notes |
 |---------|-----------------|-------|
-| Expo SDK 55 | React Native 0.83 | New Architecture mandatory. Legacy Architecture removed. |
-| Expo SDK 55 | Node.js ^20.19.4, ^22.13.0, ^24.3.0 | Node.js 18 is NOT supported. |
-| Expo SDK 55 | Xcode 26+ | Xcode 25 will not build SDK 55 projects. |
-| NativeWind v4 | Tailwind CSS v3 | NativeWind v4 is NOT compatible with Tailwind CSS v4 (use NativeWind v5 preview for that, but that's unstable). |
-| NativeWind v4 | react-native-reanimated 3.x | Required peer dependency. |
-| React Native Firebase | Expo SDK 55 | Requires `expo-build-properties` plugin with `forceStaticLinking: true` in iOS config. Known issue — documented fix in RNF issue #8657. |
-| react-native-purchases 9.x | Expo SDK 55 | Requires development build. Works in Expo Go only in "Preview API Mode" (mocked). |
-| firebase@^12 (JS SDK) | Expo SDK 53+ | If used for web routes only. Do not use for iOS/Android Firestore. |
-| @react-native-firebase/firestore | @react-native-firebase/app (same version) | All RNF packages must be the same version. Install with `npx expo install` to get compatible versions. |
+| `@react-native-firebase/analytics` ^23.8.8 | Expo SDK 55, RN 0.83 | Must match other `@react-native-firebase/*` packages. Versions 23.8.0–23.8.2 had an Expo plugin regression — fixed in 23.8.3+. 23.8.8 is safe. |
+| `@react-native-firebase/crashlytics` ^23.8.8 | Expo SDK 55, RN 0.83 | Same version constraint as analytics. Requires its own config plugin entry in `app.json`. |
+| `@react-native-firebase/messaging` ^23.8.8 | Expo SDK 55, RN 0.83 | Must add `"RNFBMessaging"` to `forceStaticLinking` in `expo-build-properties` iOS config. |
+| `expo-notifications` ~55.0.12 | Expo SDK 55 | Already installed. Background remote notifications require `enableBackgroundRemoteNotifications: true` in the plugin config. |
+| `expo-task-manager` ~55.0.9 | Expo SDK 55 | Peer dependency for `Notifications.registerTaskAsync`. Must be installed even if not explicitly called — expo-notifications background tasks pull it in at build time. |
+| `expo-device` ~55.0.9 | Expo SDK 55 | Lightweight — just device type detection. No native module build overhead. |
+| EAS CLI 18.4.x | Expo SDK 55 | `eas.json` `cli.version` constraint `>= 13.0.0` already covers this. |
 
 ---
 
 ## Sources
 
-- [Expo SDK 55 Changelog](https://expo.dev/changelog/sdk-55) — SDK version, RN 0.83, New Architecture status, breaking changes (HIGH confidence)
-- [Expo SDK 54 Changelog](https://expo.dev/changelog/sdk-54) — SDK 54 context, RN 0.81, legacy architecture sunset timeline (HIGH confidence)
-- [Expo — Using Firebase Guide](https://docs.expo.dev/guides/using-firebase/) — Official Firebase JS SDK vs RNF guidance (HIGH confidence)
-- [React Native Firebase — rnfirebase.io](https://rnfirebase.io/) — Offline support, Expo compatibility, v22 migration (HIGH confidence)
-- [RevenueCat — Expo Installation](https://www.revenuecat.com/docs/getting-started/installation/expo) — RevenueCat Expo setup, development build requirement (HIGH confidence)
-- [RevenueCat — Web Support announcement](https://www.revenuecat.com/blog/engineering/revenuecat-react-native-sdk-adds-react-native-web-support/) — Web Billing via Stripe in react-native-purchases 9.7.6+ (HIGH confidence)
-- [Galaxies.dev — React Native Tech Stack 2025](https://galaxies.dev/article/react-native-tech-stack-2025) — Community consensus on Zustand + TanStack Query (MEDIUM confidence)
-- [Firebase — Access data offline](https://firebase.google.com/docs/firestore/manage-data/enable-offline) — Offline persistence platform support (HIGH confidence)
-- [RNF Issue #8657](https://github.com/invertase/react-native-firebase/issues/8657) — Expo SDK 54/55 build fix with forceStaticLinking (MEDIUM confidence)
-- [NativeWind Installation](https://www.nativewind.dev/docs/getting-started/installation) — NativeWind v4 setup, v5 preview status (HIGH confidence)
-- [react-native-mmkv GitHub](https://github.com/mrousavy/react-native-mmkv) — Performance benchmarks vs AsyncStorage (HIGH confidence)
-- [Expo — In-App Purchases Guide](https://docs.expo.dev/guides/in-app-purchases/) — Official Expo stance on payments (HIGH confidence)
-- [Firebase JS SDK Issue #7947](https://github.com/firebase/firebase-js-sdk/issues/7947) — Confirms Firestore persistence is not supported in Firebase JS SDK for React Native (HIGH confidence)
+- [Expo Push Notifications Setup](https://docs.expo.dev/push-notifications/push-notifications-setup/) — Package requirements, FCM V1 credentials, SDK 54+ development build requirement (HIGH confidence)
+- [Expo Notifications API Reference](https://docs.expo.dev/versions/latest/sdk/notifications/) — `scheduleNotificationAsync`, trigger types, background task handler, `enableBackgroundRemoteNotifications` plugin option (HIGH confidence)
+- [Expo FCM Credentials Guide](https://docs.expo.dev/push-notifications/fcm-credentials/) — Service account key setup for FCM V1 via `eas credentials` (HIGH confidence)
+- [EAS Submit — iOS](https://docs.expo.dev/submit/ios/) — App Store Connect API key requirements, `ascAppId` (HIGH confidence)
+- [EAS Submit — Android](https://docs.expo.dev/submit/android/) — Google Play service account, first-manual-upload limitation (HIGH confidence)
+- [EAS Build Setup](https://docs.expo.dev/build/setup/) — Auto-managed credentials, `eas build:configure` (HIGH confidence)
+- [React Native Firebase — Crashlytics Usage](https://rnfirebase.io/crashlytics/usage) — Config plugin requirement, dev-client limitation (HIGH confidence)
+- [React Native Firebase — Analytics Usage](https://rnfirebase.io/analytics/usage) — Installation, Expo setup (HIGH confidence)
+- [RNF Issue #8829](https://github.com/invertase/react-native-firebase/issues/8829) — v23.8.0–23.8.2 Expo plugin regression, confirmed fixed in 23.8.3+ (HIGH confidence — official issue tracker)
+- [Expo — Using Push Notification Services](https://docs.expo.dev/guides/using-push-notifications-services/) — Expo Push Service vs direct FCM/APNs (HIGH confidence)
+- [npm: expo-notifications](https://www.npmjs.com/package/expo-notifications) — Version 55.0.12 confirmed (HIGH confidence)
+- [Expo Task Manager](https://docs.expo.dev/versions/latest/sdk/task-manager/) — `defineTask`, `registerTaskAsync` for background notifications (HIGH confidence)
 
 ---
-*Stack research for: Sundee Fundee React Native + Expo + Firebase rewrite*
-*Researched: 2026-03-14*
+*Stack research for: Sundee Fundee v1.1 Launch Readiness — push notifications, analytics, EAS build/submit additions*
+*Researched: 2026-03-16*

@@ -1,10 +1,354 @@
 # Architecture Research
 
 **Domain:** Cross-platform fitness app — React Native + Expo + Firebase (offline-first, subscription-gated)
-**Researched:** 2026-03-14
+**Researched:** 2026-03-16 (updated for v1.1 Launch Readiness)
 **Confidence:** HIGH (Firebase, RevenueCat, Expo docs); MEDIUM (folder structure patterns, community best practices)
 
-## Standard Architecture
+---
+
+## v1.1 Addendum: Launch Readiness Integration Architecture
+
+> This section documents how push notifications, analytics/crash reporting, EAS builds, and store submission integrate with the existing v1.0 architecture. The original v1.0 architecture research follows below.
+
+### What Already Exists in v1.0
+
+Before describing new components, here is the verified existing state from codebase inspection:
+
+- `expo-notifications` is already **installed** (v55) and **actively used** in `useRestTimer` and `useWorkoutTimer` for local (rest timer countdown) notifications
+- `app/(app)/_layout.tsx` already calls `Notifications.setNotificationHandler()` — foreground display behavior is configured
+- `@react-native-firebase/app`, `/auth`, `/firestore`, `/functions`, `/app-check` are already in the `app.json` plugins array
+- `expo-build-properties` is configured with `useFrameworks: static` and `forceStaticLinking: [RNFBApp, RNFBAuth, RNFBFirestore, RNFBAppCheck]` — new RNF modules must be added here
+- EAS project ID (`dc7c3b9d-ee13-4713-8fab-85389863e18f`) is already set in `app.json`
+- `FirestoreUserRepo` writes to `/users/{uid}` with `{ merge: true }` — FCM tokens can extend this document without schema migration
+- `src/firebase/` already uses `.web.ts` extension for platform branching (`auth.web.ts`, `callCloudFunction.web.ts`) — analytics and crashlytics follow this same pattern
+- `UserProfile` type has optional fields — adding `fcmToken?: string` is backward compatible
+
+### New Components Required
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                          Expo Router                             │
+│   app/_layout.tsx  ← MODIFY: add initAnalytics(),               │
+│                      initCrashlytics(), ErrorBoundary,          │
+│                      setUserId() on sign-in                     │
+│   app/(app)/_layout.tsx  ← MODIFY: mount usePushToken(),        │
+│                             useNotificationNavigation()         │
+├─────────────────────────────────────────────────────────────────┤
+│  NEW: src/firebase/analytics.ts     (logEvent, logScreen)       │
+│  NEW: src/firebase/analytics.web.ts (no-op stubs)               │
+│  NEW: src/firebase/crashlytics.ts   (recordError, setUser)      │
+│  NEW: src/firebase/crashlytics.web.ts (no-op stubs)             │
+│  NEW: src/firebase/messaging.ts     (getToken, backgroundHandler│
+├─────────────────────────────────────────────────────────────────┤
+│  NEW: src/notifications/                                         │
+│   NotificationService.ts        (schedule/cancel local notifs)  │
+│   NotificationPermissions.ts    (request/check permissions)     │
+│   usePushToken.ts                (FCM token lifecycle hook)     │
+│   useNotificationNavigation.ts   (tap-to-navigate handler)     │
+├─────────────────────────────────────────────────────────────────┤
+│  MODIFY: src/repositories/FirestoreUserRepo.ts                  │
+│   + saveFCMToken(uid, token): writes /users/{uid}.fcmToken      │
+│  MODIFY: src/repositories/UserRepository.ts                     │
+│   + fcmToken?: string on UserProfile                            │
+├─────────────────────────────────────────────────────────────────┤
+│  MODIFY: app.json                                                │
+│   + @react-native-firebase/messaging plugin                     │
+│   + @react-native-firebase/crashlytics plugin                   │
+│   + expo-notifications plugin                                   │
+│   + ios.infoPlist.UIBackgroundModes: [remote-notification]      │
+│   + ios.entitlements.aps-environment: production                │
+│   + forceStaticLinking: add RNFBCrashlytics, RNFBMessaging      │
+├─────────────────────────────────────────────────────────────────┤
+│  MODIFY: eas.json                                                │
+│   + submit.production.ios  (ascAppId, appleId, appleTeamId)     │
+│   + submit.production.android (serviceAccountKeyPath, track)    │
+├─────────────────────────────────────────────────────────────────┤
+│  NEW: Cloud Functions                                            │
+│   sendWODNotification (Firestore trigger on WOD doc)            │
+│   sendSubscriptionExpiryNotification (scheduled)                │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Component Responsibilities (New/Modified)
+
+| Component | Type | Responsibility |
+|-----------|------|----------------|
+| `src/firebase/analytics.ts` | NEW | Thin wrapper around `@react-native-firebase/analytics`; no-ops on web; exposes `logEvent`, `logScreen`, `setUserId` |
+| `src/firebase/analytics.web.ts` | NEW | No-op stubs matching same export shape so web imports don't break |
+| `src/firebase/crashlytics.ts` | NEW | Thin wrapper around `@react-native-firebase/crashlytics`; exposes `recordError`, `setUser`, `log` |
+| `src/firebase/crashlytics.web.ts` | NEW | No-op stubs |
+| `src/firebase/messaging.ts` | NEW | FCM token retrieval via `messaging().getToken()`, background handler registration, token refresh listener |
+| `src/notifications/NotificationService.ts` | NEW | Schedule/cancel local notifications (rest timer, streaks, reminders). Extracts inline `expo-notifications` calls from `useRestTimer` — same behavior, more testable |
+| `src/notifications/NotificationPermissions.ts` | NEW | Request + check permissions for both local and push; handles iOS vs Android 13+ differences |
+| `src/notifications/usePushToken.ts` | NEW | Hook: obtains FCM token on mount, persists to Firestore `/users/{uid}`, re-registers on token refresh. Guest users skip token registration |
+| `src/notifications/useNotificationNavigation.ts` | NEW | Hook: handles notification tap events via `Notifications.addNotificationResponseReceivedListener`, routes to correct screen using Expo Router `router.push()` |
+| `src/repositories/FirestoreUserRepo.ts` | MODIFY | Add `saveFCMToken(uid, token)` method; uses `{ merge: true }` so no other fields are touched |
+| `src/repositories/UserRepository.ts` | MODIFY | Add `fcmToken?: string` optional field to `UserProfile` |
+| `app/_layout.tsx` | MODIFY | Add `initAnalytics()`, `initCrashlytics()` in `useEffect`. Add `crashlytics().setUserId(user.uid)` inside `handleUserSignIn`. Wrap `Stack` in `ErrorBoundary` |
+| `app/(app)/_layout.tsx` | MODIFY | Mount `usePushToken()` and `useNotificationNavigation()` hooks. Both are side-effect-only (no render output) |
+| `index.ts` | MODIFY | Add `messaging().setBackgroundMessageHandler()` before `AppRegistry.registerComponent` |
+| `app.json` | MODIFY | 3 new plugins, iOS entitlements + UIBackgroundModes, 2 new forceStaticLinking entries |
+| `eas.json` | MODIFY | Add `submit` section for iOS + Android |
+| Cloud Functions | NEW | `sendWODNotification` reads user FCM tokens from Firestore, sends via FCM Admin SDK |
+
+---
+
+### Data Flows: New and Modified
+
+#### 1. FCM Token Registration Flow
+
+```
+App launch (authenticated, non-guest user)
+    ↓
+usePushToken() mounts in app/(app)/_layout.tsx
+    ↓
+NotificationPermissions.requestPushPermission()
+    [iOS: messaging().requestPermission()]
+    [Android 13+: PermissionsAndroid.request(POST_NOTIFICATIONS)]
+    ↓
+messaging().getToken()  →  FCM device token string
+    ↓
+FirestoreUserRepo.saveFCMToken(uid, token)
+    → Firestore /users/{uid} { fcmToken: "..." }  (merge: true)
+    ↓
+messaging().onTokenRefresh(token => saveFCMToken())
+    (token changes on reinstall or OS rotation)
+```
+
+**Guest users:** `usePushToken` checks `isGuest === true` and returns early. No token is stored. Local notifications still work.
+**Web platform:** `messaging.ts` guards with `Platform.OS === 'web'` and is a no-op. Web does not support FCM via RNF.
+
+---
+
+#### 2. Remote Push Send Flow (WOD notification example)
+
+```
+Firestore: WOD document created for today's date
+    ↓
+Cloud Function: sendWODNotification (Firestore trigger)
+    → query /users where fcmToken != null (up to 500 per batch)
+    → FCM Admin SDK: sendEachForMulticast({ tokens, notification, data })
+    [data payload includes: { screen: 'wods', date: 'YYYY-MM-DD' }]
+    ↓
+FCM → APNs (iOS) / FCM direct (Android)
+    ↓
+Device receives message:
+    ├── Foreground: messaging().onMessage() handler
+    │     → NotificationService.scheduleImmediate() via expo-notifications
+    ├── Background/Quit: setBackgroundMessageHandler() (in index.ts)
+    │     → OS displays notification natively (no UI update)
+    └── User taps notification:
+          → useNotificationNavigation() listener fires
+          → reads notification.request.content.data.screen
+          → router.push('/wods')
+```
+
+**Critical:** `setBackgroundMessageHandler` MUST be called in `index.ts` before `AppRegistry.registerComponent`, not inside any React component. It is missed for background/quit states if registered inside a component lifecycle.
+
+---
+
+#### 3. Analytics Screen Tracking Flow
+
+```
+User navigates to any screen (Expo Router)
+    ↓
+usePathname() value changes (analytics hook in app/_layout.tsx)
+    ↓
+useEffect: analytics().logScreenView({ screen_name: pathname })
+    ↓
+Firebase Analytics console: screen_view events
+```
+
+Firebase Analytics does **not** automatically track screens in React Native — navigation runs in JS, not the native lifecycle, so native screen tracking callbacks are never triggered. Manual tracking via `usePathname` + `useEffect` is required. The existing `app/(app)/_layout.tsx` is the right mount point.
+
+---
+
+#### 4. Error Capture Flow
+
+```
+Uncaught component tree error
+    ↓
+ErrorBoundary.componentDidCatch(error, info)
+    ↓
+crashlytics().recordError(error)
+    → Firebase Crashlytics: non-fatal issue
+
+Caught error in hook or repository
+    ↓
+crashlytics().log('context message') + crashlytics().recordError(error)
+    → Firebase Crashlytics: non-fatal with context
+
+Native crash (OOM, native module abort)
+    ↓
+Crashlytics SDK captures automatically at next launch
+    → Firebase Crashlytics: fatal crash session
+```
+
+**User identity:** `crashlytics().setUserId(user.uid)` called on sign-in in `app/_layout.tsx`. UID only — never names or emails.
+
+---
+
+### App.json Changes Required
+
+```json
+{
+  "expo": {
+    "ios": {
+      "entitlements": {
+        "aps-environment": "production"
+      },
+      "infoPlist": {
+        "UIBackgroundModes": ["fetch", "remote-notification"]
+      }
+    },
+    "plugins": [
+      "@react-native-firebase/app",
+      "@react-native-firebase/auth",
+      "@react-native-firebase/crashlytics",
+      "@react-native-firebase/messaging",
+      "expo-notifications",
+      "expo-apple-authentication",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "useFrameworks": "static",
+            "forceStaticLinking": [
+              "RNFBApp", "RNFBAuth", "RNFBFirestore",
+              "RNFBAppCheck", "RNFBCrashlytics", "RNFBMessaging"
+            ]
+          }
+        }
+      ],
+      "@react-native-google-signin/google-signin",
+      "expo-router",
+      "expo-secure-store",
+      "expo-sharing",
+      "expo-audio"
+    ]
+  }
+}
+```
+
+Note: `@react-native-firebase/analytics` does NOT require its own plugin entry — it initializes via the `@react-native-firebase/app` plugin. Only `crashlytics` and `messaging` need explicit plugin entries for Android Gradle and iOS build system changes.
+
+---
+
+### EAS.json Changes Required
+
+```json
+{
+  "cli": { "version": ">= 13.0.0" },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "env": { "FIREBASE_APP_CHECK_DEBUG_TOKEN": "<token>" }
+    },
+    "preview": { "distribution": "internal" },
+    "production": {}
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "appleId": "your@apple.com",
+        "ascAppId": "YOUR_APP_STORE_CONNECT_NUMERIC_ID",
+        "appleTeamId": "YOUR_10_CHAR_TEAM_ID"
+      },
+      "android": {
+        "serviceAccountKeyPath": "./google-play-service-account.json",
+        "track": "internal"
+      }
+    }
+  }
+}
+```
+
+**iOS flow:** `eas build --platform ios --profile production` then `eas submit --platform ios --profile production`. EAS manages certificates/provisioning if credentials mode is `managed`.
+
+**Android flow:** Requires a Google Play Service Account JSON key. Do not commit this file to the repo — add to `.gitignore`. Use EAS Secrets for CI environments.
+
+---
+
+### Build Order for v1.1 Features
+
+Dependencies create a natural build order:
+
+1. **`app.json` + `eas.json` config first** — All native module additions require a new EAS build (dev client) before any code using them can run on device. Adding plugins without building produces "module not found" errors.
+
+2. **Analytics + Crashlytics** — Self-contained, no dependencies on other new features. Wire into `_layout.tsx` immediately after the new dev client build. Verify events appear in Firebase console before proceeding.
+
+3. **ErrorBoundary** — Depends only on `crashlytics.ts`. Add to `_layout.tsx` alongside crashlytics init.
+
+4. **`NotificationService.ts` refactor** — Move inline `expo-notifications` calls from `useRestTimer`/`useWorkoutTimer` into `NotificationService`. Behavior identical to today, but establishes the notification infrastructure layer before FCM is added. Tests update in parallel.
+
+5. **FCM token registration** — Depends on `messaging.ts`, the `FirestoreUserRepo` update, and `usePushToken`. Requires an authenticated user (available via existing `SessionProvider`). Verify token appears in Firestore `/users/{uid}` before building Cloud Functions.
+
+6. **`useNotificationNavigation`** — Depends on knowing what `data` payloads Cloud Functions will send. Define the `screen` key payload shape before writing either the client handler or the Cloud Functions.
+
+7. **Cloud Functions for remote push** — Depend on FCM tokens being stored in Firestore (step 5) and a defined payload shape (step 6). Write and test in the Firebase emulator.
+
+8. **EAS production builds + store submission** — Final step. Requires all prior changes working in a `preview` build. iOS: requires App Store Connect app record, screenshots, metadata. Android: requires Google Play Console app record and a Google Play Service Account key.
+
+---
+
+### Integration Points: New vs. Modified
+
+**New files (create from scratch):**
+
+| File | Purpose |
+|------|---------|
+| `src/firebase/analytics.ts` | Analytics wrapper, native |
+| `src/firebase/analytics.web.ts` | Analytics no-ops, web |
+| `src/firebase/crashlytics.ts` | Crashlytics wrapper, native |
+| `src/firebase/crashlytics.web.ts` | Crashlytics no-ops, web |
+| `src/firebase/messaging.ts` | FCM token + background handler |
+| `src/notifications/NotificationService.ts` | Local notification scheduling |
+| `src/notifications/NotificationPermissions.ts` | Permission abstraction |
+| `src/notifications/usePushToken.ts` | FCM token lifecycle hook |
+| `src/notifications/useNotificationNavigation.ts` | Notification tap-to-route |
+| Cloud Function: `sendWODNotification` | Remote push for WOD |
+| Cloud Function: `sendSubscriptionExpiryNotification` | Remote push for sub expiry |
+
+**Modified files (touch existing code):**
+
+| File | Change | Risk |
+|------|--------|------|
+| `app/_layout.tsx` | Add analytics init, crashlytics init, ErrorBoundary, setUserId | LOW — additive only |
+| `app/(app)/_layout.tsx` | Mount usePushToken, useNotificationNavigation hooks | LOW — no render changes |
+| `index.ts` | Add setBackgroundMessageHandler before AppRegistry | LOW — isolated, before component tree |
+| `src/repositories/FirestoreUserRepo.ts` | Add saveFCMToken() method | LOW — new method, no signature changes |
+| `src/repositories/UserRepository.ts` | Add fcmToken?: string to UserProfile | LOW — optional field, backward compatible |
+| `src/hooks/useRestTimer.ts` | Delegate expo-notifications calls to NotificationService | LOW — refactor, same behavior |
+| `src/hooks/useWorkoutTimer.ts` | Same as useRestTimer | LOW |
+| `app.json` | Add 3 plugins, iOS config additions | MEDIUM — requires new EAS build |
+| `eas.json` | Add submit section | LOW — no build behavior change |
+
+---
+
+### Anti-Patterns Specific to v1.1
+
+**Anti-Pattern: setBackgroundMessageHandler inside a component**
+Calling it in `useEffect` inside `_layout.tsx` or a screen means it is registered only after the component tree mounts. In background/quit state, the JS runtime runs without mounting components — the handler is never registered.
+*Do this instead:* Register in `index.ts` before `AppRegistry.registerComponent`.
+
+**Anti-Pattern: Requesting notification permission immediately on first launch**
+iOS only allows one native OS prompt per install. Showing it without context results in low acceptance rates, and a rejected permission cannot be re-requested programmatically.
+*Do this instead:* Show a soft-ask screen explaining the value before triggering the native prompt. Trigger at a contextually relevant moment (first workout start, or a dedicated notifications settings screen).
+
+**Anti-Pattern: Using getExpoPushTokenAsync() when sending via FCM**
+Expo push tokens route through Expo's push service. Sending an Expo push token to FCM's API directly will fail silently.
+*Do this instead:* Use `messaging().getToken()` from `@react-native-firebase/messaging` to get the native FCM token. Use `getExpoPushTokenAsync()` only if routing through Expo's push service (not this project's architecture).
+
+**Anti-Pattern: Storing notification payloads in the FCM `notification` object for app-handled routing**
+The `notification` object triggers the OS display layer. `data` is what the app reads to determine routing.
+*Do this instead:* Put routing info in `data: { screen: 'wods', ... }` and use FCM data-only messages when the app needs to handle display itself (foreground case). Use `notification` object only for background/quit where OS handles display.
+
+---
+
+## v1.0 Architecture (original research, 2026-03-14)
+
+The sections below document the original v1.0 architecture research. Relevant for context on the full system structure.
 
 ### System Overview
 
@@ -95,8 +439,6 @@ src/
 │
 ├── features/               # Feature modules (self-contained per tab/feature)
 │   ├── dashboard/
-│   │   ├── components/
-│   │   └── dashboard-screen.tsx
 │   ├── programs/
 │   ├── workouts/
 │   ├── cycle/
@@ -112,32 +454,37 @@ src/
 ├── theme/                  # Design tokens: Art Deco palette, typography, spacing
 │   └── index.ts
 │
-├── services/               # External service integrations (non-repository)
-│   ├── firebase.ts         # Firebase app init
-│   ├── revenuecat.ts       # RevenueCat SDK init
-│   └── analytics.ts        # Firebase Analytics wrapper
+├── firebase/               # Firebase SDK wrappers (platform-aware)
+│   ├── app.ts
+│   ├── auth.ts / auth.web.ts
+│   ├── firestore.ts
+│   ├── appCheck.ts
+│   ├── callCloudFunction.ts / callCloudFunction.web.ts
+│   ├── analytics.ts / analytics.web.ts     ← new in v1.1
+│   ├── crashlytics.ts / crashlytics.web.ts ← new in v1.1
+│   └── messaging.ts                        ← new in v1.1
 │
-├── utils/                  # Pure utility functions (formatters, date helpers)
-└── types/                  # App-wide TypeScript types (not domain types)
+├── notifications/          # Notification domain (new in v1.1)
+│   ├── NotificationService.ts
+│   ├── NotificationPermissions.ts
+│   ├── usePushToken.ts
+│   └── useNotificationNavigation.ts
+│
+├── services/               # External service integrations (non-repository)
+│   └── revenuecat.ts       # RevenueCat SDK init
+│
+└── utils/                  # Pure utility functions (formatters, date helpers)
 ```
-
-### Structure Rationale
-
-- **`domain/`** mirrors the existing iOS `Domain/` folder exactly — pure logic, no RN/Firebase imports. This enables direct TypeScript porting from Swift with identical test coverage.
-- **`repositories/`** mirrors iOS `Repositories/` protocol-based pattern. Factory function swaps Firestore vs AsyncStorage implementation based on auth mode (authenticated vs guest).
-- **`stores/`** stays thin — only global cross-cutting state. Feature state lives inside feature hooks.
-- **`features/`** is feature-first, not layer-first. All code for a feature (screen + components) co-locates, reducing navigation cost when working on one feature.
-- **`hooks/`** are the use-case layer — they call domain functions and repositories together, analogous to iOS ViewModels.
 
 ## Architectural Patterns
 
 ### Pattern 1: Repository Factory Pattern
 
-**What:** A factory function returns the correct repository implementation based on auth mode. Authenticated users get Firestore repos; guest users get AsyncStorage repos. Consumers never know which they get.
+**What:** A factory function returns the correct repository implementation based on auth mode. Authenticated users get Firestore repos; guest users get AsyncStorage repos.
 
 **When to use:** Required — this is how offline guest mode works without branching logic throughout the codebase.
 
-**Trade-offs:** Adds indirection; simpler apps can hard-code Firestore. Worth it here because guest mode is a first-class requirement.
+**Trade-offs:** Adds indirection. Worth it because guest mode is a first-class requirement.
 
 **Example:**
 ```typescript
@@ -147,18 +494,13 @@ export function getWorkoutRepo(authMode: 'authenticated' | 'guest'): IWorkoutRep
     ? new FirestoreWorkoutRepository()
     : new LocalWorkoutRepository();
 }
-
-// Usage in hook
-const workoutRepo = getWorkoutRepo(useAuthStore(s => s.mode));
 ```
 
 ### Pattern 2: Pure Domain Layer (Zero Framework Deps)
 
-**What:** All business logic (cycle math, injury substitution, benchmark scoring, pain trends) lives in `src/domain/` as plain TypeScript functions and classes. No React, no Firebase, no Expo imports allowed in this folder.
+**What:** All business logic lives in `src/domain/` as plain TypeScript. No React, Firebase, or Expo imports allowed in this folder.
 
-**When to use:** Always — this is what makes the domain testable with Jest without mocking anything.
-
-**Trade-offs:** Requires discipline to keep the boundary clean. Eslint import rules can enforce it.
+**When to use:** Always — enables Jest testing without mocking anything.
 
 **Example:**
 ```typescript
@@ -169,55 +511,52 @@ export function adaptWorkloadForPhase(
   symptoms: Symptom[]
 ): AdaptedWorkload {
   const multiplier = PHASE_MULTIPLIERS[phase];
-  const symptomAdjustment = computeSymptomAdjustment(symptoms);
-  return { load: baseLoad * multiplier * symptomAdjustment };
+  return { load: baseLoad * multiplier * computeSymptomAdjustment(symptoms) };
 }
-// No React. No Firebase. Pure logic. Jest testable.
 ```
 
-### Pattern 3: Offline-First with react-native-firebase
+### Pattern 3: No-Op Platform Branching for Native-Only Firebase Modules
 
-**What:** Use `react-native-firebase` (native SDK wrapper) instead of the Firebase JS SDK. On iOS and Android, Firestore offline persistence is enabled by default with the native SDK — no extra configuration. Writes queue locally and sync automatically on reconnect.
+**What:** Analytics and Crashlytics don't exist on web. Use the `.web.ts` extension to provide no-op implementations with matching type signatures. This is the established pattern already used for `auth.web.ts` and `callCloudFunction.web.ts`.
 
-**When to use:** Required for offline support. The Firebase JS SDK does NOT support Firestore offline persistence in React Native/Expo. The native SDK does.
-
-**Trade-offs:** Requires a custom Expo dev client (cannot use Expo Go). Config plugins via `app.json` handle native configuration — no manual Xcode/Gradle editing needed. Build via `eas build` instead of Expo Go.
+**When to use:** Any Firebase RNF module called from shared code paths that has no web equivalent.
 
 **Example:**
+```typescript
+// src/firebase/crashlytics.ts (native)
+import crashlytics from '@react-native-firebase/crashlytics';
+export function recordError(error: Error): void {
+  crashlytics().recordError(error);
+}
+
+// src/firebase/crashlytics.web.ts (web no-op)
+export function recordError(_error: Error): void {
+  // Crashlytics not available on web
+}
+```
+
+### Pattern 4: Offline-First with react-native-firebase
+
+**What:** Use `react-native-firebase` (native SDK wrapper) instead of the Firebase JS SDK. Firestore offline persistence is enabled by default with the native SDK.
+
+**When to use:** Required for offline support — the Firebase JS SDK does not support Firestore offline persistence in React Native.
+
+**Trade-offs:** Requires a custom Expo dev client. Config plugins via `app.json` handle native configuration.
+
 ```typescript
 // Default behavior — no extra setup needed for offline
 import firestore from '@react-native-firebase/firestore';
-
 // This write queues locally if offline, syncs when online
-await firestore()
-  .collection('users')
-  .doc(userId)
-  .collection('workouts')
-  .add(workoutData);
+await firestore().collection('users').doc(userId).collection('workouts').add(workoutData);
 ```
 
-**Critical constraint:** Transactions fail when offline. Use standard document writes (not transactions) for data that must work offline. Reserve transactions for server-side Cloud Functions only.
+### Pattern 5: FCM Token Persisted to Existing User Document
 
-### Pattern 4: RevenueCat Unified Entitlements
+**What:** FCM tokens are stored as a field on the existing `/users/{uid}` Firestore document, not in a separate collection. `saveFCMToken()` uses `{ merge: true }` to avoid touching other fields.
 
-**What:** RevenueCat `react-native-purchases` (v9.7.6+) manages subscriptions across iOS, Android, and Web from a single SDK. On iOS/Android, it wraps StoreKit/Google Play. On Web, it uses RevenueCat Web Billing (backed by Stripe). The `appUserID` is your Firebase UID — this links entitlements to your user identity across platforms.
+**When to use:** Appropriate for v1.1 where single active device per user is the assumed model.
 
-**When to use:** Use this pattern for all paywall gates. Never check payment state from Apple/Google directly — always check RevenueCat entitlements.
-
-**Trade-offs:** RevenueCat Web Billing is a separate product from native IAP (different Stripe account configuration). Entitlements unify at the RevenueCat layer. Web checkout at lower price tier is their stated use case.
-
-**Example:**
-```typescript
-// Platform-specific purchase initiation
-// .native.ts — iOS/Android
-await Purchases.purchasePackage(selectedPackage);
-
-// .web.ts — Web (opens RevenueCat-hosted Stripe checkout)
-await Purchases.purchasePackage(selectedPackage);
-// SDK handles platform differences; entitlement check is identical:
-const { customerInfo } = await Purchases.getCustomerInfo();
-const isPremium = customerInfo.entitlements.active['premium'] !== undefined;
-```
+**Trade-offs:** Does not support multi-device per user (last token wins). Multi-device support can be added later by switching to a `/users/{uid}/devices/{deviceId}` subcollection.
 
 ## Data Flow
 
@@ -229,16 +568,15 @@ User starts workout
 useWorkoutExecution() hook
     ↓ (reads from local cache or Firestore)
 WorkoutRepository.getProgram()
-    ↓ (Firestore cached data — available offline)
+    ↓
 Domain: adaptWorkloadForPhase(baseLoad, cyclePhase, symptoms)
     ↓
 Domain: applyInjuryModifications(exercises, injuryProfile)
     ↓
 Screen renders adapted workout
-    ↓ (user completes sets, logs results)
+    ↓
 WorkoutRepository.saveCompletedSet()
-    ↓ (writes to Firestore local cache immediately)
-    ↓ (auto-syncs to Firestore server when online)
+    ↓ (writes to Firestore local cache immediately; syncs when online)
 History updated via real-time Firestore listener
 ```
 
@@ -252,105 +590,55 @@ Firebase Auth state listener (immediate — cached from last session)
          ┌── No user → guest mode OR sign-in screen
          └── User exists → AppState: authenticated
                                ↓
-                 RevenueCat.logIn(firebaseUID) — links entitlements
+                 RevenueCat.logIn(firebaseUID)
+                 crashlytics().setUserId(uid)  ← new in v1.1
+                 analytics().setUserId(uid)    ← new in v1.1
                                ↓
-                 Check entitlements → premium or free tier
+                 usePushToken() → FCM token → Firestore  ← new in v1.1
                                ↓
                  Navigate to main tabs
 ```
-
-### AI Workout Generation Flow
-
-```
-User requests AI workout
-    ↓
-useGenerateWorkout() hook
-    ↓ (checks connectivity)
-         ┌── Offline → return cached/fallback workout
-         └── Online → call Cloud Function endpoint
-                          ↓
-               Cloud Function (Gemini proxy)
-                          ↓ (returns workout JSON)
-              Domain: validateAndAdaptWorkout()
-                          ↓
-              Save to Firestore (queued if offline mid-request)
-```
-
-### State Management
-
-```
-Zustand stores (global, persisted via AsyncStorage)
-    auth-store: { user, mode, firebaseUID }
-    subscription-store: { entitlements, isPremium }
-    ui-store: { activeModal, loadingStates }
-         ↓ (subscribed via selectors)
-Feature hooks → Domain logic → Repository calls
-         ↓
-Firestore real-time listeners push updates back to hooks
-         ↓
-Hooks return derived state to screen components
-```
-
-## Build Order Implications
-
-Build in this dependency order — each layer depends only on what came before:
-
-1. **Domain layer** (`src/domain/`) — No deps. Port Swift logic to TypeScript here first. Establish test coverage before any UI work.
-2. **Repository interfaces** (`src/repositories/interfaces/`) — Define contracts before implementations.
-3. **Firebase + Auth setup** — SDK init, auth listeners, `useAuthStore`. Everything authenticated depends on this.
-4. **Local repositories** (`src/repositories/local/`) — Guest mode. Unblocks offline testing without Firestore.
-5. **Firestore repositories** (`src/repositories/firestore/`) — Authenticated mode data access.
-6. **Zustand stores** (`src/stores/`) — Global state wiring.
-7. **Core use-case hooks** (`src/hooks/`) — Orchestrate domain + repos.
-8. **RevenueCat integration** (`src/services/revenuecat.ts`, `subscription-store`) — Can be stubbed early; needs real SKU IDs for paywall testing.
-9. **Feature screens** (`src/features/`) — Build last; they consume everything above.
-10. **Cloud Functions** — Can develop in parallel with mobile; needed for AI workout generation and WOD admin writes.
 
 ## Scaling Considerations
 
 | Scale | Architecture Adjustments |
 |-------|--------------------------|
-| 0-1k users | Monorepo, single Firestore database, no sharding needed. EAS Build for CI. |
-| 1k-10k users | Monitor Firestore read costs on program catalog (public collection — all users read same data). Add Firestore caching rules. Consider bundling programs.json fallback. |
-| 10k-100k users | Cloud Functions cold starts become noticeable for AI generation — keep Functions warm or move to Cloud Run. Firestore costs scale linearly; review query patterns for hotspots. |
-| 100k+ users | Firestore document contention on public WOD documents (many users reading same doc). Consider CDN-cached static WOD delivery. RevenueCat at this scale is still fine — it's designed for it. |
-
-### Scaling Priorities
-
-1. **First bottleneck — Firestore read costs:** Public program catalog and WODs read by every user on launch. Mitigate by bundling programs.json and wods.json in the app binary; use Firestore only for updates.
-2. **Second bottleneck — Cloud Function latency:** AI workout generation goes cold. Mitigate with minimum instance count (1) once user volume justifies the cost (~$5/month).
+| 0-1k users | Single FCM token per user in `/users/{uid}` sufficient. Monorepo, single Firestore database. |
+| 1k-10k users | Monitor Firestore read costs on program catalog. FCM `sendEachForMulticast` batches at 500 tokens — Cloud Function must handle pagination. Consider FCM topics for WOD broadcast. |
+| 10k-100k users | Switch WOD notifications to FCM topics (`messaging().subscribeToTopic('wod-updates')`) — avoids querying all tokens. Cloud Function cold starts affect AI generation; add minimum instance. |
+| 100k+ users | Firestore document contention on public WOD documents. CDN-cache static WOD delivery. Multi-device token support needed. |
 
 ## Anti-Patterns
 
 ### Anti-Pattern 1: Using Firebase JS SDK for Offline Persistence
 
-**What people do:** Install `firebase` (JS SDK) in Expo and expect offline persistence to work.
-**Why it's wrong:** The Firebase JS SDK relies on IndexedDB for persistence, which is not available in React Native. Firestore offline persistence silently fails or throws errors.
-**Do this instead:** Use `@react-native-firebase/firestore` (the native SDK wrapper via Expo Config Plugin). Offline persistence is enabled by default on iOS and Android with zero extra configuration.
+**What people do:** Install `firebase` (JS SDK) expecting offline persistence in RN.
+**Why it's wrong:** Firebase JS SDK relies on IndexedDB — not available in React Native. Offline persistence silently fails.
+**Do this instead:** Use `@react-native-firebase/firestore` (native SDK wrapper).
 
 ### Anti-Pattern 2: Domain Logic in Screens or Hooks
 
-**What people do:** Write cycle math, injury substitution, or benchmark scoring directly in screen components or hooks.
-**Why it's wrong:** Untestable without rendering. Violates the iOS architecture that proved this logic correct with 100% coverage. Leads to duplication across platforms.
-**Do this instead:** All business logic goes in `src/domain/` as pure TypeScript. Hooks call domain functions and pass results to screens.
+**What people do:** Write cycle math or injury substitution directly in screen components.
+**Why it's wrong:** Untestable without rendering. Leads to duplication.
+**Do this instead:** All business logic in `src/domain/` as pure TypeScript.
 
 ### Anti-Pattern 3: Transactions for Offline-Capable Writes
 
-**What people do:** Use Firestore transactions (`runTransaction`) for workout logging and set tracking because they feel "safer."
-**Why it's wrong:** Firestore transactions require a server round-trip and fail when offline. Workout logging must work offline.
-**Do this instead:** Use standard document writes or batch writes for all user data that must work offline. Reserve transactions for server-side logic (Cloud Functions) where connectivity is guaranteed.
+**What people do:** Use Firestore transactions for workout logging.
+**Why it's wrong:** Transactions require a server round-trip and fail offline.
+**Do this instead:** Standard document writes for all user data that must work offline.
 
-### Anti-Pattern 4: One Monolithic Zustand Store
+### Anti-Pattern 4: setBackgroundMessageHandler Inside a Component
 
-**What people do:** Put all app state (auth, subscriptions, workout state, cycle state, UI flags) in a single Zustand store.
-**Why it's wrong:** Causes unnecessary re-renders across unrelated components. Hard to persist selectively. Hard to test.
-**Do this instead:** Split stores by domain (`useAuthStore`, `useSubscriptionStore`, `useUIStore`). Feature-specific state stays in feature hooks, not global stores.
+**What people do:** Register the FCM background handler in `useEffect` inside `_layout.tsx`.
+**Why it's wrong:** Handler is missed for background/quit states where components don't mount.
+**Do this instead:** Register in `index.ts` before `AppRegistry.registerComponent`.
 
-### Anti-Pattern 5: Hardcoding Subscription Checks Against Apple/Google
+### Anti-Pattern 5: Using getExpoPushTokenAsync() with Direct FCM Sends
 
-**What people do:** Use `expo-in-app-purchases` or StoreKit directly to check if a user is subscribed.
-**Why it's wrong:** Platform-specific. Breaks on Web. Doesn't account for cross-platform purchases (user subscribed on web, using on iOS).
-**Do this instead:** Always check `Purchases.getCustomerInfo()` from RevenueCat. Entitlements are unified across all platforms.
+**What people do:** Get Expo push tokens and send them to the FCM API directly.
+**Why it's wrong:** Expo tokens route through Expo's service — they are not raw FCM tokens.
+**Do this instead:** Use `messaging().getToken()` for native FCM tokens when sending via FCM Admin SDK.
 
 ## Integration Points
 
@@ -358,36 +646,37 @@ Build in this dependency order — each layer depends only on what came before:
 
 | Service | Integration Pattern | Notes |
 |---------|---------------------|-------|
-| Firebase Auth | `@react-native-firebase/auth` listeners → `useAuthStore` | Apple Sign-In requires native module; cannot use Expo Go |
-| Firestore | `@react-native-firebase/firestore` with offline persistence on by default | Settings must be called before first interaction |
-| Firebase Cloud Functions | HTTP callable functions via `@react-native-firebase/functions` | Used for Gemini proxy, WOD admin; not for offline-critical paths |
-| RevenueCat | `react-native-purchases` SDK, logIn with Firebase UID as `appUserID` | Requires `expo-dev-client` build; Web uses Web Billing (Stripe) |
-| Gemini AI | Via Firebase Cloud Function (replaces Cloudflare Worker) | Functions endpoint returns workout JSON; degrade gracefully offline |
+| Firebase Auth | `@react-native-firebase/auth` listeners → `useAuthStore` | Apple Sign-In requires native module |
+| Firestore | `@react-native-firebase/firestore` with offline persistence | Offline on by default with native SDK |
+| Firebase Cloud Functions | HTTP callable via `@react-native-firebase/functions` | Not for offline-critical paths |
+| Firebase Analytics | `@react-native-firebase/analytics`, no-op on web | Manual screen tracking required |
+| Firebase Crashlytics | `@react-native-firebase/crashlytics`, no-op on web | ErrorBoundary + setUserId on sign-in |
+| FCM (Cloud Messaging) | `@react-native-firebase/messaging`, token to Firestore | Background handler in index.ts |
+| RevenueCat | `react-native-purchases`, logIn with Firebase UID | Web uses Web Billing (Stripe) |
+| Gemini AI | Via Firebase Cloud Function proxy | Degrades gracefully offline |
 
 ### Internal Boundaries
 
 | Boundary | Communication | Notes |
 |----------|---------------|-------|
-| Domain ↔ Hooks | Direct TypeScript function calls | Domain has no async; hooks add async + repo calls |
+| Domain ↔ Hooks | Direct TypeScript function calls | Domain has no async |
 | Hooks ↔ Repositories | Repository interface method calls | Hooks never import Firestore directly |
-| Repositories ↔ Firestore | `@react-native-firebase/firestore` API | Offline cache transparent at this layer |
-| Screens ↔ Stores | Zustand selectors (avoid subscribing to entire store) | Use `store(s => s.specificField)` selectors always |
-| Mobile ↔ Web (payments) | RevenueCat unified entitlements via shared `appUserID` | Platform-specific purchase initiation, unified entitlement check |
+| Notifications ↔ Expo Router | `router.push()` from useNotificationNavigation | Called from notification tap listener |
+| Analytics ↔ Expo Router | `usePathname()` hook drives logScreenView | Mounted at root layout level |
+| Crashlytics ↔ ErrorBoundary | Direct call in componentDidCatch | Class component required by React API |
 
 ## Sources
 
-- [Expo — Offline-first apps with Legend State](https://expo.dev/blog/offline-first-apps-with-expo-and-legend-state) — LOCAL_FIRST pattern reference
-- [Expo — Firebase integration guide](https://docs.expo.dev/guides/using-firebase/) — JS SDK vs react-native-firebase tradeoffs
-- [React Native Firebase — Firestore usage](https://rnfirebase.io/firestore/usage) — Offline persistence, query patterns, constraints
-- [React Native Firebase — Offline support](https://rnfirebase.io/database/offline-support) — Cache size, goOffline/goOnline mechanics
-- [Firebase — Access data offline](https://firebase.google.com/docs/firestore/manage-data/enable-offline) — Official offline docs
-- [RevenueCat — Expo integration](https://www.revenuecat.com/docs/getting-started/installation/expo) — Native + web billing setup
-- [RevenueCat — Cross-platform subscriptions](https://www.revenuecat.com/blog/engineering/cross-platform-subscriptions-ios-android-web/) — Unified entitlements architecture
-- [Expo — App folder structure best practices](https://expo.dev/blog/expo-app-folder-structure-best-practices) — Recommended structure
-- [Firestore offline persistence issue — Firebase JS SDK #436](https://github.com/firebase/firebase-js-sdk/issues/436) — Confirms JS SDK limitation in RN
-- [Firestore Offline Gotchas — Roberto Hernandez](https://betterprogramming.pub/a-few-gotchas-to-consider-when-working-with-firestores-offline-mode-and-react-native-42al) — Practical pitfalls
-- [SystemsArchitect — Firestore conflict resolution](https://www.systemsarchitect.io/services/google-firestore/solutions/pt/google-firestore-solutions-problem-handling-offline-data-synchronization-conf) — Last-write-wins and CRDT patterns
+- [Expo Push Notifications Setup](https://docs.expo.dev/push-notifications/push-notifications-setup/) — official, current
+- [Expo: Send Notifications with FCM and APNs](https://docs.expo.dev/push-notifications/sending-notifications-custom/) — official, current
+- [Expo: Using Firebase](https://docs.expo.dev/guides/using-firebase/) — official, current
+- [EAS Submit Configuration](https://docs.expo.dev/submit/eas-json/) — official, current
+- [React Native Firebase: Messaging Usage](https://rnfirebase.io/messaging/usage) — MEDIUM confidence (official docs)
+- [React Native Firebase: Crashlytics Usage](https://rnfirebase.io/crashlytics/usage) — MEDIUM confidence (official docs)
+- [React Native Firebase: Analytics Screen Tracking](https://rnfirebase.io/analytics/screen-tracking) — MEDIUM confidence
+- [GitHub Issue: RNF messaging plugin does not add Background Modes](https://github.com/invertase/react-native-firebase/issues/7577) — MEDIUM (community pattern)
+- Codebase inspection: `app.json`, `app/_layout.tsx`, `app/(app)/_layout.tsx`, `useRestTimer.ts`, `FirestoreUserRepo.ts`, `UserRepository.ts` — HIGH confidence
 
 ---
 *Architecture research for: React Native + Expo + Firebase cross-platform fitness app (Sundee Fundee)*
-*Researched: 2026-03-14*
+*v1.0 researched: 2026-03-14 | v1.1 addendum researched: 2026-03-16*
