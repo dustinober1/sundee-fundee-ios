@@ -118,9 +118,19 @@ describe('getMissing1RMs', () => {
 // ─── formatTargetWeight ─────────────────────────────────────────────────────
 
 describe('formatTargetWeight', () => {
-  it('returns "225 lbs" when weight is available', () => {
+  it('returns "225.0 lbs" when weight is available (lb default)', () => {
     const result = formatTargetWeight(225, 0.75);
-    expect(result).toBe('225 lbs');
+    expect(result).toBe('225.0 lbs');
+  });
+
+  it('returns "225.0 lbs" when unit is explicitly lb', () => {
+    const result = formatTargetWeight(225, 0.75, 'lb');
+    expect(result).toBe('225.0 lbs');
+  });
+
+  it('returns "102.0 kg" when unit is kg (225 lbs -> ~102 kg)', () => {
+    const result = formatTargetWeight(225, 0.75, 'kg');
+    expect(result).toBe('102.0 kg');
   });
 
   it('returns percentage string when no 1RM (weight is null)', () => {
@@ -131,5 +141,10 @@ describe('formatTargetWeight', () => {
   it('returns formatted percentage without trailing zeros', () => {
     const result = formatTargetWeight(null, 0.8);
     expect(result).toBe('80%');
+  });
+
+  it('returns percentage string when weight is null and unit is kg (unit ignored)', () => {
+    const result = formatTargetWeight(null, 0.75, 'kg');
+    expect(result).toBe('75%');
   });
 });

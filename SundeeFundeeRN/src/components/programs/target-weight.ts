@@ -8,6 +8,8 @@
  */
 import type { ExerciseMax } from '../../domain/pr-detection/pr-types';
 import type { ProgramExercise } from '../../domain/types/index';
+import { formatWeight } from '../../utils/formatWeight';
+import type { WeightUnit } from '../../domain/types/index';
 
 /**
  * Threshold below which a fixed ExerciseValue is interpreted as a 1RM percentage.
@@ -98,16 +100,17 @@ export function getMissing1RMs(
 /**
  * Formats a target weight for display.
  *
- * If an absolute weight is available, returns "{weight} lbs".
+ * If an absolute weight is available, delegates to formatWeight for unit-aware formatting.
  * If no 1RM is logged, falls back to the percentage string (e.g., "75%").
  *
  * @param weight - Absolute weight in lbs, or null if 1RM not available
  * @param percentage - Fraction of 1RM (e.g., 0.75 for 75%)
+ * @param unit - User's preferred weight unit (default: 'lb' for backward compatibility)
  * @returns Human-readable weight string
  */
-export function formatTargetWeight(weight: number | null, percentage: number): string {
+export function formatTargetWeight(weight: number | null, percentage: number, unit: WeightUnit = 'lb'): string {
   if (weight !== null) {
-    return `${weight} lbs`;
+    return formatWeight(weight, unit);
   }
   const pct = Math.round(percentage * 100);
   return `${pct}%`;

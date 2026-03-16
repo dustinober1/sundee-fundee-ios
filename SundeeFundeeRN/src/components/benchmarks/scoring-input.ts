@@ -9,8 +9,9 @@
  * - distance: displayed as MM:SS time for fixed-distance events (lower is better)
  */
 
-import type { BenchmarkScoringType } from '@/src/domain/types';
+import type { BenchmarkScoringType, WeightUnit } from '@/src/domain/types';
 import { decodeRoundsAndReps } from '@/src/domain/benchmarks/benchmark-catalog';
+import { formatWeight } from '@/src/utils/formatWeight';
 
 // ---------------------------------------------------------------------------
 // formatScore
@@ -22,10 +23,12 @@ import { decodeRoundsAndReps } from '@/src/domain/benchmarks/benchmark-catalog';
  * - time: seconds -> "M:SS" (e.g. 300 -> "5:00")
  * - reps: if value >= 10000, decodes as roundsAndReps; otherwise plain reps count
  * - roundsAndReps: decodes to "N rounds + M reps"
- * - weight: "N lbs"
+ * - weight: delegates to formatWeight for unit-aware display (default: lb)
  * - distance: seconds -> "M:SS" (same as time — fixed-distance events are timed)
+ *
+ * @param unit - User's preferred weight unit; only used for 'weight' scoring type (default: 'lb')
  */
-export function formatScore(scoringType: BenchmarkScoringType, score: number): string {
+export function formatScore(scoringType: BenchmarkScoringType, score: number, unit: WeightUnit = 'lb'): string {
   switch (scoringType) {
     case 'time':
     case 'distance':
@@ -42,7 +45,7 @@ export function formatScore(scoringType: BenchmarkScoringType, score: number): s
       return `${score} reps`;
 
     case 'weight':
-      return `${score} lbs`;
+      return formatWeight(score, unit);
   }
 }
 

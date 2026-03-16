@@ -28,8 +28,24 @@ describe('formatScore', () => {
     expect(formatScore('reps', 15)).toBe('15 reps');
   });
 
-  it('formats weight score with lbs label (315 -> "315 lbs")', () => {
-    expect(formatScore('weight', 315)).toBe('315 lbs');
+  it('formats weight score with lbs label (315 -> "315.0 lbs") — backward compat default', () => {
+    expect(formatScore('weight', 315)).toBe('315.0 lbs');
+  });
+
+  it('formats weight score in kg when unit is kg (315 lbs -> "143.0 kg")', () => {
+    expect(formatScore('weight', 315, 'kg')).toBe('143.0 kg');
+  });
+
+  it('formats weight score in lbs when unit is explicitly lb', () => {
+    expect(formatScore('weight', 315, 'lb')).toBe('315.0 lbs');
+  });
+
+  it('ignores unit param for time scoring type', () => {
+    expect(formatScore('time', 300, 'kg')).toBe('5:00');
+  });
+
+  it('ignores unit param for reps scoring type', () => {
+    expect(formatScore('reps', 15, 'kg')).toBe('15 reps');
   });
 
   it('formats distance score as MM:SS time (same as time)', () => {
