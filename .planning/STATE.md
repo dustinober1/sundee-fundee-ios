@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Launch Readiness
 status: executing
-stopped_at: Phase 17 complete — all 3 plans done, ready for Phase 18
-last_updated: "2026-03-17T05:00:00.000Z"
-last_activity: 2026-03-17 — Phase 17 complete; 40/40 triage items accounted for (30 verified, 10 deferred); 1327 tests passing
+stopped_at: Completed 17.1-01-PLAN.md
+last_updated: "2026-03-17T02:26:40.745Z"
+last_activity: 2026-03-17 — Phase 17.1 Plan 01 complete; RN promoted to root, legacy Swift archived
 progress:
-  total_phases: 7
+  total_phases: 8
   completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
+  total_plans: 5
+  completed_plans: 4
 ---
 
 # Project State
@@ -20,16 +20,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-16)
 
 **Core value:** Users get personalized, cycle-aware strength training that adapts to their body — available on any platform, online or offline.
-**Current focus:** Phase 17 — Device Verification
+**Current focus:** Phase 17.1 — Repo Restructure (Promote RN to Root)
 
 ## Current Position
 
-Phase: 17 of 23 (Device Verification) -- COMPLETE
-Plan: 3 of 3 in current phase (all plans complete)
-Status: Phase 17 complete — ready for Phase 18
-Last activity: 2026-03-17 — Phase 17 complete; 40/40 triage items accounted for; 1327 tests passing
+Phase: 17.1 (Repo Restructure — Promote RN to Root)
+Plan: 1 of 2 in current phase (Plan 01 complete)
+Status: Executing — Plan 01 done, Plan 02 pending
+Last activity: 2026-03-17 — Phase 17.1 Plan 01 complete; RN promoted to root, legacy Swift archived
 
-Progress (v1.1): [█░░░░░░░░░] 14% (1/7 phases complete)
+Progress (v1.1): [████████░░] 80% (4/5 plans complete)
 
 ## Accumulated Context
 
@@ -44,6 +44,8 @@ Progress (v1.1): [█░░░░░░░░░] 14% (1/7 phases complete)
 - [Phase 17-01]: iPhone 17 Pro used as primary target — iPhone 16 Pro unavailable in simulator pool
 - [Phase 17-01]: Slider replaced with TouchableOpacity row (1-10) — @react-native-community/slider requires native rebuild (out of scope)
 - [Phase 17-01]: P5-3 code-verified only — NLC simulation blocked by macOS Accessibility permissions
+- [Phase 17.1-01]: Two commits used for file promotion (archive + promote) instead of single atomic commit
+- [Phase 17.1-01]: google-services.json was tracked in git, moved via git mv
 
 ### Roadmap Evolution
 
@@ -63,6 +65,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-17T05:00:00.000Z
-Stopped at: Phase 17 complete — all 3 plans done, ready for Phase 18
+Last session: 2026-03-17T02:26:40.742Z
+Stopped at: Completed 17.1-01-PLAN.md
 Resume file: None
