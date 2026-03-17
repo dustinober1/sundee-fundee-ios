@@ -1,6 +1,6 @@
 {
   "firestore": {
-    "rules": "SundeeFundeeRN/firestore.rules"
+    "rules": "firestore.rules"
   },
   "functions": [
     {
