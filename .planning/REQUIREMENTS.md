@@ -46,8 +46,8 @@ Requirements for launch readiness. Each maps to roadmap phases.
 
 ### Device Verification
 
-- [ ] **VERIFY-01**: All ~30 human verification items from v1.0 triaged and resolved
-- [ ] **VERIFY-02**: Core workout flow verified on iOS simulator and Android emulator
+- [x] **VERIFY-01**: All ~30 human verification items from v1.0 triaged and resolved
+- [x] **VERIFY-02**: Core workout flow verified on iOS simulator and Android emulator
 - [ ] **VERIFY-03**: Offline mode verified (airplane mode workout completion + sync on reconnect)
 - [ ] **VERIFY-04**: Auth flows verified on all platforms (Apple, Google, Email, Guest, guest-to-auth upgrade)
 
@@ -110,8 +110,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | STORE-05 | Phase 22 | Pending |
 | STORE-06 | Phase 23 | Pending |
 | STORE-07 | Phase 23 | Pending |
-| VERIFY-01 | Phase 17 | Pending |
-| VERIFY-02 | Phase 17 | Pending |
+| VERIFY-01 | Phase 17 | Complete |
+| VERIFY-02 | Phase 17 | Complete |
 | VERIFY-03 | Phase 17 | Pending |
 | VERIFY-04 | Phase 17 | Pending |
 
