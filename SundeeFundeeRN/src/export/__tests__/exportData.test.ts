@@ -11,15 +11,12 @@ jest.mock('expo-file-system/legacy', () => ({
   cacheDirectory: 'file:///cache/',
   writeAsStringAsync: jest.fn().mockResolvedValue(undefined),
   makeDirectoryAsync: jest.fn().mockResolvedValue(undefined),
+  EncodingType: { Base64: 'base64' },
 }));
 
 jest.mock('expo-sharing', () => ({
   shareAsync: jest.fn().mockResolvedValue(undefined),
   isAvailableAsync: jest.fn().mockResolvedValue(true),
-}));
-
-jest.mock('react-native-zip-archive', () => ({
-  zip: jest.fn().mockResolvedValue('file:///cache/export.zip'),
 }));
 
 // Platform is mocked via Object.defineProperty per test (see STATE.md decision:
@@ -46,7 +43,6 @@ jest.mock('jszip', () => {
 
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
-import { zip } from 'react-native-zip-archive';
 import { Platform } from 'react-native';
 import {
   collectAllUserData,
@@ -295,21 +291,34 @@ describe('exportUserData (json)', () => {
 describe('exportUserData (csv)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockJsZipFileFn.mockClear();
+    mockJsZipGenerateAsyncFn.mockClear();
+    mockJsZipGenerateAsyncFn.mockResolvedValue('base64encodeddata');
     Object.defineProperty(Platform, 'OS', { value: 'ios', configurable: true });
   });
 
-  it('writes multiple CSV files to cache directory', async () => {
+  it('adds all 7 CSV files to JSZip', async () => {
     const repos = makeRepos();
     await exportUserData('u1', 'csv', 'lb', repos);
 
-    // Should have written 7 CSV files
-    expect(FileSystem.writeAsStringAsync).toHaveBeenCalledTimes(7);
+    // JSZip.file() should be called once per CSV (7 CSVs)
+    expect(mockJsZipFileFn).toHaveBeenCalledTimes(7);
   });
 
-  it('zips the CSV files', async () => {
+  it('generates a base64 zip via JSZip on native', async () => {
     const repos = makeRepos();
     await exportUserData('u1', 'csv', 'lb', repos);
-    expect(zip).toHaveBeenCalledTimes(1);
+    expect(mockJsZipGenerateAsyncFn).toHaveBeenCalledWith({ type: 'base64' });
+  });
+
+  it('writes exactly one zip file to cache directory', async () => {
+    const repos = makeRepos();
+    await exportUserData('u1', 'csv', 'lb', repos);
+
+    // Only one write call for the zip (not individual CSVs)
+    expect(FileSystem.writeAsStringAsync).toHaveBeenCalledTimes(1);
+    const [uri] = (FileSystem.writeAsStringAsync as jest.Mock).mock.calls[0];
+    expect(uri).toMatch(/\.zip$/);
   });
 
   it('shares the zip file via expo-sharing', async () => {
@@ -377,7 +386,7 @@ describe('exportUserData (web CSV zip)', () => {
     expect(mockJsZipGenerateAsyncFn).toHaveBeenCalledWith({ type: 'blob' });
   });
 
-  it('Test 4: Mobile CSV export still uses react-native-zip-archive (unchanged)', async () => {
+  it('Test 4: Mobile CSV export uses JSZip (base64 type) not web blob', async () => {
     // Switch back to mobile
     Object.defineProperty(Platform, 'OS', { value: 'ios', configurable: true });
     delete (global as any).document;
@@ -385,10 +394,10 @@ describe('exportUserData (web CSV zip)', () => {
     const repos = makeRepos();
     await exportUserData('u1', 'csv', 'lb', repos);
 
-    // Mobile path: zip() from react-native-zip-archive should be called
-    expect(zip).toHaveBeenCalledTimes(1);
-    // JSZip generateAsync should NOT be called on mobile
-    expect(mockJsZipGenerateAsyncFn).not.toHaveBeenCalled();
+    // Mobile path: JSZip.generateAsync with base64 type (not blob)
+    expect(mockJsZipGenerateAsyncFn).toHaveBeenCalledWith({ type: 'base64' });
+    // Should NOT generate a blob (that is the web path)
+    expect(mockJsZipGenerateAsyncFn).not.toHaveBeenCalledWith({ type: 'blob' });
   });
 });
 

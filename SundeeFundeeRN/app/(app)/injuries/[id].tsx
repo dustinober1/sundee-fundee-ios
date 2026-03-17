@@ -23,7 +23,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
-  Slider,
 } from 'react-native';
 import { useFocusEffect, useRouter, useLocalSearchParams } from 'expo-router';
 import { useSession } from '@/src/auth/AuthContext';
@@ -307,23 +306,29 @@ export default function InjuryProfileScreen(): React.JSX.Element {
         {/* ── Section 2: Pain Logging ── */}
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>How's your {locationLabel} feeling?</Text>
-          <View style={styles.sliderRow}>
-            <Text style={styles.sliderLabel}>1</Text>
-            <View style={styles.sliderContainer}>
-              <Slider
-                style={styles.slider}
-                minimumValue={1}
-                maximumValue={10}
-                step={1}
-                value={painSliderValue}
-                onValueChange={setPainSliderValue}
-                minimumTrackTintColor={colors.ORANGE}
-                maximumTrackTintColor={colors.GREY_LIGHT}
-                thumbTintColor={colors.ORANGE}
-                accessibilityLabel="Pain level slider"
-              />
-            </View>
-            <Text style={styles.sliderLabel}>10</Text>
+          <View style={styles.painScaleRow}>
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
+              <TouchableOpacity
+                key={n}
+                style={[
+                  styles.painScaleButton,
+                  Math.round(painSliderValue) === n && styles.painScaleButtonSelected,
+                ]}
+                onPress={() => setPainSliderValue(n)}
+                accessibilityLabel={`Pain level ${n}`}
+                accessibilityRole="button"
+                accessibilityState={{ selected: Math.round(painSliderValue) === n }}
+              >
+                <Text
+                  style={[
+                    styles.painScaleButtonText,
+                    Math.round(painSliderValue) === n && styles.painScaleButtonTextSelected,
+                  ]}
+                >
+                  {n}
+                </Text>
+              </TouchableOpacity>
+            ))}
           </View>
           <Text style={styles.currentPainLabel}>
             Pain level: <Text style={styles.currentPainValue}>{Math.round(painSliderValue)}/10</Text>
@@ -575,25 +580,36 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     marginTop: -4,
   },
-  sliderRow: {
+  painScaleRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginTop: 8,
+    flexWrap: 'nowrap',
+    justifyContent: 'space-between',
+    marginTop: 12,
+    gap: 4,
   },
-  sliderLabel: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: colors.NAVY_MEDIUM,
-    width: 16,
-    textAlign: 'center',
-  },
-  sliderContainer: {
+  painScaleButton: {
     flex: 1,
+    aspectRatio: 1,
+    borderRadius: 6,
+    backgroundColor: colors.CREAM_LIGHT,
+    borderWidth: 1,
+    borderColor: colors.GREY_LIGHT,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 28,
+    maxWidth: 36,
   },
-  slider: {
-    width: '100%',
-    height: 40,
+  painScaleButtonSelected: {
+    backgroundColor: colors.ORANGE,
+    borderColor: colors.ORANGE,
+  },
+  painScaleButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.NAVY,
+  },
+  painScaleButtonTextSelected: {
+    color: colors.CREAM,
   },
   currentPainLabel: {
     fontSize: 14,
