@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Launch Readiness
-status: executing
-stopped_at: Completed 17.1-01-PLAN.md
-last_updated: "2026-03-17T02:26:40.745Z"
-last_activity: 2026-03-17 — Phase 17.1 Plan 01 complete; RN promoted to root, legacy Swift archived
+status: completed
+stopped_at: Completed 17.1-02-PLAN.md
+last_updated: "2026-03-17T02:32:13.800Z"
+last_activity: 2026-03-17 — Phase 17.1 Plan 02 complete; configs updated, tests validated at root
 progress:
   total_phases: 8
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 5
-  completed_plans: 4
+  completed_plans: 5
 ---
 
 # Project State
@@ -25,11 +25,11 @@ See: .planning/PROJECT.md (updated 2026-03-16)
 ## Current Position
 
 Phase: 17.1 (Repo Restructure — Promote RN to Root)
-Plan: 1 of 2 in current phase (Plan 01 complete)
-Status: Executing — Plan 01 done, Plan 02 pending
-Last activity: 2026-03-17 — Phase 17.1 Plan 01 complete; RN promoted to root, legacy Swift archived
+Plan: 2 of 2 in current phase (Plan 02 complete)
+Status: Phase 17.1 Complete — all plans executed
+Last activity: 2026-03-17 — Phase 17.1 Plan 02 complete; configs updated, tests validated at root
 
-Progress (v1.1): [████████░░] 80% (4/5 plans complete)
+Progress (v1.1): [██████████] 100% (5/5 plans complete)
 
 ## Accumulated Context
 
@@ -46,6 +46,7 @@ Progress (v1.1): [████████░░] 80% (4/5 plans complete)
 - [Phase 17-01]: P5-3 code-verified only — NLC simulation blocked by macOS Accessibility permissions
 - [Phase 17.1-01]: Two commits used for file promotion (archive + promote) instead of single atomic commit
 - [Phase 17.1-01]: google-services.json was tracked in git, moved via git mv
+- [Phase 17.1]: Jest testPathIgnorePatterns added to scope tests to RN app only after root promotion
 
 ### Roadmap Evolution
 
@@ -65,6 +66,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-17T02:26:40.742Z
-Stopped at: Completed 17.1-01-PLAN.md
+Last session: 2026-03-17T02:32:13.798Z
+Stopped at: Completed 17.1-02-PLAN.md
 Resume file: None
