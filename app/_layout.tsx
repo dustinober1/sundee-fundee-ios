@@ -2,7 +2,7 @@
  * Root layout for Sundee Fundee.
  *
  * Responsibilities:
- * 1. Initialize RevenueCat on mount (iOS and Android only; web deferred to Phase 6)
+ * 1. Initialize Firebase modules on mount (App Check, Crashlytics, Analytics, Messaging)
  * 2. Wrap the app in SessionProvider (real AuthContext from Plan 02)
  * 3. Wire UserRepository: authenticated users → Firestore, guests → AsyncStorage
  * 4. Check hasCompletedOnboarding and expose it via state for routing decisions
@@ -16,7 +16,7 @@ import { Platform } from 'react-native';
 import { Stack } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { AuthUser } from '@/src/firebase/auth';
-import { initAppCheck } from '@/src/firebase/appCheck';
+import { initFirebase } from '@/src/firebase/init';
 
 import { SessionProvider } from '@/src/auth/AuthContext';
 import { EntitlementProvider } from '@/src/entitlements/EntitlementContext';
@@ -118,9 +118,10 @@ function buildUserProfile(user: AuthUser): UserProfile {
 
 export default function RootLayout(): React.JSX.Element {
   useEffect(() => {
-    // App Check must initialize before any Firebase calls (auth, Firestore).
+    // Initialize all Firebase modules (App Check, Crashlytics, Analytics, Messaging).
+    // App Check is first to secure all subsequent Firebase calls.
     // Moved here from (app)/_layout.tsx so it's ready before the sign-in screen.
-    void initAppCheck();
+    void initFirebase();
     configureRevenueCat();
   }, []);
 
