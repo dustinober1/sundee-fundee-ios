@@ -159,7 +159,7 @@ Plans:
 | 15. Wire AI Preview Adaptation Context | v1.0 | 1/1 | Complete | 2026-03-16 |
 | 16. Thread Weight Unit into Program Session | v1.0 | 1/1 | Complete | 2026-03-16 |
 | 17. Device Verification | v1.1 | 3/3 | Complete | 2026-03-17 |
-| 17.1 Repo Restructure | 2/2 | Complete   | 2026-03-17 | - |
+| 17.1 Repo Restructure | 2/2 | Complete    | 2026-03-17 | - |
 | 18. Foundation Config + Build Infrastructure | v1.1 | 0/TBD | Not started | - |
 | 19. Analytics + Crash Reporting | v1.1 | 0/TBD | Not started | - |
 | 20. Notification Infrastructure | v1.1 | 0/TBD | Not started | - |
