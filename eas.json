@@ -7,12 +7,22 @@
       "developmentClient": true,
       "distribution": "internal",
       "env": {
-        "FIREBASE_APP_CHECK_DEBUG_TOKEN": "<token-from-firebase-console>"
+        "EXPO_PUBLIC_APP_CHECK_DEBUG_TOKEN": "<token-from-firebase-console>"
       }
     },
     "preview": {
       "distribution": "internal"
     },
     "production": {}
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "ascAppId": "REPLACE_WITH_APP_STORE_CONNECT_APP_ID"
+      },
+      "android": {
+        "track": "internal"
+      }
+    }
   }
 }
