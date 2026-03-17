@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Launch Readiness
 status: completed
-stopped_at: Phase 18 context gathered
-last_updated: "2026-03-17T12:26:19.469Z"
+stopped_at: Completed 18-01-PLAN.md
+last_updated: "2026-03-17T13:07:58.196Z"
 last_activity: 2026-03-17 — Phase 17.1 Plan 02 complete; configs updated, tests validated at root
 progress:
   total_phases: 8
   completed_phases: 2
-  total_plans: 5
-  completed_plans: 5
+  total_plans: 7
+  completed_plans: 6
 ---
 
 # Project State
@@ -47,6 +47,9 @@ Progress (v1.1): [██████████] 100% (5/5 plans complete)
 - [Phase 17.1-01]: Two commits used for file promotion (archive + promote) instead of single atomic commit
 - [Phase 17.1-01]: google-services.json was tracked in git, moved via git mv
 - [Phase 17.1]: Jest testPathIgnorePatterns added to scope tests to RN app only after root promotion
+- [Phase 18-01]: analytics has no config plugin — only forceStaticLinking entry added, not plugins array
+- [Phase 18-01]: initFirebase() order: AppCheck first (secures all Firebase calls), then Crashlytics, Analytics, Messaging
+- [Phase 18-01]: EXPO_PUBLIC_APP_CHECK_DEBUG_TOKEN replaces FIREBASE_APP_CHECK_DEBUG_TOKEN in eas.json — only EXPO_PUBLIC_ vars accessible in JS runtime
 
 ### Roadmap Evolution
 
@@ -66,6 +69,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-17T12:26:19.466Z
-Stopped at: Phase 18 context gathered
-Resume file: .planning/phases/18-foundation-config-build-infrastructure/18-CONTEXT.md
+Last session: 2026-03-17T13:07:58.194Z
+Stopped at: Completed 18-01-PLAN.md
+Resume file: None

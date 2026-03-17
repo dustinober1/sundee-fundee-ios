@@ -32,11 +32,11 @@ Requirements for launch readiness. Each maps to roadmap phases.
 - [ ] **SEC-01**: Firestore security rules deployed to production (auth-gated user docs, public read for programs/WODs)
 - [ ] **SEC-02**: Firestore rules validated via Rules Simulator before deploy
 - [ ] **SEC-03**: Firebase App Check confirmed active in production mode (DeviceCheck iOS, Play Integrity Android)
-- [ ] **SEC-04**: PrivacyInfo.xcprivacy privacy manifest added with correct SDK declarations
+- [x] **SEC-04**: PrivacyInfo.xcprivacy privacy manifest added with correct SDK declarations
 
 ### Store Submission
 
-- [ ] **STORE-01**: EAS production build profiles configured for iOS and Android
+- [x] **STORE-01**: EAS production build profiles configured for iOS and Android
 - [ ] **STORE-02**: App Store Connect metadata complete (screenshots 6.7"/6.5", description, keywords, privacy policy URL)
 - [ ] **STORE-03**: Play Store metadata complete (Health & Fitness declaration, data safety, screenshots)
 - [ ] **STORE-04**: Age rating questionnaire completed for both stores
@@ -102,8 +102,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SEC-01 | Phase 22 | Pending |
 | SEC-02 | Phase 22 | Pending |
 | SEC-03 | Phase 18 | Pending |
-| SEC-04 | Phase 18 | Pending |
-| STORE-01 | Phase 18 | Pending |
+| SEC-04 | Phase 18 | Complete |
+| STORE-01 | Phase 18 | Complete |
 | STORE-02 | Phase 22 | Pending |
 | STORE-03 | Phase 22 | Pending |
 | STORE-04 | Phase 22 | Pending |
