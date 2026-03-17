@@ -77,7 +77,7 @@ Plans:
 **Requirements**: SEC-03, SEC-04, STORE-01
 **Success Criteria** (what must be TRUE):
   1. A new EAS development build installs and runs on iOS and Android with no missing native module errors for @react-native-firebase/messaging, /crashlytics, /analytics
-  2. eas.json contains a submit.production section with ascAppId for iOS and serviceAccountKeyPath + track: "internal" for Android
+  2. eas.json contains a submit.production section with ascAppId for iOS and track: "internal" for Android (no serviceAccountKeyPath — first submission is manual per locked decision)
   3. Firebase App Check dashboard shows DeviceCheck (iOS) and Play Integrity (Android) in production mode — not debug tokens
   4. PrivacyInfo.xcprivacy exists in the iOS project with correct NSPrivacyAccessedAPICategory entries for cycle/health data classified as sensitive health information linked to user identity
 **Plans**: 2 plans
