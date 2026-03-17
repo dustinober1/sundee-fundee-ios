@@ -13,6 +13,10 @@ module.exports = {
   testPathIgnorePatterns: [
     '/node_modules/',
     'firestore\\.rules\\.test\\.ts',
+    '/functions/',
+    '/wod-dashboard/',
+    '/_legacy-swift/',
+    '/\\.claude/',
   ],
   setupFiles: [
     '<rootDir>/__mocks__/setup.js',

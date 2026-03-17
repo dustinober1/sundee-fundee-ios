@@ -6,8 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Sundee Fundee is a strength training app with hormonal-cycle-aware training recommendations.
 
-**Active codebase:** `SundeeFundeeRN/` — React Native + Expo (TypeScript), targeting iOS, Android, and Web.
-**Legacy codebase:** Root `SundeeFundee/` directory — Swift 6 + SwiftUI, iOS 17.0+ (no longer under active development).
+**Active codebase:** Repo root — React Native + Expo (TypeScript), targeting iOS, Android, and Web.
+**Legacy codebase:** `_legacy-swift/` directory — Swift 6 + SwiftUI, iOS 17.0+ (archived, no longer under active development).
 
 ## MCP Tools
 
@@ -86,28 +86,28 @@ Use this MCP to **reduce context usage** by querying an indexed code graph inste
 ### Context7 MCP (`mcp__plugin_context7_context7__*`)
 - **`resolve-library-id` / `query-docs`** — Look up latest docs for any library (React Native, Firebase, etc.)
 
-## React Native App (`SundeeFundeeRN/`)
+## React Native App
 
 ### Commands
 
 ```bash
 # Install dependencies
-cd SundeeFundeeRN && npm install
+npm install
 
 # Run tests
-cd SundeeFundeeRN && npx jest --passWithNoTests
+npx jest --passWithNoTests
 
 # Start Expo dev server
-cd SundeeFundeeRN && npx expo start
+npx expo start
 
 # Start on specific platform
-cd SundeeFundeeRN && npx expo start --ios
-cd SundeeFundeeRN && npx expo start --android
-cd SundeeFundeeRN && npx expo start --web
+npx expo start --ios
+npx expo start --android
+npx expo start --web
 
 # EAS builds (prefer Expo MCP `build_run` tool)
-cd SundeeFundeeRN && eas build --platform ios --profile development
-cd SundeeFundeeRN && eas build --platform android --profile development
+eas build --platform ios --profile development
+eas build --platform android --profile development
 ```
 
 ### Deploy
@@ -129,7 +129,7 @@ Firebase (Firestore + Auth + Cloud Functions)
 Domain/ (src/domain/) — pure TypeScript, zero dependencies
 ```
 
-### Key Directories (`SundeeFundeeRN/`)
+### Key Directories
 
 - **`app/`** — Expo Router file-based routing (tabs, auth, onboarding)
 - **`src/domain/`** — Pure TypeScript business logic (weight calc, cycle adaptation, injury engine)
@@ -139,37 +139,13 @@ Domain/ (src/domain/) — pure TypeScript, zero dependencies
 - **`src/theme/`** — Art Deco design tokens: cream (#F4F0DF), navy (#0D1A40), orange (#F2731A)
 - **`src/export/`** — CSV/ZIP data export
 - **`__mocks__/`** — Jest mocks for native modules
+- **`_legacy-swift/`** — Archived Swift/SwiftUI codebase (reference only)
 
 ---
 
 ## Legacy iOS App (Reference Only)
 
-> The Swift/SwiftUI codebase below is no longer under active development. Kept for reference during the React Native rewrite.
-
-### Legacy Commands
-
-```bash
-# Regenerate Xcode project after modifying project.yml
-xcodegen generate
-```
-
-```bash
-xcodebuild build \
-  -project SundeeFundee.xcodeproj \
-  -scheme SundeeFundee \
-  -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
-```
-
-```bash
-xcodebuild test \
-  -project SundeeFundee.xcodeproj \
-  -scheme SundeeFundee \
-  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
-  -only-testing:SundeeFundeTests
-```
-
-### Legacy Deploy
-TestFlight builds were deployed via **Xcode Cloud** (manual trigger only).
+> The Swift/SwiftUI codebase is archived in `_legacy-swift/`. No longer under active development. Kept for reference during the React Native rewrite.
 
 ### Legacy Architecture
 
@@ -200,7 +176,7 @@ Next.js dashboard at `wod-dashboard/` — writes WODs to Firestore. Run locally 
 
 ### Testing (React Native)
 
-- Run tests: `cd SundeeFundeeRN && npx jest --passWithNoTests`
+- Run tests: `npx jest --passWithNoTests`
 - 71 test suites / 1327+ tests
 - `src/domain/` tested in isolation — pure TypeScript, no mocking needed
 - `__mocks__/` contains Jest mocks for native modules (expo-audio, expo-haptics, etc.)
@@ -228,5 +204,4 @@ Use the Firebase MCP tools (`mcp__plugin_firebase_firebase__*`) for:
 
 - Enum properties on `@Model` types stored as `String` raw values (CloudKit requirement)
 - Custom `init(from decoder:)` requires `encode(to:)` (prevents auto-synthesis)
-- Xcode project generated from `project.yml` via XcodeGen — never edit `.xcodeproj` directly
-- `SundeeFundee/Packages/` showing as untracked in `git status` is expected (git submodule)
+- Xcode project was generated from `project.yml` via XcodeGen (archived in `_legacy-swift/`)
