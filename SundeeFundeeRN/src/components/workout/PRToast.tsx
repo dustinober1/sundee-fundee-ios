@@ -11,6 +11,7 @@ import {
   Text,
   StyleSheet,
   Animated,
+  TouchableOpacity,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import type { PRCheckResult } from '../../domain/pr-detection/pr-types';
@@ -31,6 +32,8 @@ interface PRToastProps {
 
 export function PRToast({ pr, onDismiss }: PRToastProps): React.JSX.Element {
   const slideAnim = useRef(new Animated.Value(-100)).current;
+  const onDismissRef = useRef(onDismiss);
+  onDismissRef.current = onDismiss;
 
   useEffect(() => {
     // Haptic feedback on show
@@ -51,14 +54,14 @@ export function PRToast({ pr, onDismiss }: PRToastProps): React.JSX.Element {
         duration: 300,
         useNativeDriver: true,
       }).start(() => {
-        onDismiss();
+        onDismissRef.current();
       });
     }, 3000);
 
     return () => {
       clearTimeout(timer);
     };
-  }, [slideAnim, onDismiss]);
+  }, [slideAnim]);
 
   const buildMessage = (): { title: string; subtitle: string } => {
     if (pr.is1RMPR && !pr.isWeightPR) {

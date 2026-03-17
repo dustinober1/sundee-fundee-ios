@@ -133,7 +133,9 @@ export default function SignInScreen(): React.JSX.Element {
   async function handleGuestSignIn(): Promise<void> {
     try {
       await guest.signIn();
-      // Navigation triggered automatically via onAuthStateChanged
+      // Anonymous users are excluded from the redirect guard above (to allow
+      // guest-upgrade flow), so we navigate explicitly after sign-in.
+      router.replace('/(app)/(tabs)');
     } catch {
       // Error already set in hook
     }

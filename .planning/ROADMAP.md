@@ -60,6 +60,16 @@ Plans:
 - [x] 17-02-PLAN.md — Degraded-tier and cosmetic-tier verification sweep (25 items)
 - [x] 17-03-PLAN.md — Cross-platform smoke tests, offline verification, and auth flow matrix
 
+### Phase 17.1: Repo Restructure: Promote RN to Root (INSERTED)
+
+**Goal:** [Urgent work - to be planned]
+**Requirements**: TBD
+**Depends on:** Phase 17
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 17.1 to break down)
+
 ### Phase 18: Foundation Config + Build Infrastructure
 **Goal**: All v1.1 native modules are registered in app.json, EAS production build profiles are locked in, Firebase App Check is confirmed active in production mode, and the iOS privacy manifest is present and correct — producing a new EAS development build that unblocks all subsequent phases
 **Depends on**: Phase 17

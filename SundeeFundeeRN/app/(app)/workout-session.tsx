@@ -322,10 +322,10 @@ export default function WorkoutSessionScreen(): React.JSX.Element {
     }
   }, [prDetection.recentPRs, currentPR, session]);
 
-  const handleDismissPR = (): void => {
+  const handleDismissPR = useCallback((): void => {
     setCurrentPR(null);
     prDetection.clearRecentPRs();
-  };
+  }, [prDetection]);
 
   // ── Set completion handler ───────────────────────────────────────────────
   const handleCompleteSet = async (

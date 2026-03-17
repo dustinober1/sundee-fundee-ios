@@ -45,6 +45,10 @@ Progress (v1.1): [█░░░░░░░░░] 14% (1/7 phases complete)
 - [Phase 17-01]: Slider replaced with TouchableOpacity row (1-10) — @react-native-community/slider requires native rebuild (out of scope)
 - [Phase 17-01]: P5-3 code-verified only — NLC simulation blocked by macOS Accessibility permissions
 
+### Roadmap Evolution
+
+- Phase 17.1 inserted after Phase 17: Repo Restructure — Promote RN to Root (URGENT)
+
 ### Pending Todos
 
 None yet.
