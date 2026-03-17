@@ -4,17 +4,107 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Sundee Fundee is a native iOS strength training app with hormonal-cycle-aware training recommendations. Swift 6 + SwiftUI, targeting iOS 17.0+.
+Sundee Fundee is a strength training app with hormonal-cycle-aware training recommendations.
 
-## Commands
+**Active codebase:** `SundeeFundeeRN/` — React Native + Expo (TypeScript), targeting iOS, Android, and Web.
+**Legacy codebase:** Root `SundeeFundee/` directory — Swift 6 + SwiftUI, iOS 17.0+ (no longer under active development).
 
-### Setup
+## MCP Tools
+
+Use these MCP servers for development tasks instead of manual CLI commands where possible:
+
+### Expo MCP (`mcp__expo-mcp__*`)
+- **`search_documentation` / `read_documentation`** — Look up Expo SDK docs before implementing features
+- **`learn`** — Get guidance on Expo concepts (e.g., `expo-notifications`, `expo-router`)
+- **`add_library`** — Add Expo/RN packages (handles native module configuration)
+- **`build_run` / `build_list` / `build_logs`** — Trigger and monitor EAS builds
+- **`workflow_create` / `workflow_run`** — Manage EAS workflows
+
+### Firebase MCP (`mcp__plugin_firebase_firebase__*`)
+- **`firestore_*`** — Query, add, update, delete Firestore documents and collections; manage indexes
+- **`auth_get_users` / `auth_update_user`** — Inspect and manage Firebase Auth users
+- **`firebase_get_project` / `firebase_get_sdk_config`** — Get project info and SDK configuration
+- **`firebase_get_security_rules` / `firebase_validate_security_rules`** — Read and validate Firestore security rules
+- **`functions_list_functions` / `functions_get_logs`** — Inspect Cloud Functions and their logs
+- **`crashlytics_*`** — View crash reports, issues, and events
+- **`firebase_get_environment` / `firebase_update_environment`** — Manage Firebase environment variables
+
+### iOS Simulator MCP (`mcp__ios-simulator__*`)
+- **`list_simulators` / `boot_simulator`** — Manage simulator devices
+- **`screenshot` / `get_ui_hierarchy`** — Capture screenshots and inspect UI tree
+- **`tap` / `swipe` / `type_text`** — Automate UI interactions for verification
+- **`launch_app` / `terminate_app`** — App lifecycle control
+
+### Context7 MCP (`mcp__plugin_context7_context7__*`)
+- **`resolve-library-id` / `query-docs`** — Look up latest docs for any library (React Native, Firebase, etc.)
+
+## React Native App (`SundeeFundeeRN/`)
+
+### Commands
+
+```bash
+# Install dependencies
+cd SundeeFundeeRN && npm install
+
+# Run tests
+cd SundeeFundeeRN && npx jest --passWithNoTests
+
+# Start Expo dev server
+cd SundeeFundeeRN && npx expo start
+
+# Start on specific platform
+cd SundeeFundeeRN && npx expo start --ios
+cd SundeeFundeeRN && npx expo start --android
+cd SundeeFundeeRN && npx expo start --web
+
+# EAS builds (prefer Expo MCP `build_run` tool)
+cd SundeeFundeeRN && eas build --platform ios --profile development
+cd SundeeFundeeRN && eas build --platform android --profile development
+```
+
+### Deploy
+- **EAS Build** for iOS/Android binaries (use Expo MCP `build_run`)
+- **EAS Submit** for App Store / Play Store submission
+- **EAS Update** for OTA updates (no new binary needed)
+
+### Architecture (React Native)
+
+```
+Expo Router (file-based routing)
+    ↓
+React Components + Hooks
+    ↓
+Repository layer (src/repos/) — protocol-like abstractions
+    ↓
+Firebase (Firestore + Auth + Cloud Functions)
+    ↓
+Domain/ (src/domain/) — pure TypeScript, zero dependencies
+```
+
+### Key Directories (`SundeeFundeeRN/`)
+
+- **`app/`** — Expo Router file-based routing (tabs, auth, onboarding)
+- **`src/domain/`** — Pure TypeScript business logic (weight calc, cycle adaptation, injury engine)
+- **`src/repos/`** — Data access layer (Firestore, AsyncStorage)
+- **`src/components/`** — Reusable UI components
+- **`src/hooks/`** — Custom React hooks
+- **`src/theme/`** — Art Deco design tokens: cream (#F4F0DF), navy (#0D1A40), orange (#F2731A)
+- **`src/export/`** — CSV/ZIP data export
+- **`__mocks__/`** — Jest mocks for native modules
+
+---
+
+## Legacy iOS App (Reference Only)
+
+> The Swift/SwiftUI codebase below is no longer under active development. Kept for reference during the React Native rewrite.
+
+### Legacy Commands
+
 ```bash
 # Regenerate Xcode project after modifying project.yml
 xcodegen generate
 ```
 
-### Build
 ```bash
 xcodebuild build \
   -project SundeeFundee.xcodeproj \
@@ -22,120 +112,73 @@ xcodebuild build \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
 ```
 
-### Test
 ```bash
-# Run all tests (CI enforces 100% line coverage)
 xcodebuild test \
   -project SundeeFundee.xcodeproj \
   -scheme SundeeFundee \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
   -only-testing:SundeeFundeTests
-
-# Run a single test class
-xcodebuild test \
-  -project SundeeFundee.xcodeproj \
-  -scheme SundeeFundee \
-  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
-  -only-testing:SundeeFundeTests/BusinessLogicTests
 ```
 
-### Deploy
-TestFlight builds are deployed via **Xcode Cloud** (manual trigger only):
-- In Xcode: Product → Xcode Cloud → Start Build
-- Xcode Cloud handles signing, building, and uploading to TestFlight automatically
+### Legacy Deploy
+TestFlight builds were deployed via **Xcode Cloud** (manual trigger only).
 
-## Architecture
+### Legacy Architecture
 
 ```
-SwiftUI Views
-    ↓
-@Observable ViewModels (@MainActor)
-    ↓
-Repository Protocols (testable, Sendable)
-    ↓
-SwiftData ←→ CloudKit (Private DB for users, Public DB for programs)
-    ↓
-Domain/ (pure Swift, zero dependencies, 100% tested)
+SwiftUI Views → @Observable ViewModels → Repository Protocols → SwiftData ←→ CloudKit → Domain/
 ```
 
-### Key Directories
+### Auth & Routing (React Native)
 
-- **`App/`** — Entry point, `AppState` (auth routing), `ModelContainer` setup, schema migrations (V1→V8), debug seed data
-- **`Auth/`** — Sign in with Apple, `KeychainHelper`, guest mode
-- **`Domain/`** — All business logic: weight calculations, cycle phase adaptation, injury modification engine, benchmark catalog, pain trend analysis, rehab session generation, phase transition advice. No framework dependencies — fully unit tested.
-- **`Models/`** — 18 SwiftData `@Model` types. **Enums must be stored as raw strings** (CloudKit requirement); typed accessors are computed properties.
-- **`Repositories/`** — Protocol-based data access layer with SwiftData implementations. `ProgramRepository` fetches from CloudKit Public DB with bundled `programs.json` fallback.
-- **`Features/`** — One subdirectory per tab: Dashboard, Programs, History, Workouts, Cycle, Maxes, Benchmarks, Settings + Shell (tab bar). `Shared/` contains reusable components (e.g., `SpicyRatingView`).
-- **`Theme/`** — Art Deco design tokens: cream/navy/orange palette
+Expo Router file-based routing with auth guard:
+- `app/(auth)/` — Sign-in, sign-up screens
+- `app/(app)/` — Authenticated app (tabs: Dashboard, Programs, History, Workouts, Cycle, Maxes, Settings)
+- Guest mode: local AsyncStorage only, no Firestore sync
+- Authenticated mode: full Firestore sync enabled
 
-### Auth & Routing
+### Programs (React Native)
 
-`AppState` controls the root navigation state machine:
-- `loading` → `signIn` → `onboarding` → `mainTab`
-- `.authenticated` mode: full CloudKit sync enabled
-- `.guest` mode: local SwiftData only, no CloudKit
-
-### SwiftData / CloudKit Constraints
-
-- Enum properties on `@Model` types **must be stored as `String` raw values** — CloudKit does not support Swift enums directly.
-- Release entitlements enable CloudKit + Sign in with Apple; Debug entitlements are empty (supports Personal Team signing without paid capabilities).
-
-### History Tab
-
-The History tab (`UnifiedHistoryView` + `UnifiedHistoryViewModel`) shows all completed workouts in a single chronological list, regardless of source (AI-generated or program sessions). It queries both `GeneratedWorkoutRecord` and `CompletedWorkout` from SwiftData and merges them via the `HistoryItem` domain type. Supports source filtering (All/AI/Program), swipe-to-delete, and edit-mode bulk delete.
-
-### Programs
-
-Programs are delivered via two channels:
-1. Bundled `Resources/Programs/programs.json` (always available)
-2. CloudKit Public DB (admin-seeded, for remote updates)
-
-WODs (Workouts of the Day) are delivered via bundled `Resources/WODs/wods.json`, matched by date.
+Programs delivered via bundled `resources/programs.json` (always available) + Firestore (for remote updates).
+WODs delivered via bundled `resources/wods.json`, matched by date. Admin dashboard writes to Firestore.
 
 ### WOD Admin Dashboard
 
-A Next.js web dashboard at `wod-dashboard/` writes WODs to CloudKit Public DB via CloudKit JS SDK. Run locally with `cd wod-dashboard && npm run dev`. AI workout generation proxies through the Cloudflare Worker (see below).
+Next.js dashboard at `wod-dashboard/` — writes WODs to Firestore. Run locally with `cd wod-dashboard && npm run dev`.
 
 ### Cloudflare Worker Proxy
 
-`workout-proxy.sundeefundee.workers.dev/generate-workout` proxies Gemini API calls. Uses native Gemini format (`contents`, `systemInstruction`, `generationConfig`), NOT OpenAI-compatible format.
+`workout-proxy.sundeefundee.workers.dev/generate-workout` proxies Gemini API calls. Uses native Gemini format (`contents`, `systemInstruction`, `generationConfig`), NOT OpenAI-compatible format. Will be replaced by Firebase Cloud Functions.
 
-### Submodule: SundeeFundeeShared
+### Testing (React Native)
 
-`SundeeFundee/Packages/SundeeFundeeShared/` is a git submodule. To commit changes: first `cd` into the submodule and commit there, then `git add SundeeFundee/Packages/SundeeFundeeShared` in the main repo.
+- Run tests: `cd SundeeFundeeRN && npx jest --passWithNoTests`
+- 71 test suites / 1327+ tests
+- `src/domain/` tested in isolation — pure TypeScript, no mocking needed
+- `__mocks__/` contains Jest mocks for native modules (expo-audio, expo-haptics, etc.)
+- **Never ignore pre-existing failures.** Investigate and resolve all issues — do not dismiss as "pre-existing."
 
-### Testing
+### Coding Conventions (React Native)
 
-- **100% line coverage is enforced** in CI (GitHub Actions parses `xccov` output).
-- `Domain/` code is tested in isolation via pure Swift unit tests — no mocking needed.
-- ViewModels, Repositories, Auth/Onboarding flows, and critical UI paths each have dedicated test wave files.
-- When adding new `Domain/` types or public methods, add coverage in the corresponding `*CoverageTests.swift` file.
-- When changing default parameter values, update all test call sites to pass the value explicitly — tests that omit the parameter will silently use the new default and may break.
-- **Never ignore pre-existing failures.** If test runs, builds, or CI surface issues that predate your changes, investigate and resolve them — do not dismiss them as "pre-existing." Every identified problem is your responsibility to address.
+- **Repositories use async/await** — All Firestore calls return Promises, handle errors with try/catch
+- **AsyncStorage for local-first** — Guest mode persists all data locally; authenticated mode syncs to Firestore
+- **`formatWeight(weight, unit)`** — Always thread weightUnit from settings; never hardcode "lbs"
+- **Disable buttons for invalid input** — Use `disabled` prop, not silent failures
+- **Domain layer is pure TypeScript** — No React, no Firebase imports. Fully unit tested.
+- **Benchmark `roundsAndReps` scoring** encodes as `rounds * 10000 + reps` in a single number. Decode: `rounds = Math.floor(value / 10000)`, `reps = value % 10000`.
 
-### Project Generation
+### Firebase Operations
 
-The Xcode project is generated from `project.yml` via XcodeGen. **Never edit `.xcodeproj` directly** — modify `project.yml` and run `xcodegen generate`.
+Use the Firebase MCP tools (`mcp__plugin_firebase_firebase__*`) for:
+- **Inspecting Firestore data** — `firestore_get_document`, `firestore_query_collection` instead of manual console checks
+- **Managing auth users** — `auth_get_users` to look up test accounts
+- **Reading security rules** — `firebase_get_security_rules` before deploying changes
+- **Checking Cloud Functions** — `functions_list_functions`, `functions_get_logs` for debugging
+- **Crash investigation** — `crashlytics_list_events`, `crashlytics_get_issue` for production issues
 
-### Schema Migrations
+### Legacy iOS Conventions (Reference)
 
-To add a new SwiftData property:
-1. Add the property to the `@Model` class (with default value for lightweight migration)
-2. Copy `AppSchemaV{N}.swift` → `AppSchemaV{N+1}.swift`, bump `versionIdentifier`
-3. Add the new schema + lightweight `MigrationStage` to `AppSchemaMigrationPlan.swift`
-4. Update `AppModelContainer.swift` to reference the new schema version
-
-### Coding Conventions
-
-- **Custom `init(from decoder:)` requires `encode(to:)`** — Adding a custom Decodable init prevents auto-synthesis of Encodable. Always add both when customizing Codable.
-- **CloudKit Public DB writes require user auth** — API token alone only allows reads. Use CloudKit JS SDK with Apple ID sign-in for writes.
-- **SourceKit diagnostics are often false positives** — Always verify with `xcodebuild build` before acting on "Cannot find type" or "No such module" SourceKit errors.
-- **Swift Testing runner partitions show "Executed 0 tests"** — this is normal. Look for the aggregate "Executed N tests" line to confirm pass/fail.
-- `SundeeFundee/Packages/` showing as untracked in `git status` is expected — it's a git submodule.
-
-- **Benchmark `roundsAndReps` scoring** encodes as `rounds * 10000 + reps` in a single `Double`. Higher is better. Decode: `rounds = Int(value) / 10000`, `reps = Int(value) % 10000`.
-- **Never use `try!`** in production code — always use `(try? ...) ?? defaultValue` for repository calls. SwiftData context errors should degrade gracefully, not crash.
-- **Disable buttons for invalid input** rather than silently failing on save. Follow the pattern in `AddCustomBenchmarkSheet` (`.disabled(condition)`).
-- **Thread `userID`** from `AppState` through all data-writing operations. Use `appState.currentUserID ?? ""` at the call site; never hardcode empty strings in ViewModels or Repositories.
-- **Static helper methods** on Views are the preferred pattern for testability — actions, formatters, and computed state are extracted as `static func` so they can be unit tested without hosting the view.
-- **Phase transition dismissals** are persisted to `UserDefaults` under the key `dismissedPhaseTransitions` (keyed by injury ID → suggested phase raw value). Clear on phase change.
+- Enum properties on `@Model` types stored as `String` raw values (CloudKit requirement)
+- Custom `init(from decoder:)` requires `encode(to:)` (prevents auto-synthesis)
+- Xcode project generated from `project.yml` via XcodeGen — never edit `.xcodeproj` directly
+- `SundeeFundee/Packages/` showing as untracked in `git status` is expected (git submodule)
