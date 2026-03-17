@@ -62,13 +62,14 @@ Plans:
 
 ### Phase 17.1: Repo Restructure: Promote RN to Root (INSERTED)
 
-**Goal:** [Urgent work - to be planned]
-**Requirements**: TBD
+**Goal:** Promote the React Native app from SundeeFundeeRN/ subdirectory to the repo root, archive legacy Swift artifacts, and update all configuration references — so that all dev commands run from root without subdirectory prefixes
+**Requirements**: RESTRUCTURE-01, RESTRUCTURE-02
 **Depends on:** Phase 17
-**Plans:** 0 plans
+**Plans:** 2 plans
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 17.1 to break down)
+- [ ] 17.1-01-PLAN.md — Promote SundeeFundeeRN/ to root and archive legacy Swift
+- [ ] 17.1-02-PLAN.md — Update configs (.gitignore, firebase.json, CLAUDE.md) and validate test suite
 
 ### Phase 18: Foundation Config + Build Infrastructure
 **Goal**: All v1.1 native modules are registered in app.json, EAS production build profiles are locked in, Firebase App Check is confirmed active in production mode, and the iOS privacy manifest is present and correct — producing a new EAS development build that unblocks all subsequent phases
@@ -158,6 +159,7 @@ Plans:
 | 15. Wire AI Preview Adaptation Context | v1.0 | 1/1 | Complete | 2026-03-16 |
 | 16. Thread Weight Unit into Program Session | v1.0 | 1/1 | Complete | 2026-03-16 |
 | 17. Device Verification | v1.1 | 3/3 | Complete | 2026-03-17 |
+| 17.1 Repo Restructure | v1.1 | 0/2 | Not started | - |
 | 18. Foundation Config + Build Infrastructure | v1.1 | 0/TBD | Not started | - |
 | 19. Analytics + Crash Reporting | v1.1 | 0/TBD | Not started | - |
 | 20. Notification Infrastructure | v1.1 | 0/TBD | Not started | - |
