@@ -54,7 +54,11 @@ Full details: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
   2. User can complete a full workout (start → log sets → finish) on iOS simulator and Android emulator without any blocking errors
   3. User can complete a workout in airplane mode and, upon reconnecting, see their completed workout appear in history without manual intervention
   4. User can sign in with Apple, Google, email/password, and as guest, and a guest user can upgrade to a full account with their existing data preserved — all on both platforms
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 17-01-PLAN.md — Environment setup and blocker-tier verification sweep (8 items)
+- [ ] 17-02-PLAN.md — Degraded-tier and cosmetic-tier verification sweep (25 items)
+- [ ] 17-03-PLAN.md — Cross-platform smoke tests, offline verification, and auth flow matrix
 
 ### Phase 18: Foundation Config + Build Infrastructure
 **Goal**: All v1.1 native modules are registered in app.json, EAS production build profiles are locked in, Firebase App Check is confirmed active in production mode, and the iOS privacy manifest is present and correct — producing a new EAS development build that unblocks all subsequent phases
@@ -143,7 +147,7 @@ Full details: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 | 14. Fix Readiness Survey Persistence | v1.0 | 1/1 | Complete | 2026-03-16 |
 | 15. Wire AI Preview Adaptation Context | v1.0 | 1/1 | Complete | 2026-03-16 |
 | 16. Thread Weight Unit into Program Session | v1.0 | 1/1 | Complete | 2026-03-16 |
-| 17. Device Verification | v1.1 | 0/TBD | Not started | - |
+| 17. Device Verification | v1.1 | 0/3 | Planning | - |
 | 18. Foundation Config + Build Infrastructure | v1.1 | 0/TBD | Not started | - |
 | 19. Analytics + Crash Reporting | v1.1 | 0/TBD | Not started | - |
 | 20. Notification Infrastructure | v1.1 | 0/TBD | Not started | - |
