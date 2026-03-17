@@ -35,6 +35,54 @@ Use these MCP servers for development tasks instead of manual CLI commands where
 - **`tap` / `swipe` / `type_text`** — Automate UI interactions for verification
 - **`launch_app` / `terminate_app`** — App lifecycle control
 
+### Codebase Memory MCP (`mcp__codebase-memory-mcp__*`)
+
+Use this MCP to **reduce context usage** by querying an indexed code graph instead of reading large files directly.
+
+- **`index_repository`** — Index the repo into a code graph (functions, classes, call relationships). Run once, then incremental updates auto-sync. Use `mode='fast'` for large repos.
+- **`index_status`** — Check if the graph is ready for queries before using other tools.
+- **`get_architecture`** — Get codebase architecture overview (languages, packages, entry points, hotspots, layers, clusters). **Call this first when exploring an unfamiliar area** instead of reading many files.
+- **`search_graph`** — Find functions, classes, modules by name pattern. Case-insensitive regex. Use before `trace_call_path` or `get_code_snippet`.
+- **`get_code_snippet`** — Retrieve source code for a specific function/class by name with metadata (signature, complexity, callers/callees). **Use instead of reading entire files** when you only need one function.
+- **`trace_call_path`** — Trace who calls a function and what it calls (BFS traversal). Use `depth=1` first.
+- **`search_code`** — Grep-like text search scoped to the indexed project. Good for string literals, TODOs, error messages.
+- **`query_graph`** — Execute Cypher-like queries for complex relationship patterns and edge property filtering.
+- **`detect_changes`** — Map git diff to affected graph symbols + blast radius with risk classification. Use before reviewing PRs or after making changes.
+- **`manage_adr`** — CRUD for Architecture Decision Records. Fetch ADR before finalizing implementation plans to validate against architecture/patterns/philosophy.
+
+**Context-saving workflow:** `index_status` → `get_architecture` → `search_graph` → `get_code_snippet` (instead of globbing + reading entire files).
+
+### Claude-in-Mobile MCP (`mcp__claude-in-mobile__*`)
+- **`screenshot` / `get_ui`** — Capture device screen and get element tree
+- **`tap` / `swipe` / `input_text`** — Interact with mobile/desktop UI elements
+- **`find_and_tap` / `tap_by_text`** — Find and tap elements by text content
+- **`browser_open` / `browser_navigate` / `browser_screenshot`** — Automate web browser sessions
+- **`launch_app` / `stop_app`** — Control app lifecycle on connected devices
+- **`list_devices` / `set_device`** — Discover and select connected devices
+- **`assert_visible` / `wait_for_element`** — Verify UI state during testing
+
+### GitHub MCP (`mcp__github__*`)
+- **`list_pull_requests` / `get_pull_request`** — Inspect PRs, their files, reviews, and status
+- **`create_pull_request` / `merge_pull_request`** — Create and merge PRs
+- **`list_issues` / `create_issue` / `update_issue`** — Manage GitHub issues
+- **`search_code` / `search_issues`** — Search across GitHub repositories
+- **`create_branch` / `list_commits`** — Branch and commit management
+
+### Gemini CLI MCP (`mcp__gemini-cli__*`)
+- **`ask-gemini`** — Query Gemini for a second opinion, alternative approaches, or domain knowledge
+- **`brainstorm`** — Use Gemini for brainstorming ideas and exploring solution spaces
+
+### Qwen Code MCP (`mcp__qwen-code__*`)
+- **`ask-qwen`** — Query Qwen for additional perspective or code generation alternatives
+- **`brainstorm`** — Use Qwen for brainstorming
+
+### Playwright MCP (`mcp__plugin_playwright_playwright__*`)
+- **`browser_navigate` / `browser_snapshot`** — Navigate and inspect web pages
+- **`browser_click` / `browser_fill_form` / `browser_type`** — Interact with web UI elements
+- **`browser_take_screenshot`** — Capture browser screenshots for visual verification
+- **`browser_evaluate`** — Execute JavaScript in browser context
+- **`browser_wait_for`** — Wait for specific conditions before proceeding
+
 ### Context7 MCP (`mcp__plugin_context7_context7__*`)
 - **`resolve-library-id` / `query-docs`** — Look up latest docs for any library (React Native, Firebase, etc.)
 
