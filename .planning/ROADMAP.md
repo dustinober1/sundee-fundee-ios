@@ -95,7 +95,11 @@ Plans:
   3. Firebase Analytics shows subscription_tier and cycle_tracking_enabled user properties set correctly for both free and premium users
   4. Crashlytics dashboard receives a test non-fatal error (via recordError) from a preview build, with current_screen, subscription_tier, and cycle_phase custom keys attached
   5. Running eas update produces a published update that installs on a connected device without requiring a new binary build
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 19-01-PLAN.md — Jest mocks, analytics/crashlytics helpers, screen tracking hook, and unit tests
+- [ ] 19-02-PLAN.md — Wire screen tracking, key events, user properties, and Crashlytics keys into app screens
+- [ ] 19-03-PLAN.md — Install expo-updates and configure EAS Update channels
 
 ### Phase 20: Notification Infrastructure
 **Goal**: Users receive a local push when their rest timer expires in the background, can grant notification permission after their first workout, have their FCM token stored in Firestore, and can configure notification preferences — including a daily reminder with cycle-phase-aware copy
@@ -164,7 +168,7 @@ Plans:
 | 17. Device Verification | v1.1 | 3/3 | Complete | 2026-03-17 |
 | 17.1 Repo Restructure | 2/2 | Complete    | 2026-03-17 | - |
 | 18. Foundation Config + Build Infrastructure | 2/2 | Complete    | 2026-03-18 | - |
-| 19. Analytics + Crash Reporting | v1.1 | 0/TBD | Not started | - |
+| 19. Analytics + Crash Reporting | v1.1 | 0/3 | Not started | - |
 | 20. Notification Infrastructure | v1.1 | 0/TBD | Not started | - |
 | 21. Remote Notifications | v1.1 | 0/TBD | Not started | - |
 | 22. Security + Store Prep | v1.1 | 0/TBD | Not started | - |
