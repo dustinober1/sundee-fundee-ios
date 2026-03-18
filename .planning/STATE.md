@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Launch Readiness
 status: completed
-stopped_at: Completed 18-01-PLAN.md
-last_updated: "2026-03-17T13:07:58.196Z"
-last_activity: 2026-03-17 — Phase 17.1 Plan 02 complete; configs updated, tests validated at root
+stopped_at: Completed 18-02-PLAN.md
+last_updated: "2026-03-18T03:59:21.348Z"
+last_activity: 2026-03-17 — Phase 18 Plan 02 complete; EAS dev builds verified on physical devices with App Check attestation
 progress:
   total_phases: 8
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 7
-  completed_plans: 6
+  completed_plans: 7
 ---
 
 # Project State
@@ -20,16 +20,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-16)
 
 **Core value:** Users get personalized, cycle-aware strength training that adapts to their body — available on any platform, online or offline.
-**Current focus:** Phase 17.1 — Repo Restructure (Promote RN to Root)
+**Current focus:** Phase 18 — Foundation Config + Build Infrastructure (Complete)
 
 ## Current Position
 
-Phase: 17.1 (Repo Restructure — Promote RN to Root)
+Phase: 18 (Foundation Config + Build Infrastructure)
 Plan: 2 of 2 in current phase (Plan 02 complete)
-Status: Phase 17.1 Complete — all plans executed
+Status: Phase 18 Complete — all plans executed
 Last activity: 2026-03-17 — Phase 17.1 Plan 02 complete; configs updated, tests validated at root
 
-Progress (v1.1): [██████████] 100% (5/5 plans complete)
+Progress (v1.1): [██████████] 100% (7/7 plans complete)
 
 ## Accumulated Context
 
@@ -50,6 +50,8 @@ Progress (v1.1): [██████████] 100% (5/5 plans complete)
 - [Phase 18-01]: analytics has no config plugin — only forceStaticLinking entry added, not plugins array
 - [Phase 18-01]: initFirebase() order: AppCheck first (secures all Firebase calls), then Crashlytics, Analytics, Messaging
 - [Phase 18-01]: EXPO_PUBLIC_APP_CHECK_DEBUG_TOKEN replaces FIREBASE_APP_CHECK_DEBUG_TOKEN in eas.json — only EXPO_PUBLIC_ vars accessible in JS runtime
+- [Phase 18-02]: EAS managed credentials used for both platforms; ascAppId 6759870888 for iOS submission
+- [Phase 18-02]: ITSAppUsesNonExemptEncryption set to false via app.config.js (app uses HTTPS only)
 
 ### Roadmap Evolution
 
@@ -62,13 +64,13 @@ None yet.
 ### Blockers/Concerns
 
 - [Phase 17]: ~30 human verification items from v1.0 need triage — some may require code fixes
-- [Phase 18]: @react-native-firebase/messaging + /crashlytics + /analytics require new EAS dev build before phases 19/20 can be device-tested
+- [Phase 18]: RESOLVED — EAS dev builds with messaging/crashlytics/analytics verified on physical devices (18-02)
 - [Phase 18]: PrivacyInfo.xcprivacy required for App Store — cycle data must be declared as sensitive health information linked to user identity (ITMS-91053 rejection risk)
 - [Phase 22]: Firestore security rules not yet deployed to production
 - [Phase 23]: First Android Play Store submission must be a manual AAB upload — EAS Submit cannot do a first-ever submission
 
 ## Session Continuity
 
-Last session: 2026-03-17T13:07:58.194Z
-Stopped at: Completed 18-01-PLAN.md
+Last session: 2026-03-18T03:59:19.582Z
+Stopped at: Completed 18-02-PLAN.md
 Resume file: None

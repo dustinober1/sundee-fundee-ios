@@ -31,7 +31,7 @@ Requirements for launch readiness. Each maps to roadmap phases.
 
 - [ ] **SEC-01**: Firestore security rules deployed to production (auth-gated user docs, public read for programs/WODs)
 - [ ] **SEC-02**: Firestore rules validated via Rules Simulator before deploy
-- [ ] **SEC-03**: Firebase App Check confirmed active in production mode (DeviceCheck iOS, Play Integrity Android)
+- [x] **SEC-03**: Firebase App Check confirmed active in production mode (DeviceCheck iOS, Play Integrity Android)
 - [x] **SEC-04**: PrivacyInfo.xcprivacy privacy manifest added with correct SDK declarations
 
 ### Store Submission
@@ -101,7 +101,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ANLYT-06 | Phase 19 | Pending |
 | SEC-01 | Phase 22 | Pending |
 | SEC-02 | Phase 22 | Pending |
-| SEC-03 | Phase 18 | Pending |
+| SEC-03 | Phase 18 | Complete |
 | SEC-04 | Phase 18 | Complete |
 | STORE-01 | Phase 18 | Complete |
 | STORE-02 | Phase 22 | Pending |

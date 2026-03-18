@@ -36,7 +36,7 @@ Full details: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 **Milestone Goal:** Get the app verified on real devices, instrumented with analytics and crash reporting, equipped with push notifications, and submitted to all three platforms (iOS, Android, Web).
 
 - [x] **Phase 17: Device Verification** - Triage and resolve all ~30 v1.0 human verification items; confirm core flows on simulator, emulator, and offline
-- [ ] **Phase 18: Foundation Config + Build Infrastructure** - Add all v1.1 native modules to app.json, configure EAS production build profiles, confirm App Check in production mode, add PrivacyInfo.xcprivacy
+- [x] **Phase 18: Foundation Config + Build Infrastructure** - Add all v1.1 native modules to app.json, configure EAS production build profiles, confirm App Check in production mode, add PrivacyInfo.xcprivacy (completed 2026-03-18)
 - [ ] **Phase 19: Analytics + Crash Reporting** - Wire Firebase Analytics and Crashlytics into the app with platform-branched wrappers, key event instrumentation, and OTA update capability
 - [ ] **Phase 20: Notification Infrastructure** - Build the full local notification and FCM token pipeline; wire rest timer notification, deferred permission prompt, notification preferences, and cycle-aware reminder copy
 - [ ] **Phase 21: Remote Notifications** - Implement Cloud Functions for WOD and subscription expiry FCM fan-out
@@ -82,8 +82,8 @@ Plans:
   4. PrivacyInfo.xcprivacy exists in the iOS project with correct NSPrivacyAccessedAPICategory entries for cycle/health data classified as sensitive health information linked to user identity
 **Plans**: 2 plans
 Plans:
-- [ ] 18-01-PLAN.md — Install RNFB modules, update config files (app.json, eas.json, firebase.json), create Firebase init modules and validation tests
-- [ ] 18-02-PLAN.md — Trigger EAS dev builds and verify on physical devices with App Check attestation
+- [x] 18-01-PLAN.md — Install RNFB modules, update config files (app.json, eas.json, firebase.json), create Firebase init modules and validation tests
+- [x] 18-02-PLAN.md — Trigger EAS dev builds and verify on physical devices with App Check attestation
 
 ### Phase 19: Analytics + Crash Reporting
 **Goal**: The app is fully observable in production — screen views and key events are tracked in Firebase Analytics, crashes and JS errors are captured by Crashlytics, user properties are set, and OTA update capability is active
@@ -163,7 +163,7 @@ Plans:
 | 16. Thread Weight Unit into Program Session | v1.0 | 1/1 | Complete | 2026-03-16 |
 | 17. Device Verification | v1.1 | 3/3 | Complete | 2026-03-17 |
 | 17.1 Repo Restructure | 2/2 | Complete    | 2026-03-17 | - |
-| 18. Foundation Config + Build Infrastructure | 1/2 | In Progress|  | - |
+| 18. Foundation Config + Build Infrastructure | 2/2 | Complete   | 2026-03-18 | - |
 | 19. Analytics + Crash Reporting | v1.1 | 0/TBD | Not started | - |
 | 20. Notification Infrastructure | v1.1 | 0/TBD | Not started | - |
 | 21. Remote Notifications | v1.1 | 0/TBD | Not started | - |
