@@ -21,6 +21,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSession } from '@/src/auth/AuthContext';
+import { logEvent } from '@/src/firebase/analytics';
 import {
   CREAM,
   CREAM_LIGHT,
@@ -160,6 +161,7 @@ export function PaywallModal({
             ? 'com.sundeefundee.premium.annual'
             : 'com.sundeefundee.premium.monthly';
         await Purchases.purchaseProduct(productId);
+        void logEvent('subscription_started', { source: 'paywall' });
         onSubscribed();
         return;
       }
@@ -168,6 +170,7 @@ export function PaywallModal({
       const activeEntitlements = customerInfo?.entitlements?.active ?? {};
 
       if ('premium' in activeEntitlements) {
+        void logEvent('subscription_started', { source: 'paywall' });
         onSubscribed();
       }
     } catch (error: unknown) {

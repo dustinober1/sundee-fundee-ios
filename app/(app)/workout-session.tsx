@@ -62,6 +62,7 @@ import {
   GREY,
   GREY_LIGHT,
 } from '@/src/theme/colors';
+import { logEvent } from '@/src/firebase/analytics';
 
 // ─── Default rest duration ────────────────────────────────────────────────────
 
@@ -254,6 +255,7 @@ export default function WorkoutSessionScreen(): React.JSX.Element {
   useEffect(() => {
     if (!isActive && !hasStartedRef.current) {
       startWorkout();
+      void logEvent('workout_started');
       hasStartedRef.current = true;
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -382,6 +384,7 @@ export default function WorkoutSessionScreen(): React.JSX.Element {
         onPress: async () => {
           restTimer.skip();
           await finishWorkout(user?.uid ?? '');
+          void logEvent('workout_completed');
           router.back();
         },
       },

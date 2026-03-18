@@ -52,6 +52,7 @@ import type { WorkoutGenerationContext, InjurySummary } from '@/src/domain/ai-wo
 import { ConfigCards, type CardOption } from '@/src/components/ai-workout/ConfigCards';
 import { AdaptationChip } from '@/src/components/ai-workout/AdaptationChip';
 import { PaywallModal } from '@/src/components/paywall/PaywallModal';
+import { logEvent } from '@/src/firebase/analytics';
 import * as colors from '@/src/theme/colors';
 
 // ─── Option definitions ───────────────────────────────────────────────────────
@@ -293,6 +294,7 @@ export default function AIWorkoutConfigScreen(): React.JSX.Element {
         injuries.filter((i) => i.recoveryPhase !== 'resolved'),
         readiness,
       );
+      void logEvent('ai_workout_generated');
       router.push('/ai-workout/preview' as never);
     } catch (error) {
       console.error('[AIWorkout] Generation failed:', error);

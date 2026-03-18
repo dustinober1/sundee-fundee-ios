@@ -47,6 +47,7 @@ import PhaseTimeline, {
 } from '@/src/components/cycle/PhaseTimeline';
 import { PaywallModal } from '@/src/components/paywall/PaywallModal';
 import { PremiumBadge } from '@/src/components/paywall/PremiumBadge';
+import { logEvent } from '@/src/firebase/analytics';
 import * as colors from '@/src/theme/colors';
 import { format } from 'date-fns';
 
@@ -155,6 +156,7 @@ export default function CycleScreen(): React.JSX.Element {
       };
       const record = periodLogToRecord(user.uid, generateId(), log);
       await getCycleRepo(isGuest).savePeriodLog(user.uid, record);
+      void logEvent('cycle_phase_updated');
       // Reload data to reflect new log
       await loadCycleData();
     } catch {
