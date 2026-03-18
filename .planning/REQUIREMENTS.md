@@ -20,11 +20,11 @@ Requirements for launch readiness. Each maps to roadmap phases.
 
 ### Analytics
 
-- [ ] **ANLYT-01**: Firebase Analytics tracks screen views automatically via Expo Router
-- [ ] **ANLYT-02**: Key events logged: workout_started, workout_completed, subscription_started, ai_workout_generated, cycle_phase_updated
-- [ ] **ANLYT-03**: User properties set for subscription tier (free/premium) and cycle tracking opt-in
-- [ ] **ANLYT-04**: Crashlytics captures native crashes and JS errors via recordError()
-- [ ] **ANLYT-05**: Crashlytics custom keys attached: current screen, subscription tier, cycle phase
+- [x] **ANLYT-01**: Firebase Analytics tracks screen views automatically via Expo Router
+- [x] **ANLYT-02**: Key events logged: workout_started, workout_completed, subscription_started, ai_workout_generated, cycle_phase_updated
+- [x] **ANLYT-03**: User properties set for subscription tier (free/premium) and cycle tracking opt-in
+- [x] **ANLYT-04**: Crashlytics captures native crashes and JS errors via recordError()
+- [x] **ANLYT-05**: Crashlytics custom keys attached: current screen, subscription tier, cycle phase
 - [x] **ANLYT-06**: OTA update capability via EAS Update for JS-layer hotfixes
 
 ### Security
@@ -93,11 +93,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | NOTIF-06 | Phase 20 | Pending |
 | NOTIF-07 | Phase 20 | Pending |
 | NOTIF-08 | Phase 20 | Pending |
-| ANLYT-01 | Phase 19 | Pending |
-| ANLYT-02 | Phase 19 | Pending |
-| ANLYT-03 | Phase 19 | Pending |
-| ANLYT-04 | Phase 19 | Pending |
-| ANLYT-05 | Phase 19 | Pending |
+| ANLYT-01 | Phase 19 | Complete |
+| ANLYT-02 | Phase 19 | Complete |
+| ANLYT-03 | Phase 19 | Complete |
+| ANLYT-04 | Phase 19 | Complete |
+| ANLYT-05 | Phase 19 | Complete |
 | ANLYT-06 | Phase 19 | Complete |
 | SEC-01 | Phase 22 | Pending |
 | SEC-02 | Phase 22 | Pending |

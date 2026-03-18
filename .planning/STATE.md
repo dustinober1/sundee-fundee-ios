@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Launch Readiness
 status: completed
-stopped_at: "Checkpoint 19-03: awaiting user verification of EAS Update configuration"
-last_updated: "2026-03-18T05:00:52.128Z"
+stopped_at: Completed 19-01-PLAN.md
+last_updated: "2026-03-18T05:01:55.138Z"
 last_activity: 2026-03-17 — Phase 17.1 Plan 02 complete; configs updated, tests validated at root
 progress:
   total_phases: 8
   completed_phases: 3
   total_plans: 10
-  completed_plans: 8
+  completed_plans: 9
 ---
 
 # Project State
@@ -20,16 +20,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-16)
 
 **Core value:** Users get personalized, cycle-aware strength training that adapts to their body — available on any platform, online or offline.
-**Current focus:** Phase 18 — Foundation Config + Build Infrastructure (Complete)
+**Current focus:** Phase 19 — Analytics + Crash Reporting (In Progress)
 
 ## Current Position
 
-Phase: 18 (Foundation Config + Build Infrastructure)
-Plan: 2 of 2 in current phase (Plan 02 complete)
-Status: Phase 18 Complete — all plans executed
-Last activity: 2026-03-17 — Phase 17.1 Plan 02 complete; configs updated, tests validated at root
+Phase: 19 (Analytics + Crash Reporting)
+Plan: 1 of 3 in current phase (Plan 01 complete)
+Status: Phase 19 In Progress — Plan 01 complete, Plans 02-03 pending
+Last activity: 2026-03-18 — Phase 19 Plan 01 complete; analytics/crashlytics helpers, mocks, and unit tests added
 
-Progress (v1.1): [██████████] 100% (7/7 plans complete)
+Progress (v1.1): [█████████░] 90% (9/10 plans complete)
 
 ## Accumulated Context
 
@@ -54,6 +54,9 @@ Progress (v1.1): [██████████] 100% (7/7 plans complete)
 - [Phase 18-02]: ITSAppUsesNonExemptEncryption set to false via app.config.js (app uses HTTPS only)
 - [Phase 19-03]: runtimeVersion policy appVersion: OTA updates scoped to matching app version, preventing incompatible updates
 - [Phase 19-03]: development build profile excludes OTA channel — dev client handles dev builds, not expo-updates
+- [Phase 19-01]: Use require() inside try/catch for RNFB wrappers — consistent with initAnalytics/initCrashlytics pattern, non-fatal on missing native module
+- [Phase 19-01]: Firebase user property values must be strings — cycleTrackingEnabled boolean stringified via String() before setUserProperties call
+- [Phase 19-01]: setCrashlyticsKeys skips setAttributes entirely when no keys defined — avoids unnecessary native bridge round-trip
 
 ### Roadmap Evolution
 
@@ -73,6 +76,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-18T05:00:47.802Z
-Stopped at: Checkpoint 19-03: awaiting user verification of EAS Update configuration
+Last session: 2026-03-18T05:01:55.136Z
+Stopped at: Completed 19-01-PLAN.md
 Resume file: None
