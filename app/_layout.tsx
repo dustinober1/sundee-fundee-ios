@@ -17,6 +17,9 @@ import { Stack } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { AuthUser } from '@/src/firebase/auth';
 import { initFirebase } from '@/src/firebase/init';
+import { setUserProperties } from '@/src/firebase/analytics';
+import { setCrashlyticsKeys } from '@/src/firebase/crashlytics';
+import { useScreenTracking } from '@/src/hooks/useScreenTracking';
 
 import { SessionProvider } from '@/src/auth/AuthContext';
 import { EntitlementProvider } from '@/src/entitlements/EntitlementContext';
@@ -117,6 +120,8 @@ function buildUserProfile(user: AuthUser): UserProfile {
 // ─── Root Layout ──────────────────────────────────────────────────────────────
 
 export default function RootLayout(): React.JSX.Element {
+  useScreenTracking();
+
   useEffect(() => {
     // Initialize all Firebase modules (App Check, Crashlytics, Analytics, Messaging).
     // App Check is first to secure all subsequent Firebase calls.
@@ -159,6 +164,21 @@ export default function RootLayout(): React.JSX.Element {
           // RC logIn failure is non-fatal — entitlement checks will still work
           // via getCustomerInfo fallback in useEntitlements
         }
+      }
+
+      // Set analytics user properties and Crashlytics custom keys on sign-in.
+      // Default to 'free' — actual tier refined when EntitlementProvider loads.
+      const subscriptionTier: 'free' | 'premium' = 'free';
+      void setUserProperties({ subscriptionTier, cycleTrackingEnabled: false });
+      void setCrashlyticsKeys({ subscriptionTier, cyclePhase: 'unknown' });
+
+      // Set Crashlytics user ID for crash correlation.
+      if (Platform.OS !== 'web') {
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-require-imports
+          const crashlytics = require('@react-native-firebase/crashlytics').default;
+          void crashlytics().setUserId(user.uid);
+        } catch { /* non-fatal */ }
       }
 
       // Retry any pending guest-to-auth migration for non-anonymous users.
