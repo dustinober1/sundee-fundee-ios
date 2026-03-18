@@ -7,7 +7,7 @@
       "developmentClient": true,
       "distribution": "internal",
       "env": {
-        "EXPO_PUBLIC_APP_CHECK_DEBUG_TOKEN": "<token-from-firebase-console>"
+        "EXPO_PUBLIC_APP_CHECK_DEBUG_TOKEN": "9B70FF35-D155-43B5-BBAB-837C08669E6F"
       }
     },
     "preview": {
@@ -18,7 +18,7 @@
   "submit": {
     "production": {
       "ios": {
-        "ascAppId": "REPLACE_WITH_APP_STORE_CONNECT_APP_ID"
+        "ascAppId": "6759870888"
       },
       "android": {
         "track": "internal"
