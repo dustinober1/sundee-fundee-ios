@@ -41,3 +41,64 @@ export function initCrashlytics(): void {
     console.warn('[Crashlytics] Initialization failed:', err);
   }
 }
+
+/**
+ * Record a caught error in Crashlytics for crash analysis.
+ *
+ * Optionally logs a context string before the error for easier triage.
+ * No-op on web — RNFB crashlytics does not apply on web platform.
+ * Failure is non-fatal; missing native module is caught and ignored.
+ *
+ * @param error - The Error object to record
+ * @param context - Optional context string logged before the error (e.g., 'WorkoutSave')
+ */
+export function recordError(error: Error, context?: string): void {
+  if (Platform.OS === 'web') return;
+
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const crashlytics = require('@react-native-firebase/crashlytics').default;
+    if (context) {
+      crashlytics().log(context);
+    }
+    crashlytics().recordError(error);
+  } catch {
+    // Non-fatal — crashlytics failure must never crash the app.
+  }
+}
+
+/**
+ * Set persistent key-value attributes on the Crashlytics session.
+ *
+ * Attributes appear on every crash report from this session, enabling
+ * segmentation by subscription tier, cycle phase, etc.
+ *
+ * Undefined keys are omitted — only defined keys are sent.
+ * No-op on web — RNFB crashlytics does not apply on web platform.
+ *
+ * @param keys - Typed session attributes to attach to crash reports
+ */
+export async function setCrashlyticsKeys(keys: {
+  subscriptionTier?: 'free' | 'premium';
+  cyclePhase?: string;
+}): Promise<void> {
+  if (Platform.OS === 'web') return;
+
+  const attrs: Record<string, string> = {};
+  if (keys.subscriptionTier !== undefined) {
+    attrs['subscription_tier'] = keys.subscriptionTier;
+  }
+  if (keys.cyclePhase !== undefined) {
+    attrs['cycle_phase'] = keys.cyclePhase;
+  }
+
+  if (Object.keys(attrs).length === 0) return;
+
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const crashlytics = require('@react-native-firebase/crashlytics').default;
+    await crashlytics().setAttributes(attrs);
+  } catch {
+    // Non-fatal — crashlytics failure must never crash the app.
+  }
+}
