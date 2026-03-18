@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Launch Readiness
 status: completed
-stopped_at: Completed 18-02-PLAN.md
-last_updated: "2026-03-18T04:02:45.470Z"
+stopped_at: "Checkpoint 19-03: awaiting user verification of EAS Update configuration"
+last_updated: "2026-03-18T05:00:52.128Z"
 last_activity: 2026-03-17 — Phase 17.1 Plan 02 complete; configs updated, tests validated at root
 progress:
   total_phases: 8
   completed_phases: 3
-  total_plans: 7
-  completed_plans: 7
+  total_plans: 10
+  completed_plans: 8
 ---
 
 # Project State
@@ -52,6 +52,8 @@ Progress (v1.1): [██████████] 100% (7/7 plans complete)
 - [Phase 18-01]: EXPO_PUBLIC_APP_CHECK_DEBUG_TOKEN replaces FIREBASE_APP_CHECK_DEBUG_TOKEN in eas.json — only EXPO_PUBLIC_ vars accessible in JS runtime
 - [Phase 18-02]: EAS managed credentials used for both platforms; ascAppId 6759870888 for iOS submission
 - [Phase 18-02]: ITSAppUsesNonExemptEncryption set to false via app.config.js (app uses HTTPS only)
+- [Phase 19-03]: runtimeVersion policy appVersion: OTA updates scoped to matching app version, preventing incompatible updates
+- [Phase 19-03]: development build profile excludes OTA channel — dev client handles dev builds, not expo-updates
 
 ### Roadmap Evolution
 
@@ -71,6 +73,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-18T03:59:19.582Z
-Stopped at: Completed 18-02-PLAN.md
+Last session: 2026-03-18T05:00:47.802Z
+Stopped at: Checkpoint 19-03: awaiting user verification of EAS Update configuration
 Resume file: None

@@ -25,7 +25,7 @@ Requirements for launch readiness. Each maps to roadmap phases.
 - [ ] **ANLYT-03**: User properties set for subscription tier (free/premium) and cycle tracking opt-in
 - [ ] **ANLYT-04**: Crashlytics captures native crashes and JS errors via recordError()
 - [ ] **ANLYT-05**: Crashlytics custom keys attached: current screen, subscription tier, cycle phase
-- [ ] **ANLYT-06**: OTA update capability via EAS Update for JS-layer hotfixes
+- [x] **ANLYT-06**: OTA update capability via EAS Update for JS-layer hotfixes
 
 ### Security
 
@@ -98,7 +98,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ANLYT-03 | Phase 19 | Pending |
 | ANLYT-04 | Phase 19 | Pending |
 | ANLYT-05 | Phase 19 | Pending |
-| ANLYT-06 | Phase 19 | Pending |
+| ANLYT-06 | Phase 19 | Complete |
 | SEC-01 | Phase 22 | Pending |
 | SEC-02 | Phase 22 | Pending |
 | SEC-03 | Phase 18 | Complete |
