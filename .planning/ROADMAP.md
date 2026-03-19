@@ -111,7 +111,11 @@ Plans:
   3. After granting permission, the user's FCM push token is saved to their Firestore user document and is readable in the Firebase console
   4. User can open Settings and toggle notification types (rest timer, reminders, WOD, subscription) on or off, with the preference persisted across app restarts
   5. When the user schedules a daily workout reminder and has cycle tracking enabled, the delivered notification body contains cycle-phase-aware copy (e.g., references their current phase)
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 20-01-PLAN.md — Extend AppSettings, create notification service + domain copy + permission hook + tests
+- [ ] 20-02-PLAN.md — Permission modal, rest timer refactor, Android channels, FCM token wiring
+- [ ] 20-03-PLAN.md — Settings screen notification toggles, time picker, and end-to-end verification
 
 ### Phase 21: Remote Notifications
 **Goal**: Users receive a remote push notification when a new WOD is published and when their subscription is approaching or at expiry — delivered via Cloud Functions to all registered FCM tokens
@@ -169,7 +173,7 @@ Plans:
 | 17.1 Repo Restructure | 2/2 | Complete    | 2026-03-17 | - |
 | 18. Foundation Config + Build Infrastructure | 2/2 | Complete    | 2026-03-18 | - |
 | 19. Analytics + Crash Reporting | 3/3 | Complete    | 2026-03-18 | - |
-| 20. Notification Infrastructure | v1.1 | 0/TBD | Not started | - |
+| 20. Notification Infrastructure | v1.1 | 0/3 | Not started | - |
 | 21. Remote Notifications | v1.1 | 0/TBD | Not started | - |
 | 22. Security + Store Prep | v1.1 | 0/TBD | Not started | - |
 | 23. Production Submission | v1.1 | 0/TBD | Not started | - |
