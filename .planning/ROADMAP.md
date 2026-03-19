@@ -49,14 +49,12 @@ Plans:
   2. A new install on a second device shows the user's full workout history after CloudKit sync completes
   3. If iCloud is unavailable, the app shows a clear error message rather than silently deleting local data
   4. The Production CloudKit schema is deployed before TestFlight distribution — the app works in TestFlight, not just Development
-**Plans**: TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 02-01: CloudKit model compatibility audit — verify all 22 V12 models for optional properties, no .unique, no .deny delete rules
-- [ ] 02-02: Activate CloudKit flag and entitlements — flip production flag, add iCloud entitlement to project.yml
-- [ ] 02-03: Deploy Production CloudKit schema via CloudKit Console
-- [ ] 02-04: Add container open failure alert — replace silent store deletion with user-facing error + temp copy safeguard
-- [ ] 02-05: Validate sync on two physical devices via TestFlight
+- [ ] 02-01-PLAN.md — Remove @Attribute(.unique) violations, wire Debug entitlement, flip useCloudKit flag (SYNC-01, SYNC-03)
+- [ ] 02-02-PLAN.md — Add container failure alert with safe local fallback (SYNC-04)
+- [ ] 02-03-PLAN.md — Deploy Production CloudKit schema + two-device TestFlight sync verification (SYNC-02, SYNC-03)
 
 ### Phase 3: Push Notifications
 **Goal**: Users receive APNs notifications for rest timer expiry, workout reminders, new WODs, and streak warnings — each toggleable in Settings
@@ -175,7 +173,7 @@ Note: Phase 7 (Data & Analytics) depends only on Phase 2 and can be worked in pa
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Critical Bug Fixes | 1/3 | In Progress|  |
-| 2. CloudKit Activation | 0/5 | Not started | - |
+| 2. CloudKit Activation | 0/3 | Not started | - |
 | 3. Push Notifications | 0/7 | Not started | - |
 | 4. watchOS Scaffold | 0/5 | Not started | - |
 | 5. watchOS Core Workout | 0/7 | Not started | - |
