@@ -33,14 +33,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. A guest user who creates an account retains all workout data they logged before signing in (stable UUID preserved)
   4. The app shows free-tier access on cold launch until StoreKit verification completes — no brief premium window
   5. SwiftData migration runs against both the CloudKit-backed and local persistent store paths without boot crash
-**Plans**: TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 01-01: Fix AI weight unit — thread user preference through Cloudflare Worker prompt
-- [ ] 01-02: Fix sign-out/delete schema reference — update to V12 from stale V10
-- [ ] 01-03: Fix guest userID — generate stable UUID at first launch, persist to Keychain
-- [ ] 01-04: Fix StoreKit cold-launch gate — default to free tier until async verification resolves
-- [ ] 01-05: Fix SwiftData migration plan path — apply migrationPlan to local persistent store path
+- [ ] 01-01-PLAN.md — Fix SwiftData migration path + StoreKit cold-launch gate (FIX-04, FIX-05)
+- [ ] 01-02-PLAN.md — Fix sign-out/delete schema wipe + guest UUID stability (FIX-02, FIX-03)
+- [ ] 01-03-PLAN.md — Fix AI weight unit threading in prompt builder (FIX-01)
 
 ### Phase 2: CloudKit Activation
 **Goal**: User workout data syncs across all their Apple devices via iCloud, with the production schema deployed and container failure surfaced as a user-visible error rather than silent store deletion
@@ -176,7 +174,7 @@ Note: Phase 7 (Data & Analytics) depends only on Phase 2 and can be worked in pa
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Critical Bug Fixes | 0/5 | Not started | - |
+| 1. Critical Bug Fixes | 0/3 | Planning complete | - |
 | 2. CloudKit Activation | 0/5 | Not started | - |
 | 3. Push Notifications | 0/7 | Not started | - |
 | 4. watchOS Scaffold | 0/5 | Not started | - |
