@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Launch Readiness
 status: completed
-stopped_at: Completed 20-01-PLAN.md
-last_updated: "2026-03-19T00:44:54.604Z"
+stopped_at: Completed 20-02-PLAN.md
+last_updated: "2026-03-19T00:51:27.117Z"
 last_activity: 2026-03-18 — Phase 19 Plan 02 complete; analytics wiring and event logging added to 5 app files
 progress:
   total_phases: 8
   completed_phases: 4
   total_plans: 13
-  completed_plans: 11
+  completed_plans: 12
 ---
 
 # Project State
@@ -62,6 +62,9 @@ Progress (v1.1): [██████████] 100% (10/10 plans complete)
 - [Phase 19]: subscription_started fires on both purchaseProduct and purchasePackage code paths in PaywallModal for full purchase coverage
 - [Phase 20-notification-infrastructure]: notificationsEnabled replaced by 4 granular toggles: restTimerAlertsEnabled (true), workoutRemindersEnabled (false), wodAlertsEnabled (true), subscriptionAlertsEnabled (true)
 - [Phase 20-notification-infrastructure]: Old Firestore docs missing new AppSettings fields get defaults via spread — no migration needed
+- [Phase 20-02]: Notification permission modal shown after first workout save (post-action, not on mount) to respect user trust-building flow
+- [Phase 20-02]: NOTIF_PERMISSION_ASKED_KEY persisted to AsyncStorage so permission modal never re-appears regardless of Enable/Not Now choice
+- [Phase 20-02]: restTimerAlertsEnabled defaults to true in useRestTimer; visual timer always runs even when alerts disabled
 
 ### Roadmap Evolution
 
@@ -81,6 +84,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-19T00:44:54.602Z
-Stopped at: Completed 20-01-PLAN.md
+Last session: 2026-03-19T00:51:27.115Z
+Stopped at: Completed 20-02-PLAN.md
 Resume file: None

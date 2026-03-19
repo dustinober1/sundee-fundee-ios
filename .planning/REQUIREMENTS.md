@@ -9,9 +9,9 @@ Requirements for launch readiness. Each maps to roadmap phases.
 
 ### Notifications
 
-- [ ] **NOTIF-01**: User receives local push when rest timer expires while app is backgrounded
-- [ ] **NOTIF-02**: User can grant notification permission via deferred prompt (after first workout, not cold launch)
-- [ ] **NOTIF-03**: App registers FCM push token and stores it in Firestore under user document
+- [x] **NOTIF-01**: User receives local push when rest timer expires while app is backgrounded
+- [x] **NOTIF-02**: User can grant notification permission via deferred prompt (after first workout, not cold launch)
+- [x] **NOTIF-03**: App registers FCM push token and stores it in Firestore under user document
 - [ ] **NOTIF-04**: User receives remote push when a new WOD is published
 - [ ] **NOTIF-05**: User receives remote push 3 days before and on subscription expiry
 - [x] **NOTIF-06**: User can configure notification preferences per type (rest timer, reminders, WOD, subscription) in Settings
@@ -85,9 +85,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| NOTIF-01 | Phase 20 | Pending |
-| NOTIF-02 | Phase 20 | Pending |
-| NOTIF-03 | Phase 20 | Pending |
+| NOTIF-01 | Phase 20 | Complete |
+| NOTIF-02 | Phase 20 | Complete |
+| NOTIF-03 | Phase 20 | Complete |
 | NOTIF-04 | Phase 21 | Pending |
 | NOTIF-05 | Phase 21 | Pending |
 | NOTIF-06 | Phase 20 | Complete |

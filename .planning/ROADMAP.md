@@ -173,7 +173,7 @@ Plans:
 | 17.1 Repo Restructure | 2/2 | Complete    | 2026-03-17 | - |
 | 18. Foundation Config + Build Infrastructure | 2/2 | Complete    | 2026-03-18 | - |
 | 19. Analytics + Crash Reporting | 3/3 | Complete    | 2026-03-18 | - |
-| 20. Notification Infrastructure | 1/3 | In Progress|  | - |
+| 20. Notification Infrastructure | 2/3 | In Progress|  | - |
 | 21. Remote Notifications | v1.1 | 0/TBD | Not started | - |
 | 22. Security + Store Prep | v1.1 | 0/TBD | Not started | - |
 | 23. Production Submission | v1.1 | 0/TBD | Not started | - |
