@@ -1,0 +1,111 @@
+import Foundation
+import AuthenticationServices
+import Security
+
+/// Persists user identifiers in the Keychain so they survive app reinstalls.
+enum KeychainHelper {
+    private static let service = "com.sundeefundee.app"
+    private static let appleUserIDKey = "appleUserID"
+    private static let guestUserIDKey = "guestUserID"
+
+    static func saveAppleUserID(_ userID: String) {
+        let data = Data(userID.utf8)
+
+        let deleteQuery: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: appleUserIDKey,
+        ]
+        SecItemDelete(deleteQuery as CFDictionary)
+
+        // Explicitly define kSecAttrAccessible to avoid falling back to insecure OS defaults.
+        let addQuery: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: appleUserIDKey,
+            kSecValueData as String: data,
+            kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlockedThisDeviceOnly,
+        ]
+        let status = SecItemAdd(addQuery as CFDictionary, nil)
+        if status != errSecSuccess {
+            print("[KeychainHelper] SecItemAdd failed with status: \(status)")
+        }
+    }
+
+    static func loadAppleUserID() -> String? {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: appleUserIDKey,
+            kSecMatchLimit as String: kSecMatchLimitOne,
+            kSecReturnData as String: true,
+        ]
+        var result: AnyObject?
+        let status = SecItemCopyMatching(query as CFDictionary, &result)
+        guard status == errSecSuccess,
+              let data = result as? Data,
+              let id = String(data: data, encoding: .utf8)
+        else { return nil }
+        return id
+    }
+
+    static func deleteAppleUserID() {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: appleUserIDKey,
+        ]
+        SecItemDelete(query as CFDictionary)
+    }
+
+    // MARK: - Guest User ID
+
+    static func saveGuestUserID(_ userID: String) {
+        let data = Data(userID.utf8)
+
+        let deleteQuery: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: guestUserIDKey,
+        ]
+        SecItemDelete(deleteQuery as CFDictionary)
+
+        let addQuery: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: guestUserIDKey,
+            kSecValueData as String: data,
+            kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlockedThisDeviceOnly,
+        ]
+        let status = SecItemAdd(addQuery as CFDictionary, nil)
+        if status != errSecSuccess {
+            print("[KeychainHelper] SecItemAdd (guestUserID) failed with status: \(status)")
+        }
+    }
+
+    static func loadGuestUserID() -> String? {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: guestUserIDKey,
+            kSecMatchLimit as String: kSecMatchLimitOne,
+            kSecReturnData as String: true,
+        ]
+        var result: AnyObject?
+        let status = SecItemCopyMatching(query as CFDictionary, &result)
+        guard status == errSecSuccess,
+              let data = result as? Data,
+              let id = String(data: data, encoding: .utf8)
+        else { return nil }
+        return id
+    }
+
+    static func deleteGuestUserID() {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: guestUserIDKey,
+        ]
+        SecItemDelete(query as CFDictionary)
+    }
+}
