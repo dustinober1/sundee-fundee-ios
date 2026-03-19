@@ -12,8 +12,8 @@ Requirements for App Store launch. Each maps to roadmap phases.
 - [ ] **FIX-01**: AI workout generation prescribes weights in the user's selected unit (lbs or kg), not hardcoded lbs
 - [ ] **FIX-02**: Sign-out and account deletion wipe all model types through current schema (V12), not stale V10 references
 - [ ] **FIX-03**: Guest mode uses a stable UUID as userID instead of empty string, preserving data on sign-in upgrade
-- [ ] **FIX-04**: Subscription tier defaults to free on cold launch until StoreKit verification completes, preventing brief premium access window
-- [ ] **FIX-05**: SwiftData migration plan is applied to both CloudKit and local persistent store paths
+- [x] **FIX-04**: Subscription tier defaults to free on cold launch until StoreKit verification completes, preventing brief premium access window
+- [x] **FIX-05**: SwiftData migration plan is applied to both CloudKit and local persistent store paths
 
 ### CloudKit & Sync
 
@@ -104,8 +104,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FIX-01 | Phase 1 | Pending |
 | FIX-02 | Phase 1 | Pending |
 | FIX-03 | Phase 1 | Pending |
-| FIX-04 | Phase 1 | Pending |
-| FIX-05 | Phase 1 | Pending |
+| FIX-04 | Phase 1 | Complete |
+| FIX-05 | Phase 1 | Complete |
 | SYNC-01 | Phase 2 | Pending |
 | SYNC-02 | Phase 2 | Pending |
 | SYNC-03 | Phase 2 | Pending |

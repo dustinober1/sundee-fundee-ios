@@ -33,7 +33,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. A guest user who creates an account retains all workout data they logged before signing in (stable UUID preserved)
   4. The app shows free-tier access on cold launch until StoreKit verification completes — no brief premium window
   5. SwiftData migration runs against both the CloudKit-backed and local persistent store paths without boot crash
-**Plans:** 3 plans
+**Plans:** 1/3 plans executed
 
 Plans:
 - [ ] 01-01-PLAN.md — Fix SwiftData migration path + StoreKit cold-launch gate (FIX-04, FIX-05)
@@ -174,7 +174,7 @@ Note: Phase 7 (Data & Analytics) depends only on Phase 2 and can be worked in pa
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Critical Bug Fixes | 0/3 | Planning complete | - |
+| 1. Critical Bug Fixes | 1/3 | In Progress|  |
 | 2. CloudKit Activation | 0/5 | Not started | - |
 | 3. Push Notifications | 0/7 | Not started | - |
 | 4. watchOS Scaffold | 0/5 | Not started | - |

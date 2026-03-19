@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Phase 1 context gathered
-last_updated: "2026-03-19T02:00:40.131Z"
+stopped_at: Completed 01-01-PLAN.md
+last_updated: "2026-03-19T12:16:25.347Z"
 last_activity: 2026-03-18 — Roadmap created from requirements + research
 progress:
   total_phases: 8
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 3
+  completed_plans: 1
   percent: 0
 ---
 
@@ -50,6 +50,7 @@ Progress: [░░░░░░░░░░] 0%
 - Trend: —
 
 *Updated after each plan completion*
+| Phase 01 P01 | 1 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -62,6 +63,8 @@ Recent decisions affecting current work:
 - [Init]: Phase ordering is dependency-driven: bug fixes → CloudKit → (APNs + Watch scaffold in parallel) → Watch features → Data → App Store
 - [Init]: watchOS uses minimal WatchAppSchemaV1 (4 models), not the full 22-model V12 schema
 - [Init]: WatchConnectivity transferUserInfo is primary Watch→iPhone sync path; CloudKit is eventual fallback only
+- [Phase 01]: FIX-05: migrationPlan applied to both .cloudKit and .localPersistent store paths — they must be symmetric
+- [Phase 01]: FIX-04: SubscriptionService.init() defaults to .free only; UserDefaults cache read removed — StoreKit loadStatus() is single source of truth
 
 ### Pending Todos
 
@@ -75,6 +78,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-19T02:00:40.128Z
-Stopped at: Phase 1 context gathered
-Resume file: .planning/phases/01-critical-bug-fixes/01-CONTEXT.md
+Last session: 2026-03-19T12:16:25.345Z
+Stopped at: Completed 01-01-PLAN.md
+Resume file: None
