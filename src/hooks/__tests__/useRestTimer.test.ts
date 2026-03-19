@@ -9,8 +9,6 @@
 jest.mock('expo-notifications', () => ({
   scheduleNotificationAsync: jest.fn().mockResolvedValue('mock-notification-id'),
   cancelScheduledNotificationAsync: jest.fn().mockResolvedValue(undefined),
-  getPermissionsAsync: jest.fn().mockResolvedValue({ status: 'granted' }),
-  requestPermissionsAsync: jest.fn().mockResolvedValue({ status: 'granted' }),
   SchedulableTriggerInputTypes: {
     TIME_INTERVAL: 'timeInterval',
   },
@@ -34,8 +32,6 @@ describe('useRestTimer', () => {
     // Restore default mock implementations after clearAllMocks
     (Notifications.scheduleNotificationAsync as jest.Mock).mockResolvedValue('mock-notification-id');
     (Notifications.cancelScheduledNotificationAsync as jest.Mock).mockResolvedValue(undefined);
-    (Notifications.getPermissionsAsync as jest.Mock).mockResolvedValue({ status: 'granted' });
-    (Notifications.requestPermissionsAsync as jest.Mock).mockResolvedValue({ status: 'granted' });
 
     // Spy on AppState.addEventListener so we can simulate foreground/background
     addEventListenerSpy = jest
@@ -81,8 +77,8 @@ describe('useRestTimer', () => {
     expect(result.current.timerState!.durationMs).toBe(60_000);
   });
 
-  it('start() schedules a notification with correct seconds', async () => {
-    const { result } = renderHook(() => useRestTimer(90));
+  it('start() schedules a notification with correct seconds when alerts enabled', async () => {
+    const { result } = renderHook(() => useRestTimer(90, true));
 
     await act(async () => {
       await result.current.start(90);
@@ -91,6 +87,46 @@ describe('useRestTimer', () => {
     expect(Notifications.scheduleNotificationAsync).toHaveBeenCalledWith(
       expect.objectContaining({
         trigger: expect.objectContaining({ seconds: 90 }),
+      }),
+    );
+  });
+
+  it('start() skips notification scheduling when restTimerAlertsEnabled is false', async () => {
+    const { result } = renderHook(() => useRestTimer(90, false));
+
+    await act(async () => {
+      await result.current.start(90);
+    });
+
+    // Timer should be active visually
+    expect(result.current.isActive).toBe(true);
+    // But no notification should be scheduled
+    expect(Notifications.scheduleNotificationAsync).not.toHaveBeenCalled();
+  });
+
+  it('start() defaults to alerts enabled when second param omitted', async () => {
+    const { result } = renderHook(() => useRestTimer(90));
+
+    await act(async () => {
+      await result.current.start(90);
+    });
+
+    expect(Notifications.scheduleNotificationAsync).toHaveBeenCalled();
+  });
+
+  it('notification content includes deep-link data and sound', async () => {
+    const { result } = renderHook(() => useRestTimer(90, true));
+
+    await act(async () => {
+      await result.current.start(90);
+    });
+
+    expect(Notifications.scheduleNotificationAsync).toHaveBeenCalledWith(
+      expect.objectContaining({
+        content: expect.objectContaining({
+          data: expect.objectContaining({ url: '/workout-session' }),
+          sound: true,
+        }),
       }),
     );
   });

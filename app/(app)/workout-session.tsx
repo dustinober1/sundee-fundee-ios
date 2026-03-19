@@ -30,6 +30,7 @@ import { router, useFocusEffect } from 'expo-router';
 import { format } from 'date-fns';
 import { onExerciseSelected } from '@/src/hooks/useExerciseSelection';
 import * as Notifications from 'expo-notifications';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import DraggableFlatList, { type RenderItemParams } from 'react-native-draggable-flatlist';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { ExerciseCard } from '@/src/components/workout/ExerciseCard';
@@ -37,6 +38,8 @@ import { RestTimerBar } from '@/src/components/workout/RestTimerBar';
 import { PRToast } from '@/src/components/workout/PRToast';
 import { AdaptationIndicator } from '@/src/components/workout/AdaptationIndicator';
 import { InjurySubstitutionCard, type SubstitutionPair } from '@/src/components/injury/InjurySubstitutionCard';
+import { NotificationPermissionModal } from '@/src/components/notifications/NotificationPermissionModal';
+import { registerFCMToken } from '@/src/services/notificationService';
 import { useWorkoutSession } from '@/src/hooks/useWorkoutSession';
 import { useRestTimer } from '@/src/hooks/useRestTimer';
 import { usePRDetection } from '@/src/hooks/usePRDetection';
@@ -64,9 +67,11 @@ import {
 } from '@/src/theme/colors';
 import { logEvent } from '@/src/firebase/analytics';
 
-// ─── Default rest duration ────────────────────────────────────────────────────
+// ─── Constants ────────────────────────────────────────────────────────────────
 
 const DEFAULT_REST_SECONDS = 90;
+const FIRST_WORKOUT_DONE_KEY = '@sundee/first_workout_done';
+const NOTIF_PERMISSION_ASKED_KEY = '@sundee/notif_permission_asked';
 
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
@@ -86,7 +91,10 @@ export default function WorkoutSessionScreen(): React.JSX.Element {
     getPreviousValues,
   } = useWorkoutSession(isGuest);
 
-  const restTimer = useRestTimer(DEFAULT_REST_SECONDS);
+  // Notification alerts toggle (loaded from settings)
+  const [restTimerAlertsEnabled, setRestTimerAlertsEnabled] = useState(DEFAULT_SETTINGS.restTimerAlertsEnabled);
+
+  const restTimer = useRestTimer(DEFAULT_REST_SECONDS, restTimerAlertsEnabled);
   const prDetection = usePRDetection(isGuest);
 
   // Store previous values per exercise for ghost text
@@ -111,6 +119,9 @@ export default function WorkoutSessionScreen(): React.JSX.Element {
 
   // User-configured rest duration
   const [restDuration, setRestDuration] = useState(DEFAULT_REST_SECONDS);
+
+  // Notification permission modal state
+  const [showNotifPermissionModal, setShowNotifPermissionModal] = useState(false);
 
   // Elapsed timer
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
@@ -232,7 +243,7 @@ export default function WorkoutSessionScreen(): React.JSX.Element {
     }, [loadAdaptationContext])
   );
 
-  // ── Load weight unit and rest duration preference on mount ──────────────
+  // ── Load weight unit, rest duration, and notification preference on mount ──
   useEffect(() => {
     if (!user) return;
     void (async () => {
@@ -244,6 +255,9 @@ export default function WorkoutSessionScreen(): React.JSX.Element {
         }
         if (stored?.defaultRestDuration != null) {
           setRestDuration(stored.defaultRestDuration);
+        }
+        if (stored?.restTimerAlertsEnabled != null) {
+          setRestTimerAlertsEnabled(stored.restTimerAlertsEnabled);
         }
       } catch {
         // Keep defaults on error
@@ -266,17 +280,6 @@ export default function WorkoutSessionScreen(): React.JSX.Element {
       void prDetection.loadMaxes(user.uid);
     }
   }, [isActive, user]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // ── Request notification permissions ────────────────────────────────────
-  useEffect(() => {
-    async function requestNotifPermission(): Promise<void> {
-      const { status } = await Notifications.getPermissionsAsync();
-      if (status !== 'granted') {
-        await Notifications.requestPermissionsAsync();
-      }
-    }
-    void requestNotifPermission();
-  }, []);
 
   // ── Elapsed timer ────────────────────────────────────────────────────────
   useEffect(() => {
@@ -360,6 +363,37 @@ export default function WorkoutSessionScreen(): React.JSX.Element {
     void restTimer.start(restDuration);
   };
 
+  // ── Notification permission modal handlers ───────────────────────────────
+  const handleEnableNotifications = useCallback(async (): Promise<void> => {
+    await AsyncStorage.setItem(NOTIF_PERMISSION_ASKED_KEY, 'true');
+    setShowNotifPermissionModal(false);
+    const { status } = await Notifications.requestPermissionsAsync();
+    if (status === 'granted' && user && !isGuest) {
+      void registerFCMToken(user.uid, isGuest);
+    }
+  }, [user, isGuest]);
+
+  const handleNotNow = useCallback((): void => {
+    void AsyncStorage.setItem(NOTIF_PERMISSION_ASKED_KEY, 'true');
+    setShowNotifPermissionModal(false);
+  }, []);
+
+  // ── First-workout detection — show permission modal once after first save ─
+  const checkFirstWorkoutModal = useCallback(async (): Promise<void> => {
+    try {
+      const firstWorkoutDone = await AsyncStorage.getItem(FIRST_WORKOUT_DONE_KEY);
+      if (firstWorkoutDone === null) {
+        await AsyncStorage.setItem(FIRST_WORKOUT_DONE_KEY, 'true');
+        const alreadyAsked = await AsyncStorage.getItem(NOTIF_PERMISSION_ASKED_KEY);
+        if (alreadyAsked === null) {
+          setShowNotifPermissionModal(true);
+        }
+      }
+    } catch {
+      // Non-critical — skip modal on error
+    }
+  }, []);
+
   // ── Finish workout ───────────────────────────────────────────────────────
   const handleFinish = (): void => {
     const completedSetsCount =
@@ -385,6 +419,8 @@ export default function WorkoutSessionScreen(): React.JSX.Element {
           restTimer.skip();
           await finishWorkout(user?.uid ?? '');
           void logEvent('workout_completed');
+          // Check if we should show the first-workout notification modal
+          await checkFirstWorkoutModal();
           router.back();
         },
       },
@@ -533,6 +569,13 @@ export default function WorkoutSessionScreen(): React.JSX.Element {
         {currentPR && (
           <PRToast pr={currentPR} onDismiss={handleDismissPR} />
         )}
+
+        {/* Notification permission modal — shown once after first workout */}
+        <NotificationPermissionModal
+          visible={showNotifPermissionModal}
+          onEnable={() => void handleEnableNotifications()}
+          onDismiss={handleNotNow}
+        />
       </SafeAreaView>
     </GestureHandlerRootView>
   );

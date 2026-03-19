@@ -7,10 +7,13 @@
  *   - remainingSeconds — live countdown display value
  *   - isActive — whether a timer is currently running
  *   - AppState listener to re-sync after backgrounding
+ *
+ * @param defaultSeconds - Default rest duration when start() is called without an argument
+ * @param restTimerAlertsEnabled - When false, notification is skipped but visual timer still runs
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { AppState, type AppStateStatus } from 'react-native';
+import { AppState, Platform, type AppStateStatus } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import { createTimerState, getRemainingMs } from '../domain/timers/timer-state';
 import type { TimerState } from '../domain/timers/timer-state';
@@ -31,10 +34,10 @@ export interface UseRestTimerReturn {
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
-/**
- * @param defaultSeconds - Default rest duration when start() is called without an argument
- */
-export function useRestTimer(defaultSeconds = 90): UseRestTimerReturn {
+export function useRestTimer(
+  defaultSeconds = 90,
+  restTimerAlertsEnabled = true,
+): UseRestTimerReturn {
   const [timerState, setTimerState] = useState<TimerState | null>(null);
   const [remainingSeconds, setRemainingSeconds] = useState(0);
 
@@ -95,28 +98,26 @@ export function useRestTimer(defaultSeconds = 90): UseRestTimerReturn {
         intervalRef.current = null;
       }
 
-      // Request notification permission on first use
-      const { status } = await Notifications.getPermissionsAsync();
-      if (status !== 'granted') {
-        await Notifications.requestPermissionsAsync();
-      }
-
-      // Schedule local notification for rest completion
-      try {
-        const notificationId = await Notifications.scheduleNotificationAsync({
-          content: {
-            title: 'Rest complete!',
-            body: 'Time to lift.',
-            sound: true,
-          },
-          trigger: {
-            type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
-            seconds: duration,
-          },
-        });
-        notificationIdRef.current = notificationId;
-      } catch {
-        // Notifications unavailable — timer still works visually
+      // Schedule local notification only when alerts are enabled
+      if (restTimerAlertsEnabled) {
+        try {
+          const notificationId = await Notifications.scheduleNotificationAsync({
+            content: {
+              title: 'Rest complete!',
+              body: 'Time to lift.',
+              sound: true,
+              data: { url: '/workout-session' },
+              ...(Platform.OS === 'android' && { android: { channelId: 'rest-timer' } }),
+            },
+            trigger: {
+              type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+              seconds: duration,
+            },
+          });
+          notificationIdRef.current = notificationId;
+        } catch {
+          // Notifications unavailable — timer still works visually
+        }
       }
 
       const newState = createTimerState('rest', duration * 1000);
@@ -124,7 +125,7 @@ export function useRestTimer(defaultSeconds = 90): UseRestTimerReturn {
       setRemainingSeconds(duration);
       startTick();
     },
-    [defaultSeconds, cancelNotification, startTick],
+    [defaultSeconds, restTimerAlertsEnabled, cancelNotification, startTick],
   );
 
   // ── skip ─────────────────────────────────────────────────────────────────
