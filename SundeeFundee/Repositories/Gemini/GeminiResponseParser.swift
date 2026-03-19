@@ -1,0 +1,118 @@
+import Foundation
+
+// MARK: - GeminiParseError
+
+enum GeminiParseError: Error {
+    case emptyCandidates
+    case missingContent
+    case invalidWorkoutJSON
+}
+
+// MARK: - GeminiResponseParser
+
+enum GeminiResponseParser {
+
+    // MARK: - Public API
+
+    static func parse(data: Data, questionnaire: QuestionnaireAnswers) throws -> GeneratedWorkout {
+        let text = try extractText(from: data)
+        let rawWorkout = try decodeWorkout(from: text)
+        return mapToGeneratedWorkout(rawWorkout, questionnaire: questionnaire)
+    }
+
+    // MARK: - Private Helpers
+
+    private struct RawGeminiWorkout: Decodable {
+        let coachingSummary: String
+        let exercises: [RawGeminiExercise]
+    }
+
+    private struct RawGeminiExercise: Decodable {
+        let name: String
+        let sets: Int
+        let reps: String
+        /// New field: weight in the prescribed unit.
+        let weight: Double?
+        /// New field: the unit for the weight field ("kg" or "lb").
+        let weightUnit: String?
+        /// Legacy field for backward compatibility with cached/old responses.
+        let weightLb: Double?
+        let restMinutes: Double?
+        let notes: String?
+        let reasoning: String?
+        let bodyweightOnly: Bool
+    }
+
+    private static func extractText(from data: Data) throws -> String {
+        guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let candidates = json["candidates"] as? [[String: Any]] else {
+            throw GeminiParseError.missingContent
+        }
+
+        guard let firstCandidate = candidates.first else {
+            throw GeminiParseError.emptyCandidates
+        }
+
+        guard let content = firstCandidate["content"] as? [String: Any],
+              let parts = content["parts"] as? [[String: Any]],
+              let firstPart = parts.first,
+              let text = firstPart["text"] as? String else {
+            throw GeminiParseError.missingContent
+        }
+
+        return text
+    }
+
+    private static func decodeWorkout(from text: String) throws -> RawGeminiWorkout {
+        guard let textData = text.data(using: .utf8) else {
+            throw GeminiParseError.invalidWorkoutJSON
+        }
+
+        do {
+            return try JSONDecoder().decode(RawGeminiWorkout.self, from: textData)
+        } catch {
+            throw GeminiParseError.invalidWorkoutJSON
+        }
+    }
+
+    private static func mapToGeneratedWorkout(
+        _ raw: RawGeminiWorkout,
+        questionnaire: QuestionnaireAnswers
+    ) -> GeneratedWorkout {
+        let exercises = raw.exercises.map { rawExercise in
+            // Prefer new `weight` + `weightUnit` fields; fall back to legacy `weightLb` with unit "lb".
+            let (parsedWeight, parsedUnit): (Double?, String)
+            if let w = rawExercise.weight {
+                parsedWeight = w
+                parsedUnit = rawExercise.weightUnit ?? "lb"
+            } else if let legacyW = rawExercise.weightLb {
+                parsedWeight = legacyW
+                parsedUnit = "lb"
+            } else {
+                parsedWeight = nil
+                parsedUnit = rawExercise.weightUnit ?? "lb"
+            }
+
+            let exercise = GeneratedExercise(
+                id: UUID().uuidString,
+                name: rawExercise.name,
+                sets: rawExercise.sets,
+                reps: rawExercise.reps,
+                weight: parsedWeight,
+                weightUnit: parsedUnit,
+                restMinutes: rawExercise.restMinutes,
+                notes: rawExercise.notes,
+                reasoning: rawExercise.reasoning,
+                bodyweightOnly: rawExercise.bodyweightOnly
+            )
+            // Snap to physically loadable weights regardless of what the AI returned.
+            return exercise.withSnappedWeight()
+        }
+
+        return GeneratedWorkout(
+            coachingSummary: raw.coachingSummary,
+            exercises: exercises,
+            questionnaire: questionnaire
+        )
+    }
+}
