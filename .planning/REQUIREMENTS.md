@@ -14,9 +14,9 @@ Requirements for launch readiness. Each maps to roadmap phases.
 - [ ] **NOTIF-03**: App registers FCM push token and stores it in Firestore under user document
 - [ ] **NOTIF-04**: User receives remote push when a new WOD is published
 - [ ] **NOTIF-05**: User receives remote push 3 days before and on subscription expiry
-- [ ] **NOTIF-06**: User can configure notification preferences per type (rest timer, reminders, WOD, subscription) in Settings
-- [ ] **NOTIF-07**: Workout reminder notifications include cycle-phase-aware copy when cycle tracking is enabled
-- [ ] **NOTIF-08**: User can schedule daily workout reminder at a preferred time
+- [x] **NOTIF-06**: User can configure notification preferences per type (rest timer, reminders, WOD, subscription) in Settings
+- [x] **NOTIF-07**: Workout reminder notifications include cycle-phase-aware copy when cycle tracking is enabled
+- [x] **NOTIF-08**: User can schedule daily workout reminder at a preferred time
 
 ### Analytics
 
@@ -90,9 +90,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | NOTIF-03 | Phase 20 | Pending |
 | NOTIF-04 | Phase 21 | Pending |
 | NOTIF-05 | Phase 21 | Pending |
-| NOTIF-06 | Phase 20 | Pending |
-| NOTIF-07 | Phase 20 | Pending |
-| NOTIF-08 | Phase 20 | Pending |
+| NOTIF-06 | Phase 20 | Complete |
+| NOTIF-07 | Phase 20 | Complete |
+| NOTIF-08 | Phase 20 | Complete |
 | ANLYT-01 | Phase 19 | Complete |
 | ANLYT-02 | Phase 19 | Complete |
 | ANLYT-03 | Phase 19 | Complete |

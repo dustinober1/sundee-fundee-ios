@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Launch Readiness
 status: completed
-stopped_at: Phase 20 context gathered
-last_updated: "2026-03-19T00:19:32.664Z"
+stopped_at: Completed 20-01-PLAN.md
+last_updated: "2026-03-19T00:44:54.604Z"
 last_activity: 2026-03-18 — Phase 19 Plan 02 complete; analytics wiring and event logging added to 5 app files
 progress:
   total_phases: 8
   completed_phases: 4
-  total_plans: 10
-  completed_plans: 10
+  total_plans: 13
+  completed_plans: 11
 ---
 
 # Project State
@@ -60,6 +60,8 @@ Progress (v1.1): [██████████] 100% (10/10 plans complete)
 - [Phase 19]: useScreenTracking() placed at top of RootLayout body (before useEffect) so screen_view fires on every tab change including initial mount
 - [Phase 19]: logEvent calls use void prefix (fire-and-forget) — analytics failure must never block user action
 - [Phase 19]: subscription_started fires on both purchaseProduct and purchasePackage code paths in PaywallModal for full purchase coverage
+- [Phase 20-notification-infrastructure]: notificationsEnabled replaced by 4 granular toggles: restTimerAlertsEnabled (true), workoutRemindersEnabled (false), wodAlertsEnabled (true), subscriptionAlertsEnabled (true)
+- [Phase 20-notification-infrastructure]: Old Firestore docs missing new AppSettings fields get defaults via spread — no migration needed
 
 ### Roadmap Evolution
 
@@ -79,6 +81,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-19T00:19:32.661Z
-Stopped at: Phase 20 context gathered
-Resume file: .planning/phases/20-notification-infrastructure/20-CONTEXT.md
+Last session: 2026-03-19T00:44:54.602Z
+Stopped at: Completed 20-01-PLAN.md
+Resume file: None
