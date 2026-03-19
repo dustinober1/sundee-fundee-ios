@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Launch Readiness
 status: completed
-stopped_at: Completed 20-02-PLAN.md
-last_updated: "2026-03-19T00:51:27.117Z"
+stopped_at: Completed 20-03-PLAN.md
+last_updated: "2026-03-19T01:20:45.895Z"
 last_activity: 2026-03-18 — Phase 19 Plan 02 complete; analytics wiring and event logging added to 5 app files
 progress:
   total_phases: 8
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 13
-  completed_plans: 12
+  completed_plans: 13
 ---
 
 # Project State
@@ -65,6 +65,8 @@ Progress (v1.1): [██████████] 100% (10/10 plans complete)
 - [Phase 20-02]: Notification permission modal shown after first workout save (post-action, not on mount) to respect user trust-building flow
 - [Phase 20-02]: NOTIF_PERMISSION_ASKED_KEY persisted to AsyncStorage so permission modal never re-appears regardless of Enable/Not Now choice
 - [Phase 20-02]: restTimerAlertsEnabled defaults to true in useRestTimer; visual timer always runs even when alerts disabled
+- [Phase 20-notification-infrastructure]: Time picker built as Art Deco TouchableOpacity modal — @react-native-community/datetimepicker requires native rebuild (out of scope)
+- [Phase 20-notification-infrastructure]: useFocusEffect for permission re-check in Settings — fires on every focus, covers OS settings return case
 
 ### Roadmap Evolution
 
@@ -84,6 +86,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-19T00:51:27.115Z
-Stopped at: Completed 20-02-PLAN.md
+Last session: 2026-03-19T01:20:45.893Z
+Stopped at: Completed 20-03-PLAN.md
 Resume file: None

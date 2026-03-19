@@ -38,7 +38,7 @@ Full details: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 - [x] **Phase 17: Device Verification** - Triage and resolve all ~30 v1.0 human verification items; confirm core flows on simulator, emulator, and offline
 - [x] **Phase 18: Foundation Config + Build Infrastructure** - Add all v1.1 native modules to app.json, configure EAS production build profiles, confirm App Check in production mode, add PrivacyInfo.xcprivacy (completed 2026-03-18)
 - [x] **Phase 19: Analytics + Crash Reporting** - Wire Firebase Analytics and Crashlytics into the app with platform-branched wrappers, key event instrumentation, and OTA update capability (completed 2026-03-18)
-- [ ] **Phase 20: Notification Infrastructure** - Build the full local notification and FCM token pipeline; wire rest timer notification, deferred permission prompt, notification preferences, and cycle-aware reminder copy
+- [x] **Phase 20: Notification Infrastructure** - Build the full local notification and FCM token pipeline; wire rest timer notification, deferred permission prompt, notification preferences, and cycle-aware reminder copy (completed 2026-03-19)
 - [ ] **Phase 21: Remote Notifications** - Implement Cloud Functions for WOD and subscription expiry FCM fan-out
 - [ ] **Phase 22: Security + Store Prep** - Deploy and validate Firestore security rules; complete all App Store, Play Store, and in-app metadata requirements
 - [ ] **Phase 23: Production Submission** - Build signed production binaries and submit to App Store, Play Store, and web hosting
@@ -173,7 +173,7 @@ Plans:
 | 17.1 Repo Restructure | 2/2 | Complete    | 2026-03-17 | - |
 | 18. Foundation Config + Build Infrastructure | 2/2 | Complete    | 2026-03-18 | - |
 | 19. Analytics + Crash Reporting | 3/3 | Complete    | 2026-03-18 | - |
-| 20. Notification Infrastructure | 2/3 | In Progress|  | - |
+| 20. Notification Infrastructure | 3/3 | Complete   | 2026-03-19 | - |
 | 21. Remote Notifications | v1.1 | 0/TBD | Not started | - |
 | 22. Security + Store Prep | v1.1 | 0/TBD | Not started | - |
 | 23. Production Submission | v1.1 | 0/TBD | Not started | - |
