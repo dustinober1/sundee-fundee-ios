@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 01-03-PLAN.md
-last_updated: "2026-03-19T12:26:29.990Z"
+stopped_at: "Completed 01-02-PLAN.md (FIX-02/03: sign-out wipe, delete-account V12, guest UUID, batch migration)"
+last_updated: "2026-03-19T12:28:10.335Z"
 last_activity: 2026-03-18 — Roadmap created from requirements + research
 progress:
   total_phases: 8
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 3
-  completed_plans: 2
+  completed_plans: 3
   percent: 0
 ---
 
@@ -52,6 +52,7 @@ Progress: [░░░░░░░░░░] 0%
 *Updated after each plan completion*
 | Phase 01 P01 | 1 | 2 tasks | 3 files |
 | Phase 01 P03 | 11 | 2 tasks | 12 files |
+| Phase 01 P02 | 11 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -68,6 +69,9 @@ Recent decisions affecting current work:
 - [Phase 01]: FIX-04: SubscriptionService.init() defaults to .free only; UserDefaults cache read removed — StoreKit loadStatus() is single source of truth
 - [Phase 01]: Separate native equipment lists for kg and lbs in AI prompts (not mathematical conversion) — real gym values per unit
 - [Phase 01]: GeneratedExercise renamed weightLb to weight+weightUnit with backward-compat decoding from legacy weightLb JSON key
+- [Phase 01]: signOut() uses scoped wipe (workout data only) — User/preferences/BarbellPreset/ExerciseBarMapping preserved
+- [Phase 01]: deleteAccountAndData() uses AppSchemaV12.models replacing stale V10 reference
+- [Phase 01]: Guest UUID stored in Keychain (saveGuestUserID/loadGuestUserID/deleteGuestUserID) — never nil
 
 ### Pending Todos
 
@@ -81,6 +85,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-19T12:26:29.988Z
-Stopped at: Completed 01-03-PLAN.md
+Last session: 2026-03-19T12:28:10.299Z
+Stopped at: Completed 01-02-PLAN.md (FIX-02/03: sign-out wipe, delete-account V12, guest UUID, batch migration)
 Resume file: None
