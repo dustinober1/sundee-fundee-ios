@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 01-01-PLAN.md
-last_updated: "2026-03-19T12:16:25.347Z"
+stopped_at: Completed 01-03-PLAN.md
+last_updated: "2026-03-19T12:26:29.990Z"
 last_activity: 2026-03-18 — Roadmap created from requirements + research
 progress:
   total_phases: 8
   completed_phases: 0
   total_plans: 3
-  completed_plans: 1
+  completed_plans: 2
   percent: 0
 ---
 
@@ -51,6 +51,7 @@ Progress: [░░░░░░░░░░] 0%
 
 *Updated after each plan completion*
 | Phase 01 P01 | 1 | 2 tasks | 3 files |
+| Phase 01 P03 | 11 | 2 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -65,6 +66,8 @@ Recent decisions affecting current work:
 - [Init]: WatchConnectivity transferUserInfo is primary Watch→iPhone sync path; CloudKit is eventual fallback only
 - [Phase 01]: FIX-05: migrationPlan applied to both .cloudKit and .localPersistent store paths — they must be symmetric
 - [Phase 01]: FIX-04: SubscriptionService.init() defaults to .free only; UserDefaults cache read removed — StoreKit loadStatus() is single source of truth
+- [Phase 01]: Separate native equipment lists for kg and lbs in AI prompts (not mathematical conversion) — real gym values per unit
+- [Phase 01]: GeneratedExercise renamed weightLb to weight+weightUnit with backward-compat decoding from legacy weightLb JSON key
 
 ### Pending Todos
 
@@ -78,6 +81,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-19T12:16:25.345Z
-Stopped at: Completed 01-01-PLAN.md
+Last session: 2026-03-19T12:26:29.988Z
+Stopped at: Completed 01-03-PLAN.md
 Resume file: None
