@@ -1,227 +1,172 @@
 # Coding Conventions
 
-**Analysis Date:** 2025-03-14
+**Analysis Date:** 2026-03-18
+
+> This documents the **legacy Swift/SwiftUI codebase** in `SundeeFundee/`. The active React Native rewrite lives in `.claude/worktrees/` and has separate conventions.
 
 ## Naming Patterns
 
 **Files:**
-- Pascal case for View files: `DashboardView.swift`, `DashboardViewModel.swift`
-- Pascal case for Model files: `User.swift`, `Program.swift`
-- Pascal case for all types and classes: `CloudKitProgramRepository.swift`, `WeightCalculations.swift`
-- Protocol files named for protocol: `RepositoryProtocols.swift`, `ProgramRepository.swift`
-- Enum files named for enum: `CyclePhase.swift` (inside `Domain/`)
+- Views: `<Feature>View.swift` — e.g., `WorkoutExecutionView.swift`, `DashboardView.swift`
+- ViewModels: `<Feature>ViewModel.swift` — one-to-one with Views
+- Repositories (concrete): `SwiftData<Domain>Repository.swift` — e.g., `SwiftDataCycleRepository.swift`
+- Repository protocols: all in a single file `RepositoryProtocols.swift`
+- Schema versions: `AppSchemaV<N>.swift` (e.g., `AppSchemaV12.swift`)
+- Helpers/shared files: named by purpose, e.g., `BarbellTestHelpers.swift`
 
-**Functions:**
-- Camel case with verb-first pattern: `fetchPrograms()`, `savePreset()`, `calculateCycleStatus()`
-- Static helper functions on Views use descriptive names: `currentMinute()`, `exerciseIndex()`, `timeWithinInterval()`
-- Private helper functions prefixed with `_` or lowercase verb: `makeContainer()`, `makeProgramRecord()`
-- Boolean predicates: `isAtLastSession`, `hasRecentLog()`, `isPersonalRecord()`
+**Types (structs, classes, enums):**
+- PascalCase for all: `WorkoutExecutionViewModel`, `SetExecutionState`, `BarbellPresetDTO`
+- Domain enums are value types: `WeightCalculations`, `EpleyFormula`, `PlateCalculation` — implemented as caseless `enum` acting as namespaces
+- DTO suffix for data transfer structs: `BarbellPresetDTO`, `ExerciseBarMappingDTO`
+
+**Functions and Properties:**
+- camelCase: `finishWorkout(modelContext:userID:)`, `fetchActiveCycles()`, `toggleSetCompleted(exerciseName:setIndex:)`
+- Boolean properties: named with `is`/`has`/`show` prefix: `isSaving`, `isFinished`, `showRestTimer`, `hasRequiredOnboardingAnswers`
+- Factory functions in test helpers: `make<Type>(...)` pattern — `makeExercise(...)`, `makeWOD(...)`, `makeBarbellTestVM(...)`
 
 **Variables:**
-- Camel case for all variables: `activeEnrollment`, `currentCyclePhase`, `oneRepMaxes`
-- Collection variables plural: `recentWorkouts`, `activeInjuries`, `oneRepMaxes`, `allPrograms`
-- Private properties prefixed with underscore: `_viewModel`, `_isLoading`
-- Computed properties use same naming as stored properties: `experienceLevel` computed property accesses `experienceLevelRaw`
-
-**Types:**
-- Pascal case for all custom types: `CycleStatusResult`, `PhaseBoundary`, `PhaseRecommendation`
-- Enum cases: lowercase with underscores for multi-word: `.full_body`, `.lower_body`, `.prefer_not_to_say`
-- Protocol names describe capability: `ProgramRepository`, `UserRepository`, `BarbellRepository`
-- Result wrapper types: `CycleStatusResult`, `PhaseRecommendation` (compound noun structure)
-
-**Test Files:**
-- Suffix with `Tests` or `CoverageTests`: `BusinessLogicTests.swift`, `ViewModelCoverageTests.swift`
-- Suite names match what they test: `@Suite("WeightCalculations")`, `@Suite("EMOMTimerView Static Helpers")`
-- Test function names start with what they test: `roundToNearestFive()`, `calculateTargetWeight()`, `userRepositorySaveFetchDelete()`
+- camelCase: `exerciseSets`, `barbellWeightKg`, `plateCalcWeightKg`
+- Enum raw values stored as `<propertyName>Raw` pattern on `@Model` classes (CloudKit/SwiftData requirement):
+  ```swift
+  var experienceLevelRaw: String
+  var experienceLevel: ExperienceLevel {
+      get { ExperienceLevel(rawValue: experienceLevelRaw) ?? .beginner }
+      set { experienceLevelRaw = newValue.rawValue }
+  }
+  ```
 
 ## Code Style
 
 **Formatting:**
-- No external formatter configured — Xcode default formatting applied
-- 4-space indentation
-- Line breaks: logical breaks for readability, not strict column limit
-- Blank lines between logical sections
-- MARK comments used extensively to organize code
+- No explicit Prettier/SwiftFormat config detected; follows Xcode default formatting
+- 4-space indentation (Swift standard)
+- Trailing commas not used in multi-line init calls
 
-**Linting:**
-- No linter configured (no `.swiftlint.yml`, `swiftformat`, or `biome.json`)
-- Code style enforced via code review and testing
+**Access Control:**
+- `private` for implementation details within a type
+- `private var` for repo/context dependencies in ViewModels
+- `private static` for class-level helpers and UserDefaults keys: `private static let dismissedTransitionsKey = "dismissedPhaseTransitions"`
+- `static` for pure computation functions in domain enums
 
-**Import Organization:**
-```swift
-// Order observed in codebase:
-import SwiftUI
-import SwiftData
-import Foundation
-import CloudKit
-@testable import SundeeFundee  // Test files only
-```
+## Architecture Patterns
 
-Import groups:
-1. SwiftUI (UI framework)
-2. SwiftData (database)
-3. Foundation (base library)
-4. CloudKit (specific services)
-5. Custom modules (@testable, specific packages)
+**ViewModels:**
+- All `@MainActor @Observable final class <Name>ViewModel`
+- No `@Published` — uses `@Observable` macro (Swift 5.9+/iOS 17+)
+- ViewModels own all mutable state and expose mutating methods
+- Dependencies injected via `init` parameters with defaults: `barbellRepo: BarbellRepository? = nil`
+
+**Repository Protocol Pattern:**
+- Each domain has a protocol in `RepositoryProtocols.swift` (e.g., `WorkoutRepository`, `CycleRepository`)
+- Concrete implementations: `SwiftData<Domain>Repository` wrapping a `ModelContext`
+- Async protocols use `async throws` (e.g., `ProgramRepository`, `WODRepository`, `AIWorkoutServiceProtocol`)
+- Sync protocols use `throws` (e.g., `WorkoutRepository`, `CycleRepository`, `LiftRepository`)
+- `Sendable` conformance on protocols used in async contexts
+
+**Domain Layer:**
+- Pure Swift enums with static functions — no state, no dependencies
+- Example pattern:
+  ```swift
+  enum WeightCalculations {
+      static func calculateTargetWeight(oneRepMax: Double, percentage: Double) -> Double {
+          roundToNearestFive(oneRepMax * percentage)
+      }
+  }
+  ```
+- Domain types in `SundeeFundee/Domain/` — no SwiftUI, no SwiftData imports
+
+**Dependency Injection for System Services:**
+- `Dependencies` nested struct with closure-based injection (see `AuthService.Dependencies`)
+- `.live` static property provides production dependencies
+- Test overrides substitute closures at init time
+
+## SwiftData Conventions
+
+- `@Model final class` for all persistent models
+- Enum properties on `@Model` stored as raw `String` fields (CloudKit/SwiftData requirement)
+- Computed property bridging pattern:
+  ```swift
+  var genderRaw: String  // stored
+  var gender: Gender {   // computed bridging property
+      get { Gender(rawValue: genderRaw) ?? .preferNotToSay }
+      set { genderRaw = newValue.rawValue }
+  }
+  ```
+- Schema versioned via `AppSchemaV<N>` enums implementing `VersionedSchema`
+- Migration plan in `AppSchemaMigrationPlan.swift`
+- `isStoredInMemoryOnly: true, cloudKitDatabase: .none` for test containers
 
 ## Error Handling
 
 **Patterns:**
-- Repository methods throw errors: `func fetchPrograms() async throws -> [Program]`
-- ViewModels and services use graceful degradation: `(try? await programRepo.fetchPrograms()) ?? []`
-- Never use `try!` in production code (enforced in CLAUDE.md)
-- Failing repository calls default to empty collections: `?? []`, `?? [:]`, `?? nil`
-- SwiftData context save wrapped with `try?`: `try? modelContext.save()`
+- Repository methods declare `throws` and use `try` internally
+- Call sites use `try?` to silently discard errors and provide fallbacks:
+  ```swift
+  barbellPresets = (try? repo.fetchPresets(userID: userID)) ?? []
+  ```
+- `try? ctx.save()` pattern for context saves in ViewModels
+- Async network errors use `throws` with typed error enums: `GeminiServiceError.httpError(statusCode:)`
+- Auth uses `Result<Success, Error>` in completion handlers
 
-**Pattern Example:**
+**Error Types:**
+- Enums conforming to `LocalizedError` with `errorDescription`: `AuthError`, `GeminiServiceError`, `ProgramDecodingError`
+
+## Import Organization
+
+**Order:**
+1. `Foundation`
+2. `SwiftData` / `SwiftUI` (when needed)
+3. `AuthenticationServices`, `CloudKit`, `HealthKit` (system frameworks)
+4. `@testable import SundeeFundee` (test files only)
+
+No `#if` conditional imports observed.
+
+## Comments and Documentation
+
+**MARK sections** — used consistently to organize file sections:
 ```swift
-// Repository throws
-func fetchPrograms() async throws -> [Program]
-
-// ViewModel gracefully handles error
-let allPrograms = (try? await programRepo.fetchPrograms()) ?? []
+// MARK: - SetExecutionState
+// MARK: - Setup
+// MARK: - Set mutations
+// MARK: - Rest timer
+// MARK: - Completion
+// MARK: - Helpers
 ```
 
-**Errors in views:**
-- Button actions ignore errors: `try? workoutRepo.save(skipped)`
-- Critical failures handled with optional coalescing: `(try? userRepo.fetchCurrentUser())?.id ?? ""`
-- No error presentation to user for repository failures (silent fallback)
+**DocComments:**
+- Triple-slash `///` for public/internal functions and types: `/// Returns the next (week, day) in the program, or the current position if at the end.`
+- Inline `//` for non-obvious logic: `// Auto-start rest timer when a set is completed`
+- No JSDoc-style `@param`/`@return` annotations
 
-## Logging
+**Protocol conformance comments:**
+- Used to group delegate conformances: `// MARK: - Delegate`
 
-**Framework:** `print()` and `NSLog()` only — no dedicated logging framework
+## Theme/UI Conventions
 
-**When to Log:**
-- Domain logic generally does NOT log (pure Swift, zero dependencies)
-- Repository implementations may log failures via print (minimal usage observed)
-- ViewModels do not log
-- Services (e.g., `AuthService`) may use print for debugging
-
-**Pattern:**
+**Design tokens in `SundeeFundee/Theme/AppTheme.swift`:**
 ```swift
-// Minimal logging observed, mostly commented out debug code
+AppTheme.Color.navy        // #0D1A40
+AppTheme.Color.cream       // #F4F0DF
+AppTheme.Color.orange      // #F2731A
+AppTheme.Colors.accentOrange  // semantic alias (preferred in Views)
+AppTheme.Spacing.md        // 16pt
+AppTheme.Radius.md         // 12pt
+AppTheme.Font.heading(24)  // .system(.serif)
 ```
-
-## Comments
-
-**When to Comment:**
-- Complex algorithms: See `CycleCalculations.swift` for phase boundary calculations
-- Non-obvious business logic: See `CloudKitProgramRepository` fallback behavior
-- Important constraints: See `User.swift` comment "Enums must be stored as raw strings"
-
-**JSDoc/TSDoc:**
-- Triple-slash documentation on key public functions: `/// Top-level auth state that drives routing.`
-- Mark comments organize code sections: `// MARK: - Component Name`
-- Inline comments rare; code is self-documenting via naming
-
-**Mark Organization Pattern:**
-```swift
-// MARK: - Enums (stored as raw strings in SwiftData)
-enum Gender: String, Codable { ... }
-
-// MARK: - User
-@Model final class User { ... }
-
-// MARK: - Subviews
-var body: some View { ... }
-```
+- Always use `AppTheme` tokens — never hardcode colors or font sizes in Views
+- Semantic aliases (`AppTheme.Colors.*`) preferred over raw token names in feature Views
 
 ## Function Design
 
-**Size:** Functions typically 10-40 lines; longer functions broken into private helpers
+**Size:** ViewModels have larger functions (e.g., `finishWorkout`) that orchestrate multiple repository calls; domain functions are small and focused.
 
-**Parameters:**
-- Parameters passed explicitly rather than via stored properties when possible
-- Dependency injection used heavily: `init(programRepo: any ProgramRepository = CloudKitProgramRepository())`
-- Optional parameters with defaults for testability: `referenceDate: Date = .now`
+**Parameters:** Use labeled parameters; provide defaults for optional dependencies. Long parameter lists are split across lines with trailing comma style.
 
 **Return Values:**
-- Functions return optional types rather than throwing on "not found": `fetchProgram(id:) -> Program?`
-- Async functions throw on errors: `async throws -> [Program]`
-- Void methods modify state via stored properties
-
-**Example:**
-```swift
-// Dependency injection with default
-init(
-    programRepo: any ProgramRepository = CloudKitProgramRepository(),
-    readinessRepo: (any ReadinessRepository)? = nil,
-    wodRepo: any WODRepository = CloudKitWODRepository()
-) { ... }
-
-// Optional return + graceful default
-let allPrograms = (try? await programRepo.fetchPrograms()) ?? []
-```
-
-## Module Design
-
-**Exports:**
-- Public types in root of `Domain/`, `Models/`, `Features/`, `Repositories/`
-- Private implementation details use `private`, `fileprivate`
-- Protocol definitions in separate files: `RepositoryProtocols.swift`
-
-**Barrel Files:**
-- Not used; each file exports a single primary type
-- Test files import directly: `@testable import SundeeFundee`
-
-## Observable & MainActor
-
-**@Observable Pattern:**
-- All ViewModels decorated: `@MainActor @Observable final class DashboardViewModel`
-- State properties are mutable: `var activeEnrollment: EnrolledProgram?`
-- Repository dependencies stored as private: `private let programRepo: any ProgramRepository`
-
-**@MainActor:**
-- Enforced on all ViewModels and AppState
-- Test helpers marked `@MainActor` when creating containers or ViewModels
-- UI updates via state mutation: `activeProgram = program`
-
-**Example:**
-```swift
-@MainActor
-@Observable
-final class DashboardViewModel {
-    var activeEnrollment: EnrolledProgram?
-    private let programRepo: any ProgramRepository
-
-    init(programRepo: any ProgramRepository = CloudKitProgramRepository()) {
-        self.programRepo = programRepo
-    }
-}
-```
-
-## Enum Storage in SwiftData
-
-**Critical Pattern:**
-- All enum properties stored as raw String values (CloudKit requirement)
-- Computed properties provide typed accessors
-- Raw property names suffixed with `Raw`: `experienceLevelRaw: String`
-
-**Example from `User.swift`:**
-```swift
-// Storage
-var experienceLevelRaw: String
-var primaryGoalRaw: String
-var genderRaw: String
-
-// Typed accessor
-var experienceLevel: ExperienceLevel {
-    get { ExperienceLevel(rawValue: experienceLevelRaw) ?? .beginner }
-    set { experienceLevelRaw = newValue.rawValue }
-}
-
-// Usage in init
-init(experienceLevel: ExperienceLevel, ...) {
-    self.experienceLevelRaw = experienceLevel.rawValue
-}
-```
-
-## Custom Codable
-
-**Rule:** If you implement `init(from decoder:)`, you must also implement `encode(to:)`.
-
-This is enforced in code review to prevent silent loss of Encodable capability when customizing Decodable.
+- Pure functions return values directly
+- ViewModels mutate `@Observable` properties as side effects
+- Async state transitions return `AuthState` enum values
 
 ---
 
-*Convention analysis: 2025-03-14*
+*Convention analysis: 2026-03-18*

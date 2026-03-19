@@ -1,151 +1,147 @@
 # External Integrations
 
-**Analysis Date:** 2025-03-14
+**Analysis Date:** 2026-03-18
+
+> **Note:** This covers the legacy Swift/SwiftUI codebase at the repo root, which remains the production iOS app.
 
 ## APIs & External Services
 
 **AI Workout Generation:**
-- Google Gemini API (via Cloudflare Worker proxy)
-  - SDK/Client: `GeminiWorkoutService` (`SundeeFundee/Repositories/Gemini/GeminiWorkoutService.swift`)
+- Gemini AI (via Cloudflare Worker proxy) — generates personalized workouts from user context
+  - Client: Native `URLSession` — no SDK, raw HTTP POST
   - Endpoint: `https://workout-proxy.sundeefundee.workers.dev/generate-workout`
   - Model: `gemini-3.1-flash-lite-preview`
-  - Format: Native Gemini JSON format (contents, systemInstruction, generationConfig)
-  - Timeout: 15 seconds default
-  - Fallback: OfflineWorkoutGenerator generates workouts locally on any error
-
-**Shared Workouts (Crowdsourced):**
-- CloudKit Public Database shared workout contributions
-  - Repository: `CloudKitSharedWorkoutRepository` (`SundeeFundee/Repositories/CloudKit/CloudKitSharedWorkoutRepository.swift`)
-  - Fire-and-forget contribution from `SwiftDataAIWorkoutService` after user generates a workout
+  - Format: Gemini native (`contents`, `systemInstruction`, `generationConfig`) — NOT OpenAI-compatible
+  - Implementation: `SundeeFundee/Repositories/Gemini/GeminiWorkoutService.swift`
+  - Request builder: `SundeeFundee/Repositories/Gemini/GeminiPromptBuilder.swift`
+  - Response parser: `SundeeFundee/Repositories/Gemini/GeminiResponseParser.swift`
+  - Timeout: 15 seconds; offline fallback via `OfflineWorkoutGenerator`
+  - Auth: None (proxy handles key; no token from client)
 
 ## Data Storage
 
 **Databases:**
-- CloudKit Private Database (`iCloud.com.sundeefundee.app`)
-  - Client: SwiftData + CloudKit integration
-  - Connection: Automatic via ModelContext when entitlements present
-  - Content: User-generated data (completed workouts, custom lifts, injuries, pain logs, cycle data, maxes, benchmarks)
-  - Sync: Automatic bi-directional with SwiftData
+- SwiftData + CloudKit Private Database — primary user data store
+  - Container: `iCloud.com.sundeefundee.app`
+  - Client: `SwiftData.ModelContainer` / `ModelContext`
+  - Schema: 22 models at v12 (`SundeeFundee/App/AppSchemaV12.swift`)
+  - Migration plan: `SundeeFundee/App/AppSchemaMigrationPlan.swift` (tracks v1–v12)
+  - Container setup: `SundeeFundee/App/AppModelContainer.swift`
+  - Fallback tiers: CloudKit (if entitlements) → local persistent → in-memory
+  - Dev/debug: local persistent store only (no CloudKit entitlements in Debug)
 
-- CloudKit Public Database (`iCloud.com.sundeefundee.app`)
-  - Client: CKContainer API + tsl-apple-cloudkit (JS SDK for dashboard writes)
-  - Content: Admin-seeded Programs and WODs, crowdsourced shared workouts
-  - Access: Read by all users (unauthenticated), write requires dashboard authentication (CloudKit JS SDK with Apple ID)
-
-- Local SwiftData (fallback, no CloudKit)
-  - Stored in ApplicationSupport directory
-  - Activated during development when entitlements unavailable
-  - Can be cleared via AppModelContainer.forceClearStore()
+- CloudKit Public Database — crowdsourced shared workout templates
+  - Container: `iCloud.com.sundeefundee.app`
+  - Record type: `SharedWorkoutTemplate`
+  - Client: `CKContainer` / `CKDatabase` directly (not via SwiftData)
+  - Implementation: `SundeeFundee/Repositories/CloudKit/CloudKitSharedWorkoutRepository.swift`
+  - Contributions are anonymized (userID stripped via `strippedForSharing()`)
+  - Local cache: `SharedWorkoutTemplateRecord` SwiftData model
 
 **File Storage:**
-- Bundled JSON files (no external storage)
-  - `programs.json` - Static program data
-  - `wods.json` - Static workout templates
+- Local filesystem only — `ApplicationSupportDirectory/default.store` (SwiftData SQLite)
+- Bundled resources: programs JSON at `SundeeFundee/Resources/Programs/`, WODs JSON at `SundeeFundee/Resources/WODs/`
 
 **Caching:**
-- In-memory caches in repository classes:
-  - `BundledProgramRepository.cache` - Programs cached after first load
-  - `BundledWODRepository.cache` - WODs cached after first load
-  - No persistent external cache layer
+- `UserDefaults` — subscription tier persistence (`com.sundeefundee.subscription.tier`)
+- SwiftData in-memory fallback for tests and previews
+- CloudKit shared workout templates cached as `SharedWorkoutTemplateRecord` models
 
 ## Authentication & Identity
 
 **Auth Provider:**
-- Apple Sign in with Apple
-  - Implementation: `AuthService` (`SundeeFundee/Auth/AuthService.swift`)
-  - Framework: AuthenticationServices (ASAuthorizationAppleIDProvider, ASAuthorizationController)
-  - Requested scopes: Full name, email
-  - Credential storage: Keychain (via `KeychainHelper`)
-  - Session restoration: Auto-restores from keychain on app launch
-  - Guest mode: Available - guest users have local-only SwiftData (no CloudKit)
+- Sign in with Apple (Apple AuthenticationServices)
+  - Implementation: `SundeeFundee/Auth/AuthService.swift`
+  - Credential storage: Keychain (`SundeeFundee/Auth/KeychainHelper.swift`)
+  - Keychain service: `com.sundeefundee.app`, account key: `appleUserID`
+  - Accessibility: `kSecAttrAccessibleWhenUnlockedThisDeviceOnly`
+  - Session restoration: checks `ASAuthorizationAppleIDProvider.credentialState` on launch
+  - User record: `User` SwiftData model linked by `appleUserID` string
+  - Onboarding gate: `AuthState.needsOnboarding` for new users; `AuthState.authenticated` for returning users
+  - Entitlement: `com.apple.developer.applesignin` = `["Default"]`
 
-- Cloudflare Worker auth (WOD dashboard only)
-  - Dashboard: `wod-dashboard/` (Next.js)
-  - Auth: CloudKit JS SDK with Apple ID sign-in
-  - API Token: NEXT_PUBLIC_CLOUDKIT_API_TOKEN (in .env.local, not committed)
+**Guest/Anonymous mode:**
+- Not present — app requires Sign in with Apple
 
 ## Monitoring & Observability
 
+**Performance Monitoring:**
+- MetricKit (Apple, built-in) — CPU and memory metrics
+  - Implementation: `SundeeFundee/Observability/MetricsService.swift`
+  - Logs to Xcode Organizer; debug-only console output
+  - Subscribes to `MXMetricPayload` and `MXDiagnosticPayload`
+  - Started in `SundeeFundeeApp.init()`
+
 **Error Tracking:**
-- Not detected (no Sentry, Crashlytics, or similar)
-- Errors logged via print() statements in production code
+- None — no third-party crash SDK (Crashlytics, Sentry, etc.) integrated
+- MetricKit diagnostics provide crash/hang counts via Xcode Organizer only
 
 **Logs:**
-- Console output via print() statements with prefixes like `[SubscriptionService]`, `[AppModelContainer]`, `[AIWorkoutService]`
-- No external logging service
+- `print()` statements throughout services and repositories (no structured logging framework)
+- MetricKit crash diagnostics surfaced via Xcode Organizer in production
+
+## In-App Purchases & Subscriptions
+
+**Provider:** Apple StoreKit 2 (no RevenueCat in this legacy codebase)
+- Implementation: `SundeeFundee/Services/SubscriptionService.swift`
+- Tiers: Free, Plus (`com.sundeefundee.plusmonthly` $4.99/mo), Pro (`com.sundeefundee.pro.monthly` $9.99/mo)
+- Both subscriptions in group `sundee-fundee-premium` with 2-week free trial
+- Transaction observation: `Transaction.updates` async sequence
+- Restore: `AppStore.sync()`
+- StoreKit config file: `SundeeFundee/Resources/SundeeFundee.storekit`
+
+## Health Data
+
+**Provider:** Apple HealthKit
+- Entitlements: `com.apple.developer.healthkit` + `com.apple.developer.healthkit.background-delivery`
+- Implementation: `SundeeFundee/Repositories/HealthKit/HealthKitReadinessRepository.swift`
+- Read types: sleep analysis, HRV SDNN, resting heart rate
+- Write types: workout data (write usage description in Info.plist; write permission declared but HealthKit store write not shown in current repo)
+- Usage: computes readiness score for training adaptation
+- Privacy manifest: `NSPrivacyCollectedDataTypeHealthAndFitness` declared in `PrivacyInfo.xcprivacy`
 
 ## CI/CD & Deployment
 
-**Hosting:**
-- Apple App Store (TestFlight for beta, App Store for production)
+**CI — GitHub Actions:**
+- Workflow: `.github/workflows/ios-ci.yml` (in worktree; canonical path at repo root `.github/`)
+- Triggers: push to `main`, pull requests
+- Runner: `macos-15`
+- Steps: checkout private shared package → install XcodeGen → generate project → build → test → enforce 100% line coverage
+- Coverage enforcement: `xcrun xccov` + Python script; requires 100% line coverage on `SundeeFundee.app` target
 
-**CI Pipeline:**
-- Xcode Cloud (Apple's native CI/CD)
-  - Manual trigger: Xcode → Product → Xcode Cloud → Start Build
-  - Automatically handles: Code signing, building, uploading to TestFlight
-  - Enforces: 100% line coverage (xccov output parsed in GitHub Actions)
+**CI — Xcode Cloud (alternate):**
+- Scripts: `ci_scripts/ci_post_clone.sh`, `ci_scripts/ci_pre_xcodebuild.sh`
+- Installs XcodeGen, clones `sundee-fundee-shared` private package, generates Xcode project
 
-**Build Verification:**
-- GitHub Actions (coverage enforcement)
-  - Parses xccov output to verify 100% line coverage
-  - Triggered on pull requests or commits
+**Deployment:**
+- TestFlight/App Store: Fastlane `beta` lane (`fastlane/Fastfile`)
+- Code signing: Fastlane Match (`appstore` cert type, private Git repo via `MATCH_GIT_URL`)
+- Build number: auto-incremented from latest TestFlight build
+- Distribution method: `app-store`
 
-## Environment Configuration
+## WOD Admin Dashboard (`wod-dashboard/`)
 
-**Required env vars (WOD Dashboard):**
-- NEXT_PUBLIC_CLOUDKIT_API_TOKEN - CloudKit JS API token (public-safe, for browser SDK)
-- NEXT_PUBLIC_CLOUDKIT_ENV - CloudKit environment (production)
-
-**Secrets location:**
-- `wod-dashboard/.env.local` - CloudKit API token (NOT committed to git)
-- iOS app: No .env files - configuration via Xcode project settings and entitlements
-
-**Build-time configuration:**
-- `project.yml` - Deployment target, Swift version, bundleIdPrefix, signing team
-- `SundeeFundee.storekit` - StoreKit subscription products and pricing
+**Stack:** Next.js 16 + React 19 + TypeScript + Tailwind CSS 4
+**Purpose:** Admin interface for writing WODs (Workout of the Day) to backend
+**Backend connection:** `tsl-apple-cloudkit` 0.2.34 — CloudKit JS SDK
+**Note:** Dashboard uses CloudKit; migration to Firestore is planned per project roadmap but not yet implemented
 
 ## Webhooks & Callbacks
 
 **Incoming:**
-- Cloudflare Worker → Gemini API (one-way call, no incoming webhooks)
+- None — no webhook endpoints in this native iOS app
 
 **Outgoing:**
-- CloudKit Public DB contributions (SwiftData writes anonymized workout to shared table)
-- StoreKit transaction updates (Transaction.updates stream in SubscriptionService)
+- None — all API calls are client-initiated (Gemini proxy, CloudKit)
 
-## Integration Points Summary
+## Cloudflare Worker Proxy
 
-**Data Flow:**
-```
-iOS App (SwiftUI)
-  ↓
-AuthService (Sign in with Apple) ↔ Keychain
-  ↓
-SwiftData ModelContext
-  ↓
-CloudKit (Private DB: user data) + (Public DB: programs, WODs, shared workouts)
-  ↓
-HealthKit (read-only: sleep, HRV, resting HR)
-
-AI Workout Generation:
-  GeminiWorkoutService (iOS)
-  ↓
-  Cloudflare Worker: workout-proxy.sundeefundee.workers.dev/generate-workout
-  ↓
-  Google Gemini API (gemini-3.1-flash-lite-preview)
-
-Subscription Management:
-  StoreKit 2 (transaction verification)
-  ↓
-  App Store Connect (product definitions, receipts)
-
-WOD Admin Dashboard (Next.js):
-  ↓
-  tsl-apple-cloudkit (JS SDK)
-  ↓
-  CloudKit Public DB (Programs, WODs)
-```
+**URL:** `https://workout-proxy.sundeefundee.workers.dev/generate-workout`
+**Purpose:** Proxies Gemini API calls to avoid exposing API key in client
+**Auth:** None from client side — proxy handles Gemini API key
+**Format:** Gemini native format (`contents`, `systemInstruction`, `generationConfig`)
+**Planned replacement:** Firebase Cloud Functions (per project roadmap)
 
 ---
 
-*Integration audit: 2025-03-14*
+*Integration audit: 2026-03-18*
