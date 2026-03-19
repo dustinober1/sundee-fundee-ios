@@ -10,13 +10,20 @@
  *
  * Reads hasCompletedOnboarding from the appropriate UserRepository.
  * Uses useSession() from AuthContext — SessionProvider is already mounted at root.
+ *
+ * Also handles:
+ * - Android notification channels (rest-timer + reminders)
+ * - Notification tap deep-link listener
+ * - FCM token registration after auth resolves
  */
 
 import { useEffect, useState } from 'react';
-import { Redirect, Stack } from 'expo-router';
+import { Platform } from 'react-native';
+import { Redirect, Stack, useRouter } from 'expo-router';
 import * as Notifications from 'expo-notifications';
 import { useSession } from '@/src/auth/AuthContext';
 import { getOnboardingProfileRepo } from '@/src/repositories/OnboardingProfileRepo';
+import { registerFCMToken } from '@/src/services/notificationService';
 
 // Configure notifications to display when app is in foreground.
 // Called once at module load — safe to call multiple times (idempotent).
@@ -28,8 +35,29 @@ Notifications.setNotificationHandler({
   }),
 });
 
+// ── Android notification channels ──────────────────────────────────────────
+// Created at module load (before component mount) so channels are available
+// the first time a notification is scheduled.
+if (Platform.OS === 'android') {
+  void Notifications.setNotificationChannelAsync('rest-timer', {
+    name: 'Rest Timer',
+    importance: Notifications.AndroidImportance.HIGH,
+    sound: 'default',
+    vibrationPattern: [0, 250, 250, 250],
+    lightColor: '#F2731A',
+  });
+
+  void Notifications.setNotificationChannelAsync('reminders', {
+    name: 'Workout Reminders',
+    importance: Notifications.AndroidImportance.DEFAULT,
+    sound: 'default',
+  });
+}
+
 export default function AppLayout(): React.JSX.Element | null {
   const { user, isLoading, isGuest } = useSession();
+  const router = useRouter();
+
   /**
    * null  = not yet checked
    * true  = onboarding complete
@@ -37,6 +65,7 @@ export default function AppLayout(): React.JSX.Element | null {
    */
   const [onboardingComplete, setOnboardingComplete] = useState<boolean | null>(null);
 
+  // ── Onboarding check ──────────────────────────────────────────────────────
   useEffect(() => {
     if (!user) {
       setOnboardingComplete(null);
@@ -68,6 +97,43 @@ export default function AppLayout(): React.JSX.Element | null {
       cancelled = true;
     };
   }, [user, isGuest]);
+
+  // ── FCM token registration after auth resolves ────────────────────────────
+  useEffect(() => {
+    if (!user || isGuest || Platform.OS === 'web') return;
+
+    void registerFCMToken(user.uid, isGuest);
+
+    // Set up token refresh listener
+    let unsubscribeTokenRefresh: (() => void) | undefined;
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const messaging = require('@react-native-firebase/messaging').default;
+      unsubscribeTokenRefresh = messaging().onTokenRefresh(() => {
+        void registerFCMToken(user.uid, isGuest);
+      });
+    } catch {
+      // Non-fatal — messaging not available in web or missing native module
+    }
+
+    return () => {
+      unsubscribeTokenRefresh?.();
+    };
+  }, [user, isGuest]);
+
+  // ── Notification response listener — deep-link on tap ────────────────────
+  useEffect(() => {
+    const sub = Notifications.addNotificationResponseReceivedListener((response) => {
+      const url = response.notification.request.content.data?.url as string | undefined;
+      if (url) {
+        router.push(url as never);
+      }
+    });
+
+    return () => {
+      sub.remove();
+    };
+  }, [router]);
 
   // While auth state is being determined, keep splash visible
   if (isLoading) {
