@@ -14,15 +14,31 @@ import { LocalSettingsRepo } from './LocalSettingsRepo';
 
 export interface AppSettings {
   weightUnit: 'lb' | 'kg';
-  notificationsEnabled: boolean;
   /** Default rest timer duration in seconds. Defaults to 90. */
   defaultRestDuration: number;
+  /** Whether to send a local notification when the rest timer completes. Defaults to true. */
+  restTimerAlertsEnabled: boolean;
+  /** Whether to send daily workout reminder notifications. Defaults to false. */
+  workoutRemindersEnabled: boolean;
+  /** Whether to send WOD availability alerts. Defaults to true. */
+  wodAlertsEnabled: boolean;
+  /** Whether to send subscription renewal/expiry alerts. Defaults to true. */
+  subscriptionAlertsEnabled: boolean;
+  /** Hour of day (0–23) for the daily workout reminder. Defaults to 7 (7 AM). */
+  reminderHour: number;
+  /** Minute (0–59) for the daily workout reminder. Defaults to 0. */
+  reminderMinute: number;
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
   weightUnit: 'lb',
-  notificationsEnabled: true,
   defaultRestDuration: 90,
+  restTimerAlertsEnabled: true,
+  workoutRemindersEnabled: false,
+  wodAlertsEnabled: true,
+  subscriptionAlertsEnabled: true,
+  reminderHour: 7,
+  reminderMinute: 0,
 };
 
 export interface SettingsRepository {

@@ -33,3 +33,10 @@ export const AndroidImportance = {
 } as const;
 
 export const setNotificationChannelAsync = jest.fn().mockResolvedValue(null);
+
+export const SchedulableTriggerInputTypes = {
+  TIME_INTERVAL: 'timeInterval',
+  DAILY: 'daily',
+  WEEKLY: 'weekly',
+  DATE: 'date',
+} as const;
