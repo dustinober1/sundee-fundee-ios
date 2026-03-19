@@ -1,103 +1,102 @@
-# Sundee Fundee — React Native
+# Sundee Fundee
 
 ## What This Is
 
-A cross-platform strength training app with hormonal-cycle-aware training adaptation, injury modification, AI workout generation, and offline-first architecture. Built with React Native + Expo targeting iOS, Android, and Web. Backed by Firebase (Firestore, Auth, Cloud Functions) with RevenueCat + Stripe dual subscription pipeline.
+A native Apple strength training app with hormonal-cycle-aware training adaptation, injury modification, AI workout generation, and multi-device sync. Built with Swift 6 + SwiftUI targeting iOS and watchOS. Backed by CloudKit for sync, Cloudflare Worker for AI (Gemini proxy), APNs for push notifications, and StoreKit 2 for subscriptions.
 
 ## Core Value
 
-Users get personalized, cycle-aware strength training that adapts to their body — available on any platform, online or offline.
+Users get personalized, cycle-aware strength training that adapts to their body — with seamless sync across iPhone and Apple Watch.
 
 ## Requirements
 
 ### Validated
 
-- ✓ React Native + Expo project scaffold (iOS, Android, Web) — v1.0
-- ✓ Firebase Auth (Apple, Google, Email/Password, Guest mode) — v1.0
-- ✓ Firestore database with offline persistence — v1.0
-- ✓ Full TypeScript port of Domain logic (cycle adaptation, injury engine, benchmarks, pain analysis, rehab generation) — v1.0
-- ✓ Onboarding flow (name, experience, goal, gender, cycle opt-in) — v1.0
-- ✓ Exercise library (202+), workout logging, timers, PR detection — v1.0
-- ✓ Unified history (AI/Program/Custom sources, filtering, delete) — v1.0
-- ✓ Progress charts and 1RM tracking — v1.0
-- ✓ Cycle tracking (period logging, symptom tracking, phase inference, adaptation) — v1.0
-- ✓ Injury management (profiles, substitution, pain logging, trend analysis, rehab, phase transition) — v1.0
-- ✓ AI workout generation via Gemini Cloud Function with offline fallback — v1.0
-- ✓ Programs from Firestore with enrollment and target weight calculation — v1.0
-- ✓ Benchmarks with scoring-aware recording and custom creation — v1.0
-- ✓ WODs from Firestore matched by date — v1.0
-- ✓ Readiness survey feeding into workout adaptation — v1.0
-- ✓ RevenueCat mobile subscriptions + Stripe web checkout — v1.0
-- ✓ Entitlement gating across all platforms — v1.0
-- ✓ Art Deco design (cream/navy/orange palette) — v1.0
-- ✓ Weight unit switching (lbs/kg) threaded through all screens — v1.0
-- ✓ Data export (CSV/JSON with zip bundling) — v1.0
-- ✓ Account deletion with full data wipe — v1.0
-- ✓ Guest-to-auth upgrade with data preservation — v1.0
-- ✓ Firebase App Check (DeviceCheck on iOS, Play Integrity on Android) — v1.0
+<!-- Inferred from existing Swift codebase (codebase map 2026-03-18) -->
+
+- ✓ SwiftUI app scaffold with Sign in with Apple auth — existing
+- ✓ SwiftData local persistence with versioned schema (V1–V12) — existing
+- ✓ CloudKit sync infrastructure (implemented but disabled in production) — existing (needs activation)
+- ✓ Exercise library with workout logging and set tracking — existing
+- ✓ Cycle tracking (period logging, symptom tracking, phase inference) — existing
+- ✓ Cycle adaptation engine (load/volume/exercise adjustments per phase) — existing
+- ✓ Injury management (profiles, body map, substitution engine) — existing
+- ✓ Pain logging with trend analysis and rehab generation — existing
+- ✓ AI workout generation via Cloudflare Worker (Gemini proxy) — existing
+- ✓ Benchmark system (WOD-style scoring with catalog) — existing
+- ✓ Max lifts (1RM) tracking — existing
+- ✓ Workout history with summary views — existing
+- ✓ Onboarding flow (experience, goals, cycle opt-in) — existing
+- ✓ Art Deco design theme (cream/navy/orange palette) — existing
+- ✓ StoreKit subscription service with tier gating — existing
+- ✓ Programs with enrollment and workout execution — existing
+- ✓ WOD (Workout of the Day) execution — existing
+- ✓ Readiness survey / spicy rating — existing
+- ✓ Weight unit support (lbs/kg) — existing (has bugs, needs fixing)
+- ✓ Celebration overlay for PRs — existing
 
 ### Active
 
-- [ ] Device testing & verification sweep (resolve ~30 human verification items from v1.0)
-- [ ] Firestore security rules deployed and validated in production
-- [ ] Push notifications — local (reminders, rest timer, streaks) + remote via FCM (new WOD, subscription expiring)
-- [ ] Firebase Analytics + Crashlytics wired into key user flows
-- [ ] App Store, Play Store, and Web submission prep (metadata, screenshots, EAS builds)
-
-## Current Milestone: v1.1 Launch Readiness
-
-**Goal:** Get the app verified on real devices, instrumented with analytics/crash reporting, add notifications, and submit to all three platforms (iOS, Android, Web).
-
-**Target features:**
-- Device testing & verification sweep
-- Firestore security rules deploy + validation
-- Push notifications (local + remote via FCM)
-- Analytics & crash reporting (Firebase Analytics + Crashlytics)
-- App Store / Play Store / Web submission
+- [ ] Fix critical bugs identified in codebase audit (CloudKit activation, migration plan, schema references, AI weight units, guest userID, subscription cache)
+- [ ] watchOS companion app with workout logging from wrist
+- [ ] Push notifications via APNs (rest timer, reminders, streaks, WOD alerts)
+- [ ] Full feature parity with React Native build (notifications, analytics, data export, account management)
+- [ ] App Store submission and launch
 
 ### Out of Scope
 
-- CloudKit migration tool — fresh start, no data migration from existing iOS app
-- Native iOS Swift app maintenance — replaced by React Native version
-- Real-time chat/social features — not core to training value
-- Video content/streaming — storage/bandwidth cost, defer to future
-- Wearable integrations (Apple Watch, Wear OS) — defer to post-launch
+- React Native / cross-platform — customer requires Apple-only
+- Android / Web targets — Apple ecosystem only
+- Firebase / Firestore — using CloudKit instead
+- RevenueCat — using StoreKit 2 directly
+- Real-time chat / social features — not core to training value
+- Video content / streaming — storage/bandwidth cost, defer to future
 - Nutrition tracking / macro logging — distinct domain, dilutes strength training focus
 
 ## Context
 
-Shipped v1.0 with 44,211 LOC TypeScript (14,618 test LOC across 72 test files).
-Tech stack: React Native + Expo, Firebase (Firestore, Auth, Cloud Functions), RevenueCat, Stripe, Gemini AI.
-72 requirements satisfied across 16 phases and 43 plans in 30 days.
-All 10 E2E user flows verified passing.
+This is a rebuild from an existing Swift/SwiftUI codebase that was previously archived when the project pivoted to React Native. The RN version shipped v1.0 (72 requirements, 16 phases) and was mid-v1.1 (Launch Readiness) when the customer changed requirements back to Apple-only.
 
-Known tech debt: ~30 human verification items (device testing), Firestore rules deploy pending, Nyquist validation partial.
+The legacy Swift codebase has substantial functionality already built:
+- MVVM + Repository pattern with protocol abstractions
+- Domain layer is pure Swift (no framework imports)
+- SwiftData with 12 schema versions and migration plan
+- CloudKit sync infrastructure (implemented but production-disabled)
+- Feature verticals: Workouts, Cycle, Injuries, AI, Benchmarks, Programs, WODs
+- Cloudflare Worker proxy for Gemini AI at `workout-proxy.sundeefundee.workers.dev`
+- WOD admin dashboard (Next.js + CloudKit JS) at `wod-dashboard/`
 
-v1.1 focus: Launch readiness — verify on real devices, deploy security rules, add notifications + analytics, submit to stores.
+Known bugs from codebase audit (CONCERNS.md):
+- CloudKit sync disabled in production (flag flip needed + entitlements)
+- Migration plan not applied to local persistent store path
+- Sign-out/delete references stale AppSchemaV10 instead of V12
+- AI weights hardcoded in lbs regardless of user unit preference
+- Guest mode uses empty string userID (should use stable UUID)
+- Subscription tier cached without server verification on cold launch
+- Gemini model name hardcoded as string literal
+
+## Constraints
+
+- **Platform**: Swift 6 + SwiftUI, iOS 17.0+, watchOS 10.0+
+- **Data**: CloudKit for sync, SwiftData for local persistence
+- **AI**: Cloudflare Worker proxy → Gemini API (existing infrastructure)
+- **Payments**: StoreKit 2 (native Apple subscriptions)
+- **Notifications**: APNs (local + remote)
+- **Design**: Art Deco aesthetic (cream #F4F0DF, navy #0D1A40, orange #F2731A)
+- **Build**: XcodeGen (project.yml), Xcode 16+
+- **Domain Logic**: Pure Swift, no framework dependencies, fully unit testable
 
 ## Key Decisions
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| React Native + Expo over Flutter | Professional multi-platform with web support; JS/TS ecosystem | ✓ Good — delivered iOS/Android/Web from single codebase |
-| Firebase over Supabase | Better Expo integration, proven at scale, offline persistence built in | ✓ Good — offline-first worked well with Firestore |
-| Fresh start (no data migration) | Small user base, clean break simplifies architecture | ✓ Good — no migration complexity |
-| RevenueCat + Stripe dual payments | RevenueCat handles app store complexity; Stripe web checkout at lower prices | ✓ Good — unified entitlements across platforms |
-| Port Domain logic to TypeScript | Existing pure Swift logic is well-tested and proven; rewrite in TS maintains same algorithms | ✓ Good — numeric parity verified |
-| Firebase Cloud Functions for AI | Consolidates backend; removes Cloudflare Worker dependency | ✓ Good — Gemini 2.0 Flash with JSON mode |
-| String unions over TS enums | Better serialization and narrowing for domain types | ✓ Good — cleaner code throughout |
-| Dual repository pattern (Firestore/AsyncStorage) | Supports auth + guest modes with same interface | ✓ Good — seamless offline experience |
-| Module-level shared state for workout passing | Expo Router params have serialization limits | ⚠️ Revisit — works but not ideal for complex state |
-
-## Constraints
-
-- **Offline**: Must work offline for core workout functionality — gyms have unreliable connectivity
-- **Platform**: React Native + Expo (managed workflow)
-- **Backend**: Firebase (Firestore, Auth, Cloud Functions)
-- **Payments**: RevenueCat (mobile) + Stripe (web)
-- **Design**: Art Deco aesthetic (cream/navy/orange)
-- **Domain Logic**: All business logic ported from Swift with numeric parity
-- **Quality**: High test coverage on Domain logic and critical paths
+| Pivot from React Native back to Swift | Customer changed requirements, willing to pay more for Apple-native | — Pending |
+| iOS + watchOS targets | Customer wants Apple Watch workout logging | — Pending |
+| CloudKit over Firebase | Native Apple sync, no third-party backend dependency | — Pending |
+| StoreKit 2 over RevenueCat | Apple-only means no cross-platform subscription complexity | — Pending |
+| Rebuild from legacy Swift code | Substantial existing codebase with working features, not starting from scratch | — Pending |
+| Keep Cloudflare Worker for AI | Existing Gemini proxy works, no need to change AI infrastructure | — Pending |
+| Keep WOD dashboard (Next.js + CloudKit JS) | Admin tool works independently, no platform dependency | — Pending |
 
 ---
-*Last updated: 2026-03-16 after v1.1 milestone start*
+*Last updated: 2026-03-18 after project re-initialization (Swift pivot)*
