@@ -101,43 +101,45 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FIX-01 | TBD | Pending |
-| FIX-02 | TBD | Pending |
-| FIX-03 | TBD | Pending |
-| FIX-04 | TBD | Pending |
-| FIX-05 | TBD | Pending |
-| SYNC-01 | TBD | Pending |
-| SYNC-02 | TBD | Pending |
-| SYNC-03 | TBD | Pending |
-| SYNC-04 | TBD | Pending |
-| WATCH-01 | TBD | Pending |
-| WATCH-02 | TBD | Pending |
-| WATCH-03 | TBD | Pending |
-| WATCH-04 | TBD | Pending |
-| WATCH-05 | TBD | Pending |
-| WATCH-06 | TBD | Pending |
-| WATCH-07 | TBD | Pending |
-| WATCH-08 | TBD | Pending |
-| WATCH-09 | TBD | Pending |
-| WATCH-10 | TBD | Pending |
-| WATCH-11 | TBD | Pending |
-| NOTIF-01 | TBD | Pending |
-| NOTIF-02 | TBD | Pending |
-| NOTIF-03 | TBD | Pending |
-| NOTIF-04 | TBD | Pending |
-| NOTIF-05 | TBD | Pending |
-| DATA-01 | TBD | Pending |
-| DATA-02 | TBD | Pending |
-| DATA-03 | TBD | Pending |
-| STORE-01 | TBD | Pending |
-| STORE-02 | TBD | Pending |
-| STORE-03 | TBD | Pending |
+| FIX-01 | Phase 1 | Pending |
+| FIX-02 | Phase 1 | Pending |
+| FIX-03 | Phase 1 | Pending |
+| FIX-04 | Phase 1 | Pending |
+| FIX-05 | Phase 1 | Pending |
+| SYNC-01 | Phase 2 | Pending |
+| SYNC-02 | Phase 2 | Pending |
+| SYNC-03 | Phase 2 | Pending |
+| SYNC-04 | Phase 2 | Pending |
+| NOTIF-01 | Phase 3 | Pending |
+| NOTIF-02 | Phase 3 | Pending |
+| NOTIF-03 | Phase 3 | Pending |
+| NOTIF-04 | Phase 3 | Pending |
+| NOTIF-05 | Phase 3 | Pending |
+| WATCH-01 | Phase 5 | Pending |
+| WATCH-02 | Phase 5 | Pending |
+| WATCH-03 | Phase 5 | Pending |
+| WATCH-04 | Phase 5 | Pending |
+| WATCH-05 | Phase 5 | Pending |
+| WATCH-06 | Phase 5 | Pending |
+| WATCH-07 | Phase 5 | Pending |
+| WATCH-08 | Phase 5 | Pending |
+| WATCH-09 | Phase 6 | Pending |
+| WATCH-10 | Phase 6 | Pending |
+| WATCH-11 | Phase 6 | Pending |
+| DATA-01 | Phase 7 | Pending |
+| DATA-02 | Phase 7 | Pending |
+| DATA-03 | Phase 7 | Pending |
+| STORE-01 | Phase 8 | Pending |
+| STORE-02 | Phase 8 | Pending |
+| STORE-03 | Phase 8 | Pending |
 
 **Coverage:**
 - v1 requirements: 31 total
-- Mapped to phases: 0
-- Unmapped: 31 ⚠️
+- Mapped to phases: 31
+- Unmapped: 0 ✓
+
+Note: Phase 4 (watchOS Scaffold) is a foundation phase with no isolated v1 requirements — it creates the XcodeGen target, shared domain package, minimal Watch schema, and WatchConnectivity service that make WATCH-01 through WATCH-11 verifiable in Phases 5 and 6.
 
 ---
 *Requirements defined: 2026-03-18*
-*Last updated: 2026-03-18 after initial definition*
+*Last updated: 2026-03-18 — traceability complete after roadmap creation*
