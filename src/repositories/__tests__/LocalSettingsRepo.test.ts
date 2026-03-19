@@ -19,7 +19,13 @@ const SETTINGS_KEY = '@sundee/settings';
 
 const testSettings: AppSettings = {
   weightUnit: 'lb',
-  notificationsEnabled: true,
+  defaultRestDuration: 90,
+  restTimerAlertsEnabled: true,
+  workoutRemindersEnabled: false,
+  wodAlertsEnabled: true,
+  subscriptionAlertsEnabled: true,
+  reminderHour: 7,
+  reminderMinute: 0,
 };
 
 describe('LocalSettingsRepo', () => {

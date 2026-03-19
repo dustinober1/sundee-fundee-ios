@@ -236,7 +236,7 @@ describe('AIWorkoutConfigScreen — settings wiring', () => {
   });
 
   it('passes real weightUnit from settings into context', async () => {
-    mockGetSettings.mockResolvedValue({ weightUnit: 'kg', notificationsEnabled: true, defaultRestDuration: 90 });
+    mockGetSettings.mockResolvedValue({ weightUnit: 'kg', defaultRestDuration: 90, restTimerAlertsEnabled: true, workoutRemindersEnabled: false, wodAlertsEnabled: true, subscriptionAlertsEnabled: true, reminderHour: 7, reminderMinute: 0 });
 
     const context = await renderAndGenerate() as Record<string, unknown>;
     expect(context.weightUnit).toBe('kg');

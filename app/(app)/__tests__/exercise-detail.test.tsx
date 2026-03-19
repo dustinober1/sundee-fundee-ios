@@ -28,7 +28,7 @@ jest.mock('@/src/repositories/WorkoutRepo', () => ({
 
 jest.mock('@/src/repositories/SettingsRepo', () => ({
   getSettingsRepo: jest.fn(),
-  DEFAULT_SETTINGS: { weightUnit: 'lb', notificationsEnabled: true, defaultRestDuration: 90 },
+  DEFAULT_SETTINGS: { weightUnit: 'lb', defaultRestDuration: 90, restTimerAlertsEnabled: true, workoutRemindersEnabled: false, wodAlertsEnabled: true, subscriptionAlertsEnabled: true, reminderHour: 7, reminderMinute: 0 },
 }));
 
 // Mock react-native-gifted-charts (used by ProgressChart)
@@ -105,8 +105,13 @@ function setupMocks({ weightUnit = 'lb' as 'lb' | 'kg' } = {}) {
 
   const mockGetSettings = jest.fn().mockResolvedValue({
     weightUnit,
-    notificationsEnabled: true,
     defaultRestDuration: 90,
+    restTimerAlertsEnabled: true,
+    workoutRemindersEnabled: false,
+    wodAlertsEnabled: true,
+    subscriptionAlertsEnabled: true,
+    reminderHour: 7,
+    reminderMinute: 0,
   });
   (getSettingsRepo as jest.Mock).mockReturnValue({ getSettings: mockGetSettings });
 }

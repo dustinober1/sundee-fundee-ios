@@ -10,7 +10,13 @@ const mockDocRef = mockFirestoreInstance.collection('users').doc('test-uid');
 
 const testSettings: AppSettings = {
   weightUnit: 'kg',
-  notificationsEnabled: false,
+  defaultRestDuration: 90,
+  restTimerAlertsEnabled: true,
+  workoutRemindersEnabled: false,
+  wodAlertsEnabled: true,
+  subscriptionAlertsEnabled: true,
+  reminderHour: 7,
+  reminderMinute: 0,
 };
 
 describe('FirestoreSettingsRepo', () => {

@@ -128,8 +128,13 @@ function setupMocks({
 
   const mockGetSettings = jest.fn().mockResolvedValue({
     weightUnit,
-    notificationsEnabled: true,
     defaultRestDuration: 90,
+    restTimerAlertsEnabled: true,
+    workoutRemindersEnabled: false,
+    wodAlertsEnabled: true,
+    subscriptionAlertsEnabled: true,
+    reminderHour: 7,
+    reminderMinute: 0,
   });
   (getSettingsRepo as jest.Mock).mockReturnValue({ getSettings: mockGetSettings });
 }

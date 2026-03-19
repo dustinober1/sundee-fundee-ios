@@ -26,7 +26,13 @@ const testProfile = {
 
 const testSettings = {
   weightUnit: 'lb',
-  notificationsEnabled: true,
+  defaultRestDuration: 90,
+  restTimerAlertsEnabled: true,
+  workoutRemindersEnabled: false,
+  wodAlertsEnabled: true,
+  subscriptionAlertsEnabled: true,
+  reminderHour: 7,
+  reminderMinute: 0,
 };
 
 const testWorkouts = [

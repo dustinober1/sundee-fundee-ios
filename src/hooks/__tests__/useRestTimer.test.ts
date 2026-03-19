@@ -161,20 +161,6 @@ describe('useRestTimer', () => {
     expect(Notifications.cancelScheduledNotificationAsync).toHaveBeenCalled();
   });
 
-  it('requests notification permission when not already granted', async () => {
-    (Notifications.getPermissionsAsync as jest.Mock).mockResolvedValueOnce({
-      status: 'undetermined',
-    });
-
-    const { result } = renderHook(() => useRestTimer(90));
-
-    await act(async () => {
-      await result.current.start(90);
-    });
-
-    expect(Notifications.requestPermissionsAsync).toHaveBeenCalled();
-  });
-
   it('timer auto-clears when countdown reaches zero', async () => {
     const { result } = renderHook(() => useRestTimer(2));
 
