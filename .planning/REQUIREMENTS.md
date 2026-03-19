@@ -1,83 +1,99 @@
-# Requirements: Sundee Fundee v1.1
+# Requirements: Sundee Fundee (Swift Rebuild)
 
-**Defined:** 2026-03-16
-**Core Value:** Users get personalized, cycle-aware strength training that adapts to their body — available on any platform, online or offline.
+**Defined:** 2026-03-18
+**Core Value:** Users get personalized, cycle-aware strength training that adapts to their body — with seamless sync across iPhone and Apple Watch.
 
-## v1.1 Requirements
+## v1 Requirements
 
-Requirements for launch readiness. Each maps to roadmap phases.
+Requirements for App Store launch. Each maps to roadmap phases.
 
-### Notifications
+### Bug Fixes
 
-- [x] **NOTIF-01**: User receives local push when rest timer expires while app is backgrounded
-- [x] **NOTIF-02**: User can grant notification permission via deferred prompt (after first workout, not cold launch)
-- [x] **NOTIF-03**: App registers FCM push token and stores it in Firestore under user document
-- [ ] **NOTIF-04**: User receives remote push when a new WOD is published
-- [ ] **NOTIF-05**: User receives remote push 3 days before and on subscription expiry
-- [x] **NOTIF-06**: User can configure notification preferences per type (rest timer, reminders, WOD, subscription) in Settings
-- [x] **NOTIF-07**: Workout reminder notifications include cycle-phase-aware copy when cycle tracking is enabled
-- [x] **NOTIF-08**: User can schedule daily workout reminder at a preferred time
+- [ ] **FIX-01**: AI workout generation prescribes weights in the user's selected unit (lbs or kg), not hardcoded lbs
+- [ ] **FIX-02**: Sign-out and account deletion wipe all model types through current schema (V12), not stale V10 references
+- [ ] **FIX-03**: Guest mode uses a stable UUID as userID instead of empty string, preserving data on sign-in upgrade
+- [ ] **FIX-04**: Subscription tier defaults to free on cold launch until StoreKit verification completes, preventing brief premium access window
+- [ ] **FIX-05**: SwiftData migration plan is applied to both CloudKit and local persistent store paths
 
-### Analytics
+### CloudKit & Sync
 
-- [x] **ANLYT-01**: Firebase Analytics tracks screen views automatically via Expo Router
-- [x] **ANLYT-02**: Key events logged: workout_started, workout_completed, subscription_started, ai_workout_generated, cycle_phase_updated
-- [x] **ANLYT-03**: User properties set for subscription tier (free/premium) and cycle tracking opt-in
-- [x] **ANLYT-04**: Crashlytics captures native crashes and JS errors via recordError()
-- [x] **ANLYT-05**: Crashlytics custom keys attached: current screen, subscription tier, cycle phase
-- [x] **ANLYT-06**: OTA update capability via EAS Update for JS-layer hotfixes
+- [ ] **SYNC-01**: CloudKit sync is activated in production with verified schema compliance (all optionals, no unique constraints, optional relationships with inverses)
+- [ ] **SYNC-02**: CloudKit production schema is deployed via CloudKit Console before TestFlight distribution
+- [ ] **SYNC-03**: User's workout data syncs across all their Apple devices via iCloud without manual intervention
+- [ ] **SYNC-04**: Container open failure triggers a user-visible error instead of silently deleting the local store
 
-### Security
+### watchOS Companion — Core
 
-- [ ] **SEC-01**: Firestore security rules deployed to production (auth-gated user docs, public read for programs/WODs)
-- [ ] **SEC-02**: Firestore rules validated via Rules Simulator before deploy
-- [x] **SEC-03**: Firebase App Check confirmed active in production mode (DeviceCheck iOS, Play Integrity Android)
-- [x] **SEC-04**: PrivacyInfo.xcprivacy privacy manifest added with correct SDK declarations
+- [ ] **WATCH-01**: watchOS app starts an HKWorkoutSession (Traditional Strength Training) that contributes to Activity rings
+- [ ] **WATCH-02**: User can log sets (weight + reps) from Apple Watch during an active workout session
+- [ ] **WATCH-03**: Watch displays current exercise name, target sets/reps, and previous best weight
+- [ ] **WATCH-04**: Watch shows a rest timer countdown with haptic feedback on completion
+- [ ] **WATCH-05**: Watch displays live heart rate and calories burned during workout (via HKLiveWorkoutBuilder)
+- [ ] **WATCH-06**: User can end a workout from the Watch without needing the iPhone
+- [ ] **WATCH-07**: Workout data logged on Watch appears in iPhone history after session ends
+- [ ] **WATCH-08**: Watch app recovers active workout state if terminated and relaunched mid-workout
 
-### Store Submission
+### watchOS Companion — Differentiators
 
-- [x] **STORE-01**: EAS production build profiles configured for iOS and Android
-- [ ] **STORE-02**: App Store Connect metadata complete (screenshots 6.7"/6.5", description, keywords, privacy policy URL)
-- [ ] **STORE-03**: Play Store metadata complete (Health & Fitness declaration, data safety, screenshots)
-- [ ] **STORE-04**: Age rating questionnaire completed for both stores
-- [ ] **STORE-05**: Privacy policy accessible in-app from Settings screen
-- [ ] **STORE-06**: App submitted to App Store and Play Store
-- [ ] **STORE-07**: Web app deployed (Expo web build or EAS Hosting)
+- [ ] **WATCH-09**: Watch displays current cycle phase and adaptation rationale during active workout
+- [ ] **WATCH-10**: Watch face complication shows cycle phase, streak count, or last workout date
+- [ ] **WATCH-11**: Watch delivers haptic feedback when a personal record is set during workout
 
-### Device Verification
+### Push Notifications (APNs)
 
-- [x] **VERIFY-01**: All ~30 human verification items from v1.0 triaged and resolved
-- [x] **VERIFY-02**: Core workout flow verified on iOS simulator and Android emulator
-- [x] **VERIFY-03**: Offline mode verified (airplane mode workout completion + sync on reconnect)
-- [x] **VERIFY-04**: Auth flows verified on all platforms (Apple, Google, Email, Guest, guest-to-auth upgrade)
+- [ ] **NOTIF-01**: User receives a local push notification when rest timer expires while app is backgrounded
+- [ ] **NOTIF-02**: User can schedule daily workout reminder push notifications at a chosen time
+- [ ] **NOTIF-03**: User receives a push notification when a new WOD is published
+- [ ] **NOTIF-04**: User receives a push notification when their workout streak is about to break
+- [ ] **NOTIF-05**: User can toggle each notification type on/off in Settings, with preferences persisted
+
+### Data & Analytics
+
+- [ ] **DATA-01**: User can export their workout data as CSV files
+- [ ] **DATA-02**: User can view weekly training volume charts (sets per muscle group, total volume over time)
+- [ ] **DATA-03**: User sees cycle-phase-specific education copy explaining why today's workout was adapted
+
+### App Store Readiness
+
+- [ ] **STORE-01**: App Store metadata (description, keywords, screenshots) is complete and submitted
+- [ ] **STORE-02**: Privacy policy is accessible from within the app
+- [ ] **STORE-03**: Signed production binary is submitted to App Store Connect
 
 ## v2 Requirements
 
 Deferred to future release. Tracked but not in current roadmap.
 
-### Notifications
+### Advanced watchOS
 
-- **NOTIF-09**: Streak notification with motivational content
-- **NOTIF-10**: Rich media notifications (images in push)
-- **NOTIF-11**: Firebase Remote Config for A/B testing notification copy
+- **WATCH-20**: User can complete a workout on Watch without iPhone nearby (independent session)
+- **WATCH-21**: AI workout generation results are viewable on Watch
 
-### Analytics
+### Advanced AI
 
-- **ANLYT-07**: Funnel analysis dashboards in Firebase Console
-- **ANLYT-08**: Custom retention cohort analysis
+- **AI-20**: AI workout generation uses full workout history for personalization (not just current context)
+
+### HealthKit Write
+
+- **HK-20**: Completed workouts are saved to Apple Health as HKWorkout records
+
+### Content
+
+- **CONT-20**: Exercise library includes still-image or video form demonstrations
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| Social features / friend activity | Not core to training value; moderation overhead |
-| Video content / streaming | Storage/bandwidth cost; defer to future |
-| Wearable integrations | Separate SDK targets; defer to post-launch |
-| Nutrition tracking | Distinct domain; dilutes strength training focus |
-| Sentry (parallel crash reporting) | Crashlytics sufficient; dual reporters interfere |
-| Google Analytics / Mixpanel (parallel analytics) | Firebase Analytics covers all launch needs; dual systems create conflicting data |
-| Manual APNs certificate management | Use Expo credential management with APNs auth keys instead |
-| Background fetch for rest timer | Unreliable on iOS; use scheduled local notification with absolute timestamp |
+| Android / Web targets | Customer requires Apple-only |
+| React Native / cross-platform | Replaced by native Swift |
+| Firebase / Firestore backend | Using CloudKit instead |
+| RevenueCat | Using StoreKit 2 directly |
+| Social feed / activity sharing | Distinct product surface, moderation burden, dilutes focus |
+| Nutrition / macro tracking | Separate domain, not core to strength training |
+| Real-time coaching / chat | AI generation + cycle adaptation serves this need |
+| Video exercise library | Storage/CDN cost, defer to v2+ |
+| Gamification (badges, points, leaderboards) | Shallow engagement vs training quality |
+| iPad-specific layout | iPhone + Watch focus for v1 |
 
 ## Traceability
 
@@ -85,41 +101,43 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| NOTIF-01 | Phase 20 | Complete |
-| NOTIF-02 | Phase 20 | Complete |
-| NOTIF-03 | Phase 20 | Complete |
-| NOTIF-04 | Phase 21 | Pending |
-| NOTIF-05 | Phase 21 | Pending |
-| NOTIF-06 | Phase 20 | Complete |
-| NOTIF-07 | Phase 20 | Complete |
-| NOTIF-08 | Phase 20 | Complete |
-| ANLYT-01 | Phase 19 | Complete |
-| ANLYT-02 | Phase 19 | Complete |
-| ANLYT-03 | Phase 19 | Complete |
-| ANLYT-04 | Phase 19 | Complete |
-| ANLYT-05 | Phase 19 | Complete |
-| ANLYT-06 | Phase 19 | Complete |
-| SEC-01 | Phase 22 | Pending |
-| SEC-02 | Phase 22 | Pending |
-| SEC-03 | Phase 18 | Complete |
-| SEC-04 | Phase 18 | Complete |
-| STORE-01 | Phase 18 | Complete |
-| STORE-02 | Phase 22 | Pending |
-| STORE-03 | Phase 22 | Pending |
-| STORE-04 | Phase 22 | Pending |
-| STORE-05 | Phase 22 | Pending |
-| STORE-06 | Phase 23 | Pending |
-| STORE-07 | Phase 23 | Pending |
-| VERIFY-01 | Phase 17 | Complete |
-| VERIFY-02 | Phase 17 | Complete |
-| VERIFY-03 | Phase 17 | Complete |
-| VERIFY-04 | Phase 17 | Complete |
+| FIX-01 | TBD | Pending |
+| FIX-02 | TBD | Pending |
+| FIX-03 | TBD | Pending |
+| FIX-04 | TBD | Pending |
+| FIX-05 | TBD | Pending |
+| SYNC-01 | TBD | Pending |
+| SYNC-02 | TBD | Pending |
+| SYNC-03 | TBD | Pending |
+| SYNC-04 | TBD | Pending |
+| WATCH-01 | TBD | Pending |
+| WATCH-02 | TBD | Pending |
+| WATCH-03 | TBD | Pending |
+| WATCH-04 | TBD | Pending |
+| WATCH-05 | TBD | Pending |
+| WATCH-06 | TBD | Pending |
+| WATCH-07 | TBD | Pending |
+| WATCH-08 | TBD | Pending |
+| WATCH-09 | TBD | Pending |
+| WATCH-10 | TBD | Pending |
+| WATCH-11 | TBD | Pending |
+| NOTIF-01 | TBD | Pending |
+| NOTIF-02 | TBD | Pending |
+| NOTIF-03 | TBD | Pending |
+| NOTIF-04 | TBD | Pending |
+| NOTIF-05 | TBD | Pending |
+| DATA-01 | TBD | Pending |
+| DATA-02 | TBD | Pending |
+| DATA-03 | TBD | Pending |
+| STORE-01 | TBD | Pending |
+| STORE-02 | TBD | Pending |
+| STORE-03 | TBD | Pending |
 
 **Coverage:**
-- v1.1 requirements: 29 total
-- Mapped to phases: 29
-- Unmapped: 0 ✓
+- v1 requirements: 31 total
+- Mapped to phases: 0
+- Unmapped: 31 ⚠️
 
 ---
-*Requirements defined: 2026-03-16*
-*Last updated: 2026-03-16 after roadmap creation (phases 17-23)*
+*Requirements defined: 2026-03-18*
+*Last updated: 2026-03-18 after initial definition*
