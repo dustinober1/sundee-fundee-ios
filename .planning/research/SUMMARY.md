@@ -1,219 +1,229 @@
 # Project Research Summary
 
-**Project:** Sundee Fundee — React Native Rewrite (v1.1 Launch Readiness)
-**Domain:** Cross-platform fitness app (iOS, Android, Web) — hormonal-cycle-aware strength training
-**Researched:** 2026-03-16
-**Confidence:** HIGH (all four research areas grounded in official documentation with version-specific verification)
+**Project:** Sundee Fundee — iOS + watchOS Strength Training App
+**Domain:** Native Apple-platform strength training with hormonal-cycle-aware adaptation
+**Researched:** 2026-03-18
+**Confidence:** HIGH (iOS/stack layer), MEDIUM-HIGH (watchOS sync patterns)
 
 ## Executive Summary
 
-Sundee Fundee v1.1 is a launch readiness milestone for a React Native + Expo + Firebase app built on a solid v1.0 foundation. The v1.0 base (auth, Firestore data layer, workout execution, cycle adaptation, AI generation, RevenueCat payments, domain logic port) is fully built and verified. The v1.1 work is a bounded set of production-gate requirements: push notifications, Firebase Analytics, Crashlytics crash reporting, Firestore security rules hardening, EAS production build configuration, and App Store / Play Store submission preparation. These are not new product features — they are the safety net and store compliance work that converts a working app into a shippable one.
+Sundee Fundee is a brownfield Swift 6 + SwiftUI codebase with a substantial feature set already built: workout logging, cycle adaptation, AI generation, benchmarks, programs, WODs, and StoreKit 2 subscriptions. The gap to App Store submission is not feature development — it is resolving critical correctness bugs, activating CloudKit sync (disabled in production), adding a watchOS companion, and wiring push notifications. The existing architecture (SwiftData + CloudKit, repository protocols, `SundeeFundeeShared` domain package) is sound and should not be re-architected.
 
-The recommended approach is sequenced by hard dependencies. Native module additions (`@react-native-firebase/messaging`, `@react-native-firebase/crashlytics`, `@react-native-firebase/analytics`) must be baked into a new EAS build before any code using them can run on device. This build-first constraint means `app.json` plugin configuration and `eas.json` submission config should be locked in first, followed by analytics/crashlytics (self-contained), then the notification infrastructure, then remote Cloud Functions for WOD and subscription expiry notifications, and finally store submission prep as the last gate. The existing `.web.ts` / `.native.ts` platform branching pattern already in the codebase is the right model for all new Firebase modules.
+The recommended sequence is: fix correctness bugs first (they compound every new feature), then activate CloudKit (the sync foundation that watchOS depends on), then build the watchOS companion targeting a minimal `HKWorkoutSession`-based workout logger with `WatchConnectivity` as the real-time sync bridge. Push notifications (APNs) can be added in parallel with or immediately after CloudKit activation since the infrastructure is independent. The entire milestone is an Apple-native effort with no third-party SDK complexity beyond what is already in the codebase.
 
-The key risks are: (1) dual notification library conflict if `expo-notifications` and `@react-native-firebase/messaging` are both registered for display — use `expo-notifications` for all display, messaging only for background data events; (2) App Store rejection from an incomplete `PrivacyInfo.xcprivacy` manifest, which is required for all apps as of February 2025 and demands explicit declarations of cycle/health data; (3) silent analytics data loss from event name violations — Firebase drops events silently for names over 40 characters or with reserved prefixes; and (4) the Google Play Store first submission must be a manual AAB upload before any EAS automated submission will work. All of these are avoidable with the correct pre-submission checklist.
-
----
+The primary risks are concentrated in the CloudKit activation phase: the existing codebase has 12 schema versions accumulated under a local-only store, silent data deletion on migration failure, and no production schema deployed. These risks are well-understood and have clear mitigations — but they must be addressed before any TestFlight distribution, and before the watchOS target is added (which would introduce a second CloudKit consumer). Swift 6 concurrency debt (`@unchecked Sendable`) must also be resolved before watchOS multiplies the cross-actor surface.
 
 ## Key Findings
 
 ### Recommended Stack
 
-The v1.0 stack (Expo SDK 55, `@react-native-firebase` v23.8.8, Firebase Auth/Firestore/Functions/AppCheck, RevenueCat, Zustand, TypeScript domain layer) is stable and does not change for v1.1. Four new packages are required: `@react-native-firebase/analytics`, `@react-native-firebase/crashlytics`, `@react-native-firebase/messaging`, and `expo-device` + `expo-task-manager` (supporting packages for background push). All must be pinned at `^23.8.8` (RNF packages) or `~55.0.x` (Expo packages) to match existing versioning. The RNF v23.8.0–23.8.2 config plugin regression (affecting Crashlytics and Analytics Expo plugin setup) was fixed in v23.8.3; v23.8.8 is confirmed safe.
+The codebase is already on the correct stack (Swift 6, SwiftUI, SwiftData, CloudKit, StoreKit 2, HealthKit, XcodeGen). No re-platforming is needed. The additions required for this milestone are surgical: a watchOS target using the SwiftUI `@main` App protocol (not legacy `WKExtensionDelegate`), `HKWorkoutSession` + `HKLiveWorkoutBuilder` for Watch workout tracking, `WatchConnectivity` (`WCSession`) for real-time Watch→iPhone sync, WidgetKit for watch complications (ClockKit is deprecated), and `UNUserNotificationCenter` for APNs.
 
-**Core technologies (v1.1 additions):**
-- `@react-native-firebase/analytics` ^23.8.8 — event and screen tracking, initializes via existing `@react-native-firebase/app` plugin, no extra Firebase project config needed
-- `@react-native-firebase/crashlytics` ^23.8.8 — native crash capture + non-fatal JS error recording; requires own config plugin entry in `app.json` and `RNFBCrashlytics` in `forceStaticLinking`
-- `@react-native-firebase/messaging` ^23.8.8 — FCM token acquisition and background data message handler; requires `RNFBMessaging` in `forceStaticLinking`; does NOT own notification display (expo-notifications owns that)
-- `expo-notifications` ~55.0.12 — already installed; owns all local notification scheduling and remote notification display; `enableBackgroundRemoteNotifications: true` plugin option required
-- EAS CLI 18.4.x — already configured; needs `submit.production` block added to `eas.json` for iOS (`ascAppId`) and Android (`serviceAccountKeyPath`, `track: "internal"`)
+**Core technologies (existing, validated):**
+- Swift 6 / SwiftUI: all application code across both targets
+- SwiftData (V12, 22-model schema): local persistence, CloudKit-backed sync
+- CloudKit Private + Public DB: sync ground truth; must be activated in production
+- StoreKit 2: Free/Plus/Pro subscription gating — has a cold-launch bug to fix
+- HealthKit: iOS read (HRV, sleep, RHR); watchOS write (HKWorkoutSession) — NEW for Watch
+- XcodeGen: project generation; watchOS target config needs adding to `project.yml`
 
-See `.planning/research/STACK.md` for complete version compatibility table and installation commands.
+**New technologies (must add this milestone):**
+- `HKWorkoutSession` + `HKLiveWorkoutBuilder` (watchOS 10): active workout on wrist, Activity ring contribution, HR/calories
+- `WatchConnectivity` (`WCSession`): real-time Watch→iPhone workout data push via `transferUserInfo`
+- WidgetKit (watchOS complications): cycle phase, streak, last workout on watch face
+- `UNUserNotificationCenter` + APNs: rest timer, reminders, WOD push — infrastructure is entirely absent today
+
+**What to avoid:**
+- ClockKit / `CLKComplication` — deprecated since watchOS 9
+- App Groups for iPhone↔Watch sync — same-device only, cannot span devices
+- `@Attribute(.unique)` on CloudKit-synced models — silently breaks CloudKit sync
+- `WKExtensionDelegate` lifecycle — legacy pattern; use SwiftUI `@main`
+- `@unchecked Sendable` on new code — real data races exist behind the suppression
 
 ### Expected Features
 
-The v1.1 feature set is defined by store submission requirements and production-quality expectations, not product differentiation. All v1.0 differentiators (cycle adaptation, injury engine, AI workout generation, WOD feed, benchmark catalog) are already built and verified.
+The app is feature-rich. The gap to launch is not building new features; it is fixing what is broken, activating what is disabled, and adding the Watch companion and APNs infrastructure that users expect from a premium native app in 2025.
 
-**Must have (table stakes — P1, blocks store submission):**
-- Firestore security rules deployed and validated — health/cycle data is sensitive; open test mode rules are a critical security and compliance failure
-- Local rest timer notification — core workout loop, hooks into already-built rest timer component
-- FCM token registration and Firestore storage — prerequisite for all remote notifications
-- Crashlytics active in production build with `recordError()` on all catch boundaries
-- Firebase Analytics wired into: `workout_started`, `workout_completed`, `subscription_started`, `ai_workout_generated`, `cycle_phase_updated`, screen views via `usePathname` hook
-- EAS production build profiles for iOS and Android configured in `eas.json`
-- App Store Connect metadata: 6.9-inch screenshots (1320x2868px), description, keywords, privacy policy URL accessible in-app
-- Play Store metadata: Health and Fitness data declaration, data safety section, age rating questionnaire
-- Privacy policy link in Settings screen
-- Firebase App Check confirmed in production mode (not debug)
+**Must have for App Store v1 (P1):**
+- Fix critical bugs: AI weight unit (metric users get lbs values), stale V10 schema reference in sign-out, guest `userID == ""`, StoreKit cold-launch tier elevation window
+- Activate CloudKit sync (flip flag after full compatibility audit + Production schema deployment)
+- Fix account deletion compliance (App Store mandatory since June 2022)
+- watchOS: HKWorkoutSession + set logging + rest timer on wrist + sync to iOS
+- Push notifications: rest timer background notification (APNs infrastructure unlocks all others)
 
-**Should have (P2, add before or alongside launch):**
-- New WOD remote notification — Cloud Function Firestore trigger → FCM fan-out to stored tokens
-- Subscription expiry remote notification — RevenueCat webhook → Cloud Function → FCM (3 days before + day-of cadence)
-- Analytics user properties: subscription tier, cycle tracking opt-in
-- Crashlytics custom keys: current screen, cycle phase, subscription tier
-- OTA update via EAS Update — JS-layer hotfix capability for launch week
+**Should have after validation (P2 / v1.x):**
+- Push notifications: workout reminders, streak nudges, WOD alerts
+- watchOS complication: cycle phase + streak on watch face
+- Data export (CSV) — trust signal; required for full user data rights compliance
+- Cycle phase education in UI — explain why today's workout changed
+- Volume analytics and charts — progress visibility beyond raw PRs
 
-**Defer to v1.x based on data:**
-- Daily training reminder notification — measure push permission grant rate first; do not build prefs if permissions are being denied
-- Cycle-phase-aware notification copy — measure cycle tracking adoption via Analytics before building
-- Notification preferences screen — add after first notification type is live
+**Defer to v2+:**
+- Independent watchOS session (phone-free gym) — complex offline sync; not table stakes for companion positioning
+- Video exercise demonstrations — high value, high CDN/content cost
+- History-aware AI personalization — requires token budget management architecture
+- watchOS 26 Workout Buddy integration — Apple's AI coaching layer; mainstream in 2026+
 
-**Future consideration (v2+):**
-- Streak notifications with motivational content — validate retention data first
-- Firebase Remote Config for notification copy A/B testing
-- Rich media push notifications (platform-specific, high complexity for marginal launch value)
-
-See `.planning/research/FEATURES.md` for full prioritization matrix and dependency graph.
+**Anti-features (deliberately avoid):**
+- Social feed / activity sharing — out of scope; dilutes focus
+- Nutrition tracking — distinct domain, separate expertise
+- Android / Web — Apple-only by design; Watch integration requires it
+- RevenueCat — StoreKit 2 native covers all requirements for Apple-only app
 
 ### Architecture Approach
 
-The v1.1 architecture is additive — all new components integrate cleanly with the existing layered structure (Screens → Zustand/Hooks → Domain → Repositories → Firebase). No existing architecture decisions change. The new work follows three established patterns already in the codebase: (1) `.web.ts` / `.native.ts` platform branching for Firebase modules without web support (analytics and crashlytics get no-op `.web.ts` stubs); (2) thin wrapper modules in `src/firebase/` exposing only what the app needs; (3) side-effect hooks (`usePushToken`, `useNotificationNavigation`) mounted in layout files with no render output.
+The existing architecture is correct: SwiftUI views backed by `@Observable` ViewModels talking to repository protocols, implemented by SwiftData + CloudKit repos on top of a three-tier fallback ModelContainer (CloudKit → local → in-memory). The `SundeeFundeeShared` local Swift Package holds pure domain logic and must be expanded to include `Domain/` types (CycleProgramGenerator, InjuryAdaptationEngine, WeightCalculations) so the watchOS target can consume cycle adaptation without code duplication. The Watch target gets a separate, smaller `WatchAppSchemaV1` (WorkoutTemplate, CompletedWorkout, CompletedSet, UserPreferences) pointing at the same CloudKit container — never the full 22-model schema.
 
-**Major new components:**
-1. `src/firebase/analytics.ts` + `analytics.web.ts` — thin wrapper around RNF analytics; no-ops on web; exposes `logEvent`, `logScreen`, `setUserId`
-2. `src/firebase/crashlytics.ts` + `crashlytics.web.ts` — wrapper exposing `recordError`, `setUser`, `log`; ErrorBoundary calls this in `componentDidCatch`
-3. `src/firebase/messaging.ts` — FCM token retrieval, token refresh listener, background message handler registration (registered in `index.ts` before `AppRegistry`, not inside any component)
-4. `src/notifications/` module — `NotificationService.ts` (schedule/cancel), `NotificationPermissions.ts` (request/check), `usePushToken.ts` (FCM token lifecycle), `useNotificationNavigation.ts` (tap-to-route)
-5. Cloud Functions: `sendWODNotification` (Firestore trigger), `sendSubscriptionExpiryNotification` (scheduled/webhook)
+**Major components:**
+1. **iPhone Target** — Full feature set, StoreKit paywall, AI generation, HealthKit reads, CloudKit sync authority
+2. **SundeeFundeeShared Package** — Pure domain logic (zero framework imports); shared by both targets; must be expanded to include Domain/ types
+3. **watchOS Target (new)** — Compact workout logger; `HKWorkoutSession` for background execution; minimal schema; `WCSession` push to iPhone
+4. **WatchConnectivity Service** — `@Observable` singleton on both targets; `transferUserInfo` for workout data (reliable), `updateApplicationContext` for settings, `sendMessage` only for real-time optional feedback
+5. **CloudKit Container** — Private DB for user data; Public DB for programs/WODs (admin-written); eventual consistency sync bus between devices
 
-**Modified files (all additive, low risk):**
-- `app/_layout.tsx` — add analytics init, crashlytics init, ErrorBoundary, `setUserId` on sign-in
-- `app/(app)/_layout.tsx` — mount `usePushToken()` and `useNotificationNavigation()` hooks
-- `index.ts` — register `setBackgroundMessageHandler` before `AppRegistry.registerComponent`
-- `src/repositories/FirestoreUserRepo.ts` — add `saveFCMToken(uid, token)` with `{ merge: true }`
-- `app.json` — 3 new plugins, iOS entitlements, `forceStaticLinking` additions
-- `eas.json` — add `submit.production` section
-
-**Build order constraint:** `app.json` plugin changes require a new EAS build (dev client) before any code using the new modules can run on device. This is the hard dependency that sequences all v1.1 work.
-
-See `.planning/research/ARCHITECTURE.md` for complete data flow diagrams and file-level integration map.
+**Key patterns:**
+- Separate `ModelContainer` per target (same CloudKit container ID) — App Groups cannot span devices
+- `transferUserInfo` (not `sendMessage`) as primary Watch→iPhone data path — guaranteed delivery even when iPhone is backgrounded
+- `HKWorkoutSession` must be started for every Watch workout — watchOS kills apps without an active session
+- Checkpoint workout state to Watch SwiftData on every set log — recovery from SIGKILL and device reboot
 
 ### Critical Pitfalls
 
-1. **Dual notification library conflict** — `expo-notifications` and `@react-native-firebase/messaging` both attempt to register Android notification channels, causing swallowed notifications. Resolution: `expo-notifications` owns all display; `messaging` handles background data events only. Do not call `messaging().onMessage()` to display notifications.
+1. **CloudKit schema not deployed to Production** — Works in Development, fails silently in TestFlight/App Store. Must deploy schema via CloudKit Console before every TestFlight distribution. Make this a mandatory pre-release checklist item.
 
-2. **`setBackgroundMessageHandler` inside a component** — Registering the FCM background handler in `useEffect` inside `_layout.tsx` means it is never called in background/quit state where components do not mount. It must be called in `index.ts` before `AppRegistry.registerComponent`.
+2. **CloudKit activation crashes app on existing local store** — 12 schema versions accumulated under a non-CloudKit store. Flipping `useCloudKit` without first passing `migrationPlan:` to the local container path, and auditing all models for CloudKit compatibility (optional properties, no `.unique`, no `.deny` rules), causes boot-time crash and potential silent store deletion that wipes user data.
 
-3. **`forceStaticLinking` array incomplete after adding new RNFB modules** — Each new `@react-native-firebase/*` package requires its pod name added to `forceStaticLinking` manually. Missing entries produce cryptic iOS linker errors (`Non-modular header inside framework module`). Add `RNFBAnalytics`, `RNFBCrashlytics`, `RNFBMessaging` alongside existing entries.
+3. **Silent data loss on migration failure** — `AppModelContainer.deleteStoreFiles` wipes all data with no user warning. Must add user-facing alert and a temp-copy safeguard before this path is reachable from a CloudKit activation failure.
 
-4. **App Store rejection from incomplete `PrivacyInfo.xcprivacy`** — Apple requires this manifest (enforced February 2025) declaring all privacy-impacting APIs. Cycle data and health metrics are classified as "Sensitive Health Information" and must be declared as "linked to user identity." Missing or miscategorized declarations cause rejection with ITMS-91053.
+4. **WatchConnectivity delegate methods silently never fire** — `sendMessage` fails when iPhone is not reachable. Use `transferUserInfo` for all workout data; add reconciliation sync at workout end; implement retry on `sessionReachabilityDidChange`.
 
-5. **Firebase Analytics silent data loss** — Event names over 40 characters or with reserved prefixes (`firebase_`, `google_`, `ga_`) are silently dropped with no error. Define all event names as constants in a single `analyticsEvents.ts` file. Verify every event via Firebase DebugView before declaring instrumentation complete.
+5. **HKWorkoutSession not recovered after Watch reboot** — `handleActiveWorkoutRecovery` is not called after device reboot; must also call `HKHealthStore().recoverActiveWorkoutSession` in `applicationDidFinishLaunching`. Checkpoint every set to local SwiftData.
 
-6. **Google Play first submission must be manual** — EAS Submit cannot submit to a Play Console app that has never had a manual upload. Build the AAB via EAS, download it, upload manually to Internal Testing track in Play Console, then automate all subsequent submissions.
+6. **`@unchecked Sendable` data races** — 9 classes in the codebase suppress Swift 6 concurrency errors. These must be audited and replaced with `actor` isolation or `Mutex` before the watchOS target is added; adding a second target multiplies cross-actor boundaries.
 
-7. **APNs Key vs Certificate confusion (FCM v1)** — FCM v1 API (required since June 2024) requires APNs Authentication Key (.p8), not APNs Certificate (.p12). Using a certificate causes silent push failures on iOS. Apple developer accounts have a hard limit of 2 APNs keys.
-
-8. **Crashlytics not reporting in development builds** — `expo-dev-client` catches errors before Crashlytics can see them. Test crash reporting only in `preview` or `production` EAS builds. Do not attempt to configure `firebase.json` in managed workflow — the config plugin handles everything.
-
-See `.planning/research/PITFALLS.md` for the full 20-pitfall catalog with warning signs and phase-specific guidance.
-
----
+7. **CloudKit add-only schema constraint** — After first production deployment, entity/attribute renames are permanent data loss for existing users. Must establish the Add-Only rule before the first CloudKit production deployment.
 
 ## Implications for Roadmap
 
-Based on the combined research, the v1.1 work has a clear dependency-driven sequence. The hard constraint is that native module additions require a new EAS build before any code using them can be tested on device. Everything else flows from this.
+Based on the dependency chain in research, the natural phase structure is:
 
-### Phase 1: Foundation Config + Build Infrastructure
-**Rationale:** All v1.1 native modules (`@react-native-firebase/messaging`, `/crashlytics`, `/analytics`, `expo-device`, `expo-task-manager`) require `app.json` plugin registration and a new EAS development build before any code using them can run. Doing this first unblocks all subsequent phases. The `eas.json` submission config should also be locked in here.
-**Delivers:** A new EAS development build with all v1.1 native modules available; `eas.json` `submit.production` section for both platforms
-**Addresses:** EAS production build config (P1), `forceStaticLinking` completeness (Pitfall 13), Android `targetSdkVersion: 35` requirement (Pitfall 18)
-**Avoids:** Discovering native module gaps mid-phase (Pitfall 3); build-first constraint violations that would force re-work
+### Phase 1: Critical Bug Fixes
+**Rationale:** Every subsequent phase builds on a stable foundation. The AI weight bug makes AI workouts broken for metric users. The stale V10 schema reference corrupts sign-out. The guest `userID == ""` breaks data integrity. StoreKit concurrency issues and `@unchecked Sendable` races compound with every new target added. These must be resolved before CloudKit activation (which could trigger the silent store deletion bug) and before watchOS (which multiplies concurrency surface). Fixing bugs is also low-cost relative to the risk of shipping them.
+**Delivers:** A stable, correct iOS app ready for CloudKit activation
+**Addresses:** AI weight unit bug, sign-out stale schema V10→V12, guest UUID stable Keychain strategy, StoreKit cold-launch tier gate, `@unchecked Sendable` audit, `Transaction.updates` listener lifecycle, account deletion compliance
+**Avoids:** Pitfalls 4 (silent store deletion), 8 (StoreKit cold-launch), 9 (transaction listener), 11 (`@unchecked Sendable`), 12 (stale schema sign-out)
 
-### Phase 2: Analytics + Crash Reporting
-**Rationale:** Self-contained — no dependencies on notifications or Cloud Functions. Wire in immediately after the Phase 1 build. Analytics and Crashlytics are the observability layer needed before any user-facing features go live. Getting them in early means launch-week issues are visible.
-**Delivers:** `src/firebase/analytics.ts` + `.web.ts`, `src/firebase/crashlytics.ts` + `.web.ts`, ErrorBoundary in root layout, `setUserId` on sign-in, key event instrumentation, screen tracking via `usePathname`
-**Uses:** `@react-native-firebase/analytics` ^23.8.8, `@react-native-firebase/crashlytics` ^23.8.8
-**Implements:** Platform branching pattern (`.web.ts` no-ops), thin Firebase wrapper pattern
-**Avoids:** Analytics web platform silent no-op (Pitfall 12 — use Firebase JS SDK analytics for web via `.web.ts`); silent event data loss (Pitfall 14 — define event names as constants, verify via DebugView)
+### Phase 2: CloudKit Activation
+**Rationale:** CloudKit sync is the foundation for multi-device sync AND the Watch companion's eventual-consistency data path. It is currently disabled in production. It cannot be activated safely until Phase 1 is done (migration plan path must be fixed, model compatibility must be audited). Schema must be deployed to Production before any TestFlight distribution. Activate CloudKit as its own milestone so it can be tested in isolation before watchOS is added.
+**Delivers:** Working iCloud sync across user's Apple devices; foundation for Watch data flow; CloudKit Production schema deployed
+**Addresses:** CloudKit flag activation, entitlements, Production schema deployment, migration plan wiring, `ModelContainer` fallback safety
+**Avoids:** Pitfalls 1 (schema not in Production), 2 (migration crash on activation), 3 (add-only constraint), 4 (silent store deletion)
+**Uses:** SwiftData `ModelContainer` with `cloudKitContainerIdentifier`, `AppSchemaMigrationPlan`, three-tier fallback pattern
 
-### Phase 3: Notification Infrastructure + FCM Token
-**Rationale:** Depends on Phase 1 build (messaging module available). Local notifications are a core workout feature (rest timer) and the FCM token is a prerequisite for all remote notifications in Phase 4. Refactoring existing inline `expo-notifications` calls into a `NotificationService` module first establishes clean infrastructure before FCM is layered on.
-**Delivers:** `src/notifications/` module (NotificationService, NotificationPermissions, usePushToken, useNotificationNavigation), FCM token stored in Firestore `/users/{uid}`, permission prompt flow (post-workout timing, not cold on launch)
-**Avoids:** Dual notification library conflict (Pitfall 9 — `expo-notifications` owns display, messaging owns background data only); foreground notifications silently dropped (Pitfall 10 — `setNotificationHandler` as first notification setup step); iOS permission one-shot waste (aggressive prompting anti-pattern); background handler inside a component (Pitfall 4 — register in `index.ts`)
+### Phase 3: Push Notifications (APNs Infrastructure)
+**Rationale:** APNs infrastructure is entirely absent (no entitlements, no permission flow, no token registration). It is a discrete, well-understood implementation with no dependencies on watchOS. Shipping rest timer background notifications immediately increases gym-floor utility and provides the infrastructure that WOD alerts and streak reminders will build on. Can be developed in parallel with or immediately after CloudKit activation — no dependency between the two.
+**Delivers:** Rest timer background notification (highest-value push), APNs token registration, permission flow, notification category actions (Skip / Start Now)
+**Addresses:** APNs entitlements in `project.yml`, `.p8` auth key setup, `UNUserNotificationCenter` categories, device token storage in CloudKit, workout reminder push
+**Avoids:** Using silent push for time-critical events (silent push is throttled; use local notifications for rest timer), third-party push SDK complexity
+**Uses:** `UNUserNotificationCenter`, `.p8` APNs auth key, CloudKit Private DB device token storage
 
-### Phase 4: Remote Notifications (Cloud Functions)
-**Rationale:** Depends on FCM tokens being stored in Firestore (Phase 3). Cloud Functions for WOD delivery and subscription expiry are server-side and can be built and tested in the Firebase emulator independently of app changes.
-**Delivers:** `sendWODNotification` Cloud Function (Firestore trigger), `sendSubscriptionExpiryNotification` Cloud Function (RevenueCat webhook → scheduled), `useNotificationNavigation` routing via notification data payload
-**Avoids:** Routing data in FCM `notification` object instead of `data` key (anti-pattern); APNs key vs certificate confusion (Pitfall 15 — verify `.p8` key in EAS and Firebase console before writing any send code)
+### Phase 4: watchOS Companion — Scaffold + Sync
+**Rationale:** Before building Watch UI, the target infrastructure must be correct: XcodeGen watchOS target config, `SundeeFundeeShared` expansion (so Watch can access domain logic), `WatchModelContainer` with minimal schema, and `WatchConnectivityService` on both sides. Getting this architecture right prevents the most expensive pitfalls (App Group sync assumption, full schema replication). Requires CloudKit to be working (Phase 2) so the Watch sync path is valid from day one.
+**Delivers:** watchOS target in `project.yml`, `SundeeFundeeWatch/` source tree, `WatchAppSchemaV1` (4 models), `WatchConnectivityService` activated on both sides, domain logic in `SundeeFundeeShared`
+**Addresses:** ARCHITECTURE.md scaffold — XcodeGen target, minimal Watch schema, WCSession singleton, domain package expansion
+**Avoids:** Pitfalls 5 (App Group assumption), 6 (WCSession delegate never fires — activate at launch), full 22-model schema on Watch (sync performance degradation)
+**Uses:** XcodeGen `platform: watchOS`, `deploymentTarget: "10.0"`, `SundeeFundeeShared` SPM expansion, `WatchConnectivityService` `@Observable` singleton pattern
 
-### Phase 5: Security Hardening + Store Submission Prep
-**Rationale:** Firestore security rules block both store submissions — this is a hard dependency for any submission, not just a nice-to-have. Store metadata, screenshots, privacy manifest, and platform-specific declarations must all be ready before any submission attempt. Running this in parallel with Phase 4 Cloud Function work is appropriate.
-**Delivers:** Production Firestore security rules deployed and validated via Rules Simulator; `PrivacyInfo.xcprivacy` audit complete; App Store Connect metadata (6.9-inch screenshots at 1320x2868px, description, keywords, privacy policy); Play Store metadata (Health and Fitness declaration, data safety, age rating); privacy policy link in Settings screen; Firebase App Check confirmed in production mode
-**Avoids:** Open rules exposing health data (Pitfall 6 — critical, no exceptions); App Store rejection from privacy manifest (Pitfall 16 — audit against Apple's required reasons API list); wrong screenshot dimensions (Pitfall 20 — 6.9-inch required, not 6.5-inch); health data privacy label errors (Pitfall 19 — cycle data is "Sensitive Health Information," must be "linked to user identity")
+### Phase 5: watchOS Companion — Active Workout Feature
+**Rationale:** The core value of the Watch app is logging sets from the wrist during an active workout. This is the highest-complexity watchOS deliverable and must be built on the Phase 4 scaffold. Requires `HKWorkoutSession` for background execution (without it, watchOS kills the app mid-workout). Requires `transferUserInfo` for reliable set-data delivery to iPhone.
+**Delivers:** `HKWorkoutSession` + `HKLiveWorkoutBuilder` integration, set logging UI (Digital Crown weight/rep entry), rest timer with haptic, heart rate + calories display, workout end flow with proper session shutdown order, `transferUserInfo` sync to iPhone, workout recovery on app relaunch
+**Addresses:** watchOS table stakes from FEATURES.md — Activity ring contribution, wrist logging, rest timer on wrist, HR/calories, end from wrist, sync to iPhone
+**Avoids:** Pitfalls 7 (HKWorkoutSession crash recovery — checkpoint every set, recover in `applicationDidFinishLaunching`), 10 (iOS permission change kills Watch — front-load HealthKit auth in iPhone onboarding)
+**Uses:** `HKWorkoutSession`, `HKLiveWorkoutBuilder`, `WCSession.transferUserInfo`, Watch SwiftData checkpointing, `WKHapticType.notification`
 
-### Phase 6: Production Builds + Store Submission
-**Rationale:** Final gate. Requires all prior phases complete. iOS and Android have different submission mechanics — iOS can be fully automated via EAS Submit from first build; Android requires one manual upload before automation works.
-**Delivers:** Signed production iOS `.ipa` submitted to App Store Connect; signed production Android `.aab` with first manual upload to Play Console Internal Testing; EAS Submit automated for all subsequent builds
-**Avoids:** Android first-submission failure (Pitfall 17 — manual AAB upload to Internal Testing track is required before `eas submit` works); Google Play API level rejection (Pitfall 18 — `targetSdkVersion: 35` required after August 2025, set in Phase 1)
+### Phase 6: watchOS Companion — Dashboard + Complications
+**Rationale:** After the workout logging core is working, add the glanceable features that drive daily engagement: a watch face complication showing cycle phase/streak, and a dashboard view with today's program. These are read-only features with lower complexity and well-understood WidgetKit patterns.
+**Delivers:** WidgetKit complication (accessoryCircular + accessoryRectangular: cycle phase, streak, last workout), watch dashboard (today's workout, cycle phase glance), haptic PR feedback
+**Addresses:** Differentiating watchOS features from FEATURES.md — cycle phase glance, watch face complication, streak display
+**Avoids:** ClockKit / `CLKComplication` (deprecated; use WidgetKit accessory families only)
+**Uses:** WidgetKit `accessoryCircular`, `accessoryRectangular`, `accessoryCorner`, `accessoryInline` widget families
+
+### Phase 7: Post-Launch Enhancements (v1.x)
+**Rationale:** After App Store submission, these features improve the experience and retention but are not blocking launch.
+**Delivers:** Additional push notification types (WOD alerts, streak reminders), data export (CSV/ZIP), cycle phase education UI, workout volume analytics and charts
+**Addresses:** P2 features from FEATURES.md prioritization matrix
+**Avoids:** Over-building before validating market fit
 
 ### Phase Ordering Rationale
 
-- Phase 1 before everything because native module additions require a full EAS build — no other phase can be tested on device without it
-- Phases 2 and 3 can be developed in parallel after Phase 1 build completes (no dependency between analytics/crashlytics and notifications)
-- Phase 4 strictly after Phase 3 (FCM tokens must exist in Firestore before Cloud Functions can fan out)
-- Phase 5 can run in parallel with Phases 2–4 (security rules and store metadata have no code dependencies on notification or analytics work)
-- Phase 6 is a gate that requires Phase 5 complete (Firestore rules deployed, metadata ready) and Phase 3 complete (notifications working in a preview build)
+- Bug fixes must precede CloudKit activation: the stale schema and `@unchecked Sendable` issues become catastrophic when combined with a CloudKit migration attempt
+- CloudKit must precede watchOS: the Watch sync architecture depends on CloudKit being a healthy eventual-consistency bus; the `WatchModelContainer` uses the same CloudKit container identifier
+- APNs is independent of watchOS and can be sequenced in Phase 3 without blocking the Watch work
+- Watch scaffold (Phase 4) must precede Watch features (Phase 5) — XcodeGen target config and `WatchConnectivityService` activation must exist before any workout session code
+- Complications (Phase 6) are lower-risk and can follow the core workout feature without risk to the critical path
 
 ### Research Flags
 
 Phases likely needing deeper research during planning:
-- **Phase 4 (Remote Notifications / Cloud Functions):** FCM fan-out to large user bases, RevenueCat webhook integration specifics, and the exact data payload shape for `useNotificationNavigation` routing need to be pinned down before implementation
-- **Phase 5 (Security + Submission Prep):** Firestore security rules testing approach (firebase-rules-unit-testing library setup) and the exact `PrivacyInfo.xcprivacy` required reason API list for this specific SDK combination may benefit from a targeted research pass
+- **Phase 2 (CloudKit Activation):** Model compatibility audit across all 22 V12 models requires careful verification. The migration plan path bug needs confirmation against the exact `AppModelContainer.swift` implementation. Consider `/gsd:research-phase` for the migration crash mitigation.
+- **Phase 5 (watchOS Active Workout):** `HKWorkoutSession` session state machine, the correct end-session ordering (`session.end()` before `builder.finishWorkout()`), and the known Sasquatch Studio sample code bug around `startMirroringToCompanionDevice` are edge cases that warrant a targeted research pass.
+- **Phase 3 (APNs):** APNs token rotation on reinstall and WOD alert server-side delivery (Cloudflare Worker → APNs flow) need implementation research before coding.
 
 Phases with standard patterns (skip research-phase):
-- **Phase 1 (Config + Build):** Plugin additions and `eas.json` config are well-documented; STACK.md provides exact JSON
-- **Phase 2 (Analytics + Crashlytics):** Standard RNF integration with established `.web.ts` pattern already in codebase; ARCHITECTURE.md provides exact file structure
-- **Phase 3 (Notification Infrastructure):** `expo-notifications` is already in the project; ARCHITECTURE.md provides exact data flow for FCM token registration
-- **Phase 6 (Store Submission):** EAS Submit process is step-by-step documented in STACK.md; manual first Android upload is a one-time action
-
----
+- **Phase 1 (Bug Fixes):** All bugs are identified in CONCERNS.md with clear root causes. No research needed — execute directly.
+- **Phase 4 (watchOS Scaffold):** XcodeGen watchOS target configuration is well-documented. SPM expansion is a known pattern.
+- **Phase 6 (Complications):** WidgetKit accessory family documentation is authoritative and complete.
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | All package versions verified against official Expo and RNF docs; v23.8.8 RNF plugin regression confirmed fixed; EAS CLI version confirmed |
-| Features | HIGH | Store submission requirements verified against current Apple and Google guidelines (2026); feature dependencies map is explicit |
-| Architecture | HIGH | New component structure verified against existing codebase (via direct inspection in research); all modification risks assessed as LOW (additive only) |
-| Pitfalls | HIGH | 20 pitfalls identified across v1.0 and v1.1 scope, each with specific warning signs and phase-tagged remediation |
+| Stack | HIGH | Entire stack is Apple system frameworks already in use; new additions (watchOS target, APNs) are well-documented official APIs |
+| Features | HIGH (iOS) / MEDIUM (watchOS competitor benchmarking) | iOS feature audit is from codebase; watchOS competitor features from product pages only |
+| Architecture | HIGH (iOS patterns) / MEDIUM (watchOS CloudKit sync) | iOS architecture verified via official docs + community; watchOS CloudKit sync has known unreliability on Watch with documented community workarounds |
+| Pitfalls | HIGH | Critical pitfalls sourced from Apple Developer Forums, fatbobman.com (authoritative SwiftData/CloudKit resource), and direct CONCERNS.md codebase audit |
 
-**Overall confidence:** HIGH
+**Overall confidence:** HIGH for the iOS + bug fix work; MEDIUM for the watchOS CloudKit sync reliability in production (known community-reported issues without a fully stabilized workaround)
 
 ### Gaps to Address
 
-- **Web analytics implementation:** `@react-native-firebase/analytics` is a no-op on web. The `.web.ts` stub should use the Firebase JS SDK (`firebase/analytics`) to send events from the web platform. The exact Firebase JS SDK analytics initialization for the web build needs to be verified against the existing `src/firebase/app.web.ts` setup during Phase 2.
-- **RevenueCat webhook → Cloud Function → FCM exact integration:** PITFALLS.md flags the RevenueCat + Stripe entitlement sync risk, but the exact Cloud Function webhook handler structure for subscription expiry FCM triggers was not fully detailed in STACK.md or ARCHITECTURE.md. This should be researched during Phase 4 planning.
-- **Multi-device push token support:** The current architecture stores one FCM token per user (last-registered device wins). This is an accepted v1.1 tradeoff. If multi-device support is needed before v2, the data model migration to `/users/{uid}/devices/{deviceId}` subcollection should be planned explicitly.
-- **Apple privacy manifest SDK audit:** The specific `NSPrivacyAccessedAPICategory` reasons required for the exact combination of Firebase SDK version, RevenueCat, expo-secure-store, and expo-notifications in this project have not been fully enumerated. A pre-submission audit against Apple's required reason APIs list is a required step in Phase 5.
-
----
+- **watchOS CloudKit sync reliability in production:** Community reports indicate CloudKit sync on watchOS 10 only triggers reliably when Watch is charging with >50% battery. The architecture correctly designates `WCSession.transferUserInfo` as the primary sync channel and CloudKit as eventual fallback — but this tradeoff needs to be communicated in UX (e.g., "sync pending" indicators on Watch). Validate the sync behavior on physical hardware in Phase 4.
+- **CloudKit schema compatibility of all 22 V12 models:** Research recommends auditing all models for optional properties, no `.unique`, no `.deny` delete rules. The exact set of models that currently violate these rules is not enumerated in the research — this audit must happen as the first task in Phase 2.
+- **Gemini proxy authentication:** The Cloudflare Worker proxy is unauthenticated. The research flags this as a security concern (any caller can incur API costs). App Attest or a shared-secret header should be added; this is deferred to Phase 7 or can be addressed as a low-effort security task in Phase 1.
+- **HealthKit write entitlement:** The entitlement is declared but not implemented. Research flags this as a v2 feature. Confirm it is not accidentally exposed to users in the current UI during Phase 1 audit.
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- [Expo Push Notifications Setup](https://docs.expo.dev/push-notifications/push-notifications-setup/) — token registration, FCM V1 credentials, SDK 54+ dev build requirement
-- [Expo Notifications API Reference](https://docs.expo.dev/versions/latest/sdk/notifications/) — `scheduleNotificationAsync`, trigger types, `enableBackgroundRemoteNotifications`
-- [EAS Submit — iOS](https://docs.expo.dev/submit/ios/) — App Store Connect API key requirements, `ascAppId`
-- [EAS Submit — Android](https://docs.expo.dev/submit/android/) — Google Play service account, manual first upload limitation
-- [React Native Firebase — Crashlytics Usage](https://rnfirebase.io/crashlytics/usage) — config plugin, dev-client limitation
-- [React Native Firebase — Analytics Usage](https://rnfirebase.io/analytics/usage) — installation, Expo setup
-- [Firebase Firestore Security Rules](https://firebase.google.com/docs/firestore/security/get-started) — rule structure, deployment
-- [Apple App Store Review Guidelines](https://developer.apple.com/app-store/review/guidelines/) — privacy requirements, privacy manifest
-- [Google Play Health Apps Declaration](https://support.google.com/googleplay/android-developer/answer/14738291) — health data categories, data safety section
-- [Expo GitHub fyi — First Android Submission](https://github.com/expo/fyi/blob/main/first-android-submission.md) — manual first upload requirement
-- [RNF Issue #8829](https://github.com/invertase/react-native-firebase/issues/8829) — v23.8.0–23.8.2 plugin regression, confirmed fixed in 23.8.3+
+- Apple Developer Docs: Running workout sessions (HKWorkoutSession + mirroring architecture)
+- Apple Developer Docs: Sending notification requests to APNs
+- Apple Developer Docs: Transferring data with Watch Connectivity
+- Apple Developer Docs: Syncing model data across a person's devices (SwiftData + CloudKit)
+- Apple Developer Docs: TN3157 — Updating your watchOS project for SwiftUI and WidgetKit
+- Apple Developer Docs: Creating independent watchOS apps (SwiftUI App protocol for watchOS)
+- fatbobman.com: Key Considerations Before Using SwiftData (CloudKit sync limitations)
+- fatbobman.com: Fixing CloudKit Sync in Production: Deploying Schema
+- fatbobman.com: From YaoYao to Tooboo — watchOS Development Pitfalls
+- WWDC25: Track workouts with HealthKit on iOS and iPadOS
+- WWDC25: What's new in StoreKit and In-App Purchase
+- Swift 6.2 Release — Swift.org (approachable concurrency)
+- XcodeGen ProjectSpec docs (watchOS target configuration)
+- CONCERNS.md — internal codebase audit (2026-03-18)
 
 ### Secondary (MEDIUM confidence)
-- [React Native Firebase — Messaging Usage](https://rnfirebase.io/messaging/usage) — background handler, token management patterns
-- [React Native Firebase — Analytics Screen Tracking](https://rnfirebase.io/analytics/screen-tracking) — manual tracking in RN (no native lifecycle callbacks)
-- [GitHub — RNF messaging plugin background modes](https://github.com/invertase/react-native-firebase/issues/7577) — iOS UIBackgroundModes configuration pattern
-- Codebase inspection of `app.json`, `app/_layout.tsx`, `app/(app)/_layout.tsx`, `useRestTimer.ts`, `FirestoreUserRepo.ts`, `UserRepository.ts` — existing integration state verified
+- Sasquatch Studio: Building a Workout App for Apple Watch (March 2025) — mirroring session architecture, known sample code bug
+- Apple Developer Forums: SwiftData CloudKit sync on watchOS 10 — known reliability issues
+- Apple Developer Forums: SwiftData + CloudKit migration failure threads
+- avanderlee.com: Approachable Concurrency in Swift 6.2
+- Alexander Weiss: Three Ways to Communicate via WatchConnectivity
+- Strong App Watch features (official product docs) — competitor benchmarking
+- Hevy App features (official product page) — competitor benchmarking
+- Wesley Matlock, Medium: Building a Universal Workout App (iPhone ↔ Apple Watch sync)
 
-### Tertiary (MEDIUM confidence, third-party summaries)
-- [iOS App Store Review Guidelines 2026 — third-party summary](https://theapplaunchpad.com/blog/app-store-review-guidelines) — screenshot size requirements cross-referenced against Apple first-party requirements
-- [Google Play Health Apps Update January 2026 — third-party summary](https://myappmonitor.com/blog/google-play-health-apps-update-2026-requirements) — health declaration deadline cross-referenced against official Google docs
+### Tertiary (LOW confidence)
+- Third-party fitness app roundups — used only for confirming feature expectations, not architectural decisions
+- Best cycle syncing apps 2025 — niche feature validation only
 
 ---
-*Research completed: 2026-03-16*
+*Research completed: 2026-03-18*
 *Ready for roadmap: yes*

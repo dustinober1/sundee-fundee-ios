@@ -1,644 +1,427 @@
 # Architecture Research
 
-**Domain:** Cross-platform fitness app — React Native + Expo + Firebase (offline-first, subscription-gated)
-**Researched:** 2026-03-16 (updated for v1.1 Launch Readiness)
-**Confidence:** HIGH (Firebase, RevenueCat, Expo docs); MEDIUM (folder structure patterns, community best practices)
+**Domain:** iOS + watchOS native strength training app (SwiftUI, SwiftData, CloudKit)
+**Researched:** 2026-03-18
+**Confidence:** MEDIUM-HIGH — iOS patterns HIGH confidence (verified via official docs + community), watchOS CloudKit sync MEDIUM confidence (known reliability issues, workarounds not fully stabilized in community sources)
 
 ---
 
-## v1.1 Addendum: Launch Readiness Integration Architecture
-
-> This section documents how push notifications, analytics/crash reporting, EAS builds, and store submission integrate with the existing v1.0 architecture. The original v1.0 architecture research follows below.
-
-### What Already Exists in v1.0
-
-Before describing new components, here is the verified existing state from codebase inspection:
-
-- `expo-notifications` is already **installed** (v55) and **actively used** in `useRestTimer` and `useWorkoutTimer` for local (rest timer countdown) notifications
-- `app/(app)/_layout.tsx` already calls `Notifications.setNotificationHandler()` — foreground display behavior is configured
-- `@react-native-firebase/app`, `/auth`, `/firestore`, `/functions`, `/app-check` are already in the `app.json` plugins array
-- `expo-build-properties` is configured with `useFrameworks: static` and `forceStaticLinking: [RNFBApp, RNFBAuth, RNFBFirestore, RNFBAppCheck]` — new RNF modules must be added here
-- EAS project ID (`dc7c3b9d-ee13-4713-8fab-85389863e18f`) is already set in `app.json`
-- `FirestoreUserRepo` writes to `/users/{uid}` with `{ merge: true }` — FCM tokens can extend this document without schema migration
-- `src/firebase/` already uses `.web.ts` extension for platform branching (`auth.web.ts`, `callCloudFunction.web.ts`) — analytics and crashlytics follow this same pattern
-- `UserProfile` type has optional fields — adding `fcmToken?: string` is backward compatible
-
-### New Components Required
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                          Expo Router                             │
-│   app/_layout.tsx  ← MODIFY: add initAnalytics(),               │
-│                      initCrashlytics(), ErrorBoundary,          │
-│                      setUserId() on sign-in                     │
-│   app/(app)/_layout.tsx  ← MODIFY: mount usePushToken(),        │
-│                             useNotificationNavigation()         │
-├─────────────────────────────────────────────────────────────────┤
-│  NEW: src/firebase/analytics.ts     (logEvent, logScreen)       │
-│  NEW: src/firebase/analytics.web.ts (no-op stubs)               │
-│  NEW: src/firebase/crashlytics.ts   (recordError, setUser)      │
-│  NEW: src/firebase/crashlytics.web.ts (no-op stubs)             │
-│  NEW: src/firebase/messaging.ts     (getToken, backgroundHandler│
-├─────────────────────────────────────────────────────────────────┤
-│  NEW: src/notifications/                                         │
-│   NotificationService.ts        (schedule/cancel local notifs)  │
-│   NotificationPermissions.ts    (request/check permissions)     │
-│   usePushToken.ts                (FCM token lifecycle hook)     │
-│   useNotificationNavigation.ts   (tap-to-navigate handler)     │
-├─────────────────────────────────────────────────────────────────┤
-│  MODIFY: src/repositories/FirestoreUserRepo.ts                  │
-│   + saveFCMToken(uid, token): writes /users/{uid}.fcmToken      │
-│  MODIFY: src/repositories/UserRepository.ts                     │
-│   + fcmToken?: string on UserProfile                            │
-├─────────────────────────────────────────────────────────────────┤
-│  MODIFY: app.json                                                │
-│   + @react-native-firebase/messaging plugin                     │
-│   + @react-native-firebase/crashlytics plugin                   │
-│   + expo-notifications plugin                                   │
-│   + ios.infoPlist.UIBackgroundModes: [remote-notification]      │
-│   + ios.entitlements.aps-environment: production                │
-│   + forceStaticLinking: add RNFBCrashlytics, RNFBMessaging      │
-├─────────────────────────────────────────────────────────────────┤
-│  MODIFY: eas.json                                                │
-│   + submit.production.ios  (ascAppId, appleId, appleTeamId)     │
-│   + submit.production.android (serviceAccountKeyPath, track)    │
-├─────────────────────────────────────────────────────────────────┤
-│  NEW: Cloud Functions                                            │
-│   sendWODNotification (Firestore trigger on WOD doc)            │
-│   sendSubscriptionExpiryNotification (scheduled)                │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-### Component Responsibilities (New/Modified)
-
-| Component | Type | Responsibility |
-|-----------|------|----------------|
-| `src/firebase/analytics.ts` | NEW | Thin wrapper around `@react-native-firebase/analytics`; no-ops on web; exposes `logEvent`, `logScreen`, `setUserId` |
-| `src/firebase/analytics.web.ts` | NEW | No-op stubs matching same export shape so web imports don't break |
-| `src/firebase/crashlytics.ts` | NEW | Thin wrapper around `@react-native-firebase/crashlytics`; exposes `recordError`, `setUser`, `log` |
-| `src/firebase/crashlytics.web.ts` | NEW | No-op stubs |
-| `src/firebase/messaging.ts` | NEW | FCM token retrieval via `messaging().getToken()`, background handler registration, token refresh listener |
-| `src/notifications/NotificationService.ts` | NEW | Schedule/cancel local notifications (rest timer, streaks, reminders). Extracts inline `expo-notifications` calls from `useRestTimer` — same behavior, more testable |
-| `src/notifications/NotificationPermissions.ts` | NEW | Request + check permissions for both local and push; handles iOS vs Android 13+ differences |
-| `src/notifications/usePushToken.ts` | NEW | Hook: obtains FCM token on mount, persists to Firestore `/users/{uid}`, re-registers on token refresh. Guest users skip token registration |
-| `src/notifications/useNotificationNavigation.ts` | NEW | Hook: handles notification tap events via `Notifications.addNotificationResponseReceivedListener`, routes to correct screen using Expo Router `router.push()` |
-| `src/repositories/FirestoreUserRepo.ts` | MODIFY | Add `saveFCMToken(uid, token)` method; uses `{ merge: true }` so no other fields are touched |
-| `src/repositories/UserRepository.ts` | MODIFY | Add `fcmToken?: string` optional field to `UserProfile` |
-| `app/_layout.tsx` | MODIFY | Add `initAnalytics()`, `initCrashlytics()` in `useEffect`. Add `crashlytics().setUserId(user.uid)` inside `handleUserSignIn`. Wrap `Stack` in `ErrorBoundary` |
-| `app/(app)/_layout.tsx` | MODIFY | Mount `usePushToken()` and `useNotificationNavigation()` hooks. Both are side-effect-only (no render output) |
-| `index.ts` | MODIFY | Add `messaging().setBackgroundMessageHandler()` before `AppRegistry.registerComponent` |
-| `app.json` | MODIFY | 3 new plugins, iOS entitlements + UIBackgroundModes, 2 new forceStaticLinking entries |
-| `eas.json` | MODIFY | Add `submit` section for iOS + Android |
-| Cloud Functions | NEW | `sendWODNotification` reads user FCM tokens from Firestore, sends via FCM Admin SDK |
-
----
-
-### Data Flows: New and Modified
-
-#### 1. FCM Token Registration Flow
-
-```
-App launch (authenticated, non-guest user)
-    ↓
-usePushToken() mounts in app/(app)/_layout.tsx
-    ↓
-NotificationPermissions.requestPushPermission()
-    [iOS: messaging().requestPermission()]
-    [Android 13+: PermissionsAndroid.request(POST_NOTIFICATIONS)]
-    ↓
-messaging().getToken()  →  FCM device token string
-    ↓
-FirestoreUserRepo.saveFCMToken(uid, token)
-    → Firestore /users/{uid} { fcmToken: "..." }  (merge: true)
-    ↓
-messaging().onTokenRefresh(token => saveFCMToken())
-    (token changes on reinstall or OS rotation)
-```
-
-**Guest users:** `usePushToken` checks `isGuest === true` and returns early. No token is stored. Local notifications still work.
-**Web platform:** `messaging.ts` guards with `Platform.OS === 'web'` and is a no-op. Web does not support FCM via RNF.
-
----
-
-#### 2. Remote Push Send Flow (WOD notification example)
-
-```
-Firestore: WOD document created for today's date
-    ↓
-Cloud Function: sendWODNotification (Firestore trigger)
-    → query /users where fcmToken != null (up to 500 per batch)
-    → FCM Admin SDK: sendEachForMulticast({ tokens, notification, data })
-    [data payload includes: { screen: 'wods', date: 'YYYY-MM-DD' }]
-    ↓
-FCM → APNs (iOS) / FCM direct (Android)
-    ↓
-Device receives message:
-    ├── Foreground: messaging().onMessage() handler
-    │     → NotificationService.scheduleImmediate() via expo-notifications
-    ├── Background/Quit: setBackgroundMessageHandler() (in index.ts)
-    │     → OS displays notification natively (no UI update)
-    └── User taps notification:
-          → useNotificationNavigation() listener fires
-          → reads notification.request.content.data.screen
-          → router.push('/wods')
-```
-
-**Critical:** `setBackgroundMessageHandler` MUST be called in `index.ts` before `AppRegistry.registerComponent`, not inside any React component. It is missed for background/quit states if registered inside a component lifecycle.
-
----
-
-#### 3. Analytics Screen Tracking Flow
-
-```
-User navigates to any screen (Expo Router)
-    ↓
-usePathname() value changes (analytics hook in app/_layout.tsx)
-    ↓
-useEffect: analytics().logScreenView({ screen_name: pathname })
-    ↓
-Firebase Analytics console: screen_view events
-```
-
-Firebase Analytics does **not** automatically track screens in React Native — navigation runs in JS, not the native lifecycle, so native screen tracking callbacks are never triggered. Manual tracking via `usePathname` + `useEffect` is required. The existing `app/(app)/_layout.tsx` is the right mount point.
-
----
-
-#### 4. Error Capture Flow
-
-```
-Uncaught component tree error
-    ↓
-ErrorBoundary.componentDidCatch(error, info)
-    ↓
-crashlytics().recordError(error)
-    → Firebase Crashlytics: non-fatal issue
-
-Caught error in hook or repository
-    ↓
-crashlytics().log('context message') + crashlytics().recordError(error)
-    → Firebase Crashlytics: non-fatal with context
-
-Native crash (OOM, native module abort)
-    ↓
-Crashlytics SDK captures automatically at next launch
-    → Firebase Crashlytics: fatal crash session
-```
-
-**User identity:** `crashlytics().setUserId(user.uid)` called on sign-in in `app/_layout.tsx`. UID only — never names or emails.
-
----
-
-### App.json Changes Required
-
-```json
-{
-  "expo": {
-    "ios": {
-      "entitlements": {
-        "aps-environment": "production"
-      },
-      "infoPlist": {
-        "UIBackgroundModes": ["fetch", "remote-notification"]
-      }
-    },
-    "plugins": [
-      "@react-native-firebase/app",
-      "@react-native-firebase/auth",
-      "@react-native-firebase/crashlytics",
-      "@react-native-firebase/messaging",
-      "expo-notifications",
-      "expo-apple-authentication",
-      [
-        "expo-build-properties",
-        {
-          "ios": {
-            "useFrameworks": "static",
-            "forceStaticLinking": [
-              "RNFBApp", "RNFBAuth", "RNFBFirestore",
-              "RNFBAppCheck", "RNFBCrashlytics", "RNFBMessaging"
-            ]
-          }
-        }
-      ],
-      "@react-native-google-signin/google-signin",
-      "expo-router",
-      "expo-secure-store",
-      "expo-sharing",
-      "expo-audio"
-    ]
-  }
-}
-```
-
-Note: `@react-native-firebase/analytics` does NOT require its own plugin entry — it initializes via the `@react-native-firebase/app` plugin. Only `crashlytics` and `messaging` need explicit plugin entries for Android Gradle and iOS build system changes.
-
----
-
-### EAS.json Changes Required
-
-```json
-{
-  "cli": { "version": ">= 13.0.0" },
-  "build": {
-    "development": {
-      "developmentClient": true,
-      "distribution": "internal",
-      "env": { "FIREBASE_APP_CHECK_DEBUG_TOKEN": "<token>" }
-    },
-    "preview": { "distribution": "internal" },
-    "production": {}
-  },
-  "submit": {
-    "production": {
-      "ios": {
-        "appleId": "your@apple.com",
-        "ascAppId": "YOUR_APP_STORE_CONNECT_NUMERIC_ID",
-        "appleTeamId": "YOUR_10_CHAR_TEAM_ID"
-      },
-      "android": {
-        "serviceAccountKeyPath": "./google-play-service-account.json",
-        "track": "internal"
-      }
-    }
-  }
-}
-```
-
-**iOS flow:** `eas build --platform ios --profile production` then `eas submit --platform ios --profile production`. EAS manages certificates/provisioning if credentials mode is `managed`.
-
-**Android flow:** Requires a Google Play Service Account JSON key. Do not commit this file to the repo — add to `.gitignore`. Use EAS Secrets for CI environments.
-
----
-
-### Build Order for v1.1 Features
-
-Dependencies create a natural build order:
-
-1. **`app.json` + `eas.json` config first** — All native module additions require a new EAS build (dev client) before any code using them can run on device. Adding plugins without building produces "module not found" errors.
-
-2. **Analytics + Crashlytics** — Self-contained, no dependencies on other new features. Wire into `_layout.tsx` immediately after the new dev client build. Verify events appear in Firebase console before proceeding.
-
-3. **ErrorBoundary** — Depends only on `crashlytics.ts`. Add to `_layout.tsx` alongside crashlytics init.
-
-4. **`NotificationService.ts` refactor** — Move inline `expo-notifications` calls from `useRestTimer`/`useWorkoutTimer` into `NotificationService`. Behavior identical to today, but establishes the notification infrastructure layer before FCM is added. Tests update in parallel.
-
-5. **FCM token registration** — Depends on `messaging.ts`, the `FirestoreUserRepo` update, and `usePushToken`. Requires an authenticated user (available via existing `SessionProvider`). Verify token appears in Firestore `/users/{uid}` before building Cloud Functions.
-
-6. **`useNotificationNavigation`** — Depends on knowing what `data` payloads Cloud Functions will send. Define the `screen` key payload shape before writing either the client handler or the Cloud Functions.
-
-7. **Cloud Functions for remote push** — Depend on FCM tokens being stored in Firestore (step 5) and a defined payload shape (step 6). Write and test in the Firebase emulator.
-
-8. **EAS production builds + store submission** — Final step. Requires all prior changes working in a `preview` build. iOS: requires App Store Connect app record, screenshots, metadata. Android: requires Google Play Console app record and a Google Play Service Account key.
-
----
-
-### Integration Points: New vs. Modified
-
-**New files (create from scratch):**
-
-| File | Purpose |
-|------|---------|
-| `src/firebase/analytics.ts` | Analytics wrapper, native |
-| `src/firebase/analytics.web.ts` | Analytics no-ops, web |
-| `src/firebase/crashlytics.ts` | Crashlytics wrapper, native |
-| `src/firebase/crashlytics.web.ts` | Crashlytics no-ops, web |
-| `src/firebase/messaging.ts` | FCM token + background handler |
-| `src/notifications/NotificationService.ts` | Local notification scheduling |
-| `src/notifications/NotificationPermissions.ts` | Permission abstraction |
-| `src/notifications/usePushToken.ts` | FCM token lifecycle hook |
-| `src/notifications/useNotificationNavigation.ts` | Notification tap-to-route |
-| Cloud Function: `sendWODNotification` | Remote push for WOD |
-| Cloud Function: `sendSubscriptionExpiryNotification` | Remote push for sub expiry |
-
-**Modified files (touch existing code):**
-
-| File | Change | Risk |
-|------|--------|------|
-| `app/_layout.tsx` | Add analytics init, crashlytics init, ErrorBoundary, setUserId | LOW — additive only |
-| `app/(app)/_layout.tsx` | Mount usePushToken, useNotificationNavigation hooks | LOW — no render changes |
-| `index.ts` | Add setBackgroundMessageHandler before AppRegistry | LOW — isolated, before component tree |
-| `src/repositories/FirestoreUserRepo.ts` | Add saveFCMToken() method | LOW — new method, no signature changes |
-| `src/repositories/UserRepository.ts` | Add fcmToken?: string to UserProfile | LOW — optional field, backward compatible |
-| `src/hooks/useRestTimer.ts` | Delegate expo-notifications calls to NotificationService | LOW — refactor, same behavior |
-| `src/hooks/useWorkoutTimer.ts` | Same as useRestTimer | LOW |
-| `app.json` | Add 3 plugins, iOS config additions | MEDIUM — requires new EAS build |
-| `eas.json` | Add submit section | LOW — no build behavior change |
-
----
-
-### Anti-Patterns Specific to v1.1
-
-**Anti-Pattern: setBackgroundMessageHandler inside a component**
-Calling it in `useEffect` inside `_layout.tsx` or a screen means it is registered only after the component tree mounts. In background/quit state, the JS runtime runs without mounting components — the handler is never registered.
-*Do this instead:* Register in `index.ts` before `AppRegistry.registerComponent`.
-
-**Anti-Pattern: Requesting notification permission immediately on first launch**
-iOS only allows one native OS prompt per install. Showing it without context results in low acceptance rates, and a rejected permission cannot be re-requested programmatically.
-*Do this instead:* Show a soft-ask screen explaining the value before triggering the native prompt. Trigger at a contextually relevant moment (first workout start, or a dedicated notifications settings screen).
-
-**Anti-Pattern: Using getExpoPushTokenAsync() when sending via FCM**
-Expo push tokens route through Expo's push service. Sending an Expo push token to FCM's API directly will fail silently.
-*Do this instead:* Use `messaging().getToken()` from `@react-native-firebase/messaging` to get the native FCM token. Use `getExpoPushTokenAsync()` only if routing through Expo's push service (not this project's architecture).
-
-**Anti-Pattern: Storing notification payloads in the FCM `notification` object for app-handled routing**
-The `notification` object triggers the OS display layer. `data` is what the app reads to determine routing.
-*Do this instead:* Put routing info in `data: { screen: 'wods', ... }` and use FCM data-only messages when the app needs to handle display itself (foreground case). Use `notification` object only for background/quit where OS handles display.
-
----
-
-## v1.0 Architecture (original research, 2026-03-14)
-
-The sections below document the original v1.0 architecture research. Relevant for context on the full system structure.
+## Standard Architecture
 
 ### System Overview
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                      Presentation Layer                          │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐        │
-│  │Dashboard │  │Workouts  │  │  Cycle   │  │ Settings │  ...   │
-│  │  Screen  │  │  Screen  │  │  Screen  │  │  Screen  │        │
-│  └────┬─────┘  └────┬─────┘  └────┬─────┘  └────┬─────┘        │
-├───────┴──────────────┴─────────────┴──────────────┴─────────────┤
-│                     State / Hooks Layer                          │
-│  ┌───────────┐  ┌──────────────┐  ┌────────────────────────┐    │
-│  │Zustand    │  │ Custom Hooks │  │ Domain Logic (pure TS) │    │
-│  │Stores     │  │ (use-cases)  │  │ /src/domain/           │    │
-│  └─────┬─────┘  └──────┬───────┘  └────────────────────────┘    │
-├────────┴───────────────┴────────────────────────────────────────┤
-│                      Repository Layer                            │
-│  ┌───────────────┐  ┌──────────────┐  ┌──────────────────────┐  │
-│  │FirestoreRepo  │  │ LocalRepo    │  │  PaymentRepository   │  │
-│  │(CRUD + sync)  │  │(AsyncStorage)│  │  (RevenueCat)        │  │
-│  └───────┬───────┘  └──────┬───────┘  └──────────┬───────────┘  │
-├──────────┴────────────────┴────────────────────────┴─────────────┤
-│                        Data Layer                                │
-│  ┌──────────────┐  ┌──────────────┐  ┌────────────┐             │
-│  │  Firestore   │  │AsyncStorage  │  │ RevenueCat │             │
-│  │(native SDK)  │  │(local cache) │  │ + Stripe   │             │
-│  └──────────────┘  └──────────────┘  └────────────┘             │
-│                                                                  │
-│  ┌──────────────┐  ┌──────────────┐                             │
-│  │Firebase Auth │  │Cloud Funcs   │                             │
-│  │(Apple/Google │  │(Gemini proxy,│                             │
-│  │ Email/Guest) │  │ WOD writes)  │                             │
-│  └──────────────┘  └──────────────┘                             │
-└─────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────┐
+│                      iPhone App Target                           │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐         │
+│  │Dashboard │  │Workouts  │  │ Cycle    │  │Settings  │  ...    │
+│  │  View+VM │  │  View+VM │  │  View+VM │  │  View+VM │         │
+│  └────┬─────┘  └────┬─────┘  └────┬─────┘  └────┬─────┘         │
+│       └─────────────┴─────────────┴──────────────┘               │
+│                         Repository Protocols                      │
+│  ┌─────────────────────────────────────────────────────────────┐  │
+│  │  SwiftData repos │ CloudKit repos │ Gemini repo │ HealthKit │  │
+│  └─────────────────────────────────────────────────────────────┘  │
+│  ┌─────────────────────────────────────────────────────────────┐  │
+│  │              ModelContainer (CloudKit-backed)                │  │
+│  └─────────────────────────────────────────────────────────────┘  │
+└──────────────────────┬────────────────┬─────────────────────────┘
+                       │                │
+          WatchConnectivity       CloudKit Private DB
+          (real-time / active      (passive background
+           workout push)            sync, all devices)
+                       │                │
+┌──────────────────────┴────────────────┴─────────────────────────┐
+│                      Apple Watch Target                          │
+│  ┌──────────────┐  ┌─────────────────┐  ┌─────────────────────┐ │
+│  │  WorkoutLog  │  │  ActiveWorkout  │  │   WatchDashboard    │ │
+│  │   View+VM    │  │   View+VM       │  │   View+VM           │ │
+│  └──────┬───────┘  └────────┬────────┘  └──────────┬──────────┘ │
+│         └───────────────────┴───────────────────────┘            │
+│                     Watch Repository Protocols                    │
+│  ┌─────────────────────────────────────────────────────────────┐ │
+│  │  WatchSwiftData repos  │  WatchConnectivity repo            │ │
+│  └─────────────────────────────────────────────────────────────┘ │
+│  ┌─────────────────────────────────────────────────────────────┐ │
+│  │              Watch ModelContainer (CloudKit-backed)          │ │
+│  └─────────────────────────────────────────────────────────────┘ │
+└──────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────┐
+│                  SundeeFundeeShared Package                      │
+│  Domain logic │ Models (Program, WOD, ExerciseCatalog) │         │
+│  Pure Swift — no framework imports — available to all targets    │
+└──────────────────────────────────────────────────────────────────┘
 ```
 
 ### Component Responsibilities
 
-| Component | Responsibility | Typical Implementation |
-|-----------|----------------|------------------------|
-| Screen components | Render UI, handle user events | React functional components, Expo Router pages |
-| Zustand stores | Global app state (auth, subscriptions, UI flags) | Per-domain slices: useAuthStore, useSubscriptionStore |
-| Custom hooks (use-cases) | Orchestrate domain logic + repository calls | `useGenerateWorkout()`, `useCycleAdaptation()` |
-| Domain layer | Pure business logic — cycle adaptation, injury engine, benchmarks | Zero-dependency TypeScript modules, 100% testable |
-| Repository interfaces | Typed contracts for data access | TypeScript interfaces, one implementation per backend |
-| Firestore repository | CRUD to Firestore; offline handled by native SDK | react-native-firebase/firestore |
-| Local repository | Offline-only guest data; persisted state | AsyncStorage via Zustand `persist` middleware |
-| Payment repository | Entitlement checks, purchase flows | RevenueCat react-native-purchases (mobile + web) |
-| Firebase Auth | User identity, sign-in providers | react-native-firebase/auth |
-| Cloud Functions | Server-side: Gemini proxy, WOD admin writes | Node.js/TypeScript Firebase Functions |
+| Component | Responsibility | Communicates With |
+|-----------|---------------|-------------------|
+| iPhone Feature Views + ViewModels | iOS UI, user interactions, state presentation | Repository protocols, Domain layer, AppState |
+| Watch Feature Views + ViewModels | watchOS UI, compact workout logging, glanceable data | Watch repository protocols, Domain layer |
+| SundeeFundeeShared Package | Pure domain logic, shared value types (Program, WOD, ExerciseCatalog, validation) | Nothing — zero dependencies |
+| Repository Protocols | Contract definitions; swap implementations without touching ViewModels | Implemented by SwiftData, CloudKit, WatchConnectivity, Gemini |
+| SwiftData ModelContainer (iOS) | Local persistence, CloudKit-backed sync. Three-tier fallback: CloudKit → local → in-memory | CloudKit private DB |
+| SwiftData ModelContainer (watchOS) | Watch-local persistence. Separate container, same CloudKit container identifier for passive sync | CloudKit private DB |
+| WatchConnectivity Service | Real-time iPhone↔Watch messaging during active workouts. Supplements CloudKit for low-latency needs | iOS app, Watch app |
+| CloudKit Private DB | Ground truth sync across all user devices (iPhone, Watch). Eventual consistency | SwiftData ModelContainers on both targets |
+| HealthKit / HKWorkoutSession | Live biometric data during Watch workout sessions. Required for background execution on Watch | Watch ViewModels, HealthKit framework |
+| AuthService + Keychain | Sign in with Apple, session restore, credential storage | AppState, SwiftData (writes User on first sign-in) |
+| SubscriptionService | StoreKit 2 tier gating (free / plus / pro) | Feature ViewModels |
+| Gemini Cloudflare Proxy | AI workout generation — proxies Gemini API, returns structured workout JSON | GeminiRepository |
 
-## Recommended Project Structure
+---
+
+## Code Sharing Strategy
+
+### Recommended Approach: Local Swift Package + Target Membership
+
+The project already has `SundeeFundeeShared` as a local Swift Package. Extend this pattern deliberately rather than using ad-hoc target membership files.
+
+**Three tiers of code sharing:**
+
+| Tier | What Goes Here | Mechanism |
+|------|---------------|-----------|
+| Shared Package (`SundeeFundeeShared`) | Domain logic, value types, validation, exercise catalog, Program/WOD models | Local SPM package, linked to both targets |
+| Shared source files via target membership | Platform-agnostic utility extensions (Date, String, Numeric formatters), theme constants that apply to both platforms | `.swift` file → checked in both target memberships in `project.yml` |
+| Platform-specific | iOS: Tab navigation, StoreKit paywall, full settings, HealthKit background tasks. Watch: workout session management, HKWorkoutSession, complications | Separate target source directories; conditional `#if os(watchOS)` only as last resort |
+
+**Decision rule:** If code has zero UIKit/SwiftUI/SwiftData/HealthKit imports, it belongs in `SundeeFundeeShared`. If it has SwiftUI but no platform-specific APIs, consider target membership with `#if os(watchOS)` guards. If it requires a platform-specific framework (e.g., `WatchKit`, `HealthKit` workout sessions), it lives in the dedicated target.
+
+**Confidence:** HIGH — this pattern (local SPM for domain, target membership for light sharing, separate source trees for platform-specific) is the standard Apple recommendation and matches the existing codebase structure.
+
+---
+
+## Recommended Project Structure (watchOS additions)
 
 ```
-src/
-├── app/                    # Expo Router pages (file-based routing)
-│   ├── (auth)/             # Sign-in, onboarding routes
-│   ├── (tabs)/             # Main tab bar: dashboard, programs, workouts, cycle, history
-│   ├── _layout.tsx         # Root layout, auth gate, theme provider
-│   └── +not-found.tsx      # 404 fallback
+SundeeFundee/
+├── SundeeFundee/                     # iOS app target (existing)
+│   ├── App/
+│   ├── Auth/
+│   ├── Domain/                       # MOVE pure logic → SundeeFundeeShared
+│   ├── Features/
+│   ├── Models/
+│   ├── Repositories/
+│   │   ├── Protocols/
+│   │   ├── SwiftData/
+│   │   ├── CloudKit/
+│   │   ├── WatchConnectivity/        # NEW: WCSession service (iOS side)
+│   │   └── ...
+│   └── ...
 │
-├── domain/                 # Pure TypeScript — zero framework deps
-│   ├── cycle/              # Phase inference, adaptation multipliers
-│   ├── injury/             # Injury engine, exercise substitution
-│   ├── benchmarks/         # Benchmark catalog, scoring
-│   ├── maxes/              # 1RM calculations
-│   ├── pain/               # Pain trend analysis
-│   ├── rehab/              # Rehab session generation
-│   └── types.ts            # Shared domain types (enums, interfaces)
+├── SundeeFundeeWatch/                # NEW: watchOS app target
+│   ├── App/
+│   │   ├── SundeeFundeeWatchApp.swift
+│   │   ├── WatchAppState.swift
+│   │   └── WatchModelContainer.swift
+│   ├── Features/
+│   │   ├── ActiveWorkout/            # Core feature: logging sets from wrist
+│   │   ├── Dashboard/                # Glanceable summary (today's workout)
+│   │   └── Shared/                   # Watch-specific UI components
+│   ├── Repositories/
+│   │   ├── Protocols/                # Watch-scoped protocol subset
+│   │   ├── SwiftData/                # Watch SwiftData implementations
+│   │   └── WatchConnectivity/        # WCSession service (Watch side)
+│   └── Complications/                # ClockKit / WidgetKit complications
 │
-├── repositories/           # Data access contracts + implementations
-│   ├── interfaces/         # TypeScript interfaces (IWorkoutRepo, ICycleRepo, etc.)
-│   ├── firestore/          # react-native-firebase implementations
-│   ├── local/              # AsyncStorage implementations (guest mode)
-│   └── index.ts            # Factory: returns correct impl based on auth mode
+├── SundeeFundee/Packages/
+│   └── SundeeFundeeShared/           # EXPANDED: add domain logic migrated from iOS Domain/
+│       └── Sources/SundeeFundeeShared/
+│           ├── Models/               # Program, WOD, ExerciseCatalog (existing)
+│           ├── Domain/               # CycleProgramGenerator, InjuryAdaptation,
+│           │                         # WeightCalculations, PlateCalculation (MOVE HERE)
+│           ├── CloudKit/             # CKRecord wrappers (existing)
+│           └── Validation/           # Validators (existing)
 │
-├── stores/                 # Zustand global state slices
-│   ├── auth-store.ts       # Auth state, currentUser, mode (authenticated/guest)
-│   ├── subscription-store.ts # RevenueCat entitlements
-│   └── ui-store.ts         # Modal state, loading flags
-│
-├── hooks/                  # Use-case hooks — orchestrate domain + repositories
-│   ├── use-generate-workout.ts
-│   ├── use-cycle-adaptation.ts
-│   ├── use-injury-engine.ts
-│   └── use-workout-execution.ts
-│
-├── features/               # Feature modules (self-contained per tab/feature)
-│   ├── dashboard/
-│   ├── programs/
-│   ├── workouts/
-│   ├── cycle/
-│   ├── history/
-│   ├── benchmarks/
-│   ├── maxes/
-│   └── settings/
-│
-├── components/             # Shared, reusable UI components
-│   ├── ui/                 # Base: Button, Card, Badge, Input
-│   └── workout/            # ForTimerTimer, AmrapTimer, EmomTimer, etc.
-│
-├── theme/                  # Design tokens: Art Deco palette, typography, spacing
-│   └── index.ts
-│
-├── firebase/               # Firebase SDK wrappers (platform-aware)
-│   ├── app.ts
-│   ├── auth.ts / auth.web.ts
-│   ├── firestore.ts
-│   ├── appCheck.ts
-│   ├── callCloudFunction.ts / callCloudFunction.web.ts
-│   ├── analytics.ts / analytics.web.ts     ← new in v1.1
-│   ├── crashlytics.ts / crashlytics.web.ts ← new in v1.1
-│   └── messaging.ts                        ← new in v1.1
-│
-├── notifications/          # Notification domain (new in v1.1)
-│   ├── NotificationService.ts
-│   ├── NotificationPermissions.ts
-│   ├── usePushToken.ts
-│   └── useNotificationNavigation.ts
-│
-├── services/               # External service integrations (non-repository)
-│   └── revenuecat.ts       # RevenueCat SDK init
-│
-└── utils/                  # Pure utility functions (formatters, date helpers)
+└── project.yml                       # XcodeGen spec — add watchOS target here
 ```
+
+**Structure rationale:**
+- `SundeeFundeeWatch/` is a dedicated source tree, never imports iOS-only frameworks
+- Domain logic migration into `SundeeFundeeShared` makes cycle adaptation and weight calculations available on Watch without duplication
+- Watch repository protocols are a subset — Watch does not need AI workout generation or HealthKit readiness repos
+- `WatchConnectivity/` repositories exist on both sides of the fence; they mirror each other's interface
+
+---
 
 ## Architectural Patterns
 
-### Pattern 1: Repository Factory Pattern
+### Pattern 1: Separate ModelContainers with Shared CloudKit Container
 
-**What:** A factory function returns the correct repository implementation based on auth mode. Authenticated users get Firestore repos; guest users get AsyncStorage repos.
+**What:** Both iOS and watchOS targets create their own `ModelContainer` pointing to the same CloudKit container identifier (`iCloud.com.sundeefundee`). CloudKit acts as the sync bus. Neither target shares an in-process `ModelContext`.
 
-**When to use:** Required — this is how offline guest mode works without branching logic throughout the codebase.
+**When to use:** Always — app groups cannot share a SQLite database across iPhone and Watch because they are different physical devices.
 
-**Trade-offs:** Adds indirection. Worth it because guest mode is a first-class requirement.
+**Trade-offs:**
+- Pro: Fully standalone Watch app; continues working without iPhone present
+- Pro: CloudKit handles conflict resolution automatically
+- Con: Sync is eventual — a workout logged on Watch may take seconds to minutes to appear on iPhone
+- Con: Known watchOS 10 issue: CloudKit sync on Watch only triggers reliably when Watch is charging with >50% battery. Background sync is not guaranteed during workout.
 
-**Example:**
-```typescript
-// repositories/index.ts
-export function getWorkoutRepo(authMode: 'authenticated' | 'guest'): IWorkoutRepository {
-  return authMode === 'authenticated'
-    ? new FirestoreWorkoutRepository()
-    : new LocalWorkoutRepository();
+**Implementation:**
+```swift
+// WatchModelContainer.swift — same pattern as AppModelContainer.swift
+static func make() -> ModelContainer {
+    let schema = Schema(WatchAppSchemaV1.models)
+    let config = ModelConfiguration(
+        schema: schema,
+        cloudKitContainerIdentifier: "iCloud.com.sundeefundee"
+    )
+    return try! ModelContainer(for: schema, configurations: [config])
 }
 ```
 
-### Pattern 2: Pure Domain Layer (Zero Framework Deps)
+**Confidence:** MEDIUM — CloudKit sync on watchOS is documented but has known reliability issues (charging requirement, large dataset sync failures). This is the Apple-prescribed approach; the reliability issues are a known tradeoff, not a reason to abandon it.
 
-**What:** All business logic lives in `src/domain/` as plain TypeScript. No React, Firebase, or Expo imports allowed in this folder.
+---
 
-**When to use:** Always — enables Jest testing without mocking anything.
+### Pattern 2: WatchConnectivity as Real-Time Supplement
 
-**Example:**
-```typescript
-// domain/cycle/adaptation.ts
-export function adaptWorkloadForPhase(
-  baseLoad: number,
-  phase: CyclePhase,
-  symptoms: Symptom[]
-): AdaptedWorkload {
-  const multiplier = PHASE_MULTIPLIERS[phase];
-  return { load: baseLoad * multiplier * computeSymptomAdjustment(symptoms) };
+**What:** Use `WCSession` to push workout-in-progress state from Watch to iPhone during an active workout session. This is not a replacement for CloudKit sync — it is a low-latency bridge for data that must arrive before the user checks their iPhone.
+
+**When to use:** Active workout logging only. The Watch-side `WCSession.sendMessage` delivers instantly when the counterpart app is reachable. `transferUserInfo` delivers queued, guaranteed when the Watch app goes background.
+
+**Do not use for:** Full data sync, exercise library loading, program catalog reads. Use CloudKit for those.
+
+**Transfer method selection:**
+
+| Scenario | Method | Rationale |
+|----------|--------|-----------|
+| User completes a set mid-workout | `transferUserInfo` | Guaranteed delivery even if iPhone app is in background; FIFO queue |
+| Workout session started / completed | `transferUserInfo` | Must not be lost |
+| Live set display on iPhone during workout | `sendMessage` | Real-time, but both apps must be reachable |
+| Sync latest user settings to Watch at launch | `updateApplicationContext` | Only latest needed; replaces previous |
+
+**Architecture:** `WatchConnectivityService` is a singleton `@Observable` class on both targets, conforming to `WCSessionDelegate`. It is injected into the environment from the app entry point, not created per-ViewModel.
+
+```swift
+// Shared singleton pattern (both targets)
+@Observable
+final class WatchConnectivityService: NSObject, WCSessionDelegate {
+    static let shared = WatchConnectivityService()
+
+    private let session = WCSession.default
+
+    func activate() {
+        guard WCSession.isSupported() else { return }
+        session.delegate = self
+        session.activate()
+    }
 }
 ```
 
-### Pattern 3: No-Op Platform Branching for Native-Only Firebase Modules
+**Confidence:** HIGH — WCSession singleton is the canonical pattern per Apple documentation and universally used in the community.
 
-**What:** Analytics and Crashlytics don't exist on web. Use the `.web.ts` extension to provide no-op implementations with matching type signatures. This is the established pattern already used for `auth.web.ts` and `callCloudFunction.web.ts`.
+---
 
-**When to use:** Any Firebase RNF module called from shared code paths that has no web equivalent.
+### Pattern 3: HKWorkoutSession for Active Watch Workouts
 
-**Example:**
-```typescript
-// src/firebase/crashlytics.ts (native)
-import crashlytics from '@react-native-firebase/crashlytics';
-export function recordError(error: Error): void {
-  crashlytics().recordError(error);
-}
+**What:** Strength training workouts on Apple Watch require an `HKWorkoutSession` to keep the Watch app running in the foreground and to collect HealthKit samples (heart rate, active energy). Without a workout session, watchOS aggressively suspends the app.
 
-// src/firebase/crashlytics.web.ts (web no-op)
-export function recordError(_error: Error): void {
-  // Crashlytics not available on web
-}
-```
+**When to use:** Every time the user starts a workout on Watch. Not optional for a workout logging app.
 
-### Pattern 4: Offline-First with react-native-firebase
+**Key requirements:**
+- HealthKit entitlement must be added to the Watch target in `project.yml`
+- Request HealthKit authorization before the first workout
+- `HKWorkoutSession` must be started and ended explicitly
+- Workout route/samples can be written back to HealthKit on session end for Apple Fitness+ integration
 
-**What:** Use `react-native-firebase` (native SDK wrapper) instead of the Firebase JS SDK. Firestore offline persistence is enabled by default with the native SDK.
+**Trade-offs:**
+- Pro: Prevents Watch app from suspending during 60-minute workouts
+- Pro: Unlocks real heart rate and calorie data during session
+- Con: Adds complexity — session state machine (not started → running → paused → ended) must be mirrored in the ViewModel
+- Con: Separate HealthKit authorization request from existing iOS HealthKit readiness integration
 
-**When to use:** Required for offline support — the Firebase JS SDK does not support Firestore offline persistence in React Native.
+**Confidence:** HIGH — HKWorkoutSession is required for background execution on watchOS during workouts per Apple documentation.
 
-**Trade-offs:** Requires a custom Expo dev client. Config plugins via `app.json` handle native configuration.
+---
 
-```typescript
-// Default behavior — no extra setup needed for offline
-import firestore from '@react-native-firebase/firestore';
-// This write queues locally if offline, syncs when online
-await firestore().collection('users').doc(userId).collection('workouts').add(workoutData);
-```
+### Pattern 4: Watch-Local SwiftData Schema (Separate, Smaller)
 
-### Pattern 5: FCM Token Persisted to Existing User Document
+**What:** The Watch target has its own schema version with a smaller set of models — only what is needed for workout logging. It does not replicate the full 22-model `AppSchemaV12`.
 
-**What:** FCM tokens are stored as a field on the existing `/users/{uid}` Firestore document, not in a separate collection. `saveFCMToken()` uses `{ merge: true }` to avoid touching other fields.
+**Recommended Watch models:**
+- `WorkoutTemplate` (read-only; synced from iPhone via CloudKit)
+- `CompletedWorkout` + `CompletedSet` (write path; synced to iPhone via CloudKit)
+- `UserPreferences` (weight unit, display preferences)
 
-**When to use:** Appropriate for v1.1 where single active device per user is the assumed model.
+**Why not mirror the full schema:** CloudKit sync on Watch struggles with large datasets. A developer forum report indicates ~10k entities caused Watch CloudKit import to never complete. Limiting the Watch schema reduces initial sync time and ongoing CloudKit pressure.
 
-**Trade-offs:** Does not support multi-device per user (last token wins). Multi-device support can be added later by switching to a `/users/{uid}/devices/{deviceId}` subcollection.
+**Confidence:** MEDIUM — the "smaller schema" recommendation is derived from community reports of sync performance issues, not an official Apple guideline.
+
+---
 
 ## Data Flow
 
-### Workout Execution Flow (Offline-Critical)
+### Workout Logging (Watch → iPhone)
 
 ```
-User starts workout
+User taps "Log Set" on Watch
     ↓
-useWorkoutExecution() hook
-    ↓ (reads from local cache or Firestore)
-WorkoutRepository.getProgram()
+ActiveWorkoutViewModel (Watch) updates in-memory state
     ↓
-Domain: adaptWorkloadForPhase(baseLoad, cyclePhase, symptoms)
+SwiftDataWorkoutRepository (Watch) writes CompletedSet to Watch ModelContext
     ↓
-Domain: applyInjuryModifications(exercises, injuryProfile)
+CloudKit private DB receives the CKRecord (passive, eventual)
     ↓
-Screen renders adapted workout
+WatchConnectivityService.transferUserInfo(setPayload) — immediate, queued
     ↓
-WorkoutRepository.saveCompletedSet()
-    ↓ (writes to Firestore local cache immediately; syncs when online)
-History updated via real-time Firestore listener
+iPhone WatchConnectivityService.session(_:didReceiveUserInfo:) fires
+    ↓
+iPhone NotificationCenter.post(.watchDidLogSet) or direct ViewModel update
+    ↓
+iPhone ModelContext merges when CloudKit sync also arrives (deduplication by ID)
 ```
 
-### Auth + Routing Flow
+### Program / Exercise Catalog (iPhone → Watch)
 
 ```
-App starts
+Admin writes Program to CloudKit public DB via WOD dashboard
     ↓
-Firebase Auth state listener (immediate — cached from last session)
+CloudKit private DB replicates to user's private DB on next sync
     ↓
-         ┌── No user → guest mode OR sign-in screen
-         └── User exists → AppState: authenticated
-                               ↓
-                 RevenueCat.logIn(firebaseUID)
-                 crashlytics().setUserId(uid)  ← new in v1.1
-                 analytics().setUserId(uid)    ← new in v1.1
-                               ↓
-                 usePushToken() → FCM token → Firestore  ← new in v1.1
-                               ↓
-                 Navigate to main tabs
+iPhone CloudKitProgramRepository fetches on dashboard load
+    ↓
+Watch CloudKit container syncs the same Program records (passive)
+    ↓
+Watch app reads Programs from Watch ModelContext on launch
 ```
 
-## Scaling Considerations
+### Auth State (iPhone → Watch)
 
-| Scale | Architecture Adjustments |
-|-------|--------------------------|
-| 0-1k users | Single FCM token per user in `/users/{uid}` sufficient. Monorepo, single Firestore database. |
-| 1k-10k users | Monitor Firestore read costs on program catalog. FCM `sendEachForMulticast` batches at 500 tokens — Cloud Function must handle pagination. Consider FCM topics for WOD broadcast. |
-| 10k-100k users | Switch WOD notifications to FCM topics (`messaging().subscribeToTopic('wod-updates')`) — avoids querying all tokens. Cloud Function cold starts affect AI generation; add minimum instance. |
-| 100k+ users | Firestore document contention on public WOD documents. CDN-cache static WOD delivery. Multi-device token support needed. |
+```
+User signs in on iPhone (Sign in with Apple)
+    ↓
+AuthService writes User record to iOS SwiftData
+    ↓
+CloudKit syncs User record to Watch
+    ↓
+OR: WatchConnectivity applicationContext carries { isAuthenticated: true, userID: "..." }
+    ↓
+Watch app boots in authenticated state
+```
+
+**Design decision:** Use `applicationContext` for auth state as the fast path (immediate on next Watch launch). CloudKit sync of the `User` record is the persistent path.
+
+---
+
+## CloudKit Container Architecture
+
+```
+CloudKit Container: iCloud.com.sundeefundee
+├── Private Database (per-user)
+│   ├── User record
+│   ├── CompletedWorkout + CompletedSet records
+│   ├── ActiveCycle + PeriodLog records
+│   ├── InjuryProfile + PainLog records
+│   ├── LiftMax + OneRepMax records
+│   ├── EnrolledProgram records
+│   └── GeneratedWorkoutRecord records
+│
+└── Public Database (shared, admin-written)
+    ├── Program records (written by WOD dashboard)
+    ├── WOD records (written by WOD dashboard)
+    └── BenchmarkDefinition records
+```
+
+**Key constraint:** All `@Model` properties must be optional or have default values for CloudKit compatibility. Relationships must be optional. Unique constraints are not supported — use application-level deduplication instead.
+
+**ModelContainer fallback (both targets):**
+1. CloudKit-backed persistent store (production)
+2. Local persistent store (CloudKit entitlement absent / Simulator)
+3. In-memory store (unit tests)
+
+This fallback is already implemented in `AppModelContainer.swift` on iOS and must be mirrored in `WatchModelContainer.swift`.
+
+---
+
+## Build Order (Phase Dependencies)
+
+The watchOS feature has implicit dependencies that drive phase ordering:
+
+```
+Phase 1: Fix existing CloudKit bugs on iOS
+    → CloudKit must be activated and working on iOS before Watch can sync
+    → Known bugs: disabled CloudKit flag, stale schema references, migration plan path
+
+Phase 2: Expand SundeeFundeeShared Package
+    → Migrate Domain/ pure logic into the shared package
+    → This unblocks Watch from consuming cycle adaptation and weight math
+    → Required before Watch ViewModels can compute adapted workouts
+
+Phase 3: watchOS Target Scaffold
+    → Add watchOS target to project.yml
+    → WatchModelContainer (smaller schema, same container ID)
+    → WatchConnectivityService (singleton, both targets)
+    → Requires Phase 1 (CloudKit must be healthy) and Phase 2 (shared domain)
+
+Phase 4: Active Workout Feature (Watch)
+    → HKWorkoutSession integration
+    → Set logging UI (compact SwiftUI for 45mm screen)
+    → transferUserInfo back to iPhone
+    → Requires Phase 3 scaffold
+
+Phase 5: Watch Dashboard + Complications
+    → Read-only glanceable view of today's program
+    → ClockKit / WidgetKit complication
+    → Requires Phase 3 scaffold + CloudKit sync flowing (Phase 1)
+```
+
+---
 
 ## Anti-Patterns
 
-### Anti-Pattern 1: Using Firebase JS SDK for Offline Persistence
+### Anti-Pattern 1: Sharing a ModelContext Between Targets
 
-**What people do:** Install `firebase` (JS SDK) expecting offline persistence in RN.
-**Why it's wrong:** Firebase JS SDK relies on IndexedDB — not available in React Native. Offline persistence silently fails.
-**Do this instead:** Use `@react-native-firebase/firestore` (native SDK wrapper).
+**What people do:** Attempt to use an App Group container so both apps read the same SQLite file.
 
-### Anti-Pattern 2: Domain Logic in Screens or Hooks
+**Why it's wrong:** iPhone and Apple Watch are separate physical devices. App Groups share containers within a single device, not across the iPhone-to-Watch boundary. This will compile but produce two isolated stores with no sync.
 
-**What people do:** Write cycle math or injury substitution directly in screen components.
-**Why it's wrong:** Untestable without rendering. Leads to duplication.
-**Do this instead:** All business logic in `src/domain/` as pure TypeScript.
+**Do this instead:** Separate `ModelContainer` on each target, same CloudKit container identifier. Let CloudKit be the sync bus.
 
-### Anti-Pattern 3: Transactions for Offline-Capable Writes
+---
 
-**What people do:** Use Firestore transactions for workout logging.
-**Why it's wrong:** Transactions require a server round-trip and fail offline.
-**Do this instead:** Standard document writes for all user data that must work offline.
+### Anti-Pattern 2: Using sendMessage as the Primary Sync Mechanism
 
-### Anti-Pattern 4: setBackgroundMessageHandler Inside a Component
+**What people do:** Implement all Watch→iPhone sync via `WCSession.sendMessage` because it feels like the simplest API.
 
-**What people do:** Register the FCM background handler in `useEffect` inside `_layout.tsx`.
-**Why it's wrong:** Handler is missed for background/quit states where components don't mount.
-**Do this instead:** Register in `index.ts` before `AppRegistry.registerComponent`.
+**Why it's wrong:** `sendMessage` fails silently if the counterpart is not reachable. A workout logged while the iPhone is out of Bluetooth range is lost. `sendMessage` also requires the Watch app to be in the foreground (iOS→Watch direction).
 
-### Anti-Pattern 5: Using getExpoPushTokenAsync() with Direct FCM Sends
+**Do this instead:** Use `transferUserInfo` for all workout data. Reserve `sendMessage` only for optional real-time display (e.g., a live set counter visible on iPhone while the user is on the Watch). Always write to SwiftData first, then fire WatchConnectivity.
 
-**What people do:** Get Expo push tokens and send them to the FCM API directly.
-**Why it's wrong:** Expo tokens route through Expo's service — they are not raw FCM tokens.
-**Do this instead:** Use `messaging().getToken()` for native FCM tokens when sending via FCM Admin SDK.
+---
+
+### Anti-Pattern 3: Replicating the Full iOS Schema to Watch
+
+**What people do:** Link `AppSchemaV12` (22 models) to the Watch target so there is one canonical schema.
+
+**Why it's wrong:** CloudKit sync on Watch degrades significantly with large record counts. The Watch app only needs a handful of models. A 22-model schema that mirrors the iPhone schema will hit sync performance issues.
+
+**Do this instead:** Define a minimal `WatchAppSchemaV1` with only the models the Watch needs (WorkoutTemplate, CompletedWorkout, CompletedSet, UserPreferences). Use the same CloudKit container so records flow bidirectionally.
+
+---
+
+### Anti-Pattern 4: Skipping HKWorkoutSession for Workout Logging
+
+**What people do:** Build the Watch workout logging UI without starting an `HKWorkoutSession`, assuming the app will stay active.
+
+**Why it's wrong:** watchOS aggressively suspends apps that are not running a workout session. The user will tap "Log Set" and find the app has been suspended, losing in-progress state.
+
+**Do this instead:** Start `HKWorkoutSession` when the user begins a workout. The session keeps the app in the foreground, enables heart rate sampling, and allows `extendedRuntimeSession` for warmup/cooldown periods outside the formal session.
+
+---
+
+### Anti-Pattern 5: CloudKit Unique Constraints
+
+**What people do:** Add `#Unique` macro constraints to `@Model` types (e.g., ensuring one `User` per `appleUserID`).
+
+**Why it's wrong:** CloudKit does not support unique constraint enforcement at the schema level. SwiftData will silently fall back to a non-CloudKit store if unique constraints are present and CloudKit sync is configured.
+
+**Do this instead:** Enforce uniqueness in application logic — query before inserting, or handle duplicates with a deduplication step in the repository.
+
+---
 
 ## Integration Points
 
@@ -646,37 +429,55 @@ Firebase Auth state listener (immediate — cached from last session)
 
 | Service | Integration Pattern | Notes |
 |---------|---------------------|-------|
-| Firebase Auth | `@react-native-firebase/auth` listeners → `useAuthStore` | Apple Sign-In requires native module |
-| Firestore | `@react-native-firebase/firestore` with offline persistence | Offline on by default with native SDK |
-| Firebase Cloud Functions | HTTP callable via `@react-native-firebase/functions` | Not for offline-critical paths |
-| Firebase Analytics | `@react-native-firebase/analytics`, no-op on web | Manual screen tracking required |
-| Firebase Crashlytics | `@react-native-firebase/crashlytics`, no-op on web | ErrorBoundary + setUserId on sign-in |
-| FCM (Cloud Messaging) | `@react-native-firebase/messaging`, token to Firestore | Background handler in index.ts |
-| RevenueCat | `react-native-purchases`, logIn with Firebase UID | Web uses Web Billing (Stripe) |
-| Gemini AI | Via Firebase Cloud Function proxy | Degrades gracefully offline |
+| CloudKit Private DB | SwiftData `ModelContainer` with `cloudKitContainerIdentifier` | Same container ID on both targets; sync is eventual |
+| CloudKit Public DB | `CloudKitProgramRepository` using `CKContainer.publicCloudDatabase` | Programs and WODs; admin writes via WOD dashboard |
+| WatchConnectivity | `WCSession` singleton service, delegate pattern | Must activate on both targets at launch; test on real devices only |
+| HealthKit / HKWorkoutSession | Watch-only; request authorization, start session on workout begin | Required for Watch background execution |
+| Gemini (Cloudflare Worker) | HTTP via `GeminiRepository` on iOS only | Watch does not need AI generation |
+| StoreKit 2 | `SubscriptionService` on iOS only | Watch reads subscription tier via `applicationContext` push from iPhone |
+| APNs | iOS only at present | Future: Watch can receive notifications independently with WatchKit extension |
 
 ### Internal Boundaries
 
 | Boundary | Communication | Notes |
 |----------|---------------|-------|
-| Domain ↔ Hooks | Direct TypeScript function calls | Domain has no async |
-| Hooks ↔ Repositories | Repository interface method calls | Hooks never import Firestore directly |
-| Notifications ↔ Expo Router | `router.push()` from useNotificationNavigation | Called from notification tap listener |
-| Analytics ↔ Expo Router | `usePathname()` hook drives logScreenView | Mounted at root layout level |
-| Crashlytics ↔ ErrorBoundary | Direct call in componentDidCatch | Class component required by React API |
+| iOS Domain → Watch Domain | `SundeeFundeeShared` package, same compiled code | No cross-process communication needed; domain is pure Swift |
+| iOS ViewModels → Watch ViewModels | No direct connection — they share CloudKit data, not in-process state | |
+| Watch → iPhone (workout data) | `WCSession.transferUserInfo` + CloudKit eventual sync | transferUserInfo is the reliable path; CloudKit is truth |
+| iPhone → Watch (programs, settings) | CloudKit passive sync + `WCSession.updateApplicationContext` | applicationContext for fast path on Watch launch |
+| Watch → HealthKit | `HKWorkoutSession` + `HKHealthStore` writes | Active workout only |
+
+---
+
+## Scaling Considerations
+
+This is a single-user app with a CloudKit private database. Scaling is not a concern in the traditional sense. The relevant "scale" question is dataset size per user.
+
+| Concern | Approach |
+|---------|----------|
+| Large workout history (1000+ workouts) | CloudKit handles; Watch sync may be slow on first install. Keep Watch schema minimal. |
+| Offline Watch logging | SwiftData writes locally; CloudKit syncs when connectivity restored. WatchConnectivity delivers when phones reconnect via Bluetooth. |
+| Schema migrations on both targets | iOS and Watch schema versions are independent. Increment separately. Lightweight migrations preferred. |
+| CloudKit sync reliability on Watch | Known issue: sync requires charging + >50% battery for reliable background sync. Accept eventual consistency. Do not design UX that depends on instant Watch→iPhone sync. |
+
+---
 
 ## Sources
 
-- [Expo Push Notifications Setup](https://docs.expo.dev/push-notifications/push-notifications-setup/) — official, current
-- [Expo: Send Notifications with FCM and APNs](https://docs.expo.dev/push-notifications/sending-notifications-custom/) — official, current
-- [Expo: Using Firebase](https://docs.expo.dev/guides/using-firebase/) — official, current
-- [EAS Submit Configuration](https://docs.expo.dev/submit/eas-json/) — official, current
-- [React Native Firebase: Messaging Usage](https://rnfirebase.io/messaging/usage) — MEDIUM confidence (official docs)
-- [React Native Firebase: Crashlytics Usage](https://rnfirebase.io/crashlytics/usage) — MEDIUM confidence (official docs)
-- [React Native Firebase: Analytics Screen Tracking](https://rnfirebase.io/analytics/screen-tracking) — MEDIUM confidence
-- [GitHub Issue: RNF messaging plugin does not add Background Modes](https://github.com/invertase/react-native-firebase/issues/7577) — MEDIUM (community pattern)
-- Codebase inspection: `app.json`, `app/_layout.tsx`, `app/(app)/_layout.tsx`, `useRestTimer.ts`, `FirestoreUserRepo.ts`, `UserRepository.ts` — HIGH confidence
+- [Transferring data with Watch Connectivity — Apple Developer Documentation](https://developer.apple.com/documentation/WatchConnectivity/transferring-data-with-watch-connectivity)
+- [Watch Connectivity framework — Apple Developer Documentation](https://developer.apple.com/documentation/watchconnectivity)
+- [Syncing model data across a person's devices — Apple Developer Documentation](https://developer.apple.com/documentation/swiftdata/syncing-model-data-across-a-persons-devices)
+- [Running workout sessions (HKWorkoutSession) — Apple Developer Documentation](https://developer.apple.com/documentation/healthkit/running-workout-sessions)
+- [Three Ways to Communicate via WatchConnectivity — Alexander Weiss](https://alexanderweiss.dev/blog/2023-01-18-three-ways-to-communicate-via-watchconnectivity)
+- [SwiftData CloudKit sync on watchOS 10 — Apple Developer Forums](https://developer.apple.com/forums/thread/733397)
+- [watchOS 10: CloudKit CoreData Sync issues — Apple Developer Forums](https://developer.apple.com/forums/thread/737661)
+- [Sharing Swift package with watchOS extension — Corner Software](https://csdcorp.com/blog/coding/sharing-swift-package-with-watchos-extension/)
+- [watchOS With SwiftUI by Tutorials, Chapter 2: Project Structure — Kodeco](https://www.kodeco.com/books/watchos-with-swiftui-by-tutorials/v1.0/chapters/2-project-structure)
+- [watchOS With SwiftUI by Tutorials, Chapter 4: Watch Connectivity — Kodeco](https://www.kodeco.com/books/watchos-with-swiftui-by-tutorials/v1.0/chapters/4-watch-connectivity)
+- [Data Synchronization Between iOS and watchOS Using WatchConnectivity — Medium](https://medium.com/@sheik25bareeth/data-synchronization-between-ios-and-watchos-using-watchconnectivity-009a3064e12a)
+- [Organizing your code with local packages — Apple Developer Documentation](https://developer.apple.com/documentation/xcode/organizing-your-code-with-local-packages)
 
 ---
-*Architecture research for: React Native + Expo + Firebase cross-platform fitness app (Sundee Fundee)*
-*v1.0 researched: 2026-03-14 | v1.1 addendum researched: 2026-03-16*
+
+*Architecture research for: iOS + watchOS SwiftUI strength training app (Swift 6, SwiftData, CloudKit)*
+*Researched: 2026-03-18*
