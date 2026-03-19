@@ -20,6 +20,10 @@
  * - Danger Zone section: Delete Account (authenticated) or Clear Local Data (guest)
  * - Delete Account: two-step confirmation with "DELETE" text input, Cloud Function call
  * - Goodbye screen on successful deletion
+ *
+ * Phase 20 additions:
+ * - Notifications section: 4 independent toggles (Rest Timer Alerts, Workout Reminders,
+ *   WOD Alerts, Subscription Alerts), time picker for daily reminder, OS permission banner
  */
 
 import React, { useCallback, useEffect, useState } from 'react';
@@ -30,12 +34,14 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
+  Switch,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useFocusEffect } from 'expo-router';
 import { useSession } from '@/src/auth/AuthContext';
 import { useEntitlementContext } from '@/src/entitlements/EntitlementContext';
 import { getSettingsRepo, DEFAULT_SETTINGS, type AppSettings } from '@/src/repositories/SettingsRepo';
@@ -49,11 +55,20 @@ import { getCycleRepo } from '@/src/repositories/CycleRepo';
 import { getInjuryRepo } from '@/src/repositories/InjuryRepo';
 import { getReadinessRepo } from '@/src/repositories/ReadinessRepo';
 import { callCloudFunction } from '@/src/services/callCloudFunction';
+import { scheduleDailyReminder, cancelDailyReminder } from '@/src/services/notificationService';
+import { useNotificationPermission } from '@/src/hooks/useNotificationPermission';
+import { calculateCycleStatus } from '@/src/domain/cycle/cycle-calculations';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as colors from '@/src/theme/colors';
 
 /** Allowed rest duration values in seconds. */
 const REST_DURATION_OPTIONS = [30, 45, 60, 90, 120, 150, 180, 240, 300];
+
+/** Hour options for the reminder time picker (0–23). */
+const HOUR_OPTIONS = Array.from({ length: 24 }, (_, i) => i);
+
+/** Minute options for the reminder time picker (quarter-hour steps). */
+const MINUTE_OPTIONS = [0, 15, 30, 45];
 
 /** Weight unit display options. */
 const WEIGHT_UNIT_OPTIONS: Array<{ value: 'lb' | 'kg'; label: string }> = [
@@ -75,6 +90,14 @@ export function formatRestDuration(seconds: number): string {
     return `${mins} minute${mins !== 1 ? 's' : ''}`;
   }
   return `${mins}m ${secs}s`;
+}
+
+/** Format hour + minute as a 12-hour time string, e.g. "7:00 AM". */
+export function formatReminderTime(hour: number, minute: number): string {
+  const period = hour < 12 ? 'AM' : 'PM';
+  const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+  const displayMinute = minute.toString().padStart(2, '0');
+  return `${displayHour}:${displayMinute} ${period}`;
 }
 
 /** Subscription info loaded from RevenueCat on mobile */
@@ -105,6 +128,11 @@ export default function SettingsScreen(): React.JSX.Element {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Notification permission and time picker state
+  const { isDenied, checkPermission } = useNotificationPermission();
+  const [showTimePicker, setShowTimePicker] = useState(false);
+  const [timePickerMode, setTimePickerMode] = useState<'hour' | 'minute'>('hour');
 
   const loadSettings = useCallback(async (): Promise<void> => {
     if (!user) return;
@@ -186,6 +214,35 @@ export default function SettingsScreen(): React.JSX.Element {
     void checkTrialEndedModal();
   }, [loadSettings, loadSubscriptionInfo, checkTrialEndedModal]);
 
+  // Re-check OS notification permission every time Settings screen comes into focus
+  // (handles case where user navigated to OS Settings to grant/revoke permission)
+  useFocusEffect(
+    useCallback(() => {
+      void checkPermission();
+    }, [checkPermission])
+  );
+
+  /** Load current cycle phase from CycleRepo for personalised reminder copy. */
+  async function getCurrentCyclePhase() {
+    if (!user) return null;
+    try {
+      const cycleRepo = getCycleRepo(isGuest);
+      const [cycleSettings, periodLogRecords] = await Promise.all([
+        cycleRepo.getCycleSettings(user.uid),
+        cycleRepo.getPeriodLogs(user.uid),
+      ]);
+      if (!cycleSettings || !periodLogRecords.length) return null;
+      const periodLogs = periodLogRecords.map((r) => ({
+        startDate: new Date(r.startDate),
+        endDate: r.endDate ? new Date(r.endDate) : undefined,
+      }));
+      const status = calculateCycleStatus(periodLogs, cycleSettings);
+      return status?.currentPhase ?? null;
+    } catch {
+      return null;
+    }
+  }
+
   async function handleSelectRestDuration(seconds: number): Promise<void> {
     setShowRestPicker(false);
     if (!user) return;
@@ -208,6 +265,50 @@ export default function SettingsScreen(): React.JSX.Element {
     try {
       const repo = getSettingsRepo(isGuest);
       await repo.saveSettings(user.uid, updated);
+    } catch {
+      // Revert on save error
+      setSettings(settings);
+    }
+  }
+
+  async function handleToggleNotification(
+    field: keyof Pick<AppSettings, 'restTimerAlertsEnabled' | 'workoutRemindersEnabled' | 'wodAlertsEnabled' | 'subscriptionAlertsEnabled'>,
+    value: boolean
+  ): Promise<void> {
+    if (!user) return;
+    const updated: AppSettings = { ...settings, [field]: value };
+    setSettings(updated);
+    try {
+      const repo = getSettingsRepo(isGuest);
+      await repo.saveSettings(user.uid, updated);
+      // Wire daily reminder scheduling for Workout Reminders toggle
+      if (field === 'workoutRemindersEnabled') {
+        if (value) {
+          const cyclePhase = await getCurrentCyclePhase();
+          void scheduleDailyReminder(updated.reminderHour, updated.reminderMinute, cyclePhase);
+        } else {
+          void cancelDailyReminder();
+        }
+      }
+    } catch {
+      // Revert on save error
+      setSettings(settings);
+    }
+  }
+
+  async function handleSelectReminderTime(hour: number, minute: number): Promise<void> {
+    if (!user) return;
+    const updated: AppSettings = { ...settings, reminderHour: hour, reminderMinute: minute };
+    setSettings(updated);
+    setShowTimePicker(false);
+    try {
+      const repo = getSettingsRepo(isGuest);
+      await repo.saveSettings(user.uid, updated);
+      // Reschedule if reminders are on
+      if (updated.workoutRemindersEnabled) {
+        const cyclePhase = await getCurrentCyclePhase();
+        void scheduleDailyReminder(hour, minute, cyclePhase);
+      }
     } catch {
       // Revert on save error
       setSettings(settings);
@@ -441,6 +542,123 @@ export default function SettingsScreen(): React.JSX.Element {
             </Text>
             <Text style={styles.chevron}>›</Text>
           </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* Notifications section — between Rest Timer and Weight Unit */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Notifications</Text>
+
+        {/* OS Permission Denied Banner */}
+        {isDenied && (
+          <View style={styles.permissionBanner} testID="permission-denied-banner">
+            <Text style={styles.permissionBannerText}>
+              Notifications are disabled in your device settings
+            </Text>
+            <TouchableOpacity
+              onPress={() => void Linking.openSettings()}
+              activeOpacity={0.7}
+              testID="open-os-settings-button"
+            >
+              <Text style={styles.permissionBannerLink}>Open Settings</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Rest Timer Alerts toggle */}
+        <View style={[styles.toggleRow, isDenied && styles.toggleRowDisabled]}>
+          <View style={styles.settingInfo}>
+            <Text style={[styles.settingLabel, isDenied && styles.toggleLabelDisabled]}>
+              Rest Timer Alerts
+            </Text>
+            <Text style={styles.settingHint}>Notify when rest timer completes</Text>
+          </View>
+          <Switch
+            value={settings.restTimerAlertsEnabled ?? true}
+            onValueChange={(value) => void handleToggleNotification('restTimerAlertsEnabled', value)}
+            disabled={isDenied}
+            trackColor={{ false: '#ccc', true: colors.ORANGE }}
+            thumbColor="#fff"
+            testID="rest-timer-alerts-toggle"
+          />
+        </View>
+
+        {/* Workout Reminders toggle */}
+        <View style={[styles.toggleRow, isDenied && styles.toggleRowDisabled]}>
+          <View style={styles.settingInfo}>
+            <Text style={[styles.settingLabel, isDenied && styles.toggleLabelDisabled]}>
+              Workout Reminders
+            </Text>
+            <Text style={styles.settingHint}>Daily reminder to complete your training</Text>
+          </View>
+          <Switch
+            value={settings.workoutRemindersEnabled ?? false}
+            onValueChange={(value) => void handleToggleNotification('workoutRemindersEnabled', value)}
+            disabled={isDenied}
+            trackColor={{ false: '#ccc', true: colors.ORANGE }}
+            thumbColor="#fff"
+            testID="workout-reminders-toggle"
+          />
+        </View>
+
+        {/* Reminder Time picker row — visible only when Workout Reminders is ON */}
+        {(settings.workoutRemindersEnabled ?? false) && !isDenied && (
+          <TouchableOpacity
+            style={styles.reminderTimeRow}
+            onPress={() => { setTimePickerMode('hour'); setShowTimePicker(true); }}
+            activeOpacity={0.7}
+            testID="reminder-time-picker-trigger"
+          >
+            <View style={styles.settingInfo}>
+              <Text style={styles.settingLabel}>Reminder Time</Text>
+              <Text style={styles.settingHint}>Time of day to receive your daily reminder</Text>
+            </View>
+            <View style={styles.settingValue}>
+              <Text style={styles.settingValueText}>
+                {formatReminderTime(
+                  settings.reminderHour ?? DEFAULT_SETTINGS.reminderHour,
+                  settings.reminderMinute ?? DEFAULT_SETTINGS.reminderMinute,
+                )}
+              </Text>
+              <Text style={styles.chevron}>›</Text>
+            </View>
+          </TouchableOpacity>
+        )}
+
+        {/* WOD Alerts toggle */}
+        <View style={[styles.toggleRow, isDenied && styles.toggleRowDisabled]}>
+          <View style={styles.settingInfo}>
+            <Text style={[styles.settingLabel, isDenied && styles.toggleLabelDisabled]}>
+              WOD Alerts
+            </Text>
+            <Text style={styles.settingHint}>Notify when today's workout is available</Text>
+          </View>
+          <Switch
+            value={settings.wodAlertsEnabled ?? true}
+            onValueChange={(value) => void handleToggleNotification('wodAlertsEnabled', value)}
+            disabled={isDenied}
+            trackColor={{ false: '#ccc', true: colors.ORANGE }}
+            thumbColor="#fff"
+            testID="wod-alerts-toggle"
+          />
+        </View>
+
+        {/* Subscription Alerts toggle */}
+        <View style={[styles.toggleRow, isDenied && styles.toggleRowDisabled]}>
+          <View style={styles.settingInfo}>
+            <Text style={[styles.settingLabel, isDenied && styles.toggleLabelDisabled]}>
+              Subscription Alerts
+            </Text>
+            <Text style={styles.settingHint}>Renewal and expiry reminders</Text>
+          </View>
+          <Switch
+            value={settings.subscriptionAlertsEnabled ?? true}
+            onValueChange={(value) => void handleToggleNotification('subscriptionAlertsEnabled', value)}
+            disabled={isDenied}
+            trackColor={{ false: '#ccc', true: colors.ORANGE }}
+            thumbColor="#fff"
+            testID="subscription-alerts-toggle"
+          />
         </View>
       </View>
 
@@ -688,6 +906,90 @@ export default function SettingsScreen(): React.JSX.Element {
                 </TouchableOpacity>
               );
             })}
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Reminder time picker modal */}
+      <Modal
+        visible={showTimePicker}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowTimePicker(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowTimePicker(false)}
+        >
+          <View style={styles.pickerSheet}>
+            <Text style={styles.pickerTitle}>Reminder Time</Text>
+            <View style={styles.timePickerTabs}>
+              <TouchableOpacity
+                style={[styles.timePickerTab, timePickerMode === 'hour' && styles.timePickerTabActive]}
+                onPress={() => setTimePickerMode('hour')}
+                activeOpacity={0.7}
+                testID="time-picker-hour-tab"
+              >
+                <Text style={[styles.timePickerTabText, timePickerMode === 'hour' && styles.timePickerTabTextActive]}>
+                  Hour
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.timePickerTab, timePickerMode === 'minute' && styles.timePickerTabActive]}
+                onPress={() => setTimePickerMode('minute')}
+                activeOpacity={0.7}
+                testID="time-picker-minute-tab"
+              >
+                <Text style={[styles.timePickerTabText, timePickerMode === 'minute' && styles.timePickerTabTextActive]}>
+                  Minute
+                </Text>
+              </TouchableOpacity>
+            </View>
+            {timePickerMode === 'hour' ? (
+              HOUR_OPTIONS.map((h) => {
+                const period = h < 12 ? 'AM' : 'PM';
+                const displayHour = h === 0 ? 12 : h > 12 ? h - 12 : h;
+                const label = `${displayHour} ${period}`;
+                const isSelected = (settings.reminderHour ?? DEFAULT_SETTINGS.reminderHour) === h;
+                return (
+                  <TouchableOpacity
+                    key={h}
+                    style={[styles.pickerOption, isSelected && styles.pickerOptionSelected]}
+                    onPress={() => {
+                      setSettings((prev) => ({ ...prev, reminderHour: h }));
+                      setTimePickerMode('minute');
+                    }}
+                    activeOpacity={0.7}
+                    testID={`time-picker-hour-${h}`}
+                  >
+                    <Text style={[styles.pickerOptionText, isSelected && styles.pickerOptionTextSelected]}>
+                      {label}
+                    </Text>
+                    {isSelected && <Text style={styles.pickerCheckmark}>✓</Text>}
+                  </TouchableOpacity>
+                );
+              })
+            ) : (
+              MINUTE_OPTIONS.map((m) => {
+                const label = m.toString().padStart(2, '0');
+                const isSelected = (settings.reminderMinute ?? DEFAULT_SETTINGS.reminderMinute) === m;
+                return (
+                  <TouchableOpacity
+                    key={m}
+                    style={[styles.pickerOption, isSelected && styles.pickerOptionSelected]}
+                    onPress={() => void handleSelectReminderTime(settings.reminderHour ?? DEFAULT_SETTINGS.reminderHour, m)}
+                    activeOpacity={0.7}
+                    testID={`time-picker-minute-${m}`}
+                  >
+                    <Text style={[styles.pickerOptionText, isSelected && styles.pickerOptionTextSelected]}>
+                      :{label}
+                    </Text>
+                    {isSelected && <Text style={styles.pickerCheckmark}>✓</Text>}
+                  </TouchableOpacity>
+                );
+              })
+            )}
           </View>
         </TouchableOpacity>
       </Modal>
@@ -1108,6 +1410,80 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: colors.RED,
     letterSpacing: 0.3,
+  },
+  // Notifications section
+  permissionBanner: {
+    backgroundColor: '#FFF3CD',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 12,
+    gap: 6,
+  },
+  permissionBannerText: {
+    fontSize: 13,
+    color: '#856404',
+    lineHeight: 18,
+  },
+  permissionBannerLink: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#533F03',
+    textDecorationLine: 'underline',
+  },
+  toggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.CREAM_LIGHT,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.GREY_LIGHT,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    marginBottom: 8,
+  },
+  toggleRowDisabled: {
+    opacity: 0.5,
+  },
+  toggleLabelDisabled: {
+    color: colors.GREY,
+  },
+  reminderTimeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.ORANGE_LIGHT,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.ORANGE,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    marginBottom: 8,
+    marginLeft: 16,
+  },
+  // Time picker tabs
+  timePickerTabs: {
+    flexDirection: 'row',
+    marginBottom: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.GREY_LIGHT,
+    overflow: 'hidden',
+  },
+  timePickerTab: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: 'center',
+    backgroundColor: colors.CREAM_LIGHT,
+  },
+  timePickerTabActive: {
+    backgroundColor: colors.ORANGE,
+  },
+  timePickerTabText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.NAVY,
+  },
+  timePickerTabTextActive: {
+    color: colors.CREAM,
   },
   // Modal / picker styles
   modalOverlay: {

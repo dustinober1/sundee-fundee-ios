@@ -33,6 +33,11 @@ const mockRouterReplace = jest.fn();
 const mockRouterPush = jest.fn();
 jest.mock('expo-router', () => ({
   useRouter: () => ({ push: mockRouterPush, replace: mockRouterReplace }),
+  useFocusEffect: (callback: () => void) => {
+    // Execute the focus effect callback synchronously in tests
+    const React = require('react');
+    React.useEffect(callback, []);
+  },
 }));
 
 // Mock export data module (including react-native-zip-archive dependency)
