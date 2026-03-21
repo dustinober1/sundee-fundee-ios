@@ -14,6 +14,8 @@ import { formatWeightNumeric, parseWeightInput } from '../utils/formatWeight';
 import { getSettingsRepo, DEFAULT_SETTINGS } from '../repositories/SettingsRepo';
 import type { WeightUnit } from '../domain/types';
 import { scheduleNotification, requestNotificationPermission } from '../notifications/web-push';
+import { useInstallPrompt } from '../hooks/useInstallPrompt';
+import { InstallBanner } from '../components/InstallBanner';
 import styles from './WorkoutSession.module.css';
 
 const ACTIVE_WORKOUT_KEY = '@sundee/active-workout';
@@ -34,6 +36,8 @@ function formatRestTime(seconds: number): string {
 export function WorkoutSessionScreen() {
   const navigate = useNavigate();
   const { user, isGuest } = useSession();
+  const installPrompt = useInstallPrompt();
+  const [pendingNavigation, setPendingNavigation] = useState<(() => void) | null>(null);
   const [session, setSession] = useState<WS | null>(null);
   const [elapsed, setElapsed] = useState(0);
   const [weightUnit, setWeightUnit] = useState<WeightUnit>(DEFAULT_SETTINGS.weightUnit);
@@ -191,13 +195,26 @@ export function WorkoutSessionScreen() {
 
     await getWorkoutRepo(isGuest).saveWorkout(user.uid, record as WorkoutRecord);
     localStorage.removeItem(ACTIVE_WORKOUT_KEY);
-    navigate('/');
+    if (installPrompt.showPrompt) {
+      setPendingNavigation(() => () => navigate('/'));
+    } else {
+      navigate('/');
+    }
   }
 
   if (!session) return <div className={styles.center}><div className={styles.spinner} /></div>;
 
   return (
     <div className={styles.container}>
+      {/* Install banner — shown after workout save when prompt is available */}
+      {pendingNavigation !== null && installPrompt.showPrompt && (
+        <InstallBanner
+          isIOS={installPrompt.isIOS}
+          onInstall={installPrompt.triggerAndroid}
+          onDismiss={installPrompt.dismiss}
+          onAfterDismiss={() => { if (pendingNavigation) pendingNavigation(); }}
+        />
+      )}
       {/* PR Toast */}
       {prToast && <div className={styles.prToast}>{prToast}</div>}
 

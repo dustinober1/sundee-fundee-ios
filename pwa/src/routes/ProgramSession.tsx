@@ -11,6 +11,8 @@ import { getSettingsRepo, DEFAULT_SETTINGS } from '../repositories/SettingsRepo'
 import { formatWeight } from '../utils/formatWeight';
 import type { Program, ProgramSession as PS, ProgramExercise, ExerciseValue, WeightUnit } from '../domain/types';
 import type { ExerciseMax } from '../domain/pr-detection/pr-types';
+import { useInstallPrompt } from '../hooks/useInstallPrompt';
+import { InstallBanner } from '../components/InstallBanner';
 import styles from './ProgramSession.module.css';
 
 function formatExVal(v: ExerciseValue): string {
@@ -40,6 +42,8 @@ function calculateTargetWeight(exercise: ProgramExercise, maxes: Map<string, num
 export function ProgramSessionScreen() {
   const navigate = useNavigate();
   const { user, isGuest } = useSession();
+  const installPrompt = useInstallPrompt();
+  const [pendingNavigation, setPendingNavigation] = useState<(() => void) | null>(null);
   const [program, setProgram] = useState<Program | null>(null);
   const [enrollment, setEnrollment] = useState<ProgramEnrollment | null>(null);
   const [session, setSession] = useState<PS | null>(null);
@@ -99,7 +103,11 @@ export function ProgramSessionScreen() {
         workoutName: session.name,
         exerciseCount: session.exercises.length,
       });
-      navigate('/');
+      if (installPrompt.showPrompt) {
+        setPendingNavigation(() => () => navigate('/'));
+      } else {
+        navigate('/');
+      }
     } catch { setIsCompleting(false); }
   }
 
@@ -108,6 +116,16 @@ export function ProgramSessionScreen() {
 
   return (
     <div className={styles.container}>
+      {/* Install banner — shown after session save when prompt is available */}
+      {pendingNavigation !== null && installPrompt.showPrompt && (
+        <InstallBanner
+          isIOS={installPrompt.isIOS}
+          onInstall={installPrompt.triggerAndroid}
+          onDismiss={installPrompt.dismiss}
+          onAfterDismiss={() => { if (pendingNavigation) pendingNavigation(); }}
+        />
+      )}
+
       <div className={styles.header}>
         <span className={styles.headerLabel}>{program.name}</span>
         <h1 className={styles.headerTitle}>{session.name}</h1>
