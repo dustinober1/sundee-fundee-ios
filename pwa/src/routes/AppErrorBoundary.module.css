@@ -1,0 +1,50 @@
+/* AppErrorBoundary — in-app error recovery UI */
+
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  background: var(--background);
+  padding: var(--space-xl);
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-2xl);
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+}
+
+.heading {
+  font-size: var(--font-h1);
+  font-weight: var(--weight-bold);
+  color: var(--text);
+  margin: 0 0 var(--space-md);
+}
+
+.message {
+  font-size: var(--font-body);
+  color: var(--text-secondary);
+  margin: 0 0 var(--space-xl);
+  line-height: var(--leading-normal);
+}
+
+.link {
+  display: inline-block;
+  background: var(--accent);
+  color: var(--color-cream);
+  text-decoration: none;
+  font-weight: var(--weight-semi-bold);
+  font-size: var(--font-body-large);
+  padding: var(--space-sm) var(--space-xl);
+  border-radius: var(--radius-full);
+  transition: background 0.2s;
+}
+
+.link:hover {
+  background: var(--color-orange-dark);
+}
