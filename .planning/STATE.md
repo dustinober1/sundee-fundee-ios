@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.0
-milestone_name: milestone
-status: executing
-stopped_at: "Completed 07-gap-closure-01: Firestore rules CI/CD deploy + Dashboard route fixes"
-last_updated: "2026-03-21T23:25:56.165Z"
-last_activity: 2026-03-21 — Phase 4 Plan 2 complete; cross-platform install prompt, deferred navigation, Lighthouse PWA audit verified green
+milestone_name: PWA Production Readiness
+status: completed
+stopped_at: "Milestone v1.0 PWA Production Readiness archived"
+last_updated: "2026-03-21"
+last_activity: 2026-03-21 — Milestone v1.0 archived, all 7 phases complete, 21/21 requirements satisfied
 progress:
   total_phases: 7
-  completed_phases: 6
-  total_plans: 18
-  completed_plans: 15
+  completed_phases: 7
+  total_plans: 17
+  completed_plans: 17
   percent: 100
 ---
 
@@ -21,110 +21,60 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-21)
 
 **Core value:** Users can reliably access Sundee Fundee from any browser, with real payments, real AI workouts, and production-grade reliability
-**Current focus:** Phase 4 — PWA Quality
+**Current focus:** Planning next milestone
 
 ## Current Position
 
-Phase: 4 of 6 in progress (PWA Quality)
-Plan: Phase 4 Plan 2 complete (04-02: Install prompt + Lighthouse verification)
-Status: Phase 4 in progress — 04-00, 04-01, 04-02 complete
-Last activity: 2026-03-21 — Phase 4 Plan 2 complete; cross-platform install prompt, deferred navigation, Lighthouse PWA audit verified green
+Phase: All 7 phases complete
+Plan: All 17 plans complete
+Status: v1.0 PWA Production Readiness shipped and archived
+Last activity: 2026-03-21 — Milestone archived
 
 Progress: [██████████] 100%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 0
-- Average duration: —
-- Total execution time: —
+- Total plans completed: 17
+- Timeline: 32 days (2026-02-17 → 2026-03-21)
 
 **By Phase:**
 
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| - | - | - | - |
-
-**Recent Trend:**
-- Last 5 plans: —
-- Trend: —
-
-*Updated after each plan completion*
-| Phase 01-deploy-pipeline P01 | 1 | 2 tasks | 6 files |
-| Phase 01-deploy-pipeline P02 | -13359 | 3 tasks | 6 files |
-| Phase 02-cloud-functions P00 | 2min | 1 tasks | 5 files |
-| Phase 02-cloud-functions P01 | 45 | 2 tasks | 14 files |
-| Phase 02-cloud-functions P02 | 9 | 2 tasks | 8 files |
-| Phase 03-security-hardening P01 | 3min | 2 tasks | 4 files |
-| Phase 03-security-hardening P02 | 2min | 2 tasks | 3 files |
-| Phase 03-security-hardening P03 | 20min | 2 tasks | 1 files |
-| Phase 04-pwa-quality PP00 | 1min | 1 tasks | 1 files |
-| Phase 04-pwa-quality P01 | 10min | 2 tasks | 8 files |
-| Phase 04-pwa-quality P02 | 4min | 2 tasks | 5 files |
-| Phase 04-pwa-quality P02 | 15min | 3 tasks | 5 files |
-| Phase 05-differentiating-features P01 | 3min | 2 tasks | 10 files |
-| Phase 05-differentiating-features P02 | 3min | 2 tasks | 9 files |
-| Phase 06-analytics-seo P01 | 106s | 2 tasks | 6 files |
-| Phase 06-analytics-seo P02 | 2min | 2 tasks | 3 files |
-| Phase 07-gap-closure P01 | 78 | 2 tasks | 3 files |
+| Phase | Plan | Duration | Tasks | Files |
+|-------|------|----------|-------|-------|
+| 01-deploy-pipeline | P01 | 1min | 2 | 6 |
+| 01-deploy-pipeline | P02 | — | 3 | 6 |
+| 02-cloud-functions | P00 | 2min | 1 | 5 |
+| 02-cloud-functions | P01 | 45s | 2 | 14 |
+| 02-cloud-functions | P02 | 9s | 2 | 8 |
+| 03-security-hardening | P01 | 3min | 2 | 4 |
+| 03-security-hardening | P02 | 2min | 2 | 3 |
+| 03-security-hardening | P03 | 20min | 2 | 1 |
+| 04-pwa-quality | P00 | 1min | 1 | 1 |
+| 04-pwa-quality | P01 | 10min | 2 | 8 |
+| 04-pwa-quality | P02 | 15min | 3 | 5 |
+| 05-error-resilience | P01 | 3min | 2 | 10 |
+| 05-error-resilience | P02 | 3min | 2 | 9 |
+| 06-analytics-seo | P01 | 106s | 2 | 6 |
+| 06-analytics-seo | P02 | 2min | 2 | 3 |
+| 07-gap-closure | P01 | 78s | 2 | 3 |
 
 ## Accumulated Context
 
 ### Decisions
 
-Decisions are logged in PROJECT.md Key Decisions table.
-Recent decisions affecting current work:
-
-- Firebase Functions for AI workouts (replacing Cloudflare worker) — consolidates infra, adds auth gating
-- Stripe Checkout redirect (not Elements UI) — simpler, PCI-compliant by default
-- Service account JSON for GitHub Actions (not WIF) — Firebase Admin SDK does not support Workload Identity Federation
-- Phase 3 ships CSP + Firestore rules together with Stripe wiring — premiumEntitlement must be protected before live payments
-- [Phase 01-deploy-pipeline]: Three separate workflow files (CI, preview, deploy) instead of monolith for separation of concerns
-- [Phase 01-deploy-pipeline]: Production deploy is manual workflow_dispatch only — not auto-deploy on push
-- [Phase 01-deploy-pipeline]: npx tsc -b --noEmit in CI to match project references build mode (not tsc --noEmit)
-- [Phase 01-deploy-pipeline]: vite pinned to ^7.0.0 (vite-plugin-pwa@1.2.0 doesn't support vite 8 yet)
-- [Phase 01-deploy-pipeline]: react-hooks v7 new rules (set-state-in-effect, purity, no-call-in-body) disabled in eslint.config.js for pre-existing codebase patterns
-- [Phase 02-cloud-functions]: Jest with ts-jest used for Cloud Functions tests — functions/ is independent of PWA's vitest
-- [Phase 02-cloud-functions]: Handler capture pattern via getLastHandler() in firebase-functions mock enables unit testing of onCall handlers without TypeScript type conflicts
-- [Phase 02-cloud-functions]: Offline fallback retained in AIWorkoutConfig.tsx — Cloud Function is additive, not replacing offline generation
-- [Phase 02-cloud-functions]: @modelcontextprotocol/sdk added as production dependency in functions/ because @google/genai v1 SDK types require it
-- [Phase 02-cloud-functions]: Require firebase-admin/firestore via mapped name in tests so Jest shares same module cache instance as implementation
-- [Phase 02-cloud-functions]: Firestore mock uses mutable delegation pattern — stable doc ref delegates to swappable handlers for test control without clearAllMocks issues
-- [Phase 02-cloud-functions]: Service account key written via env var in deploy step (not inline echo) to avoid security hook violation in GitHub Actions
-- [Phase 03-security-hardening]: Firestore transaction rate limit for generateAIWorkout — atomic counter at users/{uid}/rateLimits/aiWorkout prevents race conditions
-- [Phase 03-security-hardening]: require mapped module name in tests (firebase-admin/firestore not relative path) to share same Jest module instance as implementation
-- [Phase 03-security-hardening 03-01]: Separate create/update rules on users/{userId} — create uses !('premiumEntitlement' in request.resource.data), update uses diff().affectedKeys(); resource.data is null on create so two patterns are required
-- [Phase 03-security-hardening 03-01]: Root package.json created as dedicated test runner for Firestore rules — rules tests run independently from pwa/ vitest and functions/ jest suites
-- [Phase 03-security-hardening]: CSP uses 'unsafe-inline' in script-src and style-src — required for Vite/React SPA without SSR nonce injection
-- [Phase 03-security-hardening]: Firestore rules wired into firebase.json firestore block for unified firebase deploy
-- [Phase 04-pwa-quality]: TDD RED scaffold for useInstallPrompt: test file imports from not-yet-created module, satisfying Nyquist rule before any implementation
-- [Phase 04-pwa-quality]: sharp installed in pwa/node_modules; generate-icons.mjs uses createRequire pointed at pwa/package.json to resolve sharp from correct location when run from repo root
-- [Phase 04-pwa-quality]: navigateFallbackDenylist excludes /api/ routes from workbox offline fallback to prevent SW intercepting real API errors
-- [Phase 04-pwa-quality]: jsdom Storage.prototype.setItem spy unreliable in vitest — assert sessionStorage.getItem directly in dismiss() test for behavioral equivalence
-- [Phase 04-pwa-quality]: pendingNavigation stored as () => void | null via useState to defer navigate() until after install banner interaction, preventing premature component unmount
-- [Phase 04-pwa-quality]: jsdom Storage.prototype.setItem spy unreliable in vitest — assert sessionStorage.getItem directly in dismiss() test for behavioral equivalence
-- [Phase 04-pwa-quality]: pendingNavigation stored as () => void | null via useState to defer navigate() until after install banner interaction, preventing premature component unmount
-- [Phase 05-differentiating-features]: RootErrorBoundary uses anchor tag for Reload App (hard-reload) not Link — bypasses broken SPA state
-- [Phase 05-differentiating-features]: path='*' catch-all placed as sibling of AppLayout — unauthenticated users see 404 page not sign-in redirect
-- [Phase 05-differentiating-features]: Dashboard isLoading uses Promise.all([profileFetch, wodFetch]).finally() — skeleton visible until both fetches complete
-- [Phase 06-analytics-seo]: void logEvent pattern throughout — analytics must never block user actions
-- [Phase 06-analytics-seo]: og-image.png reuses icon-512.png for social preview — no separate design asset needed for v1
-- [Phase 06-analytics-seo]: localStorage mock defined inline in WorkoutSession.test.tsx — jsdom in this env does not expose Storage methods without Object.defineProperty patch
-- [Phase 06-analytics-seo]: SignIn tests use vi.mock('react-router') factory pattern instead of MemoryRouter — avoids createBrowserRouter conflicts in test environment
-- [Phase 07-gap-closure]: [Phase 07-gap-closure 07-01]: Use --only firestore:rules not --only firestore — firestore.indexes.json does not exist; --only firestore would attempt indexes deploy and fail
-- [Phase 07-gap-closure]: [Phase 07-gap-closure 07-01]: Dashboard.test.tsx uses MemoryRouter (not createBrowserRouter) for Link href resolution in jsdom
+All decisions archived in PROJECT.md Key Decisions table (14 decisions with outcomes).
 
 ### Pending Todos
 
-None yet.
+None.
 
 ### Blockers/Concerns
 
-- Phase 3 research flag: Stripe subscription lifecycle edge cases (failed payments, cancellation, dunning) not fully researched — validate during Phase 3 planning
-- Phase 4 research flag: CSP report-only violation collection endpoint not defined — resolve before switching to enforcement mode
+None — milestone complete.
 
 ## Session Continuity
 
-Last session: 2026-03-21T23:23:47.633Z
-Stopped at: Completed 07-gap-closure-01: Firestore rules CI/CD deploy + Dashboard route fixes
+Last session: 2026-03-21
+Stopped at: Milestone v1.0 archived
 Resume file: None

@@ -49,21 +49,73 @@
 
 ---
 
+## Milestone: v1.0 — PWA Production Readiness
+
+**Shipped:** 2026-03-21
+**Phases:** 7 | **Plans:** 17
+
+### What Was Built
+- Firebase Hosting deployment pipeline with CI/CD (GitHub Actions), PR preview deploys, manual fallback
+- Cloud Functions: AI workout generation (Gemini SDK) and Stripe checkout/webhook/portal with auth gating
+- Firestore security rules with per-user ownership, premiumEntitlement write protection, AI rate limiting
+- Production PWA: icons, branded offline fallback, cross-platform install prompt, Lighthouse audit pass
+- Error boundaries (root + route-level), skeleton loading states, branded 404 page
+- Firebase Analytics events, SEO meta tags, component test coverage for critical flows
+
+### What Worked
+- **Sequential phase dependencies were correct**: deploy → backend → security → UX → polish. Each phase built on the previous, with no circular dependencies or backtracking
+- **Milestone audit caught 2 critical gaps**: Firestore rules were written but never deployed; Dashboard links pointed to wrong routes. Both caught before ship
+- **Gap closure phase (7) was fast**: One plan, 78 seconds — targeted fix based on audit precision
+- **TDD on gap closure**: Dashboard route regression tests now prevent future link breakage
+- **Reuse of v1.0 MVP patterns**: Domain-first architecture and repository layer from RN milestone carried over cleanly to PWA
+
+### What Was Inefficient
+- **Phase 5 and 6 directories deleted prematurely**: A refactor commit (61a7dba) removed planning directories, losing VERIFICATION.md files. Audit had to verify by codebase inspection instead
+- **ROADMAP.md checkbox inconsistency**: Some plan checkboxes showed `[ ]` despite having SUMMARY.md files (Phases 3, 4, 5, 6). Manual maintenance doesn't scale
+- **Nyquist validation partial**: Only 1/7 phases fully compliant. Validation treated as optional, same pattern as v1.0 MVP
+- **12 tech debt items accumulated**: firebase-tools not in devDeps, functions tests not in CI, dead code (setUserProperties), Node.js 20 deprecation
+
+### Patterns Established
+- Three-workflow CI/CD pattern: ci.yml (lint/test/build), preview.yml (PR previews), deploy.yml (production dispatch)
+- `--only firestore:rules` for rules-only deploy (indexes.json not needed)
+- Firestore transaction rate limiting with atomic counter pattern
+- CSP 'unsafe-inline' for Vite/React SPA (revisit if SSR added)
+- void logEvent() fire-and-forget analytics pattern
+- MemoryRouter in tests for Link href resolution in jsdom
+- Deferred navigation pattern (pendingNavigation) for install prompt UX
+
+### Key Lessons
+1. **Wire deployment before marking security complete**: Firestore rules were code-complete in Phase 3 but never deployed. "Code exists" ≠ "feature works". Phase 7 gap closure fixed this — always verify deployment, not just implementation
+2. **Don't delete planning directories during active milestone**: Phase 5/6 cleanup lost VERIFICATION.md files, making audit harder. Wait for milestone completion to archive
+3. **Audit remains essential**: Two milestones in a row, the audit caught critical gaps. This is now a proven pattern, not just a good idea
+4. **Tech debt list is a feature, not a burden**: The 12-item debt list from the audit gives the next milestone a clear starting point for cleanup work
+
+### Cost Observations
+- Model mix: balanced profile (opus for planning, sonnet for execution)
+- 1-day intensive execution (all 7 phases completed 2026-03-21)
+- Notable: Gap closure phase (7) took 78 seconds — targeted audit findings are dramatically faster to fix than discovery-based debugging
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
 
 | Milestone | Phases | Plans | Key Change |
 |-----------|--------|-------|------------|
-| v1.0 | 16 | 43 | Established GSD workflow; audit-driven gap closure pattern emerged |
+| v1.0 MVP | 16 | 43 | Established GSD workflow; audit-driven gap closure pattern emerged |
+| v1.0 PWA | 7 | 17 | Sequential dependency ordering; single-day intensive execution |
 
 ### Cumulative Quality
 
 | Milestone | Test Files | Test LOC | Requirements | E2E Flows |
 |-----------|-----------|----------|-------------|-----------|
-| v1.0 | 72 | 14,618 | 72/72 | 10/10 |
+| v1.0 MVP | 72 | 14,618 | 72/72 | 10/10 |
+| v1.0 PWA | 80+ | 17,846 | 21/21 | 5/5 |
 
 ### Top Lessons (Verified Across Milestones)
 
-1. Audit milestone requirements before marking complete — catches wiring gaps that unit tests miss
+1. Audit milestone requirements before marking complete — catches wiring gaps that unit tests miss (verified: v1.0 MVP caught 9 gaps, v1.0 PWA caught 2 critical gaps)
 2. Thread cross-cutting concerns (like weight units) in the first phase that introduces them, not as separate fix phases later
+3. Verify deployment, not just implementation — code-complete ≠ feature-works (verified: v1.0 PWA Firestore rules gap)
+4. Don't clean up planning directories during active milestone — wait for archive step

@@ -1,143 +1,34 @@
-# Roadmap: Sundee Fundee PWA — Production Readiness
+# Roadmap: Sundee Fundee PWA
 
-## Overview
+## Milestones
 
-The PWA is feature-complete with 25+ screens, offline support, and Firestore sync. This roadmap takes it from feature-complete to production-ready by working through six sequentially-dependent phases: deploy pipeline first (nothing ships without it), then backend Cloud Functions (AI + Stripe), then security hardening (Firestore rules + CSP), then PWA quality (icons, offline, install prompt), then error resilience and loading states, and finally analytics verification and SEO. Each phase unlocks the next — the order is not arbitrary, it reflects hard dependencies.
+- ✅ **v1.0 PWA Production Readiness** — Phases 1-7 (shipped 2026-03-21)
 
 ## Phases
 
-**Phase Numbering:**
-- Integer phases (1, 2, 3): Planned milestone work
-- Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
+<details>
+<summary>✅ v1.0 PWA Production Readiness (Phases 1-7) — SHIPPED 2026-03-21</summary>
 
-Decimal phases appear between their surrounding integers in numeric order.
+- [x] Phase 1: Deploy Pipeline (2/2 plans) — completed 2026-03-21
+- [x] Phase 2: Cloud Functions (3/3 plans) — completed 2026-03-21
+- [x] Phase 3: Security Hardening (3/3 plans) — completed 2026-03-21
+- [x] Phase 4: PWA Quality (3/3 plans) — completed 2026-03-21
+- [x] Phase 5: Error Resilience (2/2 plans) — completed 2026-03-21
+- [x] Phase 6: Analytics and SEO (2/2 plans) — completed 2026-03-21
+- [x] Phase 7: Gap Closure (1/1 plan) — completed 2026-03-21
 
-- [x] **Phase 1: Deploy Pipeline** - Firebase Hosting config, GitHub Actions CI/CD, environment variables (completed 2026-03-21)
-- [x] **Phase 2: Cloud Functions** - AI workout generation and Stripe checkout/webhook Cloud Functions (completed 2026-03-21)
-- [x] **Phase 3: Security Hardening** - Firestore rules, premiumEntitlement protection, CSP headers, rate limiting (completed 2026-03-21)
-- [x] **Phase 4: PWA Quality** - Production icons, Lighthouse audit, offline fallback, install prompt (completed 2026-03-21)
-- [x] **Phase 5: Error Resilience** - Error boundaries, skeleton loading states, 404 page (completed 2026-03-21)
-- [x] **Phase 6: Analytics and SEO** - OG/Twitter meta tags, Firebase Analytics verification, component test coverage (completed 2026-03-21)
-- [x] **Phase 7: Gap Closure — Firestore Deploy + Dashboard Routes** - Deploy Firestore rules to production, fix broken Dashboard navigation routes (completed 2026-03-21)
+Full details: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 
-## Phase Details
-
-### Phase 1: Deploy Pipeline
-**Goal**: The app is live at a production URL and auto-deploys on every push to main
-**Depends on**: Nothing (first phase)
-**Requirements**: DEPLOY-01, DEPLOY-02, DEPLOY-03, DEPLOY-04
-**Success Criteria** (what must be TRUE):
-  1. Visiting the production URL serves the app over HTTPS with no 404 on deep-link refreshes
-  2. Pushing to main triggers a GitHub Actions run that runs tests, builds, and deploys — without manual intervention
-  3. Running `firebase deploy` manually from a local machine succeeds as a fallback
-  4. The deployed app uses real Firebase project credentials and the correct Stripe price ID (no placeholder values)
-**Plans:** 2/2 plans complete
-
-Plans:
-- [x] 01-01-PLAN.md — Create firebase.json, GitHub Actions workflows, update .env.example
-- [x] 01-02-PLAN.md — Set up secrets, DNS, service account, and verify pipeline end-to-end
-
-### Phase 2: Cloud Functions
-**Goal**: AI workout generation runs through a Firebase Cloud Function and Stripe checkout flow is backed by server-side functions
-**Depends on**: Phase 1
-**Requirements**: BACK-01, BACK-02, BACK-03
-**Success Criteria** (what must be TRUE):
-  1. Authenticated users can generate an AI workout via the Cloud Function; unauthenticated calls are rejected
-  2. Clicking "Subscribe" creates a Stripe Checkout session and redirects the user to Stripe's hosted checkout page
-  3. Completing a Stripe test checkout triggers the webhook, verifies the signature, and writes the `premiumEntitlement` field to Firestore
-**Plans:** 3/3 plans complete
-
-Plans:
-- [x] 02-00-PLAN.md — Wave 0: Create test stubs for all Cloud Functions (Nyquist compliance)
-- [x] 02-01-PLAN.md — Scaffold functions/ directory, implement generateAIWorkout, wire client
-- [x] 02-02-PLAN.md — Implement Stripe checkout + portal + webhook functions, update deploy workflow
-
-### Phase 3: Security Hardening
-**Goal**: User data is protected by ownership-enforced Firestore rules and the app serves a Content Security Policy with known-safe domains
-**Depends on**: Phase 2
-**Requirements**: SEC-01, SEC-02, SEC-03, SEC-04
-**Success Criteria** (what must be TRUE):
-  1. Authenticated user A cannot read or write user B's Firestore documents (cycle data, pain logs, injury profiles)
-  2. A client-side attempt to write the `premiumEntitlement` field directly to Firestore is rejected by security rules
-  3. The app's HTTP response headers include a Content Security Policy that covers Firebase, Stripe, and Gemini domains without blocking any app functionality
-  4. A single user cannot trigger more than 5 AI workout generations per day; the 6th attempt is rejected with an error
-**Plans:** 3/3 plans complete
-
-Plans:
-- [x] 03-01-PLAN.md — Firestore security rules with ownership enforcement and premiumEntitlement field block
-- [ ] 03-02-PLAN.md — Rate limiting on AI workout generation (5 per user per day)
-- [ ] 03-03-PLAN.md — CSP headers, security headers, and Firestore rules deployment wiring
-
-### Phase 4: PWA Quality
-**Goal**: The app passes a Lighthouse PWA audit, shows production-quality icons, serves a branded offline page, and surfaces an install prompt
-**Depends on**: Phase 3
-**Requirements**: PWA-01, PWA-02, PWA-03, PWA-04
-**Success Criteria** (what must be TRUE):
-  1. The app's manifest icons include working 192px and 512px PNG files and Chrome's installability check passes
-  2. A Lighthouse PWA audit run against the production URL shows green for installability, accessibility, and performance
-  3. When the device goes offline, the service worker serves a branded offline page instead of a Chrome error screen
-  4. Android users see an "Add to Home Screen" banner; iOS Safari users see an instructional prompt explaining how to install
-**Plans:** 3/3 plans complete
-
-Plans:
-- [ ] 04-00-PLAN.md — Wave 0: Create failing test scaffold for useInstallPrompt hook (Nyquist compliance)
-- [ ] 04-01-PLAN.md — Generate PWA icon PNGs, create offline fallback page, wire workbox navigateFallback
-- [ ] 04-02-PLAN.md — Implement cross-platform install prompt, Lighthouse PWA audit verification
-
-### Phase 5: Error Resilience
-**Goal**: Render errors, loading states, and unknown routes are handled gracefully — users never see a white screen or blank flash
-**Depends on**: Phase 4
-**Requirements**: UX-01, UX-02, UX-03
-**Success Criteria** (what must be TRUE):
-  1. A JavaScript render error on any route shows a recovery UI with a retry option instead of a white screen
-  2. Navigating to Dashboard, Programs, History, Cycle, or Maxes before data loads shows shimmer skeleton cards, not blank space
-  3. Navigating to an unknown URL shows a branded 404 page with a link back to the app
-**Plans:** 2 plans
-
-Plans:
-- [ ] 05-01-PLAN.md — Error boundaries (root + app-level) and branded 404 page with router wiring
-- [ ] 05-02-PLAN.md — Shimmer skeleton loading states on all 5 data-fetching routes
-
-### Phase 6: Analytics and SEO
-**Goal**: Firebase Analytics events fire correctly in production, social sharing shows proper previews, and critical user flows have component test coverage
-**Depends on**: Phase 5
-**Requirements**: QUAL-01, QUAL-02, QUAL-03
-**Success Criteria** (what must be TRUE):
-  1. Key user actions (sign in, workout complete, subscription start) appear as events in Firebase DebugView
-  2. Sharing the app URL on Slack, iMessage, or Twitter shows a card with title, description, and image
-  3. Component tests pass for the auth flow, workout session completion, and Stripe checkout trigger
-**Plans:** 2/2 plans complete
-
-Plans:
-- [ ] 06-01-PLAN.md — SEO meta tags (OG/Twitter) and Firebase Analytics event instrumentation
-- [ ] 06-02-PLAN.md — Component tests for auth flow, workout completion, and Stripe checkout trigger
-
-### Phase 7: Gap Closure — Firestore Deploy + Dashboard Routes
-**Goal**: Close all audit gaps — deploy Firestore security rules to production and fix broken Dashboard navigation routes
-**Depends on**: Phase 3, Phase 6 (all prior phases complete)
-**Requirements**: SEC-01, SEC-02
-**Gap Closure:** Closes gaps from v1.0 milestone audit
-**Success Criteria** (what must be TRUE):
-  1. Firestore security rules are deployed to production — `firebase deploy --only firestore` runs in CI/CD pipeline
-  2. Dashboard "Start Workout" button navigates to `/workout-session` (not 404)
-  3. Dashboard "AI Workout" card navigates to `/ai-workout/config` (not 404)
-  4. Manual deploy fallback includes Firestore rules deployment
-**Plans:** 1/1 plans complete
-
-Plans:
-- [ ] 07-01-PLAN.md — Deploy Firestore rules via CI/CD, fix Dashboard route mismatches
+</details>
 
 ## Progress
 
-**Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
-
-| Phase | Plans Complete | Status | Completed |
-|-------|----------------|--------|-----------|
-| 1. Deploy Pipeline | 2/2 | Complete   | 2026-03-21 |
-| 2. Cloud Functions | 3/3 | Complete   | 2026-03-21 |
-| 3. Security Hardening | 3/3 | Complete   | 2026-03-21 |
-| 4. PWA Quality | 3/3 | Complete   | 2026-03-21 |
-| 5. Error Resilience | 0/2 | Complete | 2026-03-21 |
-| 6. Analytics and SEO | 2/2 | Complete   | 2026-03-21 |
-| 7. Gap Closure | 1/1 | Complete   | 2026-03-21 |
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|----------------|--------|-----------|
+| 1. Deploy Pipeline | v1.0 | 2/2 | Complete | 2026-03-21 |
+| 2. Cloud Functions | v1.0 | 3/3 | Complete | 2026-03-21 |
+| 3. Security Hardening | v1.0 | 3/3 | Complete | 2026-03-21 |
+| 4. PWA Quality | v1.0 | 3/3 | Complete | 2026-03-21 |
+| 5. Error Resilience | v1.0 | 2/2 | Complete | 2026-03-21 |
+| 6. Analytics and SEO | v1.0 | 2/2 | Complete | 2026-03-21 |
+| 7. Gap Closure | v1.0 | 1/1 | Complete | 2026-03-21 |

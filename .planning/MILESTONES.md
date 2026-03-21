@@ -1,5 +1,37 @@
 # Milestones
 
+## v1.0 PWA Production Readiness (Shipped: 2026-03-21)
+
+**Phases completed:** 7 phases, 17 plans
+**Timeline:** 32 days (2026-02-17 → 2026-03-21)
+**TypeScript LOC:** 17,846 (16,832 PWA + 1,014 Cloud Functions)
+**Requirements:** 21/21 satisfied | **E2E Flows:** 5/5 verified
+**Commits:** 103
+
+**Key accomplishments:**
+1. Firebase Hosting deployment pipeline with CI/CD (GitHub Actions), PR preview deploys, and manual fallback
+2. Cloud Functions for AI workout generation (Gemini SDK) and Stripe checkout/webhook/portal with auth gating
+3. Firestore security rules with per-user ownership enforcement, premiumEntitlement write protection, and AI rate limiting (5/day)
+4. Production PWA icons, branded offline fallback page, cross-platform install prompt, Lighthouse PWA audit pass
+5. Error boundaries (root + route-level), skeleton loading states on all data-fetching routes, branded 404 page
+6. Firebase Analytics event instrumentation, SEO meta tags (OG/Twitter), component test coverage for auth/checkout/workout flows
+
+**Delivered:** Production-ready PWA with real payments (Stripe), real AI workouts (Gemini Cloud Function), security-hardened Firestore, CI/CD pipeline, and production-grade UX polish — ready to ship to real users.
+
+**Git range:** feat(01-01) → docs(phase-07)
+
+### Known Tech Debt
+- 12 items across 6 categories (see audit report)
+- firebase-tools not in devDependencies (manual deploy requires global install)
+- functions/ tests not included in CI pipeline
+- `setUserProperties()` exported but never called in analytics.ts
+- Node.js 20 deprecation warning (GitHub Actions forces Node.js 24 after June 2026)
+- Nyquist validation: 1 compliant, 4 partial, 2 missing phases
+
+**Archive:** [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md) | [milestones/v1.0-REQUIREMENTS.md](milestones/v1.0-REQUIREMENTS.md) | [milestones/v1.0-MILESTONE-AUDIT.md](milestones/v1.0-MILESTONE-AUDIT.md)
+
+---
+
 ## v1.0 MVP (Shipped: 2026-03-16)
 
 **Phases completed:** 16 phases, 43 plans
