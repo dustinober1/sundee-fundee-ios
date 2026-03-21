@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Completed 04-pwa-quality-01: PWA icons and offline fallback"
-last_updated: "2026-03-21T19:37:17.482Z"
+stopped_at: "Completed 04-pwa-quality-02 tasks 1-2; awaiting checkpoint:human-verify for Lighthouse audit"
+last_updated: "2026-03-21T19:42:31.968Z"
 last_activity: 2026-03-21 — Phase 3 Plan 1 complete; Firestore security rules (SEC-01, SEC-02) with 19 test cases
 progress:
   total_phases: 6
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 11
-  completed_plans: 10
+  completed_plans: 11
   percent: 100
 ---
 
@@ -60,6 +60,7 @@ Progress: [██████████] 100%
 | Phase 03-security-hardening P03 | 20min | 2 tasks | 1 files |
 | Phase 04-pwa-quality PP00 | 1min | 1 tasks | 1 files |
 | Phase 04-pwa-quality P01 | 10min | 2 tasks | 8 files |
+| Phase 04-pwa-quality P02 | 4min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -93,6 +94,8 @@ Recent decisions affecting current work:
 - [Phase 04-pwa-quality]: TDD RED scaffold for useInstallPrompt: test file imports from not-yet-created module, satisfying Nyquist rule before any implementation
 - [Phase 04-pwa-quality]: sharp installed in pwa/node_modules; generate-icons.mjs uses createRequire pointed at pwa/package.json to resolve sharp from correct location when run from repo root
 - [Phase 04-pwa-quality]: navigateFallbackDenylist excludes /api/ routes from workbox offline fallback to prevent SW intercepting real API errors
+- [Phase 04-pwa-quality]: jsdom Storage.prototype.setItem spy unreliable in vitest — assert sessionStorage.getItem directly in dismiss() test for behavioral equivalence
+- [Phase 04-pwa-quality]: pendingNavigation stored as () => void | null via useState to defer navigate() until after install banner interaction, preventing premature component unmount
 
 ### Pending Todos
 
@@ -105,6 +108,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-21T19:37:17.480Z
-Stopped at: Completed 04-pwa-quality-01: PWA icons and offline fallback
+Last session: 2026-03-21T19:42:31.965Z
+Stopped at: Completed 04-pwa-quality-02 tasks 1-2; awaiting checkpoint:human-verify for Lighthouse audit
 Resume file: None
