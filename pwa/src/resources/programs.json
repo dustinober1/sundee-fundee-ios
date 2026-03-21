@@ -1,0 +1,131 @@
+[
+  {
+    "id": "strength-3x-week",
+    "name": "Strength 3x/Week",
+    "weeks": [
+      {
+        "id": "w1",
+        "name": "Week 1 — Foundation",
+        "sessions": [
+          {
+            "id": "s1-1",
+            "name": "Day 1 — Lower",
+            "focusArea": "lower_body",
+            "exercises": [
+              {
+                "id": "e1",
+                "name": "Back Squat",
+                "sets": 3,
+                "reps": { "kind": "fixed", "value": 5 },
+                "weight": { "kind": "text", "value": "Moderate" }
+              },
+              {
+                "id": "e2",
+                "name": "Romanian Deadlift",
+                "sets": 3,
+                "reps": { "kind": "fixed", "value": 8 },
+                "weight": { "kind": "text", "value": "Light-Moderate" }
+              }
+            ]
+          },
+          {
+            "id": "s1-2",
+            "name": "Day 2 — Upper",
+            "focusArea": "upper_body",
+            "exercises": [
+              {
+                "id": "e3",
+                "name": "Bench Press",
+                "sets": 3,
+                "reps": { "kind": "fixed", "value": 5 },
+                "weight": { "kind": "text", "value": "Moderate" }
+              },
+              {
+                "id": "e4",
+                "name": "Barbell Row",
+                "sets": 3,
+                "reps": { "kind": "fixed", "value": 5 },
+                "weight": { "kind": "text", "value": "Moderate" }
+              }
+            ]
+          },
+          {
+            "id": "s1-3",
+            "name": "Day 3 — Full Body",
+            "focusArea": "full_body",
+            "exercises": [
+              {
+                "id": "e5",
+                "name": "Deadlift",
+                "sets": 1,
+                "reps": { "kind": "fixed", "value": 5 },
+                "weight": { "kind": "text", "value": "Heavy" }
+              },
+              {
+                "id": "e6",
+                "name": "Overhead Press",
+                "sets": 3,
+                "reps": { "kind": "fixed", "value": 5 },
+                "weight": { "kind": "text", "value": "Moderate" }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "bodyweight-fundamentals",
+    "name": "Bodyweight Fundamentals",
+    "weeks": [
+      {
+        "id": "w1",
+        "name": "Week 1 — Basics",
+        "sessions": [
+          {
+            "id": "s1-1",
+            "name": "Day 1 — Push",
+            "focusArea": "push",
+            "exercises": [
+              {
+                "id": "e1",
+                "name": "Push-ups",
+                "sets": 3,
+                "reps": { "kind": "range", "lo": 8, "hi": 12 },
+                "bodyweightOnly": true
+              },
+              {
+                "id": "e2",
+                "name": "Dips",
+                "sets": 3,
+                "reps": { "kind": "range", "lo": 6, "hi": 10 },
+                "bodyweightOnly": true
+              }
+            ]
+          },
+          {
+            "id": "s1-2",
+            "name": "Day 2 — Pull",
+            "focusArea": "pull",
+            "exercises": [
+              {
+                "id": "e3",
+                "name": "Pull-ups",
+                "sets": 3,
+                "reps": { "kind": "amrap" },
+                "bodyweightOnly": true
+              },
+              {
+                "id": "e4",
+                "name": "Inverted Rows",
+                "sets": 3,
+                "reps": { "kind": "range", "lo": 8, "hi": 12 },
+                "bodyweightOnly": true
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

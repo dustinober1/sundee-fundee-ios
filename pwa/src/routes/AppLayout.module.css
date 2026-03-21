@@ -1,0 +1,111 @@
+/* App shell: main content + bottom navigation */
+.shell {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  background: var(--background);
+  color: var(--text);
+}
+
+.main {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100dvh;
+  background: var(--background);
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Bottom tab navigation */
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  background: var(--color-navy-dark);
+  padding: 8px 0;
+  padding-bottom: max(8px, env(safe-area-inset-bottom));
+  border-top: 1px solid rgba(244, 240, 223, 0.1);
+}
+
+.navItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  text-decoration: none;
+  color: var(--text-muted);
+  font-size: var(--font-micro);
+  font-weight: var(--weight-medium);
+  padding: 4px 12px;
+  border-radius: var(--radius-sm);
+  transition: color 0.15s;
+}
+
+.navItem:hover {
+  color: var(--color-cream);
+}
+
+.navItemActive {
+  color: var(--accent);
+}
+
+.navIcon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.navLabel {
+  font-size: var(--font-micro);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+
+/* Desktop: sidebar navigation */
+@media (min-width: 1024px) {
+  .shell {
+    flex-direction: row;
+  }
+
+  .nav {
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 4px;
+    width: 200px;
+    padding: 24px 12px;
+    border-top: none;
+    border-right: 1px solid rgba(244, 240, 223, 0.1);
+  }
+
+  .navItem {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 12px;
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: var(--radius-md);
+  }
+
+  .navLabel {
+    font-size: var(--font-body-small);
+    text-transform: none;
+    letter-spacing: var(--tracking-normal);
+  }
+}
