@@ -16,6 +16,7 @@
 
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { getFirebaseApp } from '../firebase/app';
+import { logEvent } from '../firebase/analytics';
 
 interface CheckoutSessionResponse {
   url: string;
@@ -44,6 +45,7 @@ export async function redirectToCheckout(uid: string, priceId: string): Promise<
     cancelUrl: `${window.location.origin}/settings?checkout=cancelled`,
   });
 
+  void logEvent('begin_checkout', { price_id: priceId });
   window.location.href = data.url;
 }
 

@@ -12,6 +12,7 @@ import {
   signInWithGoogle,
   signInWithApple,
 } from '../firebase/auth';
+import { logEvent } from '../firebase/analytics';
 import styles from './SignIn.module.css';
 
 export function SignIn() {
@@ -30,6 +31,7 @@ export function SignIn() {
     try {
       if (isSignUp) {
         const user = await createUserWithEmailAndPassword(email, password);
+        void logEvent('sign_up', { method: 'email' });
         await sendEmailVerification(user);
         navigate('/verify-email');
       } else {
@@ -39,6 +41,7 @@ export function SignIn() {
           navigate('/verify-email');
           return;
         }
+        void logEvent('login', { method: 'email' });
         navigate('/');
       }
     } catch (err) {
@@ -53,6 +56,7 @@ export function SignIn() {
     setIsLoading(true);
     try {
       await signInWithGoogle();
+      void logEvent('login', { method: 'google' });
       navigate('/');
     } catch (err) {
       setError(friendlyError(err));
@@ -66,6 +70,7 @@ export function SignIn() {
     setIsLoading(true);
     try {
       await signInWithApple();
+      void logEvent('login', { method: 'apple' });
       navigate('/');
     } catch (err) {
       setError(friendlyError(err));
@@ -79,6 +84,7 @@ export function SignIn() {
     setIsLoading(true);
     try {
       await signInAnonymously();
+      void logEvent('login', { method: 'guest' });
       navigate('/');
     } catch (err) {
       setError(friendlyError(err));

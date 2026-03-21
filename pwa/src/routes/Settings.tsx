@@ -9,6 +9,7 @@ import { getSettingsRepo, DEFAULT_SETTINGS, type AppSettings } from '../reposito
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { getFirebaseApp } from '../firebase/app';
 import { redirectToCheckout, redirectToCustomerPortal, STRIPE_PREMIUM_PRICE_ID } from '../entitlements/stripe-checkout';
+import { logEvent } from '../firebase/analytics';
 import styles from './Settings.module.css';
 
 export function Settings() {
@@ -36,6 +37,7 @@ export function Settings() {
 
   async function handleManageSubscription() {
     if (!user) return;
+    void logEvent('subscription_manage');
     try {
       await redirectToCustomerPortal(user.uid);
     } catch {

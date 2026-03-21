@@ -16,6 +16,7 @@ import type { WeightUnit } from '../domain/types';
 import { scheduleNotification, requestNotificationPermission } from '../notifications/web-push';
 import { useInstallPrompt } from '../hooks/useInstallPrompt';
 import { InstallBanner } from '../components/InstallBanner';
+import { logEvent } from '../firebase/analytics';
 import styles from './WorkoutSession.module.css';
 
 const ACTIVE_WORKOUT_KEY = '@sundee/active-workout';
@@ -194,6 +195,10 @@ export function WorkoutSessionScreen() {
     };
 
     await getWorkoutRepo(isGuest).saveWorkout(user.uid, record as WorkoutRecord);
+    void logEvent('workout_complete', {
+      exercise_count: exercises.length,
+      duration_seconds: durationSeconds,
+    });
     localStorage.removeItem(ACTIVE_WORKOUT_KEY);
     if (installPrompt.showPrompt) {
       setPendingNavigation(() => () => navigate('/'));
