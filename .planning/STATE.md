@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Completed 04-pwa-quality-02: install prompt, deferred navigation, Lighthouse audit approved"
-last_updated: "2026-03-21T19:51:59.632Z"
+stopped_at: "Completed 05-differentiating-features-01: error boundaries and NotFound page"
+last_updated: "2026-03-21T20:19:26.041Z"
 last_activity: 2026-03-21 — Phase 4 Plan 2 complete; cross-platform install prompt, deferred navigation, Lighthouse PWA audit verified green
 progress:
   total_phases: 6
@@ -62,6 +62,8 @@ Progress: [██████████] 100%
 | Phase 04-pwa-quality P01 | 10min | 2 tasks | 8 files |
 | Phase 04-pwa-quality P02 | 4min | 2 tasks | 5 files |
 | Phase 04-pwa-quality P02 | 15min | 3 tasks | 5 files |
+| Phase 05-differentiating-features P01 | 3min | 2 tasks | 10 files |
+| Phase 05-differentiating-features P02 | 3min | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -99,6 +101,9 @@ Recent decisions affecting current work:
 - [Phase 04-pwa-quality]: pendingNavigation stored as () => void | null via useState to defer navigate() until after install banner interaction, preventing premature component unmount
 - [Phase 04-pwa-quality]: jsdom Storage.prototype.setItem spy unreliable in vitest — assert sessionStorage.getItem directly in dismiss() test for behavioral equivalence
 - [Phase 04-pwa-quality]: pendingNavigation stored as () => void | null via useState to defer navigate() until after install banner interaction, preventing premature component unmount
+- [Phase 05-differentiating-features]: RootErrorBoundary uses anchor tag for Reload App (hard-reload) not Link — bypasses broken SPA state
+- [Phase 05-differentiating-features]: path='*' catch-all placed as sibling of AppLayout — unauthenticated users see 404 page not sign-in redirect
+- [Phase 05-differentiating-features]: Dashboard isLoading uses Promise.all([profileFetch, wodFetch]).finally() — skeleton visible until both fetches complete
 
 ### Pending Todos
 
@@ -111,6 +116,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-21T19:46:58.266Z
-Stopped at: Completed 04-pwa-quality-02: install prompt, deferred navigation, Lighthouse audit approved
+Last session: 2026-03-21T20:19:15.984Z
+Stopped at: Completed 05-differentiating-features-01: error boundaries and NotFound page
 Resume file: None

@@ -1,109 +1,116 @@
 ---
 phase: 05-differentiating-features
-plan: "01"
-subsystem: repositories
-tags: [cycle, injury, programs, benchmarks, wod, firestore, asyncstorage, repository-pattern]
-dependency_graph:
-  requires:
-    - src/domain/types/index.ts (PeriodLog, CycleSettings, InjuryProfile, PainLog, Program, BenchmarkDefinition, BenchmarkScoringType)
-    - src/firebase/firestore.ts (getFirestoreInstance)
-    - src/repositories/ReadinessRepo.ts (pattern reference)
-  provides:
-    - getCycleRepo(isGuest): CycleRepository
-    - getInjuryRepo(isGuest): InjuryRepository
-    - getProgramRepo(isGuest): ProgramRepository
-    - getBenchmarkRepo(isGuest): BenchmarkRepository
-    - getWODRepo(): WODRepository
-  affects:
-    - All Phase 5 Wave 2 UI plans (cycle, injury, programs, benchmarks, wod screens)
-tech_stack:
-  added:
-    - src/resources/programs.json (bundled program catalog, 2 programs)
+plan: 01
+subsystem: ui
+tags: [react-router, error-boundary, 404, vitest, css-modules]
+
+# Dependency graph
+requires:
+  - phase: 04-pwa-quality
+    provides: Expo Router + CSS Modules design system with Art Deco tokens in place
+provides:
+  - RootErrorBoundary component (full-page recovery, hard-reload anchor to /)
+  - AppErrorBoundary component (in-app recovery, SPA Link to dashboard)
+  - NotFound component (branded 404 page with Back to App link)
+  - router.tsx wired with ErrorBoundary on root + AppLayout routes, path='*' catch-all outside AppLayout
+affects: [05-differentiating-features, future-router-changes]
+
+# Tech tracking
+tech-stack:
+  added: []
   patterns:
-    - Repository factory pattern (isGuest -> Local vs Firestore)
-    - ISO string date serialization for AsyncStorage and Firestore
-    - UUID-based Firestore document IDs for period logs and pain logs
-    - Flat domain Program from denormalized Firestore weeks[].sessions[] schema
-    - Date-as-docID for WODs (/wods/yyyy-MM-dd)
-key_files:
+    - useRouteError + isRouteErrorResponse pattern for React Router error boundaries
+    - ErrorBoundary property on route objects (not class-based React error boundaries)
+    - path='*' catch-all as sibling of AppLayout (not nested) so unauthenticated users see 404 not redirect
+
+key-files:
   created:
-    - SundeeFundeeRN/src/repositories/CycleRepo.ts
-    - SundeeFundeeRN/src/repositories/FirestoreCycleRepo.ts
-    - SundeeFundeeRN/src/repositories/LocalCycleRepo.ts
-    - SundeeFundeeRN/src/repositories/InjuryRepo.ts
-    - SundeeFundeeRN/src/repositories/FirestoreInjuryRepo.ts
-    - SundeeFundeeRN/src/repositories/LocalInjuryRepo.ts
-    - SundeeFundeeRN/src/repositories/WODRepo.ts
-    - SundeeFundeeRN/src/repositories/FirestoreWODRepo.ts
-    - SundeeFundeeRN/src/repositories/ProgramRepo.ts
-    - SundeeFundeeRN/src/repositories/FirestoreProgramRepo.ts
-    - SundeeFundeeRN/src/repositories/LocalProgramRepo.ts
-    - SundeeFundeeRN/src/repositories/BenchmarkRepo.ts
-    - SundeeFundeeRN/src/repositories/FirestoreBenchmarkRepo.ts
-    - SundeeFundeeRN/src/repositories/LocalBenchmarkRepo.ts
-    - SundeeFundeeRN/src/resources/programs.json
-    - SundeeFundeeRN/src/repositories/__tests__/CycleRepo.test.ts
-    - SundeeFundeeRN/src/repositories/__tests__/InjuryRepo.test.ts
-    - SundeeFundeeRN/src/repositories/__tests__/WODRepo.test.ts
-    - SundeeFundeeRN/src/repositories/__tests__/ProgramRepo.test.ts
-    - SundeeFundeeRN/src/repositories/__tests__/BenchmarkRepo.test.ts
+    - pwa/src/routes/RootErrorBoundary.tsx
+    - pwa/src/routes/RootErrorBoundary.module.css
+    - pwa/src/routes/RootErrorBoundary.test.tsx
+    - pwa/src/routes/AppErrorBoundary.tsx
+    - pwa/src/routes/AppErrorBoundary.module.css
+    - pwa/src/routes/AppErrorBoundary.test.tsx
+    - pwa/src/routes/NotFound.tsx
+    - pwa/src/routes/NotFound.module.css
+    - pwa/src/routes/NotFound.test.tsx
   modified:
-    - SundeeFundeeRN/src/repositories/index.ts
-decisions:
-  - "[05-01]: PeriodLogRecord and PainLogRecord wrap domain types with id (UUID) and ISO string dates — Firestore doc IDs and cross-platform date serialization"
-  - "[05-01]: WODRepo factory takes no isGuest parameter — WODs are public read-only data, same Firestore impl for all users"
-  - "[05-01]: FirestoreProgramDocument uses weeks[].sessions[] schema — firestoreProgramToProgram flattens to domain Program.sessions"
-  - "[05-01]: programs.json bundled in src/resources/ — LocalProgramRepo serves programs offline with no network dependency"
-  - "[05-01]: InjuryRepo stores full InjuryProfileRecord (all domain fields serialized) not just id — enables offline recovery phase updates"
-metrics:
-  duration: 7 min
-  completed_date: "2026-03-15"
-  tasks_completed: 2
-  files_created: 20
-  files_modified: 1
-  tests_added: 86
-  tests_total_in_suite: 171
+    - pwa/src/routes/router.tsx
+
+key-decisions:
+  - "RootErrorBoundary uses anchor tag (not Link) for Reload App — hard-reload bypasses broken SPA state"
+  - "AppErrorBoundary uses Link (not anchor) — AppLayout shell may still be functional so SPA nav preferred"
+  - "path='*' catch-all placed as sibling of AppLayout in router — unauthenticated users hit 404 not sign-in redirect"
+  - "vi.mock('react-router', async (importOriginal) => ...) spread pattern for AppErrorBoundary tests — preserves MemoryRouter from actual module while mocking useRouteError/isRouteErrorResponse"
+
+patterns-established:
+  - "Error boundary components use getErrorMessage() helper to handle isRouteErrorResponse / Error / unknown union"
+  - "CSS Modules for error/404 pages follow same Art Deco token system as rest of app"
+
+requirements-completed: [UX-01, UX-03]
+
+# Metrics
+duration: 3min
+completed: 2026-03-21
 ---
 
-# Phase 5 Plan 1: Phase 5 Repository Foundation Summary
+# Phase 5 Plan 01: Error Boundaries and 404 Page Summary
 
-**One-liner:** Five repository interfaces with Firestore and AsyncStorage implementations — CycleRepo (period logs + settings), InjuryRepo (injury profiles + pain logs), ProgramRepo (program catalog + enrollment), BenchmarkRepo (results + custom definitions), WODRepo (public read-only WODs) — unblocking all Wave 2 UI plans.
+**React Router ErrorBoundary components (RootErrorBoundary, AppErrorBoundary) and branded NotFound page wired into router.tsx, replacing white screens and silent sign-in redirects with Art Deco recovery UI**
 
-## What Was Built
+## Performance
 
-All five repository contracts required by Phase 5 differentiating features, following the established ReadinessRepo factory pattern exactly.
+- **Duration:** ~3 min
+- **Started:** 2026-03-21T21:55:10Z
+- **Completed:** 2026-03-21T21:57:42Z
+- **Tasks:** 2
+- **Files modified:** 10
 
-**CycleRepository** — period log CRUD + cycle settings persistence. Period logs use UUID doc IDs; dates serialized as ISO strings. Firestore paths: `/users/{uid}/periodLogs/{logId}`, `/users/{uid}/cycleSettings/settings`. AsyncStorage: `@sundee/period_logs`, `@sundee/cycle_settings`.
+## Accomplishments
+- RootErrorBoundary renders full-page recovery UI with hard-reload anchor to "/" — JavaScript render errors no longer show white screen
+- AppErrorBoundary renders in-app recovery card with SPA Link to Dashboard for errors within authenticated shell
+- NotFound renders branded 404 page (orange "404" heading, "This page doesn't exist.", Back to App link)
+- router.tsx wired: ErrorBoundary on root route, ErrorBoundary on AppLayout route, path='*' catch-all as sibling of AppLayout
+- 13 vitest tests passing across all 3 components (TDD red → green cycle)
 
-**InjuryRepository** — injury profile upserts + pain log subcollection. Firestore paths: `/users/{uid}/injuries/{injuryId}`, `/users/{uid}/injuries/{injuryId}/painLogs/{logId}`. AsyncStorage: `@sundee/injuries`, `@sundee/pain_logs`.
+## Task Commits
 
-**WODRepository** — public read-only WODs. No guest/auth distinction — always uses FirestoreWODRepo. Firestore path: `/wods/{yyyy-MM-dd}`. No LocalWODRepo needed.
+Each task was committed atomically:
 
-**ProgramRepository** — program catalog (public) + per-user enrollment tracking. Firestore program documents use denormalized `weeks[].sessions[]` schema; the `firestoreProgramToProgram` helper flattens to the domain `Program` type. LocalProgramRepo serves programs from bundled `programs.json` with no network dependency.
+1. **Task 1: Create error boundary components with tests** - `d56a039` (feat)
+2. **Task 2: Create NotFound page and wire router** - `9bff623` (feat)
 
-**BenchmarkRepository** — benchmark results (filtered by benchmarkId or all) + custom benchmark definitions. The `score` field stores already-encoded values; `roundsAndReps` uses `rounds * 10000 + reps` convention from domain layer.
+## Files Created/Modified
+- `pwa/src/routes/RootErrorBoundary.tsx` - Full-page error recovery with anchor Reload App link
+- `pwa/src/routes/RootErrorBoundary.module.css` - Art Deco card layout, orange button
+- `pwa/src/routes/RootErrorBoundary.test.tsx` - 5 tests: heading, reload link, Error message, route response, unknown fallback
+- `pwa/src/routes/AppErrorBoundary.tsx` - In-app error recovery with SPA Link to Dashboard
+- `pwa/src/routes/AppErrorBoundary.module.css` - Matching Art Deco card layout
+- `pwa/src/routes/AppErrorBoundary.test.tsx` - 5 tests: heading, dashboard link, Error message, route response, unknown fallback
+- `pwa/src/routes/NotFound.tsx` - Branded 404 page, large orange "404", Back to App Link
+- `pwa/src/routes/NotFound.module.css` - Centered layout, display-size 404 in accent color
+- `pwa/src/routes/NotFound.test.tsx` - 3 tests: 404 heading, message text, home link href
+- `pwa/src/routes/router.tsx` - Added ErrorBoundary imports, wired ErrorBoundary properties, added path='*' catch-all
 
-## Test Coverage
-
-86 new tests added across 5 test files. Total repository test suite: 171 tests, 19 test suites — all green.
-
-Test coverage per repo:
-- CycleRepo: 12 tests (LocalCycleRepo: 7, FirestoreCycleRepo: 6, factory: 2, helpers: 2)
-- InjuryRepo: 16 tests (LocalInjuryRepo: 9, FirestoreInjuryRepo: 6, factory: 2, helpers: 3)
-- WODRepo: 7 tests (FirestoreWODRepo: 5, factory: 1)
-- ProgramRepo: 18 tests (LocalProgramRepo: 10, FirestoreProgramRepo: 8, factory: 2, helpers: 3)
-- BenchmarkRepo: 20 tests (LocalBenchmarkRepo: 11, FirestoreBenchmarkRepo: 6, factory: 2, roundsAndReps: 3)
+## Decisions Made
+- RootErrorBoundary uses `<a href="/">` (hard reload) not `<Link>` — necessary when the SPA state itself is broken
+- AppErrorBoundary uses `<Link to="/">` — SPA navigation since AppLayout shell is likely still intact
+- path='*' catch-all placed outside (as sibling of) AppLayout so unauthenticated users navigating to an unknown URL see a 404 page rather than being redirected to sign-in
+- AppErrorBoundary test uses `vi.mock('react-router', async (importOriginal) => ...)` with spread to preserve MemoryRouter from actual module while mocking error hooks
 
 ## Deviations from Plan
+None - plan executed exactly as written.
 
-None — plan executed exactly as written.
+## Issues Encountered
+None
 
-The plan noted WODRepo has no LocalWODRepo (Firestore offline persistence handles offline guests). This was implemented as specified.
+## User Setup Required
+None - no external service configuration required.
 
-The plan noted programs.json should follow the exercises.json pattern. A minimal bundled programs.json was created with 2 programs (Strength 3x/Week, Bodyweight Fundamentals) as a foundation for the admin to expand.
+## Next Phase Readiness
+- Error resilience foundation complete — white screens eliminated, 404 handled with branded UI
+- Ready for Phase 05-02 and subsequent differentiating features plans
 
-## Self-Check: PASSED
-
-All 15 created files confirmed present on disk. Both task commits verified in git log:
-- `cbddbcb`: feat(05-01): create CycleRepo, InjuryRepo, and WODRepo with dual implementations
-- `bb9daa6`: feat(05-01): create ProgramRepo, BenchmarkRepo, update barrel index, add bundled programs.json
+---
+*Phase: 05-differentiating-features*
+*Completed: 2026-03-21*
