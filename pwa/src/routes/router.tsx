@@ -7,6 +7,8 @@ import { createBrowserRouter } from 'react-router';
 import { RootLayout } from './RootLayout';
 import { AppLayout } from './AppLayout';
 import { Dashboard } from './Dashboard';
+import { RootErrorBoundary } from './RootErrorBoundary';
+import { AppErrorBoundary } from './AppErrorBoundary';
 
 // ─── Lazy-loaded route components ────────────────────────────────────────────
 
@@ -33,6 +35,7 @@ const BodyMap = lazy(() => import('./BodyMap').then((m) => ({ default: m.BodyMap
 const WODs = lazy(() => import('./WODs').then((m) => ({ default: m.WODs })));
 const ExerciseDetail = lazy(() => import('./ExerciseDetail').then((m) => ({ default: m.ExerciseDetail })));
 const Goodbye = lazy(() => import('./Goodbye').then((m) => ({ default: m.Goodbye })));
+const NotFound = lazy(() => import('./NotFound').then((m) => ({ default: m.NotFound })));
 
 // ─── Suspense wrapper ────────────────────────────────────────────────────────
 
@@ -59,6 +62,7 @@ function L({ children }: { children: React.ReactNode }) {
 export const router = createBrowserRouter([
   {
     element: <RootLayout />,
+    ErrorBoundary: RootErrorBoundary,
     children: [
       // Auth screens
       { path: '/sign-in', element: <L><SignIn /></L> },
@@ -71,6 +75,7 @@ export const router = createBrowserRouter([
       // Authenticated app (auth guard in AppLayout)
       {
         element: <AppLayout />,
+        ErrorBoundary: AppErrorBoundary,
         children: [
           // Tab screens (Dashboard eager, rest lazy)
           { index: true, element: <Dashboard /> },
@@ -112,6 +117,9 @@ export const router = createBrowserRouter([
           { path: 'goodbye', element: <L><Goodbye /></L> },
         ],
       },
+
+      // Catch-all 404 — sibling of AppLayout so unauthenticated users see 404, not sign-in redirect
+      { path: '*', element: <L><NotFound /></L> },
     ],
   },
 ]);
