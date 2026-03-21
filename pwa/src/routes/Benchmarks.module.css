@@ -1,0 +1,94 @@
+.container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: var(--space-md);
+  padding-bottom: 80px;
+}
+
+.title {
+  font-size: var(--font-h2);
+  font-weight: var(--weight-bold);
+  color: var(--text);
+  letter-spacing: var(--tracking-wide);
+  margin-bottom: var(--space-md);
+}
+
+.center {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-2xl);
+}
+
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.section {
+  margin-bottom: var(--space-lg);
+}
+
+.sectionTitle {
+  font-size: var(--font-body-small);
+  font-weight: var(--weight-bold);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  margin-bottom: var(--space-sm);
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+  text-decoration: none;
+  color: var(--text);
+  transition: color 0.15s;
+}
+
+.row:hover {
+  color: var(--accent);
+}
+
+.rowName {
+  font-size: var(--font-body);
+  font-weight: var(--weight-medium);
+}
+
+.rowBadge {
+  font-size: var(--font-micro);
+  color: var(--text-muted);
+  background: var(--border);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  text-transform: uppercase;
+}
+
+.fab {
+  position: fixed;
+  bottom: 80px;
+  right: var(--space-md);
+  background: var(--accent);
+  color: var(--color-cream);
+  padding: 14px 24px;
+  border-radius: var(--radius-full);
+  border: none;
+  font-size: var(--font-body);
+  font-weight: var(--weight-bold);
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(242, 115, 26, 0.4);
+}
+
+.fab:hover {
+  background: var(--color-orange-dark);
+}

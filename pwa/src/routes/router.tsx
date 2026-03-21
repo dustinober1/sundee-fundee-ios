@@ -10,6 +10,13 @@ import { Onboarding } from './Onboarding';
 import { Dashboard } from './Dashboard';
 import { History } from './History';
 import { Maxes } from './Maxes';
+import { Cycle } from './Cycle';
+import { Programs } from './Programs';
+import { ProgramDetail } from './ProgramDetail';
+import { WorkoutSessionScreen } from './WorkoutSession';
+import { AIWorkoutConfig } from './AIWorkoutConfig';
+import { AIWorkoutPreview } from './AIWorkoutPreview';
+import { Benchmarks } from './Benchmarks';
 import { Settings } from './Settings';
 
 // Placeholder component for routes not yet migrated
@@ -42,21 +49,21 @@ export const router = createBrowserRouter([
           { index: true, element: <Dashboard /> },
           { path: 'history', element: <History /> },
           { path: 'maxes', element: <Maxes /> },
-          { path: 'cycle', element: <Placeholder name="Cycle" /> },
+          { path: 'cycle', element: <Cycle /> },
           { path: 'settings', element: <Settings /> },
 
           // Workout
-          { path: 'workout', element: <Placeholder name="Workout Session" /> },
+          { path: 'workout-session', element: <WorkoutSessionScreen /> },
           { path: 'workout/:id', element: <Placeholder name="Workout Detail" /> },
           { path: 'workout/timer', element: <Placeholder name="Timer Mode" /> },
 
           // Programs
-          { path: 'programs', element: <Placeholder name="Programs" /> },
-          { path: 'programs/:id', element: <Placeholder name="Program Detail" /> },
-          { path: 'programs/:id/session', element: <Placeholder name="Program Session" /> },
+          { path: 'programs', element: <Programs /> },
+          { path: 'programs/:id', element: <ProgramDetail /> },
+          { path: 'programs/session', element: <Placeholder name="Program Session" /> },
 
           // Benchmarks
-          { path: 'benchmarks', element: <Placeholder name="Benchmarks" /> },
+          { path: 'benchmarks', element: <Benchmarks /> },
           { path: 'benchmarks/create', element: <Placeholder name="Create Benchmark" /> },
           { path: 'benchmarks/:id', element: <Placeholder name="Benchmark Detail" /> },
 
@@ -66,8 +73,8 @@ export const router = createBrowserRouter([
           { path: 'injuries/:id', element: <Placeholder name="Injury Detail" /> },
 
           // AI Workout
-          { path: 'ai-workout', element: <Placeholder name="AI Workout Config" /> },
-          { path: 'ai-workout/preview', element: <Placeholder name="AI Workout Preview" /> },
+          { path: 'ai-workout/config', element: <AIWorkoutConfig /> },
+          { path: 'ai-workout/preview', element: <AIWorkoutPreview /> },
 
           // WODs
           { path: 'wods', element: <Placeholder name="WODs" /> },
