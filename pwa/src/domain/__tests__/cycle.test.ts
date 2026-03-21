@@ -14,9 +14,10 @@ import {
   blendMultiplier,
   resolveReadinessTier,
   applyPhaseAdjustment,
+  resolveConfidenceScale,
 } from '../cycle/cycle-adaptation-policy';
 
-import { adaptProgram } from '../cycle/cycle-program-generator';
+import { adaptProgram, resolveConfidence } from '../cycle/cycle-program-generator';
 
 import {
   calculateCycleStatus as cycleExport,
@@ -439,71 +440,61 @@ describe('CycleProgramGenerator', () => {
 
   describe('resolveConfidenceScale', () => {
     test('high confidence returns 1.0', () => {
-      const { resolveConfidenceScale: rcs } = require('../cycle/cycle-adaptation-policy');
-      expect(rcs('high')).toBe(1.0);
+      expect(resolveConfidenceScale('high')).toBe(1.0);
     });
 
     test('medium confidence returns 0.8', () => {
-      const { resolveConfidenceScale: rcs } = require('../cycle/cycle-adaptation-policy');
-      expect(rcs('medium')).toBe(0.8);
+      expect(resolveConfidenceScale('medium')).toBe(0.8);
     });
 
     test('low confidence with default lowConfidenceScale returns 0.55 * 0.7 clamped', () => {
-      const { resolveConfidenceScale: rcs } = require('../cycle/cycle-adaptation-policy');
       // 0.55 * 0.7 = 0.385 → clamped to [0.1, 1.0] → 0.385
-      expect(rcs('low')).toBeCloseTo(0.385, 10);
+      expect(resolveConfidenceScale('low')).toBeCloseTo(0.385, 10);
     });
 
     test('low confidence with custom lowConfidenceScale', () => {
-      const { resolveConfidenceScale: rcs } = require('../cycle/cycle-adaptation-policy');
-      expect(rcs('low', 1.0)).toBeCloseTo(0.55, 10);
+      expect(resolveConfidenceScale('low', 1.0)).toBeCloseTo(0.55, 10);
     });
   });
 
   describe('resolveConfidence — generator internal', () => {
     test('returns low when currentPhase is undefined with logs present but recent (< 45 days)', () => {
-      const { resolveConfidence: rc } = require('../cycle/cycle-program-generator');
       const referenceDate = new Date(2024, 0, 15);
       const lastPeriodStart = new Date(2024, 0, 5); // 10 days ago, < 45
       // currentPhase undefined, periodLogCount 1, daysSince < 45 → returns 'low' (line 29 fallback)
-      const result = rc(undefined, 1, lastPeriodStart, referenceDate);
+      const result = resolveConfidence(undefined, 1, lastPeriodStart, referenceDate);
       expect(result).toBe('low');
     });
 
     test('returns high when currentPhase present and >= 3 logs', () => {
-      const { resolveConfidence: rc } = require('../cycle/cycle-program-generator');
       const referenceDate = new Date(2024, 0, 15);
       const lastPeriodStart = new Date(2024, 0, 5);
-      const result = rc('follicular', 3, lastPeriodStart, referenceDate);
+      const result = resolveConfidence('follicular', 3, lastPeriodStart, referenceDate);
       expect(result).toBe('high');
     });
 
     test('returns medium when currentPhase present and < 3 logs', () => {
-      const { resolveConfidence: rc } = require('../cycle/cycle-program-generator');
       const referenceDate = new Date(2024, 0, 15);
       const lastPeriodStart = new Date(2024, 0, 5);
-      const result = rc('menstrual', 2, lastPeriodStart, referenceDate);
+      const result = resolveConfidence('menstrual', 2, lastPeriodStart, referenceDate);
       expect(result).toBe('medium');
     });
 
     test('returns low when last period start is > 45 days ago', () => {
-      const { resolveConfidence: rc } = require('../cycle/cycle-program-generator');
       const referenceDate = new Date(2024, 2, 15); // March 15
       const lastPeriodStart = new Date(2024, 0, 1); // Jan 1 (73 days ago)
-      const result = rc('follicular', 3, lastPeriodStart, referenceDate);
+      const result = resolveConfidence('follicular', 3, lastPeriodStart, referenceDate);
       expect(result).toBe('low');
     });
 
     test('returns low when periodLogCount is 0', () => {
-      const { resolveConfidence: rc } = require('../cycle/cycle-program-generator');
-      const result = rc(undefined, 0, undefined, new Date());
+      const result = resolveConfidence(undefined, 0, undefined, new Date());
       expect(result).toBe('low');
     });
 
     test('handles lastPeriodStart undefined with logs present', () => {
-      const { resolveConfidence: rc } = require('../cycle/cycle-program-generator');
       // When lastPeriodStart is undefined, skips the 45-day check → falls through to phase checks
-      const result = rc('follicular', 2, undefined, new Date(2024, 0, 15));
+      const result = resolveConfidence('follicular', 2, undefined, new Date(2024, 0, 15));
       expect(result).toBe('medium');
     });
   });

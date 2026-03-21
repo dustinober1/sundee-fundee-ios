@@ -1157,7 +1157,7 @@ describe('applyWeights — non-barbell maxKey', () => {
   it('applies roundToNearestFive for non-barbell exercises with maxKey', () => {
     // Strict Press has requiresBarbell: true, so we need a custom template
     // Use the template directly via exported function
-    const { applyWeights: aw, selectTemplates: st, scaleForTime: sft } = require('../ai-workout/offline-workout-generator');
+    const aw = applyWeights, st = selectTemplates, sft = scaleForTime;
     const templates = st('pull', 'full_gym');
     // Face Pulls has no maxKey, requiresDumbbells false
     const facePulls = templates.find((t: { name: string }) => t.name === 'Face Pulls');
