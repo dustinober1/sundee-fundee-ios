@@ -17,19 +17,45 @@ let _handleSet: (data: any, opts?: any) => Promise<void> = jest.fn().mockResolve
 let _handleUpdate: (data: any) => Promise<void> = jest.fn().mockResolvedValue(undefined);
 
 // Stable document reference that delegates to mutable handlers
-const stableDocRef = {
+const stableDocRef: {
+  get: () => Promise<unknown>;
+  set: (data: unknown, opts?: unknown) => void;
+  update: (data: unknown) => void;
+  collection: (path: string) => { doc: (id: string) => typeof stableDocRef };
+} = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   get: () => _handleGet(),
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   set: (data: unknown, opts?: unknown) => _handleSet(data, opts),
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   update: (data: unknown) => _handleUpdate(data),
+  // Nested collection chaining — reuses the same stableDocRef so tests control handlers globally
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  collection: (_path: string) => ({
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    doc: (_id: string) => stableDocRef,
+  }),
+};
+
+// Transaction mock type
+type TransactionMock = {
+  get: (ref: typeof stableDocRef) => Promise<unknown>;
+  set: (ref: typeof stableDocRef, data: unknown) => void;
+  update: (ref: typeof stableDocRef, data: unknown) => void;
 };
 
 const stableDb = {
   collection: (_path: string) => ({
     doc: (_id: string) => stableDocRef,
   }),
+  runTransaction: async (callback: (tx: TransactionMock) => Promise<void>) => {
+    const tx: TransactionMock = {
+      get: (ref) => ref.get(),
+      set: (ref, data) => { ref.set(data); },
+      update: (ref, data) => { ref.update(data); },
+    };
+    await callback(tx);
+  },
 };
 
 export function getFirestore() {
