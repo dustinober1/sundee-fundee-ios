@@ -5,7 +5,11 @@ import { createBrowserRouter } from 'react-router';
 import { RootLayout } from './RootLayout';
 import { AppLayout } from './AppLayout';
 import { SignIn } from './SignIn';
+import { VerifyEmail } from './VerifyEmail';
+import { Onboarding } from './Onboarding';
 import { Dashboard } from './Dashboard';
+import { History } from './History';
+import { Maxes } from './Maxes';
 import { Settings } from './Settings';
 
 // Placeholder component for routes not yet migrated
@@ -24,14 +28,11 @@ export const router = createBrowserRouter([
     children: [
       // Auth screens
       { path: '/sign-in', element: <SignIn /> },
-      { path: '/verify-email', element: <Placeholder name="Verify Email" /> },
+      { path: '/verify-email', element: <VerifyEmail /> },
 
-      // Onboarding
-      { path: '/onboarding/name', element: <Placeholder name="Onboarding: Name" /> },
-      { path: '/onboarding/experience', element: <Placeholder name="Onboarding: Experience" /> },
-      { path: '/onboarding/goal', element: <Placeholder name="Onboarding: Goal" /> },
-      { path: '/onboarding/gender', element: <Placeholder name="Onboarding: Gender" /> },
-      { path: '/onboarding/cycle', element: <Placeholder name="Onboarding: Cycle" /> },
+      // Onboarding (single multi-step wizard page)
+      { path: '/onboarding', element: <Onboarding /> },
+      { path: '/onboarding/:step', element: <Onboarding /> },
 
       // Authenticated app (auth guard in AppLayout)
       {
@@ -39,8 +40,8 @@ export const router = createBrowserRouter([
         children: [
           // Tab screens
           { index: true, element: <Dashboard /> },
-          { path: 'history', element: <Placeholder name="History" /> },
-          { path: 'maxes', element: <Placeholder name="Maxes" /> },
+          { path: 'history', element: <History /> },
+          { path: 'maxes', element: <Maxes /> },
           { path: 'cycle', element: <Placeholder name="Cycle" /> },
           { path: 'settings', element: <Settings /> },
 
