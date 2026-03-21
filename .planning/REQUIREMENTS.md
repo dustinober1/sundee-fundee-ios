@@ -41,8 +41,8 @@
 ### Quality
 
 - [ ] **QUAL-01**: Component tests for auth flow, workout session, and Stripe checkout trigger
-- [ ] **QUAL-02**: Firebase Analytics events verified firing in DebugView
-- [ ] **QUAL-03**: SEO meta tags (og:title, og:description, og:image, twitter:card) in index.html
+- [x] **QUAL-02**: Firebase Analytics events verified firing in DebugView
+- [x] **QUAL-03**: SEO meta tags (og:title, og:description, og:image, twitter:card) in index.html
 
 ## v2 Requirements
 
@@ -93,8 +93,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | UX-02 | Phase 5 | Complete |
 | UX-03 | Phase 5 | Complete |
 | QUAL-01 | Phase 6 | Pending |
-| QUAL-02 | Phase 6 | Pending |
-| QUAL-03 | Phase 6 | Pending |
+| QUAL-02 | Phase 6 | Complete |
+| QUAL-03 | Phase 6 | Complete |
 
 **Coverage:**
 - v1 requirements: 21 total
