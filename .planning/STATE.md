@@ -4,8 +4,8 @@ milestone: v1.0
 milestone_name: milestone
 status: planning
 stopped_at: Completed 02-cloud-functions 02-02-PLAN.md — Stripe checkout + portal + webhook + deploy pipeline
-last_updated: "2026-03-21T17:41:06.904Z"
-last_activity: 2026-03-21 — Roadmap created; 21/21 requirements mapped across 6 phases
+last_updated: "2026-03-21T17:45:17.821Z"
+last_activity: 2026-03-21 — Phase 2 complete; all Cloud Functions (generateAIWorkout, Stripe checkout/portal/webhook) implemented and deploy pipeline updated
 progress:
   total_phases: 6
   completed_phases: 2
