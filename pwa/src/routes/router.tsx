@@ -1,22 +1,12 @@
 /**
  * React Router configuration — maps all Sundee Fundee routes.
- *
- * Route structure mirrors the existing Expo Router file layout:
- *   /sign-in, /verify-email
- *   /onboarding/*
- *   / (dashboard), /history, /maxes, /cycle, /settings
- *   /workout, /workout/:id, /workout/timer
- *   /programs, /programs/:id, /programs/:id/session
- *   /benchmarks, /benchmarks/create, /benchmarks/:id
- *   /injuries, /injuries/body-map, /injuries/:id
- *   /ai-workout, /ai-workout/preview
- *   /wods
- *   /exercises/:id, /exercises/pick
- *   /goodbye
  */
 import { createBrowserRouter } from 'react-router';
 import { RootLayout } from './RootLayout';
 import { AppLayout } from './AppLayout';
+import { SignIn } from './SignIn';
+import { Dashboard } from './Dashboard';
+import { Settings } from './Settings';
 
 // Placeholder component for routes not yet migrated
 function Placeholder({ name }: { name: string }) {
@@ -33,7 +23,7 @@ export const router = createBrowserRouter([
     element: <RootLayout />,
     children: [
       // Auth screens
-      { path: '/sign-in', element: <Placeholder name="Sign In" /> },
+      { path: '/sign-in', element: <SignIn /> },
       { path: '/verify-email', element: <Placeholder name="Verify Email" /> },
 
       // Onboarding
@@ -48,11 +38,11 @@ export const router = createBrowserRouter([
         element: <AppLayout />,
         children: [
           // Tab screens
-          { index: true, element: <Placeholder name="Dashboard" /> },
+          { index: true, element: <Dashboard /> },
           { path: 'history', element: <Placeholder name="History" /> },
           { path: 'maxes', element: <Placeholder name="Maxes" /> },
           { path: 'cycle', element: <Placeholder name="Cycle" /> },
-          { path: 'settings', element: <Placeholder name="Settings" /> },
+          { path: 'settings', element: <Settings /> },
 
           // Workout
           { path: 'workout', element: <Placeholder name="Workout Session" /> },

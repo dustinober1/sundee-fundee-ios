@@ -1,0 +1,130 @@
+.container {
+  padding: var(--space-md);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-lg);
+}
+
+.greeting {
+  font-size: var(--font-h2);
+  font-weight: var(--weight-bold);
+  color: var(--text);
+  letter-spacing: var(--tracking-wide);
+}
+
+.badge {
+  font-size: var(--font-micro);
+  font-weight: var(--weight-bold);
+  color: var(--color-cream);
+  background: var(--accent);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+}
+
+.startBtn {
+  display: block;
+  width: 100%;
+  padding: 18px;
+  border-radius: var(--radius-md);
+  background: var(--accent);
+  color: var(--color-cream);
+  font-size: var(--font-body-large);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-wide);
+  text-align: center;
+  text-decoration: none;
+  margin-bottom: var(--space-lg);
+  transition: background 0.15s;
+}
+
+.startBtn:hover {
+  background: var(--color-orange-dark);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-sm);
+  margin-bottom: var(--space-lg);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-md);
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  text-decoration: none;
+  color: var(--text);
+  transition: border-color 0.15s;
+}
+
+.card:hover {
+  border-color: var(--accent);
+}
+
+.cardIcon {
+  font-size: 28px;
+}
+
+.cardLabel {
+  font-size: var(--font-body-small);
+  font-weight: var(--weight-semi-bold);
+}
+
+.wodCard {
+  display: block;
+  padding: var(--space-md);
+  background: var(--color-navy-dark);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  color: var(--color-cream);
+  transition: opacity 0.15s;
+}
+
+.wodCard:hover {
+  opacity: 0.9;
+}
+
+.wodHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-sm);
+}
+
+.wodLabel {
+  font-size: var(--font-micro);
+  font-weight: var(--weight-bold);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  color: var(--accent);
+}
+
+.wodDate {
+  font-size: var(--font-caption);
+  color: var(--text-muted);
+}
+
+.wodName {
+  font-size: var(--font-h4);
+  font-weight: var(--weight-bold);
+  margin-bottom: var(--space-xs);
+}
+
+.wodDesc {
+  font-size: var(--font-body-small);
+  color: var(--text-muted);
+  line-height: var(--leading-relaxed);
+}
