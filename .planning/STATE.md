@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Completed 06-analytics-seo-01: SEO meta tags and Firebase Analytics events"
-last_updated: "2026-03-21T21:32:14.256Z"
+stopped_at: "Completed 06-analytics-seo-02: Component tests for auth flow, Stripe checkout, and workout session"
+last_updated: "2026-03-21T21:34:22.825Z"
 last_activity: 2026-03-21 — Phase 4 Plan 2 complete; cross-platform install prompt, deferred navigation, Lighthouse PWA audit verified green
 progress:
   total_phases: 6
@@ -65,6 +65,7 @@ Progress: [██████████] 100%
 | Phase 05-differentiating-features P01 | 3min | 2 tasks | 10 files |
 | Phase 05-differentiating-features P02 | 3min | 2 tasks | 9 files |
 | Phase 06-analytics-seo P01 | 106s | 2 tasks | 6 files |
+| Phase 06-analytics-seo P02 | 2min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -107,6 +108,8 @@ Recent decisions affecting current work:
 - [Phase 05-differentiating-features]: Dashboard isLoading uses Promise.all([profileFetch, wodFetch]).finally() — skeleton visible until both fetches complete
 - [Phase 06-analytics-seo]: void logEvent pattern throughout — analytics must never block user actions
 - [Phase 06-analytics-seo]: og-image.png reuses icon-512.png for social preview — no separate design asset needed for v1
+- [Phase 06-analytics-seo]: localStorage mock defined inline in WorkoutSession.test.tsx — jsdom in this env does not expose Storage methods without Object.defineProperty patch
+- [Phase 06-analytics-seo]: SignIn tests use vi.mock('react-router') factory pattern instead of MemoryRouter — avoids createBrowserRouter conflicts in test environment
 
 ### Pending Todos
 
@@ -119,6 +122,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-21T21:32:14.254Z
-Stopped at: Completed 06-analytics-seo-01: SEO meta tags and Firebase Analytics events
+Last session: 2026-03-21T21:34:22.822Z
+Stopped at: Completed 06-analytics-seo-02: Component tests for auth flow, Stripe checkout, and workout session
 Resume file: None
