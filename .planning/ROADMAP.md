@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Deploy Pipeline** - Firebase Hosting config, GitHub Actions CI/CD, environment variables (completed 2026-03-21)
 - [x] **Phase 2: Cloud Functions** - AI workout generation and Stripe checkout/webhook Cloud Functions (completed 2026-03-21)
-- [ ] **Phase 3: Security Hardening** - Firestore rules, premiumEntitlement protection, CSP headers, rate limiting
+- [x] **Phase 3: Security Hardening** - Firestore rules, premiumEntitlement protection, CSP headers, rate limiting (completed 2026-03-21)
 - [ ] **Phase 4: PWA Quality** - Production icons, Lighthouse audit, offline fallback, install prompt
 - [ ] **Phase 5: Error Resilience** - Error boundaries, skeleton loading states, 404 page
 - [ ] **Phase 6: Analytics and SEO** - OG/Twitter meta tags, Firebase Analytics verification, component test coverage
@@ -60,7 +60,7 @@ Plans:
   2. A client-side attempt to write the `premiumEntitlement` field directly to Firestore is rejected by security rules
   3. The app's HTTP response headers include a Content Security Policy that covers Firebase, Stripe, and Gemini domains without blocking any app functionality
   4. A single user cannot trigger more than 5 AI workout generations per day; the 6th attempt is rejected with an error
-**Plans:** 1/3 plans complete
+**Plans:** 3/3 plans complete
 
 Plans:
 - [x] 03-01-PLAN.md — Firestore security rules with ownership enforcement and premiumEntitlement field block
@@ -107,7 +107,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 |-------|----------------|--------|-----------|
 | 1. Deploy Pipeline | 2/2 | Complete   | 2026-03-21 |
 | 2. Cloud Functions | 3/3 | Complete   | 2026-03-21 |
-| 3. Security Hardening | 1/3 | In Progress|  |
+| 3. Security Hardening | 3/3 | Complete   | 2026-03-21 |
 | 4. PWA Quality | 0/TBD | Not started | - |
 | 5. Error Resilience | 0/TBD | Not started | - |
 | 6. Analytics and SEO | 0/TBD | Not started | - |
