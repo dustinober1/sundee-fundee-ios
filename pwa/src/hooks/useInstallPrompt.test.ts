@@ -74,15 +74,13 @@ describe('useInstallPrompt', () => {
   });
 
   it('dismiss() sets sessionStorage flag and isDismissed=true', () => {
-    const sessionStorageSpy = vi.spyOn(Storage.prototype, 'setItem');
-
     const { result } = renderHook(() => useInstallPrompt());
 
     act(() => {
       result.current.dismiss();
     });
 
-    expect(sessionStorageSpy).toHaveBeenCalledWith('installPromptDismissed', '1');
+    expect(sessionStorage.getItem('installPromptDismissed')).toBe('1');
     expect(result.current.isDismissed).toBe(true);
   });
 
