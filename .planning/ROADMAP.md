@@ -60,10 +60,10 @@ Plans:
   2. A client-side attempt to write the `premiumEntitlement` field directly to Firestore is rejected by security rules
   3. The app's HTTP response headers include a Content Security Policy that covers Firebase, Stripe, and Gemini domains without blocking any app functionality
   4. A single user cannot trigger more than 5 AI workout generations per day; the 6th attempt is rejected with an error
-**Plans:** 1/3 plans executed
+**Plans:** 1/3 plans complete
 
 Plans:
-- [ ] 03-01-PLAN.md — Firestore security rules with ownership enforcement and premiumEntitlement field block
+- [x] 03-01-PLAN.md — Firestore security rules with ownership enforcement and premiumEntitlement field block
 - [ ] 03-02-PLAN.md — Rate limiting on AI workout generation (5 per user per day)
 - [ ] 03-03-PLAN.md — CSP headers, security headers, and Firestore rules deployment wiring
 

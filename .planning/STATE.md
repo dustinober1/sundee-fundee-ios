@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 03-security-hardening 03-02-PLAN.md — rate limiting for generateAIWorkout (SEC-04)
-last_updated: "2026-03-21T18:16:28.031Z"
-last_activity: 2026-03-21 — Phase 2 complete; all Cloud Functions (generateAIWorkout, Stripe checkout/portal/webhook) implemented and deploy pipeline updated
+stopped_at: Completed 03-security-hardening 03-01-PLAN.md — Firestore security rules with ownership enforcement and premiumEntitlement block
+last_updated: "2026-03-21T18:17:00.000Z"
+last_activity: 2026-03-21 — Phase 3 Plan 1 complete; Firestore security rules with SEC-01 and SEC-02 enforcement, rules test infrastructure with 19 test cases
 progress:
   total_phases: 6
   completed_phases: 2
   total_plans: 8
   completed_plans: 6
-  percent: 100
+  percent: 75
 ---
 
 # Project State
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 
 ## Current Position
 
-Phase: 2 of 6 complete (Cloud Functions)
-Plan: Phase 2 all plans complete (02-00, 02-01, 02-02)
-Status: Ready to plan Phase 3
-Last activity: 2026-03-21 — Phase 2 complete; all Cloud Functions (generateAIWorkout, Stripe checkout/portal/webhook) implemented and deploy pipeline updated
+Phase: 3 of 6 in progress (Security Hardening)
+Plan: Phase 3 Plan 1 complete (03-01: Firestore security rules)
+Status: Phase 3 in progress — 03-01 complete
+Last activity: 2026-03-21 — Phase 3 Plan 1 complete; Firestore security rules (SEC-01, SEC-02) with 19 test cases
 
 Progress: [██████████] 100%
 
@@ -55,6 +55,7 @@ Progress: [██████████] 100%
 | Phase 02-cloud-functions P00 | 2min | 1 tasks | 5 files |
 | Phase 02-cloud-functions P01 | 45 | 2 tasks | 14 files |
 | Phase 02-cloud-functions P02 | 9 | 2 tasks | 8 files |
+| Phase 03-security-hardening P01 | 3min | 2 tasks | 4 files |
 | Phase 03-security-hardening P02 | 2min | 2 tasks | 3 files |
 
 ## Accumulated Context
@@ -82,6 +83,8 @@ Recent decisions affecting current work:
 - [Phase 02-cloud-functions]: Service account key written via env var in deploy step (not inline echo) to avoid security hook violation in GitHub Actions
 - [Phase 03-security-hardening]: Firestore transaction rate limit for generateAIWorkout — atomic counter at users/{uid}/rateLimits/aiWorkout prevents race conditions
 - [Phase 03-security-hardening]: require mapped module name in tests (firebase-admin/firestore not relative path) to share same Jest module instance as implementation
+- [Phase 03-security-hardening 03-01]: Separate create/update rules on users/{userId} — create uses !('premiumEntitlement' in request.resource.data), update uses diff().affectedKeys(); resource.data is null on create so two patterns are required
+- [Phase 03-security-hardening 03-01]: Root package.json created as dedicated test runner for Firestore rules — rules tests run independently from pwa/ vitest and functions/ jest suites
 
 ### Pending Todos
 
@@ -94,6 +97,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-21T18:16:28.028Z
-Stopped at: Completed 03-security-hardening 03-02-PLAN.md — rate limiting for generateAIWorkout (SEC-04)
+Last session: 2026-03-21T18:17:00.000Z
+Stopped at: Completed 03-security-hardening 03-01-PLAN.md — Firestore security rules and test infrastructure
 Resume file: None
