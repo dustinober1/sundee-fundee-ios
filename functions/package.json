@@ -1,10 +1,12 @@
 {
   "name": "sundee-fundee-functions",
   "description": "Firebase Cloud Functions for Sundee Fundee",
-  "main": "lib/src/index.js",
+  "main": "lib/index.js",
   "scripts": {
     "build": "tsc",
-    "test": "jest --passWithNoTests"
+    "test": "jest --passWithNoTests",
+    "serve": "npm run build && firebase emulators:start --only functions",
+    "deploy": "firebase deploy --only functions"
   },
   "engines": {
     "node": "20"
@@ -26,8 +28,19 @@
     "preset": "ts-jest",
     "testEnvironment": "node",
     "testMatch": [
-      "**/__tests__/**/*.test.ts"
-    ]
+      "**/__tests__/**/*.test.ts",
+      "**/src/__tests__/**/*.test.ts"
+    ],
+    "testPathIgnorePatterns": ["/node_modules/", "/lib/"],
+    "moduleNameMapper": {
+      "firebase-functions/v2/https": "<rootDir>/__mocks__/firebase-functions.ts",
+      "firebase-functions/params": "<rootDir>/__mocks__/firebase-functions-params.ts",
+      "firebase-admin/app": "<rootDir>/__mocks__/firebase-admin.ts",
+      "firebase-admin": "<rootDir>/__mocks__/firebase-admin.ts",
+      "@google/genai": "<rootDir>/__mocks__/generative-ai.ts",
+      "^stripe$": "<rootDir>/__mocks__/stripe.ts",
+      "firebase-functions/logger": "<rootDir>/__mocks__/firebase-functions-logger.ts"
+    }
   },
   "private": true
 }

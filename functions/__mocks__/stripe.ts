@@ -1,25 +1,47 @@
-const mockSessionCreate = jest.fn().mockResolvedValue({
-  id: "cs_test_mock",
-  url: "https://checkout.stripe.com/pay/cs_test_mock",
-});
+// Mock for stripe
 
-const mockConstructEvent = jest.fn();
-
-const mockSubscriptionsCancel = jest.fn().mockResolvedValue({ id: "sub_mock", status: "canceled" });
-
-const MockStripe = jest.fn().mockImplementation(() => ({
+const mockStripe = {
   checkout: {
     sessions: {
-      create: mockSessionCreate,
+      create: jest.fn().mockResolvedValue({
+        id: 'cs_test_mock',
+        url: 'https://checkout.stripe.com/pay/cs_test_mock',
+      }),
     },
   },
+  customers: {
+    create: jest.fn().mockResolvedValue({
+      id: 'cus_test_mock',
+      email: 'test@example.com',
+      metadata: { firebaseUID: 'test-uid' },
+    }),
+    retrieve: jest.fn().mockResolvedValue({
+      id: 'cus_test_mock',
+      email: 'test@example.com',
+      metadata: { firebaseUID: 'test-uid' },
+    }),
+    list: jest.fn().mockResolvedValue({ data: [] }),
+  },
   webhooks: {
-    constructEvent: mockConstructEvent,
+    constructEvent: jest.fn().mockReturnValue({
+      type: 'checkout.session.completed',
+      data: { object: { customer: 'cus_test_mock' } },
+    }),
   },
-  subscriptions: {
-    cancel: mockSubscriptionsCancel,
+  billingPortal: {
+    sessions: {
+      create: jest.fn().mockResolvedValue({
+        url: 'https://billing.stripe.com/session/mock',
+      }),
+    },
   },
-}));
+};
 
-export default MockStripe;
-export { mockSessionCreate, mockConstructEvent, mockSubscriptionsCancel };
+function Stripe(_key: string) {
+  return mockStripe;
+}
+
+Stripe.prototype = mockStripe;
+
+export default Stripe;
+module.exports = Stripe;

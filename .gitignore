@@ -57,5 +57,7 @@ yarn-error.*
 my-upload-key.jks
 .playwright-mcp/
 functions/node_modules/
+functions/lib/
+functions/.secret.local
 node_modules
 google-services.json

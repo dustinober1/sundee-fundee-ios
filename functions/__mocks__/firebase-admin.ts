@@ -1,32 +1,30 @@
-const serverTimestamp = () => ({ _serverTimestamp: true });
+// Mock for firebase-admin and firebase-admin/app
 
-const mockDocSet = jest.fn().mockResolvedValue(undefined);
-const mockDocGet = jest.fn().mockResolvedValue({ data: () => ({}) });
+export function initializeApp() {
+  return {};
+}
 
-const docDirect = jest.fn(() => ({
-  id: "mock-doc-id",
-  set: mockDocSet,
-  get: mockDocGet,
-}));
+export function getApps() {
+  return [];
+}
 
-const collection = jest.fn(() => ({
-  doc: jest.fn(() => ({ id: "mock-workout-id" })),
-}));
+export function getApp() {
+  return {};
+}
 
-const mockRecursiveDelete = jest.fn().mockResolvedValue(undefined);
-
-const firestoreInstance = { collection, doc: docDirect, recursiveDelete: mockRecursiveDelete };
-
-const firestore = jest.fn(() => firestoreInstance);
-(firestore as unknown as { FieldValue: { serverTimestamp: () => unknown } }).FieldValue = {
-  serverTimestamp,
+// Default export for `import * as admin from 'firebase-admin'`
+const admin = {
+  initializeApp,
+  apps: [] as unknown[],
+  firestore: () => ({
+    collection: (_path: string) => ({
+      doc: (_id: string) => ({
+        update: jest.fn().mockResolvedValue(undefined),
+        get: jest.fn().mockResolvedValue({ exists: false, data: () => undefined }),
+        set: jest.fn().mockResolvedValue(undefined),
+      }),
+    }),
+  }),
 };
-(firestore as unknown as { Timestamp: { now: jest.Mock } }).Timestamp = {
-  now: jest.fn(() => ({ _seconds: 1234567890, _nanoseconds: 0 })),
-};
 
-const mockDeleteUser = jest.fn().mockResolvedValue(undefined);
-const auth = jest.fn(() => ({ deleteUser: mockDeleteUser }));
-
-export default { firestore, auth, initializeApp: jest.fn() };
-export { firestore, auth, mockDeleteUser, mockRecursiveDelete, mockDocSet, mockDocGet };
+export default admin;

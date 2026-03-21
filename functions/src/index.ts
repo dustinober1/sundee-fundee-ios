@@ -1,8 +1,11 @@
-import * as admin from "firebase-admin";
+import { initializeApp, getApps } from 'firebase-admin/app';
 
-admin.initializeApp();
+// Initialize Firebase Admin once — guard prevents duplicate init
+if (!getApps().length) {
+  initializeApp();
+}
 
-export { generateWorkout } from "./generateWorkout";
-export { createCheckoutSession } from "./createCheckoutSession";
-export { stripeWebhook } from "./stripeWebhook";
-export { deleteAccount } from "./deleteAccount";
+// Exports added as functions are implemented:
+export { generateAIWorkout } from './generateAIWorkout';
+// export { createStripeCheckoutSession } from './createCheckoutSession';
+// export { stripeWebhook } from './stripeWebhook';
