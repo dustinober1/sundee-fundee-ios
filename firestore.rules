@@ -9,17 +9,43 @@ service cloud.firestore {
 
     // User profile: only the owning authenticated user can read or write.
     // This includes the user document itself (/users/{uid}).
+    //
+    // SEC-01: Per-user ownership enforcement — prevents cross-user data access.
+    // SEC-02: premiumEntitlement field block — prevents client-side subscription escalation.
+    //         The premiumEntitlement field is ONLY written by the stripeWebhook Cloud Function
+    //         via Firebase Admin SDK (which bypasses security rules). Client SDK cannot write it.
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      // Owner can always read their own profile.
+      allow read: if request.auth != null && request.auth.uid == userId;
 
-      // All user subcollections (workouts, injuries, cycle logs, benchmarks, etc.):
+      // Owner can create their own profile, but cannot include premiumEntitlement.
+      // On create, resource.data does not yet exist, so we check request.resource.data directly.
+      allow create: if request.auth != null
+                    && request.auth.uid == userId
+                    && !('premiumEntitlement' in request.resource.data);
+
+      // Owner can update their own profile, but cannot touch the premiumEntitlement field.
+      // diff().affectedKeys().hasAny() detects if premiumEntitlement was added, changed, or removed.
+      allow update: if request.auth != null
+                    && request.auth.uid == userId
+                    && !request.resource.data.diff(resource.data)
+                       .affectedKeys().hasAny(['premiumEntitlement']);
+
+      // Owner can delete their own profile.
+      allow delete: if request.auth != null && request.auth.uid == userId;
+
+      // Depth-1 subcollections (workouts, injuries, periodLogs, cycleSettings, readiness,
+      // benchmarkResults, customBenchmarks, exerciseMaxes, exercises, programs, onboardingProfile,
+      // settings, rateLimits, etc.):
       // Owner-only access. No cross-user data access permitted.
       match /{subcollection}/{docId} {
         allow read, write: if request.auth != null && request.auth.uid == userId;
       }
 
-      // 2-level nested subcollection: pain logs under an injury profile
-      match /injuries/{injuryId}/painLogs/{logId} {
+      // Depth-2 subcollections (e.g., injuries/{id}/painLogs/{id}):
+      // Owner-only access. The {nested=**} wildcard matches all paths at depth 2 and beyond.
+      // Without this rule, injuries/{id}/painLogs/{id} would be denied by the default-deny rule.
+      match /{subcollection}/{docId}/{nested=**} {
         allow read, write: if request.auth != null && request.auth.uid == userId;
       }
     }
