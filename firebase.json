@@ -1,20 +1,37 @@
 {
-  "firestore": {
-    "rules": "firestore.rules"
-  },
-  "functions": [
-    {
-      "source": "functions",
-      "codebase": "default",
-      "ignore": ["node_modules", ".git"]
-    }
-  ],
-  "react-native": {
-    "crashlytics_auto_collection_enabled": true,
-    "crashlytics_debug_enabled": false,
-    "crashlytics_ndk_enabled": false,
-    "analytics_auto_collection_enabled": true,
-    "messaging_auto_init_enabled": true,
-    "messaging_ios_auto_register_for_remote_messages": true
+  "hosting": {
+    "public": "pwa/dist",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "cleanUrls": true,
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ],
+    "headers": [
+      {
+        "source": "/index.html",
+        "headers": [
+          { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+        ]
+      },
+      {
+        "source": "/sw.js",
+        "headers": [
+          { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+        ]
+      },
+      {
+        "source": "**/*.@(js|css|woff2|png|jpg|jpeg|svg|ico|webp)",
+        "headers": [
+          { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+        ]
+      }
+    ]
   }
 }
