@@ -1,109 +1,150 @@
 # Technology Stack
 
-**Analysis Date:** 2026-03-18
-
-> **Note:** This document covers the legacy Swift/SwiftUI codebase at the repo root. The active React Native + Expo rewrite lives in the same repo but is documented separately. This Swift codebase is archived but remains the production app.
+**Analysis Date:** 2025-03-21
 
 ## Languages
 
 **Primary:**
-- Swift 6.0 - All application code (`SundeeFundee/`)
-- TypeScript 5.9.3 - WOD admin dashboard (`wod-dashboard/`)
+- Swift 6.0 - All app source code (`SundeeFundee/`)
+- TypeScript/JavaScript - WOD admin dashboard (`wod-dashboard/`) and PWA (`pwa/`)
 
-**Secondary:**
-- Bash - CI scripts (`ci_scripts/ci_post_clone.sh`, `ci_scripts/ci_pre_xcodebuild.sh`)
-- Python 3 - CI coverage enforcement script (inline in `.github/workflows/ios-ci.yml`)
-- Ruby - Fastlane tooling (`Gemfile`, `fastlane/Fastfile`)
+**Build System:**
+- Ruby (Fastlane scripts, `fastlane/`)
 
 ## Runtime
 
 **Environment:**
 - iOS 17.0+ (iPhone only, portrait orientation)
 - Xcode 16.0
-- Swift Concurrency (async/await, `Sendable`, actors) throughout
+- Swift 6.0 with strict concurrency
 
 **Package Manager:**
-- Swift Package Manager (SPM) — no `Package.resolved` committed; resolved at build time
-- npm — for `wod-dashboard/` only
-- Bundler (Ruby) — for Fastlane
+- Swift Package Manager (SPM) - No external Swift packages currently in use
+- Lockfile: Not applicable (SPM uses Package.resolved)
 
 ## Frameworks
 
-**Core:**
-- SwiftUI — all UI (`import SwiftUI` throughout `SundeeFundee/`)
-- SwiftData — local persistence with CloudKit sync (`import SwiftData`)
-- Foundation — standard library utilities
+**Core (iOS):**
+- SwiftUI - All UI implementation
+- SwiftData - Local persistent storage with CloudKit synchronization (`SundeeFundee/App/`)
+- Foundation - Standard library
 
-**Apple System Frameworks:**
-- AuthenticationServices — Sign in with Apple (`SundeeFundee/Auth/AuthService.swift`)
-- CloudKit — iCloud private and public database (`SundeeFundee/Repositories/CloudKit/`)
-- HealthKit — sleep, HRV, resting heart rate reads (`SundeeFundee/Repositories/HealthKit/`)
-- StoreKit 2 — in-app subscriptions (`SundeeFundee/Services/SubscriptionService.swift`)
-- MetricKit — performance/crash diagnostics (`SundeeFundee/Observability/MetricsService.swift`)
-- Security — Keychain storage (`SundeeFundee/Auth/KeychainHelper.swift`)
-- Charts — data visualization (`import Charts` in feature views)
+**Data & Sync:**
+- CloudKit - iCloud private database for data persistence and sync across devices
+  - Container: `iCloud.com.sundeefundee.app`
+  - Entitlements: `com.apple.developer.icloud-container-identifiers`, `com.apple.developer.icloud-services`
+
+**Health & Fitness:**
+- HealthKit - Reading sleep analysis, heart rate variability (SDNN), resting heart rate
+  - Location: `SundeeFundee/Repositories/HealthKit/HealthKitReadinessRepository.swift`
+  - Permissions: `NSHealthShareUsageDescription`, `NSHealthUpdateUsageDescription`
+
+**Subscriptions & Monetization:**
+- StoreKit 2 (native Apple in-app purchases)
+  - Configuration: `SundeeFundee/Resources/SundeeFundee.storekit`
+  - Product IDs: `com.sundeefundee.plusmonthly`, `com.sundeefundee.pro.monthly`
+  - Location: `SundeeFundee/Services/SubscriptionService.swift`
+
+**Authentication:**
+- AuthenticationServices (Sign in with Apple)
+  - Location: `SundeeFundee/Auth/AuthService.swift`
+  - Uses Keychain for secure credential storage: `SundeeFundee/Auth/KeychainHelper.swift`
 
 **Testing:**
-- XCTest — unit test framework (`SundeeFundeTests/`)
+- XCTest - Native iOS testing framework
+- 27+ test suites in `SundeeFundeTests/`
 
-**Build/Dev:**
-- XcodeGen 16.0 — generates `SundeeFundee.xcodeproj` from `project.yml` (never commit the `.xcodeproj` directly; regenerate with `xcodegen generate`)
-- Fastlane — CI/CD lane runner (`fastlane/Fastfile`)
+**Build/CI:**
+- XcodeGen - Generates `SundeeFundee.xcodeproj` from `project.yml`
+- Fastlane - App Store build automation
+  - Configuration: `fastlane/Appfile`, `fastlane/Fastfile`
 
-**WOD Dashboard (wod-dashboard/):**
-- Next.js 16.1.6 with React 19.2.3
-- Tailwind CSS 4
-- tsl-apple-cloudkit 0.2.34 — CloudKit JS SDK for writing WODs from admin dashboard
-- Jest 30 / ts-jest 29 — dashboard testing
+**Web/Dashboard Stack:**
+- Next.js 16.1.6 - WOD admin dashboard (`wod-dashboard/`)
+- React 19.2.3 - Web framework
+- Vite 8.0.1 - PWA build tool (`pwa/`)
+- React Router 7.13.1 - PWA routing
+- TypeScript 5.9.3 - Type safety
+
+**Web Testing:**
+- Vitest 4.1.0 - Unit testing (`pwa/`)
+- Jest 30.2.0 - Dashboard testing (`wod-dashboard/`)
+- Testing Library (React) 16.3.2 - Component testing
 
 ## Key Dependencies
 
-**Critical:**
-- SwiftData (Apple, built-in) — primary local data store; 22-model schema at v12 (`SundeeFundee/App/AppSchemaV12.swift`); versioned migration plan in `AppSchemaMigrationPlan.swift`
-- CloudKit (Apple, built-in) — private database sync via SwiftData; public database for shared workout templates
-- StoreKit 2 (Apple, built-in) — subscription management; no third-party purchase SDK
-- `SundeeFundeeShared` (private SPM package) — `github.com/dustinober1/sundee-fundee-shared`; cloned at CI time into `SundeeFundee/Packages/SundeeFundeeShared/`; provides shared domain types
+**Critical (iOS):**
+- CloudKit framework - Data synchronization backbone
+- HealthKit framework - Readiness metrics from Apple Health
+- StoreKit 2 - In-app purchase verification and subscription management
 
-**Infrastructure:**
-- `tsl-apple-cloudkit` `^0.2.34` — CloudKit JS SDK used by `wod-dashboard/` to write WODs to Firestore (note: dashboard currently still uses CloudKit; Firestore migration planned per CLAUDE.md)
+**Critical (Web):**
+- Firebase 12.11.0 - Firestore authentication and database for PWA/dashboard (`pwa/`)
+- Stripe (`@stripe/stripe-js`) - Payment processing for web checkout
+- dnd-kit (`@dnd-kit/core`, `@dnd-kit/sortable`) - Drag-and-drop for web UI
+
+**UI & Data (Web):**
+- React Router 7.13.1 - Navigation
+- Recharts 3.8.0 - Charts and visualization
+- react-day-picker 9.14.0 - Date selection
+- date-fns 4.1.0 - Date utilities
+- jszip 3.10.1 - ZIP file generation (data export)
+- vite-plugin-pwa 1.2.0 - PWA capabilities (web push, offline)
+
+**Dashboard-Specific:**
+- tsl-apple-cloudkit 0.2.34 - CloudKit JS SDK for WOD management (`wod-dashboard/`)
 
 ## Configuration
 
-**Environment:**
-- No `.env` files in Swift app — secrets passed via GitHub Secrets at CI time
-- Subscription tiers cached in `UserDefaults` under key `com.sundeefundee.subscription.tier`
-- Auth (Apple user ID) stored in Keychain with `kSecAttrAccessibleWhenUnlockedThisDeviceOnly`
-- CloudKit container: `iCloud.com.sundeefundee.app`
-- Gemini proxy URL hardcoded in source: `https://workout-proxy.sundeefundee.workers.dev/generate-workout`
+**Environment (iOS):**
+- Managed via Info.plist: `SundeeFundee/Resources/Info.plist`
+- Build configuration: `project.yml` (XcodeGen)
+- Development entitlements: `SundeeFundee/Resources/SundeeFundee.Debug.entitlements`
+- Release entitlements: `SundeeFundee/Resources/SundeeFundee.entitlements`
 
-**Required CI/CD secrets (GitHub Secrets):**
-- `PAT_TOKEN` — GitHub PAT for private shared package checkout
-- `MATCH_GIT_URL`, `MATCH_PASSWORD` — Fastlane Match cert repo
-- `APPLE_ID`, `APPLE_TEAM_ID` — App Store Connect credentials
-- `APPLE_KEY_ID`, `APPLE_ISSUER_ID`, `APPLE_KEY_CONTENT` — ASC API key
+**Key Configs Required:**
+- `DEVELOPMENT_TEAM` - Apple Developer Team ID (87VVCMCW3F)
+- `APPLE_ID` - Apple ID for Fastlane (via GitHub Secrets: `APPLE_ID`)
+- `APPLE_TEAM_ID` - Team ID for App Store Connect (via `APPLE_TEAM_ID`)
+- `MATCH_GIT_URL` - Private Git repo for code signing certificates (via `MATCH_GIT_URL`)
+- `MATCH_PASSWORD` - Password for certificates (via `MATCH_PASSWORD`)
+- `APPLE_KEY_ID`, `APPLE_ISSUER_ID`, `APPLE_KEY_CONTENT` - App Store API credentials
 
-**Build:**
-- `project.yml` — XcodeGen source of truth; generates `SundeeFundee.xcodeproj`
-- `SundeeFundee/Resources/SundeeFundee.entitlements` — production (Sign in with Apple, HealthKit, CloudKit)
-- `SundeeFundee/Resources/SundeeFundee.Debug.entitlements` — debug (empty; no CloudKit in dev)
-- `SundeeFundee/Resources/SundeeFundee.storekit` — StoreKit sandbox config; 2 products: `com.sundeefundee.plusmonthly` ($4.99/mo) and `com.sundeefundee.pro.monthly` ($9.99/mo)
-- `SundeeFundee/Resources/PrivacyInfo.xcprivacy` — Apple privacy manifest (UserDefaults, health/fitness, user content, user ID, purchase history)
+**Build (iOS):**
+- `SundeeFundee.xcodeproj` - Generated from `project.yml` via XcodeGen
+- Schemes: Debug (with entitlements), Release (App Store distribution)
+- Swift version: 6.0 (strict concurrency enforced)
+
+**Build (Web):**
+- `vite.config.ts` - Vite configuration for PWA
+- `tsconfig.json` - TypeScript config
+- `pwa/` - Vite+React PWA build
+- `wod-dashboard/` - Next.js dashboard build
 
 ## Platform Requirements
 
 **Development:**
-- Xcode 16.0
-- XcodeGen installed (`brew install xcodegen`) — must run `xcodegen generate` before building
-- Private SPM package cloned into `SundeeFundee/Packages/SundeeFundeeShared/`
-- iOS Simulator (iPhone 17 Pro used in CI)
+- macOS 12.0+ with Xcode 16.0
+- Apple Developer Account (for code signing, CloudKit, HealthKit)
+- Ruby 2.7+ (for Fastlane)
+- Node.js 18+ (for PWA and dashboard development)
+- Git (for certificate management via `match`)
 
 **Production:**
-- App Store distribution via Fastlane Match + TestFlight (`fastlane beta` lane)
-- Xcode Cloud also configured (see `ci_scripts/`) for alternative CI path
-- App Store Connect team: `87VVCMCW3F`
-- Bundle ID: `com.sundeefundee.app`
-- Marketing version: 1.2.0
+- Deployment: iOS App Store only
+- CloudKit private database: iCloud.com.sundeefundee.app
+- Web dashboard: Hosted separately (Next.js)
+- PWA: Browser-based (Firebase + Stripe backend)
+
+**Infrastructure Dependencies:**
+- Apple App Store - iOS distribution
+- CloudKit (Apple) - Data sync
+- HealthKit (Apple) - Health data integration
+- StoreKit 2 (Apple) - In-app purchase verification
+- Firebase (Google) - PWA/dashboard backend
+- Stripe - PWA payment processing
+- Cloudflare Worker - AI workout generation proxy (legacy, being replaced)
 
 ---
 
-*Stack analysis: 2026-03-18*
+*Stack analysis: 2025-03-21*

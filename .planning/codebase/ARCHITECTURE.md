@@ -1,179 +1,314 @@
 # Architecture
 
-**Analysis Date:** 2026-03-18
+**Analysis Date:** 2026-03-21
 
 ## Pattern Overview
 
-**Overall:** MVVM + Repository Pattern with Protocol Abstractions
+**Overall:** Layered MVVM (Model-View-ViewModel) with Protocol-Based Data Access
+
+The application follows a strict separation of concerns across three tiers:
+- **Presentation Layer (Features):** SwiftUI views + @Observable ViewModels
+- **Repository Layer:** Protocol-based data access abstractions
+- **Domain Layer:** Pure Swift business logic with zero dependencies
+- **Persistence:** SwiftData (local) + CloudKit (sync) + Firebase (backup)
+
+This architecture emphasizes testability, reusability, and clear data flow direction.
 
 **Key Characteristics:**
-- `@Observable` ViewModels (Swift 5.9 Observation framework) drive all SwiftUI views
-- Repository protocols decouple storage backends from feature logic
-- Domain layer is pure Swift — no SwiftUI, no SwiftData, no framework imports
-- SwiftData as the primary local persistence layer, optionally synced via CloudKit
-- Features are isolated verticals: each feature owns its View + ViewModel pair
+- Strict unidirectional data flow from domain through repositories to UI
+- Protocol-based repositories enable interchangeable implementations (SwiftData, CloudKit, Firebase, etc.)
+- Domain layer completely isolated from SwiftUI, networking, and persistence details
+- ViewModels as thin orchestrators that compose repositories and domain logic
+- Exhaustive use of @Observable for reactive state management
+- Test-friendly through dependency injection in every layer
 
 ## Layers
 
-**App Layer:**
-- Purpose: Entry point, container bootstrap, and top-level routing
-- Location: `SundeeFundee/App/`
-- Contains: `SundeeFundeeApp.swift` (@main), `AppRootView.swift` (auth router), `AppState.swift` (@Observable auth state), `AppModelContainer.swift` (SwiftData container factory), versioned schema files (`AppSchemaV1.swift` through `AppSchemaV12.swift`), `AppSchemaMigrationPlan.swift`
-- Depends on: Auth layer, SwiftData
-- Used by: Nothing (top of the stack)
+**Presentation Layer (Features):**
+- Purpose: Render UI and respond to user interactions
+- Location: `SundeeFundee/Features/`
+- Contains: SwiftUI Views, @Observable ViewModels
+- Depends on: Repository protocols, domain types, theme, components
+- Used by: App root view
+
+**Feature Structure:**
+Each feature in `SundeeFundee/Features/[FeatureName]/` follows:
+- `[Feature]View.swift` — SwiftUI view, reads from ViewModel
+- `[Feature]ViewModel.swift` — @Observable state holder, calls repositories and domain logic
+- Subdirectories: `Views/`, `Components/` for complex features
+
+**Repository Layer (Data Access):**
+- Purpose: Abstract all data source details (SwiftData, CloudKit, Firebase, etc.)
+- Location: `SundeeFundee/Repositories/`
+- Contains: Protocol definitions, multiple implementations
+- Depends on: Models, domain types
+- Used by: ViewModels, services
+
+**Repository Structure:**
+```
+Repositories/
+├── Protocols/
+│   └── RepositoryProtocols.swift       # All protocol definitions (UserRepository, WorkoutRepository, etc.)
+├── SwiftData/
+│   ├── SwiftDataUserRepository.swift
+│   ├── SwiftDataWorkoutRepository.swift
+│   ├── SwiftDataCycleRepository.swift
+│   ├── SwiftDataLiftRepository.swift
+│   └── [other implementations]
+├── CloudKit/
+│   ├── CloudKitProgramRepository.swift
+│   └── CloudKitWODRepository.swift
+├── Firebase/
+│   └── FirebaseAIWorkoutService.swift
+├── Gemini/
+│   └── GeminiWorkoutService.swift
+├── HealthKit/
+│   └── HealthKitReadinessRepository.swift
+└── ProgramRepository.swift               # Router that selects implementation
+```
+
+**Domain Layer (Pure Business Logic):**
+- Purpose: Implement all decision logic, calculations, and algorithms
+- Location: `SundeeFundee/Domain/`
+- Contains: Pure Swift enums and structs, zero dependencies on SwiftUI or networking
+- Depends on: Foundation only
+- Used by: ViewModels, repositories, services
+
+**Domain Organization:**
+```
+Domain/
+├── AIWorkout/
+│   ├── GeneratedWorkout.swift         # AI-generated workout model
+│   ├── OfflineWorkoutGenerator.swift  # Fallback offline generation
+│   └── WorkoutGenerationContext.swift # Parameterization for AI requests
+├── Calculations/
+│   ├── BarbellDefaults.swift
+│   ├── PlateCalculation.swift
+│   ├── WeightCalculations.swift
+│   └── WeightUnitConversion.swift
+├── History/
+│   └── HistoryItem.swift              # Unified history model
+├── CycleAdaptationPolicy.swift        # Hormonal cycle adaptation rules
+├── CycleProgramGenerator.swift        # Generates adapted programs based on cycle
+├── InjuryAdaptationEngine.swift       # Adapts programs for active injuries
+├── LoadAdjustmentPolicy.swift         # Load adjustment strategy
+├── PainTrendAnalyzer.swift            # Analyzes pain logs
+├── PhaseTransitionAdvisor.swift       # Advises on program phase transitions
+├── ProgramAvailability.swift          # Determines which programs are available
+├── ReadinessSurvey.swift              # Readiness survey scoring
+└── RehabSessionGenerator.swift        # Generates rehab-focused sessions
+```
+
+**Models Layer (Persistent Entities):**
+- Purpose: Define data structures for persistence and serialization
+- Location: `SundeeFundee/Models/`
+- Contains: @Model SwiftData types + Codable structures
+- Depends on: Foundation, SwiftData
+
+**Key Models:**
+- `User.swift` — User profile (name, gender, weight unit preference)
+- `CompletedWorkout.swift` — Workout execution record
+- `CompletedSet.swift` — Individual set data
+- `ActiveCycle.swift` — Current hormonal cycle tracking
+- `EnrolledProgram.swift` — Program enrollment state
+- `InjuryProfile.swift` — Injury tracking and adaptation
+- `Program.swift` — Training program structure (not @Model; fetched from CloudKit)
+- `WOD.swift` — Workout of the day (not @Model; fetched from CloudKit)
+- `BenchmarkDefinition.swift`, `BenchmarkResult.swift` — Benchmark data
 
 **Auth Layer:**
-- Purpose: Sign in with Apple, session restoration, and keychain credential management
+- Purpose: Manage authentication state and credentials
 - Location: `SundeeFundee/Auth/`
-- Contains: `AuthService.swift` (NSObject with ASAuthorizationController integration), `KeychainHelper.swift`, `SignInView.swift`
-- Depends on: SwiftData (writes new User on first sign-in), Keychain
-- Used by: `AppState`, `AppRootView`
+- Contains: AuthService, KeychainHelper, SignInView
+- Depends on: AuthenticationServices, SwiftData
 
-**Feature Layer:**
-- Purpose: UI screens and feature-specific ViewModels
-- Location: `SundeeFundee/Features/`
-- Contains: Feature directories each with `*View.swift` and `*ViewModel.swift` pairs
-- Depends on: Repository protocols, Domain, SwiftData via `ModelContext`
-- Used by: `MainTabView`, `AppRootView`
+**App Layer (Infrastructure):**
+- Purpose: Initialize app state, configure persistence, set up global services
+- Location: `SundeeFundee/App/`
+- Contains:
+  - `SundeeFundeeApp.swift` — @main app entry point
+  - `AppState.swift` — Global auth state enum + state machine (@Observable)
+  - `AppModelContainer.swift` — Builds shared SwiftData ModelContainer with fallback tiers
+  - `AppSchemaV*.swift` — Data schema versions for SwiftData migrations
 
-**Domain Layer:**
-- Purpose: Pure business logic — cycle adaptation, weight calculations, injury engine, AI workout generation
-- Location: `SundeeFundee/Domain/`
-- Contains: Stateless value types and functions. No framework imports. Fully unit-testable in isolation.
-- Depends on: Nothing
-- Used by: ViewModels, Repository implementations
-
-**Repository Layer:**
-- Purpose: Protocol-based data access abstractions with SwiftData, CloudKit, Firebase, HealthKit, and Gemini backends
-- Location: `SundeeFundee/Repositories/`
-- Contains: `Protocols/RepositoryProtocols.swift` (all protocol definitions), `SwiftData/` (local CRUD implementations), `CloudKit/` (CloudKit public/private DB), `Firebase/` (AI workout Firestore backend), `HealthKit/` (readiness metrics), `Gemini/` (AI workout generation)
-- Depends on: SwiftData, CloudKit, Firebase, HealthKit SDKs
-- Used by: ViewModels
-
-**Models Layer:**
-- Purpose: SwiftData `@Model` classes persisted to the local store
-- Location: `SundeeFundee/Models/`
-- Contains: `User.swift`, `CompletedWorkout.swift`, `ActiveCycle.swift`, `EnrolledProgram.swift`, `InjuryProfile.swift`, `BenchmarkDefinition.swift`, and more (22 models total in `AppSchemaV12`)
-- Depends on: SwiftData
-- Used by: Repository implementations, ViewModels via `@Query`
-
-**Shared Package:**
-- Purpose: Types shared between the main app and the WOD admin dashboard (CloudKit-serializable `Program`, `WOD`, validation logic)
-- Location: `SundeeFundee/Packages/SundeeFundeeShared/Sources/SundeeFundeeShared/`
-- Contains: `Models/Program.swift`, `Models/WOD.swift`, `Models/ExerciseCatalog.swift`, `CloudKit/ProgramCKRecord.swift`, `CloudKit/WODCKRecord.swift`, `Validation/ProgramValidator.swift`
-- Depends on: Nothing (plain Swift)
-- Used by: Repository implementations, Domain
-
-**Services Layer:**
-- Purpose: Cross-cutting infrastructure services
-- Location: `SundeeFundee/Services/`, `SundeeFundee/Observability/`
-- Contains: `SubscriptionService.swift` (StoreKit 2 in-app purchases), `MetricsService.swift` (MetricKit diagnostics)
-
-**Theme Layer:**
-- Purpose: Design token constants for the Art Deco visual theme
-- Location: `SundeeFundee/Theme/`
-- Contains: `AppTheme.swift` (colors, spacing, corner radii, fonts, view modifiers), `ButtonStyles.swift`
+**Key Services:**
+- `SubscriptionService.swift` — StoreKit 2 subscription management
+- `MetricsService.swift` — MetricKit diagnostics logging
 
 ## Data Flow
 
-**User Authentication:**
+**User Interaction Flow:**
 
-1. `SundeeFundeeApp` creates `ModelContainer` and renders `AppRootView`
-2. `AppRootView` calls `AuthService.restoreSession(modelContext:)` on appear
-3. `AuthService` checks Apple ID credential state from Keychain
-4. `AuthService` returns `AuthState` (.loading → .authenticated / .needsOnboarding / .signedOut / .guest)
-5. `AppState.apply(_:)` updates `authState`, triggering `AppRootView` to switch destination
-6. `AppRootView.Destination` routes to `LoadingView`, `SignInView`, `OnboardingFlowView`, or `MainTabView`
+1. **SwiftUI View** captures user action (button tap, form submission)
+2. **View calls ViewModel method** to initiate state change
+3. **ViewModel orchestrates:**
+   - Calls domain logic (pure calculations, decision rules)
+   - Calls repository to persist or fetch data
+   - Updates @Observable state for reactive re-render
+4. **Repository** handles persistence:
+   - SwiftDataWorkoutRepository: Insert/fetch/delete from local SwiftData store
+   - CloudKitProgramRepository: Fetch programs from CloudKit
+   - GeminiWorkoutService: Call external Gemini API
+5. **View re-renders** when @Observable ViewModel state changes
 
-**Workout Data Load (Dashboard):**
+**Example: Create and Save a Workout**
 
-1. `DashboardView` creates `DashboardViewModel` and calls `.load(modelContext:)` on task
-2. ViewModel creates SwiftData repository instances inline (e.g., `SwiftDataUserRepository(context: modelContext)`)
-3. ViewModel fetches program catalog via `CloudKitProgramRepository` (async)
-4. ViewModel reads cycle logs, injury records, readiness metrics from local SwiftData
-5. Domain functions (`CycleProgramGenerator.adaptProgram`, `InjuryAdaptationEngine.adaptProgram`) transform raw data into adapted `Program`
-6. ViewModel publishes state; SwiftUI diffs and re-renders
+```
+WODExecutionView (user completes workout)
+  → calls WODExecutionViewModel.saveCompletedWorkout()
+    → calls InjuryAdaptationEngine.adaptProgram() [domain logic]
+    → calls ReadinessSurvey.scoreReadiness() [domain logic]
+    → calls workoutRepository.save(completedWorkout) [SwiftData]
+    → workoutRepository inserts into ModelContext + saves
+    → ViewModel updates @Observable state
+      → View re-renders showing success
+```
 
-**Workout Execution:**
+**Program Generation Flow:**
 
-1. User taps "Start Workout" from Dashboard; `WorkoutExecutionViewModel` is initialized with `ProgramSession`, `EnrolledProgram`, `Program`
-2. User records sets via `WorkoutExecutionView`; state held in `[String: [SetExecutionState]]` dictionary
-3. On "Complete", ViewModel saves `CompletedWorkout` + `CompletedSet` records via `SwiftDataWorkoutRepository`
-4. `EnrolledProgramRepository.updateProgress` advances the week/day cursor
-5. `NotificationCenter.post(.didSaveNewPRs)` fires if personal records are broken
+```
+AIWorkoutFlowView (user starts AI workout)
+  → calls AIWorkoutViewModel.generateWorkout()
+    → calls SwiftDataAIWorkoutService.generateWorkout()
+      → calls GeminiWorkoutService.generate() [online]
+      → falls back to OfflineWorkoutGenerator [offline]
+    → calls modelContext.insert(GeneratedWorkoutRecord) [SwiftData]
+    → ViewModel updates @Observable state
+      → View shows generated workout
+```
+
+**Authentication Flow:**
+
+```
+SignInView (user taps Sign in with Apple)
+  → calls AuthService.performAppleSignIn()
+    → ASAuthorizationController handles UI
+    → AuthService delegates to KeychainHelper.saveAppleUserID()
+    → AuthService updates AppState.authState
+      → App routing changes to authenticated tab view
+```
 
 **State Management:**
-- Global: `AppState` (`@Observable`) injected via `.environment(appState)` from `AppRootView`
-- Global: `SubscriptionService` (`@Observable`) injected via `.environment(subscriptionService)` from `AppRootView`
-- Feature: `@Observable` ViewModels created by their parent View, passed as `@State`
-- Local persistence: SwiftData `ModelContext` accessed via `@Environment(\.modelContext)` and `@Query`
-- User defaults: Subscription tier cache, dismissed phase transitions, HealthKit toggle
+- `AppState.authState` — Top-level auth state (loading, signedOut, needsOnboarding, authenticated, guest)
+- Feature ViewModels use `@Observable` with @MainActor for thread-safe reactive state
+- ViewModels are NOT shared; each view gets its own ViewModel instance
+- State persists via SwiftData + CloudKit; AppState coordinates global transitions
 
 ## Key Abstractions
 
 **Repository Protocols:**
-- Purpose: Swap storage backends without touching ViewModels (enables testing with mocks)
-- Definition: `SundeeFundee/Repositories/Protocols/RepositoryProtocols.swift`
-- Protocols: `UserRepository`, `WorkoutRepository`, `CycleRepository`, `LiftRepository`, `EnrolledProgramRepository`, `BenchmarkDefinitionRepository`, `BenchmarkResultRepository`, `InjuryRepository`, `PainLogRepository`, `ReadinessRepository`, `ProgramRepository`, `WODRepository`, `AIWorkoutServiceProtocol`, `SharedWorkoutRepository`, `BarbellRepository`
-- Implementations: `SwiftData*` (local), `CloudKit*` (remote catalog), `Firebase*` (AI), `HealthKit*` (biometrics)
+- Purpose: Define contracts for data access, enabling multiple implementations
+- Examples: `UserRepository`, `WorkoutRepository`, `CycleRepository`, `LiftRepository`
+- Pattern: Protocol defines async methods throwing errors; implementations handle concrete logic
+- File: `SundeeFundee/Repositories/Protocols/RepositoryProtocols.swift`
 
-**AuthState Enum:**
-- Purpose: Drives top-level routing as a finite state machine
-- Definition: `SundeeFundee/App/AppState.swift`
-- Cases: `.loading`, `.signedOut`, `.needsOnboarding(userID:appleUserID:)`, `.authenticated(userID:)`, `.guest`
+**InjuryAdaptationEngine:**
+- Purpose: Adapt training programs for active injury profiles
+- Pattern: Enum with static methods (pure functional)
+- Input: Program + [InjuryProfile], Output: Adapted Program
+- Files: `SundeeFundee/Domain/InjuryAdaptationEngine.swift`
+- No mutations; returns new Program instances
 
-**Domain Functions (stateless):**
-- `CycleProgramGenerator.adaptProgram(_:phase:settings:preferences:periodLogs:readinessScore:)` — adapts a `Program` for the user's hormonal cycle phase: `SundeeFundee/Domain/CycleProgramGenerator.swift`
-- `InjuryAdaptationEngine.adaptProgram(_:activeInjuries:)` — modifies exercises based on active injuries: `SundeeFundee/Domain/InjuryAdaptationEngine.swift`
-- `CycleCalculations.calculateCycleStatus(periodLogs:settings:)` — computes current phase from period log history: `SundeeFundee/Domain/CycleCalculations.swift`
-- `PlateCalculation` — barbell and plate math: `SundeeFundee/Domain/Calculations/PlateCalculation.swift`
-- `WeightCalculations` — 1RM estimation formulas: `SundeeFundee/Domain/Calculations/WeightCalculations.swift`
+**CycleAdaptationPolicy & CycleProgramGenerator:**
+- Purpose: Apply hormonal cycle-aware training adaptations
+- Pattern: Pure domain logic for phase detection and rep/load adjustments
+- Files: `SundeeFundee/Domain/CycleAdaptationPolicy.swift`, `CycleProgramGenerator.swift`
 
-**AppModelContainer:**
-- Purpose: Factory for SwiftData `ModelContainer` with three-tier fallback (CloudKit → local persistent → in-memory)
-- Definition: `SundeeFundee/App/AppModelContainer.swift`
-- Schema version: `AppSchemaV12` (22 `@Model` types), migration plan in `AppSchemaMigrationPlan.swift`
+**ReadinessSurvey:**
+- Purpose: Score user readiness based on survey responses
+- Pattern: Static scoring algorithm
+- File: `SundeeFundee/Domain/ReadinessSurvey.swift`
 
-**Enum Raw-Value Pattern for SwiftData:**
-- SwiftData `@Model` classes cannot store Swift enums directly (CloudKit compatibility)
-- Pattern: Store as `String` raw value property (e.g., `genderRaw: String`), expose computed enum property (e.g., `var gender: Gender`)
-- Example: `SundeeFundee/Models/User.swift`
+**AIWorkoutServiceProtocol:**
+- Purpose: Generate workouts via Gemini with offline fallback
+- Implementations: `SwiftDataAIWorkoutService` (with SwiftData persistence)
+- Pattern: Async generation with automatic fallback to OfflineWorkoutGenerator
+
+**SharedTypes (Encodable Value Types):**
+- `ExerciseValue` — Represents sets/reps (fixed, range, AMRAP, text)
+- `ConditioningScoringType` — Scoring rules for conditioning benchmarks
+- Files: `SundeeFundee/Models/SharedTypes.swift`
 
 ## Entry Points
 
-**App Entry:**
+**App Launch:**
 - Location: `SundeeFundee/App/SundeeFundeeApp.swift`
-- Triggers: iOS app launch (`@main`)
-- Responsibilities: Instantiates `ModelContainer`, starts `MetricsService`, renders `AppRootView`
+- Triggers: App startup
+- Responsibilities:
+  - Creates AppModelContainer (SwiftData + optional CloudKit)
+  - Initializes MetricsService
+  - Renders root view
 
-**Main Navigation Shell:**
-- Location: `SundeeFundee/Features/Shell/MainTabView.swift`
-- Triggers: `AppRootView` when `authState` is `.authenticated` or `.guest`
-- Responsibilities: 5-tab navigation (Dashboard, Programs, WODs, History, More); "More" tab expands to Maxes, Benchmarks, Cycle (female/unspecified only), Settings via `NavigationLink`
+**Root Navigation:**
+- Location: `SundeeFundee/Features/Shell/` (implied main navigation structure)
+- Triggers: AppState.authState changes
+- Responsibilities:
+  - Routes to SignInView if signed out
+  - Routes to OnboardingFlowView if needsOnboarding
+  - Routes to TabView (Dashboard, Workouts, Programs, Cycle, Maxes, Settings) if authenticated
+  - Routes to GuestView if guest mode
 
-**Onboarding:**
-- Location: `SundeeFundee/Onboarding/OnboardingFlowView.swift`
-- Triggers: `AppRootView` when `authState` is `.needsOnboarding`
-- Responsibilities: 5-step profile collection (name → experience → goal → gender → cycle opt-in), writes `User` record to SwiftData, transitions to `.authenticated`
+**Feature Entry (Example: Dashboard):**
+- Location: `SundeeFundee/Features/Dashboard/DashboardView.swift`
+- Triggers: User selects Dashboard tab
+- Responsibilities:
+  - Displays current program, today's WOD, readiness metrics
+  - Calls DashboardViewModel.load() to fetch state
+  - ViewModel coordinates multiple repositories and domain logic
 
 ## Error Handling
 
-**Strategy:** Synchronous throws propagated via `try?` at call sites; async errors surfaced as ViewModel `errorMessage: String?` properties
+**Strategy:** Exhaustive error handling with domain-specific error types
 
 **Patterns:**
-- Repository methods throw synchronously: `func save(_ workout: CompletedWorkout) throws`
-- ViewModels call repos with `try?`, silently degrading on failure (data-loss risk — see CONCERNS.md)
-- Async AI/CloudKit calls use `try/catch` inside `Task` blocks with ViewModel `errorMessage` binding
-- `AppModelContainer` uses cascading fallback (CloudKit → local → in-memory) rather than fatal errors, except as last resort
+- Repository methods throw errors (try/catch in ViewModels)
+- Domain logic returns successful results or nil (no error throwing)
+- Services (Gemini, HealthKit) throw errors caught by calling ViewModel
+- Fallback behavior for critical paths (e.g., offline workout generation)
+
+**Example Error Types:**
+- `ProgramDecodingError` — Invalid program structure
+- `AIWorkoutServiceError` — Encoding/decoding failures, auth failures
+- Repository errors bubble up as thrown exceptions
+
+**Error Recovery:**
+- SwiftDataAIWorkoutService: Falls back to OfflineWorkoutGenerator on any error
+- AppModelContainer: Tiered fallback (CloudKit → LocalPersistent → InMemory)
+- ViewModel: Catches and displays error UI (alert, banner, disabled state)
 
 ## Cross-Cutting Concerns
 
-**Logging:** `print(...)` with bracketed prefixes (e.g., `[AppRootView]`, `[AppModelContainer]`). No structured logging framework.
-**Validation:** Input validation in `SundeeFundee/Packages/SundeeFundeeShared/Sources/SundeeFundeeShared/Validation/` (`ProgramValidator.swift`, `WODValidator.swift`).
-**Authentication:** Sign in with Apple via `AuthService`; credential persisted in Keychain. No Firebase Auth in the Swift codebase.
-**Observability:** MetricKit via `MetricsService` (CPU, memory, crashes). Debug-only console logging of payloads.
-**Subscriptions:** StoreKit 2 via `SubscriptionService` (tiers: free, plus, pro). Product IDs: `com.sundeefundee.plusmonthly`, `com.sundeefundee.pro.monthly`.
+**Logging:**
+Approach: MetricsService (MetricKit diagnostics) + print() in DEBUG builds
+- `SundeeFundee/Observability/MetricsService.swift` subscribes to MetricKit payloads
+- Logs CPU time, memory usage, crashes, hangs
+- Only enabled in DEBUG builds
+
+**Validation:**
+Approach: Input validation at ViewModel level before repository calls
+- Weight values validated against min/max ranges
+- Program structures validated during decoding
+- Exercise values support multiple formats (fixed, range, AMRAP, text)
+
+**Authentication:**
+Approach: Sign in with Apple via AuthService, session restoration from Keychain
+- AuthService manages ASAuthorizationController delegate chain
+- KeychainHelper persists user IDs (Apple ID + guest ID)
+- AppState enforces auth state transitions (no unauthorized access)
+
+**Theming:**
+Approach: Centralized theme tokens in `SundeeFundee/Theme/`
+- Art Deco design: cream (#F4F0DF), navy (#0D1A40), orange (#F2731A)
+- SwiftUI Color extensions for consistent styling
+- ButtonStyles for standard interaction patterns
+
+**Data Persistence:**
+Approach: Multi-tier local-first with optional cloud sync
+- SwiftData: Local persistent store (always available)
+- CloudKit: Optional sync to iCloud private database
+- Firebase: Backup/async operations (AI workouts, crash reporting)
+- AsyncStorage (non-persistent preferences): Weight units, cycle settings
 
 ---
 
-*Architecture analysis: 2026-03-18*
+*Architecture analysis: 2026-03-21*

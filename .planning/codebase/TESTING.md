@@ -1,313 +1,229 @@
 # Testing Patterns
 
-**Analysis Date:** 2026-03-18
-
-> This documents the **legacy Swift/SwiftUI codebase** test suite in `SundeeFundeTests/`. The active React Native rewrite has its own Jest-based tests.
+**Analysis Date:** 2026-03-21
 
 ## Test Framework
 
 **Runner:**
-- Swift Testing (new `@Suite`/`@Test` macro API) — primary framework
-- XCTest (`XCTestCase` subclasses) — secondary framework, used for ViewModel and smoke tests
-- Both frameworks coexist in the same test target
+- Apple Testing framework (not XCTest)
+- Uses `@Suite` and `@Test` attributes (Swift 6.0+)
+- Config: `project.yml` specifies test target `SundeeFundeTests`
 
 **Assertion Library:**
-- Swift Testing: `#expect(...)` macro
-- XCTest: `XCTAssertEqual`, `XCTAssertTrue`, `XCTAssertNil`, `XCTAssertNotNil`
-- Swift Testing failure recording: `Issue.record("message")` (equivalent to `XCTFail`)
+- Native Swift Testing assertions: `#expect(condition)`, `#expect(actual == expected)`
 
 **Run Commands:**
 ```bash
-# Via Xcode: Product > Test (⌘U)
-# Via CLI:
-xcodebuild test -scheme SundeeFundee -destination 'platform=iOS Simulator,name=iPhone 16'
+xcodebuild test -scheme SundeeFundee  # Run all tests
+xcodebuild test -scheme SundeeFundee -only-testing SundeeFundeTests/BarbellDefaultsTests  # Run specific suite
 ```
 
 ## Test File Organization
 
 **Location:**
-- Separate `SundeeFundeTests/` directory (not co-located with source)
-- Flat directory structure — all 46 test files in one folder, no subdirectories
+- Co-located with main source: test files in `SundeeFundeTests/` directory (separate bundle)
+- Test target configured in `project.yml` scheme
 
 **Naming:**
-- Domain logic: `<Domain>Tests.swift` — e.g., `BusinessLogicTests.swift`, `WODTests.swift`
-- Repository tests: `<Domain>RepositoryTests.swift` — e.g., `RepositoryCoverageTests.swift`, `WODRepositoryTests.swift`
-- ViewModel tests: `<Feature>ViewModelTests.swift` — e.g., `WODExecutionViewModelTests.swift`, `ReadinessSurveyViewModelTests.swift`
-- Coverage waves: `<Area>CoverageTests.swift`, `<Area>CoverageWave<N>Tests.swift` — used to group broad coverage expansions
-- Smoke tests: `SwiftUISmokeTestsA.swift`, `SwiftUISmokeTestsB.swift`
-- Shared helpers: `BarbellTestHelpers.swift`
+- `{SubjectName}Tests.swift` convention: `BarbellDefaultsTests.swift`, `SubscriptionServiceTests.swift`
+- Suite name matches subject: `@Suite("BarbellDefaults")`, `@Suite("SubscriptionTier")`
+
+**Structure:**
+```
+SundeeFundeTests/
+├── AIWorkoutTests.swift
+├── AuthOnboardingCoverageTests.swift
+├── BarbellDefaultsTests.swift
+├── DomainCoverageTests.swift
+├── SubscriptionServiceTests.swift
+└── [43 more test files]
+```
 
 ## Test Structure
 
-**Swift Testing suite organization:**
+**Suite Organization:**
 ```swift
 import Testing
 import Foundation
 @testable import SundeeFundee
 
-@Suite("WeightCalculations")
-struct WeightCalculationsTests {
+@Suite("BarbellDefaults")
+struct BarbellDefaultsTests {
 
-    @Test func roundToNearestFive() {
-        #expect(WeightCalculations.roundToNearestFive(102.0) == 100.0)
-        #expect(WeightCalculations.roundToNearestFive(103.0) == 105.0)
+    @Test func builtInPresetsHasFourEntries() {
+        let presets = BarbellDefaults.builtInPresets
+        #expect(presets.count == 4)
     }
 
-    @Test func detectPlateauTrue() {
-        #expect(WeightCalculations.detectPlateau(weights: [80, 80, 82]) == true)
-    }
-}
-```
-
-**XCTest suite organization:**
-```swift
-import XCTest
-import SwiftData
-@testable import SundeeFundee
-
-@MainActor
-final class WODExecutionViewModelTests: XCTestCase {
-
-    // MARK: - Setup helpers
-
-    private func makeWOD(exercises: [ProgramExercise] = []) -> WOD { ... }
-    private func makeExercise(...) -> ProgramExercise { ... }
-    private func makeTestStore() throws -> (container: ModelContainer, context: ModelContext) {
-        let schema = Schema(AppSchemaV10.models)
-        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
-        let container = try ModelContainer(for: schema, configurations: [config])
-        return (container, ModelContext(container))
-    }
-
-    // MARK: - Initialization
-
-    func testInitializeSetsCreatesCorrectSetCount() {
-        let exercises = [makeExercise(sets: .fixed(4))]
-        let vm = WODExecutionViewModel(wod: makeWOD(exercises: exercises))
-        XCTAssertEqual(vm.exerciseSets[0]?.count, 4)
+    @Test func standardPresetIs45Lb() {
+        let standard = BarbellDefaults.builtInPresets.first { $0.name == "Standard" }
+        #expect(standard != nil)
+        let expectedKg = 45.0 / WeightUnitConversion.poundsPerKilogram
+        #expect(abs(standard!.weightKg - expectedKg) < 0.01)
     }
 }
 ```
 
 **Patterns:**
-- `@MainActor` on the test class (not individual methods) when testing `@Observable @MainActor` ViewModels
-- `// MARK: - <Section>` to group related tests within a file
-- Private helper methods (`makeXxx(...)`) at the top of the file for fixture construction
-- XCTest classes are always `final class`
+- Test suites are structs marked with `@Suite(name)`
+- Each test is a method marked with `@Test`
+- Setup: Tests create fixtures inline (no setUp/tearDown methods)
+- Assertions: Single `#expect()` per test or multiple related assertions
+- Helper methods: Create factories/builders within test suite for repeated setup
 
 ## Mocking
 
-**Protocol mocking:**
-Manual mock implementations conforming to repository protocols:
-```swift
-final class MockBarbellRepository: BarbellRepository {
-    private var presets: [BarbellPresetDTO] = []
-    private var mappings: [ExerciseBarMappingDTO] = []
+**Framework:** None detected; Domain layer tested without mocks
 
-    func fetchPresets(userID: String) throws -> [BarbellPresetDTO] {
-        presets.filter { $0.userID == userID }.sorted { $0.sortOrder < $1.sortOrder }
-    }
-    // ... all protocol methods implemented with in-memory state
-}
-```
-
-**Network mocking via URLProtocol:**
-```swift
-final class MockURLProtocol: URLProtocol, @unchecked Sendable {
-    nonisolated(unsafe) static var requestHandler: ((URLRequest) throws -> (HTTPURLResponse, Data))?
-
-    override func startLoading() {
-        guard let handler = Self.requestHandler else { ... }
-        let (response, data) = try handler(request)
-        client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
-        client?.urlProtocol(self, didLoad: data)
-        client?.urlProtocolDidFinishLoading(self)
-    }
-}
-
-// Usage: configure URLSession with mock protocol
-let config = URLSessionConfiguration.ephemeral
-config.protocolClasses = [MockURLProtocol.self]
-let session = URLSession(configuration: config)
-
-MockURLProtocol.requestHandler = { _ in
-    let response = HTTPURLResponse(url: ..., statusCode: 200, ...)!
-    return (response, Data(json.utf8))
-}
-```
-
-**Dependency injection mocking:**
-`AuthService.Dependencies` uses closure-based injection. Tests provide custom closures:
-```swift
-let service = AuthService(dependencies: .init(
-    saveAppleUserID: { _ in },
-    loadAppleUserID: { "stored-user" },
-    deleteAppleUserID: { },
-    credentialStateForUserID: { _ in .authorized },
-    makeUUID: { "test-uuid" }
-))
-```
-
-**Inline anonymous mock repos (Swift Testing):**
-```swift
-private final class InMemoryProgramRepository: ProgramRepository, @unchecked Sendable {
-    let programs: [Program]
-    func fetchPrograms() async throws -> [Program] { programs }
-    func fetchProgram(id: String) async throws -> Program? { programs.first { $0.id == id } }
-}
-```
+**Patterns:**
+- Domain layer (pure calculations) tested directly without mocking
+- Service tests use dependency injection to pass mock dependencies
+- Example from `SubscriptionServiceTests.swift`:
+  ```swift
+  @Test @MainActor func defaultsToFree() {
+      Self.resetUserDefaults()
+      let service = SubscriptionService()
+      #expect(service.currentTier == .free)
+  }
+  ```
 
 **What to Mock:**
-- Repository protocol implementations (to avoid SwiftData in pure logic tests)
-- URLSession (via `MockURLProtocol`) for network service tests
-- System dependencies in `Dependencies` structs (keychain, UUID generation)
-- `UserDefaults` (injected fresh instance per test via `UserDefaults(suiteName:)`)
+- UserDefaults access: reset in test setup
+- External services: Pass mock implementations via constructor
+- Time-dependent functions: Inject reference dates
 
 **What NOT to Mock:**
-- Domain logic (tested directly — no mocking needed)
-- SwiftData `ModelContext` (use in-memory store instead)
+- Domain logic (pure calculations): Test directly with real values
+- Data structures: Create actual instances with test data
+- Enums and value types: Use actual instances
 
 ## Fixtures and Factories
 
-**Shared test helpers file:**
-`SundeeFundeTests/BarbellTestHelpers.swift` — shared `make*` functions usable across test files:
-```swift
-func makeBarbellTestExercise(name: String = "Back Squat", ...) -> ProgramExercise { ... }
-func makeBarbellTestSession(id: String = "s1") -> ProgramSession { ... }
-func makeBarbellTestProgram(id: String = "p1", weeks: [ProgramWeek]) -> Program { ... }
-
-@MainActor
-func makeBarbellTestVM(barbellRepo: BarbellRepository? = nil, ...) -> WorkoutExecutionViewModel { ... }
-```
-
-**In-memory SwiftData container (standard pattern):**
-```swift
-private func makeTestStore() throws -> (container: ModelContainer, context: ModelContext) {
-    let schema = Schema(AppSchemaV10.models)
-    let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
-    let container = try ModelContainer(for: schema, configurations: [config])
-    return (container, ModelContext(container))
-}
-```
-
-**Fixed date anchor for ordering tests:**
-```swift
-private static let baseTime = Date(timeIntervalSince1970: 1_700_000_000)
-private func date(_ seconds: TimeInterval) -> Date { Self.baseTime.addingTimeInterval(seconds) }
-```
-
-**Isolated UserDefaults per test:**
-```swift
-private func freshDefaults() -> UserDefaults {
-    let name = "test-survey-vm-\(UUID().uuidString)"
-    let defaults = UserDefaults(suiteName: name)!
-    defaults.removePersistentDomain(forName: name)
-    return defaults
-}
-```
+**Test Data:**
+- Inline factory functions in test suites:
+  ```swift
+  private func makeSettings(
+      cycleDays: Int = 28,
+      periodDays: Int = 5,
+      lutealDays: Int = 14
+  ) -> CycleSettings {
+      CycleSettings(
+          id: UUID().uuidString,
+          userID: "u1",
+          averageCycleLengthDays: cycleDays,
+          averagePeriodLengthDays: periodDays,
+          lutealPhaseLengthDays: lutealDays
+      )
+  }
+  ```
 
 **Location:**
-- Shared helpers: `SundeeFundeTests/BarbellTestHelpers.swift`
-- Per-file helpers: `private func make<Type>(...)` defined at the top of each test file
+- Factories defined as private methods in test suite struct
+- Helper types in `SundeeFundeTests/` (e.g., `BarbellTestHelpers.swift`)
+- JSON fixtures in `src/domain/__fixtures__/` directory for domain tests:
+  - `cycle-adaptation.json`
+  - `cycle-calculations.json`
+  - `weight-calculations.json`
+  - `injury-adaptation.json`
 
 ## Coverage
 
-**Requirements:** No enforced threshold detected — no `.xccoverage` or CI coverage gate.
+**Requirements:** Not enforced via configuration; 43 test files with 1000+ tests suggest comprehensive coverage
 
-**Schema used in tests:** `AppSchemaV10.models` is the standard schema used for in-memory containers (not always the latest V12 — note this potential staleness issue).
+**View Coverage:**
+- `SwiftUISmokeTestsA.swift`, `SwiftUISmokeTestsB.swift` for UI smoke tests
+- `DashboardViewCoverageTests.swift`, `FeatureViewsCoverageTests.swift` for feature views
+
+**Model Coverage:**
+- `BenchmarkModelTests.swift`, `BarbellRepositoryCoverageTests.swift`
+
+**View Coverage:**
+```bash
+# No explicit coverage reporting command found
+# Coverage likely tracked via Xcode's built-in code coverage
+```
 
 ## Test Types
 
-**Unit Tests (Domain logic):**
-- Location: `BusinessLogicTests.swift`, `DomainCoverageTests.swift`, `WODTemplateTypeTests.swift`
-- Scope: Pure functions in `SundeeFundee/Domain/` — `WeightCalculations`, `CycleCalculations`, `InjuryAdaptationEngine`, `EpleyFormula`
-- No mocking required — direct instantiation and assertion
+**Unit Tests:**
+- Domain calculations: `CycleCalculationsAdditionalTests`, `BarbellDefaultsTests`
+- Service logic: `SubscriptionServiceTests`, `GeminiWorkoutServiceTests`
+- Repository operations: `BenchmarkRepositoryTests`, `WODRepositoryTests`
+- Scope: Single type/function, pure logic without side effects
+- Approach: Direct calls with assertions
 
-**Unit Tests (ViewModel):**
-- Location: `WODExecutionViewModelTests.swift`, `ReadinessSurveyViewModelTests.swift`, `ViewModelCoverageTests.swift`, `AIWorkoutViewModelTests.swift`
-- Use in-memory SwiftData containers or injected mock repos
-- `@MainActor` on class for Observable VM testing
+**Integration Tests:**
+- ViewModel tests: `ReadinessSurveyViewModelTests`, `WODExecutionViewModelTests`
+- Repository integration: `BarbellRepositoryCoverageTests` (with SwiftData)
+- Service interaction tests: Domain + Repository coordination
+- Scope: Multiple components interacting
+- Approach: Setup dependencies, verify state changes and outputs
 
-**Integration Tests (Repository):**
-- Location: `RepositoryCoverageTests.swift`, `WODRepositoryTests.swift`, `BenchmarkRepositoryTests.swift`, `BarbellRepositoryCoverageTests.swift`
-- Use in-memory `ModelContainer` with full schema
-- Test full CRUD lifecycle including sort order and predicate behavior
-
-**Network Integration Tests:**
-- Location: `GeminiWorkoutServiceTests.swift`
-- Use `MockURLProtocol` injected into `URLSession` — tests HTTP method, headers, body, error codes
-- `@Suite(.serialized)` to prevent concurrent handler mutation
-
-**SwiftUI Smoke Tests:**
-- Location: `SwiftUISmokeTestsA.swift`, `SwiftUISmokeTestsB.swift`
-- Instantiate Views via `UIHostingController` and trigger layout
-- Verify no crash on render; do not assert UI element content
-- `host<Content: View>(_ view: Content, triggerAppearance: Bool)` helper pattern
-
-**Coverage Wave Tests:**
-- `AuthOnboardingViewCoverageTests.swift`, `AuthOnboardingCoverageWave3Tests.swift`, `AuthOnboardingCoverageWave5Tests.swift`, etc.
-- Target specific code paths for coverage; grouped by feature area and wave number
+**E2E Tests:**
+- Not explicitly labeled, but smoke tests simulate user flows
+- `SwiftUISmokeTestsA.swift`, `SwiftUISmokeTestsB.swift` verify UI initialization
+- `UICriticalFlowTests.swift` tests critical user paths
+- Not automated; relies on manual testing for full app flows
 
 ## Common Patterns
 
-**Async Testing (Swift Testing):**
+**Async Testing:**
+- Tests marked with `@MainActor` when testing main-thread code
+- Example:
+  ```swift
+  @Test @MainActor func defaultsToFree() {
+      // Test runs on main thread
+  }
+  ```
+- Async functions not heavily tested; domain layer is synchronous
+
+**Error Testing:**
 ```swift
-@Test("Falls back to offline on network error")
-func fallsBackToOfflineOnNetworkError() async {
-    FallbackMockURLProtocol.requestHandler = { _ in
-        throw URLError(.notConnectedToInternet)
-    }
-    let workout = await SwiftDataAIWorkoutService.generateWithFallback(...)
-    #expect(workout.coachingSummary.contains("offline"))
+// Testing error behavior with Result type
+@Test func tierFromProductID() {
+    #expect(SubscriptionTier.from(productID: "com.sundeefundee.unknown") == .free)
 }
 ```
 
-**Async Testing (XCTest):**
+**Boundary Testing:**
 ```swift
-func testRestoreSession() async throws {
-    let state = await service.restoreSession(modelContext: context)
-    XCTAssertEqual(state, .authenticated(userID: "test-id"))
+@Test func detectsOvulationAndLutealPhases() {
+    let settings = makeSettings()
+
+    let ovulation = CycleCalculations.calculateCycleStatus(
+        periodLogs: [makePeriodLog(startOffset: -12)],
+        settings: settings,
+        referenceDate: referenceDate
+    )
+    #expect(ovulation?.currentPhase == .ovulation)
 }
 ```
 
-**Error/Throw Testing (Swift Testing):**
+**Enum and Value Type Testing:**
 ```swift
-await #expect(throws: GeminiServiceError.httpError(statusCode: 500)) {
-    try await service.generate(from: makeContext())
-}
-
-// For any error:
-await #expect(throws: (any Error).self) {
-    try await service.generate(from: makeContext())
+@Test func caseInsensitiveMatching() {
+    #expect(BarbellDefaults.suggestedPresetName(for: "barbell curl", gender: .male) == "EZ Curl")
+    #expect(BarbellDefaults.suggestedPresetName(for: "BENCH PRESS", gender: .female) == "Women's")
 }
 ```
 
-**Expected failure recording (Swift Testing):**
-```swift
-do {
-    _ = try Program(record: record)
-    Issue.record("Expected missing fields error")
-} catch ProgramDecodingError.missingFields {
-    // expected — test passes
-}
-```
+## Test Organization Best Practices
 
-**Toggling boolean state:**
-```swift
-vm.toggleSetCompleted(exerciseIndex: 0, setIndex: 0)
-XCTAssertTrue(vm.exerciseSets[0]![0].isCompleted)
-XCTAssertTrue(vm.showRestTimer)
-```
+**As Observed:**
+1. One suite per file, named after the subject
+2. Tests grouped logically with descriptive names
+3. Helper methods for setup (factories)
+4. Reset shared state (UserDefaults) before tests marked `.serialized`
+5. Fixtures stored as JSON for domain test data
+6. No global setup/teardown; inline initialization preferred
+7. Assertions focus on behavior, not implementation
 
-**Testing enum raw value bridging (SwiftData models):**
-```swift
-let pr = ConditioningPR(...)
-#expect(pr.scoringType == .reps)
-#expect(pr.scoringTypeRaw == "reps")
-pr.scoringType = .time
-#expect(pr.scoringTypeRaw == "time")
-```
+**Coverage Goals:**
+- Domain layer: Comprehensive coverage of pure logic
+- Services: Happy path and error conditions
+- ViewModels: State initialization and updates
+- Views: Smoke tests for initialization without crashes
 
 ---
 
-*Testing analysis: 2026-03-18*
+*Testing analysis: 2026-03-21*
