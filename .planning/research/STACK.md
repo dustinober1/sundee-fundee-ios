@@ -1,72 +1,171 @@
 # Stack Research
 
-**Domain:** Native iOS + watchOS strength training app with cycle-aware adaptation
-**Researched:** 2026-03-18
-**Confidence:** HIGH (Apple-first stack, all technologies are Apple system frameworks or well-established tooling)
+**Domain:** PWA production readiness (Vite + React + Firebase)
+**Researched:** 2026-03-21
+**Confidence:** HIGH — all versions verified against npm/official sources, not training data alone
 
 ---
 
-> **Scope note:** The iOS foundation (Swift 6, SwiftUI, SwiftData, CloudKit, StoreKit 2, HealthKit, XcodeGen, Cloudflare Worker) is already validated in the codebase. This document focuses on what needs to be ADDED (watchOS target, APNs) and what needs to be UPDATED or VERIFIED for 2025/2026 standards. Do not re-architect what already works.
+## Existing Stack (Already Chosen — Do Not Change)
+
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| Vite | ^8.0.1 | Build tool + dev server |
+| React | ^19.2.4 | UI framework |
+| TypeScript | ~5.9.3 | Type safety |
+| firebase (JS SDK) | ^12.11.0 | Auth, Firestore, Analytics |
+| vite-plugin-pwa | ^1.2.0 | Service worker + manifest generation |
+| @stripe/stripe-js | ^8.11.0 | Stripe browser SDK |
+| Vitest | ^4.1.0 | Unit test runner |
+| react-router | ^7.13.1 | Client-side routing |
+| recharts | ^3.8.0 | SVG charts |
+
+These are confirmed in `pwa/package.json`. Research below is additive — what's needed on top.
 
 ---
 
-## Recommended Stack
+## Recommended Stack (New Additions for Production Readiness)
 
-### Core Technologies (Existing — Validated)
+### Deployment & CI/CD
 
-| Technology | Version | Purpose | Status |
-|------------|---------|---------|--------|
-| Swift | 6.0 | All application code | Validated — already in use |
-| SwiftUI | iOS/watchOS 17+/10+ | All UI on both platforms | Validated — no changes needed |
-| SwiftData | iOS/watchOS 17+/10+ | Local persistence, 22-model schema at V12 | Validated — CloudKit activation needed |
-| CloudKit | System | Private iCloud sync between devices | Validated — disabled in prod, needs activation |
-| StoreKit 2 | System (iOS 17+) | In-app subscriptions | Validated — subscription gating exists |
-| HealthKit | System | Sleep, HRV, RHR reads on iOS; workout session on watchOS | Partially validated — watch workout session is NEW |
-| AuthenticationServices | System | Sign in with Apple | Validated |
-| XcodeGen | 2.x (latest) | Project file generation from project.yml | Validated — watchOS target config needs adding |
-| Fastlane + Match | Current (2.x) | CI/CD, code signing, App Store submission | Validated — Xcode 16 compatible |
+| Technology | Version | Purpose | Why Recommended |
+|------------|---------|---------|-----------------|
+| FirebaseExtended/action-hosting-deploy | v0 (latest tag) | GitHub Actions Firebase deploy | Official Firebase-maintained action; supports live channel and PR preview channels; integrates with `firebase init hosting:github` to auto-create service account | HIGH confidence — [official Firebase docs](https://firebase.google.com/docs/hosting/github-integration) |
+| firebase-tools | latest (CLI) | Manual deploy script + CI build step | Required for `firebase deploy`; `firebase init hosting:github` scaffolds the GH Actions workflow automatically | HIGH confidence |
+| FIREBASE_SERVICE_ACCOUNT | GitHub Secret | Auth for GH Actions deploy | Service account JSON stored as encrypted secret; workload identity federation is NOT supported by Firebase Admin SDK so service account key is the correct choice for Firebase Hosting deploys | MEDIUM confidence — [WIF limitation confirmed](https://github.com/google-github-actions/auth) |
 
-### New Technologies (Must Add for This Milestone)
+### Firebase Cloud Functions (AI Workout + Stripe Webhook)
 
-| Technology | Version | Purpose | Why |
-|------------|---------|---------|-----|
-| WatchKit + SwiftUI App lifecycle | watchOS 10+ | watchOS app target entry point | watchOS 10 uses SwiftUI App protocol (not WKExtensionDelegate); companion target runs on watch hardware |
-| HKWorkoutSession (watchOS) | watchOS 10+ | Active workout session on watch | Required for background workout tracking, heart rate, calories; keeps app alive during workout |
-| HKLiveWorkoutBuilder (watchOS) | watchOS 10+ | Real-time metric collection during workout | Automatic collection of heart rate, active calories, distance without manual query setup |
-| HealthKit mirroring sessions | iOS 17+ / watchOS 10+ | Bidirectional sync between iPhone and Watch during workout | Replaces WatchConnectivity for workout-specific data; built-in sync without manual serialization |
-| UserNotifications (UNUserNotificationCenter) | iOS 17+ | Local + remote push notifications | Rest timer countdowns, daily reminders, WOD alerts; APNs registration flow |
-| WidgetKit (watchOS complications) | watchOS 9+ | Watch face complications and Smart Stack widgets | Streak display, next workout, cycle phase glance — WidgetKit replaced ClockKit in watchOS 9 |
+| Technology | Version | Purpose | Why Recommended |
+|------------|---------|---------|-----------------|
+| firebase-functions (gen2) | ^6.x | Cloud Function runtime | Gen2 (`firebase-functions/v2/https`) runs on Cloud Run; `onRequest` provides `request.rawBody` needed for Stripe webhook signature verification; superior cold starts vs gen1 | HIGH confidence |
+| firebase-admin | ^13.x | Server-side Firestore/Auth access | Current major version; write user entitlement after Stripe webhook; Node 20+ required | HIGH confidence — [npm release notes](https://firebase.google.com/support/release-notes/admin/node) |
+| stripe (Node.js server SDK) | ^17.x | Stripe webhook verification + checkout session creation | `stripe.webhooks.constructEvent(request.rawBody, sig, secret)` — must use `rawBody` not `body` on Firebase Functions; latest stable is v17+ | HIGH confidence — confirmed via npm search results |
+| Node.js runtime | 20 | Function execution environment | Node 18 deprecated in firebase-admin 13.x; Node 22 not GA in Firebase as of research date; Node 20 is stable and recommended | HIGH confidence |
 
-### Supporting Libraries (Existing — No Changes Needed)
+### Stripe Payment Flow (Frontend)
 
-| Library | Version | Purpose | When to Use |
-|---------|---------|---------|-------------|
-| Charts (Apple) | System | Data visualization | Workout history, cycle charts, pain trends |
-| MetricKit | System | Performance and crash diagnostics | Already wired in MetricsService.swift |
-| Security (Keychain) | System | Auth token persistence | Apple user ID storage |
-| `SundeeFundeeShared` | Private SPM | Shared domain types between app and watch target | Must be added as dependency to the watchOS target in project.yml |
+| Technology | Version | Purpose | Why Recommended |
+|------------|---------|---------|-----------------|
+| @stripe/stripe-js | ^8.11.0 | Already installed — keep | v8 required for Elements with Checkout Sessions API; already at correct version | HIGH confidence |
+| @stripe/react-stripe-js | ^5.6.1 | React components for Stripe Elements | Provides `Elements`, `CheckoutProvider`, `PaymentElement` components; use `CheckoutProvider` (renamed from `CustomCheckoutProvider` in v5) | HIGH confidence — [React Stripe.js docs](https://docs.stripe.com/sdks/stripejs-react) |
 
-### Development Tools
+**Stripe flow to use:** Server-side Checkout Session (not client-only redirect). Create session in Cloud Function → return `clientSecret` → mount `PaymentElement` on frontend. This keeps secret key server-side and supports subscription webhooks.
 
-| Tool | Purpose | Notes |
-|------|---------|-------|
-| XcodeGen | Generates .xcodeproj from project.yml | Add watchOS target section to project.yml; use `platform: watchOS`, `type: application`, `deploymentTarget: "10.0"` |
-| Fastlane Match | Code signing and certificate management | Watch app shares parent bundle ID with `.watchkitapp` suffix; Match handles both automatically |
-| Swift Testing (WWDC24) | Modern unit test framework | Use for NEW test suites on watchOS target and new iOS features; run alongside existing XCTest suites — they coexist in Xcode 16 |
-| XCTest | Existing unit + UI tests | Keep all 71 existing test suites; do not migrate to Swift Testing mid-milestone |
+**Do NOT use:** Stripe Checkout hosted page redirect (loses control of UX) or client-only Stripe.js without a server (exposes secret key).
+
+### PWA Compliance
+
+| Technology | Version | Purpose | Why Recommended |
+|------------|---------|---------|-----------------|
+| vite-plugin-pwa | ^1.2.0 | Already installed — keep | Already configured with correct `registerType: 'autoUpdate'`, Workbox runtime caching, and manifest. Gaps below are configuration, not new packages | HIGH confidence |
+| workbox-window | bundled via vite-plugin-pwa | Update prompt UI | Use `useRegisterSW` hook from `virtual:pwa-register/react` for "new version available" toast | HIGH confidence — [vite-pwa docs](https://vite-pwa-org.netlify.app/guide/) |
+
+**PWA gaps to fill (configuration, no new packages):**
+- `pwa/public/icons/icon-192.png` and `icon-512.png` must exist as actual production-quality PNG files (currently `public/` only has `favicon.svg` and `icons.svg`)
+- `pwa/public/apple-touch-icon.png` (180×180) — referenced in vite config `includeAssets` but file missing
+- Add `<meta name="apple-mobile-web-app-capable" content="yes">` to `index.html`
+- Add maskable icon variant (512×512 with safe zone padding) — already declared in vite config but PNG missing
+- `manifest.webmanifest` MIME type — Firebase Hosting serves this correctly by default
+
+### Security Headers (firebase.json)
+
+No new packages needed. Firebase Hosting's `firebase.json` headers config handles all of these.
+
+**Required headers configuration:**
+
+```json
+{
+  "hosting": {
+    "public": "pwa/dist",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "rewrites": [{ "source": "**", "destination": "/index.html" }],
+    "headers": [
+      {
+        "source": "**/*.@(js|css|woff2|png|svg|ico)",
+        "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+      },
+      {
+        "source": "**",
+        "headers": [
+          { "key": "X-Content-Type-Options", "value": "nosniff" },
+          { "key": "X-Frame-Options", "value": "DENY" },
+          { "key": "X-XSS-Protection", "value": "1; mode=block" },
+          { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+          { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" }
+        ]
+      }
+    ]
+  }
+}
+```
+
+**CSP — handle carefully:** Firebase Hosting supports `Content-Security-Policy` as a custom header. However, CSP for a Firebase + Stripe app requires explicit allowlisting of:
+- `js.stripe.com` in `script-src`
+- `api.stripe.com` in `connect-src`
+- `*.googleapis.com`, `*.firebaseio.com`, `*.firebaseapp.com` in `connect-src`
+- `'unsafe-inline'` required for Vite-generated styles (cannot hash dynamically at build time without custom plugin)
+
+**Recommendation:** Set report-only CSP first (`Content-Security-Policy-Report-Only`) to identify violations before enforcing. Full CSP enforcement is a phase unto itself — start with the other headers above which have no risk.
+
+**HSTS:** Firebase Hosting automatically sets `Strict-Transport-Security: max-age=31556926`. Do not manually set it in firebase.json — Firebase silently corrupts the value when you override it (known issue: [firebase-tools#5999](https://github.com/firebase/firebase-tools/issues/5999)).
+
+### Monitoring & Error Tracking
+
+| Technology | Version | Purpose | Why Recommended |
+|------------|---------|---------|-----------------|
+| firebase/analytics | bundled in firebase ^12.x | Already initialized in `src/firebase/analytics.ts` — keep | `logEvent()` from `firebase/analytics` is already wired; verify events fire in Firebase Console DebugView before launch | HIGH confidence |
+| @sentry/react | ^8.x | JavaScript error tracking for web | Firebase Crashlytics is mobile-only (iOS/Android); for the PWA, Sentry is the standard web error monitoring solution. Captures unhandled exceptions, React component errors (ErrorBoundary integration), and performance traces. Free tier covers small apps. | MEDIUM confidence — comparison sources confirm Crashlytics has no web SDK |
+
+**Sentry setup pattern:**
+```typescript
+import * as Sentry from '@sentry/react';
+Sentry.init({
+  dsn: import.meta.env.VITE_SENTRY_DSN,
+  environment: import.meta.env.MODE,
+  integrations: [Sentry.browserTracingIntegration()],
+  tracesSampleRate: 0.1,
+});
+```
+Wrap React root with `Sentry.withErrorBoundary` or use `<Sentry.ErrorBoundary>`. This replaces manual `<ErrorBoundary>` components listed in the production readiness triage.
+
+**Alternative:** Skip Sentry and use Firebase Analytics + manual `window.onerror` logging to Firestore. Simpler but no stack traces, no release tracking, and no performance monitoring. Only do this if Sentry DSN/account management is overhead you want to avoid.
+
+---
+
+## Supporting Libraries (Already Installed, Confirm Usage)
+
+| Library | Version | Purpose | Status |
+|---------|---------|---------|--------|
+| @dnd-kit/core | ^6.3.1 | Drag-and-drop workout reorder | Already used — no changes |
+| date-fns | ^4.1.0 | Date calculations for cycle tracking | Already used — no changes |
+| jszip | ^3.10.1 | CSV/ZIP export | Already used — no changes |
+| react-day-picker | ^9.14.0 | Calendar UI | Already used — no changes |
+
+---
+
+## Installation
+
+```bash
+# From pwa/ directory — add missing production dependencies
+npm install @stripe/react-stripe-js @sentry/react
+
+# From functions/ directory — Firebase Cloud Functions
+npm install firebase-admin@^13 firebase-functions@^6 stripe@^17
+npm install -D typescript @types/node
+```
 
 ---
 
 ## Alternatives Considered
 
-| Recommended | Alternative | Why Not |
-|-------------|-------------|---------|
-| HealthKit mirroring sessions (watchOS 10) | WatchConnectivity (WCSession) | WatchConnectivity requires manual serialization of every message; HealthKit mirroring handles workout-specific sync automatically and keeps rest timer in sync across devices. Use WatchConnectivity only for non-workout data (settings, preferences). |
-| SwiftUI App protocol (watchOS 10+) | WKExtensionDelegate lifecycle | WKExtensionDelegate is the legacy ClockKit-era pattern. watchOS 7+ supports SwiftUI App protocol. watchOS 10 targets should use `@main struct WatchApp: App` — same pattern as the iOS app. |
-| WidgetKit for complications | ClockKit (CLKComplication) | ClockKit is deprecated. Apple migrated to WidgetKit in watchOS 9. New complications must use WidgetKit's accessoryCircular, accessoryRectangular, accessoryCorner, accessoryInline families. |
-| Local UserNotifications for rest timer | Third-party push SDKs (OneSignal, etc.) | Rest timer countdown is entirely local — no server needed. UNUserNotificationCenter handles local scheduling. Remote notifications (WOD alerts, streak nudges) go through APNs directly; no third-party intermediary needed for an Apple-only app. |
-| XCTest + Swift Testing coexistence | Full migration to Swift Testing | Swift Testing (WWDC24) lacks UI testing and performance testing support as of early 2026. Keep XCTest for UI and perf tests; use Swift Testing for new unit tests only. |
-| StoreKit 2 native | RevenueCat | Out of scope per PROJECT.md. Apple-only app has no cross-platform subscription complexity that RevenueCat solves. StoreKit 2's `subscriptionStatusTask` modifier and `Transaction.currentEntitlements(for:)` cover all requirements. |
+| Recommended | Alternative | When to Use Alternative |
+|-------------|-------------|-------------------------|
+| FirebaseExtended/action-hosting-deploy | firebase-tools CLI in raw GH Actions step (`npm install firebase-tools && firebase deploy`) | If you need more control over deploy flags or multi-site deploys; slightly more boilerplate |
+| Sentry for error tracking | Manual Firestore error logging | If you want zero third-party services and are OK without stack traces/release tagging |
+| Stripe Checkout Session (server-side) | Stripe Payment Links (hosted Stripe page) | If you want zero custom payment UI; acceptable for B2C apps where redirect UX is fine |
+| CSP report-only first | Enforce CSP immediately | Never enforce immediately on a Stripe + Firebase app — will break payments on first deploy |
+| Service account JSON secret (GitHub) | Workload Identity Federation | WIF is better security posture but Firebase Admin SDK explicitly does not support it; use service account key |
 
 ---
 
@@ -74,95 +173,103 @@
 
 | Avoid | Why | Use Instead |
 |-------|-----|-------------|
-| ClockKit / CLKComplication | Deprecated since watchOS 9; removed path in watchOS 10+ | WidgetKit with accessory widget families |
-| WKExtensionDelegate for new watchOS code | Legacy pattern from pre-watchOS 7; creates extension lifecycle complexity | SwiftUI `@main` App protocol on watchOS |
-| App Groups for iPhone ↔ Watch data sync | App Group containers cannot be shared across devices (only same-device extensions) | CloudKit sync (already in place) + HealthKit mirroring for active workout data |
-| Hardcoded subscription tier in UserDefaults on cold launch | Current known bug — subscription cache loaded without server verification | Use `Transaction.currentEntitlements(for:)` async verification on launch |
-| Hardcoded Gemini model name string literal | Current known bug — silent breakage if model is renamed | Config constant or remote config value |
-| Empty string userID in guest mode | Current known bug — breaks any keyed persistence | Stable UUID stored in Keychain on first launch |
-| `@Attribute(.unique)` on CloudKit-synced models | CloudKit does not support atomic uniqueness constraints across devices — sync silently breaks | Use application-layer deduplication logic |
-| Ordered relationships in CloudKit-synced SwiftData models | Not supported by CloudKit; causes sync failures | Use sort descriptors at query time |
-
----
-
-## Stack Patterns by Variant
-
-**watchOS target (workout logging):**
-- Use SwiftUI `@main` App protocol — same pattern as iOS app
-- Use `HKWorkoutSession` + `HKLiveWorkoutBuilder` for active workout tracking (keeps app in background during workout)
-- Use HealthKit mirroring session for iPhone ↔ Watch sync during active workout
-- Use WatchConnectivity (`WCSession`) only for non-workout data: syncing user settings (weight unit, cycle phase) from iPhone to Watch on session activation
-- Workout data written to HealthKit on Watch, then CloudKit sync handles persistence to SwiftData on iPhone
-- Share `SundeeFundeeShared` SPM package as a dependency in XcodeGen watchOS target sources
-
-**Push notifications (APNs):**
-- Local notifications only for rest timer and workout reminders (no server round-trip)
-- Remote notifications for WOD-of-the-day alerts (server-initiated via Cloudflare Worker or future Cloud Function)
-- APNs auth key (.p8) preferred over certificates — tokens don't expire annually
-- Register device token in `application(_:didRegisterForRemoteNotificationsWithDeviceToken:)`, store in CloudKit private DB user record for server-side delivery
-
-**StoreKit 2 cold launch fix:**
-- Do NOT read UserDefaults subscription tier synchronously on launch
-- Await `Transaction.currentEntitlements(for:)` in an async Task on app launch
-- Use `.subscriptionStatusTask` modifier in SwiftUI for reactive tier updates
-
-**CloudKit production schema deployment:**
-- Development schema ≠ Production schema until explicitly deployed via CloudKit Dashboard
-- Must deploy schema to production before App Store submission — sync silently fails otherwise
-- SwiftData + CloudKit: all model properties must be Optional or have default values; no `.unique` attributes; lightweight migration only once enabled
-
-**Swift 6 concurrency on watchOS:**
-- watchOS 10 app target runs the same Swift 6 strict concurrency checks as iOS
-- `@MainActor` annotation required on all UI-update paths
-- Consider enabling Swift 6.2's `-default-isolation MainActor` compiler flag to reduce annotation noise on new watchOS code (Swift 6.2 released late 2025)
-- `@ModelActor` required for background SwiftData operations to avoid context concurrency violations
+| Firebase Crashlytics for web | No web SDK; mobile-only product | Sentry |
+| Gen1 Firebase Functions (`firebase-functions/v1`) | No `request.rawBody` reliability, cold starts, Node 18 deprecated | Gen2 `firebase-functions/v2/https` with `onRequest` |
+| `req.body` for Stripe webhook verification | JSON-parsed body breaks HMAC signature check; Stripe signature verification always fails | `request.rawBody` (Buffer) which Firebase gen2 provides natively |
+| Manually setting HSTS in firebase.json | Firebase overrides/corrupts the value silently ([known bug](https://github.com/firebase/firebase-tools/issues/5999)) | Rely on Firebase Hosting's automatic HSTS (max-age=31556926) |
+| `'unsafe-eval'` in CSP script-src | Required for Vite HMR in dev but should never reach production; Vite production builds do not use eval | Remove from production CSP; keep in dev-only server config |
+| Stripe secret key in frontend code | Exposed in browser, exploitable | Always call Stripe server API from Firebase Cloud Function; frontend only receives `clientSecret` |
+| Node 22 for Firebase Functions | Not GA as of March 2026 in Firebase | Node 20 (stable, recommended) |
 
 ---
 
 ## Version Compatibility
 
-| Component | Minimum Version | Notes |
-|-----------|----------------|-------|
-| watchOS target | 10.0 | Matches PROJECT.md constraint; SwiftUI App protocol, HealthKit mirroring, WidgetKit complications all available |
-| iOS target | 17.0 | Existing constraint; HealthKit mirroring requires iOS 17+ |
-| Xcode | 16.0+ | Required for Swift 6 strict concurrency; Apple mandated iOS 18 SDK builds from April 2025 for new submissions |
-| Swift | 6.0 | Already in use; Swift 6.2 available with improved concurrency ergonomics if upgrading compiler |
-| SwiftData + CloudKit | iOS 17+ / watchOS 10+ | CloudKit sync available on watchOS 10+ — same modelContainer configuration as iOS |
-| WidgetKit (complications) | watchOS 9+ | Safe at watchOS 10 deployment target |
-| HKWorkoutSession mirroring | iOS 17+ / watchOS 10+ | Both sides required simultaneously |
+| Package | Compatible With | Notes |
+|---------|-----------------|-------|
+| vite-plugin-pwa ^1.2.0 | Vite ^8.x, Workbox 7.x | vite-plugin-pwa 0.17+ requires Vite 5+; 1.x tracks Vite 6+/8+ |
+| @stripe/react-stripe-js ^5.6.1 | @stripe/stripe-js ^8.x | Peer dep; must upgrade both together; v5 renames `CustomCheckoutProvider` → `CheckoutProvider` |
+| firebase ^12.11.0 | Node 20+ (server), modern browsers (client) | firebase-admin 13.x drops Node 18 support |
+| firebase-functions ^6.x | firebase-admin ^13.x, Node 20 | Gen2 requires Firebase CLI 12.0.0+ |
+| stripe (Node) ^17.x | Stripe API version 2025-01-27.acacia | Stripe auto-assigns API version on account creation; pin in constructor |
 
 ---
 
-## APNs Setup Requirements
+## GitHub Actions Workflow Pattern
 
-The existing codebase has no APNs infrastructure. The following must be added:
+```yaml
+# .github/workflows/deploy.yml
+name: Deploy to Firebase Hosting
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
 
-1. **Entitlements:** Add `aps-environment` (`development` / `production`) to both `.entitlements` files
-2. **Capability in project.yml:** Add `pushNotifications: true` under target capabilities for the iOS target
-3. **APNs Auth Key:** Generate `.p8` key in Apple Developer portal (Keys section); add `APNS_KEY_ID`, `APNS_TEAM_ID`, `APNS_AUTH_KEY` to GitHub Secrets
-4. **Registration flow:** Call `UIApplication.shared.registerForRemoteNotifications()` after `UNUserNotificationCenter` grants permission
-5. **Device token storage:** Store token in CloudKit private DB (`users/{appleUserID}/deviceTokens`) for server-side WOD push delivery
-6. **Local notification categories:** Define `UNNotificationCategory` for rest timer (with "Skip" action) and workout reminder (with "Start Now" action)
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: pwa/package-lock.json
+
+      - name: Install and build
+        working-directory: pwa
+        env:
+          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
+          VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+          VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
+          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
+          VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
+          VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
+        run: |
+          npm ci
+          npm run build
+
+      - name: Deploy to Firebase Hosting (live)
+        if: github.event_name == 'push'
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          projectId: sundee-fundee
+          channelId: live
+
+      - name: Deploy to Firebase Hosting (preview)
+        if: github.event_name == 'pull_request'
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          projectId: sundee-fundee
+```
+
+**Required GitHub Secrets:**
+- `FIREBASE_SERVICE_ACCOUNT` — JSON key from Firebase Console > Project Settings > Service Accounts
+- All `VITE_*` environment variables — Firebase config values (public, not sensitive, but keep out of source)
+- `VITE_STRIPE_PUBLISHABLE_KEY` — Publishable key only (never secret key in frontend)
 
 ---
 
 ## Sources
 
-- Apple Developer Docs: [Running workout sessions](https://developer.apple.com/documentation/healthkit/workouts_and_activity_rings/running_workout_sessions) — HKWorkoutSession + mirroring architecture (HIGH confidence)
-- Apple Developer Docs: [Creating independent watchOS apps](https://developer.apple.com/documentation/watchos-apps/creating-independent-watchos-apps/) — SwiftUI App protocol for watchOS (HIGH confidence)
-- Apple Developer Docs: [TN3157: Updating your watchOS project for SwiftUI and WidgetKit](https://developer.apple.com/documentation/technotes/tn3157-updating-your-watchos-project-for-swiftui-and-widgetkit) — Migration from WKExtensionDelegate (HIGH confidence)
-- Apple Developer Docs: [Sending notification requests to APNs](https://developer.apple.com/documentation/usernotifications/sending-notification-requests-to-apns) — APNs setup (HIGH confidence)
-- [WWDC25: What's new in StoreKit and In-App Purchase](https://developer.apple.com/videos/play/wwdc2025/241/) — StoreKit 2 current best practices (HIGH confidence)
-- [WWDC25: Track workouts with HealthKit on iOS and iPadOS](https://developer.apple.com/videos/play/wwdc2025/322/) — HealthKit workout tracking current guidance (HIGH confidence)
-- [Sasquatch Studio: Building a Workout App for Apple Watch (March 2025)](https://sasq.ca/blog/2025/3/2/building-a-workout-app-for-apple-watch) — Mirroring session architecture, critical bug in Apple sample code (MEDIUM confidence — single source but recent and specific)
-- [fatbobman.com: Key Considerations Before Using SwiftData](https://fatbobman.com/en/posts/key-considerations-before-using-swiftdata/) — CloudKit sync limitations and production gotchas (HIGH confidence — matches official Apple forum reports)
-- [fatbobman.com: Fixing CloudKit Sync in Production: Deploying Schema](https://fatbobman.com/en/snippet/why-core-data-or-swiftdata-cloud-sync-stops-working-after-app-store-login/) — Schema deployment requirement (HIGH confidence)
-- [Swift 6.2 Released — Swift.org](https://www.swift.org/blog/swift-6.2-released/) — Approachable concurrency, MainActor default isolation (HIGH confidence)
-- [avanderlee.com: Approachable Concurrency in Swift 6.2](https://www.avanderlee.com/concurrency/approachable-concurrency-in-swift-6-2-a-clear-guide/) — Concurrency ergonomics improvements (MEDIUM confidence — verified blog, cross-references swift.org)
-- [XcodeGen ProjectSpec docs](https://yonaskolb.github.io/XcodeGen/Docs/ProjectSpec.html) — watchOS target configuration reference (HIGH confidence)
-- [Apple Developer Docs: Transferring data with Watch Connectivity](https://developer.apple.com/documentation/WatchConnectivity/transferring-data-with-watch-connectivity) — WCSession vs mirroring decision (HIGH confidence)
+- [firebase.google.com/docs/hosting/github-integration](https://firebase.google.com/docs/hosting/github-integration) — Official Firebase Hosting GitHub Actions docs (HIGH confidence)
+- [firebase.google.com/docs/hosting/full-config](https://firebase.google.com/docs/hosting/full-config) — Headers, rewrites, cache config (HIGH confidence)
+- [vite-pwa-org.netlify.app/guide/pwa-minimal-requirements](https://vite-pwa-org.netlify.app/guide/pwa-minimal-requirements) — PWA icon sizes, manifest requirements for Lighthouse (HIGH confidence)
+- [docs.stripe.com/sdks/stripejs-react](https://docs.stripe.com/sdks/stripejs-react) — React Stripe.js reference, v5 API changes (HIGH confidence)
+- [aronschueler.de/blog/2025/03/17/implementing-stripe-subscriptions-with-firebase-cloud-functions-and-firestore](https://aronschueler.de/blog/2025/03/17/implementing-stripe-subscriptions-with-firebase-cloud-functions-and-firestore/) — Stripe + Firebase Functions gen2 pattern with rawBody (MEDIUM confidence — blog, but March 2025 and matches official Stripe docs)
+- [github.com/firebase/firebase-tools/issues/5999](https://github.com/firebase/firebase-tools/issues/5999) — HSTS override bug in firebase.json (HIGH confidence — official repo issue)
+- [github.com/google-github-actions/auth](https://github.com/google-github-actions/auth) — WIF not supported by Firebase Admin SDK (MEDIUM confidence — community finding, consistent across multiple sources)
+- [sentry.io/resources/sentry-vs-crashlytics-mobile-developers-guide](https://sentry.io/resources/sentry-vs-crashlytics-mobile-developers-guide/) — Sentry vs Crashlytics web support comparison (MEDIUM confidence — vendor source)
+- npm search results for stripe@20.x, @stripe/stripe-js@8.x, @stripe/react-stripe-js@5.x — version numbers (HIGH confidence, cross-referenced with package.json)
 
 ---
 
-*Stack research for: Sundee Fundee — native iOS + watchOS strength training app*
-*Researched: 2026-03-18*
+*Stack research for: PWA production readiness (Vite + React + Firebase)*
+*Researched: 2026-03-21*

@@ -1,427 +1,516 @@
 # Architecture Research
 
-**Domain:** iOS + watchOS native strength training app (SwiftUI, SwiftData, CloudKit)
-**Researched:** 2026-03-18
-**Confidence:** MEDIUM-HIGH — iOS patterns HIGH confidence (verified via official docs + community), watchOS CloudKit sync MEDIUM confidence (known reliability issues, workarounds not fully stabilized in community sources)
-
----
+**Domain:** PWA production infrastructure — Vite + React + Firebase
+**Researched:** 2026-03-21
+**Confidence:** HIGH (architecture based on existing codebase audit + official Firebase/Stripe/React docs)
 
 ## Standard Architecture
 
 ### System Overview
 
 ```
-┌──────────────────────────────────────────────────────────────────┐
-│                      iPhone App Target                           │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐         │
-│  │Dashboard │  │Workouts  │  │ Cycle    │  │Settings  │  ...    │
-│  │  View+VM │  │  View+VM │  │  View+VM │  │  View+VM │         │
-│  └────┬─────┘  └────┬─────┘  └────┬─────┘  └────┬─────┘         │
-│       └─────────────┴─────────────┴──────────────┘               │
-│                         Repository Protocols                      │
-│  ┌─────────────────────────────────────────────────────────────┐  │
-│  │  SwiftData repos │ CloudKit repos │ Gemini repo │ HealthKit │  │
-│  └─────────────────────────────────────────────────────────────┘  │
-│  ┌─────────────────────────────────────────────────────────────┐  │
-│  │              ModelContainer (CloudKit-backed)                │  │
-│  └─────────────────────────────────────────────────────────────┘  │
-└──────────────────────┬────────────────┬─────────────────────────┘
-                       │                │
-          WatchConnectivity       CloudKit Private DB
-          (real-time / active      (passive background
-           workout push)            sync, all devices)
-                       │                │
-┌──────────────────────┴────────────────┴─────────────────────────┐
-│                      Apple Watch Target                          │
-│  ┌──────────────┐  ┌─────────────────┐  ┌─────────────────────┐ │
-│  │  WorkoutLog  │  │  ActiveWorkout  │  │   WatchDashboard    │ │
-│  │   View+VM    │  │   View+VM       │  │   View+VM           │ │
-│  └──────┬───────┘  └────────┬────────┘  └──────────┬──────────┘ │
-│         └───────────────────┴───────────────────────┘            │
-│                     Watch Repository Protocols                    │
-│  ┌─────────────────────────────────────────────────────────────┐ │
-│  │  WatchSwiftData repos  │  WatchConnectivity repo            │ │
-│  └─────────────────────────────────────────────────────────────┘ │
-│  ┌─────────────────────────────────────────────────────────────┐ │
-│  │              Watch ModelContainer (CloudKit-backed)          │ │
-│  └─────────────────────────────────────────────────────────────┘ │
-└──────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────┐
+│                        BROWSER (PWA)                                 │
+│                                                                      │
+│  ┌──────────────────────────────────────────────────────────────┐   │
+│  │  React Router (react-router v7) + React 19 Component Tree    │   │
+│  │  ┌───────────┐ ┌───────────┐ ┌───────────┐ ┌────────────┐   │   │
+│  │  │SessionPro-│ │Entitlement│ │  Route    │ │  Error     │   │   │
+│  │  │vider      │ │Provider   │ │  Outlets  │ │  Boundary  │   │   │
+│  │  └─────┬─────┘ └─────┬─────┘ └─────┬─────┘ └─────┬──────┘   │   │
+│  └────────┼─────────────┼─────────────┼─────────────┼───────────┘   │
+│           │             │             │             │               │
+│  ┌────────▼─────────────▼─────────────▼─────────────▼───────────┐   │
+│  │            Repository Layer (Firestore + LocalStorage)         │   │
+│  │  FirestoreWorkoutRepo / LocalWorkoutRepo  (dual adapters)     │   │
+│  └──────────────────────────────┬────────────────────────────────┘   │
+│                                 │                                    │
+│  ┌──────────────────────────────▼────────────────────────────────┐   │
+│  │         src/domain/  (pure TypeScript, zero deps)             │   │
+│  └─────────────────────────────────────────────────────────────  │   │
+│                                                                      │
+│  ┌──────────────────────────────────────────────────────────────┐   │
+│  │      Service Worker (vite-plugin-pwa / Workbox)               │   │
+│  │   NetworkFirst for Firestore API  |  CacheFirst for assets    │   │
+│  └──────────────────────────────────────────────────────────────┘   │
+└─────────────────────┬───────────────────────────────────────────────┘
+                      │ HTTPS / wss
+┌─────────────────────▼───────────────────────────────────────────────┐
+│                        FIREBASE                                      │
+│  ┌────────────┐  ┌───────────┐  ┌──────────────┐  ┌─────────────┐  │
+│  │  Hosting   │  │  Auth     │  │  Firestore   │  │  Functions  │  │
+│  │ (CDN+HTTPS)│  │(multi-    │  │(persistent   │  │generateWork-│  │
+│  │            │  │provider)  │  │ IndexedDB    │  │out,         │  │
+│  │ CSP headers│  │           │  │ offline)     │  │stripeWebhook│  │
+│  │ in         │  │           │  │              │  │createCheckout│ │
+│  │firebase.json│ │           │  │              │  └──────┬──────┘  │
+│  └────────────┘  └───────────┘  └──────────────┘         │         │
+└────────────────────────────────────────────────────────── │ ────────┘
+                                                            │
+                                              ┌─────────────▼────────┐
+                                              │       STRIPE          │
+                                              │  Checkout Sessions    │
+                                              │  Customer Portal      │
+                                              │  Webhooks → Function  │
+                                              └──────────────────────┘
 
-┌──────────────────────────────────────────────────────────────────┐
-│                  SundeeFundeeShared Package                      │
-│  Domain logic │ Models (Program, WOD, ExerciseCatalog) │         │
-│  Pure Swift — no framework imports — available to all targets    │
-└──────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────┐
+│                     CI/CD (GitHub Actions)                           │
+│  push to main → [test] → [build] → [deploy to Firebase Hosting]     │
+│  PR → [test] → [build] → [preview channel deploy]                   │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
 ### Component Responsibilities
 
 | Component | Responsibility | Communicates With |
-|-----------|---------------|-------------------|
-| iPhone Feature Views + ViewModels | iOS UI, user interactions, state presentation | Repository protocols, Domain layer, AppState |
-| Watch Feature Views + ViewModels | watchOS UI, compact workout logging, glanceable data | Watch repository protocols, Domain layer |
-| SundeeFundeeShared Package | Pure domain logic, shared value types (Program, WOD, ExerciseCatalog, validation) | Nothing — zero dependencies |
-| Repository Protocols | Contract definitions; swap implementations without touching ViewModels | Implemented by SwiftData, CloudKit, WatchConnectivity, Gemini |
-| SwiftData ModelContainer (iOS) | Local persistence, CloudKit-backed sync. Three-tier fallback: CloudKit → local → in-memory | CloudKit private DB |
-| SwiftData ModelContainer (watchOS) | Watch-local persistence. Separate container, same CloudKit container identifier for passive sync | CloudKit private DB |
-| WatchConnectivity Service | Real-time iPhone↔Watch messaging during active workouts. Supplements CloudKit for low-latency needs | iOS app, Watch app |
-| CloudKit Private DB | Ground truth sync across all user devices (iPhone, Watch). Eventual consistency | SwiftData ModelContainers on both targets |
-| HealthKit / HKWorkoutSession | Live biometric data during Watch workout sessions. Required for background execution on Watch | Watch ViewModels, HealthKit framework |
-| AuthService + Keychain | Sign in with Apple, session restore, credential storage | AppState, SwiftData (writes User on first sign-in) |
-| SubscriptionService | StoreKit 2 tier gating (free / plus / pro) | Feature ViewModels |
-| Gemini Cloudflare Proxy | AI workout generation — proxies Gemini API, returns structured workout JSON | GeminiRepository |
+|-----------|----------------|-------------------|
+| SessionProvider | Firebase Auth state, guest/authenticated mode | AuthContext consumers, repo selection |
+| EntitlementProvider | Stripe premium state via Firestore onSnapshot | /users/{uid}.premiumEntitlement.active |
+| Error Boundary | Catch React render errors, show fallback UI | Sentry/Firebase Crashlytics (log) |
+| Repository Layer | Data access abstraction (Firestore or LocalStorage) | Firestore, IndexedDB |
+| src/domain/ | Pure business logic (cycle, injury, workout) | Nothing — pure TypeScript |
+| Service Worker | Asset precaching, Firestore API NetworkFirst cache | Browser Cache API, Workbox |
+| Firebase Hosting | HTTPS delivery, CSP/security headers, SPA redirect | CDN edge nodes |
+| Cloud Functions | AI workout gen (Gemini), Stripe session creation, webhook handler | Gemini API, Stripe API, Firestore |
+| GitHub Actions | Build, test, deploy on push/PR | Firebase Hosting deploy action |
 
----
+## Recommended Project Structure
 
-## Code Sharing Strategy
-
-### Recommended Approach: Local Swift Package + Target Membership
-
-The project already has `SundeeFundeeShared` as a local Swift Package. Extend this pattern deliberately rather than using ad-hoc target membership files.
-
-**Three tiers of code sharing:**
-
-| Tier | What Goes Here | Mechanism |
-|------|---------------|-----------|
-| Shared Package (`SundeeFundeeShared`) | Domain logic, value types, validation, exercise catalog, Program/WOD models | Local SPM package, linked to both targets |
-| Shared source files via target membership | Platform-agnostic utility extensions (Date, String, Numeric formatters), theme constants that apply to both platforms | `.swift` file → checked in both target memberships in `project.yml` |
-| Platform-specific | iOS: Tab navigation, StoreKit paywall, full settings, HealthKit background tasks. Watch: workout session management, HKWorkoutSession, complications | Separate target source directories; conditional `#if os(watchOS)` only as last resort |
-
-**Decision rule:** If code has zero UIKit/SwiftUI/SwiftData/HealthKit imports, it belongs in `SundeeFundeeShared`. If it has SwiftUI but no platform-specific APIs, consider target membership with `#if os(watchOS)` guards. If it requires a platform-specific framework (e.g., `WatchKit`, `HealthKit` workout sessions), it lives in the dedicated target.
-
-**Confidence:** HIGH — this pattern (local SPM for domain, target membership for light sharing, separate source trees for platform-specific) is the standard Apple recommendation and matches the existing codebase structure.
-
----
-
-## Recommended Project Structure (watchOS additions)
+The PWA already has a strong structure. Production readiness adds infrastructure files alongside it:
 
 ```
-SundeeFundee/
-├── SundeeFundee/                     # iOS app target (existing)
-│   ├── App/
-│   ├── Auth/
-│   ├── Domain/                       # MOVE pure logic → SundeeFundeeShared
-│   ├── Features/
-│   ├── Models/
-│   ├── Repositories/
-│   │   ├── Protocols/
-│   │   ├── SwiftData/
-│   │   ├── CloudKit/
-│   │   ├── WatchConnectivity/        # NEW: WCSession service (iOS side)
-│   │   └── ...
-│   └── ...
-│
-├── SundeeFundeeWatch/                # NEW: watchOS app target
-│   ├── App/
-│   │   ├── SundeeFundeeWatchApp.swift
-│   │   ├── WatchAppState.swift
-│   │   └── WatchModelContainer.swift
-│   ├── Features/
-│   │   ├── ActiveWorkout/            # Core feature: logging sets from wrist
-│   │   ├── Dashboard/                # Glanceable summary (today's workout)
-│   │   └── Shared/                   # Watch-specific UI components
-│   ├── Repositories/
-│   │   ├── Protocols/                # Watch-scoped protocol subset
-│   │   ├── SwiftData/                # Watch SwiftData implementations
-│   │   └── WatchConnectivity/        # WCSession service (Watch side)
-│   └── Complications/                # ClockKit / WidgetKit complications
-│
-├── SundeeFundee/Packages/
-│   └── SundeeFundeeShared/           # EXPANDED: add domain logic migrated from iOS Domain/
-│       └── Sources/SundeeFundeeShared/
-│           ├── Models/               # Program, WOD, ExerciseCatalog (existing)
-│           ├── Domain/               # CycleProgramGenerator, InjuryAdaptation,
-│           │                         # WeightCalculations, PlateCalculation (MOVE HERE)
-│           ├── CloudKit/             # CKRecord wrappers (existing)
-│           └── Validation/           # Validators (existing)
-│
-└── project.yml                       # XcodeGen spec — add watchOS target here
+pwa/
+├── src/
+│   ├── auth/               # AuthContext, Firebase auth wrappers
+│   ├── components/         # Reusable UI (add ErrorBoundary.tsx here)
+│   ├── domain/             # Pure TS business logic — unchanged
+│   ├── entitlements/       # EntitlementContext, useEntitlements, stripe-checkout
+│   ├── firebase/           # app.ts, auth.ts, firestore.ts, analytics.ts
+│   ├── repositories/       # Firestore* and Local* dual adapters
+│   ├── routes/             # Route components + AppLayout
+│   └── main.tsx            # Root — add ErrorBoundary wrapper here
+├── public/
+│   └── icons/              # icon-192.png, icon-512.png (production quality)
+├── vite.config.ts          # Service worker config (already exists)
+└── index.html              # SEO meta tags, OG tags added here
+
+functions/
+├── src/
+│   ├── index.ts            # Export all functions
+│   ├── generateWorkout.ts  # Gemini proxy (replace Cloudflare worker)
+│   ├── createCheckoutSession.ts   # Stripe Checkout session creator
+│   ├── createPortalSession.ts     # Stripe Customer Portal session
+│   └── stripeWebhook.ts    # Webhook handler (sets premiumEntitlement)
+└── package.json
+
+firebase.json               # Hosting config: rewrite rules, CSP headers
+firestore.rules             # Security rules (already solid, verify subcollections)
+firestore.indexes.json      # Query indexes for subcollection queries
+
+.github/
+└── workflows/
+    └── deploy.yml          # CI/CD: test + build + firebase deploy
 ```
 
-**Structure rationale:**
-- `SundeeFundeeWatch/` is a dedicated source tree, never imports iOS-only frameworks
-- Domain logic migration into `SundeeFundeeShared` makes cycle adaptation and weight calculations available on Watch without duplication
-- Watch repository protocols are a subset — Watch does not need AI workout generation or HealthKit readiness repos
-- `WatchConnectivity/` repositories exist on both sides of the fence; they mirror each other's interface
+### Structure Rationale
 
----
+- **functions/src/**: Stripe functions live here alongside `generateWorkout.ts` — they share the same deploy unit and Firebase Admin SDK initialization.
+- **firebase.json headers**: CSP is set at the CDN edge via `firebase.json` `headers` config — this is the correct place for a SPA served from Firebase Hosting, not in the Vite build.
+- **.github/workflows/**: Single `deploy.yml` handles both PR preview channels and main-branch live deploys using Firebase's official GitHub Action.
 
 ## Architectural Patterns
 
-### Pattern 1: Separate ModelContainers with Shared CloudKit Container
+### Pattern 1: Firebase Hosting + GitHub Actions CI/CD
 
-**What:** Both iOS and watchOS targets create their own `ModelContainer` pointing to the same CloudKit container identifier (`iCloud.com.sundeefundee`). CloudKit acts as the sync bus. Neither target shares an in-process `ModelContext`.
+**What:** GitHub Actions workflow triggers on push to `main` and on PRs. Firebase's official GitHub Action (`FirebaseExtended/action-deploy-firebase-hosting`) handles deploy authentication via a service account stored as a GitHub secret.
 
-**When to use:** Always — app groups cannot share a SQLite database across iPhone and Watch because they are different physical devices.
+**When to use:** Every project deploying to Firebase Hosting — this is the official, maintained path.
 
-**Trade-offs:**
-- Pro: Fully standalone Watch app; continues working without iPhone present
-- Pro: CloudKit handles conflict resolution automatically
-- Con: Sync is eventual — a workout logged on Watch may take seconds to minutes to appear on iPhone
-- Con: Known watchOS 10 issue: CloudKit sync on Watch only triggers reliably when Watch is charging with >50% battery. Background sync is not guaranteed during workout.
+**Trade-offs:** Preview channels are automatic on PR; live deploys require the `FIREBASE_SERVICE_ACCOUNT` secret. One-time setup cost, then fully automated.
 
-**Implementation:**
-```swift
-// WatchModelContainer.swift — same pattern as AppModelContainer.swift
-static func make() -> ModelContainer {
-    let schema = Schema(WatchAppSchemaV1.models)
-    let config = ModelConfiguration(
-        schema: schema,
-        cloudKitContainerIdentifier: "iCloud.com.sundeefundee"
-    )
-    return try! ModelContainer(for: schema, configurations: [config])
+**Example:**
+```yaml
+# .github/workflows/deploy.yml
+name: Deploy to Firebase Hosting
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - run: cd pwa && npm ci
+      - run: cd pwa && npm run test
+      - run: cd pwa && npm run build
+        env:
+          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
+          VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+          VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
+          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
+          VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
+          VITE_STRIPE_PRICE_ID: ${{ secrets.VITE_STRIPE_PRICE_ID }}
+      - uses: FirebaseExtended/action-deploy-firebase-hosting@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          channelId: live           # "live" for main, auto-preview for PRs
+          projectId: sundee-fundee
+```
+
+**Key details:**
+- `VITE_*` env vars must be injected at build time (Vite bakes them into the bundle)
+- `FIREBASE_SERVICE_ACCOUNT` is a JSON service account key stored as a GitHub secret
+- PR builds get automatic preview channel URLs (e.g., `https://sundee-fundee--pr-42-abc123.web.app`)
+- `channelId: live` only applies when branch is `main` — use a conditional for this
+
+### Pattern 2: Stripe Webhook Architecture
+
+**What:** Stripe → Cloud Function HTTP endpoint → verify signature → update Firestore. The client never writes to `premiumEntitlement` — only the webhook function does. The client reads it via `onSnapshot` for real-time updates.
+
+**When to use:** Any Stripe subscription integration. The webhook is the source of truth, not the checkout success redirect (which can be skipped if the user closes the tab).
+
+**Trade-offs:** Webhook must be an HTTP function (`onRequest`), not a callable (`onCall`), because Stripe calls it directly. Raw body preservation is required for signature verification — this is a common gotcha with Firebase Functions.
+
+**Example:**
+```typescript
+// functions/src/stripeWebhook.ts
+import * as functions from 'firebase-functions/v2/https';
+import Stripe from 'stripe';
+import * as admin from 'firebase-admin';
+
+export const stripeWebhook = functions.onRequest(async (req, res) => {
+  const sig = req.headers['stripe-signature'] as string;
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+
+  let event: Stripe.Event;
+  try {
+    // req.rawBody is preserved by Firebase Functions — required for verification
+    event = stripe.webhooks.constructEvent(
+      req.rawBody,
+      sig,
+      process.env.STRIPE_WEBHOOK_SECRET!
+    );
+  } catch {
+    res.status(400).send('Webhook signature verification failed');
+    return;
+  }
+
+  if (event.type === 'customer.subscription.updated' ||
+      event.type === 'customer.subscription.created') {
+    const subscription = event.data.object as Stripe.Subscription;
+    const uid = subscription.metadata.firebaseUid; // set at checkout creation
+    const isActive = subscription.status === 'active';
+
+    await admin.firestore()
+      .collection('users').doc(uid)
+      .update({ 'premiumEntitlement.active': isActive });
+  }
+
+  res.json({ received: true });
+});
+```
+
+**Firestore document structure for entitlements:**
+```
+/users/{uid}
+  premiumEntitlement: {
+    active: boolean,
+    stripeCustomerId: string,
+    stripeSubscriptionId: string,
+    currentPeriodEnd: Timestamp
+  }
+```
+
+**Firestore rule for entitlement field — only Functions can write it:**
+```
+match /users/{userId} {
+  allow read: if request.auth.uid == userId;
+  allow write: if request.auth.uid == userId
+    && !('premiumEntitlement' in request.resource.data.diff(resource.data).affectedKeys());
 }
 ```
 
-**Confidence:** MEDIUM — CloudKit sync on watchOS is documented but has known reliability issues (charging requirement, large dataset sync failures). This is the Apple-prescribed approach; the reliability issues are a known tradeoff, not a reason to abandon it.
+### Pattern 3: React Error Boundary Placement
 
----
+**What:** Two-tier error boundary placement — one at the root to catch total failures, one at the route level to allow graceful degradation (a broken dashboard doesn't kill the settings screen).
 
-### Pattern 2: WatchConnectivity as Real-Time Supplement
+**When to use:** Production React apps. React 19 adds `onCaughtError` and `onUncaughtError` root options — these complement but don't replace error boundaries.
 
-**What:** Use `WCSession` to push workout-in-progress state from Watch to iPhone during an active workout session. This is not a replacement for CloudKit sync — it is a low-latency bridge for data that must arrive before the user checks their iPhone.
+**Trade-offs:** `react-error-boundary` package provides a declarative `<ErrorBoundary>` with `FallbackComponent`, `onError` callback (for logging), and `resetKeys` (to auto-recover on route change). Building a class-based boundary manually is more work for the same result.
 
-**When to use:** Active workout logging only. The Watch-side `WCSession.sendMessage` delivers instantly when the counterpart app is reachable. `transferUserInfo` delivers queued, guaranteed when the Watch app goes background.
+**Example:**
+```typescript
+// src/components/ErrorBoundary.tsx
+import { ErrorBoundary as REB } from 'react-error-boundary';
 
-**Do not use for:** Full data sync, exercise library loading, program catalog reads. Use CloudKit for those.
+function GlobalFallback({ error, resetErrorBoundary }: FallbackProps) {
+  return (
+    <div role="alert" className="error-screen">
+      <h1>Something went wrong</h1>
+      <p>The app encountered an unexpected error.</p>
+      <button onClick={resetErrorBoundary}>Try again</button>
+    </div>
+  );
+}
 
-**Transfer method selection:**
+// In main.tsx — wrap RouterProvider:
+<ErrorBoundary FallbackComponent={GlobalFallback} onError={logToAnalytics}>
+  <RouterProvider router={router} />
+</ErrorBoundary>
 
-| Scenario | Method | Rationale |
-|----------|--------|-----------|
-| User completes a set mid-workout | `transferUserInfo` | Guaranteed delivery even if iPhone app is in background; FIFO queue |
-| Workout session started / completed | `transferUserInfo` | Must not be lost |
-| Live set display on iPhone during workout | `sendMessage` | Real-time, but both apps must be reachable |
-| Sync latest user settings to Watch at launch | `updateApplicationContext` | Only latest needed; replaces previous |
+// In route layouts (AppLayout.tsx) — per-route boundaries:
+<ErrorBoundary FallbackComponent={RouteFallback} resetKeys={[location.pathname]}>
+  <Outlet />
+</ErrorBoundary>
+```
 
-**Architecture:** `WatchConnectivityService` is a singleton `@Observable` class on both targets, conforming to `WCSessionDelegate`. It is injected into the environment from the app entry point, not created per-ViewModel.
+**Error event handler capture (React 19):**
+```typescript
+// main.tsx — createRoot options for unhandled errors
+createRoot(document.getElementById('root')!, {
+  onUncaughtError: (error, errorInfo) => {
+    logToFirebase(error, errorInfo);
+  },
+  onCaughtError: (error, errorInfo) => {
+    logToFirebase(error, errorInfo);
+  },
+}).render(<App />);
+```
 
-```swift
-// Shared singleton pattern (both targets)
-@Observable
-final class WatchConnectivityService: NSObject, WCSessionDelegate {
-    static let shared = WatchConnectivityService()
+### Pattern 4: Content Security Policy via firebase.json
 
-    private let session = WCSession.default
+**What:** CSP headers are set in `firebase.json` under the `hosting.headers` array. This runs at the CDN edge, before the browser parses HTML — more secure and reliable than meta tags or Vite plugins.
 
-    func activate() {
-        guard WCSession.isSupported() else { return }
-        session.delegate = self
-        session.activate()
-    }
+**When to use:** Firebase Hosting deployments. The `firebase.json` headers approach is the correct production pattern.
+
+**Trade-offs:** CSP for Firebase is moderately complex because Firebase SDK requires `connect-src` for multiple googleapis.com domains, and `wss://` for Firestore real-time connections. The service worker also needs `script-src 'self'`. Get this wrong and the app silently breaks in production.
+
+**Example — firebase.json CSP header block:**
+```json
+{
+  "hosting": {
+    "public": "pwa/dist",
+    "ignore": ["firebase.json", "**/.*"],
+    "rewrites": [{ "source": "**", "destination": "/index.html" }],
+    "headers": [
+      {
+        "source": "**",
+        "headers": [
+          {
+            "key": "Content-Security-Policy",
+            "value": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://api.stripe.com; frame-src https://js.stripe.com https://hooks.stripe.com; worker-src 'self' blob:"
+          },
+          { "key": "X-Frame-Options", "value": "DENY" },
+          { "key": "X-Content-Type-Options", "value": "nosniff" },
+          { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+          { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" }
+        ]
+      },
+      {
+        "source": "**/*.@(js|css|woff2|png|jpg|svg)",
+        "headers": [
+          { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+        ]
+      }
+    ]
+  }
 }
 ```
 
-**Confidence:** HIGH — WCSession singleton is the canonical pattern per Apple documentation and universally used in the community.
+**Key CSP domains for Firebase + Stripe:**
+- `connect-src` must include: `*.googleapis.com`, `*.firebaseio.com`, `wss://*.firebaseio.com`, `securetoken.googleapis.com`, `api.stripe.com`
+- `frame-src` must include: `js.stripe.com`, `hooks.stripe.com` (for Stripe Elements, even redirect-based checkout)
+- `worker-src 'self' blob:` is required for the service worker
 
----
+### Pattern 5: Service Worker Strategy (Workbox via vite-plugin-pwa)
 
-### Pattern 3: HKWorkoutSession for Active Watch Workouts
+**What:** The existing `vite.config.ts` already has correct strategy choices. The configuration is nearly production-ready with two key fixes needed.
 
-**What:** Strength training workouts on Apple Watch require an `HKWorkoutSession` to keep the Watch app running in the foreground and to collect HealthKit samples (heart rate, active energy). Without a workout session, watchOS aggressively suspends the app.
+**Existing config is correct:**
+- `NetworkFirst` for Firestore API calls — always tries network, falls back to cache. Right for data freshness.
+- `CacheFirst` for images — long cache, right for static assets.
+- `globPatterns` precaches all JS/CSS/HTML/assets — enables full offline shell.
 
-**When to use:** Every time the user starts a workout on Watch. Not optional for a workout logging app.
+**What needs to be fixed for production:**
+1. `registerType: 'autoUpdate'` is correct for production (silently updates SW).
+2. The manifest icon paths reference `/icons/icon-192.png` and `/icons/icon-512.png` but `public/` only contains `favicon.svg` and `icons.svg` — actual PNG icons must exist at build time.
+3. Firebase Hosting must not serve stale `sw.js` — add `Cache-Control: no-cache` header for `sw.js` specifically in `firebase.json`.
 
-**Key requirements:**
-- HealthKit entitlement must be added to the Watch target in `project.yml`
-- Request HealthKit authorization before the first workout
-- `HKWorkoutSession` must be started and ended explicitly
-- Workout route/samples can be written back to HealthKit on session end for Apple Fitness+ integration
+**firebase.json addition for service worker:**
+```json
+{
+  "source": "/sw.js",
+  "headers": [{ "key": "Cache-Control", "value": "no-cache" }]
+}
+```
 
-**Trade-offs:**
-- Pro: Prevents Watch app from suspending during 60-minute workouts
-- Pro: Unlocks real heart rate and calorie data during session
-- Con: Adds complexity — session state machine (not started → running → paused → ended) must be mirrored in the ViewModel
-- Con: Separate HealthKit authorization request from existing iOS HealthKit readiness integration
+### Pattern 6: Firestore Security Rules (Production Lockdown)
 
-**Confidence:** HIGH — HKWorkoutSession is required for background execution on watchOS during workouts per Apple documentation.
+**What:** The existing `firestore.rules` in the RN worktree is a strong baseline. The production rules need one addition: prevent client-side writes to `premiumEntitlement` (only the Stripe webhook Cloud Function should set this).
 
----
+**Current state:** Rules correctly use `allow read, write: if false` as default, with owner-only access to `/users/{uid}` and all subcollections. Programs and WODs are read-only for authenticated users.
 
-### Pattern 4: Watch-Local SwiftData Schema (Separate, Smaller)
+**Missing — entitlement write protection:**
+```javascript
+match /users/{userId} {
+  // User can read own doc
+  allow read: if request.auth != null && request.auth.uid == userId;
 
-**What:** The Watch target has its own schema version with a smaller set of models — only what is needed for workout logging. It does not replicate the full 22-model `AppSchemaV12`.
+  // User can write own doc, but CANNOT modify premiumEntitlement field
+  allow write: if request.auth != null
+    && request.auth.uid == userId
+    && !request.resource.data.diff(resource.data).affectedKeys()
+        .hasAny(['premiumEntitlement']);
 
-**Recommended Watch models:**
-- `WorkoutTemplate` (read-only; synced from iPhone via CloudKit)
-- `CompletedWorkout` + `CompletedSet` (write path; synced to iPhone via CloudKit)
-- `UserPreferences` (weight unit, display preferences)
+  // Subcollections: full owner access
+  match /{subcollection}/{docId} {
+    allow read, write: if request.auth != null && request.auth.uid == userId;
+  }
+}
+```
 
-**Why not mirror the full schema:** CloudKit sync on Watch struggles with large datasets. A developer forum report indicates ~10k entities caused Watch CloudKit import to never complete. Limiting the Watch schema reduces initial sync time and ongoing CloudKit pressure.
-
-**Confidence:** MEDIUM — the "smaller schema" recommendation is derived from community reports of sync performance issues, not an official Apple guideline.
-
----
+**Testing:** Use `firebase emulators:start` with `firestore.rules.test.ts` (already exists in the worktree) before deploying rule changes.
 
 ## Data Flow
 
-### Workout Logging (Watch → iPhone)
+### Request Flow: Authenticated User Reading Workout Data
 
 ```
-User taps "Log Set" on Watch
+User navigates to /history
     ↓
-ActiveWorkoutViewModel (Watch) updates in-memory state
+React Router → History route component
     ↓
-SwiftDataWorkoutRepository (Watch) writes CompletedSet to Watch ModelContext
+useWorkoutHistory() hook → FirestoreWorkoutRepo.getAll(uid)
     ↓
-CloudKit private DB receives the CKRecord (passive, eventual)
+Firestore SDK → checks IndexedDB offline cache first (persistentLocalCache)
     ↓
-WatchConnectivityService.transferUserInfo(setPayload) — immediate, queued
+[Online] → Firestore read via HTTPS → returns latest docs
+[Offline] → returns cached IndexedDB data
     ↓
-iPhone WatchConnectivityService.session(_:didReceiveUserInfo:) fires
+Firestore security rules evaluate: request.auth.uid == userId ✓
     ↓
-iPhone NotificationCenter.post(.watchDidLogSet) or direct ViewModel update
-    ↓
-iPhone ModelContext merges when CloudKit sync also arrives (deduplication by ID)
+Component renders with data
 ```
 
-### Program / Exercise Catalog (iPhone → Watch)
+### Data Flow: Stripe Subscription Purchase
 
 ```
-Admin writes Program to CloudKit public DB via WOD dashboard
+User clicks "Go Premium"
     ↓
-CloudKit private DB replicates to user's private DB on next sync
+redirectToCheckout(uid, priceId) in stripe-checkout.ts
     ↓
-iPhone CloudKitProgramRepository fetches on dashboard load
+httpsCallable('createStripeCheckoutSession') → Cloud Function
     ↓
-Watch CloudKit container syncs the same Program records (passive)
+Cloud Function: creates Stripe Checkout Session with metadata.firebaseUid = uid
     ↓
-Watch app reads Programs from Watch ModelContext on launch
+Returns URL → browser redirects to Stripe-hosted checkout page
+    ↓
+User completes payment on Stripe
+    ↓
+Stripe fires webhook → stripeWebhook Cloud Function (HTTP endpoint)
+    ↓
+Function verifies stripe-signature header (constructEvent)
+    ↓
+On success: Firestore.update(/users/{uid}, { premiumEntitlement.active: true })
+    ↓
+useEntitlements() onSnapshot fires in the already-open tab
+    ↓
+EntitlementContext updates → isPremium = true across app
+    ↓
+User redirected to /settings?checkout=success (success URL)
 ```
 
-### Auth State (iPhone → Watch)
+### Data Flow: GitHub Actions Deploy
 
 ```
-User signs in on iPhone (Sign in with Apple)
+Developer pushes to main
     ↓
-AuthService writes User record to iOS SwiftData
+GitHub Actions: checkout → npm ci → npm test → npm run build
+  (VITE_* secrets injected as env vars at build time)
     ↓
-CloudKit syncs User record to Watch
+Vite build: bundles app, generates sw.js, writes dist/
     ↓
-OR: WatchConnectivity applicationContext carries { isAuthenticated: true, userID: "..." }
+FirebaseExtended/action-deploy-firebase-hosting
+  (authenticates with FIREBASE_SERVICE_ACCOUNT secret)
     ↓
-Watch app boots in authenticated state
+Firebase CLI: firebase deploy --only hosting
+  (uploads dist/ to Firebase CDN, activates new version)
+    ↓
+Firebase Hosting: propagates to CDN edge nodes globally
+    ↓
+Service worker on existing client tabs auto-updates (autoUpdate mode)
 ```
 
-**Design decision:** Use `applicationContext` for auth state as the fast path (immediate on next Watch launch). CloudKit sync of the `User` record is the persistent path.
+### Key Data Flows Summary
 
----
+1. **Auth state:** Firebase Auth → `onAuthStateChanged` → `SessionProvider` → all consumers via context
+2. **Entitlement state:** Stripe webhook → Firestore `/users/{uid}.premiumEntitlement` → `useEntitlements` onSnapshot → `EntitlementProvider` → `useEntitlementContext()` in components
+3. **User data:** Components → Repo layer (Firestore vs Local depending on auth state) → Firestore with offline cache via IndexedDB
+4. **AI workout generation:** Component → `httpsCallable('generateWorkout')` → Cloud Function → Gemini API → response
+5. **CI/CD:** git push → GitHub Actions → Vite build with secrets → Firebase Hosting deploy
 
-## CloudKit Container Architecture
+## Scaling Considerations
 
-```
-CloudKit Container: iCloud.com.sundeefundee
-├── Private Database (per-user)
-│   ├── User record
-│   ├── CompletedWorkout + CompletedSet records
-│   ├── ActiveCycle + PeriodLog records
-│   ├── InjuryProfile + PainLog records
-│   ├── LiftMax + OneRepMax records
-│   ├── EnrolledProgram records
-│   └── GeneratedWorkoutRecord records
-│
-└── Public Database (shared, admin-written)
-    ├── Program records (written by WOD dashboard)
-    ├── WOD records (written by WOD dashboard)
-    └── BenchmarkDefinition records
-```
+| Scale | Architecture Adjustments |
+|-------|--------------------------|
+| 0-1k users | Current architecture is correct. No changes needed. |
+| 1k-10k users | Watch Firestore read costs (onSnapshot per user). Add Firestore indexes for subcollection queries as needed. Cloud Functions cold starts acceptable. |
+| 10k-100k users | Enable Firebase App Check to block abuse. Add Firestore composite indexes. Consider Cloud Functions minimum instances to reduce cold starts. Rate-limit AI generation per UID using Firestore counters or Firebase Extensions. |
+| 100k+ users | Separate read/write replicas not needed (Firestore scales automatically). Cost becomes primary concern — audit onSnapshot subscriptions vs. one-time reads. |
 
-**Key constraint:** All `@Model` properties must be optional or have default values for CloudKit compatibility. Relationships must be optional. Unique constraints are not supported — use application-level deduplication instead.
+### Scaling Priorities
 
-**ModelContainer fallback (both targets):**
-1. CloudKit-backed persistent store (production)
-2. Local persistent store (CloudKit entitlement absent / Simulator)
-3. In-memory store (unit tests)
-
-This fallback is already implemented in `AppModelContainer.swift` on iOS and must be mirrored in `WatchModelContainer.swift`.
-
----
-
-## Build Order (Phase Dependencies)
-
-The watchOS feature has implicit dependencies that drive phase ordering:
-
-```
-Phase 1: Fix existing CloudKit bugs on iOS
-    → CloudKit must be activated and working on iOS before Watch can sync
-    → Known bugs: disabled CloudKit flag, stale schema references, migration plan path
-
-Phase 2: Expand SundeeFundeeShared Package
-    → Migrate Domain/ pure logic into the shared package
-    → This unblocks Watch from consuming cycle adaptation and weight math
-    → Required before Watch ViewModels can compute adapted workouts
-
-Phase 3: watchOS Target Scaffold
-    → Add watchOS target to project.yml
-    → WatchModelContainer (smaller schema, same container ID)
-    → WatchConnectivityService (singleton, both targets)
-    → Requires Phase 1 (CloudKit must be healthy) and Phase 2 (shared domain)
-
-Phase 4: Active Workout Feature (Watch)
-    → HKWorkoutSession integration
-    → Set logging UI (compact SwiftUI for 45mm screen)
-    → transferUserInfo back to iPhone
-    → Requires Phase 3 scaffold
-
-Phase 5: Watch Dashboard + Complications
-    → Read-only glanceable view of today's program
-    → ClockKit / WidgetKit complication
-    → Requires Phase 3 scaffold + CloudKit sync flowing (Phase 1)
-```
-
----
+1. **First bottleneck:** Firestore read costs from `onSnapshot` — every authenticated user maintains a live connection. At scale, switch history/benchmarks to `getDocs` (one-time fetch) and only keep `onSnapshot` for entitlements and real-time data.
+2. **Second bottleneck:** AI generation Cloud Function costs — rate limit by UID (one free generation per day, more for premium) enforced server-side in the function.
 
 ## Anti-Patterns
 
-### Anti-Pattern 1: Sharing a ModelContext Between Targets
+### Anti-Pattern 1: Writing Environment Variables Into Source Files
 
-**What people do:** Attempt to use an App Group container so both apps read the same SQLite file.
+**What people do:** Hardcode Firebase config or Stripe price IDs directly in source files when they can't figure out how to inject env vars in CI.
 
-**Why it's wrong:** iPhone and Apple Watch are separate physical devices. App Groups share containers within a single device, not across the iPhone-to-Watch boundary. This will compile but produce two isolated stores with no sync.
+**Why it's wrong:** Firebase API keys end up in git history. The existing code correctly uses `import.meta.env.VITE_*` — this works only if the build step receives the values as environment variables. In GitHub Actions, these must be declared as `env:` in the build step using GitHub Secrets.
 
-**Do this instead:** Separate `ModelContainer` on each target, same CloudKit container identifier. Let CloudKit be the sync bus.
+**Do this instead:** Store all `VITE_*` values as GitHub repository secrets. Pass them as env vars in the GitHub Actions workflow `build` step. Never commit `.env` files.
 
----
+### Anti-Pattern 2: Using onCall Instead of onRequest for Stripe Webhooks
 
-### Anti-Pattern 2: Using sendMessage as the Primary Sync Mechanism
+**What people do:** Implement the Stripe webhook handler as an `onCall` Firebase Function (the same type used for checkout session creation).
 
-**What people do:** Implement all Watch→iPhone sync via `WCSession.sendMessage` because it feels like the simplest API.
+**Why it's wrong:** `onCall` functions expect Firebase Auth tokens and a specific JSON payload format. Stripe sends raw HTTP POST requests with a `stripe-signature` header and raw body — `onCall` will reject these. Additionally, `onCall` transforms the request body, destroying the raw body needed for `constructEvent` signature verification.
 
-**Why it's wrong:** `sendMessage` fails silently if the counterpart is not reachable. A workout logged while the iPhone is out of Bluetooth range is lost. `sendMessage` also requires the Watch app to be in the foreground (iOS→Watch direction).
+**Do this instead:** Use `onRequest` for the webhook endpoint. Export the URL from the deployed function and register it in the Stripe dashboard as the webhook endpoint. Use `req.rawBody` (preserved by Firebase Functions runtime) for `constructEvent`.
 
-**Do this instead:** Use `transferUserInfo` for all workout data. Reserve `sendMessage` only for optional real-time display (e.g., a live set counter visible on iPhone while the user is on the Watch). Always write to SwiftData first, then fire WatchConnectivity.
+### Anti-Pattern 3: Setting CSP in Vite index.html Meta Tag
 
----
+**What people do:** Add `<meta http-equiv="Content-Security-Policy" content="...">` to `index.html` to set CSP.
 
-### Anti-Pattern 3: Replicating the Full iOS Schema to Watch
+**Why it's wrong:** Meta-tag CSP does not support `frame-ancestors` (which prevents clickjacking). It also executes after the HTML parser runs, meaning inline scripts can fire before the policy applies. For Stripe's `frame-src` requirements, a header-based CSP is more reliable.
 
-**What people do:** Link `AppSchemaV12` (22 models) to the Watch target so there is one canonical schema.
+**Do this instead:** Set CSP in `firebase.json` under `hosting.headers`. This runs at the CDN edge before any content is delivered.
 
-**Why it's wrong:** CloudKit sync on Watch degrades significantly with large record counts. The Watch app only needs a handful of models. A 22-model schema that mirrors the iPhone schema will hit sync performance issues.
+### Anti-Pattern 4: Single Top-Level Error Boundary
 
-**Do this instead:** Define a minimal `WatchAppSchemaV1` with only the models the Watch needs (WorkoutTemplate, CompletedWorkout, CompletedSet, UserPreferences). Use the same CloudKit container so records flow bidirectionally.
+**What people do:** One global error boundary at the app root that shows a full-page "Something went wrong" screen.
 
----
+**Why it's wrong:** If the Settings screen crashes, the Dashboard becomes inaccessible too. Users lose all context and cannot navigate away without a full reload.
 
-### Anti-Pattern 4: Skipping HKWorkoutSession for Workout Logging
+**Do this instead:** Nest error boundaries at the route/layout level. `AppLayout` wraps `<Outlet>` in an error boundary with `resetKeys={[location.pathname]}` — navigating to a different route auto-clears the error state. The global root boundary is still present as a last resort but individual routes fail independently.
 
-**What people do:** Build the Watch workout logging UI without starting an `HKWorkoutSession`, assuming the app will stay active.
+### Anti-Pattern 5: Relying on Checkout Success Redirect for Entitlement
 
-**Why it's wrong:** watchOS aggressively suspends apps that are not running a workout session. The user will tap "Log Set" and find the app has been suspended, losing in-progress state.
+**What people do:** On the Stripe success URL (`/settings?checkout=success`), immediately grant premium access to the user in Firestore.
 
-**Do this instead:** Start `HKWorkoutSession` when the user begins a workout. The session keeps the app in the foreground, enables heart rate sampling, and allows `extendedRuntimeSession` for warmup/cooldown periods outside the formal session.
+**Why it's wrong:** The success URL fires in the browser after redirect — a user can close the tab before it loads, or manipulate the URL parameters. The entitlement write from client code would also violate the Firestore security rule that prevents clients from writing to `premiumEntitlement`.
 
----
-
-### Anti-Pattern 5: CloudKit Unique Constraints
-
-**What people do:** Add `#Unique` macro constraints to `@Model` types (e.g., ensuring one `User` per `appleUserID`).
-
-**Why it's wrong:** CloudKit does not support unique constraint enforcement at the schema level. SwiftData will silently fall back to a non-CloudKit store if unique constraints are present and CloudKit sync is configured.
-
-**Do this instead:** Enforce uniqueness in application logic — query before inserting, or handle duplicates with a deduplication step in the repository.
-
----
+**Do this instead:** The success URL is for UX only (show a "Welcome to Premium!" message, poll briefly). The actual entitlement is set exclusively by the `stripeWebhook` Cloud Function via `constructEvent` signature verification. The `useEntitlements` `onSnapshot` will fire automatically when Firestore is updated by the webhook.
 
 ## Integration Points
 
@@ -429,55 +518,62 @@ Phase 5: Watch Dashboard + Complications
 
 | Service | Integration Pattern | Notes |
 |---------|---------------------|-------|
-| CloudKit Private DB | SwiftData `ModelContainer` with `cloudKitContainerIdentifier` | Same container ID on both targets; sync is eventual |
-| CloudKit Public DB | `CloudKitProgramRepository` using `CKContainer.publicCloudDatabase` | Programs and WODs; admin writes via WOD dashboard |
-| WatchConnectivity | `WCSession` singleton service, delegate pattern | Must activate on both targets at launch; test on real devices only |
-| HealthKit / HKWorkoutSession | Watch-only; request authorization, start session on workout begin | Required for Watch background execution |
-| Gemini (Cloudflare Worker) | HTTP via `GeminiRepository` on iOS only | Watch does not need AI generation |
-| StoreKit 2 | `SubscriptionService` on iOS only | Watch reads subscription tier via `applicationContext` push from iPhone |
-| APNs | iOS only at present | Future: Watch can receive notifications independently with WatchKit extension |
+| Firebase Auth | `onAuthStateChanged` in `SessionProvider` | Multi-provider: email, Google, Apple, anonymous guest |
+| Firestore | `persistentLocalCache` for offline-first; dual Firestore/Local repo adapters | Guest mode uses LocalStorage repos only |
+| Firebase Cloud Functions | `httpsCallable` for AI generation and Stripe session creation; `onRequest` for Stripe webhook | Functions must be deployed separately from Hosting |
+| Firebase Hosting | Deploy via GitHub Actions; CSP and cache headers in `firebase.json` | SPA rewrite rule required: `"source": "**", "destination": "/index.html"` |
+| Stripe | Redirect-based checkout (no Stripe.js Elements needed); webhook for entitlement sync | Price ID from `VITE_STRIPE_PRICE_ID` env var |
+| Gemini (via Cloud Function) | Replaces Cloudflare worker; called as `httpsCallable('generateWorkout')` | Gemini API key stored as Firebase Function secret, not in frontend bundle |
+| GitHub Actions | `FirebaseExtended/action-deploy-firebase-hosting@v0` | Requires `FIREBASE_SERVICE_ACCOUNT` GitHub secret |
 
 ### Internal Boundaries
 
 | Boundary | Communication | Notes |
 |----------|---------------|-------|
-| iOS Domain → Watch Domain | `SundeeFundeeShared` package, same compiled code | No cross-process communication needed; domain is pure Swift |
-| iOS ViewModels → Watch ViewModels | No direct connection — they share CloudKit data, not in-process state | |
-| Watch → iPhone (workout data) | `WCSession.transferUserInfo` + CloudKit eventual sync | transferUserInfo is the reliable path; CloudKit is truth |
-| iPhone → Watch (programs, settings) | CloudKit passive sync + `WCSession.updateApplicationContext` | applicationContext for fast path on Watch launch |
-| Watch → HealthKit | `HKWorkoutSession` + `HKHealthStore` writes | Active workout only |
+| React Components ↔ Repository Layer | Custom hooks calling repo methods | Repos are selected at the `repositories/index.ts` level based on auth state |
+| Repository Layer ↔ src/domain/ | Direct TypeScript imports | Domain layer is purely computational — repos call domain functions, not vice versa |
+| SessionProvider ↔ EntitlementProvider | EntitlementProvider reads uid from useSession() | SessionProvider must be the outer wrapper |
+| Cloud Functions ↔ Firestore | Firebase Admin SDK (bypasses security rules) | Only Functions should write to premiumEntitlement |
+| Service Worker ↔ Firestore SDK | No direct connection — Firestore uses IndexedDB for offline cache, service worker handles HTTP caching for API calls | Do not intercept Firestore WebSocket (wss://) connections in service worker — Firestore manages its own real-time connection |
 
----
+## Build Order Implications
 
-## Scaling Considerations
+Production readiness work has these dependencies that drive phase ordering:
 
-This is a single-user app with a CloudKit private database. Scaling is not a concern in the traditional sense. The relevant "scale" question is dataset size per user.
+1. **Environment variables and secrets first** — nothing else can be deployed without real Firebase keys. GitHub Actions secrets must be configured before CI/CD can work.
 
-| Concern | Approach |
-|---------|----------|
-| Large workout history (1000+ workouts) | CloudKit handles; Watch sync may be slow on first install. Keep Watch schema minimal. |
-| Offline Watch logging | SwiftData writes locally; CloudKit syncs when connectivity restored. WatchConnectivity delivers when phones reconnect via Bluetooth. |
-| Schema migrations on both targets | iOS and Watch schema versions are independent. Increment separately. Lightweight migrations preferred. |
-| CloudKit sync reliability on Watch | Known issue: sync requires charging + >50% battery for reliable background sync. Accept eventual consistency. Do not design UX that depends on instant Watch→iPhone sync. |
+2. **firebase.json before deploy** — Firebase Hosting config (rewrites, headers) must exist before the first deploy. CSP headers, cache rules, and SPA redirect rule all live here.
 
----
+3. **Cloud Functions before Stripe wiring** — `createCheckoutSession`, `createPortalSession`, and `stripeWebhook` must be deployed before Stripe checkout can be tested end-to-end.
+
+4. **Firestore rules before Cloud Functions go live** — entitlement field write protection should be in place before the webhook can write to it.
+
+5. **Error boundaries before Lighthouse audit** — error states are part of PWA quality assessment.
+
+6. **CI/CD pipeline before icons/SEO/polish** — once CI is running, subsequent changes auto-deploy, accelerating all remaining work.
+
+**Suggested build order:**
+```
+Phase 1: Firebase Hosting + GitHub Actions (deploy infrastructure)
+Phase 2: Environment variables + Cloud Functions (Gemini + Stripe)
+Phase 3: Stripe checkout end-to-end + Firestore rules hardening
+Phase 4: Error boundaries + loading states + CSP headers
+Phase 5: PWA quality (icons, offline page, install prompt, Lighthouse)
+Phase 6: Test coverage + analytics verification + SEO/meta tags
+```
 
 ## Sources
 
-- [Transferring data with Watch Connectivity — Apple Developer Documentation](https://developer.apple.com/documentation/WatchConnectivity/transferring-data-with-watch-connectivity)
-- [Watch Connectivity framework — Apple Developer Documentation](https://developer.apple.com/documentation/watchconnectivity)
-- [Syncing model data across a person's devices — Apple Developer Documentation](https://developer.apple.com/documentation/swiftdata/syncing-model-data-across-a-persons-devices)
-- [Running workout sessions (HKWorkoutSession) — Apple Developer Documentation](https://developer.apple.com/documentation/healthkit/running-workout-sessions)
-- [Three Ways to Communicate via WatchConnectivity — Alexander Weiss](https://alexanderweiss.dev/blog/2023-01-18-three-ways-to-communicate-via-watchconnectivity)
-- [SwiftData CloudKit sync on watchOS 10 — Apple Developer Forums](https://developer.apple.com/forums/thread/733397)
-- [watchOS 10: CloudKit CoreData Sync issues — Apple Developer Forums](https://developer.apple.com/forums/thread/737661)
-- [Sharing Swift package with watchOS extension — Corner Software](https://csdcorp.com/blog/coding/sharing-swift-package-with-watchos-extension/)
-- [watchOS With SwiftUI by Tutorials, Chapter 2: Project Structure — Kodeco](https://www.kodeco.com/books/watchos-with-swiftui-by-tutorials/v1.0/chapters/2-project-structure)
-- [watchOS With SwiftUI by Tutorials, Chapter 4: Watch Connectivity — Kodeco](https://www.kodeco.com/books/watchos-with-swiftui-by-tutorials/v1.0/chapters/4-watch-connectivity)
-- [Data Synchronization Between iOS and watchOS Using WatchConnectivity — Medium](https://medium.com/@sheik25bareeth/data-synchronization-between-ios-and-watchos-using-watchconnectivity-009a3064e12a)
-- [Organizing your code with local packages — Apple Developer Documentation](https://developer.apple.com/documentation/xcode/organizing-your-code-with-local-packages)
+- [Deploy to Firebase Hosting via GitHub Actions — Firebase docs](https://firebase.google.com/docs/hosting/github-integration) — MEDIUM confidence (page truncated, content from search results and official GitHub Action marketplace listing)
+- [Stripe webhook signature verification — official Stripe docs](https://docs.stripe.com/webhooks#verify-official-libraries) — HIGH confidence
+- [Implementing Stripe Subscriptions with Firebase Cloud Functions — Aron Schueler, 2025](https://aronschueler.de/blog/2025/03/17/implementing-stripe-subscriptions-with-firebase-cloud-functions-and-firestore/) — MEDIUM confidence (community source, verified against official Stripe pattern)
+- [React Error Boundary — react.dev](https://react.dev/reference/react/Component#catching-rendering-errors-with-an-error-boundary) — HIGH confidence
+- [react-error-boundary — bvaughn/react-error-boundary](https://github.com/bvaughn/react-error-boundary) — HIGH confidence
+- [Firebase Firestore Security Rules — Firebase docs](https://firebase.google.com/docs/firestore/security/get-started) — HIGH confidence
+- [Use Firebase in a PWA — Firebase docs](https://firebase.google.com/docs/web/pwa) — HIGH confidence
+- [vite-plugin-pwa documentation — vite-pwa-org](https://vite-pwa-org.netlify.app/) — HIGH confidence
+- [Existing codebase audit — pwa/vite.config.ts, pwa/src/**, firestore.rules] — HIGH confidence (direct inspection)
 
 ---
-
-*Architecture research for: iOS + watchOS SwiftUI strength training app (Swift 6, SwiftData, CloudKit)*
-*Researched: 2026-03-18*
+*Architecture research for: Vite + React + Firebase PWA production infrastructure*
+*Researched: 2026-03-21*

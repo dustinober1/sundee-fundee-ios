@@ -1,295 +1,326 @@
 # Pitfalls Research
 
-**Domain:** iOS + watchOS native strength training app (SwiftData + CloudKit + StoreKit 2 + APNs)
-**Researched:** 2026-03-18
-**Confidence:** HIGH (critical pitfalls backed by Apple Developer Forums, fatbobman.com, and official docs)
+**Domain:** PWA production readiness (Vite 8 + React 19 + Firebase + Stripe)
+**Researched:** 2026-03-21
+**Confidence:** HIGH — verified against Firebase docs, Stripe docs, vite-plugin-pwa issues, and official guidance
 
 ---
 
 ## Critical Pitfalls
 
-### Pitfall 1: CloudKit Schema Not Deployed to Production Before First Release
+### Pitfall 1: Firebase Hosting Missing SPA Rewrite Rule
 
 **What goes wrong:**
-CloudKit sync works perfectly in Xcode debug builds and Development environment, but fails silently once the app is distributed through TestFlight or the App Store. Users see no sync, no iCloud backup, and no error — data simply stays local. This is the most reported first-time CloudKit failure mode.
+Firebase Hosting serves static files by default. Without a catch-all rewrite rule, any deep URL refresh (e.g., `/cycle`, `/programs/session`) returns a 404 from Firebase — the React Router never loads. The app appears to work during dev but breaks immediately after first deploy when users bookmark routes or share links.
 
 **Why it happens:**
-CloudKit maintains separate Development and Production environments. In Development, CloudKit uses JIT (Just-In-Time) schema creation — it automatically creates record types the first time you write them. The Production environment has no JIT; the schema must be manually deployed from the CloudKit Console. App Store and TestFlight builds use Production by default.
+Developers test their app locally (Vite dev server handles all routes) and the SPA routing works. Firebase Hosting does not apply Vite's dev-server fallback behavior — it needs an explicit `"rewrites"` block in `firebase.json` to route all non-file requests to `index.html`. No `firebase.json` exists in this repo yet.
 
 **How to avoid:**
-Before every release that adds or changes models: log into the Apple Developer Portal, navigate to CloudKit Console → Schema → Deploy Schema Changes, and click Deploy. Add this as a mandatory pre-release checklist step. Automate validation with a CI check that confirms schema version matches expected state.
+Create `firebase.json` at the repo root with:
+```json
+{
+  "hosting": {
+    "public": "pwa/dist",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "rewrites": [
+      { "source": "**", "destination": "/index.html" }
+    ],
+    "headers": [
+      {
+        "source": "/sw.js",
+        "headers": [{ "key": "Cache-Control", "value": "no-cache" }]
+      },
+      {
+        "source": "**/*.@(js|css|png|jpg|svg|woff2)",
+        "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+      }
+    ]
+  }
+}
+```
+The `**` catch-all MUST come last among rewrites. The service worker `sw.js` MUST be served with `no-cache` — if the browser caches the service worker itself, users never receive updates.
 
 **Warning signs:**
-- Sync works on development device, breaks on TestFlight device
-- No sync errors thrown, just silent local-only behavior
-- CloudKit Console shows record types in Development but not Production
+- Deep-link routes return 404 after deploy
+- Browser back/forward works but manual URL entry fails
+- Lighthouse PWA audit flags "start_url not in service worker scope"
 
-**Phase to address:**
-Phase: CloudKit Activation (the bug-fix milestone). Must complete schema deployment before any TestFlight distribution. Do not skip even for internal testing.
+**Phase to address:** Infrastructure / CI-CD setup phase (before any other deploy work)
 
 ---
 
-### Pitfall 2: Activating CloudKit on the Existing Local Store Causes Boot-Time Migration Crash
+### Pitfall 2: Stripe Webhook Raw Body Destroyed by JSON Middleware
 
 **What goes wrong:**
-The existing codebase has 12 schema versions accumulated under a local persistent store (never synced). When `useCloudKit` is flipped to `true`, NSPersistentCloudKitContainer attempts to initialize CloudKit before executing the migration plan. If any model in V1–V11 violates CloudKit's requirements (non-optional property, unique constraint, Deny delete rule), the container fails to load at boot, the app crashes, and production data is inaccessible.
+Firebase Cloud Functions v2 uses `express` internally. If `express.json()` middleware (or any body-parsing middleware) runs before the Stripe webhook handler, it parses the raw request body into a JavaScript object. Stripe's `stripe.webhooks.constructEvent()` requires the original raw bytes to verify the HMAC-SHA256 signature — the parsed JSON string never matches. Every webhook call fails with `No signatures found matching the expected signature for payload` and subscriptions are never activated.
 
 **Why it happens:**
-`AppModelContainer.makeSharedContainer` does not pass `migrationPlan: AppSchemaMigrationPlan.self` on the `.localPersistent` path. Additionally, the CloudKit container initialization validates model compatibility before migration runs, meaning models that will be fixed in V12 are still checked against CloudKit rules at their old definitions during the transition launch.
+Developers copy a Cloud Functions boilerplate that wraps multiple routes in a single `express` app with `app.use(express.json())` at the top. The Stripe webhook route is then added below, and the signature check silently fails in staging (test mode webhooks are often not verified strictly) but blows up in production.
 
 **How to avoid:**
-1. Add `migrationPlan: AppSchemaMigrationPlan.self` to the `.localPersistent` container path immediately (CONCERNS.md bug fix).
-2. Audit all models in V12 for CloudKit compatibility before flipping the flag (all attributes must be optional or have defaults; no `@Attribute(.unique)`; no `.deny` delete rules; all relationships optional with inverses defined).
-3. Implement the fallback pattern: attempt to load container with CloudKit enabled; if it throws, disable CloudKit and load local-only for that launch, then retry on next launch after migration completes.
-4. Test the migration path on a device with V1 data installed, not just a fresh install.
+- Use a dedicated Cloud Function (`onRequest`) for the Stripe webhook, separate from other functions — not as a route in a shared Express app.
+- Access `req.rawBody` (Firebase Functions v1) or read the raw buffer from the request before any middleware. Firebase Functions automatically populates `req.rawBody` on `onRequest` handlers.
+- In Firebase Functions v2 with `@google-cloud/functions-framework`, configure the function to skip body parsing for the webhook route, or use a dedicated `onRequest` handler.
+- Store the webhook secret in Firebase environment config (`firebase functions:config:set stripe.webhook_secret="whsec_..."`), not in code.
+
+```typescript
+// Correct pattern for Firebase Functions v2
+export const stripeWebhook = onRequest({ cors: false }, (req, res) => {
+  const sig = req.headers['stripe-signature'] as string;
+  const event = stripe.webhooks.constructEvent(
+    req.rawBody,   // raw bytes, not req.body
+    sig,
+    process.env.STRIPE_WEBHOOK_SECRET!,
+  );
+  // ...
+});
+```
 
 **Warning signs:**
-- App crashes on first launch after update on devices that had the old version installed
-- "CloudKit integration requires that all attributes be optional" error in logs
-- Container load fails between `willMigrate` and `didMigrate` callbacks
+- "No signatures found matching" errors in Cloud Functions logs
+- Stripe Dashboard shows webhooks delivered with 400/500 responses
+- Subscriptions created in Stripe but `premiumEntitlement.active` never set in Firestore
+- Test webhooks via Stripe CLI work but live webhooks fail
 
-**Phase to address:**
-Phase: CloudKit Activation. Must audit and fix model compatibility before enabling the flag.
+**Phase to address:** Stripe integration phase (before any live payment testing)
 
 ---
 
-### Pitfall 3: CloudKit Enforces Add-Only Schema After First Production Deployment
+### Pitfall 3: Firestore Security Rules Allow Cross-User Data Access
 
 **What goes wrong:**
-After CloudKit sync is live in production, renaming an entity or attribute causes CloudKit to interpret it as "delete old, create new." Existing user records mapped to the old name become orphaned. Users lose data silently during migration. The schema cannot be rolled back once deployed.
+Rules that only check `request.auth != null` allow any authenticated user to read or write any other user's documents. In a fitness app storing health-sensitive data (cycle phase, injury profiles, pain logs), this is a data breach. An attacker who creates a legitimate account can enumerate all user IDs (often guessable or leakable) and read every user's workout history, injury records, and cycle data.
 
 **Why it happens:**
-CloudKit's distributed nature means schema changes must be backwards-compatible forever. CloudKit has no concept of a "rename" operation at the server level — a rename in the local model is indistinguishable from adding a new field and removing an old one.
+The default "authenticated users only" template is shipped as an example and developers treat it as sufficient. The check `allow read, write: if request.auth != null` passes security scanners focused on the "any user = open" case but misses the "authenticated but wrong user" case.
 
 **How to avoid:**
-Follow the Add-Only Protocol from the moment CloudKit is activated:
-- Never delete an existing entity or attribute from the model definition, even if deprecated in code
-- Never rename an entity or attribute; add a new one with the new name instead
-- Never change an attribute's data type
-- For deprecations: mark the Swift property with `@available(*, deprecated)` and stop writing to it, but keep the model definition
+Every user-scoped document must enforce ownership:
+```
+match /users/{uid} {
+  allow read, write: if request.auth != null && request.auth.uid == uid;
+
+  match /workouts/{workoutId} {
+    allow read, write: if request.auth != null && request.auth.uid == uid;
+  }
+  match /painLogs/{logId} {
+    allow read, write: if request.auth != null && request.auth.uid == uid;
+  }
+  // All subcollections must repeat the ownership check — they do NOT inherit
+}
+```
+Run `firebase emulators:start` and use the Firestore emulator's Rules Playground to test cross-user access attempts. Test: can user A read `/users/userB/workouts`? Should return `false`.
 
 **Warning signs:**
-- Schema migration involves an entity or attribute rename
-- "Deleting" a model type that should become a new type
-- Schema diff shows removals alongside additions
+- Rules have `allow read, write: if request.auth != null` without `uid` comparison
+- Subcollections exist under `/users/{uid}/` but only the parent doc has ownership rules
+- No integration tests that sign in as User A and attempt to read User B's data
+- Firebase console "Rules Playground" not used during development
 
-**Phase to address:**
-Phase: CloudKit Activation and all subsequent phases with schema changes. Establish the Add-Only rule before first production CloudKit deployment.
+**Phase to address:** Security hardening phase (Firestore rules audit)
 
 ---
 
-### Pitfall 4: Silent Data Store Deletion on Migration Failure
+### Pitfall 4: Service Worker Caches Stale App Versions — Users Stuck on Old Code
 
 **What goes wrong:**
-`AppModelContainer.deleteStoreFiles` silently wipes all `.store`, `.store-wal`, and `.store-shm` files if the persistent store fails to open (e.g., corrupted write, schema mismatch during CloudKit activation). The user launches the app and finds all their workout history, cycle logs, and 1RM records gone, with no warning.
+The app uses `registerType: 'autoUpdate'` in vite-plugin-pwa, which forces `skipWaiting: true` and `clientsClaim: true`. This means the new service worker activates immediately across all tabs. However, there are two sub-problems:
+
+1. **Lazy-loaded chunks become 404s**: After a deploy, old precache manifests reference hashed chunk filenames that no longer exist. If a user has the old service worker active and navigates to a lazy-loaded route for the first time (e.g., `/ai-workout/config`), the chunk fetch fails with a 404 because the old filename hash doesn't exist on the new deploy. The result is a white screen with a chunk load error.
+
+2. **Service worker file itself gets cached by the browser**: If `sw.js` is served without `Cache-Control: no-cache`, the browser caches it and never checks for updates. Users run stale code indefinitely.
 
 **Why it happens:**
-The fallback is intentional for development convenience but has no production safeguards. There are zero tests covering this path (CONCERNS.md confirms). A failed CloudKit activation attempt — which causes a container open failure — could trigger this path on a device with years of user data.
+vite-plugin-pwa's precache manifest contains content-hashed filenames. When a new build runs, all hashes change. The old SW still holds references to old files that have been purged from the CDN. The gap between "old SW active, user clicks new route" and "new SW installed" is the danger window.
 
 **How to avoid:**
-Before enabling CloudKit, add a mandatory user-facing alert before `deleteStoreFiles` is called:
-1. Show alert: "We encountered a problem opening your data. Continuing will erase local data. If iCloud sync is enabled, your data can be restored."
-2. Copy the corrupt store files to a temp location for diagnostics before deletion
-3. Add a unit test that exercises the fallback deletion path
-4. Only call `deleteStoreFiles` after explicit user confirmation in production builds
+- Configure Firebase Hosting to serve `sw.js` with `Cache-Control: no-cache` (see Pitfall 1 config above).
+- Add a global error boundary that catches chunk load errors and triggers a hard reload:
+```typescript
+// In router error element or lazy component wrapper
+window.addEventListener('unhandledrejection', (e) => {
+  if (e.reason?.message?.includes('Failed to fetch dynamically imported module')) {
+    window.location.reload();
+  }
+});
+```
+- Consider switching from `autoUpdate` to `prompt` strategy for a better UX update flow — show "New version available, tap to update" rather than silently reloading during a workout session.
+- The current vite.config.ts `globPatterns` only includes `**/*.{js,css,html,ico,png,svg,woff2}` — ensure `woff` and `json` assets (resources/programs.json, resources/wods.json) are also included if served from the dist directory.
 
 **Warning signs:**
-- App opens to blank state with no explanation
-- `AppModelContainer` logs show container initialization failure followed by store deletion
-- No test coverage on the error recovery path (use this as a CI gate)
+- Console errors "Failed to fetch dynamically imported module" after deploy
+- Users report app is broken until they force-refresh
+- Lighthouse PWA audit shows stale resources being served
+- Service worker update prompts never appear
 
-**Phase to address:**
-Phase: CloudKit Activation (bug fixes). Fix before flipping the CloudKit flag so the safeguard is in place if activation causes a boot failure.
+**Phase to address:** Service worker and offline support phase; also verify in CI after every build
 
 ---
 
-### Pitfall 5: watchOS Cannot Share SwiftData Store via App Group
+### Pitfall 5: Content Security Policy Blocks Firebase and Stripe
 
 **What goes wrong:**
-Developers assume App Groups can share a SwiftData container between the iOS app and the watchOS companion, as they do for iOS/widget pairs. The watchOS app gets an empty or stale database. Data entered on the watch never appears on iPhone and vice versa.
+Adding a `Content-Security-Policy` header is a required production hardening step. A poorly-written CSP will silently block:
+- Firebase Auth popup flows (`accounts.google.com`, `appleid.apple.com`)
+- Firebase SDK scripts loaded from `www.gstatic.com`
+- Stripe.js from `js.stripe.com`
+- Firebase Analytics from `www.google-analytics.com`
+- Firebase Crashlytics / App Check from `firebaselogging.googleapis.com`
+- Recharts SVG rendering (inline styles)
+- Service worker registration (requires `worker-src` or `script-src`)
+
+The app appears fine in dev (no CSP header locally) and completely broken in production.
 
 **Why it happens:**
-App Groups are a same-device mechanism. The iOS app runs on iPhone; the watchOS app runs on Apple Watch. These are separate devices on separate file systems. An App Group container cannot span devices. This has been confirmed as unsupported since watchOS 2.0. SwiftData + CloudKit iCloud sync theoretically bridges the gap but is slow and unreliable on watchOS (reported as not arriving on Apple Watch in community testing with iOS ↔ iPad successfully syncing).
+CSP is set once in the Hosting headers config and developers test the happy path. Auth providers, payment iframes, and analytics all load from third-party domains that must be explicitly allowlisted. Each omission causes a silent failure — no console error unless DevTools is open.
 
 **How to avoid:**
-Use WatchConnectivity (`WCSession`) as the primary real-time sync channel between iOS and watchOS:
-- Workout data logged on watch → `transferUserInfo` (queued, delivered when reachable) or `sendMessage` (real-time, requires both apps active)
-- Use `SyncStatus` property on workout records (`.pending`, `.synced`, `.conflict`) to drive retry logic
-- Treat the watch as a thin client that writes locally and pushes to iPhone; iPhone is the authoritative store
-- CloudKit can serve as eventual-consistency fallback, not primary sync channel
+Minimum viable CSP for this stack in `firebase.json` headers:
+```
+Content-Security-Policy:
+  default-src 'self';
+  script-src 'self' 'unsafe-inline' https://js.stripe.com https://www.gstatic.com https://apis.google.com;
+  style-src 'self' 'unsafe-inline';
+  connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://api.stripe.com wss://*.firebaseio.com https://firestore.googleapis.com https://identitytoolkit.googleapis.com;
+  frame-src https://js.stripe.com https://accounts.google.com;
+  img-src 'self' data: https:;
+  font-src 'self' data:;
+  worker-src 'self' blob:;
+```
+Note: `'unsafe-inline'` in `script-src` is required because Recharts and inline React hydration use inline styles/scripts. Switching to nonce-based CSP requires build tooling changes.
+
+Start in report-only mode (`Content-Security-Policy-Report-Only`) with a reporting endpoint before enforcing, to catch violations without breaking production.
 
 **Warning signs:**
-- Data logged on watch does not appear on iPhone even after hours
-- Attempting to use `containerURL(forSecurityApplicationGroupIdentifier:)` from the watch target
-- Watch app ModelContainer pointing at a shared group URL
+- Google Sign-In popup opens then immediately closes without authenticating
+- Stripe checkout redirect fails silently
+- Analytics events stop firing after CSP is added
+- Browser console shows "Refused to load" errors in production but not dev
 
-**Phase to address:**
-Phase: watchOS Companion App. Architect the sync strategy before writing any watch data persistence code.
+**Phase to address:** Security hardening phase (after all integrations are working, add CSP last)
 
 ---
 
-### Pitfall 6: WatchConnectivity Delegate Methods Silently Never Fire
+### Pitfall 6: PWA Icons Missing or Wrong Format — Install Prompt Never Appears
 
 **What goes wrong:**
-WCSession messages sent from the watch appear to succeed (no error callbacks), but the iOS app never receives them. Workout data sent during a session is lost. This affects roughly 5% of workout sessions and has been reported as staying broken for the entire workout once it starts.
+The current `vite.config.ts` manifest references `/icons/icon-192.png` and `/icons/icon-512.png`, but the `pwa/public/` directory only contains `favicon.svg` and `icons.svg` — no PNG icons exist. Chrome's installability checker requires actual PNG files at the declared paths. The install prompt never fires. Lighthouse fails the "Installable" PWA check. On iOS Safari, the home screen icon falls back to a screenshot of the page.
+
+Additionally, the manifest declares the 512px icon twice with `purpose: 'maskable'` but the same source image. On Android, maskable icons require 20% safe-zone padding — using a non-padded icon with `purpose: 'maskable'` will crop your logo to an unrecognizable circle.
 
 **Why it happens:**
-WCSession requires both apps to have activated their sessions before messages can flow. If the iOS app is not running, `sendMessage` fails (it requires both to be active simultaneously). `transferUserInfo` is queued and more reliable but has no delivery guarantee window. The `HKWorkoutSession.sendToRemoteWorkoutSession` variant has a known bug where the async method never returns in some cases.
+The Vite PWA plugin generates the manifest JSON but does not generate icon files — those must be provided. Developers declare icons in config without actually placing the files. The disconnect is not caught during development because the install prompt doesn't fire on localhost.
 
 **How to avoid:**
-- Use `transferUserInfo` instead of `sendMessage` for non-latency-critical data (workout sets, metrics)
-- Use `sendMessage` only for real-time UI feedback (active set timer, live heart rate) with fallback on failure
-- Wrap all WCSession calls in a manager that queues messages when not reachable and retries on `sessionReachabilityDidChange`
-- Implement a reconciliation sync at workout completion: send a full workout summary regardless of incremental message success
-- Add error logging for `transferUserInfo` failures; surface them to users as "sync pending"
+- Generate icons using a tool like `sharp` or `pwa-asset-generator`: one regular 512px PNG (logo fills the safe area) and one maskable 512px PNG (logo centered in the middle 60% of the canvas, with the outer 40% being background color `#0D1A40`).
+- Place both at `pwa/public/icons/icon-192.png`, `pwa/public/icons/icon-512.png`, and `pwa/public/icons/icon-512-maskable.png`.
+- Update the manifest to reference separate regular and maskable icons:
+```javascript
+icons: [
+  { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+  { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+  { src: '/icons/icon-512-maskable.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+]
+```
+- Add `apple-touch-icon` at `pwa/public/apple-touch-icon.png` (180px) — iOS Safari ignores the manifest icons and only reads this link tag.
 
 **Warning signs:**
-- WCSession delegate methods not implemented on both sides
-- No fallback or retry logic on `sendMessage`
-- No reconciliation pass at workout end
+- Chrome DevTools Application tab → Manifest shows icon errors
+- Lighthouse audit: "Manifest doesn't have a maskable icon"
+- No install prompt appearing on mobile Chrome after visiting the site twice
+- iOS home screen shows a screenshot instead of an app icon
 
-**Phase to address:**
-Phase: watchOS Companion App.
+**Phase to address:** PWA assets and manifest phase (before any production deploy or Lighthouse audit)
 
 ---
 
-### Pitfall 7: HKWorkoutSession Not Recovered After Watch App Crash or Reboot
+### Pitfall 7: Missing Error Boundaries Cause White Screens on Lazy Route Failures
 
 **What goes wrong:**
-A user starts a workout on Apple Watch, the watch crashes or reboots mid-workout (e.g., forced restart due to low battery), and all in-progress workout data is lost. The `handleActiveWorkoutRecovery` delegate method is not called after a device reboot — only after a crash.
+The router uses `React.lazy()` for every route except Dashboard. If a lazy chunk fails to load (network flap, CDN miss, post-deploy stale cache) or if a component throws during render (bad Firestore data, null dereference), React bubbles the error to the nearest error boundary. Currently there are no error boundaries in the component tree — the error propagates to React's root and the entire app goes blank. The user sees a white screen with no recovery path.
 
 **Why it happens:**
-`handleActiveWorkoutRecovery` on `WKExtensionDelegate` is called for crash recovery but is explicitly not called after device reboot. Apple's documentation notes that developers must manually call `HKHealthStore().recoverActiveWorkoutSession` during `applicationDidFinishLaunching` to handle the reboot case. Custom metrics (sets, reps, load) accumulated before the crash are not part of HealthKit's recovery data — only standard HealthKit data types survive.
+Error boundaries are not required to make the app work in development. React's StrictMode does not enforce them. The `<Suspense>` fallback in `router.tsx` handles loading states but does not catch render errors. Lazy loading errors (failed chunk fetches) are not the same as Suspense loading states — they throw an error that bypasses Suspense.
 
 **How to avoid:**
-- Call `HKHealthStore().recoverActiveWorkoutSession` in `applicationDidFinishLaunching`, not just in `handleActiveWorkoutRecovery`
-- Periodically checkpoint workout state (sets completed, current exercise, elapsed time) to local SwiftData on the watch during a session
-- On recovery, restore custom metrics from the checkpoint before resuming the HealthKit session
-- Show a recovery UI to the user ("We recovered your workout — here's what we saved")
+Add a minimum of two error boundaries:
+1. **Root-level** wrapping the entire app in `main.tsx` — catches catastrophic failures with a full-page "Something went wrong, please refresh" message.
+2. **Route-level** wrapping each `<L>` (lazy route wrapper) — catches per-route failures and allows the nav/shell to remain functional.
+
+```tsx
+// Root error boundary in main.tsx
+<ErrorBoundary fallback={<CrashFallback />}>
+  <StrictMode>
+    <RouterProvider router={router} />
+  </StrictMode>
+</ErrorBoundary>
+```
+
+React 19 introduced improved error boundary handling with `use client` and `use` hook patterns, but class-based or library-based (`react-error-boundary` package) boundaries remain the standard approach for route-level protection.
 
 **Warning signs:**
-- No checkpoint save during active workout session
-- Recovery relies solely on `handleActiveWorkoutRecovery` without the `applicationDidFinishLaunching` check
+- A Firestore document with unexpected `null` values crashes a route with no recovery
+- Any unhandled promise rejection in a component renders a blank page
+- Chrome DevTools shows React's "The above error occurred in the <Component> component" but users see nothing
 
-**Phase to address:**
-Phase: watchOS Companion App.
+**Phase to address:** Error handling and resilience phase (before any user-facing testing)
 
 ---
 
-### Pitfall 8: StoreKit 2 Cold Launch Tier Elevation Window
+### Pitfall 8: GitHub Actions CI Deploys Without Gating on Test Failures
 
 **What goes wrong:**
-A lapsed subscriber (or a user whose subscription was revoked) sees premium features for several seconds on every cold launch. The subscription tier is read from `UserDefaults` before `loadStatus()` completes. In the window before server verification, the cached `.pro` tier grants access. CONCERNS.md confirms this is already the behavior in the existing codebase.
+A CI workflow that runs `npm run build && firebase deploy` without first running `vitest run` will deploy broken code. Build success does not imply correctness — TypeScript compilation passes even when domain logic is broken. The existing Vitest test suite (domain logic, components) provides real regression protection that is wasted if CI skips it.
+
+A secondary issue: CI workflows that deploy using `FIREBASE_TOKEN` (legacy auth) will break when Firebase deprecates it in favor of Workload Identity Federation (GCP service account keys).
 
 **Why it happens:**
-`SubscriptionService.init` reads the cached tier from `UserDefaults` synchronously for instant UI rendering, which is a reasonable DX tradeoff. But when the subscription has lapsed between launches, the stale cache is wrong until the async `loadStatus()` call completes.
+CI pipelines are often written quickly with "make it deploy" as the only goal. Tests are added to the workflow as an afterthought, often after they first fail.
 
 **How to avoid:**
-- Treat the cached tier as `.free` at cold launch until `isStatusLoaded` becomes true
-- Use a `subscriptionService.isStatusLoaded` gate before rendering any premium-gated UI
-- Display a loading state on the paywall/premium features until verification completes (usually < 1s)
-- `Transaction.currentEntitlements` in StoreKit 2 is device-verified and should be the authoritative source, not `UserDefaults`
+Structure the CI workflow with explicit dependency ordering:
+```yaml
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20', cache: 'npm' }
+      - run: npm ci
+        working-directory: pwa
+      - run: npx vitest run
+        working-directory: pwa
+
+  deploy:
+    needs: [test]   # deploy only if tests pass
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20', cache: 'npm' }
+      - run: npm ci && npm run build
+        working-directory: pwa
+        env:
+          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+          # ... all other VITE_ secrets
+      - uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          projectId: ${{ vars.FIREBASE_PROJECT_ID }}
+```
+
+Use `FIREBASE_SERVICE_ACCOUNT` (JSON key from a dedicated deployment service account) rather than the deprecated `FIREBASE_TOKEN`. All `VITE_*` environment variables must be injected at build time — they are not available at runtime since Vite inlines them.
 
 **Warning signs:**
-- `currentTier` read from `UserDefaults` used directly in premium feature gating
-- No `isStatusLoaded` check on any gated view
-- `UserDefaults` used as source-of-truth rather than as a performance hint
+- CI workflow only has a `build` step, no `test` step
+- `FIREBASE_TOKEN` used instead of `FIREBASE_SERVICE_ACCOUNT`
+- `VITE_STRIPE_PRICE_ID` still shows `price_PLACEHOLDER` in the deployed app (env var not injected)
+- Deploy succeeds but app shows auth errors because Firebase project ID is wrong
 
-**Phase to address:**
-Phase: Bug fixes milestone (directly listed in CONCERNS.md).
-
----
-
-### Pitfall 9: StoreKit 2 Transaction Listener Not Started at App Launch
-
-**What goes wrong:**
-Transactions delivered while the app is not running (subscription renewal, family sharing grant, refund) are missed. The user's entitlement state falls out of sync with App Store records. Users with valid subscriptions are locked out; refunded users retain access.
-
-**Why it happens:**
-`Transaction.updates` is an async stream that must be observed with a long-lived `Task` started at app launch. If the listener is started after a delay, or only on the paywall screen, any transactions that arrived while the app was backgrounded or killed are not processed until the stream is observed.
-
-**How to avoid:**
-- Start `Transaction.updates` listener in `@main App.init()` or in `AppState.init()`, before the first view renders
-- Store a reference to the `Task` to prevent deallocation
-- Call `Transaction.currentEntitlements` on launch as the reconciliation pass (handles transactions missed while listener was not running)
-- Do not use the deprecated `Transaction.currentEntitlement(for:)` — use `Transaction.currentEntitlements(for:)` which handles Family Sharing multiple-entitlement scenarios
-
-**Warning signs:**
-- `Transaction.updates` listener started in a view's `onAppear`
-- No stored `Task` reference (listener silently deallocated)
-- No `currentEntitlements` reconciliation on cold launch
-
-**Phase to address:**
-Phase: Bug fixes milestone (subscription cache concern in CONCERNS.md). Verify listener lifecycle at the same time.
-
----
-
-### Pitfall 10: iOS Privacy Permission Change Kills Watch App with SIGKILL
-
-**What goes wrong:**
-A user grants or denies a privacy permission on iPhone (HealthKit, notifications, location) while the Apple Watch app is running. The Watch app is immediately terminated with SIGKILL, mid-workout. Any unsaved state is lost.
-
-**Why it happens:**
-watchOS enforces that any privacy authorization change on the paired iPhone invalidates the Watch app's running context. This is an OS-level SIGKILL that cannot be caught or handled.
-
-**How to avoid:**
-- Checkpoint workout state to SwiftData on the watch every time a set is logged (not just at workout end)
-- Implement `applicationDidFinishLaunching` recovery as described in Pitfall 7
-- Front-load all permission requests on iPhone during onboarding, before the user can start a watch workout, to minimize mid-session authorization prompts
-- Do not request HealthKit authorization from within the watch app — always initiate from iPhone
-
-**Warning signs:**
-- HealthKit authorization requested lazily (on first use) rather than upfront during onboarding
-- No checkpoint mechanism for workout-in-progress state on the watch
-
-**Phase to address:**
-Phase: watchOS Companion App. Also: onboarding flow should request all necessary permissions upfront.
-
----
-
-### Pitfall 11: Swift 6 Strict Concurrency Reveals Hidden Data Races in `@unchecked Sendable` Classes
-
-**What goes wrong:**
-The existing codebase has 9 classes marked `@unchecked Sendable` to silence Swift Concurrency errors. These classes hold mutable shared state (`modelContext`, caches) accessed across actor boundaries. Under Swift 6's strict concurrency checking, real data races exist that the compiler is not warning about. Enabling strict concurrency mode reveals hundreds of errors, or worse, the races cause silent data corruption at runtime.
-
-**Why it happens:**
-`@unchecked Sendable` is a compiler escape hatch that transfers responsibility for thread safety to the developer. Without `actor` isolation or `Mutex` protection on the shared mutable state, the classes are genuinely not safe — the annotation just suppresses the compiler's ability to detect it.
-
-**How to avoid:**
-- Do not use `@unchecked Sendable` on any new classes in this rebuild
-- Audit each of the 9 existing `@unchecked Sendable` classes: replace with `actor` isolation for repository types, or `Mutex` (Swift 6 `Synchronization` framework) for lightweight shared-state containers
-- Enable Swift 6 strict concurrency mode (`SWIFT_STRICT_CONCURRENCY = complete`) in build settings before the watchOS phase to catch issues before they multiply across two targets
-- `ModelContext` must never cross actor boundaries — create new contexts per actor
-
-**Warning signs:**
-- New code adding `@unchecked Sendable` to fix compiler errors
-- `modelContext` stored as an instance property on a non-main-actor class
-- Compiler errors fixed by adding `nonisolated` without understanding the isolation model
-
-**Phase to address:**
-Phase: Bug fixes milestone. Address before watchOS is added (adding a second target multiplies the cross-actor boundaries).
-
----
-
-### Pitfall 12: Stale Schema Reference in Sign-Out Leaves Orphaned Records
-
-**What goes wrong:**
-`signOut` and `deleteAccountAndData` iterate `AppSchemaV10.models` to delete all local records. V12 adds `BarbellPreset` and `ExerciseBarMapping`. These records are never deleted on sign-out. When a new user signs in on the same device, they see a contaminated store with a previous user's barbell presets and exercise-bar mappings.
-
-**Why it happens:**
-The schema reference was not updated when V11 added new model types. This is a direct consequence of the schema version enum approach — adding models to a new version does not automatically update call sites that reference older version enums.
-
-**How to avoid:**
-- Replace `AppSchemaV10.models` with `AppSchemaV12.models` (already used as `allModels` in `AppModelContainer`) immediately
-- Add a CI test that verifies `signOut` deletes all record types present in the current schema
-- Create a `AppSchema.currentModels` alias that always points to the latest version, so this bug cannot recur on the next schema bump
-
-**Warning signs:**
-- Any call site referencing a named schema version for record deletion (should always reference `.currentModels` or latest)
-- Missing records from deletion audits after sign-out
-
-**Phase to address:**
-Phase: Bug fixes milestone (directly listed in CONCERNS.md).
+**Phase to address:** CI/CD pipeline phase (the first infrastructure task)
 
 ---
 
@@ -297,12 +328,13 @@ Phase: Bug fixes milestone (directly listed in CONCERNS.md).
 
 | Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
 |----------|-------------------|----------------|-----------------|
-| `@unchecked Sendable` to silence compiler | Compiles immediately | Real data races silently present; explodes when strict mode enabled or watchOS added | Never — use `actor` instead |
-| `userID ?? ""` empty string fallback | No nil handling needed | All guest data keyed to `""` — unrecoverable on sign-in | Never in production |
-| `UserDefaults` for subscription tier | Fast sync read on launch | Tier elevation window; readable by jailbroken devices | Only as a non-authoritative hint, never as gate |
-| Hardcoded model name string for Gemini | Fast to ship | Silent fallback to offline generator when preview model is deprecated | Acceptable if extracted to a named constant immediately |
-| `AppSchemaV10.models` reference in sign-out | No effort to update | Orphaned records from new model types | Never — reference current schema |
-| `Data(contentsOf:)` on calling actor for JSON | Simpler code | Blocks main actor during JSON reads; stutters on launch | Acceptable only in background task context |
+| Inlining Firebase config in code | Simpler setup, no env var management | Config leaks in git history; can't rotate keys without code deploy | Never — always use `VITE_` env vars |
+| `allow read, write: if true` Firestore rules during development | No auth friction while building | Any internet user can read/write all user data | Only with emulator, never pushed to prod |
+| Skipping Stripe webhook signature verification in test mode | Faster local testing | No defense against forged events in prod; grants free premium | Never in production code paths |
+| Single `firebase.json` with all hosting + functions config | One file to manage | Functions config in root `firebase.json` can conflict with `pwa/` subdirectory builds | Acceptable if paths are correct |
+| `registerType: 'autoUpdate'` without chunk-load error handling | Simpler update flow | Users get white screens after deploy if a lazy chunk fetch fails | Acceptable only if error boundary catches chunk failures |
+| No error boundaries while iterating on UI | Faster development cycle | One null dereference blanks the entire app in production | Only in pre-alpha, never at launch |
+| Placeholder `price_PLACEHOLDER` Stripe price ID | App builds and tests pass | Stripe checkout fails silently; no subscription revenue | Never in production deploy |
 
 ---
 
@@ -310,15 +342,14 @@ Phase: Bug fixes milestone (directly listed in CONCERNS.md).
 
 | Integration | Common Mistake | Correct Approach |
 |-------------|----------------|------------------|
-| CloudKit | Forgetting to deploy schema to Production before TestFlight | Deploy via CloudKit Console before every distribution that adds/changes models |
-| CloudKit | Adding `@Attribute(.unique)` to a synced model | Remove all unique constraints; enforce uniqueness in application logic instead |
-| CloudKit | Non-optional property without default in synced model | All properties must be `?` or have a `= defaultValue` |
-| WatchConnectivity | Using `sendMessage` for workout data when iPhone may be backgrounded | Use `transferUserInfo` for reliability; `sendMessage` only for real-time feedback |
-| StoreKit 2 | Reading tier from `UserDefaults` before `loadStatus()` completes | Gate premium UI on `isStatusLoaded`; treat cache as `.free` until verified |
-| StoreKit 2 | Starting `Transaction.updates` listener in a view | Start in `@main App.init()` and store the `Task` reference |
-| APNs | Assuming silent push notifications are delivered reliably | Silent pushes are best-effort, throttled by iOS; use local notifications for time-critical events (rest timer) |
-| HealthKit on watchOS | Requesting authorization from the watch app | Always initiate HealthKit auth from the iPhone app during onboarding |
-| Gemini Proxy | Hardcoded preview model name | Extract to a named constant; add distinct error path for model-not-found (HTTP 404) |
+| Firebase Hosting + Vite | Deploy the project root instead of `pwa/dist` | Set `"public": "pwa/dist"` in `firebase.json` |
+| Firebase Auth + CSP | Forgetting `accounts.google.com` and `appleid.apple.com` in `frame-src` | Allowlist all identity provider domains explicitly |
+| Stripe + Cloud Functions | Using `req.body` instead of `req.rawBody` in webhook handler | Access `req.rawBody` directly on Firebase Functions `onRequest` handlers |
+| Stripe webhooks | Using test webhook secret with live mode keys | Maintain separate `STRIPE_WEBHOOK_SECRET_TEST` and `STRIPE_WEBHOOK_SECRET_LIVE` env vars |
+| Firestore offline persistence + service worker | Initializing Firestore before service worker installs | `initializeFirestore` with `persistentLocalCache` handles this, but verify no race on first paint |
+| vite-plugin-pwa + Firebase Hosting | Not setting `Cache-Control: no-cache` on `sw.js` | Add explicit header in `firebase.json` for `/sw.js` |
+| GitHub Actions + Vite build | `VITE_` env vars not set in CI = `undefined` inlined | Add all `VITE_*` vars to GitHub repository secrets and inject at build step |
+| React Router v7 + Firebase Hosting | Deep links 404 without `"rewrites"` | Add `{ "source": "**", "destination": "/index.html" }` rewrite |
 
 ---
 
@@ -326,12 +357,11 @@ Phase: Bug fixes milestone (directly listed in CONCERNS.md).
 
 | Trap | Symptoms | Prevention | When It Breaks |
 |------|----------|------------|----------------|
-| 8+ sequential `modelContext.fetch` calls on `@MainActor` in `DashboardViewModel.load` | Dashboard shows blank then snaps in; janky scroll on launch | Concurrent `async let` fetches; move bulk reads to background context | Present now on any device, worse on older hardware |
-| `Data(contentsOf:)` for JSON bundles on calling actor | Launch stutter; possible ANR on slow devices | `Task.detached` or `URLSession.data(from:)` for async file read | Present now on any iOS device |
-| CloudKit shared workout query fetches unbounded records | List truncates silently at 200 entries | Implement `CKQueryOperation` with `resultsLimit` and cursor pagination | When shared workout template catalog exceeds 200 |
-| watchOS: continuous UI refresh during HKWorkoutSession | Battery drains in 4-6 hours during workout | Adaptive refresh: 1Hz when wrist raised, pause when `isLuminanceReduced` | From first watchOS workout session |
-| Nested `TabView` in watchOS | Memory leak accumulates during workout | Avoid nesting `TabView` in watchOS targets | Immediate; grows over session duration |
-| In-memory cache for bundled programs/WODs (unbounded) | Increased memory footprint as catalog grows | Acceptable now; add LRU cache if catalog exceeds 10MB | When program/WOD catalog grows significantly |
+| Firestore `onSnapshot` subscriptions not unsubscribed | Memory leak, duplicate Firestore listeners, stale data on tab reuse | Always return the unsubscribe function from `useEffect` | Becomes visible at 5+ pages with real-time listeners |
+| `persistentLocalCache` with large datasets | First load takes 2-5s on mobile; IndexedDB queries 20x slower than the deprecated API | Limit Firestore query sizes, use pagination, test on low-end Android | Any collection with 100+ documents |
+| Analytics `initAnalytics()` called on every route render | `RootLayout` calls `initAnalytics()` at module load — acceptable, but if moved into a hook called per route it fires multiple times | Keep analytics init at module scope in a single file | Fires duplicate events after any React re-render |
+| Recharts SVG rendering large datasets | Cycle charts with 365 data points freeze on mobile | Limit chart data to 90 days by default, paginate or downsample for longer ranges | 200+ data points on low-end devices |
+| Firestore reads without security rules caching | Every `onSnapshot` triggers a rules evaluation; complex rules slow cold reads | Keep rules simple; avoid cross-document `get()` calls in rules | High read volume, 1000+ MAU |
 
 ---
 
@@ -339,10 +369,12 @@ Phase: Bug fixes milestone (directly listed in CONCERNS.md).
 
 | Mistake | Risk | Prevention |
 |---------|------|------------|
-| Gemini proxy URL unauthenticated — no client token | Any caller can incur Gemini API costs | Add App Attest token or shared secret header; long-term: replace with Firebase Cloud Function |
-| Subscription tier in `UserDefaults` | Tier can be modified by jailbroken device to elevate to `.pro` | Acceptable risk given `loadStatus()` verifies on launch; do not use `UserDefaults` value as gate for high-value features |
-| `NSPredicate(format:)` in CloudKit query | Fragile if ever moved to SwiftData/SQLite context where injection is possible | Use `NSPredicate` with `%@` substitution (already done); document it as CloudKit-only safe |
-| Empty-string `userID` for guest data | Data attribution failure; two guests on same device share records | Generate stable UUID in `AppState.signInAsGuest` on first launch, persist to Keychain |
+| Firestore `premiumEntitlement.active` field writable by the client | Users set their own premium status for free | Rules must deny client writes to `premiumEntitlement`; only the Stripe webhook Cloud Function (server-side) should write this field |
+| Stripe Price ID hardcoded as `price_PLACEHOLDER` deployed to production | No subscriptions can be created; users see broken checkout | Inject `VITE_STRIPE_PRICE_ID` at build time via GitHub Actions secret |
+| Firebase project ID committed to `.env` in version control | Exposes project to unauthorized SDK usage (though API keys are restricted by domain) | Use `.env.local` for local dev, GitHub Secrets for CI; never commit `.env` with real credentials |
+| Guest mode user data accessible via Firestore | Anonymous auth UIDs are real UIDs; if rules are wrong, guest data is readable by others | Apply same ownership rules to anonymous users: `request.auth.uid == uid` applies to anonymous UIDs too |
+| No rate limiting on AI workout generation Cloud Function | A single user can call `generateWorkout` thousands of times, running up Gemini API costs | Add Firebase App Check and per-UID rate limiting (count calls in Firestore with a TTL timestamp) |
+| Stripe webhook endpoint publicly documented | Not a primary risk since signature verification prevents forgery, but worth noting | Signature verification is the protection; keeping the endpoint URL undocumented is defense-in-depth |
 
 ---
 
@@ -350,29 +382,24 @@ Phase: Bug fixes milestone (directly listed in CONCERNS.md).
 
 | Pitfall | User Impact | Better Approach |
 |---------|-------------|-----------------|
-| Silent data loss when migration fails (`deleteStoreFiles`) | User loses all workout history, cycle logs, 1RMs with no explanation | Show explicit alert before any store deletion; offer iCloud restore path if available |
-| Lapsed subscriber sees premium UI then it disappears | Confusing flicker or access revocation mid-session | Show loading state until verification completes; never grant access on stale cache |
-| AI-generated workout shows wrong weights for metric users | Metric user prescribed "135" displayed as kg (is actually lbs) — workouts are dangerous or nonsensical | Fix unit conversion before AI workout feature is active; add unit preference to Gemini system prompt |
-| Guest data orphaned on sign-in | User accumulates data as guest, signs in, all history gone | Implement guest UUID strategy; offer data migration prompt on sign-in |
-| Watch workout recovery with no explanation | User restarts watch mid-workout, app opens to blank workout | Recovery UI: "We found an interrupted workout — resume?" with summary of recovered sets |
-| Enrollment cancelled when CloudKit returns empty on transient error | User loses active program enrollment during brief CloudKit outage | Distinguish "no programs" from "CloudKit fetch failed" — only cancel enrollment on explicit server confirmation |
+| No "Add to Home Screen" install prompt | Discoverability is lost; mobile users don't know the app is installable | Implement `beforeinstallprompt` banner for Android; add "Install app" section to Settings on iOS with manual instructions |
+| `autoUpdate` service worker silently reloads during an active workout session | User loses in-progress workout data when SW activates mid-session | Detect active workout session state; defer SW activation until user is on a non-critical screen or show a dismissable "Update available" banner |
+| Loading spinner with no skeleton UI on first Firestore fetch | Dashboard appears blank for 2-3s on slow connections | Replace spinners with content-shaped skeleton screens on Dashboard, History, and Programs routes |
+| Checkout redirects to Stripe then back — no confirmation state | User returns to `/settings?checkout=success` but sees no visual confirmation before the Firestore listener catches up | Show optimistic "Subscription activating..." state on return from checkout; listen for `isPremium` change to confirm |
+| PWA installed on iOS shows browser chrome | `apple-mobile-web-app-capable` meta tag must be present AND the user must add via Safari | The meta tag is present in `index.html`; ensure `apple-touch-icon` resolves correctly |
 
 ---
 
 ## "Looks Done But Isn't" Checklist
 
-- [ ] **CloudKit activation:** Schema deployed to Production in CloudKit Console — verify by checking Production schema in CloudKit Console, not just Development
-- [ ] **CloudKit activation:** Migration plan applied to `.localPersistent` container path — verify in `AppModelContainer.swift` line 94–96
-- [ ] **CloudKit models:** All properties optional or have defaults, no `@Attribute(.unique)`, no `.deny` delete rules — verify by attempting container initialization
-- [ ] **Sign-out/delete:** References `AppSchemaV12.models` not `AppSchemaV10.models` — verify by creating a user, adding barbell presets, signing out, signing in as new user, confirm no leaked records
-- [ ] **Guest mode:** Uses stable UUID from `AppState.signInAsGuest`, not empty string — verify by logging a workout as guest, checking SwiftData `userID` field
-- [ ] **StoreKit tier verification:** `currentTier` not read as authoritative before `isStatusLoaded` is true — verify by lapsing a sandbox subscription and cold-launching
-- [ ] **StoreKit listener:** `Transaction.updates` task started in `App.init()`, `Task` reference stored — verify by processing a transaction while app is backgrounded
-- [ ] **watchOS data sync:** WCSession activated on both sides at app launch, not lazily — verify by sending a message immediately after install
-- [ ] **HealthKit auth:** Requested from iPhone during onboarding, not from Watch target — verify entitlement flow in onboarding
-- [ ] **HKWorkoutSession recovery:** `recoverActiveWorkoutSession` called in `applicationDidFinishLaunching` on watchOS — verify by force-rebooting watch mid-workout
-- [ ] **AI workout weights:** `initializeAISets` converts lbs to kg for metric users — verify unit conversion test passes
-- [ ] **APNs registration:** Token rotation handled (new token on reinstall) — verify by reinstalling and sending a push to the old token
+- [ ] **Firebase Hosting deploy:** `firebase.json` exists with `"public": "pwa/dist"`, SPA rewrite rule, and `no-cache` header for `sw.js` — verify with `firebase hosting:channel:deploy preview` before first production push
+- [ ] **PWA icons:** Actual PNG files exist at `pwa/public/icons/icon-192.png` and `pwa/public/icons/icon-512.png` — `ls pwa/public/icons/` confirms files exist, not just SVG
+- [ ] **Stripe webhook secret:** `STRIPE_WEBHOOK_SECRET` env var set in Cloud Functions config and the webhook endpoint is registered in Stripe Dashboard pointing to the deployed function URL — test with `stripe trigger customer.subscription.created`
+- [ ] **Firestore security rules deployed:** `firebase.json` includes `"firestore": { "rules": "firestore.rules" }` and rules are deployed with `firebase deploy --only firestore:rules` — not just saved locally
+- [ ] **Environment variables in CI:** GitHub Actions secrets include all `VITE_FIREBASE_*`, `VITE_STRIPE_PRICE_ID` — verify by checking the deployed app's network requests don't show `undefined` in Firebase config
+- [ ] **Error boundaries present:** Root `<ErrorBoundary>` wraps `<RouterProvider>` in `main.tsx`; route-level boundaries wrap each lazy component — test by temporarily throwing in a component
+- [ ] **CSP in report-only mode first:** Verify no CSP violations appear in production logs before switching from `Report-Only` to enforcing — check Firebase Hosting request logs for CSP violation reports
+- [ ] **Service worker update handling:** Chunk load errors trigger a reload; users are not silently stuck on stale code — test by deploying a new build while having the old app open in another tab
 
 ---
 
@@ -380,13 +407,14 @@ Phase: Bug fixes milestone (directly listed in CONCERNS.md).
 
 | Pitfall | Recovery Cost | Recovery Steps |
 |---------|---------------|----------------|
-| CloudKit schema not in Production | LOW | Deploy schema in CloudKit Console; push a patch release; no code changes required |
-| Migration crash on CloudKit activation | HIGH | Revert CloudKit flag in hotfix; audit model compatibility; re-enable in next release |
-| Silent store deletion wiped user data | HIGH | If CloudKit was ever enabled: iCloud data may still exist; guide user through CloudKit restore; if never enabled: data is unrecoverable |
-| Stale schema ref left orphaned records | LOW | Add one-time migration step in next schema version to delete orphaned `BarbellPreset`/`ExerciseBarMapping` records with mismatched `userID` |
-| WatchConnectivity data loss | MEDIUM | Reconciliation sync at next session: compare timestamps and re-send any workout records not confirmed on iPhone |
-| StoreKit tier elevation window | LOW | Already mitigated by `loadStatus()` on launch; no data integrity risk, only brief UI flicker |
-| HKWorkoutSession recovery failure | MEDIUM | Checkpoint strategy limits loss to one set maximum; surface recovery UI; user manually confirms recovered data |
+| SPA rewrite missing, 404s on all deep links | LOW | Add `firebase.json` rewrite rule, redeploy — takes ~5 minutes |
+| Stripe webhook broken, subscriptions not activating | MEDIUM | Fix raw body issue, redeploy function, replay failed webhook events from Stripe Dashboard |
+| Firestore rules too permissive in production | HIGH | Deploy corrected rules immediately (can hot-deploy without new app build); audit Firestore logs for unauthorized reads |
+| Users stuck on stale cached version | MEDIUM | Serve new `sw.js` with `no-cache`, deploy update — users will auto-update on next visit; add "force refresh" notice in-app |
+| CSP blocks auth/payments after enforcement | LOW | Revert CSP header to report-only mode, identify blocked domains from violation reports, add to allowlist, re-enable enforcement |
+| White screen from missing error boundary | LOW | Add error boundaries, redeploy — no data migration needed |
+| PWA icons missing, install prompt fails | LOW | Generate icons, push to `public/icons/`, redeploy hosting — takes ~30 minutes |
+| CI deploys broken code because tests not gated | MEDIUM | Add `needs: [test]` to deploy job; if broken code is live, roll back with `firebase hosting:clone` |
 
 ---
 
@@ -394,44 +422,33 @@ Phase: Bug fixes milestone (directly listed in CONCERNS.md).
 
 | Pitfall | Prevention Phase | Verification |
 |---------|------------------|--------------|
-| CloudKit schema not deployed to Production | CloudKit Activation | Verify Production CloudKit Console schema before first TestFlight build |
-| Migration crash on CloudKit activation | CloudKit Activation (Bug Fixes) | Integration test: install V11 build, install V12 with CloudKit enabled, confirm app boots without crash |
-| Add-Only schema constraint violated | CloudKit Activation + every subsequent schema phase | Code review gate: no entity/attribute removals or renames in any SwiftData model file |
-| Silent store deletion on migration failure | Bug Fixes milestone | Unit test covering `AppModelContainer.deleteStoreFiles` fallback path |
-| watchOS App Group sync assumption | watchOS Companion App | Architecture review: confirm no App Group container URL used on watch target |
-| WatchConnectivity delegate never fires | watchOS Companion App | Integration test: send workout from watch simulator, confirm receipt on iOS simulator |
-| HKWorkoutSession crash recovery | watchOS Companion App | Manual test: force-reboot watch mid-workout, confirm recovery on relaunch |
-| iOS privacy permission kills Watch | watchOS Companion App + Onboarding | Front-load all permission grants in onboarding; checkpoint test during HKWorkoutSession |
-| StoreKit cold-launch tier elevation | Bug Fixes milestone | Sandbox test: let subscription lapse, cold-launch, confirm premium UI not visible before `isStatusLoaded` |
-| StoreKit transaction listener missed | Bug Fixes milestone | Test: process transaction while app is background-killed; confirm entitlement updated on next launch |
-| `@unchecked Sendable` data races | Bug Fixes milestone (before watchOS) | Enable `SWIFT_STRICT_CONCURRENCY = complete`; zero new errors in build |
-| Stale schema ref in sign-out | Bug Fixes milestone | Integration test: create barbell preset, sign out, confirm it is deleted |
-| AI weight unit bug | Bug Fixes milestone | Unit test: `initializeAISets` with metric user returns kg values |
-| Guest `userID == ""` | Bug Fixes milestone | Unit test: guest workflow produces non-empty, stable `userID` |
+| Firebase Hosting SPA rewrite missing | Phase 1: Infrastructure and CI/CD | `curl https://yourdomain.com/cycle` returns 200 with `index.html`, not 404 |
+| Stripe webhook raw body destroyed | Phase 2: Stripe integration | `stripe trigger customer.subscription.created` in live mode sets Firestore `premiumEntitlement.active = true` |
+| Firestore cross-user data access | Phase 3: Security hardening | Firestore emulator test: user A cannot read `/users/userB/workouts`; all subcollections gated |
+| Service worker stale chunk 404s | Phase 4: PWA and offline polish | Deploy new build while old app is open in another tab; navigate to a lazy route; no white screen |
+| CSP blocking Firebase/Stripe | Phase 3: Security hardening | Run in report-only mode for 24h in staging; zero violations before enforcing |
+| PWA icons missing/wrong format | Phase 4: PWA and offline polish | Lighthouse PWA audit passes "Installable" category; maskable icon audit passes |
+| Missing error boundaries | Phase 5: Error handling and resilience | Deliberately throw in a lazy route; root shell remains visible with recovery UI |
+| CI not gating on test failures | Phase 1: Infrastructure and CI/CD | Break a domain test intentionally; confirm deploy job does not run |
 
 ---
 
 ## Sources
 
-- [Designing Models for CloudKit Sync: Core Data & SwiftData Rules — fatbobman.com](https://fatbobman.com/en/snippet/rules-for-adapting-data-models-to-cloudkit/)
-- [Fixing CloudKit Sync in Production: Deploying Schema — fatbobman.com](https://fatbobman.com/en/snippet/why-core-data-or-swiftdata-cloud-sync-stops-working-after-app-store-login/)
-- [Fixing SwiftData & Core Data Sync: initializeCloudKitSchema — fatbobman.com](https://fatbobman.com/en/snippet/resolving-incomplete-icloud-data-sync-in-ios-development-using-initializecloudkitschema/)
-- [From YaoYao to Tooboo - watchOS Development Pitfalls and Practical Tips — fatbobman.com](https://fatbobman.com/en/posts/watchos-development-pitfalls-and-practical-tips)
-- [Key Considerations Before Using SwiftData — fatbobman.com](https://fatbobman.com/en/posts/key-considerations-before-using-swiftdata/)
-- [SwiftData+CloudKit Migration Failure — Apple Developer Forums](https://developer.apple.com/forums/thread/742899)
-- [SwiftData with CloudKit failing to migrate schema — Apple Developer Forums](https://developer.apple.com/forums/thread/744491)
-- [SwiftData CloudKit sync on WatchOS 10 — Apple Developer Forums](https://developer.apple.com/forums/thread/733397)
-- [Deploy your CloudKit-backed SwiftData entities to production — leojkwan.com](https://www.leojkwan.com/swiftdata-cloudkit-deploy-schema-changes/)
-- [SOLVED: SwiftUI App failing to sync CloudKit data in TestFlight — Hacking with Swift forums](https://www.hackingwithswift.com/forums/swiftui/swiftui-app-failing-to-sync-cloudkit-data-but-only-in-testflight-version/10714)
-- [Some Quirks of SwiftData with CloudKit — firewhale.io](https://firewhale.io/posts/swift-data-quirks/)
-- [Building a Universal Workout App: iPhone ↔ Apple Watch Data Sync — Wesley Matlock, Medium](https://medium.com/@wesleymatlock/building-a-universal-workout-app-seamless-iphone-apple-watch-data-sync-3d77a001b0ba)
-- [HKWorkoutSession.sendToRemoteWorkoutSession never returns — Apple Developer Forums](https://developer.apple.com/forums/thread/769355)
-- [Beware @unchecked Sendable — Jared Sinclair](https://jaredsinclair.com/2024/11/12/beware-unchecked.html)
-- [Mastering StoreKit 2 in SwiftUI: A Complete Guide (2025) — Medium](https://medium.com/@dhruvinbhalodiya752/mastering-storekit-2-in-swiftui-a-complete-guide-to-in-app-purchases-2025-ef9241fced46)
-- [iOS In-App Subscription Tutorial with StoreKit 2 — RevenueCat](https://www.revenuecat.com/blog/engineering/ios-in-app-subscription-tutorial-with-storekit-2-and-swift/)
-- [Silent Push Notifications: Opportunities, Not Guarantees — Medium](https://mohsinkhan845.medium.com/silent-push-notifications-in-ios-opportunities-not-guarantees-2f18f645b5d5)
-- CONCERNS.md (internal codebase audit — 2026-03-18)
+- [Firebase Hosting full configuration docs](https://firebase.google.com/docs/hosting/full-config) — rewrite rules and headers
+- [Stripe webhook signature verification](https://docs.stripe.com/webhooks/signature) — raw body requirement, timing attacks, replay prevention
+- [Firebase Firestore security rules: fix insecure rules](https://firebase.google.com/docs/firestore/security/insecure-rules) — cross-user access patterns
+- [vite-plugin-pwa: Service Worker Precache guide](https://vite-pwa-org.netlify.app/guide/service-worker-precache.html) — globPatterns gotchas
+- [vite-plugin-pwa: Auto update strategy](https://vite-pwa-org.netlify.app/guide/auto-update) — skipWaiting and clientsClaim behavior
+- [Lighthouse PWA installable manifest audit](https://developer.chrome.com/docs/lighthouse/pwa/installable-manifest) — required manifest fields
+- [Lighthouse maskable icon audit](https://developer.chrome.com/docs/lighthouse/pwa/maskable-icon-audit) — maskable icon requirements
+- [MDN: Making PWAs installable](https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Guides/Making_PWAs_installable) — iOS vs Android install flows
+- [BiteSite: Raw body for Stripe webhooks in Firebase Cloud Functions](https://www.bitesite.ca/blog/raw-body-for-stripe-webhooks-using-firebase-cloud-functions) — `req.rawBody` pattern
+- [Implementing Stripe Subscriptions with Firebase Cloud Functions 2025](https://aronschueler.de/blog/2025/03/17/implementing-stripe-subscriptions-with-firebase-cloud-functions-and-firestore/) — current implementation pattern
+- [Securing Firebase in Production checklist](https://modernpentest.com/blog/securing-firebase-in-production) — Firestore security audit
+- [Firestore IndexedDB persistence: multi-tab issues](https://github.com/firebase/firebase-js-sdk/issues/6511) — stale data mutation in non-leader tabs
+- [Webhook Security Best Practices 2025-2026](https://dev.to/digital_trubador/webhook-security-best-practices-for-production-2025-2026-384n) — idempotency, replay prevention
 
 ---
-*Pitfalls research for: iOS + watchOS native strength training app*
-*Researched: 2026-03-18*
+*Pitfalls research for: PWA production readiness (Vite 8 + React 19 + Firebase + Stripe)*
+*Researched: 2026-03-21*
