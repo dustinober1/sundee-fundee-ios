@@ -1,0 +1,18 @@
+.container { max-width: 600px; margin: 0 auto; padding: var(--space-md); }
+.empty { text-align: center; color: var(--text-muted); padding: var(--space-2xl) 0; }
+.back { background: none; border: none; color: var(--accent); font-size: var(--font-body-small); cursor: pointer; padding: 0; margin-bottom: var(--space-md); display: block; }
+.title { font-size: var(--font-h2); font-weight: var(--weight-bold); color: var(--text); letter-spacing: var(--tracking-wide); margin-bottom: var(--space-md); }
+.summaryCard { background: var(--color-navy); border-radius: var(--radius-md); padding: var(--space-md); margin-bottom: var(--space-lg); }
+.summaryStats { display: flex; gap: var(--space-xl); margin-bottom: var(--space-sm); }
+.stat { display: flex; flex-direction: column; }
+.statValue { font-size: var(--font-h2); font-weight: var(--weight-bold); color: var(--color-cream); }
+.statLabel { font-size: var(--font-caption); color: var(--color-cream); opacity: 0.7; text-transform: uppercase; letter-spacing: var(--tracking-wide); }
+.coaching { font-size: var(--font-body-small); color: var(--color-cream); opacity: 0.85; line-height: 1.5; }
+.exercises { margin-bottom: var(--space-lg); }
+.exRow { padding: 14px 0; border-bottom: 1px solid var(--border); }
+.exInfo { display: flex; flex-direction: column; }
+.exName { font-weight: var(--weight-bold); font-size: var(--font-body); }
+.exDetail { font-size: var(--font-body-small); color: var(--text-muted); margin-top: 2px; }
+.exNotes { font-size: var(--font-caption); color: var(--text-muted); font-style: italic; margin-top: 4px; }
+.primaryBtn { width: 100%; padding: 16px; border-radius: var(--radius-md); background: var(--accent); color: var(--color-cream); font-size: var(--font-body-large); font-weight: var(--weight-bold); letter-spacing: var(--tracking-wide); border: none; cursor: pointer; }
+.primaryBtn:hover { background: var(--color-orange-dark); }

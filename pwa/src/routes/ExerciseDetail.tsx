@@ -6,9 +6,10 @@ import { useParams, useSearchParams, useNavigate } from 'react-router';
 import { useSession } from '../auth/AuthContext';
 import { getExerciseMaxRepo } from '../repositories/ExerciseMaxRepo';
 import { getSettingsRepo, DEFAULT_SETTINGS } from '../repositories/SettingsRepo';
-import { formatWeight } from '../utils/formatWeight';
+import { formatWeight, formatWeightNumeric } from '../utils/formatWeight';
 import type { ExerciseMax } from '../domain/pr-detection/pr-types';
 import type { WeightUnit } from '../domain/types';
+import { LineChart, type ChartDataPoint } from '../components/LineChart';
 import styles from './ExerciseDetail.module.css';
 
 export function ExerciseDetail() {
@@ -67,6 +68,24 @@ export function ExerciseDetail() {
         <p className={styles.empty}>No PR data yet. Complete a workout with this exercise to start tracking.</p>
       ) : (
         <>
+          {/* 1RM Trend Chart */}
+          {maxes.length >= 2 && (() => {
+            const chartData: ChartDataPoint[] = [...maxes]
+              .sort((a, b) => a.achievedAt.localeCompare(b.achievedAt))
+              .map((m) => ({
+                date: new Date(m.achievedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+                value: formatWeightNumeric(m.estimated1RM, weightUnit),
+              }));
+            return (
+              <>
+                <h3 className={styles.sectionTitle}>Estimated 1RM Over Time</h3>
+                <div className={styles.chartWrap}>
+                  <LineChart data={chartData} formatValue={(v) => formatWeight(v, weightUnit === 'kg' ? 'kg' : 'lb')} />
+                </div>
+              </>
+            );
+          })()}
+
           {/* Rep Range PRs */}
           <h3 className={styles.sectionTitle}>Rep Range PRs</h3>
           <div className={styles.table}>

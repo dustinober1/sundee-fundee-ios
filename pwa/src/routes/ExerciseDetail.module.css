@@ -16,4 +16,5 @@
 .tableRow:last-child { border-bottom: none; }
 .accent { font-weight: var(--weight-bold); color: var(--accent); }
 .muted { color: var(--text-muted); font-size: var(--font-caption); }
+.chartWrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: var(--space-md); margin-bottom: var(--space-md); }
 .histRow { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: var(--font-body-small); }

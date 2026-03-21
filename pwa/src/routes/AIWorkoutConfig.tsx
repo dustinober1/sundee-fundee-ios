@@ -5,7 +5,19 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useSession } from '../auth/AuthContext';
 import { useEntitlementContext } from '../entitlements/EntitlementContext';
+import { generateOfflineWorkout } from '../domain/ai-workout/offline-workout-generator';
+import type { GeneratedWorkout } from '../domain/ai-workout/generated-workout';
+import type { WorkoutGenerationContext } from '../domain/ai-workout/workout-generation-context';
+import type { WorkoutFocus, EnergyLevel, EquipmentAccess } from '../domain/types';
+import { getExerciseMaxRepo } from '../repositories/ExerciseMaxRepo';
+import { getSettingsRepo, DEFAULT_SETTINGS } from '../repositories/SettingsRepo';
+import { getOnboardingProfileRepo } from '../repositories/OnboardingProfileRepo';
 import styles from './AIWorkoutConfig.module.css';
+
+// Module-level shared state for passing workout to preview screen
+let _sharedWorkout: GeneratedWorkout | null = null;
+export function getSharedWorkout(): GeneratedWorkout | null { return _sharedWorkout; }
+export function clearSharedWorkout(): void { _sharedWorkout = null; }
 
 type TimeOption = 15 | 30 | 45 | 60;
 type FocusOption = 'upper_body' | 'lower_body' | 'full_body' | 'push' | 'pull' | 'core';
@@ -43,7 +55,7 @@ const ENERGY_OPTIONS: { value: EnergyOption; label: string }[] = [
 
 export function AIWorkoutConfig() {
   const navigate = useNavigate();
-  const { user } = useSession();
+  const { user, isGuest } = useSession();
   const { isPremium } = useEntitlementContext();
   const [time, setTime] = useState<TimeOption>(30);
   const [focus, setFocus] = useState<FocusOption>('full_body');
@@ -59,10 +71,44 @@ export function AIWorkoutConfig() {
     }
     setIsGenerating(true);
     try {
-      // Store config in sessionStorage for preview screen
-      sessionStorage.setItem('@sundee/ai-config', JSON.stringify({ time, focus, equipment, energy }));
+      // Load user context for generation
+      const [maxesRaw, settings, profile] = await Promise.all([
+        getExerciseMaxRepo(isGuest).getAllMaxes(user.uid),
+        getSettingsRepo(isGuest).getSettings(user.uid),
+        getOnboardingProfileRepo(isGuest).getProfile(user.uid),
+      ]);
+
+      const maxes = maxesRaw.map((m) => ({ name: m.exerciseName, weightLb: m.weight }));
+
+      const context: WorkoutGenerationContext = {
+        userID: user.uid,
+        timeMinutes: time,
+        focus: focus as WorkoutFocus,
+        energyLevel: energy as EnergyLevel,
+        equipment: equipment as EquipmentAccess,
+        maxes,
+        recentWorkouts: [],
+        cyclePhase: null,
+        readinessTier: null,
+        activeInjuries: [],
+        experienceLevel: profile?.experienceLevel ?? 'intermediate',
+        primaryGoal: profile?.primaryGoal ?? 'strength',
+        gender: profile?.gender ?? 'other',
+        weightUnit: settings?.weightUnit ?? DEFAULT_SETTINGS.weightUnit,
+        desiredSkills: [],
+        benchmarkSummaries: [],
+        bodyWeightKg: null,
+        recentPainActivity: [],
+        workoutCompletionRate: null,
+        travelModeEnabled: false,
+      };
+
+      // TODO: Try Cloud Function first when available, fall back to offline
+      const workout = generateOfflineWorkout(context);
+      _sharedWorkout = workout;
       navigate('/ai-workout/preview');
-    } catch {
+    } catch (err) {
+      console.error('AI workout generation failed:', err);
       setIsGenerating(false);
     }
   }

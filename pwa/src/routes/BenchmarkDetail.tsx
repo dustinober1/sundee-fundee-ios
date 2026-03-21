@@ -7,6 +7,7 @@ import { useSession } from '../auth/AuthContext';
 import { getBenchmarkRepo, type BenchmarkResultRecord } from '../repositories/BenchmarkRepo';
 import type { BenchmarkScoringType } from '../domain/types';
 import { encodeRoundsAndReps, decodeRoundsAndReps } from '../domain/benchmarks/benchmark-catalog';
+import { LineChart, type ChartDataPoint } from '../components/LineChart';
 import styles from './BenchmarkDetail.module.css';
 
 function formatScore(score: number, scoringType: BenchmarkScoringType): string {
@@ -142,6 +143,20 @@ export function BenchmarkDetail() {
         <textarea className={styles.textarea} placeholder="Notes (optional)" value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} />
         <button className={styles.saveBtn} onClick={handleSave} disabled={!canSave}>Save Result</button>
       </div>
+
+      {/* Progress chart */}
+      {results.length >= 2 && (() => {
+        const isLower = scoringType === 'time' || scoringType === 'distance';
+        const chartData: ChartDataPoint[] = [...results]
+          .sort((a, b) => a.date.localeCompare(b.date))
+          .map((r) => ({ date: r.date, value: r.score }));
+        return (
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: 'var(--space-md)', marginBottom: 'var(--space-md)' }}>
+            <h3 className={styles.sectionTitle} style={{ marginTop: 0 }}>Progress</h3>
+            <LineChart data={chartData} lowerIsBetter={isLower} formatValue={(v) => formatScore(Math.abs(v), scoringType)} />
+          </div>
+        );
+      })()}
 
       {/* History */}
       <h3 className={styles.sectionTitle}>History</h3>

@@ -6,6 +6,7 @@ import { useParams, useNavigate } from 'react-router';
 import { useSession } from '../auth/AuthContext';
 import { getInjuryRepo, type InjuryProfileRecord, type PainLogRecord } from '../repositories/InjuryRepo';
 import type { RecoveryPhase } from '../domain/types';
+import { LineChart, type ChartDataPoint } from '../components/LineChart';
 import styles from './InjuryDetail.module.css';
 
 const PHASE_LABELS: Record<RecoveryPhase, string> = {
@@ -120,6 +121,22 @@ export function InjuryDetail() {
         )}
         <button className={styles.logBtn} onClick={handleLogPain} disabled={selectedPain === null}>Log Pain</button>
       </div>
+
+      {/* Pain trend chart */}
+      {painLogs.length >= 2 && (() => {
+        const chartData: ChartDataPoint[] = [...painLogs]
+          .sort((a, b) => a.date.localeCompare(b.date))
+          .map((log) => ({
+            date: new Date(log.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+            value: log.painLevel,
+          }));
+        return (
+          <div className={styles.card}>
+            <h3 className={styles.cardTitle}>Pain Trend</h3>
+            <LineChart data={chartData} color="#EF5350" lowerIsBetter formatValue={(v) => `${Math.round(v)}/10`} />
+          </div>
+        );
+      })()}
 
       {/* Pain history */}
       {painLogs.length > 0 && (
