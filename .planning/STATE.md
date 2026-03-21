@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 02-cloud-functions 02-02-PLAN.md — Stripe checkout + portal + webhook + deploy pipeline
-last_updated: "2026-03-21T17:45:17.821Z"
+stopped_at: Completed 03-security-hardening 03-02-PLAN.md — rate limiting for generateAIWorkout (SEC-04)
+last_updated: "2026-03-21T18:16:28.031Z"
 last_activity: 2026-03-21 — Phase 2 complete; all Cloud Functions (generateAIWorkout, Stripe checkout/portal/webhook) implemented and deploy pipeline updated
 progress:
   total_phases: 6
   completed_phases: 2
-  total_plans: 5
-  completed_plans: 5
+  total_plans: 8
+  completed_plans: 6
   percent: 100
 ---
 
@@ -55,6 +55,7 @@ Progress: [██████████] 100%
 | Phase 02-cloud-functions P00 | 2min | 1 tasks | 5 files |
 | Phase 02-cloud-functions P01 | 45 | 2 tasks | 14 files |
 | Phase 02-cloud-functions P02 | 9 | 2 tasks | 8 files |
+| Phase 03-security-hardening P02 | 2min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -79,6 +80,8 @@ Recent decisions affecting current work:
 - [Phase 02-cloud-functions]: Require firebase-admin/firestore via mapped name in tests so Jest shares same module cache instance as implementation
 - [Phase 02-cloud-functions]: Firestore mock uses mutable delegation pattern — stable doc ref delegates to swappable handlers for test control without clearAllMocks issues
 - [Phase 02-cloud-functions]: Service account key written via env var in deploy step (not inline echo) to avoid security hook violation in GitHub Actions
+- [Phase 03-security-hardening]: Firestore transaction rate limit for generateAIWorkout — atomic counter at users/{uid}/rateLimits/aiWorkout prevents race conditions
+- [Phase 03-security-hardening]: require mapped module name in tests (firebase-admin/firestore not relative path) to share same Jest module instance as implementation
 
 ### Pending Todos
 
@@ -91,6 +94,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-21T17:40:51.674Z
-Stopped at: Completed 02-cloud-functions 02-02-PLAN.md — Stripe checkout + portal + webhook + deploy pipeline
+Last session: 2026-03-21T18:16:28.028Z
+Stopped at: Completed 03-security-hardening 03-02-PLAN.md — rate limiting for generateAIWorkout (SEC-04)
 Resume file: None
