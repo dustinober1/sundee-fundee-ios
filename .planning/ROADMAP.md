@@ -76,7 +76,11 @@ Plans:
   2. A Lighthouse PWA audit run against the production URL shows green for installability, accessibility, and performance
   3. When the device goes offline, the service worker serves a branded offline page instead of a Chrome error screen
   4. Android users see an "Add to Home Screen" banner; iOS Safari users see an instructional prompt explaining how to install
-**Plans**: TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 04-01-PLAN.md — Generate PWA icon PNGs, create offline fallback page, wire workbox navigateFallback
+- [ ] 04-02-PLAN.md — Implement cross-platform install prompt, Lighthouse PWA audit verification
 
 ### Phase 5: Error Resilience
 **Goal**: Render errors, loading states, and unknown routes are handled gracefully — users never see a white screen or blank flash
@@ -108,6 +112,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 1. Deploy Pipeline | 2/2 | Complete   | 2026-03-21 |
 | 2. Cloud Functions | 3/3 | Complete   | 2026-03-21 |
 | 3. Security Hardening | 3/3 | Complete   | 2026-03-21 |
-| 4. PWA Quality | 0/TBD | Not started | - |
+| 4. PWA Quality | 0/2 | Not started | - |
 | 5. Error Resilience | 0/TBD | Not started | - |
 | 6. Analytics and SEO | 0/TBD | Not started | - |
