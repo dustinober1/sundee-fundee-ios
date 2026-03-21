@@ -22,8 +22,8 @@
 
 - [ ] **SEC-01**: Firestore security rules enforce per-user ownership on all subcollections
 - [ ] **SEC-02**: Firestore rules prevent client-side write to `premiumEntitlement` field
-- [ ] **SEC-03**: Content Security Policy headers in `firebase.json` allowlisting Firebase, Stripe, and Gemini domains
-- [ ] **SEC-04**: Rate limiting on AI workout generation (5 per user per day)
+- [x] **SEC-03**: Content Security Policy headers in `firebase.json` allowlisting Firebase, Stripe, and Gemini domains
+- [x] **SEC-04**: Rate limiting on AI workout generation (5 per user per day)
 
 ### PWA
 
@@ -83,8 +83,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | BACK-03 | Phase 2 | Complete |
 | SEC-01 | Phase 3 | Pending |
 | SEC-02 | Phase 3 | Pending |
-| SEC-03 | Phase 3 | Pending |
-| SEC-04 | Phase 3 | Pending |
+| SEC-03 | Phase 3 | Complete |
+| SEC-04 | Phase 3 | Complete |
 | PWA-01 | Phase 4 | Pending |
 | PWA-02 | Phase 4 | Pending |
 | PWA-03 | Phase 4 | Pending |
