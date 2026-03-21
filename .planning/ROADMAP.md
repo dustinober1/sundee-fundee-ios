@@ -33,8 +33,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans:** 2/2 plans complete
 
 Plans:
-- [ ] 01-01-PLAN.md — Create firebase.json, GitHub Actions workflows, update .env.example
-- [ ] 01-02-PLAN.md — Set up secrets, DNS, service account, and verify pipeline end-to-end
+- [x] 01-01-PLAN.md — Create firebase.json, GitHub Actions workflows, update .env.example
+- [x] 01-02-PLAN.md — Set up secrets, DNS, service account, and verify pipeline end-to-end
 
 ### Phase 2: Cloud Functions
 **Goal**: AI workout generation runs through a Firebase Cloud Function and Stripe checkout flow is backed by server-side functions
@@ -44,7 +44,11 @@ Plans:
   1. Authenticated users can generate an AI workout via the Cloud Function; unauthenticated calls are rejected
   2. Clicking "Subscribe" creates a Stripe Checkout session and redirects the user to Stripe's hosted checkout page
   3. Completing a Stripe test checkout triggers the webhook, verifies the signature, and writes the `premiumEntitlement` field to Firestore
-**Plans**: TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 02-01-PLAN.md — Scaffold functions/ directory, implement generateAIWorkout, wire client
+- [ ] 02-02-PLAN.md — Implement Stripe checkout + webhook functions, update deploy workflow
 
 ### Phase 3: Security Hardening
 **Goal**: User data is protected by ownership-enforced Firestore rules and the app serves a Content Security Policy with known-safe domains
@@ -96,7 +100,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Deploy Pipeline | 2/2 | Complete   | 2026-03-21 |
-| 2. Cloud Functions | 0/TBD | Not started | - |
+| 2. Cloud Functions | 0/2 | Planning complete | - |
 | 3. Security Hardening | 0/TBD | Not started | - |
 | 4. PWA Quality | 0/TBD | Not started | - |
 | 5. Error Resilience | 0/TBD | Not started | - |
