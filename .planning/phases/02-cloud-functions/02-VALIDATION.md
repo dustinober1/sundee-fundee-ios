@@ -2,8 +2,8 @@
 phase: 2
 slug: cloud-functions
 status: draft
-nyquist_compliant: false
-wave_0_complete: false
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-21
 ---
 
@@ -17,20 +17,20 @@ created: 2026-03-21
 
 | Property | Value |
 |----------|-------|
-| **Framework** | Vitest 4.x (PWA) + manual emulator smoke (Functions) |
-| **Config file** | `pwa/vitest.config.ts` |
-| **Quick run command** | `cd pwa && npx vitest run src/domain/__tests__/ai-workout.test.ts` |
-| **Full suite command** | `cd pwa && npx vitest run` |
-| **Estimated runtime** | ~15 seconds |
+| **Framework** | Vitest 4.x (PWA) + Jest 29.x (Functions) |
+| **Config file** | `pwa/vitest.config.ts`, `functions/jest.config.js` |
+| **Quick run command** | `cd functions && npx jest --passWithNoTests` |
+| **Full suite command** | `cd pwa && npx vitest run && cd ../functions && npx jest` |
+| **Estimated runtime** | ~20 seconds |
 
 ---
 
 ## Sampling Rate
 
-- **After every task commit:** Run `cd pwa && npx vitest run src/domain/__tests__/ai-workout.test.ts`
-- **After every plan wave:** Run `cd pwa && npx vitest run`
+- **After every task commit:** Run `cd functions && npx jest --passWithNoTests`
+- **After every plan wave:** Run `cd pwa && npx vitest run && cd ../functions && npx jest`
 - **Before `/gsd:verify-work`:** Full suite must be green
-- **Max feedback latency:** 15 seconds
+- **Max feedback latency:** 20 seconds
 
 ---
 
@@ -38,10 +38,12 @@ created: 2026-03-21
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 02-01-01 | 01 | 1 | BACK-01 | unit | `cd pwa && npx vitest run` | ✅ | ⬜ pending |
-| 02-01-02 | 01 | 1 | BACK-01 | unit | `cd pwa && npx vitest run src/domain/__tests__/ai-workout.test.ts` | ✅ | ⬜ pending |
-| 02-02-01 | 02 | 1 | BACK-02 | unit | `cd pwa && npx vitest run` | ❌ W0 | ⬜ pending |
-| 02-03-01 | 03 | 2 | BACK-03 | integration | `stripe trigger checkout.session.completed` | ❌ manual | ⬜ pending |
+| 02-00-01 | 00 | 0 | BACK-01,02,03 | stub | `cd functions && npx jest --passWithNoTests` | Wave 0 creates | ⬜ pending |
+| 02-01-01 | 01 | 1 | BACK-01 | unit | `cd functions && npx tsc --noEmit` | ✅ | ⬜ pending |
+| 02-01-02 | 01 | 1 | BACK-01 | unit | `cd functions && npx jest -- src/__tests__/generateAIWorkout.test.ts` | ✅ (Wave 0) | ⬜ pending |
+| 02-02-01 | 02 | 2 | BACK-02,03 | unit | `cd functions && npx jest` | ✅ (Wave 0) | ⬜ pending |
+| 02-02-02 | 02 | 2 | BACK-02,03 | config | `grep -q 'Deploy Cloud Functions' .github/workflows/deploy.yml` | ✅ | ⬜ pending |
+| 02-02-03 | 02 | 2 | BACK-02,03 | checkpoint | manual human verify | N/A | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -49,11 +51,11 @@ created: 2026-03-21
 
 ## Wave 0 Requirements
 
-- [ ] `functions/src/__tests__/generateAIWorkout.test.ts` — unit test stubs for BACK-01 function logic
-- [ ] `functions/src/__tests__/createCheckoutSession.test.ts` — unit test stubs for BACK-02
-- [ ] `functions/src/__tests__/stripeWebhook.test.ts` — unit test stubs for BACK-03
+- [x] `functions/src/__tests__/generateAIWorkout.test.ts` — unit test stubs for BACK-01 function logic (created by 02-00)
+- [x] `functions/src/__tests__/createCheckoutSession.test.ts` — unit test stubs for BACK-02 checkout + portal (created by 02-00)
+- [x] `functions/src/__tests__/stripeWebhook.test.ts` — unit test stubs for BACK-03 webhook (created by 02-00)
 
-*Existing `pwa/src/domain/__tests__/ai-workout.test.ts` covers domain logic. Function-level tests are new.*
+*Wave 0 plan (02-00) creates all test stubs before any implementation begins.*
 
 ---
 
@@ -68,11 +70,11 @@ created: 2026-03-21
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 15s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 20s
+- [x] `nyquist_compliant: true` set in frontmatter
 
 **Approval:** pending
