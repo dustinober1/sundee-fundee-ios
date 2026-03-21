@@ -36,7 +36,7 @@ export function Dashboard() {
       </header>
 
       {/* Quick action: Start Workout */}
-      <Link to="/workout" className={styles.startBtn}>
+      <Link to="/workout-session" className={styles.startBtn}>
         Start Workout
       </Link>
 
@@ -54,7 +54,7 @@ export function Dashboard() {
               <span className={styles.cardIcon}>🏆</span>
               <span className={styles.cardLabel}>Benchmarks</span>
             </Link>
-            <Link to="/ai-workout" className={styles.card}>
+            <Link to="/ai-workout/config" className={styles.card}>
               <span className={styles.cardIcon}>🤖</span>
               <span className={styles.cardLabel}>AI Workout</span>
             </Link>
