@@ -91,7 +91,11 @@ Plans:
   1. A JavaScript render error on any route shows a recovery UI with a retry option instead of a white screen
   2. Navigating to Dashboard, Programs, History, Cycle, or Maxes before data loads shows shimmer skeleton cards, not blank space
   3. Navigating to an unknown URL shows a branded 404 page with a link back to the app
-**Plans**: TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 05-01-PLAN.md — Error boundaries (root + app-level) and branded 404 page with router wiring
+- [ ] 05-02-PLAN.md — Shimmer skeleton loading states on all 5 data-fetching routes
 
 ### Phase 6: Analytics and SEO
 **Goal**: Firebase Analytics events fire correctly in production, social sharing shows proper previews, and critical user flows have component test coverage
@@ -114,5 +118,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 2. Cloud Functions | 3/3 | Complete   | 2026-03-21 |
 | 3. Security Hardening | 3/3 | Complete   | 2026-03-21 |
 | 4. PWA Quality | 3/3 | Complete   | 2026-03-21 |
-| 5. Error Resilience | 0/TBD | Not started | - |
+| 5. Error Resilience | 0/2 | In progress | - |
 | 6. Analytics and SEO | 0/TBD | Not started | - |
