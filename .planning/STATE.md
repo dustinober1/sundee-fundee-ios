@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Phase 1 context gathered
-last_updated: "2026-03-21T15:24:06.636Z"
+stopped_at: Completed 01-deploy-pipeline-01-01-PLAN.md
+last_updated: "2026-03-21T15:47:19.776Z"
 last_activity: 2026-03-21 — Roadmap created; 21/21 requirements mapped across 6 phases
 progress:
   total_phases: 6
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 2
+  completed_plans: 1
   percent: 0
 ---
 
@@ -50,6 +50,7 @@ Progress: [░░░░░░░░░░] 0%
 - Trend: —
 
 *Updated after each plan completion*
+| Phase 01-deploy-pipeline P01 | 1 | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -62,6 +63,9 @@ Recent decisions affecting current work:
 - Stripe Checkout redirect (not Elements UI) — simpler, PCI-compliant by default
 - Service account JSON for GitHub Actions (not WIF) — Firebase Admin SDK does not support Workload Identity Federation
 - Phase 3 ships CSP + Firestore rules together with Stripe wiring — premiumEntitlement must be protected before live payments
+- [Phase 01-deploy-pipeline]: Three separate workflow files (CI, preview, deploy) instead of monolith for separation of concerns
+- [Phase 01-deploy-pipeline]: Production deploy is manual workflow_dispatch only — not auto-deploy on push
+- [Phase 01-deploy-pipeline]: npx tsc -b --noEmit in CI to match project references build mode (not tsc --noEmit)
 
 ### Pending Todos
 
@@ -74,6 +78,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-21T15:24:06.633Z
-Stopped at: Phase 1 context gathered
-Resume file: .planning/phases/01-deploy-pipeline/01-CONTEXT.md
+Last session: 2026-03-21T15:47:19.773Z
+Stopped at: Completed 01-deploy-pipeline-01-01-PLAN.md
+Resume file: None

@@ -7,10 +7,10 @@
 
 ### Deployment
 
-- [ ] **DEPLOY-01**: Firebase Hosting configured with `firebase.json`, SPA rewrite rules, and `.firebaserc`
-- [ ] **DEPLOY-02**: GitHub Actions workflow builds, tests, and deploys to Firebase Hosting on push to main
-- [ ] **DEPLOY-03**: Manual `firebase deploy` script as CI/CD fallback
-- [ ] **DEPLOY-04**: Production environment variables for Firebase config, Stripe price ID, and auth domain
+- [x] **DEPLOY-01**: Firebase Hosting configured with `firebase.json`, SPA rewrite rules, and `.firebaserc`
+- [x] **DEPLOY-02**: GitHub Actions workflow builds, tests, and deploys to Firebase Hosting on push to main
+- [x] **DEPLOY-03**: Manual `firebase deploy` script as CI/CD fallback
+- [x] **DEPLOY-04**: Production environment variables for Firebase config, Stripe price ID, and auth domain
 
 ### Backend
 
@@ -74,10 +74,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DEPLOY-01 | Phase 1 | Pending |
-| DEPLOY-02 | Phase 1 | Pending |
-| DEPLOY-03 | Phase 1 | Pending |
-| DEPLOY-04 | Phase 1 | Pending |
+| DEPLOY-01 | Phase 1 | Complete |
+| DEPLOY-02 | Phase 1 | Complete |
+| DEPLOY-03 | Phase 1 | Complete |
+| DEPLOY-04 | Phase 1 | Complete |
 | BACK-01 | Phase 2 | Pending |
 | BACK-02 | Phase 2 | Pending |
 | BACK-03 | Phase 2 | Pending |
