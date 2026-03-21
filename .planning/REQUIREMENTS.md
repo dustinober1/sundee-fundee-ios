@@ -27,9 +27,9 @@
 
 ### PWA
 
-- [ ] **PWA-01**: Production 192px and 512px PNG icons on disk matching manifest declarations
-- [ ] **PWA-02**: Lighthouse PWA audit passes installability, accessibility, and performance checks
-- [ ] **PWA-03**: Custom branded offline fallback page served by service worker
+- [x] **PWA-01**: Production 192px and 512px PNG icons on disk matching manifest declarations
+- [x] **PWA-02**: Lighthouse PWA audit passes installability, accessibility, and performance checks
+- [x] **PWA-03**: Custom branded offline fallback page served by service worker
 - [x] **PWA-04**: "Add to Home Screen" install prompt on Android; instructional modal on iOS
 
 ### UX
@@ -85,9 +85,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SEC-02 | Phase 3 | Pending |
 | SEC-03 | Phase 3 | Complete |
 | SEC-04 | Phase 3 | Complete |
-| PWA-01 | Phase 4 | Pending |
-| PWA-02 | Phase 4 | Pending |
-| PWA-03 | Phase 4 | Pending |
+| PWA-01 | Phase 4 | Complete |
+| PWA-02 | Phase 4 | Complete |
+| PWA-03 | Phase 4 | Complete |
 | PWA-04 | Phase 4 | Complete |
 | UX-01 | Phase 5 | Pending |
 | UX-02 | Phase 5 | Pending |

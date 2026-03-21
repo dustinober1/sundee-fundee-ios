@@ -76,7 +76,7 @@ Plans:
   2. A Lighthouse PWA audit run against the production URL shows green for installability, accessibility, and performance
   3. When the device goes offline, the service worker serves a branded offline page instead of a Chrome error screen
   4. Android users see an "Add to Home Screen" banner; iOS Safari users see an instructional prompt explaining how to install
-**Plans:** 1/3 plans executed
+**Plans:** 2/3 plans executed
 
 Plans:
 - [ ] 04-00-PLAN.md — Wave 0: Create failing test scaffold for useInstallPrompt hook (Nyquist compliance)
@@ -113,6 +113,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 1. Deploy Pipeline | 2/2 | Complete   | 2026-03-21 |
 | 2. Cloud Functions | 3/3 | Complete   | 2026-03-21 |
 | 3. Security Hardening | 3/3 | Complete   | 2026-03-21 |
-| 4. PWA Quality | 1/3 | In Progress|  |
+| 4. PWA Quality | 2/3 | In Progress|  |
 | 5. Error Resilience | 0/TBD | Not started | - |
 | 6. Analytics and SEO | 0/TBD | Not started | - |

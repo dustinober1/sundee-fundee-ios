@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 04-pwa-quality 04-00-PLAN.md (useInstallPrompt test scaffold)
-last_updated: "2026-03-21T19:35:29.712Z"
+stopped_at: "Completed 04-pwa-quality-01: PWA icons and offline fallback"
+last_updated: "2026-03-21T19:37:17.482Z"
 last_activity: 2026-03-21 — Phase 3 Plan 1 complete; Firestore security rules (SEC-01, SEC-02) with 19 test cases
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 11
-  completed_plans: 9
+  completed_plans: 10
   percent: 100
 ---
 
@@ -59,6 +59,7 @@ Progress: [██████████] 100%
 | Phase 03-security-hardening P02 | 2min | 2 tasks | 3 files |
 | Phase 03-security-hardening P03 | 20min | 2 tasks | 1 files |
 | Phase 04-pwa-quality PP00 | 1min | 1 tasks | 1 files |
+| Phase 04-pwa-quality P01 | 10min | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -90,6 +91,8 @@ Recent decisions affecting current work:
 - [Phase 03-security-hardening]: CSP uses 'unsafe-inline' in script-src and style-src — required for Vite/React SPA without SSR nonce injection
 - [Phase 03-security-hardening]: Firestore rules wired into firebase.json firestore block for unified firebase deploy
 - [Phase 04-pwa-quality]: TDD RED scaffold for useInstallPrompt: test file imports from not-yet-created module, satisfying Nyquist rule before any implementation
+- [Phase 04-pwa-quality]: sharp installed in pwa/node_modules; generate-icons.mjs uses createRequire pointed at pwa/package.json to resolve sharp from correct location when run from repo root
+- [Phase 04-pwa-quality]: navigateFallbackDenylist excludes /api/ routes from workbox offline fallback to prevent SW intercepting real API errors
 
 ### Pending Todos
 
@@ -102,6 +105,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-21T19:35:29.710Z
-Stopped at: Completed 04-pwa-quality 04-00-PLAN.md (useInstallPrompt test scaffold)
+Last session: 2026-03-21T19:37:17.480Z
+Stopped at: Completed 04-pwa-quality-01: PWA icons and offline fallback
 Resume file: None
