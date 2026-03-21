@@ -1,89 +1,115 @@
 /**
- * React Router configuration — maps all Sundee Fundee routes.
- * All 41 routes now have real implementations.
+ * React Router configuration — all routes with lazy loading.
+ * Layouts and Dashboard are eagerly loaded; all other screens use React.lazy().
  */
+import { lazy, Suspense } from 'react';
 import { createBrowserRouter } from 'react-router';
 import { RootLayout } from './RootLayout';
 import { AppLayout } from './AppLayout';
-import { SignIn } from './SignIn';
-import { VerifyEmail } from './VerifyEmail';
-import { Onboarding } from './Onboarding';
 import { Dashboard } from './Dashboard';
-import { History } from './History';
-import { Maxes } from './Maxes';
-import { Cycle } from './Cycle';
-import { Programs } from './Programs';
-import { ProgramDetail } from './ProgramDetail';
-import { ProgramSessionScreen } from './ProgramSession';
-import { WorkoutSessionScreen } from './WorkoutSession';
-import { WorkoutDetail } from './WorkoutDetail';
-import { AIWorkoutConfig } from './AIWorkoutConfig';
-import { AIWorkoutPreview } from './AIWorkoutPreview';
-import { Benchmarks } from './Benchmarks';
-import { BenchmarkDetail } from './BenchmarkDetail';
-import { BenchmarkCreate } from './BenchmarkCreate';
-import { Injuries } from './Injuries';
-import { InjuryDetail } from './InjuryDetail';
-import { BodyMap } from './BodyMap';
-import { WODs } from './WODs';
-import { ExerciseDetail } from './ExerciseDetail';
-import { Goodbye } from './Goodbye';
-import { Settings } from './Settings';
+
+// ─── Lazy-loaded route components ────────────────────────────────────────────
+
+const SignIn = lazy(() => import('./SignIn').then((m) => ({ default: m.SignIn })));
+const VerifyEmail = lazy(() => import('./VerifyEmail').then((m) => ({ default: m.VerifyEmail })));
+const Onboarding = lazy(() => import('./Onboarding').then((m) => ({ default: m.Onboarding })));
+const History = lazy(() => import('./History').then((m) => ({ default: m.History })));
+const Maxes = lazy(() => import('./Maxes').then((m) => ({ default: m.Maxes })));
+const Cycle = lazy(() => import('./Cycle').then((m) => ({ default: m.Cycle })));
+const Settings = lazy(() => import('./Settings').then((m) => ({ default: m.Settings })));
+const Programs = lazy(() => import('./Programs').then((m) => ({ default: m.Programs })));
+const ProgramDetail = lazy(() => import('./ProgramDetail').then((m) => ({ default: m.ProgramDetail })));
+const ProgramSessionScreen = lazy(() => import('./ProgramSession').then((m) => ({ default: m.ProgramSessionScreen })));
+const WorkoutSessionScreen = lazy(() => import('./WorkoutSession').then((m) => ({ default: m.WorkoutSessionScreen })));
+const WorkoutDetail = lazy(() => import('./WorkoutDetail').then((m) => ({ default: m.WorkoutDetail })));
+const AIWorkoutConfig = lazy(() => import('./AIWorkoutConfig').then((m) => ({ default: m.AIWorkoutConfig })));
+const AIWorkoutPreview = lazy(() => import('./AIWorkoutPreview').then((m) => ({ default: m.AIWorkoutPreview })));
+const Benchmarks = lazy(() => import('./Benchmarks').then((m) => ({ default: m.Benchmarks })));
+const BenchmarkDetail = lazy(() => import('./BenchmarkDetail').then((m) => ({ default: m.BenchmarkDetail })));
+const BenchmarkCreate = lazy(() => import('./BenchmarkCreate').then((m) => ({ default: m.BenchmarkCreate })));
+const Injuries = lazy(() => import('./Injuries').then((m) => ({ default: m.Injuries })));
+const InjuryDetail = lazy(() => import('./InjuryDetail').then((m) => ({ default: m.InjuryDetail })));
+const BodyMap = lazy(() => import('./BodyMap').then((m) => ({ default: m.BodyMap })));
+const WODs = lazy(() => import('./WODs').then((m) => ({ default: m.WODs })));
+const ExerciseDetail = lazy(() => import('./ExerciseDetail').then((m) => ({ default: m.ExerciseDetail })));
+const Goodbye = lazy(() => import('./Goodbye').then((m) => ({ default: m.Goodbye })));
+
+// ─── Suspense wrapper ────────────────────────────────────────────────────────
+
+function LazyFallback() {
+  return (
+    <div style={{ display: 'flex', justifyContent: 'center', padding: 48 }}>
+      <div style={{
+        width: 24, height: 24,
+        border: '3px solid var(--border)',
+        borderTopColor: 'var(--accent)',
+        borderRadius: '50%',
+        animation: 'spin 0.8s linear infinite',
+      }} />
+    </div>
+  );
+}
+
+function L({ children }: { children: React.ReactNode }) {
+  return <Suspense fallback={<LazyFallback />}>{children}</Suspense>;
+}
+
+// ─── Router ──────────────────────────────────────────────────────────────────
 
 export const router = createBrowserRouter([
   {
     element: <RootLayout />,
     children: [
       // Auth screens
-      { path: '/sign-in', element: <SignIn /> },
-      { path: '/verify-email', element: <VerifyEmail /> },
+      { path: '/sign-in', element: <L><SignIn /></L> },
+      { path: '/verify-email', element: <L><VerifyEmail /></L> },
 
-      // Onboarding (single multi-step wizard page)
-      { path: '/onboarding', element: <Onboarding /> },
-      { path: '/onboarding/:step', element: <Onboarding /> },
+      // Onboarding
+      { path: '/onboarding', element: <L><Onboarding /></L> },
+      { path: '/onboarding/:step', element: <L><Onboarding /></L> },
 
       // Authenticated app (auth guard in AppLayout)
       {
         element: <AppLayout />,
         children: [
-          // Tab screens
+          // Tab screens (Dashboard eager, rest lazy)
           { index: true, element: <Dashboard /> },
-          { path: 'history', element: <History /> },
-          { path: 'maxes', element: <Maxes /> },
-          { path: 'cycle', element: <Cycle /> },
-          { path: 'settings', element: <Settings /> },
+          { path: 'history', element: <L><History /></L> },
+          { path: 'maxes', element: <L><Maxes /></L> },
+          { path: 'cycle', element: <L><Cycle /></L> },
+          { path: 'settings', element: <L><Settings /></L> },
 
           // Workout
-          { path: 'workout-session', element: <WorkoutSessionScreen /> },
-          { path: 'workout/:id', element: <WorkoutDetail /> },
+          { path: 'workout-session', element: <L><WorkoutSessionScreen /></L> },
+          { path: 'workout/:id', element: <L><WorkoutDetail /></L> },
 
           // Programs
-          { path: 'programs', element: <Programs /> },
-          { path: 'programs/:id', element: <ProgramDetail /> },
-          { path: 'programs/session', element: <ProgramSessionScreen /> },
+          { path: 'programs', element: <L><Programs /></L> },
+          { path: 'programs/:id', element: <L><ProgramDetail /></L> },
+          { path: 'programs/session', element: <L><ProgramSessionScreen /></L> },
 
           // Benchmarks
-          { path: 'benchmarks', element: <Benchmarks /> },
-          { path: 'benchmarks/create', element: <BenchmarkCreate /> },
-          { path: 'benchmarks/:id', element: <BenchmarkDetail /> },
+          { path: 'benchmarks', element: <L><Benchmarks /></L> },
+          { path: 'benchmarks/create', element: <L><BenchmarkCreate /></L> },
+          { path: 'benchmarks/:id', element: <L><BenchmarkDetail /></L> },
 
           // Injuries
-          { path: 'injuries', element: <Injuries /> },
-          { path: 'injuries/body-map', element: <BodyMap /> },
-          { path: 'injuries/:id', element: <InjuryDetail /> },
+          { path: 'injuries', element: <L><Injuries /></L> },
+          { path: 'injuries/body-map', element: <L><BodyMap /></L> },
+          { path: 'injuries/:id', element: <L><InjuryDetail /></L> },
 
           // AI Workout
-          { path: 'ai-workout/config', element: <AIWorkoutConfig /> },
-          { path: 'ai-workout/preview', element: <AIWorkoutPreview /> },
+          { path: 'ai-workout/config', element: <L><AIWorkoutConfig /></L> },
+          { path: 'ai-workout/preview', element: <L><AIWorkoutPreview /></L> },
 
           // WODs
-          { path: 'wods', element: <WODs /> },
+          { path: 'wods', element: <L><WODs /></L> },
 
           // Exercises
-          { path: 'exercises/:id', element: <ExerciseDetail /> },
+          { path: 'exercises/:id', element: <L><ExerciseDetail /></L> },
 
           // Account
-          { path: 'goodbye', element: <Goodbye /> },
+          { path: 'goodbye', element: <L><Goodbye /></L> },
         ],
       },
     ],

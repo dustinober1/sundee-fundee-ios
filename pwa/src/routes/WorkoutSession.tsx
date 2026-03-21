@@ -8,11 +8,12 @@ import { useSession } from '../auth/AuthContext';
 import { getWorkoutRepo, type WorkoutRecord, type CompletedExercise, type CompletedSet } from '../repositories/WorkoutRepo';
 import { getExerciseMaxRepo } from '../repositories/ExerciseMaxRepo';
 import type { ExerciseMax } from '../domain/pr-detection/pr-types';
-import { createSession, addExercise, completeSet, addSet, removeExercise } from '../domain/workout-session/session-actions';
+import { createSession, addExercise, completeSet, addSet, removeExercise, reorderExercises } from '../domain/workout-session/session-actions';
 import type { WorkoutSession as WS, ActiveExercise, LoggedSet } from '../domain/workout-session/session-types';
 import { formatWeightNumeric, parseWeightInput } from '../utils/formatWeight';
 import { getSettingsRepo, DEFAULT_SETTINGS } from '../repositories/SettingsRepo';
 import type { WeightUnit } from '../domain/types';
+import { scheduleNotification, requestNotificationPermission } from '../notifications/web-push';
 import styles from './WorkoutSession.module.css';
 
 const ACTIVE_WORKOUT_KEY = '@sundee/active-workout';
@@ -44,6 +45,22 @@ export function WorkoutSessionScreen() {
   const [exerciseSearch, setExerciseSearch] = useState('');
   const startTimeRef = useRef(Date.now());
   const restIntervalRef = useRef<ReturnType<typeof setInterval>>(undefined);
+  const [draggedId, setDraggedId] = useState<string | null>(null);
+
+  // Drag-and-drop reorder
+  function handleDragStart(id: string) { setDraggedId(id); }
+  function handleDragOver(e: React.DragEvent, targetId: string) {
+    e.preventDefault();
+    if (!session || !draggedId || draggedId === targetId) return;
+    const ids = session.exercises.map((ex) => ex.id);
+    const fromIdx = ids.indexOf(draggedId);
+    const toIdx = ids.indexOf(targetId);
+    if (fromIdx === -1 || toIdx === -1) return;
+    ids.splice(fromIdx, 1);
+    ids.splice(toIdx, 0, draggedId);
+    setSession(reorderExercises(session, ids));
+  }
+  function handleDragEnd() { setDraggedId(null); }
 
   // Load settings + crash recovery
   useEffect(() => {
@@ -68,6 +85,9 @@ export function WorkoutSessionScreen() {
       setSession(fresh);
       startTimeRef.current = Date.now();
       localStorage.setItem(ACTIVE_WORKOUT_KEY, JSON.stringify(fresh));
+
+      // Request notification permission for rest timer alerts
+      requestNotificationPermission();
     })();
   }, [user, isGuest]);
 
@@ -83,11 +103,13 @@ export function WorkoutSessionScreen() {
   }, [session]);
 
   // Rest timer
+  const restNotifRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   function startRest(duration: number) {
     setRestTotal(duration);
     setRestRemaining(duration);
     setRestActive(true);
     if (restIntervalRef.current) clearInterval(restIntervalRef.current);
+    if (restNotifRef.current) clearTimeout(restNotifRef.current);
     restIntervalRef.current = setInterval(() => {
       setRestRemaining((prev) => {
         if (prev <= 1) {
@@ -98,6 +120,12 @@ export function WorkoutSessionScreen() {
         return prev - 1;
       });
     }, 1000);
+    // Schedule push notification when rest completes
+    restNotifRef.current = scheduleNotification(
+      duration * 1000,
+      'Rest Complete',
+      { body: 'Time for your next set!', tag: 'rest-timer' },
+    );
   }
 
   // Add exercise
@@ -197,6 +225,10 @@ export function WorkoutSessionScreen() {
             onCompleteSet={(setId, weight, reps) => handleCompleteSet(ex.id, setId, weight, reps)}
             onAddSet={() => session && setSession(addSet(session, ex.id))}
             onRemove={() => session && setSession(removeExercise(session, ex.id))}
+            isDragging={draggedId === ex.id}
+            onDragStart={() => handleDragStart(ex.id)}
+            onDragOver={(e) => handleDragOver(e, ex.id)}
+            onDragEnd={handleDragEnd}
           />
         ))
       )}
@@ -231,21 +263,34 @@ export function WorkoutSessionScreen() {
 
 // ─── Exercise Card ──────────────────────────────────────────────────────────
 
-function ExerciseCard({ exercise, weightUnit, onCompleteSet, onAddSet, onRemove }: {
+function ExerciseCard({ exercise, weightUnit, onCompleteSet, onAddSet, onRemove, isDragging, onDragStart, onDragOver, onDragEnd }: {
   exercise: ActiveExercise;
   weightUnit: WeightUnit;
   onCompleteSet: (setId: string, weight: number, reps: number) => void;
   onAddSet: () => void;
   onRemove: () => void;
+  isDragging?: boolean;
+  onDragStart?: () => void;
+  onDragOver?: (e: React.DragEvent) => void;
+  onDragEnd?: () => void;
 }) {
   const completedCount = exercise.sets.filter((s) => s.completed).length;
 
   return (
-    <div className={styles.exerciseCard}>
+    <div
+      className={`${styles.exerciseCard} ${isDragging ? styles.exerciseCardDragging : ''}`}
+      draggable
+      onDragStart={onDragStart}
+      onDragOver={onDragOver}
+      onDragEnd={onDragEnd}
+    >
       <div className={styles.exHeader}>
-        <div>
-          <span className={styles.exName}>{exercise.exerciseName}</span>
-          <span className={styles.exMuscle}>{exercise.muscleGroup}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span className={styles.dragHandle} title="Drag to reorder">&#8942;&#8942;</span>
+          <div>
+            <span className={styles.exName}>{exercise.exerciseName}</span>
+            <span className={styles.exMuscle}>{exercise.muscleGroup}</span>
+          </div>
         </div>
         <div className={styles.exHeaderRight}>
           <span className={styles.exProgress}>{completedCount}/{exercise.sets.length}</span>

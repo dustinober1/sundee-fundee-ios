@@ -8,6 +8,7 @@ import { useEntitlementContext } from '../entitlements/EntitlementContext';
 import { getSettingsRepo, DEFAULT_SETTINGS, type AppSettings } from '../repositories/SettingsRepo';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { getFirebaseApp } from '../firebase/app';
+import { redirectToCheckout, redirectToCustomerPortal, STRIPE_PREMIUM_PRICE_ID } from '../entitlements/stripe-checkout';
 import styles from './Settings.module.css';
 
 export function Settings() {
@@ -34,17 +35,20 @@ export function Settings() {
   }, [user, isGuest]);
 
   async function handleManageSubscription() {
+    if (!user) return;
     try {
-      const functions = getFunctions(getFirebaseApp());
-      const createPortalSession = httpsCallable(functions, 'createPortalSession');
-      const result = await createPortalSession({
-        returnUrl: window.location.href,
-      });
-      const { url } = result.data as { url: string };
-      window.open(url, '_blank');
+      await redirectToCustomerPortal(user.uid);
     } catch {
-      // Portal not yet configured — graceful fallback
       alert('Subscription management is being set up. Please try again later.');
+    }
+  }
+
+  async function handleUpgrade() {
+    if (!user) return;
+    try {
+      await redirectToCheckout(user.uid, STRIPE_PREMIUM_PRICE_ID);
+    } catch {
+      alert('Checkout is being set up. Please try again later.');
     }
   }
 
@@ -90,7 +94,7 @@ export function Settings() {
             Manage Subscription
           </button>
         ) : (
-          <button className={styles.primaryBtn} onClick={() => navigate('/pricing')}>
+          <button className={styles.primaryBtn} onClick={handleUpgrade}>
             Upgrade to Premium
           </button>
         )}
