@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 02-cloud-functions-02-01-PLAN.md
-last_updated: "2026-03-21T17:24:37.775Z"
+stopped_at: "Checkpoint: human-verify for 02-cloud-functions-02-02-PLAN.md Task 3"
+last_updated: "2026-03-21T17:36:59.839Z"
 last_activity: 2026-03-21 — Roadmap created; 21/21 requirements mapped across 6 phases
 progress:
   total_phases: 6
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 5
-  completed_plans: 4
+  completed_plans: 5
   percent: 0
 ---
 
@@ -54,6 +54,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01-deploy-pipeline P02 | -13359 | 3 tasks | 6 files |
 | Phase 02-cloud-functions P00 | 2min | 1 tasks | 5 files |
 | Phase 02-cloud-functions P01 | 45 | 2 tasks | 14 files |
+| Phase 02-cloud-functions P02 | 9 | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -75,6 +76,8 @@ Recent decisions affecting current work:
 - [Phase 02-cloud-functions]: Handler capture pattern via getLastHandler() in firebase-functions mock enables unit testing of onCall handlers without TypeScript type conflicts
 - [Phase 02-cloud-functions]: Offline fallback retained in AIWorkoutConfig.tsx — Cloud Function is additive, not replacing offline generation
 - [Phase 02-cloud-functions]: @modelcontextprotocol/sdk added as production dependency in functions/ because @google/genai v1 SDK types require it
+- [Phase 02-cloud-functions]: Require firebase-admin/firestore via mapped name in tests so Jest shares same module cache instance as implementation
+- [Phase 02-cloud-functions]: Firestore mock uses mutable delegation pattern — stable doc ref delegates to swappable handlers for test control without clearAllMocks issues
 
 ### Pending Todos
 
@@ -87,6 +90,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-21T17:24:26.649Z
-Stopped at: Completed 02-cloud-functions-02-01-PLAN.md
+Last session: 2026-03-21T17:36:59.837Z
+Stopped at: Checkpoint: human-verify for 02-cloud-functions-02-02-PLAN.md Task 3
 Resume file: None
