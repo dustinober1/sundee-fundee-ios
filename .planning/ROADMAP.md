@@ -30,7 +30,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. Pushing to main triggers a GitHub Actions run that runs tests, builds, and deploys — without manual intervention
   3. Running `firebase deploy` manually from a local machine succeeds as a fallback
   4. The deployed app uses real Firebase project credentials and the correct Stripe price ID (no placeholder values)
-**Plans**: TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Create firebase.json, GitHub Actions workflows, update .env.example
+- [ ] 01-02-PLAN.md — Set up secrets, DNS, service account, and verify pipeline end-to-end
 
 ### Phase 2: Cloud Functions
 **Goal**: AI workout generation runs through a Firebase Cloud Function and Stripe checkout flow is backed by server-side functions
@@ -91,7 +95,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Deploy Pipeline | 0/TBD | Not started | - |
+| 1. Deploy Pipeline | 0/2 | Planning complete | - |
 | 2. Cloud Functions | 0/TBD | Not started | - |
 | 3. Security Hardening | 0/TBD | Not started | - |
 | 4. PWA Quality | 0/TBD | Not started | - |
