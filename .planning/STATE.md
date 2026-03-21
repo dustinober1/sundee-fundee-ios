@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: "Checkpoint: human-verify for 02-cloud-functions-02-02-PLAN.md Task 3"
-last_updated: "2026-03-21T17:36:59.839Z"
+stopped_at: Completed 02-cloud-functions 02-02-PLAN.md — Stripe checkout + portal + webhook + deploy pipeline
+last_updated: "2026-03-21T17:41:06.904Z"
 last_activity: 2026-03-21 — Roadmap created; 21/21 requirements mapped across 6 phases
 progress:
   total_phases: 6
   completed_phases: 2
   total_plans: 5
   completed_plans: 5
-  percent: 0
+  percent: 100
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-21)
 
 **Core value:** Users can reliably access Sundee Fundee from any browser, with real payments, real AI workouts, and production-grade reliability
-**Current focus:** Phase 1 — Deploy Pipeline
+**Current focus:** Phase 3 — Security Hardening
 
 ## Current Position
 
-Phase: 1 of 6 (Deploy Pipeline)
-Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-03-21 — Roadmap created; 21/21 requirements mapped across 6 phases
+Phase: 2 of 6 complete (Cloud Functions)
+Plan: Phase 2 all plans complete (02-00, 02-01, 02-02)
+Status: Ready to plan Phase 3
+Last activity: 2026-03-21 — Phase 2 complete; all Cloud Functions (generateAIWorkout, Stripe checkout/portal/webhook) implemented and deploy pipeline updated
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -78,6 +78,7 @@ Recent decisions affecting current work:
 - [Phase 02-cloud-functions]: @modelcontextprotocol/sdk added as production dependency in functions/ because @google/genai v1 SDK types require it
 - [Phase 02-cloud-functions]: Require firebase-admin/firestore via mapped name in tests so Jest shares same module cache instance as implementation
 - [Phase 02-cloud-functions]: Firestore mock uses mutable delegation pattern — stable doc ref delegates to swappable handlers for test control without clearAllMocks issues
+- [Phase 02-cloud-functions]: Service account key written via env var in deploy step (not inline echo) to avoid security hook violation in GitHub Actions
 
 ### Pending Todos
 
@@ -90,6 +91,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-21T17:36:59.837Z
-Stopped at: Checkpoint: human-verify for 02-cloud-functions-02-02-PLAN.md Task 3
+Last session: 2026-03-21T17:40:51.674Z
+Stopped at: Completed 02-cloud-functions 02-02-PLAN.md — Stripe checkout + portal + webhook + deploy pipeline
 Resume file: None

@@ -13,7 +13,7 @@ The PWA is feature-complete with 25+ screens, offline support, and Firestore syn
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Deploy Pipeline** - Firebase Hosting config, GitHub Actions CI/CD, environment variables (completed 2026-03-21)
-- [ ] **Phase 2: Cloud Functions** - AI workout generation and Stripe checkout/webhook Cloud Functions
+- [x] **Phase 2: Cloud Functions** - AI workout generation and Stripe checkout/webhook Cloud Functions (completed 2026-03-21)
 - [ ] **Phase 3: Security Hardening** - Firestore rules, premiumEntitlement protection, CSP headers, rate limiting
 - [ ] **Phase 4: PWA Quality** - Production icons, Lighthouse audit, offline fallback, install prompt
 - [ ] **Phase 5: Error Resilience** - Error boundaries, skeleton loading states, 404 page
@@ -44,12 +44,12 @@ Plans:
   1. Authenticated users can generate an AI workout via the Cloud Function; unauthenticated calls are rejected
   2. Clicking "Subscribe" creates a Stripe Checkout session and redirects the user to Stripe's hosted checkout page
   3. Completing a Stripe test checkout triggers the webhook, verifies the signature, and writes the `premiumEntitlement` field to Firestore
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 
 Plans:
-- [ ] 02-00-PLAN.md — Wave 0: Create test stubs for all Cloud Functions (Nyquist compliance)
-- [ ] 02-01-PLAN.md — Scaffold functions/ directory, implement generateAIWorkout, wire client
-- [ ] 02-02-PLAN.md — Implement Stripe checkout + portal + webhook functions, update deploy workflow
+- [x] 02-00-PLAN.md — Wave 0: Create test stubs for all Cloud Functions (Nyquist compliance)
+- [x] 02-01-PLAN.md — Scaffold functions/ directory, implement generateAIWorkout, wire client
+- [x] 02-02-PLAN.md — Implement Stripe checkout + portal + webhook functions, update deploy workflow
 
 ### Phase 3: Security Hardening
 **Goal**: User data is protected by ownership-enforced Firestore rules and the app serves a Content Security Policy with known-safe domains
@@ -101,7 +101,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Deploy Pipeline | 2/2 | Complete   | 2026-03-21 |
-| 2. Cloud Functions | 2/3 | In Progress|  |
+| 2. Cloud Functions | 3/3 | Complete   | 2026-03-21 |
 | 3. Security Hardening | 0/TBD | Not started | - |
 | 4. PWA Quality | 0/TBD | Not started | - |
 | 5. Error Resilience | 0/TBD | Not started | - |
