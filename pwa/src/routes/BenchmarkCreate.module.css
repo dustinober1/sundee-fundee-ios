@@ -1,0 +1,20 @@
+.container { max-width: 600px; margin: 0 auto; padding: var(--space-md); }
+.back { background: none; border: none; color: var(--accent); font-size: var(--font-body-small); cursor: pointer; padding: 0; margin-bottom: var(--space-sm); display: block; }
+.title { font-size: var(--font-h2); font-weight: var(--weight-bold); color: var(--text); letter-spacing: var(--tracking-wide); margin-bottom: var(--space-lg); }
+.label { display: block; font-size: var(--font-body-small); font-weight: var(--weight-bold); color: var(--text); text-transform: uppercase; letter-spacing: var(--tracking-wide); margin-bottom: var(--space-xs); margin-top: var(--space-md); }
+.input { width: 100%; padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: var(--font-body); outline: none; box-sizing: border-box; }
+.input:focus { border-color: var(--accent); }
+.textarea { width: 100%; padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: var(--font-body-small); outline: none; resize: vertical; box-sizing: border-box; }
+.textarea:focus { border-color: var(--accent); }
+.chips { display: flex; flex-wrap: wrap; gap: var(--space-xs); }
+.chip { padding: 8px 14px; border-radius: var(--radius-full); border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: var(--font-caption); cursor: pointer; transition: all 0.15s; }
+.chipActive { background: var(--accent); border-color: var(--accent); color: var(--color-cream); }
+.scoringGrid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-sm); }
+.scoringCard { padding: 12px; border-radius: var(--radius-md); border: 2px solid var(--border); background: var(--surface); text-align: left; cursor: pointer; transition: border-color 0.15s; }
+.scoringCard:hover { border-color: var(--text-muted); }
+.scoringActive { border-color: var(--accent); background: var(--color-orange-light); }
+.scoringLabel { display: block; font-weight: var(--weight-bold); font-size: var(--font-body-small); }
+.scoringDesc { font-size: var(--font-caption); color: var(--text-muted); }
+.createBtn { width: 100%; padding: 14px; margin-top: var(--space-lg); border-radius: var(--radius-md); background: var(--accent); color: var(--color-cream); font-size: var(--font-body); font-weight: var(--weight-bold); border: none; cursor: pointer; }
+.createBtn:hover:not(:disabled) { background: var(--color-orange-dark); }
+.createBtn:disabled { opacity: 0.5; cursor: not-allowed; }

@@ -1,5 +1,6 @@
 /**
  * React Router configuration — maps all Sundee Fundee routes.
+ * All 41 routes now have real implementations.
  */
 import { createBrowserRouter } from 'react-router';
 import { RootLayout } from './RootLayout';
@@ -13,21 +14,21 @@ import { Maxes } from './Maxes';
 import { Cycle } from './Cycle';
 import { Programs } from './Programs';
 import { ProgramDetail } from './ProgramDetail';
+import { ProgramSessionScreen } from './ProgramSession';
 import { WorkoutSessionScreen } from './WorkoutSession';
+import { WorkoutDetail } from './WorkoutDetail';
 import { AIWorkoutConfig } from './AIWorkoutConfig';
 import { AIWorkoutPreview } from './AIWorkoutPreview';
 import { Benchmarks } from './Benchmarks';
+import { BenchmarkDetail } from './BenchmarkDetail';
+import { BenchmarkCreate } from './BenchmarkCreate';
+import { Injuries } from './Injuries';
+import { InjuryDetail } from './InjuryDetail';
+import { BodyMap } from './BodyMap';
+import { WODs } from './WODs';
+import { ExerciseDetail } from './ExerciseDetail';
+import { Goodbye } from './Goodbye';
 import { Settings } from './Settings';
-
-// Placeholder component for routes not yet migrated
-function Placeholder({ name }: { name: string }) {
-  return (
-    <div style={{ padding: 24 }}>
-      <h2>{name}</h2>
-      <p>This screen is being migrated to the PWA.</p>
-    </div>
-  );
-}
 
 export const router = createBrowserRouter([
   {
@@ -54,37 +55,35 @@ export const router = createBrowserRouter([
 
           // Workout
           { path: 'workout-session', element: <WorkoutSessionScreen /> },
-          { path: 'workout/:id', element: <Placeholder name="Workout Detail" /> },
-          { path: 'workout/timer', element: <Placeholder name="Timer Mode" /> },
+          { path: 'workout/:id', element: <WorkoutDetail /> },
 
           // Programs
           { path: 'programs', element: <Programs /> },
           { path: 'programs/:id', element: <ProgramDetail /> },
-          { path: 'programs/session', element: <Placeholder name="Program Session" /> },
+          { path: 'programs/session', element: <ProgramSessionScreen /> },
 
           // Benchmarks
           { path: 'benchmarks', element: <Benchmarks /> },
-          { path: 'benchmarks/create', element: <Placeholder name="Create Benchmark" /> },
-          { path: 'benchmarks/:id', element: <Placeholder name="Benchmark Detail" /> },
+          { path: 'benchmarks/create', element: <BenchmarkCreate /> },
+          { path: 'benchmarks/:id', element: <BenchmarkDetail /> },
 
           // Injuries
-          { path: 'injuries', element: <Placeholder name="Injuries" /> },
-          { path: 'injuries/body-map', element: <Placeholder name="Body Map" /> },
-          { path: 'injuries/:id', element: <Placeholder name="Injury Detail" /> },
+          { path: 'injuries', element: <Injuries /> },
+          { path: 'injuries/body-map', element: <BodyMap /> },
+          { path: 'injuries/:id', element: <InjuryDetail /> },
 
           // AI Workout
           { path: 'ai-workout/config', element: <AIWorkoutConfig /> },
           { path: 'ai-workout/preview', element: <AIWorkoutPreview /> },
 
           // WODs
-          { path: 'wods', element: <Placeholder name="WODs" /> },
+          { path: 'wods', element: <WODs /> },
 
           // Exercises
-          { path: 'exercises/:id', element: <Placeholder name="Exercise Detail" /> },
-          { path: 'exercises/pick', element: <Placeholder name="Exercise Picker" /> },
+          { path: 'exercises/:id', element: <ExerciseDetail /> },
 
           // Account
-          { path: 'goodbye', element: <Placeholder name="Goodbye" /> },
+          { path: 'goodbye', element: <Goodbye /> },
         ],
       },
     ],

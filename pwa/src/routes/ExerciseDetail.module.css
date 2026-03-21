@@ -1,0 +1,19 @@
+.container { max-width: 600px; margin: 0 auto; padding: var(--space-md); }
+.center { display: flex; justify-content: center; padding: var(--space-2xl); }
+.spinner { width: 24px; height: 24px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.back { background: none; border: none; color: var(--accent); font-size: var(--font-body-small); cursor: pointer; padding: 0; margin-bottom: var(--space-sm); display: block; }
+.title { font-size: var(--font-h2); font-weight: var(--weight-bold); color: var(--text); letter-spacing: var(--tracking-wide); margin-bottom: var(--space-md); }
+.prCard { background: var(--accent); border-radius: var(--radius-md); padding: var(--space-md); text-align: center; margin-bottom: var(--space-lg); }
+.prLabel { display: block; font-size: var(--font-micro); font-weight: var(--weight-bold); color: var(--color-cream); opacity: 0.8; text-transform: uppercase; letter-spacing: var(--tracking-wide); }
+.prValue { display: block; font-size: var(--font-h1); font-weight: var(--weight-bold); color: var(--color-cream); margin: 4px 0; }
+.prDate { display: block; font-size: var(--font-caption); color: var(--color-cream); opacity: 0.7; }
+.empty { text-align: center; color: var(--text-muted); padding: var(--space-2xl) 0; }
+.sectionTitle { font-size: var(--font-body-small); font-weight: var(--weight-bold); color: var(--text-muted); text-transform: uppercase; letter-spacing: var(--tracking-wide); margin-bottom: var(--space-sm); margin-top: var(--space-lg); }
+.table { margin-bottom: var(--space-md); }
+.tableHeader { display: grid; grid-template-columns: 50px 1fr 1fr 90px; gap: 8px; font-size: var(--font-micro); font-weight: var(--weight-bold); color: var(--text-muted); text-transform: uppercase; letter-spacing: var(--tracking-wide); padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+.tableRow { display: grid; grid-template-columns: 50px 1fr 1fr 90px; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: var(--font-body-small); }
+.tableRow:last-child { border-bottom: none; }
+.accent { font-weight: var(--weight-bold); color: var(--accent); }
+.muted { color: var(--text-muted); font-size: var(--font-caption); }
+.histRow { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: var(--font-body-small); }
