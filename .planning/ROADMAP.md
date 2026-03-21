@@ -18,7 +18,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 4: PWA Quality** - Production icons, Lighthouse audit, offline fallback, install prompt (completed 2026-03-21)
 - [x] **Phase 5: Error Resilience** - Error boundaries, skeleton loading states, 404 page (completed 2026-03-21)
 - [x] **Phase 6: Analytics and SEO** - OG/Twitter meta tags, Firebase Analytics verification, component test coverage (completed 2026-03-21)
-- [ ] **Phase 7: Gap Closure — Firestore Deploy + Dashboard Routes** - Deploy Firestore rules to production, fix broken Dashboard navigation routes
+- [x] **Phase 7: Gap Closure — Firestore Deploy + Dashboard Routes** - Deploy Firestore rules to production, fix broken Dashboard navigation routes (completed 2026-03-21)
 
 ## Phase Details
 
@@ -122,7 +122,7 @@ Plans:
   2. Dashboard "Start Workout" button navigates to `/workout-session` (not 404)
   3. Dashboard "AI Workout" card navigates to `/ai-workout/config` (not 404)
   4. Manual deploy fallback includes Firestore rules deployment
-**Plans:** 0/1
+**Plans:** 1/1 plans complete
 
 Plans:
 - [ ] 07-01-PLAN.md — Deploy Firestore rules via CI/CD, fix Dashboard route mismatches
@@ -140,4 +140,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 4. PWA Quality | 3/3 | Complete   | 2026-03-21 |
 | 5. Error Resilience | 0/2 | Complete | 2026-03-21 |
 | 6. Analytics and SEO | 2/2 | Complete   | 2026-03-21 |
-| 7. Gap Closure | 0/1 | Not started | - |
+| 7. Gap Closure | 1/1 | Complete   | 2026-03-21 |
