@@ -16,8 +16,9 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Cloud Functions** - AI workout generation and Stripe checkout/webhook Cloud Functions (completed 2026-03-21)
 - [x] **Phase 3: Security Hardening** - Firestore rules, premiumEntitlement protection, CSP headers, rate limiting (completed 2026-03-21)
 - [x] **Phase 4: PWA Quality** - Production icons, Lighthouse audit, offline fallback, install prompt (completed 2026-03-21)
-- [ ] **Phase 5: Error Resilience** - Error boundaries, skeleton loading states, 404 page
+- [x] **Phase 5: Error Resilience** - Error boundaries, skeleton loading states, 404 page (completed 2026-03-21)
 - [x] **Phase 6: Analytics and SEO** - OG/Twitter meta tags, Firebase Analytics verification, component test coverage (completed 2026-03-21)
+- [ ] **Phase 7: Gap Closure — Firestore Deploy + Dashboard Routes** - Deploy Firestore rules to production, fix broken Dashboard navigation routes
 
 ## Phase Details
 
@@ -111,6 +112,21 @@ Plans:
 - [ ] 06-01-PLAN.md — SEO meta tags (OG/Twitter) and Firebase Analytics event instrumentation
 - [ ] 06-02-PLAN.md — Component tests for auth flow, workout completion, and Stripe checkout trigger
 
+### Phase 7: Gap Closure — Firestore Deploy + Dashboard Routes
+**Goal**: Close all audit gaps — deploy Firestore security rules to production and fix broken Dashboard navigation routes
+**Depends on**: Phase 3, Phase 6 (all prior phases complete)
+**Requirements**: SEC-01, SEC-02
+**Gap Closure:** Closes gaps from v1.0 milestone audit
+**Success Criteria** (what must be TRUE):
+  1. Firestore security rules are deployed to production — `firebase deploy --only firestore` runs in CI/CD pipeline
+  2. Dashboard "Start Workout" button navigates to `/workout-session` (not 404)
+  3. Dashboard "AI Workout" card navigates to `/ai-workout/config` (not 404)
+  4. Manual deploy fallback includes Firestore rules deployment
+**Plans:** 0/1
+
+Plans:
+- [ ] 07-01-PLAN.md — Deploy Firestore rules via CI/CD, fix Dashboard route mismatches
+
 ## Progress
 
 **Execution Order:**
@@ -122,5 +138,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 2. Cloud Functions | 3/3 | Complete   | 2026-03-21 |
 | 3. Security Hardening | 3/3 | Complete   | 2026-03-21 |
 | 4. PWA Quality | 3/3 | Complete   | 2026-03-21 |
-| 5. Error Resilience | 0/2 | In progress | - |
+| 5. Error Resilience | 0/2 | Complete | 2026-03-21 |
 | 6. Analytics and SEO | 2/2 | Complete   | 2026-03-21 |
+| 7. Gap Closure | 0/1 | Not started | - |
