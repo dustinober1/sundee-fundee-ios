@@ -44,7 +44,7 @@ Plans:
   1. Authenticated users can generate an AI workout via the Cloud Function; unauthenticated calls are rejected
   2. Clicking "Subscribe" creates a Stripe Checkout session and redirects the user to Stripe's hosted checkout page
   3. Completing a Stripe test checkout triggers the webhook, verifies the signature, and writes the `premiumEntitlement` field to Firestore
-**Plans:** 1/3 plans executed
+**Plans:** 2/3 plans executed
 
 Plans:
 - [ ] 02-00-PLAN.md — Wave 0: Create test stubs for all Cloud Functions (Nyquist compliance)
@@ -101,7 +101,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Deploy Pipeline | 2/2 | Complete   | 2026-03-21 |
-| 2. Cloud Functions | 1/3 | In Progress|  |
+| 2. Cloud Functions | 2/3 | In Progress|  |
 | 3. Security Hardening | 0/TBD | Not started | - |
 | 4. PWA Quality | 0/TBD | Not started | - |
 | 5. Error Resilience | 0/TBD | Not started | - |

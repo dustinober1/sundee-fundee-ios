@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 02-cloud-functions-02-00-PLAN.md
-last_updated: "2026-03-21T17:17:42.210Z"
+stopped_at: Completed 02-cloud-functions-02-01-PLAN.md
+last_updated: "2026-03-21T17:24:37.775Z"
 last_activity: 2026-03-21 — Roadmap created; 21/21 requirements mapped across 6 phases
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 5
-  completed_plans: 3
+  completed_plans: 4
   percent: 0
 ---
 
@@ -53,6 +53,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01-deploy-pipeline P01 | 1 | 2 tasks | 6 files |
 | Phase 01-deploy-pipeline P02 | -13359 | 3 tasks | 6 files |
 | Phase 02-cloud-functions P00 | 2min | 1 tasks | 5 files |
+| Phase 02-cloud-functions P01 | 45 | 2 tasks | 14 files |
 
 ## Accumulated Context
 
@@ -71,6 +72,9 @@ Recent decisions affecting current work:
 - [Phase 01-deploy-pipeline]: vite pinned to ^7.0.0 (vite-plugin-pwa@1.2.0 doesn't support vite 8 yet)
 - [Phase 01-deploy-pipeline]: react-hooks v7 new rules (set-state-in-effect, purity, no-call-in-body) disabled in eslint.config.js for pre-existing codebase patterns
 - [Phase 02-cloud-functions]: Jest with ts-jest used for Cloud Functions tests — functions/ is independent of PWA's vitest
+- [Phase 02-cloud-functions]: Handler capture pattern via getLastHandler() in firebase-functions mock enables unit testing of onCall handlers without TypeScript type conflicts
+- [Phase 02-cloud-functions]: Offline fallback retained in AIWorkoutConfig.tsx — Cloud Function is additive, not replacing offline generation
+- [Phase 02-cloud-functions]: @modelcontextprotocol/sdk added as production dependency in functions/ because @google/genai v1 SDK types require it
 
 ### Pending Todos
 
@@ -83,6 +87,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-21T17:17:42.208Z
-Stopped at: Completed 02-cloud-functions-02-00-PLAN.md
+Last session: 2026-03-21T17:24:26.649Z
+Stopped at: Completed 02-cloud-functions-02-01-PLAN.md
 Resume file: None
