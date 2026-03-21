@@ -13,6 +13,9 @@ import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { defineSecret } from 'firebase-functions/params';
 import * as logger from 'firebase-functions/logger';
 import { GoogleGenAI } from '@google/genai';
+import { getFirestore } from 'firebase-admin/firestore';
+
+const DAILY_AI_LIMIT = 5;
 
 const geminiApiKey = defineSecret('GEMINI_API_KEY');
 
@@ -147,6 +150,32 @@ export const generateAIWorkout = onCall(
 
     const uid = request.auth.uid;
     const data = request.data as Record<string, unknown>;
+
+    // Rate limit check (SEC-04): max 5 AI workouts per user per UTC day
+    const today = new Date().toISOString().slice(0, 10);
+    const db = getFirestore();
+    const rateLimitRef = db.collection('users').doc(uid)
+      .collection('rateLimits').doc('aiWorkout');
+
+    await db.runTransaction(async (tx) => {
+      const snap = await tx.get(rateLimitRef);
+      const data_rl = snap.data() as { date: string; count: number } | undefined;
+
+      if (data_rl && data_rl.date === today && data_rl.count >= DAILY_AI_LIMIT) {
+        throw new HttpsError(
+          'resource-exhausted',
+          'Daily AI workout limit reached (5 per day). Try again tomorrow.'
+        );
+      }
+
+      if (data_rl && data_rl.date === today) {
+        tx.update(rateLimitRef, { count: data_rl.count + 1 });
+      } else {
+        tx.set(rateLimitRef, { date: today, count: 1 });
+      }
+    });
+
+    logger.info('Rate limit check passed', { uid, today });
 
     // Input validation
     validateInput(data);

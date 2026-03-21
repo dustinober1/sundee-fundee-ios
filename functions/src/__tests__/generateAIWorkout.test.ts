@@ -20,8 +20,10 @@ const mockFunctions = require('../../__mocks__/firebase-functions') as {
   getLastHandler: () => ((request: MockRequest) => Promise<unknown>) | null;
 };
 
+// IMPORTANT: Require 'firebase-admin/firestore' (not a relative path) so Jest resolves
+// it through moduleNameMapper, sharing the same module instance as the implementation.
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const mockFirestore = require('../../__mocks__/firebase-admin-firestore') as {
+const mockFirestore = require('firebase-admin/firestore') as {
   setMockGetResult: (result: { exists: boolean; data: () => unknown }) => void;
   resetFirestoreMocks: () => void;
   getHandlers: () => { get: jest.Mock; set: jest.Mock; update: jest.Mock };
