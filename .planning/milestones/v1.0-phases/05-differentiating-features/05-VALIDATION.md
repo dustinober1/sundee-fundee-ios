@@ -1,13 +1,13 @@
 ---
-phase: 5
+phase: 05
 slug: differentiating-features
 status: draft
 nyquist_compliant: false
 wave_0_complete: false
-created: 2026-03-15
+created: 2026-03-21
 ---
 
-# Phase 5 — Validation Strategy
+# Phase 05 — Validation Strategy
 
 > Per-phase validation contract for feedback sampling during execution.
 
@@ -17,20 +17,20 @@ created: 2026-03-15
 
 | Property | Value |
 |----------|-------|
-| **Framework** | jest-expo (jest 29.x) |
-| **Config file** | `SundeeFundeeRN/jest.config.js` |
-| **Quick run command** | `cd SundeeFundeeRN && npx jest src/domain/__tests__ src/repositories/__tests__ --no-coverage` |
-| **Full suite command** | `cd SundeeFundeeRN && npx jest --coverage` |
-| **Estimated runtime** | ~30 seconds (quick), ~90 seconds (full) |
+| **Framework** | Vitest ^4.1.0 + @testing-library/react ^16.3.2 |
+| **Config file** | `pwa/vitest.config.ts` |
+| **Quick run command** | `cd pwa && npx vitest run src/routes/RootErrorBoundary.test.tsx src/routes/AppErrorBoundary.test.tsx src/components/Skeleton.test.tsx src/routes/NotFound.test.tsx` |
+| **Full suite command** | `cd pwa && npx vitest run` |
+| **Estimated runtime** | ~15 seconds |
 
 ---
 
 ## Sampling Rate
 
-- **After every task commit:** Run `cd SundeeFundeeRN && npx jest src/domain/__tests__ src/repositories/__tests__ --no-coverage`
-- **After every plan wave:** Run `cd SundeeFundeeRN && npx jest --coverage`
+- **After every task commit:** Run `cd pwa && npx vitest run src/routes/RootErrorBoundary.test.tsx src/routes/AppErrorBoundary.test.tsx src/components/Skeleton.test.tsx src/routes/NotFound.test.tsx`
+- **After every plan wave:** Run `cd pwa && npx vitest run`
 - **Before `/gsd:verify-work`:** Full suite must be green
-- **Max feedback latency:** 30 seconds
+- **Max feedback latency:** 15 seconds
 
 ---
 
@@ -38,19 +38,10 @@ created: 2026-03-15
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| TBD | repos | 1 | CYCL-01 | unit | `npx jest src/repositories/__tests__/CycleRepo.test.ts -x` | ❌ W0 | ⬜ pending |
-| TBD | repos | 1 | INJR-01, INJR-03 | unit | `npx jest src/repositories/__tests__/InjuryRepo.test.ts -x` | ❌ W0 | ⬜ pending |
-| TBD | repos | 1 | PROG-01..04 | unit | `npx jest src/repositories/__tests__/ProgramRepo.test.ts -x` | ❌ W0 | ⬜ pending |
-| TBD | repos | 1 | BNCH-01..04 | unit | `npx jest src/repositories/__tests__/BenchmarkRepo.test.ts -x` | ❌ W0 | ⬜ pending |
-| TBD | repos | 1 | WODS-01, WODS-02 | unit | `npx jest src/repositories/__tests__/WODRepo.test.ts -x` | ❌ W0 | ⬜ pending |
-| TBD | domain | 1 | CYCL-03, CYCL-04 | unit | `npx jest src/domain/__tests__/cycle.test.ts -x` | ✅ | ⬜ pending |
-| TBD | domain | 1 | CYAD-01..03 | unit | `npx jest src/domain/__tests__/cycle.test.ts -x` | ✅ | ⬜ pending |
-| TBD | domain | 1 | READ-01, READ-02 | unit | `npx jest src/domain/__tests__/cycle.test.ts -x` | ✅ | ⬜ pending |
-| TBD | domain | 1 | INJR-02..06 | unit | `npx jest src/domain/__tests__/injury.test.ts -x` | ✅ | ⬜ pending |
-| TBD | domain | 1 | AIWK-04 | unit | `npx jest src/domain/__tests__/ai-workout.test.ts -x` | ✅ | ⬜ pending |
-| TBD | domain | 1 | BNCH-02 | unit | `npx jest src/domain/__tests__/benchmarks.test.ts -x` | ❌ W0 | ⬜ pending |
-| TBD | cloud-fn | 2 | AIWK-01, AIWK-02 | unit | `cd functions && npx jest -x` | ❌ W0 | ⬜ pending |
-| TBD | UI | 2 | CYCL-05 | unit | `npx jest src/components/__tests__/CyclePhaseBanner.test.tsx -x` | ❌ W0 | ⬜ pending |
+| 05-00-01 | 00 | 0 | UX-01 | unit | `cd pwa && npx vitest run src/routes/RootErrorBoundary.test.tsx` | ❌ W0 | ⬜ pending |
+| 05-00-02 | 00 | 0 | UX-01 | unit | `cd pwa && npx vitest run src/routes/AppErrorBoundary.test.tsx` | ❌ W0 | ⬜ pending |
+| 05-00-03 | 00 | 0 | UX-02 | unit | `cd pwa && npx vitest run src/components/Skeleton.test.tsx` | ❌ W0 | ⬜ pending |
+| 05-00-04 | 00 | 0 | UX-03 | unit | `cd pwa && npx vitest run src/routes/NotFound.test.tsx` | ❌ W0 | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -58,14 +49,10 @@ created: 2026-03-15
 
 ## Wave 0 Requirements
 
-- [ ] `SundeeFundeeRN/src/repositories/__tests__/CycleRepo.test.ts` — stubs for CYCL-01
-- [ ] `SundeeFundeeRN/src/repositories/__tests__/InjuryRepo.test.ts` — stubs for INJR-01, INJR-03
-- [ ] `SundeeFundeeRN/src/repositories/__tests__/ProgramRepo.test.ts` — stubs for PROG-01..04
-- [ ] `SundeeFundeeRN/src/repositories/__tests__/BenchmarkRepo.test.ts` — stubs for BNCH-01..04
-- [ ] `SundeeFundeeRN/src/repositories/__tests__/WODRepo.test.ts` — stubs for WODS-01, WODS-02
-- [ ] `SundeeFundeeRN/src/domain/__tests__/benchmarks.test.ts` — benchmark catalog + encode/decode tests
-- [ ] `SundeeFundeeRN/src/components/__tests__/CyclePhaseBanner.test.tsx` — cycle opt-in gating test
-- [ ] `functions/__tests__/generateWorkout.test.ts` — Gemini Cloud Function tests
+- [ ] `pwa/src/routes/RootErrorBoundary.test.tsx` — stubs for UX-01 (root error boundary renders heading, message, reload link)
+- [ ] `pwa/src/routes/AppErrorBoundary.test.tsx` — stubs for UX-01 (app error boundary renders recovery UI, dashboard link)
+- [ ] `pwa/src/components/Skeleton.test.tsx` — stubs for UX-02 (SkeletonCard renders N shimmer divs)
+- [ ] `pwa/src/routes/NotFound.test.tsx` — stubs for UX-03 (404 heading, home link)
 
 ---
 
@@ -73,12 +60,8 @@ created: 2026-03-15
 
 | Behavior | Requirement | Why Manual | Test Instructions |
 |----------|-------------|------------|-------------------|
-| Body map tap selects correct region | INJR-01 | Visual SVG hit area requires device testing | Tap each body region, verify correct BodyLocation selected |
-| Calendar period range display | CYCL-01 | Visual calendar rendering | Log period start/end, verify range highlights correctly |
-| AI workout preview renders correctly | AIWK-01 | Visual layout + loading state | Generate workout, verify preview shows exercises/sets/reps |
-| Offline fallback badge appears | AIWK-04 | Network state simulation | Enable airplane mode, generate workout, verify badge |
-| Adaptation indicators show on workout sets | CYAD-01, CYAD-02 | Visual inline indicator | Log period dates, start workout, verify "↓ 10%" indicators |
-| Dashboard cycle phase banner | CYCL-04 | Visual banner rendering | Opt into cycle tracking, verify "Follicular — Day 8" banner |
+| Shimmer animation visually smooth | UX-02 | CSS animation quality is visual | Open Dashboard/Programs/History/Cycle/Maxes with slow network; verify shimmer pulses smoothly |
+| Error boundary resets on navigation | UX-01 | Requires triggering real render error + navigating | Temporarily throw in a route component, verify error UI shows, click recovery link, verify app recovers |
 
 ---
 
@@ -88,7 +71,7 @@ created: 2026-03-15
 - [ ] Sampling continuity: no 3 consecutive tasks without automated verify
 - [ ] Wave 0 covers all MISSING references
 - [ ] No watch-mode flags
-- [ ] Feedback latency < 30s
+- [ ] Feedback latency < 15s
 - [ ] `nyquist_compliant: true` set in frontmatter
 
 **Approval:** pending
