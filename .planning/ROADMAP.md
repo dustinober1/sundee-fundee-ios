@@ -12,7 +12,7 @@ The PWA is feature-complete with 25+ screens, offline support, and Firestore syn
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Deploy Pipeline** - Firebase Hosting config, GitHub Actions CI/CD, environment variables
+- [x] **Phase 1: Deploy Pipeline** - Firebase Hosting config, GitHub Actions CI/CD, environment variables (completed 2026-03-21)
 - [ ] **Phase 2: Cloud Functions** - AI workout generation and Stripe checkout/webhook Cloud Functions
 - [ ] **Phase 3: Security Hardening** - Firestore rules, premiumEntitlement protection, CSP headers, rate limiting
 - [ ] **Phase 4: PWA Quality** - Production icons, Lighthouse audit, offline fallback, install prompt
@@ -30,7 +30,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. Pushing to main triggers a GitHub Actions run that runs tests, builds, and deploys — without manual intervention
   3. Running `firebase deploy` manually from a local machine succeeds as a fallback
   4. The deployed app uses real Firebase project credentials and the correct Stripe price ID (no placeholder values)
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] 01-01-PLAN.md — Create firebase.json, GitHub Actions workflows, update .env.example
@@ -95,7 +95,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Deploy Pipeline | 1/2 | In Progress|  |
+| 1. Deploy Pipeline | 2/2 | Complete   | 2026-03-21 |
 | 2. Cloud Functions | 0/TBD | Not started | - |
 | 3. Security Hardening | 0/TBD | Not started | - |
 | 4. PWA Quality | 0/TBD | Not started | - |
