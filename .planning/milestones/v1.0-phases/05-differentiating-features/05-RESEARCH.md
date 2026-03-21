@@ -1,668 +1,411 @@
-# Phase 5: Differentiating Features - Research
+# Phase 5: Error Resilience - Research
 
-**Researched:** 2026-03-15
-**Domain:** React Native + Expo + Firebase — Feature wiring: Cycle tracking UI, injury management, AI workout generation, programs, benchmarks, WODs, readiness survey
-**Confidence:** HIGH (domain layer fully ported, repo patterns established, code inspected directly)
+**Researched:** 2026-03-21
+**Domain:** React error boundaries, shimmer skeleton loaders, 404 routing (React 19 + React Router 7 + Vite PWA)
+**Confidence:** HIGH
 
----
+## Summary
 
-<user_constraints>
-## User Constraints (from CONTEXT.md)
+Phase 5 addresses three distinct UX gaps: uncaught JavaScript render errors showing white screens (UX-01), blank space during data fetches (UX-02), and unknown URLs falling through to the SPA shell with no feedback (UX-03). All three are achievable with zero new runtime dependencies using patterns that already fit the project's existing React 19 + React Router 7 stack.
 
-### Locked Decisions
+**For UX-01**, React Router 7's `createBrowserRouter` supports an `ErrorBoundary` route property (component reference, not element) at the root and at any nested level. The `useRouteError` hook provides the caught error inside the boundary component. A single root-level boundary on the top `{ element: <RootLayout /> }` entry catches all render errors globally; a second boundary on the `{ element: <AppLayout /> }` entry catches authenticated-route errors closer to the user's context.
 
-**Cycle tracking UI & flow**
-- Calendar tap interaction for period logging — monthly calendar view where users tap dates to mark period start/end
-- Dashboard banner showing current phase (e.g., "Follicular — Day 8") with color coding, plus dedicated Cycle tab with full detail
-- 2-cycle forecast on Cycle tab — predicted phases for ~2 months based on average cycle length
-- No symptom logging — readiness survey (READ-01) already captures energy/mood/stress
-- Cycle features only visible to opted-in users (CYCL-05)
+**For UX-02**, the five data-fetching routes (Dashboard, Programs, History, Cycle, Maxes) all follow the same pattern: `const [isLoading, setIsLoading] = useState(true)` with a spinner today. Replacing the spinner with shimmer skeleton cards requires only a CSS animation + placeholder component — no library needed. The App Deco palette (cream `#F4F0DF`, navy `#0D1A40`) translates naturally to a skeleton with `--color-grey-light` base and a sweep gradient.
 
-**Workout adaptation indicators**
-- Subtle inline indicators on affected sets showing adjusted values (e.g., "↓ 10%") with tooltip explaining why
-- Non-intrusive — advanced users see it, beginners aren't confused
-- Adaptation happens automatically; indicators are informational only
+**For UX-03**, a wildcard `{ path: '*', element: <NotFound /> }` route at the end of the `children` array inside the root layout catches all unmatched paths. The `createBrowserRouter` call in `router.tsx` already scopes routes correctly; the catch-all must be placed at the outermost children level (not nested inside `AppLayout`) so it renders without the auth guard.
 
-**Injury management UX**
-- Body map tap for injury creation — visual body diagram, tap affected area, select recovery phase (acute/subacute/remodeling/return)
-- Pain logging available post-workout ("How's your [area] feeling?" 1-10 slider) AND on injury profile screen for manual logging and trend viewing
-- Substitutions shown as pre-workout summary card ("2 exercises modified for Right Knee") AND inline labels ("Replaces Barbell Squat — knee injury")
-- Phase transition advice surfaces as in-app banner on injury profile screen only — no push notifications
-- Rehab sessions accessible as standalone button on injury profile ("Generate Rehab Session") AND woven into AI workouts as warm-up/cool-down section
-
-**AI workout generation**
-- Quick config cards for input: horizontal scrollable cards for Time / Focus / Equipment / Energy
-- Cycle phase, injuries, and readiness feed in automatically with visible summary chip: "Adapting for: Luteal phase · Right knee (subacute) · Readiness 7/10"
-- Preview screen after generation: "Start Workout" or "Regenerate" buttons, no editing AI output
-- Migrate from Cloudflare Worker to Firebase Cloud Function for Gemini proxy
-- Transparent offline fallback: "You're offline — here's a workout based on your preferences" with badge
-
-**Program catalog & enrollment**
-- Card grid layout with filter chips (Strength / Hypertrophy / Power / All) for program browsing
-- Tap card to see full program detail with weekly breakdown
-- Target weights auto-calculated from user's logged 1RM (falls back to percentage if no 1RM logged)
-- Enrollment flow prompts for missing key lift 1RMs with quick-entry fields; skippable
-
-**Benchmark recording**
-- Scoring-aware input adapts to benchmark type: ForTime (time picker MM:SS), AMRAP (rounds + reps inputs), MaxLoad (weight input)
-- Purpose-built forms per scoring type
-- Custom benchmark creation supported (BNCH-04)
-
-**WOD display**
-- Prominent dashboard card: "Today's WOD: [Name]" with brief description and "Start" button
-- Also accessible from dedicated WODs section for browsing past WODs
-- WODs fetched from Firestore, matched by date (WODS-02)
-
-**Readiness survey**
-- Morning prompt on dashboard: dismissable card "How are you feeling today?"
-- Quick 4-slider survey (sleep, energy, stress, motivation) — takes <15 seconds
-- Readiness score feeds into workout adaptation
-- Available to all users, not just cycle-tracking users
-
-### Claude's Discretion
-- Body map illustration style and level of detail
-- Calendar component library choice for period logging
-- Exact adaptation indicator positioning and animation
-- Pain trend chart visualization (line chart vs bar chart)
-- Cloud Function cold start mitigation strategy
-- Program card visual design and information density
-- WOD browsing/archive UX for past WODs
-- Readiness slider component styling
-- Benchmark history chart visualization
-
-### Deferred Ideas (OUT OF SCOPE)
-None — discussion stayed within phase scope
-</user_constraints>
-
----
+**Primary recommendation:** Implement all three requirements in a single plan wave — they share no runtime dependencies and total roughly 6 files of new code.
 
 <phase_requirements>
 ## Phase Requirements
 
 | ID | Description | Research Support |
 |----|-------------|-----------------|
-| CYCL-01 | User can log period start and end dates | CycleRepo needed; calendar component; PeriodLog type already defined in domain types |
-| CYCL-02 | User can log daily symptoms (energy, mood, cramps) | Decision: readiness survey covers this — CYCL-02 maps to readiness, not separate symptom tracking |
-| CYCL-03 | App infers current cycle phase from period logs | `calculateCycleStatus()` already ported in `src/domain/cycle/cycle-calculations.ts` |
-| CYCL-04 | User can view current phase and predicted upcoming phases | `getPhaseBoundaries()` + `calculateCycleStatus()` enable 2-cycle forecast; Cycle tab screen needed |
-| CYCL-05 | Cycle features only visible to opted-in users | Gate on `onboardingProfile.cycleTrackingEnabled` field (ONBD-02 already stores this) |
-| CYAD-01 | Workout load automatically adjusts based on current cycle phase | `CycleAdaptationPolicy` ported; wire into workout-session screen |
-| CYAD-02 | Set and rep targets scale with phase-specific multipliers | Same `cycle-adaptation-policy.ts` module; inline adaptation indicators in workout-session |
-| CYAD-03 | Adaptation integrates with readiness score | `blendMultiplier` in adaptation policy + `ReadinessRepo.getSurveyForDate()` already built |
-| READ-01 | User can complete daily readiness survey (sleep, energy, stress, motivation) | `ReadinessRepository` + `FirestoreReadinessRepo` + `LocalReadinessRepo` already built |
-| READ-02 | Readiness score feeds into workout adaptation intensity | `calculateReadinessScore()` in `readiness-survey.ts` → wire score into AI/cycle adaptation |
-| INJR-01 | User can create injury profiles with body location and recovery phase | InjuryRepo needed; body map UI; `BodyLocation` union type already defined |
-| INJR-02 | Injury adaptation engine auto-substitutes contraindicated exercises | `InjuryAdaptationEngine` ported; wire into workout-session and AI generation (already partial in `generateWorkout.ts`) |
-| INJR-03 | User can log pain levels for active injuries | InjuryRepo pain log subresource; 1-10 slider UI |
-| INJR-04 | App analyzes pain trends and surfaces insights | `PainTrendAnalyzer` ported; sparkline chart using `react-native-gifted-charts` |
-| INJR-05 | Phase transition advisor suggests when to progress recovery phase | `PhaseTransitionAdvisor` ported; banner on injury profile screen |
-| INJR-06 | App generates targeted rehab sessions based on injury profile | `RehabSessionGenerator` ported; wire to injury profile "Generate Rehab Session" button |
-| AIWK-01 | User can generate a personalized workout via AI | Firebase Cloud Function `generateWorkout` exists; update to Gemini; build config card UI |
-| AIWK-02 | AI incorporates cycle phase, injuries, and readiness | `WorkoutGenerationContext` already includes all three; function validates injuries |
-| AIWK-03 | User can specify preferences (time, focus, equipment, energy level) | Horizontal card config UI; `QuestionnaireAnswers` type already defined |
-| AIWK-04 | App falls back to templated workouts when offline | `generateOfflineWorkout()` in `offline-workout-generator.ts` fully ported |
-| AIWK-05 | Generated workouts are saved to history | `WorkoutRepo.saveWorkout()` with source `'ai'` — already built |
-| PROG-01 | User can browse program catalog from Firestore | ProgramRepo needed; Firestore `programs` collection; card grid + filter chips |
-| PROG-02 | User can enroll in a program and track weekly progress | Enrollment state in Firestore; `ExerciseMaxRepo` for target weight calculation |
-| PROG-03 | User can view current session with exercises, sets, and target weights | Program session detail screen; 1RM → target weight calculation using `ExerciseMaxRepo.getMaxes()` |
-| PROG-04 | Programs include structured weeks, sessions, and progression schemes | Program data model; Firestore schema definition |
-| BNCH-01 | User can browse benchmark catalog | `BENCHMARK_CATALOG` fully defined in `benchmark-catalog.ts`; catalog screen |
-| BNCH-02 | User can record benchmark results with scoring types | BenchmarkRepo needed; scoring-aware forms (ForTime/AMRAP/MaxLoad); `encodeRoundsAndReps()` ready |
-| BNCH-03 | User can view benchmark result history and track improvement | BenchmarkRepo `getResults()`; history list + chart using `react-native-gifted-charts` |
-| BNCH-04 | User can create custom benchmarks | BenchmarkRepo `saveBenchmarkDefinition()`; create form |
-| WODS-01 | User can view daily Workout of the Day from Firestore | WODRepo needed; Firestore `wods` collection keyed by date string |
-| WODS-02 | WODs are matched by date and refreshed from Firestore | `getWODForDate(dateString)` using `yyyy-MM-dd` doc ID pattern (mirrors `ReadinessRepo`) |
+| UX-01 | Root-level and route-level React error boundaries with recovery UI | React Router 7 `ErrorBoundary` route property + `useRouteError` hook; class component or function component with reset capability |
+| UX-02 | Shimmer skeleton states on all data-fetching routes (Dashboard, Programs, History, Cycle, Maxes) | Pure CSS `@keyframes` shimmer pattern; `isLoading` state already present in all five routes; replace existing spinner with skeleton component |
+| UX-03 | Branded 404 page for unknown routes | `{ path: '*' }` catch-all route in `createBrowserRouter`; must live outside `AppLayout` to bypass auth guard |
 </phase_requirements>
-
----
-
-## Summary
-
-Phase 5 wires the fully-ported domain layer to new repository implementations and new UI screens. The domain is already done — `CycleCalculations`, `CycleAdaptationPolicy`, `InjuryAdaptationEngine`, `PainTrendAnalyzer`, `PhaseTransitionAdvisor`, `RehabSessionGenerator`, `OfflineWorkoutGenerator`, `BenchmarkCatalog`, and `ReadinessSurvey` are all tested TypeScript in `src/domain/`. The Firebase Cloud Function `generateWorkout` already exists but uses Anthropic Claude (not Gemini) and needs to be updated per CONTEXT.md decision.
-
-The work in this phase is: (1) five new repositories (CycleRepo, InjuryRepo, ProgramRepo, BenchmarkRepo, WODRepo) following the established `getXxxRepo(isGuest)` factory pattern, (2) two new Expo Router tabs (Cycle, Programs or Benchmarks), (3) a substantial number of new screens (AI workout generation flow, injury body map + profile, cycle calendar, program catalog + detail + enrollment, benchmark catalog + record + history, WOD display), and (4) wiring domain logic into existing screens (dashboard, workout-session).
-
-The Firebase Cloud Function already handles auth validation, Firestore persistence, and retry logic — it needs its AI provider switched from Anthropic to Gemini. Cold start latency on Cloud Functions v2 is the main risk; minimum instances is the mitigation.
-
-**Primary recommendation:** Implement in domain-integration waves — first the repository layer (all five repos in one wave), then the dashboard integrations (readiness, WOD, cycle banner), then dedicated tab screens (Cycle, Programs, Benchmarks), then the AI generation flow.
-
----
 
 ## Standard Stack
 
-### Core (all already installed)
-
+### Core
 | Library | Version | Purpose | Why Standard |
 |---------|---------|---------|--------------|
-| `@react-native-firebase/firestore` | ^23.8.8 | All new repo backends | Already used for WorkoutRepo, ReadinessRepo |
-| `@react-native-async-storage/async-storage` | 2.2.0 | Guest-mode repo backends | Already used for LocalWorkoutRepo, LocalReadinessRepo |
-| `react-native-gifted-charts` | ^1.4.76 | Pain trend charts, benchmark history charts | Already installed; used in Phase 4 progress charts |
-| `expo-network` | ~55.0.8 | Offline detection for AI fallback | Already installed |
-| `date-fns` | ^4.1.0 | Calendar date arithmetic | Already used in `cycle-calculations.ts` |
-| `expo-router` | ~55.0.5 | File-based routing for new screens/tabs | Established pattern |
-| `react-native-reanimated` | 4.2.1 | Adaptation indicator animations | Already installed |
-| `firebase-functions` | ^6.0.0 | Cloud Function for AI proxy | Already in `functions/` |
+| react-router | ^7.13.1 (already installed) | `ErrorBoundary` route property, `useRouteError`, `path="*"` | Built into existing router — zero install cost |
+| react | ^19.2.4 (already installed) | Class component `getDerivedStateFromError` + `componentDidCatch`, or function wrapper | React 19 improves error propagation; `onCaughtError`/`onUncaughtError` at root |
+| CSS Modules (already used) | project-wide | Shimmer animation and skeleton placeholder styles | Matches every other route's `.module.css` pattern |
 
-### Calendar Component (Claude's Discretion)
-
+### Supporting
 | Library | Version | Purpose | When to Use |
 |---------|---------|---------|-------------|
-| `react-native-calendars` | ^1.1305.0 | Monthly calendar with multi-dot marking for period logs | Most mature RN calendar; supports marking, theming, and range selection |
+| react-error-boundary | ^6.0.0 | Pre-built `ErrorBoundary` component with `resetKeys`, `onReset` | If custom class component boilerplate is unwanted; NOT required — the project is already using React Router's built-in boundary |
 
-**Recommendation: Use `react-native-calendars`.** It is the standard React Native calendar library with the widest adoption. It supports `markedDates` with `startingDay`/`endingDay` period range marking out of the box, which maps directly to period start/end log UX. It supports custom theme tokens so Art Deco cream/navy/orange palette applies cleanly.
+**Decision:** Do NOT install `react-error-boundary`. React Router 7's `ErrorBoundary` route property covers all UX-01 requirements. Adding a separate library creates two competing error-catching layers with unclear precedence.
 
-No alternative needed — custom calendar would cost significant test surface for a solved problem.
-
-**Installation (only new library needed):**
-```bash
-cd SundeeFundeeRN && npm install react-native-calendars
-```
-
-### Supporting Libraries (all already installed, relevant to this phase)
-
-| Library | Version | Purpose | When to Use |
-|---------|---------|---------|-------------|
-| `expo-haptics` | ~55.0.8 | Tactile feedback on body map taps | Body map region selection |
-| `expo-linear-gradient` | ~55.0.8 | Cycle phase color banding | Phase timeline visualization |
-| `react-native-gesture-handler` | ~2.30.0 | Swipe interactions | Body map, config cards |
-
-### Alternatives Considered
-
-| Instead of | Could Use | Tradeoff |
-|------------|-----------|----------|
-| `react-native-calendars` | Custom `FlatList`-based grid | Custom loses range-select, marking API, and theme support — not worth it |
-| Gifted Charts (pain trend) | Victory Native | Gifted Charts already installed and used; adding Victory Native is unnecessary |
-| Firebase Cloud Function | Cloudflare Worker | Decision locked: migrate to Cloud Function |
-
----
+**Installation:** No new packages required for any of the three requirements.
 
 ## Architecture Patterns
 
-### Established Patterns (must follow)
+### Recommended Project Structure
+```
+pwa/src/
+├── routes/
+│   ├── router.tsx              # Add ErrorBoundary + path="*" entries
+│   ├── RootErrorBoundary.tsx   # New — root-level error UI (UX-01)
+│   ├── NotFound.tsx            # New — branded 404 page (UX-03)
+│   ├── NotFound.module.css     # New
+│   └── [Route].tsx             # Existing routes — replace spinner with <Skeleton>
+└── components/
+    └── Skeleton.tsx            # New — reusable shimmer skeleton card (UX-02)
+    └── Skeleton.module.css     # New
+```
 
-All Phase 5 repositories follow the exact pattern of `ReadinessRepo.ts`:
+### Pattern 1: React Router 7 Route-Level Error Boundary (UX-01)
 
+**What:** Add `ErrorBoundary` component property to route objects in `createBrowserRouter`. React Router calls `createElement(ErrorBoundary)` automatically when any render error occurs in that route subtree. The boundary component uses `useRouteError` to access the thrown value.
+
+**When to use:** Root-level boundary catches everything; a second boundary on the `AppLayout` route provides a more contextual recovery UI within the authenticated shell (retains nav bar).
+
+**Two-boundary strategy:**
+1. Root boundary — fallback for errors that escape the app layout (e.g., errors in `RootLayout`, `EntitlementProvider`, `SessionProvider`)
+2. AppLayout boundary — fallback for errors in any authenticated route, with "go back to Dashboard" recovery
+
+**Example:**
 ```typescript
-// Pattern: getXxxRepo(isGuest) factory
-export function getCycleRepo(isGuest: boolean): CycleRepository {
-  return isGuest ? new LocalCycleRepo() : new FirestoreCycleRepo();
+// Source: https://reactrouter.com/how-to/error-boundary
+import { useRouteError, isRouteErrorResponse, Link } from 'react-router';
+
+export function RootErrorBoundary() {
+  const error = useRouteError();
+  const message = isRouteErrorResponse(error)
+    ? `${error.status} ${error.statusText}`
+    : error instanceof Error
+      ? error.message
+      : 'An unexpected error occurred.';
+
+  return (
+    <div className={styles.container}>
+      <h1 className={styles.title}>Something went wrong</h1>
+      <p className={styles.message}>{message}</p>
+      <Link to="/" className={styles.retryBtn} reloadDocument>
+        Reload App
+      </Link>
+    </div>
+  );
 }
 ```
 
-Firestore doc ID pattern: use semantic IDs where possible (date string for WODs/readiness, uid-prefixed for owned data). This mirrors `ReadinessRepo` using `yyyy-MM-dd` as doc ID.
-
-### Recommended Project Structure Additions
-
-```
-SundeeFundeeRN/
-├── app/(app)/(tabs)/
-│   ├── cycle.tsx              # new Cycle tab screen
-│   └── programs.tsx           # new Programs tab screen (with nested screens)
-├── app/(app)/
-│   ├── ai-workout/
-│   │   ├── config.tsx         # QuestionnaireAnswers config cards
-│   │   └── preview.tsx        # Generated workout preview + Start/Regenerate
-│   ├── injuries/
-│   │   ├── body-map.tsx       # Body map tap to select location
-│   │   ├── [id].tsx           # Injury profile: pain log, trend, rehab, transition advice
-│   │   └── index.tsx          # Injury list
-│   ├── programs/
-│   │   ├── [id].tsx           # Program detail + enrollment
-│   │   └── session.tsx        # Today's program session with target weights
-│   ├── benchmarks/
-│   │   ├── index.tsx          # Catalog (predefined + custom)
-│   │   ├── [id].tsx           # Benchmark detail + record result + history
-│   │   └── create.tsx         # Custom benchmark creation
-│   └── wods/
-│       └── index.tsx          # WOD archive browser
-├── src/repositories/
-│   ├── CycleRepo.ts           # interface + factory
-│   ├── FirestoreCycleRepo.ts
-│   ├── LocalCycleRepo.ts
-│   ├── InjuryRepo.ts
-│   ├── FirestoreInjuryRepo.ts
-│   ├── LocalInjuryRepo.ts
-│   ├── ProgramRepo.ts
-│   ├── FirestoreProgramRepo.ts
-│   ├── BenchmarkRepo.ts
-│   ├── FirestoreBenchmarkRepo.ts
-│   ├── LocalBenchmarkRepo.ts
-│   └── WODRepo.ts             # read-only; guest gets empty (no local WODs)
-└── src/components/
-    ├── cycle/
-    │   ├── CyclePhaseBanner.tsx   # dashboard banner + cycle tab header
-    │   └── CycleCalendar.tsx      # period-log calendar wrapper
-    ├── injury/
-    │   ├── BodyMap.tsx            # SVG/image body diagram
-    │   └── PainTrendChart.tsx     # gifted-charts sparkline
-    └── ai-workout/
-        └── AdaptationChip.tsx     # "Adapting for: ..." summary chip
-```
-
-### Pattern 1: Repository Factory (Established — Must Follow)
-
+**Router wiring:**
 ```typescript
-// Source: src/repositories/ReadinessRepo.ts (existing pattern)
-export interface CycleRepository {
-  savePeriodLog(uid: string, log: PeriodLog): Promise<void>;
-  getPeriodLogs(uid: string): Promise<PeriodLog[]>;
-  saveCycleSettings(uid: string, settings: CycleSettings): Promise<void>;
-  getCycleSettings(uid: string): Promise<CycleSettings | null>;
+// router.tsx
+export const router = createBrowserRouter([
+  {
+    element: <RootLayout />,
+    ErrorBoundary: RootErrorBoundary,        // ← root catch-all
+    children: [
+      { path: '/sign-in', element: <L><SignIn /></L> },
+      { path: '/verify-email', element: <L><VerifyEmail /></L> },
+      { path: '/onboarding', element: <L><Onboarding /></L> },
+      { path: '/onboarding/:step', element: <L><Onboarding /></L> },
+      {
+        element: <AppLayout />,
+        ErrorBoundary: AppErrorBoundary,     // ← auth-route catch-all
+        children: [/* ... existing children ... */],
+      },
+      { path: '*', element: <L><NotFound /></L> },  // ← UX-03
+    ],
+  },
+]);
+```
+
+**Key fact (verified from official docs):** `ErrorBoundary` (capital E, component reference) and `errorElement` (JSX element instance) are functionally equivalent. `ErrorBoundary` is preferred because React Router calls `createElement` internally — less boilerplate.
+
+### Pattern 2: Shimmer Skeleton Component (UX-02)
+
+**What:** A CSS `@keyframes` sweep animation on a placeholder element. No JS required. A single reusable `<SkeletonCard />` component replaces the existing spinners in all five routes.
+
+**When to use:** Wherever `isLoading === true` and a list of cards or a data section is expected. Render N skeleton cards (e.g., 3-4) to approximate the shape of real content.
+
+**CSS implementation (pure, no library):**
+```css
+/* Skeleton.module.css */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
 }
 
-export function getCycleRepo(isGuest: boolean): CycleRepository {
-  return isGuest ? new LocalCycleRepo() : new FirestoreCycleRepo();
+.card {
+  background: linear-gradient(
+    90deg,
+    var(--color-grey-light) 25%,
+    var(--color-cream-light) 50%,
+    var(--color-grey-light) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+  border-radius: 8px;
+  height: 80px;
+  margin-bottom: 12px;
 }
 ```
 
-### Pattern 2: useFocusEffect for Data Refresh (Established)
-
+**React component:**
 ```typescript
-// Source: app/(app)/(tabs)/index.tsx (existing pattern)
-useFocusEffect(
-  useCallback(() => {
-    void loadData();
-  }, [loadData])
-);
-```
+// components/Skeleton.tsx
+interface SkeletonCardProps {
+  count?: number;
+  height?: number;
+}
 
-All new screens that display data-store-backed content must use `useFocusEffect` for refresh, not `useEffect`. This ensures data updates when navigating back from a form.
-
-### Pattern 3: Firestore Date-Keyed Document (Established)
-
-```typescript
-// Source: src/repositories/FirestoreReadinessRepo.ts (existing pattern)
-// WODRepo and CycleRepo should use same pattern
-const dateKey = format(new Date(), 'yyyy-MM-dd'); // date-fns
-await firestore().collection('wods').doc(dateKey).get();
-```
-
-### Pattern 4: Cycle-Gating Feature Visibility
-
-```typescript
-// Pattern for CYCL-05: gate on profile field set during onboarding (ONBD-02)
-const { user, isGuest } = useSession();
-const [profile, setProfile] = useState<OnboardingProfile | null>(null);
-// load profile → profile.cycleTrackingEnabled gates Cycle tab + banner
-```
-
-The Cycle tab in `_layout.tsx` must check `profile.cycleTrackingEnabled` and either hide the tab or show an opt-in prompt. Use `href: null` on the `Tabs.Screen` to hide it conditionally.
-
-### Pattern 5: Offline Detection + Fallback
-
-```typescript
-// Use expo-network (already installed) for offline detection
-import * as Network from 'expo-network';
-const state = await Network.getNetworkStateAsync();
-if (!state.isConnected) {
-  // use generateOfflineWorkout(context) from domain layer
+export function SkeletonCard({ count = 4, height = 80 }: SkeletonCardProps) {
+  return (
+    <>
+      {Array.from({ length: count }).map((_, i) => (
+        <div key={i} className={styles.card} style={{ height }} />
+      ))}
+    </>
+  );
 }
 ```
 
-`generateOfflineWorkout()` is fully ported in `src/domain/ai-workout/offline-workout-generator.ts`. The AI generation screen should check connectivity before calling the Cloud Function, not after failure.
-
-### Pattern 6: Firestore Cloud Function Call (onCall)
-
+**Usage in a route:**
 ```typescript
-// The existing generateWorkout Cloud Function uses onCall — call from RN with:
-import functions from '@react-native-firebase/functions';
-const fn = functions().httpsCallable('generateWorkout');
-const result = await fn(workoutContext);
+// History.tsx — replace spinner block
+{isLoading ? (
+  <SkeletonCard count={4} />
+) : groups.length === 0 ? (
+  <p className={styles.empty}>No workouts yet.</p>
+) : (
+  /* existing list render */
+)}
 ```
 
-Auth is enforced server-side (`request.auth` check). The client just passes the `WorkoutGenerationContext` payload.
+**Routes to update:** Dashboard, Programs, History, Cycle, Maxes. All five already have `isLoading` boolean state and a spinner placeholder — only the `isLoading` branch changes.
+
+**Dashboard special case:** Dashboard currently renders `isLoading` implicitly (no spinner shown today — it just renders with empty state). It needs `isLoading` state added + `SkeletonCard` wired to both the WOD area and the quick-links grid.
+
+### Pattern 3: Branded 404 Page (UX-03)
+
+**What:** A `path="*"` wildcard route at the outermost `children` level inside `RootLayout`. React Router matches routes top-to-bottom and this entry catches anything not matched by the auth routes, onboarding routes, or authenticated app routes.
+
+**Critical placement:** The `path="*"` route must be a sibling of `AppLayout`'s entry (not a child), so it renders WITHOUT the auth guard. A user navigating to `/random-garbage` must see a 404 page — not get redirected to sign-in.
+
+**Example:**
+```typescript
+// NotFound.tsx
+import { Link } from 'react-router';
+import styles from './NotFound.module.css';
+
+export function NotFound() {
+  return (
+    <div className={styles.container}>
+      <h1 className={styles.code}>404</h1>
+      <p className={styles.message}>This page doesn't exist.</p>
+      <Link to="/" className={styles.homeBtn}>Back to App</Link>
+    </div>
+  );
+}
+```
+
+**SPA rewrite rule note:** Firebase Hosting's SPA rewrite (`"destination": "/index.html"`) sends all unmatched server paths to the SPA. The React Router `path="*"` then renders the 404 component client-side. This is correct behavior — the 404 is a client-side render, not an HTTP 404 response. No Firebase config change is needed.
 
 ### Anti-Patterns to Avoid
 
-- **Symptom logging as separate feature:** CYCL-02 (daily symptoms) is covered by READ-01 (readiness survey) per locked decision. Do not build a separate symptom tracking module.
-- **Inline Gemini calls from the client:** All AI calls go through the Cloud Function. Never call Gemini directly from the app.
-- **Fetching all WODs then filtering on client:** WODRepo fetches a single document by date string doc ID — O(1) Firestore read, not a collection scan.
-- **Blocking workout session start on cycle data:** Cycle data loads async; injury adaptation should not block the workout session if data is unavailable — degrade gracefully with no adaptation.
-- **Enum types for Firestore-stored data:** All stored types use string unions (established in Phase 2 decisions). `RecoveryPhase`, `CyclePhase`, `BodyLocation` are already string unions.
-
----
+- **Wrapping `<RouterProvider>` in a React class `ErrorBoundary`:** Errors in `RouterProvider` itself are extremely rare, and this creates a duplicate boundary that competes with React Router's built-in mechanism. Use the route-level `ErrorBoundary` property only.
+- **Placing `path="*"` inside `AppLayout`'s children:** Requires the user to be authenticated to see the 404 page. Unknown routes for unauthenticated users silently redirect to sign-in — confusing.
+- **Skeleton with fixed pixel heights that don't match real content:** Jarring layout shift when real content loads. Match skeleton card height to approximately the real card height in each route.
+- **Using `isLoading` for the Cycle route's full-page spinner:** Cycle currently returns early with a full-screen spinner (`if (isLoading) return <div>...`). Replace this early-return with the `isLoading` branch pattern consistent with the other routes to enable the shimmer pattern.
 
 ## Don't Hand-Roll
 
 | Problem | Don't Build | Use Instead | Why |
 |---------|-------------|-------------|-----|
-| Monthly calendar with period range marking | Custom grid | `react-native-calendars` | Range selection, theming, accessibility — built-in |
-| Pain trend sparkline | Custom SVG path | `react-native-gifted-charts` LineChart | Already installed; handles scaling, axes, touch |
-| Offline connectivity check | Fetch-then-catch | `expo-network` `getNetworkStateAsync()` | Installed; handles platform differences, airplane mode |
-| Cycle phase color coding | Custom phase→color map | Use theme token approach + phase constants | `getPhaseRecommendation()` already returns display info |
-| AI workout JSON parsing | Custom JSON parser | Use `JSON.parse()` + Cloud Function validation | `validateWorkout()` already handles malformed responses with retry |
-| RoundsAndReps score display | Custom encoding | `decodeRoundsAndReps()` in `benchmark-catalog.ts` | Already ported and tested |
+| Error catch in router | Custom React class ErrorBoundary wrapping RouterProvider | React Router `ErrorBoundary` route property | React Router's mechanism integrates with loader errors, route transitions, and concurrent mode; custom class boundary around RouterProvider cannot catch loader errors |
+| Shimmer animation | External skeleton library (e.g., `react-loading-skeleton`) | Pure CSS `@keyframes` in a `.module.css` | The project uses CSS Modules throughout; a library adds 10+ kB for a 10-line CSS animation |
+| 404 detection | Custom useEffect checking `window.location` | React Router `path="*"` | React Router's pattern matching is already the source of truth for what constitutes a valid route |
 
-**Key insight:** The domain layer is the most complex part of this phase — it's already done. The remaining work is 90% repository + UI plumbing. Do not re-implement business logic that already exists in `src/domain/`.
-
----
+**Key insight:** All three UX requirements are solved by React Router 7 configuration (error boundary + catch-all route) plus a ~20-line CSS animation. No runtime library additions are needed.
 
 ## Common Pitfalls
 
-### Pitfall 1: Cloud Function Cold Start Latency (Flagged in STATE.md)
-**What goes wrong:** Firebase Cloud Functions v2 cold starts can add 2-5 seconds to the first AI workout generation request, especially after periods of inactivity.
-**Why it happens:** Container initialization time for Node.js 20 runtime with dependencies.
-**How to avoid:** Set `minInstances: 1` on the `generateWorkout` function definition. This costs ~$5/month in idle compute but eliminates cold starts entirely for an active app. Alternatively, show a loading skeleton immediately on the preview screen so perceived latency is acceptable.
-**Warning signs:** Users reporting "spinning forever" on first AI generation of the day.
+### Pitfall 1: `useRouteError` called outside a route error boundary
+**What goes wrong:** Calling `useRouteError()` in a component that is NOT the `ErrorBoundary` for a route throws a React Router invariant error.
+**Why it happens:** `useRouteError` reads context injected only when React Router renders the `ErrorBoundary` component.
+**How to avoid:** `useRouteError()` must only be called in the component passed as the `ErrorBoundary` route property (or `errorElement`). Do not call it in regular route components.
+**Warning signs:** "useRouteError() may only be used within a data router" or similar invariant errors in console.
 
-```typescript
-// functions/src/generateWorkout.ts
-export const generateWorkout = onCall(
-  {
-    minInstances: 1, // add this
-    memory: "256MiB",
-    timeoutSeconds: 60,
-  },
-  async (request) => { ... }
-);
-```
+### Pitfall 2: Error boundary not resetting on navigation
+**What goes wrong:** After a render error, the user navigates to another route but the error boundary UI persists because `hasError` state is never reset.
+**Why it happens:** React Router's `ErrorBoundary` component is unmounted/remounted on navigation between routes, which naturally resets state. However, if two routes share the same boundary instance (parent-level), navigation within that subtree may NOT reset it.
+**How to avoid:** The `AppErrorBoundary` should include a "Go to Dashboard" link using `<Link to="/" reloadDocument>` (full reload) OR `<Link to="/">` (SPA navigation that unmounts/remounts). The `reloadDocument` approach is safer for catastrophic errors.
+**Warning signs:** Error UI persists after clicking back/forward.
 
-### Pitfall 2: Cycle Tab Hidden for Non-Opted-In Users
-**What goes wrong:** Expo Router renders all `Tabs.Screen` entries by default. If the Cycle tab always renders, non-cycle users see it.
-**Why it happens:** Expo Router doesn't support conditional tabs without explicit configuration.
-**How to avoid:** Use `href: null` to hide the tab for non-opted-in users. Still define the screen so deep links work — just hide the tab bar entry.
+### Pitfall 3: Skeleton count mismatch causes layout shift
+**What goes wrong:** Skeleton renders 4 cards but the real data has 1 or 15 items — visible jump.
+**Why it happens:** Static skeleton count doesn't reflect real data shape.
+**How to avoid:** Use a conservative default count (3-4) that is approximate. The visual shift is acceptable as long as the skeleton height-per-card matches real card height reasonably.
+**Warning signs:** Large cumulative layout shift (CLS) in Lighthouse.
 
-```tsx
-<Tabs.Screen
-  name="cycle"
-  options={{
-    href: profile?.cycleTrackingEnabled ? undefined : null,
-    title: 'Cycle',
-    tabBarIcon: ...,
-  }}
-/>
-```
+### Pitfall 4: `path="*"` placed at wrong nesting level
+**What goes wrong:** Unknown URLs redirect to sign-in instead of showing 404.
+**Why it happens:** Wildcard route nested inside `AppLayout`'s children — the auth guard triggers before the 404 renders.
+**How to avoid:** The `path: '*'` route must be a sibling of the `AppLayout` entry object in the `children` array of the root route.
+**Warning signs:** Navigating to `/random` as a logged-out user goes to `/sign-in`.
 
-### Pitfall 3: 1RM Target Weight Showing Wrong Units
-**What goes wrong:** `ExerciseMaxRepo` stores weights in the user's preferred unit, but program target weights may be defined in lbs in Firestore.
-**Why it happens:** Unit conversion needs to happen at display time using the user's settings.
-**How to avoid:** Normalize all weights to lbs in Firestore. Convert to display unit using settings at the UI layer only — same pattern as workout-session screen.
-
-### Pitfall 4: WOD Date Timezone Mismatch
-**What goes wrong:** A WOD keyed `2026-03-15` in UTC may show yesterday's WOD for users in UTC+N timezones after midnight local time.
-**Why it happens:** `new Date().toISOString().slice(0, 10)` produces UTC date, not local date.
-**How to avoid:** Use `date-fns` `format(new Date(), 'yyyy-MM-dd')` which uses local time. Consistent with the `ReadinessRepo` pattern already established.
-
-### Pitfall 5: Injury Profile Missing `userID` Thread
-**What goes wrong:** Injury records saved without `userID` cause data access failures for authenticated users syncing across devices.
-**Why it happens:** Forgetting to thread `userID` through new repo write operations — flagged in CLAUDE.md.
-**How to avoid:** Every `InjuryRepo.saveInjury(uid, injury)` call uses `appState.currentUserID ?? ""` at the call site. Never hardcode empty strings.
-
-### Pitfall 6: `export *` Barrel Collision on New Domain Exports
-**What goes wrong:** Adding new barrel re-exports for cycle/injury/AI causes `TypeError: Cannot redefine property` if two modules export the same name.
-**Why it happens:** Phase 2 decision: use explicit named re-exports with aliases, not `export * from`.
-**How to avoid:** Follow established pattern — explicit named re-exports in barrel `index.ts` files.
-
-### Pitfall 7: AI Workout Saved Before User Starts It
-**What goes wrong:** If the workout is saved to history at generation time (not at start/completion time), abandoned previews pollute history.
-**Why it happens:** Temptation to save immediately on Cloud Function return to avoid losing data.
-**How to avoid:** Save to history only when user taps "Start Workout" on the preview screen (i.e., when `WorkoutRepo.saveWorkout()` is called with `source: 'ai'`). The Cloud Function already saves to `generatedWorkouts` collection for its own audit trail — that's separate from workout history.
-
----
+### Pitfall 5: Dashboard's missing `isLoading` state
+**What goes wrong:** Dashboard currently initializes `profile` and `todayWOD` as `null` with no loading flag — it just renders empty state while fetching. Adding a skeleton requires also adding `isLoading` state.
+**Why it happens:** Dashboard was written with optimistic empty rendering (shows greeting immediately, WOD card appears when data arrives).
+**How to avoid:** Add `const [isLoading, setIsLoading] = useState(true)` in Dashboard's `useEffect`, set to `false` after both fetches complete (use `Promise.all` on the two existing `useEffect` calls or merge them).
+**Warning signs:** Skeleton never shows (or shows permanently) on Dashboard.
 
 ## Code Examples
 
-### Firestore Cycle Repository (Inferred from ReadinessRepo Pattern)
+Verified patterns from official sources and project conventions:
 
+### Router with ErrorBoundary + catch-all
 ```typescript
-// Source: src/repositories/FirestoreReadinessRepo.ts pattern — apply to CycleRepo
-import firestore from '@react-native-firebase/firestore';
-import type { CycleRepository } from './CycleRepo';
-import type { PeriodLog, CycleSettings } from '../domain/types';
+// Source: https://reactrouter.com/how-to/error-boundary (verified 2026-03-21)
+// pwa/src/routes/router.tsx
 
-export class FirestoreCycleRepo implements CycleRepository {
-  async savePeriodLog(uid: string, log: PeriodLog): Promise<void> {
-    await firestore()
-      .collection('users')
-      .doc(uid)
-      .collection('periodLogs')
-      .doc(log.id)
-      .set(log);
-  }
+export const router = createBrowserRouter([
+  {
+    element: <RootLayout />,
+    ErrorBoundary: RootErrorBoundary,
+    children: [
+      { path: '/sign-in', element: <L><SignIn /></L> },
+      { path: '/verify-email', element: <L><VerifyEmail /></L> },
+      { path: '/onboarding', element: <L><Onboarding /></L> },
+      { path: '/onboarding/:step', element: <L><Onboarding /></L> },
+      {
+        element: <AppLayout />,
+        ErrorBoundary: AppErrorBoundary,
+        children: [/* existing authenticated routes */],
+      },
+      { path: '*', element: <L><NotFound /></L> },
+    ],
+  },
+]);
+```
 
-  async getPeriodLogs(uid: string): Promise<PeriodLog[]> {
-    const snap = await firestore()
-      .collection('users')
-      .doc(uid)
-      .collection('periodLogs')
-      .orderBy('startDate', 'desc')
-      .get();
-    return snap.docs.map(d => d.data() as PeriodLog);
-  }
+### RootErrorBoundary using useRouteError
+```typescript
+// Source: https://reactrouter.com/how-to/error-boundary
+import { useRouteError, isRouteErrorResponse } from 'react-router';
+
+export function RootErrorBoundary() {
+  const error = useRouteError();
+  const message = isRouteErrorResponse(error)
+    ? `${error.status} ${error.statusText}`
+    : error instanceof Error
+      ? error.message
+      : 'Unknown error';
+
+  return (
+    <div className={styles.container}>
+      <h1 className={styles.heading}>Something went wrong</h1>
+      <p className={styles.detail}>{message}</p>
+      <a href="/" className={styles.btn}>Reload App</a>
+    </div>
+  );
 }
 ```
 
-### Firestore WOD Repository (Read-Only, Date-Keyed)
+### Pure CSS shimmer keyframe
+```css
+/* Source: CSS standard @keyframes — verified pattern, widely documented */
+/* pwa/src/components/Skeleton.module.css */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
 
-```typescript
-// Source: Established pattern — ReadinessRepo uses date string as doc ID
-import { format } from 'date-fns';
-import firestore from '@react-native-firebase/firestore';
-
-export class FirestoreWODRepo {
-  async getWODForDate(date: Date): Promise<WODRecord | null> {
-    const dateKey = format(date, 'yyyy-MM-dd'); // local time
-    const doc = await firestore().collection('wods').doc(dateKey).get();
-    return doc.exists ? (doc.data() as WODRecord) : null;
-  }
+.card {
+  background: linear-gradient(
+    90deg,
+    var(--color-grey-light) 25%,
+    var(--color-cream-light) 50%,
+    var(--color-grey-light) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+  border-radius: 8px;
 }
 ```
-
-### Cycle Phase Banner (Dashboard Integration)
-
-```typescript
-// Source: calculateCycleStatus from src/domain/cycle/cycle-calculations.ts
-import { calculateCycleStatus } from '@/src/domain/cycle/cycle-calculations';
-
-// In dashboard component, after loading period logs and settings:
-const status = calculateCycleStatus(periodLogs, cycleSettings);
-// status.currentPhase → 'follicular' | 'menstrual' | 'ovulation' | 'luteal'
-// status.cycleDay → number (e.g., 8)
-// Display: "Follicular — Day 8"
-```
-
-### AI Workout — Switch to Gemini in Cloud Function
-
-```typescript
-// Current: functions/src/generateWorkout.ts uses Anthropic SDK
-// Required change: replace Anthropic with @google/generative-ai (Gemini)
-// Per CONTEXT.md: use Gemini proxy via Cloud Function (replaces Cloudflare Worker)
-// Per MEMORY.md: Worker used Gemini native format (contents/systemInstruction/generationConfig)
-
-import { GoogleGenerativeAI } from "@google/generative-ai";
-const GEMINI_API_KEY = defineSecret("GEMINI_API_KEY");
-
-const genAI = new GoogleGenerativeAI(GEMINI_API_KEY.value());
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-const result = await model.generateContent(prompt);
-const text = result.response.text();
-workoutData = JSON.parse(text);
-```
-
-Note: `@google/generative-ai` must be added to `functions/package.json`. The Anthropic SDK can be removed once migrated.
-
-### Benchmark Recording — Scoring-Aware Input
-
-```typescript
-// Source: src/domain/benchmarks/benchmark-catalog.ts
-// BenchmarkDefinition.scoringType: 'time' | 'reps' | 'weight' | 'distance'
-// encodeRoundsAndReps(rounds, reps) → single number for AMRAP scores
-
-switch (benchmark.scoringType) {
-  case 'time':
-    return <ForTimeInput onSave={(seconds) => handleSave(seconds)} />;
-  case 'reps':
-    // AMRAP: show rounds + partial reps inputs
-    return <AMRAPInput onSave={(rounds, reps) =>
-      handleSave(encodeRoundsAndReps(rounds, reps))
-    } />;
-  case 'weight':
-    return <WeightInput onSave={(lbs) => handleSave(lbs)} />;
-}
-```
-
-### Adaptation Indicator (Inline on Workout Set)
-
-```typescript
-// The adaptation indicator shows the adjustment delta on an exercise set
-// CycleAdaptationPolicy returns a multiplier; the UI converts to a percentage change
-const adaptedWeight = baseWeight * multiplier;
-const delta = Math.round((multiplier - 1) * 100);
-const label = delta > 0 ? `↑ ${delta}%` : `↓ ${Math.abs(delta)}%`;
-// Only show if multiplier !== 1.0
-```
-
----
 
 ## State of the Art
 
 | Old Approach | Current Approach | When Changed | Impact |
 |--------------|------------------|--------------|--------|
-| Cloudflare Worker (Gemini proxy) | Firebase Cloud Function (Gemini proxy) | Phase 5 (this phase) | Single auth surface; no separate Workers account; onCall handles Firebase Auth automatically |
-| Anthropic Claude in Cloud Function | Gemini in Cloud Function | Phase 5 (this phase) | Matches memory decisions; function already exists, just needs provider swap |
-| iOS Swift SwiftData for health data | Firestore subcollections per user | Rewrite decision | Uniform auth model; cross-platform sync |
+| `React.Component` class boundary only | React Router `ErrorBoundary` route property | React Router v6.4+ (data router era) | No class component needed for route-scoped error handling |
+| Separate 404 view from error handling | `path="*"` catch-all as standard router pattern | React Router v4+ | Catch-all route is idiomatic; no custom middleware needed |
+| Skeleton libraries (`react-loading-skeleton`, `react-placeholder`) | Pure CSS `@keyframes` | Always possible; libraries grew popular ~2019 then CSS-only became preferred | Zero dependency cost, full design token integration |
+| `errorElement={<Component />}` (JSX) | `ErrorBoundary={Component}` (reference) | React Router v6.4+ | Cleaner — React Router calls `createElement` internally |
 
 **Deprecated/outdated:**
-- Cloudflare Worker URL `workout-proxy.sundeefundee.workers.dev/generate-workout`: replaced by Firebase Cloud Function. Can be decommissioned after Phase 5.
-- `@anthropic-ai/sdk` in `functions/package.json`: replace with `@google/generative-ai` when Gemini migration is complete.
-
----
+- React `componentDidCatch` as the sole error boundary mechanism: still valid but React Router's route-level mechanism is preferred for routed apps.
+- `react-error-boundary` npm package: useful outside a router context, but redundant when using React Router 7 data router mode.
 
 ## Open Questions
 
-1. **Gemini model name for production**
-   - What we know: MEMORY.md says `gemini-3.1-flash-lite-preview` was used in the Cloudflare Worker
-   - What's unclear: Whether `gemini-3.1-flash-lite-preview` is available in the `@google/generative-ai` SDK, or if the model name has changed
-   - Recommendation: Use `gemini-1.5-flash` as a safe stable model; check Google AI Studio for model availability during implementation. The preview model name may no longer be valid.
+1. **Should `AppErrorBoundary` render inside or outside the `<AppLayout>` shell?**
+   - What we know: Placing `ErrorBoundary` on the `{ element: <AppLayout /> }` entry means React Router renders `AppErrorBoundary` in place of `AppLayout` when an error is caught — the nav bar disappears.
+   - What's unclear: Whether the design requires the nav bar to be visible during error state (better UX) or not (simpler implementation).
+   - Recommendation: The planner can decide. The simpler path (ErrorBoundary on AppLayout route, nav disappears on error) is fully sufficient for UX-01. Keeping the nav bar during errors requires wrapping AppLayout's `<Outlet />` in a separate boundary class component inside AppLayout itself — more complex.
 
-2. **Program data schema in Firestore**
-   - What we know: `PROG-04` requires structured weeks, sessions, and progression schemes; no existing Firestore schema defined
-   - What's unclear: Whether programs are admin-seeded (like WODs) or user-created. REQUIREMENTS.md says "browse from Firestore" suggesting admin-seeded.
-   - Recommendation: Define schema in plan as admin-seeded `programs` collection with top-level program docs containing `weeks[]` → `sessions[]` → `exercises[]` subcollection or nested array. Mirror the approach that `programs.json` was used for in the Swift app.
-
-3. **Local (guest) WOD behavior**
-   - What we know: WODs come from Firestore; guest mode uses AsyncStorage for other repos
-   - What's unclear: Should guest users see WODs (read-only public data) or see nothing?
-   - Recommendation: Guest users can see WODs — they're public data, no auth required for Firestore reads if security rules permit. `WODRepo` for guests can still use Firestore directly (no write needed). Security rules must allow unauthenticated reads on the `wods` collection.
-
----
+2. **Dashboard loading state approach**
+   - What we know: Dashboard currently uses two separate `useEffect` calls that each resolve independently — `profile` and `todayWOD` load independently.
+   - What's unclear: Whether to merge them into a single `Promise.all` (cleaner, single `isLoading` flag) or track them separately (each section skeletons independently).
+   - Recommendation: Merge into `Promise.all` in a single `useEffect` for consistency with History's existing pattern.
 
 ## Validation Architecture
 
 ### Test Framework
-
 | Property | Value |
 |----------|-------|
-| Framework | jest-expo (jest) |
-| Config file | `SundeeFundeeRN/jest.config.js` |
-| Quick run command | `cd SundeeFundeeRN && npx jest src/domain/__tests__ --testPathPattern=cycle\|injury\|ai-workout\|benchmarks --no-coverage` |
-| Full suite command | `cd SundeeFundeeRN && npx jest --coverage` |
+| Framework | Vitest ^4.1.0 + @testing-library/react ^16.3.2 |
+| Config file | `pwa/vitest.config.ts` |
+| Quick run command | `cd pwa && npx vitest run src/components/Skeleton.test.tsx src/routes/RootErrorBoundary.test.tsx src/routes/NotFound.test.tsx` |
+| Full suite command | `cd pwa && npx vitest run` |
 
 ### Phase Requirements → Test Map
-
 | Req ID | Behavior | Test Type | Automated Command | File Exists? |
 |--------|----------|-----------|-------------------|-------------|
-| CYCL-01 | Period log save/retrieve round-trip | unit | `npx jest src/repositories/__tests__/CycleRepo.test.ts -x` | ❌ Wave 0 |
-| CYCL-03 | `calculateCycleStatus()` infers correct phase | unit | `npx jest src/domain/__tests__/cycle.test.ts -x` | ✅ |
-| CYCL-04 | `getPhaseBoundaries()` generates 2-cycle forecast | unit | `npx jest src/domain/__tests__/cycle.test.ts -x` | ✅ |
-| CYCL-05 | Cycle tab hidden when `cycleTrackingEnabled: false` | unit | `npx jest src/components/__tests__/CyclePhaseBanner.test.tsx -x` | ❌ Wave 0 |
-| CYAD-01 | Adaptation multiplier applied to exercise weights | unit | `npx jest src/domain/__tests__/cycle.test.ts -x` | ✅ |
-| CYAD-03 | Readiness blends with cycle multiplier | unit | `npx jest src/domain/__tests__/cycle.test.ts -x` | ✅ |
-| READ-01 | Readiness survey score calculation | unit | `npx jest src/domain/__tests__/cycle.test.ts -x` | ✅ (readiness tested in cycle suite) |
-| INJR-01 | Injury profile save/retrieve | unit | `npx jest src/repositories/__tests__/InjuryRepo.test.ts -x` | ❌ Wave 0 |
-| INJR-02 | Injury adaptation substitutes contraindicated exercises | unit | `npx jest src/domain/__tests__/injury.test.ts -x` | ✅ |
-| INJR-04 | Pain trend analyzer identifies worsening trend | unit | `npx jest src/domain/__tests__/injury.test.ts -x` | ✅ |
-| INJR-05 | Phase transition advisor suggests progression | unit | `npx jest src/domain/__tests__/injury.test.ts -x` | ✅ |
-| INJR-06 | Rehab session generator produces valid session | unit | `npx jest src/domain/__tests__/injury.test.ts -x` | ✅ |
-| AIWK-04 | `generateOfflineWorkout()` respects injuries + energy | unit | `npx jest src/domain/__tests__/ai-workout.test.ts -x` | ✅ |
-| AIWK-05 | AI workout saved with source `'ai'` | unit | `npx jest src/repositories/__tests__/FirestoreWorkoutRepo.test.ts -x` | ✅ |
-| BNCH-01 | Benchmark catalog contains expected entries | unit | `npx jest src/domain/__tests__/benchmarks.test.ts -x` | ❌ Wave 0 |
-| BNCH-02 | `encodeRoundsAndReps` + `decodeRoundsAndReps` round-trip | unit | `npx jest src/domain/__tests__/benchmarks.test.ts -x` | ❌ Wave 0 |
-| WODS-01 | WODRepo returns record for today's date | unit | `npx jest src/repositories/__tests__/WODRepo.test.ts -x` | ❌ Wave 0 |
-| PROG-01 | ProgramRepo `getPrograms()` returns list | unit | `npx jest src/repositories/__tests__/ProgramRepo.test.ts -x` | ❌ Wave 0 |
+| UX-01 | `RootErrorBoundary` renders heading and reload link when error thrown | unit | `cd pwa && npx vitest run src/routes/RootErrorBoundary.test.tsx` | Wave 0 |
+| UX-01 | `AppErrorBoundary` renders recovery UI and "Back to Dashboard" link | unit | `cd pwa && npx vitest run src/routes/AppErrorBoundary.test.tsx` | Wave 0 |
+| UX-02 | `SkeletonCard` renders correct number of shimmer divs | unit | `cd pwa && npx vitest run src/components/Skeleton.test.tsx` | Wave 0 |
+| UX-03 | `NotFound` renders 404 heading and home link | unit | `cd pwa && npx vitest run src/routes/NotFound.test.tsx` | Wave 0 |
 
 ### Sampling Rate
-
-- **Per task commit:** `cd SundeeFundeeRN && npx jest src/domain/__tests__ src/repositories/__tests__ --no-coverage`
-- **Per wave merge:** `cd SundeeFundeeRN && npx jest --coverage`
+- **Per task commit:** `cd pwa && npx vitest run src/routes/RootErrorBoundary.test.tsx src/routes/NotFound.test.tsx src/components/Skeleton.test.tsx`
+- **Per wave merge:** `cd pwa && npx vitest run`
 - **Phase gate:** Full suite green before `/gsd:verify-work`
 
 ### Wave 0 Gaps
-
-- [ ] `SundeeFundeeRN/src/repositories/__tests__/CycleRepo.test.ts` — covers CYCL-01
-- [ ] `SundeeFundeeRN/src/repositories/__tests__/InjuryRepo.test.ts` — covers INJR-01, INJR-03
-- [ ] `SundeeFundeeRN/src/repositories/__tests__/BenchmarkRepo.test.ts` — covers BNCH-01 through BNCH-04
-- [ ] `SundeeFundeeRN/src/repositories/__tests__/WODRepo.test.ts` — covers WODS-01, WODS-02
-- [ ] `SundeeFundeeRN/src/repositories/__tests__/ProgramRepo.test.ts` — covers PROG-01 through PROG-04
-- [ ] `SundeeFundeeRN/src/domain/__tests__/benchmarks.test.ts` — covers benchmark catalog + encode/decode
-- [ ] `SundeeFundeeRN/src/components/__tests__/CyclePhaseBanner.test.tsx` — covers CYCL-05 gating
-
----
-
-## Cross-Researcher Findings (Gemini + Qwen)
-
-Additional insights gathered from parallel Gemini and Qwen research sessions:
-
-### Body Map Component
-- **`react-native-body-highlighter`** (Gemini): Built on `react-native-svg`, provides front/back interactive body diagram with region IDs that map to `BodyLocation` type. Viable alternative to raw SVG paths.
-- **Custom SVG with `react-native-svg`** (Qwen): Use `Path` + `Pressable` regions with hit detection. More customizable but more implementation effort. Both approaches are valid — planner should choose based on design fidelity needs.
-
-### Firestore Schema Patterns (Qwen)
-- **Pain logs: hybrid embedded + subcollection** — Embed last 7 days in `InjuryProfile` for quick UI access, full history in `painLogs` subcollection for trend analysis. Avoids extra read for common case.
-- **Programs: denormalized** — Nest `weeks[] → sessions[] → exercises[]` inside program doc for single-read catalog browsing. Programs are admin-seeded, read-heavy — denormalization is appropriate.
-- **Benchmarks: user results in user subcollection** — `/users/{uid}/benchmarkResults/{resultId}` with denormalized `benchmarkName` and `scoringType` for display without join.
-- **Security rules additions:** Programs and WODs `allow read: if request.auth != null; allow write: if false;` (admin-only writes via console/CLI).
-
-### Cloud Function Enhancements (Qwen)
-- **Rate limiting per user** — Track requests in `rateLimits` collection, cap at 10/hour per user. Prevents abuse of AI generation endpoint.
-- **`responseMimeType: "application/json"`** — Gemini supports native JSON mode in `generationConfig`, eliminating need for response parsing/validation.
-- **Concurrency setting** — `concurrency: 80` allows single instance to handle 80 concurrent requests, maximizing `minInstances: 1` efficiency.
-
-### Offline Program Catalog (Qwen)
-- **Bundle top 5 programs** as static JSON for offline/guest access, similar to existing `exercises.json` pattern. Firestore programs serve as live catalog with TTL-based cache refresh.
-
-### Navigation (Both)
-- **Expo Router `href: null`** confirmed by both researchers as the correct approach for conditional Cycle tab visibility.
-- **Deep linking scheme** `sundeefundee://` should be configured in `app.json` for program/benchmark/WOD deep links.
-
-### Calendar Theming (Gemini)
-- `react-native-calendars` supports `markingType={'period'}` with `startingDay`/`endingDay` for range visualization — maps directly to period start/end dates without custom logic.
-
----
+- [ ] `pwa/src/routes/RootErrorBoundary.test.tsx` — covers UX-01 (root boundary render)
+- [ ] `pwa/src/routes/AppErrorBoundary.test.tsx` — covers UX-01 (app boundary render)
+- [ ] `pwa/src/components/Skeleton.test.tsx` — covers UX-02 (skeleton card renders N divs)
+- [ ] `pwa/src/routes/NotFound.test.tsx` — covers UX-03 (404 heading + home link)
 
 ## Sources
 
 ### Primary (HIGH confidence)
-
-- Direct code inspection: `src/domain/cycle/cycle-calculations.ts` — phase inference functions confirmed working
-- Direct code inspection: `src/domain/injury/` — full injury domain confirmed ported
-- Direct code inspection: `src/domain/ai-workout/` — `generateOfflineWorkout()` fully functional
-- Direct code inspection: `src/domain/benchmarks/benchmark-catalog.ts` — catalog + encode/decode confirmed
-- Direct code inspection: `src/domain/readiness/readiness-survey.ts` — scoring functions confirmed
-- Direct code inspection: `src/repositories/ReadinessRepo.ts` — established factory pattern confirmed
-- Direct code inspection: `functions/src/generateWorkout.ts` — onCall Cloud Function confirmed (uses Anthropic, needs Gemini swap)
-- Direct code inspection: `SundeeFundeeRN/package.json` — all dependencies confirmed present except `react-native-calendars`
-- Direct code inspection: `app/(app)/(tabs)/_layout.tsx` — current tab structure (4 tabs) confirmed
+- React Router official docs (`https://reactrouter.com/how-to/error-boundary`) — `ErrorBoundary` route property, `useRouteError`, `isRouteErrorResponse`
+- React Router official docs (`https://reactrouter.com/en/main/route/error-element`) — `errorElement` vs `ErrorBoundary` distinction
+- CSS `@keyframes` spec — shimmer via `background-position` animation is a CSS standard, zero risk
 
 ### Secondary (MEDIUM confidence)
-
-- `react-native-calendars`: well-known community standard library; verified it supports `markedDates` with period range marking from npm package README patterns
-- Expo Router `href: null` for conditional tab hiding: documented in Expo Router v3+ docs for hiding tabs
+- npm registry listing for `react-error-boundary` — confirmed version 6.0.0, React 19 compatible; ruled out as unnecessary given React Router 7 built-in support
+- GitHub discussion `remix-run/react-router#11456` — confirmed `ErrorBoundary` (component) and `errorElement` (element) are functionally equivalent
 
 ### Tertiary (LOW confidence)
-
-- Gemini model name `gemini-1.5-flash` as stable replacement for `gemini-3.1-flash-lite-preview`: based on Google AI Studio knowledge as of August 2025. Model availability should be verified at implementation time.
-- Firebase Cloud Functions v2 `minInstances: 1` pricing estimate ($5/month): approximation from Cloud Functions pricing knowledge; verify current pricing.
-
----
+- None — all critical claims verified against official documentation.
 
 ## Metadata
 
 **Confidence breakdown:**
-- Standard stack: HIGH — all libraries confirmed in `package.json` except `react-native-calendars` (one new install)
-- Architecture: HIGH — all patterns confirmed from existing code; five new repos follow identical pattern to three existing
-- Pitfalls: HIGH for cold start, timezone, unit threading (confirmed from STATE.md/CLAUDE.md); MEDIUM for `href: null` tab hiding (needs Expo Router version confirmation)
-- AI migration: MEDIUM — function exists, provider swap is clear, model name needs verification
+- Standard stack: HIGH — React Router 7 and Vitest already installed; no new dependencies
+- Architecture: HIGH — `ErrorBoundary` route property and `path="*"` documented in official React Router 7 docs
+- Pitfalls: HIGH — `useRouteError` scoping and `path="*"` placement verified against official docs and router source
 
-**Research date:** 2026-03-15
-**Valid until:** 2026-04-15 (stable ecosystem; Gemini model name may shift sooner)
+**Research date:** 2026-03-21
+**Valid until:** 2026-09-21 (stable — React Router 7 semver stable, CSS `@keyframes` is a CSS standard)
