@@ -105,7 +105,11 @@ Plans:
   1. Key user actions (sign in, workout complete, subscription start) appear as events in Firebase DebugView
   2. Sharing the app URL on Slack, iMessage, or Twitter shows a card with title, description, and image
   3. Component tests pass for the auth flow, workout session completion, and Stripe checkout trigger
-**Plans**: TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 06-01-PLAN.md — SEO meta tags (OG/Twitter) and Firebase Analytics event instrumentation
+- [ ] 06-02-PLAN.md — Component tests for auth flow, workout completion, and Stripe checkout trigger
 
 ## Progress
 
@@ -119,4 +123,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 3. Security Hardening | 3/3 | Complete   | 2026-03-21 |
 | 4. PWA Quality | 3/3 | Complete   | 2026-03-21 |
 | 5. Error Resilience | 0/2 | In progress | - |
-| 6. Analytics and SEO | 0/TBD | Not started | - |
+| 6. Analytics and SEO | 0/2 | Not started | - |
