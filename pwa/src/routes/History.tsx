@@ -11,6 +11,7 @@ import type { HistorySourceFilter } from '../domain/history/history-filter';
 import { filterHistoryBySource, groupHistoryByDate } from '../domain/history/history-filter';
 import { formatWeight } from '../utils/formatWeight';
 import type { WeightUnit } from '../domain/types';
+import { SkeletonCard } from '../components/SkeletonCard';
 import styles from './History.module.css';
 
 function workoutRecordToHistoryItem(record: WorkoutRecord): HistoryItem {
@@ -93,7 +94,7 @@ export function History() {
       </div>
 
       {isLoading ? (
-        <div className={styles.center}><div className={styles.spinner} /></div>
+        <SkeletonCard count={4} height={72} />
       ) : groups.length === 0 ? (
         <p className={styles.empty}>No workouts yet. Start your first workout!</p>
       ) : (

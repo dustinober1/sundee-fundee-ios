@@ -6,6 +6,7 @@ import { useSession } from '../auth/AuthContext';
 import { getCycleRepo, recordToPeriodLog, periodLogToRecord } from '../repositories/CycleRepo';
 import type { PeriodLog, CycleSettings, CyclePhase } from '../domain/types';
 import { calculateCycleStatus, type CycleStatusResult } from '../domain/cycle/cycle-calculations';
+import { SkeletonCard } from '../components/SkeletonCard';
 import styles from './Cycle.module.css';
 
 const PHASE_LABELS: Record<CyclePhase, string> = {
@@ -98,7 +99,12 @@ export function Cycle() {
     }
   }
 
-  if (isLoading) return <div className={styles.center}><div className={styles.spinner} /></div>;
+  if (isLoading) return (
+    <div className={styles.container}>
+      <h1 className={styles.title}>Cycle Tracking</h1>
+      <SkeletonCard count={3} height={100} />
+    </div>
+  );
 
   return (
     <div className={styles.container}>

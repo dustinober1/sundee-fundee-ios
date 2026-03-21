@@ -7,6 +7,7 @@ import { useSession } from '../auth/AuthContext';
 import { getProgramRepo } from '../repositories/ProgramRepo';
 import type { Program, ProgramSession, WorkoutFocus } from '../domain/types';
 import { useEntitlementContext } from '../entitlements/EntitlementContext';
+import { SkeletonCard } from '../components/SkeletonCard';
 import styles from './Programs.module.css';
 
 type FilterOption = 'all' | 'strength' | 'hypertrophy' | 'power';
@@ -76,7 +77,7 @@ export function Programs() {
       </div>
 
       {isLoading ? (
-        <div className={styles.center}><div className={styles.spinner} /></div>
+        <SkeletonCard count={4} height={72} />
       ) : filtered.length === 0 ? (
         <p className={styles.empty}>No programs match this filter.</p>
       ) : (

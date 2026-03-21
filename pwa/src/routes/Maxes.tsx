@@ -9,6 +9,7 @@ import { getSettingsRepo, DEFAULT_SETTINGS } from '../repositories/SettingsRepo'
 import type { ExerciseMax } from '../domain/pr-detection/pr-types';
 import { formatWeight } from '../utils/formatWeight';
 import type { WeightUnit } from '../domain/types';
+import { SkeletonCard } from '../components/SkeletonCard';
 import styles from './Maxes.module.css';
 
 interface ExerciseSummary {
@@ -77,7 +78,7 @@ export function Maxes() {
       />
 
       {isLoading ? (
-        <div className={styles.center}><div className={styles.spinner} /></div>
+        <SkeletonCard count={4} height={64} />
       ) : filtered.length === 0 ? (
         <p className={styles.empty}>
           {search ? 'No exercises match your search.' : 'No PRs recorded yet. Complete a workout to track your maxes!'}
