@@ -14,9 +14,9 @@
 
 ### Backend
 
-- [ ] **BACK-01**: Firebase Cloud Function generates AI workouts via Gemini SDK with user auth gating
-- [ ] **BACK-02**: Stripe Checkout session created via Cloud Function with real price ID, success/cancel URLs
-- [ ] **BACK-03**: Stripe webhook verifies signature via `rawBody`, writes subscription entitlement to Firestore
+- [x] **BACK-01**: Firebase Cloud Function generates AI workouts via Gemini SDK with user auth gating
+- [x] **BACK-02**: Stripe Checkout session created via Cloud Function with real price ID, success/cancel URLs
+- [x] **BACK-03**: Stripe webhook verifies signature via `rawBody`, writes subscription entitlement to Firestore
 
 ### Security
 
@@ -78,9 +78,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DEPLOY-02 | Phase 1 | Complete |
 | DEPLOY-03 | Phase 1 | Complete |
 | DEPLOY-04 | Phase 1 | Complete |
-| BACK-01 | Phase 2 | Pending |
-| BACK-02 | Phase 2 | Pending |
-| BACK-03 | Phase 2 | Pending |
+| BACK-01 | Phase 2 | Complete |
+| BACK-02 | Phase 2 | Complete |
+| BACK-03 | Phase 2 | Complete |
 | SEC-01 | Phase 3 | Pending |
 | SEC-02 | Phase 3 | Pending |
 | SEC-03 | Phase 3 | Pending |
