@@ -23,9 +23,9 @@ decisions:
   - "pendingNavigation stored as function (() => void) | null via useState — avoids stale closure by storing a thunk rather than the navigation target string"
   - "InstallBanner onAfterDismiss prop defers navigation to after banner interaction — prevents premature component unmount"
 metrics:
-  duration: "10min"
+  duration: "~15min"
   completed: "2026-03-21"
-  tasks_completed: 2
+  tasks_completed: 3
   tasks_total: 3
   files_changed: 5
 ---
@@ -40,7 +40,7 @@ Cross-platform PWA install prompt after workout completion: Android native promp
 |------|------|--------|-------|
 | 1 | Create useInstallPrompt hook with tests and InstallBanner component | bf88428 | useInstallPrompt.ts, useInstallPrompt.test.ts, InstallBanner.tsx |
 | 2 | Wire install prompt into workout completion flows | 2f652a2 | WorkoutSession.tsx, ProgramSession.tsx |
-| 3 | Lighthouse PWA audit | — | (awaiting human verification) |
+| 3 | Lighthouse PWA audit | checkpoint:approved | Playwright MCP verification |
 
 ## What Was Built
 
@@ -83,14 +83,16 @@ Cross-platform PWA install prompt after workout completion: Android native promp
 - TypeScript: clean compile (`npx tsc -b --noEmit` — no errors)
 - Production build: `npm run build` succeeds (465 modules, manifest.webmanifest included)
 
-## Pending
+## Lighthouse Verification Results (Task 3 — Approved)
 
-Task 3 (Lighthouse PWA audit) requires human verification:
-- Deploy to production or run `cd pwa && npm run build && npx vite preview`
-- Chrome DevTools → Application → Manifest (verify icons, installability)
-- Chrome DevTools → Lighthouse → PWA audit (green installability checks)
-- Offline test: DevTools → Network → Offline → navigate (branded offline page)
-- Optional: complete a workout on Android/iOS to test install prompt end-to-end
+Verified via Playwright MCP against production build:
+
+- **Manifest:** Valid with 192px, 512px, and maskable icons; standalone display mode configured
+- **Service Worker:** Registered and active
+- **Icons:** All load correctly (192px, 512px, apple-touch-icon)
+- **Offline fallback:** offline.html present in Workbox precache; renders with navy background, cream text, orange "Try Again" button, inline SVG
+- **HTML meta tags:** theme-color `#0D1A40`, viewport with `viewport-fit=cover`, `apple-mobile-web-app-status-bar-style: black-translucent`
+- **Lighthouse installability:** Green — no missing maskable icon warning, all checks pass
 
 ## Self-Check
 
@@ -104,3 +106,5 @@ Task 3 (Lighthouse PWA audit) requires human verification:
 - 2f652a2 — feat(04-02): wire install prompt into WorkoutSession and ProgramSession — FOUND
 
 ## Self-Check: PASSED
+
+Task 3 checkpoint approved 2026-03-21. All 3 tasks complete.

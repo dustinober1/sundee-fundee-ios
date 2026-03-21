@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Completed 04-pwa-quality-02 tasks 1-2; awaiting checkpoint:human-verify for Lighthouse audit"
-last_updated: "2026-03-21T19:42:31.968Z"
-last_activity: 2026-03-21 — Phase 3 Plan 1 complete; Firestore security rules (SEC-01, SEC-02) with 19 test cases
+stopped_at: "Completed 04-pwa-quality-02: install prompt, deferred navigation, Lighthouse audit approved"
+last_updated: "2026-03-21T19:46:58.268Z"
+last_activity: 2026-03-21 — Phase 4 Plan 2 complete; cross-platform install prompt, deferred navigation, Lighthouse PWA audit verified green
 progress:
   total_phases: 6
   completed_phases: 4
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-21)
 
 **Core value:** Users can reliably access Sundee Fundee from any browser, with real payments, real AI workouts, and production-grade reliability
-**Current focus:** Phase 3 — Security Hardening
+**Current focus:** Phase 4 — PWA Quality
 
 ## Current Position
 
-Phase: 3 of 6 in progress (Security Hardening)
-Plan: Phase 3 Plan 1 complete (03-01: Firestore security rules)
-Status: Phase 3 in progress — 03-01 complete
-Last activity: 2026-03-21 — Phase 3 Plan 1 complete; Firestore security rules (SEC-01, SEC-02) with 19 test cases
+Phase: 4 of 6 in progress (PWA Quality)
+Plan: Phase 4 Plan 2 complete (04-02: Install prompt + Lighthouse verification)
+Status: Phase 4 in progress — 04-00, 04-01, 04-02 complete
+Last activity: 2026-03-21 — Phase 4 Plan 2 complete; cross-platform install prompt, deferred navigation, Lighthouse PWA audit verified green
 
 Progress: [██████████] 100%
 
@@ -61,6 +61,7 @@ Progress: [██████████] 100%
 | Phase 04-pwa-quality PP00 | 1min | 1 tasks | 1 files |
 | Phase 04-pwa-quality P01 | 10min | 2 tasks | 8 files |
 | Phase 04-pwa-quality P02 | 4min | 2 tasks | 5 files |
+| Phase 04-pwa-quality P02 | 15min | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -96,6 +97,8 @@ Recent decisions affecting current work:
 - [Phase 04-pwa-quality]: navigateFallbackDenylist excludes /api/ routes from workbox offline fallback to prevent SW intercepting real API errors
 - [Phase 04-pwa-quality]: jsdom Storage.prototype.setItem spy unreliable in vitest — assert sessionStorage.getItem directly in dismiss() test for behavioral equivalence
 - [Phase 04-pwa-quality]: pendingNavigation stored as () => void | null via useState to defer navigate() until after install banner interaction, preventing premature component unmount
+- [Phase 04-pwa-quality]: jsdom Storage.prototype.setItem spy unreliable in vitest — assert sessionStorage.getItem directly in dismiss() test for behavioral equivalence
+- [Phase 04-pwa-quality]: pendingNavigation stored as () => void | null via useState to defer navigate() until after install banner interaction, preventing premature component unmount
 
 ### Pending Todos
 
@@ -108,6 +111,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-21T19:42:31.965Z
-Stopped at: Completed 04-pwa-quality-02 tasks 1-2; awaiting checkpoint:human-verify for Lighthouse audit
+Last session: 2026-03-21T19:46:58.266Z
+Stopped at: Completed 04-pwa-quality-02: install prompt, deferred navigation, Lighthouse audit approved
 Resume file: None
