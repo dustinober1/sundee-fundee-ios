@@ -34,9 +34,9 @@
 
 ### UX
 
-- [ ] **UX-01**: Root-level and route-level React error boundaries with recovery UI
-- [ ] **UX-02**: Shimmer skeleton states on all data-fetching routes (Dashboard, Programs, History, Cycle, Maxes)
-- [ ] **UX-03**: Branded 404 page for unknown routes
+- [x] **UX-01**: Root-level and route-level React error boundaries with recovery UI
+- [x] **UX-02**: Shimmer skeleton states on all data-fetching routes (Dashboard, Programs, History, Cycle, Maxes)
+- [x] **UX-03**: Branded 404 page for unknown routes
 
 ### Quality
 
@@ -89,9 +89,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PWA-02 | Phase 4 | Complete |
 | PWA-03 | Phase 4 | Complete |
 | PWA-04 | Phase 4 | Complete |
-| UX-01 | Phase 5 | Pending |
-| UX-02 | Phase 5 | Pending |
-| UX-03 | Phase 5 | Pending |
+| UX-01 | Phase 5 | Complete |
+| UX-02 | Phase 5 | Complete |
+| UX-03 | Phase 5 | Complete |
 | QUAL-01 | Phase 6 | Pending |
 | QUAL-02 | Phase 6 | Pending |
 | QUAL-03 | Phase 6 | Pending |
