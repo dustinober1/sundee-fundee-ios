@@ -5,7 +5,6 @@ if (!getApps().length) {
   initializeApp();
 }
 
-// Exports added as functions are implemented:
 export { generateAIWorkout } from './generateAIWorkout';
-// export { createStripeCheckoutSession } from './createCheckoutSession';
-// export { stripeWebhook } from './stripeWebhook';
+export { createStripeCheckoutSession, createStripePortalSession } from './createCheckoutSession';
+export { stripeWebhook } from './stripeWebhook';

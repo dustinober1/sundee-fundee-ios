@@ -34,3 +34,15 @@ export function onCall(
 export function getLastHandler() {
   return _lastHandler;
 }
+
+// onRequest mock — returns an async wrapper so tests can invoke it directly
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function onRequest(
+  _optionsOrHandler:
+    | { secrets?: unknown[]; region?: string }
+    | ((request: unknown, response: unknown) => Promise<void>),
+  handler?: (request: unknown, response: unknown) => Promise<void>
+) {
+  const fn = typeof _optionsOrHandler === 'function' ? _optionsOrHandler : handler!;
+  return async (request: unknown, response: unknown) => fn(request, response);
+}

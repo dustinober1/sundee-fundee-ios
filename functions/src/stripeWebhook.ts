@@ -1,147 +1,111 @@
-import { onRequest } from "firebase-functions/v2/https";
-import { defineSecret } from "firebase-functions/params";
-import Stripe from "stripe";
-import * as logger from "firebase-functions/logger";
-import * as admin from "firebase-admin";
+/**
+ * stripeWebhook Cloud Function (BACK-03)
+ *
+ * onRequest function that receives Stripe webhook events.
+ * Verifies the Stripe signature using rawBody before processing.
+ *
+ * Handles:
+ *   - checkout.session.completed → sets premiumEntitlement.active = true in Firestore
+ *   - customer.subscription.deleted → sets premiumEntitlement.active = false in Firestore
+ *
+ * Always responds with { received: true } for valid signatures (Stripe expects a 200).
+ */
 
-const STRIPE_SECRET_KEY = defineSecret("STRIPE_SECRET_KEY");
-const STRIPE_WEBHOOK_SECRET = defineSecret("STRIPE_WEBHOOK_SECRET");
-const RC_SECRET_API_KEY = defineSecret("RC_SECRET_API_KEY");
+import { onRequest } from 'firebase-functions/v2/https';
+import { defineSecret } from 'firebase-functions/params';
+import * as logger from 'firebase-functions/logger';
+import Stripe from 'stripe';
+import { getFirestore } from 'firebase-admin/firestore';
 
-const ACTIVE_STATUSES = new Set(["active", "trialing", "past_due"]);
-
-async function grantRCEntitlement(appUserId: string, rcSecretKey: string): Promise<void> {
-  const url = `https://api.revenuecat.com/v1/subscribers/${encodeURIComponent(appUserId)}/entitlements/premium/promotional`;
-  try {
-    const res = await fetch(url, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${rcSecretKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ duration: "lifetime" }),
-    });
-    if (!res.ok) {
-      logger.error("RC grant failed", { status: res.status, uid: appUserId });
-    }
-  } catch (err) {
-    logger.error("RC grant error", { err, uid: appUserId });
-  }
-}
-
-async function revokeRCEntitlement(appUserId: string, rcSecretKey: string): Promise<void> {
-  const url = `https://api.revenuecat.com/v1/subscribers/${encodeURIComponent(appUserId)}/entitlements/premium/promotional`;
-  try {
-    const res = await fetch(url, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${rcSecretKey}`,
-      },
-    });
-    if (!res.ok) {
-      logger.error("RC revoke failed", { status: res.status, uid: appUserId });
-    }
-  } catch (err) {
-    logger.error("RC revoke error", { err, uid: appUserId });
-  }
-}
+const stripeSecretKey = defineSecret('STRIPE_SECRET_KEY');
+const stripeWebhookSecret = defineSecret('STRIPE_WEBHOOK_SECRET');
 
 export const stripeWebhook = onRequest(
-  { secrets: [STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, RC_SECRET_API_KEY] },
+  { secrets: [stripeSecretKey, stripeWebhookSecret], region: 'us-central1' },
   async (request, response) => {
-    const sig = request.headers["stripe-signature"];
+    const sig = (request as unknown as { headers: Record<string, string> }).headers['stripe-signature'];
+
     if (!sig) {
-      response.status(400).send("Missing stripe-signature header");
+      logger.warn('stripeWebhook: missing stripe-signature header');
+      (response as unknown as { status: (code: number) => { send: (body: string) => void } })
+        .status(400)
+        .send('Missing stripe-signature header');
       return;
     }
 
-    const stripe = new Stripe(STRIPE_SECRET_KEY.value());
-
+    const stripe = new Stripe(stripeSecretKey.value());
     let event: Stripe.Event;
+
     try {
-      event = stripe.webhooks.constructEvent(
-        request.rawBody,
-        sig as string,
-        STRIPE_WEBHOOK_SECRET.value()
-      );
+      const rawBody = (request as unknown as { rawBody: Buffer }).rawBody;
+      event = stripe.webhooks.constructEvent(rawBody, sig, stripeWebhookSecret.value());
     } catch (err) {
-      logger.error("Webhook signature verification failed", err);
-      response.status(400).send("Webhook signature verification failed");
+      logger.error('stripeWebhook: signature verification failed', { error: err });
+      (response as unknown as { status: (code: number) => { send: (body: string) => void } })
+        .status(400)
+        .send(`Webhook signature verification failed: ${(err as Error).message}`);
       return;
     }
 
-    const subscription = event.data.object as Stripe.Subscription;
-    const firebaseUID = subscription.metadata?.firebaseUID;
+    logger.info('stripeWebhook: received event', { type: event.type });
 
-    if (!firebaseUID) {
-      logger.warn("No firebaseUID in subscription metadata", { type: event.type });
-      response.json({ received: true });
-      return;
-    }
+    const db = getFirestore();
 
-    const rcKey = RC_SECRET_API_KEY.value();
+    try {
+      if (event.type === 'checkout.session.completed') {
+        const session = event.data.object as Stripe.Checkout.Session;
+        const customerId = session.customer as string;
+        const subscriptionId = session.subscription as string;
 
-    if (
-      event.type === "customer.subscription.created" ||
-      event.type === "customer.subscription.updated"
-    ) {
-      if (ACTIVE_STATUSES.has(subscription.status)) {
-        await grantRCEntitlement(firebaseUID, rcKey);
-        try {
-          await admin
-            .firestore()
-            .doc(`users/${firebaseUID}`)
-            .set(
-              {
-                premiumEntitlement: { active: true, expiresAt: null, source: "stripe" },
-                stripeSubscriptionId: subscription.id,
-              },
-              { merge: true }
-            );
-        } catch (err) {
-          logger.error("Firestore grant write failed", { err, uid: firebaseUID });
-        }
-      } else {
-        await revokeRCEntitlement(firebaseUID, rcKey);
-        try {
-          await admin
-            .firestore()
-            .doc(`users/${firebaseUID}`)
-            .set(
-              {
-                premiumEntitlement: {
-                  active: false,
-                  expiresAt: admin.firestore.Timestamp.now(),
-                  source: "stripe",
-                },
-              },
-              { merge: true }
-            );
-        } catch (err) {
-          logger.error("Firestore revoke write failed", { err, uid: firebaseUID });
-        }
-      }
-    } else if (event.type === "customer.subscription.deleted") {
-      await revokeRCEntitlement(firebaseUID, rcKey);
-      try {
-        await admin
-          .firestore()
-          .doc(`users/${firebaseUID}`)
-          .set(
+        // Retrieve customer to get firebaseUID from metadata
+        const customer = await stripe.customers.retrieve(customerId) as Stripe.Customer;
+        const uid = customer.metadata?.firebaseUID;
+
+        if (uid) {
+          await db.collection('users').doc(uid).set(
             {
               premiumEntitlement: {
-                active: false,
-                expiresAt: admin.firestore.Timestamp.now(),
-                source: "stripe",
+                active: true,
+                stripeCustomerId: customerId,
+                subscriptionId,
+                activatedAt: new Date().toISOString(),
               },
             },
             { merge: true }
           );
-      } catch (err) {
-        logger.error("Firestore revoke write failed", { err, uid: firebaseUID });
+          logger.info('stripeWebhook: activated premium for user', { uid, customerId });
+        } else {
+          logger.warn('stripeWebhook: no firebaseUID in customer metadata', { customerId });
+        }
+      } else if (event.type === 'customer.subscription.deleted') {
+        const subscription = event.data.object as Stripe.Subscription;
+        const customerId = subscription.customer as string;
+
+        // Retrieve customer to get firebaseUID from metadata
+        const customer = await stripe.customers.retrieve(customerId) as Stripe.Customer;
+        const uid = customer.metadata?.firebaseUID;
+
+        if (uid) {
+          await db.collection('users').doc(uid).set(
+            {
+              premiumEntitlement: {
+                active: false,
+                cancelledAt: new Date().toISOString(),
+              },
+            },
+            { merge: true }
+          );
+          logger.info('stripeWebhook: deactivated premium for user', { uid, customerId });
+        } else {
+          logger.warn('stripeWebhook: no firebaseUID in customer metadata', { customerId });
+        }
+      } else {
+        logger.info('stripeWebhook: unhandled event type (ignored)', { type: event.type });
       }
+    } catch (err) {
+      logger.error('stripeWebhook: error processing event', { type: event.type, error: err });
     }
 
-    response.json({ received: true });
+    (response as unknown as { json: (body: unknown) => void }).json({ received: true });
   }
 );

@@ -39,6 +39,7 @@
     "moduleNameMapper": {
       "firebase-functions/v2/https": "<rootDir>/__mocks__/firebase-functions.ts",
       "firebase-functions/params": "<rootDir>/__mocks__/firebase-functions-params.ts",
+      "firebase-admin/firestore": "<rootDir>/__mocks__/firebase-admin-firestore.ts",
       "firebase-admin/app": "<rootDir>/__mocks__/firebase-admin.ts",
       "firebase-admin": "<rootDir>/__mocks__/firebase-admin.ts",
       "@google/genai": "<rootDir>/__mocks__/generative-ai.ts",
