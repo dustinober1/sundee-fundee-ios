@@ -3,15 +3,17 @@
  */
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 import { useSession } from '../auth/AuthContext';
 import { useEntitlementContext } from '../entitlements/EntitlementContext';
 import { generateOfflineWorkout } from '../domain/ai-workout/offline-workout-generator';
-import type { GeneratedWorkout } from '../domain/ai-workout/generated-workout';
+import type { GeneratedWorkout, GeneratedExercise } from '../domain/ai-workout/generated-workout';
 import type { WorkoutGenerationContext } from '../domain/ai-workout/workout-generation-context';
 import type { WorkoutFocus, EnergyLevel, EquipmentAccess } from '../domain/types';
 import { getExerciseMaxRepo } from '../repositories/ExerciseMaxRepo';
 import { getSettingsRepo, DEFAULT_SETTINGS } from '../repositories/SettingsRepo';
 import { getOnboardingProfileRepo } from '../repositories/OnboardingProfileRepo';
+import { getFirebaseApp } from '../firebase/app';
 import styles from './AIWorkoutConfig.module.css';
 
 // Module-level shared state for passing workout to preview screen
@@ -103,7 +105,34 @@ export function AIWorkoutConfig() {
         travelModeEnabled: false,
       };
 
-      // TODO: Try Cloud Function first when available, fall back to offline
+      // Try Cloud Function first; fall back to offline generation on failure
+      try {
+        const functions = getFunctions(getFirebaseApp());
+        const generate = httpsCallable<WorkoutGenerationContext, { coachingSummary: string; exercises: Omit<GeneratedExercise, 'id'>[] }>(functions, 'generateAIWorkout');
+        const { data: cfData } = await generate(context);
+        const cloudWorkout: GeneratedWorkout = {
+          id: crypto.randomUUID(),
+          createdAt: new Date(),
+          isFavorite: false,
+          isCompleted: false,
+          coachingSummary: cfData.coachingSummary,
+          exercises: cfData.exercises.map((ex) => ({ ...ex, id: crypto.randomUUID() })),
+          questionnaire: {
+            timeMinutes: context.timeMinutes,
+            focus: context.focus,
+            energyLevel: context.energyLevel,
+            equipment: context.equipment,
+            desiredSkills: context.desiredSkills,
+          },
+        };
+        _sharedWorkout = cloudWorkout;
+        navigate('/ai-workout/preview');
+        return;
+      } catch (cfError) {
+        console.warn('Cloud Function failed, falling back to offline generation:', cfError);
+      }
+
+      // Offline fallback
       const workout = generateOfflineWorkout(context);
       _sharedWorkout = workout;
       navigate('/ai-workout/preview');
