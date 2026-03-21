@@ -61,3 +61,18 @@ jobs:
           export GOOGLE_APPLICATION_CREDENTIALS=/tmp/sa-key.json
           npx firebase-tools deploy --only functions --project sundee-fundee --force
           rm /tmp/sa-key.json
+
+      - name: Deploy Firestore rules
+        env:
+          SA_KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SUNDEE_FUNDEE }}
+        run: |
+          echo "$SA_KEY" > /tmp/sa-key.json
+          export GOOGLE_APPLICATION_CREDENTIALS=/tmp/sa-key.json
+          npx firebase-tools deploy --only firestore:rules --project sundee-fundee
+          rm /tmp/sa-key.json
+
+# Manual deploy fallback (run from repo root with service account key):
+#   export GOOGLE_APPLICATION_CREDENTIALS=/path/to/sa-key.json
+#   cd pwa && npm ci && npm run build && cd ..
+#   cd functions && npm ci && npm run build && cd ..
+#   npx firebase-tools deploy --only hosting,functions,firestore:rules --project sundee-fundee
