@@ -29,9 +29,9 @@ final class DashboardViewModel {
     private let wodRepo: any WODRepository
 
     init(
-        programRepo: any ProgramRepository = BundledProgramRepository(),
+        programRepo: any ProgramRepository = CloudKitProgramRepository(),
         readinessRepo: (any ReadinessRepository)? = nil,
-        wodRepo: any WODRepository = BundledWODRepository()
+        wodRepo: any WODRepository = CloudKitWODRepository()
     ) {
         self.programRepo = programRepo
         self.readinessRepo = readinessRepo

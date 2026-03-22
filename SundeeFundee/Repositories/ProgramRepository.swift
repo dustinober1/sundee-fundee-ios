@@ -96,9 +96,9 @@ final class CloudKitProgramRepository: ProgramRepository, @unchecked Sendable {
         query.sortDescriptors = [NSSortDescriptor(key: "name", ascending: true)]
 
         let matchResults = try await cloudRecordFetcher(query)
-        return try matchResults.compactMap { _, recordResult -> Program? in
-            let record = try recordResult.get()
-            return try Program(from: record)
+        return matchResults.compactMap { _, recordResult -> Program? in
+            guard let record = try? recordResult.get() else { return nil }
+            return try? Program(from: record)
         }
     }
 }
