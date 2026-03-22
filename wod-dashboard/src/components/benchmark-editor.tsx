@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { BenchmarkDefinition } from "@/lib/types";
+import { BenchmarkAIChat } from "@/components/benchmark-ai-chat";
 
 // ─── Props ───────────────────────────────────────────────────────────────────
 
@@ -53,6 +54,11 @@ export function BenchmarkEditor({
       scoringTypeRaw,
       sortOrder,
     });
+  }
+
+  function handleAIApply(desc: string, scoring: string) {
+    setWorkoutDescription(desc);
+    setScoringTypeRaw(scoring);
   }
 
   if (!benchmark) {
@@ -146,6 +152,12 @@ export function BenchmarkEditor({
           className="w-full border border-navy/20 rounded px-3 py-1.5 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-navy/40 resize-y"
         />
       </div>
+
+      {/* AI Assist */}
+      <BenchmarkAIChat
+        benchmarkId={benchmark.id}
+        onApply={handleAIApply}
+      />
 
       {/* Actions */}
       <div className="flex items-center gap-3 pt-4 border-t border-navy/10 mt-auto">
