@@ -15,14 +15,14 @@ struct SubscriptionTierTests {
 
     @Test func monthlyProductIDs() {
         #expect(SubscriptionTier.free.monthlyProductID == "")
-        #expect(SubscriptionTier.plus.monthlyProductID == "com.sundeefundee.app.plus.monthly")
-        #expect(SubscriptionTier.premium.monthlyProductID == "com.sundeefundee.app.premium.monthly")
+        #expect(SubscriptionTier.plus.monthlyProductID == "com.sundeefundee.sub.plus.monthly")
+        #expect(SubscriptionTier.premium.monthlyProductID == "com.sundeefundee.sub.premium.monthly")
     }
 
     @Test func annualProductIDs() {
         #expect(SubscriptionTier.free.annualProductID == "")
-        #expect(SubscriptionTier.plus.annualProductID == "com.sundeefundee.app.plus.annual")
-        #expect(SubscriptionTier.premium.annualProductID == "com.sundeefundee.app.premium.annual")
+        #expect(SubscriptionTier.plus.annualProductID == "com.sundeefundee.sub.plus.annual")
+        #expect(SubscriptionTier.premium.annualProductID == "com.sundeefundee.sub.premium.annual")
     }
 
     @Test func ranks() {
@@ -36,17 +36,17 @@ struct SubscriptionTierTests {
     @Test func allProductIDsContainsFourIDs() {
         let ids = SubscriptionTier.allProductIDs
         #expect(ids.count == 4)
-        #expect(ids.contains("com.sundeefundee.app.plus.monthly"))
-        #expect(ids.contains("com.sundeefundee.app.plus.annual"))
-        #expect(ids.contains("com.sundeefundee.app.premium.monthly"))
-        #expect(ids.contains("com.sundeefundee.app.premium.annual"))
+        #expect(ids.contains("com.sundeefundee.sub.plus.monthly"))
+        #expect(ids.contains("com.sundeefundee.sub.plus.annual"))
+        #expect(ids.contains("com.sundeefundee.sub.premium.monthly"))
+        #expect(ids.contains("com.sundeefundee.sub.premium.annual"))
     }
 
     @Test func fromProductIDMapsCorrectly() {
-        #expect(SubscriptionTier.fromProductID("com.sundeefundee.app.plus.monthly") == .plus)
-        #expect(SubscriptionTier.fromProductID("com.sundeefundee.app.plus.annual") == .plus)
-        #expect(SubscriptionTier.fromProductID("com.sundeefundee.app.premium.monthly") == .premium)
-        #expect(SubscriptionTier.fromProductID("com.sundeefundee.app.premium.annual") == .premium)
+        #expect(SubscriptionTier.fromProductID("com.sundeefundee.sub.plus.monthly") == .plus)
+        #expect(SubscriptionTier.fromProductID("com.sundeefundee.sub.plus.annual") == .plus)
+        #expect(SubscriptionTier.fromProductID("com.sundeefundee.sub.premium.monthly") == .premium)
+        #expect(SubscriptionTier.fromProductID("com.sundeefundee.sub.premium.annual") == .premium)
         #expect(SubscriptionTier.fromProductID("unknown.product.id") == .free)
         #expect(SubscriptionTier.fromProductID("") == .free)
     }
@@ -263,13 +263,13 @@ struct SubscriptionManagerStaticTests {
     }
 
     @Test func tierFromProductIDPlus() {
-        #expect(SubscriptionManager.tierFromProductID("com.sundeefundee.app.plus.monthly") == .plus)
-        #expect(SubscriptionManager.tierFromProductID("com.sundeefundee.app.plus.annual") == .plus)
+        #expect(SubscriptionManager.tierFromProductID("com.sundeefundee.sub.plus.monthly") == .plus)
+        #expect(SubscriptionManager.tierFromProductID("com.sundeefundee.sub.plus.annual") == .plus)
     }
 
     @Test func tierFromProductIDPremium() {
-        #expect(SubscriptionManager.tierFromProductID("com.sundeefundee.app.premium.monthly") == .premium)
-        #expect(SubscriptionManager.tierFromProductID("com.sundeefundee.app.premium.annual") == .premium)
+        #expect(SubscriptionManager.tierFromProductID("com.sundeefundee.sub.premium.monthly") == .premium)
+        #expect(SubscriptionManager.tierFromProductID("com.sundeefundee.sub.premium.annual") == .premium)
     }
 
     @Test func tierFromProductIDUnknown() {
@@ -281,12 +281,12 @@ struct SubscriptionManagerStaticTests {
     }
 
     @Test func highestTierPrefersPremium() {
-        let ids = ["com.sundeefundee.app.plus.monthly", "com.sundeefundee.app.premium.monthly"]
+        let ids = ["com.sundeefundee.sub.plus.monthly", "com.sundeefundee.sub.premium.monthly"]
         #expect(SubscriptionManager.highestTier(from: ids) == .premium)
     }
 
     @Test func highestTierSinglePlus() {
-        #expect(SubscriptionManager.highestTier(from: ["com.sundeefundee.app.plus.annual"]) == .plus)
+        #expect(SubscriptionManager.highestTier(from: ["com.sundeefundee.sub.plus.annual"]) == .plus)
     }
 }
 

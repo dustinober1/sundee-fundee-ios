@@ -17,16 +17,16 @@ enum SubscriptionTier: String, Codable, CaseIterable, Sendable {
     var monthlyProductID: String {
         switch self {
         case .free:    return ""
-        case .plus:    return "com.sundeefundee.app.plus.monthly"
-        case .premium: return "com.sundeefundee.app.premium.monthly"
+        case .plus:    return "com.sundeefundee.sub.plus.monthly"
+        case .premium: return "com.sundeefundee.sub.premium.monthly"
         }
     }
 
     var annualProductID: String {
         switch self {
         case .free:    return ""
-        case .plus:    return "com.sundeefundee.app.plus.annual"
-        case .premium: return "com.sundeefundee.app.premium.annual"
+        case .plus:    return "com.sundeefundee.sub.plus.annual"
+        case .premium: return "com.sundeefundee.sub.premium.annual"
         }
     }
 

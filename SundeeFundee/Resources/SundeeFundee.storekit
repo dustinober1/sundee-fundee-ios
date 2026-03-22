@@ -87,7 +87,7 @@
               "locale" : "en_US"
             }
           ],
-          "productID" : "com.sundeefundee.app.plus.monthly",
+          "productID" : "com.sundeefundee.sub.plus.monthly",
           "recurringSubscriptionPeriod" : "P1M",
           "referenceName" : "Sundee Plus Monthly",
           "subscriptionGroupID" : "D1A2B3C4-E5F6-7890-ABCD-EF1234567890",
@@ -112,7 +112,7 @@
               "locale" : "en_US"
             }
           ],
-          "productID" : "com.sundeefundee.app.plus.annual",
+          "productID" : "com.sundeefundee.sub.plus.annual",
           "recurringSubscriptionPeriod" : "P1Y",
           "referenceName" : "Sundee Plus Annual",
           "subscriptionGroupID" : "D1A2B3C4-E5F6-7890-ABCD-EF1234567890",
@@ -137,7 +137,7 @@
               "locale" : "en_US"
             }
           ],
-          "productID" : "com.sundeefundee.app.premium.monthly",
+          "productID" : "com.sundeefundee.sub.premium.monthly",
           "recurringSubscriptionPeriod" : "P1M",
           "referenceName" : "Sundee Premium Monthly",
           "subscriptionGroupID" : "D1A2B3C4-E5F6-7890-ABCD-EF1234567890",
@@ -162,7 +162,7 @@
               "locale" : "en_US"
             }
           ],
-          "productID" : "com.sundeefundee.app.premium.annual",
+          "productID" : "com.sundeefundee.sub.premium.annual",
           "recurringSubscriptionPeriod" : "P1Y",
           "referenceName" : "Sundee Premium Annual",
           "subscriptionGroupID" : "D1A2B3C4-E5F6-7890-ABCD-EF1234567890",

@@ -18,5 +18,14 @@
   "firestore": {
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
+  },
+  "hosting": {
+    "public": "public",
+    "ignore": [
+      "firebase-debug.log",
+      "firebase-debug.*.log",
+      ".git",
+      "node_modules"
+    ]
   }
 }
