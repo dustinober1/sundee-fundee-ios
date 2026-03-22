@@ -97,6 +97,12 @@ Programs are delivered via two channels:
 
 WODs (Workouts of the Day) are delivered via bundled `Resources/WODs/wods.json`, matched by date.
 
+### Benchmarks
+
+Sundee Fundee Benchmarks (admin-created) are delivered via two channels:
+1. Bundled `Resources/Benchmarks/benchmarks.json` (always available)
+2. CloudKit Public DB record type `BenchmarkDefinition` (admin-seeded via WOD Dashboard)
+
 ### SundeeFundeeShared Package
 
 `SundeeFundee/Packages/SundeeFundeeShared/` is an **inlined local Swift package** (not a submodule, not a remote package). It contains shared models (Program, WOD, ExerciseCatalog), CloudKit record decoders, and validators used by both the iOS app and the WOD Dashboard. Referenced in `project.yml` under `packages:`.
@@ -123,6 +129,32 @@ Product IDs are defined in `Domain/Subscription/SubscriptionTier.swift` and mirr
 ### Project Generation
 
 The Xcode project is generated from `project.yml` via XcodeGen. **Never edit `.xcodeproj` directly** — modify `project.yml` and run `xcodegen generate`.
+
+### CloudKit Server-to-Server Auth
+
+The WOD Dashboard uses ECDSA server-to-server authentication (no user sign-in needed). Keys:
+- Private key: `wod-dashboard/cloudkit-server.pem` (gitignored)
+- Key IDs are environment-scoped: development and production keys are separate
+- Signature format: `sha256(date:base64(sha256(body)):subpath)` signed with EC P-256
+- Required headers: `X-Apple-CloudKit-Request-KeyID`, `X-Apple-CloudKit-Request-ISO8601Date`, `X-Apple-CloudKit-Request-SignatureV1`
+
+### CloudKit Schema Management
+
+- `xcrun cktool export-schema --team-id 87VVCMCW3F --container-id iCloud.com.sundeefundee.app --environment development --output-file schema.ckdb`
+- `xcrun cktool import-schema ... --file schema.ckdb` (development only; deploy to production via CloudKit Dashboard)
+- New record types must be created in development first, then deployed to production — REST API cannot create record types
+
+### WOD Dashboard Patterns
+
+When adding a new entity type to the dashboard (`wod-dashboard/`):
+1. Add type to `src/lib/types.ts`
+2. Add path to `src/lib/paths.ts`
+3. Create API route at `src/app/api/<entity>/route.ts` (GET/PATCH/DELETE, uses `readJSONFile`/`writeJSONFile`)
+4. Add CloudKit save function to `src/lib/cloudkit.ts`
+5. Update `src/app/api/cloudkit/publish/route.ts` to support the new type
+6. Create list + editor components in `src/components/`
+7. Create page at `src/app/<entity>/page.tsx` (two-panel split-view)
+8. Add nav link to `src/components/sidebar.tsx`
 
 ### Coding Conventions
 

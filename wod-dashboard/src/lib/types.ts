@@ -167,6 +167,19 @@ export interface ProgramCycleAdjustmentProfile {
   phaseSettings: Record<string, ProgramPhaseAdjustmentSettings>;
 }
 
+// ─── Benchmark ───────────────────────────────────────────────────────────────
+
+export interface BenchmarkDefinition {
+  id: string;
+  name: string;
+  category: string;
+  workoutDescription: string;
+  scoringTypeRaw: string;
+  sortOrder: number;
+}
+
+// ─── Program ──────────────────────────────────────────────────────────────────
+
 export interface Program {
   id: string;
   name: string;

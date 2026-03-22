@@ -5,9 +5,10 @@ import { PUBLISH_STATUS_PATH } from "@/lib/paths";
 interface PublishStatus {
   wods: Record<string, { publishedAt: string }>;
   programs: Record<string, { publishedAt: string }>;
+  benchmarks: Record<string, { publishedAt: string }>;
 }
 
-const EMPTY_STATUS: PublishStatus = { wods: {}, programs: {} };
+const EMPTY_STATUS: PublishStatus = { wods: {}, programs: {}, benchmarks: {} };
 
 async function readStatus(): Promise<PublishStatus> {
   return readJSONFile<PublishStatus>(PUBLISH_STATUS_PATH, EMPTY_STATUS);
@@ -31,15 +32,15 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-    if (type !== "wod" && type !== "program") {
+    if (type !== "wod" && type !== "program" && type !== "benchmark") {
       return NextResponse.json(
-        { error: "type must be 'wod' or 'program'" },
+        { error: "type must be 'wod', 'program', or 'benchmark'" },
         { status: 400 }
       );
     }
 
     const status = await readStatus();
-    const bucket = type === "wod" ? status.wods : status.programs;
+    const bucket = type === "wod" ? status.wods : type === "program" ? status.programs : status.benchmarks;
     bucket[id] = { publishedAt: new Date().toISOString() };
     await writeJSONFile(PUBLISH_STATUS_PATH, status);
 
@@ -61,15 +62,15 @@ export async function DELETE(req: NextRequest) {
         { status: 400 }
       );
     }
-    if (type !== "wod" && type !== "program") {
+    if (type !== "wod" && type !== "program" && type !== "benchmark") {
       return NextResponse.json(
-        { error: "type must be 'wod' or 'program'" },
+        { error: "type must be 'wod', 'program', or 'benchmark'" },
         { status: 400 }
       );
     }
 
     const status = await readStatus();
-    const bucket = type === "wod" ? status.wods : status.programs;
+    const bucket = type === "wod" ? status.wods : type === "program" ? status.programs : status.benchmarks;
     delete bucket[id];
     await writeJSONFile(PUBLISH_STATUS_PATH, status);
 

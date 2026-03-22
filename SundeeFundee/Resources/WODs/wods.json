@@ -1,317 +1,45 @@
 [
   {
-    "id": "wod-2026-02-28",
-    "date": "2026-02-28",
-    "title": "Friday Foundation",
-    "description": "Full-body strength builder to close out the week. Focus on compound movements with moderate loads.",
+    "id": "wod-2026-03-22",
+    "date": "2026-03-22",
+    "title": "Full Body Power & Volume",
+    "description": "A full-body session combining heavy strength work with moderate-rep accessory movements.",
     "exercises": [
       {
-        "exercise": "Back Squat",
-        "variant": null,
-        "sets": 4,
-        "reps": 6,
-        "percent1RM": 0.72,
+        "exercise": "Barbell Back Squat",
+        "sets": 5,
+        "reps": 5,
+        "variant": "High Bar",
+        "percent1RM": 78,
         "restMinutes": 3,
-        "notes": "Control the descent, explode up.",
-        "bodyweightOnly": false
+        "notes": "Focus on depth and explosive ascent. Maintain a tight core."
       },
       {
-        "exercise": "Bench Press",
-        "variant": null,
-        "sets": 4,
-        "reps": 6,
-        "percent1RM": 0.72,
-        "restMinutes": 2.5,
-        "notes": "Pause at chest.",
-        "bodyweightOnly": false
+        "exercise": "Dumbbell Bench Press",
+        "sets": 3,
+        "reps": 10,
+        "variant": "",
+        "percent1RM": 0,
+        "restMinutes": 2,
+        "notes": "Control the eccentric (lowering) phase for 3 seconds."
       },
       {
         "exercise": "Barbell Row",
+        "sets": 4,
+        "reps": 8,
         "variant": "Pendlay",
-        "sets": 3,
-        "reps": 8,
-        "percent1RM": 0.60,
+        "percent1RM": 0,
         "restMinutes": 2,
-        "notes": null,
-        "bodyweightOnly": false
+        "notes": "Reset the bar to the floor after every rep for maximum tension."
       },
       {
-        "exercise": "Plank",
-        "variant": null,
+        "exercise": "Kettlebell Swings",
         "sets": 3,
-        "reps": "60s",
-        "percent1RM": null,
-        "restMinutes": 1,
-        "notes": "Hold for time.",
-        "bodyweightOnly": true
-      }
-    ]
-  },
-  {
-    "id": "wod-2026-03-01",
-    "date": "2026-03-01",
-    "title": "Sunday Starter",
-    "description": "Ease into the week with a posterior chain focus. Build your base for the days ahead.",
-    "exercises": [
-      {
-        "exercise": "Romanian Deadlift",
-        "variant": null,
-        "sets": 4,
-        "reps": 8,
-        "percent1RM": 0.65,
-        "restMinutes": 2.5,
-        "notes": "Slow eccentric, feel the hamstrings.",
-        "bodyweightOnly": false
-      },
-      {
-        "exercise": "Bulgarian Split Squat",
-        "variant": null,
-        "sets": 3,
-        "reps": 10,
-        "percent1RM": null,
-        "restMinutes": 1.5,
-        "notes": "Each leg. Use dumbbells.",
-        "bodyweightOnly": false
-      },
-      {
-        "exercise": "Hip Thrust",
-        "variant": "Barbell",
-        "sets": 3,
-        "reps": 12,
-        "percent1RM": null,
-        "restMinutes": 2,
-        "notes": "Squeeze at the top for 2 seconds.",
-        "bodyweightOnly": false
-      },
-      {
-        "exercise": "Glute Bridge",
-        "variant": "Single Leg",
-        "sets": 2,
-        "reps": 15,
-        "percent1RM": null,
-        "restMinutes": 1,
-        "notes": null,
-        "bodyweightOnly": true
-      }
-    ]
-  },
-  {
-    "id": "wod-2026-03-02",
-    "date": "2026-03-02",
-    "title": "Monday Mover",
-    "description": "Upper body push emphasis. Get strong presses in early in the week.",
-    "exercises": [
-      {
-        "exercise": "Overhead Press",
-        "variant": "Standing",
-        "sets": 4,
-        "reps": 5,
-        "percent1RM": 0.75,
-        "restMinutes": 3,
-        "notes": "Strict press, no leg drive.",
-        "bodyweightOnly": false
-      },
-      {
-        "exercise": "Incline Dumbbell Press",
-        "variant": null,
-        "sets": 3,
-        "reps": 10,
-        "percent1RM": null,
-        "restMinutes": 2,
-        "notes": null,
-        "bodyweightOnly": false
-      },
-      {
-        "exercise": "Dips",
-        "variant": null,
-        "sets": 3,
-        "reps": "8-12",
-        "percent1RM": null,
-        "restMinutes": 1.5,
-        "notes": "Add weight if bodyweight is easy.",
-        "bodyweightOnly": true
-      },
-      {
-        "exercise": "Lateral Raise",
-        "variant": null,
-        "sets": 3,
-        "reps": 15,
-        "percent1RM": null,
-        "restMinutes": 1,
-        "notes": "Light and controlled.",
-        "bodyweightOnly": false
-      }
-    ]
-  },
-  {
-    "id": "wod-2026-03-03",
-    "date": "2026-03-03",
-    "title": "Tuesday Pull",
-    "description": "Back and biceps day. Build a strong posterior chain with heavy pulls.",
-    "exercises": [
-      {
-        "exercise": "Deadlift",
-        "variant": "Conventional",
-        "sets": 5,
-        "reps": 3,
-        "percent1RM": 0.82,
-        "restMinutes": 4,
-        "notes": "Heavy triples. Reset each rep.",
-        "bodyweightOnly": false
-      },
-      {
-        "exercise": "Pull-Up",
-        "variant": null,
-        "sets": 4,
         "reps": "AMRAP",
-        "percent1RM": null,
-        "restMinutes": 2,
-        "notes": "Full range of motion.",
-        "bodyweightOnly": true
-      },
-      {
-        "exercise": "Face Pull",
-        "variant": "Cable",
-        "sets": 3,
-        "reps": 15,
-        "percent1RM": null,
-        "restMinutes": 1,
-        "notes": "External rotation at the top.",
-        "bodyweightOnly": false
-      }
-    ]
-  },
-  {
-    "id": "wod-2026-03-04",
-    "date": "2026-03-04",
-    "title": "Wednesday Wheels",
-    "description": "Quad-dominant leg day. High volume for growth.",
-    "exercises": [
-      {
-        "exercise": "Front Squat",
-        "variant": null,
-        "sets": 4,
-        "reps": 6,
-        "percent1RM": 0.70,
-        "restMinutes": 3,
-        "notes": "Stay upright. Elbows high.",
-        "bodyweightOnly": false
-      },
-      {
-        "exercise": "Leg Press",
-        "variant": null,
-        "sets": 3,
-        "reps": 12,
-        "percent1RM": null,
-        "restMinutes": 2,
-        "notes": "Full depth, don't lock out.",
-        "bodyweightOnly": false
-      },
-      {
-        "exercise": "Walking Lunge",
-        "variant": null,
-        "sets": 3,
-        "reps": 20,
-        "percent1RM": null,
+        "variant": "Russian",
+        "percent1RM": 0,
         "restMinutes": 1.5,
-        "notes": "10 each leg. Dumbbells at sides.",
-        "bodyweightOnly": false
-      },
-      {
-        "exercise": "Calf Raise",
-        "variant": "Standing",
-        "sets": 4,
-        "reps": 15,
-        "percent1RM": null,
-        "restMinutes": 1,
-        "notes": "Pause at the top.",
-        "bodyweightOnly": false
-      }
-    ]
-  },
-  {
-    "id": "wod-2026-03-05",
-    "date": "2026-03-05",
-    "title": "Thursday Tempo",
-    "description": "Tempo work for mind-muscle connection. Slow and controlled reps.",
-    "exercises": [
-      {
-        "exercise": "Bench Press",
-        "variant": "Tempo 3-1-2",
-        "sets": 4,
-        "reps": 6,
-        "percent1RM": 0.65,
-        "restMinutes": 2.5,
-        "notes": "3s down, 1s pause, 2s up.",
-        "bodyweightOnly": false
-      },
-      {
-        "exercise": "Back Squat",
-        "variant": "Tempo 3-1-2",
-        "sets": 4,
-        "reps": 6,
-        "percent1RM": 0.65,
-        "restMinutes": 3,
-        "notes": "3s down, 1s pause at bottom, 2s up.",
-        "bodyweightOnly": false
-      },
-      {
-        "exercise": "Dumbbell Row",
-        "variant": "Tempo 2-1-2",
-        "sets": 3,
-        "reps": 10,
-        "percent1RM": null,
-        "restMinutes": 1.5,
-        "notes": "Each arm. Squeeze at the top.",
-        "bodyweightOnly": false
-      }
-    ]
-  },
-  {
-    "id": "wod-2026-03-06",
-    "date": "2026-03-06",
-    "title": "Friday Finisher",
-    "description": "End the week strong with a conditioning-meets-strength circuit.",
-    "exercises": [
-      {
-        "exercise": "Kettlebell Swing",
-        "variant": null,
-        "sets": 5,
-        "reps": 15,
-        "percent1RM": null,
-        "restMinutes": 1,
-        "notes": "Hip hinge, not a squat swing.",
-        "bodyweightOnly": false
-      },
-      {
-        "exercise": "Push-Up",
-        "variant": null,
-        "sets": 4,
-        "reps": 20,
-        "percent1RM": null,
-        "restMinutes": 1,
-        "notes": "Chest to floor.",
-        "bodyweightOnly": true
-      },
-      {
-        "exercise": "Goblet Squat",
-        "variant": null,
-        "sets": 4,
-        "reps": 12,
-        "percent1RM": null,
-        "restMinutes": 1.5,
-        "notes": "Sit deep into the squat.",
-        "bodyweightOnly": false
-      },
-      {
-        "exercise": "Burpee",
-        "variant": null,
-        "sets": 3,
-        "reps": 10,
-        "percent1RM": null,
-        "restMinutes": 1,
-        "notes": "Full extension at the top.",
-        "bodyweightOnly": true
+        "notes": "Explode hips forward; the arms are just the rope. Focus on powerful hip extension."
       }
     ]
   }
