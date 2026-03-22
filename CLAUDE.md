@@ -43,6 +43,15 @@ xcodebuild test \
 TestFlight builds are deployed via **Xcode Cloud** (manual trigger only):
 - In Xcode: Product → Xcode Cloud → Start Build
 - Xcode Cloud handles signing, building, and uploading to TestFlight automatically
+- CI post-clone script (`ci_scripts/ci_post_clone.sh`) installs XcodeGen and regenerates the project
+- No local Distribution certificate — archive uploads **must** go through Xcode Cloud
+
+### Firebase Hosting
+
+Privacy policy and support page are deployed to Firebase Hosting (`public/` directory):
+- Privacy: https://sundee-fundee.web.app/privacy.html
+- Support: https://sundee-fundee.web.app/support.html
+- Deploy: `firebase deploy --only hosting`
 
 ## Architecture
 
@@ -87,6 +96,20 @@ Programs are delivered via two channels:
 2. CloudKit Public DB (admin-seeded, for remote updates)
 
 WODs (Workouts of the Day) are delivered via bundled `Resources/WODs/wods.json`, matched by date.
+
+### SundeeFundeeShared Package
+
+`SundeeFundee/Packages/SundeeFundeeShared/` is an **inlined local Swift package** (not a submodule, not a remote package). It contains shared models (Program, WOD, ExerciseCatalog), CloudKit record decoders, and validators used by both the iOS app and the WOD Dashboard. Referenced in `project.yml` under `packages:`.
+
+### Subscriptions
+
+Product IDs use the `com.sundeefundee.sub.*` prefix (earlier `com.sundeefundee.app.*` IDs are permanently burned in App Store Connect). Four products:
+- `com.sundeefundee.sub.plus.monthly` ($4.99/mo)
+- `com.sundeefundee.sub.plus.annual` ($39.99/yr)
+- `com.sundeefundee.sub.premium.monthly` ($9.99/mo)
+- `com.sundeefundee.sub.premium.annual` ($79.99/yr)
+
+Product IDs are defined in `Domain/Subscription/SubscriptionTier.swift` and mirrored in `Resources/SundeeFundee.storekit`.
 
 ### Testing
 
