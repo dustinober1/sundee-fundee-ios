@@ -62,6 +62,11 @@ targets:
       - package: SundeeFundeeShared
       - sdk: CloudKit.framework
       - sdk: HealthKit.framework
+      - sdk: StoreKit.framework
+    scheme:
+      testTargets:
+        - SundeeFundeTests
+      storeKitConfiguration: SundeeFundee/Resources/SundeeFundee.storekit
 
   SundeeFundeTests:
     type: bundle.unit-test

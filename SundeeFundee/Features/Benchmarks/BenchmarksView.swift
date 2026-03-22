@@ -5,7 +5,9 @@ import SwiftData
 struct BenchmarksView: View {
     @State private var viewModel = BenchmarksViewModel()
     @Environment(\.modelContext) private var modelContext
+    @Environment(AppState.self) private var appState
     @State private var showAddCustom = false
+    @State private var showPaywall = false
 
     var body: some View {
         ZStack {
@@ -48,14 +50,28 @@ struct BenchmarksView: View {
         .navigationTitle("Benchmarks")
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                Button { showAddCustom = true } label: {
-                    Image(systemName: "plus")
+                Button {
+                    if FeatureEntitlement.canAccess(feature: .customBenchmarks, tier: appState.subscriptionTier) {
+                        showAddCustom = true
+                    } else {
+                        showPaywall = true
+                    }
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "plus")
+                        if !FeatureEntitlement.canAccess(feature: .customBenchmarks, tier: appState.subscriptionTier) {
+                            PremiumBadge(tier: .plus)
+                        }
+                    }
                 }
                 .accessibilityLabel("Add custom benchmark")
             }
         }
         .sheet(isPresented: $showAddCustom) {
             AddCustomBenchmarkSheet(viewModel: viewModel)
+        }
+        .sheet(isPresented: $showPaywall) {
+            PaywallView(triggeredBy: .customBenchmarks)
         }
         .task { await viewModel.load(modelContext: modelContext) }
     }

@@ -58,6 +58,7 @@ struct DashboardView: View {
                     }
                     if let rehabSession = viewModel.rehabSession {
                         RehabSessionCard(session: rehabSession)
+                            .requiresSubscription(.rehabSessions)
                     }
                     if let avg = Self.averageEffort(from: viewModel.recentWorkouts) {
                         EffortTrendsCard(
@@ -65,6 +66,7 @@ struct DashboardView: View {
                             ratedCount: Self.ratedCount(from: viewModel.recentWorkouts),
                             totalCount: viewModel.recentWorkouts.count
                         )
+                        .requiresSubscription(.effortTrends)
                     }
                     recentWorkoutsSection
                 }
@@ -623,6 +625,8 @@ struct WODCard: View {
     let oneRepMaxes: [String: Double]
     let barbellWeightKg: Double
     let weightUnit: WeightUnit
+    @Environment(AppState.self) private var appState
+    @State private var showPaywall = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
@@ -650,17 +654,32 @@ struct WODCard: View {
                 .font(AppTheme.Fonts.caption)
                 .foregroundStyle(AppTheme.Colors.navy.opacity(0.5))
 
-            NavigationLink(value: StartWODDestination(wod: wod)) {
-                Label("Start WOD", systemImage: "play.fill")
+            if FeatureEntitlement.canAccess(feature: .wodExecution, tier: appState.subscriptionTier) {
+                NavigationLink(value: StartWODDestination(wod: wod)) {
+                    Label("Start WOD", systemImage: "play.fill")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(PrimaryButtonStyle())
+                .accessibilityIdentifier("start-wod-button")
+            } else {
+                Button { showPaywall = true } label: {
+                    HStack {
+                        Label("Start WOD", systemImage: "play.fill")
+                        PremiumBadge(tier: .plus)
+                    }
                     .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(SecondaryButtonStyle())
+                .accessibilityIdentifier("start-wod-button")
             }
-            .buttonStyle(PrimaryButtonStyle())
-            .accessibilityIdentifier("start-wod-button")
         }
         .padding(AppTheme.Spacing.md)
         .background(AppTheme.Colors.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: AppTheme.CornerRadius.card))
         .shadow(color: .black.opacity(0.08), radius: 6, x: 0, y: 3)
+        .sheet(isPresented: $showPaywall) {
+            PaywallView(triggeredBy: .wodExecution)
+        }
     }
 }
 
@@ -707,7 +726,13 @@ struct StartAIWorkoutDestination: Hashable {}
 // MARK: - AIWorkoutCTACard
 
 struct AIWorkoutCTACard: View {
+    @Environment(AppState.self) private var appState
+
     var body: some View {
+        let used = AIUsageTracker.usageThisMonth()
+        let remaining = FeatureEntitlement.aiWorkoutsRemaining(tier: appState.subscriptionTier, usedThisMonth: used)
+        let limit = FeatureEntitlement.aiWorkoutLimit(for: appState.subscriptionTier)
+
         VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
@@ -720,9 +745,16 @@ struct AIWorkoutCTACard: View {
                         .foregroundStyle(AppTheme.Colors.navy)
                 }
                 Spacer()
-                Image(systemName: "sparkles")
-                    .font(.title2)
-                    .foregroundStyle(AppTheme.Colors.accentOrange)
+                VStack(alignment: .trailing, spacing: 2) {
+                    Image(systemName: "sparkles")
+                        .font(.title2)
+                        .foregroundStyle(AppTheme.Colors.accentOrange)
+                    if let limit {
+                        Text(Self.remainingLabel(remaining: remaining, limit: limit))
+                            .font(.system(size: 10, weight: .medium))
+                            .foregroundStyle(remaining > 0 ? AppTheme.Colors.navy.opacity(0.5) : AppTheme.Colors.error)
+                    }
+                }
             }
 
             Text("Generate a personalized workout based on your goals, maxes, and how you're feeling today.")
@@ -740,5 +772,9 @@ struct AIWorkoutCTACard: View {
         .background(AppTheme.Colors.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: AppTheme.CornerRadius.card))
         .shadow(color: .black.opacity(0.08), radius: 6, x: 0, y: 3)
+    }
+
+    static func remainingLabel(remaining: Int, limit: Int) -> String {
+        "\(remaining) of \(limit) left"
     }
 }

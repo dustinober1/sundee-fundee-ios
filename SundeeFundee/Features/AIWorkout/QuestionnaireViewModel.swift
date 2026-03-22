@@ -24,8 +24,23 @@ final class QuestionnaireViewModel {
         self.aiService = aiService
     }
 
-    func generateWorkout(modelContext: ModelContext, userID: String) async {
+    /// Whether the user has exceeded their AI workout limit for the current tier.
+    var isAtUsageLimit = false
+
+    func checkUsageLimit(tier: SubscriptionTier) {
+        let used = AIUsageTracker.usageThisMonth()
+        isAtUsageLimit = !FeatureEntitlement.canGenerateAIWorkout(tier: tier, usedThisMonth: used)
+    }
+
+    func generateWorkout(modelContext: ModelContext, userID: String, tier: SubscriptionTier) async {
         guard !isGenerating else { return }
+
+        let used = AIUsageTracker.usageThisMonth()
+        guard FeatureEntitlement.canGenerateAIWorkout(tier: tier, usedThisMonth: used) else {
+            isAtUsageLimit = true
+            return
+        }
+
         isGenerating = true
         errorMessage = nil
 
@@ -33,6 +48,7 @@ final class QuestionnaireViewModel {
 
         do {
             generatedWorkout = try await aiService.generateWorkout(context: context)
+            AIUsageTracker.incrementUsage()
         } catch {
             errorMessage = "Failed to generate workout. Please try again."
         }

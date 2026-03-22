@@ -2,9 +2,31 @@ import Testing
 import Foundation
 @testable import SundeeFundee
 
+// MARK: - Test-Only Stub
+
+private final class OfflineAIWorkoutService: AIWorkoutServiceProtocol, @unchecked Sendable {
+    private var generatedWorkouts: [GeneratedWorkout] = []
+
+    func generateWorkout(context: WorkoutGenerationContext) async throws -> GeneratedWorkout {
+        let workout = OfflineWorkoutGenerator.generate(from: context)
+        generatedWorkouts.append(workout)
+        return workout
+    }
+    func fetchHistory(userID: String) async throws -> [GeneratedWorkout] { generatedWorkouts }
+    func toggleFavorite(workoutID: String, isFavorite: Bool) async throws {
+        if let idx = generatedWorkouts.firstIndex(where: { $0.id == workoutID }) {
+            generatedWorkouts[idx].isFavorite = isFavorite
+        }
+    }
+    func fetchFavorites(userID: String) async throws -> [GeneratedWorkout] {
+        generatedWorkouts.filter(\.isFavorite)
+    }
+}
+
 // MARK: - WorkoutPreviewViewModel Tests
 
 @Suite("WorkoutPreviewViewModel")
+@MainActor
 struct WorkoutPreviewViewModelTests {
 
     private func makeSampleWorkout() -> GeneratedWorkout {
@@ -141,9 +163,10 @@ struct WorkoutPreviewViewModelTests {
 // MARK: - QuestionnaireViewModel Tests
 
 @Suite("QuestionnaireViewModel")
+@MainActor
 struct QuestionnaireViewModelTests {
 
-    @Test @MainActor func defaultValues() {
+    @Test func defaultValues() {
         let vm = QuestionnaireViewModel(aiService: OfflineAIWorkoutService())
         #expect(vm.timeMinutes == 45)
         #expect(vm.focus == .fullBody)
@@ -155,7 +178,7 @@ struct QuestionnaireViewModelTests {
         #expect(vm.currentPage == 0)
     }
 
-    @Test @MainActor func canGenerateIsTrue() {
+    @Test func canGenerateIsTrue() {
         let vm = QuestionnaireViewModel(aiService: OfflineAIWorkoutService())
         #expect(vm.canGenerate == true)
     }
@@ -240,6 +263,7 @@ struct OfflineAIWorkoutServiceTests {
     @Test func generateAndFetchHistory() async throws {
         let service = OfflineAIWorkoutService()
         let context = WorkoutGenerationContext(
+            userID: "test-user",
             timeMinutes: 45,
             focus: .fullBody,
             energyLevel: .medium,
@@ -266,6 +290,7 @@ struct OfflineAIWorkoutServiceTests {
     @Test func toggleFavoriteAndFetchFavorites() async throws {
         let service = OfflineAIWorkoutService()
         let context = WorkoutGenerationContext(
+            userID: "test-user",
             timeMinutes: 30,
             focus: .upperBody,
             energyLevel: .low,

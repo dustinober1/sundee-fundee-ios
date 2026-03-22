@@ -4,6 +4,7 @@ struct WorkoutHistoryView: View {
     @State var workouts: [GeneratedWorkout] = []
     @State private var isLoading = false
     @State private var selectedFocus: WorkoutFocus?
+    @Environment(AppState.self) private var appState
     let userID: String
     let aiService: any AIWorkoutServiceProtocol
     var onSelectWorkout: (GeneratedWorkout) -> Void = { _ in }
@@ -12,7 +13,16 @@ struct WorkoutHistoryView: View {
         ZStack {
             AppTheme.Colors.cream.ignoresSafeArea()
 
-            if isLoading {
+            if !FeatureEntitlement.canAccess(feature: .aiWorkoutHistory, tier: appState.subscriptionTier) {
+                VStack(spacing: AppTheme.Spacing.md) {
+                    ContentUnavailableView(
+                        "AI Workout History",
+                        systemImage: "clock.arrow.circlepath",
+                        description: Text("Upgrade to Premium to access your AI workout history and favorites.")
+                    )
+                    PremiumBadge(tier: .premium)
+                }
+            } else if isLoading {
                 ProgressView()
             } else if filteredWorkouts.isEmpty {
                 ContentUnavailableView(
@@ -26,8 +36,16 @@ struct WorkoutHistoryView: View {
         }
         .navigationTitle("History")
         .navigationBarTitleDisplayMode(.inline)
-        .task { await loadHistory() }
-        .refreshable { await loadHistory() }
+        .task {
+            if FeatureEntitlement.canAccess(feature: .aiWorkoutHistory, tier: appState.subscriptionTier) {
+                await loadHistory()
+            }
+        }
+        .refreshable {
+            if FeatureEntitlement.canAccess(feature: .aiWorkoutHistory, tier: appState.subscriptionTier) {
+                await loadHistory()
+            }
+        }
     }
 
     private var filteredWorkouts: [GeneratedWorkout] {

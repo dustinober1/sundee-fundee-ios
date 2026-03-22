@@ -5,8 +5,10 @@ import SwiftData
 struct MaxLiftsView: View {
     @State private var viewModel = MaxLiftsViewModel()
     @Environment(\.modelContext) private var modelContext
+    @Environment(AppState.self) private var appState
     @State private var searchText = ""
     @State private var showAddMax = false
+    @State private var showPaywall = false
 
     static func filteredExercises(searchText: String, exerciseNames: [String]) -> [String] {
         guard !searchText.isEmpty else { return exerciseNames }
@@ -29,6 +31,11 @@ struct MaxLiftsView: View {
 
     static func emptyStateTitle(searchText: String) -> String {
         searchText.isEmpty ? "No Lift Data" : "No Results"
+    }
+
+    static func canAddLift(tier: SubscriptionTier, currentCount: Int) -> Bool {
+        guard let limit = FeatureEntitlement.maxTrackedLifts(for: tier) else { return true }
+        return currentCount < limit
     }
 
     static func emptyStateDescription(searchText: String) -> String {
@@ -88,14 +95,28 @@ struct MaxLiftsView: View {
         .navigationTitle("Lift Maxes")
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                Button(action: Self.presentAddSheetAction(isPresented: $showAddMax)) {
-                    Image(systemName: "plus")
+                Button {
+                    if Self.canAddLift(tier: appState.subscriptionTier, currentCount: viewModel.exerciseNames.count) {
+                        showAddMax = true
+                    } else {
+                        showPaywall = true
+                    }
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "plus")
+                        if !Self.canAddLift(tier: appState.subscriptionTier, currentCount: viewModel.exerciseNames.count) {
+                            PremiumBadge(tier: .plus)
+                        }
+                    }
                 }
                 .accessibilityLabel("Add lift max")
             }
         }
         .navigationDestination(for: String.self, destination: Self.exerciseDestination(viewModel: viewModel))
         .sheet(isPresented: $showAddMax, content: Self.addSheetContent(viewModel: viewModel))
+        .sheet(isPresented: $showPaywall) {
+            PaywallView(triggeredBy: .unlimitedLifts)
+        }
         .task { await viewModel.load(modelContext: modelContext) }
         .onReceive(NotificationCenter.default.publisher(for: .didSaveNewPRs)) { _ in
             Task { await viewModel.load(modelContext: modelContext) }

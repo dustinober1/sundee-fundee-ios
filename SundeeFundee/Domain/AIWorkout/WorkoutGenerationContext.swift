@@ -92,6 +92,7 @@ struct InjurySummary: Codable, Sendable {
 // MARK: - WorkoutGenerationContext
 
 struct WorkoutGenerationContext: Codable, Sendable {
+    let userID: String
     let timeMinutes: Int
     let focus: WorkoutFocus
     let energyLevel: EnergyLevel

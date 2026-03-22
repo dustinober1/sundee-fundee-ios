@@ -9,6 +9,7 @@ struct WorkoutGenerationContextTests {
 
     @Test func encodingDecodingRoundTrip() throws {
         let context = WorkoutGenerationContext(
+            userID: "test-user",
             timeMinutes: 45,
             focus: .fullBody,
             energyLevel: .medium,
@@ -305,6 +306,7 @@ struct OfflineWorkoutGeneratorTests {
         injuries: [InjurySummary] = []
     ) -> WorkoutGenerationContext {
         WorkoutGenerationContext(
+            userID: "test-user",
             timeMinutes: timeMinutes,
             focus: focus,
             energyLevel: energyLevel,

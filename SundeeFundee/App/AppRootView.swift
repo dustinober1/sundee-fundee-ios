@@ -1,14 +1,21 @@
 import SwiftUI
 import SwiftData
+import StoreKit
 
 /// Routes between loading, sign-in, onboarding, and main app based on AppState.
 struct AppRootView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var appState: AppState
+    @State private var subscriptionManager: SubscriptionManager
     private let shouldRestoreSession: Bool
 
-    init(initialAppState: AppState = AppState(), shouldRestoreSession: Bool = true) {
+    init(
+        initialAppState: AppState = AppState(),
+        shouldRestoreSession: Bool = true,
+        subscriptionManager: SubscriptionManager = SubscriptionManager()
+    ) {
         _appState = State(initialValue: initialAppState)
+        _subscriptionManager = State(initialValue: subscriptionManager)
         self.shouldRestoreSession = shouldRestoreSession
     }
 
@@ -62,7 +69,12 @@ struct AppRootView: View {
             }
         }
         .environment(appState)
+        .environment(subscriptionManager)
         .task { await Self.restoreSessionIfNeeded(shouldRestoreSession: shouldRestoreSession, appState: appState, modelContext: modelContext) }
+        .task { await subscriptionManager.start() }
+        .onChange(of: subscriptionManager.currentTier) { _, newTier in
+            appState.subscriptionTier = newTier
+        }
     }
 }
 

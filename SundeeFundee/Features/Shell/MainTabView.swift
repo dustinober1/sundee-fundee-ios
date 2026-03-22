@@ -83,10 +83,7 @@ struct MainTabView: View {
         case .programs:
             ProgramListView()
         case .history:
-            WorkoutHistoryView(
-                userID: "",
-                aiService: FirebaseAIWorkoutService()
-            )
+            HistoryTabWrapper()
         case .maxes:
             MaxLiftsView()
         case .benchmarks:
@@ -96,6 +93,20 @@ struct MainTabView: View {
         case .settings:
             SettingsView()
         }
+    }
+}
+
+// MARK: - History Tab Wrapper
+
+/// Wraps WorkoutHistoryView with environment-derived dependencies.
+private struct HistoryTabWrapper: View {
+    @Environment(\.modelContext) private var modelContext
+    @Query private var users: [User]
+
+    var body: some View {
+        let userID = users.first?.appleUserID ?? ""
+        let aiService = SwiftDataAIWorkoutService(modelContext: modelContext)
+        WorkoutHistoryView(userID: userID, aiService: aiService)
     }
 }
 
