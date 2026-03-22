@@ -19,6 +19,7 @@ interface ProgramListProps {
   selectedId: string | null;
   onSelect: (id: string) => void;
   onNew: () => void;
+  onPublishOne: (id: string) => Promise<void>;
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
@@ -28,8 +29,20 @@ export function ProgramList({
   selectedId,
   onSelect,
   onNew,
+  onPublishOne,
 }: ProgramListProps) {
   const [search, setSearch] = useState("");
+  const [publishingId, setPublishingId] = useState<string | null>(null);
+
+  async function handlePublishOne(e: React.MouseEvent, id: string) {
+    e.stopPropagation();
+    setPublishingId(id);
+    try {
+      await onPublishOne(id);
+    } finally {
+      setPublishingId(null);
+    }
+  }
 
   const filtered = useMemo(() => {
     let items = [...programs];
@@ -84,6 +97,7 @@ export function ProgramList({
               <th className="text-center px-2 py-2 font-medium text-navy/70">Wks</th>
               <th className="text-center px-2 py-2 font-medium text-navy/70">Sess/Wk</th>
               <th className="text-center px-2 py-2 font-medium text-navy/70">Status</th>
+              <th className="w-20 px-2 py-2" />
             </tr>
           </thead>
           <tbody>
@@ -125,11 +139,23 @@ export function ProgramList({
                     {p.published ? "Published" : "Local"}
                   </span>
                 </td>
+                <td className="px-2 py-1.5 text-center">
+                  {!p.published && (
+                    <button
+                      type="button"
+                      onClick={(e) => handlePublishOne(e, p.id)}
+                      disabled={publishingId === p.id}
+                      className="bg-orange text-white px-2 py-0.5 rounded text-xs font-medium hover:bg-orange/90 transition-colors disabled:opacity-50"
+                    >
+                      {publishingId === p.id ? "..." : "Publish"}
+                    </button>
+                  )}
+                </td>
               </tr>
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-navy/40">
+                <td colSpan={7} className="px-4 py-8 text-center text-navy/40">
                   No programs found
                 </td>
               </tr>

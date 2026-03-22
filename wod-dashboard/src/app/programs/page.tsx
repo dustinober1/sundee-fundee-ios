@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ProgramList, type ProgramListItem } from "@/components/program-list";
 import { ProgramEditor } from "@/components/program-editor";
+import { ProgramGenerator } from "@/components/program-generator";
 import { useToast } from "@/components/toast";
 import type {
   Program,
@@ -11,6 +12,7 @@ import type {
   ProgramWeek,
 } from "@/lib/types";
 import { exerciseFromJSON, exerciseToJSON } from "@/lib/types";
+import { initCloudKit, authenticateCloudKit, saveProgramRecord } from "@/lib/cloudkit";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -75,11 +77,30 @@ function encodeProgram(program: Program): any {
 
 // ─── Page ────────────────────────────────────────────────────────────────────
 
+interface PublishStatus {
+  wods: Record<string, { publishedAt: string }>;
+  programs: Record<string, { publishedAt: string }>;
+}
+
 export default function ProgramsPage() {
   const { toast } = useToast();
   const [programs, setPrograms] = useState<Program[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showGenerator, setShowGenerator] = useState(false);
+  const [publishStatus, setPublishStatus] = useState<PublishStatus>({ wods: {}, programs: {} });
+
+  // Fetch publish status
+  const fetchPublishStatus = useCallback(async () => {
+    try {
+      const res = await fetch("/api/cloudkit/publish");
+      if (res.ok) {
+        setPublishStatus(await res.json());
+      }
+    } catch {
+      // Non-critical — ignore
+    }
+  }, []);
 
   // Fetch programs
   const fetchPrograms = useCallback(async () => {
@@ -97,7 +118,8 @@ export default function ProgramsPage() {
 
   useEffect(() => {
     fetchPrograms();
-  }, [fetchPrograms]);
+    fetchPublishStatus();
+  }, [fetchPrograms, fetchPublishStatus]);
 
   // Derived data
   const selectedProgram = useMemo(
@@ -114,9 +136,9 @@ export default function ProgramsPage() {
         difficulty: p.difficulty,
         durationWeeks: p.durationWeeks,
         sessionsPerWeek: p.sessionsPerWeek,
-        published: false, // local-only for now
+        published: p.id in publishStatus.programs,
       })),
-    [programs]
+    [programs, publishStatus]
   );
 
   // Handlers
@@ -147,6 +169,36 @@ export default function ProgramsPage() {
     }
   }
 
+  function handleGenerated(raw: any) {
+    const decoded = decodeProgram(raw);
+    // Merge into local state (replace by ID if already exists, else prepend)
+    setPrograms((prev) => {
+      const map = new Map(prev.map((p) => [p.id, p]));
+      map.set(decoded.id, decoded);
+      return [...map.values()];
+    });
+    setSelectedId(decoded.id);
+  }
+
+  async function handlePublishOne(id: string) {
+    const program = programs.find((p) => p.id === id);
+    if (!program) return;
+    try {
+      await initCloudKit();
+      await authenticateCloudKit();
+      await saveProgramRecord(program);
+      await fetch("/api/cloudkit/publish", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "program", id }),
+      });
+      await fetchPublishStatus();
+      toast(`Published program: ${program.name}`, "success");
+    } catch (e) {
+      toast(String(e), "error");
+    }
+  }
+
   async function handleDelete(id: string) {
     try {
       const res = await fetch(`/api/programs?id=${encodeURIComponent(id)}`, {
@@ -171,6 +223,23 @@ export default function ProgramsPage() {
 
   return (
     <div className="flex flex-col h-full gap-4 p-4">
+      {/* Generator toggle */}
+      <div className="shrink-0">
+        <button
+          onClick={() => setShowGenerator((v) => !v)}
+          className="px-3 py-1.5 border border-navy/20 rounded text-sm font-medium text-navy hover:bg-navy/5 transition-colors"
+        >
+          {showGenerator ? "Hide Generator" : "Generate Program"}
+        </button>
+      </div>
+
+      {/* AI generator panel */}
+      {showGenerator && (
+        <div className="shrink-0">
+          <ProgramGenerator onGenerated={handleGenerated} />
+        </div>
+      )}
+
       {/* Two-panel layout */}
       <div className="flex flex-1 gap-4 min-h-0">
         {/* Left panel: list */}
@@ -180,6 +249,7 @@ export default function ProgramsPage() {
             selectedId={selectedId}
             onSelect={setSelectedId}
             onNew={handleNew}
+            onPublishOne={handlePublishOne}
           />
         </div>
 

@@ -20,6 +20,8 @@ interface WODListProps {
   selectedIds: Set<string>;
   onToggleSelect: (id: string) => void;
   onBatchPublish: () => void;
+  onPublishOne: (id: string) => Promise<void>;
+  batchPublishing: boolean;
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
@@ -32,9 +34,22 @@ export function WODList({
   selectedIds,
   onToggleSelect,
   onBatchPublish,
+  onPublishOne,
+  batchPublishing,
 }: WODListProps) {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [publishingId, setPublishingId] = useState<string | null>(null);
+
+  async function handlePublishOne(e: React.MouseEvent, id: string) {
+    e.stopPropagation();
+    setPublishingId(id);
+    try {
+      await onPublishOne(id);
+    } finally {
+      setPublishingId(null);
+    }
+  }
 
   const filtered = useMemo(() => {
     let items = [...wods];
@@ -67,10 +82,10 @@ export function WODList({
         <button
           type="button"
           onClick={onBatchPublish}
-          disabled={selectedIds.size === 0}
+          disabled={selectedIds.size === 0 || batchPublishing}
           className="bg-navy text-white px-3 py-1.5 rounded text-sm font-medium hover:bg-navy/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          Publish Selected
+          {batchPublishing ? "Publishing..." : "Publish Selected"}
         </button>
       </div>
 
@@ -102,6 +117,7 @@ export function WODList({
               <th className="text-left px-2 py-2 font-medium text-navy/70">Title</th>
               <th className="text-center px-2 py-2 font-medium text-navy/70">Ex.</th>
               <th className="text-center px-2 py-2 font-medium text-navy/70">Status</th>
+              <th className="w-20 px-2 py-2" />
             </tr>
           </thead>
           <tbody>
@@ -141,11 +157,23 @@ export function WODList({
                     {wod.published ? "Published" : "Local"}
                   </span>
                 </td>
+                <td className="px-2 py-1.5 text-center">
+                  {!wod.published && (
+                    <button
+                      type="button"
+                      onClick={(e) => handlePublishOne(e, wod.id)}
+                      disabled={publishingId === wod.id}
+                      className="bg-orange text-white px-2 py-0.5 rounded text-xs font-medium hover:bg-orange/90 transition-colors disabled:opacity-50"
+                    >
+                      {publishingId === wod.id ? "..." : "Publish"}
+                    </button>
+                  )}
+                </td>
               </tr>
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-navy/40">
+                <td colSpan={6} className="px-4 py-8 text-center text-navy/40">
                   No WODs found
                 </td>
               </tr>

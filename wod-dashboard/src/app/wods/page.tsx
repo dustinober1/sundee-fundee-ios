@@ -7,6 +7,7 @@ import { WODGenerator } from "@/components/wod-generator";
 import { useToast } from "@/components/toast";
 import type { WOD, ProgramExerciseJSON } from "@/lib/types";
 import { exerciseFromJSON, exerciseToJSON } from "@/lib/types";
+import { initCloudKit, authenticateCloudKit, saveWODRecord } from "@/lib/cloudkit";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -51,6 +52,11 @@ function encodeWOD(wod: WOD): any {
 
 // ─── Page ────────────────────────────────────────────────────────────────────
 
+interface PublishStatus {
+  wods: Record<string, { publishedAt: string }>;
+  programs: Record<string, { publishedAt: string }>;
+}
+
 export default function WODsPage() {
   const { toast } = useToast();
   const [wods, setWods] = useState<WOD[]>([]);
@@ -58,6 +64,20 @@ export default function WODsPage() {
   const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [showGenerator, setShowGenerator] = useState(false);
+  const [publishStatus, setPublishStatus] = useState<PublishStatus>({ wods: {}, programs: {} });
+  const [batchPublishing, setBatchPublishing] = useState(false);
+
+  // Fetch publish status
+  const fetchPublishStatus = useCallback(async () => {
+    try {
+      const res = await fetch("/api/cloudkit/publish");
+      if (res.ok) {
+        setPublishStatus(await res.json());
+      }
+    } catch {
+      // Non-critical — ignore
+    }
+  }, []);
 
   // Fetch WODs
   const fetchWODs = useCallback(async () => {
@@ -75,7 +95,8 @@ export default function WODsPage() {
 
   useEffect(() => {
     fetchWODs();
-  }, [fetchWODs]);
+    fetchPublishStatus();
+  }, [fetchWODs, fetchPublishStatus]);
 
   // Derived data
   const selectedWOD = useMemo(
@@ -90,9 +111,9 @@ export default function WODsPage() {
         date: w.date,
         title: w.title,
         exerciseCount: w.exercises.length,
-        published: false, // local-only for now
+        published: w.id in publishStatus.wods,
       })),
-    [wods]
+    [wods, publishStatus]
   );
 
   const existingDates = useMemo(() => wods.map((w) => w.date), [wods]);
@@ -150,9 +171,57 @@ export default function WODsPage() {
     });
   }
 
-  function handleBatchPublish() {
-    // Placeholder for CloudKit publishing (Task 18)
-    toast(`Publishing ${checkedIds.size} WODs is not yet implemented`, "error");
+  async function publishSingleWOD(id: string) {
+    const wod = wods.find((w) => w.id === id);
+    if (!wod) return;
+    try {
+      await initCloudKit();
+      await authenticateCloudKit();
+      await saveWODRecord(wod);
+      // Mark as published server-side
+      await fetch("/api/cloudkit/publish", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "wod", id }),
+      });
+      await fetchPublishStatus();
+      toast(`Published WOD: ${wod.title || wod.date}`, "success");
+    } catch (e) {
+      toast(String(e), "error");
+    }
+  }
+
+  async function handlePublishOne(id: string) {
+    await publishSingleWOD(id);
+  }
+
+  async function handleBatchPublish() {
+    setBatchPublishing(true);
+    try {
+      await initCloudKit();
+      await authenticateCloudKit();
+      for (const id of checkedIds) {
+        const wod = wods.find((w) => w.id === id);
+        if (!wod) continue;
+        try {
+          await saveWODRecord(wod);
+          await fetch("/api/cloudkit/publish", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ type: "wod", id }),
+          });
+        } catch (e) {
+          toast(`Failed to publish ${wod.title || wod.date}: ${e}`, "error");
+        }
+      }
+      await fetchPublishStatus();
+      toast(`Published ${checkedIds.size} WODs`, "success");
+      setCheckedIds(new Set());
+    } catch (e) {
+      toast(String(e), "error");
+    } finally {
+      setBatchPublishing(false);
+    }
   }
 
   function handleGenerated(rawWods: any[]) {
@@ -210,6 +279,8 @@ export default function WODsPage() {
             selectedIds={checkedIds}
             onToggleSelect={handleToggleSelect}
             onBatchPublish={handleBatchPublish}
+            onPublishOne={handlePublishOne}
+            batchPublishing={batchPublishing}
           />
         </div>
 
