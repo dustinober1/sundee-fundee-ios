@@ -1,1 +1,10 @@
-[]
+[
+  {
+    "id": "sf-benchmark-1774220054794",
+    "name": "Eliz",
+    "category": "Sundee Fundee",
+    "workoutDescription": "Perform 5 rounds for time of:\n\n250m Row\n15 Crossovers (each side counts as 1)\n50ft Farmers Carry (use a challenging, manageable weight)\n5 Overhead Squats (use a challenging, manageable weight. Bar must reach full lockout overhead.)\n\nTime Cap: 25 minutes.",
+    "scoringTypeRaw": "time",
+    "sortOrder": 1
+  }
+]
