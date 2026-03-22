@@ -74,6 +74,7 @@ export async function initCloudKit(): Promise<void> {
         apiTokenAuth: {
           apiToken,
           persist: true,
+          redirectURL: window.location.origin,
         },
         environment,
       },
@@ -121,92 +122,28 @@ export async function setupCloudKitAuth(): Promise<any> {
 }
 
 /**
- * Manually trigger Apple ID sign-in using a popup window.
- * The popup handles the OAuth flow and closes itself when done,
- * avoiding the need for a configured callback/redirect URL.
+ * Manually trigger Apple ID sign-in.
+ * Gets the redirect URL from our server-side proxy (avoids 421),
+ * then does a full-page redirect to Apple's auth. After sign-in,
+ * Apple redirects back to our origin with auth tokens in the URL
+ * which CloudKit JS picks up on page load.
  */
-export async function signIn(): Promise<any> {
-  await initCloudKit();
+export async function signIn(): Promise<void> {
+  // Get the auth redirect URL via server-side proxy (no Origin header = no 421)
+  const res = await fetch("/api/cloudkit/auth-url");
+  const data = await res.json();
 
-  return new Promise((resolve, reject) => {
-    // Get the auth URL via our API route (server-side, no Origin header = no 421)
-    fetch("/api/cloudkit/auth-url")
-      .then((res) => res.json())
-      .then((data) => {
-        if (!data.redirectURL) {
-          // Already authenticated or no redirect needed
-          if (data.userRecordName) {
-            notifyAuthChange(true);
-            resolve(data);
-            return;
-          }
-          reject(new Error("No redirect URL received from CloudKit"));
-          return;
-        }
-
-        // Open Apple ID sign-in in a popup
-        const width = 650;
-        const height = 500;
-        const left = window.screenX + (window.outerWidth - width) / 2;
-        const top = window.screenY + (window.outerHeight - height) / 2;
-        const popup = window.open(
-          data.redirectURL,
-          "cloudkit-auth",
-          `width=${width},height=${height},left=${left},top=${top},toolbar=no,menubar=no`
-        );
-
-        if (!popup) {
-          reject(new Error("Popup was blocked. Please allow popups for this site."));
-          return;
-        }
-
-        // Poll for the popup closing or auth completing
-        const pollInterval = setInterval(async () => {
-          try {
-            // Check if popup was closed
-            if (popup.closed) {
-              clearInterval(pollInterval);
-
-              // Check if we're now authenticated
-              try {
-                const checkRes = await fetch("/api/cloudkit/auth-url");
-                const checkData = await checkRes.json();
-                if (checkData.userRecordName) {
-                  notifyAuthChange(true);
-                  resolve(checkData);
-                } else {
-                  // Re-init and check via CloudKit JS
-                  _container = null;
-                  _db = null;
-                  await initCloudKit();
-                  const identity = await _container.setUpAuth();
-                  if (identity) {
-                    notifyAuthChange(true);
-                    resolve(identity);
-                  } else {
-                    reject(new Error("Sign-in was cancelled or failed."));
-                  }
-                }
-              } catch {
-                reject(new Error("Could not verify sign-in status."));
-              }
-            }
-          } catch {
-            // Cross-origin errors are expected while popup is on Apple's domain
-          }
-        }, 500);
-
-        // Timeout after 5 minutes
-        setTimeout(() => {
-          clearInterval(pollInterval);
-          if (!popup.closed) popup.close();
-          reject(new Error("Sign-in timed out."));
-        }, 5 * 60 * 1000);
-      })
-      .catch((err) => {
-        reject(new Error(`Failed to initiate sign-in: ${err}`));
-      });
-  });
+  if (data.redirectURL) {
+    // Full-page redirect to Apple sign-in.
+    // After auth, Apple redirects back to our redirectURL (window.location.origin)
+    // with ckSession params that CloudKit JS picks up on page reload.
+    window.location.href = data.redirectURL;
+  } else if (data.userRecordName) {
+    // Already authenticated
+    notifyAuthChange(true);
+  } else {
+    throw new Error("Could not get sign-in URL from CloudKit.");
+  }
 }
 
 /**
