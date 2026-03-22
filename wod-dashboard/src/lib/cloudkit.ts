@@ -16,6 +16,11 @@ const CK_SCRIPT_URL = "https://cdn.apple-cloudkit.com/ck/2/cloudkit.js";
 let _container: any = null;
 let _db: any = null;
 let _loadPromise: Promise<void> | null = null;
+let _authenticated = false;
+
+// Sign-in/sign-out button element IDs (CloudKit JS renders Apple ID UI into these)
+export const SIGN_IN_BUTTON_ID = "apple-sign-in-button";
+export const SIGN_OUT_BUTTON_ID = "apple-sign-out-button";
 
 // ─── Initialization ──────────────────────────────────────────────────────────
 
@@ -72,6 +77,8 @@ export async function initCloudKit(): Promise<void> {
         apiTokenAuth: {
           apiToken,
           persist: true,
+          signInButton: { id: SIGN_IN_BUTTON_ID },
+          signOutButton: { id: SIGN_OUT_BUTTON_ID },
         },
         environment,
       },
@@ -84,14 +91,44 @@ export async function initCloudKit(): Promise<void> {
 
 // ─── Authentication ──────────────────────────────────────────────────────────
 
-export async function authenticateCloudKit(): Promise<any> {
+export function isAuthenticated(): boolean {
+  return _authenticated;
+}
+
+/**
+ * Sets up CloudKit auth. CloudKit JS will render Apple sign-in/sign-out buttons
+ * into the DOM elements with the configured IDs. Returns the user identity if
+ * already authenticated, or null if the user needs to click the sign-in button.
+ */
+export async function setupCloudKitAuth(): Promise<any> {
   await initCloudKit();
 
   const userIdentity = await _container.setUpAuth();
-  if (!userIdentity) {
-    throw new Error("CloudKit authentication failed. Please sign in with Apple ID.");
-  }
+  _authenticated = !!userIdentity;
   return userIdentity;
+}
+
+/**
+ * Ensures user is authenticated before proceeding. If not authenticated,
+ * throws an error prompting the user to sign in via the auth bar.
+ */
+export async function requireAuth(): Promise<void> {
+  if (!_authenticated) {
+    throw new Error("Please sign in with Apple ID using the button in the top bar.");
+  }
+}
+
+/** Listen for auth state changes. */
+export function onAuthChange(callback: (authenticated: boolean) => void): void {
+  if (!_container) return;
+  _container.whenUserSignsIn().then(() => {
+    _authenticated = true;
+    callback(true);
+  });
+  _container.whenUserSignsOut().then(() => {
+    _authenticated = false;
+    callback(false);
+  });
 }
 
 // ─── WOD Records ────────────────────────────────────────────────────────────

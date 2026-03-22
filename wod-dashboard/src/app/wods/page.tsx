@@ -7,7 +7,7 @@ import { WODGenerator } from "@/components/wod-generator";
 import { useToast } from "@/components/toast";
 import type { WOD, ProgramExerciseJSON } from "@/lib/types";
 import { exerciseFromJSON, exerciseToJSON } from "@/lib/types";
-import { initCloudKit, authenticateCloudKit, saveWODRecord } from "@/lib/cloudkit";
+import { requireAuth, saveWODRecord } from "@/lib/cloudkit";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -179,8 +179,7 @@ export default function WODsPage() {
     const wod = wods.find((w) => w.id === id);
     if (!wod) return;
     try {
-      await initCloudKit();
-      await authenticateCloudKit();
+      await requireAuth();
       await saveWODRecord(wod);
       // Mark as published server-side
       await fetch("/api/cloudkit/publish", {
@@ -202,8 +201,7 @@ export default function WODsPage() {
   async function handleBatchPublish() {
     setBatchPublishing(true);
     try {
-      await initCloudKit();
-      await authenticateCloudKit();
+      await requireAuth();
       for (const id of checkedIds) {
         const wod = wods.find((w) => w.id === id);
         if (!wod) continue;

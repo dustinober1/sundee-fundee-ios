@@ -12,7 +12,7 @@ import type {
   ProgramWeek,
 } from "@/lib/types";
 import { exerciseFromJSON, exerciseToJSON } from "@/lib/types";
-import { initCloudKit, authenticateCloudKit, saveProgramRecord } from "@/lib/cloudkit";
+import { requireAuth, saveProgramRecord } from "@/lib/cloudkit";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -188,8 +188,7 @@ export default function ProgramsPage() {
     const program = programs.find((p) => p.id === id);
     if (!program) return;
     try {
-      await initCloudKit();
-      await authenticateCloudKit();
+      await requireAuth();
       await saveProgramRecord(program);
       await fetch("/api/cloudkit/publish", {
         method: "POST",
