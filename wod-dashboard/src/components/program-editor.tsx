@@ -18,7 +18,8 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { validateProgram, type ValidationError } from "@/lib/validation";
 import { WeekEditor } from "@/components/week-editor";
-import type { Program, ProgramPhase, ProgramSession, ProgramWeek } from "@/lib/types";
+import { CycleAdjustmentEditor } from "@/components/cycle-adjustment-editor";
+import type { Program, ProgramCycleAdjustmentProfile, ProgramPhase, ProgramSession, ProgramWeek } from "@/lib/types";
 
 // ─── Props ───────────────────────────────────────────────────────────────────
 
@@ -26,6 +27,7 @@ interface ProgramEditorProps {
   program: Program | null;
   onSave: (program: Program) => void;
   onDelete: (id: string) => void;
+  saving?: boolean;
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -152,7 +154,7 @@ function SortablePhaseRow({
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
-export function ProgramEditor({ program, onSave, onDelete }: ProgramEditorProps) {
+export function ProgramEditor({ program, onSave, onDelete, saving = false }: ProgramEditorProps) {
   const [name, setName] = useState("");
   const [category, setCategory] = useState("");
   const [description, setDescription] = useState("");
@@ -161,7 +163,7 @@ export function ProgramEditor({ program, onSave, onDelete }: ProgramEditorProps)
   const [phases, setPhases] = useState<ProgramPhase[]>([]);
   const [phaseKeys, setPhaseKeys] = useState<string[]>([]);
   const [phaseKeyCounter, setPhaseKeyCounter] = useState(0);
-  const [hasCycleAdjustments, setHasCycleAdjustments] = useState(false);
+  const [hasCycleAdjustments, setHasCycleAdjustments] = useState(false); // kept for currentProgram memo
   const [errors, setErrors] = useState<ValidationError[]>([]);
 
   // Keep the original weeks so we can pass them through on save
@@ -512,40 +514,32 @@ export function ProgramEditor({ program, onSave, onDelete }: ProgramEditorProps)
         )}
       </div>
 
-      {/* ── Cycle Adjustment Section (placeholder) ──────────────────────── */}
-      <div className="mb-6">
-        <h3 className="text-sm font-bold text-navy mb-2">
-          Cycle Adjustments
-        </h3>
-        <label className="flex items-center gap-2 text-sm text-navy/70">
-          <input
-            type="checkbox"
-            checked={hasCycleAdjustments}
-            onChange={(e) => setHasCycleAdjustments(e.target.checked)}
-            className="accent-navy"
-          />
-          Has Cycle Adjustments
-        </label>
-        {hasCycleAdjustments && (
-          <p className="text-sm text-navy/40 mt-2 p-2 border border-navy/10 rounded bg-navy/5 italic">
-            Cycle adjustment editor coming in a future task.
-          </p>
-        )}
-      </div>
+      {/* ── Cycle Adjustment Section ─────────────────────────────────────── */}
+      <CycleAdjustmentEditor
+        profile={cycleAdjustmentProfile ?? null}
+        onChange={(profile: ProgramCycleAdjustmentProfile | null) => {
+          setCycleAdjustmentProfile(profile ?? undefined);
+          setHasCycleAdjustments(profile !== null);
+        }}
+      />
 
       {/* ── Actions ─────────────────────────────────────────────────────── */}
       <div className="flex items-center gap-3 pt-4 border-t border-navy/10 mt-auto">
         <button
           type="button"
           onClick={handleSave}
-          disabled={hasValidationErrors}
+          disabled={hasValidationErrors || saving}
           className="bg-orange text-white px-4 py-2 rounded font-medium hover:bg-orange/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          Save
+          {saving ? "Saving…" : "Save"}
         </button>
         <button
           type="button"
-          onClick={() => onDelete(program.id)}
+          onClick={() => {
+            if (window.confirm(`Are you sure you want to delete this program (${program.name})?`)) {
+              onDelete(program.id);
+            }
+          }}
           className="bg-red-500 text-white px-4 py-2 rounded font-medium hover:bg-red-600 transition-colors"
         >
           Delete

@@ -27,6 +27,7 @@ interface WODEditorProps {
   existingDates: string[];
   onSave: (wod: WOD) => void;
   onDelete: (id: string) => void;
+  saving?: boolean;
 }
 
 // ─── Blank exercise ──────────────────────────────────────────────────────────
@@ -91,7 +92,7 @@ function SortableExercise({
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
-export function WODEditor({ wod, existingDates, onSave, onDelete }: WODEditorProps) {
+export function WODEditor({ wod, existingDates, onSave, onDelete, saving = false }: WODEditorProps) {
   const [date, setDate] = useState("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -292,14 +293,18 @@ export function WODEditor({ wod, existingDates, onSave, onDelete }: WODEditorPro
         <button
           type="button"
           onClick={handleSave}
-          disabled={hasValidationErrors}
+          disabled={hasValidationErrors || saving}
           className="bg-orange text-white px-4 py-2 rounded font-medium hover:bg-orange/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          Save
+          {saving ? "Saving…" : "Save"}
         </button>
         <button
           type="button"
-          onClick={() => onDelete(wod.id)}
+          onClick={() => {
+            if (window.confirm(`Are you sure you want to delete this WOD (${wod.title || wod.date})?`)) {
+              onDelete(wod.id);
+            }
+          }}
           className="bg-red-500 text-white px-4 py-2 rounded font-medium hover:bg-red-600 transition-colors"
         >
           Delete

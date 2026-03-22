@@ -87,6 +87,7 @@ export default function ProgramsPage() {
   const [programs, setPrograms] = useState<Program[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [showGenerator, setShowGenerator] = useState(false);
   const [publishStatus, setPublishStatus] = useState<PublishStatus>({ wods: {}, programs: {} });
 
@@ -154,6 +155,7 @@ export default function ProgramsPage() {
   }
 
   async function handleSave(program: Program) {
+    setSaving(true);
     try {
       const res = await fetch("/api/programs", {
         method: "PATCH",
@@ -166,6 +168,8 @@ export default function ProgramsPage() {
       setSelectedId(program.id);
     } catch (e) {
       toast(String(e), "error");
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -259,6 +263,7 @@ export default function ProgramsPage() {
             program={selectedProgram}
             onSave={handleSave}
             onDelete={handleDelete}
+            saving={saving}
           />
         </div>
       </div>

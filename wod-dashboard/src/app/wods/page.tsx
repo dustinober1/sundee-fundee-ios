@@ -63,6 +63,7 @@ export default function WODsPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [showGenerator, setShowGenerator] = useState(false);
   const [publishStatus, setPublishStatus] = useState<PublishStatus>({ wods: {}, programs: {} });
   const [batchPublishing, setBatchPublishing] = useState(false);
@@ -130,6 +131,7 @@ export default function WODsPage() {
   }
 
   async function handleSave(wod: WOD) {
+    setSaving(true);
     try {
       const res = await fetch("/api/wods", {
         method: "PATCH",
@@ -142,6 +144,8 @@ export default function WODsPage() {
       setSelectedId(wod.id);
     } catch (e) {
       toast(String(e), "error");
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -291,6 +295,7 @@ export default function WODsPage() {
             existingDates={existingDates}
             onSave={handleSave}
             onDelete={handleDelete}
+            saving={saving}
           />
         </div>
       </div>
