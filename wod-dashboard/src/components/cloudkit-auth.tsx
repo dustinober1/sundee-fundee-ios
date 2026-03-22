@@ -5,7 +5,7 @@ import {
   setupCloudKitAuth,
   signIn,
   signOut,
-  onAuthChange,
+  isAuthenticated,
 } from "@/lib/cloudkit";
 
 export function CloudKitAuth() {
@@ -16,33 +16,9 @@ export function CloudKitAuth() {
   const [signingIn, setSigningIn] = useState(false);
 
   useEffect(() => {
-    let cancelled = false;
-
-    async function init() {
-      try {
-        const userIdentity = await setupCloudKitAuth();
-        if (cancelled) return;
-        setStatus(userIdentity ? "signed-in" : "signed-out");
-      } catch (e) {
-        if (!cancelled) {
-          setError(String(e));
-          setStatus("signed-out");
-        }
-      }
-    }
-
-    const unsubscribe = onAuthChange((authenticated) => {
-      if (!cancelled) {
-        setStatus(authenticated ? "signed-in" : "signed-out");
-        setSigningIn(false);
-      }
-    });
-
-    init();
-    return () => {
-      cancelled = true;
-      unsubscribe();
-    };
+    // setupCloudKitAuth is sync — checks URL params and localStorage
+    const authenticated = setupCloudKitAuth();
+    setStatus(authenticated ? "signed-in" : "signed-out");
   }, []);
 
   async function handleSignIn() {
@@ -50,16 +26,15 @@ export function CloudKitAuth() {
     setError(null);
     try {
       await signIn();
-      setStatus("signed-in");
+      // signIn redirects — page will reload
     } catch (e) {
       setError(String(e));
-    } finally {
       setSigningIn(false);
     }
   }
 
-  async function handleSignOut() {
-    await signOut();
+  function handleSignOut() {
+    signOut();
     setStatus("signed-out");
   }
 

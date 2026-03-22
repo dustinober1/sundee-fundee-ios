@@ -3,86 +3,27 @@
 import type { WOD, Program } from "@/lib/types";
 import { exerciseToJSON } from "@/lib/types";
 
-// ─── CloudKit JS SDK Types (minimal declarations) ─────────────────────────
+// ─── State ──────────────────────────────────────────────────────────────────
 
-declare global {
-  interface Window {
-    CloudKit: any;
-  }
-}
-
-const CK_SCRIPT_URL = "https://cdn.apple-cloudkit.com/ck/2/cloudkit.js";
-
-let _container: any = null;
-let _db: any = null;
-let _loadPromise: Promise<void> | null = null;
+let _ckWebAuthToken: string | null = null;
 let _authenticated = false;
 let _authChangeCallbacks: Array<(authenticated: boolean) => void> = [];
 
-// ─── Initialization ──────────────────────────────────────────────────────────
+const AUTH_TOKEN_KEY = "ckWebAuthToken";
 
-function loadScript(): Promise<void> {
-  if (_loadPromise) return _loadPromise;
+// ─── Helpers ────────────────────────────────────────────────────────────────
 
-  _loadPromise = new Promise((resolve, reject) => {
-    if (typeof window === "undefined") {
-      reject(new Error("CloudKit JS requires a browser environment"));
-      return;
-    }
-
-    if (window.CloudKit) {
-      resolve();
-      return;
-    }
-
-    const script = document.createElement("script");
-    script.src = CK_SCRIPT_URL;
-    script.async = true;
-    script.onload = () => resolve();
-    script.onerror = () => {
-      _loadPromise = null;
-      reject(new Error("Failed to load CloudKit JS SDK"));
-    };
-    document.head.appendChild(script);
-  });
-
-  return _loadPromise;
+function getConfig() {
+  return {
+    containerId: process.env.NEXT_PUBLIC_CLOUDKIT_CONTAINER ?? "",
+    apiToken: process.env.NEXT_PUBLIC_CLOUDKIT_API_TOKEN ?? "",
+    environment: process.env.NEXT_PUBLIC_CLOUDKIT_ENV ?? "production",
+  };
 }
 
-export async function initCloudKit(): Promise<void> {
-  await loadScript();
-
-  if (_container) return;
-
-  const containerId =
-    process.env.NEXT_PUBLIC_CLOUDKIT_CONTAINER ?? "";
-  const apiToken =
-    process.env.NEXT_PUBLIC_CLOUDKIT_API_TOKEN ?? "";
-  const environment =
-    process.env.NEXT_PUBLIC_CLOUDKIT_ENV ?? "production";
-
-  if (!containerId || !apiToken) {
-    throw new Error(
-      "Missing NEXT_PUBLIC_CLOUDKIT_CONTAINER or NEXT_PUBLIC_CLOUDKIT_API_TOKEN"
-    );
-  }
-
-  window.CloudKit.configure({
-    containers: [
-      {
-        containerIdentifier: containerId,
-        apiTokenAuth: {
-          apiToken,
-          persist: true,
-          redirectURL: window.location.origin,
-        },
-        environment,
-      },
-    ],
-  });
-
-  _container = window.CloudKit.getDefaultContainer();
-  _db = _container.publicCloudDatabase;
+function notifyAuthChange(authenticated: boolean) {
+  _authenticated = authenticated;
+  _authChangeCallbacks.forEach((cb) => cb(authenticated));
 }
 
 // ─── Authentication ──────────────────────────────────────────────────────────
@@ -91,75 +32,74 @@ export function isAuthenticated(): boolean {
   return _authenticated;
 }
 
-function notifyAuthChange(authenticated: boolean) {
-  _authenticated = authenticated;
-  _authChangeCallbacks.forEach((cb) => cb(authenticated));
-}
-
 /**
- * Try to set up auth. If user is already signed in (persisted session),
- * returns the user identity. Otherwise returns null.
- * Does NOT show a sign-in UI — use signIn() for that.
+ * Check for auth tokens: URL params (after redirect) or localStorage (persisted).
  */
-export async function setupCloudKitAuth(): Promise<any> {
-  await initCloudKit();
+export function setupCloudKitAuth(): boolean {
+  if (typeof window === "undefined") return false;
 
-  try {
-    const userIdentity = await _container.setUpAuth();
-    _authenticated = !!userIdentity;
+  // Check URL for auth tokens from Apple redirect
+  const params = new URLSearchParams(window.location.search);
+  const tokenFromUrl = params.get("ckWebAuthToken");
 
-    // Listen for future auth state changes
-    _container.whenUserSignsIn().then(() => notifyAuthChange(true));
-    _container.whenUserSignsOut().then(() => notifyAuthChange(false));
+  if (tokenFromUrl) {
+    _ckWebAuthToken = tokenFromUrl;
+    _authenticated = true;
 
-    return userIdentity;
-  } catch {
-    // setUpAuth can fail with 421 if origin isn't whitelisted
-    // Fall through — user can still try manual sign-in
-    _authenticated = false;
-    return null;
+    // Persist to localStorage
+    try { localStorage.setItem(AUTH_TOKEN_KEY, tokenFromUrl); } catch {}
+
+    // Clean URL
+    const url = new URL(window.location.href);
+    url.searchParams.delete("ckWebAuthToken");
+    url.searchParams.delete("ckSession");
+    window.history.replaceState({}, "", url.pathname);
+
+    return true;
   }
+
+  // Check localStorage for persisted token
+  try {
+    const persisted = localStorage.getItem(AUTH_TOKEN_KEY);
+    if (persisted) {
+      _ckWebAuthToken = persisted;
+      _authenticated = true;
+      return true;
+    }
+  } catch {}
+
+  return false;
 }
 
 /**
- * Manually trigger Apple ID sign-in.
- * Gets the redirect URL from our server-side proxy (avoids 421),
- * then does a full-page redirect to Apple's auth. After sign-in,
- * Apple redirects back to our origin with auth tokens in the URL
- * which CloudKit JS picks up on page load.
+ * Redirect to Apple ID sign-in. Uses server-side proxy to get redirect URL.
  */
 export async function signIn(): Promise<void> {
-  // Get the auth redirect URL via server-side proxy (no Origin header = no 421)
   const res = await fetch("/api/cloudkit/auth-url");
   const data = await res.json();
 
   if (data.redirectURL) {
-    // Full-page redirect to Apple sign-in.
-    // After auth, Apple redirects back to our redirectURL (window.location.origin)
-    // with ckSession params that CloudKit JS picks up on page reload.
     window.location.href = data.redirectURL;
-  } else if (data.userRecordName) {
-    // Already authenticated
-    notifyAuthChange(true);
   } else {
     throw new Error("Could not get sign-in URL from CloudKit.");
   }
 }
 
 /**
- * Sign out the current user.
+ * Sign out — clear persisted token.
  */
-export async function signOut(): Promise<void> {
-  await initCloudKit();
-  // Clear persisted auth
+export function signOut(): void {
+  _ckWebAuthToken = null;
+  _authenticated = false;
+  try { localStorage.removeItem(AUTH_TOKEN_KEY); } catch {}
   notifyAuthChange(false);
 }
 
 /**
  * Ensures user is authenticated before proceeding.
  */
-export async function requireAuth(): Promise<void> {
-  if (!_authenticated) {
+export function requireAuth(): void {
+  if (!_authenticated || !_ckWebAuthToken) {
     throw new Error("Please sign in with Apple ID using the button in the top bar.");
   }
 }
@@ -172,10 +112,32 @@ export function onAuthChange(callback: (authenticated: boolean) => void): () => 
   };
 }
 
+// ─── CloudKit API (server-side proxy) ───────────────────────────────────────
+
+async function cloudKitRequest(
+  method: "POST" | "GET",
+  path: string,
+  body?: any
+): Promise<any> {
+  const res = await fetch("/api/cloudkit/request", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      ckMethod: method,
+      path,
+      body,
+      ckWebAuthToken: _ckWebAuthToken,
+    }),
+  });
+  const data = await res.json();
+  if (data.error) throw new Error(data.error);
+  return data;
+}
+
 // ─── WOD Records ────────────────────────────────────────────────────────────
 
 export async function saveWODRecord(wod: WOD): Promise<void> {
-  await initCloudKit();
+  requireAuth();
 
   const record = {
     recordType: "WOD",
@@ -189,17 +151,20 @@ export async function saveWODRecord(wod: WOD): Promise<void> {
     },
   };
 
-  const response = await _db.saveRecords([record]);
-  if (response.hasErrors) {
-    const errors = response.errors.map((e: any) => e.reason).join(", ");
-    throw new Error(`CloudKit save failed: ${errors}`);
+  const data = await cloudKitRequest("POST", "records/modify", {
+    operations: [{ operationType: "forceReplace", record }],
+  });
+
+  if (data.hasErrors || data.records?.[0]?.serverErrorCode) {
+    const reason = data.records?.[0]?.reason ?? data.reason ?? "Unknown error";
+    throw new Error(`CloudKit save failed: ${reason}`);
   }
 }
 
 // ─── Program Records ────────────────────────────────────────────────────────
 
 export async function saveProgramRecord(program: Program): Promise<void> {
-  await initCloudKit();
+  requireAuth();
 
   const record = {
     recordType: "Program",
@@ -222,10 +187,13 @@ export async function saveProgramRecord(program: Program): Promise<void> {
     },
   };
 
-  const response = await _db.saveRecords([record]);
-  if (response.hasErrors) {
-    const errors = response.errors.map((e: any) => e.reason).join(", ");
-    throw new Error(`CloudKit save failed: ${errors}`);
+  const data = await cloudKitRequest("POST", "records/modify", {
+    operations: [{ operationType: "forceReplace", record }],
+  });
+
+  if (data.hasErrors || data.records?.[0]?.serverErrorCode) {
+    const reason = data.records?.[0]?.reason ?? data.reason ?? "Unknown error";
+    throw new Error(`CloudKit save failed: ${reason}`);
   }
 }
 
@@ -235,13 +203,14 @@ export async function deleteRecord(
   recordType: string,
   recordName: string
 ): Promise<void> {
-  await initCloudKit();
+  requireAuth();
 
-  const response = await _db.deleteRecords([
-    { recordName, recordType },
-  ]);
-  if (response.hasErrors) {
-    const errors = response.errors.map((e: any) => e.reason).join(", ");
-    throw new Error(`CloudKit delete failed: ${errors}`);
+  const data = await cloudKitRequest("POST", "records/modify", {
+    operations: [{ operationType: "delete", record: { recordType, recordName } }],
+  });
+
+  if (data.hasErrors || data.records?.[0]?.serverErrorCode) {
+    const reason = data.records?.[0]?.reason ?? data.reason ?? "Unknown error";
+    throw new Error(`CloudKit delete failed: ${reason}`);
   }
 }
