@@ -19,7 +19,7 @@ xcodegen generate
 xcodebuild build \
   -project SundeeFundee.xcodeproj \
   -scheme SundeeFundee \
-  -destination 'platform=iOS Simulator,name=iPhone 16 Pro'
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
 ```
 
 ### Test
@@ -28,14 +28,14 @@ xcodebuild build \
 xcodebuild test \
   -project SundeeFundee.xcodeproj \
   -scheme SundeeFundee \
-  -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
   -only-testing:SundeeFundeTests
 
 # Run a single test class
 xcodebuild test \
   -project SundeeFundee.xcodeproj \
   -scheme SundeeFundee \
-  -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
   -only-testing:SundeeFundeTests/BusinessLogicTests
 ```
 
@@ -138,6 +138,10 @@ The WOD Dashboard uses ECDSA server-to-server authentication (no user sign-in ne
 - Signature format: `sha256(date:base64(sha256(body)):subpath)` signed with EC P-256
 - Required headers: `X-Apple-CloudKit-Request-KeyID`, `X-Apple-CloudKit-Request-ISO8601Date`, `X-Apple-CloudKit-Request-SignatureV1`
 
+### CloudKit Repository Wiring
+
+ViewModels must default to `CloudKit*Repository()` (not `Bundled*Repository()`) for CloudKit-published data to appear in the app. CloudKit repos fall back to bundled JSON automatically. When decoding CloudKit records, use `try?` per-record in `compactMap` so one malformed record doesn't poison the entire fetch.
+
 ### CloudKit Schema Management
 
 - `xcrun cktool export-schema --team-id 87VVCMCW3F --container-id iCloud.com.sundeefundee.app --environment development --output-file schema.ckdb`
@@ -155,6 +159,8 @@ When adding a new entity type to the dashboard (`wod-dashboard/`):
 6. Create list + editor components in `src/components/`
 7. Create page at `src/app/<entity>/page.tsx` (two-panel split-view)
 8. Add nav link to `src/components/sidebar.tsx`
+
+AI generation routes (`src/app/api/generate/`) follow a shared pattern: accept parameters → build Gemini prompt → POST to Cloudflare Worker → strip markdown fences → parse and validate JSON → return typed response. Currently: `wod/`, `program/`, `benchmark/`.
 
 ### Coding Conventions
 
