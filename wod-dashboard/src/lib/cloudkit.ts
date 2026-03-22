@@ -17,10 +17,7 @@ let _container: any = null;
 let _db: any = null;
 let _loadPromise: Promise<void> | null = null;
 let _authenticated = false;
-
-// Sign-in/sign-out button element IDs (CloudKit JS renders Apple ID UI into these)
-export const SIGN_IN_BUTTON_ID = "apple-sign-in-button";
-export const SIGN_OUT_BUTTON_ID = "apple-sign-out-button";
+let _authChangeCallbacks: Array<(authenticated: boolean) => void> = [];
 
 // ─── Initialization ──────────────────────────────────────────────────────────
 
@@ -77,8 +74,6 @@ export async function initCloudKit(): Promise<void> {
         apiTokenAuth: {
           apiToken,
           persist: true,
-          signInButton: { id: SIGN_IN_BUTTON_ID },
-          signOutButton: { id: SIGN_OUT_BUTTON_ID },
         },
         environment,
       },
@@ -95,22 +90,84 @@ export function isAuthenticated(): boolean {
   return _authenticated;
 }
 
+function notifyAuthChange(authenticated: boolean) {
+  _authenticated = authenticated;
+  _authChangeCallbacks.forEach((cb) => cb(authenticated));
+}
+
 /**
- * Sets up CloudKit auth. CloudKit JS will render Apple sign-in/sign-out buttons
- * into the DOM elements with the configured IDs. Returns the user identity if
- * already authenticated, or null if the user needs to click the sign-in button.
+ * Try to set up auth. If user is already signed in (persisted session),
+ * returns the user identity. Otherwise returns null.
+ * Does NOT show a sign-in UI — use signIn() for that.
  */
 export async function setupCloudKitAuth(): Promise<any> {
   await initCloudKit();
 
-  const userIdentity = await _container.setUpAuth();
-  _authenticated = !!userIdentity;
-  return userIdentity;
+  try {
+    const userIdentity = await _container.setUpAuth();
+    _authenticated = !!userIdentity;
+
+    // Listen for future auth state changes
+    _container.whenUserSignsIn().then(() => notifyAuthChange(true));
+    _container.whenUserSignsOut().then(() => notifyAuthChange(false));
+
+    return userIdentity;
+  } catch {
+    // setUpAuth can fail with 421 if origin isn't whitelisted
+    // Fall through — user can still try manual sign-in
+    _authenticated = false;
+    return null;
+  }
 }
 
 /**
- * Ensures user is authenticated before proceeding. If not authenticated,
- * throws an error prompting the user to sign in via the auth bar.
+ * Manually trigger Apple ID sign-in. Opens a pop-up/redirect to Apple's
+ * auth page. This bypasses the need for CloudKit JS's built-in button.
+ */
+export async function signIn(): Promise<any> {
+  await initCloudKit();
+
+  // fetchCurrentUserIdentity will trigger the auth redirect if not signed in
+  try {
+    const userIdentity = await _container.fetchCurrentUserIdentity();
+    notifyAuthChange(true);
+    return userIdentity;
+  } catch (e: any) {
+    // If the error contains a redirectURL, open it
+    if (e?.redirectURL) {
+      window.location.href = e.redirectURL;
+      return null;
+    }
+
+    // Try setUpAuth as fallback — it may return a redirectURL in the error
+    try {
+      const result = await _container.setUpAuth();
+      if (result) {
+        notifyAuthChange(true);
+        return result;
+      }
+    } catch (authErr: any) {
+      if (authErr?.redirectURL) {
+        window.location.href = authErr.redirectURL;
+        return null;
+      }
+    }
+
+    throw new Error("Could not initiate Apple ID sign-in. Check CloudKit Dashboard configuration.");
+  }
+}
+
+/**
+ * Sign out the current user.
+ */
+export async function signOut(): Promise<void> {
+  await initCloudKit();
+  // Clear persisted auth
+  notifyAuthChange(false);
+}
+
+/**
+ * Ensures user is authenticated before proceeding.
  */
 export async function requireAuth(): Promise<void> {
   if (!_authenticated) {
@@ -118,17 +175,12 @@ export async function requireAuth(): Promise<void> {
   }
 }
 
-/** Listen for auth state changes. */
-export function onAuthChange(callback: (authenticated: boolean) => void): void {
-  if (!_container) return;
-  _container.whenUserSignsIn().then(() => {
-    _authenticated = true;
-    callback(true);
-  });
-  _container.whenUserSignsOut().then(() => {
-    _authenticated = false;
-    callback(false);
-  });
+/** Register a callback for auth state changes. Returns unsubscribe function. */
+export function onAuthChange(callback: (authenticated: boolean) => void): () => void {
+  _authChangeCallbacks.push(callback);
+  return () => {
+    _authChangeCallbacks = _authChangeCallbacks.filter((cb) => cb !== callback);
+  };
 }
 
 // ─── WOD Records ────────────────────────────────────────────────────────────

@@ -2,11 +2,10 @@
 
 import { useEffect, useState } from "react";
 import {
-  initCloudKit,
   setupCloudKitAuth,
+  signIn,
+  signOut,
   onAuthChange,
-  SIGN_IN_BUTTON_ID,
-  SIGN_OUT_BUTTON_ID,
 } from "@/lib/cloudkit";
 
 export function CloudKitAuth() {
@@ -14,23 +13,16 @@ export function CloudKitAuth() {
     "loading"
   );
   const [error, setError] = useState<string | null>(null);
+  const [signingIn, setSigningIn] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
 
     async function init() {
       try {
-        await initCloudKit();
         const userIdentity = await setupCloudKitAuth();
         if (cancelled) return;
         setStatus(userIdentity ? "signed-in" : "signed-out");
-
-        // Listen for future auth changes
-        onAuthChange((authenticated) => {
-          if (!cancelled) {
-            setStatus(authenticated ? "signed-in" : "signed-out");
-          }
-        });
       } catch (e) {
         if (!cancelled) {
           setError(String(e));
@@ -39,16 +31,48 @@ export function CloudKitAuth() {
       }
     }
 
+    const unsubscribe = onAuthChange((authenticated) => {
+      if (!cancelled) {
+        setStatus(authenticated ? "signed-in" : "signed-out");
+        setSigningIn(false);
+      }
+    });
+
     init();
     return () => {
       cancelled = true;
+      unsubscribe();
     };
   }, []);
+
+  async function handleSignIn() {
+    setSigningIn(true);
+    setError(null);
+    try {
+      await signIn();
+      setStatus("signed-in");
+    } catch (e) {
+      setError(String(e));
+    } finally {
+      setSigningIn(false);
+    }
+  }
+
+  async function handleSignOut() {
+    await signOut();
+    setStatus("signed-out");
+  }
 
   if (error) {
     return (
       <div className="flex items-center gap-2 px-4 py-2 bg-red-50 border-b border-red-200 text-sm text-red-700">
         <span>CloudKit: {error}</span>
+        <button
+          onClick={() => { setError(null); handleSignIn(); }}
+          className="ml-2 px-2 py-0.5 bg-red-100 hover:bg-red-200 rounded text-xs font-medium transition-colors"
+        >
+          Retry
+        </button>
       </div>
     );
   }
@@ -67,8 +91,12 @@ export function CloudKitAuth() {
             <span className="w-2 h-2 rounded-full bg-green-500" />
             <span className="text-green-700 font-medium">Signed In</span>
           </span>
-          {/* CloudKit JS renders the sign-out button here */}
-          <div id={SIGN_OUT_BUTTON_ID} className="inline-block" />
+          <button
+            onClick={handleSignOut}
+            className="px-2 py-0.5 border border-navy/20 rounded text-xs font-medium text-navy/60 hover:bg-navy/10 transition-colors"
+          >
+            Sign Out
+          </button>
         </>
       )}
 
@@ -76,10 +104,15 @@ export function CloudKitAuth() {
         <>
           <span className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-orange" />
-            <span className="text-navy/70">Sign in to publish</span>
+            <span className="text-navy/70">Not signed in</span>
           </span>
-          {/* CloudKit JS renders the Apple ID sign-in button here */}
-          <div id={SIGN_IN_BUTTON_ID} className="inline-block" />
+          <button
+            onClick={handleSignIn}
+            disabled={signingIn}
+            className="px-3 py-1 bg-navy text-white rounded text-xs font-medium hover:bg-navy/90 transition-colors disabled:opacity-50"
+          >
+            {signingIn ? "Signing in..." : "Sign in with Apple ID"}
+          </button>
         </>
       )}
     </div>
