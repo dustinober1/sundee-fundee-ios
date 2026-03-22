@@ -17,7 +17,8 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { validateProgram, type ValidationError } from "@/lib/validation";
-import type { Program, ProgramPhase } from "@/lib/types";
+import { WeekEditor } from "@/components/week-editor";
+import type { Program, ProgramPhase, ProgramSession, ProgramWeek } from "@/lib/types";
 
 // ─── Props ───────────────────────────────────────────────────────────────────
 
@@ -273,6 +274,34 @@ export function ProgramEditor({ program, onSave, onDelete }: ProgramEditorProps)
     setPhaseKeys((prev) => prev.filter((_, i) => i !== index));
   }
 
+  // ─── Week handlers ─────────────────────────────────────────────────────
+
+  function addWeek() {
+    const newWeekNumber = weeks.length + 1;
+    let sessionCounter = 0;
+    const blankSession: ProgramSession = {
+      sessionId: `session-${Date.now()}-${++sessionCounter}`,
+      sessionName: "Session 1",
+      sessionType: "Lift",
+      focus: "",
+      exercises: [],
+    };
+    const newWeek: ProgramWeek = {
+      week: newWeekNumber,
+      sessions: [blankSession],
+    };
+    setWeeks((prev) => [...prev, newWeek]);
+  }
+
+  function removeLastWeek() {
+    if (weeks.length === 0) return;
+    setWeeks((prev) => prev.slice(0, -1));
+  }
+
+  function updateWeek(index: number, updated: ProgramWeek) {
+    setWeeks((prev) => prev.map((w, i) => (i === index ? updated : w)));
+  }
+
   // ─── Save / Delete ───────────────────────────────────────────────────────
 
   function handleSave() {
@@ -441,44 +470,45 @@ export function ProgramEditor({ program, onSave, onDelete }: ProgramEditorProps)
         </DndContext>
       </div>
 
-      {/* ── Weeks Section (placeholder) ─────────────────────────────────── */}
+      {/* ── Weeks Section ──────────────────────────────────────────────── */}
       <div className="mb-6">
-        <h3 className="text-sm font-bold text-navy mb-2">
-          Weeks ({weeks.length})
-        </h3>
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-sm font-bold text-navy">
+            Weeks ({weeks.length})
+          </h3>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={addWeek}
+              className="text-sm text-orange hover:text-orange/80 font-medium"
+            >
+              + Add Week
+            </button>
+            <button
+              type="button"
+              onClick={removeLastWeek}
+              disabled={weeks.length === 0}
+              className="text-sm text-red-400 hover:text-red-600 font-medium disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              - Remove Last Week
+            </button>
+          </div>
+        </div>
+
         {weeks.length === 0 ? (
           <p className="text-sm text-navy/40 py-2">
-            No weeks defined yet.
+            No weeks defined yet. Click &quot;Add Week&quot; to get started.
           </p>
         ) : (
-          <div className="space-y-2">
-            {weeks.map((week) => (
-              <div
-                key={week.week}
-                className="flex items-center gap-2 p-2 border border-navy/10 rounded bg-navy/5"
-              >
-                <span className="text-sm font-medium text-navy">
-                  Week {week.week}
-                </span>
-                {week.phaseId && (
-                  <span className="text-xs bg-navy/10 text-navy/60 px-1.5 py-0.5 rounded">
-                    {week.phaseId}
-                  </span>
-                )}
-                {week.isTestWeek && (
-                  <span className="text-xs bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded">
-                    Test
-                  </span>
-                )}
-                <span className="text-xs text-navy/40 ml-auto">
-                  {week.sessions.length} session(s)
-                </span>
-                <span className="text-xs text-navy/30 italic">
-                  Session editing coming in next task
-                </span>
-              </div>
-            ))}
-          </div>
+          weeks.map((week, i) => (
+            <WeekEditor
+              key={week.week}
+              week={week}
+              weekIndex={i}
+              phases={phases}
+              onChange={(updated) => updateWeek(i, updated)}
+            />
+          ))
         )}
       </div>
 
