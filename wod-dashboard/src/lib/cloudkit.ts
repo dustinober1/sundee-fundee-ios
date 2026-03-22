@@ -121,40 +121,98 @@ export async function setupCloudKitAuth(): Promise<any> {
 }
 
 /**
- * Manually trigger Apple ID sign-in. Opens a pop-up/redirect to Apple's
- * auth page. This bypasses the need for CloudKit JS's built-in button.
+ * Manually trigger Apple ID sign-in using a popup window.
+ * The popup handles the OAuth flow and closes itself when done,
+ * avoiding the need for a configured callback/redirect URL.
  */
 export async function signIn(): Promise<any> {
   await initCloudKit();
 
-  // fetchCurrentUserIdentity will trigger the auth redirect if not signed in
-  try {
-    const userIdentity = await _container.fetchCurrentUserIdentity();
-    notifyAuthChange(true);
-    return userIdentity;
-  } catch (e: any) {
-    // If the error contains a redirectURL, open it
-    if (e?.redirectURL) {
-      window.location.href = e.redirectURL;
-      return null;
-    }
+  return new Promise((resolve, reject) => {
+    // Get the auth URL by making a direct API call
+    const containerId = process.env.NEXT_PUBLIC_CLOUDKIT_CONTAINER ?? "";
+    const apiToken = process.env.NEXT_PUBLIC_CLOUDKIT_API_TOKEN ?? "";
+    const env = process.env.NEXT_PUBLIC_CLOUDKIT_ENV ?? "production";
 
-    // Try setUpAuth as fallback — it may return a redirectURL in the error
-    try {
-      const result = await _container.setUpAuth();
-      if (result) {
-        notifyAuthChange(true);
-        return result;
-      }
-    } catch (authErr: any) {
-      if (authErr?.redirectURL) {
-        window.location.href = authErr.redirectURL;
-        return null;
-      }
-    }
+    const authUrl = `https://api.apple-cloudkit.com/database/1/${containerId}/${env}/public/users/caller?ckAPIToken=${apiToken}`;
 
-    throw new Error("Could not initiate Apple ID sign-in. Check CloudKit Dashboard configuration.");
-  }
+    fetch(authUrl)
+      .then((res) => res.json())
+      .then((data) => {
+        if (!data.redirectURL) {
+          // Already authenticated or no redirect needed
+          if (data.userRecordName) {
+            notifyAuthChange(true);
+            resolve(data);
+            return;
+          }
+          reject(new Error("No redirect URL received from CloudKit"));
+          return;
+        }
+
+        // Open Apple ID sign-in in a popup
+        const width = 650;
+        const height = 500;
+        const left = window.screenX + (window.outerWidth - width) / 2;
+        const top = window.screenY + (window.outerHeight - height) / 2;
+        const popup = window.open(
+          data.redirectURL,
+          "cloudkit-auth",
+          `width=${width},height=${height},left=${left},top=${top},toolbar=no,menubar=no`
+        );
+
+        if (!popup) {
+          reject(new Error("Popup was blocked. Please allow popups for this site."));
+          return;
+        }
+
+        // Poll for the popup closing or auth completing
+        const pollInterval = setInterval(async () => {
+          try {
+            // Check if popup was closed
+            if (popup.closed) {
+              clearInterval(pollInterval);
+
+              // Check if we're now authenticated
+              try {
+                const checkRes = await fetch(authUrl);
+                const checkData = await checkRes.json();
+                if (checkData.userRecordName) {
+                  notifyAuthChange(true);
+                  resolve(checkData);
+                } else {
+                  // Re-init and check via CloudKit JS
+                  _container = null;
+                  _db = null;
+                  await initCloudKit();
+                  const identity = await _container.setUpAuth();
+                  if (identity) {
+                    notifyAuthChange(true);
+                    resolve(identity);
+                  } else {
+                    reject(new Error("Sign-in was cancelled or failed."));
+                  }
+                }
+              } catch {
+                reject(new Error("Could not verify sign-in status."));
+              }
+            }
+          } catch {
+            // Cross-origin errors are expected while popup is on Apple's domain
+          }
+        }, 500);
+
+        // Timeout after 5 minutes
+        setTimeout(() => {
+          clearInterval(pollInterval);
+          if (!popup.closed) popup.close();
+          reject(new Error("Sign-in timed out."));
+        }, 5 * 60 * 1000);
+      })
+      .catch((err) => {
+        reject(new Error(`Failed to initiate sign-in: ${err}`));
+      });
+  });
 }
 
 /**
