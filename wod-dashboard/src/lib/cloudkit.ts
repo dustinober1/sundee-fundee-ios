@@ -129,14 +129,8 @@ export async function signIn(): Promise<any> {
   await initCloudKit();
 
   return new Promise((resolve, reject) => {
-    // Get the auth URL by making a direct API call
-    const containerId = process.env.NEXT_PUBLIC_CLOUDKIT_CONTAINER ?? "";
-    const apiToken = process.env.NEXT_PUBLIC_CLOUDKIT_API_TOKEN ?? "";
-    const env = process.env.NEXT_PUBLIC_CLOUDKIT_ENV ?? "production";
-
-    const authUrl = `https://api.apple-cloudkit.com/database/1/${containerId}/${env}/public/users/caller?ckAPIToken=${apiToken}`;
-
-    fetch(authUrl)
+    // Get the auth URL via our API route (server-side, no Origin header = no 421)
+    fetch("/api/cloudkit/auth-url")
       .then((res) => res.json())
       .then((data) => {
         if (!data.redirectURL) {
@@ -175,7 +169,7 @@ export async function signIn(): Promise<any> {
 
               // Check if we're now authenticated
               try {
-                const checkRes = await fetch(authUrl);
+                const checkRes = await fetch("/api/cloudkit/auth-url");
                 const checkData = await checkRes.json();
                 if (checkData.userRecordName) {
                   notifyAuthChange(true);
