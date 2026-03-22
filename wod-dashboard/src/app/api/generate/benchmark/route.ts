@@ -21,10 +21,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const VALID_ROLES = ["user", "assistant"];
     const valid = messages.every(
       (m: unknown) =>
         typeof m === "object" && m !== null &&
-        typeof (m as Record<string, unknown>).role === "string" &&
+        VALID_ROLES.includes((m as Record<string, unknown>).role as string) &&
         typeof (m as Record<string, unknown>).content === "string"
     );
     if (!valid) {

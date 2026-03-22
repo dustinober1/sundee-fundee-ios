@@ -7,6 +7,7 @@ interface Message {
   content: string;
   workoutDescription?: string;
   scoringTypeRaw?: string;
+  isError?: boolean;
 }
 
 interface BenchmarkAIChatProps {
@@ -63,6 +64,7 @@ export function BenchmarkAIChat({ benchmarkId, onApply }: BenchmarkAIChatProps) 
           {
             role: "assistant",
             content: `Error: ${data.error ?? "Unknown error"}. Try again.`,
+            isError: true,
           },
         ]);
         return;
@@ -83,6 +85,7 @@ export function BenchmarkAIChat({ benchmarkId, onApply }: BenchmarkAIChatProps) 
         {
           role: "assistant",
           content: `Error: ${err instanceof Error ? err.message : "Network error"}. Try again.`,
+          isError: true,
         },
       ]);
     } finally {
@@ -105,43 +108,43 @@ export function BenchmarkAIChat({ benchmarkId, onApply }: BenchmarkAIChatProps) 
       {isExpanded && (
         <div className="p-3 space-y-3">
           {/* Messages */}
-          {messages.length > 0 && (
-            <div className="max-h-64 overflow-y-auto space-y-2">
-              {messages.map((msg, i) => (
-                <div key={i}>
-                  <div
-                    className={`text-sm rounded px-3 py-2 ${
-                      msg.role === "user"
+          <div className="max-h-64 overflow-y-auto space-y-2">
+            {messages.map((msg, i) => (
+              <div key={i}>
+                <div
+                  className={`text-sm rounded px-3 py-2 ${
+                    msg.isError
+                      ? "bg-red-50 text-red-700"
+                      : msg.role === "user"
                         ? "bg-navy/10 text-navy"
                         : "bg-orange/10 text-navy"
-                    }`}
+                  }`}
+                >
+                  <span className="font-medium text-xs block mb-1 text-navy/50">
+                    {msg.isError ? "Error" : msg.role === "user" ? "You" : "AI"}
+                  </span>
+                  <span className="whitespace-pre-wrap">{msg.content}</span>
+                </div>
+                {msg.workoutDescription && msg.scoringTypeRaw && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onApply(msg.workoutDescription!, msg.scoringTypeRaw!)
+                    }
+                    className="mt-1 text-xs bg-orange text-white px-2 py-1 rounded hover:bg-orange/90 transition-colors"
                   >
-                    <span className="font-medium text-xs block mb-1 text-navy/50">
-                      {msg.role === "user" ? "You" : "AI"}
-                    </span>
-                    <span className="whitespace-pre-wrap">{msg.content}</span>
-                  </div>
-                  {msg.workoutDescription && msg.scoringTypeRaw && (
-                    <button
-                      type="button"
-                      onClick={() =>
-                        onApply(msg.workoutDescription!, msg.scoringTypeRaw!)
-                      }
-                      className="mt-1 text-xs bg-orange text-white px-2 py-1 rounded hover:bg-orange/90 transition-colors"
-                    >
-                      Apply to form
-                    </button>
-                  )}
-                </div>
-              ))}
-              {isLoading && (
-                <div className="text-sm text-navy/40 px-3 py-2">
-                  Generating...
-                </div>
-              )}
-              <div ref={messagesEndRef} />
-            </div>
-          )}
+                    Apply to form
+                  </button>
+                )}
+              </div>
+            ))}
+            {isLoading && (
+              <div className="text-sm text-navy/40 px-3 py-2">
+                Generating...
+              </div>
+            )}
+            <div ref={messagesEndRef} />
+          </div>
 
           {/* Input */}
           <div className="flex gap-2">
