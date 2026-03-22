@@ -13,14 +13,14 @@ fi
 echo "Installing XcodeGen..."
 brew install xcodegen
 
-# Clone the shared package into the expected location
-# The package is referenced as SundeeFundee/Packages/SundeeFundeeShared in project.yml
-echo "Cloning SundeeFundeeShared package..."
-SHARED_PKG_DIR="$CI_PRIMARY_REPOSITORY_PATH/SundeeFundee/Packages/SundeeFundeeShared"
-mkdir -p "$(dirname "$SHARED_PKG_DIR")"
-if [ ! -d "$SHARED_PKG_DIR" ]; then
-    git clone https://github.com/dustinober1/sundee-fundee-shared.git "$SHARED_PKG_DIR"
+# SundeeFundeeShared is inlined in the repo at SundeeFundee/Packages/SundeeFundeeShared
+echo "Verifying SundeeFundeeShared package..."
+if [ ! -f "$CI_PRIMARY_REPOSITORY_PATH/SundeeFundee/Packages/SundeeFundeeShared/Package.swift" ]; then
+    echo "ERROR: SundeeFundeeShared/Package.swift not found in repo"
+    ls -la "$CI_PRIMARY_REPOSITORY_PATH/SundeeFundee/Packages/" 2>/dev/null || echo "Packages dir missing"
+    exit 1
 fi
+echo "SundeeFundeeShared found."
 
 # Generate the Xcode project
 echo "Generating Xcode project..."
