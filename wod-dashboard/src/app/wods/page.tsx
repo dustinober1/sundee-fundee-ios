@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { WODList, type WODListItem } from "@/components/wod-list";
 import { WODEditor } from "@/components/wod-editor";
+import { WODGenerator } from "@/components/wod-generator";
 import { useToast } from "@/components/toast";
 import type { WOD, ProgramExerciseJSON } from "@/lib/types";
 import { exerciseFromJSON, exerciseToJSON } from "@/lib/types";
@@ -56,6 +57,7 @@ export default function WODsPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
+  const [showGenerator, setShowGenerator] = useState(false);
 
   // Fetch WODs
   const fetchWODs = useCallback(async () => {
@@ -153,6 +155,22 @@ export default function WODsPage() {
     toast(`Publishing ${checkedIds.size} WODs is not yet implemented`, "error");
   }
 
+  function handleGenerated(rawWods: any[]) {
+    const decoded = rawWods.map(decodeWOD);
+    // Merge into local state (replace by ID if already exists)
+    setWods((prev) => {
+      const map = new Map(prev.map((w) => [w.id, w]));
+      for (const w of decoded) {
+        map.set(w.id, w);
+      }
+      return [...map.values()].sort((a, b) => a.date.localeCompare(b.date));
+    });
+    // Load the first generated WOD into the editor
+    if (decoded.length > 0) {
+      setSelectedId(decoded[0].id);
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full text-navy/40">
@@ -162,28 +180,48 @@ export default function WODsPage() {
   }
 
   return (
-    <div className="flex h-full gap-4 p-4">
-      {/* Left panel: list */}
-      <div className="w-96 shrink-0">
-        <WODList
-          wods={listItems}
-          selectedId={selectedId}
-          onSelect={setSelectedId}
-          onNew={handleNew}
-          selectedIds={checkedIds}
-          onToggleSelect={handleToggleSelect}
-          onBatchPublish={handleBatchPublish}
-        />
+    <div className="flex flex-col h-full gap-4 p-4">
+      {/* Generator toggle */}
+      <div className="shrink-0">
+        <button
+          onClick={() => setShowGenerator((v) => !v)}
+          className="px-3 py-1.5 border border-navy/20 rounded text-sm font-medium text-navy hover:bg-navy/5 transition-colors"
+        >
+          {showGenerator ? "Hide Generator" : "Generate WOD"}
+        </button>
       </div>
 
-      {/* Right panel: editor */}
-      <div className="flex-1 border border-navy/10 rounded bg-white min-h-0">
-        <WODEditor
-          wod={selectedWOD}
-          existingDates={existingDates}
-          onSave={handleSave}
-          onDelete={handleDelete}
-        />
+      {/* AI generator panel */}
+      {showGenerator && (
+        <div className="shrink-0">
+          <WODGenerator onGenerated={handleGenerated} />
+        </div>
+      )}
+
+      {/* Two-panel layout */}
+      <div className="flex flex-1 gap-4 min-h-0">
+        {/* Left panel: list */}
+        <div className="w-96 shrink-0">
+          <WODList
+            wods={listItems}
+            selectedId={selectedId}
+            onSelect={setSelectedId}
+            onNew={handleNew}
+            selectedIds={checkedIds}
+            onToggleSelect={handleToggleSelect}
+            onBatchPublish={handleBatchPublish}
+          />
+        </div>
+
+        {/* Right panel: editor */}
+        <div className="flex-1 border border-navy/10 rounded bg-white min-h-0">
+          <WODEditor
+            wod={selectedWOD}
+            existingDates={existingDates}
+            onSave={handleSave}
+            onDelete={handleDelete}
+          />
+        </div>
       </div>
     </div>
   );
