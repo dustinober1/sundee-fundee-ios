@@ -1,0 +1,105 @@
+name: Google Play Publishing
+
+on:
+  workflow_dispatch:
+    inputs:
+      track:
+        description: 'Track (internal, alpha, beta, production)'
+        required: true
+        default: 'internal'
+        type: choice
+        options:
+          - internal
+          - alpha
+          - beta
+          - production
+      rollout_percentage:
+        description: 'Rollout percentage (0-100)'
+        required: false
+        default: '100'
+      skip_screenshots:
+        description: 'Skip screenshot upload'
+        type: boolean
+        default: false
+
+jobs:
+  publish:
+    name: Publish to Google Play
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
+      
+      - name: Create local.properties
+        run: |
+          cd android
+          echo "sdk.dir=$ANDROID_HOME" > local.properties
+      
+      - name: Create secrets.properties
+        run: |
+          cd android
+          echo "STORE_FILE=${{ secrets.STORE_FILE }}" | base64 -d > app/secrets.properties
+          echo "STORE_PASSWORD=${{ secrets.STORE_PASSWORD }}" >> app/secrets.properties
+          echo "KEY_ALIAS=${{ secrets.KEY_ALIAS }}" >> app/secrets.properties
+          echo "KEY_PASSWORD=${{ secrets.KEY_PASSWORD }}" >> app/secrets.properties
+      
+      - name: Grant execute permission for gradlew
+        run: cd android && chmod +x gradlew
+      
+      - name: Build release APK
+        run: cd android && ./gradlew assembleRelease
+      
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+      
+      - name: Install google-api-client
+        run: gem install google-api-client --no-document
+      
+      - name: Publish to Google Play
+        run: |
+          cd android
+          ruby <<-EOF
+          require 'google/apis/playcustomapp_v1'
+          
+          service = Google::Apis::PlaycustomappV1::PlaycustomappService.new
+          service.authorization = nil  # Uses service account
+          
+          # Upload and publish
+          edit = service.create_edit(package_name: 'com.sundeefundee')
+          
+          apk_path = 'app/build/outputs/apk/release/app-release.apk'
+          
+          upload = service.upload_edit_apk(
+            edit.edit_id,
+            'com.sundeefundee',
+            apk_path
+          )
+          
+          track = '${{ github.event.inputs.track }}'
+          rollout = ${{ github.event.inputs.rollout_percentage || 100 }}
+          
+          service.commit_edit!(
+            'com.sundeefundee',
+            edit.edit_id,
+            track: track,
+            releases: [{
+              name: 'Release',
+              version_codes: [upload.version_code],
+              status: rollout == 100 ? 'completed' : 'inProgress',
+              user_fraction: rollout / 100.0
+            }]
+          )
+          
+          puts "Published to #{track} with #{rollout}% rollout"
+          EOF
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT }}

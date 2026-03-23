@@ -2,4 +2,28 @@
 <resources>
     <string name="app_name">Sundee Fundee</string>
     <string name="hello_message">Hello Sundee Fundee</string>
+    
+    <!-- Notification Channel Definitions -->
+    <string name="notification_channel_workouts">Workout Reminders</string>
+    <string name="notification_channel_workouts_desc">Reminders for scheduled workouts</string>
+    <string name="notification_channel_cycle">Cycle Tracking</string>
+    <string name="notification_channel_cycle_desc">Reminders for cycle tracking and insights</string>
+    <string name="notification_channel_general">General</string>
+    <string name="notification_channel_general_desc">General app notifications</string>
+    
+    <!-- Notification Settings -->
+    <string name="notification_settings_title">Notification Settings</string>
+    <string name="notification_workout_reminders">Workout Reminders</string>
+    <string name="notification_workout_reminders_desc">Get notified before scheduled workouts</string>
+    <string name="notification_cycle_reminders">Cycle Phase Reminders</string>
+    <string name="notification_cycle_reminders_desc">Get daily reminders to log cycle symptoms</string>
+    <string name="notification_daily_time">Daily Reminder Time</string>
+    <string name="notification_marketing">Marketing Notifications</string>
+    <string name="notification_marketing_desc">Receive updates about new features and promotions</string>
+    
+    <!-- Notification Actions -->
+    <string name="notification_action_dismiss">Dismiss</string>
+    <string name="notification_action_snooze">Snooze</string>
+    <string name="notification_action_start_workout">Start Workout</string>
+    <string name="notification_action_log_symptoms">Log Symptoms</string>
 </resources>

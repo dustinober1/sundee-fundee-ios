@@ -1,0 +1,8 @@
+# Play Store Listing Assets
+
+This directory should contain:
+- icon.png (512x512)
+- featureGraphic.png (1024x500)
+- screenshots/phone/ (at least 2 screenshots, 1080x1920)
+- screenshots/tablet-7inch/
+- screenshots/tablet-10inch/
