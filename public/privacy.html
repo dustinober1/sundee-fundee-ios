@@ -40,44 +40,109 @@
       border-bottom: 2px solid var(--orange);
       padding-bottom: 0.25rem;
     }
+    h3 {
+      font-size: 1.05rem;
+      margin-top: 1.25rem;
+      margin-bottom: 0.5rem;
+      color: var(--navy);
+    }
     p, li { margin-bottom: 0.75rem; }
     ul { padding-left: 1.5rem; }
     .effective { font-style: italic; color: #666; margin-top: 2rem; }
     a { color: var(--orange); }
+    .app-scope {
+      background: white;
+      border: 2px solid var(--navy);
+      border-radius: 12px;
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+    }
+    .app-scope h4 {
+      color: var(--orange);
+      margin-bottom: 0.5rem;
+    }
+    .back-link {
+      display: inline-block;
+      margin-bottom: 1.5rem;
+      font-weight: 600;
+    }
   </style>
 </head>
 <body>
   <div class="container">
+    <a href="/" class="back-link">&larr; Home</a>
     <h1>Privacy Policy</h1>
-    <p class="subtitle">Sundee Fundee</p>
+    <p class="subtitle">Sundee Fundee Apps</p>
 
-    <p>Your privacy matters to us. This policy explains what data Sundee Fundee collects, how we use it, and your rights.</p>
+    <p>This privacy policy covers all applications published by Sundee Fundee, including <strong>Sundee Fundee</strong> (strength training) and <strong>Sundee Fundee Rucking Club</strong> (rucking &amp; fitness tracking). Your privacy matters to us. This policy explains what data our apps collect, how we use it, and your rights.</p>
 
     <h2>1. Data We Collect</h2>
 
     <h3>Account Information</h3>
-    <p>When you sign in with Apple, we receive your Apple-provided user identifier. We do not receive or store your email address unless you choose to share it. You may also use the app in guest mode without creating an account.</p>
+    <p>When you sign in with Apple, we receive your Apple-provided user identifier. We do not receive or store your email address unless you choose to share it.</p>
 
     <h3>Health &amp; Fitness Data</h3>
-    <p>With your explicit permission, Sundee Fundee reads and writes the following Apple HealthKit data:</p>
+    <p>With your explicit permission, our apps read and write the following Apple HealthKit data:</p>
+
+    <div class="app-scope">
+      <h4>Sundee Fundee (Strength Training)</h4>
+      <ul>
+        <li><strong>Menstrual cycle data</strong> &mdash; used to provide cycle-phase-aware training recommendations</li>
+        <li><strong>Workout data</strong> &mdash; completed workout sessions are written to Apple Health</li>
+      </ul>
+    </div>
+
+    <div class="app-scope">
+      <h4>Sundee Fundee Rucking Club</h4>
+      <ul>
+        <li><strong>Workout data</strong> &mdash; completed rucks are saved as hiking workouts to Apple Health</li>
+        <li><strong>Heart rate data</strong> &mdash; read during active rucks on Apple Watch for live metrics</li>
+        <li><strong>Active calories</strong> &mdash; read during active rucks on Apple Watch</li>
+      </ul>
+    </div>
+
+    <p><strong>HealthKit data is never transmitted to external servers, never sold, and never used for advertising or marketing purposes.</strong> HealthKit data is stored only on your device and in your private iCloud account.</p>
+
+    <h3>Location Data</h3>
+    <p>Sundee Fundee Rucking Club collects GPS location data during active rucks to track your route, distance, and pace. Location data is:</p>
     <ul>
-      <li><strong>Menstrual cycle data</strong> &mdash; used to provide cycle-phase-aware training recommendations</li>
-      <li><strong>Workout data</strong> &mdash; we write completed workout sessions to Apple Health</li>
+      <li>Collected only while you are actively tracking a ruck</li>
+      <li>Stored locally on your device and in your private iCloud account</li>
+      <li>Never transmitted to external servers or shared with third parties</li>
+      <li>Filtered for accuracy (readings with horizontal accuracy greater than 20 meters are discarded)</li>
     </ul>
-    <p>HealthKit data is stored only on your device and in your private iCloud account. We never transmit HealthKit data to external servers, and we never use it for advertising or marketing purposes.</p>
 
-    <h3>Workout &amp; Training Data</h3>
-    <p>Your workout logs, one-rep maxes, benchmark scores, injury records, and program enrollment are stored locally on your device using SwiftData. If you are signed in with Apple, this data syncs privately via iCloud (CloudKit Private Database) to your other devices. This data is accessible only to you.</p>
+    <h3>Cloud Data</h3>
+    <p>If you are signed in with Apple, certain data syncs via iCloud (CloudKit):</p>
 
-    <h3>AI-Generated Workouts</h3>
-    <p>If you use the AI Workout Builder, your fitness preferences and workout parameters are sent to our cloud service to generate personalized workouts. No personally identifiable information or HealthKit data is included in these requests.</p>
+    <div class="app-scope">
+      <h4>Sundee Fundee (Strength Training)</h4>
+      <ul>
+        <li>Workout logs, one-rep maxes, benchmark scores, injury records, and program enrollment (CloudKit Private Database &mdash; accessible only to you)</li>
+        <li>Program content and workout templates (CloudKit Public Database &mdash; no personal information)</li>
+      </ul>
+    </div>
+
+    <div class="app-scope">
+      <h4>Sundee Fundee Rucking Club</h4>
+      <ul>
+        <li>Ruck logs, user profile, and badges (CloudKit Private Database &mdash; accessible only to you)</li>
+        <li>Club membership, leaderboard entries, and event RSVPs (CloudKit Public Database &mdash; visible to other club members)</li>
+      </ul>
+    </div>
+
+    <h3>AI-Generated Content</h3>
+    <p>If you use the AI Workout Builder in Sundee Fundee, your fitness preferences and workout parameters are sent to our cloud service to generate personalized workouts. No personally identifiable information or HealthKit data is included in these requests. Sundee Fundee Rucking Club does not use AI services.</p>
 
     <h2>2. How We Use Your Data</h2>
     <ul>
-      <li>Provide cycle-phase-aware training recommendations</li>
-      <li>Track your workout history, progress, and personal records</li>
-      <li>Modify exercises based on injury status</li>
-      <li>Generate personalized AI workouts</li>
+      <li>Track your workouts, rucks, progress, and personal records</li>
+      <li>Provide cycle-phase-aware training recommendations (Sundee Fundee)</li>
+      <li>Track routes, distance, pace, and elevation during rucks (Rucking Club)</li>
+      <li>Enable club membership, leaderboards, and event coordination (Rucking Club)</li>
+      <li>Award achievement badges based on your activity (Rucking Club)</li>
+      <li>Modify exercises based on injury status (Sundee Fundee)</li>
+      <li>Generate personalized AI workouts (Sundee Fundee)</li>
       <li>Sync your data across your devices via iCloud</li>
     </ul>
 
@@ -87,14 +152,20 @@
       <li>We do not use advertising SDKs or ad tracking</li>
       <li>We do not sell, rent, or share your personal data with third parties</li>
       <li>We do not transmit HealthKit data to any external server</li>
+      <li>We do not track your location when you are not actively recording a ruck</li>
     </ul>
 
     <h2>4. Data Storage &amp; Security</h2>
-    <p>All personal data is stored either locally on your device or in your private iCloud account (CloudKit Private Database). iCloud data is encrypted in transit and at rest by Apple. We do not operate our own servers for storing personal user data.</p>
-    <p>Program content (workout templates and schedules) is delivered via CloudKit Public Database and bundled resources. This content does not contain personal information.</p>
+    <p>All personal data is stored either locally on your device or in your iCloud account (CloudKit). iCloud data is encrypted in transit and at rest by Apple. We do not operate our own servers for storing personal user data.</p>
+    <p>Public content (club information, leaderboard rankings, event details) is stored in CloudKit Public Database and is visible to other users of the app.</p>
 
     <h2>5. Subscriptions</h2>
-    <p>Sundee Fundee offers optional subscriptions (Sundee Plus and Sundee Premium) through Apple's In-App Purchase system. All payment processing is handled entirely by Apple. We do not receive or store your payment information.</p>
+    <p>Our apps offer optional subscriptions through Apple's In-App Purchase system:</p>
+    <ul>
+      <li><strong>Sundee Fundee:</strong> Sundee Plus and Sundee Premium</li>
+      <li><strong>Rucking Club:</strong> Sundee Pro</li>
+    </ul>
+    <p>All payment processing is handled entirely by Apple. We do not receive or store your payment information. Subscription entitlements are verified on-device via StoreKit 2.</p>
 
     <h2>6. Data Retention &amp; Deletion</h2>
     <p>Your data remains on your device and in your iCloud account for as long as you use the app. To delete your data:</p>
@@ -105,7 +176,7 @@
     </ul>
 
     <h2>7. Children's Privacy</h2>
-    <p>Sundee Fundee is not directed at children under 17. We do not knowingly collect personal information from children.</p>
+    <p>Our apps are not directed at children under 17. We do not knowingly collect personal information from children.</p>
 
     <h2>8. Changes to This Policy</h2>
     <p>We may update this policy from time to time. We will notify you of significant changes through the app or by updating the effective date below.</p>
@@ -114,7 +185,7 @@
     <p>If you have questions about this privacy policy or your data, contact us at:<br>
     <a href="mailto:support@sundeefundee.com">support@sundeefundee.com</a></p>
 
-    <p class="effective">Effective date: March 22, 2026</p>
+    <p class="effective">Effective date: March 23, 2026</p>
   </div>
 </body>
 </html>
