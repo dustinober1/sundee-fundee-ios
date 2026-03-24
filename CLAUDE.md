@@ -83,6 +83,7 @@ Domain/ (pure Swift, zero dependencies, 100% tested)
 - `loading` → `signIn` → `onboarding` → `mainTab`
 - `.authenticated` mode: full CloudKit sync enabled
 - `.guest` mode: local SwiftData only, no CloudKit
+- **Onboarding does not collect name** — `AuthService` extracts `fullName` from the Sign in with Apple credential and writes it to the User stub. This is required by App Store Guideline 4 (do not re-ask for data Apple already provides).
 
 ### SwiftData / CloudKit Constraints
 
@@ -109,6 +110,8 @@ Sundee Fundee Benchmarks (admin-created) are delivered via two channels:
 
 ### Subscriptions
 
+**Currently bypassed:** All features are free — `AppState.subscriptionTier` defaults to `.premium` and `SubscriptionManager.start()` skips StoreKit. Subscription UI is hidden from Settings. All code is preserved for future re-enablement. To restore subscriptions: revert `AppState.subscriptionTier` to `.free`, restore `SubscriptionManager.start()` to call `loadProducts()`/`refreshSubscriptionStatus()`, and re-add the Subscription section in `SettingsView`.
+
 Product IDs use the `com.sundeefundee.sub.*` prefix (earlier `com.sundeefundee.app.*` IDs are permanently burned in App Store Connect). Four products:
 - `com.sundeefundee.sub.plus.monthly` ($4.99/mo)
 - `com.sundeefundee.sub.plus.annual` ($39.99/yr)
@@ -119,6 +122,7 @@ Product IDs are defined in `Domain/Subscription/SubscriptionTier.swift` and mirr
 
 ### Testing
 
+- **Onboarding changes ripple across 3+ test files:** `AuthOnboardingCoverageWave3Tests`, `AuthOnboardingCoverageWave5Tests`, `AuthOnboardingViewCoverageTests`, and `UICriticalFlowTests` all test `OnboardingFlowView` statics. Grep for usage before modifying the onboarding signature.
 - **100% line coverage is enforced** in CI (GitHub Actions parses `xccov` output).
 - `Domain/` code is tested in isolation via pure Swift unit tests — no mocking needed.
 - ViewModels, Repositories, Auth/Onboarding flows, and critical UI paths each have dedicated test wave files.

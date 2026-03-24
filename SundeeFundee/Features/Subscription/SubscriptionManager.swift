@@ -37,9 +37,8 @@ final class SubscriptionManager {
     }
 
     func start() async {
-        listenForTransactions()
-        await loadProducts()
-        await refreshSubscriptionStatus()
+        // All features are free — bypass StoreKit entirely
+        currentTier = .premium
     }
 
     func purchase(_ product: Product) async {

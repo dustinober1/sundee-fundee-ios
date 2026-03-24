@@ -38,10 +38,8 @@ final class UICriticalFlowTests: XCTestCase {
 
     @MainActor
     func testOnboardingFlowHelpersEnforceCriticalProgressionRules() {
-        XCTAssertEqual(OnboardingFlowView.visibleSteps(for: .male), [.name, .experience, .goal, .gender])
-        XCTAssertEqual(OnboardingFlowView.visibleSteps(for: .female), [.name, .experience, .goal, .gender, .cycle])
-        XCTAssertFalse(OnboardingFlowView.canAdvanceFromName("   "))
-        XCTAssertTrue(OnboardingFlowView.canAdvanceFromName(" Alex "))
+        XCTAssertEqual(OnboardingFlowView.visibleSteps(for: .male), [.experience, .goal, .gender])
+        XCTAssertEqual(OnboardingFlowView.visibleSteps(for: .female), [.experience, .goal, .gender, .cycle])
         XCTAssertFalse(OnboardingFlowView.resolvedCycleTrackingEnabled(gender: .male, requestedValue: true))
         XCTAssertTrue(OnboardingFlowView.resolvedCycleTrackingEnabled(gender: .female, requestedValue: true))
     }

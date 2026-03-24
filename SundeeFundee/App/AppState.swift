@@ -15,7 +15,7 @@ enum AuthState {
 final class AppState {
     var authState: AuthState = .loading
     var currentUserID: String?
-    var subscriptionTier: SubscriptionTier = .free
+    var subscriptionTier: SubscriptionTier = .premium
 
     let authService = AuthService()
 

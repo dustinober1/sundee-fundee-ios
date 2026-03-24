@@ -125,10 +125,6 @@ struct AuthOnboardingViewCoverageTests {
 
         let nextFlow = OnboardingFlowView(userID: "u-2", initialStep: .experience)
         nextFlow.nextStepAnimatedAction()
-
-        let submitFlow = OnboardingFlowView(userID: "u-3", initialStep: .name, initialName: "Morgan")
-        submitFlow.submitNameStepAction()
-        #expect(submitFlow.currentStep == .name || submitFlow.currentStep == .experience)
     }
 
     @Test @MainActor
@@ -159,7 +155,6 @@ struct AuthOnboardingViewCoverageTests {
         let flow = OnboardingFlowView(
             userID: user.id,
             initialStep: .cycle,
-            initialName: user.name,
             initialExperienceLevel: user.experienceLevel,
             initialPrimaryGoal: user.primaryGoal,
             initialGender: user.gender,
@@ -178,20 +173,18 @@ struct AuthOnboardingViewCoverageTests {
 
     @Test @MainActor
     func onboardingAndAuthRoutingBranches() {
-        #expect(OnboardingFlowView.visibleSteps(for: .male) == [.name, .experience, .goal, .gender])
-        #expect(OnboardingFlowView.visibleSteps(for: .female) == [.name, .experience, .goal, .gender, .cycle])
-        #expect(OnboardingFlowView.visibleSteps(for: .preferNotToSay) == [.name, .experience, .goal, .gender, .cycle])
-        #expect(!OnboardingFlowView.canAdvanceFromName("   "))
-        #expect(OnboardingFlowView.canAdvanceFromName(" Alex "))
-        #expect(OnboardingFlowView.showsBackButton(for: .name) == false)
-        #expect(OnboardingFlowView.showsBackButton(for: .experience))
-        #expect(OnboardingFlowView.actionTitle(for: .name, gender: .female) == "Next")
+        #expect(OnboardingFlowView.visibleSteps(for: .male) == [.experience, .goal, .gender])
+        #expect(OnboardingFlowView.visibleSteps(for: .female) == [.experience, .goal, .gender, .cycle])
+        #expect(OnboardingFlowView.visibleSteps(for: .preferNotToSay) == [.experience, .goal, .gender, .cycle])
+        #expect(OnboardingFlowView.showsBackButton(for: .experience) == false)
+        #expect(OnboardingFlowView.showsBackButton(for: .goal))
+        #expect(OnboardingFlowView.actionTitle(for: .experience, gender: .female) == "Next")
         #expect(OnboardingFlowView.actionTitle(for: .cycle, gender: .female) == "Get Started")
         #expect(OnboardingFlowView.isLastStep(.gender, gender: .male))
         #expect(OnboardingFlowView.isLastStep(.cycle, gender: .female))
         #expect(OnboardingFlowView.nextVisibleStep(from: .gender, gender: .male) == nil)
         #expect(OnboardingFlowView.nextVisibleStep(from: .gender, gender: .female) == .cycle)
-        #expect(OnboardingFlowView.previousVisibleStep(from: .name, gender: .female) == nil)
+        #expect(OnboardingFlowView.previousVisibleStep(from: .experience, gender: .female) == nil)
         #expect(OnboardingFlowView.previousVisibleStep(from: .goal, gender: .female) == .experience)
         #expect(!OnboardingFlowView.resolvedCycleTrackingEnabled(gender: .male, requestedValue: true))
         #expect(OnboardingFlowView.resolvedCycleTrackingEnabled(gender: .female, requestedValue: true))

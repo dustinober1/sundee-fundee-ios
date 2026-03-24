@@ -108,7 +108,6 @@ struct AuthOnboardingCoverageWave5Tests {
     func onboardingBodiesCoverStepVariants() throws {
         _ = try makeContainer()
 
-        _ = OnboardingFlowView(userID: "wave5-user", initialStep: .name, initialName: "Avery").body
         _ = OnboardingFlowView(userID: "wave5-user", initialStep: .experience).body
         _ = OnboardingFlowView(userID: "wave5-user", initialStep: .goal).body
         _ = OnboardingFlowView(userID: "wave5-user", initialStep: .gender).body
@@ -432,13 +431,7 @@ struct AuthOnboardingCoverageWave5Tests {
         }
         #expect(showErrorTask == nil)
 
-        let noNameFlow = OnboardingFlowView(userID: "wave5-flow", initialStep: .name, initialName: "   ")
-        #expect(noNameFlow.submitNameStep() == false)
-
-        let namedFlow = OnboardingFlowView(userID: "wave5-flow", initialStep: .name, initialName: "Avery")
-        #expect(namedFlow.submitNameStep() == true)
-
-        let middleFlow = OnboardingFlowView(userID: "wave5-flow", initialStep: .name, initialGender: .female)
+        let middleFlow = OnboardingFlowView(userID: "wave5-flow", initialStep: .experience, initialGender: .female)
         var savedAtMiddle = false
         #expect(middleFlow.nextStep(saveAndFinish: { savedAtMiddle = true }) == true)
         #expect(savedAtMiddle == false)
@@ -448,7 +441,7 @@ struct AuthOnboardingCoverageWave5Tests {
         #expect(finalFlow.nextStep(saveAndFinish: { savedAtFinalStep = true }) == false)
         #expect(savedAtFinalStep == true)
 
-        let firstStepFlow = OnboardingFlowView(userID: "wave5-flow", initialStep: .name)
+        let firstStepFlow = OnboardingFlowView(userID: "wave5-flow", initialStep: .experience)
         #expect(firstStepFlow.previousStep() == false)
         #expect(firstStepFlow.previousStepAnimated() == false)
 
@@ -458,15 +451,13 @@ struct AuthOnboardingCoverageWave5Tests {
         let saveFlow = OnboardingFlowView(
             userID: "wave5-flow",
             initialStep: .cycle,
-            initialName: "  Blair  ",
             initialExperienceLevel: .advanced,
             initialPrimaryGoal: .endurance,
             initialGender: .female,
             initialCycleTrackingEnabled: true
         )
-        let persisted = saveFlow.saveAndFinish { userID, name, experienceLevel, primaryGoal, gender, cycleTrackingEnabled in
+        let persisted = saveFlow.saveAndFinish { userID, experienceLevel, primaryGoal, gender, cycleTrackingEnabled in
             #expect(userID == "wave5-flow")
-            #expect(name == "  Blair  ")
             #expect(experienceLevel == .advanced)
             #expect(primaryGoal == .endurance)
             #expect(gender == .female)

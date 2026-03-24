@@ -78,26 +78,6 @@ struct SettingsView: View {
                     }
                 }
 
-                // Subscription
-                Section("Subscription") {
-                    NavigationLink {
-                        ManageSubscriptionView()
-                    } label: {
-                        HStack {
-                            Image(systemName: "crown.fill")
-                                .foregroundStyle(AppTheme.Colors.gold)
-                            Text(appState.subscriptionTier.displayName)
-                                .foregroundStyle(AppTheme.Colors.navy)
-                            Spacer()
-                            if appState.subscriptionTier == .free {
-                                Text("Upgrade")
-                                    .font(AppTheme.Fonts.caption)
-                                    .foregroundStyle(AppTheme.Colors.accentOrange)
-                            }
-                        }
-                    }
-                }
-
                 // Account
                 Section("Account") {
                     if appState.currentUserID != nil {

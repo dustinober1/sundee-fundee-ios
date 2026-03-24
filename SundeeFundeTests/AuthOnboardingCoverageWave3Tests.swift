@@ -180,14 +180,12 @@ struct AuthOnboardingCoverageWave3Tests {
 
         OnboardingFlowView.applyOnboardingAnswers(
             to: user,
-            name: "  Alex  ",
             experienceLevel: .intermediate,
             primaryGoal: .hypertrophy,
             gender: .male,
             cycleTrackingEnabled: true,
             updatedAt: updatedAt
         )
-        #expect(user.name == "Alex")
         #expect(user.experienceLevel == .intermediate)
         #expect(user.primaryGoal == .hypertrophy)
         #expect(user.gender == .male)
@@ -197,7 +195,6 @@ struct AuthOnboardingCoverageWave3Tests {
 
         OnboardingFlowView.applyOnboardingAnswers(
             to: user,
-            name: "Taylor",
             experienceLevel: .advanced,
             primaryGoal: .endurance,
             gender: .female,
@@ -287,11 +284,6 @@ struct AuthOnboardingCoverageWave3Tests {
         #expect(ignored.errorMessage == nil)
         #expect(ignored.resolutionContext == nil)
 
-        render(
-            OnboardingFlowView(userID: "wave3-onboarding-user", initialStep: .name, initialName: "Casey")
-                .environment(AppState())
-                .modelContainer(container)
-        )
         render(
             OnboardingFlowView(userID: "wave3-onboarding-user", initialStep: .experience)
                 .environment(AppState())
@@ -497,8 +489,7 @@ struct AuthOnboardingCoverageWave3Tests {
         context.insert(user)
         try context.save()
 
-        #expect(OnboardingFlowView.trimmedName("  Riley  ") == "Riley")
-        #expect(OnboardingFlowView.nextVisibleStep(from: .name, gender: .male) == .experience)
+        #expect(OnboardingFlowView.nextVisibleStep(from: .experience, gender: .male) == .goal)
         #expect(OnboardingFlowView.previousVisibleStep(from: .cycle, gender: .female) == .gender)
 
         #expect(ExperienceLevel.beginner.displayName == "Beginner")
@@ -516,7 +507,6 @@ struct AuthOnboardingCoverageWave3Tests {
         let updatedAt = Date(timeIntervalSince1970: 1_800_000_000)
         let persisted = OnboardingFlowView.persistOnboardingAnswers(
             userID: "wave3-persist-user",
-            name: "  Riley  ",
             experienceLevel: .advanced,
             primaryGoal: .endurance,
             gender: .female,
@@ -526,7 +516,6 @@ struct AuthOnboardingCoverageWave3Tests {
             updatedAt: updatedAt
         )
         #expect(persisted)
-        #expect(user.name == "Riley")
         #expect(user.experienceLevel == .advanced)
         #expect(user.primaryGoal == .endurance)
         #expect(user.gender == .female)
@@ -543,7 +532,6 @@ struct AuthOnboardingCoverageWave3Tests {
         let missingState = AppState()
         let missing = OnboardingFlowView.persistOnboardingAnswers(
             userID: "missing-wave3-user",
-            name: "Nope",
             experienceLevel: .beginner,
             primaryGoal: .strength,
             gender: .male,

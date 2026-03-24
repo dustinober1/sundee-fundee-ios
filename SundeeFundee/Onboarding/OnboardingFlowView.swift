@@ -2,19 +2,19 @@ import SwiftUI
 import SwiftData
 
 /// Multi-step onboarding flow:
-///   1. Name
-///   2. Experience level
-///   3. Primary goal
-///   4. Gender
-///   5. Cycle tracking opt-in (shown only for female/prefer-not-to-say)
+///   1. Experience level
+///   2. Primary goal
+///   3. Gender
+///   4. Cycle tracking opt-in (shown only for female/prefer-not-to-say)
+///
+/// Name is collected automatically from Sign in with Apple credentials.
 struct OnboardingFlowView: View {
     let userID: String
 
     @Environment(AppState.self) private var appState
     @Environment(\.modelContext) private var modelContext
 
-    @State private var step: OnboardingStep = .name
-    @State private var name: String = ""
+    @State private var step: OnboardingStep = .experience
     @State private var experienceLevel: ExperienceLevel = .beginner
     @State private var primaryGoal: PrimaryGoal = .strength
     @State private var gender: Gender = .preferNotToSay
@@ -23,8 +23,7 @@ struct OnboardingFlowView: View {
 
     init(
         userID: String,
-        initialStep: OnboardingStep = .name,
-        initialName: String = "",
+        initialStep: OnboardingStep = .experience,
         initialExperienceLevel: ExperienceLevel = .beginner,
         initialPrimaryGoal: PrimaryGoal = .strength,
         initialGender: Gender = .preferNotToSay,
@@ -33,7 +32,6 @@ struct OnboardingFlowView: View {
     ) {
         self.userID = userID
         _step = State(initialValue: initialStep)
-        _name = State(initialValue: initialName)
         _experienceLevel = State(initialValue: initialExperienceLevel)
         _primaryGoal = State(initialValue: initialPrimaryGoal)
         _gender = State(initialValue: initialGender)
@@ -42,7 +40,7 @@ struct OnboardingFlowView: View {
     }
 
     enum OnboardingStep: Int, CaseIterable {
-        case name, experience, goal, gender, cycle
+        case experience, goal, gender, cycle
     }
 
     var body: some View {
@@ -100,13 +98,6 @@ struct OnboardingFlowView: View {
     @ViewBuilder
     private var stepContent: some View {
         switch step {
-        case .name:
-            OnboardingStepView(title: "What's your name?", subtitle: "We'll use it to personalise your experience.") {
-                TextField("Your name", text: $name)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .submitLabel(.next)
-                    .onSubmit(submitNameStepAction)
-            }
         case .experience:
             OnboardingStepView(title: "Experience level", subtitle: "How long have you been strength training?") {
                 ForEach(ExperienceLevel.allCases, id: \.self) { level in
@@ -164,12 +155,8 @@ struct OnboardingFlowView: View {
         return OnboardingStep.allCases
     }
 
-    static func canAdvanceFromName(_ name: String) -> Bool {
-        !name.trimmingCharacters(in: .whitespaces).isEmpty
-    }
-
     static func showsBackButton(for step: OnboardingStep) -> Bool {
-        step.rawValue > 0
+        step != OnboardingStep.allCases.first
     }
 
     static func actionTitle(for step: OnboardingStep, gender: Gender) -> String {
@@ -200,20 +187,14 @@ struct OnboardingFlowView: View {
         { binding.wrappedValue = value }
     }
 
-    nonisolated static func trimmedName(_ name: String) -> String {
-        name.trimmingCharacters(in: .whitespaces)
-    }
-
     nonisolated static func applyOnboardingAnswers(
         to user: User,
-        name: String,
         experienceLevel: ExperienceLevel,
         primaryGoal: PrimaryGoal,
         gender: Gender,
         cycleTrackingEnabled: Bool,
         updatedAt: Date = .now
     ) {
-        user.name = trimmedName(name)
         user.experienceLevel = experienceLevel
         user.primaryGoal = primaryGoal
         user.gender = gender
@@ -229,7 +210,6 @@ struct OnboardingFlowView: View {
     @discardableResult
     static func persistOnboardingAnswers(
         userID: String,
-        name: String,
         experienceLevel: ExperienceLevel,
         primaryGoal: PrimaryGoal,
         gender: Gender,
@@ -244,7 +224,6 @@ struct OnboardingFlowView: View {
         guard let user = (try? modelContext.fetch(descriptor))?.first else { return false }
         applyOnboardingAnswers(
             to: user,
-            name: name,
             experienceLevel: experienceLevel,
             primaryGoal: primaryGoal,
             gender: gender,
@@ -261,10 +240,7 @@ struct OnboardingFlowView: View {
     }
 
     private var canAdvance: Bool {
-        switch step {
-        case .name: return Self.canAdvanceFromName(name)
-        default: return true
-        }
+        true
     }
 
     var currentStep: OnboardingStep {
@@ -273,14 +249,6 @@ struct OnboardingFlowView: View {
 
     var isSavingState: Bool {
         isSaving
-    }
-
-    @discardableResult
-    func submitNameStep() -> Bool {
-        if canAdvance {
-            return nextStepAnimated()
-        }
-        return false
     }
 
     @discardableResult
@@ -328,7 +296,6 @@ struct OnboardingFlowView: View {
     func saveAndFinish(
         persistAnswers: (
             _ userID: String,
-            _ name: String,
             _ experienceLevel: ExperienceLevel,
             _ primaryGoal: PrimaryGoal,
             _ gender: Gender,
@@ -338,7 +305,6 @@ struct OnboardingFlowView: View {
         isSaving = true
         let persisted = persistAnswers(
             userID,
-            name,
             experienceLevel,
             primaryGoal,
             gender,
@@ -350,10 +316,9 @@ struct OnboardingFlowView: View {
 
     @discardableResult
     func saveAndFinish(appState: AppState, modelContext: ModelContext) -> Bool {
-        saveAndFinish { userID, name, experienceLevel, primaryGoal, gender, cycleTrackingEnabled in
+        saveAndFinish { userID, experienceLevel, primaryGoal, gender, cycleTrackingEnabled in
             Self.persistOnboardingAnswers(
                 userID: userID,
-                name: name,
                 experienceLevel: experienceLevel,
                 primaryGoal: primaryGoal,
                 gender: gender,
@@ -372,7 +337,7 @@ struct OnboardingFlowView: View {
                 : nextStep()
         }
     }
-    func submitNameStepAction() { _ = submitNameStep() }
+
 
 }
 
