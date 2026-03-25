@@ -473,7 +473,7 @@ struct BenchmarksViewModelCoverageTests {
         store.context.insert(customDef)
         try store.context.save()
 
-        let vm = BenchmarksViewModel()
+        let vm = BenchmarksViewModel(remoteRepo: nil)
         await vm.load(modelContext: store.context, userID: "u1")
 
         // Predefined catalog entries + custom def should be loaded
@@ -510,7 +510,8 @@ struct BenchmarksViewModelCoverageTests {
     func loadHandlesRepositoryFailureGracefully() async throws {
         let store = try makeTestStore()
         let failingVM = BenchmarksViewModel(
-            definitionRepoFactory: { _ in ThrowingBenchmarkDefinitionRepository() }
+            definitionRepoFactory: { _ in ThrowingBenchmarkDefinitionRepository() },
+            remoteRepo: nil
         )
         await failingVM.load(modelContext: store.context, userID: "u1")
         // Even on failure, predefined catalog entries from BenchmarkCatalog are merged in-memory
@@ -518,7 +519,7 @@ struct BenchmarksViewModelCoverageTests {
         #expect(failingVM.isLoading == false)
 
         // addCustomDefinition with nil context is a no-op
-        let vmNoContext = BenchmarksViewModel()
+        let vmNoContext = BenchmarksViewModel(remoteRepo: nil)
         vmNoContext.addCustomDefinition(name: "Ghost", category: "Unknown", description: "", scoringType: .time)
         #expect(vmNoContext.categoryGroups.isEmpty)
     }

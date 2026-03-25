@@ -288,7 +288,7 @@ final class FeatureViewsCoverageWave3Tests: XCTestCase {
             }
         ).view)
 
-        XCTAssertNotNil(host(AddCustomBenchmarkSheet(viewModel: BenchmarksViewModel()), triggerAppearance: true).view)
+        XCTAssertNotNil(host(AddCustomBenchmarkSheet(viewModel: BenchmarksViewModel(remoteRepo: nil)), triggerAppearance: true).view)
     }
 
     func testSettingsViewsRenderAdditionalBranches() async throws {
@@ -520,7 +520,7 @@ final class FeatureViewsCoverageWave3Tests: XCTestCase {
         CycleSettingsSection.saveSettingsAction(viewModel: cycleVM)()
         waitForTasks()
         
-        let benchmarkVM = BenchmarksViewModel()
+        let benchmarkVM = BenchmarksViewModel(remoteRepo: nil)
         await benchmarkVM.load(modelContext: store.context, userID: "wave7-user")
         // Add a custom definition and verify it appears in categoryGroups
         benchmarkVM.addCustomDefinition(

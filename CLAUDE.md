@@ -90,7 +90,9 @@ Domain/ (pure Swift, zero dependencies, 100% tested)
 - Enum properties on `@Model` types **must be stored as `String` raw values** — CloudKit does not support Swift enums directly.
 - Release entitlements enable CloudKit + Sign in with Apple; Debug entitlements are empty (supports Personal Team signing without paid capabilities).
 - **Schema version consistency:** When adding a new `AppSchemaVN`, you must update THREE places: (1) add to `AppSchemaMigrationPlan.schemas`, (2) add a migration stage to `AppSchemaMigrationPlan.stages`, (3) update `AppModelContainer.allModels` to reference the new schema. Missing any of these causes silent data loss.
-- **`CKContainer(identifier:)` fatally traps (SIGTRAP) without CloudKit entitlements** — this is NOT a catchable Swift error. Debug builds have empty entitlements, so any code path that calls `CKContainer` must guard with `CloudKitWODRepository.hasCloudKitEntitlement` first. The CloudKit repos (`CloudKitWODRepository`, `CloudKitProgramRepository`) have this guard; do not bypass it.
+- **`CKContainer(identifier:)` fatally traps (SIGTRAP) without CloudKit entitlements** — this is NOT a catchable Swift error. Debug builds have empty entitlements, so any code path that calls `CKContainer` must guard with `CloudKitWODRepository.hasCloudKitEntitlement` first. The CloudKit repos (`CloudKitWODRepository`, `CloudKitProgramRepository`, `CloudKitBenchmarkDefinitionRepository`) have this guard; do not bypass it.
+- **CloudKit integer fields return `Int64`** — casting `record["field"] as? Int` silently fails. Use `(record["field"] as? Int64).map(Int.init)`.
+- **`@Model` types are not `Sendable`** — async protocols returning `@Model` instances still require `Sendable` on the protocol for cross-actor calls. Repos need `@unchecked Sendable`. Cache Codable DTOs (not `@Model` instances) to avoid data races.
 - **VersionedSchema checksum collisions:** When two schema versions reference the same live model types with identical properties, SwiftData produces duplicate checksums and crashes with "Duplicate version checksums across stages detected." Fix: use frozen `@Model` classes (namespaced under the schema enum, e.g., `AppSchemaV7.CompletedWorkout`) for models that changed between versions. See V6 (`CompletedSet`) and V7 (`CompletedWorkout`) for examples.
 - **Never remove a schema version from the migration plan** — existing user stores reference that version. Removing it causes "Cannot use staged migration with an unknown model version" and forces store deletion (data loss).
 
@@ -104,9 +106,11 @@ WODs (Workouts of the Day) are delivered via bundled `Resources/WODs/wods.json`,
 
 ### Benchmarks
 
-Sundee Fundee Benchmarks (admin-created) are delivered via two channels:
+Sundee Fundee Benchmarks (admin-created) follow the same CloudKit + bundled fallback pattern as Programs:
 1. Bundled `Resources/Benchmarks/benchmarks.json` (always available)
-2. CloudKit Public DB record type `BenchmarkDefinition` (admin-seeded via WOD Dashboard)
+2. CloudKit Public DB record type `BenchmarkDefinition` (admin-seeded via WOD Dashboard, fetched by `CloudKitBenchmarkDefinitionRepository`)
+
+`BenchmarksViewModel` merges three sources: hardcoded `BenchmarkCatalog.predefined` (Classic WODs, Strength, etc.) + remote benchmarks (CloudKit/bundled JSON, "Sundee Fundee" category) + user-created (SwiftData).
 
 ### AI Workout Generation
 
@@ -143,6 +147,7 @@ Product IDs are defined in `Domain/Subscription/SubscriptionTier.swift` and mirr
 ### Project Generation
 
 The Xcode project is generated from `project.yml` via XcodeGen. **Never edit `.xcodeproj` directly** — modify `project.yml` and run `xcodegen generate`. Sources are auto-discovered by XcodeGen from the directory structure — no need to manually add new `.swift` files to `project.yml`.
+**After adding new `.swift` files, always run `xcodegen generate`** — even though sources are auto-discovered, the existing `.xcodeproj` won't include new files until regenerated. Without this, new files compile but are invisible to other compilation units in explicit module builds.
 
 ### CloudKit Server-to-Server Auth
 
