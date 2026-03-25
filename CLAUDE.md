@@ -90,6 +90,9 @@ Domain/ (pure Swift, zero dependencies, 100% tested)
 - Enum properties on `@Model` types **must be stored as `String` raw values** — CloudKit does not support Swift enums directly.
 - Release entitlements enable CloudKit + Sign in with Apple; Debug entitlements are empty (supports Personal Team signing without paid capabilities).
 - **Schema version consistency:** When adding a new `AppSchemaVN`, you must update THREE places: (1) add to `AppSchemaMigrationPlan.schemas`, (2) add a migration stage to `AppSchemaMigrationPlan.stages`, (3) update `AppModelContainer.allModels` to reference the new schema. Missing any of these causes silent data loss.
+- **`CKContainer(identifier:)` fatally traps (SIGTRAP) without CloudKit entitlements** — this is NOT a catchable Swift error. Debug builds have empty entitlements, so any code path that calls `CKContainer` must guard with `CloudKitWODRepository.hasCloudKitEntitlement` first. The CloudKit repos (`CloudKitWODRepository`, `CloudKitProgramRepository`) have this guard; do not bypass it.
+- **VersionedSchema checksum collisions:** When two schema versions reference the same live model types with identical properties, SwiftData produces duplicate checksums and crashes with "Duplicate version checksums across stages detected." Fix: use frozen `@Model` classes (namespaced under the schema enum, e.g., `AppSchemaV7.CompletedWorkout`) for models that changed between versions. See V6 (`CompletedSet`) and V7 (`CompletedWorkout`) for examples.
+- **Never remove a schema version from the migration plan** — existing user stores reference that version. Removing it causes "Cannot use staged migration with an unknown model version" and forces store deletion (data loss).
 
 ### Programs
 
@@ -104,6 +107,10 @@ WODs (Workouts of the Day) are delivered via bundled `Resources/WODs/wods.json`,
 Sundee Fundee Benchmarks (admin-created) are delivered via two channels:
 1. Bundled `Resources/Benchmarks/benchmarks.json` (always available)
 2. CloudKit Public DB record type `BenchmarkDefinition` (admin-seeded via WOD Dashboard)
+
+### AI Workout Generation
+
+Personalized workouts are generated via a Cloudflare Worker proxy (`workout-proxy.sundeefundee.workers.dev/generate-workout`) that forwards requests to Gemini. The iOS app builds prompts in `GeminiWorkoutPrompt`, sends Gemini-native format requests, parses the response via `GeminiResponseParser` + `RemoteWorkoutResponse`, and falls back to `OfflineWorkoutGenerator` on any failure. The worker is shared with the WOD Dashboard.
 
 ### SundeeFundeeShared Package
 
@@ -135,7 +142,7 @@ Product IDs are defined in `Domain/Subscription/SubscriptionTier.swift` and mirr
 
 ### Project Generation
 
-The Xcode project is generated from `project.yml` via XcodeGen. **Never edit `.xcodeproj` directly** — modify `project.yml` and run `xcodegen generate`.
+The Xcode project is generated from `project.yml` via XcodeGen. **Never edit `.xcodeproj` directly** — modify `project.yml` and run `xcodegen generate`. Sources are auto-discovered by XcodeGen from the directory structure — no need to manually add new `.swift` files to `project.yml`.
 
 ### CloudKit Server-to-Server Auth
 
