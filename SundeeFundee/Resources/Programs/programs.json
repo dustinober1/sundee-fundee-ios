@@ -1,176 +1,161 @@
 [
   {
-    "id": "squad-squat-12-week-peak",
-    "name": "12-Week Squad Squat Peak",
-    "category": "Squat Focus",
-    "description": "A 12-week three-phase squat program focused on building a volume foundation, transitioning to heavy triples, and peaking for a true 1RM.",
-    "durationWeeks": 12,
+    "id": "the-first-margarita",
+    "name": "The First Margarita",
+    "category": "Strength",
+    "description": "An 8-week program designed for intermediate athletes focusing on developing raw strength in the power lifts (Squat, Bench, Deadlift) and foundational Olympic lifts. Sessions are structured to be completed efficiently in about 60 minutes, three times per week.",
+    "difficulty": "intermediate",
+    "durationWeeks": 8,
     "sessionsPerWeek": 3,
-    "difficulty": "Intermediate",
     "phases": [
       {
-        "id": "block-1-volume",
-        "name": "Block 1: The Volume Foundation",
-        "goal": "Build muscle and work capacity.",
+        "id": "strength-accumulation",
+        "name": "Strength Accumulation",
+        "goal": "Build work capacity and technical proficiency at moderate intensity (75-85% 1RM).",
         "weekRange": [
           1,
           4
         ]
       },
       {
-        "id": "block-2-strength",
-        "name": "Block 2: The Strength Transition",
-        "goal": "Heavy triples and bracing.",
+        "id": "strength-intensification",
+        "name": "Strength Intensification",
+        "goal": "Increase intensity and decrease volume to peak strength capacity (85-95% 1RM).",
         "weekRange": [
           5,
-          8
+          7
         ]
       },
       {
-        "id": "block-3-peak",
-        "name": "Block 3: The Peaking Phase",
-        "goal": "Maximize intensity for a new 1RM.",
+        "id": "deload-testing",
+        "name": "Deload & Testing",
+        "goal": "Reduce fatigue and test new maximal lifts.",
         "weekRange": [
-          9,
-          12
+          8,
+          8
         ]
       }
     ],
-    "cycleAdjustmentProfile": {
-      "fallbackPhase": "follicular",
-      "lowConfidenceScale": 0.7,
-      "phaseSettings": {
-        "menstrual": {
-          "loadMultiplier": 0.9,
-          "setsMultiplier": 0.9,
-          "repsMultiplier": 0.9
-        },
-        "follicular": {
-          "loadMultiplier": 1,
-          "setsMultiplier": 1,
-          "repsMultiplier": 1
-        },
-        "ovulation": {
-          "loadMultiplier": 1.12,
-          "setsMultiplier": 1.05,
-          "repsMultiplier": 0.95
-        },
-        "luteal": {
-          "loadMultiplier": 0.97,
-          "setsMultiplier": 0.95,
-          "repsMultiplier": 0.92
-        }
-      }
-    },
     "weeks": [
       {
         "week": 1,
-        "phaseId": "block-1-volume",
+        "phaseId": "strength-accumulation",
         "isTestWeek": false,
         "sessions": [
           {
-            "sessionId": "ss-w1-a",
-            "sessionName": "Session A",
-            "sessionType": "Lift",
-            "focus": "Main Lift + Accessories",
+            "sessionId": "w1d1",
+            "sessionName": "Day 1 - Squat Focus & Pulling Power",
+            "sessionType": "strength",
+            "focus": "Squat & Deadlift Variation",
             "exercises": [
               {
                 "exercise": "Back Squat",
-                "variant": null,
+                "sets": 4,
+                "reps": [
+                  5,
+                  6
+                ],
+                "percent1RM": 0.78,
+                "restMinutes": 3,
+                "notes": "Focus on controlled eccentric."
+              },
+              {
+                "exercise": "Romanian Deadlift (RDL)",
                 "sets": 3,
                 "reps": 8,
-                "percent1RM": 0.65,
-                "restMinutes": 3,
-                "notes": "3x8 @ 65%. Focus on consistent depth."
+                "restMinutes": 2,
+                "notes": "Maintain neutral spine."
               },
               {
-                "exercise": "Romanian Deadlift (No Straps)",
-                "variant": null,
-                "sets": 3,
-                "reps": 10,
-                "percent1RM": null,
-                "restMinutes": 2,
-                "notes": "Moderate weight, feel the hamstrings."
-              },
-              {
-                "exercise": "Wall Ball Thrusters",
-                "variant": null,
-                "sets": 3,
-                "reps": 12,
-                "percent1RM": null,
-                "restMinutes": 2,
-                "notes": "Full squat depth, explosive drive through the ball."
-              }
-            ]
-          },
-          {
-            "sessionId": "ss-w1-b",
-            "sessionName": "Session B",
-            "sessionType": "Lift",
-            "focus": "Squat Variation + Accessories",
-            "exercises": [
-              {
-                "exercise": "Front Squat",
-                "variant": null,
+                "exercise": "Overhead Press (OHP)",
                 "sets": 3,
                 "reps": 6,
-                "percent1RM": 0.6,
-                "restMinutes": 3,
-                "notes": "3x6 @ 60%. Upright torso."
+                "restMinutes": 2,
+                "notes": "Strict press, brace hard."
               },
               {
-                "exercise": "Walking Lunges",
-                "variant": null,
+                "exercise": "Barbell Row",
                 "sets": 3,
                 "reps": 10,
-                "percent1RM": null,
-                "restMinutes": 2,
-                "notes": "10 per leg."
-              },
-              {
-                "exercise": "Banded Leg Curls",
-                "variant": null,
-                "sets": 3,
-                "reps": 12,
-                "percent1RM": null,
                 "restMinutes": 1.5,
-                "notes": "Full range of motion.",
-                "bodyweightOnly": true
+                "notes": "Moderate weight, focus on scapular retraction."
               }
             ]
           },
           {
-            "sessionId": "ss-w1-c",
-            "sessionName": "Session C",
-            "sessionType": "Lift",
-            "focus": "Volume Day",
+            "sessionId": "w1d2",
+            "sessionName": "Day 2 - Bench Focus & Olympic Pulls",
+            "sessionType": "strength",
+            "focus": "Bench Press & Explosiveness",
             "exercises": [
               {
-                "exercise": "Back Squat",
-                "variant": null,
+                "exercise": "Competition Bench Press",
                 "sets": 4,
-                "reps": 8,
-                "percent1RM": 0.65,
+                "reps": [
+                  5,
+                  6
+                ],
+                "percent1RM": 0.77,
                 "restMinutes": 3,
-                "notes": "4x8 @ 65%."
+                "notes": "Maintain leg drive."
               },
               {
-                "exercise": "Good Morning",
-                "variant": null,
-                "sets": 3,
-                "reps": 10,
-                "percent1RM": null,
-                "restMinutes": 2,
-                "notes": "Light weight, strong hip hinge."
-              },
-              {
-                "exercise": "Plated Calf Step Up",
-                "variant": null,
+                "exercise": "Snatch Pull (from blocks/hang)",
                 "sets": 4,
+                "reps": 3,
+                "restMinutes": 2.5,
+                "notes": "Focus on maximal second pull speed."
+              },
+              {
+                "exercise": "Close Grip Bench Press",
+                "sets": 3,
+                "reps": 8,
+                "restMinutes": 2,
+                "notes": "Elbows tucked slightly more than competition grip."
+              },
+              {
+                "exercise": "Dumbbell Row",
+                "sets": 3,
+                "reps": 12,
+                "restMinutes": 1.5,
+                "notes": "Focus on stretch at the bottom."
+              }
+            ]
+          },
+          {
+            "sessionId": "w1d3",
+            "sessionName": "Day 3 - Deadlift Focus & Accessory",
+            "sessionType": "strength",
+            "focus": "Deadlift & Clean Variation",
+            "exercises": [
+              {
+                "exercise": "Conventional Deadlift",
+                "sets": 3,
+                "reps": 5,
+                "percent1RM": 0.75,
+                "restMinutes": 3.5,
+                "notes": "Work up to heavy set of 5, then back off."
+              },
+              {
+                "exercise": "Clean Pull",
+                "sets": 4,
+                "reps": 3,
+                "restMinutes": 2.5,
+                "notes": "Focus on aggressive turnover."
+              },
+              {
+                "exercise": "Pause Squat (High Box)",
+                "sets": 3,
+                "reps": 4,
+                "restMinutes": 2,
+                "notes": "Pause for 2 seconds at parallel."
+              },
+              {
+                "exercise": "Face Pulls",
+                "sets": 3,
                 "reps": 15,
-                "percent1RM": null,
                 "restMinutes": 1,
-                "notes": "Slow and controlled."
+                "notes": "Good for shoulder health."
               }
             ]
           }
@@ -178,112 +163,124 @@
       },
       {
         "week": 2,
-        "phaseId": "block-1-volume",
+        "phaseId": "strength-accumulation",
         "isTestWeek": false,
         "sessions": [
           {
-            "sessionId": "ss-w2-a",
-            "sessionName": "Session A",
-            "sessionType": "Lift",
-            "focus": "Main Lift + Accessories",
+            "sessionId": "w2d1",
+            "sessionName": "Day 1 - Squat Focus & Pulling Power",
+            "sessionType": "strength",
+            "focus": "Squat & Deadlift Variation",
             "exercises": [
               {
                 "exercise": "Back Squat",
-                "variant": null,
-                "sets": 3,
-                "reps": 8,
-                "percent1RM": 0.67,
+                "sets": 4,
+                "reps": [
+                  5,
+                  5
+                ],
+                "percent1RM": 0.8,
                 "restMinutes": 3,
-                "notes": "3x8 @ 67%. Small jump from week 1."
+                "notes": "Slightly heavier than Week 1."
               },
               {
-                "exercise": "Romanian Deadlift (No Straps)",
-                "variant": null,
-                "sets": 3,
-                "reps": 10,
-                "percent1RM": null,
-                "restMinutes": 2,
-                "notes": "Add 2.5 kg from last week if possible."
-              },
-              {
-                "exercise": "Wall Ball Thrusters",
-                "variant": null,
-                "sets": 3,
-                "reps": 12,
-                "percent1RM": null,
-                "restMinutes": 2,
-                "notes": "Full squat depth, explosive drive through the ball."
-              }
-            ]
-          },
-          {
-            "sessionId": "ss-w2-b",
-            "sessionName": "Session B",
-            "sessionType": "Lift",
-            "focus": "Squat Variation + Accessories",
-            "exercises": [
-              {
-                "exercise": "Front Squat",
-                "variant": null,
+                "exercise": "Deficit Deadlift (2 inch)",
                 "sets": 3,
                 "reps": 6,
-                "percent1RM": 0.62,
-                "restMinutes": 3,
-                "notes": "3x6 @ 62%. Keep elbows high."
-              },
-              {
-                "exercise": "Walking Lunges",
-                "variant": null,
-                "sets": 3,
-                "reps": 10,
-                "percent1RM": null,
                 "restMinutes": 2,
-                "notes": "10 per leg, longer stride."
+                "notes": "Focus on starting position strength."
               },
               {
-                "exercise": "Banded Leg Curls",
-                "variant": null,
+                "exercise": "Overhead Press (OHP)",
                 "sets": 3,
-                "reps": 12,
-                "percent1RM": null,
+                "reps": 5,
+                "percent1RM": 0.75,
+                "restMinutes": 2,
+                "notes": "Maintain solid core bracing."
+              },
+              {
+                "exercise": "Pendlay Row",
+                "sets": 3,
+                "reps": 8,
                 "restMinutes": 1.5,
-                "notes": "Slow eccentric.",
-                "bodyweightOnly": true
+                "notes": "Explosive pull from the floor."
               }
             ]
           },
           {
-            "sessionId": "ss-w2-c",
-            "sessionName": "Session C",
-            "sessionType": "Lift",
-            "focus": "Volume Day",
+            "sessionId": "w2d2",
+            "sessionName": "Day 2 - Bench Focus & Olympic Pulls",
+            "sessionType": "strength",
+            "focus": "Bench Press & Explosiveness",
             "exercises": [
               {
-                "exercise": "Back Squat",
-                "variant": null,
+                "exercise": "Competition Bench Press",
                 "sets": 4,
-                "reps": 8,
-                "percent1RM": 0.67,
+                "reps": [
+                  5,
+                  5
+                ],
+                "percent1RM": 0.8,
                 "restMinutes": 3,
-                "notes": "4x8 @ 67%. Build work capacity."
+                "notes": "Maintain tight arch and leg drive."
               },
               {
-                "exercise": "Good Morning",
-                "variant": null,
+                "exercise": "Snatch High Pull",
+                "sets": 4,
+                "reps": 3,
+                "restMinutes": 2.5,
+                "notes": "Focus on aggressive shrug and bar path."
+              },
+              {
+                "exercise": "Spoto Press",
+                "sets": 3,
+                "reps": 6,
+                "restMinutes": 2,
+                "notes": "Pause 1 inch above chest."
+              },
+              {
+                "exercise": "Pull-ups (Weighted if possible)",
+                "sets": 3,
+                "reps": "Max 10",
+                "restMinutes": 1.5,
+                "notes": "Control the negative."
+              }
+            ]
+          },
+          {
+            "sessionId": "w2d3",
+            "sessionName": "Day 3 - Deadlift Focus & Accessory",
+            "sessionType": "strength",
+            "focus": "Deadlift & Clean Variation",
+            "exercises": [
+              {
+                "exercise": "Conventional Deadlift",
+                "sets": 3,
+                "reps": 4,
+                "percent1RM": 0.78,
+                "restMinutes": 3.5,
+                "notes": "Focus on speed off the floor."
+              },
+              {
+                "exercise": "Clean from Hang (above knee)",
+                "sets": 4,
+                "reps": 2,
+                "restMinutes": 2.5,
+                "notes": "Focus on powerful transition into the catch."
+              },
+              {
+                "exercise": "Front Squat",
+                "sets": 3,
+                "reps": 5,
+                "restMinutes": 2,
+                "notes": "Maintain upright torso."
+              },
+              {
+                "exercise": "GHR or Nordic Curl",
                 "sets": 3,
                 "reps": 10,
-                "percent1RM": null,
-                "restMinutes": 2,
-                "notes": "Slight weight increase from week 1."
-              },
-              {
-                "exercise": "Plated Calf Step Up",
-                "variant": null,
-                "sets": 4,
-                "reps": 15,
-                "percent1RM": null,
-                "restMinutes": 1,
-                "notes": "Pause at top."
+                "restMinutes": 1.5,
+                "notes": "Hamstring health."
               }
             ]
           }
@@ -291,112 +288,124 @@
       },
       {
         "week": 3,
-        "phaseId": "block-1-volume",
+        "phaseId": "strength-accumulation",
         "isTestWeek": false,
         "sessions": [
           {
-            "sessionId": "ss-w3-a",
-            "sessionName": "Session A",
-            "sessionType": "Lift",
-            "focus": "Main Lift + Accessories",
+            "sessionId": "w3d1",
+            "sessionName": "Day 1 - Squat Focus & Pulling Power",
+            "sessionType": "strength",
+            "focus": "Squat & Deadlift Variation",
             "exercises": [
               {
                 "exercise": "Back Squat",
-                "variant": null,
-                "sets": 4,
-                "reps": 6,
-                "percent1RM": 0.7,
-                "restMinutes": 3,
-                "notes": "4x6 @ 70%. Intensity stepping up."
-              },
-              {
-                "exercise": "Romanian Deadlift (No Straps)",
-                "variant": null,
-                "sets": 3,
-                "reps": 8,
-                "percent1RM": null,
-                "restMinutes": 2,
-                "notes": "Heavier, fewer reps this week."
-              },
-              {
-                "exercise": "Wall Ball Thrusters",
-                "variant": null,
-                "sets": 3,
-                "reps": 10,
-                "percent1RM": null,
-                "restMinutes": 2,
-                "notes": "Increase ball weight from week 2."
-              }
-            ]
-          },
-          {
-            "sessionId": "ss-w3-b",
-            "sessionName": "Session B",
-            "sessionType": "Lift",
-            "focus": "Squat Variation + Accessories",
-            "exercises": [
-              {
-                "exercise": "Front Squat",
-                "variant": null,
-                "sets": 4,
-                "reps": 5,
-                "percent1RM": 0.65,
-                "restMinutes": 3,
-                "notes": "4x5 @ 65%. Building front squat strength."
-              },
-              {
-                "exercise": "Bulgarian Split Squat",
-                "variant": null,
-                "sets": 3,
-                "reps": 8,
-                "percent1RM": null,
-                "restMinutes": 2,
-                "notes": "8 per leg. Focus on balance."
-              },
-              {
-                "exercise": "Banded Leg Curls",
-                "variant": null,
-                "sets": 3,
-                "reps": 10,
-                "percent1RM": null,
-                "restMinutes": 1.5,
-                "notes": "More resistance than week 2.",
-                "bodyweightOnly": true
-              }
-            ]
-          },
-          {
-            "sessionId": "ss-w3-c",
-            "sessionName": "Session C",
-            "sessionType": "Lift",
-            "focus": "Volume Day",
-            "exercises": [
-              {
-                "exercise": "Back Squat",
-                "variant": null,
                 "sets": 5,
-                "reps": 6,
-                "percent1RM": 0.7,
+                "reps": [
+                  4,
+                  5
+                ],
+                "percent1RM": 0.8,
                 "restMinutes": 3,
-                "notes": "5x6 @ 70%. High volume at moderate intensity."
+                "notes": "Increase weight slightly from W2."
               },
               {
-                "exercise": "Good Morning",
-                "variant": null,
+                "exercise": "Block Pull (below knee)",
                 "sets": 3,
-                "reps": 8,
-                "percent1RM": null,
+                "reps": 5,
                 "restMinutes": 2,
-                "notes": "Moderate weight."
+                "notes": "Focus on maximal drive from the floor transition."
               },
               {
-                "exercise": "Plated Calf Step Up",
-                "variant": null,
+                "exercise": "Overhead Press (OHP)",
+                "sets": 3,
+                "reps": 5,
+                "percent1RM": 0.78,
+                "restMinutes": 2,
+                "notes": "Strict form."
+              },
+              {
+                "exercise": "Meadows Row",
+                "sets": 3,
+                "reps": 10,
+                "restMinutes": 1.5,
+                "notes": "Focus on stretch and squeeze."
+              }
+            ]
+          },
+          {
+            "sessionId": "w3d2",
+            "sessionName": "Day 2 - Bench Focus & Olympic Pulls",
+            "sessionType": "strength",
+            "focus": "Bench Press & Explosiveness",
+            "exercises": [
+              {
+                "exercise": "Competition Bench Press",
+                "sets": 5,
+                "reps": [
+                  4,
+                  5
+                ],
+                "percent1RM": 0.8,
+                "restMinutes": 3,
+                "notes": "Maintain tightness."
+              },
+              {
+                "exercise": "Snatch Pull (from floor)",
                 "sets": 4,
-                "reps": 12,
-                "percent1RM": null,
-                "restMinutes": 1,
-                "notes": "Heavier weight, fewer reps."
+                "reps": 3,
+                "restMinutes": 2.5,
+                "notes": "Focus on full extension."
+              },
+              {
+                "exercise": "Board Press (2-Board)",
+                "sets": 3,
+                "reps": 5,
+                "restMinutes": 2,
+                "notes": "Heavy focus on lockout."
+              },
+              {
+                "exercise": "Dumbbell Bench Press (Incline)",
+                "sets": 3,
+                "reps": 10,
+                "restMinutes": 1.5,
+                "notes": "Control the descent."
+              }
+            ]
+          },
+          {
+            "sessionId": "w3d3",
+            "sessionName": "Day 3 - Deadlift Focus & Accessory",
+            "sessionType": "strength",
+            "focus": "Deadlift & Clean Variation",
+            "exercises": [
+              {
+                "exercise": "Conventional Deadlift",
+                "sets": 3,
+                "reps": 3,
+                "percent1RM": 0.82,
+                "restMinutes": 4,
+                "notes": "Heavier singles work leading into low reps."
+              },
+              {
+                "exercise": "Jerk Footwork/Practice",
+                "sets": 5,
+                "reps": 3,
+                "restMinutes": 2,
+                "notes": "Focus on dip/drive mechanics."
+              },
+              {
+                "exercise": "Pause Squat (Floor)",
+                "sets": 3,
+                "reps": 3,
+                "restMinutes": 2.5,
+                "notes": "Pause 2 seconds at the hole."
+              },
+              {
+                "exercise": "Grip Work (Farmer's Carry)",
+                "sets": 3,
+                "reps": "60 seconds",
+                "restMinutes": 1.5,
+                "notes": "Heavy as possible."
               }
             ]
           }
@@ -404,94 +413,118 @@
       },
       {
         "week": 4,
-        "phaseId": "block-1-volume",
+        "phaseId": "strength-accumulation",
         "isTestWeek": false,
         "sessions": [
           {
-            "sessionId": "ss-w4-a",
-            "sessionName": "Session A",
-            "sessionType": "Lift",
-            "focus": "Main Lift + Accessories",
+            "sessionId": "w4d1",
+            "sessionName": "Day 1 - Squat Focus & Pulling Power",
+            "sessionType": "strength",
+            "focus": "Squat & Deadlift Variation",
             "exercises": [
               {
                 "exercise": "Back Squat",
-                "variant": null,
-                "sets": 4,
-                "reps": 6,
-                "percent1RM": 0.72,
+                "sets": 3,
+                "reps": 3,
+                "percent1RM": 0.82,
                 "restMinutes": 3,
-                "notes": "4x6 @ 72%. Peak of volume block."
+                "notes": "Heaviest sets for this phase."
               },
               {
-                "exercise": "Romanian Deadlift (No Straps)",
-                "variant": null,
+                "exercise": "Romanian Deadlift (RDL)",
+                "sets": 3,
+                "reps": 6,
+                "restMinutes": 2,
+                "notes": "Controlled negative."
+              },
+              {
+                "exercise": "Overhead Press (OHP)",
+                "sets": 3,
+                "reps": 3,
+                "percent1RM": 0.8,
+                "restMinutes": 2.5,
+                "notes": "Heavy but technically perfect."
+              },
+              {
+                "exercise": "Barbell Row",
                 "sets": 3,
                 "reps": 8,
-                "percent1RM": null,
-                "restMinutes": 2,
-                "notes": "Heaviest RDL of block 1."
-              },
-              {
-                "exercise": "Wall Ball Thrusters",
-                "variant": null,
-                "sets": 3,
-                "reps": 10,
-                "percent1RM": null,
-                "restMinutes": 2,
-                "notes": "Push it this week."
+                "restMinutes": 1.5,
+                "notes": "Focus on upper back thickness."
               }
             ]
           },
           {
-            "sessionId": "ss-w4-b",
-            "sessionName": "Session B",
-            "sessionType": "Lift",
-            "focus": "Squat Variation + Accessories",
+            "sessionId": "w4d2",
+            "sessionName": "Day 2 - Bench Focus & Olympic Pulls",
+            "sessionType": "strength",
+            "focus": "Bench Press & Explosiveness",
             "exercises": [
+              {
+                "exercise": "Competition Bench Press",
+                "sets": 3,
+                "reps": 3,
+                "percent1RM": 0.82,
+                "restMinutes": 3,
+                "notes": "Heaviest sets for this phase."
+              },
+              {
+                "exercise": "Snatch Pull (from blocks/hang)",
+                "sets": 4,
+                "reps": 3,
+                "restMinutes": 2.5,
+                "notes": "High intensity pulls."
+              },
+              {
+                "exercise": "Dumbbell Bench Press (Flat)",
+                "sets": 3,
+                "reps": 8,
+                "restMinutes": 2,
+                "notes": "Focus on unilateral stability."
+              },
+              {
+                "exercise": "Face Pulls",
+                "sets": 3,
+                "reps": 15,
+                "restMinutes": 1,
+                "notes": "High rep burnout."
+              }
+            ]
+          },
+          {
+            "sessionId": "w4d3",
+            "sessionName": "Day 3 - Deadlift Focus & Accessory",
+            "sessionType": "strength",
+            "focus": "Deadlift & Clean Variation",
+            "exercises": [
+              {
+                "exercise": "Conventional Deadlift",
+                "sets": 2,
+                "reps": 3,
+                "percent1RM": 0.8,
+                "restMinutes": 4,
+                "notes": "Reduce volume, maintain quality."
+              },
+              {
+                "exercise": "Clean Pull (from knee)",
+                "sets": 4,
+                "reps": 2,
+                "restMinutes": 2.5,
+                "notes": "Aggressive pull."
+              },
               {
                 "exercise": "Front Squat",
-                "variant": null,
-                "sets": 4,
-                "reps": 5,
-                "percent1RM": 0.67,
-                "restMinutes": 3,
-                "notes": "4x5 @ 67%. Last volume-phase front squat."
-              },
-              {
-                "exercise": "Bulgarian Split Squat",
-                "variant": null,
                 "sets": 3,
-                "reps": 8,
-                "percent1RM": null,
+                "reps": 4,
                 "restMinutes": 2,
-                "notes": "8 per leg. Increase load."
+                "notes": "Moderate weight."
               },
               {
-                "exercise": "Banded Leg Curls",
-                "variant": null,
+                "exercise": "Glute Ham Raise / Back Extension",
                 "sets": 3,
-                "reps": 10,
-                "percent1RM": null,
+                "reps": 12,
                 "restMinutes": 1.5,
-                "notes": "Most resistance of block 1.",
-                "bodyweightOnly": true
-              }
-            ]
-          },
-          {
-            "sessionId": "ss-w4-c",
-            "sessionName": "Session C",
-            "sessionType": "Lift",
-            "focus": "5RM Test Day",
-            "exercises": [
-              {
-                "exercise": "Back Squat",
-                "variant": null,
-                "sets": 1,
-                "reps": 5,
-                "percent1RM": null,
-                "restMinutes": 5,
-                "notes": "Work up to a 5-rep max (5RM) to test strength at the end of the Volume Block. Do not go to complete failure."
+                "notes": "Focus on hamstring contraction."
               }
             ]
           }
@@ -499,112 +532,125 @@
       },
       {
         "week": 5,
-        "phaseId": "block-2-strength",
+        "phaseId": "strength-intensification",
         "isTestWeek": false,
         "sessions": [
           {
-            "sessionId": "ss-w5-a",
-            "sessionName": "Session A",
-            "sessionType": "Lift",
-            "focus": "Heavy Triples",
+            "sessionId": "w5d1",
+            "sessionName": "Day 1 - Squat Focus & Pulling Power",
+            "sessionType": "strength",
+            "focus": "Squat & Deadlift Variation",
             "exercises": [
               {
                 "exercise": "Back Squat",
-                "variant": null,
-                "sets": 5,
-                "reps": 3,
-                "percent1RM": 0.78,
-                "restMinutes": 4,
-                "notes": "5x3 @ 78%. Welcome to strength block. Big belt, big bracing."
+                "sets": 4,
+                "reps": [
+                  3,
+                  4
+                ],
+                "percent1RM": 0.85,
+                "restMinutes": 3.5,
+                "notes": "Intensity increase."
               },
               {
-                "exercise": "Conventional Deadlift (No Straps)",
-                "variant": null,
+                "exercise": "Pause Deadlift (1 second below knee)",
                 "sets": 3,
-                "reps": 5,
-                "percent1RM": null,
+                "reps": 4,
                 "restMinutes": 3,
-                "notes": "Moderate heavy. Support the squat."
+                "notes": "Focus on breaking the floor hard."
+              },
+              {
+                "exercise": "Overhead Press (OHP)",
+                "sets": 3,
+                "reps": 4,
+                "percent1RM": 0.82,
+                "restMinutes": 2.5,
+                "notes": "Heavy single/double focus."
               },
               {
                 "exercise": "Barbell Row",
-                "variant": null,
-                "sets": 3,
-                "reps": 8,
-                "percent1RM": null,
-                "restMinutes": 2,
-                "notes": "Upper back work for squat stability."
-              }
-            ]
-          },
-          {
-            "sessionId": "ss-w5-b",
-            "sessionName": "Session B",
-            "sessionType": "Lift",
-            "focus": "Squat Variation + Strength",
-            "exercises": [
-              {
-                "exercise": "Front Squat",
-                "variant": null,
-                "sets": 4,
-                "reps": 3,
-                "percent1RM": 0.72,
-                "restMinutes": 3.5,
-                "notes": "4x3 @ 72%. Heavy front squats for bracing."
-              },
-              {
-                "exercise": "Walking Lunges",
-                "variant": null,
-                "sets": 3,
-                "reps": 8,
-                "percent1RM": null,
-                "restMinutes": 2,
-                "notes": "8 per leg, heavier than block 1."
-              },
-              {
-                "exercise": "Banded Leg Curls",
-                "variant": null,
-                "sets": 3,
-                "reps": 8,
-                "percent1RM": null,
-                "restMinutes": 1.5,
-                "notes": "More resistance, fewer reps.",
-                "bodyweightOnly": true
-              }
-            ]
-          },
-          {
-            "sessionId": "ss-w5-c",
-            "sessionName": "Session C",
-            "sessionType": "Lift",
-            "focus": "Back-Off Volume",
-            "exercises": [
-              {
-                "exercise": "Back Squat",
-                "variant": null,
                 "sets": 3,
                 "reps": 6,
-                "percent1RM": 0.72,
-                "restMinutes": 3,
-                "notes": "3x6 @ 72%. Back-off volume to support recovery."
-              },
-              {
-                "exercise": "Romanian Deadlift (No Straps)",
-                "variant": null,
-                "sets": 3,
-                "reps": 8,
-                "percent1RM": null,
                 "restMinutes": 2,
-                "notes": "Moderate weight."
+                "notes": "Heavier load."
+              }
+            ]
+          },
+          {
+            "sessionId": "w5d2",
+            "sessionName": "Day 2 - Bench Focus & Olympic Pulls",
+            "sessionType": "strength",
+            "focus": "Bench Press & Explosiveness",
+            "exercises": [
+              {
+                "exercise": "Competition Bench Press",
+                "sets": 4,
+                "reps": [
+                  3,
+                  4
+                ],
+                "percent1RM": 0.85,
+                "restMinutes": 3.5,
+                "notes": "Work up to heavy set of 3."
               },
               {
-                "exercise": "Plated Calf Step Up",
-                "variant": null,
+                "exercise": "Snatch Pull (from blocks)",
+                "sets": 4,
+                "reps": 2,
+                "restMinutes": 3,
+                "notes": "Maximal intent."
+              },
+              {
+                "exercise": "Close Grip Bench Press",
                 "sets": 3,
-                "reps": 12,
-                "percent1RM": null,
+                "reps": 5,
+                "restMinutes": 2,
+                "notes": "Heavy triples."
+              },
+              {
+                "exercise": "Pull-ups (Weighted)",
+                "sets": 3,
+                "reps": 5,
+                "restMinutes": 1.5,
+                "notes": "Focus on explosive pull."
+              }
+            ]
+          },
+          {
+            "sessionId": "w5d3",
+            "sessionName": "Day 3 - Deadlift Focus & Accessory",
+            "sessionType": "strength",
+            "focus": "Deadlift & Clean Variation",
+            "exercises": [
+              {
+                "exercise": "Conventional Deadlift",
+                "sets": 3,
+                "reps": 3,
+                "percent1RM": 0.85,
+                "restMinutes": 4,
+                "notes": "Heavy triples."
+              },
+              {
+                "exercise": "Clean from Floor",
+                "sets": 4,
+                "reps": 2,
+                "restMinutes": 3,
+                "notes": "Work up to heavy set of 2."
+              },
+              {
+                "exercise": "Back Squat (Speed work)",
+                "sets": 5,
+                "reps": 2,
+                "percent1RM": 0.65,
+                "restMinutes": 1.5,
+                "notes": "Use bands/chains if available, move fast."
+              },
+              {
+                "exercise": "Ab Rollouts",
+                "sets": 3,
+                "reps": 10,
                 "restMinutes": 1,
-                "notes": "Maintain calf volume."
+                "notes": "Control extension."
               }
             ]
           }
@@ -612,112 +658,124 @@
       },
       {
         "week": 6,
-        "phaseId": "block-2-strength",
+        "phaseId": "strength-intensification",
         "isTestWeek": false,
         "sessions": [
           {
-            "sessionId": "ss-w6-a",
-            "sessionName": "Session A",
-            "sessionType": "Lift",
-            "focus": "Heavy Triples",
+            "sessionId": "w6d1",
+            "sessionName": "Day 1 - Squat Focus & Pulling Power",
+            "sessionType": "strength",
+            "focus": "Squat & Deadlift Variation",
             "exercises": [
               {
                 "exercise": "Back Squat",
-                "variant": null,
-                "sets": 5,
-                "reps": 3,
-                "percent1RM": 0.82,
+                "sets": 3,
+                "reps": [
+                  2,
+                  3
+                ],
+                "percent1RM": 0.88,
                 "restMinutes": 4,
-                "notes": "5x3 @ 82%. Grinding territory."
+                "notes": "Heavy intensity."
               },
               {
-                "exercise": "Conventional Deadlift (No Straps)",
-                "variant": null,
+                "exercise": "Deficit Deadlift (2 inch)",
                 "sets": 3,
-                "reps": 5,
-                "percent1RM": null,
-                "restMinutes": 3,
-                "notes": "Heavier than week 5."
-              },
-              {
-                "exercise": "Barbell Row",
-                "variant": null,
-                "sets": 3,
-                "reps": 8,
-                "percent1RM": null,
-                "restMinutes": 2,
-                "notes": "Upper back support."
-              }
-            ]
-          },
-          {
-            "sessionId": "ss-w6-b",
-            "sessionName": "Session B",
-            "sessionType": "Lift",
-            "focus": "Squat Variation + Strength",
-            "exercises": [
-              {
-                "exercise": "Front Squat",
-                "variant": null,
-                "sets": 4,
                 "reps": 3,
-                "percent1RM": 0.75,
-                "restMinutes": 3.5,
-                "notes": "4x3 @ 75%. Stay tight in the hole."
+                "restMinutes": 3,
+                "notes": "Focus on maximizing force production."
               },
               {
-                "exercise": "Bulgarian Split Squat",
-                "variant": null,
+                "exercise": "Overhead Press (OHP)",
                 "sets": 3,
-                "reps": 6,
-                "percent1RM": null,
+                "reps": 3,
+                "percent1RM": 0.85,
+                "restMinutes": 3,
+                "notes": "Heavy triples."
+              },
+              {
+                "exercise": "Pendlay Row",
+                "sets": 3,
+                "reps": 5,
                 "restMinutes": 2,
-                "notes": "6 per leg, heavy dumbbells."
-              },
-              {
-                "exercise": "Banded Leg Curls",
-                "variant": null,
-                "sets": 3,
-                "reps": 8,
-                "percent1RM": null,
-                "restMinutes": 1.5,
-                "notes": "Maintain hamstring strength.",
-                "bodyweightOnly": true
+                "notes": "Heavy load."
               }
             ]
           },
           {
-            "sessionId": "ss-w6-c",
-            "sessionName": "Session C",
-            "sessionType": "Lift",
-            "focus": "Back-Off Volume",
+            "sessionId": "w6d2",
+            "sessionName": "Day 2 - Bench Focus & Olympic Pulls",
+            "sessionType": "strength",
+            "focus": "Bench Press & Explosiveness",
             "exercises": [
               {
-                "exercise": "Back Squat",
-                "variant": null,
+                "exercise": "Competition Bench Press",
                 "sets": 3,
-                "reps": 5,
-                "percent1RM": 0.75,
-                "restMinutes": 3,
-                "notes": "3x5 @ 75%. Moderate back-off work."
+                "reps": [
+                  2,
+                  3
+                ],
+                "percent1RM": 0.88,
+                "restMinutes": 4,
+                "notes": "Heavy intensity."
               },
               {
-                "exercise": "Good Morning",
-                "variant": null,
+                "exercise": "Snatch High Pull",
+                "sets": 4,
+                "reps": 2,
+                "restMinutes": 3,
+                "notes": "Max speed."
+              },
+              {
+                "exercise": "Spoto Press",
+                "sets": 3,
+                "reps": 4,
+                "restMinutes": 2.5,
+                "notes": "Increase load from W5."
+              },
+              {
+                "exercise": "Dumbbell Row",
                 "sets": 3,
                 "reps": 8,
-                "percent1RM": null,
                 "restMinutes": 2,
-                "notes": "Posterior chain maintenance."
+                "notes": "Heavy load, controlled."
+              }
+            ]
+          },
+          {
+            "sessionId": "w6d3",
+            "sessionName": "Day 3 - Deadlift Focus & Accessory",
+            "sessionType": "strength",
+            "focus": "Deadlift & Clean Variation",
+            "exercises": [
+              {
+                "exercise": "Conventional Deadlift",
+                "sets": 2,
+                "reps": 2,
+                "percent1RM": 0.88,
+                "restMinutes": 4.5,
+                "notes": "Heavy doubles."
               },
               {
-                "exercise": "Plated Calf Step Up",
-                "variant": null,
+                "exercise": "Clean Pull (from hang)",
+                "sets": 4,
+                "reps": 2,
+                "restMinutes": 3,
+                "notes": "Focus on transition speed."
+              },
+              {
+                "exercise": "Pause Squat (Floor)",
+                "sets": 3,
+                "reps": 2,
+                "restMinutes": 3,
+                "notes": "Heavy doubles."
+              },
+              {
+                "exercise": "Face Pulls",
                 "sets": 3,
                 "reps": 12,
-                "percent1RM": null,
                 "restMinutes": 1,
-                "notes": "Steady state."
+                "notes": "Focus on external rotation."
               }
             ]
           }
@@ -725,112 +783,118 @@
       },
       {
         "week": 7,
-        "phaseId": "block-2-strength",
+        "phaseId": "strength-intensification",
         "isTestWeek": false,
         "sessions": [
           {
-            "sessionId": "ss-w7-a",
-            "sessionName": "Session A",
-            "sessionType": "Lift",
-            "focus": "Heavy Doubles",
+            "sessionId": "w7d1",
+            "sessionName": "Day 1 - Squat Focus & Pulling Power",
+            "sessionType": "strength",
+            "focus": "Squat & Deadlift Variation",
             "exercises": [
               {
                 "exercise": "Back Squat",
-                "variant": null,
-                "sets": 5,
-                "reps": 2,
-                "percent1RM": 0.85,
-                "restMinutes": 5,
-                "notes": "5x2 @ 85%. Heavy doubles. Full rest between sets."
+                "sets": 3,
+                "reps": 1,
+                "percent1RM": 0.9,
+                "restMinutes": 4,
+                "notes": "Work up to a heavy single, then drop weight for 2x2."
               },
               {
-                "exercise": "Conventional Deadlift (No Straps)",
-                "variant": null,
+                "exercise": "Romanian Deadlift (RDL)",
+                "sets": 3,
+                "reps": 5,
+                "restMinutes": 2.5,
+                "notes": "Maintain speed."
+              },
+              {
+                "exercise": "Overhead Press (OHP)",
                 "sets": 3,
                 "reps": 3,
-                "percent1RM": null,
+                "percent1RM": 0.87,
                 "restMinutes": 3,
-                "notes": "Heavy triples. Support the squat."
+                "notes": "Heavy triples."
               },
               {
                 "exercise": "Barbell Row",
-                "variant": null,
-                "sets": 3,
-                "reps": 6,
-                "percent1RM": null,
-                "restMinutes": 2,
-                "notes": "Heavy rows for back tightness."
-              }
-            ]
-          },
-          {
-            "sessionId": "ss-w7-b",
-            "sessionName": "Session B",
-            "sessionType": "Lift",
-            "focus": "Squat Variation + Strength",
-            "exercises": [
-              {
-                "exercise": "Front Squat",
-                "variant": null,
-                "sets": 3,
-                "reps": 3,
-                "percent1RM": 0.77,
-                "restMinutes": 3.5,
-                "notes": "3x3 @ 77%. Heavy front squat triples."
-              },
-              {
-                "exercise": "Walking Lunges",
-                "variant": null,
-                "sets": 3,
-                "reps": 6,
-                "percent1RM": null,
-                "restMinutes": 2,
-                "notes": "6 per leg, heavy."
-              },
-              {
-                "exercise": "Banded Leg Curls",
-                "variant": null,
-                "sets": 3,
-                "reps": 8,
-                "percent1RM": null,
-                "restMinutes": 1.5,
-                "notes": "Maintain.",
-                "bodyweightOnly": true
-              }
-            ]
-          },
-          {
-            "sessionId": "ss-w7-c",
-            "sessionName": "Session C",
-            "sessionType": "Lift",
-            "focus": "Back-Off Volume",
-            "exercises": [
-              {
-                "exercise": "Back Squat",
-                "variant": null,
                 "sets": 3,
                 "reps": 5,
-                "percent1RM": 0.75,
-                "restMinutes": 3,
-                "notes": "3x5 @ 75%. Recovery volume."
-              },
-              {
-                "exercise": "Romanian Deadlift (No Straps)",
-                "variant": null,
-                "sets": 3,
-                "reps": 6,
-                "percent1RM": null,
                 "restMinutes": 2,
-                "notes": "Moderate."
+                "notes": "Heavy load."
+              }
+            ]
+          },
+          {
+            "sessionId": "w7d2",
+            "sessionName": "Day 2 - Bench Focus & Olympic Pulls",
+            "sessionType": "strength",
+            "focus": "Bench Press & Explosiveness",
+            "exercises": [
+              {
+                "exercise": "Competition Bench Press",
+                "sets": 3,
+                "reps": 1,
+                "percent1RM": 0.9,
+                "restMinutes": 4,
+                "notes": "Work up to a heavy single, then drop weight for 2x3."
               },
               {
-                "exercise": "Plated Calf Step Up",
-                "variant": null,
+                "exercise": "Snatch Pull (from floor)",
+                "sets": 4,
+                "reps": 2,
+                "restMinutes": 3,
+                "notes": "Maximal intent."
+              },
+              {
+                "exercise": "Board Press (2-Board)",
                 "sets": 3,
-                "reps": 12,
-                "percent1RM": null,
-                "restMinutes": 1,
-                "notes": "Maintain."
+                "reps": 3,
+                "restMinutes": 2.5,
+                "notes": "Heavy sets."
+              },
+              {
+                "exercise": "Pull-ups (Weighted)",
+                "sets": 3,
+                "reps": 4,
+                "restMinutes": 2,
+                "notes": "Heavy sets."
+              }
+            ]
+          },
+          {
+            "sessionId": "w7d3",
+            "sessionName": "Day 3 - Deadlift Focus & Accessory",
+            "sessionType": "strength",
+            "focus": "Deadlift & Clean Variation",
+            "exercises": [
+              {
+                "exercise": "Conventional Deadlift",
+                "sets": 2,
+                "reps": 1,
+                "percent1RM": 0.9,
+                "restMinutes": 5,
+                "notes": "Work up to a heavy single, then 1x2 backoff."
+              },
+              {
+                "exercise": "Clean from Hang (above knee)",
+                "sets": 4,
+                "reps": 1,
+                "restMinutes": 3,
+                "notes": "Heavy single attempt."
+              },
+              {
+                "exercise": "Front Squat",
+                "sets": 3,
+                "reps": 3,
+                "restMinutes": 2.5,
+                "notes": "Heavy triples."
+              },
+              {
+                "exercise": "Grip Work (Static Hold)",
+                "sets": 3,
+                "reps": "Max seconds",
+                "restMinutes": 1.5,
+                "notes": "Hold heavy dumbbells."
               }
             ]
           }
@@ -838,524 +902,146 @@
       },
       {
         "week": 8,
-        "phaseId": "block-2-strength",
-        "isTestWeek": false,
-        "sessions": [
-          {
-            "sessionId": "ss-w8-a",
-            "sessionName": "Session A",
-            "sessionType": "Lift",
-            "focus": "Heavy Doubles",
-            "exercises": [
-              {
-                "exercise": "Back Squat",
-                "variant": null,
-                "sets": 4,
-                "reps": 2,
-                "percent1RM": 0.88,
-                "restMinutes": 5,
-                "notes": "4x2 @ 88%. Peak of strength block."
-              },
-              {
-                "exercise": "Conventional Deadlift (No Straps)",
-                "variant": null,
-                "sets": 3,
-                "reps": 3,
-                "percent1RM": null,
-                "restMinutes": 3,
-                "notes": "Heaviest deads of strength block."
-              },
-              {
-                "exercise": "Barbell Row",
-                "variant": null,
-                "sets": 3,
-                "reps": 6,
-                "percent1RM": null,
-                "restMinutes": 2,
-                "notes": "Keep upper back strong."
-              }
-            ]
-          },
-          {
-            "sessionId": "ss-w8-b",
-            "sessionName": "Session B",
-            "sessionType": "Lift",
-            "focus": "Squat Variation + Strength",
-            "exercises": [
-              {
-                "exercise": "Front Squat",
-                "variant": null,
-                "sets": 3,
-                "reps": 2,
-                "percent1RM": 0.8,
-                "restMinutes": 4,
-                "notes": "3x2 @ 80%. Heavy front squat doubles."
-              },
-              {
-                "exercise": "Bulgarian Split Squat",
-                "variant": null,
-                "sets": 3,
-                "reps": 6,
-                "percent1RM": null,
-                "restMinutes": 2,
-                "notes": "6 per leg. Last heavy single-leg work."
-              },
-              {
-                "exercise": "Banded Leg Curls",
-                "variant": null,
-                "sets": 3,
-                "reps": 8,
-                "percent1RM": null,
-                "restMinutes": 1.5,
-                "notes": "Maintain hamstring strength.",
-                "bodyweightOnly": true
-              }
-            ]
-          },
-          {
-            "sessionId": "ss-w8-c",
-            "sessionName": "Session C",
-            "sessionType": "Lift",
-            "focus": "3RM Test Day",
-            "exercises": [
-              {
-                "exercise": "Back Squat",
-                "variant": null,
-                "sets": 1,
-                "reps": 3,
-                "percent1RM": null,
-                "restMinutes": 5,
-                "notes": "Work up to a heavy 3-rep max (3RM) to test strength before moving into the peaking phase."
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "week": 9,
-        "phaseId": "block-3-peak",
-        "isTestWeek": false,
-        "sessions": [
-          {
-            "sessionId": "ss-w9-a",
-            "sessionName": "Session A",
-            "sessionType": "Lift",
-            "focus": "Heavy Singles Intro",
-            "exercises": [
-              {
-                "exercise": "Back Squat",
-                "variant": null,
-                "sets": 3,
-                "reps": 2,
-                "percent1RM": 0.88,
-                "restMinutes": 5,
-                "notes": "3x2 @ 88%. Peaking block begins. Focus on commands and walkout."
-              },
-              {
-                "exercise": "Conventional Deadlift (No Straps)",
-                "variant": null,
-                "sets": 2,
-                "reps": 3,
-                "percent1RM": null,
-                "restMinutes": 3,
-                "notes": "Light. Just maintain neural drive."
-              },
-              {
-                "exercise": "Barbell Row",
-                "variant": null,
-                "sets": 3,
-                "reps": 6,
-                "percent1RM": null,
-                "restMinutes": 2,
-                "notes": "Moderate. Upper back only."
-              }
-            ]
-          },
-          {
-            "sessionId": "ss-w9-b",
-            "sessionName": "Session B",
-            "sessionType": "Lift",
-            "focus": "Competition Prep",
-            "exercises": [
-              {
-                "exercise": "Back Squat",
-                "variant": "Paused",
-                "sets": 3,
-                "reps": 2,
-                "percent1RM": 0.8,
-                "restMinutes": 4,
-                "notes": "3x2 paused @ 80%. 2-second pause at bottom."
-              },
-              {
-                "exercise": "Front Squat",
-                "variant": null,
-                "sets": 2,
-                "reps": 3,
-                "percent1RM": 0.7,
-                "restMinutes": 3,
-                "notes": "2x3 @ 70%. Light, technique-focused."
-              },
-              {
-                "exercise": "Banded Leg Curls",
-                "variant": null,
-                "sets": 2,
-                "reps": 10,
-                "percent1RM": null,
-                "restMinutes": 1.5,
-                "notes": "Light. Prehab only.",
-                "bodyweightOnly": true
-              }
-            ]
-          },
-          {
-            "sessionId": "ss-w9-c",
-            "sessionName": "Session C",
-            "sessionType": "Lift",
-            "focus": "Light Technique",
-            "exercises": [
-              {
-                "exercise": "Back Squat",
-                "variant": null,
-                "sets": 3,
-                "reps": 3,
-                "percent1RM": 0.72,
-                "restMinutes": 3,
-                "notes": "3x3 @ 72%. Speed and technique. Move the bar fast."
-              },
-              {
-                "exercise": "Good Morning",
-                "variant": null,
-                "sets": 2,
-                "reps": 8,
-                "percent1RM": null,
-                "restMinutes": 2,
-                "notes": "Light posterior chain work."
-              },
-              {
-                "exercise": "Plated Calf Step Up",
-                "variant": null,
-                "sets": 3,
-                "reps": 12,
-                "percent1RM": null,
-                "restMinutes": 1,
-                "notes": "Easy."
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "week": 10,
-        "phaseId": "block-3-peak",
-        "isTestWeek": false,
-        "sessions": [
-          {
-            "sessionId": "ss-w10-a",
-            "sessionName": "Session A",
-            "sessionType": "Lift",
-            "focus": "Heavy Singles",
-            "exercises": [
-              {
-                "exercise": "Back Squat",
-                "variant": null,
-                "sets": 3,
-                "reps": 1,
-                "percent1RM": 0.92,
-                "restMinutes": 5,
-                "notes": "3x1 @ 92%. Heavy singles. Full rest. Nail your walkout."
-              },
-              {
-                "exercise": "Conventional Deadlift (No Straps)",
-                "variant": null,
-                "sets": 2,
-                "reps": 2,
-                "percent1RM": null,
-                "restMinutes": 3,
-                "notes": "Moderate heavy doubles."
-              },
-              {
-                "exercise": "Barbell Row",
-                "variant": null,
-                "sets": 2,
-                "reps": 6,
-                "percent1RM": null,
-                "restMinutes": 2,
-                "notes": "Light-moderate."
-              }
-            ]
-          },
-          {
-            "sessionId": "ss-w10-b",
-            "sessionName": "Session B",
-            "sessionType": "Lift",
-            "focus": "Competition Prep",
-            "exercises": [
-              {
-                "exercise": "Back Squat",
-                "variant": "Paused",
-                "sets": 2,
-                "reps": 2,
-                "percent1RM": 0.82,
-                "restMinutes": 4,
-                "notes": "2x2 paused @ 82%. Confidence builders."
-              },
-              {
-                "exercise": "Front Squat",
-                "variant": null,
-                "sets": 2,
-                "reps": 2,
-                "percent1RM": 0.72,
-                "restMinutes": 3,
-                "notes": "2x2 @ 72%. Light technique."
-              },
-              {
-                "exercise": "Banded Leg Curls",
-                "variant": null,
-                "sets": 2,
-                "reps": 10,
-                "percent1RM": null,
-                "restMinutes": 1.5,
-                "notes": "Prehab.",
-                "bodyweightOnly": true
-              }
-            ]
-          },
-          {
-            "sessionId": "ss-w10-c",
-            "sessionName": "Session C",
-            "sessionType": "Lift",
-            "focus": "Light Technique",
-            "exercises": [
-              {
-                "exercise": "Back Squat",
-                "variant": null,
-                "sets": 3,
-                "reps": 2,
-                "percent1RM": 0.72,
-                "restMinutes": 3,
-                "notes": "3x2 @ 72%. Speed work. Explosive out of the hole."
-              },
-              {
-                "exercise": "Romanian Deadlift (No Straps)",
-                "variant": null,
-                "sets": 2,
-                "reps": 6,
-                "percent1RM": null,
-                "restMinutes": 2,
-                "notes": "Light. Maintain."
-              },
-              {
-                "exercise": "Plated Calf Step Up",
-                "variant": null,
-                "sets": 2,
-                "reps": 12,
-                "percent1RM": null,
-                "restMinutes": 1,
-                "notes": "Easy."
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "week": 11,
-        "phaseId": "block-3-peak",
-        "isTestWeek": false,
-        "sessions": [
-          {
-            "sessionId": "ss-w11-a",
-            "sessionName": "Session A",
-            "sessionType": "Lift",
-            "focus": "Openers",
-            "exercises": [
-              {
-                "exercise": "Back Squat",
-                "variant": null,
-                "sets": 2,
-                "reps": 1,
-                "percent1RM": 0.95,
-                "restMinutes": 5,
-                "notes": "2x1 @ 95%. Opener practice. This should feel heavy but confident."
-              },
-              {
-                "exercise": "Conventional Deadlift (No Straps)",
-                "variant": null,
-                "sets": 2,
-                "reps": 1,
-                "percent1RM": null,
-                "restMinutes": 3,
-                "notes": "Heavy singles. Match the intensity."
-              },
-              {
-                "exercise": "Barbell Row",
-                "variant": null,
-                "sets": 2,
-                "reps": 6,
-                "percent1RM": null,
-                "restMinutes": 2,
-                "notes": "Light. Just blood flow."
-              }
-            ]
-          },
-          {
-            "sessionId": "ss-w11-b",
-            "sessionName": "Session B",
-            "sessionType": "Lift",
-            "focus": "Competition Prep",
-            "exercises": [
-              {
-                "exercise": "Back Squat",
-                "variant": "Paused",
-                "sets": 2,
-                "reps": 1,
-                "percent1RM": 0.85,
-                "restMinutes": 4,
-                "notes": "2x1 paused @ 85%. Confidence reps."
-              },
-              {
-                "exercise": "Front Squat",
-                "variant": null,
-                "sets": 2,
-                "reps": 2,
-                "percent1RM": 0.7,
-                "restMinutes": 3,
-                "notes": "2x2 @ 70%. Keep it light and snappy."
-              },
-              {
-                "exercise": "Banded Leg Curls",
-                "variant": null,
-                "sets": 2,
-                "reps": 8,
-                "percent1RM": null,
-                "restMinutes": 1.5,
-                "notes": "Light prehab.",
-                "bodyweightOnly": true
-              }
-            ]
-          },
-          {
-            "sessionId": "ss-w11-c",
-            "sessionName": "Session C",
-            "sessionType": "Lift",
-            "focus": "Light Technique",
-            "exercises": [
-              {
-                "exercise": "Back Squat",
-                "variant": null,
-                "sets": 2,
-                "reps": 2,
-                "percent1RM": 0.7,
-                "restMinutes": 3,
-                "notes": "2x2 @ 70%. Light speed work. Stay sharp."
-              },
-              {
-                "exercise": "Good Morning",
-                "variant": null,
-                "sets": 2,
-                "reps": 6,
-                "percent1RM": null,
-                "restMinutes": 2,
-                "notes": "Very light. Just movement."
-              },
-              {
-                "exercise": "Plated Calf Step Up",
-                "variant": null,
-                "sets": 2,
-                "reps": 10,
-                "percent1RM": null,
-                "restMinutes": 1,
-                "notes": "Easy."
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "week": 12,
-        "phaseId": "block-3-peak",
+        "phaseId": "deload-testing",
         "isTestWeek": true,
         "sessions": [
           {
-            "sessionId": "ss-w12-a",
-            "sessionName": "Session A",
-            "sessionType": "Lift",
-            "focus": "Taper",
+            "sessionId": "w8d1",
+            "sessionName": "Day 1 - Light Squat & Technique",
+            "sessionType": "strength",
+            "focus": "Squat & Technique",
             "exercises": [
               {
                 "exercise": "Back Squat",
-                "variant": null,
                 "sets": 3,
                 "reps": 3,
                 "percent1RM": 0.6,
-                "restMinutes": 3,
-                "notes": "3x3 @ 60%. Light taper session. Fast and perfect reps."
-              }
-            ]
-          },
-          {
-            "sessionId": "ss-w12-b",
-            "sessionName": "Session B",
-            "sessionType": "Lift",
-            "focus": "Deload / Recovery",
-            "exercises": [
+                "restMinutes": 2,
+                "notes": "Focus on perfect movement quality."
+              },
               {
-                "exercise": "Front Squat",
-                "variant": null,
+                "exercise": "Romanian Deadlift (RDL)",
                 "sets": 2,
                 "reps": 5,
+                "restMinutes": 1.5,
+                "notes": "Light movement."
+              },
+              {
+                "exercise": "Overhead Press (OHP)",
+                "sets": 2,
+                "reps": 3,
                 "percent1RM": 0.55,
                 "restMinutes": 2,
-                "notes": "2x5 @ 55%. Easy movement. You earned this."
+                "notes": "Very light."
               },
               {
-                "exercise": "Walking Lunges",
-                "variant": null,
+                "exercise": "Face Pulls",
                 "sets": 2,
-                "reps": 8,
-                "percent1RM": null,
-                "restMinutes": 2,
-                "notes": "8 per leg, bodyweight or light."
-              },
-              {
-                "exercise": "Banded Leg Curls",
-                "variant": null,
-                "sets": 2,
-                "reps": 12,
-                "percent1RM": null,
-                "restMinutes": 1.5,
-                "notes": "Light. Recovery.",
-                "bodyweightOnly": true
+                "reps": 15,
+                "restMinutes": 1,
+                "notes": "Recovery focus."
               }
             ]
           },
           {
-            "sessionId": "ss-w12-c",
-            "sessionName": "Session C",
-            "sessionType": "Lift",
-            "focus": "1RM Test Day",
+            "sessionId": "w8d2",
+            "sessionName": "Day 2 - Light Bench & Technique",
+            "sessionType": "strength",
+            "focus": "Bench Press & Technique",
+            "exercises": [
+              {
+                "exercise": "Competition Bench Press",
+                "sets": 3,
+                "reps": 3,
+                "percent1RM": 0.6,
+                "restMinutes": 2,
+                "notes": "Focus on speed off the chest."
+              },
+              {
+                "exercise": "Snatch Pull (light)",
+                "sets": 3,
+                "reps": 3,
+                "restMinutes": 2,
+                "notes": "Light weight, focus on bar path."
+              },
+              {
+                "exercise": "Close Grip Bench Press",
+                "sets": 2,
+                "reps": 5,
+                "restMinutes": 1.5,
+                "notes": "Light."
+              },
+              {
+                "exercise": "Band Pull-aparts",
+                "sets": 2,
+                "reps": 20,
+                "restMinutes": 1,
+                "notes": "Active recovery."
+              }
+            ]
+          },
+          {
+            "sessionId": "w8d3",
+            "sessionName": "Day 3 - Testing Day (Max Effort)",
+            "sessionType": "testing",
+            "focus": "Maximal Lifts",
             "exercises": [
               {
                 "exercise": "Back Squat",
-                "variant": null,
-                "sets": 1,
+                "sets": "Ramp up",
                 "reps": 1,
-                "percent1RM": 1,
                 "restMinutes": 5,
-                "notes": "Work up to a new 1RM. Warm up: bar → 50% → 60% → 70% → 80% → 90% → attempt."
+                "notes": "Test 1RM or a heavy triple/single above W7 peak."
               },
               {
-                "exercise": "Back Squat",
-                "variant": "Back-off",
-                "sets": 2,
-                "reps": 3,
-                "percent1RM": 0.75,
-                "restMinutes": 3,
-                "notes": "2x3 @ 75% of new max. Celebrate, program complete!"
+                "exercise": "Competition Bench Press",
+                "sets": "Ramp up",
+                "reps": 1,
+                "restMinutes": 5,
+                "notes": "Test 1RM or a heavy triple/single above W7 peak."
+              },
+              {
+                "exercise": "Conventional Deadlift",
+                "sets": "Ramp up",
+                "reps": 1,
+                "restMinutes": 6,
+                "notes": "Test 1RM or a heavy triple/single above W7 peak."
               }
             ]
           }
         ]
       }
-    ]
+    ],
+    "cycleAdjustmentProfile": {
+      "fallbackPhase": "Strength Accumulation",
+      "lowConfidenceScale": 0.9,
+      "phaseSettings": {
+        "follicular": {
+          "loadMultiplier": 1,
+          "setsMultiplier": 1,
+          "repsMultiplier": 1
+        },
+        "ovulatory": {
+          "loadMultiplier": 1.05,
+          "setsMultiplier": 1,
+          "repsMultiplier": 1
+        },
+        "luteal": {
+          "loadMultiplier": 0.9,
+          "setsMultiplier": 0.85,
+          "repsMultiplier": 1
+        },
+        "menstrual": {
+          "loadMultiplier": 0.8,
+          "setsMultiplier": 0.8,
+          "repsMultiplier": 1
+        },
+        "ovulation": {
+          "loadMultiplier": 1.1,
+          "setsMultiplier": 1.1,
+          "repsMultiplier": 1
+        }
+      }
+    }
   }
 ]

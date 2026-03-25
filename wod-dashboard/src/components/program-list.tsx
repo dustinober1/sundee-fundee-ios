@@ -140,16 +140,18 @@ export function ProgramList({
                   </span>
                 </td>
                 <td className="px-2 py-1.5 text-center">
-                  {!p.published && (
-                    <button
-                      type="button"
-                      onClick={(e) => handlePublishOne(e, p.id)}
-                      disabled={publishingId === p.id}
-                      className="bg-orange text-white px-2 py-0.5 rounded text-xs font-medium hover:bg-orange/90 transition-colors disabled:opacity-50"
-                    >
-                      {publishingId === p.id ? "..." : "Publish"}
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    onClick={(e) => handlePublishOne(e, p.id)}
+                    disabled={publishingId === p.id}
+                    className={`px-2 py-0.5 rounded text-xs font-medium transition-colors disabled:opacity-50 ${
+                      p.published
+                        ? "border border-orange text-orange hover:bg-orange/10"
+                        : "bg-orange text-white hover:bg-orange/90"
+                    }`}
+                  >
+                    {publishingId === p.id ? "..." : p.published ? "Republish" : "Publish"}
+                  </button>
                 </td>
               </tr>
             ))}

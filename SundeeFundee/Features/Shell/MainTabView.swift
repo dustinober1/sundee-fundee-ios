@@ -40,7 +40,7 @@ struct MainTabView: View {
     static var orderedTabs: [TabRoute] { orderedTabs(for: nil) }
 
     static func orderedTabs(for gender: Gender?) -> [TabRoute] {
-        var tabs: [TabRoute] = [.dashboard, .programs, .history, .maxes, .benchmarks]
+        var tabs: [TabRoute] = [.dashboard, .programs, .benchmarks, .maxes, .history]
         if gender != .male {
             tabs.append(.cycle)
         }

@@ -39,7 +39,7 @@ targets:
         SWIFT_VERSION: "6.0"
       configs:
         Debug:
-          CODE_SIGN_ENTITLEMENTS: SundeeFundee/Resources/SundeeFundee.Debug.entitlements
+          CODE_SIGN_ENTITLEMENTS: SundeeFundee/Resources/SundeeFundee.entitlements
         Release:
           CODE_SIGN_ENTITLEMENTS: SundeeFundee/Resources/SundeeFundee.entitlements
     info:

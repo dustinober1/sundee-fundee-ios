@@ -127,7 +127,11 @@ struct SignInView: View {
 
     static func errorMessage(for error: Error) -> String? {
         let nsErr = error as NSError
-        return nsErr.code == 1001 ? nil : error.localizedDescription
+        switch nsErr.code {
+        case 1001: return nil // User cancelled
+        case 1000: return "Sign in with Apple failed. Please check that iCloud is signed in under Settings, then try again."
+        default: return error.localizedDescription
+        }
     }
 
     static func payload(from credential: Any) -> AppleAuthorizationPayload {

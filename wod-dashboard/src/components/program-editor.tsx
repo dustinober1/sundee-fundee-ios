@@ -16,7 +16,7 @@ import {
   arrayMove,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { validateProgram, type ValidationError } from "@/lib/validation";
+import { validateProgram } from "@/lib/validation";
 import { WeekEditor } from "@/components/week-editor";
 import { CycleAdjustmentEditor } from "@/components/cycle-adjustment-editor";
 import type { Program, ProgramCycleAdjustmentProfile, ProgramPhase, ProgramSession, ProgramWeek } from "@/lib/types";
@@ -164,7 +164,6 @@ export function ProgramEditor({ program, onSave, onDelete, saving = false }: Pro
   const [phaseKeys, setPhaseKeys] = useState<string[]>([]);
   const [phaseKeyCounter, setPhaseKeyCounter] = useState(0);
   const [hasCycleAdjustments, setHasCycleAdjustments] = useState(false); // kept for currentProgram memo
-  const [errors, setErrors] = useState<ValidationError[]>([]);
 
   // Keep the original weeks so we can pass them through on save
   const [weeks, setWeeks] = useState<Program["weeks"]>([]);
@@ -188,7 +187,6 @@ export function ProgramEditor({ program, onSave, onDelete, saving = false }: Pro
       const keys = program.phases.map((_, i) => `phase-${i}`);
       setPhaseKeys(keys);
       setPhaseKeyCounter(program.phases.length);
-      setErrors([]);
     }
   }, [program]);
 
@@ -198,11 +196,6 @@ export function ProgramEditor({ program, onSave, onDelete, saving = false }: Pro
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
-  );
-
-  const fieldError = useCallback(
-    (field: string) => errors.find((e) => e.field === field)?.message,
-    [errors]
   );
 
   // Build current program for validation
@@ -236,9 +229,16 @@ export function ProgramEditor({ program, onSave, onDelete, saving = false }: Pro
     ]
   );
 
-  const hasValidationErrors = useMemo(
-    () => validateProgram(currentProgram).length > 0,
+  const liveErrors = useMemo(
+    () => validateProgram(currentProgram),
     [currentProgram]
+  );
+
+  const hasValidationErrors = liveErrors.length > 0;
+
+  const fieldError = useCallback(
+    (field: string) => liveErrors.find((e) => e.field === field)?.message,
+    [liveErrors]
   );
 
   // ─── Phase handlers ──────────────────────────────────────────────────────
@@ -307,11 +307,8 @@ export function ProgramEditor({ program, onSave, onDelete, saving = false }: Pro
   // ─── Save / Delete ───────────────────────────────────────────────────────
 
   function handleSave() {
-    const programToSave = currentProgram;
-    const validationErrors = validateProgram(programToSave);
-    setErrors(validationErrors);
-    if (validationErrors.length > 0) return;
-    onSave(programToSave);
+    if (hasValidationErrors) return;
+    onSave(currentProgram);
   }
 
   // ─── Placeholder ─────────────────────────────────────────────────────────
@@ -524,6 +521,16 @@ export function ProgramEditor({ program, onSave, onDelete, saving = false }: Pro
       />
 
       {/* ── Actions ─────────────────────────────────────────────────────── */}
+      {hasValidationErrors && (
+        <div className="mb-2 p-3 bg-red-50 border border-red-200 rounded text-sm text-red-700">
+          <p className="font-medium mb-1">Fix {liveErrors.length} issue{liveErrors.length > 1 ? "s" : ""} to save:</p>
+          <ul className="list-disc list-inside space-y-0.5">
+            {liveErrors.map((e, i) => (
+              <li key={i}>{e.message}</li>
+            ))}
+          </ul>
+        </div>
+      )}
       <div className="flex items-center gap-3 pt-4 border-t border-navy/10 mt-auto">
         <button
           type="button"

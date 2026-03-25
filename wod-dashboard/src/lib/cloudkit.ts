@@ -48,6 +48,16 @@ export async function saveWODRecord(wod: WOD): Promise<void> {
 // ─── Program Records ────────────────────────────────────────────────────────
 
 export async function saveProgramRecord(program: Program): Promise<void> {
+  // Encode exercises back to JSON-safe format (ExerciseValue → number/string/array)
+  // so Swift's JSONDecoder can parse the weeksJSON field.
+  const encodedWeeks = program.weeks.map((w) => ({
+    ...w,
+    sessions: w.sessions.map((s) => ({
+      ...s,
+      exercises: s.exercises.map(exerciseToJSON),
+    })),
+  }));
+
   const record = {
     recordType: "Program",
     recordName: program.id,
@@ -60,7 +70,7 @@ export async function saveProgramRecord(program: Program): Promise<void> {
       sessionsPerWeek: { value: program.sessionsPerWeek },
       difficulty: { value: program.difficulty },
       phasesJSON: { value: JSON.stringify(program.phases) },
-      weeksJSON: { value: JSON.stringify(program.weeks) },
+      weeksJSON: { value: JSON.stringify(encodedWeeks) },
       cycleAdjustmentProfileJSON: {
         value: program.cycleAdjustmentProfile
           ? JSON.stringify(program.cycleAdjustmentProfile)

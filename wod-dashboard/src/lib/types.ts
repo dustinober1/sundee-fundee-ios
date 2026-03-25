@@ -112,7 +112,7 @@ export function exerciseFromJSON(json: ProgramExerciseJSON): ProgramExercise {
     reps: decodeExerciseValue(json.reps),
   };
   if (json.variant !== undefined) ex.variant = json.variant;
-  if (json.percent1RM !== undefined) ex.percent1RM = json.percent1RM;
+  if (json.percent1RM !== undefined) ex.percent1RM = json.percent1RM > 1.5 ? json.percent1RM / 100 : json.percent1RM;
   if (json.restMinutes !== undefined) ex.restMinutes = json.restMinutes;
   if (json.notes !== undefined) ex.notes = json.notes;
   if (json.bodyweightOnly !== undefined) ex.bodyweightOnly = json.bodyweightOnly;

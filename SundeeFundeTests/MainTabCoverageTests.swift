@@ -33,16 +33,16 @@ final class MainTabCoverageTests: XCTestCase {
     func testTabMetadataAndOrderAreStable() {
         let tabs = MainTabView.orderedTabs
 
-        XCTAssertEqual(tabs, [.dashboard, .programs, .history, .maxes, .benchmarks, .cycle, .settings])
-        XCTAssertEqual(tabs.map(\.title), ["Dashboard", "Programs", "History", "Maxes", "Benchmarks", "Cycle", "Settings"])
+        XCTAssertEqual(tabs, [.dashboard, .programs, .benchmarks, .maxes, .history, .cycle, .settings])
+        XCTAssertEqual(tabs.map(\.title), ["Dashboard", "Programs", "Benchmarks", "Maxes", "History", "Cycle", "Settings"])
         XCTAssertEqual(
             tabs.map(\.systemImage),
             [
                 "house.fill",
                 "list.bullet.rectangle.portrait.fill",
-                "clock.fill",
-                "dumbbell.fill",
                 "checkmark.seal.fill",
+                "dumbbell.fill",
+                "clock.fill",
                 "circle.dotted",
                 "gearshape.fill",
             ]
@@ -82,7 +82,7 @@ final class MainTabCoverageTests: XCTestCase {
     func testOrderedTabsExcludesCycleForMale() {
         let tabs = MainTabView.orderedTabs(for: .male)
         XCTAssertFalse(tabs.contains(.cycle))
-        XCTAssertEqual(tabs, [.dashboard, .programs, .history, .maxes, .benchmarks, .settings])
+        XCTAssertEqual(tabs, [.dashboard, .programs, .benchmarks, .maxes, .history, .settings])
     }
 
     func testOrderedTabsIncludesCycleForFemale() {
