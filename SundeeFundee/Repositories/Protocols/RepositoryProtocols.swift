@@ -81,8 +81,8 @@ protocol BenchmarkDefinitionRepository {
 // MARK: - RemoteBenchmarkDefinitionRepository
 
 /// Async protocol for fetching admin-published benchmark definitions from CloudKit or bundled JSON.
-/// Not Sendable because BenchmarkDefinition is a SwiftData @Model (not a plain struct).
-protocol RemoteBenchmarkDefinitionRepository {
+/// Sendable so it can be safely called from a @MainActor context across async boundaries.
+protocol RemoteBenchmarkDefinitionRepository: Sendable {
     func fetchBenchmarkDefinitions() async throws -> [BenchmarkDefinition]
 }
 

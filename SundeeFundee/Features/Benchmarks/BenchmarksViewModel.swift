@@ -21,14 +21,18 @@ final class BenchmarksViewModel {
     private var modelContext: ModelContext?
     private var userID: String = ""
     private let definitionRepoFactory: (ModelContext) -> any BenchmarkDefinitionRepository
+    private let remoteRepo: (any RemoteBenchmarkDefinitionRepository)?
 
     init(
         definitionRepoFactory: @escaping (ModelContext) -> any BenchmarkDefinitionRepository = {
             SwiftDataBenchmarkDefinitionRepository(context: $0)
-        }
+        },
+        remoteRepo: (any RemoteBenchmarkDefinitionRepository)?
     ) {
         self.definitionRepoFactory = definitionRepoFactory
+        self.remoteRepo = remoteRepo
     }
+
 
     func load(modelContext: ModelContext, userID: String = "") async {
         self.modelContext = modelContext
@@ -38,10 +42,16 @@ final class BenchmarksViewModel {
 
         let repo = definitionRepoFactory(modelContext)
         let userCreated = (try? repo.fetchUserCreated(userID: userID)) ?? []
+        let remote: [BenchmarkDefinition]
+        if let repo = remoteRepo {
+            remote = (try? await repo.fetchBenchmarkDefinitions()) ?? []
+        } else {
+            remote = []
+        }
 
-        // Merge predefined + user-created, grouped by category in display order
+        // Merge predefined + remote + user-created, grouped by category in display order
         var grouped: [String: [BenchmarkDefinition]] = [:]
-        for def in BenchmarkCatalog.predefined + userCreated {
+        for def in BenchmarkCatalog.predefined + remote + userCreated {
             grouped[def.category, default: []].append(def)
         }
 

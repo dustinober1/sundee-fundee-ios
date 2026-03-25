@@ -1,9 +1,10 @@
 import SwiftUI
 import SwiftData
+import CloudKit
 
 /// Main benchmarks screen — shows all definitions grouped by category.
 struct BenchmarksView: View {
-    @State private var viewModel = BenchmarksViewModel()
+    @State private var viewModel = BenchmarksViewModel(remoteRepo: CloudKitBenchmarkDefinitionRepository())
     @Environment(\.modelContext) private var modelContext
     @Environment(AppState.self) private var appState
     @State private var showAddCustom = false

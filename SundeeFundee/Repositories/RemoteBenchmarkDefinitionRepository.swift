@@ -31,7 +31,7 @@ private struct BenchmarkDefinitionDTO: Codable {
 
 /// Loads benchmark definitions from the bundled benchmarks.json file.
 /// Caches the raw DTOs (not @Model instances) to avoid SwiftData data races.
-final class BundledBenchmarkDefinitionRepository: RemoteBenchmarkDefinitionRepository {
+final class BundledBenchmarkDefinitionRepository: RemoteBenchmarkDefinitionRepository, @unchecked Sendable {
     private let bundle: Bundle
     private let resourceName: String
     private var dtoCache: [BenchmarkDefinitionDTO]?
@@ -60,12 +60,12 @@ final class BundledBenchmarkDefinitionRepository: RemoteBenchmarkDefinitionRepos
 final class CloudKitBenchmarkDefinitionRepository: RemoteBenchmarkDefinitionRepository {
     typealias CloudRecordFetcher = @Sendable (CKQuery) async throws -> [(CKRecord.ID, Result<CKRecord, Error>)]
 
-    private let cloudFetcher: () async throws -> [BenchmarkDefinition]
-    private let fallback: RemoteBenchmarkDefinitionRepository
+    private let cloudFetcher: @Sendable () async throws -> [BenchmarkDefinition]
+    private let fallback: any RemoteBenchmarkDefinitionRepository
 
     init(
         containerID: String = "iCloud.com.sundeefundee.app",
-        fallback: RemoteBenchmarkDefinitionRepository = BundledBenchmarkDefinitionRepository(),
+        fallback: any RemoteBenchmarkDefinitionRepository = BundledBenchmarkDefinitionRepository(),
         cloudQueryExecutor: CloudRecordFetcher? = nil
     ) {
         self.fallback = fallback
@@ -83,7 +83,7 @@ final class CloudKitBenchmarkDefinitionRepository: RemoteBenchmarkDefinitionRepo
     }
 
     init(
-        fallback: RemoteBenchmarkDefinitionRepository,
+        fallback: any RemoteBenchmarkDefinitionRepository,
         cloudRecordFetcher: @escaping CloudRecordFetcher
     ) {
         self.fallback = fallback
@@ -93,8 +93,8 @@ final class CloudKitBenchmarkDefinitionRepository: RemoteBenchmarkDefinitionRepo
     }
 
     init(
-        fallback: RemoteBenchmarkDefinitionRepository,
-        cloudFetcher: @escaping () async throws -> [BenchmarkDefinition]
+        fallback: any RemoteBenchmarkDefinitionRepository,
+        cloudFetcher: @escaping @Sendable () async throws -> [BenchmarkDefinition]
     ) {
         self.fallback = fallback
         self.cloudFetcher = cloudFetcher
