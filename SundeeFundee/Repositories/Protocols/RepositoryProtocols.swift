@@ -78,6 +78,14 @@ protocol BenchmarkDefinitionRepository {
     func delete(_ definition: BenchmarkDefinition) throws
 }
 
+// MARK: - RemoteBenchmarkDefinitionRepository
+
+/// Async protocol for fetching admin-published benchmark definitions from CloudKit or bundled JSON.
+/// Not Sendable because BenchmarkDefinition is a SwiftData @Model (not a plain struct).
+protocol RemoteBenchmarkDefinitionRepository {
+    func fetchBenchmarkDefinitions() async throws -> [BenchmarkDefinition]
+}
+
 // MARK: - BenchmarkResultRepository
 
 protocol BenchmarkResultRepository {
