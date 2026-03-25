@@ -101,4 +101,8 @@ struct BenchmarkCatalogTests {
             #expect(orders[i] > orders[i - 1])
         }
     }
+
+    @Test func categoryOrderIncludesSundeeFundee() {
+        #expect(BenchmarkCatalog.categoryOrder.contains("Sundee Fundee"))
+    }
 }

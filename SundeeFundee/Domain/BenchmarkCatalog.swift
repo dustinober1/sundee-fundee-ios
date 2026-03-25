@@ -13,6 +13,7 @@ enum BenchmarkCatalog {
     static let endurance      = "Endurance"
     static let gymnastics     = "Gymnastics"
     static let generalFitness = "General Fitness"
+    static let sundeeFundee   = "Sundee Fundee"
 
     // MARK: - Predefined Definitions
 
@@ -78,7 +79,7 @@ enum BenchmarkCatalog {
     // MARK: - Helpers
 
     /// All category names in display order.
-    static let categoryOrder: [String] = [crossfitWOD, strength, endurance, gymnastics, generalFitness]
+    static let categoryOrder: [String] = [sundeeFundee, crossfitWOD, strength, endurance, gymnastics, generalFitness]
 
     struct CategoryGroup {
         let category: String
