@@ -229,9 +229,24 @@ struct PaywallView: View {
                     .font(AppTheme.Fonts.caption)
                     .foregroundStyle(AppTheme.Colors.error)
             }
+
+            legalLinks
         }
         .padding(.bottom, AppTheme.Spacing.lg)
     }
+
+    private var legalLinks: some View {
+        HStack(spacing: AppTheme.Spacing.md) {
+            Link("Terms of Use", destination: Self.termsURL)
+            Text("·")
+            Link("Privacy Policy", destination: Self.privacyURL)
+        }
+        .font(AppTheme.Fonts.caption)
+        .foregroundStyle(AppTheme.Colors.navy.opacity(0.5))
+    }
+
+    static let termsURL = URL(string: "https://sundeefundee.com/terms/")!
+    static let privacyURL = URL(string: "https://sundeefundee.com/privacy/")!
 
     // MARK: - Helpers
 
