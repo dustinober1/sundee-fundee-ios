@@ -11,14 +11,14 @@ private final class AuthCoverageTempModel {
     }
 }
 
-@Suite("App/Auth Coverage")
+@Suite("App/Auth Coverage", .serialized)
 struct AppAuthCoverageTests {
     @MainActor
     private func makeModelContext() throws -> ModelContext {
         let schema = Schema([AuthCoverageTempModel.self])
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
         let container = try ModelContainer(for: schema, configurations: [config])
-        return ModelContext(container)
+        return container.mainContext
     }
 
     @Test @MainActor
@@ -125,8 +125,8 @@ struct AppAuthCoverageTests {
         #expect(AppSchemaV1.models.count == 15)
         #expect(AppSchemaV1.models.map { String(describing: $0) }.contains("User"))
 
-        #expect(AppSchemaMigrationPlan.schemas.count == 1)
+        #expect(AppSchemaMigrationPlan.schemas.count == 5)
         #expect(String(describing: AppSchemaMigrationPlan.schemas[0]) == String(describing: AppSchemaV1.self))
-        #expect(AppSchemaMigrationPlan.stages.isEmpty)
+        #expect(AppSchemaMigrationPlan.stages.count == 4)
     }
 }

@@ -392,6 +392,13 @@ struct NoEnrollmentCard: View {
                 .font(AppTheme.Fonts.caption)
                 .foregroundStyle(AppTheme.Colors.navy.opacity(0.5))
                 .multilineTextAlignment(.center)
+
+            NavigationLink(destination: ProgramListView()) {
+                Label("Browse Programs", systemImage: "list.bullet.rectangle.portrait.fill")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(PrimaryButtonStyle())
+            .accessibilityIdentifier("browse-programs-button")
         }
         .frame(maxWidth: .infinity)
         .padding(AppTheme.Spacing.xl)
@@ -476,9 +483,6 @@ struct WorkoutHistoryRow: View {
                         .foregroundStyle(AppTheme.Colors.navy.opacity(0.5))
                 }
             }
-            Image(systemName: "chevron.right")
-                .font(.caption)
-                .foregroundStyle(AppTheme.Colors.navy.opacity(0.3))
         }
         .padding(AppTheme.Spacing.sm)
         .background(AppTheme.Colors.cardBackground)

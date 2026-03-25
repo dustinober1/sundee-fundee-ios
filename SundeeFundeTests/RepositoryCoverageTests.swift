@@ -4,13 +4,13 @@ import SwiftData
 import CloudKit
 @testable import SundeeFundee
 
-@Suite("Repository Coverage")
+@Suite("Repository Coverage", .serialized)
 struct RepositoryCoverageTests {
     private static let baseTime = Date(timeIntervalSince1970: 1_700_000_000)
 
     @MainActor
     private func makeContainer() throws -> ModelContainer {
-        let schema = Schema(AppSchemaV6.models)
+        let schema = Schema(AppSchemaV9.models)
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
         return try ModelContainer(for: schema, configurations: [config])
     }
@@ -175,7 +175,7 @@ struct RepositoryCoverageTests {
 
     @MainActor
     private func makeV7Container() throws -> ModelContainer {
-        let schema = Schema(AppSchemaV7.models)
+        let schema = Schema(AppSchemaV9.models)
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
         return try ModelContainer(for: schema, configurations: [config])
     }

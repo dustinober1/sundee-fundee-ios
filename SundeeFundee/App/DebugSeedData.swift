@@ -45,8 +45,8 @@ enum DebugSeedData {
             ("Front Squat", 80),
             ("Conventional Deadlift (No Straps)", 120),
             ("Romanian Deadlift (No Straps)", 90),
-            ("Bench Press", 70),
-            ("Overhead Press", 45),
+            ("Flat Barbell Bench Press", 70),
+            ("Strict Press", 45),
             ("Barbell Row", 65),
         ]
 
@@ -93,7 +93,7 @@ enum DebugSeedData {
 
     @MainActor
     static func clearAll(modelContext: ModelContext) {
-        let types: [any PersistentModel.Type] = AppSchemaV6.models
+        let types: [any PersistentModel.Type] = AppSchemaV9.models
         for type in types {
             try? modelContext.delete(model: type)
         }

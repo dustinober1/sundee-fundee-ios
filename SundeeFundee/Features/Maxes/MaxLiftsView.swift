@@ -117,9 +117,9 @@ struct MaxLiftsView: View {
         .sheet(isPresented: $showPaywall) {
             PaywallView(triggeredBy: .unlimitedLifts)
         }
-        .task { await viewModel.load(modelContext: modelContext) }
+        .task { await viewModel.load(modelContext: modelContext, userID: appState.currentUserID ?? "") }
         .onReceive(NotificationCenter.default.publisher(for: .didSaveNewPRs)) { _ in
-            Task { await viewModel.load(modelContext: modelContext) }
+            Task { await viewModel.load(modelContext: modelContext, userID: appState.currentUserID ?? "") }
         }
     }
 }

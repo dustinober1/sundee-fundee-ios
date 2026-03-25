@@ -73,7 +73,7 @@ struct BenchmarksView: View {
         .sheet(isPresented: $showPaywall) {
             PaywallView(triggeredBy: .customBenchmarks)
         }
-        .task { await viewModel.load(modelContext: modelContext) }
+        .task { await viewModel.load(modelContext: modelContext, userID: appState.currentUserID ?? "") }
     }
 
     private func categoryHeader(_ category: String) -> some View {

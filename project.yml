@@ -56,12 +56,9 @@ targets:
           - UIInterfaceOrientationPortrait
         UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: false
-        NSHealthShareUsageDescription: "Sundee Fundee uses health data to provide cycle-aware training recommendations."
-        NSHealthUpdateUsageDescription: "Sundee Fundee writes workout data to Apple Health."
     dependencies:
       - package: SundeeFundeeShared
       - sdk: CloudKit.framework
-      - sdk: HealthKit.framework
       - sdk: StoreKit.framework
     scheme:
       testTargets:

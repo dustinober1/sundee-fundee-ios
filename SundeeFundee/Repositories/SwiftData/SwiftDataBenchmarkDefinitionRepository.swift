@@ -14,18 +14,16 @@ final class SwiftDataBenchmarkDefinitionRepository: BenchmarkDefinitionRepositor
     }
 
     func fetchAll() throws -> [BenchmarkDefinition] {
-        let descriptor = FetchDescriptor<BenchmarkDefinition>(
-            sortBy: [SortDescriptor(\.sortOrder), SortDescriptor(\.name)]
-        )
+        let descriptor = FetchDescriptor<BenchmarkDefinition>()
         return try context.fetch(descriptor)
     }
 
     func fetchUserCreated(userID: String) throws -> [BenchmarkDefinition] {
         let descriptor = FetchDescriptor<BenchmarkDefinition>(
-            predicate: #Predicate { $0.isPredefined == false && $0.userID == userID },
             sortBy: [SortDescriptor(\.name)]
         )
-        return try context.fetch(descriptor)
+        let all = try context.fetch(descriptor)
+        return all.filter { !$0.isPredefined && $0.userID == userID }
     }
 
     func delete(_ definition: BenchmarkDefinition) throws {

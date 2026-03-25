@@ -50,10 +50,15 @@ final class CloudKitProgramRepository: ProgramRepository, @unchecked Sendable {
     ) {
         self.fallback = fallback
         self.cloudFetcher = {
-            try await Self.fetchFromCloudKit { query in
-                if let cloudQueryExecutor {
-                    return try await cloudQueryExecutor(query)
-                }
+            // When a test executor is injected, bypass the entitlement check
+            // so unit tests can exercise the CloudKit code path.
+            if let cloudQueryExecutor {
+                return try await Self.fetchFromCloudKit(cloudQueryExecutor)
+            }
+            guard CloudKitWODRepository.hasCloudKitEntitlement else {
+                throw CKError(.notAuthenticated)
+            }
+            return try await Self.fetchFromCloudKit { query in
                 return try await CKContainer(identifier: containerID).publicCloudDatabase.records(matching: query).matchResults
             }
         }
@@ -79,7 +84,13 @@ final class CloudKitProgramRepository: ProgramRepository, @unchecked Sendable {
 
     func fetchPrograms() async throws -> [Program] {
         do {
-            return try await cloudFetcher()
+            let programs = try await cloudFetcher()
+            // Fall back to bundled programs when CloudKit returns no results
+            // (e.g., all records failed to decode or CloudKit returned empty)
+            if programs.isEmpty {
+                return try await fallback.fetchPrograms()
+            }
+            return programs
         } catch {
             // Fall back to bundled programs when CloudKit is unavailable
             return try await fallback.fetchPrograms()

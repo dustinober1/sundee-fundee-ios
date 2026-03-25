@@ -40,7 +40,7 @@ final class ProgramWorkoutViewCoverageTests: XCTestCase {
     }
 
     private func makeContainer() throws -> ModelContainer {
-        let schema = Schema(AppSchemaV1.models)
+        let schema = Schema(AppSchemaV9.models)
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
         return try ModelContainer(for: schema, configurations: [config])
     }
@@ -183,6 +183,8 @@ final class ProgramWorkoutViewCoverageTests: XCTestCase {
 
     func testProgramListAndDetailBranchesRenderAndHelpersExecute() throws {
         let container = try makeContainer()
+        let appState = AppState()
+        appState.apply(.authenticated(userID: "user-coverage"))
         let primaryProgram = makeProgram(id: "program-primary")
         let secondaryProgram = makeProgram(id: "program-secondary", includePhases: false)
         let repository = InMemoryProgramRepository(programs: [primaryProgram, secondaryProgram])
@@ -212,15 +214,15 @@ final class ProgramWorkoutViewCoverageTests: XCTestCase {
         let activeVM = ProgramListViewModel(programRepo: repository)
         activeVM.programs = [primaryProgram, secondaryProgram]
         activeVM.activeEnrollment = makeEnrollment(programID: primaryProgram.id, id: "enrolled-active")
-        XCTAssertNotNil(host(NavigationStack { ProgramDetailView(program: primaryProgram, viewModel: activeVM) }, container: container).0.view)
+        XCTAssertNotNil(host(NavigationStack { ProgramDetailView(program: primaryProgram, viewModel: activeVM) }, container: container, appState: appState).0.view)
         XCTAssertNotNil(host(NavigationStack {
             ProgramDetailView(program: primaryProgram, viewModel: activeVM, showCancelConfirm: true)
-        }, container: container).0.view)
+        }, container: container, appState: appState).0.view)
 
         let switchVM = ProgramListViewModel(programRepo: repository)
         switchVM.programs = [primaryProgram, secondaryProgram]
         switchVM.activeEnrollment = makeEnrollment(programID: secondaryProgram.id, id: "enrolled-other")
-        XCTAssertNotNil(host(NavigationStack { ProgramDetailView(program: primaryProgram, viewModel: switchVM) }, container: container).0.view)
+        XCTAssertNotNil(host(NavigationStack { ProgramDetailView(program: primaryProgram, viewModel: switchVM) }, container: container, appState: appState).0.view)
         ProgramDetailView.performEnrollAction(switchVM, in: primaryProgram, modelContext: container.mainContext, userID: "")()
         waitForTasks()
         XCTAssertEqual(switchVM.activeEnrollment?.programID, primaryProgram.id)
@@ -230,7 +232,7 @@ final class ProgramWorkoutViewCoverageTests: XCTestCase {
 
         let startVM = ProgramListViewModel(programRepo: repository)
         startVM.programs = [primaryProgram]
-        XCTAssertNotNil(host(NavigationStack { ProgramDetailView(program: primaryProgram, viewModel: startVM) }, container: container).0.view)
+        XCTAssertNotNil(host(NavigationStack { ProgramDetailView(program: primaryProgram, viewModel: startVM) }, container: container, appState: appState).0.view)
 
         let errorVM = ProgramListViewModel(programRepo: repository)
         errorVM.errorMessage = "Network unavailable"
@@ -245,7 +247,7 @@ final class ProgramWorkoutViewCoverageTests: XCTestCase {
 
         let navVM = ProgramListViewModel(programRepo: repository)
         navVM.programs = [primaryProgram]
-        XCTAssertNotNil(host(ProgramNavigationHarness(viewModel: navVM, selectedProgram: primaryProgram), container: container).0.view)
+        XCTAssertNotNil(host(ProgramNavigationHarness(viewModel: navVM, selectedProgram: primaryProgram), container: container, appState: appState).0.view)
         XCTAssertNotNil(host(
             VStack {
                 ProgramPhaseRow(phase: ProgramPhase(id: "phase-valid", name: "Base", goal: "Build", weekRange: [1, 2]))

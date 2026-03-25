@@ -36,10 +36,10 @@ final class WODExecutionViewModelTests: XCTestCase {
     }
 
     private func makeTestStore() throws -> (container: ModelContainer, context: ModelContext) {
-        let schema = Schema(AppSchemaV1.models)
+        let schema = Schema(AppSchemaV9.models)
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
         let container = try ModelContainer(for: schema, configurations: [config])
-        return (container, ModelContext(container))
+        return (container, container.mainContext)
     }
 
     // MARK: - Initialization
@@ -186,11 +186,11 @@ final class WODExecutionViewModelTests: XCTestCase {
         vm.finishWorkout(modelContext: store.context, userID: "test-user")
         XCTAssertTrue(vm.isFinished)
 
-        // Second call should be blocked by isSaving=false (already reset) but isFinished=true
+        // Second call should be blocked by completedWorkout != nil guard
         vm.finishWorkout(modelContext: store.context, userID: "test-user")
 
         let allWorkouts = try store.context.fetch(FetchDescriptor<CompletedWorkout>())
-        XCTAssertEqual(allWorkouts.count, 2) // Not ideal but tests the guard path
+        XCTAssertEqual(allWorkouts.count, 1) // Guard prevents double-save
     }
 
     // MARK: - Weight unit

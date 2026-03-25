@@ -3,15 +3,14 @@ import Foundation
 import SwiftData
 @testable import SundeeFundee
 
-@Suite("BenchmarkDetailViewModel")
-@MainActor
+@Suite("BenchmarkDetailViewModel", .serialized)
 struct BenchmarkDetailViewModelTests {
 
-    private func makeContext() throws -> ModelContext {
-        let schema = Schema(AppSchemaV6.models)
+    @MainActor
+    private func makeContainer() throws -> ModelContainer {
+        let schema = Schema(AppSchemaV9.models)
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
-        let container = try ModelContainer(for: schema, configurations: [config])
-        return container.mainContext
+        return try ModelContainer(for: schema, configurations: [config])
     }
 
     private func makeFranDefinition() -> BenchmarkDefinition {
@@ -28,29 +27,32 @@ struct BenchmarkDetailViewModelTests {
     }
 
     @Test
+    @MainActor
     func loadsEmptyResults() async throws {
-        let ctx = try makeContext()
+        let container = try makeContainer()
         let vm = BenchmarkDetailViewModel(definition: makeFranDefinition())
-        await vm.load(modelContext: ctx, userID: "u1")
+        await vm.load(modelContext: container.mainContext, userID: "u1")
         #expect(vm.results.isEmpty)
         #expect(vm.bestResult == nil)
     }
 
     @Test
+    @MainActor
     func logResultAppearsInResults() async throws {
-        let ctx = try makeContext()
+        let container = try makeContainer()
         let vm = BenchmarkDetailViewModel(definition: makeFranDefinition())
-        await vm.load(modelContext: ctx, userID: "u1")
+        await vm.load(modelContext: container.mainContext, userID: "u1")
         vm.logResult(scoreValue: 210.0, notes: "First attempt")
         #expect(vm.results.count == 1)
         #expect(vm.results[0].scoreValue == 210.0)
     }
 
     @Test
+    @MainActor
     func bestResultForTimeScoringIsLowest() async throws {
-        let ctx = try makeContext()
+        let container = try makeContainer()
         let vm = BenchmarkDetailViewModel(definition: makeFranDefinition())
-        await vm.load(modelContext: ctx, userID: "u1")
+        await vm.load(modelContext: container.mainContext, userID: "u1")
         vm.logResult(scoreValue: 240.0, notes: "")
         vm.logResult(scoreValue: 195.0, notes: "PR")
         vm.logResult(scoreValue: 220.0, notes: "")
@@ -58,6 +60,7 @@ struct BenchmarkDetailViewModelTests {
     }
 
     @Test
+    @MainActor
     func bestResultForWeightScoringIsHighest() async throws {
         let squatDef = BenchmarkDefinition(
             id: "predefined-1rm-back-squat",
@@ -69,9 +72,9 @@ struct BenchmarkDetailViewModelTests {
             isPredefined: true,
             sortOrder: 10
         )
-        let ctx = try makeContext()
+        let container = try makeContainer()
         let vm = BenchmarkDetailViewModel(definition: squatDef)
-        await vm.load(modelContext: ctx, userID: "u1")
+        await vm.load(modelContext: container.mainContext, userID: "u1")
         vm.logResult(scoreValue: 100.0, notes: "")
         vm.logResult(scoreValue: 120.0, notes: "PR")
         vm.logResult(scoreValue: 115.0, notes: "")
@@ -79,10 +82,11 @@ struct BenchmarkDetailViewModelTests {
     }
 
     @Test
+    @MainActor
     func deleteResultRemovesIt() async throws {
-        let ctx = try makeContext()
+        let container = try makeContainer()
         let vm = BenchmarkDetailViewModel(definition: makeFranDefinition())
-        await vm.load(modelContext: ctx, userID: "u1")
+        await vm.load(modelContext: container.mainContext, userID: "u1")
         vm.logResult(scoreValue: 210.0, notes: "")
         let result = vm.results[0]
         vm.deleteResult(result)
@@ -90,6 +94,7 @@ struct BenchmarkDetailViewModelTests {
     }
 
     @Test
+    @MainActor
     func formattedScoreForTime() {
         let vm = BenchmarkDetailViewModel(definition: makeFranDefinition())
         #expect(vm.formatted(score: 210, for: .time) == "3:30")
@@ -98,6 +103,7 @@ struct BenchmarkDetailViewModelTests {
     }
 
     @Test
+    @MainActor
     func formattedScoreForWeight() {
         let squatDef = BenchmarkDefinition(
             id: "s", userID: "", name: "1RM Back Squat", category: "Strength",
@@ -108,6 +114,7 @@ struct BenchmarkDetailViewModelTests {
     }
 
     @Test
+    @MainActor
     func formattedScoreForReps() {
         let cindyDef = BenchmarkDefinition(
             id: "c", userID: "", name: "Cindy", category: "Classic WODs",
@@ -118,6 +125,7 @@ struct BenchmarkDetailViewModelTests {
     }
 
     @Test
+    @MainActor
     func formattedScoreForRoundsAndReps() {
         let def = BenchmarkDefinition(
             id: "r", userID: "", name: "AMRAP 20",
@@ -132,15 +140,16 @@ struct BenchmarkDetailViewModelTests {
     }
 
     @Test
+    @MainActor
     func bestResultForRoundsAndRepsIsHighest() async throws {
         let def = BenchmarkDefinition(
             id: "r", userID: "", name: "AMRAP 20",
             category: "Classic WODs", workoutDescription: "",
             scoringType: .roundsAndReps, isPredefined: true, sortOrder: 0
         )
-        let ctx = try makeContext()
+        let container = try makeContainer()
         let vm = BenchmarkDetailViewModel(definition: def)
-        await vm.load(modelContext: ctx, userID: "u1")
+        await vm.load(modelContext: container.mainContext, userID: "u1")
         vm.logResult(scoreValue: 20019, notes: "") // 2 + 19
         vm.logResult(scoreValue: 30005, notes: "") // 3 + 5
         vm.logResult(scoreValue: 20050, notes: "") // 2 + 50

@@ -83,6 +83,9 @@ final class WorkoutPreviewViewModel {
         if minutes < 1 {
             return "\(Int(minutes * 60))s rest"
         }
-        return "\(String(format: "%.1g", minutes))min rest"
+        let formatted = minutes.truncatingRemainder(dividingBy: 1) == 0
+            ? "\(Int(minutes))"
+            : String(format: "%.1f", minutes)
+        return "\(formatted)min rest"
     }
 }

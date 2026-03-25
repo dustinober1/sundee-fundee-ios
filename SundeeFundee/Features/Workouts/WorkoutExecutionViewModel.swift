@@ -181,7 +181,7 @@ final class WorkoutExecutionViewModel {
     }
 
     func finishWorkout(modelContext: ModelContext, userID: String) {
-        guard !isSaving else { return }
+        guard !isSaving, completedWorkout == nil else { return }
         isSaving = true
 
         let programID = program?.id ?? "ai-generated"

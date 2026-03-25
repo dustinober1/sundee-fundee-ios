@@ -5,6 +5,7 @@ import SwiftData
 struct CycleTrackingView: View {
     @State private var viewModel = CycleTrackingViewModel()
     @Environment(\.modelContext) private var modelContext
+    @Environment(AppState.self) private var appState
     @State private var selectedTab = 0
     
     enum SectionTab: Int {
@@ -84,7 +85,7 @@ struct CycleTrackingView: View {
         }
         .sheet(isPresented: $viewModel.showAddPeriodLog, content: Self.periodSheetContent(viewModel: viewModel))
         .sheet(isPresented: $viewModel.showAddSymptomLog, content: Self.symptomSheetContent(viewModel: viewModel))
-        .task { await viewModel.load(modelContext: modelContext) }
+        .task { await viewModel.load(modelContext: modelContext, userID: appState.currentUserID ?? "") }
     }
 }
 

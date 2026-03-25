@@ -99,7 +99,7 @@ final class WODExecutionViewModel {
     }
 
     func finishWorkout(modelContext: ModelContext, userID: String) {
-        guard !isSaving else { return }
+        guard !isSaving, completedWorkout == nil else { return }
         isSaving = true
 
         let workout = CompletedWorkout(

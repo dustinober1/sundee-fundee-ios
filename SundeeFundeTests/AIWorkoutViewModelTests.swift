@@ -209,6 +209,7 @@ struct QuestionnaireViewStaticTests {
 // MARK: - WorkoutHistoryView static tests
 
 @Suite("WorkoutHistoryView Statics")
+@MainActor
 struct WorkoutHistoryViewStaticTests {
 
     @Test func filterWorkoutsAll() {

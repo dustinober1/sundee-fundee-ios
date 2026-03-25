@@ -53,7 +53,6 @@ final class BenchmarkDefinition {
 
     var scoringType: BenchmarkScoringType {
         // Falls back to .time for unknown raw values (e.g. future enum cases on old records).
-        assert(BenchmarkScoringType(rawValue: scoringTypeRaw) != nil, "Unknown BenchmarkScoringType raw value: \(scoringTypeRaw)")
         return BenchmarkScoringType(rawValue: scoringTypeRaw) ?? .time
     }
 }

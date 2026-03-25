@@ -6,14 +6,14 @@ import SwiftUI
 import UIKit
 @testable import SundeeFundee
 
-@Suite("AuthOnboarding Wave3")
+@Suite("AuthOnboarding Wave3", .serialized)
 struct AuthOnboardingCoverageWave3Tests {
     @MainActor
     private func makeContext() throws -> ModelContext {
-        let schema = Schema(AppSchemaV1.models)
+        let schema = Schema(AppSchemaV9.models)
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
         let container = try ModelContainer(for: schema, configurations: [config])
-        return ModelContext(container)
+        return ModelContext(container)  // ModelContext strongly holds container, keeping it alive for async tasks
     }
 
     @Test
@@ -206,7 +206,7 @@ struct AuthOnboardingCoverageWave3Tests {
 
     @MainActor
     private func makeContainer() throws -> ModelContainer {
-        let schema = Schema(AppSchemaV1.models)
+        let schema = Schema(AppSchemaV9.models)
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
         return try ModelContainer(for: schema, configurations: [config])
     }

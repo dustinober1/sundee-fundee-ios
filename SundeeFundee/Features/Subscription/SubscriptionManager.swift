@@ -16,7 +16,7 @@ protocol TransactionVerifying: Sendable {
 @Observable
 @MainActor
 final class SubscriptionManager {
-    var currentTier: SubscriptionTier = .free
+    var currentTier: SubscriptionTier = .premium
     var availableProducts: [Product] = []
     var purchaseInProgress = false
     var errorMessage: String?

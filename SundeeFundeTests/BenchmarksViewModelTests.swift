@@ -3,22 +3,22 @@ import Foundation
 import SwiftData
 @testable import SundeeFundee
 
-@Suite("BenchmarksViewModel")
-@MainActor
+@Suite("BenchmarksViewModel", .serialized)
 struct BenchmarksViewModelTests {
 
-    private func makeContext() throws -> ModelContext {
-        let schema = Schema(AppSchemaV6.models)
+    @MainActor
+    private func makeContainer() throws -> ModelContainer {
+        let schema = Schema(AppSchemaV9.models)
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
-        let container = try ModelContainer(for: schema, configurations: [config])
-        return container.mainContext
+        return try ModelContainer(for: schema, configurations: [config])
     }
 
     @Test
+    @MainActor
     func loadsGroupsFromCatalog() async throws {
-        let ctx = try makeContext()
+        let container = try makeContainer()
         let vm = BenchmarksViewModel()
-        await vm.load(modelContext: ctx, userID: "u1")
+        await vm.load(modelContext: container.mainContext, userID: "u1")
         #expect(!vm.categoryGroups.isEmpty)
         let names = vm.categoryGroups.map(\.category)
         #expect(names.contains("Classic WODs"))
@@ -26,10 +26,11 @@ struct BenchmarksViewModelTests {
     }
 
     @Test
+    @MainActor
     func addCustomDefinitionAppearsInGroups() async throws {
-        let ctx = try makeContext()
+        let container = try makeContainer()
         let vm = BenchmarksViewModel()
-        await vm.load(modelContext: ctx, userID: "u1")
+        await vm.load(modelContext: container.mainContext, userID: "u1")
         vm.addCustomDefinition(name: "My Workout", category: "General Fitness",
                                description: "Run 1 mile", scoringType: .time)
         let generalGroup = vm.categoryGroups.first { $0.category == "General Fitness" }
@@ -37,10 +38,11 @@ struct BenchmarksViewModelTests {
     }
 
     @Test
+    @MainActor
     func deleteCustomDefinitionRemovesIt() async throws {
-        let ctx = try makeContext()
+        let container = try makeContainer()
         let vm = BenchmarksViewModel()
-        await vm.load(modelContext: ctx, userID: "u1")
+        await vm.load(modelContext: container.mainContext, userID: "u1")
         vm.addCustomDefinition(name: "Temp WOD", category: "General Fitness",
                                description: "Burpees", scoringType: .reps)
         let def = vm.categoryGroups.first { $0.category == "General Fitness" }?.definitions.first { $0.name == "Temp WOD" }
@@ -51,10 +53,11 @@ struct BenchmarksViewModelTests {
     }
 
     @Test
+    @MainActor
     func cannotDeletePredefinedDefinition() async throws {
-        let ctx = try makeContext()
+        let container = try makeContainer()
         let vm = BenchmarksViewModel()
-        await vm.load(modelContext: ctx, userID: "u1")
+        await vm.load(modelContext: container.mainContext, userID: "u1")
         let countBefore = vm.categoryGroups.flatMap(\.definitions).count
         let predefined = vm.categoryGroups.flatMap(\.definitions).first { $0.isPredefined }!
         vm.deleteCustomDefinition(predefined)

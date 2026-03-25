@@ -15,10 +15,10 @@ final class SwiftDataBenchmarkResultRepository: BenchmarkResultRepository {
 
     func fetchResults(forDefinitionID definitionID: String) throws -> [BenchmarkResult] {
         let descriptor = FetchDescriptor<BenchmarkResult>(
-            predicate: #Predicate { $0.definitionID == definitionID },
             sortBy: [SortDescriptor(\.performedAt, order: .reverse)]
         )
-        return try context.fetch(descriptor)
+        let all = try context.fetch(descriptor)
+        return all.filter { $0.definitionID == definitionID }
     }
 
     func delete(_ result: BenchmarkResult) throws {

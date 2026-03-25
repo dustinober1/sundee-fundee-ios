@@ -14,7 +14,7 @@ final class FeatureViewsCoverageWave3Tests: XCTestCase {
     private let fixedDate = Date(timeIntervalSince1970: 1_700_000_000)
 
     private func makeStore() throws -> TestStore {
-        let schema = Schema(AppSchemaV6.models)
+        let schema = Schema(AppSchemaV9.models)
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
         let container = try ModelContainer(for: schema, configurations: [config])
         return TestStore(container: container, context: ModelContext(container))
@@ -99,6 +99,7 @@ final class FeatureViewsCoverageWave3Tests: XCTestCase {
 
         XCTAssertNotNil(host(
             NavigationStack { CycleTrackingView() }
+                .environment(AppState())
                 .modelContainer(store.container),
             triggerAppearance: true
         ).view)
@@ -145,6 +146,7 @@ final class FeatureViewsCoverageWave3Tests: XCTestCase {
         let emptyStore = try makeStore()
         XCTAssertNotNil(host(
             NavigationStack { MaxLiftsView() }
+                .environment(AppState())
                 .modelContainer(emptyStore.container),
             triggerAppearance: true
         ).view)
@@ -203,6 +205,7 @@ final class FeatureViewsCoverageWave3Tests: XCTestCase {
 
         XCTAssertNotNil(host(
             NavigationStack { MaxLiftsView() }
+                .environment(AppState())
                 .modelContainer(populatedStore.container),
             triggerAppearance: true
         ).view)
@@ -240,6 +243,7 @@ final class FeatureViewsCoverageWave3Tests: XCTestCase {
         let emptyStore = try makeStore()
         XCTAssertNotNil(host(
             NavigationStack { BenchmarksView() }
+                .environment(AppState())
                 .modelContainer(emptyStore.container),
             triggerAppearance: true
         ).view)
@@ -272,6 +276,7 @@ final class FeatureViewsCoverageWave3Tests: XCTestCase {
 
         XCTAssertNotNil(host(
             NavigationStack { BenchmarksView() }
+                .environment(AppState())
                 .modelContainer(populatedStore.container),
             triggerAppearance: true
         ).view)
@@ -741,15 +746,8 @@ final class FeatureViewsCoverageWave3Tests: XCTestCase {
 
     // MARK: - ConditioningPRRow
 
-    private func makeV7Store() throws -> TestStore {
-        let schema = Schema(AppSchemaV7.models)
-        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
-        let container = try ModelContainer(for: schema, configurations: [config])
-        return TestStore(container: container, context: ModelContext(container))
-    }
-
     func testConditioningPRRowRendersReps() throws {
-        let store = try makeV7Store()
+        let store = try makeStore()
         let pr = ConditioningPR(id: "1", userID: "u", exerciseID: "Wall Ball", scoringType: .reps, bestValue: 100)
         store.context.insert(pr)
         let view = ConditioningPRRow(pr: pr)
@@ -757,7 +755,7 @@ final class FeatureViewsCoverageWave3Tests: XCTestCase {
     }
 
     func testConditioningPRRowRendersTimeWithWeight() throws {
-        let store = try makeV7Store()
+        let store = try makeStore()
         let pr = ConditioningPR(id: "2", userID: "u", exerciseID: "400m Run", scoringType: .time, bestValue: 90, weightKg: 20)
         store.context.insert(pr)
         let view = ConditioningPRRow(pr: pr)

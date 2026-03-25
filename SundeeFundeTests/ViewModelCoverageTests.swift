@@ -19,27 +19,12 @@ private final class ViewModelCoverageTempModel {
 
 @MainActor
 private func makeTestStore() throws -> TestStore {
-    let schema = Schema(AppSchemaV6.models)
+    let schema = Schema(AppSchemaV9.models)
     let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
     let container = try ModelContainer(for: schema, configurations: [config])
-    return TestStore(container: container, context: ModelContext(container))
+    return TestStore(container: container, context: container.mainContext)
 }
 
-@MainActor
-private func makeV8TestStore() throws -> TestStore {
-    let schema = Schema(AppSchemaV8.models)
-    let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
-    let container = try ModelContainer(for: schema, configurations: [config])
-    return TestStore(container: container, context: ModelContext(container))
-}
-
-@MainActor
-private func makeV7TestStore() throws -> TestStore {
-    let schema = Schema(AppSchemaV7.models)
-    let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
-    let container = try ModelContainer(for: schema, configurations: [config])
-    return TestStore(container: container, context: ModelContext(container))
-}
 
 private struct FakeProgramRepositoryError: LocalizedError {
     var errorDescription: String? { "Program fetch failed" }
@@ -150,7 +135,7 @@ private func makeProgram(id: String = "p1", weeks: [ProgramWeek]) -> Program {
     )
 }
 
-@Suite("ProgramListViewModel Coverage")
+@Suite("ProgramListViewModel Coverage", .serialized)
 struct ProgramListViewModelCoverageTests {
 
     @Test @MainActor
@@ -208,7 +193,7 @@ struct ProgramListViewModelCoverageTests {
     }
 }
 
-@Suite("WorkoutExecutionViewModel Coverage")
+@Suite("WorkoutExecutionViewModel Coverage", .serialized)
 struct WorkoutExecutionViewModelCoverageTests {
 
     @Test @MainActor
@@ -335,7 +320,7 @@ struct WorkoutExecutionViewModelCoverageTests {
     }
 }
 
-@Suite("DashboardViewModel Coverage")
+@Suite("DashboardViewModel Coverage", .serialized)
 struct DashboardViewModelCoverageTests {
 
     @Test @MainActor
@@ -467,7 +452,7 @@ struct DashboardViewModelCoverageTests {
     }
 }
 
-@Suite("BenchmarksViewModel Coverage")
+@Suite("BenchmarksViewModel Coverage", .serialized)
 struct BenchmarksViewModelCoverageTests {
 
     @Test @MainActor
@@ -539,7 +524,7 @@ struct BenchmarksViewModelCoverageTests {
     }
 }
 
-@Suite("CycleTrackingViewModel Coverage")
+@Suite("CycleTrackingViewModel Coverage", .serialized)
 struct CycleTrackingViewModelCoverageTests {
 
     @Test @MainActor
@@ -612,7 +597,7 @@ struct CycleTrackingViewModelCoverageTests {
     }
 }
 
-@Suite("MaxLiftsViewModel Coverage")
+@Suite("MaxLiftsViewModel Coverage", .serialized)
 struct MaxLiftsViewModelCoverageTests {
 
     @Test @MainActor
@@ -682,7 +667,7 @@ struct MaxLiftsViewModelCoverageTests {
 
     @Test @MainActor
     func loadConditioningPRsPopulatesState() async throws {
-        let store = try makeV7TestStore()
+        let store = try makeTestStore()
         let pr = ConditioningPR(id: "cpr1", userID: "u1", exerciseID: "Wall Ball", scoringType: .reps, bestValue: 100)
         store.context.insert(pr)
         try store.context.save()
@@ -776,7 +761,7 @@ struct MaxLiftsViewModelCoverageTests {
     }
 }
 
-@Suite("WorkoutSummaryViewModel Coverage")
+@Suite("WorkoutSummaryViewModel Coverage", .serialized)
 struct WorkoutSummaryViewModelCoverageTests {
 
     @Test @MainActor
@@ -808,7 +793,7 @@ struct WorkoutSummaryViewModelCoverageTests {
 
     @Test @MainActor
     func saveSpicyRatingPersistsEffortOnWorkout() throws {
-        let store = try makeV8TestStore()
+        let store = try makeTestStore()
         let workout = CompletedWorkout(
             id: "w1", userID: "u1", activeCycleID: "",
             programID: "p1", week: 1, day: 1, sessionID: "s1"
@@ -825,7 +810,7 @@ struct WorkoutSummaryViewModelCoverageTests {
 
     @Test @MainActor
     func spicyRatingInitializesFromWorkout() throws {
-        let store = try makeV8TestStore()
+        let store = try makeTestStore()
         let workout = CompletedWorkout(
             id: "w2", userID: "u1", activeCycleID: "",
             programID: "p1", week: 1, day: 1, sessionID: "s1",
@@ -840,7 +825,7 @@ struct WorkoutSummaryViewModelCoverageTests {
 
     @Test @MainActor
     func detectPRs_conditioningExercise() async throws {
-        let store = try makeV7TestStore()
+        let store = try makeTestStore()
         let workout = CompletedWorkout(id: "w1", userID: "u1", activeCycleID: "c1", programID: "p1", week: 1, day: 1, sessionID: "s1", durationSeconds: 60)
         store.context.insert(workout)
         let set = CompletedSet(id: "s1", userID: "u1", workoutID: "w1", exerciseName: "Wall Ball", setIndex: 0, prescribedReps: "50", actualReps: 55)
@@ -855,7 +840,7 @@ struct WorkoutSummaryViewModelCoverageTests {
     }
 }
 
-@Suite("SettingsViewModel Coverage")
+@Suite("SettingsViewModel Coverage", .serialized)
 struct SettingsViewModelCoverageTests {
 
     @Test @MainActor

@@ -21,20 +21,16 @@ final class DashboardViewModel {
     var oneRepMaxes: [String: Double] = [:]
     var activeInjuriesNeedingCheckIn: [InjuryProfile] = []
     var rehabSession: ProgramSession?
-    var readinessScore: Double?
     var todayWOD: WOD?
 
     private let programRepo: any ProgramRepository
-    private let readinessRepo: (any ReadinessRepository)?
     private let wodRepo: any WODRepository
 
     init(
         programRepo: any ProgramRepository = CloudKitProgramRepository(),
-        readinessRepo: (any ReadinessRepository)? = nil,
         wodRepo: any WODRepository = CloudKitWODRepository()
     ) {
         self.programRepo = programRepo
-        self.readinessRepo = readinessRepo
         self.wodRepo = wodRepo
     }
 
@@ -45,7 +41,6 @@ final class DashboardViewModel {
 
         let cycleData = loadCycleData(modelContext: modelContext)
         let activeInjuries = loadInjuries(modelContext: modelContext, currentUser: currentUser)
-        await loadReadinessMetrics()
 
         await loadActiveProgram(
             periodLogs: cycleData.periodLogs,
@@ -117,13 +112,6 @@ final class DashboardViewModel {
         return activeInjuries
     }
 
-    private func loadReadinessMetrics() async {
-        if let readinessRepo {
-            let metrics = try? await readinessRepo.fetchLatestMetrics()
-            readinessScore = metrics?.readinessScore
-        }
-    }
-
     private func loadActiveProgram(
         periodLogs: [PeriodLog],
         cycleSettings: CycleSettings?,
@@ -140,7 +128,7 @@ final class DashboardViewModel {
                 settings: cycleSettings,
                 preferences: effectiveCyclePrefs,
                 periodLogs: periodLogs,
-                readinessScore: readinessScore
+                readinessScore: nil
             )
             if !activeInjuries.isEmpty {
                 adapted = InjuryAdaptationEngine.adaptProgram(adapted, activeInjuries: activeInjuries)

@@ -40,7 +40,7 @@ struct MainTabView: View {
     static var orderedTabs: [TabRoute] { orderedTabs(for: nil) }
 
     static func orderedTabs(for gender: Gender?) -> [TabRoute] {
-        var tabs: [TabRoute] = [.dashboard, .history, .maxes, .benchmarks]
+        var tabs: [TabRoute] = [.dashboard, .programs, .history, .maxes, .benchmarks]
         if gender != .male {
             tabs.append(.cycle)
         }
@@ -110,30 +110,3 @@ private struct HistoryTabWrapper: View {
     }
 }
 
-// MARK: - Placeholder views (replaced in later phases)
-
-struct WorkoutsPlaceholderView: View {
-    var body: some View {
-        ZStack {
-            AppTheme.Colors.cream.ignoresSafeArea()
-            ContentUnavailableView(
-                "Start from Programs",
-                systemImage: "dumbbell.fill",
-                description: Text("Enroll in a program and tap Start Workout from the Dashboard.")
-            )
-        }
-        .navigationTitle("Workouts")
-    }
-}
-
-struct CyclePlaceholderView: View {
-    var body: some View {
-        Text("Cycle Tracking").navigationTitle("Cycle")
-    }
-}
-
-struct SettingsPlaceholderView: View {
-    var body: some View {
-        Text("Settings").navigationTitle("Settings")
-    }
-}

@@ -101,7 +101,7 @@ enum AppModelContainer {
         return ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil || NSClassFromString("XCTestCase") != nil
     }
 
-    private static let allModels: [any PersistentModel.Type] = AppSchemaV8.models
+    private static let allModels: [any PersistentModel.Type] = AppSchemaV9.models
     
     /// Deletes all SwiftData store files for the app.
     ///
@@ -109,7 +109,7 @@ enum AppModelContainer {
     private static func deleteStoreFiles() throws {
         let fileManager = FileManager.default
         let urls = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask)
-        let appSupportDirectory = urls.first!
+        guard let appSupportDirectory = urls.first else { return }
         
         let storeURL = appSupportDirectory.appendingPathComponent("default.store")
         let walURL = appSupportDirectory.appendingPathComponent("default.store-wal")

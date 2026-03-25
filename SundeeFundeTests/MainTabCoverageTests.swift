@@ -25,7 +25,7 @@ final class MainTabCoverageTests: XCTestCase {
     }
 
     private func makeContainer() throws -> ModelContainer {
-        let schema = Schema(AppSchemaV1.models)
+        let schema = Schema(AppSchemaV9.models)
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
         return try ModelContainer(for: schema, configurations: [config])
     }
@@ -33,12 +33,13 @@ final class MainTabCoverageTests: XCTestCase {
     func testTabMetadataAndOrderAreStable() {
         let tabs = MainTabView.orderedTabs
 
-        XCTAssertEqual(tabs, [.dashboard, .history, .maxes, .benchmarks, .cycle, .settings])
-        XCTAssertEqual(tabs.map(\.title), ["Dashboard", "History", "Maxes", "Benchmarks", "Cycle", "Settings"])
+        XCTAssertEqual(tabs, [.dashboard, .programs, .history, .maxes, .benchmarks, .cycle, .settings])
+        XCTAssertEqual(tabs.map(\.title), ["Dashboard", "Programs", "History", "Maxes", "Benchmarks", "Cycle", "Settings"])
         XCTAssertEqual(
             tabs.map(\.systemImage),
             [
                 "house.fill",
+                "list.bullet.rectangle.portrait.fill",
                 "clock.fill",
                 "dumbbell.fill",
                 "checkmark.seal.fill",
@@ -64,11 +65,8 @@ final class MainTabCoverageTests: XCTestCase {
         XCTAssertEqual(Set(builtTabs), Set(MainTabView.orderedTabs))
     }
 
-    func testMainTabAndPlaceholderBodiesBuildWithoutCrashing() {
+    func testMainTabBodyBuildsWithoutCrashing() {
         _ = MainTabView().body
-        _ = WorkoutsPlaceholderView().body
-        _ = CyclePlaceholderView().body
-        _ = SettingsPlaceholderView().body
     }
 
     func testDefaultDestinationBuilderPathExecutesInHostedView() throws {
@@ -84,7 +82,7 @@ final class MainTabCoverageTests: XCTestCase {
     func testOrderedTabsExcludesCycleForMale() {
         let tabs = MainTabView.orderedTabs(for: .male)
         XCTAssertFalse(tabs.contains(.cycle))
-        XCTAssertEqual(tabs, [.dashboard, .history, .maxes, .benchmarks, .settings])
+        XCTAssertEqual(tabs, [.dashboard, .programs, .history, .maxes, .benchmarks, .settings])
     }
 
     func testOrderedTabsIncludesCycleForFemale() {
@@ -102,9 +100,4 @@ final class MainTabCoverageTests: XCTestCase {
         XCTAssertTrue(tabs.contains(.cycle))
     }
 
-    func testPlaceholderViewsRenderInHostingController() {
-        XCTAssertNotNil(host(WorkoutsPlaceholderView()).view)
-        XCTAssertNotNil(host(CyclePlaceholderView()).view)
-        XCTAssertNotNil(host(SettingsPlaceholderView()).view)
-    }
 }

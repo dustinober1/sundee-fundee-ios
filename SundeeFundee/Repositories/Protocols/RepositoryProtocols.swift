@@ -103,7 +103,7 @@ protocol PainLogRepository {
     func fetchAllLogs() throws -> [PainLog]
 }
 
-// MARK: - ReadinessRepository
+// MARK: - ReadinessMetrics
 
 struct ReadinessMetrics {
     let sleepHours: Double?
@@ -130,10 +130,6 @@ struct ReadinessMetrics {
         guard !components.isEmpty else { return nil }
         return components.reduce(0, +) / Double(components.count)
     }
-}
-
-protocol ReadinessRepository: Sendable {
-    func fetchLatestMetrics() async throws -> ReadinessMetrics
 }
 
 // MARK: - ProgramRepository

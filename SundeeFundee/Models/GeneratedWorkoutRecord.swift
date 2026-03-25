@@ -8,7 +8,7 @@ import SwiftData
 /// `workoutJSON` to avoid CloudKit enum constraints and nested-model complexity.
 @Model
 final class GeneratedWorkoutRecord {
-    @Attribute(.unique) var id: String
+    var id: String
     var userID: String
     var createdAt: Date
     var isFavorite: Bool

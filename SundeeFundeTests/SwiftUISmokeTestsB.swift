@@ -7,7 +7,7 @@ import UIKit
 final class SwiftUISmokeTestsB: XCTestCase {
     @MainActor
     private func makeContainer() throws -> ModelContainer {
-        let schema = Schema(AppSchemaV1.models)
+        let schema = Schema(AppSchemaV9.models)
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
         return try ModelContainer(for: schema, configurations: [config])
     }
@@ -43,17 +43,17 @@ final class SwiftUISmokeTestsB: XCTestCase {
 
     @MainActor
     func testCycleTrackingViewHostsWithInMemoryStore() throws {
-        host(CycleTrackingView(), container: try makeContainer())
+        host(CycleTrackingView(), container: try makeContainer(), appState: makeAuthenticatedAppState())
     }
 
     @MainActor
     func testMaxLiftsViewHostsWithInMemoryStore() throws {
-        host(MaxLiftsView(), container: try makeContainer())
+        host(MaxLiftsView(), container: try makeContainer(), appState: makeAuthenticatedAppState())
     }
 
     @MainActor
     func testBenchmarksViewHostsWithInMemoryStore() throws {
-        host(BenchmarksView(), container: try makeContainer())
+        host(BenchmarksView(), container: try makeContainer(), appState: makeAuthenticatedAppState())
     }
 
     @MainActor

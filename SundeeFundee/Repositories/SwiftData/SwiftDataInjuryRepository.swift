@@ -11,7 +11,7 @@ final class SwiftDataInjuryRepository: InjuryRepository {
     func fetchActiveInjuries(userID: String) throws -> [InjuryProfile] {
         let active = InjuryStatus.active.rawValue
         let descriptor = FetchDescriptor<InjuryProfile>(
-            predicate: #Predicate { $0.statusRaw == active },
+            predicate: #Predicate { $0.statusRaw == active && $0.userID == userID },
             sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
         )
         return try context.fetch(descriptor)
@@ -19,6 +19,7 @@ final class SwiftDataInjuryRepository: InjuryRepository {
 
     func fetchAll(userID: String) throws -> [InjuryProfile] {
         let descriptor = FetchDescriptor<InjuryProfile>(
+            predicate: #Predicate { $0.userID == userID },
             sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
         )
         return try context.fetch(descriptor)

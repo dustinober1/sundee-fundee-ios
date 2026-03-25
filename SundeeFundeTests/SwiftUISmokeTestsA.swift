@@ -27,10 +27,10 @@ final class SwiftUISmokeTestsA: XCTestCase {
     private let fixedDate = Date(timeIntervalSince1970: 1_700_000_000)
 
     private func makeTestStore() throws -> TestStore {
-        let schema = Schema(AppSchemaV1.models)
+        let schema = Schema(AppSchemaV9.models)
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
         let container = try ModelContainer(for: schema, configurations: [config])
-        return TestStore(container: container, context: ModelContext(container))
+        return TestStore(container: container, context: container.mainContext)
     }
 
     @discardableResult
@@ -193,6 +193,8 @@ final class SwiftUISmokeTestsA: XCTestCase {
 
     func testProgramsListDetailAndCardsHost() throws {
         let store = try makeTestStore()
+        let appState = AppState()
+        appState.apply(.authenticated(userID: "user-1"))
         let program = makeProgram(includePhases: true)
         let repository = InMemoryProgramRepository(programs: [program])
         let listViewModel = ProgramListViewModel(programRepo: repository)
@@ -230,27 +232,27 @@ final class SwiftUISmokeTestsA: XCTestCase {
         activeVM.activeEnrollment = makeEnrollment(id: "enroll-active", programID: program.id)
         XCTAssertNotNil(host(
             ProgramDetailView(program: program, viewModel: activeVM)
+                .environment(appState)
                 .modelContainer(store.container),
             triggerAppearance: true
         ).view)
-        _ = ProgramDetailView(program: program, viewModel: activeVM).body
 
         let switchingVM = ProgramListViewModel(programRepo: repository)
         switchingVM.activeEnrollment = makeEnrollment(id: "enroll-other", programID: "different-program")
         XCTAssertNotNil(host(
             ProgramDetailView(program: program, viewModel: switchingVM)
+                .environment(appState)
                 .modelContainer(store.container),
             triggerAppearance: true
         ).view)
-        _ = ProgramDetailView(program: program, viewModel: switchingVM).body
 
         let freshVM = ProgramListViewModel(programRepo: repository)
         XCTAssertNotNil(host(
             ProgramDetailView(program: program, viewModel: freshVM)
+                .environment(appState)
                 .modelContainer(store.container),
             triggerAppearance: true
         ).view)
-        _ = ProgramDetailView(program: program, viewModel: freshVM).body
     }
 
     func testWorkoutExecutionAndSummaryHost() throws {

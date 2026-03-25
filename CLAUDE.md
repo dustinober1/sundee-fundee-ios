@@ -89,6 +89,7 @@ Domain/ (pure Swift, zero dependencies, 100% tested)
 
 - Enum properties on `@Model` types **must be stored as `String` raw values** — CloudKit does not support Swift enums directly.
 - Release entitlements enable CloudKit + Sign in with Apple; Debug entitlements are empty (supports Personal Team signing without paid capabilities).
+- **Schema version consistency:** When adding a new `AppSchemaVN`, you must update THREE places: (1) add to `AppSchemaMigrationPlan.schemas`, (2) add a migration stage to `AppSchemaMigrationPlan.stages`, (3) update `AppModelContainer.allModels` to reference the new schema. Missing any of these causes silent data loss.
 
 ### Programs
 
@@ -123,6 +124,8 @@ Product IDs are defined in `Domain/Subscription/SubscriptionTier.swift` and mirr
 ### Testing
 
 - **Onboarding changes ripple across 3+ test files:** `AuthOnboardingCoverageWave3Tests`, `AuthOnboardingCoverageWave5Tests`, `AuthOnboardingViewCoverageTests`, and `UICriticalFlowTests` all test `OnboardingFlowView` statics. Grep for usage before modifying the onboarding signature.
+- **Schema/tab metadata tests:** `AppAuthCoverageTests.appSchemaAndContainerMetadataIsAccessible` asserts schema count and stage count. `MainTabCoverageTests` asserts exact tab order and system images. Update these when changing schemas or tabs.
+- **Tab visibility:** `MainTabView.TabRoute` enum cases are NOT automatically visible — only cases in `orderedTabs()` appear in the tab bar. Adding a route to the enum without adding it to `orderedTabs()` makes the feature unreachable.
 - **100% line coverage is enforced** in CI (GitHub Actions parses `xccov` output).
 - `Domain/` code is tested in isolation via pure Swift unit tests — no mocking needed.
 - ViewModels, Repositories, Auth/Onboarding flows, and critical UI paths each have dedicated test wave files.

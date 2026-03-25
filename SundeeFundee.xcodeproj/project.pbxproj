@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		0050529D52C6D1AD4079C359 /* CycleAdaptationPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04C582617701447ED4C8D80F /* CycleAdaptationPolicy.swift */; };
+		034D4D51D2A1E9D107BEFF48 /* AIWorkoutServiceRemoteTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33A1D536A8989CF930791E5E /* AIWorkoutServiceRemoteTests.swift */; };
 		03EE20D502168DD545D11849 /* AIUsageTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E52FE26AFF0ABE5B612DE02 /* AIUsageTracker.swift */; };
 		05B28BACF7A04E963A0C0920 /* SundeeFundeeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53AE80F4CD24ED2C384C12D6 /* SundeeFundeeApp.swift */; };
 		07F0141D9D631781B4FC1567 /* WorkoutPreviewViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEF0290E42DC3BED9B3BD997 /* WorkoutPreviewViewModel.swift */; };
@@ -205,6 +206,7 @@
 		302AD04E972A024BA91E2FD5 /* BenchmarkDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BenchmarkDetailView.swift; sourceTree = "<group>"; };
 		30E8246998C3CC41511E352B /* ModelRepoObservabilityCoverageWave4Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelRepoObservabilityCoverageWave4Tests.swift; sourceTree = "<group>"; };
 		3231B6FFDA72065ECDA67FEC /* AppRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRootView.swift; sourceTree = "<group>"; };
+		33A1D536A8989CF930791E5E /* AIWorkoutServiceRemoteTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIWorkoutServiceRemoteTests.swift; sourceTree = "<group>"; };
 		381DDAC45B9F290286FA4044 /* AppSchemaV9.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSchemaV9.swift; sourceTree = "<group>"; };
 		3930E4513F75B95B07D303F1 /* InjuryProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InjuryProfile.swift; sourceTree = "<group>"; };
 		3B0A1232ECBE7B53A8D5165A /* SubscriptionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionManager.swift; sourceTree = "<group>"; };
@@ -626,6 +628,7 @@
 		C66005991728DE75DBCD47BF /* SundeeFundeTests */ = {
 			isa = PBXGroup;
 			children = (
+				33A1D536A8989CF930791E5E /* AIWorkoutServiceRemoteTests.swift */,
 				FE8187398DEC5F1B36453716 /* AIWorkoutTests.swift */,
 				1D04A7D236192EDDBCD0F346 /* AIWorkoutViewModelTests.swift */,
 				094C754F0BC0AE7DBE67619B /* AppAuthCoverageTests.swift */,
@@ -1003,6 +1006,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				034D4D51D2A1E9D107BEFF48 /* AIWorkoutServiceRemoteTests.swift in Sources */,
 				49CC871D422648D5C2DDF188 /* AIWorkoutTests.swift in Sources */,
 				A12BF7539DADDE5ED4A6AA85 /* AIWorkoutViewModelTests.swift in Sources */,
 				B9E61D62E60802347D809D8E /* AppAuthCoverageTests.swift in Sources */,

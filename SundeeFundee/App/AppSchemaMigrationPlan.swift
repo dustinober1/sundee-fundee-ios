@@ -8,11 +8,11 @@ import SwiftData
 /// Custom migrations that transform data require a `custom` stage.
 enum AppSchemaMigrationPlan: SchemaMigrationPlan {
     static var schemas: [any VersionedSchema.Type] {
-        [AppSchemaV1.self, AppSchemaV6.self, AppSchemaV7.self, AppSchemaV8.self]
+        [AppSchemaV1.self, AppSchemaV6.self, AppSchemaV7.self, AppSchemaV8.self, AppSchemaV9.self]
     }
 
     static var stages: [MigrationStage] {
-        [migrateV1toV6, migrateV6toV7, migrateV7toV8]
+        [migrateV1toV6, migrateV6toV7, migrateV7toV8, migrateV8toV9]
     }
 
     /// V1 → V6: Lightweight migration covering all schema additions since V1.
@@ -34,5 +34,11 @@ enum AppSchemaMigrationPlan: SchemaMigrationPlan {
     static let migrateV7toV8 = MigrationStage.lightweight(
         fromVersion: AppSchemaV7.self,
         toVersion: AppSchemaV8.self
+    )
+
+    /// V8 → V9: Adds GeneratedWorkoutRecord for AI workout persistence.
+    static let migrateV8toV9 = MigrationStage.lightweight(
+        fromVersion: AppSchemaV8.self,
+        toVersion: AppSchemaV9.self
     )
 }

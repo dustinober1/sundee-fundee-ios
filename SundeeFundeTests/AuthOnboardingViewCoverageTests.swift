@@ -14,7 +14,7 @@ private final class AuthOnboardingCoverageTempModel {
     }
 }
 
-@Suite("Auth + Onboarding View Coverage")
+@Suite("Auth + Onboarding View Coverage", .serialized)
 struct AuthOnboardingViewCoverageTests {
     @MainActor
     private func makeContainer() throws -> ModelContainer {
@@ -25,7 +25,7 @@ struct AuthOnboardingViewCoverageTests {
 
     @MainActor
     private func makeAppContainer() throws -> ModelContainer {
-        let schema = Schema(AppSchemaV1.models)
+        let schema = Schema(AppSchemaV9.models)
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
         return try ModelContainer(for: schema, configurations: [config])
     }

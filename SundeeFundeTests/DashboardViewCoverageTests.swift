@@ -42,7 +42,7 @@ final class DashboardViewCoverageTests: XCTestCase {
     private let fixedDate = Date(timeIntervalSince1970: 1_700_000_000)
 
     private func makeTestStore() throws -> TestStore {
-        let schema = Schema(AppSchemaV1.models)
+        let schema = Schema(AppSchemaV9.models)
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
         let container = try ModelContainer(for: schema, configurations: [config])
         return TestStore(container: container, context: ModelContext(container))
@@ -728,6 +728,7 @@ final class DashboardViewCoverageTests: XCTestCase {
             NavigationStack {
                 AIWorkoutCTACard()
             }
+            .environment(makeAppState())
             .modelContainer(store.container)
         ).view)
     }

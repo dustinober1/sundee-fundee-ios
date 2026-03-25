@@ -3,32 +3,35 @@ import Foundation
 import SwiftData
 @testable import SundeeFundee
 
-@Suite("BenchmarkDefinition Repository")
+@Suite("BenchmarkDefinitionRepository", .serialized)
 struct BenchmarkDefinitionRepositoryTests {
 
     @MainActor
-    private func makeRepo() throws -> SwiftDataBenchmarkDefinitionRepository {
-        let schema = Schema([BenchmarkDefinition.self, BenchmarkResult.self])
+    private func makeContainer() throws -> ModelContainer {
+        let schema = Schema(AppSchemaV9.models)
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
-        let container = try ModelContainer(for: schema, configurations: [config])
-        return SwiftDataBenchmarkDefinitionRepository(context: container.mainContext)
+        return try ModelContainer(for: schema, configurations: [config])
     }
 
-    @Test @MainActor
+    @Test
+    @MainActor
     func saveAndFetch() throws {
-        let repo = try makeRepo()
-        let def = BenchmarkDefinition(userID: "u1", name: "My WOD", category: "General Fitness",
-                                      workoutDescription: "Run + burpees", scoringType: .time,
+        let container = try makeContainer()
+        let repo = SwiftDataBenchmarkDefinitionRepository(context: container.mainContext)
+        let def = BenchmarkDefinition(userID: "u1", name: "Fran", category: "Classic WODs",
+                                      workoutDescription: "21-15-9", scoringType: .time,
                                       isPredefined: false, sortOrder: 0)
         try repo.save(def)
-        let fetched = try repo.fetchAll()
-        #expect(fetched.count == 1)
-        #expect(fetched[0].name == "My WOD")
+        let results = try repo.fetchAll()
+        #expect(results.count == 1)
+        #expect(results[0].name == "Fran")
     }
 
-    @Test @MainActor
+    @Test
+    @MainActor
     func fetchUserCreated() throws {
-        let repo = try makeRepo()
+        let container = try makeContainer()
+        let repo = SwiftDataBenchmarkDefinitionRepository(context: container.mainContext)
         let custom = BenchmarkDefinition(userID: "u1", name: "Custom", category: "General Fitness",
                                          workoutDescription: "desc", scoringType: .reps,
                                          isPredefined: false, sortOrder: 0)
@@ -38,9 +41,11 @@ struct BenchmarkDefinitionRepositoryTests {
         #expect(results[0].name == "Custom")
     }
 
-    @Test @MainActor
+    @Test
+    @MainActor
     func deleteDef() throws {
-        let repo = try makeRepo()
+        let container = try makeContainer()
+        let repo = SwiftDataBenchmarkDefinitionRepository(context: container.mainContext)
         let def = BenchmarkDefinition(userID: "u1", name: "Delete Me", category: "Strength",
                                        workoutDescription: "1RM squat", scoringType: .weight,
                                        isPredefined: false, sortOrder: 0)
@@ -51,20 +56,21 @@ struct BenchmarkDefinitionRepositoryTests {
     }
 }
 
-@Suite("BenchmarkResult Repository")
+@Suite("BenchmarkResultRepository", .serialized)
 struct BenchmarkResultRepositoryTests {
 
     @MainActor
-    private func makeRepo() throws -> SwiftDataBenchmarkResultRepository {
-        let schema = Schema([BenchmarkDefinition.self, BenchmarkResult.self])
+    private func makeContainer() throws -> ModelContainer {
+        let schema = Schema(AppSchemaV9.models)
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
-        let container = try ModelContainer(for: schema, configurations: [config])
-        return SwiftDataBenchmarkResultRepository(context: container.mainContext)
+        return try ModelContainer(for: schema, configurations: [config])
     }
 
-    @Test @MainActor
+    @Test
+    @MainActor
     func saveAndFetchForDefinition() throws {
-        let repo = try makeRepo()
+        let container = try makeContainer()
+        let repo = SwiftDataBenchmarkResultRepository(context: container.mainContext)
         let result = BenchmarkResult(userID: "u1", definitionID: "def-1", scoreValue: 210.0,
                                      notes: "PR!", performedAt: .now)
         try repo.save(result)
@@ -73,9 +79,11 @@ struct BenchmarkResultRepositoryTests {
         #expect(fetched[0].scoreValue == 210.0)
     }
 
-    @Test @MainActor
+    @Test
+    @MainActor
     func fetchOnlyMatchingDefinitionID() throws {
-        let repo = try makeRepo()
+        let container = try makeContainer()
+        let repo = SwiftDataBenchmarkResultRepository(context: container.mainContext)
         try repo.save(BenchmarkResult(userID: "u1", definitionID: "def-1", scoreValue: 100.0))
         try repo.save(BenchmarkResult(userID: "u1", definitionID: "def-2", scoreValue: 200.0))
         let fetched = try repo.fetchResults(forDefinitionID: "def-1")
@@ -83,9 +91,11 @@ struct BenchmarkResultRepositoryTests {
         #expect(fetched[0].scoreValue == 100.0)
     }
 
-    @Test @MainActor
+    @Test
+    @MainActor
     func deleteResult() throws {
-        let repo = try makeRepo()
+        let container = try makeContainer()
+        let repo = SwiftDataBenchmarkResultRepository(context: container.mainContext)
         let result = BenchmarkResult(userID: "u1", definitionID: "def-1", scoreValue: 180.0)
         try repo.save(result)
         try repo.delete(result)
