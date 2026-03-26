@@ -97,6 +97,7 @@
 		8B44E1962A9179CCA176D3DE /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C1232D7184F4D577671E318C /* StoreKit.framework */; };
 		8F55C3C1B9309AB75A09961E /* Program.swift in Sources */ = {isa = PBXBuildFile; fileRef = E79A7C624E31B53EDC3AD5B7 /* Program.swift */; };
 		91014B19D3FD5B371E8026C5 /* CycleTrackingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF28E5F37EF015A5700134A1 /* CycleTrackingView.swift */; };
+		91C6D31DF70FC4476F57B451 /* AIWorkoutOutput.swift in Sources */ = {isa = PBXBuildFile; fileRef = 010C23D344929385055392FF /* AIWorkoutOutput.swift */; };
 		94257FA3158D6808CA6FE05B /* GeneratedWorkout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CCFB09C96387A007E8FBA66 /* GeneratedWorkout.swift */; };
 		949139796F6B381980E7A830 /* Maxes.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6EDF76C2A7A135CEBE4365C /* Maxes.swift */; };
 		9749F04E35AC845835E41DD4 /* ProgramWorkoutViewCoverageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E6BD7FDEC48F00EAC345968 /* ProgramWorkoutViewCoverageTests.swift */; };
@@ -173,6 +174,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		010C23D344929385055392FF /* AIWorkoutOutput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIWorkoutOutput.swift; sourceTree = "<group>"; };
 		012BAC8B631FE8D7BA41AC0C /* OnboardingFlowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFlowView.swift; sourceTree = "<group>"; };
 		04140AC7F34B5982EA4EBC0E /* RemoteWorkoutResponseTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteWorkoutResponseTests.swift; sourceTree = "<group>"; };
 		04C582617701447ED4C8D80F /* CycleAdaptationPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleAdaptationPolicy.swift; sourceTree = "<group>"; };
@@ -782,6 +784,7 @@
 		F718536C8ECBF92CC0FF5ADC /* AIWorkout */ = {
 			isa = PBXGroup;
 			children = (
+				010C23D344929385055392FF /* AIWorkoutOutput.swift */,
 				56942BE25BF8C964D1B331FE /* GeminiWorkoutPrompt.swift */,
 				6CCFB09C96387A007E8FBA66 /* GeneratedWorkout.swift */,
 				2BE16254287A1EB2111F6ECA /* OfflineWorkoutGenerator.swift */,
@@ -900,6 +903,7 @@
 			files = (
 				03EE20D502168DD545D11849 /* AIUsageTracker.swift in Sources */,
 				12449A977192B879C000DC11 /* AIWorkoutFlowView.swift in Sources */,
+				91C6D31DF70FC4476F57B451 /* AIWorkoutOutput.swift in Sources */,
 				ADF6FEF628146548B866FF2D /* ActiveCycle.swift in Sources */,
 				D03B53707FF4C6FCE513D02C /* AppModelContainer.swift in Sources */,
 				FFE0B0DAF03BF7665AECD787 /* AppRootView.swift in Sources */,
