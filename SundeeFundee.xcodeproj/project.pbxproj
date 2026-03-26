@@ -38,6 +38,7 @@
 		2D7AE728D2A43CD738316A50 /* BenchmarkRepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B4D46F1CAEE2B77F29725AD /* BenchmarkRepositoryTests.swift */; };
 		2DE56C95D21DF86C7CB5C7D6 /* AuthOnboardingViewCoverageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC51B34DAECCC0AAA7F22868 /* AuthOnboardingViewCoverageTests.swift */; };
 		2F5C29D5B1EF68ABDD479688 /* AppInfraCoverageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D51A32BDB2684AEE4452690 /* AppInfraCoverageTests.swift */; };
+		2FEF74A02C8782FEAE3695F1 /* AppleIntelligenceWorkoutServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94A2E52EC9D68CAAD48DE8E3 /* AppleIntelligenceWorkoutServiceTests.swift */; };
 		3122780411BF4B082698B3BE /* SwiftDataLiftRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85FB3DE87F4A09C063BA0765 /* SwiftDataLiftRepository.swift */; };
 		31505F6907BCB93B44087ECF /* WeightCalculations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDE3BB6E8105A1F1B02BD4A /* WeightCalculations.swift */; };
 		31711AC2F1895D8FFDA2CE3D /* ButtonStyles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F886F044DA162B3990BD14D /* ButtonStyles.swift */; };
@@ -66,6 +67,7 @@
 		52364086E18080C4EC49AECF /* BenchmarksViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B171C2099E66B35EE98A3A3A /* BenchmarksViewModel.swift */; };
 		53E02826E886586BF1B020C4 /* WorkoutGenerationContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA21F3E6D7F052240BB8EA89 /* WorkoutGenerationContext.swift */; };
 		54697396B44787424E9F9728 /* BenchmarkDefinition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DBC9DEE5EDC896F18397A32 /* BenchmarkDefinition.swift */; };
+		57908A26B0E37BB5FE7B10C8 /* AppleIntelligenceWorkoutService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8414B86FE5091A3579D7CEED /* AppleIntelligenceWorkoutService.swift */; };
 		58C988AB86EB0742368C7667 /* MaxLiftsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44F06942F2155B88E84B238C /* MaxLiftsView.swift */; };
 		58D144FC8038C566D8BAB4CB /* WorkoutExecutionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F600E9E479637F14E71E2864 /* WorkoutExecutionView.swift */; };
 		5B972C6B3AABD21836A19E62 /* RemoteWorkoutResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 558E18AEBA85FC070445E416 /* RemoteWorkoutResponse.swift */; };
@@ -259,6 +261,7 @@
 		7B4D46F1CAEE2B77F29725AD /* BenchmarkRepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BenchmarkRepositoryTests.swift; sourceTree = "<group>"; };
 		7DBC9DEE5EDC896F18397A32 /* BenchmarkDefinition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BenchmarkDefinition.swift; sourceTree = "<group>"; };
 		7EF56B4F72044C21280B76D4 /* AppSchemaV1.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSchemaV1.swift; sourceTree = "<group>"; };
+		8414B86FE5091A3579D7CEED /* AppleIntelligenceWorkoutService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleIntelligenceWorkoutService.swift; sourceTree = "<group>"; };
 		852A5F052505B69DD46A8EF0 /* PlateCalculation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlateCalculation.swift; sourceTree = "<group>"; };
 		85FB3DE87F4A09C063BA0765 /* SwiftDataLiftRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftDataLiftRepository.swift; sourceTree = "<group>"; };
 		87F8C416903565037C5BA0A1 /* wods.json.bak */ = {isa = PBXFileReference; path = wods.json.bak; sourceTree = "<group>"; };
@@ -270,6 +273,7 @@
 		8E52FE26AFF0ABE5B612DE02 /* AIUsageTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIUsageTracker.swift; sourceTree = "<group>"; };
 		9185B33B347E99EC19EDC8E2 /* CycleProgramGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleProgramGenerator.swift; sourceTree = "<group>"; };
 		929B5F4FFA5E37764F0CFD53 /* RepositoryCoverageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RepositoryCoverageTests.swift; sourceTree = "<group>"; };
+		94A2E52EC9D68CAAD48DE8E3 /* AppleIntelligenceWorkoutServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleIntelligenceWorkoutServiceTests.swift; sourceTree = "<group>"; };
 		9569D427008F9C98778B1B62 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
 		9643063350451DBFB018B10B /* BenchmarkModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BenchmarkModelTests.swift; sourceTree = "<group>"; };
 		97194354FCB48D8C2AEB8666 /* BenchmarkCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BenchmarkCatalog.swift; sourceTree = "<group>"; };
@@ -440,6 +444,14 @@
 				012BAC8B631FE8D7BA41AC0C /* OnboardingFlowView.swift */,
 			);
 			path = Onboarding;
+			sourceTree = "<group>";
+		};
+		4A894DBD44386B347C148B59 /* AIWorkout */ = {
+			isa = PBXGroup;
+			children = (
+				8414B86FE5091A3579D7CEED /* AppleIntelligenceWorkoutService.swift */,
+			);
+			path = AIWorkout;
 			sourceTree = "<group>";
 		};
 		53A72A1FA055D577104D4670 /* Auth */ = {
@@ -629,6 +641,7 @@
 				C09382122916ED8040375F8E /* ProgramRepository.swift */,
 				B4B114EF31F53A39ABA95591 /* RemoteBenchmarkDefinitionRepository.swift */,
 				4F7CF49D64FE8FF2EF893806 /* WODRepository.swift */,
+				4A894DBD44386B347C148B59 /* AIWorkout */,
 				07F071C289436094CCC51583 /* Firebase */,
 				A67E31A9F072495313D1D5F5 /* Protocols */,
 				792DA71AF878EF5E5E5F5495 /* SwiftData */,
@@ -644,6 +657,7 @@
 				1D04A7D236192EDDBCD0F346 /* AIWorkoutViewModelTests.swift */,
 				094C754F0BC0AE7DBE67619B /* AppAuthCoverageTests.swift */,
 				4D51A32BDB2684AEE4452690 /* AppInfraCoverageTests.swift */,
+				94A2E52EC9D68CAAD48DE8E3 /* AppleIntelligenceWorkoutServiceTests.swift */,
 				2801B56804910FE655DE38A8 /* AuthOnboardingCoverageWave3Tests.swift */,
 				1DA4955FF940E3C361D78A47 /* AuthOnboardingCoverageWave5Tests.swift */,
 				AC51B34DAECCC0AAA7F22868 /* AuthOnboardingViewCoverageTests.swift */,
@@ -921,6 +935,7 @@
 				7C0AA04E299BE79E9ED6BAE1 /* AppSchemaV9.swift in Sources */,
 				B2CD5842C2859340BC2D67FD /* AppState.swift in Sources */,
 				FD012FB20EDC77E448673EF8 /* AppTheme.swift in Sources */,
+				57908A26B0E37BB5FE7B10C8 /* AppleIntelligenceWorkoutService.swift in Sources */,
 				766DE2BEB88044B71AF369C3 /* AuthService.swift in Sources */,
 				CB776D58BC5BDBDBD9B5D3A5 /* Benchmark.swift in Sources */,
 				E5D941700C2A00567A4C026D /* BenchmarkCatalog.swift in Sources */,
@@ -1029,6 +1044,7 @@
 				A12BF7539DADDE5ED4A6AA85 /* AIWorkoutViewModelTests.swift in Sources */,
 				B9E61D62E60802347D809D8E /* AppAuthCoverageTests.swift in Sources */,
 				2F5C29D5B1EF68ABDD479688 /* AppInfraCoverageTests.swift in Sources */,
+				2FEF74A02C8782FEAE3695F1 /* AppleIntelligenceWorkoutServiceTests.swift in Sources */,
 				7431CC711346EF54D82C51A4 /* AuthOnboardingCoverageWave3Tests.swift in Sources */,
 				218452D18B50824E116F78CF /* AuthOnboardingCoverageWave5Tests.swift in Sources */,
 				2DE56C95D21DF86C7CB5C7D6 /* AuthOnboardingViewCoverageTests.swift in Sources */,
