@@ -3,9 +3,7 @@ import SwiftData
 
 struct QuestionnaireView: View {
     @Environment(\.modelContext) private var modelContext
-    @Environment(AppState.self) private var appState
     @State private var viewModel: QuestionnaireViewModel
-    @State private var showPaywall = false
     let userID: String
     var onWorkoutGenerated: (GeneratedWorkout) -> Void = { _ in }
 
@@ -34,10 +32,6 @@ struct QuestionnaireView: View {
         }
         .navigationTitle("New Workout")
         .navigationBarTitleDisplayMode(.inline)
-        .onAppear { viewModel.checkUsageLimit(tier: appState.subscriptionTier) }
-        .sheet(isPresented: $showPaywall) {
-            PaywallView(triggeredBy: .unlimitedLifts)
-        }
         .onChange(of: viewModel.generatedWorkout) { _, workout in
             if let workout {
                 onWorkoutGenerated(workout)
@@ -134,40 +128,26 @@ struct QuestionnaireView: View {
                 .buttonStyle(.borderedProminent)
                 .tint(AppTheme.Colors.accentOrange)
             } else {
-                if viewModel.isAtUsageLimit {
-                    Button { showPaywall = true } label: {
-                        HStack {
-                            Text("Upgrade for More AI Workouts")
-                                .font(AppTheme.Fonts.subheading)
-                            PremiumBadge(tier: FeatureEntitlement.minimumTierRequired(for: .unlimitedLifts))
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, AppTheme.Spacing.sm)
+                Button {
+                    Task {
+                        await viewModel.generateWorkout(modelContext: modelContext, userID: userID)
                     }
-                    .buttonStyle(.borderedProminent)
-                    .tint(AppTheme.Colors.gold)
-                } else {
-                    Button {
-                        Task {
-                            await viewModel.generateWorkout(modelContext: modelContext, userID: userID, tier: appState.subscriptionTier)
-                        }
-                    } label: {
-                        if viewModel.isGenerating {
-                            ProgressView()
-                                .tint(.white)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, AppTheme.Spacing.sm)
-                        } else {
-                            Text("Generate Workout")
-                                .font(AppTheme.Fonts.subheading)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, AppTheme.Spacing.sm)
-                        }
+                } label: {
+                    if viewModel.isGenerating {
+                        ProgressView()
+                            .tint(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, AppTheme.Spacing.sm)
+                    } else {
+                        Text("Generate Workout")
+                            .font(AppTheme.Fonts.subheading)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, AppTheme.Spacing.sm)
                     }
-                    .buttonStyle(.borderedProminent)
-                    .tint(AppTheme.Colors.accentOrange)
-                    .disabled(viewModel.isGenerating || !viewModel.canGenerate)
                 }
+                .buttonStyle(.borderedProminent)
+                .tint(AppTheme.Colors.accentOrange)
+                .disabled(viewModel.isGenerating || !viewModel.canGenerate)
             }
         }
         .padding(AppTheme.Spacing.md)

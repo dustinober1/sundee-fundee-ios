@@ -47,20 +47,20 @@ final class AppleIntelligenceWorkoutService: AIWorkoutServiceProtocol, @unchecke
     // MARK: - Foundation Models
 
     private func supportsOnDeviceGeneration() async -> Bool {
-        let availability = LanguageModelSession.Availability()
-        return availability.isAvailable
+        SystemLanguageModel.default.isAvailable
     }
 
     private func generateWithFoundationModels(context: WorkoutGenerationContext) async throws -> GeneratedWorkout {
         let prompt = Self.buildPrompt(context: context)
         let session = LanguageModelSession()
         let response = try await session.respond(to: prompt, generating: AIWorkoutOutput.self)
+        let output = response.content
 
-        guard !response.exercises.isEmpty else {
+        guard !output.exercises.isEmpty else {
             return OfflineWorkoutGenerator.generate(from: context)
         }
 
-        return WorkoutPostProcessor.process(raw: response, context: context)
+        return WorkoutPostProcessor.process(raw: output, context: context)
     }
 
     static func buildPrompt(context: WorkoutGenerationContext) -> String {

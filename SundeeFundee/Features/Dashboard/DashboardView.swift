@@ -730,13 +730,8 @@ struct StartAIWorkoutDestination: Hashable {}
 // MARK: - AIWorkoutCTACard
 
 struct AIWorkoutCTACard: View {
-    @Environment(AppState.self) private var appState
 
     var body: some View {
-        let used = AIUsageTracker.usageThisMonth()
-        let remaining = FeatureEntitlement.aiWorkoutsRemaining(tier: appState.subscriptionTier, usedThisMonth: used)
-        let limit = FeatureEntitlement.aiWorkoutLimit(for: appState.subscriptionTier)
-
         VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
@@ -749,16 +744,9 @@ struct AIWorkoutCTACard: View {
                         .foregroundStyle(AppTheme.Colors.navy)
                 }
                 Spacer()
-                VStack(alignment: .trailing, spacing: 2) {
-                    Image(systemName: "sparkles")
-                        .font(.title2)
-                        .foregroundStyle(AppTheme.Colors.accentOrange)
-                    if let limit {
-                        Text(Self.remainingLabel(remaining: remaining, limit: limit))
-                            .font(.system(size: 10, weight: .medium))
-                            .foregroundStyle(remaining > 0 ? AppTheme.Colors.navy.opacity(0.5) : AppTheme.Colors.error)
-                    }
-                }
+                Image(systemName: "sparkles")
+                    .font(.title2)
+                    .foregroundStyle(AppTheme.Colors.accentOrange)
             }
 
             Text("Generate a personalized workout based on your goals, maxes, and how you're feeling today.")
@@ -776,9 +764,5 @@ struct AIWorkoutCTACard: View {
         .background(AppTheme.Colors.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: AppTheme.CornerRadius.card))
         .shadow(color: .black.opacity(0.08), radius: 6, x: 0, y: 3)
-    }
-
-    static func remainingLabel(remaining: Int, limit: Int) -> String {
-        "\(remaining) of \(limit) left"
     }
 }

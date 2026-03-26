@@ -14,7 +14,6 @@ struct ManageSubscriptionView: View {
             List {
                 currentPlanSection
                 if appState.subscriptionTier != .free {
-                    usageSection
                     manageSection
                 } else {
                     upgradeSection
@@ -43,22 +42,6 @@ struct ManageSubscriptionView: View {
                 }
                 Spacer()
                 PremiumBadge(tier: appState.subscriptionTier)
-            }
-        }
-    }
-
-    private var usageSection: some View {
-        Section("This Month") {
-            let used = AIUsageTracker.usageThisMonth()
-            let limit = FeatureEntitlement.aiWorkoutLimit(for: appState.subscriptionTier)
-            HStack {
-                Text("AI Workouts")
-                    .font(AppTheme.Fonts.body)
-                    .foregroundStyle(AppTheme.Colors.navy)
-                Spacer()
-                Text(Self.usageText(used: used, limit: limit))
-                    .font(AppTheme.Fonts.body)
-                    .foregroundStyle(AppTheme.Colors.navy.opacity(0.6))
             }
         }
     }
@@ -105,12 +88,5 @@ struct ManageSubscriptionView: View {
         case .plus:    return "Enhanced training intelligence"
         case .premium: return "Full AI-powered coaching"
         }
-    }
-
-    static func usageText(used: Int, limit: Int?) -> String {
-        if let limit {
-            return "\(used) of \(limit) used"
-        }
-        return "\(used) used (unlimited)"
     }
 }

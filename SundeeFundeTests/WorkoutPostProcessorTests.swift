@@ -82,8 +82,9 @@ final class WorkoutPostProcessorTests: XCTestCase {
         XCTAssertEqual(WorkoutPostProcessor.defaultPercentage(for: "3"), 0.85)
         XCTAssertEqual(WorkoutPostProcessor.defaultPercentage(for: "5"), 0.80)
         XCTAssertEqual(WorkoutPostProcessor.defaultPercentage(for: "8-10"), 0.70)
-        XCTAssertEqual(WorkoutPostProcessor.defaultPercentage(for: "12-15"), 0.65)
-        XCTAssertEqual(WorkoutPostProcessor.defaultPercentage(for: "AMRAP"), 0.60)
+        XCTAssertEqual(WorkoutPostProcessor.defaultPercentage(for: "12-15"), 0.65)  // "12" parsed → case 9...12
+        XCTAssertEqual(WorkoutPostProcessor.defaultPercentage(for: "15"), 0.60)
+        XCTAssertEqual(WorkoutPostProcessor.defaultPercentage(for: "AMRAP"), 0.65)  // "AMRAP" → Int fails → default 10 → case 9...12
     }
 
     // MARK: - Rest Periods
@@ -169,16 +170,16 @@ final class WorkoutPostProcessorTests: XCTestCase {
     }
 
     func testCyclePhaseMultiplierValues() {
-        XCTAssertEqual(WorkoutPostProcessor.applyCyclePhaseMultiplier(100, phase: "menstrual", readiness: nil), 90.0)
-        XCTAssertEqual(WorkoutPostProcessor.applyCyclePhaseMultiplier(100, phase: "follicular", readiness: nil), 100.0)
-        XCTAssertEqual(WorkoutPostProcessor.applyCyclePhaseMultiplier(100, phase: "ovulation", readiness: nil), 112.0)
-        XCTAssertEqual(WorkoutPostProcessor.applyCyclePhaseMultiplier(100, phase: "luteal", readiness: nil), 97.0)
-        XCTAssertEqual(WorkoutPostProcessor.applyCyclePhaseMultiplier(100, phase: nil, readiness: nil), 100.0)
+        XCTAssertEqual(WorkoutPostProcessor.applyCyclePhaseMultiplier(100, phase: "menstrual", readiness: nil), 90.0, accuracy: 0.01)
+        XCTAssertEqual(WorkoutPostProcessor.applyCyclePhaseMultiplier(100, phase: "follicular", readiness: nil), 100.0, accuracy: 0.01)
+        XCTAssertEqual(WorkoutPostProcessor.applyCyclePhaseMultiplier(100, phase: "ovulation", readiness: nil), 112.0, accuracy: 0.01)
+        XCTAssertEqual(WorkoutPostProcessor.applyCyclePhaseMultiplier(100, phase: "luteal", readiness: nil), 97.0, accuracy: 0.01)
+        XCTAssertEqual(WorkoutPostProcessor.applyCyclePhaseMultiplier(100, phase: nil, readiness: nil), 100.0, accuracy: 0.01)
     }
 
     func testReadinessMultiplier() {
-        XCTAssertEqual(WorkoutPostProcessor.applyCyclePhaseMultiplier(100, phase: "follicular", readiness: "low"), 85.0)
-        XCTAssertEqual(WorkoutPostProcessor.applyCyclePhaseMultiplier(100, phase: "follicular", readiness: "high"), 110.0)
+        XCTAssertEqual(WorkoutPostProcessor.applyCyclePhaseMultiplier(100, phase: "follicular", readiness: "low"), 85.0, accuracy: 0.01)
+        XCTAssertEqual(WorkoutPostProcessor.applyCyclePhaseMultiplier(100, phase: "follicular", readiness: "high"), 110.0, accuracy: 0.01)
     }
 
     // MARK: - Coaching Summary

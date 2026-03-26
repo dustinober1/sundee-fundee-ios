@@ -47,26 +47,6 @@ enum GatedFeature: String, CaseIterable, Sendable {
 /// Pure-logic feature gating — no framework dependencies. All static for testability.
 enum FeatureEntitlement {
 
-    // MARK: - AI Workout Limits
-
-    static func aiWorkoutLimit(for tier: SubscriptionTier) -> Int? {
-        switch tier {
-        case .free:    return 3
-        case .plus:    return 15
-        case .premium: return nil
-        }
-    }
-
-    static func aiWorkoutsRemaining(tier: SubscriptionTier, usedThisMonth: Int) -> Int {
-        guard let limit = aiWorkoutLimit(for: tier) else { return Int.max }
-        return max(0, limit - usedThisMonth)
-    }
-
-    static func canGenerateAIWorkout(tier: SubscriptionTier, usedThisMonth: Int) -> Bool {
-        guard let limit = aiWorkoutLimit(for: tier) else { return true }
-        return usedThisMonth < limit
-    }
-
     // MARK: - Tracking Limits
 
     /// Maximum tracked lifts. Returns nil for unlimited.

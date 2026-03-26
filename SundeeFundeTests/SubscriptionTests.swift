@@ -74,51 +74,6 @@ struct SubscriptionTierTests {
 @Suite("FeatureEntitlement")
 struct FeatureEntitlementTests {
 
-    // MARK: AI Workout Limits
-
-    @Test func aiWorkoutLimitPerTier() {
-        #expect(FeatureEntitlement.aiWorkoutLimit(for: .free) == 3)
-        #expect(FeatureEntitlement.aiWorkoutLimit(for: .plus) == 15)
-        #expect(FeatureEntitlement.aiWorkoutLimit(for: .premium) == nil)
-    }
-
-    @Test func canGenerateAIWorkoutFree() {
-        #expect(FeatureEntitlement.canGenerateAIWorkout(tier: .free, usedThisMonth: 0) == true)
-        #expect(FeatureEntitlement.canGenerateAIWorkout(tier: .free, usedThisMonth: 2) == true)
-        #expect(FeatureEntitlement.canGenerateAIWorkout(tier: .free, usedThisMonth: 3) == false)
-        #expect(FeatureEntitlement.canGenerateAIWorkout(tier: .free, usedThisMonth: 10) == false)
-    }
-
-    @Test func canGenerateAIWorkoutPlus() {
-        #expect(FeatureEntitlement.canGenerateAIWorkout(tier: .plus, usedThisMonth: 0) == true)
-        #expect(FeatureEntitlement.canGenerateAIWorkout(tier: .plus, usedThisMonth: 14) == true)
-        #expect(FeatureEntitlement.canGenerateAIWorkout(tier: .plus, usedThisMonth: 15) == false)
-    }
-
-    @Test func canGenerateAIWorkoutPremiumAlwaysTrue() {
-        #expect(FeatureEntitlement.canGenerateAIWorkout(tier: .premium, usedThisMonth: 0) == true)
-        #expect(FeatureEntitlement.canGenerateAIWorkout(tier: .premium, usedThisMonth: 100) == true)
-        #expect(FeatureEntitlement.canGenerateAIWorkout(tier: .premium, usedThisMonth: 999) == true)
-    }
-
-    @Test func aiWorkoutsRemainingFree() {
-        #expect(FeatureEntitlement.aiWorkoutsRemaining(tier: .free, usedThisMonth: 0) == 3)
-        #expect(FeatureEntitlement.aiWorkoutsRemaining(tier: .free, usedThisMonth: 1) == 2)
-        #expect(FeatureEntitlement.aiWorkoutsRemaining(tier: .free, usedThisMonth: 3) == 0)
-        #expect(FeatureEntitlement.aiWorkoutsRemaining(tier: .free, usedThisMonth: 5) == 0)
-    }
-
-    @Test func aiWorkoutsRemainingPlus() {
-        #expect(FeatureEntitlement.aiWorkoutsRemaining(tier: .plus, usedThisMonth: 0) == 15)
-        #expect(FeatureEntitlement.aiWorkoutsRemaining(tier: .plus, usedThisMonth: 10) == 5)
-        #expect(FeatureEntitlement.aiWorkoutsRemaining(tier: .plus, usedThisMonth: 15) == 0)
-    }
-
-    @Test func aiWorkoutsRemainingPremiumIsMaxInt() {
-        #expect(FeatureEntitlement.aiWorkoutsRemaining(tier: .premium, usedThisMonth: 0) == Int.max)
-        #expect(FeatureEntitlement.aiWorkoutsRemaining(tier: .premium, usedThisMonth: 999) == Int.max)
-    }
-
     // MARK: Tracking Limits
 
     @Test func maxTrackedLifts() {
@@ -166,89 +121,6 @@ struct FeatureEntitlementTests {
             #expect(!feature.displayName.isEmpty)
             #expect(!feature.featureDescription.isEmpty)
         }
-    }
-}
-
-// MARK: - AIUsageTracker Tests
-
-@Suite("AIUsageTracker")
-struct AIUsageTrackerTests {
-
-    private func freshDefaults() -> UserDefaults {
-        let suite = "test.aiUsageTracker.\(UUID().uuidString)"
-        let defaults = UserDefaults(suiteName: suite)!
-        defaults.removePersistentDomain(forName: suite)
-        return defaults
-    }
-
-    @Test func currentMonthKeyFormat() {
-        let date = DateComponents(calendar: .current, year: 2026, month: 3, day: 15).date!
-        let key = AIUsageTracker.currentMonthKey(now: date)
-        #expect(key == "2026-03")
-    }
-
-    @Test func currentMonthKeySingleDigitMonth() {
-        let date = DateComponents(calendar: .current, year: 2026, month: 1, day: 1).date!
-        let key = AIUsageTracker.currentMonthKey(now: date)
-        #expect(key == "2026-01")
-    }
-
-    @Test func usageStartsAtZero() {
-        let defaults = freshDefaults()
-        let usage = AIUsageTracker.usageThisMonth(defaults: defaults)
-        #expect(usage == 0)
-    }
-
-    @Test func incrementUsageIncrementsCount() {
-        let defaults = freshDefaults()
-        AIUsageTracker.incrementUsage(defaults: defaults)
-        #expect(AIUsageTracker.usageThisMonth(defaults: defaults) == 1)
-        AIUsageTracker.incrementUsage(defaults: defaults)
-        #expect(AIUsageTracker.usageThisMonth(defaults: defaults) == 2)
-    }
-
-    @Test func usageResetsOnNewMonth() {
-        let defaults = freshDefaults()
-        let march = DateComponents(calendar: .current, year: 2026, month: 3, day: 15).date!
-        let april = DateComponents(calendar: .current, year: 2026, month: 4, day: 1).date!
-
-        AIUsageTracker.incrementUsage(defaults: defaults, now: march)
-        AIUsageTracker.incrementUsage(defaults: defaults, now: march)
-        #expect(AIUsageTracker.usageThisMonth(defaults: defaults, now: march) == 2)
-
-        // New month resets
-        #expect(AIUsageTracker.usageThisMonth(defaults: defaults, now: april) == 0)
-    }
-
-    @Test func incrementInNewMonthResetsAndStartsAtOne() {
-        let defaults = freshDefaults()
-        let march = DateComponents(calendar: .current, year: 2026, month: 3, day: 15).date!
-        let april = DateComponents(calendar: .current, year: 2026, month: 4, day: 1).date!
-
-        AIUsageTracker.incrementUsage(defaults: defaults, now: march)
-        AIUsageTracker.incrementUsage(defaults: defaults, now: march)
-        AIUsageTracker.incrementUsage(defaults: defaults, now: april)
-        #expect(AIUsageTracker.usageThisMonth(defaults: defaults, now: april) == 1)
-    }
-
-    @Test func resetIfNewMonthClearsCount() {
-        let defaults = freshDefaults()
-        let march = DateComponents(calendar: .current, year: 2026, month: 3, day: 15).date!
-        let april = DateComponents(calendar: .current, year: 2026, month: 4, day: 1).date!
-
-        AIUsageTracker.incrementUsage(defaults: defaults, now: march)
-        AIUsageTracker.incrementUsage(defaults: defaults, now: march)
-        AIUsageTracker.resetIfNewMonth(defaults: defaults, now: april)
-        #expect(AIUsageTracker.usageThisMonth(defaults: defaults, now: april) == 0)
-    }
-
-    @Test func resetIfNewMonthNoop() {
-        let defaults = freshDefaults()
-        let march = DateComponents(calendar: .current, year: 2026, month: 3, day: 15).date!
-
-        AIUsageTracker.incrementUsage(defaults: defaults, now: march)
-        AIUsageTracker.resetIfNewMonth(defaults: defaults, now: march)
-        #expect(AIUsageTracker.usageThisMonth(defaults: defaults, now: march) == 1)
     }
 }
 
@@ -427,14 +299,6 @@ struct ManageSubscriptionViewStaticTests {
         #expect(ManageSubscriptionView.tierDescription(.plus).contains("Enhanced"))
         #expect(ManageSubscriptionView.tierDescription(.premium).contains("AI"))
     }
-
-    @Test func usageTextWithLimit() {
-        #expect(ManageSubscriptionView.usageText(used: 3, limit: 15) == "3 of 15 used")
-    }
-
-    @Test func usageTextUnlimited() {
-        #expect(ManageSubscriptionView.usageText(used: 42, limit: nil) == "42 used (unlimited)")
-    }
 }
 
 // MARK: - PaywallViewModel Static Tests
@@ -477,14 +341,3 @@ struct MaxLiftsViewSubscriptionTests {
     }
 }
 
-// MARK: - AIWorkoutCTACard Static Tests
-
-@Suite("AIWorkoutCTACard Statics")
-@MainActor
-struct AIWorkoutCTACardStaticTests {
-
-    @Test func remainingLabel() {
-        #expect(AIWorkoutCTACard.remainingLabel(remaining: 2, limit: 3) == "2 of 3 left")
-        #expect(AIWorkoutCTACard.remainingLabel(remaining: 0, limit: 15) == "0 of 15 left")
-    }
-}
