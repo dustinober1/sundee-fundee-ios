@@ -36,12 +36,14 @@ struct WorkoutHistoryView: View {
         }
         .navigationTitle("History")
         .navigationBarTitleDisplayMode(.inline)
-        .task {
-            if FeatureEntitlement.canAccess(feature: .aiWorkoutHistory, tier: appState.subscriptionTier) {
-                await loadHistory()
+        .onAppear {
+            Task { @MainActor in
+                if FeatureEntitlement.canAccess(feature: .aiWorkoutHistory, tier: appState.subscriptionTier) {
+                    await loadHistory()
+                }
             }
         }
-        .refreshable {
+        .refreshable { @MainActor in
             if FeatureEntitlement.canAccess(feature: .aiWorkoutHistory, tier: appState.subscriptionTier) {
                 await loadHistory()
             }
@@ -175,7 +177,7 @@ struct FavoritesView: View {
         }
         .navigationTitle("Favorites")
         .navigationBarTitleDisplayMode(.inline)
-        .task { await loadFavorites() }
+        .task { @MainActor in await loadFavorites() }
     }
 
     private func favoriteRow(_ workout: GeneratedWorkout) -> some View {

@@ -155,7 +155,9 @@ struct DashboardView: View {
                 Task { await viewModel.load(modelContext: modelContext) }
             }
         }
-        .task { await viewModel.load(modelContext: modelContext) }
+        .onAppear {
+            Task { @MainActor in await viewModel.load(modelContext: modelContext) }
+        }
         .refreshable(action: Self.refreshAction(viewModel: viewModel, modelContext: modelContext))
     }
 

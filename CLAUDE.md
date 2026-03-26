@@ -84,9 +84,12 @@ Domain/ (pure Swift, zero dependencies, 100% tested)
 - `.authenticated` mode: full CloudKit sync enabled
 - `.guest` mode: local SwiftData only, no CloudKit
 - **Onboarding does not collect name** — `AuthService` extracts `fullName` from the Sign in with Apple credential and writes it to the User stub. This is required by App Store Guideline 4 (do not re-ask for data Apple already provides).
+- **`appState.currentUserID` returns `User.id` (a UUID), NOT `User.appleUserID`** (the Apple Sign-In identifier). Always use `User.id` / `appState.currentUserID` for data ownership queries. `appleUserID` is only for Sign in with Apple credential state checks.
 
 ### SwiftData / CloudKit Constraints
 
+- **ModelContext is main-queue only.** `@Environment(\.modelContext)` is bound to the main queue. Any service class holding a `ModelContext` must be `@MainActor` — marking only the caller `@MainActor in` is insufficient because `await` on a non-`@MainActor` method hops off the main thread. Symptoms: "Unbinding from the main queue" warning + silent data operation failures.
+- **`.task` runs once per view lifetime.** In a `TabView`, tabs stay alive — `.task` won't re-run on tab switch. Use `.onAppear` for data that must refresh when the user returns to a tab (Dashboard, Maxes, History).
 - Enum properties on `@Model` types **must be stored as `String` raw values** — CloudKit does not support Swift enums directly.
 - Both Debug and Release entitlements enable CloudKit + Sign in with Apple + HealthKit. Requires paid developer team (87VVCMCW3F) for signing.
 - **Schema version consistency:** When adding a new `AppSchemaVN`, you must update THREE places: (1) add to `AppSchemaMigrationPlan.schemas`, (2) add a migration stage to `AppSchemaMigrationPlan.stages`, (3) update `AppModelContainer.allModels` to reference the new schema. Missing any of these causes silent data loss.
@@ -117,6 +120,8 @@ Sundee Fundee Benchmarks (admin-created) follow the same CloudKit + bundled fall
 Personalized workouts are generated on-device via Apple's Foundation Models framework (iOS 26+). The app sends a simplified prompt (time, focus, energy, equipment, injuries) and receives structured output via `@Generable` types (`AIWorkoutOutput`). `WorkoutPostProcessor` then applies deterministic personalization: weight calculations from 1RM maxes, cycle phase multipliers, energy adjustments, and rest period assignment. Falls back to `OfflineWorkoutGenerator` when Apple Intelligence is unavailable on the device. The Cloudflare Worker (`workout-proxy.sundeefundee.workers.dev/generate-workout`) is retained for the WOD Dashboard only.
 
 - **Foundation Models availability check:** Use `SystemLanguageModel.default.isAvailable` — not `FoundationModelAvailability()` (outdated). Generate structured output with `session.respond(to:generating:)` and access result via `.content`.
+- **AI-generated exercise names don't match `WeightliftingExerciseCatalog` entries.** Any UI that filters by catalog membership will hide AI workout data. When displaying user-tracked data (OneRepMax, PersonalRecord), include all exercises — don't gate on catalog membership.
+- **AI workout flow navigation:** `AIWorkoutFlowView` uses `@State` bindings (`generatedWorkout`, `workoutToStart`) with `.navigationDestination(item:)` to chain Questionnaire → Preview → Execution → Summary. Each step must be wired — no-op closures like `{ _ in }` silently break the flow.
 
 ### SundeeFundeeShared Package
 

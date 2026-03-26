@@ -155,6 +155,7 @@ protocol WODRepository: Sendable {
 
 // MARK: - AIWorkoutServiceProtocol
 
+@MainActor
 protocol AIWorkoutServiceProtocol: Sendable {
     func generateWorkout(context: WorkoutGenerationContext) async throws -> GeneratedWorkout
     func fetchHistory(userID: String) async throws -> [GeneratedWorkout]

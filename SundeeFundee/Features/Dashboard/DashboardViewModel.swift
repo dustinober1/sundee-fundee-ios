@@ -22,6 +22,7 @@ final class DashboardViewModel {
     var activeInjuriesNeedingCheckIn: [InjuryProfile] = []
     var rehabSession: ProgramSession?
     var todayWOD: WOD?
+    private var isLoading = false
 
     private let programRepo: any ProgramRepository
     private let wodRepo: any WODRepository
@@ -35,6 +36,10 @@ final class DashboardViewModel {
     }
 
     func load(modelContext: ModelContext) async {
+        guard !isLoading else { return }
+        isLoading = true
+        defer { isLoading = false }
+
         let currentUser = loadUserConfiguration(modelContext: modelContext)
         loadOneRepMaxes(modelContext: modelContext)
         loadEnrollment(modelContext: modelContext)

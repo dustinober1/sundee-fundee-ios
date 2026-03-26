@@ -7,8 +7,8 @@ struct AIWorkoutFlowView: View {
     let barbellWeightKg: Double
     let weightUnit: WeightUnit
 
-    @State private var path = NavigationPath()
     @State private var generatedWorkout: GeneratedWorkout?
+    @State private var workoutToStart: GeneratedWorkout?
 
     init(
         userID: String,
@@ -33,12 +33,21 @@ struct AIWorkoutFlowView: View {
             WorkoutPreviewView(
                 viewModel: WorkoutPreviewViewModel(workout: workout, aiService: aiService),
                 userID: userID,
-                onStartWorkout: { _ in
-                    // Navigate to workout execution — handled by parent
+                onStartWorkout: { workout in
+                    workoutToStart = workout
                 },
                 onRegenerate: {
                     generatedWorkout = nil
                 }
+            )
+        }
+        .navigationDestination(item: $workoutToStart) { workout in
+            WorkoutExecutionView(
+                viewModel: WorkoutExecutionViewModel(
+                    generatedWorkout: workout,
+                    barbellWeightKg: barbellWeightKg,
+                    weightUnit: weightUnit
+                )
             )
         }
     }

@@ -14,7 +14,8 @@ enum AIWorkoutServiceError: Error {
 
 // MARK: - AppleIntelligenceWorkoutService
 
-final class AppleIntelligenceWorkoutService: AIWorkoutServiceProtocol, @unchecked Sendable {
+@MainActor
+final class AppleIntelligenceWorkoutService: AIWorkoutServiceProtocol {
 
     private let modelContext: ModelContext
 

@@ -646,7 +646,7 @@ struct MaxLiftsViewModelCoverageTests {
         let vm = MaxLiftsViewModel()
         await vm.load(modelContext: store.context, userID: "u1")
 
-        #expect(vm.exerciseNames == ["Back Squat", "Romanian Deadlift (No Straps)"])
+        #expect(vm.exerciseNames == ["Back Squat", "Plated Calf Step Up", "Romanian Deadlift (No Straps)"])
         #expect(vm.oneRepMaxes["Back Squat"]?.weightKg == 110)
         #expect(vm.personalRecords["Romanian Deadlift (No Straps)"]?.count == 1)
 

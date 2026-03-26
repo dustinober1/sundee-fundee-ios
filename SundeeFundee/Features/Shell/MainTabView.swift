@@ -104,7 +104,7 @@ private struct HistoryTabWrapper: View {
     @Query private var users: [User]
 
     var body: some View {
-        let userID = users.first?.appleUserID ?? ""
+        let userID = users.first?.id ?? ""
         let aiService = AppleIntelligenceWorkoutService(modelContext: modelContext)
         WorkoutHistoryView(userID: userID, aiService: aiService)
     }

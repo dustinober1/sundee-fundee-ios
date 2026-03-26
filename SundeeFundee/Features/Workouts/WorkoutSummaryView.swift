@@ -39,7 +39,7 @@ struct WorkoutSummaryView: View {
         .navigationTitle("Workout Complete")
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden()
-        .task {
+        .task { @MainActor in
             await viewModel.detectPRs(modelContext: modelContext)
             if !viewModel.newPRs.isEmpty || !viewModel.newConditioningPRs.isEmpty {
                 NotificationCenter.default.post(name: .didSaveNewPRs, object: nil)

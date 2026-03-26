@@ -25,10 +25,10 @@ final class MaxLiftsViewModel {
         let prs = (try? repo.fetchPersonalRecords()) ?? []
         weightUnit = (try? userRepo.fetchCurrentUser())?.weightUnit ?? .pounds
 
-        // Build exercise name index from tracked data — weightlifting moves only
+        // Build exercise name index from all tracked data
         var names = Set<String>()
-        orms.forEach { if WeightliftingExerciseCatalog.isWeightliftingExercise($0.exerciseID) { names.insert($0.exerciseID) } }
-        prs.forEach  { if WeightliftingExerciseCatalog.isWeightliftingExercise($0.exerciseID) { names.insert($0.exerciseID) } }
+        orms.forEach { names.insert($0.exerciseID) }
+        prs.forEach  { names.insert($0.exerciseID) }
         exerciseNames = names.sorted()
 
         // Build lookup dicts (highest 1RM per exercise)
