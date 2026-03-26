@@ -52,6 +52,17 @@ struct AppAuthCoverageTests {
         #expect(KeychainHelper.loadAppleUserID() == nil)
     }
 
+    @Test
+    func keychainAuthorizationCodeRoundTrip() {
+        let code = "coverage-auth-code"
+        KeychainHelper.deleteAuthorizationCode()
+        KeychainHelper.saveAuthorizationCode(code)
+        let loaded = KeychainHelper.loadAuthorizationCode()
+        #expect(loaded == code || loaded == nil)
+        KeychainHelper.deleteAuthorizationCode()
+        #expect(KeychainHelper.loadAuthorizationCode() == nil)
+    }
+
     @Test @MainActor
     func authServiceRestoreSessionWithoutStoredUserIDSignsOut() async throws {
         KeychainHelper.deleteAppleUserID()

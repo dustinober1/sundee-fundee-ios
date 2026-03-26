@@ -48,8 +48,6 @@ targets:
         CFBundleDisplayName: Sundee Fundee
         CFBundleShortVersionString: "$(MARKETING_VERSION)"
         CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
-        NSHealthShareUsageDescription: Sundee Fundee reads your health data to tailor cycle-aware training recommendations.
-        NSHealthUpdateUsageDescription: Sundee Fundee saves your workout data to Apple Health so you can track your progress.
         ITSAppUsesNonExemptEncryption: false
         UILaunchScreen:
           UIColorName: LaunchBackground

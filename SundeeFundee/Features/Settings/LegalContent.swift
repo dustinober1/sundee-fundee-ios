@@ -70,8 +70,8 @@ enum LegalContent {
 
     static let privacyPolicy = """
     PRIVACY POLICY
-    Effective Date: March 1, 2025
-    Last Updated: March 1, 2025
+    Effective Date: March 25, 2026
+    Last Updated: March 25, 2026
 
     YOUR PRIVACY MATTERS TO US.
 
@@ -81,18 +81,20 @@ enum LegalContent {
     • Profile information: display name, experience level, and training goals that \
     you enter within the App
     • Workout data: exercises, sets, reps, weights, and session notes you log
-    • Cycle data: menstrual cycle dates and phases you record
+    • Cycle data: menstrual cycle dates and phases you record within the App
     • Injury profiles: any injury information you voluntarily enter
 
-    Health Data (with your permission)
-    With your explicit permission, the App may read menstrual cycle data from Apple \
-    Health to provide cycle-aware training recommendations. This access is optional \
-    and can be revoked at any time in iOS Settings → Privacy & Security → Health.
+    AI-Generated Content
+    If you use the AI Workout Builder, personalized workouts are generated on your \
+    device using Apple's on-device language models (Apple Intelligence). Your fitness \
+    preferences, time availability, equipment access, and active injury information \
+    are processed locally — no data is sent to external servers.
 
     2. HOW WE USE YOUR INFORMATION
     We use your data exclusively to:
     • Provide, personalize, and improve the App's features
     • Generate training recommendations based on your cycle phase and fitness level
+    • Generate personalized AI workouts on-device
     • Sync your data across your own devices via iCloud
 
     WE DO NOT:
@@ -102,32 +104,39 @@ enum LegalContent {
     • Share your data with data brokers
 
     3. DATA STORAGE AND SECURITY
-    All your data is stored in your personal iCloud account using Apple's CloudKit \
-    framework. This means:
+    All your data is stored locally on your device and in your personal iCloud \
+    account using Apple's CloudKit framework. This means:
     • Your data is stored in Apple's secure iCloud infrastructure
     • The developer does not have access to your personal data
     • Data is encrypted in transit and at rest per Apple's iCloud security standards
     • You control your data through your Apple ID
 
     4. DATA RETENTION AND DELETION
-    You may delete all your App data at any time by:
-    • Going to iOS Settings → [Your Name] → iCloud → Manage Account Storage → \
-    Sundee Fundee, and tapping "Delete Data"
-    • Or by deleting the App, which removes locally cached data
+    You may delete your account and all associated data at any time by:
+    • Opening the App → Settings → Delete Account. This permanently removes your \
+    profile, workout history, injury records, maxes, benchmark scores, and all \
+    other personal data.
+    • You can also go to iOS Settings → [Your Name] → iCloud → Manage Account \
+    Storage → Sundee Fundee, and tap "Delete Data" to remove iCloud-synced data.
+    • Deleting the App removes locally cached data from your device.
+    Account deletion is processed immediately. Once deleted, your data cannot be \
+    recovered.
 
     5. THIRD-PARTY SERVICES
-    The App uses Apple's iCloud/CloudKit and HealthKit frameworks. These are governed \
-    by Apple's Privacy Policy (apple.com/privacy). We do not integrate any third-party \
-    analytics, advertising, or tracking SDKs.
+    The App uses Apple's iCloud/CloudKit framework for data sync and Apple's \
+    Foundation Models framework for on-device AI workout generation. These services \
+    are governed by Apple's Privacy Policy (apple.com/privacy). We do not integrate \
+    any third-party analytics, advertising, or tracking SDKs.
 
     6. CHILDREN'S PRIVACY
-    The App is rated 17+ and is not directed at children under the age of 17. We do \
-    not knowingly collect personal information from anyone under 17.
+    The App is not directed at children under 17. We do not knowingly collect \
+    personal information from anyone under 17.
 
     7. YOUR RIGHTS
     Depending on your location, you may have rights to access, correct, or delete \
     your personal information. Since we do not access your data directly, you can \
-    exercise these rights through your iCloud account settings.
+    exercise these rights through your iCloud account settings or by contacting us \
+    at support@sundeefundee.com.
 
     8. CHANGES TO THIS POLICY
     We may update this Privacy Policy from time to time. We will notify you of any \
@@ -135,8 +144,8 @@ enum LegalContent {
     within the App.
 
     9. CONTACT
-    If you have questions about this Privacy Policy, please contact us through the \
-    support link in the App Store listing.
+    If you have questions about this Privacy Policy, please contact us at \
+    support@sundeefundee.com or through the support link in the App Store listing.
     """
 
     static let medicalDisclaimer = """

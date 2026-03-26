@@ -6,6 +6,7 @@ protocol AppleIDCredentialProviding {
     var user: String { get }
     var fullName: PersonNameComponents? { get }
     var email: String? { get }
+    var authorizationCode: Data? { get }
 }
 
 extension ASAuthorizationAppleIDCredential: AppleIDCredentialProviding {}
@@ -31,6 +32,7 @@ final class AuthService: NSObject, ObservableObject {
         let userID: String
         let fullName: PersonNameComponents?
         let email: String?
+        var authorizationCode: String? = nil
     }
 
     struct Dependencies {
@@ -116,7 +118,12 @@ final class AuthService: NSObject, ObservableObject {
         credential: any AppleIDCredentialProviding,
         modelContext: ModelContext
     ) async -> AuthState {
-        await resolveAfterCredential(
+        // Save authorization code for future SIWA token revocation (account deletion).
+        if let codeData = credential.authorizationCode,
+           let code = String(data: codeData, encoding: .utf8) {
+            KeychainHelper.saveAuthorizationCode(code)
+        }
+        return await resolveAfterCredential(
             userID: credential.user,
             fullName: credential.fullName,
             email: credential.email,
@@ -202,6 +209,9 @@ final class AuthService: NSObject, ObservableObject {
                 switch result {
                 case .success(let credential):
                     Task { @MainActor in
+                        if let code = credential.authorizationCode {
+                            KeychainHelper.saveAuthorizationCode(code)
+                        }
                         let state = await self.resolveAfterAppleSignIn(
                             appleUserID: credential.userID,
                             fullName: credential.fullName,
@@ -298,10 +308,12 @@ final class AppleSignInDelegate: NSObject,
             completion(.failure(AuthError.invalidCredential))
             return
         }
+        let authCode: String? = credential.authorizationCode.flatMap { String(data: $0, encoding: .utf8) }
         completion(.success(.init(
             userID: credential.user,
             fullName: credential.fullName,
-            email: credential.email
+            email: credential.email,
+            authorizationCode: authCode
         )))
     }
 

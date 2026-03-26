@@ -176,7 +176,6 @@
 		04C582617701447ED4C8D80F /* CycleAdaptationPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleAdaptationPolicy.swift; sourceTree = "<group>"; };
 		094C754F0BC0AE7DBE67619B /* AppAuthCoverageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppAuthCoverageTests.swift; sourceTree = "<group>"; };
 		0AC0AC5D54C5AD7A36EBF2C7 /* BenchmarkDetailViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BenchmarkDetailViewModelTests.swift; sourceTree = "<group>"; };
-		0D02D55549E45865DA337162 /* SundeeFundee.Debug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SundeeFundee.Debug.entitlements; sourceTree = "<group>"; };
 		110F2999B2AA30421DABB2AC /* SignInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInView.swift; sourceTree = "<group>"; };
 		11E35725A51E2EB7B64E8BE2 /* QuestionnaireView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuestionnaireView.swift; sourceTree = "<group>"; };
 		12AE3DA414F404CCFFB261C5 /* CelebrationOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CelebrationOverlayView.swift; sourceTree = "<group>"; };
@@ -591,7 +590,6 @@
 				4D25ACD9D39C9AB1DA0F1386 /* Assets.xcassets */,
 				A45D0BF2A4A803CFAF9F115B /* Info.plist */,
 				5BDADDDF96B2ECD3783DE0D2 /* PrivacyInfo.xcprivacy */,
-				0D02D55549E45865DA337162 /* SundeeFundee.Debug.entitlements */,
 				B505719BD04F61B067DA2491 /* SundeeFundee.entitlements */,
 				607461998404BF185267C222 /* SundeeFundee.storekit */,
 				0CE5294A7A2700D0A4CE19E5 /* Benchmarks */,

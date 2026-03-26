@@ -53,4 +53,53 @@ enum KeychainHelper {
         ]
         SecItemDelete(query as CFDictionary)
     }
+
+    // MARK: - Authorization Code (for SIWA token revocation)
+
+    private static let authorizationCodeKey = "authorizationCode"
+
+    static func saveAuthorizationCode(_ code: String) {
+        let data = Data(code.utf8)
+        let deleteQuery: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: authorizationCodeKey,
+        ]
+        SecItemDelete(deleteQuery as CFDictionary)
+
+        let addQuery: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: authorizationCodeKey,
+            kSecValueData as String: data,
+            kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlockedThisDeviceOnly,
+        ]
+        SecItemAdd(addQuery as CFDictionary, nil)
+    }
+
+    static func loadAuthorizationCode() -> String? {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: authorizationCodeKey,
+            kSecMatchLimit as String: kSecMatchLimitOne,
+            kSecReturnData as String: true,
+        ]
+        var result: AnyObject?
+        let status = SecItemCopyMatching(query as CFDictionary, &result)
+        guard status == errSecSuccess,
+              let data = result as? Data,
+              let code = String(data: data, encoding: .utf8)
+        else { return nil }
+        return code
+    }
+
+    static func deleteAuthorizationCode() {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: authorizationCodeKey,
+        ]
+        SecItemDelete(query as CFDictionary)
+    }
 }

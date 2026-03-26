@@ -618,6 +618,13 @@ final class FeatureViewsCoverageWave3Tests: XCTestCase {
             set: { showSignOut = $0 }
         ))()
         XCTAssertTrue(showSignOut)
+
+        var showDeleteAccount = false
+        SettingsView.presentDeleteAccountAction(isPresented: Binding(
+            get: { showDeleteAccount },
+            set: { showDeleteAccount = $0 }
+        ))()
+        XCTAssertTrue(showDeleteAccount)
         
         var profileDismissed = false
         EditProfileView.saveAction(viewModel: settingsVM, dismiss: { profileDismissed = true })()

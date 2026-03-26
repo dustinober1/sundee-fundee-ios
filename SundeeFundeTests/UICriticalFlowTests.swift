@@ -191,6 +191,59 @@ final class UICriticalFlowTests: XCTestCase {
     }
 
     @MainActor
+    func testDeleteAccountRemovesAllUserDataAndSignsOut() async throws {
+        let schema = Schema(AppSchemaV9.models)
+        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
+        let container = try ModelContainer(for: schema, configurations: [config])
+        let ctx = container.mainContext
+
+        let userID = "delete-test-user"
+
+        // Seed data across multiple model types
+        let user = User(id: userID, name: "Test", experienceLevel: .beginner, primaryGoal: .strength, gender: .female, appleUserID: "apple-del", onboardingComplete: true)
+        ctx.insert(user)
+        ctx.insert(CompletedWorkout(id: "w1", userID: userID, activeCycleID: "ac1", programID: "p1", week: 1, day: 1, sessionID: "s1"))
+        ctx.insert(OneRepMax(id: "orm1", userID: userID, exerciseID: "Squat", weightKg: 225))
+        let injury = InjuryProfile(id: "inj1", userID: userID, location: "Knee", movementLimitations: "None", recoveryGoal: "Full")
+        ctx.insert(injury)
+        ctx.insert(PainLog(id: "pl1", injuryProfileID: "inj1", painLevel: 3))
+        let enrollment = EnrolledProgram(id: "enr1", userID: userID, programID: "prog1", startDate: .now)
+        ctx.insert(enrollment)
+        ctx.insert(EnrollmentEvent(id: "evt1", enrollmentID: "enr1", eventType: .enrolled))
+        ctx.insert(ActiveCycle(id: "ac1", userID: userID, programID: "p1", cycleName: "Week 1", startDate: .now, currentSessionID: "s1"))
+        try ctx.save()
+
+        // Verify data exists
+        XCTAssertFalse((try ctx.fetch(FetchDescriptor<User>(predicate: #Predicate { $0.id == userID }))).isEmpty)
+        XCTAssertFalse((try ctx.fetch(FetchDescriptor<CompletedWorkout>(predicate: #Predicate { $0.userID == userID }))).isEmpty)
+
+        // Delete all user data
+        let appState = AppState()
+        appState.apply(.authenticated(userID: userID))
+        XCTAssertEqual(appState.currentUserID, userID)
+
+        AppState.deleteAllUserData(modelContext: ctx, userID: userID)
+
+        // Verify all data is gone
+        XCTAssertTrue((try ctx.fetch(FetchDescriptor<User>(predicate: #Predicate { $0.id == userID }))).isEmpty)
+        XCTAssertTrue((try ctx.fetch(FetchDescriptor<CompletedWorkout>(predicate: #Predicate { $0.userID == userID }))).isEmpty)
+        XCTAssertTrue((try ctx.fetch(FetchDescriptor<OneRepMax>(predicate: #Predicate { $0.userID == userID }))).isEmpty)
+        XCTAssertTrue((try ctx.fetch(FetchDescriptor<InjuryProfile>(predicate: #Predicate { $0.userID == userID }))).isEmpty)
+        let injID = "inj1"
+        XCTAssertTrue((try ctx.fetch(FetchDescriptor<PainLog>(predicate: #Predicate { $0.injuryProfileID == injID }))).isEmpty)
+        let enrID = "enr1"
+        XCTAssertTrue((try ctx.fetch(FetchDescriptor<EnrollmentEvent>(predicate: #Predicate { $0.enrollmentID == enrID }))).isEmpty)
+        XCTAssertTrue((try ctx.fetch(FetchDescriptor<EnrolledProgram>(predicate: #Predicate { $0.userID == userID }))).isEmpty)
+        XCTAssertTrue((try ctx.fetch(FetchDescriptor<ActiveCycle>(predicate: #Predicate { $0.userID == userID }))).isEmpty)
+
+        // Test deleteAccount resets auth state
+        appState.apply(.authenticated(userID: "another-user"))
+        await appState.deleteAccount(modelContext: ctx)
+        XCTAssertNil(appState.currentUserID)
+        if case .signedOut = appState.authState {} else { XCTFail("Expected signedOut after deleteAccount") }
+    }
+
+    @MainActor
     private func makeInMemoryContainer() throws -> ModelContainer {
         let schema = Schema([] as [any PersistentModel.Type])
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)

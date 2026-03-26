@@ -7,6 +7,7 @@ struct SettingsView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(AppState.self) private var appState
     @State private var showSignOutConfirm = false
+    @State private var showDeleteAccountConfirm = false
     @State private var seedMessage: String?
     
     static func presentSignOutConfirmation(_ isPresented: inout Bool) {
@@ -14,6 +15,10 @@ struct SettingsView: View {
     }
 
     static func presentSignOutConfirmationAction(isPresented: Binding<Bool>) -> () -> Void {
+        { isPresented.wrappedValue = true }
+    }
+
+    static func presentDeleteAccountAction(isPresented: Binding<Bool>) -> () -> Void {
         { isPresented.wrappedValue = true }
     }
     
@@ -86,6 +91,11 @@ struct SettingsView: View {
                             role: .destructive,
                             action: Self.presentSignOutConfirmationAction(isPresented: $showSignOutConfirm)
                         )
+                        Button(
+                            "Delete Account",
+                            role: .destructive,
+                            action: Self.presentDeleteAccountAction(isPresented: $showDeleteAccountConfirm)
+                        )
                     } else {
                         Text("Guest Mode")
                             .foregroundStyle(AppTheme.Colors.navy.opacity(0.5))
@@ -116,6 +126,17 @@ struct SettingsView: View {
         .navigationTitle("Settings")
         .confirmationDialog("Sign Out?", isPresented: $showSignOutConfirm) {
             Button("Sign Out", role: .destructive, action: appState.signOut)
+        }
+        .confirmationDialog(
+            "Delete Account?",
+            isPresented: $showDeleteAccountConfirm,
+            titleVisibility: .visible
+        ) {
+            Button("Delete Account", role: .destructive) {
+                Task { await appState.deleteAccount(modelContext: modelContext) }
+            }
+        } message: {
+            Text("This will permanently delete your profile, workout history, maxes, injury records, and all other data. This cannot be undone.")
         }
         .task { await viewModel.load(modelContext: modelContext, userID: appState.currentUserID ?? "") }
     }

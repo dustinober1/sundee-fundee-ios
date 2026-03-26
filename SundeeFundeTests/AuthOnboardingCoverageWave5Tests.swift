@@ -10,11 +10,13 @@ private final class Wave5FakeAppleCredential: AppleIDCredentialProviding {
     let user: String
     let fullName: PersonNameComponents?
     let email: String?
+    let authorizationCode: Data?
 
-    init(user: String, fullName: PersonNameComponents?, email: String?) {
+    init(user: String, fullName: PersonNameComponents?, email: String?, authorizationCode: Data? = nil) {
         self.user = user
         self.fullName = fullName
         self.email = email
+        self.authorizationCode = authorizationCode
     }
 }
 
