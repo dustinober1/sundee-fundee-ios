@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Sundee Fundee is a native iOS strength training app with hormonal-cycle-aware training recommendations. Swift 6 + SwiftUI, targeting iOS 17.0+.
+Sundee Fundee is a native iOS strength training app with hormonal-cycle-aware training recommendations. Swift 6 + SwiftUI, targeting iOS 26.0+.
 
 ## Commands
 
@@ -114,7 +114,7 @@ Sundee Fundee Benchmarks (admin-created) follow the same CloudKit + bundled fall
 
 ### AI Workout Generation
 
-Personalized workouts are generated via a Cloudflare Worker proxy (`workout-proxy.sundeefundee.workers.dev/generate-workout`) that forwards requests to Gemini. The iOS app builds prompts in `GeminiWorkoutPrompt`, sends Gemini-native format requests, parses the response via `GeminiResponseParser` + `RemoteWorkoutResponse`, and falls back to `OfflineWorkoutGenerator` on any failure. The worker is shared with the WOD Dashboard.
+Personalized workouts are generated on-device via Apple's Foundation Models framework (iOS 26+). The app sends a simplified prompt (time, focus, energy, equipment, injuries) and receives structured output via `@Generable` types (`AIWorkoutOutput`). `WorkoutPostProcessor` then applies deterministic personalization: weight calculations from 1RM maxes, cycle phase multipliers, energy adjustments, and rest period assignment. Falls back to `OfflineWorkoutGenerator` when Apple Intelligence is unavailable on the device. The Cloudflare Worker (`workout-proxy.sundeefundee.workers.dev/generate-workout`) is retained for the WOD Dashboard only.
 
 ### SundeeFundeeShared Package
 
