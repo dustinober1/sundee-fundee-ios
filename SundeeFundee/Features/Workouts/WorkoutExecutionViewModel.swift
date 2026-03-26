@@ -102,16 +102,26 @@ final class WorkoutExecutionViewModel {
 
     private func initializeAISets(from workout: GeneratedWorkout) {
         for exercise in workout.exercises {
+            let parsedReps = Self.parseActualReps(exercise.reps)
             let sets = (0..<exercise.sets).map { _ in
                 SetExecutionState(
                     prescribedReps: exercise.reps,
                     prescribedWeightKg: exercise.weightKg,
-                    actualReps: Int(exercise.reps) ?? 0,
+                    actualReps: parsedReps,
                     actualWeightKg: exercise.weightKg
                 )
             }
             exerciseSets[exercise.name] = sets
         }
+    }
+
+    /// Parses a reps string into an Int. Handles "8", "8-10" (takes first), "AMRAP" → nil.
+    static func parseActualReps(_ reps: String) -> Int? {
+        if reps.uppercased() == "AMRAP" { return nil }
+        if let exact = Int(reps) { return exact }
+        // Fallback: take first number from a range like "8-10"
+        if let first = reps.split(separator: "-").first, let n = Int(first) { return n }
+        return nil
     }
 
     // MARK: - Setup

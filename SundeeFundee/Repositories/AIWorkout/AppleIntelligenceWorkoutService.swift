@@ -69,7 +69,8 @@ final class AppleIntelligenceWorkoutService: AIWorkoutServiceProtocol {
             "Design a \(context.timeMinutes)-minute \(context.focus.displayName) workout.",
             "Energy level: \(context.energyLevel.displayName).",
             "Equipment: \(context.equipment.displayName).",
-            "Experience: \(context.experienceLevel). Goal: \(context.primaryGoal)."
+            "Experience: \(context.experienceLevel). Goal: \(context.primaryGoal).",
+            "Specify exact rep counts for each exercise as a single number (e.g. 8, not 8-10). Use 0 for AMRAP."
         ]
         if !context.activeInjuries.isEmpty {
             let injuryNotes = context.activeInjuries.map {

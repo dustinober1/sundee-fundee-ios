@@ -14,9 +14,11 @@ enum WorkoutPostProcessor {
         )
 
         let exercises = raw.exercises.map { aiExercise in
+            let repsString = aiExercise.reps == 0 ? "AMRAP" : "\(aiExercise.reps)"
+
             var weightKg = calculateWeight(
                 exerciseName: aiExercise.name,
-                reps: aiExercise.reps,
+                reps: repsString,
                 bodyweightOnly: aiExercise.bodyweightOnly,
                 maxes: context.maxes
             )
@@ -27,12 +29,12 @@ enum WorkoutPostProcessor {
                 weightKg = WeightCalculations.roundToNearestFive(weightKg!)
             }
 
-            let restMinutes = assignRestMinutes(reps: aiExercise.reps, bodyweight: aiExercise.bodyweightOnly)
+            let restMinutes = assignRestMinutes(reps: repsString, bodyweight: aiExercise.bodyweightOnly)
 
             return GeneratedExercise(
                 name: aiExercise.name,
                 sets: aiExercise.sets,
-                reps: aiExercise.reps,
+                reps: repsString,
                 weightKg: weightKg,
                 restMinutes: restMinutes,
                 notes: aiExercise.notes,

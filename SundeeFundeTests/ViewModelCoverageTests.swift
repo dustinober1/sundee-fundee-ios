@@ -318,6 +318,16 @@ struct WorkoutExecutionViewModelCoverageTests {
         let savedSets = try workoutRepo.fetchSets(for: workouts[0])
         #expect(savedSets.count == 3)
     }
+
+    @Test @MainActor
+    func parseActualRepsHandlesVariousFormats() {
+        #expect(WorkoutExecutionViewModel.parseActualReps("8") == 8)
+        #expect(WorkoutExecutionViewModel.parseActualReps("12") == 12)
+        #expect(WorkoutExecutionViewModel.parseActualReps("8-10") == 8)
+        #expect(WorkoutExecutionViewModel.parseActualReps("AMRAP") == nil)
+        #expect(WorkoutExecutionViewModel.parseActualReps("amrap") == nil)
+        #expect(WorkoutExecutionViewModel.parseActualReps("abc") == nil)
+    }
 }
 
 @Suite("DashboardViewModel Coverage", .serialized)

@@ -6,8 +6,8 @@ final class WorkoutPostProcessorTests: XCTestCase {
     // MARK: - Helpers
 
     private func makeRawOutput(exercises: [AIExerciseOutput] = [
-        AIExerciseOutput(name: "Barbell Back Squat", sets: 4, reps: "5", bodyweightOnly: false, notes: nil),
-        AIExerciseOutput(name: "Push-Up", sets: 3, reps: "12-15", bodyweightOnly: true, notes: nil)
+        AIExerciseOutput(name: "Barbell Back Squat", sets: 4, reps: 5, bodyweightOnly: false, notes: nil),
+        AIExerciseOutput(name: "Push-Up", sets: 3, reps: 12, bodyweightOnly: true, notes: nil)
     ], coachingSummary: String = "Great workout ahead!") -> AIWorkoutOutput {
         AIWorkoutOutput(coachingSummary: coachingSummary, exercises: exercises)
     }
@@ -44,7 +44,7 @@ final class WorkoutPostProcessorTests: XCTestCase {
 
     func testWeightAppliedFromMaxes() {
         let raw = makeRawOutput(exercises: [
-            AIExerciseOutput(name: "Barbell Back Squat", sets: 4, reps: "5", bodyweightOnly: false, notes: nil)
+            AIExerciseOutput(name: "Barbell Back Squat", sets: 4, reps: 5, bodyweightOnly: false, notes: nil)
         ])
         let context = makeContext(maxes: [ExerciseMax(name: "Barbell Back Squat", weightKg: 100)])
         let result = WorkoutPostProcessor.process(raw: raw, context: context)
@@ -53,7 +53,7 @@ final class WorkoutPostProcessorTests: XCTestCase {
 
     func testNoMaxesMeansNilWeight() {
         let raw = makeRawOutput(exercises: [
-            AIExerciseOutput(name: "Barbell Back Squat", sets: 4, reps: "5", bodyweightOnly: false, notes: nil)
+            AIExerciseOutput(name: "Barbell Back Squat", sets: 4, reps: 5, bodyweightOnly: false, notes: nil)
         ])
         let context = makeContext(maxes: [])
         let result = WorkoutPostProcessor.process(raw: raw, context: context)
@@ -62,7 +62,7 @@ final class WorkoutPostProcessorTests: XCTestCase {
 
     func testBodyweightExerciseGetsNilWeight() {
         let raw = makeRawOutput(exercises: [
-            AIExerciseOutput(name: "Push-Up", sets: 3, reps: "12-15", bodyweightOnly: true, notes: nil)
+            AIExerciseOutput(name: "Push-Up", sets: 3, reps: 12, bodyweightOnly: true, notes: nil)
         ])
         let context = makeContext(maxes: [ExerciseMax(name: "Push-Up", weightKg: 50)])
         let result = WorkoutPostProcessor.process(raw: raw, context: context)
@@ -71,7 +71,7 @@ final class WorkoutPostProcessorTests: XCTestCase {
 
     func testFuzzyNameMatching() {
         let raw = makeRawOutput(exercises: [
-            AIExerciseOutput(name: "Bench Press", sets: 4, reps: "8-10", bodyweightOnly: false, notes: nil)
+            AIExerciseOutput(name: "Bench Press", sets: 4, reps: 8, bodyweightOnly: false, notes: nil)
         ])
         let context = makeContext(maxes: [ExerciseMax(name: "Flat Barbell Bench Press", weightKg: 100)])
         let result = WorkoutPostProcessor.process(raw: raw, context: context)
@@ -91,8 +91,8 @@ final class WorkoutPostProcessorTests: XCTestCase {
 
     func testRestPeriodsAssignedByRepRange() {
         let raw = makeRawOutput(exercises: [
-            AIExerciseOutput(name: "Squat", sets: 4, reps: "5", bodyweightOnly: false, notes: nil),
-            AIExerciseOutput(name: "Curl", sets: 3, reps: "12-15", bodyweightOnly: false, notes: nil)
+            AIExerciseOutput(name: "Squat", sets: 4, reps: 5, bodyweightOnly: false, notes: nil),
+            AIExerciseOutput(name: "Curl", sets: 3, reps: 12, bodyweightOnly: false, notes: nil)
         ])
         let context = makeContext()
         let result = WorkoutPostProcessor.process(raw: raw, context: context)
@@ -108,7 +108,7 @@ final class WorkoutPostProcessorTests: XCTestCase {
 
     func testLowEnergyReducesWeight() {
         let raw = makeRawOutput(exercises: [
-            AIExerciseOutput(name: "Squat", sets: 4, reps: "5", bodyweightOnly: false, notes: nil)
+            AIExerciseOutput(name: "Squat", sets: 4, reps: 5, bodyweightOnly: false, notes: nil)
         ])
         let mediumContext = makeContext(maxes: [ExerciseMax(name: "Squat", weightKg: 100)], energyLevel: .medium)
         let lowContext = makeContext(maxes: [ExerciseMax(name: "Squat", weightKg: 100)], energyLevel: .low)
@@ -119,7 +119,7 @@ final class WorkoutPostProcessorTests: XCTestCase {
 
     func testHighEnergyIncreasesWeight() {
         let raw = makeRawOutput(exercises: [
-            AIExerciseOutput(name: "Squat", sets: 4, reps: "5", bodyweightOnly: false, notes: nil)
+            AIExerciseOutput(name: "Squat", sets: 4, reps: 5, bodyweightOnly: false, notes: nil)
         ])
         let mediumContext = makeContext(maxes: [ExerciseMax(name: "Squat", weightKg: 100)], energyLevel: .medium)
         let highContext = makeContext(maxes: [ExerciseMax(name: "Squat", weightKg: 100)], energyLevel: .high)
@@ -138,7 +138,7 @@ final class WorkoutPostProcessorTests: XCTestCase {
 
     func testMenstrualPhaseReducesWeight() {
         let raw = makeRawOutput(exercises: [
-            AIExerciseOutput(name: "Squat", sets: 4, reps: "5", bodyweightOnly: false, notes: nil)
+            AIExerciseOutput(name: "Squat", sets: 4, reps: 5, bodyweightOnly: false, notes: nil)
         ])
         let baseline = makeContext(maxes: [ExerciseMax(name: "Squat", weightKg: 100)], cyclePhase: "follicular")
         let menstrual = makeContext(maxes: [ExerciseMax(name: "Squat", weightKg: 100)], cyclePhase: "menstrual")
@@ -149,7 +149,7 @@ final class WorkoutPostProcessorTests: XCTestCase {
 
     func testOvulationPhaseIncreasesWeight() {
         let raw = makeRawOutput(exercises: [
-            AIExerciseOutput(name: "Squat", sets: 4, reps: "5", bodyweightOnly: false, notes: nil)
+            AIExerciseOutput(name: "Squat", sets: 4, reps: 5, bodyweightOnly: false, notes: nil)
         ])
         let baseline = makeContext(maxes: [ExerciseMax(name: "Squat", weightKg: 100)], cyclePhase: "follicular")
         let ovulation = makeContext(maxes: [ExerciseMax(name: "Squat", weightKg: 100)], cyclePhase: "ovulation")
@@ -160,7 +160,7 @@ final class WorkoutPostProcessorTests: XCTestCase {
 
     func testNilCyclePhaseAppliesNoAdjustment() {
         let raw = makeRawOutput(exercises: [
-            AIExerciseOutput(name: "Squat", sets: 4, reps: "5", bodyweightOnly: false, notes: nil)
+            AIExerciseOutput(name: "Squat", sets: 4, reps: 5, bodyweightOnly: false, notes: nil)
         ])
         let baseline = makeContext(maxes: [ExerciseMax(name: "Squat", weightKg: 100)], cyclePhase: "follicular")
         let noCycle = makeContext(maxes: [ExerciseMax(name: "Squat", weightKg: 100)], cyclePhase: nil)
@@ -249,7 +249,7 @@ final class WorkoutPostProcessorTests: XCTestCase {
 
     func testExerciseNotesPassedThrough() {
         let raw = makeRawOutput(exercises: [
-            AIExerciseOutput(name: "Squat", sets: 3, reps: "5", bodyweightOnly: false, notes: "Keep chest up")
+            AIExerciseOutput(name: "Squat", sets: 3, reps: 5, bodyweightOnly: false, notes: "Keep chest up")
         ])
         let context = makeContext()
         let result = WorkoutPostProcessor.process(raw: raw, context: context)

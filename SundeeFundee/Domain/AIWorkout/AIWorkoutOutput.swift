@@ -17,8 +17,8 @@ struct AIExerciseOutput: Sendable {
     @Guide(description: "Number of sets, typically 3-5")
     var sets: Int
 
-    @Guide(description: "Rep scheme: a number like '5', a range like '8-10', or 'AMRAP'")
-    var reps: String
+    @Guide(description: "Exact number of reps as a single integer like 8 or 12. Never use ranges. Use 0 for AMRAP.")
+    var reps: Int
 
     @Guide(description: "True if this exercise uses no equipment")
     var bodyweightOnly: Bool

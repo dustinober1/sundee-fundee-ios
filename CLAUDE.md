@@ -122,6 +122,7 @@ Personalized workouts are generated on-device via Apple's Foundation Models fram
 - **Foundation Models availability check:** Use `SystemLanguageModel.default.isAvailable` — not `FoundationModelAvailability()` (outdated). Generate structured output with `session.respond(to:generating:)` and access result via `.content`.
 - **AI-generated exercise names don't match `WeightliftingExerciseCatalog` entries.** Any UI that filters by catalog membership will hide AI workout data. When displaying user-tracked data (OneRepMax, PersonalRecord), include all exercises — don't gate on catalog membership.
 - **AI workout flow navigation:** `AIWorkoutFlowView` uses `@State` bindings (`generatedWorkout`, `workoutToStart`) with `.navigationDestination(item:)` to chain Questionnaire → Preview → Execution → Summary. Each step must be wired — no-op closures like `{ _ in }` silently break the flow.
+- **`AIExerciseOutput.reps` is `Int`, not `String`.** The AI prompt requests exact rep counts (e.g. 8, not "8-10"). Use 0 for AMRAP. `WorkoutPostProcessor` converts to String for `GeneratedExercise` (0 → "AMRAP"). `WorkoutExecutionViewModel.parseActualReps(_:)` handles the reverse for pre-populating actual reps in the execution UI.
 
 ### SundeeFundeeShared Package
 
