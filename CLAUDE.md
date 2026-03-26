@@ -88,9 +88,9 @@ Domain/ (pure Swift, zero dependencies, 100% tested)
 ### SwiftData / CloudKit Constraints
 
 - Enum properties on `@Model` types **must be stored as `String` raw values** — CloudKit does not support Swift enums directly.
-- Release entitlements enable CloudKit + Sign in with Apple; Debug entitlements are empty (supports Personal Team signing without paid capabilities).
+- Both Debug and Release entitlements enable CloudKit + Sign in with Apple + HealthKit. Requires paid developer team (87VVCMCW3F) for signing.
 - **Schema version consistency:** When adding a new `AppSchemaVN`, you must update THREE places: (1) add to `AppSchemaMigrationPlan.schemas`, (2) add a migration stage to `AppSchemaMigrationPlan.stages`, (3) update `AppModelContainer.allModels` to reference the new schema. Missing any of these causes silent data loss.
-- **`CKContainer(identifier:)` fatally traps (SIGTRAP) without CloudKit entitlements** — this is NOT a catchable Swift error. Debug builds have empty entitlements, so any code path that calls `CKContainer` must guard with `CloudKitWODRepository.hasCloudKitEntitlement` first. The CloudKit repos (`CloudKitWODRepository`, `CloudKitProgramRepository`, `CloudKitBenchmarkDefinitionRepository`) have this guard; do not bypass it.
+- **`CKContainer(identifier:)` fatally traps (SIGTRAP) without CloudKit entitlements** — this is NOT a catchable Swift error. The CloudKit repos (`CloudKitWODRepository`, `CloudKitProgramRepository`, `CloudKitBenchmarkDefinitionRepository`) guard with `CloudKitWODRepository.hasCloudKitEntitlement`; do not bypass it.
 - **CloudKit integer fields return `Int64`** — casting `record["field"] as? Int` silently fails. Use `(record["field"] as? Int64).map(Int.init)`.
 - **`@Model` types are not `Sendable`** — async protocols returning `@Model` instances still require `Sendable` on the protocol for cross-actor calls. Repos need `@unchecked Sendable`. Cache Codable DTOs (not `@Model` instances) to avoid data races.
 - **VersionedSchema checksum collisions:** When two schema versions reference the same live model types with identical properties, SwiftData produces duplicate checksums and crashes with "Duplicate version checksums across stages detected." Fix: use frozen `@Model` classes (namespaced under the schema enum, e.g., `AppSchemaV7.CompletedWorkout`) for models that changed between versions. See V6 (`CompletedSet`) and V7 (`CompletedWorkout`) for examples.
@@ -116,9 +116,12 @@ Sundee Fundee Benchmarks (admin-created) follow the same CloudKit + bundled fall
 
 Personalized workouts are generated on-device via Apple's Foundation Models framework (iOS 26+). The app sends a simplified prompt (time, focus, energy, equipment, injuries) and receives structured output via `@Generable` types (`AIWorkoutOutput`). `WorkoutPostProcessor` then applies deterministic personalization: weight calculations from 1RM maxes, cycle phase multipliers, energy adjustments, and rest period assignment. Falls back to `OfflineWorkoutGenerator` when Apple Intelligence is unavailable on the device. The Cloudflare Worker (`workout-proxy.sundeefundee.workers.dev/generate-workout`) is retained for the WOD Dashboard only.
 
+- **Foundation Models availability check:** Use `SystemLanguageModel.default.isAvailable` — not `FoundationModelAvailability()` (outdated). Generate structured output with `session.respond(to:generating:)` and access result via `.content`.
+
 ### SundeeFundeeShared Package
 
 `SundeeFundee/Packages/SundeeFundeeShared/` is an **inlined local Swift package** (not a submodule, not a remote package). It contains shared models (Program, WOD, ExerciseCatalog), CloudKit record decoders, and validators used by both the iOS app and the WOD Dashboard. Referenced in `project.yml` under `packages:`.
+- **`swift-tools-version` in `Package.swift` must match platform minimums** — `.iOS(.v26)` requires `swift-tools-version: 6.2`. Mismatches cause build failures.
 
 ### Subscriptions
 
@@ -148,6 +151,8 @@ Product IDs are defined in `Domain/Subscription/SubscriptionTier.swift` and mirr
 
 The Xcode project is generated from `project.yml` via XcodeGen. **Never edit `.xcodeproj` directly** — modify `project.yml` and run `xcodegen generate`. Sources are auto-discovered by XcodeGen from the directory structure — no need to manually add new `.swift` files to `project.yml`.
 **After adding new `.swift` files, always run `xcodegen generate`** — even though sources are auto-discovered, the existing `.xcodeproj` won't include new files until regenerated. Without this, new files compile but are invisible to other compilation units in explicit module builds.
+- **Deployment target has FOUR locations in `project.yml`:** `options.deploymentTarget.iOS`, `settings.base.IPHONEOS_DEPLOYMENT_TARGET`, `targets.SundeeFundee.deploymentTarget`, and `targets.SundeeFundeTests.deploymentTarget`. Update all four when changing.
+- **Build number (`CURRENT_PROJECT_VERSION` in `project.yml`) must be incremented for each App Store Connect upload** — duplicate build numbers cause "Preparing build for App Store Connect failed". HealthKit entitlements require `NSHealthShareUsageDescription` and `NSHealthUpdateUsageDescription` in Info.plist (`project.yml` info properties).
 
 ### CloudKit Server-to-Server Auth
 
