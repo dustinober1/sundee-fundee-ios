@@ -1,6 +1,5 @@
 import SwiftUI
 import SwiftData
-import AuthenticationServices
 
 /// Top-level auth state that drives routing.
 enum AuthState {
@@ -43,33 +42,15 @@ final class AppState {
     func deleteAccount(modelContext: ModelContext) async {
         guard let userID = currentUserID else { return }
 
-        // Revoke Sign in with Apple credential before clearing keychain.
-        if let appleUserID = KeychainHelper.loadAppleUserID() {
-            await Self.revokeAppleCredential(appleUserID: appleUserID)
-        }
+        // Revoke Sign in with Apple refresh token via server-side Cloud Function.
+        await SIWATokenService.revokeRefreshToken()
 
         Self.deleteAllUserData(modelContext: modelContext, userID: userID)
         KeychainHelper.deleteAuthorizationCode()
+        KeychainHelper.deleteSIWARefreshToken()
         KeychainHelper.deleteAppleUserID()
         authState = .signedOut
         currentUserID = nil
-    }
-
-    /// Best-effort SIWA credential revocation.
-    /// Full token revocation requires a server-side endpoint that can generate
-    /// a client_secret JWT and call POST https://appleid.apple.com/auth/revoke.
-    /// This client-side check verifies credential state and logs the gap.
-    private static func revokeAppleCredential(appleUserID: String) async {
-        let provider = ASAuthorizationAppleIDProvider()
-        let state = (try? await provider.credentialState(forUserID: appleUserID)) ?? .notFound
-        if state == .authorized {
-            // TODO: Call server-side token revocation endpoint.
-            // The authorization code saved during sign-in can be exchanged for
-            // a refresh token, which is then used to revoke via Apple's REST API.
-            // This requires a backend (e.g. Cloudflare Worker) that holds the
-            // .p8 private key and generates the client_secret JWT.
-            print("[AccountDeletion] SIWA credential still authorized — server-side revocation needed")
-        }
     }
 
     static func deleteAllUserData(modelContext: ModelContext, userID: String) {

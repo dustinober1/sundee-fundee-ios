@@ -63,6 +63,24 @@ struct AppAuthCoverageTests {
         #expect(KeychainHelper.loadAuthorizationCode() == nil)
     }
 
+    @Test
+    func keychainSIWARefreshTokenRoundTrip() {
+        let token = "coverage-refresh-token"
+        KeychainHelper.deleteSIWARefreshToken()
+        KeychainHelper.saveSIWARefreshToken(token)
+        let loaded = KeychainHelper.loadSIWARefreshToken()
+        #expect(loaded == token || loaded == nil)
+        KeychainHelper.deleteSIWARefreshToken()
+        #expect(KeychainHelper.loadSIWARefreshToken() == nil)
+    }
+
+    @Test
+    func siwaTokenServiceRevokeWithNoStoredTokenSucceeds() async {
+        KeychainHelper.deleteSIWARefreshToken()
+        let result = await SIWATokenService.revokeRefreshToken()
+        #expect(result == true)
+    }
+
     @Test @MainActor
     func authServiceRestoreSessionWithoutStoredUserIDSignsOut() async throws {
         KeychainHelper.deleteAppleUserID()

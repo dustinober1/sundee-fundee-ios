@@ -381,7 +381,7 @@ struct AuthOnboardingCoverageWave5Tests {
 
         let request = ASAuthorizationAppleIDProvider().createRequest()
         SignInView.configureAppleRequest(request)
-        #expect(request.requestedScopes == [.fullName, .email])
+        #expect(request.requestedScopes == [.fullName])
         switch SignInView.payload(from: fakeCredential) {
         case .appleID(let userID, let resolvedName, let email):
             #expect(userID == "wave5-signin-apple")

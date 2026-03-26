@@ -245,8 +245,8 @@ struct PaywallView: View {
         .foregroundStyle(AppTheme.Colors.navy.opacity(0.5))
     }
 
-    static let termsURL = URL(string: "https://sundeefundee.com/terms/")!
-    static let privacyURL = URL(string: "https://sundeefundee.com/privacy/")!
+    static let termsURL = URL(string: "https://sundee-fundee.web.app/terms.html")!
+    static let privacyURL = URL(string: "https://sundee-fundee.web.app/privacy.html")!
 
     // MARK: - Helpers
 

@@ -19,7 +19,7 @@ struct AuthOnboardingCoverageWave3Tests {
     @Test
     @MainActor
     func signInDecisionAndStateChangeBranches() {
-        #expect(SignInView.requestedScopes() == [.fullName, .email])
+        #expect(SignInView.requestedScopes() == [.fullName])
         #expect(SignInView.controlsDisabled(isBusy: true) == true)
         #expect(SignInView.controlsDisabled(isBusy: false) == false)
         #expect(SignInView.shouldShowError(message: "error") == true)

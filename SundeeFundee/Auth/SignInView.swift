@@ -103,7 +103,7 @@ struct SignInView: View {
     // MARK: - Private
 
     static func requestedScopes() -> [ASAuthorization.Scope] {
-        [.fullName, .email]
+        [.fullName]
     }
 
     @MainActor

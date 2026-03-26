@@ -118,10 +118,11 @@ final class AuthService: NSObject, ObservableObject {
         credential: any AppleIDCredentialProviding,
         modelContext: ModelContext
     ) async -> AuthState {
-        // Save authorization code for future SIWA token revocation (account deletion).
+        // Exchange authorization code for a refresh token (for account deletion revocation).
         if let codeData = credential.authorizationCode,
            let code = String(data: codeData, encoding: .utf8) {
             KeychainHelper.saveAuthorizationCode(code)
+            await SIWATokenService.exchangeCodeForRefreshToken(code)
         }
         return await resolveAfterCredential(
             userID: credential.user,
@@ -198,7 +199,7 @@ final class AuthService: NSObject, ObservableObject {
     ) async throws -> AuthState {
         let provider = ASAuthorizationAppleIDProvider()
         let request = provider.createRequest()
-        request.requestedScopes = [.fullName, .email]
+        request.requestedScopes = [.fullName]
 
         return try await withCheckedThrowingContinuation { continuation in
             self.pendingDelegate = dependencies.performAppleSignInRequest(
@@ -211,6 +212,7 @@ final class AuthService: NSObject, ObservableObject {
                     Task { @MainActor in
                         if let code = credential.authorizationCode {
                             KeychainHelper.saveAuthorizationCode(code)
+                            await SIWATokenService.exchangeCodeForRefreshToken(code)
                         }
                         let state = await self.resolveAfterAppleSignIn(
                             appleUserID: credential.userID,

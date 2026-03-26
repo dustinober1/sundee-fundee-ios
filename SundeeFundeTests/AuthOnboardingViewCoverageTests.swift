@@ -61,10 +61,10 @@ struct AuthOnboardingViewCoverageTests {
 
     @Test @MainActor
     func signInHelperBranches() {
-        #expect(SignInView.requestedScopes() == [.fullName, .email])
+        #expect(SignInView.requestedScopes() == [.fullName])
         let request = ASAuthorizationAppleIDProvider().createRequest()
         SignInView.requestConfigurator(request)
-        #expect(request.requestedScopes == [.fullName, .email])
+        #expect(request.requestedScopes == [.fullName])
         #expect(SignInView.controlsDisabled(isBusy: true))
         #expect(!SignInView.controlsDisabled(isBusy: false))
         #expect(SignInView.shouldShowError(message: "Oops"))
