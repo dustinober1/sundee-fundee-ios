@@ -90,6 +90,8 @@ Domain/ (pure Swift, zero dependencies, 100% tested)
 
 - **ModelContext is main-queue only.** `@Environment(\.modelContext)` is bound to the main queue. Any service class holding a `ModelContext` must be `@MainActor` — marking only the caller `@MainActor in` is insufficient because `await` on a non-`@MainActor` method hops off the main thread. Symptoms: "Unbinding from the main queue" warning + silent data operation failures.
 - **`.task` runs once per view lifetime.** In a `TabView`, tabs stay alive — `.task` won't re-run on tab switch. Use `.onAppear` for data that must refresh when the user returns to a tab (Dashboard, Maxes, History).
+  - **Verified `.onAppear` users:** DashboardView, MaxLiftsView, WorkoutHistoryView, BenchmarksView, CycleTrackingView, ProgramListView.
+  - If adding a new tab view, always use `.onAppear` (not `.task`) for data loading.
 - Enum properties on `@Model` types **must be stored as `String` raw values** — CloudKit does not support Swift enums directly.
 - A single entitlements file (`SundeeFundee.entitlements`) is used for both Debug and Release, enabling CloudKit + Sign in with Apple. Requires paid developer team (87VVCMCW3F) for signing. HealthKit is **not** currently integrated — cycle data is stored in SwiftData, not Apple Health.
 - **Schema version consistency:** When adding a new `AppSchemaVN`, you must update THREE places: (1) add to `AppSchemaMigrationPlan.schemas`, (2) add a migration stage to `AppSchemaMigrationPlan.stages`, (3) update `AppModelContainer.allModels` to reference the new schema. Missing any of these causes silent data loss.
@@ -98,6 +100,12 @@ Domain/ (pure Swift, zero dependencies, 100% tested)
 - **`@Model` types are not `Sendable`** — async protocols returning `@Model` instances still require `Sendable` on the protocol for cross-actor calls. Repos need `@unchecked Sendable`. Cache Codable DTOs (not `@Model` instances) to avoid data races.
 - **VersionedSchema checksum collisions:** When two schema versions reference the same live model types with identical properties, SwiftData produces duplicate checksums and crashes with "Duplicate version checksums across stages detected." Fix: use frozen `@Model` classes (namespaced under the schema enum, e.g., `AppSchemaV7.CompletedWorkout`) for models that changed between versions. See V6 (`CompletedSet`) and V7 (`CompletedWorkout`) for examples.
 - **Never remove a schema version from the migration plan** — existing user stores reference that version. Removing it causes "Cannot use staged migration with an unknown model version" and forces store deletion (data loss).
+
+### Navigation Pitfalls
+
+- **`NavigationLink(value:)` only resolves at the NavigationStack root.** If a view with `navigationDestination(for:)` is pushed from another stack (e.g., Dashboard → Browse Programs), value-based links won't fire. Use `NavigationLink(destination:)` for views that may be pushed from multiple stacks.
+- **iOS 26 TabView auto-creates "More" for >4 tabs.** The system "More" tab wraps overflow items in its own `UINavigationController`. Do NOT wrap overflow tabs in `NavigationStack` — only wrap the first `directTabLimit` (4) tabs. See `MainTabView.directTabLimit`.
+- **Always `xcrun simctl uninstall` before testing a fresh build** — stale builds from other schemes/apps persist on the simulator and cause confusing test results.
 
 ### Programs
 
