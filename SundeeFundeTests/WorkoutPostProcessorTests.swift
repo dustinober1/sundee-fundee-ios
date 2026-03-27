@@ -263,6 +263,73 @@ final class WorkoutPostProcessorTests: XCTestCase {
         XCTAssertTrue(result.exercises.allSatisfy { $0.reasoning == nil })
     }
 
+    // MARK: - Equipment Filtering
+
+    func testBodyweightOnlyFilterRemovesBarbellExercises() {
+        let exercises = [
+            AIExerciseOutput(name: "Barbell Back Squat", sets: 4, reps: 5, bodyweightOnly: false, notes: nil),
+            AIExerciseOutput(name: "Push-Up", sets: 3, reps: 12, bodyweightOnly: true, notes: nil),
+            AIExerciseOutput(name: "Deadlift", sets: 4, reps: 5, bodyweightOnly: false, notes: nil),
+            AIExerciseOutput(name: "Plank Hold", sets: 3, reps: 0, bodyweightOnly: true, notes: nil)
+        ]
+        let filtered = WorkoutPostProcessor.filterForEquipment(exercises, equipment: .bodyweightOnly)
+        XCTAssertEqual(filtered.count, 2)
+        XCTAssertTrue(filtered.allSatisfy { $0.bodyweightOnly || !$0.name.lowercased().contains("barbell") })
+    }
+
+    func testBodyweightOnlyFilterRemovesDumbbellExercises() {
+        let exercises = [
+            AIExerciseOutput(name: "Dumbbell Bench Press", sets: 3, reps: 8, bodyweightOnly: false, notes: nil),
+            AIExerciseOutput(name: "Burpees", sets: 4, reps: 10, bodyweightOnly: true, notes: nil)
+        ]
+        let filtered = WorkoutPostProcessor.filterForEquipment(exercises, equipment: .bodyweightOnly)
+        XCTAssertEqual(filtered.count, 1)
+        XCTAssertEqual(filtered.first?.name, "Burpees")
+    }
+
+    func testHomeDumbbellsFilterRemovesBarbellAndMachineExercises() {
+        let exercises = [
+            AIExerciseOutput(name: "Barbell Back Squat", sets: 4, reps: 5, bodyweightOnly: false, notes: nil),
+            AIExerciseOutput(name: "Dumbbell Row", sets: 3, reps: 10, bodyweightOnly: false, notes: nil),
+            AIExerciseOutput(name: "Leg Press", sets: 3, reps: 12, bodyweightOnly: false, notes: nil),
+            AIExerciseOutput(name: "Push-Up", sets: 3, reps: 15, bodyweightOnly: true, notes: nil)
+        ]
+        let filtered = WorkoutPostProcessor.filterForEquipment(exercises, equipment: .homeDumbbells)
+        XCTAssertEqual(filtered.count, 2)
+        XCTAssertEqual(filtered.map(\.name), ["Dumbbell Row", "Push-Up"])
+    }
+
+    func testFullGymFilterKeepsAllExercises() {
+        let exercises = [
+            AIExerciseOutput(name: "Barbell Back Squat", sets: 4, reps: 5, bodyweightOnly: false, notes: nil),
+            AIExerciseOutput(name: "Cable Fly", sets: 3, reps: 12, bodyweightOnly: false, notes: nil),
+            AIExerciseOutput(name: "Push-Up", sets: 3, reps: 15, bodyweightOnly: true, notes: nil)
+        ]
+        let filtered = WorkoutPostProcessor.filterForEquipment(exercises, equipment: .fullGym)
+        XCTAssertEqual(filtered.count, 3)
+    }
+
+    func testOutdoorFilterMatchesBodyweightOnly() {
+        let exercises = [
+            AIExerciseOutput(name: "Deadlift", sets: 4, reps: 5, bodyweightOnly: false, notes: nil),
+            AIExerciseOutput(name: "Burpees", sets: 4, reps: 10, bodyweightOnly: true, notes: nil)
+        ]
+        let filtered = WorkoutPostProcessor.filterForEquipment(exercises, equipment: .outdoor)
+        XCTAssertEqual(filtered.count, 1)
+        XCTAssertEqual(filtered.first?.name, "Burpees")
+    }
+
+    func testProcessWithBodyweightFilterRemovesWeightedExercises() {
+        let raw = makeRawOutput(exercises: [
+            AIExerciseOutput(name: "Deadlift", sets: 4, reps: 5, bodyweightOnly: false, notes: nil),
+            AIExerciseOutput(name: "Push-Up", sets: 3, reps: 12, bodyweightOnly: true, notes: nil)
+        ])
+        let context = makeContext(equipment: .bodyweightOnly)
+        let result = WorkoutPostProcessor.process(raw: raw, context: context)
+        XCTAssertEqual(result.exercises.count, 1)
+        XCTAssertEqual(result.exercises.first?.name, "Push-Up")
+    }
+
     // MARK: - Edge Cases
 
     func testEmptyExercisesArrayProducesEmptyWorkout() {

@@ -13,7 +13,8 @@ enum WorkoutPostProcessor {
             equipment: context.equipment
         )
 
-        let exercises = raw.exercises.map { aiExercise in
+        let filtered = filterForEquipment(raw.exercises, equipment: context.equipment)
+        let exercises = filtered.map { aiExercise in
             let repsString = aiExercise.reps == 0 ? "AMRAP" : "\(aiExercise.reps)"
 
             var weightKg = calculateWeight(
@@ -55,6 +56,51 @@ enum WorkoutPostProcessor {
             exercises: exercises,
             questionnaire: questionnaire
         )
+    }
+
+    // MARK: - Equipment Filtering
+
+    /// Keywords that indicate an exercise requires equipment beyond bodyweight.
+    private static let barbellKeywords = [
+        "barbell", "deadlift", "back squat", "front squat", "bench press",
+        "overhead press", "military press", "clean", "snatch", "jerk",
+        "hip thrust", "barbell row", "power clean", "clean and jerk",
+        "sumo deadlift", "romanian deadlift", "pendlay row", "t-bar row"
+    ]
+
+    private static let dumbbellKeywords = [
+        "dumbbell", "kettlebell", "goblet squat", "db ", "kb "
+    ]
+
+    private static let machineKeywords = [
+        "machine", "cable", "lat pulldown", "leg press", "smith machine",
+        "hack squat", "pec deck", "leg extension", "leg curl", "seated row"
+    ]
+
+    static func filterForEquipment(
+        _ exercises: [AIExerciseOutput],
+        equipment: EquipmentAccess
+    ) -> [AIExerciseOutput] {
+        switch equipment {
+        case .fullGym:
+            return exercises
+        case .homeDumbbells:
+            return exercises.filter { ex in
+                let name = ex.name.lowercased()
+                let usesMachine = machineKeywords.contains { name.contains($0) }
+                let usesBarbell = barbellKeywords.contains { name.contains($0) }
+                return !usesMachine && !usesBarbell
+            }
+        case .bodyweightOnly, .outdoor:
+            return exercises.filter { ex in
+                if ex.bodyweightOnly { return true }
+                let name = ex.name.lowercased()
+                let usesBarbell = barbellKeywords.contains { name.contains($0) }
+                let usesDumbbell = dumbbellKeywords.contains { name.contains($0) }
+                let usesMachine = machineKeywords.contains { name.contains($0) }
+                return !usesBarbell && !usesDumbbell && !usesMachine
+            }
+        }
     }
 
     // MARK: - Weight Calculation

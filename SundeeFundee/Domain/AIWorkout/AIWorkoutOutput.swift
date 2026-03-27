@@ -20,7 +20,7 @@ struct AIExerciseOutput: Sendable {
     @Guide(description: "Exact number of reps as a single integer like 8 or 12. Never use ranges. Use 0 for AMRAP.")
     var reps: Int
 
-    @Guide(description: "True if this exercise uses no equipment")
+    @Guide(description: "True ONLY if the exercise requires zero equipment — no barbell, no dumbbells, no kettlebells, no machines. Examples: push-ups, pull-ups, lunges, planks, burpees. False for ANY exercise that uses weights or machines.")
     var bodyweightOnly: Bool
 
     @Guide(description: "Optional coaching note for form or technique")
