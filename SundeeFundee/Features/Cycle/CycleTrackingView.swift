@@ -85,7 +85,11 @@ struct CycleTrackingView: View {
         }
         .sheet(isPresented: $viewModel.showAddPeriodLog, content: Self.periodSheetContent(viewModel: viewModel))
         .sheet(isPresented: $viewModel.showAddSymptomLog, content: Self.symptomSheetContent(viewModel: viewModel))
-        .task { await viewModel.load(modelContext: modelContext, userID: appState.currentUserID ?? "") }
+        .onAppear {
+            Task { @MainActor in
+                await viewModel.load(modelContext: modelContext, userID: appState.currentUserID ?? "")
+            }
+        }
     }
 }
 

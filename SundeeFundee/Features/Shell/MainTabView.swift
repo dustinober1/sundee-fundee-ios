@@ -61,11 +61,23 @@ struct MainTabView: View {
         self.destinationBuilder = destinationBuilder
     }
 
+    /// Tabs beyond this index appear in the system "More" tab, which provides
+    /// its own navigation controller. Wrapping them in a second NavigationStack
+    /// causes doubled back-buttons.
+    private static let directTabLimit = 4
+
     var body: some View {
+        let tabs = Self.orderedTabs(for: currentGender)
         TabView {
-            ForEach(Self.orderedTabs(for: currentGender), id: \.self) { tab in
-                NavigationStack {
-                    destinationBuilder(tab)
+            ForEach(Array(tabs.enumerated()), id: \.element) { index, tab in
+                Group {
+                    if index < Self.directTabLimit {
+                        NavigationStack {
+                            destinationBuilder(tab)
+                        }
+                    } else {
+                        destinationBuilder(tab)
+                    }
                 }
                 .tabItem {
                     Label(tab.title, systemImage: tab.systemImage)

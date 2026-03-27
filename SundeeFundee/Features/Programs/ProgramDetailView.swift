@@ -167,6 +167,8 @@ struct StatBadge: View {
             Text(value)
                 .font(AppTheme.Fonts.subheading)
                 .foregroundStyle(AppTheme.Colors.navy)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
             Text(label)
                 .font(AppTheme.Fonts.caption)
                 .foregroundStyle(AppTheme.Colors.navy.opacity(0.6))

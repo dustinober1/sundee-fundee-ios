@@ -37,7 +37,7 @@ struct ProgramListView: View {
                     ScrollView {
                         LazyVStack(spacing: AppTheme.Spacing.md) {
                             ForEach(viewModel.programs) { program in
-                                NavigationLink(value: program) {
+                                NavigationLink(destination: Self.detailDestination(program: program, viewModel: viewModel)) {
                                     ProgramCardView(
                                         program: program,
                                         isEnrolled: viewModel.activeEnrollment?.programID == program.id
@@ -53,10 +53,11 @@ struct ProgramListView: View {
             }
         }
         .navigationTitle("Programs")
-        .navigationDestination(for: Program.self) { program in
-            Self.detailDestination(program: program, viewModel: viewModel)
+        .onAppear {
+            Task { @MainActor in
+                await viewModel.load(modelContext: modelContext)
+            }
         }
-        .task { await viewModel.load(modelContext: modelContext) }
     }
 
     static func contentState(isLoading: Bool, errorMessage: String?, programCount: Int) -> ContentState {
