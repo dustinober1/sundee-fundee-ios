@@ -32,9 +32,9 @@ enum SubscriptionTier: String, Codable, CaseIterable, Sendable {
         case .free:
             return "Core training tools with unlimited on-device AI."
         case .plus:
-            return "Haiku-powered cloud AI and custom programming tools."
+            return "Sundee AI-powered cloud workouts and custom programming tools."
         case .premium:
-            return "Sonnet-powered AI coach with persistent memory."
+            return "Sundee AI Pro coach with persistent memory."
         }
     }
 
@@ -63,12 +63,12 @@ enum SubscriptionTier: String, Codable, CaseIterable, Sendable {
         }
     }
 
-    /// Anthropic model identifier for cloud AI routing. nil for on-device only.
+    /// Cloudflare Workers AI model identifier for cloud AI routing. "on-device" for free tier.
     var aiModelIdentifier: String {
         switch self {
         case .free:    return "on-device"
-        case .plus:    return "haiku"
-        case .premium: return "sonnet"
+        case .plus:    return "@cf/qwen/qwen3-30b-a3b-fp8"
+        case .premium: return "@cf/nvidia/nemotron-3-120b-a12b"
         }
     }
 
