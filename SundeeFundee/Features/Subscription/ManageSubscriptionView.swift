@@ -84,9 +84,9 @@ struct ManageSubscriptionView: View {
 
     static func tierDescription(_ tier: SubscriptionTier) -> String {
         switch tier {
-        case .free:    return "Basic workout tracking"
-        case .plus:    return "Enhanced training intelligence"
-        case .premium: return "Full AI-powered coaching"
+        case .free:    return "Unlimited on-device AI workouts"
+        case .plus:    return "Haiku-powered cloud AI and programming tools"
+        case .premium: return "Sonnet-powered personal AI coach"
         }
     }
 }

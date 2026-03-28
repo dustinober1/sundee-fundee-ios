@@ -337,9 +337,9 @@ struct FeatureGateModifierStaticTests {
 struct ManageSubscriptionViewStaticTests {
 
     @Test func tierDescriptions() {
-        #expect(ManageSubscriptionView.tierDescription(.free).contains("Basic"))
-        #expect(ManageSubscriptionView.tierDescription(.plus).contains("Enhanced"))
-        #expect(ManageSubscriptionView.tierDescription(.premium).contains("AI"))
+        #expect(ManageSubscriptionView.tierDescription(.free) == "Unlimited on-device AI workouts")
+        #expect(ManageSubscriptionView.tierDescription(.plus) == "Haiku-powered cloud AI and programming tools")
+        #expect(ManageSubscriptionView.tierDescription(.premium) == "Sonnet-powered personal AI coach")
     }
 }
 
