@@ -208,17 +208,17 @@ struct PaywallViewStaticTests {
     }
 
     @Test func fallbackPricesUpdated() {
-        #expect(PaywallView.fallbackPrice(tier: .plus, period: .monthly) == "$6.99")
-        #expect(PaywallView.fallbackPrice(tier: .plus, period: .annual) == "$54.99")
-        #expect(PaywallView.fallbackPrice(tier: .premium, period: .monthly) == "$12.99")
-        #expect(PaywallView.fallbackPrice(tier: .premium, period: .annual) == "$99.99")
+        #expect(PaywallView.fallbackPrice(tier: .plus, period: .monthly) == "$4.99")
+        #expect(PaywallView.fallbackPrice(tier: .plus, period: .annual) == "$39.99")
+        #expect(PaywallView.fallbackPrice(tier: .premium, period: .monthly) == "$9.99")
+        #expect(PaywallView.fallbackPrice(tier: .premium, period: .annual) == "$79.99")
         #expect(PaywallView.fallbackPrice(tier: .free, period: .monthly) == "Free")
     }
 
     @Test func tierHighlightsPlusUpdated() {
         let highlights = PaywallView.tierHighlights(for: .plus)
         #expect(highlights.count == 7)
-        #expect(highlights.contains("Haiku-powered cloud AI (1/day)"))
+        #expect(highlights.contains("Sundee AI cloud workouts (1/day)"))
         #expect(highlights.contains("Custom program builder"))
         #expect(highlights.contains("Periodization templates"))
     }
@@ -227,7 +227,7 @@ struct PaywallViewStaticTests {
         let highlights = PaywallView.tierHighlights(for: .premium)
         #expect(highlights.count == 7)
         #expect(highlights.contains("Everything in Plus"))
-        #expect(highlights.contains("Sonnet-powered cloud AI (10/day)"))
+        #expect(highlights.contains("Sundee AI Pro cloud workouts (10/day)"))
         #expect(highlights.contains("AI mesocycle plans"))
     }
 
@@ -257,7 +257,7 @@ struct PaywallViewStaticTests {
     }
 
     @Test func savingsText() {
-        let text = PaywallView.savingsText(monthlyPrice: 6.99, annualPrice: 54.99)
+        let text = PaywallView.savingsText(monthlyPrice: 4.99, annualPrice: 39.99)
         #expect(text.contains("Save"))
     }
 
