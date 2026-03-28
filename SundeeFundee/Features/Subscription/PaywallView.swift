@@ -316,10 +316,10 @@ struct PaywallView: View {
 
     static func fallbackPrice(tier: SubscriptionTier, period: BillingPeriod) -> String {
         switch (tier, period) {
-        case (.plus, .monthly):    return "$6.99"
-        case (.plus, .annual):     return "$54.99"
-        case (.premium, .monthly): return "$12.99"
-        case (.premium, .annual):  return "$99.99"
+        case (.plus, .monthly):    return "$4.99"
+        case (.plus, .annual):     return "$39.99"
+        case (.premium, .monthly): return "$9.99"
+        case (.premium, .annual):  return "$79.99"
         default:                   return "Free"
         }
     }
@@ -330,7 +330,7 @@ struct PaywallView: View {
             return []
         case .plus:
             return [
-                "Haiku-powered cloud AI (1/day)",
+                "Sundee AI cloud workouts (1/day)",
                 "Custom program builder",
                 "Periodization templates",
                 "Advanced analytics dashboard",
@@ -341,7 +341,7 @@ struct PaywallView: View {
         case .premium:
             return [
                 "Everything in Plus",
-                "Sonnet-powered cloud AI (10/day)",
+                "Sundee AI Pro cloud workouts (10/day)",
                 "Persistent AI coach memory",
                 "AI mesocycle plans",
                 "Plateau detection",
@@ -362,7 +362,7 @@ struct PaywallView: View {
         [
             ComparisonRow(feature: "On-Device AI", free: "Unlimited", plus: "Unlimited", premium: "Unlimited"),
             ComparisonRow(feature: "Cloud AI Workouts", free: "--", plus: "1/day", premium: "10/day"),
-            ComparisonRow(feature: "AI Model", free: "On-device", plus: "Haiku", premium: "Sonnet"),
+            ComparisonRow(feature: "AI Model", free: "On-device", plus: "Sundee AI", premium: "Sundee AI Pro"),
             ComparisonRow(feature: "Lift Tracking", free: "5", plus: "All", premium: "All"),
             ComparisonRow(feature: "Injury Profiles", free: "1", plus: "All", premium: "All"),
             ComparisonRow(feature: "Workout History", free: "30 days", plus: "All", premium: "All"),
