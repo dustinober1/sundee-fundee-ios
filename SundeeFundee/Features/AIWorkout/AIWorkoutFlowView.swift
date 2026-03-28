@@ -3,6 +3,7 @@ import SwiftData
 
 struct AIWorkoutFlowView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(AppState.self) private var appState
     let userID: String
     let barbellWeightKg: Double
     let weightUnit: WeightUnit
@@ -21,17 +22,20 @@ struct AIWorkoutFlowView: View {
     }
 
     var body: some View {
-        let aiService = AppleIntelligenceWorkoutService(modelContext: modelContext)
+        let onDeviceService = AppleIntelligenceWorkoutService(modelContext: modelContext)
+        let cloudService = CloudAIWorkoutService(modelContext: modelContext)
         QuestionnaireView(
             userID: userID,
-            aiService: aiService,
+            subscriptionTier: appState.subscriptionTier,
+            onDeviceService: onDeviceService,
+            cloudService: cloudService,
             onWorkoutGenerated: { workout in
                 generatedWorkout = workout
             }
         )
         .navigationDestination(item: $generatedWorkout) { workout in
             WorkoutPreviewView(
-                viewModel: WorkoutPreviewViewModel(workout: workout, aiService: aiService),
+                viewModel: WorkoutPreviewViewModel(workout: workout, aiService: onDeviceService),
                 userID: userID,
                 onStartWorkout: { workout in
                     workoutToStart = workout

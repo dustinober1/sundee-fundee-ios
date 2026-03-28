@@ -5,12 +5,24 @@ struct QuestionnaireView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var viewModel: QuestionnaireViewModel
     let userID: String
+    let subscriptionTier: SubscriptionTier
     var onWorkoutGenerated: (GeneratedWorkout) -> Void = { _ in }
 
-    init(userID: String, aiService: any AIWorkoutServiceProtocol, onWorkoutGenerated: @escaping (GeneratedWorkout) -> Void = { _ in }) {
+    init(
+        userID: String,
+        subscriptionTier: SubscriptionTier = .free,
+        onDeviceService: any AIWorkoutServiceProtocol,
+        cloudService: (any AIWorkoutServiceProtocol)? = nil,
+        onWorkoutGenerated: @escaping (GeneratedWorkout) -> Void = { _ in }
+    ) {
         self.userID = userID
+        self.subscriptionTier = subscriptionTier
         self.onWorkoutGenerated = onWorkoutGenerated
-        self._viewModel = State(initialValue: QuestionnaireViewModel(aiService: aiService))
+        self._viewModel = State(initialValue: QuestionnaireViewModel(
+            onDeviceService: onDeviceService,
+            cloudService: cloudService,
+            subscriptionTier: subscriptionTier
+        ))
     }
 
     var body: some View {
@@ -35,6 +47,24 @@ struct QuestionnaireView: View {
         .onChange(of: viewModel.generatedWorkout) { _, workout in
             if let workout {
                 onWorkoutGenerated(workout)
+            }
+        }
+        .overlay(alignment: .bottom) {
+            if viewModel.showFallbackToast {
+                Text(QuestionnaireViewModel.cloudFallbackMessage)
+                    .font(AppTheme.Fonts.caption)
+                    .foregroundStyle(.white)
+                    .padding(AppTheme.Spacing.sm)
+                    .background(AppTheme.Colors.navy.opacity(0.9))
+                    .cornerRadius(AppTheme.CornerRadius.button)
+                    .padding(.bottom, 80)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .onAppear {
+                        Task {
+                            try? await Task.sleep(for: .seconds(3))
+                            withAnimation { viewModel.showFallbackToast = false }
+                        }
+                    }
             }
         }
     }
@@ -101,6 +131,10 @@ struct QuestionnaireView: View {
                         equipmentRow(equip)
                     }
                 }
+
+                if viewModel.isCloudToggleVisible {
+                    cloudAIToggle
+                }
             }
             .padding(AppTheme.Spacing.md)
         }
@@ -155,6 +189,31 @@ struct QuestionnaireView: View {
     }
 
     // MARK: - Subviews
+
+    private var cloudAIToggle: some View {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+            sectionHeader("Cloud AI")
+
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(viewModel.cloudToggleLabel)
+                        .font(AppTheme.Fonts.body)
+                        .foregroundStyle(AppTheme.Colors.navy)
+                    Text(viewModel.cloudToggleSubtitle)
+                        .font(AppTheme.Fonts.caption)
+                        .foregroundStyle(AppTheme.Colors.navy.opacity(0.6))
+                }
+                Spacer()
+                Toggle("", isOn: $viewModel.useCloudAI)
+                    .labelsHidden()
+                    .tint(AppTheme.Colors.accentOrange)
+                    .disabled(!viewModel.isCloudToggleEnabled)
+            }
+            .padding(AppTheme.Spacing.md)
+            .background(AppTheme.Colors.cardBackground)
+            .cornerRadius(AppTheme.CornerRadius.card)
+        }
+    }
 
     private func sectionHeader(_ title: String) -> some View {
         Text(title)
