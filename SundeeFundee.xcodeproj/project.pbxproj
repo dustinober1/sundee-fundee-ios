@@ -128,6 +128,7 @@
 		C0642CF4E32CF08D12A89E54 /* WODTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4723D125F23601A6E38FACB /* WODTests.swift */; };
 		C1F2A077075C42F56652C9BE /* MetricsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB4DB4845EAF8A0ACA731441 /* MetricsService.swift */; };
 		C34485EFC98690D769B8B90D /* ViewModelCoverageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5533059CBDA1637C94B14128 /* ViewModelCoverageTests.swift */; };
+		C3BA38F3EA2F0F3812D53181 /* CloudAIConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAB1BFDF7E7EEEA36C6A32CF /* CloudAIConfig.swift */; };
 		C98DC013548FE006A5B6E292 /* InjurySystemCoverageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEE3A9811CFCBAD2D17FE90B /* InjurySystemCoverageTests.swift */; };
 		C9B8747959BB83AF2414A003 /* GeneratedWorkoutRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3609763D64D3EA24AF21DA9 /* GeneratedWorkoutRecord.swift */; };
 		CB776D58BC5BDBDBD9B5D3A5 /* Benchmark.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3A9ACCDB214D83FC2593926 /* Benchmark.swift */; };
@@ -332,6 +333,7 @@
 		F600E9E479637F14E71E2864 /* WorkoutExecutionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutExecutionView.swift; sourceTree = "<group>"; };
 		F7BD0ECF7B475013E0EA880F /* AppSchemaMigrationPlan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSchemaMigrationPlan.swift; sourceTree = "<group>"; };
 		FA66AE5ACEF8F10E9CBB555B /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
+		FAB1BFDF7E7EEEA36C6A32CF /* CloudAIConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudAIConfig.swift; sourceTree = "<group>"; };
 		FC36626A61D254F2C6D60D3C /* AnalyticsEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsEvent.swift; sourceTree = "<group>"; };
 		FCC38E727F4692C9396D9572 /* BenchmarksView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BenchmarksView.swift; sourceTree = "<group>"; };
 		FE8187398DEC5F1B36453716 /* AIWorkoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIWorkoutTests.swift; sourceTree = "<group>"; };
@@ -790,6 +792,7 @@
 			isa = PBXGroup;
 			children = (
 				010C23D344929385055392FF /* AIWorkoutOutput.swift */,
+				FAB1BFDF7E7EEEA36C6A32CF /* CloudAIConfig.swift */,
 				6CCFB09C96387A007E8FBA66 /* GeneratedWorkout.swift */,
 				2BE16254287A1EB2111F6ECA /* OfflineWorkoutGenerator.swift */,
 				DA21F3E6D7F052240BB8EA89 /* WorkoutGenerationContext.swift */,
@@ -935,6 +938,7 @@
 				31711AC2F1895D8FFDA2CE3D /* ButtonStyles.swift in Sources */,
 				61D3B028B583D726A2ECC378 /* CelebrationEvent.swift in Sources */,
 				71FCC4BD6122C95D547F0979 /* CelebrationOverlayView.swift in Sources */,
+				C3BA38F3EA2F0F3812D53181 /* CloudAIConfig.swift in Sources */,
 				3A9441E40CA4388FA2C73B92 /* CompletedWorkout.swift in Sources */,
 				0050529D52C6D1AD4079C359 /* CycleAdaptationPolicy.swift in Sources */,
 				A1B9AF2CD29CA287A8DD1E56 /* CycleCalculations.swift in Sources */,

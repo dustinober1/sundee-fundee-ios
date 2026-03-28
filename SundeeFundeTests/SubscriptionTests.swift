@@ -682,3 +682,47 @@ struct DashboardViewModelFilterTests {
     }
 }
 
+// MARK: - CloudAIConfig Tests
+
+@Suite("CloudAIConfig")
+struct CloudAIConfigTests {
+
+    @Test func workerURLIsValid() {
+        let url = URL(string: CloudAIConfig.workerURL)
+        #expect(url != nil)
+        #expect(url?.host?.contains("sundeefundee") == true)
+    }
+
+    @Test func createJwtProducesThreeParts() async throws {
+        let token = try await CloudAIConfig.createJwt(userID: "user-123", tier: .plus)
+        let parts = token.split(separator: ".")
+        #expect(parts.count == 3)
+    }
+
+    @Test func createJwtPayloadContainsCorrectFields() async throws {
+        let token = try await CloudAIConfig.createJwt(userID: "user-456", tier: .premium)
+        let parts = token.split(separator: ".")
+        let payloadData = CloudAIConfig.base64UrlDecode(String(parts[1]))
+        let payload = try JSONDecoder().decode(CloudAIConfig.JwtPayload.self, from: payloadData!)
+        #expect(payload.sub == "user-456")
+        #expect(payload.tier == "premium")
+        #expect(payload.iat > 0)
+    }
+
+    @Test func createJwtUsesCorrectTierString() async throws {
+        let plusToken = try await CloudAIConfig.createJwt(userID: "u1", tier: .plus)
+        let premiumToken = try await CloudAIConfig.createJwt(userID: "u2", tier: .premium)
+        let plusPayload = try CloudAIConfig.decodePayload(plusToken)
+        let premiumPayload = try CloudAIConfig.decodePayload(premiumToken)
+        #expect(plusPayload.tier == "plus")
+        #expect(premiumPayload.tier == "premium")
+    }
+
+    @Test func createJwtIatIsRecent() async throws {
+        let token = try await CloudAIConfig.createJwt(userID: "u1", tier: .plus)
+        let payload = try CloudAIConfig.decodePayload(token)
+        let now = Int(Date().timeIntervalSince1970)
+        #expect(abs(now - payload.iat) < 5)
+    }
+}
+
