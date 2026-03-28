@@ -236,14 +236,16 @@ final class ProgramWorkoutViewCoverageTests: XCTestCase {
 
         let errorVM = ProgramListViewModel(programRepo: repository)
         errorVM.errorMessage = "Network unavailable"
-        XCTAssertNotNil(host(NavigationStack { ProgramListView(viewModel: errorVM) }, container: container, triggerAppearance: false).0.view)
+        XCTAssertNotNil(host(NavigationStack { ProgramListView(viewModel: errorVM) }, container: container, appState: appState, triggerAppearance: false).0.view)
         let emptyVM = ProgramListViewModel(programRepo: repository)
         emptyVM.isLoading = false
         emptyVM.errorMessage = nil
         emptyVM.programs = []
-        XCTAssertNotNil(host(NavigationStack { ProgramListView(viewModel: emptyVM) }, container: container, triggerAppearance: false).0.view)
+        XCTAssertNotNil(host(NavigationStack { ProgramListView(viewModel: emptyVM) }, container: container, appState: appState, triggerAppearance: false).0.view)
         XCTAssertNotNil(host(ProgramListView.emptyStateView(), container: container).0.view)
         XCTAssertNotNil(host(ProgramCardView(program: primaryProgram, isEnrolled: true), container: container).0.view)
+        let customProgram = Program(id: "custom-card", name: "My Custom", category: "custom", description: "User-created", durationWeeks: 4, sessionsPerWeek: 3, difficulty: "intermediate", phases: [], weeks: [], cycleAdjustmentProfile: nil)
+        XCTAssertNotNil(host(ProgramCardView(program: customProgram, isEnrolled: false), container: container).0.view)
 
         let navVM = ProgramListViewModel(programRepo: repository)
         navVM.programs = [primaryProgram]

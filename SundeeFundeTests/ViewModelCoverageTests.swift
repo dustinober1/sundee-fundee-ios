@@ -169,6 +169,40 @@ struct ProgramListViewModelCoverageTests {
     }
 
     @Test @MainActor
+    func allProgramsCombinesCustomAndBundled() async {
+        let vm = ProgramListViewModel(programRepo: FakeProgramRepository(programs: []))
+        let bundled = makeProgram(id: "bundled-1", weeks: [makeWeek(1, sessions: [makeSession(id: "s1")])])
+        let custom = makeProgram(id: "custom-1", weeks: [makeWeek(1, sessions: [makeSession(id: "s2")])])
+        vm.programs = [bundled]
+        vm.customPrograms = [custom]
+        #expect(vm.allPrograms.count == 2)
+        #expect(vm.allPrograms.first?.id == "custom-1")
+        #expect(vm.allPrograms.last?.id == "bundled-1")
+    }
+
+    @Test @MainActor
+    func isCustomProgramChecksCategory() {
+        let custom = Program(id: "c1", name: "Custom", category: "custom", description: "", durationWeeks: 1, sessionsPerWeek: 1, difficulty: "beginner", phases: [], weeks: [], cycleAdjustmentProfile: nil)
+        let bundled = Program(id: "b1", name: "Bundled", category: "strength", description: "", durationWeeks: 1, sessionsPerWeek: 1, difficulty: "beginner", phases: [], weeks: [], cycleAdjustmentProfile: nil)
+        #expect(ProgramListViewModel.isCustomProgram(custom) == true)
+        #expect(ProgramListViewModel.isCustomProgram(bundled) == false)
+    }
+
+    @Test @MainActor
+    func deleteCustomProgramRemovesFromList() async throws {
+        let store = try makeTestStore()
+        let custom = makeProgram(id: "custom-del", weeks: [])
+        let record = CustomProgramRecord(id: "custom-del", userID: "", name: "Custom", programJSON: "{}")
+        store.context.insert(record)
+        try store.context.save()
+
+        let vm = ProgramListViewModel(programRepo: FakeProgramRepository(programs: []))
+        vm.customPrograms = [custom]
+        vm.deleteCustomProgram(id: "custom-del", modelContext: store.context)
+        #expect(vm.customPrograms.isEmpty)
+    }
+
+    @Test @MainActor
     func enrollCancelsCurrentAndCancelEnrollmentClearsState() async throws {
         let store = try makeTestStore()
         let oldEnrollment = EnrolledProgram(

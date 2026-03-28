@@ -5,6 +5,7 @@ import SwiftData
 @Observable
 final class ProgramListViewModel {
     var programs: [Program] = []
+    var customPrograms: [Program] = []
     var activeEnrollment: EnrolledProgram?
     var isLoading = false
     var errorMessage: String?
@@ -31,7 +32,27 @@ final class ProgramListViewModel {
             let repo = SwiftDataEnrolledProgramRepository(context: ctx)
             enrollmentRepo = repo
             activeEnrollment = try? repo.fetchActiveEnrollment()
+
+            let customRepo = SwiftDataCustomProgramRepository(context: ctx)
+            let records = (try? customRepo.fetchAll(userID: "")) ?? []
+            customPrograms = records.compactMap { $0.toProgram() }
         }
+    }
+
+    var allPrograms: [Program] {
+        customPrograms + programs
+    }
+
+    func deleteCustomProgram(id: String, modelContext: ModelContext) {
+        let repo = SwiftDataCustomProgramRepository(context: modelContext)
+        if let record = try? repo.fetch(id: id) {
+            try? repo.delete(record)
+            customPrograms.removeAll { $0.id == id }
+        }
+    }
+
+    static func isCustomProgram(_ program: Program) -> Bool {
+        program.category == "custom"
     }
 
     func enroll(in program: Program, modelContext: ModelContext, userID: String = "") async {

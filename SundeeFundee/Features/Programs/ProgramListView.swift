@@ -4,6 +4,7 @@ import SwiftUI
 struct ProgramListView: View {
     @State private var viewModel: ProgramListViewModel
     @Environment(\.modelContext) private var modelContext
+    @Environment(AppState.self) private var appState
 
     enum ContentState: Equatable {
         case loading
@@ -36,7 +37,7 @@ struct ProgramListView: View {
                 case .loaded:
                     ScrollView {
                         LazyVStack(spacing: AppTheme.Spacing.md) {
-                            ForEach(viewModel.programs) { program in
+                            ForEach(viewModel.allPrograms) { program in
                                 NavigationLink(destination: Self.detailDestination(program: program, viewModel: viewModel)) {
                                     ProgramCardView(
                                         program: program,
@@ -56,6 +57,17 @@ struct ProgramListView: View {
         .onAppear {
             Task { @MainActor in
                 await viewModel.load(modelContext: modelContext)
+            }
+        }
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                NavigationLink {
+                    CreateProgramView(userID: appState.currentUserID ?? "")
+                        .requiresSubscription(.programBuilder)
+                } label: {
+                    Image(systemName: "plus")
+                        .foregroundStyle(AppTheme.Colors.accentOrange)
+                }
             }
         }
     }
@@ -98,6 +110,15 @@ struct ProgramCardView: View {
                     Label("Active", systemImage: "checkmark.circle.fill")
                         .font(AppTheme.Fonts.caption)
                         .foregroundStyle(AppTheme.Colors.accentOrange)
+                }
+                if program.category == "custom" {
+                    Text("Custom")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundStyle(AppTheme.Colors.accentOrange)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(AppTheme.Colors.accentOrange.opacity(0.1))
+                        .clipShape(Capsule())
                 }
             }
 

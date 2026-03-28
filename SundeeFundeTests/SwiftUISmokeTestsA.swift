@@ -201,6 +201,7 @@ final class SwiftUISmokeTestsA: XCTestCase {
 
         let list = host(
             ProgramListView(viewModel: listViewModel)
+                .environment(appState)
                 .modelContainer(store.container),
             triggerAppearance: true
         )
