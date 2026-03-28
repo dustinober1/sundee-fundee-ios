@@ -167,7 +167,7 @@ struct WorkoutPreviewViewModelTests {
 struct QuestionnaireViewModelTests {
 
     @Test func defaultValues() {
-        let vm = QuestionnaireViewModel(aiService: OfflineAIWorkoutService())
+        let vm = QuestionnaireViewModel(onDeviceService: OfflineAIWorkoutService())
         #expect(vm.timeMinutes == 45)
         #expect(vm.focus == .fullBody)
         #expect(vm.energyLevel == .medium)
@@ -179,7 +179,7 @@ struct QuestionnaireViewModelTests {
     }
 
     @Test func canGenerateIsTrue() {
-        let vm = QuestionnaireViewModel(aiService: OfflineAIWorkoutService())
+        let vm = QuestionnaireViewModel(onDeviceService: OfflineAIWorkoutService())
         #expect(vm.canGenerate == true)
     }
 
@@ -319,5 +319,37 @@ struct OfflineAIWorkoutServiceTests {
         try await service.toggleFavorite(workoutID: workout.id, isFavorite: false)
         favorites = try await service.fetchFavorites(userID: "user-1")
         #expect(favorites.isEmpty)
+    }
+}
+
+// MARK: - QuestionnaireViewModel Cloud Toggle Tests
+
+@Suite("QuestionnaireViewModel Cloud Toggle")
+@MainActor
+struct QuestionnaireViewModelCloudToggleTests {
+
+    @Test func cloudToggleVisibleForPlus() {
+        #expect(QuestionnaireViewModel.isCloudToggleVisible(tier: .plus) == true)
+    }
+
+    @Test func cloudToggleVisibleForPremium() {
+        #expect(QuestionnaireViewModel.isCloudToggleVisible(tier: .premium) == true)
+    }
+
+    @Test func cloudToggleHiddenForFree() {
+        #expect(QuestionnaireViewModel.isCloudToggleVisible(tier: .free) == false)
+    }
+
+    @Test func cloudToggleEnabledWhenHasRemaining() {
+        #expect(QuestionnaireViewModel.isCloudToggleEnabled(remaining: 1) == true)
+        #expect(QuestionnaireViewModel.isCloudToggleEnabled(remaining: 5) == true)
+    }
+
+    @Test func cloudToggleDisabledWhenAtLimit() {
+        #expect(QuestionnaireViewModel.isCloudToggleEnabled(remaining: 0) == false)
+    }
+
+    @Test func fallbackMessageText() {
+        #expect(QuestionnaireViewModel.cloudFallbackMessage == "Cloud AI unavailable — generated on-device instead.")
     }
 }
