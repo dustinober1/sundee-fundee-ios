@@ -625,8 +625,8 @@ struct SubscriptionTierCopyTests {
 
     @Test func subscriptionDescriptionCopy() {
         #expect(SubscriptionTier.free.subscriptionDescription == "Core training tools with unlimited on-device AI.")
-        #expect(SubscriptionTier.plus.subscriptionDescription == "Haiku-powered cloud AI and custom programming tools.")
-        #expect(SubscriptionTier.premium.subscriptionDescription == "Sonnet-powered AI coach with persistent memory.")
+        #expect(SubscriptionTier.plus.subscriptionDescription == "Sundee AI-powered cloud workouts and custom programming tools.")
+        #expect(SubscriptionTier.premium.subscriptionDescription == "Sundee AI Pro coach with persistent memory.")
     }
 }
 
@@ -643,14 +643,14 @@ struct SubscriptionTierNewPropertiesTests {
 
     @Test func subscriptionDescriptions() {
         #expect(SubscriptionTier.free.subscriptionDescription == "Core training tools with unlimited on-device AI.")
-        #expect(SubscriptionTier.plus.subscriptionDescription == "Haiku-powered cloud AI and custom programming tools.")
-        #expect(SubscriptionTier.premium.subscriptionDescription == "Sonnet-powered AI coach with persistent memory.")
+        #expect(SubscriptionTier.plus.subscriptionDescription == "Sundee AI-powered cloud workouts and custom programming tools.")
+        #expect(SubscriptionTier.premium.subscriptionDescription == "Sundee AI Pro coach with persistent memory.")
     }
 
     @Test func aiModelIdentifier() {
         #expect(SubscriptionTier.free.aiModelIdentifier == "on-device")
-        #expect(SubscriptionTier.plus.aiModelIdentifier == "haiku")
-        #expect(SubscriptionTier.premium.aiModelIdentifier == "sonnet")
+        #expect(SubscriptionTier.plus.aiModelIdentifier == "@cf/qwen/qwen3-30b-a3b-fp8")
+        #expect(SubscriptionTier.premium.aiModelIdentifier == "@cf/nvidia/nemotron-3-120b-a12b")
     }
 
     @Test func dailyCloudAILimit() {
