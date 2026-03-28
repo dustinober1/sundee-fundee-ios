@@ -32,3 +32,25 @@ AuthKey_86Q3FH9XUX.p8
 AuthKey_U76U766JR2.p8
 node_modules/
 ExportOptions.plist
+
+# ── GSD baseline (auto-generated) ──
+.gsd
+Thumbs.db
+*.swo
+.idea/
+.env
+.env.*
+!.env.example
+.next/
+dist/
+__pycache__/
+*.pyc
+.venv/
+venv/
+target/
+vendor/
+coverage/
+.cache/
+tmp/
+.claude/
+.bg-shell/
