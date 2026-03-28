@@ -18,11 +18,11 @@ enum SubscriptionTier: String, Codable, CaseIterable, Sendable {
     var valueProposition: String {
         switch self {
         case .free:
-            return "On-device AI baseline workouts"
+            return "Unlimited on-device AI workouts"
         case .plus:
-            return "Better remote LLM workouts and advanced training intelligence"
+            return "Cloud-powered AI workouts and programming tools"
         case .premium:
-            return "Premium LLM workouts plus personalized coaching"
+            return "Personal AI coach that learns and adapts"
         }
     }
 
@@ -30,11 +30,11 @@ enum SubscriptionTier: String, Codable, CaseIterable, Sendable {
     var subscriptionDescription: String {
         switch self {
         case .free:
-            return "Core training tools with on-device AI."
+            return "Core training tools with unlimited on-device AI."
         case .plus:
-            return "Smarter training intelligence and unlimited tracking."
+            return "Haiku-powered cloud AI and custom programming tools."
         case .premium:
-            return "Your personal AI coach that learns and adapts."
+            return "Sonnet-powered AI coach with persistent memory."
         }
     }
 
@@ -60,6 +60,24 @@ enum SubscriptionTier: String, Codable, CaseIterable, Sendable {
         case .free:    return 0
         case .plus:    return 1
         case .premium: return 2
+        }
+    }
+
+    /// Anthropic model identifier for cloud AI routing. nil for on-device only.
+    var aiModelIdentifier: String {
+        switch self {
+        case .free:    return "on-device"
+        case .plus:    return "haiku"
+        case .premium: return "sonnet"
+        }
+    }
+
+    /// Maximum cloud AI workout generations per day. nil means no cloud access (free).
+    var dailyCloudAILimit: Int? {
+        switch self {
+        case .free:    return nil
+        case .plus:    return 1
+        case .premium: return 10
         }
     }
 

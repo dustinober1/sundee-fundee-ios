@@ -550,9 +550,39 @@ struct AIWorkoutCTACardTests {
 struct SubscriptionTierCopyTests {
 
     @Test func subscriptionDescriptionCopy() {
-        #expect(SubscriptionTier.free.subscriptionDescription == "Core training tools with on-device AI.")
-        #expect(SubscriptionTier.plus.subscriptionDescription == "Smarter training intelligence and unlimited tracking.")
-        #expect(SubscriptionTier.premium.subscriptionDescription == "Your personal AI coach that learns and adapts.")
+        #expect(SubscriptionTier.free.subscriptionDescription == "Core training tools with unlimited on-device AI.")
+        #expect(SubscriptionTier.plus.subscriptionDescription == "Haiku-powered cloud AI and custom programming tools.")
+        #expect(SubscriptionTier.premium.subscriptionDescription == "Sonnet-powered AI coach with persistent memory.")
+    }
+}
+
+// MARK: - SubscriptionTier New Properties Tests
+
+@Suite("SubscriptionTierTests")
+struct SubscriptionTierNewPropertiesTests {
+
+    @Test func valuePropositions() {
+        #expect(SubscriptionTier.free.valueProposition == "Unlimited on-device AI workouts")
+        #expect(SubscriptionTier.plus.valueProposition == "Cloud-powered AI workouts and programming tools")
+        #expect(SubscriptionTier.premium.valueProposition == "Personal AI coach that learns and adapts")
+    }
+
+    @Test func subscriptionDescriptions() {
+        #expect(SubscriptionTier.free.subscriptionDescription == "Core training tools with unlimited on-device AI.")
+        #expect(SubscriptionTier.plus.subscriptionDescription == "Haiku-powered cloud AI and custom programming tools.")
+        #expect(SubscriptionTier.premium.subscriptionDescription == "Sonnet-powered AI coach with persistent memory.")
+    }
+
+    @Test func aiModelIdentifier() {
+        #expect(SubscriptionTier.free.aiModelIdentifier == "on-device")
+        #expect(SubscriptionTier.plus.aiModelIdentifier == "haiku")
+        #expect(SubscriptionTier.premium.aiModelIdentifier == "sonnet")
+    }
+
+    @Test func dailyCloudAILimit() {
+        #expect(SubscriptionTier.free.dailyCloudAILimit == nil)
+        #expect(SubscriptionTier.plus.dailyCloudAILimit == 1)
+        #expect(SubscriptionTier.premium.dailyCloudAILimit == 10)
     }
 }
 
