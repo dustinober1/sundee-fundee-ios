@@ -2,13 +2,18 @@
 
 Infrastructure complete (2026-03-28). Each item below needs its own brainstorm → spec → plan cycle.
 
+## Code Updates (from pricing/model revision)
+
+- [ ] **Update pricing in code** — Change from $6.99/$12.99 to $4.99/$9.99 (monthly) and recalculate annual pricing. Update SubscriptionTier, PaywallView fallback prices, StoreKit config, comparison highlights, and all tests.
+- [ ] **Switch AI model from Anthropic to Cloudflare Nemotron** — Replace Haiku/Sonnet references with `@cf/nvidia/nemotron-3-120b-a12b` ($0.50/M input, $1.50/M output). Update `aiModelIdentifier`, PaywallView copy, ManageSubscriptionView descriptions, tier highlights, and all tests.
+
 ## Prerequisites
 
-- [ ] **Cloudflare Worker Anthropic Proxy** — Route cloud AI requests through the existing worker, add tier-based model selection (Haiku/Sonnet), server-side rate limiting via KV store, entitlement validation
+- [ ] **Cloudflare Worker AI Proxy** — Route cloud AI requests through the existing worker using Cloudflare Workers AI (`@cf/nvidia/nemotron-3-120b-a12b`), server-side rate limiting via KV store, entitlement validation
 - [ ] **Cloud AI Workout Integration** — Wire iOS app to call the proxy for Plus/Premium users, edit-before-start flow, fallback to on-device if network unavailable
 - [ ] **Re-enable StoreKit Entitlements** — Revert `AppState.subscriptionTier` from `.free` default, restore `SubscriptionManager.start()` to call `loadProducts()`/`refreshSubscriptionStatus()`, re-add Subscription section in SettingsView
 
-## Plus Tier Features ($6.99/mo)
+## Plus Tier Features ($4.99/mo)
 
 - [ ] **Custom Program Builder** — Create multi-week training programs
 - [ ] **Periodization Templates** — Pre-built linear, undulating, block periodization structures
@@ -16,15 +21,23 @@ Infrastructure complete (2026-03-28). Each item below needs its own brainstorm �
 - [ ] **Advanced Analytics Dashboard** — Volume trends, intensity tracking, muscle group balance
 - [ ] **Streaks & Achievements** — Consistency tracking, milestone badges
 
-## Premium Tier Features ($12.99/mo)
+## Premium Tier Features ($9.99/mo)
 
-- [ ] **AI Coach Memory** — Persistent training context across sessions (Sonnet)
+- [ ] **AI Coach Memory** — Persistent training context across sessions
 - [ ] **AI Mesocycle Plans** — Multi-week periodized plans tailored to cycle phase and goals
 - [ ] **Progressive Overload Tracking** — Automatic load progression suggestions
 - [ ] **Plateau Detection & Recommendations** — AI identifies stalls, suggests changes
 - [ ] **Weekly AI Training Reports** — Volume, intensity, recovery summary + recommendations
 - [ ] **Smart Exercise Substitutions** — Context-aware swaps based on equipment, injuries, fatigue
+- [ ] **Custom AI Coaching Voice** — Personalized tone/style that adapts to how the user responds to motivation (tough love vs. encouraging)
+- [ ] **Competition Prep Mode** — Peaking/tapering programs for powerlifting meets or CrossFit comps
+- [ ] **Nutrition Timing Suggestions** — Pre/post workout nutrition windows tied to cycle phase (timing guidance, not full meal plans)
+- [ ] **Live Workout Coaching** — Real-time AI suggestions between sets based on current session performance (RPE tracking, auto-adjusting next set weight)
+
+## Future: Ultra Tier (2027)
+
+- [ ] **AI Form Check** — User uploads video of a lift, AI analyzes form and provides cues
 
 ## Pricing Updates
 
-- [ ] **App Store Connect** — Update subscription prices to $6.99/$54.99 (Plus) and $12.99/$99.99 (Premium). StoreKit config already updated for local testing.
+- [ ] **App Store Connect** — Update subscription prices to $4.99/$9.99 (monthly). Recalculate annual pricing with ~34-36% savings.
