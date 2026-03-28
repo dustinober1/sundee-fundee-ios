@@ -31,36 +31,55 @@ struct CreateProgramView: View {
     // MARK: - Template Picker
 
     private var templatePicker: some View {
-        VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
-            Text("Choose a starting template")
-                .font(AppTheme.Fonts.body)
-                .foregroundStyle(AppTheme.Colors.navy.opacity(0.6))
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.lg) {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
+                Text("BASIC")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(AppTheme.Colors.navy.opacity(0.5))
+                    .tracking(1)
 
-            ForEach(ProgramTemplate.allCases, id: \.self) { template in
-                Button {
-                    viewModel.selectTemplate(template)
-                } label: {
-                    HStack(spacing: AppTheme.Spacing.md) {
-                        Image(systemName: template.icon)
-                            .font(.title2)
-                            .frame(width: 32)
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(template.displayName)
-                                .font(AppTheme.Fonts.subheading)
-                            Text(template.descriptionText + " · " + template.subtitle)
-                                .font(AppTheme.Fonts.caption)
-                                .foregroundStyle(AppTheme.Colors.navy.opacity(0.6))
-                        }
-                        Spacer()
-                    }
-                    .padding(AppTheme.Spacing.md)
-                    .background(AppTheme.Colors.cardBackground)
-                    .foregroundStyle(AppTheme.Colors.navy)
-                    .cornerRadius(AppTheme.CornerRadius.card)
+                ForEach(ProgramTemplate.allCases.filter { !$0.isPeriodization }, id: \.self) { template in
+                    templateButton(template)
                 }
-                .buttonStyle(.plain)
+            }
+
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
+                Text("PERIODIZATION")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(AppTheme.Colors.navy.opacity(0.5))
+                    .tracking(1)
+
+                ForEach(ProgramTemplate.allCases.filter(\.isPeriodization), id: \.self) { template in
+                    templateButton(template)
+                        .requiresSubscription(.periodizationTemplates)
+                }
             }
         }
+    }
+
+    private func templateButton(_ template: ProgramTemplate) -> some View {
+        Button {
+            viewModel.selectTemplate(template)
+        } label: {
+            HStack(spacing: AppTheme.Spacing.md) {
+                Image(systemName: template.icon)
+                    .font(.title2)
+                    .frame(width: 32)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(template.displayName)
+                        .font(AppTheme.Fonts.subheading)
+                    Text(template.descriptionText + " · " + template.subtitle)
+                        .font(AppTheme.Fonts.caption)
+                        .foregroundStyle(AppTheme.Colors.navy.opacity(0.6))
+                }
+                Spacer()
+            }
+            .padding(AppTheme.Spacing.md)
+            .background(AppTheme.Colors.cardBackground)
+            .foregroundStyle(AppTheme.Colors.navy)
+            .cornerRadius(AppTheme.CornerRadius.card)
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: - Customize Section
