@@ -338,8 +338,8 @@ struct ManageSubscriptionViewStaticTests {
 
     @Test func tierDescriptions() {
         #expect(ManageSubscriptionView.tierDescription(.free) == "Unlimited on-device AI workouts")
-        #expect(ManageSubscriptionView.tierDescription(.plus) == "Haiku-powered cloud AI and programming tools")
-        #expect(ManageSubscriptionView.tierDescription(.premium) == "Sonnet-powered personal AI coach")
+        #expect(ManageSubscriptionView.tierDescription(.plus) == "Sundee AI-powered cloud workouts and programming tools")
+        #expect(ManageSubscriptionView.tierDescription(.premium) == "Sundee AI Pro personal coach")
     }
 }
 
