@@ -838,3 +838,87 @@ struct CustomProgramRecordTests {
     }
 }
 
+// MARK: - ProgramTemplateGenerator Tests
+
+@Suite("ProgramTemplateGenerator")
+struct ProgramTemplateGeneratorTests {
+
+    @Test func strengthTemplateDefaults() {
+        let program = ProgramTemplateGenerator.generate(
+            template: .strength, name: "My Strength", durationWeeks: 4, sessionsPerWeek: 3
+        )
+        #expect(program.name == "My Strength")
+        #expect(program.category == "custom")
+        #expect(program.durationWeeks == 4)
+        #expect(program.sessionsPerWeek == 3)
+        #expect(program.weeks.count == 4)
+        for week in program.weeks {
+            #expect(week.sessions.count == 3)
+            for session in week.sessions {
+                #expect(!session.exercises.isEmpty)
+            }
+        }
+    }
+
+    @Test func hypertrophyTemplateDefaults() {
+        let program = ProgramTemplateGenerator.generate(
+            template: .hypertrophy, name: "Hyper", durationWeeks: 6, sessionsPerWeek: 4
+        )
+        #expect(program.durationWeeks == 6)
+        #expect(program.sessionsPerWeek == 4)
+        #expect(program.weeks.count == 6)
+        for week in program.weeks {
+            #expect(week.sessions.count == 4)
+        }
+    }
+
+    @Test func fullBodyTemplateDefaults() {
+        let program = ProgramTemplateGenerator.generate(
+            template: .fullBody, name: "FB", durationWeeks: 4, sessionsPerWeek: 3
+        )
+        #expect(program.weeks.count == 4)
+        for week in program.weeks {
+            #expect(week.sessions.count == 3)
+        }
+    }
+
+    @Test func progressiveOverloadIncreasesPercent1RM() {
+        let program = ProgramTemplateGenerator.generate(
+            template: .strength, name: "Test", durationWeeks: 4, sessionsPerWeek: 3
+        )
+        let week1FirstExercise = program.weeks[0].sessions[0].exercises[0]
+        let week4FirstExercise = program.weeks[3].sessions[0].exercises[0]
+        let w1Pct = week1FirstExercise.percent1RM ?? 0
+        let w4Pct = week4FirstExercise.percent1RM ?? 0
+        #expect(w4Pct > w1Pct, "Week 4 should have higher %1RM than week 1")
+    }
+
+    @Test func customDurationAndFrequency() {
+        let program = ProgramTemplateGenerator.generate(
+            template: .strength, name: "Custom", durationWeeks: 8, sessionsPerWeek: 5
+        )
+        #expect(program.weeks.count == 8)
+        for week in program.weeks {
+            #expect(week.sessions.count == 5)
+        }
+    }
+
+    @Test func allTemplatesProduceValidIDs() {
+        for template in ProgramTemplate.allCases {
+            let program = ProgramTemplateGenerator.generate(
+                template: template, name: "Test", durationWeeks: 4, sessionsPerWeek: 3
+            )
+            #expect(!program.id.isEmpty)
+        }
+    }
+
+    @Test func templateDisplayInfo() {
+        #expect(ProgramTemplate.strength.displayName == "Strength")
+        #expect(ProgramTemplate.hypertrophy.displayName == "Hypertrophy")
+        #expect(ProgramTemplate.fullBody.displayName == "Full Body")
+        #expect(!ProgramTemplate.strength.icon.isEmpty)
+        #expect(!ProgramTemplate.strength.subtitle.isEmpty)
+        #expect(!ProgramTemplate.strength.descriptionText.isEmpty)
+    }
+}
+
