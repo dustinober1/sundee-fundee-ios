@@ -644,9 +644,6 @@ struct WODCard: View {
     let oneRepMaxes: [String: Double]
     let barbellWeightKg: Double
     let weightUnit: WeightUnit
-    @Environment(AppState.self) private var appState
-    @State private var showPaywall = false
-
     var body: some View {
         VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
             HStack {
@@ -673,32 +670,17 @@ struct WODCard: View {
                 .font(AppTheme.Fonts.caption)
                 .foregroundStyle(AppTheme.Colors.navy.opacity(0.5))
 
-            if FeatureEntitlement.canAccess(feature: .wodExecution, tier: appState.subscriptionTier) {
-                NavigationLink(value: StartWODDestination(wod: wod)) {
-                    Label("Start WOD", systemImage: "play.fill")
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(PrimaryButtonStyle())
-                .accessibilityIdentifier("start-wod-button")
-            } else {
-                Button { showPaywall = true } label: {
-                    HStack {
-                        Label("Start WOD", systemImage: "play.fill")
-                        PremiumBadge(tier: .plus)
-                    }
+            NavigationLink(value: StartWODDestination(wod: wod)) {
+                Label("Start WOD", systemImage: "play.fill")
                     .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(SecondaryButtonStyle())
-                .accessibilityIdentifier("start-wod-button")
             }
+            .buttonStyle(PrimaryButtonStyle())
+            .accessibilityIdentifier("start-wod-button")
         }
         .padding(AppTheme.Spacing.md)
         .background(AppTheme.Colors.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: AppTheme.CornerRadius.card))
         .shadow(color: .black.opacity(0.08), radius: 6, x: 0, y: 3)
-        .sheet(isPresented: $showPaywall) {
-            PaywallView(triggeredBy: .wodExecution)
-        }
     }
 }
 

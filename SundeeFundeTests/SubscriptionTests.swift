@@ -74,8 +74,6 @@ struct SubscriptionTierTests {
 @Suite("FeatureEntitlement")
 struct FeatureEntitlementTests {
 
-    // MARK: Tracking Limits
-
     @Test func maxTrackedLifts() {
         #expect(FeatureEntitlement.maxTrackedLifts(for: .free) == 5)
         #expect(FeatureEntitlement.maxTrackedLifts(for: .plus) == nil)
@@ -94,24 +92,31 @@ struct FeatureEntitlementTests {
         #expect(FeatureEntitlement.workoutHistoryDaysLimit(for: .premium) == nil)
     }
 
-    // MARK: Feature Access
-
     @Test func plusFeaturesRequirePlus() {
-        let plusFeatures: [GatedFeature] = [.customBenchmarks, .painTrends, .effortTrends, .wodExecution, .unlimitedLifts, .unlimitedInjuries, .unlimitedHistory]
+        let plusFeatures: [GatedFeature] = [
+            .customBenchmarks, .painTrends, .effortTrends,
+            .unlimitedLifts, .unlimitedInjuries, .unlimitedHistory,
+            .programBuilder, .periodizationTemplates, .autoDeload,
+            .advancedAnalytics, .streaksAchievements,
+        ]
         for feature in plusFeatures {
-            #expect(FeatureEntitlement.canAccess(feature: feature, tier: .free) == false)
-            #expect(FeatureEntitlement.canAccess(feature: feature, tier: .plus) == true)
-            #expect(FeatureEntitlement.canAccess(feature: feature, tier: .premium) == true)
+            #expect(FeatureEntitlement.canAccess(feature: feature, tier: .free) == false, "Free should NOT access \(feature)")
+            #expect(FeatureEntitlement.canAccess(feature: feature, tier: .plus) == true, "Plus SHOULD access \(feature)")
+            #expect(FeatureEntitlement.canAccess(feature: feature, tier: .premium) == true, "Premium SHOULD access \(feature)")
             #expect(FeatureEntitlement.minimumTierRequired(for: feature) == .plus)
         }
     }
 
     @Test func premiumFeaturesRequirePremium() {
-        let premiumFeatures: [GatedFeature] = [.rehabSessions, .aiWorkoutHistory, .exportData]
+        let premiumFeatures: [GatedFeature] = [
+            .rehabSessions, .aiWorkoutHistory, .exportData,
+            .aiCoachMemory, .mesocyclePlans, .progressiveOverload,
+            .plateauDetection, .weeklyReports, .smartSubstitutions,
+        ]
         for feature in premiumFeatures {
-            #expect(FeatureEntitlement.canAccess(feature: feature, tier: .free) == false)
-            #expect(FeatureEntitlement.canAccess(feature: feature, tier: .plus) == false)
-            #expect(FeatureEntitlement.canAccess(feature: feature, tier: .premium) == true)
+            #expect(FeatureEntitlement.canAccess(feature: feature, tier: .free) == false, "Free should NOT access \(feature)")
+            #expect(FeatureEntitlement.canAccess(feature: feature, tier: .plus) == false, "Plus should NOT access \(feature)")
+            #expect(FeatureEntitlement.canAccess(feature: feature, tier: .premium) == true, "Premium SHOULD access \(feature)")
             #expect(FeatureEntitlement.minimumTierRequired(for: feature) == .premium)
         }
     }
@@ -121,6 +126,10 @@ struct FeatureEntitlementTests {
             #expect(!feature.displayName.isEmpty)
             #expect(!feature.featureDescription.isEmpty)
         }
+    }
+
+    @Test func gatedFeatureCaseCount() {
+        #expect(GatedFeature.allCases.count == 20)
     }
 }
 
@@ -268,14 +277,23 @@ struct FeatureGateModifierStaticTests {
     }
 
     @Test func plusFeaturesUnlockedForPlus() {
-        let plusFeatures: [GatedFeature] = [.customBenchmarks, .painTrends, .effortTrends, .wodExecution, .unlimitedLifts, .unlimitedInjuries, .unlimitedHistory]
+        let plusFeatures: [GatedFeature] = [
+            .customBenchmarks, .painTrends, .effortTrends,
+            .unlimitedLifts, .unlimitedInjuries, .unlimitedHistory,
+            .programBuilder, .periodizationTemplates, .autoDeload,
+            .advancedAnalytics, .streaksAchievements,
+        ]
         for feature in plusFeatures {
             #expect(FeatureGateModifier.isLocked(feature: feature, tier: .plus) == false)
         }
     }
 
     @Test func premiumFeaturesLockedForPlus() {
-        let premiumFeatures: [GatedFeature] = [.rehabSessions, .aiWorkoutHistory, .exportData]
+        let premiumFeatures: [GatedFeature] = [
+            .rehabSessions, .aiWorkoutHistory, .exportData,
+            .aiCoachMemory, .mesocyclePlans, .progressiveOverload,
+            .plateauDetection, .weeklyReports, .smartSubstitutions,
+        ]
         for feature in premiumFeatures {
             #expect(FeatureGateModifier.isLocked(feature: feature, tier: .plus) == true)
         }

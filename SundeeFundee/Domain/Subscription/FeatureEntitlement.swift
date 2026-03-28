@@ -2,44 +2,77 @@ import Foundation
 
 /// Features that can be gated behind a subscription tier.
 enum GatedFeature: String, CaseIterable, Sendable {
+    // Plus features
     case customBenchmarks
     case painTrends
     case effortTrends
-    case wodExecution
     case unlimitedLifts
     case unlimitedInjuries
     case unlimitedHistory
+    case programBuilder
+    case periodizationTemplates
+    case autoDeload
+    case advancedAnalytics
+    case streaksAchievements
+
+    // Premium features
     case rehabSessions
     case aiWorkoutHistory
     case exportData
+    case aiCoachMemory
+    case mesocyclePlans
+    case progressiveOverload
+    case plateauDetection
+    case weeklyReports
+    case smartSubstitutions
 
     var displayName: String {
         switch self {
-        case .customBenchmarks:  return "Custom Benchmarks"
-        case .painTrends:        return "Recovery Trend Insights"
-        case .effortTrends:      return "Workout Intelligence Trends"
-        case .wodExecution:      return "WOD Execution"
-        case .unlimitedLifts:    return "Unlimited Lift Tracking"
-        case .unlimitedInjuries: return "Unlimited Injury Profiles"
-        case .unlimitedHistory:  return "Unlimited Workout History"
-        case .rehabSessions:     return "Personalized Recovery Coaching"
-        case .aiWorkoutHistory:  return "Coach Memory & Saved AI Workouts"
-        case .exportData:        return "Progress Exports"
+        case .customBenchmarks:       return "Custom Benchmarks"
+        case .painTrends:             return "Recovery Trend Insights"
+        case .effortTrends:           return "Workout Intelligence Trends"
+        case .unlimitedLifts:         return "Unlimited Lift Tracking"
+        case .unlimitedInjuries:      return "Unlimited Injury Profiles"
+        case .unlimitedHistory:       return "Unlimited Workout History"
+        case .programBuilder:         return "Custom Program Builder"
+        case .periodizationTemplates: return "Periodization Templates"
+        case .autoDeload:             return "Auto-Deload Scheduling"
+        case .advancedAnalytics:      return "Advanced Analytics Dashboard"
+        case .streaksAchievements:    return "Streaks & Achievements"
+        case .rehabSessions:          return "Personalized Recovery Coaching"
+        case .aiWorkoutHistory:       return "Coach Memory & Saved AI Workouts"
+        case .exportData:             return "Progress Exports"
+        case .aiCoachMemory:          return "Persistent AI Coach Memory"
+        case .mesocyclePlans:         return "AI Mesocycle Plans"
+        case .progressiveOverload:    return "Progressive Overload Tracking"
+        case .plateauDetection:       return "Plateau Detection & Recommendations"
+        case .weeklyReports:          return "Weekly AI Training Reports"
+        case .smartSubstitutions:     return "Smart Exercise Substitutions"
         }
     }
 
     var featureDescription: String {
         switch self {
-        case .customBenchmarks:  return "Create and track your own custom benchmark workouts."
-        case .painTrends:        return "Unlock smarter recovery trend insights and pattern detection."
-        case .effortTrends:      return "See advanced workout intelligence across your recent sessions."
-        case .wodExecution:      return "Execute and log the daily Workout of the Day."
-        case .unlimitedLifts:    return "Track unlimited lifts and one-rep maxes."
-        case .unlimitedInjuries: return "Manage multiple active injury profiles simultaneously."
-        case .unlimitedHistory:  return "Access your complete workout history without time limits."
-        case .rehabSessions:     return "Get premium recovery coaching tailored to your current needs."
-        case .aiWorkoutHistory:  return "Save workouts with coach memory for more personalized follow-ups."
-        case .exportData:        return "Export progress data and coaching-ready summaries."
+        case .customBenchmarks:       return "Create and track your own custom benchmark workouts."
+        case .painTrends:             return "Unlock smarter recovery trend insights and pattern detection."
+        case .effortTrends:           return "See advanced workout intelligence across your recent sessions."
+        case .unlimitedLifts:         return "Track unlimited lifts and one-rep maxes."
+        case .unlimitedInjuries:      return "Manage multiple active injury profiles simultaneously."
+        case .unlimitedHistory:       return "Access your complete workout history without time limits."
+        case .programBuilder:         return "Create your own multi-week training programs."
+        case .periodizationTemplates: return "Use pre-built linear, undulating, and block periodization structures."
+        case .autoDeload:             return "AI suggests deload weeks based on training volume and fatigue."
+        case .advancedAnalytics:      return "Volume trends, intensity tracking, and muscle group balance."
+        case .streaksAchievements:    return "Track consistency streaks and earn milestone badges."
+        case .rehabSessions:          return "Get premium recovery coaching tailored to your current needs."
+        case .aiWorkoutHistory:       return "Save workouts with coach memory for more personalized follow-ups."
+        case .exportData:             return "Export progress data and coaching-ready summaries."
+        case .aiCoachMemory:          return "Your AI coach remembers your training history and preferences."
+        case .mesocyclePlans:         return "Multi-week periodized plans tailored to your cycle phase and goals."
+        case .progressiveOverload:    return "Automatic load progression suggestions based on your performance."
+        case .plateauDetection:       return "AI identifies stalls and suggests programming changes."
+        case .weeklyReports:          return "Weekly summary of volume, intensity, recovery, and recommendations."
+        case .smartSubstitutions:     return "Context-aware exercise swaps based on equipment, injuries, and fatigue."
         }
     }
 }
@@ -49,7 +82,6 @@ enum FeatureEntitlement {
 
     // MARK: - Tracking Limits
 
-    /// Maximum tracked lifts. Returns nil for unlimited.
     static func maxTrackedLifts(for tier: SubscriptionTier) -> Int? {
         switch tier {
         case .free:    return 5
@@ -58,7 +90,6 @@ enum FeatureEntitlement {
         }
     }
 
-    /// Maximum active injury profiles. Returns nil for unlimited.
     static func maxActiveInjuries(for tier: SubscriptionTier) -> Int? {
         switch tier {
         case .free:    return 1
@@ -67,7 +98,6 @@ enum FeatureEntitlement {
         }
     }
 
-    /// Workout history day limit. Returns nil for unlimited.
     static func workoutHistoryDaysLimit(for tier: SubscriptionTier) -> Int? {
         switch tier {
         case .free:    return 30
@@ -84,10 +114,14 @@ enum FeatureEntitlement {
 
     static func minimumTierRequired(for feature: GatedFeature) -> SubscriptionTier {
         switch feature {
-        case .customBenchmarks, .painTrends, .effortTrends, .wodExecution,
-             .unlimitedLifts, .unlimitedInjuries, .unlimitedHistory:
+        case .customBenchmarks, .painTrends, .effortTrends,
+             .unlimitedLifts, .unlimitedInjuries, .unlimitedHistory,
+             .programBuilder, .periodizationTemplates, .autoDeload,
+             .advancedAnalytics, .streaksAchievements:
             return .plus
-        case .rehabSessions, .aiWorkoutHistory, .exportData:
+        case .rehabSessions, .aiWorkoutHistory, .exportData,
+             .aiCoachMemory, .mesocyclePlans, .progressiveOverload,
+             .plateauDetection, .weeklyReports, .smartSubstitutions:
             return .premium
         }
     }
