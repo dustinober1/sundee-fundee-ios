@@ -19,6 +19,7 @@ final class SubscriptionManager {
     var currentTier: SubscriptionTier = .free
     var availableProducts: [Product] = []
     var purchaseInProgress = false
+    var isLoading = false
     var errorMessage: String?
 
     private var transactionListener: Task<Void, Never>?
@@ -37,9 +38,11 @@ final class SubscriptionManager {
     }
 
     func start() async {
+        isLoading = true
         await loadProducts()
         await refreshSubscriptionStatus()
         listenForTransactions()
+        isLoading = false
     }
 
     func purchase(_ product: Product) async {
@@ -111,14 +114,24 @@ final class SubscriptionManager {
         do {
             let products = try await productLoader.loadProducts(for: SubscriptionTier.allProductIDs)
             availableProducts = Self.sortedProducts(products)
+            if products.isEmpty {
+                errorMessage = "Unable to load subscription products. Please try again later."
+            }
         } catch {
             errorMessage = error.localizedDescription
         }
     }
 
     private func refreshSubscriptionStatus() async {
+        let previousTier = currentTier
         let activeIDs = await transactionVerifier.currentEntitlements()
         currentTier = Self.highestTier(from: activeIDs)
+        if currentTier != previousTier {
+            AnalyticsService.shared.track(.subscriptionChanged, properties: [
+                "from": previousTier.rawValue,
+                "to": currentTier.rawValue,
+            ])
+        }
     }
 
     private func listenForTransactions() {

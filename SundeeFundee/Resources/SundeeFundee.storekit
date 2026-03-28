@@ -104,7 +104,13 @@
           "familyShareable" : false,
           "groupNumber" : 1,
           "internalID" : "A1B2C3D4-0001-0001-0001-000000000002",
-          "introductoryOffer" : null,
+          "introductoryOffer" : {
+            "internalID" : "A1B2C3D4-TRIAL-0001-0001-000000000001",
+            "paymentMode" : "free",
+            "subscriptionPeriod" : "P1W",
+            "numberOfPeriods" : 1,
+            "displayPrice" : "0.00"
+          },
           "localizations" : [
             {
               "description" : "Enhanced training intelligence with pain trends, effort insights, and more AI workouts.",

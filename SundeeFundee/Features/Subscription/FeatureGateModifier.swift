@@ -24,7 +24,10 @@ struct FeatureGateModifier: ViewModifier {
                             }
                         }
                 }
-                .onTapGesture { showPaywall = true }
+                .onTapGesture {
+                    AnalyticsService.shared.track(.featureGateTapped, properties: ["feature": feature.rawValue])
+                    showPaywall = true
+                }
                 .sheet(isPresented: $showPaywall) {
                     PaywallView(triggeredBy: feature)
                 }

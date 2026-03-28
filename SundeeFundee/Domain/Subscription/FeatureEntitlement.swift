@@ -84,9 +84,7 @@ enum FeatureEntitlement {
 
     static func minimumTierRequired(for feature: GatedFeature) -> SubscriptionTier {
         switch feature {
-        case .wodExecution:
-            return .free
-        case .customBenchmarks, .painTrends, .effortTrends,
+        case .customBenchmarks, .painTrends, .effortTrends, .wodExecution,
              .unlimitedLifts, .unlimitedInjuries, .unlimitedHistory:
             return .plus
         case .rehabSessions, .aiWorkoutHistory, .exportData:

@@ -8,6 +8,7 @@ struct PaywallView: View {
     @Environment(\.dismiss) private var dismiss
 
     let triggeredBy: GatedFeature?
+    let contextMessage: String?
 
     @State private var billingPeriod: BillingPeriod = .monthly
     @State private var selectedTier: SubscriptionTier = .plus
@@ -19,8 +20,9 @@ struct PaywallView: View {
         case annual = "Annual"
     }
 
-    init(triggeredBy: GatedFeature? = nil) {
+    init(triggeredBy: GatedFeature? = nil, contextMessage: String? = nil) {
         self.triggeredBy = triggeredBy
+        self.contextMessage = contextMessage
     }
 
     var body: some View {
@@ -38,8 +40,17 @@ struct PaywallView: View {
                 .padding(AppTheme.Spacing.md)
             }
         }
+        .onAppear {
+            AnalyticsService.shared.track(.paywallImpression, properties: [
+                "triggered_by": triggeredBy?.rawValue ?? "manual",
+                "current_tier": appState.subscriptionTier.rawValue,
+            ])
+        }
         .overlay(alignment: .topTrailing) {
-            Button { dismiss() } label: {
+            Button {
+                AnalyticsService.shared.track(.paywallDismissed)
+                dismiss()
+            } label: {
                 Image(systemName: "xmark.circle.fill")
                     .font(.title2)
                     .foregroundStyle(AppTheme.Colors.navy.opacity(0.4))
@@ -65,6 +76,13 @@ struct PaywallView: View {
                 .font(AppTheme.Fonts.body)
                 .foregroundStyle(AppTheme.Colors.navy.opacity(0.6))
                 .multilineTextAlignment(.center)
+
+            if let subtitle = Self.contextSubtitle(message: contextMessage) {
+                Text(subtitle)
+                    .font(AppTheme.Fonts.caption)
+                    .foregroundStyle(AppTheme.Colors.accentOrange)
+                    .multilineTextAlignment(.center)
+            }
         }
         .padding(.top, AppTheme.Spacing.xl)
     }
@@ -187,11 +205,16 @@ struct PaywallView: View {
     private var subscribeButton: some View {
         Button {
             guard let product = productFor(tier: selectedTier) else { return }
+            AnalyticsService.shared.track(.purchaseStarted, properties: [
+                "tier": selectedTier.rawValue,
+                "period": billingPeriod.rawValue,
+            ])
             Task {
                 isPurchasing = true
                 await subscriptionManager.purchase(product)
                 isPurchasing = false
                 if subscriptionManager.currentTier != .free {
+                    AnalyticsService.shared.track(.purchaseCompleted, properties: ["tier": subscriptionManager.currentTier.rawValue])
                     dismiss()
                 }
             }
@@ -201,7 +224,7 @@ struct PaywallView: View {
                     .tint(AppTheme.Colors.cream)
                     .frame(maxWidth: .infinity)
             } else {
-                Text(Self.ctaText(for: selectedTier))
+                Text(Self.ctaText(for: selectedTier, product: productFor(tier: selectedTier)))
                     .frame(maxWidth: .infinity)
             }
         }
@@ -213,7 +236,11 @@ struct PaywallView: View {
     private var restoreLink: some View {
         VStack(spacing: AppTheme.Spacing.xs) {
             Button("Restore Purchases") {
-                Task { await subscriptionManager.restorePurchases() }
+                AnalyticsService.shared.track(.restoreStarted)
+                Task {
+                    await subscriptionManager.restorePurchases()
+                    AnalyticsService.shared.track(.restoreCompleted, properties: ["tier": subscriptionManager.currentTier.rawValue])
+                }
             }
             .font(AppTheme.Fonts.caption)
             .foregroundStyle(AppTheme.Colors.navy.opacity(0.5))
@@ -271,8 +298,16 @@ struct PaywallView: View {
         return "Get more from every workout with Sundee Plus or Premium."
     }
 
-    static func ctaText(for tier: SubscriptionTier) -> String {
-        "Subscribe to \(tier.displayName)"
+    static func ctaText(for tier: SubscriptionTier, product: Product? = nil) -> String {
+        if let product, let trialText = PaywallViewModel.trialDurationText(product) {
+            return "Start \(trialText) free trial"
+        }
+        return "Subscribe to \(tier.displayName)"
+    }
+
+    static func contextSubtitle(message: String?) -> String? {
+        guard let message, !message.isEmpty else { return nil }
+        return message
     }
 
     static func periodLabel(for period: BillingPeriod) -> String {
@@ -295,20 +330,20 @@ struct PaywallView: View {
             return []
         case .plus:
             return [
+                "Smarter workout intelligence",
+                "Recovery trend insights",
+                "Full lift & history tracking",
+                "Advanced benchmarks",
+                "Daily WOD execution",
                 "15 AI workouts/month",
-                "Pain trend analysis",
-                "Effort trends",
-                "WOD execution",
-                "Unlimited tracking",
-                "Custom benchmarks",
             ]
         case .premium:
             return [
-                "Unlimited AI workouts",
                 "Everything in Plus",
-                "Rehab sessions",
-                "AI workout history",
-                "Export data",
+                "Unlimited AI workouts",
+                "Personal rehab coaching",
+                "AI coach memory",
+                "Progress data exports",
             ]
         }
     }

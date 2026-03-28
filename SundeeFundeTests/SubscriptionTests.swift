@@ -341,3 +341,240 @@ struct MaxLiftsViewSubscriptionTests {
     }
 }
 
+// MARK: - AIWorkoutLimits Tests
+
+@Suite("AIWorkoutLimits")
+struct AIWorkoutLimitsTests {
+
+    @Test func monthlyLimitForAllTiers() {
+        #expect(AIWorkoutLimits.monthlyLimit(for: .free) == 3)
+        #expect(AIWorkoutLimits.monthlyLimit(for: .plus) == 15)
+        #expect(AIWorkoutLimits.monthlyLimit(for: .premium) == nil)
+    }
+
+    @Test func canGenerateUnderLimit() {
+        #expect(AIWorkoutLimits.canGenerate(tier: .free, generatedThisMonth: 0) == true)
+        #expect(AIWorkoutLimits.canGenerate(tier: .free, generatedThisMonth: 2) == true)
+    }
+
+    @Test func canGenerateAtLimit() {
+        #expect(AIWorkoutLimits.canGenerate(tier: .free, generatedThisMonth: 3) == false)
+        #expect(AIWorkoutLimits.canGenerate(tier: .plus, generatedThisMonth: 15) == false)
+    }
+
+    @Test func canGenerateUnlimited() {
+        #expect(AIWorkoutLimits.canGenerate(tier: .premium, generatedThisMonth: 1000) == true)
+    }
+
+    @Test func remainingGenerationsForFree() {
+        #expect(AIWorkoutLimits.remainingGenerations(tier: .free, generatedThisMonth: 0) == 3)
+        #expect(AIWorkoutLimits.remainingGenerations(tier: .free, generatedThisMonth: 2) == 1)
+        #expect(AIWorkoutLimits.remainingGenerations(tier: .free, generatedThisMonth: 5) == 0)
+    }
+
+    @Test func remainingGenerationsForPlus() {
+        #expect(AIWorkoutLimits.remainingGenerations(tier: .plus, generatedThisMonth: 10) == 5)
+    }
+
+    @Test func remainingGenerationsUnlimited() {
+        #expect(AIWorkoutLimits.remainingGenerations(tier: .premium, generatedThisMonth: 100) == nil)
+    }
+
+    @Test func remainingTextForFree() {
+        let text = AIWorkoutLimits.remainingText(tier: .free, generatedThisMonth: 1)
+        #expect(text == "2 of 3 AI workouts left this month")
+    }
+
+    @Test func remainingTextNilForPremium() {
+        #expect(AIWorkoutLimits.remainingText(tier: .premium, generatedThisMonth: 100) == nil)
+    }
+}
+
+// MARK: - DowngradePolicy Tests
+
+@Suite("DowngradePolicy")
+struct DowngradePolicyTests {
+
+    @Test func canViewExistingDataAlwaysTrue() {
+        for feature in GatedFeature.allCases {
+            for tier in SubscriptionTier.allCases {
+                #expect(DowngradePolicy.canViewExistingData(feature: feature, currentTier: tier) == true)
+            }
+        }
+    }
+
+    @Test func canCreateNewRespectsEntitlements() {
+        #expect(DowngradePolicy.canCreateNew(feature: .customBenchmarks, currentTier: .free) == false)
+        #expect(DowngradePolicy.canCreateNew(feature: .customBenchmarks, currentTier: .plus) == true)
+        #expect(DowngradePolicy.canCreateNew(feature: .rehabSessions, currentTier: .plus) == false)
+        #expect(DowngradePolicy.canCreateNew(feature: .rehabSessions, currentTier: .premium) == true)
+    }
+
+    @Test func canDeleteOwnDataAlwaysTrue() {
+        for tier in SubscriptionTier.allCases {
+            #expect(DowngradePolicy.canDeleteOwnData(currentTier: tier) == true)
+        }
+    }
+}
+
+// MARK: - AnalyticsEvent Tests
+
+@Suite("AnalyticsEvent")
+struct AnalyticsEventTests {
+
+    @Test func allEventsHaveStableRawValues() {
+        #expect(AnalyticsEvent.paywallImpression.rawValue == "paywall_impression")
+        #expect(AnalyticsEvent.paywallDismissed.rawValue == "paywall_dismissed")
+        #expect(AnalyticsEvent.purchaseStarted.rawValue == "purchase_started")
+        #expect(AnalyticsEvent.purchaseCompleted.rawValue == "purchase_completed")
+        #expect(AnalyticsEvent.purchaseCancelled.rawValue == "purchase_cancelled")
+        #expect(AnalyticsEvent.purchaseFailed.rawValue == "purchase_failed")
+        #expect(AnalyticsEvent.restoreStarted.rawValue == "restore_started")
+        #expect(AnalyticsEvent.restoreCompleted.rawValue == "restore_completed")
+        #expect(AnalyticsEvent.featureGateTapped.rawValue == "feature_gate_tapped")
+        #expect(AnalyticsEvent.limitReached.rawValue == "limit_reached")
+        #expect(AnalyticsEvent.subscriptionChanged.rawValue == "subscription_changed")
+        #expect(AnalyticsEvent.trialStarted.rawValue == "trial_started")
+    }
+
+    @Test func eventNameReturnsRawValue() {
+        #expect(AnalyticsEvent.eventName(for: .paywallImpression) == "paywall_impression")
+        #expect(AnalyticsEvent.eventName(for: .subscriptionChanged) == "subscription_changed")
+    }
+
+    @Test func allCasesCountIsStable() {
+        #expect(AnalyticsEvent.allCases.count == 12)
+    }
+}
+
+// MARK: - AnalyticsService Tests
+
+@Suite("AnalyticsService")
+struct AnalyticsServiceTests {
+
+    @Test func formatPropertiesEmpty() {
+        #expect(AnalyticsService.formatProperties([:]) == "")
+    }
+
+    @Test func formatPropertiesWithEntries() {
+        let result = AnalyticsService.formatProperties(["tier": "plus", "feature": "lifts"])
+        #expect(result.contains("tier=plus"))
+        #expect(result.contains("feature=lifts"))
+    }
+
+    @Test @MainActor func sharedInstanceExists() {
+        let service = AnalyticsService.shared
+        // Just verify it can track without crashing
+        service.track(.paywallImpression)
+        service.track(.purchaseStarted, properties: ["tier": "plus"])
+    }
+}
+
+// MARK: - InjuryProfilesView Limit Tests
+
+@Suite("InjuryProfilesView Limits")
+struct InjuryProfilesViewLimitTests {
+
+    @Test func canAddInjuryFreeUnderLimit() {
+        #expect(InjuryProfilesView.canAddInjury(tier: .free, currentCount: 0) == true)
+    }
+
+    @Test func canAddInjuryFreeAtLimit() {
+        #expect(InjuryProfilesView.canAddInjury(tier: .free, currentCount: 1) == false)
+        #expect(InjuryProfilesView.canAddInjury(tier: .free, currentCount: 5) == false)
+    }
+
+    @Test func canAddInjuryPlusAlways() {
+        #expect(InjuryProfilesView.canAddInjury(tier: .plus, currentCount: 100) == true)
+    }
+
+    @Test func canAddInjuryPremiumAlways() {
+        #expect(InjuryProfilesView.canAddInjury(tier: .premium, currentCount: 100) == true)
+    }
+}
+
+// MARK: - DashboardView Helpers Tests
+
+@Suite("DashboardView Helpers")
+struct DashboardViewHelperTests {
+
+    @Test func historyLimitMessageForFree() {
+        #expect(DashboardView.historyLimitMessage(tier: .free) == "Showing last 30 days")
+    }
+
+    @Test func historyLimitMessageNilForPlus() {
+        #expect(DashboardView.historyLimitMessage(tier: .plus) == nil)
+    }
+
+    @Test func historyLimitMessageNilForPremium() {
+        #expect(DashboardView.historyLimitMessage(tier: .premium) == nil)
+    }
+}
+
+// MARK: - PaywallView Context Tests
+
+@Suite("PaywallView Context")
+struct PaywallViewContextTests {
+
+    @Test func contextSubtitleReturnsMessage() {
+        #expect(PaywallView.contextSubtitle(message: "You've tracked 5 lifts") == "You've tracked 5 lifts")
+    }
+
+    @Test func contextSubtitleNilForNil() {
+        #expect(PaywallView.contextSubtitle(message: nil) == nil)
+    }
+
+    @Test func contextSubtitleNilForEmpty() {
+        #expect(PaywallView.contextSubtitle(message: "") == nil)
+    }
+}
+
+// MARK: - AIWorkoutCTACard Tests
+
+@Suite("AIWorkoutCTACard")
+struct AIWorkoutCTACardTests {
+
+    @Test func shouldShowPaywallAtLimit() {
+        #expect(AIWorkoutCTACard.shouldShowPaywall(tier: .free, generatedThisMonth: 3) == true)
+        #expect(AIWorkoutCTACard.shouldShowPaywall(tier: .free, generatedThisMonth: 2) == false)
+    }
+
+    @Test func shouldShowPaywallPremiumNever() {
+        #expect(AIWorkoutCTACard.shouldShowPaywall(tier: .premium, generatedThisMonth: 1000) == false)
+    }
+}
+
+// MARK: - SubscriptionTier Updated Copy Tests
+
+@Suite("SubscriptionTier Copy")
+struct SubscriptionTierCopyTests {
+
+    @Test func subscriptionDescriptionCopy() {
+        #expect(SubscriptionTier.free.subscriptionDescription == "Core training tools with on-device AI.")
+        #expect(SubscriptionTier.plus.subscriptionDescription == "Smarter training intelligence and unlimited tracking.")
+        #expect(SubscriptionTier.premium.subscriptionDescription == "Your personal AI coach that learns and adapts.")
+    }
+}
+
+// MARK: - DashboardViewModel Filter Tests
+
+@Suite("DashboardViewModel Filtering")
+struct DashboardViewModelFilterTests {
+
+    @Test @MainActor func filterWorkoutsByTierFreeFiltersOld() {
+        let now = Date()
+        let recent = CompletedWorkout(id: "1", userID: "u", activeCycleID: "", programID: "", enrollmentID: "", week: 1, day: 1, sessionID: "", completedAt: now, durationSeconds: 60)
+        let old = CompletedWorkout(id: "2", userID: "u", activeCycleID: "", programID: "", enrollmentID: "", week: 1, day: 1, sessionID: "", completedAt: now.addingTimeInterval(-86_400 * 60), durationSeconds: 60)
+        let result = DashboardViewModel.filterWorkoutsByTier([recent, old], tier: .free, now: now)
+        #expect(result.count == 1)
+        #expect(result.first?.id == "1")
+    }
+
+    @Test @MainActor func filterWorkoutsByTierPlusKeepsAll() {
+        let now = Date()
+        let old = CompletedWorkout(id: "1", userID: "u", activeCycleID: "", programID: "", enrollmentID: "", week: 1, day: 1, sessionID: "", completedAt: now.addingTimeInterval(-86_400 * 60), durationSeconds: 60)
+        let result = DashboardViewModel.filterWorkoutsByTier([old], tier: .plus, now: now)
+        #expect(result.count == 1)
+    }
+}
+

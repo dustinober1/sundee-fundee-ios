@@ -52,7 +52,7 @@ struct DashboardView: View {
                     } else {
                         NoEnrollmentCard()
                     }
-                    AIWorkoutCTACard()
+                    AIWorkoutCTACard(generatedThisMonth: viewModel.aiWorkoutsGeneratedThisMonth)
                     if let wod = viewModel.todayWOD {
                         WODCard(wod: wod, oneRepMaxes: viewModel.oneRepMaxes, barbellWeightKg: viewModel.barbellWeightKg, weightUnit: viewModel.weightUnit)
                     }
@@ -152,39 +152,41 @@ struct DashboardView: View {
                 let repo = SwiftDataPainLogRepository(context: modelContext)
                 let log = PainLog(injuryProfileID: injury.id, painLevel: level, notes: notes)
                 try? repo.save(log)
-                Task { await viewModel.load(modelContext: modelContext) }
+                Task { await viewModel.load(modelContext: modelContext, tier: appState.subscriptionTier) }
             }
         }
         .onAppear {
-            Task { @MainActor in await viewModel.load(modelContext: modelContext) }
+            Task { @MainActor in await viewModel.load(modelContext: modelContext, tier: appState.subscriptionTier) }
         }
-        .refreshable(action: Self.refreshAction(viewModel: viewModel, modelContext: modelContext))
+        .refreshable(action: Self.refreshAction(viewModel: viewModel, modelContext: modelContext, tier: appState.subscriptionTier))
     }
 
     @MainActor
     private final class RefreshPerformer: @unchecked Sendable {
         let viewModel: DashboardViewModel
         let modelContext: ModelContext
+        let tier: SubscriptionTier
 
-        init(viewModel: DashboardViewModel, modelContext: ModelContext) {
+        init(viewModel: DashboardViewModel, modelContext: ModelContext, tier: SubscriptionTier) {
             self.viewModel = viewModel
             self.modelContext = modelContext
+            self.tier = tier
         }
 
         func refresh() async {
-            await viewModel.load(modelContext: modelContext)
+            await viewModel.load(modelContext: modelContext, tier: tier)
         }
     }
 
     @MainActor
-    static func refreshAction(viewModel: DashboardViewModel, modelContext: ModelContext) -> @Sendable () async -> Void {
-        let performer = RefreshPerformer(viewModel: viewModel, modelContext: modelContext)
+    static func refreshAction(viewModel: DashboardViewModel, modelContext: ModelContext, tier: SubscriptionTier = .free) -> @Sendable () async -> Void {
+        let performer = RefreshPerformer(viewModel: viewModel, modelContext: modelContext, tier: tier)
         return { await performer.refresh() }
     }
 
     @MainActor
-    static func performRefresh(viewModel: DashboardViewModel, modelContext: ModelContext) async {
-        await viewModel.load(modelContext: modelContext)
+    static func performRefresh(viewModel: DashboardViewModel, modelContext: ModelContext, tier: SubscriptionTier = .free) async {
+        await viewModel.load(modelContext: modelContext, tier: tier)
     }
 
     // MARK: - Subviews
@@ -211,6 +213,12 @@ struct DashboardView: View {
             Text("Recent Workouts")
                 .font(AppTheme.Fonts.subheading)
                 .foregroundStyle(AppTheme.Colors.navy)
+
+            if let limitMsg = Self.historyLimitMessage(tier: appState.subscriptionTier) {
+                Text(limitMsg)
+                    .font(AppTheme.Fonts.caption)
+                    .foregroundStyle(AppTheme.Colors.accentOrange.opacity(0.7))
+            }
 
             if Self.shouldShowEmptyRecentWorkouts(viewModel.recentWorkouts) {
                 Text("No workouts yet. Enroll in a program to get started.")
@@ -247,6 +255,11 @@ struct DashboardView: View {
 
     static func shouldShowEmptyRecentWorkouts(_ workouts: [CompletedWorkout]) -> Bool {
         workouts.isEmpty
+    }
+
+    static func historyLimitMessage(tier: SubscriptionTier) -> String? {
+        guard let limit = FeatureEntitlement.workoutHistoryDaysLimit(for: tier) else { return nil }
+        return "Showing last \(limit) days"
     }
 
     /// Average perceived effort across workouts that have a rating. Returns nil when none are rated.
@@ -732,6 +745,13 @@ struct StartAIWorkoutDestination: Hashable {}
 // MARK: - AIWorkoutCTACard
 
 struct AIWorkoutCTACard: View {
+    @Environment(AppState.self) private var appState
+    var generatedThisMonth: Int = 0
+    @State private var showPaywall = false
+
+    static func shouldShowPaywall(tier: SubscriptionTier, generatedThisMonth: Int) -> Bool {
+        !AIWorkoutLimits.canGenerate(tier: tier, generatedThisMonth: generatedThisMonth)
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
@@ -755,16 +775,38 @@ struct AIWorkoutCTACard: View {
                 .font(AppTheme.Fonts.caption)
                 .foregroundStyle(AppTheme.Colors.navy.opacity(0.6))
 
-            NavigationLink(value: StartAIWorkoutDestination()) {
-                Label("New AI Workout", systemImage: "sparkles")
-                    .frame(maxWidth: .infinity)
+            if let remainingText = AIWorkoutLimits.remainingText(tier: appState.subscriptionTier, generatedThisMonth: generatedThisMonth) {
+                Text(remainingText)
+                    .font(AppTheme.Fonts.caption)
+                    .foregroundStyle(AppTheme.Colors.accentOrange.opacity(0.8))
             }
-            .buttonStyle(PrimaryButtonStyle())
-            .accessibilityIdentifier("start-ai-workout-button")
+
+            if Self.shouldShowPaywall(tier: appState.subscriptionTier, generatedThisMonth: generatedThisMonth) {
+                Button {
+                    showPaywall = true
+                } label: {
+                    Label("Upgrade for More Workouts", systemImage: "crown.fill")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(PrimaryButtonStyle())
+            } else {
+                NavigationLink(value: StartAIWorkoutDestination()) {
+                    Label("New AI Workout", systemImage: "sparkles")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(PrimaryButtonStyle())
+                .accessibilityIdentifier("start-ai-workout-button")
+            }
         }
         .padding(AppTheme.Spacing.md)
         .background(AppTheme.Colors.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: AppTheme.CornerRadius.card))
         .shadow(color: .black.opacity(0.08), radius: 6, x: 0, y: 3)
+        .sheet(isPresented: $showPaywall) {
+            PaywallView(
+                triggeredBy: .aiWorkoutHistory,
+                contextMessage: "You've used all \(AIWorkoutLimits.monthlyLimit(for: appState.subscriptionTier) ?? 0) free AI workouts this month."
+            )
+        }
     }
 }

@@ -115,7 +115,10 @@ struct MaxLiftsView: View {
         .navigationDestination(for: String.self, destination: Self.exerciseDestination(viewModel: viewModel))
         .sheet(isPresented: $showAddMax, content: Self.addSheetContent(viewModel: viewModel))
         .sheet(isPresented: $showPaywall) {
-            PaywallView(triggeredBy: .unlimitedLifts)
+            PaywallView(
+                triggeredBy: .unlimitedLifts,
+                contextMessage: "You've tracked \(viewModel.exerciseNames.count) of \(FeatureEntitlement.maxTrackedLifts(for: appState.subscriptionTier) ?? 0) lifts. Upgrade to track all your lifts."
+            )
         }
         .onAppear {
             Task { @MainActor in await viewModel.load(modelContext: modelContext, userID: appState.currentUserID ?? "") }

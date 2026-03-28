@@ -360,9 +360,11 @@ final class FeatureViewsCoverageWave3Tests: XCTestCase {
 
         XCTAssertNotNil(host(
             NavigationStack { InjuryProfilesView(viewModel: SettingsViewModel()) }
+                .environment(authenticatedAppState)
         ).view)
         XCTAssertNotNil(host(
             NavigationStack { InjuryProfilesView(viewModel: populatedVM) }
+                .environment(authenticatedAppState)
         ).view)
 
         XCTAssertNotNil(host(

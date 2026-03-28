@@ -22,6 +22,7 @@ final class DashboardViewModel {
     var activeInjuriesNeedingCheckIn: [InjuryProfile] = []
     var rehabSession: ProgramSession?
     var todayWOD: WOD?
+    var aiWorkoutsGeneratedThisMonth: Int = 0
     private var isLoading = false
 
     private let programRepo: any ProgramRepository
@@ -35,7 +36,7 @@ final class DashboardViewModel {
         self.wodRepo = wodRepo
     }
 
-    func load(modelContext: ModelContext) async {
+    func load(modelContext: ModelContext, tier: SubscriptionTier = .free) async {
         guard !isLoading else { return }
         isLoading = true
         defer { isLoading = false }
@@ -54,7 +55,7 @@ final class DashboardViewModel {
             activeInjuries: activeInjuries
         )
 
-        await loadWODAndRecentWorkouts(modelContext: modelContext)
+        await loadWODAndRecentWorkouts(modelContext: modelContext, tier: tier)
     }
 
     private func loadUserConfiguration(modelContext: ModelContext) -> User? {
@@ -146,13 +147,31 @@ final class DashboardViewModel {
         }
     }
 
-    private func loadWODAndRecentWorkouts(modelContext: ModelContext) async {
+    func loadWODAndRecentWorkouts(modelContext: ModelContext, tier: SubscriptionTier = .free) async {
         let allWODs = (try? await wodRepo.fetchWODs()) ?? []
         todayWOD = Self.findTodayWOD(from: allWODs)
 
         let workoutRepo = SwiftDataWorkoutRepository(context: modelContext)
         let allWorkouts = (try? workoutRepo.fetchWorkouts()) ?? []
-        recentWorkouts = Array(allWorkouts.prefix(10))
+        let filtered = Self.filterWorkoutsByTier(allWorkouts, tier: tier)
+        recentWorkouts = Array(filtered.prefix(10))
+
+        aiWorkoutsGeneratedThisMonth = Self.countAIWorkoutsThisMonth(modelContext: modelContext)
+    }
+
+    static func countAIWorkoutsThisMonth(modelContext: ModelContext, now: Date = .now) -> Int {
+        let calendar = Calendar.current
+        let startOfMonth = calendar.date(from: calendar.dateComponents([.year, .month], from: now)) ?? now
+        let descriptor = FetchDescriptor<GeneratedWorkoutRecord>(
+            predicate: #Predicate { $0.createdAt >= startOfMonth }
+        )
+        return (try? modelContext.fetchCount(descriptor)) ?? 0
+    }
+
+    static func filterWorkoutsByTier(_ workouts: [CompletedWorkout], tier: SubscriptionTier, now: Date = .now) -> [CompletedWorkout] {
+        guard let dayLimit = FeatureEntitlement.workoutHistoryDaysLimit(for: tier) else { return workouts }
+        let cutoff = Calendar.current.date(byAdding: .day, value: -dayLimit, to: now) ?? now
+        return workouts.filter { $0.completedAt >= cutoff }
     }
 
     private static let dateFormatter: DateFormatter = {

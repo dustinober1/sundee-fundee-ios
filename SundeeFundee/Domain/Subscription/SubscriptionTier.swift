@@ -30,11 +30,11 @@ enum SubscriptionTier: String, Codable, CaseIterable, Sendable {
     var subscriptionDescription: String {
         switch self {
         case .free:
-            return "Instant, on-device AI workout help and core training tools."
+            return "Core training tools with on-device AI."
         case .plus:
-            return "Higher-quality remote AI workouts with smarter training insights."
+            return "Smarter training intelligence and unlimited tracking."
         case .premium:
-            return "Personalized coaching powered by our most capable AI experience."
+            return "Your personal AI coach that learns and adapts."
         }
     }
 

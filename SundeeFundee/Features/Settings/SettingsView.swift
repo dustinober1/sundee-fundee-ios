@@ -70,6 +70,13 @@ struct SettingsView: View {
                     }
                 }
 
+                // Subscription
+                Section("Subscription") {
+                    NavigationLink("Manage Subscription") {
+                        ManageSubscriptionView()
+                    }
+                }
+
                 // Legal
                 Section("Legal") {
                     NavigationLink("Terms of Service") {
@@ -222,13 +229,20 @@ struct EditProfileView: View {
 
 struct InjuryProfilesView: View {
     @Bindable var viewModel: SettingsViewModel
+    @Environment(AppState.self) private var appState
     @State private var showAdd: Bool
-    
+    @State private var showPaywall = false
+
     init(viewModel: SettingsViewModel, showAdd: Bool = false) {
         self.viewModel = viewModel
         _showAdd = State(initialValue: showAdd)
     }
-    
+
+    static func canAddInjury(tier: SubscriptionTier, currentCount: Int) -> Bool {
+        guard let limit = FeatureEntitlement.maxActiveInjuries(for: tier) else { return true }
+        return currentCount < limit
+    }
+
     static func presentAddSheetAction(isPresented: Binding<Bool>) -> () -> Void {
         { isPresented.wrappedValue = true }
     }
@@ -276,11 +290,30 @@ struct InjuryProfilesView: View {
         .navigationTitle("Injury Profiles")
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                Button(action: Self.presentAddSheetAction(isPresented: $showAdd)) { Image(systemName: "plus") }
+                Button {
+                    let activeCount = viewModel.injuryProfiles.filter(\.isActive).count
+                    if Self.canAddInjury(tier: appState.subscriptionTier, currentCount: activeCount) {
+                        showAdd = true
+                    } else {
+                        showPaywall = true
+                    }
+                } label: {
+                    if Self.canAddInjury(tier: appState.subscriptionTier, currentCount: viewModel.injuryProfiles.filter(\.isActive).count) {
+                        Image(systemName: "plus")
+                    } else {
+                        HStack(spacing: 4) {
+                            Image(systemName: "plus")
+                            PremiumBadge(tier: .plus)
+                        }
+                    }
+                }
             }
         }
         .navigationDestination(for: InjuryProfile.self, destination: Self.destination(viewModel: viewModel))
         .sheet(isPresented: $showAdd, content: Self.addSheetContent(viewModel: viewModel))
+        .sheet(isPresented: $showPaywall) {
+            PaywallView(triggeredBy: .unlimitedInjuries, contextMessage: "Free accounts support 1 active injury profile. Upgrade to manage multiple injuries.")
+        }
     }
 }
 
@@ -307,6 +340,7 @@ struct InjuryRow: View {
                                 .foregroundStyle(AppTheme.Colors.navy.opacity(0.6))
                         }
                     }
+                    .requiresSubscription(.painTrends)
                 }
             }
             Spacer()
