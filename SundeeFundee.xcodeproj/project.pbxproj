@@ -101,6 +101,7 @@
 		91014B19D3FD5B371E8026C5 /* CycleTrackingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF28E5F37EF015A5700134A1 /* CycleTrackingView.swift */; };
 		91C6D31DF70FC4476F57B451 /* AIWorkoutOutput.swift in Sources */ = {isa = PBXBuildFile; fileRef = 010C23D344929385055392FF /* AIWorkoutOutput.swift */; };
 		94257FA3158D6808CA6FE05B /* GeneratedWorkout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CCFB09C96387A007E8FBA66 /* GeneratedWorkout.swift */; };
+		947C083D66EC0ACF1C80F4C7 /* CustomProgramRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A24613554E5614264A60626 /* CustomProgramRecord.swift */; };
 		949139796F6B381980E7A830 /* Maxes.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6EDF76C2A7A135CEBE4365C /* Maxes.swift */; };
 		9749F04E35AC845835E41DD4 /* ProgramWorkoutViewCoverageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E6BD7FDEC48F00EAC345968 /* ProgramWorkoutViewCoverageTests.swift */; };
 		991B23990EFCD7A0276912E9 /* RemoteBenchmarkDefinitionRepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D9D063D99D494E0754CDAD3 /* RemoteBenchmarkDefinitionRepositoryTests.swift */; };
@@ -130,6 +131,7 @@
 		C1F2A077075C42F56652C9BE /* MetricsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB4DB4845EAF8A0ACA731441 /* MetricsService.swift */; };
 		C34485EFC98690D769B8B90D /* ViewModelCoverageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5533059CBDA1637C94B14128 /* ViewModelCoverageTests.swift */; };
 		C3BA38F3EA2F0F3812D53181 /* CloudAIConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAB1BFDF7E7EEEA36C6A32CF /* CloudAIConfig.swift */; };
+		C6FAD840F87B75D47FE29B1A /* AppSchemaV10.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1331C9794DCD61C1526250CE /* AppSchemaV10.swift */; };
 		C98DC013548FE006A5B6E292 /* InjurySystemCoverageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEE3A9811CFCBAD2D17FE90B /* InjurySystemCoverageTests.swift */; };
 		C9B8747959BB83AF2414A003 /* GeneratedWorkoutRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3609763D64D3EA24AF21DA9 /* GeneratedWorkoutRecord.swift */; };
 		CB776D58BC5BDBDBD9B5D3A5 /* Benchmark.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3A9ACCDB214D83FC2593926 /* Benchmark.swift */; };
@@ -187,6 +189,7 @@
 		110F2999B2AA30421DABB2AC /* SignInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInView.swift; sourceTree = "<group>"; };
 		11E35725A51E2EB7B64E8BE2 /* QuestionnaireView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuestionnaireView.swift; sourceTree = "<group>"; };
 		12AE3DA414F404CCFFB261C5 /* CelebrationOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CelebrationOverlayView.swift; sourceTree = "<group>"; };
+		1331C9794DCD61C1526250CE /* AppSchemaV10.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSchemaV10.swift; sourceTree = "<group>"; };
 		139E2827E408A709CC590203 /* PainLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PainLog.swift; sourceTree = "<group>"; };
 		177C37A3D267D4BE118A2E9F /* SwiftDataWorkoutRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftDataWorkoutRepository.swift; sourceTree = "<group>"; };
 		18228C01CE4329F639652F6D /* CycleModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleModels.swift; sourceTree = "<group>"; };
@@ -256,6 +259,7 @@
 		739F2B1FABE1A8AD9F32B44C /* PaywallViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallViewModel.swift; sourceTree = "<group>"; };
 		745F2F666C9657BEF7407740 /* CycleCalculations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleCalculations.swift; sourceTree = "<group>"; };
 		76D54E3232C6CB7F97DBD10C /* AppSchemaV7.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSchemaV7.swift; sourceTree = "<group>"; };
+		7A24613554E5614264A60626 /* CustomProgramRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomProgramRecord.swift; sourceTree = "<group>"; };
 		7B4D46F1CAEE2B77F29725AD /* BenchmarkRepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BenchmarkRepositoryTests.swift; sourceTree = "<group>"; };
 		7DBC9DEE5EDC896F18397A32 /* BenchmarkDefinition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BenchmarkDefinition.swift; sourceTree = "<group>"; };
 		7EF56B4F72044C21280B76D4 /* AppSchemaV1.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSchemaV1.swift; sourceTree = "<group>"; };
@@ -551,6 +555,7 @@
 				76D54E3232C6CB7F97DBD10C /* AppSchemaV7.swift */,
 				E761DCE6C9B0B7BDFAEA0579 /* AppSchemaV8.swift */,
 				381DDAC45B9F290286FA4044 /* AppSchemaV9.swift */,
+				1331C9794DCD61C1526250CE /* AppSchemaV10.swift */,
 				2FE4123606BF8631A29FFA77 /* AppState.swift */,
 				896D59CDB62FEF04052F5483 /* DebugSeedData.swift */,
 				53AE80F4CD24ED2C384C12D6 /* SundeeFundeeApp.swift */,
@@ -763,6 +768,7 @@
 				A3A9ACCDB214D83FC2593926 /* Benchmark.swift */,
 				7DBC9DEE5EDC896F18397A32 /* BenchmarkDefinition.swift */,
 				D16BAB9EF7570DE98192141A /* CompletedWorkout.swift */,
+				7A24613554E5614264A60626 /* CustomProgramRecord.swift */,
 				18228C01CE4329F639652F6D /* CycleModels.swift */,
 				2CC3DF4CA337E185D6494F40 /* EnrolledProgram.swift */,
 				C3609763D64D3EA24AF21DA9 /* GeneratedWorkoutRecord.swift */,
@@ -924,6 +930,7 @@
 				FFE0B0DAF03BF7665AECD787 /* AppRootView.swift in Sources */,
 				3B3C510AD45D7FE9B1B5F4A5 /* AppSchemaMigrationPlan.swift in Sources */,
 				5CC78E0F0CD6924FA629DBCF /* AppSchemaV1.swift in Sources */,
+				C6FAD840F87B75D47FE29B1A /* AppSchemaV10.swift in Sources */,
 				36626C35D6F11C19883D38F0 /* AppSchemaV6.swift in Sources */,
 				A0CEFAF5AE5DB7CE5939EA74 /* AppSchemaV7.swift in Sources */,
 				2B467CE71878BCD3138EBC38 /* AppSchemaV8.swift in Sources */,
@@ -948,6 +955,7 @@
 				F6428556AD6585A4BB1F97C0 /* CloudAIUsageTracker.swift in Sources */,
 				5DEADF95610BF37489A74F15 /* CloudAIWorkoutService.swift in Sources */,
 				3A9441E40CA4388FA2C73B92 /* CompletedWorkout.swift in Sources */,
+				947C083D66EC0ACF1C80F4C7 /* CustomProgramRecord.swift in Sources */,
 				0050529D52C6D1AD4079C359 /* CycleAdaptationPolicy.swift in Sources */,
 				A1B9AF2CD29CA287A8DD1E56 /* CycleCalculations.swift in Sources */,
 				F7AEA19AF9ECE7E4A49A9861 /* CycleModels.swift in Sources */,

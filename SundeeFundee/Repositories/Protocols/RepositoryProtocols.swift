@@ -162,3 +162,13 @@ protocol AIWorkoutServiceProtocol: Sendable {
     func toggleFavorite(workoutID: String, isFavorite: Bool) async throws
     func fetchFavorites(userID: String) async throws -> [GeneratedWorkout]
 }
+
+// MARK: - CustomProgramRepository
+
+protocol CustomProgramRepository {
+    func save(_ record: CustomProgramRecord) throws
+    func fetchAll(userID: String) throws -> [CustomProgramRecord]
+    func fetch(id: String) throws -> CustomProgramRecord?
+    func update(_ record: CustomProgramRecord) throws
+    func delete(_ record: CustomProgramRecord) throws
+}

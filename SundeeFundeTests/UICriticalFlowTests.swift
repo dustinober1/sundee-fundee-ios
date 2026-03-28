@@ -192,7 +192,7 @@ final class UICriticalFlowTests: XCTestCase {
 
     @MainActor
     func testDeleteAccountRemovesAllUserDataAndSignsOut() async throws {
-        let schema = Schema(AppSchemaV9.models)
+        let schema = Schema(AppSchemaV10.models)
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
         let container = try ModelContainer(for: schema, configurations: [config])
         let ctx = container.mainContext

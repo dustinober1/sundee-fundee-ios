@@ -36,7 +36,7 @@ final class WODExecutionViewModelTests: XCTestCase {
     }
 
     private func makeTestStore() throws -> (container: ModelContainer, context: ModelContext) {
-        let schema = Schema(AppSchemaV9.models)
+        let schema = Schema(AppSchemaV10.models)
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
         let container = try ModelContainer(for: schema, configurations: [config])
         return (container, container.mainContext)

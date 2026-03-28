@@ -8,11 +8,11 @@ import SwiftData
 /// Custom migrations that transform data require a `custom` stage.
 enum AppSchemaMigrationPlan: SchemaMigrationPlan {
     static var schemas: [any VersionedSchema.Type] {
-        [AppSchemaV1.self, AppSchemaV6.self, AppSchemaV7.self, AppSchemaV8.self, AppSchemaV9.self]
+        [AppSchemaV1.self, AppSchemaV6.self, AppSchemaV7.self, AppSchemaV8.self, AppSchemaV9.self, AppSchemaV10.self]
     }
 
     static var stages: [MigrationStage] {
-        [migrateV1toV6, migrateV6toV7, migrateV7toV8, migrateV8toV9]
+        [migrateV1toV6, migrateV6toV7, migrateV7toV8, migrateV8toV9, migrateV9toV10]
     }
 
     /// V1 → V6: Lightweight migration covering all schema additions since V1.
@@ -40,5 +40,11 @@ enum AppSchemaMigrationPlan: SchemaMigrationPlan {
     static let migrateV8toV9 = MigrationStage.lightweight(
         fromVersion: AppSchemaV8.self,
         toVersion: AppSchemaV9.self
+    )
+
+    /// V9 → V10: Adds CustomProgramRecord for user-created custom programs.
+    static let migrateV9toV10 = MigrationStage.lightweight(
+        fromVersion: AppSchemaV9.self,
+        toVersion: AppSchemaV10.self
     )
 }
