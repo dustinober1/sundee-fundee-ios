@@ -16,7 +16,7 @@ Infrastructure complete (2026-03-28). Each item below needs its own brainstorm �
 ## Plus Tier Features ($4.99/mo)
 
 - [x] **Custom Program Builder** — Hybrid guided builder with 3 templates (Strength/Hypertrophy/Full Body), CustomProgramRecord SwiftData model, session/exercise editing, Plus-gated.
-- [ ] **Periodization Templates** — Pre-built linear, undulating, block periodization structures
+- [x] **Periodization Templates** — Added Linear, Daily Undulating (DUP), and Block periodization templates with proper phase structures and progression patterns. Plus-gated in template picker.
 - [ ] **Auto-Deload Scheduling** — AI suggests deload weeks based on training volume/fatigue
 - [ ] **Advanced Analytics Dashboard** — Volume trends, intensity tracking, muscle group balance
 - [ ] **Streaks & Achievements** — Consistency tracking, milestone badges
