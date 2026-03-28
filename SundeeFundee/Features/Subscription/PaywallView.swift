@@ -316,10 +316,10 @@ struct PaywallView: View {
 
     static func fallbackPrice(tier: SubscriptionTier, period: BillingPeriod) -> String {
         switch (tier, period) {
-        case (.plus, .monthly):    return "$4.99"
-        case (.plus, .annual):     return "$39.99"
-        case (.premium, .monthly): return "$9.99"
-        case (.premium, .annual):  return "$79.99"
+        case (.plus, .monthly):    return "$6.99"
+        case (.plus, .annual):     return "$54.99"
+        case (.premium, .monthly): return "$12.99"
+        case (.premium, .annual):  return "$99.99"
         default:                   return "Free"
         }
     }
@@ -330,20 +330,23 @@ struct PaywallView: View {
             return []
         case .plus:
             return [
-                "Smarter workout intelligence",
-                "Recovery trend insights",
+                "Haiku-powered cloud AI (1/day)",
+                "Custom program builder",
+                "Periodization templates",
+                "Advanced analytics dashboard",
                 "Full lift & history tracking",
-                "Advanced benchmarks",
-                "Daily WOD execution",
-                "15 AI workouts/month",
+                "Recovery trend insights",
+                "Streaks & achievements",
             ]
         case .premium:
             return [
                 "Everything in Plus",
-                "Unlimited AI workouts",
-                "Personal rehab coaching",
-                "AI coach memory",
-                "Progress data exports",
+                "Sonnet-powered cloud AI (10/day)",
+                "Persistent AI coach memory",
+                "AI mesocycle plans",
+                "Plateau detection",
+                "Weekly AI training reports",
+                "Rehab coaching & data export",
             ]
         }
     }
@@ -357,17 +360,20 @@ struct PaywallView: View {
 
     static func comparisonRows() -> [ComparisonRow] {
         [
-            ComparisonRow(feature: "AI Workouts", free: "3/mo", plus: "15/mo", premium: "Unlimited"),
+            ComparisonRow(feature: "On-Device AI", free: "Unlimited", plus: "Unlimited", premium: "Unlimited"),
+            ComparisonRow(feature: "Cloud AI Workouts", free: "--", plus: "1/day", premium: "10/day"),
+            ComparisonRow(feature: "AI Model", free: "On-device", plus: "Haiku", premium: "Sonnet"),
             ComparisonRow(feature: "Lift Tracking", free: "5", plus: "All", premium: "All"),
             ComparisonRow(feature: "Injury Profiles", free: "1", plus: "All", premium: "All"),
             ComparisonRow(feature: "Workout History", free: "30 days", plus: "All", premium: "All"),
-            ComparisonRow(feature: "Pain Trends", free: "--", plus: "Yes", premium: "Yes"),
-            ComparisonRow(feature: "Effort Trends", free: "--", plus: "Yes", premium: "Yes"),
-            ComparisonRow(feature: "WOD Execution", free: "--", plus: "Yes", premium: "Yes"),
-            ComparisonRow(feature: "Custom Benchmarks", free: "--", plus: "Yes", premium: "Yes"),
-            ComparisonRow(feature: "Rehab Sessions", free: "--", plus: "--", premium: "Yes"),
-            ComparisonRow(feature: "AI History", free: "--", plus: "--", premium: "Yes"),
-            ComparisonRow(feature: "Export Data", free: "--", plus: "--", premium: "Yes"),
+            ComparisonRow(feature: "Program Builder", free: "--", plus: "Yes", premium: "Yes"),
+            ComparisonRow(feature: "Periodization", free: "--", plus: "Yes", premium: "Yes"),
+            ComparisonRow(feature: "Analytics Dashboard", free: "--", plus: "Yes", premium: "Yes"),
+            ComparisonRow(feature: "AI Coach Memory", free: "--", plus: "--", premium: "Yes"),
+            ComparisonRow(feature: "Mesocycle Plans", free: "--", plus: "--", premium: "Yes"),
+            ComparisonRow(feature: "Plateau Detection", free: "--", plus: "--", premium: "Yes"),
+            ComparisonRow(feature: "Weekly Reports", free: "--", plus: "--", premium: "Yes"),
+            ComparisonRow(feature: "Data Export", free: "--", plus: "--", premium: "Yes"),
         ]
     }
 

@@ -207,23 +207,47 @@ struct PaywallViewStaticTests {
         #expect(PaywallView.periodLabel(for: .annual) == "per year")
     }
 
-    @Test func fallbackPrices() {
-        #expect(PaywallView.fallbackPrice(tier: .plus, period: .monthly) == "$4.99")
-        #expect(PaywallView.fallbackPrice(tier: .plus, period: .annual) == "$39.99")
-        #expect(PaywallView.fallbackPrice(tier: .premium, period: .monthly) == "$9.99")
-        #expect(PaywallView.fallbackPrice(tier: .premium, period: .annual) == "$79.99")
+    @Test func fallbackPricesUpdated() {
+        #expect(PaywallView.fallbackPrice(tier: .plus, period: .monthly) == "$6.99")
+        #expect(PaywallView.fallbackPrice(tier: .plus, period: .annual) == "$54.99")
+        #expect(PaywallView.fallbackPrice(tier: .premium, period: .monthly) == "$12.99")
+        #expect(PaywallView.fallbackPrice(tier: .premium, period: .annual) == "$99.99")
         #expect(PaywallView.fallbackPrice(tier: .free, period: .monthly) == "Free")
     }
 
-    @Test func tierHighlightsNotEmpty() {
-        #expect(PaywallView.tierHighlights(for: .plus).count > 0)
-        #expect(PaywallView.tierHighlights(for: .premium).count > 0)
+    @Test func tierHighlightsPlusUpdated() {
+        let highlights = PaywallView.tierHighlights(for: .plus)
+        #expect(highlights.count == 7)
+        #expect(highlights.contains("Haiku-powered cloud AI (1/day)"))
+        #expect(highlights.contains("Custom program builder"))
+        #expect(highlights.contains("Periodization templates"))
+    }
+
+    @Test func tierHighlightsPremiumUpdated() {
+        let highlights = PaywallView.tierHighlights(for: .premium)
+        #expect(highlights.count == 7)
+        #expect(highlights.contains("Everything in Plus"))
+        #expect(highlights.contains("Sonnet-powered cloud AI (10/day)"))
+        #expect(highlights.contains("AI mesocycle plans"))
+    }
+
+    @Test func tierHighlightsFreeEmpty() {
         #expect(PaywallView.tierHighlights(for: .free).isEmpty)
     }
 
-    @Test func comparisonRowsNotEmpty() {
+    @Test func comparisonRowsUpdated() {
         let rows = PaywallView.comparisonRows()
-        #expect(rows.count > 0)
+        #expect(rows.count == 14)
+        let aiRow = rows.first { $0.feature == "Cloud AI Workouts" }
+        #expect(aiRow?.free == "--")
+        #expect(aiRow?.plus == "1/day")
+        #expect(aiRow?.premium == "10/day")
+        let onDeviceRow = rows.first { $0.feature == "On-Device AI" }
+        #expect(onDeviceRow?.free == "Unlimited")
+        #expect(onDeviceRow?.plus == "Unlimited")
+        #expect(onDeviceRow?.premium == "Unlimited")
+        let wodRow = rows.first { $0.feature == "WOD Execution" }
+        #expect(wodRow == nil)
         for row in rows {
             #expect(!row.feature.isEmpty)
             #expect(!row.free.isEmpty)
@@ -233,7 +257,7 @@ struct PaywallViewStaticTests {
     }
 
     @Test func savingsText() {
-        let text = PaywallView.savingsText(monthlyPrice: 4.99, annualPrice: 39.99)
+        let text = PaywallView.savingsText(monthlyPrice: 6.99, annualPrice: 54.99)
         #expect(text.contains("Save"))
     }
 
