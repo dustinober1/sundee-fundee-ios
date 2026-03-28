@@ -353,3 +353,68 @@ struct QuestionnaireViewModelCloudToggleTests {
         #expect(QuestionnaireViewModel.cloudFallbackMessage == "Cloud AI unavailable — generated on-device instead.")
     }
 }
+
+// MARK: - CreateProgramViewModel Tests
+
+@Suite("CreateProgramViewModel")
+@MainActor
+struct CreateProgramViewModelTests {
+
+    @Test func initialStateHasNoTemplate() {
+        let vm = CreateProgramViewModel()
+        #expect(vm.selectedTemplate == nil)
+        #expect(vm.programName == "")
+    }
+
+    @Test func selectTemplatePopulatesDefaults() {
+        let vm = CreateProgramViewModel()
+        vm.selectTemplate(.strength)
+        #expect(vm.selectedTemplate == .strength)
+        #expect(vm.durationWeeks == 4)
+        #expect(vm.sessionsPerWeek == 3)
+    }
+
+    @Test func selectHypertrophyDefaults() {
+        let vm = CreateProgramViewModel()
+        vm.selectTemplate(.hypertrophy)
+        #expect(vm.durationWeeks == 6)
+        #expect(vm.sessionsPerWeek == 4)
+    }
+
+    @Test func canGenerateRequiresNameAndTemplate() {
+        let vm = CreateProgramViewModel()
+        #expect(vm.canGenerate == false)
+        vm.selectTemplate(.strength)
+        #expect(vm.canGenerate == false)
+        vm.programName = "My Program"
+        #expect(vm.canGenerate == true)
+    }
+
+    @Test func canGenerateRejectsEmptyName() {
+        let vm = CreateProgramViewModel()
+        vm.selectTemplate(.strength)
+        vm.programName = "   "
+        #expect(vm.canGenerate == false)
+    }
+
+    @Test func generateCreatesValidProgram() {
+        let vm = CreateProgramViewModel()
+        vm.selectTemplate(.strength)
+        vm.programName = "Test Block"
+        vm.durationWeeks = 4
+        vm.sessionsPerWeek = 3
+        let program = vm.generateProgram()
+        #expect(program != nil)
+        #expect(program?.name == "Test Block")
+        #expect(program?.category == "custom")
+        #expect(program?.weeks.count == 4)
+    }
+
+    @Test func durationOptions() {
+        #expect(CreateProgramViewModel.durationOptions == [3, 4, 6, 8])
+    }
+
+    @Test func frequencyOptions() {
+        #expect(CreateProgramViewModel.frequencyOptions == [3, 4, 5])
+    }
+}
