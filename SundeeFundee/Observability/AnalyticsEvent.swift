@@ -21,6 +21,12 @@ enum AnalyticsEvent: String, CaseIterable, Sendable {
     case subscriptionChanged = "subscription_changed"
     case trialStarted = "trial_started"
 
+    // Cloud AI
+    case cloudAIWorkoutGenerated = "cloud_ai_workout_generated"
+    case cloudAIDailyLimitReached = "cloud_ai_daily_limit_reached"
+    case cloudAISoftNudgeShown = "cloud_ai_soft_nudge_shown"
+    case workoutEditedBeforeStart = "workout_edited_before_start"
+
     static func eventName(for event: AnalyticsEvent) -> String {
         event.rawValue
     }

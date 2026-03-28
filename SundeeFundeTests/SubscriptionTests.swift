@@ -479,15 +479,20 @@ struct AnalyticsEventTests {
         #expect(AnalyticsEvent.limitReached.rawValue == "limit_reached")
         #expect(AnalyticsEvent.subscriptionChanged.rawValue == "subscription_changed")
         #expect(AnalyticsEvent.trialStarted.rawValue == "trial_started")
+        #expect(AnalyticsEvent.cloudAIWorkoutGenerated.rawValue == "cloud_ai_workout_generated")
+        #expect(AnalyticsEvent.cloudAIDailyLimitReached.rawValue == "cloud_ai_daily_limit_reached")
+        #expect(AnalyticsEvent.cloudAISoftNudgeShown.rawValue == "cloud_ai_soft_nudge_shown")
+        #expect(AnalyticsEvent.workoutEditedBeforeStart.rawValue == "workout_edited_before_start")
     }
 
     @Test func eventNameReturnsRawValue() {
         #expect(AnalyticsEvent.eventName(for: .paywallImpression) == "paywall_impression")
         #expect(AnalyticsEvent.eventName(for: .subscriptionChanged) == "subscription_changed")
+        #expect(AnalyticsEvent.eventName(for: .cloudAIWorkoutGenerated) == "cloud_ai_workout_generated")
     }
 
     @Test func allCasesCountIsStable() {
-        #expect(AnalyticsEvent.allCases.count == 12)
+        #expect(AnalyticsEvent.allCases.count == 16)
     }
 }
 
