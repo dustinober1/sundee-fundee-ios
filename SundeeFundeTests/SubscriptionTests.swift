@@ -922,3 +922,145 @@ struct ProgramTemplateGeneratorTests {
     }
 }
 
+// MARK: - Periodization Template Tests
+
+@Suite("Periodization Templates")
+struct PeriodizationTemplateTests {
+
+    @Test func linearTemplateDefaults() {
+        let program = ProgramTemplateGenerator.generate(
+            template: .linear, name: "Linear Block", durationWeeks: 6, sessionsPerWeek: 3
+        )
+        #expect(program.name == "Linear Block")
+        #expect(program.category == "custom")
+        #expect(program.weeks.count == 6)
+        for week in program.weeks {
+            #expect(week.sessions.count == 3)
+            for session in week.sessions {
+                #expect(!session.exercises.isEmpty)
+            }
+        }
+    }
+
+    @Test func linearProgressionDecreasesReps() {
+        let program = ProgramTemplateGenerator.generate(
+            template: .linear, name: "Test", durationWeeks: 6, sessionsPerWeek: 3
+        )
+        let week1Ex = program.weeks[0].sessions[0].exercises[0]
+        let week6Ex = program.weeks[5].sessions[0].exercises[0]
+        let w1Reps = PeriodizationTemplateTests.extractReps(week1Ex.reps)
+        let w6Reps = PeriodizationTemplateTests.extractReps(week6Ex.reps)
+        #expect(w1Reps > w6Reps, "Linear: reps should decrease over weeks")
+    }
+
+    @Test func linearProgressionIncreasesIntensity() {
+        let program = ProgramTemplateGenerator.generate(
+            template: .linear, name: "Test", durationWeeks: 6, sessionsPerWeek: 3
+        )
+        let week1Ex = program.weeks[0].sessions[0].exercises[0]
+        let week6Ex = program.weeks[5].sessions[0].exercises[0]
+        #expect((week6Ex.percent1RM ?? 0) > (week1Ex.percent1RM ?? 0), "Linear: %1RM should increase over weeks")
+    }
+
+    @Test func dupTemplateDefaults() {
+        let program = ProgramTemplateGenerator.generate(
+            template: .dup, name: "DUP Block", durationWeeks: 4, sessionsPerWeek: 3
+        )
+        #expect(program.weeks.count == 4)
+        for week in program.weeks {
+            #expect(week.sessions.count == 3)
+        }
+    }
+
+    @Test func dupVariesRepSchemeWithinWeek() {
+        let program = ProgramTemplateGenerator.generate(
+            template: .dup, name: "Test", durationWeeks: 4, sessionsPerWeek: 3
+        )
+        let week1 = program.weeks[0]
+        let day1Reps = PeriodizationTemplateTests.extractReps(week1.sessions[0].exercises[0].reps)
+        let day2Reps = PeriodizationTemplateTests.extractReps(week1.sessions[1].exercises[0].reps)
+        let day3Reps = PeriodizationTemplateTests.extractReps(week1.sessions[2].exercises[0].reps)
+        // DUP: Heavy (low reps), Moderate (mid reps), Volume (high reps)
+        #expect(day1Reps < day2Reps, "DUP: Day 1 (heavy) should have fewer reps than Day 2 (moderate)")
+        #expect(day2Reps < day3Reps, "DUP: Day 2 (moderate) should have fewer reps than Day 3 (volume)")
+    }
+
+    @Test func blockTemplateDefaults() {
+        let program = ProgramTemplateGenerator.generate(
+            template: .block, name: "Block Periodization", durationWeeks: 9, sessionsPerWeek: 3
+        )
+        #expect(program.weeks.count == 9)
+        #expect(program.phases.count == 3)
+    }
+
+    @Test func blockPhaseNames() {
+        let program = ProgramTemplateGenerator.generate(
+            template: .block, name: "Test", durationWeeks: 9, sessionsPerWeek: 3
+        )
+        #expect(program.phases[0].name == "Accumulation")
+        #expect(program.phases[1].name == "Intensification")
+        #expect(program.phases[2].name == "Peaking")
+    }
+
+    @Test func blockPhaseWeekRanges() {
+        let program = ProgramTemplateGenerator.generate(
+            template: .block, name: "Test", durationWeeks: 9, sessionsPerWeek: 3
+        )
+        #expect(program.phases[0].weekRange == [1, 3])
+        #expect(program.phases[1].weekRange == [4, 6])
+        #expect(program.phases[2].weekRange == [7, 9])
+    }
+
+    @Test func blockAccumulationHasHighReps() {
+        let program = ProgramTemplateGenerator.generate(
+            template: .block, name: "Test", durationWeeks: 9, sessionsPerWeek: 3
+        )
+        let accumEx = program.weeks[0].sessions[0].exercises[0]
+        let peakEx = program.weeks[8].sessions[0].exercises[0]
+        let accumReps = PeriodizationTemplateTests.extractReps(accumEx.reps)
+        let peakReps = PeriodizationTemplateTests.extractReps(peakEx.reps)
+        #expect(accumReps > peakReps, "Block: Accumulation reps > Peaking reps")
+    }
+
+    @Test func blockPeakingHasHighIntensity() {
+        let program = ProgramTemplateGenerator.generate(
+            template: .block, name: "Test", durationWeeks: 9, sessionsPerWeek: 3
+        )
+        let accumEx = program.weeks[0].sessions[0].exercises[0]
+        let peakEx = program.weeks[8].sessions[0].exercises[0]
+        #expect((peakEx.percent1RM ?? 0) > (accumEx.percent1RM ?? 0), "Block: Peaking %1RM > Accumulation %1RM")
+    }
+
+    @Test func newTemplateDisplayInfo() {
+        #expect(ProgramTemplate.linear.displayName == "Linear")
+        #expect(ProgramTemplate.dup.displayName == "Daily Undulating")
+        #expect(ProgramTemplate.block.displayName == "Block")
+        #expect(!ProgramTemplate.linear.icon.isEmpty)
+        #expect(!ProgramTemplate.dup.icon.isEmpty)
+        #expect(!ProgramTemplate.block.icon.isEmpty)
+    }
+
+    @Test func allSixTemplatesExist() {
+        #expect(ProgramTemplate.allCases.count == 6)
+    }
+
+    @Test func periodizationTemplatesAreTagged() {
+        #expect(ProgramTemplate.linear.isPeriodization == true)
+        #expect(ProgramTemplate.dup.isPeriodization == true)
+        #expect(ProgramTemplate.block.isPeriodization == true)
+        #expect(ProgramTemplate.strength.isPeriodization == false)
+        #expect(ProgramTemplate.hypertrophy.isPeriodization == false)
+        #expect(ProgramTemplate.fullBody.isPeriodization == false)
+    }
+
+    // Helper
+    static func extractReps(_ value: ExerciseValue) -> Int {
+        switch value {
+        case .fixed(let n): return n
+        case .range(let lo, _): return lo
+        case .amrap: return 0
+        case .text: return 0
+        }
+    }
+}
+
