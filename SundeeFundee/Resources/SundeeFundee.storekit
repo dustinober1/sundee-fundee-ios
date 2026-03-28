@@ -75,14 +75,14 @@
           "codeOffers" : [
 
           ],
-          "displayPrice" : "6.99",
+          "displayPrice" : "4.99",
           "familyShareable" : false,
           "groupNumber" : 1,
           "internalID" : "A1B2C3D4-0001-0001-0001-000000000001",
           "introductoryOffer" : null,
           "localizations" : [
             {
-              "description" : "Enhanced cloud AI workouts with Haiku, programming tools, and unlimited tracking.",
+              "description" : "Sundee AI cloud workouts, programming tools, and unlimited tracking.",
               "displayName" : "Sundee Plus Monthly",
               "locale" : "en_US"
             }
@@ -100,7 +100,7 @@
           "codeOffers" : [
 
           ],
-          "displayPrice" : "54.99",
+          "displayPrice" : "39.99",
           "familyShareable" : false,
           "groupNumber" : 1,
           "internalID" : "A1B2C3D4-0001-0001-0001-000000000002",
@@ -113,7 +113,7 @@
           },
           "localizations" : [
             {
-              "description" : "Enhanced cloud AI workouts with Haiku, programming tools, and unlimited tracking.",
+              "description" : "Sundee AI cloud workouts, programming tools, and unlimited tracking.",
               "displayName" : "Sundee Plus Annual",
               "locale" : "en_US"
             }
@@ -131,14 +131,14 @@
           "codeOffers" : [
 
           ],
-          "displayPrice" : "12.99",
+          "displayPrice" : "9.99",
           "familyShareable" : false,
           "groupNumber" : 2,
           "internalID" : "A1B2C3D4-0001-0001-0001-000000000003",
           "introductoryOffer" : null,
           "localizations" : [
             {
-              "description" : "Sonnet-powered personal AI coach with persistent memory, mesocycle plans, and full feature access.",
+              "description" : "Sundee AI Pro personal coach with persistent memory, mesocycle plans, and full feature access.",
               "displayName" : "Sundee Premium Monthly",
               "locale" : "en_US"
             }
@@ -156,14 +156,14 @@
           "codeOffers" : [
 
           ],
-          "displayPrice" : "99.99",
+          "displayPrice" : "79.99",
           "familyShareable" : false,
           "groupNumber" : 2,
           "internalID" : "A1B2C3D4-0001-0001-0001-000000000004",
           "introductoryOffer" : null,
           "localizations" : [
             {
-              "description" : "Sonnet-powered personal AI coach with persistent memory, mesocycle plans, and full feature access.",
+              "description" : "Sundee AI Pro personal coach with persistent memory, mesocycle plans, and full feature access.",
               "displayName" : "Sundee Premium Annual",
               "locale" : "en_US"
             }
