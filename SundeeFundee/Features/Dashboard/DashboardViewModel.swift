@@ -22,7 +22,7 @@ final class DashboardViewModel {
     var activeInjuriesNeedingCheckIn: [InjuryProfile] = []
     var rehabSession: ProgramSession?
     var todayWOD: WOD?
-    var aiWorkoutsGeneratedThisMonth: Int = 0
+    var aiWorkoutsGeneratedToday: Int = 0
     private var isLoading = false
 
     private let programRepo: any ProgramRepository
@@ -156,14 +156,14 @@ final class DashboardViewModel {
         let filtered = Self.filterWorkoutsByTier(allWorkouts, tier: tier)
         recentWorkouts = Array(filtered.prefix(10))
 
-        aiWorkoutsGeneratedThisMonth = Self.countAIWorkoutsThisMonth(modelContext: modelContext)
+        aiWorkoutsGeneratedToday = Self.countAIWorkoutsToday(modelContext: modelContext)
     }
 
-    static func countAIWorkoutsThisMonth(modelContext: ModelContext, now: Date = .now) -> Int {
+    static func countAIWorkoutsToday(modelContext: ModelContext, now: Date = .now) -> Int {
         let calendar = Calendar.current
-        let startOfMonth = calendar.date(from: calendar.dateComponents([.year, .month], from: now)) ?? now
+        let startOfDay = calendar.startOfDay(for: now)
         let descriptor = FetchDescriptor<GeneratedWorkoutRecord>(
-            predicate: #Predicate { $0.createdAt >= startOfMonth }
+            predicate: #Predicate { $0.createdAt >= startOfDay }
         )
         return (try? modelContext.fetchCount(descriptor)) ?? 0
     }

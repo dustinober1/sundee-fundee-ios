@@ -52,7 +52,7 @@ struct DashboardView: View {
                     } else {
                         NoEnrollmentCard()
                     }
-                    AIWorkoutCTACard(generatedThisMonth: viewModel.aiWorkoutsGeneratedThisMonth)
+                    AIWorkoutCTACard(generatedToday: viewModel.aiWorkoutsGeneratedToday)
                     if let wod = viewModel.todayWOD {
                         WODCard(wod: wod, oneRepMaxes: viewModel.oneRepMaxes, barbellWeightKg: viewModel.barbellWeightKg, weightUnit: viewModel.weightUnit)
                     }
@@ -746,11 +746,11 @@ struct StartAIWorkoutDestination: Hashable {}
 
 struct AIWorkoutCTACard: View {
     @Environment(AppState.self) private var appState
-    var generatedThisMonth: Int = 0
+    var generatedToday: Int = 0
     @State private var showPaywall = false
 
-    static func shouldShowPaywall(tier: SubscriptionTier, generatedThisMonth: Int) -> Bool {
-        !AIWorkoutLimits.canGenerate(tier: tier, generatedThisMonth: generatedThisMonth)
+    static func shouldShowPaywall(tier: SubscriptionTier, generatedToday: Int) -> Bool {
+        !AIWorkoutLimits.canGenerateCloud(tier: tier, generatedToday: generatedToday)
     }
 
     var body: some View {
@@ -775,13 +775,13 @@ struct AIWorkoutCTACard: View {
                 .font(AppTheme.Fonts.caption)
                 .foregroundStyle(AppTheme.Colors.navy.opacity(0.6))
 
-            if let remainingText = AIWorkoutLimits.remainingText(tier: appState.subscriptionTier, generatedThisMonth: generatedThisMonth) {
+            if let remainingText = AIWorkoutLimits.remainingCloudText(tier: appState.subscriptionTier, generatedToday: generatedToday) {
                 Text(remainingText)
                     .font(AppTheme.Fonts.caption)
                     .foregroundStyle(AppTheme.Colors.accentOrange.opacity(0.8))
             }
 
-            if Self.shouldShowPaywall(tier: appState.subscriptionTier, generatedThisMonth: generatedThisMonth) {
+            if Self.shouldShowPaywall(tier: appState.subscriptionTier, generatedToday: generatedToday) {
                 Button {
                     showPaywall = true
                 } label: {
@@ -805,7 +805,7 @@ struct AIWorkoutCTACard: View {
         .sheet(isPresented: $showPaywall) {
             PaywallView(
                 triggeredBy: .aiWorkoutHistory,
-                contextMessage: "You've used all \(AIWorkoutLimits.monthlyLimit(for: appState.subscriptionTier) ?? 0) free AI workouts this month."
+                contextMessage: "You've used all \(AIWorkoutLimits.dailyCloudLimit(for: appState.subscriptionTier)) cloud AI workouts today."
             )
         }
     }

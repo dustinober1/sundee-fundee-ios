@@ -346,47 +346,73 @@ struct MaxLiftsViewSubscriptionTests {
 @Suite("AIWorkoutLimits")
 struct AIWorkoutLimitsTests {
 
-    @Test func monthlyLimitForAllTiers() {
-        #expect(AIWorkoutLimits.monthlyLimit(for: .free) == 3)
-        #expect(AIWorkoutLimits.monthlyLimit(for: .plus) == 15)
-        #expect(AIWorkoutLimits.monthlyLimit(for: .premium) == nil)
+    @Test func dailyCloudLimitForAllTiers() {
+        #expect(AIWorkoutLimits.dailyCloudLimit(for: .free) == 0)
+        #expect(AIWorkoutLimits.dailyCloudLimit(for: .plus) == 1)
+        #expect(AIWorkoutLimits.dailyCloudLimit(for: .premium) == 10)
     }
 
-    @Test func canGenerateUnderLimit() {
-        #expect(AIWorkoutLimits.canGenerate(tier: .free, generatedThisMonth: 0) == true)
-        #expect(AIWorkoutLimits.canGenerate(tier: .free, generatedThisMonth: 2) == true)
+    @Test func canGenerateCloudWorkoutFreeNever() {
+        #expect(AIWorkoutLimits.canGenerateCloud(tier: .free, generatedToday: 0) == false)
     }
 
-    @Test func canGenerateAtLimit() {
-        #expect(AIWorkoutLimits.canGenerate(tier: .free, generatedThisMonth: 3) == false)
-        #expect(AIWorkoutLimits.canGenerate(tier: .plus, generatedThisMonth: 15) == false)
+    @Test func canGenerateCloudWorkoutPlusUnderLimit() {
+        #expect(AIWorkoutLimits.canGenerateCloud(tier: .plus, generatedToday: 0) == true)
     }
 
-    @Test func canGenerateUnlimited() {
-        #expect(AIWorkoutLimits.canGenerate(tier: .premium, generatedThisMonth: 1000) == true)
+    @Test func canGenerateCloudWorkoutPlusAtLimit() {
+        #expect(AIWorkoutLimits.canGenerateCloud(tier: .plus, generatedToday: 1) == false)
     }
 
-    @Test func remainingGenerationsForFree() {
-        #expect(AIWorkoutLimits.remainingGenerations(tier: .free, generatedThisMonth: 0) == 3)
-        #expect(AIWorkoutLimits.remainingGenerations(tier: .free, generatedThisMonth: 2) == 1)
-        #expect(AIWorkoutLimits.remainingGenerations(tier: .free, generatedThisMonth: 5) == 0)
+    @Test func canGenerateCloudWorkoutPremiumUnderLimit() {
+        #expect(AIWorkoutLimits.canGenerateCloud(tier: .premium, generatedToday: 9) == true)
     }
 
-    @Test func remainingGenerationsForPlus() {
-        #expect(AIWorkoutLimits.remainingGenerations(tier: .plus, generatedThisMonth: 10) == 5)
+    @Test func canGenerateCloudWorkoutPremiumAtLimit() {
+        #expect(AIWorkoutLimits.canGenerateCloud(tier: .premium, generatedToday: 10) == false)
     }
 
-    @Test func remainingGenerationsUnlimited() {
-        #expect(AIWorkoutLimits.remainingGenerations(tier: .premium, generatedThisMonth: 100) == nil)
+    @Test func shouldShowNudgePremiumAt7() {
+        #expect(AIWorkoutLimits.shouldShowSoftNudge(tier: .premium, generatedToday: 7) == true)
+        #expect(AIWorkoutLimits.shouldShowSoftNudge(tier: .premium, generatedToday: 8) == true)
     }
 
-    @Test func remainingTextForFree() {
-        let text = AIWorkoutLimits.remainingText(tier: .free, generatedThisMonth: 1)
-        #expect(text == "2 of 3 AI workouts left this month")
+    @Test func shouldShowNudgePremiumUnder7() {
+        #expect(AIWorkoutLimits.shouldShowSoftNudge(tier: .premium, generatedToday: 6) == false)
     }
 
-    @Test func remainingTextNilForPremium() {
-        #expect(AIWorkoutLimits.remainingText(tier: .premium, generatedThisMonth: 100) == nil)
+    @Test func shouldShowNudgePlusNever() {
+        #expect(AIWorkoutLimits.shouldShowSoftNudge(tier: .plus, generatedToday: 0) == false)
+    }
+
+    @Test func shouldShowNudgeFreeNever() {
+        #expect(AIWorkoutLimits.shouldShowSoftNudge(tier: .free, generatedToday: 0) == false)
+    }
+
+    @Test func remainingCloudTextForPlus() {
+        let text = AIWorkoutLimits.remainingCloudText(tier: .plus, generatedToday: 0)
+        #expect(text == "1 cloud AI workout available today")
+    }
+
+    @Test func remainingCloudTextForPlusAtLimit() {
+        let text = AIWorkoutLimits.remainingCloudText(tier: .plus, generatedToday: 1)
+        #expect(text == "Daily cloud AI workout used — try on-device AI or come back tomorrow")
+    }
+
+    @Test func remainingCloudTextForPremium() {
+        let text = AIWorkoutLimits.remainingCloudText(tier: .premium, generatedToday: 7)
+        #expect(text == "3 of 10 cloud AI workouts left today")
+    }
+
+    @Test func remainingCloudTextForFree() {
+        let text = AIWorkoutLimits.remainingCloudText(tier: .free, generatedToday: 0)
+        #expect(text == nil)
+    }
+
+    @Test func canGenerateOnDeviceAlwaysTrue() {
+        for tier in SubscriptionTier.allCases {
+            #expect(AIWorkoutLimits.canGenerateOnDevice(tier: tier) == true)
+        }
     }
 }
 
@@ -535,12 +561,13 @@ struct PaywallViewContextTests {
 struct AIWorkoutCTACardTests {
 
     @Test func shouldShowPaywallAtLimit() {
-        #expect(AIWorkoutCTACard.shouldShowPaywall(tier: .free, generatedThisMonth: 3) == true)
-        #expect(AIWorkoutCTACard.shouldShowPaywall(tier: .free, generatedThisMonth: 2) == false)
+        #expect(AIWorkoutCTACard.shouldShowPaywall(tier: .free, generatedToday: 1) == true)
+        #expect(AIWorkoutCTACard.shouldShowPaywall(tier: .plus, generatedToday: 1) == true)
+        #expect(AIWorkoutCTACard.shouldShowPaywall(tier: .plus, generatedToday: 0) == false)
     }
 
     @Test func shouldShowPaywallPremiumNever() {
-        #expect(AIWorkoutCTACard.shouldShowPaywall(tier: .premium, generatedThisMonth: 1000) == false)
+        #expect(AIWorkoutCTACard.shouldShowPaywall(tier: .premium, generatedToday: 9) == false)
     }
 }
 
