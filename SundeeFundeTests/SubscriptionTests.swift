@@ -726,3 +726,87 @@ struct CloudAIConfigTests {
     }
 }
 
+// MARK: - CloudAIUsageTracker Tests
+
+@Suite("CloudAIUsageTracker")
+struct CloudAIUsageTrackerTests {
+
+    @Test func initialCountIsZero() {
+        let tracker = CloudAIUsageTracker(defaults: .init(suiteName: "test-\(UUID())")!)
+        #expect(tracker.generatedToday == 0)
+    }
+
+    @Test func incrementIncreasesCount() {
+        let tracker = CloudAIUsageTracker(defaults: .init(suiteName: "test-\(UUID())")!)
+        tracker.recordGeneration()
+        #expect(tracker.generatedToday == 1)
+        tracker.recordGeneration()
+        #expect(tracker.generatedToday == 2)
+    }
+
+    @Test func resetsOnNewDay() {
+        let defaults = UserDefaults(suiteName: "test-\(UUID())")!
+        let tracker = CloudAIUsageTracker(defaults: defaults)
+        // Simulate yesterday's data
+        let yesterday = Calendar.current.date(byAdding: .day, value: -1, to: .now)!
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withFullDate]
+        let yesterdayKey = formatter.string(from: yesterday)
+        defaults.set(5, forKey: "cloudAIUsage:\(yesterdayKey)")
+        // Today should be 0
+        #expect(tracker.generatedToday == 0)
+    }
+
+    @Test func remainingForPlusUser() {
+        let tracker = CloudAIUsageTracker(defaults: .init(suiteName: "test-\(UUID())")!)
+        #expect(tracker.remaining(for: .plus) == 1)
+        tracker.recordGeneration()
+        #expect(tracker.remaining(for: .plus) == 0)
+    }
+
+    @Test func remainingForPremiumUser() {
+        let tracker = CloudAIUsageTracker(defaults: .init(suiteName: "test-\(UUID())")!)
+        #expect(tracker.remaining(for: .premium) == 10)
+        tracker.recordGeneration()
+        #expect(tracker.remaining(for: .premium) == 9)
+    }
+
+    @Test func canGenerateRespectsLimit() {
+        let tracker = CloudAIUsageTracker(defaults: .init(suiteName: "test-\(UUID())")!)
+        #expect(tracker.canGenerate(for: .plus) == true)
+        tracker.recordGeneration()
+        #expect(tracker.canGenerate(for: .plus) == false)
+        #expect(tracker.canGenerate(for: .premium) == true)
+    }
+
+    @Test func canGenerateAlwaysFalseForFree() {
+        let tracker = CloudAIUsageTracker(defaults: .init(suiteName: "test-\(UUID())")!)
+        #expect(tracker.canGenerate(for: .free) == false)
+    }
+
+    @Test func toggleLabelForTiers() {
+        #expect(CloudAIUsageTracker.toggleLabel(for: .plus) == "Use Sundee AI")
+        #expect(CloudAIUsageTracker.toggleLabel(for: .premium) == "Use Sundee AI Pro")
+        #expect(CloudAIUsageTracker.toggleLabel(for: .free) == "")
+    }
+
+    @Test func subtitleTextShowsRemaining() {
+        let tracker = CloudAIUsageTracker(defaults: .init(suiteName: "test-\(UUID())")!)
+        #expect(tracker.subtitleText(for: .plus) == "1 of 1 remaining today")
+        tracker.recordGeneration()
+        #expect(tracker.subtitleText(for: .plus) == "Come back tomorrow")
+    }
+
+    @Test func subtitleTextPremium() {
+        let tracker = CloudAIUsageTracker(defaults: .init(suiteName: "test-\(UUID())")!)
+        #expect(tracker.subtitleText(for: .premium) == "10 of 10 remaining today")
+    }
+
+    @Test func setGeneratedTodayUpdatesCount() {
+        let tracker = CloudAIUsageTracker(defaults: .init(suiteName: "test-\(UUID())")!)
+        tracker.setGeneratedToday(5)
+        #expect(tracker.generatedToday == 5)
+        #expect(tracker.remaining(for: .premium) == 5)
+    }
+}
+
