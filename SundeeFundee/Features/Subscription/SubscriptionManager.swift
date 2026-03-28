@@ -16,7 +16,7 @@ protocol TransactionVerifying: Sendable {
 @Observable
 @MainActor
 final class SubscriptionManager {
-    var currentTier: SubscriptionTier = .premium
+    var currentTier: SubscriptionTier = .free
     var availableProducts: [Product] = []
     var purchaseInProgress = false
     var errorMessage: String?
@@ -37,8 +37,9 @@ final class SubscriptionManager {
     }
 
     func start() async {
-        // All features are free — bypass StoreKit entirely
-        currentTier = .premium
+        await loadProducts()
+        await refreshSubscriptionStatus()
+        listenForTransactions()
     }
 
     func purchase(_ product: Product) async {

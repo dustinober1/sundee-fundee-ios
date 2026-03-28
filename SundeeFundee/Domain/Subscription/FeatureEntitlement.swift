@@ -16,30 +16,30 @@ enum GatedFeature: String, CaseIterable, Sendable {
     var displayName: String {
         switch self {
         case .customBenchmarks:  return "Custom Benchmarks"
-        case .painTrends:        return "Pain Trend Analysis"
-        case .effortTrends:      return "Effort Trends"
+        case .painTrends:        return "Recovery Trend Insights"
+        case .effortTrends:      return "Workout Intelligence Trends"
         case .wodExecution:      return "WOD Execution"
         case .unlimitedLifts:    return "Unlimited Lift Tracking"
         case .unlimitedInjuries: return "Unlimited Injury Profiles"
         case .unlimitedHistory:  return "Unlimited Workout History"
-        case .rehabSessions:     return "Rehab Sessions"
-        case .aiWorkoutHistory:  return "AI Workout History & Favorites"
-        case .exportData:        return "Export Workout Data"
+        case .rehabSessions:     return "Personalized Recovery Coaching"
+        case .aiWorkoutHistory:  return "Coach Memory & Saved AI Workouts"
+        case .exportData:        return "Progress Exports"
         }
     }
 
     var featureDescription: String {
         switch self {
         case .customBenchmarks:  return "Create and track your own custom benchmark workouts."
-        case .painTrends:        return "Visualize pain trends over time with sparkline charts."
-        case .effortTrends:      return "See your average perceived effort across recent workouts."
-        case .wodExecution:      return "Execute the daily Workout of the Day with full logging."
+        case .painTrends:        return "Unlock smarter recovery trend insights and pattern detection."
+        case .effortTrends:      return "See advanced workout intelligence across your recent sessions."
+        case .wodExecution:      return "Execute and log the daily Workout of the Day."
         case .unlimitedLifts:    return "Track unlimited lifts and one-rep maxes."
         case .unlimitedInjuries: return "Manage multiple active injury profiles simultaneously."
         case .unlimitedHistory:  return "Access your complete workout history without time limits."
-        case .rehabSessions:     return "Auto-generated recovery sessions tailored to your injuries."
-        case .aiWorkoutHistory:  return "Save, favorite, and revisit your AI-generated workouts."
-        case .exportData:        return "Export your workout data for analysis in other tools."
+        case .rehabSessions:     return "Get premium recovery coaching tailored to your current needs."
+        case .aiWorkoutHistory:  return "Save workouts with coach memory for more personalized follow-ups."
+        case .exportData:        return "Export progress data and coaching-ready summaries."
         }
     }
 }
@@ -84,7 +84,9 @@ enum FeatureEntitlement {
 
     static func minimumTierRequired(for feature: GatedFeature) -> SubscriptionTier {
         switch feature {
-        case .customBenchmarks, .painTrends, .effortTrends, .wodExecution,
+        case .wodExecution:
+            return .free
+        case .customBenchmarks, .painTrends, .effortTrends,
              .unlimitedLifts, .unlimitedInjuries, .unlimitedHistory:
             return .plus
         case .rehabSessions, .aiWorkoutHistory, .exportData:

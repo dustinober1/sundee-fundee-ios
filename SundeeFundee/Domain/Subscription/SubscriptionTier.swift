@@ -14,6 +14,30 @@ enum SubscriptionTier: String, Codable, CaseIterable, Sendable {
         }
     }
 
+    /// Core user promise for each packaging tier.
+    var valueProposition: String {
+        switch self {
+        case .free:
+            return "On-device AI baseline workouts"
+        case .plus:
+            return "Better remote LLM workouts and advanced training intelligence"
+        case .premium:
+            return "Premium LLM workouts plus personalized coaching"
+        }
+    }
+
+    /// Short descriptive copy used in subscription surfaces.
+    var subscriptionDescription: String {
+        switch self {
+        case .free:
+            return "Instant, on-device AI workout help and core training tools."
+        case .plus:
+            return "Higher-quality remote AI workouts with smarter training insights."
+        case .premium:
+            return "Personalized coaching powered by our most capable AI experience."
+        }
+    }
+
     var monthlyProductID: String {
         switch self {
         case .free:    return ""
