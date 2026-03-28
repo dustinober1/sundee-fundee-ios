@@ -19,7 +19,8 @@ xcodegen generate
 xcodebuild build \
   -project SundeeFundee.xcodeproj \
   -scheme SundeeFundee \
-  -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
+  -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
+  CODE_SIGNING_ALLOWED=NO
 ```
 
 ### Test
@@ -28,15 +29,18 @@ xcodebuild build \
 xcodebuild test \
   -project SundeeFundee.xcodeproj \
   -scheme SundeeFundee \
-  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
-  -only-testing:SundeeFundeTests
+  -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
+  -only-testing:SundeeFundeTests \
+  -enableCodeCoverage YES \
+  CODE_SIGNING_ALLOWED=NO
 
 # Run a single test class
 xcodebuild test \
   -project SundeeFundee.xcodeproj \
   -scheme SundeeFundee \
-  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
-  -only-testing:SundeeFundeTests/BusinessLogicTests
+  -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
+  -only-testing:SundeeFundeTests/BusinessLogicTests \
+  CODE_SIGNING_ALLOWED=NO
 ```
 
 ### Deploy
@@ -75,6 +79,8 @@ Domain/ (pure Swift, zero dependencies, 100% tested)
 - **`Models/`** — 18 SwiftData `@Model` types. **Enums must be stored as raw strings** (CloudKit requirement); typed accessors are computed properties.
 - **`Repositories/`** — Protocol-based data access layer with SwiftData implementations. `ProgramRepository` fetches from CloudKit Public DB with bundled `programs.json` fallback.
 - **`Features/`** — One subdirectory per tab: Dashboard, Programs, Workouts, Cycle, Maxes, Benchmarks, Settings + Shell (tab bar). `Shared/` contains reusable components (e.g., `SpicyRatingView`).
+- **`Observability/`** — Analytics and metrics: `AnalyticsEvent`, `AnalyticsService`, `MetricsService`
+- **`Onboarding/`** — `OnboardingFlowView` and onboarding step views (separate from `Auth/`)
 - **`Theme/`** — Art Deco design tokens: cream/navy/orange palette
 
 ### Auth & Routing
