@@ -1,0 +1,13 @@
+name = "ai-coach"
+main = "src/index.ts"
+compatibility_date = "2025-03-28"
+
+[ai]
+binding = "AI"
+
+[[kv_namespaces]]
+binding = "RATE_LIMIT"
+id = "PLACEHOLDER_REPLACE_AFTER_KV_CREATE"
+
+[vars]
+ENVIRONMENT = "production"
