@@ -9,7 +9,7 @@ Infrastructure complete (2026-03-28). Each item below needs its own brainstorm �
 
 ## Prerequisites
 
-- [ ] **Cloudflare Worker AI Proxy** — Route cloud AI requests through the existing worker using Cloudflare Workers AI (`@cf/nvidia/nemotron-3-120b-a12b`), server-side rate limiting via KV store, entitlement validation
+- [x] **Cloudflare Worker AI Proxy** — Built `workers/ai-coach/` with JWT auth, KV rate limiting, and Workers AI routing (Qwen for Plus, Nemotron for Premium). Deploy with `cd workers/ai-coach && wrangler deploy`.
 - [ ] **Cloud AI Workout Integration** — Wire iOS app to call the proxy for Plus/Premium users, edit-before-start flow, fallback to on-device if network unavailable
 - [ ] **Re-enable StoreKit Entitlements** — Revert `AppState.subscriptionTier` from `.free` default, restore `SubscriptionManager.start()` to call `loadProducts()`/`refreshSubscriptionStatus()`, re-add Subscription section in SettingsView
 
