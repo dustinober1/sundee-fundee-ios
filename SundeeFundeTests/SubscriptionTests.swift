@@ -810,3 +810,31 @@ struct CloudAIUsageTrackerTests {
     }
 }
 
+// MARK: - CustomProgramRecord Tests
+
+@Suite("CustomProgramRecord")
+struct CustomProgramRecordTests {
+
+    @Test func roundTripProgramJSON() {
+        let program = Program(
+            id: "test-1", name: "Test Program", category: "custom",
+            description: "A test", durationWeeks: 4, sessionsPerWeek: 3,
+            difficulty: "intermediate", phases: [], weeks: [],
+            cycleAdjustmentProfile: nil
+        )
+        let record = CustomProgramRecord.from(program, userID: "user-1")
+        #expect(record != nil)
+        #expect(record?.name == "Test Program")
+        let decoded = record?.toProgram()
+        #expect(decoded?.id == "test-1")
+        #expect(decoded?.name == "Test Program")
+        #expect(decoded?.category == "custom")
+        #expect(decoded?.durationWeeks == 4)
+    }
+
+    @Test func fromNilForInvalidProgram() {
+        let record = CustomProgramRecord(userID: "u1", name: "Bad", programJSON: "not json")
+        #expect(record.toProgram() == nil)
+    }
+}
+
