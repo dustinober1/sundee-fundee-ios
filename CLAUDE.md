@@ -145,7 +145,7 @@ Personalized workouts are generated on-device via Apple's Foundation Models fram
 
 ### Subscriptions
 
-**Currently bypassed:** All features are free — `AppState.subscriptionTier` defaults to `.premium` and `SubscriptionManager.start()` skips StoreKit. Subscription UI is hidden from Settings. All code is preserved for future re-enablement. To restore subscriptions: revert `AppState.subscriptionTier` to `.free`, restore `SubscriptionManager.start()` to call `loadProducts()`/`refreshSubscriptionStatus()`, and re-add the Subscription section in `SettingsView`.
+**Active:** `AppState.subscriptionTier` defaults to `.free` and is updated by `SubscriptionManager` via StoreKit entitlements. `SubscriptionManager.start()` loads products and refreshes subscription status on launch. The Subscription section is visible in SettingsView.
 
 Product IDs use the `com.sundeefundee.sub.*` prefix (earlier `com.sundeefundee.app.*` IDs are permanently burned in App Store Connect). Four products:
 - `com.sundeefundee.sub.plus.monthly` ($4.99/mo)

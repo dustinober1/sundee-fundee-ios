@@ -11,7 +11,7 @@ Infrastructure complete (2026-03-28). Each item below needs its own brainstorm �
 
 - [x] **Cloudflare Worker AI Proxy** — Built `workers/ai-coach/` with JWT auth, KV rate limiting, and Workers AI routing (Qwen for Plus, Nemotron for Premium). Deploy with `cd workers/ai-coach && wrangler deploy`.
 - [x] **Cloud AI Workout Integration** — Added CloudAIWorkoutService, CloudAIConfig (JWT), CloudAIUsageTracker, and cloud AI toggle in QuestionnaireView for Plus/Premium users. Falls back to on-device on failure.
-- [ ] **Re-enable StoreKit Entitlements** — Revert `AppState.subscriptionTier` from `.free` default, restore `SubscriptionManager.start()` to call `loadProducts()`/`refreshSubscriptionStatus()`, re-add Subscription section in SettingsView
+- [x] **Re-enable StoreKit Entitlements** — Already complete: `AppState.subscriptionTier` defaults to `.free`, `SubscriptionManager.start()` calls `loadProducts()`/`refreshSubscriptionStatus()`, Subscription section present in SettingsView.
 
 ## Plus Tier Features ($4.99/mo)
 
