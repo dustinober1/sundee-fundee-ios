@@ -4,8 +4,8 @@ Infrastructure complete (2026-03-28). Each item below needs its own brainstorm �
 
 ## Code Updates (from pricing/model revision)
 
-- [ ] **Update pricing in code** — Change from $6.99/$12.99 to $4.99/$9.99 (monthly) and recalculate annual pricing. Update SubscriptionTier, PaywallView fallback prices, StoreKit config, comparison highlights, and all tests.
-- [ ] **Switch AI model from Anthropic to Cloudflare Nemotron** — Replace Haiku/Sonnet references with `@cf/nvidia/nemotron-3-120b-a12b` ($0.50/M input, $1.50/M output). Update `aiModelIdentifier`, PaywallView copy, ManageSubscriptionView descriptions, tier highlights, and all tests.
+- [x] **Update pricing in code** — Changed from $6.99/$12.99 to $4.99/$9.99 (monthly), $39.99/$79.99 (annual).
+- [x] **Switch AI model from Anthropic to Cloudflare Nemotron** — Replaced Haiku/Sonnet with `@cf/qwen/qwen3-30b-a3b-fp8` (Plus) and `@cf/nvidia/nemotron-3-120b-a12b` (Premium). User-facing branding: "Sundee AI" / "Sundee AI Pro".
 
 ## Prerequisites
 
