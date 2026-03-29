@@ -2,12 +2,12 @@ import Stripe from "stripe";
 
 export const STRIPE_PRICES = {
   plus: {
-    monthly: "price_plus_monthly",
-    annual: "price_plus_annual",
+    monthly: "price_1TGMEmR3qTJLE6bbfrsZYIJt",
+    annual: "price_1TGMEmR3qTJLE6bb2d7Xkocg",
   },
   premium: {
-    monthly: "price_premium_monthly",
-    annual: "price_premium_annual",
+    monthly: "price_1TGMEnR3qTJLE6bbeooKfY0E",
+    annual: "price_1TGMEoR3qTJLE6bbMW01HMya",
   },
 } as const;
 

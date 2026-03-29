@@ -7,13 +7,13 @@
     {
       "binding": "DB",
       "database_name": "sundee-fundee-db",
-      "database_id": "placeholder-create-with-wrangler"
+      "database_id": "345feea1-45b3-4d8b-ba17-fe1502079967"
     }
   ],
   "kv_namespaces": [
     {
       "binding": "KV",
-      "id": "placeholder-create-with-wrangler"
+      "id": "e14b4c63f5cf4c608be882bc0c2b5fca"
     }
   ],
   "vars": {

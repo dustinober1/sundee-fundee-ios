@@ -3,16 +3,16 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Support — Sundee Fundee",
-  description: "Get help with Sundee Fundee apps. FAQs and contact information.",
+  description: "Get help with Sundee Fundee. FAQs and contact information.",
   openGraph: {
     title: "Support — Sundee Fundee",
-    description: "Get help with Sundee Fundee apps. FAQs and contact information.",
+    description: "Get help with Sundee Fundee. FAQs and contact information.",
   },
 };
 
 export default function SupportPage() {
   return (
-    <main className="max-w-[720px] mx-auto px-spacing-md py-spacing-xl">
+    <main className="max-w-[720px] mx-auto">
       <Link href="/" className="inline-block mb-spacing-lg font-semibold text-orange hover:underline">
         &larr; Home
       </Link>
@@ -29,30 +29,30 @@ export default function SupportPage() {
       </h2>
 
       <Faq question="How do I sync my data across devices?">
-        Sign in with Apple to enable iCloud sync. Your workouts, maxes, and progress will
+        Sign in with Google or Apple to enable cloud sync. Your workouts, maxes, and progress will
         automatically sync across all your devices.
       </Faq>
 
       <Faq question="How does cycle-aware training work?">
-        Grant HealthKit access in Settings, and Sundee Fundee reads your cycle data to recommend
-        training intensity and volume adjustments based on your current phase.
+        Enable cycle tracking in Settings, then log your cycle data. Sundee Fundee uses this to
+        recommend training intensity and volume adjustments based on your current phase.
       </Faq>
 
-      <Faq question="Is the Rucking Club app really free?">
-        Yes. All Rucking Club features are included at no cost — GPS tracking, clubs, leaderboards,
-        badges, events, advanced stats, CSV export, custom app icons, and Apple Watch support. No
-        paywalls, no subscriptions.
+      <Faq question="How do AI workouts work?">
+        The AI workout generator uses your 1RM data, injury profiles, energy level, and cycle phase
+        to create personalized training sessions. Free users get on-device generation, while Plus
+        and Premium subscribers get cloud-powered AI workouts.
       </Faq>
 
       <Faq question="How do I report an injury?">
-        In Sundee Fundee (strength training), go to your profile or settings and use the injury
-        management feature. The app will automatically modify exercises to accommodate your injury.
+        Go to your settings and use the injury management feature. The app will automatically modify
+        exercises and adjust loads to accommodate your injury.
       </Faq>
 
       <Faq question="How do I delete my account?">
-        In Sundee Fundee Rucking Club, open the app, go to the <strong>More</strong> tab, and tap{" "}
-        <strong>Delete Account</strong>. This permanently removes your profile, ruck history,
-        leaderboard entries, and club memberships. You can also email us at{" "}
+        Open the app, go to <strong>Settings</strong>, and tap{" "}
+        <strong>Delete Account</strong>. This permanently removes your profile, workout history,
+        injury records, maxes, benchmark scores, and all other personal data. You can also email us at{" "}
         <a href="mailto:support@sundeefundee.com" className="text-orange font-semibold hover:underline">
           support@sundeefundee.com
         </a>{" "}

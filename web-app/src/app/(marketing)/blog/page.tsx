@@ -16,7 +16,7 @@ export default function BlogPage() {
   const posts = getAllPosts();
 
   return (
-    <main className="max-w-2xl mx-auto px-spacing-md py-spacing-xl">
+    <main className="max-w-2xl mx-auto">
       <h1 className="text-4xl mb-spacing-lg">Blog</h1>
       <div className="flex flex-col gap-spacing-md">
         {posts.map((post) => (

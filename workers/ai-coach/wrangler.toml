@@ -7,7 +7,7 @@ binding = "AI"
 
 [[kv_namespaces]]
 binding = "RATE_LIMIT"
-id = "PLACEHOLDER_REPLACE_AFTER_KV_CREATE"
+id = "e14b4c63f5cf4c608be882bc0c2b5fca"
 
 [vars]
 ENVIRONMENT = "production"

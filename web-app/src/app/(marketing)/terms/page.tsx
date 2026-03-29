@@ -3,108 +3,100 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Terms of Use — Sundee Fundee",
-  description: "Terms of Use for Sundee Fundee apps.",
+  description: "Terms of Use for Sundee Fundee.",
   openGraph: {
     title: "Terms of Use — Sundee Fundee",
-    description: "Terms of Use for Sundee Fundee apps.",
+    description: "Terms of Use for Sundee Fundee.",
   },
 };
 
 export default function TermsPage() {
   return (
-    <main className="max-w-[720px] mx-auto px-spacing-md py-spacing-xl">
+    <main className="max-w-[720px] mx-auto">
       <Link href="/" className="inline-block mb-spacing-lg font-semibold text-orange hover:underline">
         &larr; Home
       </Link>
       <h1 className="text-4xl mb-1">Terms of Use</h1>
-      <p className="text-orange font-semibold mb-spacing-xl">Sundee Fundee Apps</p>
+      <p className="text-orange font-semibold mb-spacing-xl">Sundee Fundee</p>
 
       <p className="mb-spacing-lg">
-        These Terms of Use (&ldquo;Terms&rdquo;) govern your use of all applications published by
-        Sundee Fundee, including <strong>Sundee Fundee</strong> and{" "}
-        <strong>Sundee Fundee Rucking Club</strong> (collectively, the &ldquo;Apps&rdquo;). By
-        downloading or using any of our Apps, you agree to these Terms.
+        These Terms of Use (&ldquo;Terms&rdquo;) govern your use of <strong>Sundee Fundee</strong>,
+        a cycle-aware strength training application (the &ldquo;App&rdquo;). By using the App, you
+        agree to these Terms.
       </p>
 
       <Section title="1. Acceptance of Terms">
         <p>
-          By accessing or using our Apps, you confirm that you are at least 17 years old and agree to
-          be bound by these Terms. If you do not agree, do not use the Apps.
+          By accessing or using the App, you confirm that you are at least 17 years old and agree to
+          be bound by these Terms. If you do not agree, do not use the App.
         </p>
       </Section>
 
       <Section title="2. Description of Services">
-        <p className="mb-spacing-sm">
-          <strong>Sundee Fundee</strong> is a strength training app that provides cycle-aware workout
-          recommendations, structured programs, injury management, and progress tracking.
-        </p>
         <p>
-          <strong>Sundee Fundee Rucking Club</strong> is a fitness tracking app for rucking that
-          provides GPS route tracking, club membership, leaderboards, events, badges, and Apple Watch
-          integration.
+          Sundee Fundee is a strength training app that provides cycle-aware workout
+          recommendations, AI-generated workouts, structured programs, injury management, and
+          progress tracking.
         </p>
       </Section>
 
       <Section title="3. Account &amp; Sign In">
         <p>
-          Our Apps use Sign in with Apple for authentication. You are responsible for maintaining the
-          security of your Apple ID. You may use some features without signing in, but certain
-          features (cloud sync, clubs, leaderboards) require authentication.
+          The App uses Google and Apple sign-in for authentication. You are responsible for
+          maintaining the security of your account. You may use some features without signing in,
+          but certain features (cloud sync, AI workouts, subscriptions) require authentication.
         </p>
       </Section>
 
       <Section title="4. Health &amp; Fitness Disclaimer">
         <p>
-          <strong>Our Apps are not medical devices and do not provide medical advice.</strong> The
-          workout recommendations, training suggestions, and fitness data provided by our Apps are
+          <strong>The App is not a medical device and does not provide medical advice.</strong> The
+          workout recommendations, training suggestions, and fitness data provided by the App are
           for informational and fitness tracking purposes only. Always consult a qualified healthcare
-          professional before starting any exercise program. You use our Apps and follow any training
+          professional before starting any exercise program. You use the App and follow any training
           recommendations at your own risk.
         </p>
       </Section>
 
       <Section title="5. User Conduct">
         <p className="mb-spacing-sm">
-          When using community features (clubs, leaderboards, events), you agree to:
+          You agree to:
         </p>
         <ul className="list-disc pl-6">
-          <li>Provide accurate information in your user profile</li>
-          <li>Not submit fraudulent workout or ruck data</li>
-          <li>Not harass, abuse, or harm other users</li>
-          <li>Not attempt to manipulate leaderboard rankings</li>
-          <li>Not use the Apps for any unlawful purpose</li>
+          <li>Provide accurate information in your profile</li>
+          <li>Not submit fraudulent workout data</li>
+          <li>Not attempt to reverse-engineer or exploit the App</li>
+          <li>Not use the App for any unlawful purpose</li>
         </ul>
         <p className="mt-spacing-sm">
-          We reserve the right to remove content or restrict access for users who violate these
-          guidelines.
+          We reserve the right to restrict access for users who violate these guidelines.
         </p>
       </Section>
 
       <Section title="6. Subscriptions &amp; Purchases">
         <p className="mb-spacing-sm">
-          Our Apps offer optional subscriptions that unlock premium features. All purchases are
-          processed through Apple&apos;s In-App Purchase system and are subject to Apple&apos;s terms
-          and conditions.
+          The App offers optional subscriptions that unlock premium features. All purchases are
+          processed through Stripe and are subject to Stripe&apos;s terms and conditions.
         </p>
         <ul className="list-disc pl-6">
-          <li>Subscriptions automatically renew unless cancelled at least 24 hours before the end of the current period</li>
-          <li>You can manage or cancel subscriptions in your device&apos;s Settings &gt; Apple ID &gt; Subscriptions</li>
-          <li>Refunds are handled by Apple according to their refund policy</li>
+          <li>Subscriptions automatically renew unless cancelled before the end of the current period</li>
+          <li>You can manage or cancel subscriptions from the Settings page in the App</li>
+          <li>Refunds are handled according to our refund policy</li>
           <li>Free features remain available without a subscription</li>
         </ul>
       </Section>
 
       <Section title="7. Intellectual Property">
         <p>
-          All content, designs, code, and branding in our Apps are owned by Sundee Fundee and are
+          All content, designs, code, and branding in the App are owned by Sundee Fundee and are
           protected by copyright and intellectual property laws. You may not copy, modify, distribute,
-          or reverse-engineer any part of our Apps.
+          or reverse-engineer any part of the App.
         </p>
       </Section>
 
       <Section title="8. Data &amp; Privacy">
         <p>
-          Your use of our Apps is also governed by our{" "}
+          Your use of the App is also governed by our{" "}
           <Link href="/privacy" className="text-orange font-semibold hover:underline">
             Privacy Policy
           </Link>
@@ -114,45 +106,44 @@ export default function TermsPage() {
 
       <Section title="9. Third-Party Services">
         <p>
-          Our Apps integrate with Apple services including iCloud (CloudKit), HealthKit, and StoreKit.
-          Your use of these services is subject to Apple&apos;s terms and conditions. We are not
-          responsible for the availability or performance of Apple&apos;s services.
+          The App integrates with third-party services including Google and Apple for authentication,
+          Stripe for payments, and Cloudflare for hosting and AI services. Your use of these services
+          is subject to their respective terms and conditions.
         </p>
       </Section>
 
       <Section title="10. Limitation of Liability">
         <p className="mb-spacing-sm">
           To the maximum extent permitted by law, Sundee Fundee shall not be liable for any indirect,
-          incidental, special, consequential, or punitive damages arising from your use of the Apps.
+          incidental, special, consequential, or punitive damages arising from your use of the App.
           This includes, but is not limited to:
         </p>
         <ul className="list-disc pl-6">
-          <li>Injuries sustained during workouts or rucks</li>
-          <li>Loss of data due to device failure or iCloud issues</li>
-          <li>Inaccurate GPS, distance, pace, or health data</li>
+          <li>Injuries sustained during workouts</li>
+          <li>Loss of data due to service issues</li>
+          <li>Inaccurate workout calculations</li>
           <li>Service interruptions or unavailability</li>
         </ul>
       </Section>
 
       <Section title="11. Disclaimer of Warranties">
         <p>
-          Our Apps are provided &ldquo;as is&rdquo; and &ldquo;as available&rdquo; without warranties
-          of any kind, either express or implied. We do not guarantee that the Apps will be
-          error-free, uninterrupted, or that GPS tracking, health data, or workout calculations will
-          be completely accurate.
+          The App is provided &ldquo;as is&rdquo; and &ldquo;as available&rdquo; without warranties
+          of any kind, either express or implied. We do not guarantee that the App will be
+          error-free, uninterrupted, or that workout calculations will be completely accurate.
         </p>
       </Section>
 
       <Section title="12. Termination">
         <p>
-          We may suspend or terminate your access to the Apps at any time for violation of these
-          Terms. You may stop using the Apps at any time by deleting them from your devices.
+          We may suspend or terminate your access to the App at any time for violation of these
+          Terms. You may stop using the App at any time by deleting your account.
         </p>
       </Section>
 
       <Section title="13. Changes to These Terms">
         <p>
-          We may update these Terms from time to time. Continued use of the Apps after changes are
+          We may update these Terms from time to time. Continued use of the App after changes are
           posted constitutes acceptance of the updated Terms.
         </p>
       </Section>

@@ -26,6 +26,7 @@ export async function POST(req: NextRequest) {
     mode: "subscription",
     customer_email: session.user.email ?? undefined,
     line_items: [{ price: STRIPE_PRICES[tier][interval], quantity: 1 }],
+    allow_promotion_codes: true,
     success_url: `${env.NEXT_PUBLIC_APP_URL}/settings?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${env.NEXT_PUBLIC_APP_URL}/settings`,
     metadata: { userId: session.user.id },
