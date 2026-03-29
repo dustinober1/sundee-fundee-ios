@@ -94,7 +94,7 @@ Firebase Auth with session cookies for server-side verification.
 
 **Providers:** Google OAuth, Apple Sign-In, Email/Password.
 
-**Client-side:** Firebase Client SDK (`firebase/auth`) handles sign-in flows. `AuthProvider` context wraps the app, syncs Firebase ID tokens to server-side session cookies via `/api/auth/session`.
+**Client-side:** Firebase Client SDK (`firebase/auth`) handles sign-in flows via dynamic imports (required to avoid SSR pre-render failures). `AuthProvider` context wraps the app, syncs Firebase ID tokens to server-side session cookies via `/api/auth/session`. Use `getFirebaseAuth()` from `src/lib/firebase.ts` — never import `firebase/auth` at the top level of client components.
 
 **Server-side:** Firebase Admin SDK verifies session cookies. `getAuthUser()` from `src/lib/firestore.ts` returns `{ uid, email, name }` or `null`.
 
@@ -108,6 +108,8 @@ Marketing routes (`/blog`, `/privacy`, `/terms`, `/support`) and auth routes (`/
 **Environment variables:**
 - `FIREBASE_PROJECT_ID` / `FIREBASE_CLIENT_EMAIL` / `FIREBASE_PRIVATE_KEY` — Admin SDK
 - `NEXT_PUBLIC_FIREBASE_API_KEY` / `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` / `NEXT_PUBLIC_FIREBASE_PROJECT_ID` — Client SDK
+- `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` — Stripe server-side
+- `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` / `NEXT_PUBLIC_APP_URL` — Stripe client-side + redirects
 
 ### Database
 
