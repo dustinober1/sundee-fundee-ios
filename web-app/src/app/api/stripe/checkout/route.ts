@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { getAuthUser } from "@/lib/firestore";
 import { createStripeClient, STRIPE_PRICES } from "@/lib/stripe";
-import { getBindings } from "@/lib/bindings";
 
 export async function POST(req: NextRequest) {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await getAuthUser();
+  if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -19,17 +18,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid tier or interval" }, { status: 400 });
   }
 
-  const env = await getBindings();
-  const stripe = createStripeClient(env.STRIPE_SECRET_KEY);
+  const stripe = createStripeClient();
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL!;
 
   const checkoutSession = await stripe.checkout.sessions.create({
     mode: "subscription",
-    customer_email: session.user.email ?? undefined,
+    customer_email: user.email ?? undefined,
     line_items: [{ price: STRIPE_PRICES[tier][interval], quantity: 1 }],
     allow_promotion_codes: true,
-    success_url: `${env.NEXT_PUBLIC_APP_URL}/settings?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${env.NEXT_PUBLIC_APP_URL}/settings`,
-    metadata: { userId: session.user.id },
+    success_url: `${appUrl}/settings?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${appUrl}/settings`,
+    metadata: { userId: user.uid },
   });
 
   return NextResponse.json({ url: checkoutSession.url });

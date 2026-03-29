@@ -20,6 +20,6 @@ export function tierFromPriceId(priceId: string): "plus" | "premium" | null {
   return null;
 }
 
-export function createStripeClient(secretKey: string): Stripe {
-  return new Stripe(secretKey, { apiVersion: "2026-03-25.dahlia" });
+export function createStripeClient(): Stripe {
+  return new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2026-03-25.dahlia" });
 }

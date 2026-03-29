@@ -1,24 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createStripeClient, tierFromPriceId } from "@/lib/stripe";
-import { getBindings } from "@/lib/bindings";
-import { createDb } from "@/db";
-import { subscriptions } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { db } from "@/lib/firebase-admin";
 
 export async function POST(req: NextRequest) {
-  const env = await getBindings();
-  const stripe = createStripeClient(env.STRIPE_SECRET_KEY);
+  const stripe = createStripeClient();
   const body = await req.text();
   const sig = req.headers.get("stripe-signature")!;
 
   let event;
   try {
-    event = stripe.webhooks.constructEvent(body, sig, env.STRIPE_WEBHOOK_SECRET);
+    event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET!);
   } catch {
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
-
-  const db = createDb(env.DB);
 
   switch (event.type) {
     case "checkout.session.completed": {
@@ -32,9 +26,7 @@ export async function POST(req: NextRequest) {
       const tier = tierFromPriceId(priceId ?? "") ?? "free";
       const periodEnd = item?.current_period_end ?? 0;
 
-      await db.insert(subscriptions).values({
-        id: crypto.randomUUID(),
-        userId,
+      await db.collection("users").doc(userId).collection("subscription").doc("current").set({
         stripeCustomerId: session.customer as string,
         stripeSubscriptionId: session.subscription as string,
         tier,
@@ -42,16 +34,7 @@ export async function POST(req: NextRequest) {
         currentPeriodEnd: new Date(periodEnd * 1000),
         createdAt: new Date(),
         updatedAt: new Date(),
-      }).onConflictDoUpdate({
-        target: subscriptions.userId,
-        set: {
-          stripeSubscriptionId: session.subscription as string,
-          tier,
-          status: "active",
-          currentPeriodEnd: new Date(periodEnd * 1000),
-          updatedAt: new Date(),
-        },
-      });
+      }, { merge: true });
       break;
     }
 
@@ -63,14 +46,19 @@ export async function POST(req: NextRequest) {
       const periodEnd = item?.current_period_end ?? 0;
       const tier = sub.status === "active" ? (tierFromPriceId(priceId ?? "") ?? "free") : "free";
 
-      await db.update(subscriptions)
-        .set({
+      const usersSnapshot = await db.collectionGroup("subscription")
+        .where("stripeSubscriptionId", "==", sub.id)
+        .limit(1)
+        .get();
+
+      if (!usersSnapshot.empty) {
+        await usersSnapshot.docs[0].ref.update({
           tier,
           status: sub.status === "active" ? "active" : "canceled",
           currentPeriodEnd: new Date(periodEnd * 1000),
           updatedAt: new Date(),
-        })
-        .where(eq(subscriptions.stripeSubscriptionId, sub.id));
+        });
+      }
       break;
     }
   }
