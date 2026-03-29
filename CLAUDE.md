@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Sundee Fundee is a web-based PWA for cycle-aware strength training. Next.js 16 + TypeScript + Tailwind CSS 4, deployed to Cloudflare Pages with D1 (SQLite) and KV.
+Sundee Fundee is a web-based PWA for cycle-aware strength training. Next.js 16 + TypeScript + Tailwind CSS 4, deployed to Vercel with Firebase (Auth, Firestore, Cloud Functions).
 
 ## Commands
 
@@ -12,14 +12,12 @@ Sundee Fundee is a web-based PWA for cycle-aware strength training. Next.js 16 +
 ```bash
 cd web-app
 npm run dev              # Next.js dev server (http://localhost:3000)
-npm run preview          # Cloudflare local preview (wrangler dev)
 ```
 
 ### Build
 ```bash
 cd web-app
 npm run build            # Next.js production build (+ sitemap generation)
-npm run build:cf         # OpenNext adapter build for Cloudflare Pages
 ```
 
 ### Test
@@ -36,30 +34,32 @@ cd web-app
 npm run lint             # ESLint
 ```
 
-### Database
+### Cloud Functions
 ```bash
-cd web-app
-npx drizzle-kit generate   # Generate migration from schema changes
-npx drizzle-kit migrate    # Apply migrations
+cd firebase/functions
+npm run build            # Compile TypeScript
+npm run deploy           # Deploy functions to Firebase
 ```
 
 ### Deploy
-Cloudflare Pages auto-deploys on push to `main`. Manual deploy:
+Vercel auto-deploys on push to `main`. Cloud Functions deployed separately:
 ```bash
-cd web-app
-npm run build:cf && npm run deploy
+firebase deploy --only functions
+firebase deploy --only firestore:rules
 ```
 
 ## Architecture
 
 ```
-Next.js App Router (React 19 Server Components)
+Next.js App Router on Vercel (React 19 Server Components)
     ↓
-API Routes (/api/auth, /api/stripe, /api/ai)
+API Routes (/api/auth/session, /api/stripe, /api/ai)
     ↓
-Service Layer (Auth.js, Stripe SDK, Drizzle ORM)
+Firebase Admin SDK (server-side auth + Firestore)
     ↓
-Cloudflare D1 (SQLite) + KV (cache/sessions)
+Firebase Auth + Firestore (NoSQL)
+    ↓
+Cloud Functions (AI workout generation via Vertex AI)
     ↓
 Domain/ (pure TypeScript, zero dependencies, 100% tested)
 ```
@@ -67,66 +67,74 @@ Domain/ (pure TypeScript, zero dependencies, 100% tested)
 ### Key Directories
 
 - **`web-app/`** — Main application (Next.js PWA)
-  - **`src/app/(auth)/`** — Sign in / sign up pages
+  - **`src/app/(auth)/`** — Sign in / sign up pages (Firebase Auth SDK)
   - **`src/app/(features)/`** — Protected routes: dashboard, workouts, programs, maxes, benchmarks, cycle, settings
   - **`src/app/(marketing)/`** — Public pages: blog, privacy, terms, support
-  - **`src/app/api/`** — API routes: auth, AI generation, Stripe webhooks
-  - **`src/db/schema.ts`** — Drizzle ORM schema (19 tables)
-  - **`src/lib/auth.ts`** — Auth.js configuration (Google + Apple providers)
+  - **`src/app/api/`** — API routes: auth session, AI generation, Stripe webhooks
+  - **`src/lib/firebase.ts`** — Firebase Client SDK initialization
+  - **`src/lib/firebase-admin.ts`** — Firebase Admin SDK initialization (server-side)
+  - **`src/lib/firestore.ts`** — Firestore helpers: `getAuthUser()`, `userCollection()`, `userDoc()`
   - **`src/lib/domain/`** — Pure business logic: weight calculations, cycle phases, injury adaptation, benchmark catalog, subscription tiers. No framework dependencies — fully unit tested.
   - **`src/lib/stripe.ts`** — Stripe price ID mapping
   - **`src/lib/blog.ts`** — MDX blog post parser
   - **`src/lib/theme.ts`** — Art Deco design tokens (cream/navy/orange)
   - **`src/components/`** — UI primitives (`button`, `card`, `input`) + layout (`bottom-nav`)
+  - **`src/components/providers/auth-provider.tsx`** — Firebase Auth React context
   - **`content/blog/`** — MDX blog posts
-  - **`drizzle/`** — Database migrations
+- **`firebase/functions/`** — Cloud Functions for AI workout generation (Vertex AI Gemini)
+  - **`src/index.ts`** — `generateWorkoutFn` callable function
+  - **`src/ai.ts`** — Vertex AI Gemini integration
+  - **`src/rate-limit.ts`** — Firestore-based daily rate limiting
 - **`wod-dashboard/`** — Admin dashboard for WODs, programs, benchmarks
   - **`data/`** — Shared JSON data files (programs.json, wods.json, benchmarks.json)
-- **`workers/ai-coach/`** — Cloudflare Worker for AI workout generation (Cloudflare AI binding + KV rate limiting)
-- **`functions/`** — Firebase Cloud Functions (legacy)
 
 ### Auth & Routing
 
-Auth.js v5 (NextAuth beta) with JWT session strategy.
+Firebase Auth with session cookies for server-side verification.
 
-**Providers:** Google OAuth, Apple Sign-In, Credentials (stub).
+**Providers:** Google OAuth, Apple Sign-In, Email/Password.
 
-**Middleware** (`src/middleware.ts`) protects all feature routes:
+**Client-side:** Firebase Client SDK (`firebase/auth`) handles sign-in flows. `AuthProvider` context wraps the app, syncs Firebase ID tokens to server-side session cookies via `/api/auth/session`.
+
+**Server-side:** Firebase Admin SDK verifies session cookies. `getAuthUser()` from `src/lib/firestore.ts` returns `{ uid, email, name }` or `null`.
+
+**Middleware** (`src/middleware.ts`) checks for `__session` cookie presence on protected routes:
 - `/dashboard`, `/workouts`, `/programs`, `/maxes`, `/benchmarks`, `/cycle`, `/settings`
 
 Marketing routes (`/blog`, `/privacy`, `/terms`, `/support`) and auth routes (`/sign-in`, `/sign-up`) are unprotected.
 
-**Session callback** embeds `user.id` into JWT token and `session.user.id`. Always use `session.user.id` for data ownership queries.
+**Always use `user.uid`** for data ownership queries.
 
 **Environment variables:**
-- `AUTH_SECRET` — JWT signing secret (`openssl rand -base64 32`)
-- `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` — Google OAuth
-- `AUTH_APPLE_ID` / `AUTH_APPLE_SECRET` — Apple Sign-In
+- `FIREBASE_PROJECT_ID` / `FIREBASE_CLIENT_EMAIL` / `FIREBASE_PRIVATE_KEY` — Admin SDK
+- `NEXT_PUBLIC_FIREBASE_API_KEY` / `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` / `NEXT_PUBLIC_FIREBASE_PROJECT_ID` — Client SDK
 
 ### Database
 
-Cloudflare D1 (SQLite) via Drizzle ORM. Schema: `web-app/src/db/schema.ts`. Config: `web-app/drizzle.config.ts`.
+Cloud Firestore (NoSQL). Access via Firebase Admin SDK in server actions and API routes.
 
-**Cloudflare bindings** (defined in `wrangler.jsonc`):
-- `DB: D1Database` — SQLite database
-- `KV: KVNamespace` — Key-value cache
+**Data model:**
+- **`users/{uid}`** — User profile: experienceLevel, primaryGoal, gender, weightUnit, cycleTrackingEnabled, onboardingComplete
+- **`users/{uid}/oneRepMaxes/{id}`** — 1RM tracking
+- **`users/{uid}/completedWorkouts/{id}`** — Workouts with sets array (denormalized)
+- **`users/{uid}/enrolledPrograms/{id}`** — Program enrollment
+- **`users/{uid}/periodLogs/{id}`** — Cycle period logs
+- **`users/{uid}/cycleSettings/default`** — Cycle settings (single doc)
+- **`users/{uid}/benchmarkResults/{id}`** — Benchmark results
+- **`users/{uid}/subscription/current`** — Stripe subscription (single doc)
+- **`users/{uid}/generatedWorkoutRecords/{id}`** — AI workout history
+- **`users/{uid}/aiUsage/{YYYY-MM-DD}`** — Daily AI rate limit counter
+- **`benchmarkDefinitions/{id}`** — Shared benchmark catalog (top-level)
 
-Accessed via `getCloudflareContext()` from `@opennextjs/cloudflare`. Types in `src/env.d.ts`.
+**Security rules** in `web-app/firestore.rules`: User subcollections restricted to `request.auth.uid == userId`. benchmarkDefinitions readable by all authenticated users, writable only via Admin SDK.
 
-**19 tables:**
-- **Auth (Auth.js managed):** `users`, `accounts`, `sessions`, `verificationTokens`
-- **Strength tracking:** `oneRepMaxes`, `personalRecords`, `liftMaxes`, `conditioningPrs`
-- **Workouts:** `completedWorkouts`, `completedSets`
-- **Programs:** `enrolledPrograms`, `enrollmentEvents`
-- **Injuries:** `injuryProfiles`, `painLogs`
-- **Cycle tracking:** `periodLogs`, `symptomLogs`, `cycleSettings`, `cycleAdaptationPreferences`
-- **Benchmarks:** `benchmarkDefinitions`, `benchmarkResults`
-- **AI & custom:** `generatedWorkoutRecords`, `customProgramRecords`
-- **Subscriptions:** `subscriptions` (Stripe integration)
-
-**`users` table extensions** beyond Auth.js defaults: `experienceLevel`, `primaryGoal`, `gender`, `weightUnit`, `cycleTrackingEnabled`, `onboardingComplete`.
-
-**Enum-as-text convention:** Enums are stored as text columns in SQLite (same pattern as the former CloudKit requirement). Domain types use const objects, not TypeScript `enum`.
+**Data access pattern in server actions:**
+```typescript
+const user = await getAuthUser();
+if (!user) return [];
+const snapshot = await userCollection(user.uid, "collectionName").orderBy("date", "desc").get();
+return snapshot.docs.map((doc) => ({ id: doc.id, ...(doc.data() as any) }));
+```
 
 ### Offline / PWA
 
@@ -148,7 +156,7 @@ Stripe integration with checkout sessions, webhooks, and customer portal.
 - **Sundee Premium** — unlimited all, 10 cloud AI/day, rehab sessions, AI coach memory, plateau detection
 
 **Webhook events** (`src/app/api/stripe/webhook/route.ts`):
-- `checkout.session.completed` — upsert subscription
+- `checkout.session.completed` — upsert subscription in `users/{uid}/subscription/current`
 - `customer.subscription.updated` — update tier/status/expiry
 - `customer.subscription.deleted` — mark canceled
 
@@ -156,9 +164,9 @@ Stripe integration with checkout sessions, webhooks, and customer portal.
 
 ### AI Workouts
 
-**Cloudflare Worker** (`workers/ai-coach/`) — endpoint at `workout-proxy.sundeefundee.workers.dev/generate-workout`. Uses Cloudflare AI binding + KV rate limiting + JWT auth.
+**Cloud Function** (`firebase/functions/src/index.ts`) — `generateWorkoutFn` callable function. Uses Vertex AI Gemini Flash + Firestore rate limiting.
 
-**Web-app API route** (`src/app/api/ai/generate/route.ts`): Authenticates user, injects `userId`, proxies to worker.
+**Web-app API route** (`src/app/api/ai/generate/route.ts`): Authenticates user, checks subscription tier, rate limits, calls Vertex AI directly, saves record to Firestore.
 
 **Domain logic** (`src/lib/domain/ai-workout.ts`):
 - `energyMultiplier(level)` — low: 0.85, medium: 1.0, high: 1.05
@@ -209,8 +217,6 @@ When adding a new entity type to the dashboard (`wod-dashboard/`):
 7. Create page at `src/app/<entity>/page.tsx` (two-panel split-view)
 8. Add nav link to `src/components/sidebar.tsx`
 
-AI generation routes (`src/app/api/generate/`) follow a shared pattern: accept parameters → build Gemini prompt → POST to Cloudflare Worker → strip markdown fences → parse and validate JSON → return typed response. Currently: `wod/`, `program/`, `benchmark/`.
-
 JSON data files live in `wod-dashboard/data/` (programs.json, wods.json, benchmarks.json).
 
 ### CloudKit Server-to-Server Auth
@@ -225,8 +231,8 @@ The WOD Dashboard uses ECDSA server-to-server authentication (no user sign-in ne
 
 - **Benchmark `roundsAndReps` scoring** encodes as `rounds * 10000 + reps` in a single number. Higher is better. Decode: `rounds = Math.floor(value / 10000)`, `reps = value % 10000`.
 - **Disable buttons for invalid input** rather than silently failing on save.
-- **Thread `session.user.id`** through all data-writing operations. Never hardcode empty strings.
-- **Const objects for enums** — use `as const` objects, not TypeScript `enum`. Stored as text in D1.
+- **Thread `user.uid`** through all data-writing operations. Never hardcode empty strings.
+- **Const objects for enums** — use `as const` objects, not TypeScript `enum`. Stored as text fields in Firestore.
 - **Discriminated unions** for flexible types (e.g., `ExerciseValue` with `type` field: `fixed`, `amrap`, `range`, `text`).
 - **Multiplier-based adaptation** — cycle phase, recovery phase, and energy level compose multiplicatively on base weights.
 - **Domain functions are pure** — no side effects, no framework imports. Accept data, return data.

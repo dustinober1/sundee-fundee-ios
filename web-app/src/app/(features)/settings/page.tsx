@@ -1,7 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { getAuthUser } from "@/lib/firestore";
 import { getUserProfile, getSubscription } from "./actions";
-import { tierDisplayName } from "@/lib/domain";
 import { ProfileForm } from "./profile-form";
 import { SubscriptionCard } from "./subscription-card";
 import { SignOutButton } from "./sign-out-button";
