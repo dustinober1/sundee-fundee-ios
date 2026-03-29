@@ -1,30 +1,21 @@
 "use server";
 
-import { auth } from "@/lib/auth";
-import { getBindings } from "@/lib/bindings";
-import { createDb } from "@/db";
-import { enrolledPrograms } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { getAuthUser, userCollection } from "@/lib/firestore";
 import { generateProgram, type ProgramTemplate } from "@/lib/domain";
 
 export async function getEnrolledPrograms() {
-  const session = await auth();
-  if (!session?.user?.id) return [];
-  const env = await getBindings();
-  const db = createDb(env.DB);
-  return db.select().from(enrolledPrograms)
-    .where(eq(enrolledPrograms.userId, session.user.id));
+  const user = await getAuthUser();
+  if (!user) return [];
+
+  const snapshot = await userCollection(user.uid, "enrolledPrograms").get();
+  return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 }
 
 export async function enrollInProgram(programId: string) {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error("Unauthorized");
-  const env = await getBindings();
-  const db = createDb(env.DB);
+  const user = await getAuthUser();
+  if (!user) throw new Error("Unauthorized");
 
-  await db.insert(enrolledPrograms).values({
-    id: crypto.randomUUID(),
-    userId: session.user.id,
+  await userCollection(user.uid, "enrolledPrograms").add({
     programId,
     startDate: new Date(),
     currentWeek: 1,

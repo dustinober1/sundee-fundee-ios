@@ -1,30 +1,23 @@
 "use server";
 
-import { auth } from "@/lib/auth";
-import { getBindings } from "@/lib/bindings";
-import { createDb } from "@/db";
-import { oneRepMaxes } from "@/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { getAuthUser, userCollection } from "@/lib/firestore";
 
 export async function getMaxes() {
-  const session = await auth();
-  if (!session?.user?.id) return [];
-  const env = await getBindings();
-  const db = createDb(env.DB);
-  return db.select().from(oneRepMaxes)
-    .where(eq(oneRepMaxes.userId, session.user.id))
-    .orderBy(desc(oneRepMaxes.date));
+  const user = await getAuthUser();
+  if (!user) return [];
+
+  const snapshot = await userCollection(user.uid, "oneRepMaxes")
+    .orderBy("date", "desc")
+    .get();
+
+  return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 }
 
 export async function addMax(data: { exerciseId: string; weightKg: number; isEstimated: boolean }) {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error("Unauthorized");
-  const env = await getBindings();
-  const db = createDb(env.DB);
+  const user = await getAuthUser();
+  if (!user) throw new Error("Unauthorized");
 
-  await db.insert(oneRepMaxes).values({
-    id: crypto.randomUUID(),
-    userId: session.user.id,
+  await userCollection(user.uid, "oneRepMaxes").add({
     exerciseId: data.exerciseId,
     weightKg: data.weightKg,
     date: new Date(),
