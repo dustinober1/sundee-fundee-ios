@@ -11,7 +11,8 @@ export async function getRecentWorkouts() {
     .limit(20)
     .get();
 
-  return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return snapshot.docs.map((doc) => ({ id: doc.id, ...(doc.data() as any) }));
 }
 
 export async function saveWorkout(data: {

@@ -8,7 +8,8 @@ export async function getEnrolledPrograms() {
   if (!user) return [];
 
   const snapshot = await userCollection(user.uid, "enrolledPrograms").get();
-  return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return snapshot.docs.map((doc) => ({ id: doc.id, ...(doc.data() as any) }));
 }
 
 export async function enrollInProgram(programId: string) {

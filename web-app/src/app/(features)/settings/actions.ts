@@ -8,7 +8,8 @@ export async function getUserProfile() {
 
   const doc = await userDoc(user.uid).get();
   if (!doc.exists) return null;
-  return { id: doc.id, ...doc.data() };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return { id: doc.id, ...(doc.data() as any) };
 }
 
 export async function updateProfile(data: { name?: string; weightUnit?: string; experienceLevel?: string; primaryGoal?: string }) {
