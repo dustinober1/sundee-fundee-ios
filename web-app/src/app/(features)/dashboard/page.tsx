@@ -15,8 +15,9 @@ export default async function DashboardPage() {
   });
 
   return (
-    <div className="flex flex-col gap-spacing-lg">
+    <div className="flex flex-col gap-8">
       <div>
+        <p className="text-gold font-mono text-[10px] tracking-[0.3em] uppercase mb-1">Welcome Back</p>
         <h1 className="text-3xl">Hey, {userName}</h1>
         <p className="text-text-secondary">{today}</p>
       </div>
@@ -37,17 +38,19 @@ export default async function DashboardPage() {
       </div>
 
       <Card>
-        <h2 className="mb-spacing-sm">Quick Actions</h2>
-        <div className="grid grid-cols-2 gap-spacing-sm">
-          <Link href="/workouts" className="flex items-center justify-center gap-2 bg-orange text-cream rounded-button py-spacing-sm px-spacing-md text-[14px] font-medium hover:opacity-90">Start Workout</Link>
-          <Link href="/maxes" className="flex items-center justify-center gap-2 bg-card-bg text-navy border border-navy rounded-button py-spacing-sm px-spacing-md text-[14px] font-medium hover:bg-separator/30">Log Max</Link>
-          <Link href="/programs" className="flex items-center justify-center gap-2 bg-card-bg text-navy border border-navy rounded-button py-spacing-sm px-spacing-md text-[14px] font-medium hover:bg-separator/30">Programs</Link>
-          <Link href="/benchmarks" className="flex items-center justify-center gap-2 bg-card-bg text-navy border border-navy rounded-button py-spacing-sm px-spacing-md text-[14px] font-medium hover:bg-separator/30">Benchmarks</Link>
+        <p className="text-gold font-mono text-[10px] tracking-[0.2em] uppercase mb-1">Get Moving</p>
+        <h2 className="mb-4">Quick Actions</h2>
+        <div className="grid grid-cols-2 gap-3">
+          <Link href="/workouts" className="flex items-center justify-center gap-2 bg-orange text-cream rounded-button py-3 px-spacing-md text-[14px] font-medium hover:opacity-90 transition-opacity shadow-sm shadow-orange/20">Start Workout</Link>
+          <Link href="/maxes" className="flex items-center justify-center gap-2 bg-navy text-cream rounded-button py-3 px-spacing-md text-[14px] font-medium hover:opacity-90 transition-opacity">Log Max</Link>
+          <Link href="/programs" className="flex items-center justify-center gap-2 bg-card-bg text-navy border border-navy/20 rounded-button py-3 px-spacing-md text-[14px] font-medium hover:border-navy/40 transition-colors">Programs</Link>
+          <Link href="/benchmarks" className="flex items-center justify-center gap-2 bg-card-bg text-navy border border-navy/20 rounded-button py-3 px-spacing-md text-[14px] font-medium hover:border-navy/40 transition-colors">Benchmarks</Link>
         </div>
       </Card>
 
       <Card>
-        <h2 className="mb-spacing-sm">Recent Activity</h2>
+        <p className="text-gold font-mono text-[10px] tracking-[0.2em] uppercase mb-1">History</p>
+        <h2 className="mb-3">Recent Activity</h2>
         <p className="text-text-secondary text-[13px]">No workouts yet. Start your first workout to see activity here.</p>
       </Card>
     </div>

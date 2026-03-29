@@ -6,19 +6,61 @@ async function syncSessionCookie(idToken: string): Promise<void> {
   });
 }
 
+function isMobile(): boolean {
+  return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+}
+
+async function updateAppleDisplayName(
+  result: import("firebase/auth").UserCredential,
+): Promise<void> {
+  const { OAuthProvider, updateProfile } = await import("firebase/auth");
+
+  if (result.user.displayName) return;
+
+  const credential = OAuthProvider.credentialFromResult(result);
+  const appleIdToken = credential?.idToken;
+  if (!appleIdToken) return;
+
+  try {
+    const payload = JSON.parse(atob(appleIdToken.split(".")[1]));
+    const firstName = payload.first_name ?? payload.given_name ?? "";
+    const lastName = payload.last_name ?? payload.family_name ?? "";
+    const fullName = [firstName, lastName].filter(Boolean).join(" ");
+    if (fullName) {
+      await updateProfile(result.user, { displayName: fullName });
+    }
+  } catch {
+    // ID token parsing failed — not critical
+  }
+}
+
 export async function signInWithGoogle(): Promise<void> {
-  const { signInWithPopup, GoogleAuthProvider } = await import("firebase/auth");
+  const {
+    signInWithPopup,
+    signInWithRedirect,
+    GoogleAuthProvider,
+  } = await import("firebase/auth");
   const { getFirebaseAuth } = await import("@/lib/firebase");
   const auth = getFirebaseAuth();
-  const result = await signInWithPopup(auth, new GoogleAuthProvider());
+  const provider = new GoogleAuthProvider();
+
+  if (isMobile()) {
+    await signInWithRedirect(auth, provider);
+    // Page will reload — AuthProvider handles session sync on return
+    return;
+  }
+
+  const result = await signInWithPopup(auth, provider);
   const idToken = await result.user.getIdToken();
   await syncSessionCookie(idToken);
 }
 
 export async function signInWithApple(): Promise<void> {
-  const { signInWithPopup, OAuthProvider, updateProfile } = await import(
-    "firebase/auth"
-  );
+  const {
+    signInWithPopup,
+    signInWithRedirect,
+    OAuthProvider,
+  } = await import("firebase/auth");
   const { getFirebaseAuth } = await import("@/lib/firebase");
   const auth = getFirebaseAuth();
 
@@ -26,28 +68,14 @@ export async function signInWithApple(): Promise<void> {
   provider.addScope("email");
   provider.addScope("name");
 
-  const result = await signInWithPopup(auth, provider);
-
-  // Apple only sends the user's name on the very first authorization.
-  // If displayName is missing, extract it from the Apple ID token.
-  if (!result.user.displayName) {
-    const credential = OAuthProvider.credentialFromResult(result);
-    const appleIdToken = credential?.idToken;
-    if (appleIdToken) {
-      try {
-        const payload = JSON.parse(atob(appleIdToken.split(".")[1]));
-        const firstName = payload.first_name ?? payload.given_name ?? "";
-        const lastName = payload.last_name ?? payload.family_name ?? "";
-        const fullName = [firstName, lastName].filter(Boolean).join(" ");
-        if (fullName) {
-          await updateProfile(result.user, { displayName: fullName });
-        }
-      } catch {
-        // ID token parsing failed — not critical
-      }
-    }
+  if (isMobile()) {
+    await signInWithRedirect(auth, provider);
+    // Page will reload — AuthProvider handles session sync on return
+    return;
   }
 
+  const result = await signInWithPopup(auth, provider);
+  await updateAppleDisplayName(result);
   const idToken = await result.user.getIdToken();
   await syncSessionCookie(idToken);
 }

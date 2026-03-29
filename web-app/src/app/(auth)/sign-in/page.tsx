@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
@@ -12,6 +12,22 @@ export default function SignInPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+
+  // Handle redirect result after mobile social sign-in
+  useEffect(() => {
+    async function handleRedirectResult() {
+      const { getRedirectResult } = await import("firebase/auth");
+      const { getFirebaseAuth } = await import("@/lib/firebase");
+      const auth = getFirebaseAuth();
+      const result = await getRedirectResult(auth);
+      if (result?.user) {
+        router.push("/dashboard");
+      }
+    }
+    handleRedirectResult().catch(() => {
+      // Redirect result errors are non-critical — user can retry
+    });
+  }, [router]);
 
   async function handleEmailSignIn(e: React.FormEvent) {
     e.preventDefault();
