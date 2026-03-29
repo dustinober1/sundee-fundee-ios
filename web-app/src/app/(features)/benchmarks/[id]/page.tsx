@@ -12,7 +12,7 @@ export default async function BenchmarkDetailPage({ params }: { params: Promise<
   const results = allResults.filter((r) => r.definitionId === id);
 
   return (
-    <div className="flex flex-col gap-spacing-md">
+    <div className="flex flex-col gap-spacing-lg">
       <div>
         <h1>{benchmark.name}</h1>
         <p className="text-text-secondary">{benchmark.workoutDescription}</p>

@@ -17,7 +17,7 @@ export default async function BenchmarksPage() {
   }
 
   return (
-    <div className="flex flex-col gap-spacing-md">
+    <div className="flex flex-col gap-spacing-lg">
       <h1>Benchmarks</h1>
 
       {Array.from(groups.entries()).map(([category, benchmarks]) => (

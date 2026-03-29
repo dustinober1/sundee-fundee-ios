@@ -72,7 +72,7 @@ export default function NewWorkoutPage() {
   };
 
   return (
-    <div className="flex flex-col gap-spacing-md">
+    <div className="flex flex-col gap-spacing-lg">
       <div className="flex items-center justify-between">
         <h1>Log Workout</h1>
         <span className="font-mono text-xl text-orange">{formatTime(elapsed)}</span>

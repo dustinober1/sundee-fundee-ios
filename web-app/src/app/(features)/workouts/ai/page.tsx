@@ -62,7 +62,7 @@ export default function AIWorkoutPage() {
 
   if (step === "loading") {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-spacing-md">
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-spacing-lg">
         <div className="w-12 h-12 border-4 border-orange border-t-transparent rounded-full animate-spin" />
         <p className="text-text-secondary">Generating your workout...</p>
       </div>
@@ -71,7 +71,7 @@ export default function AIWorkoutPage() {
 
   if (step === "preview" && workout) {
     return (
-      <div className="flex flex-col gap-spacing-md">
+      <div className="flex flex-col gap-spacing-lg">
         <h1>Your Workout</h1>
         <Card>
           <p className="text-[14px] text-text-secondary">{workout.coachingSummary}</p>
@@ -106,7 +106,7 @@ export default function AIWorkoutPage() {
   }
 
   return (
-    <div className="flex flex-col gap-spacing-md">
+    <div className="flex flex-col gap-spacing-lg">
       <h1>AI Workout</h1>
 
       {error && (

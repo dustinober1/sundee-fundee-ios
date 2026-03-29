@@ -61,7 +61,7 @@ h2 { font-size: var(--font-size-subheading); font-weight: 600; }
 .card {
   background-color: var(--color-card-bg);
   border-radius: var(--radius-card);
-  padding: var(--spacing-md);
+  padding: var(--spacing-lg);
   box-shadow: 0 1px 3px rgba(13, 26, 64, 0.08);
 }
 

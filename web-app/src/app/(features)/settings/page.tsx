@@ -18,7 +18,7 @@ export default async function SettingsPage() {
   const tier = ((subscription as Record<string, unknown>)?.tier as "free" | "plus" | "premium") ?? "free";
 
   return (
-    <div className="flex flex-col gap-spacing-md">
+    <div className="flex flex-col gap-spacing-lg">
       <h1>Settings</h1>
 
       <Card>

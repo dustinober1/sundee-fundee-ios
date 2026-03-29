@@ -149,7 +149,7 @@ function sessionExercises(
       return pool.map(([name, sets, reps, basePct, rest, bw]) => ({
         exercise: name,
         sets: { type: "fixed", value: sets },
-        reps: { type: "fixed", value: reps },
+        reps: reps === 0 ? { type: "text", value: "hold" } : { type: "fixed", value: reps },
         percent1RM: bw ? undefined : basePct + progressionOffset,
         restMinutes: rest,
         bodyweightOnly: bw,

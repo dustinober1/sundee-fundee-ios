@@ -14,7 +14,7 @@ export default async function MaxesPage() {
   }
 
   return (
-    <div className="flex flex-col gap-spacing-md">
+    <div className="flex flex-col gap-spacing-lg">
       <h1>Max Lifts</h1>
 
       <AddMaxForm />

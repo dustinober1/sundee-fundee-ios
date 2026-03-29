@@ -6,7 +6,7 @@ export default async function WorkoutsPage() {
   const workouts = await getRecentWorkouts();
 
   return (
-    <div className="flex flex-col gap-spacing-md">
+    <div className="flex flex-col gap-spacing-lg">
       <div className="flex items-center justify-between">
         <h1>Workouts</h1>
         <Link

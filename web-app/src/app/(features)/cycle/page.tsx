@@ -30,7 +30,7 @@ export default async function CyclePage() {
   const status = calculateCycleStatus(periodEntries, cycleConfig, new Date());
 
   return (
-    <div className="flex flex-col gap-spacing-md">
+    <div className="flex flex-col gap-spacing-lg">
       <h1>Cycle Tracking</h1>
 
       {status ? (

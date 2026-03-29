@@ -15,7 +15,7 @@ export default async function DashboardPage() {
   });
 
   return (
-    <div className="flex flex-col gap-spacing-md">
+    <div className="flex flex-col gap-spacing-lg">
       <div>
         <h1 className="text-3xl">Hey, {userName}</h1>
         <p className="text-text-secondary">{today}</p>
@@ -31,7 +31,7 @@ export default async function DashboardPage() {
           <p className="text-[11px] text-text-secondary">Day Streak</p>
         </Card>
         <Card className="text-center">
-          <p className="text-2xl font-bold text-orange">—</p>
+          <p className="text-2xl font-bold text-orange">None</p>
           <p className="text-[11px] text-text-secondary">Program</p>
         </Card>
       </div>

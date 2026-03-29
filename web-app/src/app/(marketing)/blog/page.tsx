@@ -17,6 +17,9 @@ export default function BlogPage() {
 
   return (
     <main className="max-w-2xl mx-auto">
+      <Link href="/" className="text-orange text-[14px] font-medium hover:underline">
+        &larr; Home
+      </Link>
       <h1 className="text-4xl mb-spacing-lg">Blog</h1>
       <div className="flex flex-col gap-spacing-md">
         {posts.map((post) => (

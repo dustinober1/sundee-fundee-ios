@@ -15,7 +15,7 @@ export default async function ProgramsPage() {
   const enrolled = await getEnrolledPrograms();
 
   return (
-    <div className="flex flex-col gap-spacing-md">
+    <div className="flex flex-col gap-spacing-lg">
       <h1>Programs</h1>
 
       {enrolled.length > 0 && (
