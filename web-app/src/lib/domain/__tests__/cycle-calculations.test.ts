@@ -13,6 +13,11 @@ const defaultSettings: CycleSettings = {
   lutealPhaseLengthDays: 14,
 };
 
+// Use local time constructors to avoid UTC offset issues
+function localDate(year: number, month: number, day: number): Date {
+  return new Date(year, month - 1, day);
+}
+
 describe("getPhaseBoundaries", () => {
   it("returns correct boundaries for a 28-day cycle", () => {
     const b = getPhaseBoundaries(defaultSettings);
@@ -27,11 +32,13 @@ describe("getPhaseBoundaries", () => {
     expect(b.ovulation.end).toBeLessThan(b.luteal.start);
   });
 
-  it("all phases together cover the cycle with no gaps (contiguous boundaries)", () => {
+  it("follicular starts right after menstrual ends", () => {
     const b = getPhaseBoundaries(defaultSettings);
-    // menstrual ends 1 before follicular starts
     expect(b.follicular.start).toBe(b.menstrual.end + 1);
-    // luteal ends at cycleLengthDays
+  });
+
+  it("luteal ends at cycle length", () => {
+    const b = getPhaseBoundaries(defaultSettings);
     expect(b.luteal.end).toBe(defaultSettings.averageCycleLengthDays);
   });
 });
@@ -43,8 +50,8 @@ describe("calculateCycleStatus", () => {
   });
 
   it("detects menstrual phase on day 2", () => {
-    const start = new Date("2024-01-01");
-    const ref = new Date("2024-01-02");
+    const start = localDate(2024, 1, 1);
+    const ref   = localDate(2024, 1, 2);
     const logs: PeriodLog[] = [{ startDate: start }];
     const result = calculateCycleStatus(logs, defaultSettings, ref);
     expect(result).not.toBeNull();
@@ -53,8 +60,8 @@ describe("calculateCycleStatus", () => {
   });
 
   it("detects follicular phase on day 10", () => {
-    const start = new Date("2024-01-01");
-    const ref = new Date("2024-01-10");
+    const start = localDate(2024, 1, 1);
+    const ref   = localDate(2024, 1, 10);
     const logs: PeriodLog[] = [{ startDate: start }];
     const result = calculateCycleStatus(logs, defaultSettings, ref);
     expect(result).not.toBeNull();
@@ -62,8 +69,8 @@ describe("calculateCycleStatus", () => {
   });
 
   it("detects luteal phase on day 20", () => {
-    const start = new Date("2024-01-01");
-    const ref = new Date("2024-01-20");
+    const start = localDate(2024, 1, 1);
+    const ref   = localDate(2024, 1, 20);
     const logs: PeriodLog[] = [{ startDate: start }];
     const result = calculateCycleStatus(logs, defaultSettings, ref);
     expect(result).not.toBeNull();
@@ -72,8 +79,8 @@ describe("calculateCycleStatus", () => {
 
   it("detects ovulation phase near ovulation day", () => {
     // ovulationDay = 28 - 14 = 14; ovStart = max(7, 12) = 12
-    const start = new Date("2024-01-01");
-    const ref = new Date("2024-01-13"); // day 13 should be ovulation
+    const start = localDate(2024, 1, 1);
+    const ref   = localDate(2024, 1, 13); // day 13 should be ovulation
     const logs: PeriodLog[] = [{ startDate: start }];
     const result = calculateCycleStatus(logs, defaultSettings, ref);
     expect(result).not.toBeNull();
@@ -81,28 +88,28 @@ describe("calculateCycleStatus", () => {
   });
 
   it("daysUntilNextPhase is non-negative", () => {
-    const start = new Date("2024-01-01");
-    const ref = new Date("2024-01-15");
+    const start = localDate(2024, 1, 1);
+    const ref   = localDate(2024, 1, 15);
     const logs: PeriodLog[] = [{ startDate: start }];
     const result = calculateCycleStatus(logs, defaultSettings, ref);
     expect(result!.daysUntilNextPhase).toBeGreaterThanOrEqual(0);
   });
 
   it("returns predictedNextPeriod 28 days after cycle start", () => {
-    const start = new Date("2024-01-01");
-    const ref = new Date("2024-01-05");
+    const start = localDate(2024, 1, 1);
+    const ref   = localDate(2024, 1, 5);
     const logs: PeriodLog[] = [{ startDate: start }];
     const result = calculateCycleStatus(logs, defaultSettings, ref);
-    const expectedDate = new Date("2024-01-29");
-    expect(result!.predictedNextPeriod.getTime()).toBe(expectedDate.getTime());
+    const expected = localDate(2024, 1, 29);
+    expect(result!.predictedNextPeriod.getTime()).toBe(expected.getTime());
   });
 
   it("handles multiple period logs and picks the most recent relevant one", () => {
     const logs: PeriodLog[] = [
-      { startDate: new Date("2024-02-01") },
-      { startDate: new Date("2024-01-04") },
+      { startDate: localDate(2024, 2, 1) },
+      { startDate: localDate(2024, 1, 4) },
     ];
-    const ref = new Date("2024-02-03");
+    const ref = localDate(2024, 2, 3);
     const result = calculateCycleStatus(logs, defaultSettings, ref);
     expect(result).not.toBeNull();
     expect(result!.cycleDay).toBe(3);
