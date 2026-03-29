@@ -6,11 +6,6 @@ import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-async function getAuth() {
-  const { getFirebaseAuth } = await import("@/lib/firebase");
-  return getFirebaseAuth();
-}
-
 export default function SignInPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -24,7 +19,8 @@ export default function SignInPage() {
     setLoading(true);
     try {
       const { signInWithEmailAndPassword } = await import("firebase/auth");
-      const auth = await getAuth();
+      const { getFirebaseAuth } = await import("@/lib/firebase");
+      const auth = getFirebaseAuth();
       await signInWithEmailAndPassword(auth, email, password);
       router.push("/dashboard");
     } catch {
@@ -36,27 +32,24 @@ export default function SignInPage() {
   async function handleGoogleSignIn() {
     setError("");
     try {
-      const { signInWithPopup, GoogleAuthProvider } = await import("firebase/auth");
-      const auth = await getAuth();
-      await signInWithPopup(auth, new GoogleAuthProvider());
+      const { signInWithGoogle } = await import("@/lib/social-auth");
+      await signInWithGoogle();
       router.push("/dashboard");
-    } catch {
-      setError("Google sign-in failed");
+    } catch (err) {
+      const { socialAuthErrorMessage } = await import("@/lib/social-auth");
+      setError(socialAuthErrorMessage(err));
     }
   }
 
   async function handleAppleSignIn() {
     setError("");
     try {
-      const { signInWithPopup, OAuthProvider } = await import("firebase/auth");
-      const auth = await getAuth();
-      const provider = new OAuthProvider("apple.com");
-      provider.addScope("email");
-      provider.addScope("name");
-      await signInWithPopup(auth, provider);
+      const { signInWithApple } = await import("@/lib/social-auth");
+      await signInWithApple();
       router.push("/dashboard");
-    } catch {
-      setError("Apple sign-in failed");
+    } catch (err) {
+      const { socialAuthErrorMessage } = await import("@/lib/social-auth");
+      setError(socialAuthErrorMessage(err));
     }
   }
 

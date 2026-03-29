@@ -94,6 +94,10 @@ Firebase Auth with session cookies for server-side verification.
 
 **Providers:** Google OAuth, Apple Sign-In, Email/Password.
 
+**Social auth:** `src/lib/social-auth.ts` contains shared `signInWithGoogle()` and `signInWithApple()` helpers used by both sign-in and sign-up pages. `signInWithPopup` handles account creation and login automatically — no separate logic needed per page.
+
+**Apple Sign-In quirks:** Apple only sends the user's name on the **first** authorization. `signInWithApple()` extracts the name from the Apple ID token and calls `updateProfile`. If a user revokes and re-authorizes, the name is sent again. Firebase Console requires the full OAuth code flow config (Team ID, Key ID, Private Key from `.p8` file) for web — the toggle alone is not enough.
+
 **Client-side:** Firebase Client SDK (`firebase/auth`) handles sign-in flows via dynamic imports (required to avoid SSR pre-render failures). `AuthProvider` context wraps the app, syncs Firebase ID tokens to server-side session cookies via `/api/auth/session`. Use `getFirebaseAuth()` from `src/lib/firebase.ts` — never import `firebase/auth` at the top level of client components.
 
 **Server-side:** Firebase Admin SDK verifies session cookies. `getAuthUser()` from `src/lib/firestore.ts` returns `{ uid, email, name }` or `null`.
@@ -110,6 +114,8 @@ Marketing routes (`/blog`, `/privacy`, `/terms`, `/support`) and auth routes (`/
 - `NEXT_PUBLIC_FIREBASE_API_KEY` / `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` / `NEXT_PUBLIC_FIREBASE_PROJECT_ID` — Client SDK
 - `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` — Stripe server-side
 - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` / `NEXT_PUBLIC_APP_URL` — Stripe client-side + redirects
+
+**Apple Sign-In Firebase Config** (set in Firebase Console, not env vars): Services ID (`com.sundeefundee.web`), Apple Team ID, Key ID, and `.p8` private key. Apple Developer Services ID must have `sundee-fundee.firebaseapp.com` and `sundeefundee.com` as authorized domains with return URL `https://sundee-fundee.firebaseapp.com/__/auth/handler`.
 
 ### Database
 
