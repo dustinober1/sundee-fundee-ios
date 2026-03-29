@@ -1,115 +1,123 @@
 # Sundee Fundee
 
-**Strength Gained — On Your Cycle** — Native iOS strength training app, hormonal-cycle aware.
+Cycle-aware strength training — built for the web.
 
-## Overview
-
-Sundee Fundee is a hormonal-aware strength training tracker built natively for iPhone using Swift 6, SwiftUI, SwiftData, and CloudKit. It helps users follow structured periodized programs while incorporating menstrual cycle phase data for optimized training recommendations.
-
-## Tech Stack
+## Stack
 
 | Component | Technology |
 |:---|:---|
-| **Language** | Swift 6 |
-| **UI Framework** | SwiftUI |
-| **State Management** | `@Observable` + `@Environment` |
-| **Local Persistence** | SwiftData |
-| **Cloud Sync** | CloudKit (Private DB for user data, Public DB for programs) |
-| **Authentication** | Sign in with Apple (AuthenticationServices) |
-| **Observability** | MetricKit + Xcode Organizer |
-| **Project Generator** | XcodeGen (`project.yml`) |
-| **iOS Minimum** | 17.0 |
+| **App** | Next.js 16, TypeScript, React 19, Tailwind CSS 4 (PWA) |
+| **Hosting** | Cloudflare Pages (via OpenNext adapter) |
+| **Database** | Cloudflare D1 (SQLite) with Drizzle ORM |
+| **Cache / Sessions** | Cloudflare KV |
+| **Auth** | Auth.js (NextAuth v5) + Google & Apple providers |
+| **Payments** | Stripe (checkout, portal, webhooks) |
+| **AI Workouts** | Cloudflare Worker (`ai-coach`) with Cloudflare AI |
+| **Admin** | WOD Dashboard (Next.js) |
+| **Blog** | MDX with `next-mdx-remote` |
+| **PWA** | Serwist (service worker, offline support) |
 
 ## Project Structure
 
 ```
-SundeeFundee/
-├── App/                    # @main entry, ModelContainer, AppState, AppRootView
-├── Auth/                   # Sign in with Apple, KeychainHelper, SignInView
-├── Onboarding/             # Multi-step onboarding flow
-├── Models/                 # @Model SwiftData entities (14 types)
-├── Repositories/           # Repository protocols + SwiftData implementations
-│   ├── Protocols/
-│   ├── SwiftData/
-│   └── ProgramRepository.swift   # CloudKit Public DB + bundled JSON fallback
-├── Domain/                 # Business logic (pure Swift, fully tested)
-│   ├── Calculations/       # WeightCalculations, PlateCalculation, EpleyFormula
-│   ├── CycleCalculations.swift
-│   ├── CycleProgramGenerator.swift
-│   ├── InjuryAdaptationEngine.swift
-│   └── CycleAdaptationPolicy.swift
-├── Features/               # Feature screens + view models
-│   ├── Shell/              # MainTabView (5 tabs)
-│   ├── Dashboard/
-│   ├── Programs/
-│   ├── Workouts/
-│   ├── Cycle/
-│   ├── Maxes/
-│   └── Settings/
-├── Observability/          # MetricsService (MetricKit)
-├── Resources/Programs/     # Bundled programs.json
-└── Theme/                  # AppTheme (Art Deco cream/navy/orange tokens)
-SundeeFundeTests/
-└── BusinessLogicTests.swift   # 24 unit tests
+sundee-fundee/
+├── web-app/                 # Main application (Next.js PWA)
+│   ├── src/
+│   │   ├── app/
+│   │   │   ├── (auth)/      # Sign in / sign up
+│   │   │   ├── (features)/  # Dashboard, workouts, programs, maxes, benchmarks, cycle, settings
+│   │   │   ├── (marketing)/ # Blog, privacy, terms, support
+│   │   │   └── api/         # Auth, AI generation, Stripe webhooks
+│   │   ├── components/      # Shared UI components
+│   │   ├── db/              # Drizzle schema (19 tables) + migrations
+│   │   └── lib/             # Auth config, theme, domain logic, blog parser
+│   ├── content/blog/        # MDX blog posts
+│   ├── drizzle/             # Database migrations
+│   └── public/              # Manifest, icons, generated sitemap
+├── wod-dashboard/           # Admin dashboard for WODs, programs, benchmarks
+│   └── data/                # Shared JSON data (programs, wods, benchmarks)
+├── workers/
+│   └── ai-coach/            # Cloudflare Worker — AI workout generation
+├── functions/               # Firebase Cloud Functions (legacy)
+└── .github/workflows/       # CI: lint, test, build, smoke test
 ```
 
-## Getting Started
+## Development
 
 ### Prerequisites
 
-- Xcode 16+
-- `xcodegen` — install via `brew install xcodegen`
+- Node.js 22+
+- npm
 
-### Build & Run
-
-```bash
-# Generate Xcode project
-xcodegen generate
-
-# Open in Xcode
-open SundeeFundee.xcodeproj
-
-# Or build from CLI (iOS Simulator)
-xcodebuild build \
-  -project SundeeFundee.xcodeproj \
-  -scheme SundeeFundee \
-  -destination 'platform=iOS Simulator,name=iPhone 16 Pro'
-```
-
-Debug builds use `SundeeFundee.Debug.entitlements` (no iCloud or Sign in with Apple capability), which allows Personal Team development signing. Release builds keep full production entitlements.
-
-### Run Tests
+### Setup
 
 ```bash
-xcodebuild test \
-  -project SundeeFundee.xcodeproj \
-  -scheme SundeeFundee \
-  -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
-  -only-testing:SundeeFundeTests
+cd web-app
+cp .env.example .env.local
+# Fill in AUTH_SECRET, AUTH_GOOGLE_ID, AUTH_GOOGLE_SECRET, Stripe keys, etc.
+npm install
 ```
 
-## Architecture
+### Run
 
-```
-UI (SwiftUI views)
-    ↓
-ViewModels (@Observable, @MainActor)
-    ↓
-Repository protocols (testable, Sendable)
-    ↓
-SwiftData implementations ←→ CloudKit (Private / Public DB)
-    ↓
-Domain / Business Logic (pure Swift, zero dependencies)
+```bash
+npm run dev          # Next.js dev server (http://localhost:3000)
+npm run preview      # Cloudflare local preview (wrangler dev)
 ```
 
-- **Auth**: `AppState` drives routing between Loading → SignIn → Onboarding → MainTabView.  
-  `.authenticated` and `.guest` both present `MainTabView`; guest mode uses local-only SwiftData.
-- **Data**: All `@Model` types use raw strings for enum fields (CloudKit requirement). Computed properties expose typed accessors.
-- **Programs**: Bundled `programs.json` ships in the app target. CloudKit Public DB hosts admin-seeded programs.
+### Test
 
-## Cycle-Based Training Recommendations
+```bash
+npm test             # Run all tests (Vitest)
+npm run test:watch   # Watch mode
+npm run test:coverage
+```
 
-`CycleCalculations` provides training guidance per menstrual phase:
+### Lint
+
+```bash
+npm run lint         # ESLint
+```
+
+### Database
+
+```bash
+npx drizzle-kit generate   # Generate migration from schema changes
+npx drizzle-kit migrate    # Apply migrations
+```
+
+## Environment Variables
+
+```bash
+# Auth.js
+AUTH_SECRET=              # openssl rand -base64 32
+AUTH_GOOGLE_ID=           # Google OAuth client ID
+AUTH_GOOGLE_SECRET=       # Google OAuth client secret
+AUTH_APPLE_ID=            # Apple Sign-In bundle ID
+AUTH_APPLE_SECRET=        # Apple Sign-In key secret
+
+# Stripe
+STRIPE_SECRET_KEY=sk_test_xxx
+STRIPE_WEBHOOK_SECRET=whsec_xxx
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_xxx
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+```
+
+Cloudflare bindings (`D1`, `KV`) are configured in `wrangler.jsonc`.
+
+## Deployment
+
+Cloudflare Pages auto-deploys on push to `main`. Manual deploy:
+
+```bash
+cd web-app
+npm run build:cf     # Build with OpenNext adapter
+npm run deploy       # Deploy to Cloudflare Pages
+```
+
+## Cycle-Based Training
+
+Training recommendations adapt to menstrual cycle phase:
 
 | Phase | Recommendation |
 |-------|---------------|
@@ -118,20 +126,17 @@ Domain / Business Logic (pure Swift, zero dependencies)
 | **Ovulation** | Peak intensity, PR attempts |
 | **Luteal** | Maintenance, technique work |
 
-## CloudKit
-
-- **Bundle ID**: `com.sundeefundee.app`
-- **CloudKit Container**: `iCloud.com.sundeefundee.app`
-- **Private DB**: all user data (auto-synced via SwiftData + `NSPersistentCloudKitContainer`)
-- **Public DB**: `Program` records (read-only for users, seeded via admin script)
-
 ## CI/CD
 
-`.github/workflows/ios-ci.yml` — builds and tests on `macos-15` on every push to `main`.
+`.github/workflows/ci.yml` runs on every push and PR:
+
+1. **Lint** — ESLint
+2. **Test** — Vitest
+3. **Build** — Next.js production build
+4. **Smoke Test** — Curls `sundeefundee.com` after deploy (main branch only)
 
 ## Contributing
 
-1. Run `xcodegen generate` after adding new source files.
-2. Run `xcodebuild test` and ensure all tests pass before committing.
-3. Use Conventional Commits: `feat:`, `fix:`, `docs:`.
-4. Never commit secrets, API keys, `GoogleService-Info.plist`, or `google-services.json`.
+1. Run `npm test` and ensure all tests pass before committing.
+2. Use Conventional Commits: `feat:`, `fix:`, `docs:`.
+3. Never commit secrets, API keys, or `.env.local`.

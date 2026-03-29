@@ -4,193 +4,198 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Sundee Fundee is a native iOS strength training app with hormonal-cycle-aware training recommendations. Swift 6 + SwiftUI, targeting iOS 26.0+.
+Sundee Fundee is a web-based PWA for cycle-aware strength training. Next.js 16 + TypeScript + Tailwind CSS 4, deployed to Cloudflare Pages with D1 (SQLite) and KV.
 
 ## Commands
 
-### Setup
+### Development
 ```bash
-# Regenerate Xcode project after modifying project.yml
-xcodegen generate
+cd web-app
+npm run dev              # Next.js dev server (http://localhost:3000)
+npm run preview          # Cloudflare local preview (wrangler dev)
 ```
 
 ### Build
 ```bash
-xcodebuild build \
-  -project SundeeFundee.xcodeproj \
-  -scheme SundeeFundee \
-  -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
-  CODE_SIGNING_ALLOWED=NO
+cd web-app
+npm run build            # Next.js production build (+ sitemap generation)
+npm run build:cf         # OpenNext adapter build for Cloudflare Pages
 ```
 
 ### Test
 ```bash
-# Run all tests (CI enforces 100% line coverage)
-xcodebuild test \
-  -project SundeeFundee.xcodeproj \
-  -scheme SundeeFundee \
-  -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
-  -only-testing:SundeeFundeTests \
-  -enableCodeCoverage YES \
-  CODE_SIGNING_ALLOWED=NO
+cd web-app
+npm test                 # Run all tests (Vitest)
+npm run test:watch       # Watch mode
+npm run test:coverage    # Coverage report (domain layer only)
+```
 
-# Run a single test class
-xcodebuild test \
-  -project SundeeFundee.xcodeproj \
-  -scheme SundeeFundee \
-  -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
-  -only-testing:SundeeFundeTests/BusinessLogicTests \
-  CODE_SIGNING_ALLOWED=NO
+### Lint
+```bash
+cd web-app
+npm run lint             # ESLint
+```
+
+### Database
+```bash
+cd web-app
+npx drizzle-kit generate   # Generate migration from schema changes
+npx drizzle-kit migrate    # Apply migrations
 ```
 
 ### Deploy
-TestFlight builds are deployed via **Xcode Cloud** (manual trigger only):
-- In Xcode: Product → Xcode Cloud → Start Build
-- Xcode Cloud handles signing, building, and uploading to TestFlight automatically
-- CI post-clone script (`ci_scripts/ci_post_clone.sh`) installs XcodeGen and regenerates the project
-- No local Distribution certificate — archive uploads **must** go through Xcode Cloud
-
-### Firebase Hosting
-
-Privacy policy and support page are deployed to Firebase Hosting (`public/` directory):
-- Privacy: https://sundee-fundee.web.app/privacy.html
-- Support: https://sundee-fundee.web.app/support.html
-- Deploy: `firebase deploy --only hosting`
+Cloudflare Pages auto-deploys on push to `main`. Manual deploy:
+```bash
+cd web-app
+npm run build:cf && npm run deploy
+```
 
 ## Architecture
 
 ```
-SwiftUI Views
+Next.js App Router (React 19 Server Components)
     ↓
-@Observable ViewModels (@MainActor)
+API Routes (/api/auth, /api/stripe, /api/ai)
     ↓
-Repository Protocols (testable, Sendable)
+Service Layer (Auth.js, Stripe SDK, Drizzle ORM)
     ↓
-SwiftData ←→ CloudKit (Private DB for users, Public DB for programs)
+Cloudflare D1 (SQLite) + KV (cache/sessions)
     ↓
-Domain/ (pure Swift, zero dependencies, 100% tested)
+Domain/ (pure TypeScript, zero dependencies, 100% tested)
 ```
 
 ### Key Directories
 
-- **`App/`** — Entry point, `AppState` (auth routing), `ModelContainer` setup, schema migrations (V1→V8), debug seed data
-- **`Auth/`** — Sign in with Apple, `KeychainHelper`, guest mode
-- **`Domain/`** — All business logic: weight calculations, cycle phase adaptation, injury modification engine, benchmark catalog, pain trend analysis, rehab session generation, phase transition advice. No framework dependencies — fully unit tested.
-- **`Models/`** — 18 SwiftData `@Model` types. **Enums must be stored as raw strings** (CloudKit requirement); typed accessors are computed properties.
-- **`Repositories/`** — Protocol-based data access layer with SwiftData implementations. `ProgramRepository` fetches from CloudKit Public DB with bundled `programs.json` fallback.
-- **`Features/`** — One subdirectory per tab: Dashboard, Programs, Workouts, Cycle, Maxes, Benchmarks, Settings + Shell (tab bar). `Shared/` contains reusable components (e.g., `SpicyRatingView`).
-- **`Observability/`** — Analytics and metrics: `AnalyticsEvent`, `AnalyticsService`, `MetricsService`
-- **`Onboarding/`** — `OnboardingFlowView` and onboarding step views (separate from `Auth/`)
-- **`Theme/`** — Art Deco design tokens: cream/navy/orange palette
+- **`web-app/`** — Main application (Next.js PWA)
+  - **`src/app/(auth)/`** — Sign in / sign up pages
+  - **`src/app/(features)/`** — Protected routes: dashboard, workouts, programs, maxes, benchmarks, cycle, settings
+  - **`src/app/(marketing)/`** — Public pages: blog, privacy, terms, support
+  - **`src/app/api/`** — API routes: auth, AI generation, Stripe webhooks
+  - **`src/db/schema.ts`** — Drizzle ORM schema (19 tables)
+  - **`src/lib/auth.ts`** — Auth.js configuration (Google + Apple providers)
+  - **`src/lib/domain/`** — Pure business logic: weight calculations, cycle phases, injury adaptation, benchmark catalog, subscription tiers. No framework dependencies — fully unit tested.
+  - **`src/lib/stripe.ts`** — Stripe price ID mapping
+  - **`src/lib/blog.ts`** — MDX blog post parser
+  - **`src/lib/theme.ts`** — Art Deco design tokens (cream/navy/orange)
+  - **`src/components/`** — UI primitives (`button`, `card`, `input`) + layout (`bottom-nav`)
+  - **`content/blog/`** — MDX blog posts
+  - **`drizzle/`** — Database migrations
+- **`wod-dashboard/`** — Admin dashboard for WODs, programs, benchmarks
+  - **`data/`** — Shared JSON data files (programs.json, wods.json, benchmarks.json)
+- **`workers/ai-coach/`** — Cloudflare Worker for AI workout generation (Cloudflare AI binding + KV rate limiting)
+- **`functions/`** — Firebase Cloud Functions (legacy)
 
 ### Auth & Routing
 
-`AppState` controls the root navigation state machine:
-- `loading` → `signIn` → `onboarding` → `mainTab`
-- `.authenticated` mode: full CloudKit sync enabled
-- `.guest` mode: local SwiftData only, no CloudKit
-- **Onboarding does not collect name** — `AuthService` extracts `fullName` from the Sign in with Apple credential and writes it to the User stub. This is required by App Store Guideline 4 (do not re-ask for data Apple already provides).
-- **`appState.currentUserID` returns `User.id` (a UUID), NOT `User.appleUserID`** (the Apple Sign-In identifier). Always use `User.id` / `appState.currentUserID` for data ownership queries. `appleUserID` is only for Sign in with Apple credential state checks.
+Auth.js v5 (NextAuth beta) with JWT session strategy.
 
-### SwiftData / CloudKit Constraints
+**Providers:** Google OAuth, Apple Sign-In, Credentials (stub).
 
-- **ModelContext is main-queue only.** `@Environment(\.modelContext)` is bound to the main queue. Any service class holding a `ModelContext` must be `@MainActor` — marking only the caller `@MainActor in` is insufficient because `await` on a non-`@MainActor` method hops off the main thread. Symptoms: "Unbinding from the main queue" warning + silent data operation failures.
-- **`.task` runs once per view lifetime.** In a `TabView`, tabs stay alive — `.task` won't re-run on tab switch. Use `.onAppear` for data that must refresh when the user returns to a tab (Dashboard, Maxes, History).
-  - **Verified `.onAppear` users:** DashboardView, MaxLiftsView, WorkoutHistoryView, BenchmarksView, CycleTrackingView, ProgramListView.
-  - If adding a new tab view, always use `.onAppear` (not `.task`) for data loading.
-- Enum properties on `@Model` types **must be stored as `String` raw values** — CloudKit does not support Swift enums directly.
-- A single entitlements file (`SundeeFundee.entitlements`) is used for both Debug and Release, enabling CloudKit + Sign in with Apple. Requires paid developer team (87VVCMCW3F) for signing. HealthKit is **not** currently integrated — cycle data is stored in SwiftData, not Apple Health.
-- **Schema version consistency:** When adding a new `AppSchemaVN`, you must update THREE places: (1) add to `AppSchemaMigrationPlan.schemas`, (2) add a migration stage to `AppSchemaMigrationPlan.stages`, (3) update `AppModelContainer.allModels` to reference the new schema. Missing any of these causes silent data loss.
-- **`CKContainer(identifier:)` fatally traps (SIGTRAP) without CloudKit entitlements** — this is NOT a catchable Swift error. The CloudKit repos (`CloudKitWODRepository`, `CloudKitProgramRepository`, `CloudKitBenchmarkDefinitionRepository`) guard with `CloudKitWODRepository.hasCloudKitEntitlement`; do not bypass it.
-- **CloudKit integer fields return `Int64`** — casting `record["field"] as? Int` silently fails. Use `(record["field"] as? Int64).map(Int.init)`.
-- **`@Model` types are not `Sendable`** — async protocols returning `@Model` instances still require `Sendable` on the protocol for cross-actor calls. Repos need `@unchecked Sendable`. Cache Codable DTOs (not `@Model` instances) to avoid data races.
-- **VersionedSchema checksum collisions:** When two schema versions reference the same live model types with identical properties, SwiftData produces duplicate checksums and crashes with "Duplicate version checksums across stages detected." Fix: use frozen `@Model` classes (namespaced under the schema enum, e.g., `AppSchemaV7.CompletedWorkout`) for models that changed between versions. See V6 (`CompletedSet`) and V7 (`CompletedWorkout`) for examples.
-- **Never remove a schema version from the migration plan** — existing user stores reference that version. Removing it causes "Cannot use staged migration with an unknown model version" and forces store deletion (data loss).
+**Middleware** (`src/middleware.ts`) protects all feature routes:
+- `/dashboard`, `/workouts`, `/programs`, `/maxes`, `/benchmarks`, `/cycle`, `/settings`
 
-### Navigation Pitfalls
+Marketing routes (`/blog`, `/privacy`, `/terms`, `/support`) and auth routes (`/sign-in`, `/sign-up`) are unprotected.
 
-- **`NavigationLink(value:)` only resolves at the NavigationStack root.** If a view with `navigationDestination(for:)` is pushed from another stack (e.g., Dashboard → Browse Programs), value-based links won't fire. Use `NavigationLink(destination:)` for views that may be pushed from multiple stacks.
-- **iOS 26 TabView auto-creates "More" for >4 tabs.** The system "More" tab wraps overflow items in its own `UINavigationController`. Do NOT wrap overflow tabs in `NavigationStack` — only wrap the first `directTabLimit` (4) tabs. See `MainTabView.directTabLimit`.
-- **Always `xcrun simctl uninstall` before testing a fresh build** — stale builds from other schemes/apps persist on the simulator and cause confusing test results.
+**Session callback** embeds `user.id` into JWT token and `session.user.id`. Always use `session.user.id` for data ownership queries.
 
-### Programs
+**Environment variables:**
+- `AUTH_SECRET` — JWT signing secret (`openssl rand -base64 32`)
+- `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` — Google OAuth
+- `AUTH_APPLE_ID` / `AUTH_APPLE_SECRET` — Apple Sign-In
 
-Programs are delivered via two channels:
-1. Bundled `Resources/Programs/programs.json` (always available)
-2. CloudKit Public DB (admin-seeded, for remote updates)
+### Database
 
-WODs (Workouts of the Day) are delivered via bundled `Resources/WODs/wods.json`, matched by date.
+Cloudflare D1 (SQLite) via Drizzle ORM. Schema: `web-app/src/db/schema.ts`. Config: `web-app/drizzle.config.ts`.
 
-### Benchmarks
+**Cloudflare bindings** (defined in `wrangler.jsonc`):
+- `DB: D1Database` — SQLite database
+- `KV: KVNamespace` — Key-value cache
 
-Sundee Fundee Benchmarks (admin-created) follow the same CloudKit + bundled fallback pattern as Programs:
-1. Bundled `Resources/Benchmarks/benchmarks.json` (always available)
-2. CloudKit Public DB record type `BenchmarkDefinition` (admin-seeded via WOD Dashboard, fetched by `CloudKitBenchmarkDefinitionRepository`)
+Accessed via `getCloudflareContext()` from `@opennextjs/cloudflare`. Types in `src/env.d.ts`.
 
-`BenchmarksViewModel` merges three sources: hardcoded `BenchmarkCatalog.predefined` (Classic WODs, Strength, etc.) + remote benchmarks (CloudKit/bundled JSON, "Sundee Fundee" category) + user-created (SwiftData).
+**19 tables:**
+- **Auth (Auth.js managed):** `users`, `accounts`, `sessions`, `verificationTokens`
+- **Strength tracking:** `oneRepMaxes`, `personalRecords`, `liftMaxes`, `conditioningPrs`
+- **Workouts:** `completedWorkouts`, `completedSets`
+- **Programs:** `enrolledPrograms`, `enrollmentEvents`
+- **Injuries:** `injuryProfiles`, `painLogs`
+- **Cycle tracking:** `periodLogs`, `symptomLogs`, `cycleSettings`, `cycleAdaptationPreferences`
+- **Benchmarks:** `benchmarkDefinitions`, `benchmarkResults`
+- **AI & custom:** `generatedWorkoutRecords`, `customProgramRecords`
+- **Subscriptions:** `subscriptions` (Stripe integration)
 
-### AI Workout Generation
+**`users` table extensions** beyond Auth.js defaults: `experienceLevel`, `primaryGoal`, `gender`, `weightUnit`, `cycleTrackingEnabled`, `onboardingComplete`.
 
-Personalized workouts are generated on-device via Apple's Foundation Models framework (iOS 26+). The app sends a simplified prompt (time, focus, energy, equipment, injuries) and receives structured output via `@Generable` types (`AIWorkoutOutput`). `WorkoutPostProcessor` then applies deterministic personalization: weight calculations from 1RM maxes, cycle phase multipliers, energy adjustments, and rest period assignment. Falls back to `OfflineWorkoutGenerator` when Apple Intelligence is unavailable on the device. The Cloudflare Worker (`workout-proxy.sundeefundee.workers.dev/generate-workout`) is retained for the WOD Dashboard only.
+**Enum-as-text convention:** Enums are stored as text columns in SQLite (same pattern as the former CloudKit requirement). Domain types use const objects, not TypeScript `enum`.
 
-- **Foundation Models availability check:** Use `SystemLanguageModel.default.isAvailable` — not `FoundationModelAvailability()` (outdated). Generate structured output with `session.respond(to:generating:)` and access result via `.content`.
-- **AI-generated exercise names don't match `WeightliftingExerciseCatalog` entries.** Any UI that filters by catalog membership will hide AI workout data. When displaying user-tracked data (OneRepMax, PersonalRecord), include all exercises — don't gate on catalog membership.
-- **AI workout flow navigation:** `AIWorkoutFlowView` uses `@State` bindings (`generatedWorkout`, `workoutToStart`) with `.navigationDestination(item:)` to chain Questionnaire → Preview → Execution → Summary. Each step must be wired — no-op closures like `{ _ in }` silently break the flow.
-- **`AIExerciseOutput.reps` is `Int`, not `String`.** The AI prompt requests exact rep counts (e.g. 8, not "8-10"). Use 0 for AMRAP. `WorkoutPostProcessor` converts to String for `GeneratedExercise` (0 → "AMRAP"). `WorkoutExecutionViewModel.parseActualReps(_:)` handles the reverse for pre-populating actual reps in the execution UI.
+### Offline / PWA
 
-### SundeeFundeeShared Package
+**Service worker:** Serwist (`src/app/sw.ts`) — precaching, runtime caching, navigation preload. Disabled in dev (conflicts with Turbopack). Compiles to `public/sw.js`.
 
-`SundeeFundee/Packages/SundeeFundeeShared/` is an **inlined local Swift package** (not a submodule, not a remote package). It contains shared models (Program, WOD, ExerciseCatalog), CloudKit record decoders, and validators used by both the iOS app and the WOD Dashboard. Referenced in `project.yml` under `packages:`.
-- **`swift-tools-version` in `Package.swift` must match platform minimums** — `.iOS(.v26)` requires `swift-tools-version: 6.2`. Mismatches cause build failures.
+**Manifest:** `public/manifest.json` — standalone display, portrait orientation, 192/512 icons.
 
 ### Subscriptions
 
-**Active:** `AppState.subscriptionTier` defaults to `.free` and is updated by `SubscriptionManager` via StoreKit entitlements. `SubscriptionManager.start()` loads products and refreshes subscription status on launch. The Subscription section is visible in SettingsView.
+Stripe integration with checkout sessions, webhooks, and customer portal.
 
-Product IDs use the `com.sundeefundee.sub.*` prefix (earlier `com.sundeefundee.app.*` IDs are permanently burned in App Store Connect). Four products:
-- `com.sundeefundee.sub.plus.monthly` ($4.99/mo)
-- `com.sundeefundee.sub.plus.annual` ($39.99/yr)
-- `com.sundeefundee.sub.premium.monthly` ($9.99/mo)
-- `com.sundeefundee.sub.premium.annual` ($79.99/yr)
+**Price IDs** (in `src/lib/stripe.ts`):
+- `price_plus_monthly` / `price_plus_annual`
+- `price_premium_monthly` / `price_premium_annual`
 
-Product IDs are defined in `Domain/Subscription/SubscriptionTier.swift` and mirrored in `Resources/SundeeFundee.storekit`.
+**Tiers** (in `src/lib/domain/subscription.ts`):
+- **Free** — 5 lifts, 1 injury, 30-day history, 0 cloud AI/day
+- **Sundee Plus** — unlimited lifts/injuries/history, 1 cloud AI/day, custom benchmarks, pain trends
+- **Sundee Premium** — unlimited all, 10 cloud AI/day, rehab sessions, AI coach memory, plateau detection
+
+**Webhook events** (`src/app/api/stripe/webhook/route.ts`):
+- `checkout.session.completed` — upsert subscription
+- `customer.subscription.updated` — update tier/status/expiry
+- `customer.subscription.deleted` — mark canceled
+
+**Portal** (`src/app/api/stripe/portal/route.ts`): Creates Stripe billing portal from user's `stripeCustomerId`.
+
+### AI Workouts
+
+**Cloudflare Worker** (`workers/ai-coach/`) — endpoint at `workout-proxy.sundeefundee.workers.dev/generate-workout`. Uses Cloudflare AI binding + KV rate limiting + JWT auth.
+
+**Web-app API route** (`src/app/api/ai/generate/route.ts`): Authenticates user, injects `userId`, proxies to worker.
+
+**Domain logic** (`src/lib/domain/ai-workout.ts`):
+- `energyMultiplier(level)` — low: 0.85, medium: 1.0, high: 1.05
+- `cyclePhaseMultiplier(phase)` — applies phase-specific load adjustments
+- `defaultPercentage(reps)` — maps rep count to %1RM (1–3: 85%, 6–8: 70%, 9–12: 65%)
+- `assignRestMinutes(bodyweight, reps)` — heavy: 2.5min, light: 1.5min
+- `applyWeights(exercises, maxes, energyMult, cycleMult)` — calculates prescribed weights from 1RM
+- `findMatchingMax(exerciseName, maxes)` — fuzzy match exercise to user's 1RM data
+
+### Blog / SEO
+
+**Content:** MDX files in `content/blog/*.mdx`. Parsed with `gray-matter` (YAML frontmatter), rendered with `next-mdx-remote`.
+
+**Frontmatter format:**
+```yaml
+---
+title: "Post Title"
+description: "Brief description"
+date: "2026-03-29"
+author: "Author Name"
+tags: ["training", "cycle"]
+image: "/optional-image.jpg"
+---
+```
+
+**Routes:** `/blog` (list, sorted by date desc), `/blog/[slug]` (individual post).
+
+**Sitemap** (`next-sitemap.config.js`): Generated on `npm run build`. Site URL: `https://sundeefundee.com`. Excludes `/api/*` and all protected feature routes.
 
 ### Testing
 
-- **Onboarding changes ripple across 3+ test files:** `AuthOnboardingCoverageWave3Tests`, `AuthOnboardingCoverageWave5Tests`, `AuthOnboardingViewCoverageTests`, and `UICriticalFlowTests` all test `OnboardingFlowView` statics. Grep for usage before modifying the onboarding signature.
-- **Schema/tab metadata tests:** `AppAuthCoverageTests.appSchemaAndContainerMetadataIsAccessible` asserts schema count and stage count. `MainTabCoverageTests` asserts exact tab order and system images. Update these when changing schemas or tabs.
-- **Tab visibility:** `MainTabView.TabRoute` enum cases are NOT automatically visible — only cases in `orderedTabs()` appear in the tab bar. Adding a route to the enum without adding it to `orderedTabs()` makes the feature unreachable.
-- **100% line coverage is enforced** in CI (GitHub Actions parses `xccov` output).
-- `Domain/` code is tested in isolation via pure Swift unit tests — no mocking needed.
-- ViewModels, Repositories, Auth/Onboarding flows, and critical UI paths each have dedicated test wave files.
-- When adding new `Domain/` types or public methods, add coverage in the corresponding `*CoverageTests.swift` file.
-- When changing default parameter values, update all test call sites to pass the value explicitly — tests that omit the parameter will silently use the new default and may break.
-- **Never ignore pre-existing failures.** If test runs, builds, or CI surface issues that predate your changes, investigate and resolve them — do not dismiss them as "pre-existing." Every identified problem is your responsibility to address.
-
-### Project Generation
-
-The Xcode project is generated from `project.yml` via XcodeGen. **Never edit `.xcodeproj` directly** — modify `project.yml` and run `xcodegen generate`. Sources are auto-discovered by XcodeGen from the directory structure — no need to manually add new `.swift` files to `project.yml`.
-**After adding new `.swift` files, always run `xcodegen generate`** — even though sources are auto-discovered, the existing `.xcodeproj` won't include new files until regenerated. Without this, new files compile but are invisible to other compilation units in explicit module builds.
-- **Deployment target has FOUR locations in `project.yml`:** `options.deploymentTarget.iOS`, `settings.base.IPHONEOS_DEPLOYMENT_TARGET`, `targets.SundeeFundee.deploymentTarget`, and `targets.SundeeFundeTests.deploymentTarget`. Update all four when changing.
-- **Build number (`CURRENT_PROJECT_VERSION` in `project.yml`) must be incremented for each App Store Connect upload** — duplicate build numbers cause "Preparing build for App Store Connect failed". HealthKit entitlements require `NSHealthShareUsageDescription` and `NSHealthUpdateUsageDescription` in Info.plist (`project.yml` info properties).
-
-### CloudKit Server-to-Server Auth
-
-The WOD Dashboard uses ECDSA server-to-server authentication (no user sign-in needed). Keys:
-- Private key: `wod-dashboard/cloudkit-server.pem` (gitignored)
-- Key IDs are environment-scoped: development and production keys are separate
-- Signature format: `sha256(date:base64(sha256(body)):subpath)` signed with EC P-256
-- Required headers: `X-Apple-CloudKit-Request-KeyID`, `X-Apple-CloudKit-Request-ISO8601Date`, `X-Apple-CloudKit-Request-SignatureV1`
-
-### CloudKit Repository Wiring
-
-ViewModels must default to `CloudKit*Repository()` (not `Bundled*Repository()`) for CloudKit-published data to appear in the app. CloudKit repos fall back to bundled JSON automatically. When decoding CloudKit records, use `try?` per-record in `compactMap` so one malformed record doesn't poison the entire fetch.
-
-### CloudKit Schema Management
-
-- `xcrun cktool export-schema --team-id 87VVCMCW3F --container-id iCloud.com.sundeefundee.app --environment development --output-file schema.ckdb`
-- `xcrun cktool import-schema ... --file schema.ckdb` (development only; deploy to production via CloudKit Dashboard)
-- New record types must be created in development first, then deployed to production — REST API cannot create record types
+- **Framework:** Vitest with v8 coverage provider
+- **Coverage scope:** `src/lib/domain/**` only (pure business logic)
+- **Convention:** Tests in `src/lib/domain/__tests__/`. One test file per domain module.
+- **Pattern:** Pure function unit tests — no mocking needed. Helper factories at top of each file (e.g., `makeProgram()`, `makeInjury()`).
+- **When adding new domain types or functions**, add corresponding tests. Maintain full coverage of the domain layer.
+- **Never ignore pre-existing failures.** If test runs, builds, or CI surface issues that predate your changes, investigate and resolve them.
 
 ### WOD Dashboard Patterns
 
@@ -206,11 +211,34 @@ When adding a new entity type to the dashboard (`wod-dashboard/`):
 
 AI generation routes (`src/app/api/generate/`) follow a shared pattern: accept parameters → build Gemini prompt → POST to Cloudflare Worker → strip markdown fences → parse and validate JSON → return typed response. Currently: `wod/`, `program/`, `benchmark/`.
 
+JSON data files live in `wod-dashboard/data/` (programs.json, wods.json, benchmarks.json).
+
+### CloudKit Server-to-Server Auth
+
+The WOD Dashboard uses ECDSA server-to-server authentication (no user sign-in needed). Keys:
+- Private key: `wod-dashboard/cloudkit-server.pem` (gitignored)
+- Key IDs are environment-scoped: development and production keys are separate
+- Signature format: `sha256(date:base64(sha256(body)):subpath)` signed with EC P-256
+- Required headers: `X-Apple-CloudKit-Request-KeyID`, `X-Apple-CloudKit-Request-ISO8601Date`, `X-Apple-CloudKit-Request-SignatureV1`
+
 ### Coding Conventions
 
-- **Benchmark `roundsAndReps` scoring** encodes as `rounds * 10000 + reps` in a single `Double`. Higher is better. Decode: `rounds = Int(value) / 10000`, `reps = Int(value) % 10000`.
-- **Never use `try!`** in production code — always use `(try? ...) ?? defaultValue` for repository calls. SwiftData context errors should degrade gracefully, not crash.
-- **Disable buttons for invalid input** rather than silently failing on save. Follow the pattern in `AddCustomBenchmarkSheet` (`.disabled(condition)`).
-- **Thread `userID`** from `AppState` through all data-writing operations. Use `appState.currentUserID ?? ""` at the call site; never hardcode empty strings in ViewModels or Repositories.
-- **Static helper methods** on Views are the preferred pattern for testability — actions, formatters, and computed state are extracted as `static func` so they can be unit tested without hosting the view.
-- **Phase transition dismissals** are persisted to `UserDefaults` under the key `dismissedPhaseTransitions` (keyed by injury ID → suggested phase raw value). Clear on phase change.
+- **Benchmark `roundsAndReps` scoring** encodes as `rounds * 10000 + reps` in a single number. Higher is better. Decode: `rounds = Math.floor(value / 10000)`, `reps = value % 10000`.
+- **Disable buttons for invalid input** rather than silently failing on save.
+- **Thread `session.user.id`** through all data-writing operations. Never hardcode empty strings.
+- **Const objects for enums** — use `as const` objects, not TypeScript `enum`. Stored as text in D1.
+- **Discriminated unions** for flexible types (e.g., `ExerciseValue` with `type` field: `fixed`, `amrap`, `range`, `text`).
+- **Multiplier-based adaptation** — cycle phase, recovery phase, and energy level compose multiplicatively on base weights.
+- **Domain functions are pure** — no side effects, no framework imports. Accept data, return data.
+- **Art Deco theme:** cream `#f4f0df`, navy `#0d1a40`, orange `#f27319`. Fonts: Playfair Display (headings), Inter (body), JetBrains Mono (mono).
+
+### Navigation
+
+Bottom nav (`src/components/layout/bottom-nav.tsx`) has 5 tabs:
+1. Dashboard (`/dashboard`)
+2. Programs (`/programs`)
+3. Workouts (`/workouts`)
+4. Maxes (`/maxes`)
+5. Settings (`/settings`)
+
+Features layout (`src/app/(features)/layout.tsx`) renders `<BottomNav />` with `max-w-lg` container and `pb-16` bottom padding.
