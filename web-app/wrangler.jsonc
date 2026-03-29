@@ -1,0 +1,22 @@
+{
+  "name": "sundee-fundee-web",
+  "compatibility_date": "2025-12-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "pages_build_output_dir": ".open-next",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "sundee-fundee-db",
+      "database_id": "placeholder-create-with-wrangler"
+    }
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "KV",
+      "id": "placeholder-create-with-wrangler"
+    }
+  ],
+  "vars": {
+    "NEXT_PUBLIC_APP_URL": "https://sundeefundee.com"
+  }
+}
