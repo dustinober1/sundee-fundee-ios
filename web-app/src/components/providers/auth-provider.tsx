@@ -1,8 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { onAuthStateChanged, type User } from "firebase/auth";
-import { getFirebaseAuth } from "@/lib/firebase";
+import type { User } from "firebase/auth";
 
 interface AuthContextType {
   user: User | null;
@@ -20,23 +19,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(getFirebaseAuth(), async (firebaseUser) => {
-      setUser(firebaseUser);
-      setLoading(false);
+    let unsubscribe: (() => void) | undefined;
 
-      if (firebaseUser) {
-        const idToken = await firebaseUser.getIdToken();
-        await fetch("/api/auth/session", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ idToken }),
-        });
-      } else {
-        await fetch("/api/auth/session", { method: "DELETE" });
-      }
-    });
+    async function setupAuth() {
+      const { onAuthStateChanged } = await import("firebase/auth");
+      const { getFirebaseAuth } = await import("@/lib/firebase");
+      const auth = getFirebaseAuth();
 
-    return () => unsubscribe();
+      unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+        setUser(firebaseUser);
+        setLoading(false);
+
+        if (firebaseUser) {
+          const idToken = await firebaseUser.getIdToken();
+          await fetch("/api/auth/session", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ idToken }),
+          });
+        } else {
+          await fetch("/api/auth/session", { method: "DELETE" });
+        }
+      });
+    }
+
+    setupAuth();
+    return () => unsubscribe?.();
   }, []);
 
   return (

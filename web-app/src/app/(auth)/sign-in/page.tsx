@@ -1,12 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, OAuthProvider } from "firebase/auth";
-import { getFirebaseAuth } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+
+async function getAuth() {
+  const { getFirebaseAuth } = await import("@/lib/firebase");
+  return getFirebaseAuth();
+}
 
 export default function SignInPage() {
   const [email, setEmail] = useState("");
@@ -20,7 +23,9 @@ export default function SignInPage() {
     setError("");
     setLoading(true);
     try {
-      await signInWithEmailAndPassword(getFirebaseAuth(), email, password);
+      const { signInWithEmailAndPassword } = await import("firebase/auth");
+      const auth = await getAuth();
+      await signInWithEmailAndPassword(auth, email, password);
       router.push("/dashboard");
     } catch {
       setError("Invalid email or password");
@@ -31,7 +36,9 @@ export default function SignInPage() {
   async function handleGoogleSignIn() {
     setError("");
     try {
-      await signInWithPopup(getFirebaseAuth(), new GoogleAuthProvider());
+      const { signInWithPopup, GoogleAuthProvider } = await import("firebase/auth");
+      const auth = await getAuth();
+      await signInWithPopup(auth, new GoogleAuthProvider());
       router.push("/dashboard");
     } catch {
       setError("Google sign-in failed");
@@ -41,10 +48,12 @@ export default function SignInPage() {
   async function handleAppleSignIn() {
     setError("");
     try {
+      const { signInWithPopup, OAuthProvider } = await import("firebase/auth");
+      const auth = await getAuth();
       const provider = new OAuthProvider("apple.com");
       provider.addScope("email");
       provider.addScope("name");
-      await signInWithPopup(getFirebaseAuth(), provider);
+      await signInWithPopup(auth, provider);
       router.push("/dashboard");
     } catch {
       setError("Apple sign-in failed");

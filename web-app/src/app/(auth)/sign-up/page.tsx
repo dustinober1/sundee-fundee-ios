@@ -1,12 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, GoogleAuthProvider, OAuthProvider } from "firebase/auth";
-import { getFirebaseAuth } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+
+async function getAuth() {
+  const { getFirebaseAuth } = await import("@/lib/firebase");
+  return getFirebaseAuth();
+}
 
 export default function SignUpPage() {
   const [name, setName] = useState("");
@@ -21,7 +24,9 @@ export default function SignUpPage() {
     setError("");
     setLoading(true);
     try {
-      const { user } = await createUserWithEmailAndPassword(getFirebaseAuth(), email, password);
+      const { createUserWithEmailAndPassword, updateProfile } = await import("firebase/auth");
+      const auth = await getAuth();
+      const { user } = await createUserWithEmailAndPassword(auth, email, password);
       if (name) await updateProfile(user, { displayName: name });
       router.push("/dashboard");
     } catch (err) {
@@ -36,7 +41,9 @@ export default function SignUpPage() {
   async function handleGoogleSignIn() {
     setError("");
     try {
-      await signInWithPopup(getFirebaseAuth(), new GoogleAuthProvider());
+      const { signInWithPopup, GoogleAuthProvider } = await import("firebase/auth");
+      const auth = await getAuth();
+      await signInWithPopup(auth, new GoogleAuthProvider());
       router.push("/dashboard");
     } catch {
       setError("Google sign-in failed");
@@ -46,10 +53,12 @@ export default function SignUpPage() {
   async function handleAppleSignIn() {
     setError("");
     try {
+      const { signInWithPopup, OAuthProvider } = await import("firebase/auth");
+      const auth = await getAuth();
       const provider = new OAuthProvider("apple.com");
       provider.addScope("email");
       provider.addScope("name");
-      await signInWithPopup(getFirebaseAuth(), provider);
+      await signInWithPopup(auth, provider);
       router.push("/dashboard");
     } catch {
       setError("Apple sign-in failed");
