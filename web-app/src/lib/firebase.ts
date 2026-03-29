@@ -23,10 +23,3 @@ export function getFirebaseAuth(): Auth {
   if (!_auth) _auth = getAuth(getFirebaseApp());
   return _auth;
 }
-
-// For backwards compatibility with existing imports
-export const firebaseAuth = new Proxy({} as Auth, {
-  get(_, prop) {
-    return Reflect.get(getFirebaseAuth(), prop);
-  },
-});

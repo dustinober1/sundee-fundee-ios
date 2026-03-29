@@ -54,3 +54,4 @@ coverage/
 tmp/
 .claude/
 .bg-shell/
+.vercel

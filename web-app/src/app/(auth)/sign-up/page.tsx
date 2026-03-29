@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, GoogleAuthProvider, OAuthProvider } from "firebase/auth";
-import { firebaseAuth } from "@/lib/firebase";
+import { getFirebaseAuth } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
@@ -21,7 +21,7 @@ export default function SignUpPage() {
     setError("");
     setLoading(true);
     try {
-      const { user } = await createUserWithEmailAndPassword(firebaseAuth, email, password);
+      const { user } = await createUserWithEmailAndPassword(getFirebaseAuth(), email, password);
       if (name) await updateProfile(user, { displayName: name });
       router.push("/dashboard");
     } catch (err) {
@@ -36,7 +36,7 @@ export default function SignUpPage() {
   async function handleGoogleSignIn() {
     setError("");
     try {
-      await signInWithPopup(firebaseAuth, new GoogleAuthProvider());
+      await signInWithPopup(getFirebaseAuth(), new GoogleAuthProvider());
       router.push("/dashboard");
     } catch {
       setError("Google sign-in failed");
@@ -49,7 +49,7 @@ export default function SignUpPage() {
       const provider = new OAuthProvider("apple.com");
       provider.addScope("email");
       provider.addScope("name");
-      await signInWithPopup(firebaseAuth, provider);
+      await signInWithPopup(getFirebaseAuth(), provider);
       router.push("/dashboard");
     } catch {
       setError("Apple sign-in failed");
