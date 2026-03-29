@@ -1,13 +1,75 @@
+import { auth } from "@/lib/auth";
 import { Card } from "@/components/ui/card";
+import Link from "next/link";
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const session = await auth();
+  const userName = session?.user?.name ?? "Athlete";
+  const today = new Date().toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  });
+
   return (
     <div className="flex flex-col gap-spacing-md">
-      <h1>Dashboard</h1>
+      <div>
+        <h1 className="text-3xl">Hey, {userName}</h1>
+        <p className="text-text-secondary">{today}</p>
+      </div>
+
+      {/* Quick Stats */}
+      <div className="grid grid-cols-3 gap-spacing-sm">
+        <Card className="text-center">
+          <p className="text-2xl font-bold text-orange">0</p>
+          <p className="text-[11px] text-text-secondary">This Week</p>
+        </Card>
+        <Card className="text-center">
+          <p className="text-2xl font-bold text-orange">0</p>
+          <p className="text-[11px] text-text-secondary">Day Streak</p>
+        </Card>
+        <Card className="text-center">
+          <p className="text-2xl font-bold text-orange">—</p>
+          <p className="text-[11px] text-text-secondary">Program</p>
+        </Card>
+      </div>
+
+      {/* Quick Actions */}
       <Card>
-        <h2 className="mb-spacing-sm">Welcome to Sundee Fundee</h2>
+        <h2 className="mb-spacing-sm">Quick Actions</h2>
+        <div className="grid grid-cols-2 gap-spacing-sm">
+          <Link
+            href="/workouts"
+            className="flex items-center justify-center gap-2 bg-orange text-cream rounded-button py-spacing-sm px-spacing-md text-[14px] font-medium hover:opacity-90"
+          >
+            Start Workout
+          </Link>
+          <Link
+            href="/maxes"
+            className="flex items-center justify-center gap-2 bg-card-bg text-navy border border-navy rounded-button py-spacing-sm px-spacing-md text-[14px] font-medium hover:bg-separator/30"
+          >
+            Log Max
+          </Link>
+          <Link
+            href="/programs"
+            className="flex items-center justify-center gap-2 bg-card-bg text-navy border border-navy rounded-button py-spacing-sm px-spacing-md text-[14px] font-medium hover:bg-separator/30"
+          >
+            Programs
+          </Link>
+          <Link
+            href="/benchmarks"
+            className="flex items-center justify-center gap-2 bg-card-bg text-navy border border-navy rounded-button py-spacing-sm px-spacing-md text-[14px] font-medium hover:bg-separator/30"
+          >
+            Benchmarks
+          </Link>
+        </div>
+      </Card>
+
+      {/* Recent Activity */}
+      <Card>
+        <h2 className="mb-spacing-sm">Recent Activity</h2>
         <p className="text-text-secondary text-[13px]">
-          Your personalized strength training companion.
+          No workouts yet. Start your first workout to see activity here.
         </p>
       </Card>
     </div>
