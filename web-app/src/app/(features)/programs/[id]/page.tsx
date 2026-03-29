@@ -14,9 +14,10 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
   const program = generateProgram(id as ProgramTemplate, id.charAt(0).toUpperCase() + id.slice(1));
 
   return (
-    <div className="flex flex-col gap-spacing-lg">
-      <div>
-        <h1>{program.name}</h1>
+    <div className="flex flex-col gap-8 pt-6">
+      <div className="pl-2">
+        <p className="text-gold font-mono text-[10px] tracking-[0.3em] uppercase mb-1">Program</p>
+        <h1 className="text-3xl">{program.name}</h1>
         <p className="text-text-secondary">{program.description}</p>
       </div>
 

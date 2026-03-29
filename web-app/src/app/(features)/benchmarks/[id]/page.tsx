@@ -12,11 +12,12 @@ export default async function BenchmarkDetailPage({ params }: { params: Promise<
   const results = allResults.filter((r) => r.definitionId === id);
 
   return (
-    <div className="flex flex-col gap-spacing-lg">
-      <div>
-        <h1>{benchmark.name}</h1>
+    <div className="flex flex-col gap-8 pt-6">
+      <div className="pl-2">
+        <p className="text-gold font-mono text-[10px] tracking-[0.3em] uppercase mb-1">Benchmark</p>
+        <h1 className="text-3xl">{benchmark.name}</h1>
         <p className="text-text-secondary">{benchmark.workoutDescription}</p>
-        <span className="text-[12px] bg-navy/5 text-navy px-2 py-0.5 rounded-sm mt-spacing-xs inline-block">
+        <span className="text-[12px] bg-navy/5 text-navy px-2 py-0.5 rounded-sm mt-2 inline-block">
           {benchmark.scoringType}
         </span>
       </div>

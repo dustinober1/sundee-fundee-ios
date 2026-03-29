@@ -6,12 +6,15 @@ export default async function WorkoutsPage() {
   const workouts = await getRecentWorkouts();
 
   return (
-    <div className="flex flex-col gap-spacing-lg">
+    <div className="flex flex-col gap-8 pt-6">
       <div className="flex items-center justify-between">
-        <h1>Workouts</h1>
+        <div className="pl-2">
+          <p className="text-gold font-mono text-[10px] tracking-[0.3em] uppercase mb-1">Train</p>
+          <h1 className="text-3xl">Workouts</h1>
+        </div>
         <Link
           href="/workouts/new"
-          className="bg-orange text-cream rounded-button px-spacing-md py-spacing-xs text-[14px] font-medium hover:opacity-90"
+          className="bg-orange text-cream rounded-button px-spacing-md py-spacing-xs text-[14px] font-medium hover:opacity-90 transition-opacity shadow-sm shadow-orange/20"
         >
           + New
         </Link>

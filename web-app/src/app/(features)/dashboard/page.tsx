@@ -15,8 +15,8 @@ export default async function DashboardPage() {
   });
 
   return (
-    <div className="flex flex-col gap-8">
-      <div>
+    <div className="flex flex-col gap-8 pt-6">
+      <div className="pl-2">
         <p className="text-gold font-mono text-[10px] tracking-[0.3em] uppercase mb-1">Welcome Back</p>
         <h1 className="text-3xl">Hey, {userName}</h1>
         <p className="text-text-secondary">{today}</p>

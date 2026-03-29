@@ -30,8 +30,11 @@ export default async function CyclePage() {
   const status = calculateCycleStatus(periodEntries, cycleConfig, new Date());
 
   return (
-    <div className="flex flex-col gap-spacing-lg">
-      <h1>Cycle Tracking</h1>
+    <div className="flex flex-col gap-8 pt-6">
+      <div className="pl-2">
+        <p className="text-gold font-mono text-[10px] tracking-[0.3em] uppercase mb-1">Wellness</p>
+        <h1 className="text-3xl">Cycle Tracking</h1>
+      </div>
 
       {status ? (
         <>

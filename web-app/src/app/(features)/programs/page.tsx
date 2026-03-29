@@ -15,12 +15,16 @@ export default async function ProgramsPage() {
   const enrolled = await getEnrolledPrograms();
 
   return (
-    <div className="flex flex-col gap-spacing-lg">
-      <h1>Programs</h1>
+    <div className="flex flex-col gap-8 pt-6">
+      <div className="pl-2">
+        <p className="text-gold font-mono text-[10px] tracking-[0.3em] uppercase mb-1">Training</p>
+        <h1 className="text-3xl">Programs</h1>
+      </div>
 
       {enrolled.length > 0 && (
-        <div className="flex flex-col gap-spacing-sm">
-          <h2>Active Programs</h2>
+        <div className="flex flex-col gap-3">
+          <p className="text-gold font-mono text-[10px] tracking-[0.2em] uppercase mb-1 pl-2">In Progress</p>
+          <h2 className="pl-2">Active Programs</h2>
           {enrolled.filter(p => p.status === "active").map((p) => (
             <Card key={p.id}>
               <div className="flex justify-between items-center">
@@ -35,8 +39,11 @@ export default async function ProgramsPage() {
         </div>
       )}
 
-      <h2>Program Templates</h2>
-      <div className="flex flex-col gap-spacing-sm">
+      <div className="flex flex-col gap-3">
+        <div className="pl-2">
+          <p className="text-gold font-mono text-[10px] tracking-[0.2em] uppercase mb-1">Browse</p>
+          <h2>Program Templates</h2>
+        </div>
         {TEMPLATES.map((t) => (
           <Link key={t.id} href={`/programs/${t.id}`}>
             <Card className="hover:shadow-md transition-shadow">
