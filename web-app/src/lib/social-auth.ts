@@ -1,8 +1,18 @@
+async function syncSessionCookie(idToken: string): Promise<void> {
+  await fetch("/api/auth/session", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ idToken }),
+  });
+}
+
 export async function signInWithGoogle(): Promise<void> {
   const { signInWithPopup, GoogleAuthProvider } = await import("firebase/auth");
   const { getFirebaseAuth } = await import("@/lib/firebase");
   const auth = getFirebaseAuth();
-  await signInWithPopup(auth, new GoogleAuthProvider());
+  const result = await signInWithPopup(auth, new GoogleAuthProvider());
+  const idToken = await result.user.getIdToken();
+  await syncSessionCookie(idToken);
 }
 
 export async function signInWithApple(): Promise<void> {
@@ -22,10 +32,10 @@ export async function signInWithApple(): Promise<void> {
   // If displayName is missing, extract it from the Apple ID token.
   if (!result.user.displayName) {
     const credential = OAuthProvider.credentialFromResult(result);
-    const idToken = credential?.idToken;
-    if (idToken) {
+    const appleIdToken = credential?.idToken;
+    if (appleIdToken) {
       try {
-        const payload = JSON.parse(atob(idToken.split(".")[1]));
+        const payload = JSON.parse(atob(appleIdToken.split(".")[1]));
         const firstName = payload.first_name ?? payload.given_name ?? "";
         const lastName = payload.last_name ?? payload.family_name ?? "";
         const fullName = [firstName, lastName].filter(Boolean).join(" ");
@@ -37,6 +47,9 @@ export async function signInWithApple(): Promise<void> {
       }
     }
   }
+
+  const idToken = await result.user.getIdToken();
+  await syncSessionCookie(idToken);
 }
 
 export function socialAuthErrorMessage(err: unknown): string {
