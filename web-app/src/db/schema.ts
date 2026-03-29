@@ -13,6 +13,7 @@ export const users = sqliteTable("users", {
   weightUnit: text("weight_unit").default("lb"),
   cycleTrackingEnabled: integer("cycle_tracking_enabled", { mode: "boolean" }).default(false),
   onboardingComplete: integer("onboarding_complete", { mode: "boolean" }).default(false),
+  password: text("password"),
   createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
   profileUpdatedAt: integer("profile_updated_at", { mode: "timestamp" }),
 });
