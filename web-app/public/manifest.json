@@ -1,0 +1,24 @@
+{
+  "name": "Sundee Fundee",
+  "short_name": "Sundee Fundee",
+  "description": "Personalized strength training with hormonal-cycle-aware recommendations.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f4f0df",
+  "theme_color": "#0d1a40",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
