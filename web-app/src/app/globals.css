@@ -1,26 +1,66 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@theme {
+  --color-cream: #f4f0df;
+  --color-navy: #0d1a40;
+  --color-orange: #f27319;
+  --color-gold: #d9b34d;
+  --color-card-bg: #fcfaf2;
+  --color-separator: #e0d9c7;
+  --color-text-secondary: #596180;
+  --color-error: #d92626;
+  --color-warm-rose: #e68c80;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-xxl: 48px;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-card: 12px;
+  --radius-button: 8px;
+
+  --font-size-heading: 22px;
+  --font-size-subheading: 17px;
+  --font-size-body: 15px;
+  --font-size-caption: 13px;
+  --font-size-mono: 14px;
+
+  --font-heading: "Playfair Display", Georgia, serif;
+  --font-body: "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-body);
+  font-size: var(--font-size-body);
+  color: var(--color-navy);
+  background-color: var(--color-cream);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-heading);
+}
+
+h1 { font-size: var(--font-size-heading); font-weight: 700; }
+h2 { font-size: var(--font-size-subheading); font-weight: 600; }
+
+.card {
+  background-color: var(--color-card-bg);
+  border-radius: var(--radius-card);
+  padding: var(--spacing-md);
+  box-shadow: 0 1px 3px rgba(13, 26, 64, 0.08);
+}
+
+@media (display-mode: standalone) {
+  body {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
 }
