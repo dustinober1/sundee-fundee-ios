@@ -10,7 +10,7 @@
     "lint": "eslint",
     "build:cf": "npx @opennextjs/cloudflare build",
     "preview": "npx wrangler dev",
-    "deploy": "npx wrangler deploy",
+    "deploy": "npx @opennextjs/cloudflare deploy",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage"
