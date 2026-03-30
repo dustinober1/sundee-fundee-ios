@@ -20,14 +20,34 @@ export default function SignInPage() {
       const { getRedirectResult } = await import("firebase/auth");
       const { getFirebaseAuth } = await import("@/lib/firebase");
       const auth = getFirebaseAuth();
-      const result = await getRedirectResult(auth);
-      if (result?.user) {
-        // For Apple sign-in, update display name from the ID token
-        if (result.providerId === "apple.com") {
-          const { updateAppleDisplayName } = await import("@/lib/social-auth");
-          await updateAppleDisplayName(result);
+
+      try {
+        const result = await getRedirectResult(auth);
+        if (result?.user) {
+          // For Apple sign-in, update display name from the ID token
+          if (result.providerId === "apple.com") {
+            const { updateAppleDisplayName } = await import("@/lib/social-auth");
+            await updateAppleDisplayName(result);
+          }
+          const idToken = await result.user.getIdToken();
+          await fetch("/api/auth/session", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ idToken }),
+          });
+          router.push("/dashboard");
+          return;
         }
-        const idToken = await result.user.getIdToken();
+      } catch (err) {
+        const { socialAuthErrorMessage } = await import("@/lib/social-auth");
+        setError(socialAuthErrorMessage(err));
+        return;
+      }
+
+      // Fallback: if Firebase already has a user signed in (redirect result
+      // consumed before getRedirectResult ran), sync session and redirect.
+      if (auth.currentUser) {
+        const idToken = await auth.currentUser.getIdToken();
         await fetch("/api/auth/session", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -36,9 +56,7 @@ export default function SignInPage() {
         router.push("/dashboard");
       }
     }
-    handleRedirectResult().catch(() => {
-      // Redirect result errors are non-critical — user can retry
-    });
+    handleRedirectResult();
   }, [router]);
 
   async function handleEmailSignIn(e: React.FormEvent) {
