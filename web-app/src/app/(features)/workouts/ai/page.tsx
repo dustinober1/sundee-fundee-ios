@@ -8,7 +8,7 @@ import { PageHeader, SectionHeader } from "@/components/ui/art-deco";
 import type { WorkoutFocus, EnergyLevel, EquipmentAccess, GeneratedExercise } from "@/lib/domain";
 import { CyclePhaseBanner } from "@/components/ui/cycle-phase-banner";
 import { CycleAdjustmentToggle } from "@/components/ui/cycle-adjustment-toggle";
-import { getPhaseAdjustmentSummary, formatWeightWithUnit } from "@/lib/domain";
+import { getPhaseAdjustmentSummary, formatWeightWithUnit, WeightUnit } from "@/lib/domain";
 import type { CyclePhase } from "@/lib/domain";
 
 type Step = "questionnaire" | "loading" | "preview";
@@ -48,7 +48,7 @@ export default function AIWorkoutPage() {
   const [cyclePhase, setCyclePhase] = useState<CyclePhase | null>(null);
   const [cycleDay, setCycleDay] = useState<number>(0);
   const [cycleAdjustments, setCycleAdjustments] = useState(true);
-  const [userWeightUnit, setUserWeightUnit] = useState<string>("lb");
+  const [userWeightUnit, setUserWeightUnit] = useState<WeightUnit>(WeightUnit.pounds);
 
   useEffect(() => {
     async function fetchCycleStatus() {
@@ -74,11 +74,11 @@ export default function AIWorkoutPage() {
         const res = await fetch("/api/user/profile");
         if (res.ok) {
           const profile = await res.json();
-          setUserWeightUnit(profile.weightUnit ?? "lb");
+          setUserWeightUnit((profile.weightUnit as WeightUnit) ?? WeightUnit.pounds);
         }
       } catch {
         // Fallback to lb
-        setUserWeightUnit("lb");
+        setUserWeightUnit(WeightUnit.pounds);
       }
     }
     fetchWeightUnit();
