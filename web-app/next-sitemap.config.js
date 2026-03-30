@@ -2,5 +2,5 @@
 module.exports = {
   siteUrl: "https://sundeefundee.com",
   generateRobotsTxt: true,
-  exclude: ["/api/*", "/dashboard", "/workouts/*", "/programs/*", "/maxes", "/benchmarks/*", "/cycle", "/settings"],
+  exclude: ["/api/*", "/admin/*", "/dashboard", "/workouts/*", "/programs/*", "/maxes", "/benchmarks/*", "/cycle", "/settings"],
 };
