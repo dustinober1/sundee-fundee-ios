@@ -9,8 +9,9 @@ import { FormAlert } from "@/components/ui/form-alert";
 import { addMax } from "./actions";
 import { estimate1RM, toKilograms } from "@/lib/domain";
 import { getErrorMessage } from "@/lib/client-errors";
+import { WeightUnit } from "@/lib/domain/types";
 
-export function AddMaxForm({ weightUnit = "lb" }: { weightUnit?: string }) {
+export function AddMaxForm({ weightUnit = WeightUnit.pounds }: { weightUnit?: WeightUnit }) {
   const router = useRouter();
   const [exercise, setExercise] = useState("");
   const [weight, setWeight] = useState("");
