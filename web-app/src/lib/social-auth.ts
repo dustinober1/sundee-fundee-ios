@@ -10,7 +10,7 @@ function isMobile(): boolean {
   return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 }
 
-async function updateAppleDisplayName(
+export async function updateAppleDisplayName(
   result: import("firebase/auth").UserCredential,
 ): Promise<void> {
   const { OAuthProvider, updateProfile } = await import("firebase/auth");
@@ -57,7 +57,6 @@ export async function signInWithGoogle(): Promise<void> {
 
 export async function signInWithApple(): Promise<void> {
   const {
-    signInWithPopup,
     signInWithRedirect,
     OAuthProvider,
   } = await import("firebase/auth");
@@ -68,16 +67,10 @@ export async function signInWithApple(): Promise<void> {
   provider.addScope("email");
   provider.addScope("name");
 
-  if (isMobile()) {
-    await signInWithRedirect(auth, provider);
-    // Page will reload — AuthProvider handles session sync on return
-    return;
-  }
-
-  const result = await signInWithPopup(auth, provider);
-  await updateAppleDisplayName(result);
-  const idToken = await result.user.getIdToken();
-  await syncSessionCookie(idToken);
+  // Always use redirect for Apple — popups are blocked by browsers
+  // because dynamic imports delay the popup past the user-gesture window.
+  // The redirect result is handled in useEffect on the sign-in/sign-up pages.
+  await signInWithRedirect(auth, provider);
 }
 
 export function socialAuthErrorMessage(err: unknown): string {

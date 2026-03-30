@@ -14,7 +14,7 @@ export default function SignInPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  // Handle redirect result after mobile social sign-in
+  // Handle redirect result after social sign-in (mobile or Apple)
   useEffect(() => {
     async function handleRedirectResult() {
       const { getRedirectResult } = await import("firebase/auth");
@@ -22,6 +22,17 @@ export default function SignInPage() {
       const auth = getFirebaseAuth();
       const result = await getRedirectResult(auth);
       if (result?.user) {
+        // For Apple sign-in, update display name from the ID token
+        if (result.providerId === "apple.com") {
+          const { updateAppleDisplayName } = await import("@/lib/social-auth");
+          await updateAppleDisplayName(result);
+        }
+        const idToken = await result.user.getIdToken();
+        await fetch("/api/auth/session", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ idToken }),
+        });
         router.push("/dashboard");
       }
     }
@@ -78,9 +89,14 @@ export default function SignInPage() {
         }}
       />
       <div className="relative w-full max-w-sm">
+        <Link href="/" className="absolute -top-2 left-0 text-gold font-mono text-[11px] tracking-[0.2em] uppercase hover:text-orange transition-colors">
+          &larr; Home
+        </Link>
         <div className="text-center mb-10">
           <p className="text-gold font-mono text-xs tracking-[0.3em] uppercase mb-3">Welcome Back</p>
-          <h1 className="!text-4xl !font-bold tracking-tight mb-2">Sundee Fundee</h1>
+          <Link href="/" className="hover:opacity-80 transition-opacity">
+            <h1 className="!text-4xl !font-bold tracking-tight mb-2">Sundee Fundee</h1>
+          </Link>
           <p className="text-text-secondary">Strength Training, Your Way</p>
           <ArtDecoRule className="text-gold/30 mt-6" />
         </div>
