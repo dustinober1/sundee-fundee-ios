@@ -4,6 +4,8 @@ import { getAllPosts } from "@/lib/blog";
 import Link from "next/link";
 import type { Metadata } from "next";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Blog — Sundee Fundee",
   description: "Training tips, updates, and insights from the Sundee Fundee team.",
@@ -13,8 +15,8 @@ export const metadata: Metadata = {
   },
 };
 
-export default function BlogPage() {
-  const posts = getAllPosts();
+export default async function BlogPage() {
+  const posts = await getAllPosts();
 
   return (
     <main className="max-w-2xl mx-auto">

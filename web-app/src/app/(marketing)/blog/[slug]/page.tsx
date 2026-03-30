@@ -1,17 +1,17 @@
-import { getAllPosts, getPostBySlug } from "@/lib/blog";
+import { getPostBySlug } from "@/lib/blog";
+import { sanitize } from "@/lib/sanitize";
 import { ArtDecoRule, SectionLabel } from "@/components/ui/art-deco";
-import { MDXRemote } from "next-mdx-remote/rsc";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
 
 export async function generateStaticParams() {
-  return getAllPosts().map((p) => ({ slug: p.slug }));
+  return [];
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const post = getPostBySlug(slug);
+  const post = await getPostBySlug(slug);
   if (!post) return {};
   return {
     title: `${post.title} — Sundee Fundee`,
@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const post = getPostBySlug(slug);
+  const post = await getPostBySlug(slug);
   if (!post) notFound();
 
   return (
@@ -47,9 +47,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           <p className="text-text-secondary mt-3 text-lg leading-relaxed">{post.description}</p>
           <ArtDecoRule className="text-gold/30 mt-6" />
         </header>
-        <div className="prose">
-          <MDXRemote source={post.content} />
-        </div>
+        <div className="prose" dangerouslySetInnerHTML={{ __html: sanitize(post.content) }} />
       </article>
     </main>
   );
