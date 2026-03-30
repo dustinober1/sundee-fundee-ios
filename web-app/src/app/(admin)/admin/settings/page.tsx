@@ -81,12 +81,23 @@ export default function SettingsPage() {
   }
 
   async function handleRemoveAdmin(uid: string) {
-    await fetch("/api/admin/settings/admins", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ uid }),
-    });
-    setConfirmDeleteUid(null);
+    try {
+      const res = await fetch("/api/admin/settings/admins", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ uid }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        setAddError(data.error ?? "Failed to remove admin.");
+        return;
+      }
+    } catch {
+      setAddError("Network error.");
+      return;
+    } finally {
+      setConfirmDeleteUid(null);
+    }
     await loadAdmins();
   }
 

@@ -2,7 +2,6 @@ import { describe, it, expect } from "vitest";
 import {
   calculateBenchmarkReadiness,
   getBestAttemptWindow,
-  type ReadinessTier,
 } from "../benchmark-readiness";
 import type { CyclePhase } from "../types";
 

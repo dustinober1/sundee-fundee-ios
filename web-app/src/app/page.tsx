@@ -1,4 +1,22 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Sundee Fundee — Train With Your Body, Not Against It",
+  description:
+    "AI-powered strength training that adapts to your cycle, injuries, and energy. Cycle-synced programming, progressive overload, and personalized workouts — free to start.",
+  openGraph: {
+    title: "Sundee Fundee — Train With Your Body, Not Against It",
+    description:
+      "AI-powered strength training that adapts to your cycle, injuries, and energy. Cycle-synced programming, progressive overload, and personalized workouts.",
+    url: "https://sundeefundee.com",
+  },
+  twitter: {
+    title: "Sundee Fundee — Train With Your Body, Not Against It",
+    description:
+      "AI-powered strength training that adapts to your cycle, injuries, and energy.",
+  },
+};
 
 /* ------------------------------------------------------------------ */
 /*  Decorative SVG helpers                                            */

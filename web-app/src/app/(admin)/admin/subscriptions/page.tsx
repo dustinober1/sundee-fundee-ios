@@ -11,6 +11,7 @@ interface SubscriptionRow {
   email?: string;
   tier?: string;
   status?: string;
+  currentPeriodStart?: string;
   currentPeriodEnd?: string;
 }
 
@@ -50,6 +51,15 @@ const columns: Column<SubscriptionRow>[] = [
     key: "status",
     header: "Status",
     render: (row) => <StatusBadge status={row.status} />,
+    sortable: true,
+  },
+  {
+    key: "currentPeriodStart",
+    header: "Start Date",
+    render: (row) =>
+      row.currentPeriodStart
+        ? new Date(row.currentPeriodStart).toLocaleDateString()
+        : "—",
     sortable: true,
   },
   {

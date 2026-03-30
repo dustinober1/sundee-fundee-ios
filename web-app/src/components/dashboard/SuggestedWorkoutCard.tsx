@@ -12,7 +12,7 @@ export function SuggestedWorkoutCard({ program, hasAIAccess }: SuggestedWorkoutC
   if (program) {
     return (
       <div className="card p-4">
-        <p className="text-[10px] uppercase tracking-[0.2em] text-gold mb-1">Today's Focus</p>
+        <p className="text-[10px] uppercase tracking-[0.2em] text-gold mb-1">Today&apos;s Focus</p>
         <h3 className="text-base font-semibold text-navy mb-2">
           Week {program.currentWeek} — {program.sessionName}
         </h3>
@@ -43,7 +43,7 @@ export function SuggestedWorkoutCard({ program, hasAIAccess }: SuggestedWorkoutC
   // No active program
   return (
     <div className="card p-4">
-      <p className="text-[10px] uppercase tracking-[0.2em] text-gold mb-1">Today's Focus</p>
+      <p className="text-[10px] uppercase tracking-[0.2em] text-gold mb-1">Today&apos;s Focus</p>
       <h3 className="text-base font-semibold text-navy mb-1">
         {hasAIAccess ? "Generate AI Workout" : "Find a Program"}
       </h3>

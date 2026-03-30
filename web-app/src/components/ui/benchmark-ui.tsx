@@ -300,7 +300,7 @@ interface PRTrendIndicatorProps {
 export function PRTrendIndicator({
   currentValue,
   previousValue,
-  scoringType,
+  scoringType: _scoringType,
   lowerIsBetter = false,
 }: PRTrendIndicatorProps) {
   if (previousValue == null) {

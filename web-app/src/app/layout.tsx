@@ -4,8 +4,24 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Sundee Fundee — Strength Training",
-  description: "Personalized strength training with hormonal-cycle-aware recommendations.",
+  description:
+    "AI-powered strength training that adapts to your cycle, injuries, and energy. Every workout is built for exactly where you are today.",
   manifest: "/manifest.json",
+  metadataBase: new URL("https://sundeefundee.com"),
+  openGraph: {
+    type: "website",
+    siteName: "Sundee Fundee",
+    title: "Sundee Fundee — Strength Training",
+    description:
+      "AI-powered strength training that adapts to your cycle, injuries, and energy. Every workout is built for exactly where you are today.",
+    url: "https://sundeefundee.com",
+  },
+  twitter: {
+    card: "summary",
+    title: "Sundee Fundee — Strength Training",
+    description:
+      "AI-powered strength training that adapts to your cycle, injuries, and energy.",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",

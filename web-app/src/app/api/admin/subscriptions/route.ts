@@ -6,10 +6,15 @@ export async function GET() {
   try {
     await requireAdmin();
     const usersSnapshot = await db.collection("users").get();
+    const subDocs = await Promise.all(
+      usersSnapshot.docs.map((userDoc) =>
+        userDoc.ref.collection("subscription").doc("current").get()
+      )
+    );
     const subscriptions: Record<string, unknown>[] = [];
-
-    for (const userDoc of usersSnapshot.docs) {
-      const subDoc = await userDoc.ref.collection("subscription").doc("current").get();
+    for (let i = 0; i < usersSnapshot.docs.length; i++) {
+      const userDoc = usersSnapshot.docs[i];
+      const subDoc = subDocs[i];
       if (subDoc.exists) {
         subscriptions.push({
           uid: userDoc.id,

@@ -17,33 +17,6 @@ export interface BenchmarkReadiness {
 }
 
 // ---------------------------------------------------------------------------
-// Phase-based recommendations
-// ---------------------------------------------------------------------------
-
-const PHASE_RECOMMENDATIONS: Record<CyclePhase, { peak: string[]; moderate: string[]; recovery: string[] }> = {
-  menstrual: {
-    peak: ["light cardio", "yoga", "walking", "stretching"],
-    moderate: ["technique work", "light strength", "low-impact cardio"],
-    recovery: ["heavy lifts", "max effort", "high intensity"],
-  },
-  follicular: {
-    peak: ["strength training", "building volume", "new skills", "PR attempts"],
-    moderate: ["moderate cardio", "conditioning", "gymnastics"],
-    recovery: ["max effort if feeling fatigued"],
-  },
-  ovulation: {
-    peak: ["PR attempts", "heavy lifts", "max effort", "power work"],
-    moderate: ["high intensity", "competition prep"],
-    recovery: ["light recovery if needed"],
-  },
-  luteal: {
-    peak: ["technique refinement", "moderate volume", "endurance work"],
-    moderate: ["strength maintenance", "light cardio", "flexibility"],
-    recovery: ["max effort attempts", "heavy compound lifts"],
-  },
-};
-
-// ---------------------------------------------------------------------------
 // Readiness calculation
 // ---------------------------------------------------------------------------
 

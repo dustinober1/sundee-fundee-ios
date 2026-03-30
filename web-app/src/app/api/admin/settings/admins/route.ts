@@ -33,9 +33,10 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    await requireAdmin();
+    const caller = await requireAdmin();
     const { uid } = await request.json();
     if (typeof uid !== "string" || !uid) return NextResponse.json({ error: "Missing uid" }, { status: 400 });
+    if (uid === caller.uid) return NextResponse.json({ error: "Cannot remove yourself from the admin allowlist" }, { status: 400 });
     await db.collection("admins").doc(uid).delete();
     return NextResponse.json({ ok: true });
   } catch (e) {
