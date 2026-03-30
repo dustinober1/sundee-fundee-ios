@@ -6,7 +6,7 @@ import { calculateBenchmarkReadiness, getBestAttemptWindow } from "@/lib/domain/
 import { deleteBenchmarkResult, getBenchmarkResults } from "../actions";
 import { getCycleStatus, getCycleSettings, getPeriodLogs } from "../../cycle/actions";
 import { getUserProfile } from "../../settings/actions";
-import { fromKilograms, formatWeightWithUnit, WeightUnit } from "@/lib/domain";
+import { formatWeightWithUnit, WeightUnit } from "@/lib/domain";
 import { LogResultForm } from "./log-result-form";
 import {
   ReadinessPanel,
