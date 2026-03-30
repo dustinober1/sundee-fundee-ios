@@ -15,10 +15,10 @@ const ALLOWED_TAGS = [
 const ALLOWED_ATTRIBUTES: Record<string, string[]> = {
   a: ["href", "title", "target", "rel"],
   img: ["src", "alt", "width", "height"],
+  // class only on code/pre for syntax highlighting (e.g. language-js)
   code: ["class"],
   pre: ["class"],
-  div: ["class"],
-  span: ["class"],
+  // no class on div/span — would allow Tailwind overlay attacks
 };
 
 export function sanitize(html: string): string {
@@ -26,5 +26,14 @@ export function sanitize(html: string): string {
     allowedTags: ALLOWED_TAGS,
     allowedAttributes: ALLOWED_ATTRIBUTES,
     allowedSchemes: ["http", "https", "mailto"],
+    transformTags: {
+      a: (tagName, attribs) => {
+        // Force rel="noopener noreferrer" when target is present (tab-napping prevention)
+        if (attribs.target) {
+          attribs.rel = "noopener noreferrer";
+        }
+        return { tagName, attribs };
+      },
+    },
   });
 }
