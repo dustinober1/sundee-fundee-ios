@@ -13,3 +13,4 @@ export * from "./benchmark-catalog";
 export * from "./celebration-event";
 export * from "./program-template-generator";
 export * from "./ai-workout";
+export * from "./cycle-calendar";
