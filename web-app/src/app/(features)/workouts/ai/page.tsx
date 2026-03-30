@@ -4,11 +4,11 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { PageHeader, SectionHeader, ArtDecoRuleSmall } from "@/components/ui/art-deco";
+import { PageHeader, SectionHeader } from "@/components/ui/art-deco";
 import type { WorkoutFocus, EnergyLevel, EquipmentAccess, GeneratedExercise } from "@/lib/domain";
 import { CyclePhaseBanner } from "@/components/ui/cycle-phase-banner";
 import { CycleAdjustmentToggle } from "@/components/ui/cycle-adjustment-toggle";
-import { getPhaseAdjustmentSummary } from "@/lib/domain";
+import { getPhaseAdjustmentSummary, formatWeightWithUnit } from "@/lib/domain";
 import type { CyclePhase } from "@/lib/domain";
 
 type Step = "questionnaire" | "loading" | "preview";
@@ -48,6 +48,7 @@ export default function AIWorkoutPage() {
   const [cyclePhase, setCyclePhase] = useState<CyclePhase | null>(null);
   const [cycleDay, setCycleDay] = useState<number>(0);
   const [cycleAdjustments, setCycleAdjustments] = useState(true);
+  const [userWeightUnit, setUserWeightUnit] = useState<string>("lb");
 
   useEffect(() => {
     async function fetchCycleStatus() {
@@ -65,6 +66,22 @@ export default function AIWorkoutPage() {
       }
     }
     fetchCycleStatus();
+  }, []);
+
+  useEffect(() => {
+    async function fetchWeightUnit() {
+      try {
+        const res = await fetch("/api/user/profile");
+        if (res.ok) {
+          const profile = await res.json();
+          setUserWeightUnit(profile.weightUnit ?? "lb");
+        }
+      } catch {
+        // Fallback to lb
+        setUserWeightUnit("lb");
+      }
+    }
+    fetchWeightUnit();
   }, []);
 
   const generate = async () => {
@@ -120,7 +137,7 @@ export default function AIWorkoutPage() {
                 <p className="font-heading font-semibold">{ex.name}</p>
                 <p className="text-text-secondary text-[13px] mt-0.5 font-mono">
                   {ex.sets} sets × {ex.reps} reps
-                  {ex.weightKg ? ` @ ${ex.weightKg} kg` : ""}
+                  {ex.weightKg ? ` @ ${formatWeightWithUnit(ex.weightKg, userWeightUnit)}` : ""}
                 </p>
               </div>
               {ex.restMinutes && (
