@@ -76,12 +76,12 @@ export default function CatalogPage() {
         body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error("Save failed");
-      const saved: CatalogExercise = await res.json();
+      const savedItem: CatalogExercise = isNew ? { ...draft, id } : { ...draft };
       setExercises((prev) =>
-        isNew ? [saved, ...prev] : prev.map((e) => (e.id === saved.id ? saved : e))
+        isNew ? [savedItem, ...prev] : prev.map((e) => (e.id === id ? savedItem : e))
       );
-      setSelected(saved);
-      setDraft({ ...saved });
+      setSelected(savedItem);
+      setDraft({ ...savedItem });
       setIsNew(false);
     } catch (e) {
       console.error(e);

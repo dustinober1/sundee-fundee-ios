@@ -175,6 +175,7 @@ export default function WODsPage() {
   const [selected, setSelected] = useState<WOD | null>(null);
   const [draft, setDraft] = useState<WOD | null>(null);
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [isNew, setIsNew] = useState(false);
 
@@ -234,6 +235,7 @@ export default function WODsPage() {
 
   async function handleSave() {
     if (!draft) return;
+    setSaveError(null);
     setSaving(true);
     try {
       const id = isNew ? `wod-${draft.date}` : (selected?.id ?? draft.id);
@@ -246,15 +248,16 @@ export default function WODsPage() {
         body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error("Save failed");
-      const saved: WOD = await res.json();
+      const savedItem: WOD = isNew ? { ...draft, id } : { ...draft };
       setWods((prev) =>
-        isNew ? [saved, ...prev] : prev.map((w) => (w.id === saved.id ? saved : w))
+        isNew ? [savedItem, ...prev] : prev.map((w) => (w.id === id ? savedItem : w))
       );
-      setSelected(saved);
-      setDraft({ ...saved });
+      setSelected(savedItem);
+      setDraft({ ...savedItem });
       setIsNew(false);
     } catch (e) {
       console.error(e);
+      setSaveError("Failed to save. Please try again.");
     } finally {
       setSaving(false);
     }
@@ -327,18 +330,21 @@ export default function WODsPage() {
               title={panelTitle}
               onClose={handleClose}
               actions={
-                <div className="flex gap-2">
-                  {!isNew && selected && (
-                    <Button
-                      variant="destructive"
-                      onClick={() => setDeleteOpen(true)}
-                    >
-                      Delete
+                <div className="flex flex-col items-end gap-1">
+                  <div className="flex gap-2">
+                    {!isNew && selected && (
+                      <Button
+                        variant="destructive"
+                        onClick={() => setDeleteOpen(true)}
+                      >
+                        Delete
+                      </Button>
+                    )}
+                    <Button variant="primary" onClick={handleSave} disabled={saving}>
+                      {saving ? "Saving..." : "Save"}
                     </Button>
-                  )}
-                  <Button variant="primary" onClick={handleSave} disabled={saving}>
-                    {saving ? "Saving..." : "Save"}
-                  </Button>
+                  </div>
+                  {saveError && <p className="text-error text-sm">{saveError}</p>}
                 </div>
               }
             >

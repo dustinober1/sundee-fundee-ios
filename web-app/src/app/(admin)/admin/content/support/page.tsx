@@ -115,14 +115,14 @@ export default function SupportArticlesPage() {
         body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error("Save failed");
-      const saved: SupportArticle = await res.json();
+      const savedItem: SupportArticle = isNew ? { ...payload } : { ...payload };
       setArticles((prev) =>
         isNew
-          ? [saved, ...prev]
-          : prev.map((a) => (a.slug === saved.slug ? saved : a))
+          ? [savedItem, ...prev]
+          : prev.map((a) => (a.slug === slug ? savedItem : a))
       );
-      setSelected(saved);
-      setDraft({ ...saved });
+      setSelected(savedItem);
+      setDraft({ ...savedItem });
       setIsNew(false);
     } catch (e) {
       console.error(e);

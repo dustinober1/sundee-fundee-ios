@@ -22,7 +22,7 @@ function newBlogPost(): BlogPost {
     author: "",
     date: new Date().toISOString().slice(0, 10),
     tags: [],
-    image: "",
+    image: undefined,
     content: "",
     status: "draft",
     updatedAt: new Date().toISOString(),
@@ -121,14 +121,14 @@ export default function BlogEditorPage() {
         body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error("Save failed");
-      const saved: BlogPost = await res.json();
+      const savedItem: BlogPost = isNew ? { ...payload } : { ...payload };
       setPosts((prev) =>
         isNew
-          ? [saved, ...prev]
-          : prev.map((p) => (p.slug === saved.slug ? saved : p))
+          ? [savedItem, ...prev]
+          : prev.map((p) => (p.slug === slug ? savedItem : p))
       );
-      setSelected(saved);
-      setDraft({ ...saved, tags: [...saved.tags] });
+      setSelected(savedItem);
+      setDraft({ ...savedItem, tags: [...savedItem.tags] });
       setIsNew(false);
     } catch (e) {
       console.error(e);

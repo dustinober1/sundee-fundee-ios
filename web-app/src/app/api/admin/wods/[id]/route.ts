@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin-auth";
 import { adminDoc } from "@/lib/admin-firestore";
 import { exerciseToFirestore } from "@/lib/domain/admin-types";
+import type { ProgramExercise } from "@/lib/domain/admin-types";
 
 export async function GET(
   _request: NextRequest,
@@ -30,8 +31,8 @@ export async function PATCH(
     const { id } = await params;
     const body = await request.json();
     if (body.exercises) {
-      body.exercises = body.exercises.map((ex: Record<string, unknown>) =>
-        exerciseToFirestore(ex as any)
+      body.exercises = (body.exercises as ProgramExercise[]).map((ex) =>
+        exerciseToFirestore(ex)
       );
     }
     await adminDoc("wods", id).set(body, { merge: true });

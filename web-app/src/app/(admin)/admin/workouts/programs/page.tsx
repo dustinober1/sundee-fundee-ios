@@ -168,7 +168,6 @@ function ExerciseRow({ ex, onChange, onRemove, label }: ExerciseRowProps) {
 
 interface SessionEditorProps {
   session: ProgramSession;
-  weekIndex: number;
   sessionIndex: number;
   onChange: (updated: ProgramSession) => void;
   onRemove: () => void;
@@ -176,7 +175,6 @@ interface SessionEditorProps {
 
 function SessionEditor({
   session,
-  weekIndex,
   sessionIndex,
   onChange,
   onRemove,
@@ -252,6 +250,7 @@ export default function ProgramsPage() {
   const [selected, setSelected] = useState<Program | null>(null);
   const [draft, setDraft] = useState<Program | null>(null);
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [isNew, setIsNew] = useState(false);
 
@@ -367,6 +366,7 @@ export default function ProgramsPage() {
 
   async function handleSave() {
     if (!draft) return;
+    setSaveError(null);
     setSaving(true);
     try {
       const id = isNew ? slugify(draft.name) : (selected?.id ?? draft.id);
@@ -379,15 +379,16 @@ export default function ProgramsPage() {
         body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error("Save failed");
-      const saved: Program = await res.json();
+      const savedItem: Program = isNew ? { ...draft, id } : { ...draft };
       setPrograms((prev) =>
-        isNew ? [saved, ...prev] : prev.map((p) => (p.id === saved.id ? saved : p))
+        isNew ? [savedItem, ...prev] : prev.map((p) => (p.id === id ? savedItem : p))
       );
-      setSelected(saved);
-      setDraft(JSON.parse(JSON.stringify(saved)));
+      setSelected(savedItem);
+      setDraft(JSON.parse(JSON.stringify(savedItem)));
       setIsNew(false);
     } catch (e) {
       console.error(e);
+      setSaveError("Failed to save. Please try again.");
     } finally {
       setSaving(false);
     }
@@ -455,15 +456,18 @@ export default function ProgramsPage() {
               title={panelTitle}
               onClose={handleClose}
               actions={
-                <div className="flex gap-2">
-                  {!isNew && selected && (
-                    <Button variant="destructive" onClick={() => setDeleteOpen(true)}>
-                      Delete
+                <div className="flex flex-col items-end gap-1">
+                  <div className="flex gap-2">
+                    {!isNew && selected && (
+                      <Button variant="destructive" onClick={() => setDeleteOpen(true)}>
+                        Delete
+                      </Button>
+                    )}
+                    <Button variant="primary" onClick={handleSave} disabled={saving}>
+                      {saving ? "Saving..." : "Save"}
                     </Button>
-                  )}
-                  <Button variant="primary" onClick={handleSave} disabled={saving}>
-                    {saving ? "Saving..." : "Save"}
-                  </Button>
+                  </div>
+                  {saveError && <p className="text-error text-sm">{saveError}</p>}
                 </div>
               }
             >
@@ -626,7 +630,6 @@ export default function ProgramsPage() {
                             <SessionEditor
                               key={si}
                               session={session}
-                              weekIndex={wi}
                               sessionIndex={si}
                               onChange={(updated) => updateSession(wi, si, updated)}
                               onRemove={() => removeSession(wi, si)}

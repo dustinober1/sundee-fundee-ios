@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin-auth";
 import { adminDoc } from "@/lib/admin-firestore";
 import { exerciseToFirestore } from "@/lib/domain/admin-types";
+import type { ProgramWeek } from "@/lib/domain/admin-types";
 
 export async function GET(
   _request: NextRequest,
@@ -30,11 +31,11 @@ export async function PATCH(
     const { id } = await params;
     const body = await request.json();
     if (body.weeks) {
-      body.weeks = body.weeks.map((week: any) => ({
+      body.weeks = (body.weeks as ProgramWeek[]).map((week) => ({
         ...week,
-        sessions: week.sessions.map((session: any) => ({
+        sessions: week.sessions.map((session) => ({
           ...session,
-          exercises: session.exercises.map((ex: any) => exerciseToFirestore(ex)),
+          exercises: session.exercises.map((ex) => exerciseToFirestore(ex)),
         })),
       }));
     }

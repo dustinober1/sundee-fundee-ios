@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin-auth";
 import { adminCollection } from "@/lib/admin-firestore";
 import { exerciseToFirestore } from "@/lib/domain/admin-types";
+import type { ProgramWeek } from "@/lib/domain/admin-types";
 
 export async function GET() {
   try {
@@ -24,11 +25,11 @@ export async function POST(request: NextRequest) {
     const { id, ...data } = body;
     if (typeof id !== "string" || !id) return NextResponse.json({ error: "Missing or invalid id" }, { status: 400 });
     if (data.weeks) {
-      data.weeks = data.weeks.map((week: any) => ({
+      data.weeks = (data.weeks as ProgramWeek[]).map((week) => ({
         ...week,
-        sessions: week.sessions.map((session: any) => ({
+        sessions: week.sessions.map((session) => ({
           ...session,
-          exercises: session.exercises.map((ex: any) => exerciseToFirestore(ex)),
+          exercises: session.exercises.map((ex) => exerciseToFirestore(ex)),
         })),
       }));
     }

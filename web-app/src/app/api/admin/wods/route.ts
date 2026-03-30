@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin-auth";
 import { adminCollection } from "@/lib/admin-firestore";
 import { exerciseToFirestore } from "@/lib/domain/admin-types";
+import type { ProgramExercise } from "@/lib/domain/admin-types";
 
 export async function GET() {
   try {
@@ -24,8 +25,8 @@ export async function POST(request: NextRequest) {
     const { id, ...data } = body;
     if (typeof id !== "string" || !id) return NextResponse.json({ error: "Missing or invalid id" }, { status: 400 });
     if (data.exercises) {
-      data.exercises = data.exercises.map((ex: Record<string, unknown>) =>
-        exerciseToFirestore(ex as any)
+      data.exercises = (data.exercises as ProgramExercise[]).map((ex) =>
+        exerciseToFirestore(ex)
       );
     }
     await adminCollection("wods").doc(id).set(data);

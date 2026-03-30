@@ -8,6 +8,7 @@ import { EmptyState } from "@/components/admin/empty-state";
 import { ConfirmDialog } from "@/components/admin/confirm-dialog";
 import { Button } from "@/components/ui/button";
 import type { BenchmarkDefinition } from "@/lib/domain/admin-types";
+import { slugify } from "@/lib/domain/admin-types";
 
 const INPUT_CLASS =
   "w-full bg-card-bg border border-separator rounded-sm px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange/40";
@@ -112,7 +113,7 @@ export default function BenchmarksPage() {
     setSaving(true);
     try {
       const payload = fromBenchmarkDraft(draft);
-      const id = isNew ? draft.name.toLowerCase().replace(/\s+/g, "-") : (selected?.id ?? draft.id);
+      const id = isNew ? slugify(draft.name) : (selected?.id ?? draft.id);
       payload.id = id;
       const url = isNew ? "/api/admin/benchmarks" : `/api/admin/benchmarks/${id}`;
       const method = isNew ? "POST" : "PATCH";
@@ -122,12 +123,12 @@ export default function BenchmarksPage() {
         body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error("Save failed");
-      const saved: BenchmarkDefinition = await res.json();
+      const savedItem: BenchmarkDefinition = isNew ? { ...payload, id } : { ...payload };
       setBenchmarks((prev) =>
-        isNew ? [saved, ...prev] : prev.map((b) => (b.id === saved.id ? saved : b))
+        isNew ? [savedItem, ...prev] : prev.map((b) => (b.id === id ? savedItem : b))
       );
-      setSelected(saved);
-      setDraft(toBenchmarkDraft(saved));
+      setSelected(savedItem);
+      setDraft(toBenchmarkDraft(savedItem));
       setIsNew(false);
     } catch (e) {
       console.error(e);
