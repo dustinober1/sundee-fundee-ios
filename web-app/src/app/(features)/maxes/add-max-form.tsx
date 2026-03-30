@@ -7,10 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { FormAlert } from "@/components/ui/form-alert";
 import { addMax } from "./actions";
-import { estimate1RM } from "@/lib/domain";
+import { estimate1RM, toKilograms } from "@/lib/domain";
 import { getErrorMessage } from "@/lib/client-errors";
 
-export function AddMaxForm() {
+export function AddMaxForm({ weightUnit = "lb" }: { weightUnit?: string }) {
   const router = useRouter();
   const [exercise, setExercise] = useState("");
   const [weight, setWeight] = useState("");
@@ -29,7 +29,7 @@ export function AddMaxForm() {
     setError(null);
     setSaving(true);
     try {
-      await addMax({ exerciseId: exercise.trim(), weightKg: Math.round(estimated1RM * 10) / 10, isEstimated });
+      await addMax({ exerciseId: exercise.trim(), weightKg: toKilograms(estimated1RM, weightUnit), isEstimated });
       setExercise(""); setWeight(""); setReps("1"); setOpen(false);
       router.refresh();
     } catch (error) {
@@ -53,12 +53,12 @@ export function AddMaxForm() {
       <div className="flex flex-col gap-spacing-sm">
         <Input label="Exercise" value={exercise} onChange={(e) => setExercise(e.target.value)} placeholder="e.g. Back Squat" />
         <div className="grid grid-cols-2 gap-spacing-sm">
-          <Input label="Weight (kg)" type="number" value={weight} onChange={(e) => setWeight(e.target.value)} />
+          <Input label={`Weight (${weightUnit})`} type="number" value={weight} onChange={(e) => setWeight(e.target.value)} />
           <Input label="Reps" type="number" value={reps} onChange={(e) => setReps(e.target.value)} />
         </div>
         {isEstimated && weightNum > 0 && (
           <p className="text-[13px] text-text-secondary">
-            Estimated 1RM: <span className="text-orange font-medium">{Math.round(estimated1RM)} kg</span> (Epley)
+            Estimated 1RM: <span className="text-orange font-medium">{Math.round(estimated1RM * 10) / 10} {weightUnit}</span> (Epley)
           </p>
         )}
         {error && <FormAlert message={error} />}
