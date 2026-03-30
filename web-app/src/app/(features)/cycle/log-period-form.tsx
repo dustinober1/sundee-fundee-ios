@@ -22,7 +22,7 @@ export function LogPeriodForm() {
           onClick={async () => {
             setSaving(true);
             try {
-              await logPeriod(date);
+              await logPeriod({ startDate: date, flowLevel: "medium" });
               router.refresh();
             } finally { setSaving(false); }
           }}
