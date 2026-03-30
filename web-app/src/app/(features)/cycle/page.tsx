@@ -3,7 +3,7 @@ import { PageHeader, SectionHeader, ArtDecoRuleSmall } from "@/components/ui/art
 import { DeleteRecordButton } from "@/components/ui/delete-record-button";
 import { deletePeriodLog, getPeriodLogs, getCycleSettings } from "./actions";
 import { calculateCycleStatus, getPhaseRecommendation } from "@/lib/domain";
-import { parseDateInputValue } from "@/lib/date-input";
+import { coerceStoredDateToLocalDate } from "@/lib/date-input";
 import { LogPeriodForm } from "./log-period-form";
 
 const PHASE_COLORS: Record<string, string> = {
@@ -29,10 +29,17 @@ export default async function CyclePage() {
     lutealPhaseLengthDays: settings?.lutealPhaseLengthDays ?? 14,
   };
 
-  const periodEntries = logs.map((l) => ({
-    startDate: parseDateInputValue(l.startDate),
-    ...(l.endDate ? { endDate: parseDateInputValue(l.endDate) } : {}),
-  }));
+  const periodEntries = logs.flatMap((l) => {
+    const startDate = coerceStoredDateToLocalDate(l.startDate);
+    if (!startDate) return [];
+
+    const endDate = coerceStoredDateToLocalDate(l.endDate);
+
+    return [{
+      startDate,
+      ...(endDate ? { endDate } : {}),
+    }];
+  });
   const status = calculateCycleStatus(periodEntries, cycleConfig, new Date());
 
   return (
@@ -99,13 +106,21 @@ export default async function CyclePage() {
           <SectionHeader label="Records" title="Period History" />
           <div className="flex flex-col gap-0 mt-3">
             {logs.slice(0, 10).map((l) => (
-              <div key={l.id} className="flex items-start justify-between gap-3 py-3 border-b border-separator/30 last:border-0">
-                <div className="text-[13px]">
-                  <p>{parseDateInputValue(l.startDate).toLocaleDateString()}</p>
-                  <p className="text-text-secondary font-mono mt-0.5">{l.flowLevel}</p>
-                </div>
-                <DeleteRecordButton action={deletePeriodLog} recordId={l.id} noun="Period Log" />
-              </div>
+              (() => {
+                const startDate = coerceStoredDateToLocalDate(l.startDate);
+
+                if (!startDate) return null;
+
+                return (
+                  <div key={l.id} className="flex items-start justify-between gap-3 py-3 border-b border-separator/30 last:border-0">
+                    <div className="text-[13px]">
+                      <p>{startDate.toLocaleDateString()}</p>
+                      <p className="text-text-secondary font-mono mt-0.5">{l.flowLevel}</p>
+                    </div>
+                    <DeleteRecordButton action={deletePeriodLog} recordId={l.id} noun="Period Log" />
+                  </div>
+                );
+              })()
             ))}
           </div>
         </Card>

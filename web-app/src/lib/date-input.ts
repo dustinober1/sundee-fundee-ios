@@ -12,12 +12,21 @@ function pad(value: number): string {
 
 export function parseDateInputValue(value: string): Date {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
-  if (!match) {
+  if (match) {
+    const [, yearRaw, monthRaw, dayRaw] = match;
+    return new Date(Number(yearRaw), Number(monthRaw) - 1, Number(dayRaw));
+  }
+
+  const fallback = new Date(value);
+  if (Number.isNaN(fallback.getTime())) {
     throw new Error(`Invalid date input: ${value}`);
   }
 
-  const [, yearRaw, monthRaw, dayRaw] = match;
-  return new Date(Number(yearRaw), Number(monthRaw) - 1, Number(dayRaw));
+  return new Date(
+    fallback.getUTCFullYear(),
+    fallback.getUTCMonth(),
+    fallback.getUTCDate()
+  );
 }
 
 export function formatDateInputValue(date: Date): string {

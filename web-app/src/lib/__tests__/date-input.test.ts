@@ -33,4 +33,10 @@ describe("date-input", () => {
     expect(normalized).not.toBeNull();
     expect(formatDateInputValue(normalized!)).toBe("2026-03-08");
   });
+
+  it("parses ISO timestamps without shifting the calendar day", () => {
+    const date = parseDateInputValue("2026-03-08T00:00:00.000Z");
+
+    expect(formatDateInputValue(date)).toBe("2026-03-08");
+  });
 });
