@@ -119,7 +119,7 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
 
   return (
     <div className="border border-separator rounded-sm bg-white">
-      <MenuBar editor={editor} />
+      {editor && <MenuBar editor={editor} />}
       <EditorContent
         editor={editor}
         className="prose prose-sm max-w-none p-4 min-h-[300px] focus:outline-none [&_.tiptap]:outline-none"
