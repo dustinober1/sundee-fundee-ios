@@ -1,25 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import { Playfair_Display, Inter, JetBrains_Mono } from "next/font/google";
 import { AuthProvider } from "@/components/providers/auth-provider";
 import "./globals.css";
-
-const playfair = Playfair_Display({
-  subsets: ["latin"],
-  variable: "--font-heading",
-  display: "swap",
-});
-
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-body",
-  display: "swap",
-});
-
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ["latin"],
-  variable: "--font-mono",
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   title: "Sundee Fundee — Strength Training",
@@ -46,10 +27,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html
-      lang="en"
-      className={`${playfair.variable} ${inter.variable} ${jetbrainsMono.variable}`}
-    >
+    <html lang="en">
       <body><AuthProvider>{children}</AuthProvider></body>
     </html>
   );

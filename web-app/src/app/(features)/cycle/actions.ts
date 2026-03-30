@@ -12,11 +12,20 @@ import {
   requireTrimmedString,
 } from "@/lib/write-validation";
 
+export interface PeriodLogRecord {
+  id: string;
+  startDate: string;
+  endDate?: string;
+  flowLevel: "light" | "medium" | "heavy";
+  symptoms?: string[];
+  notes?: string;
+}
+
 // ---------------------------------------------------------------------------
 // getPeriodLogs
 // ---------------------------------------------------------------------------
 
-export async function getPeriodLogs() {
+export async function getPeriodLogs(): Promise<PeriodLogRecord[]> {
   const user = await getAuthUser();
   if (!user) return [];
 
@@ -34,7 +43,9 @@ export async function getPeriodLogs() {
 
     return [{
       id: doc.id,
-      ...data,
+      flowLevel: (data.flowLevel as PeriodLogRecord["flowLevel"]) ?? "medium",
+      symptoms: Array.isArray(data.symptoms) ? data.symptoms.filter((value): value is string => typeof value === "string") : undefined,
+      notes: typeof data.notes === "string" ? data.notes : undefined,
       startDate: formatDateInputValue(startDate),
       ...(endDate ? { endDate: formatDateInputValue(endDate) } : {}),
     }];
@@ -173,7 +184,7 @@ export async function getCycleStatus(): Promise<CycleStatusResult | null> {
       startDate,
       endDate: endDate ?? undefined,
     };
-  }).filter((log): log is { startDate: Date; endDate?: Date } => log !== null);
+  }).filter((log): log is { startDate: Date; endDate: Date | undefined } => log !== null);
 
   return calculateCycleStatus(periodLogs, settings, new Date());
 }

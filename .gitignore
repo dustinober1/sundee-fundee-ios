@@ -55,3 +55,4 @@ tmp/
 .claude/
 .bg-shell/
 .vercel
+.env*.local
