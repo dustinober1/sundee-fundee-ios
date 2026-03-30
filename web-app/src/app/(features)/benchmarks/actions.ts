@@ -3,7 +3,15 @@
 import { getAuthUser, userCollection, db } from "@/lib/firestore";
 import { PREDEFINED_BENCHMARKS } from "@/lib/domain";
 
-export async function getBenchmarkResults() {
+export interface BenchmarkResult {
+  id: string;
+  definitionId: string;
+  scoreValue: number;
+  notes?: string;
+  performedAt: Date | null;
+}
+
+export async function getBenchmarkResults(): Promise<BenchmarkResult[]> {
   const user = await getAuthUser();
   if (!user) return [];
 
@@ -11,8 +19,18 @@ export async function getBenchmarkResults() {
     .orderBy("performedAt", "desc")
     .get();
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return snapshot.docs.map((doc) => ({ id: doc.id, ...(doc.data() as any) }));
+  return snapshot.docs.map((doc) => {
+    const data = doc.data();
+    // Convert Firestore Timestamp to Date
+    const performedAt = data.performedAt?.toDate?.() ?? data.performedAt ?? null;
+    return {
+      id: doc.id,
+      definitionId: data.definitionId,
+      scoreValue: data.scoreValue,
+      notes: data.notes,
+      performedAt,
+    } as BenchmarkResult;
+  });
 }
 
 export async function logBenchmarkResult(data: { definitionId: string; scoreValue: number; notes?: string }) {
