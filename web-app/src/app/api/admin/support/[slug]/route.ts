@@ -32,6 +32,7 @@ export async function PATCH(
     if (body.content) {
       body.content = sanitize(body.content);
     }
+    body.updatedAt = new Date().toISOString();
     await adminDoc("supportArticles", slug).set(body, { merge: true });
     return NextResponse.json({ ok: true });
   } catch (e) {

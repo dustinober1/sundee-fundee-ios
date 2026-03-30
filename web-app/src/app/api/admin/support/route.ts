@@ -25,6 +25,7 @@ export async function POST(request: NextRequest) {
     if (data.content) {
       data.content = sanitize(data.content);
     }
+    data.updatedAt = new Date().toISOString();
     await adminCollection("supportArticles").doc(id).set(data);
     return NextResponse.json({ ok: true, id });
   } catch (e) {
