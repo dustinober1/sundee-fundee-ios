@@ -4,6 +4,28 @@ import { PREDEFINED_BENCHMARKS } from "@/lib/domain";
 import { getBenchmarkResults } from "../actions";
 import { LogResultForm } from "./log-result-form";
 
+function formatScore(value: number, type: string): string {
+  switch (type) {
+    case "time": {
+      const hours = Math.floor(value / 3600);
+      const min = Math.floor((value % 3600) / 60);
+      const sec = Math.floor(value % 60);
+      if (hours > 0) {
+        return `${hours}:${String(min).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
+      }
+      return `${min}:${String(sec).padStart(2, "0")}`;
+    }
+    case "weight": return `${value} kg`;
+    case "reps": return `${Math.floor(value)} reps`;
+    case "roundsAndReps": {
+      const rounds = Math.floor(value / 10000);
+      const reps = Math.floor(value % 10000);
+      return `${rounds}+${reps}`;
+    }
+    default: return String(value);
+  }
+}
+
 export default async function BenchmarkDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const benchmark = PREDEFINED_BENCHMARKS.find((b) => b.id === id);
@@ -37,7 +59,7 @@ export default async function BenchmarkDetailPage({ params }: { params: Promise<
                 <span className="text-text-secondary">
                   {r.performedAt ? new Date(r.performedAt).toLocaleDateString() : ""}
                 </span>
-                <span className="font-mono font-semibold">{r.scoreValue}</span>
+                <span className="font-mono font-semibold">{formatScore(r.scoreValue, benchmark.scoringType)}</span>
               </div>
             ))}
           </div>
