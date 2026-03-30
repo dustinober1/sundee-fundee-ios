@@ -3,6 +3,7 @@
 import { getAuthUser, userCollection } from "@/lib/firestore";
 import { calculateCycleStatus } from "@/lib/domain";
 import type { CycleSettings, CycleStatusResult } from "@/lib/domain";
+import { coerceStoredDateToLocalDate, formatDateInputValue } from "@/lib/date-input";
 import {
   optionalTrimmedString,
   requireDateInput,
@@ -23,8 +24,21 @@ export async function getPeriodLogs() {
     .orderBy("startDate", "desc")
     .get();
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return snapshot.docs.map((doc) => ({ id: doc.id, ...(doc.data() as any) }));
+  return snapshot.docs.flatMap((doc) => {
+    const data = doc.data();
+    const startDate = coerceStoredDateToLocalDate(data.startDate);
+
+    if (!startDate) return [];
+
+    const endDate = coerceStoredDateToLocalDate(data.endDate);
+
+    return [{
+      id: doc.id,
+      ...data,
+      startDate: formatDateInputValue(startDate),
+      ...(endDate ? { endDate: formatDateInputValue(endDate) } : {}),
+    }];
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -150,11 +164,16 @@ export async function getCycleStatus(): Promise<CycleStatusResult | null> {
 
   const periodLogs = logsSnap.docs.map((doc) => {
     const d = doc.data();
+    const startDate = coerceStoredDateToLocalDate(d.startDate);
+    const endDate = coerceStoredDateToLocalDate(d.endDate);
+
+    if (!startDate) return null;
+
     return {
-      startDate: (d.startDate as { toDate(): Date }).toDate(),
-      endDate: d.endDate ? (d.endDate as { toDate(): Date }).toDate() : undefined,
+      startDate,
+      endDate: endDate ?? undefined,
     };
-  });
+  }).filter((log): log is { startDate: Date; endDate?: Date } => log !== null);
 
   return calculateCycleStatus(periodLogs, settings, new Date());
 }
