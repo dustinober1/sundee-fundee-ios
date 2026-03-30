@@ -1,11 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { PageHeader, SectionHeader, ArtDecoRuleSmall } from "@/components/ui/art-deco";
 import type { WorkoutFocus, EnergyLevel, EquipmentAccess, GeneratedExercise } from "@/lib/domain";
+import { CyclePhaseBanner } from "@/components/ui/cycle-phase-banner";
+import { CycleAdjustmentToggle } from "@/components/ui/cycle-adjustment-toggle";
+import { getPhaseAdjustmentSummary } from "@/lib/domain";
+import type { CyclePhase } from "@/lib/domain";
 
 type Step = "questionnaire" | "loading" | "preview";
 
@@ -41,6 +45,27 @@ export default function AIWorkoutPage() {
   const [equipment, setEquipment] = useState<EquipmentAccess>("full_gym");
   const [workout, setWorkout] = useState<{ coachingSummary: string; exercises: GeneratedExercise[] } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [cyclePhase, setCyclePhase] = useState<CyclePhase | null>(null);
+  const [cycleDay, setCycleDay] = useState<number>(0);
+  const [cycleAdjustments, setCycleAdjustments] = useState(true);
+
+  useEffect(() => {
+    async function fetchCycleStatus() {
+      try {
+        const res = await fetch("/api/cycle/status");
+        if (res.ok) {
+          const data = await res.json() as { currentPhase: CyclePhase; cycleDay: number } | null;
+          if (data) {
+            setCyclePhase(data.currentPhase);
+            setCycleDay(data.cycleDay);
+          }
+        }
+      } catch {
+        // Cycle tracking not available — continue without
+      }
+    }
+    fetchCycleStatus();
+  }, []);
 
   const generate = async () => {
     setStep("loading");
@@ -49,7 +74,13 @@ export default function AIWorkoutPage() {
       const res = await fetch("/api/ai/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ time, focus, energy, equipment }),
+        body: JSON.stringify({
+          time,
+          focus,
+          energy,
+          equipment,
+          cyclePhase: cycleAdjustments ? cyclePhase : undefined,
+        }),
       });
       if (!res.ok) throw new Error("Generation failed");
       const data = await res.json() as { coachingSummary: string; exercises: GeneratedExercise[] };
@@ -122,6 +153,21 @@ export default function AIWorkoutPage() {
         <Card className="border-l-[3px] border-l-error">
           <p className="text-error text-[13px]">{error}</p>
         </Card>
+      )}
+
+      {cyclePhase && (
+        <>
+          <CyclePhaseBanner
+            phase={cyclePhase}
+            cycleDay={cycleDay}
+            adjustmentSummary={getPhaseAdjustmentSummary(cyclePhase)}
+          />
+          <CycleAdjustmentToggle
+            phase={cyclePhase}
+            enabled={cycleAdjustments}
+            onToggle={() => setCycleAdjustments(!cycleAdjustments)}
+          />
+        </>
       )}
 
       <Card>
