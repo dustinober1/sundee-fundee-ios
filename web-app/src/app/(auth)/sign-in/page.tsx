@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ArtDecoRule } from "@/components/ui/art-deco";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -81,28 +82,35 @@ export default function SignInPage() {
           <p className="text-gold font-mono text-xs tracking-[0.3em] uppercase mb-3">Welcome Back</p>
           <h1 className="!text-4xl !font-bold tracking-tight mb-2">Sundee Fundee</h1>
           <p className="text-text-secondary">Strength Training, Your Way</p>
+          <ArtDecoRule className="text-gold/30 mt-6" />
         </div>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 mb-5 text-sm">{error}</div>
+          <div className="bg-card-bg border-l-[3px] border-l-error text-error rounded-lg px-4 py-3 mb-5 text-sm">{error}</div>
         )}
 
         <form onSubmit={handleEmailSignIn} className="flex flex-col gap-5">
           <Input label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" required />
           <Input label="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Your password" required />
-          <Button type="submit" fullWidth className="!py-3 mt-1" disabled={loading}>
+          <Button type="submit" fullWidth className="!py-3 mt-1 shadow-md shadow-orange/20" disabled={loading}>
             {loading ? "Signing In..." : "Sign In"}
           </Button>
         </form>
 
-        <div className="relative my-6">
-          <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-separator" /></div>
-          <div className="relative flex justify-center text-xs"><span className="bg-cream px-2 text-text-secondary">or continue with</span></div>
+        <div className="relative my-8">
+          <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gold/20" /></div>
+          <div className="relative flex justify-center text-[10px]">
+            <span className="bg-cream px-3 text-gold font-mono tracking-[0.2em] uppercase">or continue with</span>
+          </div>
         </div>
 
         <div className="flex flex-col gap-3">
-          <Button variant="secondary" fullWidth className="!py-3" onClick={handleGoogleSignIn}>Continue with Google</Button>
-          <Button variant="secondary" fullWidth className="!py-3" onClick={handleAppleSignIn}>Continue with Apple</Button>
+          <Button variant="secondary" fullWidth className="!py-3 !border-gold/20 hover:!border-gold/40 transition-colors" onClick={handleGoogleSignIn}>
+            Continue with Google
+          </Button>
+          <Button variant="secondary" fullWidth className="!py-3 !bg-navy !text-cream hover:!opacity-90 transition-opacity" onClick={handleAppleSignIn}>
+            Continue with Apple
+          </Button>
         </div>
 
         <p className="text-center text-text-secondary text-[13px] mt-8">

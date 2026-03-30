@@ -1,4 +1,5 @@
 import { getAllPosts, getPostBySlug } from "@/lib/blog";
+import { ArtDecoRule, SectionLabel } from "@/components/ui/art-deco";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import { notFound } from "next/navigation";
 import Link from "next/link";
@@ -33,17 +34,18 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
   return (
     <main className="max-w-2xl mx-auto">
-      <Link href="/blog" className="inline-block mb-spacing-lg font-semibold text-orange hover:underline">
+      <Link href="/blog" className="text-gold font-mono text-[11px] tracking-[0.2em] uppercase hover:text-orange transition-colors">
         &larr; Back to Blog
       </Link>
-      <article>
-        <header className="mb-spacing-xl">
-          <p className="text-text-secondary text-[13px] mb-spacing-xs">
+      <article className="mt-6">
+        <header className="mb-8">
+          <SectionLabel className="mb-2">
             {new Date(post.date).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
             {" · "}{post.author}
-          </p>
-          <h1 className="text-4xl">{post.title}</h1>
-          <p className="text-text-secondary mt-spacing-sm text-lg">{post.description}</p>
+          </SectionLabel>
+          <h1 className="!text-4xl !font-bold tracking-tight">{post.title}</h1>
+          <p className="text-text-secondary mt-3 text-lg leading-relaxed">{post.description}</p>
+          <ArtDecoRule className="text-gold/30 mt-6" />
         </header>
         <div className="prose">
           <MDXRemote source={post.content} />

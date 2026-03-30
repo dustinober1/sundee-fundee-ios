@@ -1,3 +1,4 @@
+import { ArtDecoRule, SectionLabel } from "@/components/ui/art-deco";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -13,14 +14,19 @@ export const metadata: Metadata = {
 export default function TermsPage() {
   return (
     <main className="max-w-[720px] mx-auto">
-      <Link href="/" className="inline-block mb-spacing-lg font-semibold text-orange hover:underline">
+      <Link href="/" className="text-gold font-mono text-[11px] tracking-[0.2em] uppercase hover:text-orange transition-colors">
         &larr; Home
       </Link>
-      <h1 className="text-4xl mb-1">Terms of Use</h1>
-      <p className="text-orange font-semibold mb-spacing-xl">Sundee Fundee</p>
 
-      <p className="mb-spacing-lg">
-        These Terms of Use (&ldquo;Terms&rdquo;) govern your use of <strong>Sundee Fundee</strong>,
+      <div className="mt-6 mb-2">
+        <SectionLabel className="mb-2">Legal</SectionLabel>
+        <h1 className="!text-4xl !font-bold tracking-tight mb-1">Terms of Use</h1>
+        <p className="text-gold font-mono text-[11px] tracking-[0.2em] uppercase">Sundee Fundee</p>
+      </div>
+      <ArtDecoRule className="text-gold/30 my-6" />
+
+      <p className="mb-8 text-text-secondary leading-relaxed">
+        These Terms of Use (&ldquo;Terms&rdquo;) govern your use of <strong className="text-navy">Sundee Fundee</strong>,
         a cycle-aware strength training application (the &ldquo;App&rdquo;). By using the App, you
         agree to these Terms.
       </p>
@@ -50,7 +56,7 @@ export default function TermsPage() {
 
       <Section title="4. Health &amp; Fitness Disclaimer">
         <p>
-          <strong>The App is not a medical device and does not provide medical advice.</strong> The
+          <strong className="text-navy">The App is not a medical device and does not provide medical advice.</strong> The
           workout recommendations, training suggestions, and fitness data provided by the App are
           for informational and fitness tracking purposes only. Always consult a qualified healthcare
           professional before starting any exercise program. You use the App and follow any training
@@ -59,26 +65,26 @@ export default function TermsPage() {
       </Section>
 
       <Section title="5. User Conduct">
-        <p className="mb-spacing-sm">
+        <p className="mb-3">
           You agree to:
         </p>
-        <ul className="list-disc pl-6">
+        <ul className="list-disc pl-6 space-y-1 text-text-secondary">
           <li>Provide accurate information in your profile</li>
           <li>Not submit fraudulent workout data</li>
           <li>Not attempt to reverse-engineer or exploit the App</li>
           <li>Not use the App for any unlawful purpose</li>
         </ul>
-        <p className="mt-spacing-sm">
+        <p className="mt-3">
           We reserve the right to restrict access for users who violate these guidelines.
         </p>
       </Section>
 
       <Section title="6. Subscriptions &amp; Purchases">
-        <p className="mb-spacing-sm">
+        <p className="mb-3">
           The App offers optional subscriptions that unlock premium features. All purchases are
           processed through Stripe and are subject to Stripe&apos;s terms and conditions.
         </p>
-        <ul className="list-disc pl-6">
+        <ul className="list-disc pl-6 space-y-1 text-text-secondary">
           <li>Subscriptions automatically renew unless cancelled before the end of the current period</li>
           <li>You can manage or cancel subscriptions from the Settings page in the App</li>
           <li>Refunds are handled according to our refund policy</li>
@@ -113,12 +119,12 @@ export default function TermsPage() {
       </Section>
 
       <Section title="10. Limitation of Liability">
-        <p className="mb-spacing-sm">
+        <p className="mb-3">
           To the maximum extent permitted by law, Sundee Fundee shall not be liable for any indirect,
           incidental, special, consequential, or punitive damages arising from your use of the App.
           This includes, but is not limited to:
         </p>
-        <ul className="list-disc pl-6">
+        <ul className="list-disc pl-6 space-y-1 text-text-secondary">
           <li>Injuries sustained during workouts</li>
           <li>Loss of data due to service issues</li>
           <li>Inaccurate workout calculations</li>
@@ -164,7 +170,7 @@ export default function TermsPage() {
         </p>
       </Section>
 
-      <p className="italic text-text-secondary mt-spacing-xl">Effective date: March 23, 2026</p>
+      <p className="italic text-text-secondary mt-12 font-mono text-[12px]">Effective date: March 23, 2026</p>
     </main>
   );
 }
@@ -172,7 +178,7 @@ export default function TermsPage() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <>
-      <h2 className="text-xl mt-spacing-xl mb-spacing-md border-b-2 border-orange pb-1">{title}</h2>
+      <h2 className="text-xl mt-10 mb-4 pb-2 border-b border-gold/20 font-heading">{title}</h2>
       {children}
     </>
   );

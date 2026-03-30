@@ -1,4 +1,5 @@
 import { Card } from "@/components/ui/card";
+import { PageHeader, SectionHeader, ArtDecoRuleSmall } from "@/components/ui/art-deco";
 import { getAuthUser } from "@/lib/firestore";
 import { getUserProfile, getSubscription } from "./actions";
 import { ProfileForm } from "./profile-form";
@@ -18,28 +19,31 @@ export default async function SettingsPage() {
   const tier = ((subscription as Record<string, unknown>)?.tier as "free" | "plus" | "premium") ?? "free";
 
   return (
-    <div className="flex flex-col gap-8 pt-6">
-      <div className="pl-2">
-        <p className="text-gold font-mono text-[10px] tracking-[0.3em] uppercase mb-1">Account</p>
-        <h1 className="text-3xl">Settings</h1>
-      </div>
+    <div className="flex flex-col gap-8 pt-4">
+      <PageHeader label="Account" title="Settings" />
 
       <Card>
-        <h2 className="mb-spacing-sm">Profile</h2>
-        <ProfileForm
-          initialName={(profile as Record<string, unknown>)?.name as string ?? user.name ?? ""}
-          initialWeightUnit={(profile as Record<string, unknown>)?.weightUnit as string ?? "lb"}
-          initialExperience={(profile as Record<string, unknown>)?.experienceLevel as string ?? "beginner"}
-          initialGoal={(profile as Record<string, unknown>)?.primaryGoal as string ?? "strength"}
-        />
+        <SectionHeader label="Personal" title="Profile" />
+        <div className="mt-4">
+          <ProfileForm
+            initialName={(profile as Record<string, unknown>)?.name as string ?? user.name ?? ""}
+            initialWeightUnit={(profile as Record<string, unknown>)?.weightUnit as string ?? "lb"}
+            initialExperience={(profile as Record<string, unknown>)?.experienceLevel as string ?? "beginner"}
+            initialGoal={(profile as Record<string, unknown>)?.primaryGoal as string ?? "strength"}
+          />
+        </div>
       </Card>
+
+      <ArtDecoRuleSmall className="text-gold/30 mx-auto" />
 
       <SubscriptionCard tier={tier} />
 
       <Card>
-        <h2 className="mb-spacing-sm">Account</h2>
-        <p className="text-text-secondary text-[13px] mb-spacing-sm">{user.email}</p>
-        <SignOutButton />
+        <SectionHeader label="Security" title="Account" />
+        <div className="mt-3">
+          <p className="text-text-secondary text-[13px] mb-4 font-mono">{user.email}</p>
+          <SignOutButton />
+        </div>
       </Card>
     </div>
   );

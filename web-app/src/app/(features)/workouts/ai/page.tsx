@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { PageHeader, SectionHeader, ArtDecoRuleSmall } from "@/components/ui/art-deco";
 import type { WorkoutFocus, EnergyLevel, EquipmentAccess, GeneratedExercise } from "@/lib/domain";
 
 type Step = "questionnaire" | "loading" | "preview";
@@ -18,10 +19,10 @@ const FOCUS_OPTIONS: { value: WorkoutFocus; label: string }[] = [
   { value: "conditioning", label: "Conditioning" },
 ];
 
-const ENERGY_OPTIONS: { value: EnergyLevel; label: string; icon: string }[] = [
-  { value: "low", label: "Low", icon: "🪫" },
-  { value: "medium", label: "Medium", icon: "🔋" },
-  { value: "high", label: "High", icon: "⚡" },
+const ENERGY_OPTIONS: { value: EnergyLevel; label: string }[] = [
+  { value: "low", label: "Low" },
+  { value: "medium", label: "Medium" },
+  { value: "high", label: "High" },
 ];
 
 const EQUIPMENT_OPTIONS: { value: EquipmentAccess; label: string }[] = [
@@ -62,41 +63,46 @@ export default function AIWorkoutPage() {
 
   if (step === "loading") {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-spacing-lg">
-        <div className="w-12 h-12 border-4 border-orange border-t-transparent rounded-full animate-spin" />
-        <p className="text-text-secondary">Generating your workout...</p>
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6">
+        <div className="w-14 h-14 border-[3px] border-gold/30 border-t-orange rounded-full animate-spin" />
+        <div className="text-center">
+          <p className="font-heading font-semibold text-navy">Building your workout</p>
+          <p className="text-text-secondary text-[13px] mt-1">Personalizing for your goals...</p>
+        </div>
       </div>
     );
   }
 
   if (step === "preview" && workout) {
     return (
-      <div className="flex flex-col gap-8 pt-6">
-        <div className="pl-2">
-          <p className="text-gold font-mono text-[10px] tracking-[0.3em] uppercase mb-1">Generated</p>
-          <h1 className="text-3xl">Your Workout</h1>
-        </div>
-        <Card>
-          <p className="text-[14px] text-text-secondary">{workout.coachingSummary}</p>
+      <div className="flex flex-col gap-8 pt-4">
+        <PageHeader label="Generated" title="Your Workout" />
+
+        <Card className="border-l-[3px] border-l-gold">
+          <p className="text-[14px] text-text-secondary italic">{workout.coachingSummary}</p>
         </Card>
+
         {workout.exercises.map((ex, i) => (
-          <Card key={i}>
+          <Card key={i} className="hover:shadow-md transition-shadow">
             <div className="flex justify-between items-start">
               <div>
-                <p className="font-medium">{ex.name}</p>
-                <p className="text-text-secondary text-[13px]">
+                <p className="font-heading font-semibold">{ex.name}</p>
+                <p className="text-text-secondary text-[13px] mt-0.5 font-mono">
                   {ex.sets} sets × {ex.reps} reps
                   {ex.weightKg ? ` @ ${ex.weightKg} kg` : ""}
                 </p>
               </div>
               {ex.restMinutes && (
-                <span className="text-[12px] text-text-secondary">{ex.restMinutes}m rest</span>
+                <span className="text-[11px] text-gold bg-gold/10 border border-gold/20 px-2.5 py-1 rounded-full font-mono">
+                  {ex.restMinutes}m rest
+                </span>
               )}
             </div>
-            {ex.notes && <p className="text-[12px] text-text-secondary mt-spacing-xs">{ex.notes}</p>}
+            {ex.notes && <p className="text-[12px] text-text-secondary mt-2 border-t border-separator/30 pt-2">{ex.notes}</p>}
           </Card>
         ))}
-        <div className="flex gap-spacing-sm">
+
+        <div className="flex gap-3">
           <Button variant="secondary" fullWidth onClick={() => setStep("questionnaire")}>
             Regenerate
           </Button>
@@ -109,33 +115,36 @@ export default function AIWorkoutPage() {
   }
 
   return (
-    <div className="flex flex-col gap-8 pt-6">
-      <div className="pl-2">
-        <p className="text-gold font-mono text-[10px] tracking-[0.3em] uppercase mb-1">Smart Training</p>
-        <h1 className="text-3xl">AI Workout</h1>
-      </div>
+    <div className="flex flex-col gap-8 pt-4">
+      <PageHeader label="Smart Training" title="AI Workout" />
 
       {error && (
-        <Card>
+        <Card className="border-l-[3px] border-l-error">
           <p className="text-error text-[13px]">{error}</p>
         </Card>
       )}
 
       <Card>
-        <h2 className="mb-spacing-sm">Time (minutes)</h2>
-        <div className="flex items-center gap-spacing-sm">
+        <SectionHeader label="Duration" title="Time (minutes)" />
+        <div className="flex items-center gap-3 mt-3">
           <input type="range" min={15} max={90} step={5} value={time} onChange={(e) => setTime(parseInt(e.target.value))}
             className="flex-1 accent-orange" />
-          <span className="font-bold text-orange w-12 text-center">{time}</span>
+          <div className="w-12 h-12 rounded-full bg-orange/10 border border-orange/20 flex items-center justify-center">
+            <span className="font-bold font-mono text-orange">{time}</span>
+          </div>
         </div>
       </Card>
 
       <Card>
-        <h2 className="mb-spacing-sm">Focus</h2>
-        <div className="grid grid-cols-2 gap-spacing-xs">
+        <SectionHeader label="Target" title="Focus" />
+        <div className="grid grid-cols-2 gap-2 mt-3">
           {FOCUS_OPTIONS.map((o) => (
             <button key={o.value} onClick={() => setFocus(o.value)}
-              className={`px-spacing-sm py-spacing-xs rounded-sm text-[13px] font-medium border transition-colors ${focus === o.value ? "bg-orange text-cream border-orange" : "bg-card-bg text-navy border-separator hover:border-navy"}`}>
+              className={`px-3 py-2.5 rounded-button text-[13px] font-medium border transition-all ${
+                focus === o.value
+                  ? "bg-orange text-cream border-orange shadow-sm shadow-orange/20"
+                  : "bg-card-bg text-navy border-gold/15 hover:border-gold/40"
+              }`}>
               {o.label}
             </button>
           ))}
@@ -143,30 +152,38 @@ export default function AIWorkoutPage() {
       </Card>
 
       <Card>
-        <h2 className="mb-spacing-sm">Energy Level</h2>
-        <div className="grid grid-cols-3 gap-spacing-xs">
+        <SectionHeader label="How You Feel" title="Energy Level" />
+        <div className="grid grid-cols-3 gap-2 mt-3">
           {ENERGY_OPTIONS.map((o) => (
             <button key={o.value} onClick={() => setEnergy(o.value)}
-              className={`px-spacing-sm py-spacing-sm rounded-sm text-[13px] font-medium border text-center transition-colors ${energy === o.value ? "bg-orange text-cream border-orange" : "bg-card-bg text-navy border-separator hover:border-navy"}`}>
-              {o.icon} {o.label}
-            </button>
-          ))}
-        </div>
-      </Card>
-
-      <Card>
-        <h2 className="mb-spacing-sm">Equipment</h2>
-        <div className="grid grid-cols-2 gap-spacing-xs">
-          {EQUIPMENT_OPTIONS.map((o) => (
-            <button key={o.value} onClick={() => setEquipment(o.value)}
-              className={`px-spacing-sm py-spacing-xs rounded-sm text-[13px] font-medium border transition-colors ${equipment === o.value ? "bg-orange text-cream border-orange" : "bg-card-bg text-navy border-separator hover:border-navy"}`}>
+              className={`px-3 py-3 rounded-button text-[13px] font-medium border text-center transition-all ${
+                energy === o.value
+                  ? "bg-orange text-cream border-orange shadow-sm shadow-orange/20"
+                  : "bg-card-bg text-navy border-gold/15 hover:border-gold/40"
+              }`}>
               {o.label}
             </button>
           ))}
         </div>
       </Card>
 
-      <Button fullWidth onClick={generate}>
+      <Card>
+        <SectionHeader label="Setup" title="Equipment" />
+        <div className="grid grid-cols-2 gap-2 mt-3">
+          {EQUIPMENT_OPTIONS.map((o) => (
+            <button key={o.value} onClick={() => setEquipment(o.value)}
+              className={`px-3 py-2.5 rounded-button text-[13px] font-medium border transition-all ${
+                equipment === o.value
+                  ? "bg-orange text-cream border-orange shadow-sm shadow-orange/20"
+                  : "bg-card-bg text-navy border-gold/15 hover:border-gold/40"
+              }`}>
+              {o.label}
+            </button>
+          ))}
+        </div>
+      </Card>
+
+      <Button fullWidth onClick={generate} className="shadow-md shadow-orange/20">
         Generate Workout
       </Button>
     </div>

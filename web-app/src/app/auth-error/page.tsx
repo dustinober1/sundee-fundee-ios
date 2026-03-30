@@ -3,6 +3,7 @@
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { Button } from "@/components/ui/button";
+import { ArtDecoRule } from "@/components/ui/art-deco";
 import Link from "next/link";
 
 const errorMessages: Record<string, string> = {
@@ -38,10 +39,13 @@ function AuthErrorContent() {
         <h1 className="!text-3xl !font-bold tracking-tight mb-4">
           Something Went Wrong
         </h1>
-        <p className="text-text-secondary mb-8">{message}</p>
+        <ArtDecoRule className="text-gold/30 mb-6" />
+        <div className="bg-card-bg border-l-[3px] border-l-error rounded-lg px-5 py-4 mb-8 text-left">
+          <p className="text-text-secondary text-[14px]">{message}</p>
+        </div>
 
         <Link href="/sign-in">
-          <Button fullWidth className="!py-3">
+          <Button fullWidth className="!py-3 shadow-md shadow-orange/20">
             Back to Sign In
           </Button>
         </Link>

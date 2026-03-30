@@ -15,20 +15,25 @@ export function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-cream border-t border-separator pb-[env(safe-area-inset-bottom)] z-50">
-      <div className="flex justify-around items-center h-14">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-navy/95 backdrop-blur-md border-t border-gold/10 pb-[env(safe-area-inset-bottom)]">
+      <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-gold/30 to-transparent" />
+      <div className="flex justify-around items-center h-16">
         {navItems.map((item) => {
           const isActive = pathname.startsWith(item.href);
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={`flex flex-col items-center gap-0.5 py-1 px-3 ${isActive ? "text-orange" : "text-text-secondary"}`}
+              className={`flex flex-col items-center gap-1 py-1.5 px-3 transition-colors ${
+                isActive ? "text-gold" : "text-cream/40 hover:text-cream/70"
+              }`}
             >
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={isActive ? 2 : 1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d={item.icon} />
               </svg>
-              <span className="text-[10px] font-medium">{item.label}</span>
+              <span className={`text-[10px] font-mono tracking-wider uppercase ${isActive ? "font-semibold" : ""}`}>
+                {item.label}
+              </span>
             </Link>
           );
         })}

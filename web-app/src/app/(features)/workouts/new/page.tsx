@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
+import { PageHeader, SectionHeader } from "@/components/ui/art-deco";
 import { saveWorkout } from "../actions";
 
 interface SetEntry {
@@ -72,19 +73,21 @@ export default function NewWorkoutPage() {
   };
 
   return (
-    <div className="flex flex-col gap-8 pt-6">
-      <div className="flex items-center justify-between">
-        <div className="pl-2">
-          <p className="text-gold font-mono text-[10px] tracking-[0.3em] uppercase mb-1">In Progress</p>
-          <h1 className="text-3xl">Log Workout</h1>
-        </div>
-        <span className="font-mono text-xl text-orange">{formatTime(elapsed)}</span>
-      </div>
+    <div className="flex flex-col gap-8 pt-4">
+      <PageHeader
+        label="In Progress"
+        title="Log Workout"
+        action={
+          <div className="bg-navy/5 border border-gold/20 rounded-button px-4 py-2">
+            <span className="font-mono text-xl text-orange font-bold">{formatTime(elapsed)}</span>
+          </div>
+        }
+      />
 
       {/* Add Exercise */}
       <Card>
-        <h2 className="mb-spacing-sm">Add Set</h2>
-        <div className="flex gap-spacing-sm mb-spacing-sm">
+        <SectionHeader label="Exercise" title="Add Set" />
+        <div className="flex gap-3 mt-3">
           <Input
             placeholder="Exercise name"
             value={currentExercise}
@@ -100,12 +103,12 @@ export default function NewWorkoutPage() {
       {/* Sets List */}
       {sets.length > 0 && (
         <Card>
-          <h2 className="mb-spacing-sm">Sets ({sets.length})</h2>
-          <div className="flex flex-col gap-spacing-sm">
+          <SectionHeader label="Tracking" title={`Sets (${sets.length})`} />
+          <div className="flex flex-col gap-2 mt-3">
             {sets.map((s, i) => (
               <div
                 key={i}
-                className="flex items-center gap-spacing-xs p-spacing-xs bg-cream rounded-sm"
+                className="flex items-center gap-2 p-3 bg-cream rounded-sm border border-separator/30"
               >
                 <input
                   type="checkbox"
@@ -113,20 +116,20 @@ export default function NewWorkoutPage() {
                   onChange={(e) => updateSet(i, "completed", e.target.checked)}
                   className="w-5 h-5 accent-orange"
                 />
-                <span className="flex-1 text-[13px] font-medium truncate">{s.exerciseName}</span>
+                <span className="flex-1 text-[13px] font-semibold truncate">{s.exerciseName}</span>
                 <input
                   type="number"
                   placeholder="Reps"
                   value={s.reps}
                   onChange={(e) => updateSet(i, "reps", e.target.value)}
-                  className="w-16 px-2 py-1 text-[13px] bg-card-bg border border-separator rounded-sm text-center"
+                  className="w-16 px-2 py-1.5 text-[13px] bg-card-bg border border-separator rounded-sm text-center font-mono"
                 />
                 <input
                   type="number"
                   placeholder="kg"
                   value={s.weight}
                   onChange={(e) => updateSet(i, "weight", e.target.value)}
-                  className="w-16 px-2 py-1 text-[13px] bg-card-bg border border-separator rounded-sm text-center"
+                  className="w-16 px-2 py-1.5 text-[13px] bg-card-bg border border-separator rounded-sm text-center font-mono"
                 />
               </div>
             ))}
@@ -136,8 +139,8 @@ export default function NewWorkoutPage() {
 
       {/* Effort & Notes */}
       <Card>
-        <h2 className="mb-spacing-sm">How did it feel?</h2>
-        <div className="flex items-center gap-spacing-sm mb-spacing-sm">
+        <SectionHeader label="Recovery" title="How did it feel?" />
+        <div className="flex items-center gap-3 mt-3 mb-3">
           <input
             type="range"
             min={1}
@@ -146,7 +149,9 @@ export default function NewWorkoutPage() {
             onChange={(e) => setEffort(parseInt(e.target.value))}
             className="flex-1 accent-orange"
           />
-          <span className="font-bold text-orange w-8 text-center">{effort}</span>
+          <div className="w-10 h-10 rounded-full bg-orange/10 border border-orange/20 flex items-center justify-center">
+            <span className="font-bold font-mono text-orange">{effort}</span>
+          </div>
         </div>
         <Input
           placeholder="Notes (optional)"

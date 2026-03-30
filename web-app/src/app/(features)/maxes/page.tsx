@@ -1,4 +1,5 @@
 import { Card } from "@/components/ui/card";
+import { PageHeader, ArtDecoRuleSmall } from "@/components/ui/art-deco";
 import { getMaxes } from "./actions";
 import { AddMaxForm } from "./add-max-form";
 
@@ -14,34 +15,42 @@ export default async function MaxesPage() {
   }
 
   return (
-    <div className="flex flex-col gap-8 pt-6">
-      <div className="pl-2">
-        <p className="text-gold font-mono text-[10px] tracking-[0.3em] uppercase mb-1">Strength</p>
-        <h1 className="text-3xl">Max Lifts</h1>
-      </div>
+    <div className="flex flex-col gap-8 pt-4">
+      <PageHeader label="Strength" title="Max Lifts" />
 
       <AddMaxForm />
 
+      <ArtDecoRuleSmall className="text-gold/30 mx-auto" />
+
       {grouped.size === 0 ? (
         <Card>
-          <p className="text-text-secondary text-[13px] text-center py-spacing-md">
-            No maxes logged yet. Add your first one-rep max above.
-          </p>
+          <div className="text-center py-8">
+            <div className="text-gold/30 mb-4">
+              <svg className="w-12 h-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+              </svg>
+            </div>
+            <p className="text-text-secondary text-[13px]">
+              No maxes logged yet. Add your first one-rep max above.
+            </p>
+          </div>
         </Card>
       ) : (
         Array.from(grouped.entries()).map(([exercise, records]) => (
-          <Card key={exercise}>
-            <div className="flex justify-between items-center mb-spacing-xs">
+          <Card key={exercise} className="hover:shadow-md transition-shadow">
+            <div className="flex justify-between items-center mb-2">
               <h2 className="text-[15px]">{exercise}</h2>
-              <span className="text-orange font-bold">{records[0].weightKg} kg</span>
+              <span className="text-orange font-bold font-mono text-lg">{records[0].weightKg} kg</span>
             </div>
-            <div className="flex flex-col gap-spacing-xs">
-              {records.slice(0, 3).map((r) => (
-                <div key={r.id} className="flex justify-between text-[12px] text-text-secondary">
-                  <span>{r.date ? new Date(r.date).toLocaleDateString() : ""}</span>
-                  <span>{r.weightKg} kg {r.isEstimated ? "(est)" : ""}</span>
-                </div>
-              ))}
+            <div className="border-t border-separator/50 pt-2">
+              <div className="flex flex-col gap-1.5">
+                {records.slice(0, 3).map((r) => (
+                  <div key={r.id} className="flex justify-between text-[12px] text-text-secondary">
+                    <span>{r.date ? new Date(r.date).toLocaleDateString() : ""}</span>
+                    <span className="font-mono">{r.weightKg} kg {r.isEstimated ? "(est)" : ""}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </Card>
         ))
