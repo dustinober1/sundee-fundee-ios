@@ -42,8 +42,11 @@ npm run deploy           # Deploy functions to Firebase
 ```
 
 ### Deploy
-Vercel auto-deploys on push to `main`. Cloud Functions deployed separately:
+No CI/CD pipeline in GitHub. Web app is deployed manually via `vercel deploy --prod`. Cloud Functions deployed separately:
 ```bash
+cd web-app
+vercel deploy --prod       # Deploy web app to Vercel
+cd ../firebase/functions
 firebase deploy --only functions
 firebase deploy --only firestore:rules
 ```

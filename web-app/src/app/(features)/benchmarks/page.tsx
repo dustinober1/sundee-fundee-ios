@@ -1,9 +1,10 @@
 import { Card } from "@/components/ui/card";
 import { PageHeader, SectionLabel } from "@/components/ui/art-deco";
-import { PREDEFINED_BENCHMARKS, groupedByCategory } from "@/lib/domain";
+import { groupedByCategory, formatWeightWithUnit, WeightUnit } from "@/lib/domain";
 import { calculateBenchmarkReadiness } from "@/lib/domain/benchmark-readiness";
 import { getBenchmarkResults } from "./actions";
 import { getCycleStatus } from "../cycle/actions";
+import { getUserProfile } from "../settings/actions";
 import Link from "next/link";
 import {
   ReadinessBadge,
@@ -14,11 +15,13 @@ import {
 } from "@/components/ui/benchmark-ui";
 
 export default async function BenchmarksPage() {
-  const [results, cycleStatus] = await Promise.all([
+  const [results, cycleStatus, profile] = await Promise.all([
     getBenchmarkResults(),
     getCycleStatus(),
+    getUserProfile(),
   ]);
   const groups = groupedByCategory();
+  const weightUnit = (profile?.weightUnit as WeightUnit) ?? WeightUnit.pounds;
 
   // Map definitionId → best score
   const bestScores = new Map<string, number>();
@@ -63,7 +66,7 @@ export default async function BenchmarksPage() {
                       </div>
                       {best != null ? (
                         <span className="text-orange font-bold font-mono text-[15px] ml-2">
-                          {formatScore(best, bm.scoringType)}
+                          {formatScore(best, bm.scoringType, weightUnit)}
                         </span>
                       ) : (
                         <span className="text-gold/30 text-[12px] font-mono ml-2">—</span>
@@ -107,7 +110,7 @@ export default async function BenchmarksPage() {
   );
 }
 
-function formatScore(value: number, type: string): string {
+function formatScore(value: number, type: string, weightUnit: WeightUnit = WeightUnit.pounds): string {
   switch (type) {
     case "time": {
       const hours = Math.floor(value / 3600);
@@ -118,7 +121,7 @@ function formatScore(value: number, type: string): string {
       }
       return `${min}:${String(sec).padStart(2, "0")}`;
     }
-    case "weight": return `${value} kg`;
+    case "weight": return formatWeightWithUnit(value, weightUnit);
     case "reps": return `${Math.floor(value)} reps`;
     case "roundsAndReps": {
       const rounds = Math.floor(value / 10000);
