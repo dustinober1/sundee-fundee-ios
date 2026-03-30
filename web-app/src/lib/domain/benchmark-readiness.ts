@@ -95,7 +95,7 @@ export function calculateBenchmarkReadiness(
       if (intensity >= 4 || hasHeavyTag || hasHighCardio) {
         return {
           tier: "recovery",
-          reason: "Menstrual phase — energy typically lower",
+          reason: "Shark Week — energy typically lower",
           recommendation: "Consider saving this for later. Focus on light movement today.",
           phaseMultiplier,
           emoji: "🔴",
@@ -104,7 +104,7 @@ export function calculateBenchmarkReadiness(
       }
       return {
         tier: "moderate",
-        reason: "Menstrual phase — listen to your body",
+        reason: "Shark Week — listen to your body",
         recommendation: "Light to moderate intensity is fine. Scale as needed.",
         phaseMultiplier,
         emoji: "🟡",
@@ -161,7 +161,7 @@ export function calculateBenchmarkReadiness(
       if (intensity >= 5 || hasHeavyTag) {
         return {
           tier: "recovery",
-          reason: "Luteal phase — body preparing for menstruation",
+          reason: "Luteal phase — body preparing for Shark Week",
           recommendation: "Consider saving max effort for your follicular phase.",
           phaseMultiplier,
           emoji: "🔴",

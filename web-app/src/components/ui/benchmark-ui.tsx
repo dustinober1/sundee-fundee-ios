@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { SharkIcon } from "@/components/ui/shark-week-label";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -257,6 +258,7 @@ export function ReadinessPanel({
     tier === "peak" ? "bg-green-50 border-green-200" :
     tier === "recovery" ? "bg-warm-rose/10 border-warm-rose/30" :
     "bg-gold/10 border-gold/30";
+  const hasSharkWeekLabel = reason.includes("Shark Week");
 
   return (
     <div className={`rounded-card border p-4 ${bgColor}`}>
@@ -273,7 +275,10 @@ export function ReadinessPanel({
               </span>
             )}
           </div>
-          <p className="text-[12px] text-text-secondary mb-2">{reason}</p>
+          <p className="text-[12px] text-text-secondary mb-2 inline-flex items-center gap-1.5">
+            {hasSharkWeekLabel && <SharkIcon className="w-4 h-4 text-warm-rose" />}
+            <span>{reason}</span>
+          </p>
           <p className="text-[12px] text-navy">{recommendation}</p>
         </div>
       </div>
