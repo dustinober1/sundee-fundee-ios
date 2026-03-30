@@ -1,47 +1,27 @@
-export type ExerciseValue =
-  | { type: "fixed"; value: number }
-  | { type: "amrap" }
-  | { type: "range"; low: number; high: number }
-  | { type: "text"; text: string };
+import type { ProgramExercise } from "./types";
+import { encodeExerciseValue, decodeExerciseValue } from "./types";
 
+// Re-export shared types from domain/types so consumers can import from admin-types
+export type {
+  ExerciseValue,
+  ProgramExercise,
+  ProgramPhase,
+  ProgramSession,
+  ProgramWeek,
+  ProgramCycleAdjustmentProfile,
+  ProgramPhaseAdjustmentSettings,
+  Program,
+  WOD,
+} from "./types";
+
+export { encodeExerciseValue, decodeExerciseValue } from "./types";
+
+// Re-export BenchmarkDefinition from benchmark-catalog (canonical definition)
+export type { BenchmarkDefinition } from "./benchmark-catalog";
+
+// ExerciseValueJSON — typed representation of the wire/Firestore format
+// (admin-specific; types.ts uses `unknown` for the decode input)
 export type ExerciseValueJSON = number | string | [number, number];
-
-export function encodeExerciseValue(val: ExerciseValue): ExerciseValueJSON {
-  switch (val.type) {
-    case "fixed": return val.value;
-    case "amrap": return "AMRAP";
-    case "range": return [val.low, val.high];
-    case "text": return val.text;
-  }
-}
-
-export function decodeExerciseValue(raw: ExerciseValueJSON): ExerciseValue {
-  if (Array.isArray(raw) && raw.length === 2) {
-    return { type: "range", low: raw[0], high: raw[1] };
-  }
-  if (typeof raw === "number") {
-    return { type: "fixed", value: Math.trunc(raw) };
-  }
-  if (typeof raw === "string") {
-    if (raw.toLowerCase() === "amrap") return { type: "amrap" };
-    const hyphen = raw.match(/^(\d+)-(\d+)$/);
-    if (hyphen) return { type: "range", low: Number(hyphen[1]), high: Number(hyphen[2]) };
-    if (/^\d+$/.test(raw)) return { type: "fixed", value: Number(raw) };
-    return { type: "text", text: raw };
-  }
-  return { type: "text", text: String(raw) };
-}
-
-export interface ProgramExercise {
-  exercise: string;
-  variant?: string;
-  sets: ExerciseValue;
-  reps: ExerciseValue;
-  percent1RM?: number;
-  restMinutes?: number;
-  notes?: string;
-  bodyweightOnly?: boolean;
-}
 
 export interface ProgramExerciseFirestore {
   exercise: string;
@@ -57,8 +37,8 @@ export interface ProgramExerciseFirestore {
 export function exerciseToFirestore(ex: ProgramExercise): ProgramExerciseFirestore {
   const result: ProgramExerciseFirestore = {
     exercise: ex.exercise,
-    sets: encodeExerciseValue(ex.sets),
-    reps: encodeExerciseValue(ex.reps),
+    sets: encodeExerciseValue(ex.sets) as ExerciseValueJSON,
+    reps: encodeExerciseValue(ex.reps) as ExerciseValueJSON,
   };
   if (ex.variant !== undefined) result.variant = ex.variant;
   if (ex.percent1RM !== undefined) result.percent1RM = ex.percent1RM;
@@ -90,70 +70,6 @@ export function slugify(text: string): string {
     .replace(/[^a-z0-9\s-]/g, "")
     .replace(/[\s-]+/g, "-")
     .replace(/^-+|-+$/g, "");
-}
-
-export interface WOD {
-  id: string;
-  date: string;
-  title: string;
-  description: string;
-  exercises: ProgramExercise[];
-}
-
-export interface ProgramPhase {
-  id: string;
-  name: string;
-  goal: string;
-  weekRange: number[];
-}
-
-export interface ProgramSession {
-  sessionId: string;
-  sessionName: string;
-  sessionType: string;
-  focus: string;
-  exercises: ProgramExercise[];
-}
-
-export interface ProgramWeek {
-  week: number;
-  phaseId?: string;
-  isTestWeek?: boolean;
-  sessions: ProgramSession[];
-}
-
-export interface ProgramPhaseAdjustmentSettings {
-  loadMultiplier: number;
-  setsMultiplier: number;
-  repsMultiplier: number;
-}
-
-export interface ProgramCycleAdjustmentProfile {
-  fallbackPhase: string;
-  lowConfidenceScale: number;
-  phaseSettings: Record<string, ProgramPhaseAdjustmentSettings>;
-}
-
-export interface Program {
-  id: string;
-  name: string;
-  category: string;
-  description: string;
-  durationWeeks: number;
-  sessionsPerWeek: number;
-  difficulty: string;
-  phases: ProgramPhase[];
-  weeks: ProgramWeek[];
-  cycleAdjustmentProfile?: ProgramCycleAdjustmentProfile;
-}
-
-export interface BenchmarkDefinition {
-  id: string;
-  name: string;
-  category: string;
-  workoutDescription: string;
-  scoringTypeRaw: string;
-  sortOrder: number;
 }
 
 export interface BlogPost {
@@ -193,15 +109,17 @@ export interface AdminUser {
   addedAt: string;
 }
 
+export interface AiModelConfig {
+  temperature: number;
+  maxTokens: number;
+}
+
 export interface AiPrompt {
   id: string;
   name: string;
   description: string;
   promptText: string;
-  modelConfig: {
-    temperature: number;
-    maxTokens: number;
-  };
+  modelConfig: AiModelConfig;
   updatedAt: string;
 }
 

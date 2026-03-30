@@ -20,7 +20,7 @@ describe("ExerciseValue encode/decode", () => {
     expect(encodeExerciseValue({ type: "range", low: 8, high: 12 })).toEqual([8, 12]);
   });
   it("encodes text as string", () => {
-    expect(encodeExerciseValue({ type: "text", text: "Max effort" })).toBe("Max effort");
+    expect(encodeExerciseValue({ type: "text", value: "Max effort" })).toBe("Max effort");
   });
   it("decodes number as fixed", () => {
     expect(decodeExerciseValue(5)).toEqual({ type: "fixed", value: 5 });
@@ -41,7 +41,7 @@ describe("ExerciseValue encode/decode", () => {
     expect(decodeExerciseValue("5")).toEqual({ type: "fixed", value: 5 });
   });
   it("decodes arbitrary string as text", () => {
-    expect(decodeExerciseValue("Max effort")).toEqual({ type: "text", text: "Max effort" });
+    expect(decodeExerciseValue("Max effort")).toEqual({ type: "text", value: "Max effort" });
   });
 });
 
