@@ -5,8 +5,10 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
+import { FormAlert } from "@/components/ui/form-alert";
 import { SectionHeader } from "@/components/ui/art-deco";
 import { logPeriod } from "./actions";
+import { getErrorMessage } from "@/lib/client-errors";
 
 const FLOW_LEVELS = ["light", "medium", "heavy"] as const;
 type FlowLevel = (typeof FLOW_LEVELS)[number];
@@ -28,6 +30,7 @@ export function LogPeriodForm() {
   const [symptoms, setSymptoms] = useState<string[]>([]);
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   function toggleSymptom(value: string) {
     setSymptoms((prev) =>
@@ -36,6 +39,7 @@ export function LogPeriodForm() {
   }
 
   async function handleSubmit() {
+    setError(null);
     setSaving(true);
     try {
       await logPeriod({
@@ -50,6 +54,8 @@ export function LogPeriodForm() {
       setSymptoms([]);
       setNotes("");
       router.refresh();
+    } catch (error) {
+      setError(getErrorMessage(error));
     } finally {
       setSaving(false);
     }
@@ -144,6 +150,8 @@ export function LogPeriodForm() {
             className="w-full px-3.5 py-3 bg-card-bg border border-separator rounded-sm text-navy text-[15px] placeholder:text-text-secondary/50 focus:outline-none focus:ring-2 focus:ring-orange/40 focus:border-orange resize-none"
           />
         </div>
+
+        {error && <FormAlert message={error} />}
 
         <Button fullWidth disabled={saving || !startDate} onClick={handleSubmit}>
           {saving ? "Saving..." : "Log Period"}

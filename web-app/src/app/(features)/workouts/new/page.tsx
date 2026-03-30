@@ -5,8 +5,10 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
+import { FormAlert } from "@/components/ui/form-alert";
 import { PageHeader, SectionHeader } from "@/components/ui/art-deco";
 import { saveWorkout } from "../actions";
+import { getErrorMessage } from "@/lib/client-errors";
 
 interface SetEntry {
   exerciseName: string;
@@ -24,6 +26,7 @@ export default function NewWorkoutPage() {
   const [effort, setEffort] = useState(5);
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const timer = setInterval(() => setElapsed(Date.now() - startTime), 1000);
@@ -50,6 +53,7 @@ export default function NewWorkoutPage() {
   };
 
   const handleComplete = async () => {
+    setError(null);
     setSaving(true);
     try {
       await saveWorkout({
@@ -67,7 +71,8 @@ export default function NewWorkoutPage() {
         })),
       });
       router.push("/workouts");
-    } catch {
+    } catch (error) {
+      setError(getErrorMessage(error));
       setSaving(false);
     }
   };
@@ -159,6 +164,8 @@ export default function NewWorkoutPage() {
           onChange={(e) => setNotes(e.target.value)}
         />
       </Card>
+
+      {error && <FormAlert message={error} />}
 
       <Button fullWidth onClick={handleComplete} disabled={saving || sets.length === 0}>
         {saving ? "Saving..." : "Complete Workout"}

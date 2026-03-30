@@ -1,6 +1,7 @@
 "use server";
 
 import { getAuthUser, userCollection } from "@/lib/firestore";
+import { requireFiniteNumber, requireTrimmedString } from "@/lib/write-validation";
 
 export async function getMaxes() {
   const user = await getAuthUser();
@@ -18,9 +19,12 @@ export async function addMax(data: { exerciseId: string; weightKg: number; isEst
   const user = await getAuthUser();
   if (!user) throw new Error("Unauthorized");
 
+  const exerciseId = requireTrimmedString(data.exerciseId, "Exercise");
+  const weightKg = requireFiniteNumber(data.weightKg, "Weight", { min: 0.1 });
+
   await userCollection(user.uid, "oneRepMaxes").add({
-    exerciseId: data.exerciseId,
-    weightKg: data.weightKg,
+    exerciseId,
+    weightKg,
     date: new Date(),
     isEstimated: data.isEstimated,
   });

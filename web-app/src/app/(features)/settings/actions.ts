@@ -1,6 +1,7 @@
 "use server";
 
 import { getAuthUser, userDoc, userCollection } from "@/lib/firestore";
+import { optionalTrimmedString } from "@/lib/write-validation";
 
 export async function getUserProfile() {
   const user = await getAuthUser();
@@ -17,10 +18,15 @@ export async function updateProfile(data: { name?: string; weightUnit?: string; 
   if (!user) throw new Error("Unauthorized");
 
   const updateData: Record<string, unknown> = { profileUpdatedAt: new Date() };
-  if (data.name != null) updateData.name = data.name;
-  if (data.weightUnit != null) updateData.weightUnit = data.weightUnit;
-  if (data.experienceLevel != null) updateData.experienceLevel = data.experienceLevel;
-  if (data.primaryGoal != null) updateData.primaryGoal = data.primaryGoal;
+  const name = optionalTrimmedString(data.name);
+  const weightUnit = optionalTrimmedString(data.weightUnit);
+  const experienceLevel = optionalTrimmedString(data.experienceLevel);
+  const primaryGoal = optionalTrimmedString(data.primaryGoal);
+
+  if (name != null) updateData.name = name;
+  if (weightUnit != null) updateData.weightUnit = weightUnit;
+  if (experienceLevel != null) updateData.experienceLevel = experienceLevel;
+  if (primaryGoal != null) updateData.primaryGoal = primaryGoal;
 
   await userDoc(user.uid).set(updateData, { merge: true });
 }

@@ -4,8 +4,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { FormAlert } from "@/components/ui/form-alert";
 import { SectionHeader } from "@/components/ui/art-deco";
 import { saveCycleSettings } from "./actions";
+import { getErrorMessage } from "@/lib/client-errors";
 
 interface CycleSettingsPanelProps {
   initialCycleLength: number;
@@ -24,8 +26,10 @@ export function CycleSettingsPanel({
   const [periodLength, setPeriodLength] = useState(initialPeriodLength);
   const [lutealLength, setLutealLength] = useState(initialLutealLength);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function handleSave() {
+    setError(null);
     setSaving(true);
     try {
       await saveCycleSettings({
@@ -34,6 +38,8 @@ export function CycleSettingsPanel({
         lutealPhaseLengthDays: lutealLength,
       });
       router.refresh();
+    } catch (error) {
+      setError(getErrorMessage(error));
     } finally {
       setSaving(false);
     }
@@ -84,6 +90,7 @@ export function CycleSettingsPanel({
             unit="days"
             onChange={setLutealLength}
           />
+          {error && <FormAlert message={error} />}
           <Button fullWidth disabled={saving} onClick={handleSave}>
             {saving ? "Saving..." : "Save Settings"}
           </Button>

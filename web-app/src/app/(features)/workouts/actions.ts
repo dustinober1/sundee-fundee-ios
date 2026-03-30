@@ -1,6 +1,12 @@
 "use server";
 
 import { getAuthUser, userCollection } from "@/lib/firestore";
+import {
+  optionalFiniteNumber,
+  optionalTrimmedString,
+  requireFiniteNumber,
+  requireTrimmedString,
+} from "@/lib/write-validation";
 
 export async function getRecentWorkouts() {
   const user = await getAuthUser();
@@ -34,16 +40,52 @@ export async function saveWorkout(data: {
   const user = await getAuthUser();
   if (!user) throw new Error("Unauthorized");
 
+  const durationSeconds = requireFiniteNumber(data.durationSeconds, "Duration", {
+    integer: true,
+    min: 0,
+  });
+  const perceivedEffort = optionalFiniteNumber(data.perceivedEffort, "Perceived effort", {
+    integer: true,
+    min: 1,
+    max: 10,
+  });
+  const notes = optionalTrimmedString(data.notes);
+  const sets = data.sets.map((s, index) => ({
+    exerciseName: requireTrimmedString(s.exerciseName, `Set ${index + 1} exercise name`),
+    setIndex: requireFiniteNumber(s.setIndex, `Set ${index + 1} index`, {
+      integer: true,
+      min: 0,
+    }),
+    prescribedReps: requireTrimmedString(s.prescribedReps, `Set ${index + 1} reps`),
+    actualReps: optionalFiniteNumber(s.actualReps, `Set ${index + 1} actual reps`, {
+      integer: true,
+      min: 0,
+    }),
+    prescribedWeightKg: optionalFiniteNumber(
+      s.prescribedWeightKg,
+      `Set ${index + 1} prescribed weight`,
+      { min: 0 }
+    ),
+    actualWeightKg: optionalFiniteNumber(s.actualWeightKg, `Set ${index + 1} actual weight`, {
+      min: 0,
+    }),
+    isCompleted: s.isCompleted,
+  }));
+
+  if (sets.length === 0) {
+    throw new Error("At least one set is required.");
+  }
+
   const workoutRef = userCollection(user.uid, "completedWorkouts").doc();
 
   await workoutRef.set({
     programId: data.programId ?? "",
     sessionId: data.sessionId ?? "",
     completedAt: new Date(),
-    durationSeconds: data.durationSeconds,
-    notes: data.notes ?? null,
-    perceivedEffort: data.perceivedEffort ?? null,
-    sets: data.sets.map((s) => ({
+    durationSeconds,
+    notes: notes ?? null,
+    perceivedEffort: perceivedEffort ?? null,
+    sets: sets.map((s) => ({
       exerciseName: s.exerciseName,
       setIndex: s.setIndex,
       prescribedReps: s.prescribedReps,

@@ -5,7 +5,9 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
+import { FormAlert } from "@/components/ui/form-alert";
 import { logBenchmarkResult } from "../actions";
+import { getErrorMessage } from "@/lib/client-errors";
 
 export function LogResultForm({ definitionId, scoringType }: { definitionId: string; scoringType: string }) {
   const router = useRouter();
@@ -15,6 +17,7 @@ export function LogResultForm({ definitionId, scoringType }: { definitionId: str
   const [seconds, setSeconds] = useState("");
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const isTime = scoringType === "time";
 
@@ -69,16 +72,20 @@ export function LogResultForm({ definitionId, scoringType }: { definitionId: str
           <Input label={label} type="number" value={score} onChange={(e) => setScore(e.target.value)} />
         )}
         <Input label="Notes" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Optional" />
+        {error && <FormAlert message={error} />}
         <Button
           fullWidth
           disabled={saving || !canSubmit}
           onClick={async () => {
+            setError(null);
             setSaving(true);
             try {
               const scoreValue = isTime ? timeValue : parseFloat(score);
               await logBenchmarkResult({ definitionId, scoreValue, notes: notes || undefined });
               setScore(""); setNotes(""); setHours(""); setMinutes(""); setSeconds("");
               router.refresh();
+            } catch (error) {
+              setError(getErrorMessage(error));
             } finally { setSaving(false); }
           }}
         >

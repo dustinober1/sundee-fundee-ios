@@ -2,6 +2,11 @@
 
 import { getAuthUser, userCollection, db } from "@/lib/firestore";
 import { PREDEFINED_BENCHMARKS } from "@/lib/domain";
+import {
+  optionalTrimmedString,
+  requireFiniteNumber,
+  requireTrimmedString,
+} from "@/lib/write-validation";
 
 export interface BenchmarkResult {
   id: string;
@@ -37,7 +42,11 @@ export async function logBenchmarkResult(data: { definitionId: string; scoreValu
   const user = await getAuthUser();
   if (!user) throw new Error("Unauthorized");
 
-  const predefined = PREDEFINED_BENCHMARKS.find((b) => b.id === data.definitionId);
+  const definitionId = requireTrimmedString(data.definitionId, "Benchmark");
+  const scoreValue = requireFiniteNumber(data.scoreValue, "Score", { min: 0 });
+  const notes = optionalTrimmedString(data.notes);
+
+  const predefined = PREDEFINED_BENCHMARKS.find((b) => b.id === definitionId);
   if (predefined) {
     const defRef = db.collection("benchmarkDefinitions").doc(predefined.id);
     const defDoc = await defRef.get();
@@ -54,9 +63,9 @@ export async function logBenchmarkResult(data: { definitionId: string; scoreValu
   }
 
   await userCollection(user.uid, "benchmarkResults").add({
-    definitionId: data.definitionId,
-    scoreValue: data.scoreValue,
-    notes: data.notes ?? "",
+    definitionId,
+    scoreValue,
+    notes: notes ?? "",
     performedAt: new Date(),
   });
 }

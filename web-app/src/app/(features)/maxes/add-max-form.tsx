@@ -5,8 +5,10 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
+import { FormAlert } from "@/components/ui/form-alert";
 import { addMax } from "./actions";
 import { estimate1RM } from "@/lib/domain";
+import { getErrorMessage } from "@/lib/client-errors";
 
 export function AddMaxForm() {
   const router = useRouter();
@@ -15,6 +17,7 @@ export function AddMaxForm() {
   const [reps, setReps] = useState("1");
   const [saving, setSaving] = useState(false);
   const [open, setOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const weightNum = parseFloat(weight) || 0;
   const repsNum = parseInt(reps) || 1;
@@ -23,11 +26,14 @@ export function AddMaxForm() {
 
   const handleSubmit = async () => {
     if (!exercise.trim() || !weightNum) return;
+    setError(null);
     setSaving(true);
     try {
       await addMax({ exerciseId: exercise.trim(), weightKg: Math.round(estimated1RM * 10) / 10, isEstimated });
       setExercise(""); setWeight(""); setReps("1"); setOpen(false);
       router.refresh();
+    } catch (error) {
+      setError(getErrorMessage(error));
     } finally {
       setSaving(false);
     }
@@ -55,6 +61,7 @@ export function AddMaxForm() {
             Estimated 1RM: <span className="text-orange font-medium">{Math.round(estimated1RM)} kg</span> (Epley)
           </p>
         )}
+        {error && <FormAlert message={error} />}
         <div className="flex gap-spacing-sm">
           <Button variant="secondary" onClick={() => setOpen(false)} className="flex-1">Cancel</Button>
           <Button onClick={handleSubmit} disabled={saving || !exercise || !weightNum} className="flex-1">

@@ -3,6 +3,12 @@
 import { getAuthUser, userCollection } from "@/lib/firestore";
 import { calculateCycleStatus } from "@/lib/domain";
 import type { CycleSettings, CycleStatusResult } from "@/lib/domain";
+import {
+  optionalTrimmedString,
+  requireDateInput,
+  requireFiniteNumber,
+  requireOneOf,
+} from "@/lib/write-validation";
 
 // ---------------------------------------------------------------------------
 // getPeriodLogs
@@ -44,11 +50,27 @@ export async function saveCycleSettings(settings: {
   const user = await getAuthUser();
   if (!user) throw new Error("Unauthorized");
 
+  const averageCycleLengthDays = requireFiniteNumber(
+    settings.averageCycleLengthDays,
+    "Average cycle length",
+    { integer: true, min: 1 }
+  );
+  const averagePeriodLengthDays = requireFiniteNumber(
+    settings.averagePeriodLengthDays,
+    "Average period length",
+    { integer: true, min: 1 }
+  );
+  const lutealPhaseLengthDays = requireFiniteNumber(
+    settings.lutealPhaseLengthDays,
+    "Luteal phase length",
+    { integer: true, min: 1 }
+  );
+
   await userCollection(user.uid, "cycleSettings").doc("default").set(
     {
-      averageCycleLengthDays: settings.averageCycleLengthDays,
-      averagePeriodLengthDays: settings.averagePeriodLengthDays,
-      lutealPhaseLengthDays: settings.lutealPhaseLengthDays,
+      averageCycleLengthDays,
+      averagePeriodLengthDays,
+      lutealPhaseLengthDays,
       updatedAt: new Date(),
     },
     { merge: true }
@@ -69,20 +91,30 @@ export async function logPeriod(data: {
   const user = await getAuthUser();
   if (!user) throw new Error("Unauthorized");
 
+  const startDate = requireDateInput(data.startDate, "Start date");
+  const endDate = data.endDate ? requireDateInput(data.endDate, "End date") : undefined;
+  if (endDate && endDate < startDate) {
+    throw new Error("End date cannot be earlier than start date.");
+  }
+
+  const flowLevel = requireOneOf(data.flowLevel, ["light", "medium", "heavy"], "Flow level");
+  const symptoms = data.symptoms?.map((symptom) => symptom.trim()).filter(Boolean);
+  const notes = optionalTrimmedString(data.notes);
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const doc: Record<string, any> = {
-    startDate: new Date(data.startDate),
-    flowLevel: data.flowLevel,
+    startDate,
+    flowLevel,
   };
 
-  if (data.endDate) {
-    doc.endDate = new Date(data.endDate);
+  if (endDate) {
+    doc.endDate = endDate;
   }
-  if (data.symptoms && data.symptoms.length > 0) {
-    doc.symptoms = data.symptoms;
+  if (symptoms && symptoms.length > 0) {
+    doc.symptoms = symptoms;
   }
-  if (data.notes && data.notes.trim().length > 0) {
-    doc.notes = data.notes.trim();
+  if (notes) {
+    doc.notes = notes;
   }
 
   await userCollection(user.uid, "periodLogs").add(doc);

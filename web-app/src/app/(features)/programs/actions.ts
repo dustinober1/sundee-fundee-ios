@@ -2,6 +2,7 @@
 
 import { getAuthUser, userCollection } from "@/lib/firestore";
 import { generateProgram, type ProgramTemplate } from "@/lib/domain";
+import { requireTrimmedString } from "@/lib/write-validation";
 
 export async function getEnrolledPrograms() {
   const user = await getAuthUser();
@@ -16,8 +17,10 @@ export async function enrollInProgram(programId: string) {
   const user = await getAuthUser();
   if (!user) throw new Error("Unauthorized");
 
+  const normalizedProgramId = requireTrimmedString(programId, "Program");
+
   await userCollection(user.uid, "enrolledPrograms").add({
-    programId,
+    programId: normalizedProgramId,
     startDate: new Date(),
     currentWeek: 1,
     currentDay: 1,

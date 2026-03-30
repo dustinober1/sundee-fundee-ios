@@ -4,7 +4,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { FormAlert } from "@/components/ui/form-alert";
 import { updateProfile } from "./actions";
+import { getErrorMessage } from "@/lib/client-errors";
 
 const EXPERIENCE_OPTIONS = [
   { value: "beginner", label: "Beginner", desc: "Less than 1 year" },
@@ -29,6 +31,7 @@ export function ProfileForm({ initialName, initialWeightUnit, initialExperience,
   const [goal, setGoal] = useState(initialGoal);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const hasChanges =
     name !== initialName ||
@@ -37,12 +40,15 @@ export function ProfileForm({ initialName, initialWeightUnit, initialExperience,
     goal !== initialGoal;
 
   async function handleSave() {
+    setError(null);
     setSaving(true);
     try {
       await updateProfile({ name, weightUnit, experienceLevel: experience, primaryGoal: goal });
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
       router.refresh();
+    } catch (error) {
+      setError(getErrorMessage(error));
     } finally {
       setSaving(false);
     }
@@ -128,6 +134,8 @@ export function ProfileForm({ initialName, initialWeightUnit, initialExperience,
           ))}
         </div>
       </div>
+
+      {error && <FormAlert message={error} />}
 
       <Button
         disabled={saving || !hasChanges}
