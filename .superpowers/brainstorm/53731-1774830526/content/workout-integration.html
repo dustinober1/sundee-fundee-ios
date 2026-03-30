@@ -1,0 +1,99 @@
+<h2>Phase-Aware Workout Integration</h2>
+<p class="subtitle">How cycle adjustments appear on workout and program pages</p>
+
+<div class="split">
+  <div class="mockup">
+    <div class="mockup-header">Program Detail Page</div>
+    <div class="mockup-body" style="padding: 14px; background: #f4f0df; font-family: system-ui, sans-serif; font-size: 13px; color: #0d1a40;">
+
+      <!-- Phase Banner -->
+      <div style="background: linear-gradient(135deg, rgba(242,115,25,0.1), rgba(242,115,25,0.05)); border: 1px solid rgba(242,115,25,0.25); border-radius: 10px; padding: 10px 12px; margin-bottom: 14px; display: flex; align-items: center; gap: 10px;">
+        <div style="width: 32px; height: 32px; border-radius: 50%; background: rgba(242,115,25,0.15); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+          <span style="font-size: 14px;">⚡</span>
+        </div>
+        <div style="flex: 1;">
+          <div style="font-size: 11px; font-weight: 600; color: #f27319;">Ovulation Phase · Day 12</div>
+          <div style="font-size: 10px; color: #888; margin-top: 1px;">Peak performance window — load +12%, sets +5%</div>
+        </div>
+        <div style="font-size: 9px; color: #888; text-decoration: underline; cursor: pointer;">Hide</div>
+      </div>
+
+      <!-- Session -->
+      <div style="font-family: Georgia, serif; font-weight: bold; font-size: 14px; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid rgba(184,134,11,0.15);">Upper Body A</div>
+
+      <div style="display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid rgba(184,134,11,0.08); align-items: center;">
+        <span>Bench Press</span>
+        <div style="text-align: right;">
+          <span style="font-family: monospace; color: #666;">4×6 @ 84%</span>
+          <div style="font-size: 9px; color: #f27319; margin-top: 1px;">↑ was 3×6 @ 75%</div>
+        </div>
+      </div>
+      <div style="display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid rgba(184,134,11,0.08); align-items: center;">
+        <span>OHP</span>
+        <div style="text-align: right;">
+          <span style="font-family: monospace; color: #666;">4×6 @ 84%</span>
+          <div style="font-size: 9px; color: #f27319; margin-top: 1px;">↑ was 3×6 @ 75%</div>
+        </div>
+      </div>
+      <div style="display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid rgba(184,134,11,0.08);">
+        <span>Lat Raise</span>
+        <span style="font-family: monospace; color: #666;">3×12</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">AI Workout Page</div>
+    <div class="mockup-body" style="padding: 14px; background: #f4f0df; font-family: system-ui, sans-serif; font-size: 13px; color: #0d1a40;">
+
+      <!-- Phase Banner (luteal example - different phase) -->
+      <div style="background: linear-gradient(135deg, rgba(13,26,64,0.08), rgba(13,26,64,0.03)); border: 1px solid rgba(13,26,64,0.15); border-radius: 10px; padding: 10px 12px; margin-bottom: 14px; display: flex; align-items: center; gap: 10px;">
+        <div style="width: 32px; height: 32px; border-radius: 50%; background: rgba(13,26,64,0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+          <span style="font-size: 14px;">🌙</span>
+        </div>
+        <div style="flex: 1;">
+          <div style="font-size: 11px; font-weight: 600; color: #0d1a40;">Luteal Phase · Day 22</div>
+          <div style="font-size: 10px; color: #888; margin-top: 1px;">Recovery focus — load -3%, volume -8%</div>
+        </div>
+      </div>
+
+      <!-- Toggle -->
+      <div style="background: white; border-radius: 10px; padding: 10px 12px; margin-bottom: 14px; border: 1px solid rgba(184,134,11,0.15); display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <div style="font-size: 12px; font-weight: 500;">Cycle-aware adjustments</div>
+          <div style="font-size: 10px; color: #888;">Your body is prioritizing recovery, so we've reduced volume slightly</div>
+        </div>
+        <div style="width: 40px; height: 22px; background: #f27319; border-radius: 11px; position: relative;">
+          <div style="width: 18px; height: 18px; background: white; border-radius: 50%; position: absolute; right: 2px; top: 2px;"></div>
+        </div>
+      </div>
+
+      <!-- Questionnaire section -->
+      <div style="font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: #b8860b; margin-bottom: 2px;">Target</div>
+      <div style="font-family: Georgia, serif; font-weight: bold; font-size: 14px; margin-bottom: 10px;">Focus</div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 14px;">
+        <div style="padding: 8px; border-radius: 8px; border: 1px solid rgba(184,134,11,0.15); text-align: center; font-size: 12px;">Upper Body</div>
+        <div style="padding: 8px; border-radius: 8px; border: 1px solid rgba(184,134,11,0.15); text-align: center; font-size: 12px;">Lower Body</div>
+        <div style="padding: 8px; border-radius: 8px; background: #f27319; color: white; text-align: center; font-size: 12px; font-weight: 600;">Full Body</div>
+        <div style="padding: 8px; border-radius: 8px; border: 1px solid rgba(184,134,11,0.15); text-align: center; font-size: 12px;">Push</div>
+      </div>
+
+      <!-- Educational tooltip -->
+      <div style="background: rgba(13,26,64,0.04); border-left: 3px solid #0d1a40; border-radius: 0 8px 8px 0; padding: 10px 12px; font-size: 11px; color: #666;">
+        <strong style="color: #0d1a40;">Why the adjustment?</strong><br>
+        During the luteal phase, progesterone rises which may affect recovery and thermoregulation. We've reduced load by 3% and volume by 8% to match your body's needs. Toggle off if you're feeling strong today.
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top: 24px;">
+  <h3>Integration Points</h3>
+  <ol style="font-size: 14px; line-height: 2;">
+    <li><strong>Phase banner</strong> — appears at top of program detail + AI workout pages when cycle tracking is active</li>
+    <li><strong>Adjusted values</strong> — shows modified sets/reps/% with small "was X" annotation</li>
+    <li><strong>Toggle override</strong> — on AI workout page, lets user disable adjustments if feeling strong</li>
+    <li><strong>Educational callout</strong> — explains <em>why</em> adjustments are made, specific to current phase</li>
+    <li><strong>Phase icons</strong> — ⚡ ovulation, 🌱 follicular, 🩸 menstrual, 🌙 luteal</li>
+  </ol>
+</div>

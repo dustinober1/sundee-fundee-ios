@@ -15,6 +15,22 @@ import {
   PRTrendIndicator,
 } from "@/components/ui/benchmark-ui";
 
+// Helper to safely parse date from various formats
+function parseDate(value: unknown): Date | null {
+  if (!value) return null;
+  if (value instanceof Date) return value;
+  if (typeof value === "string") {
+    const parsed = new Date(value);
+    return isNaN(parsed.getTime()) ? null : parsed;
+  }
+  // Handle Firestore-like timestamp objects
+  if (typeof value === "object" && value !== null && "seconds" in value) {
+    const ts = value as { seconds: number; nanoseconds?: number };
+    return new Date(ts.seconds * 1000);
+  }
+  return null;
+}
+
 function formatScore(value: number, type: string): string {
   switch (type) {
     case "time": {
@@ -67,8 +83,8 @@ export default async function BenchmarkDetailPage({ params }: { params: Promise<
 
   // Calculate PR info
   const sortedResults = [...results].sort((a, b) => {
-    const dateA = a.performedAt ? new Date(a.performedAt).getTime() : 0;
-    const dateB = b.performedAt ? new Date(b.performedAt).getTime() : 0;
+    const dateA = parseDate(a.performedAt)?.getTime() ?? 0;
+    const dateB = parseDate(b.performedAt)?.getTime() ?? 0;
     return dateB - dateA; // Most recent first
   });
 
@@ -189,7 +205,7 @@ export default async function BenchmarkDetailPage({ params }: { params: Promise<
                 >
                   <div className="flex items-center gap-2">
                     <span className="text-text-secondary">
-                      {r.performedAt ? new Date(r.performedAt).toLocaleDateString() : ""}
+                      {parseDate(r.performedAt)?.toLocaleDateString() ?? ""}
                     </span>
                     {isPR && (
                       <span className="text-[9px] bg-gold/20 text-gold px-1.5 py-0.5 rounded font-mono uppercase tracking-wider">

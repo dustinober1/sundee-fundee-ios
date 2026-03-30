@@ -1,0 +1,116 @@
+<h2>Dashboard Enhancement Design</h2>
+<p class="subtitle">Final design for your approval</p>
+
+<div class="mockup">
+  <div class="mockup-header">New Dashboard Layout</div>
+  <div class="mockup-body" style="background: #f4f0df; padding: 1rem; font-family: system-ui;">
+
+    <!-- Welcome Header -->
+    <div style="margin-bottom: 1rem;">
+      <p style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.2em; color: #c9a227; margin: 0;">Welcome Back</p>
+      <h1 style="font-size: 1.5rem; color: #0d1a40; margin: 0.25rem 0;">Hey, Vanessa</h1>
+      <p style="font-size: 12px; color: #666; margin: 0;">Saturday, March 29</p>
+    </div>
+
+    <!-- NEW: Cycle Phase Banner -->
+    <div style="background: linear-gradient(135deg, #0d1a40 0%, #1a2a5e 100%); border-radius: 12px; padding: 1rem; margin-bottom: 1rem; color: #f4f0df;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <p style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.15em; color: #c9a227; margin: 0;">Current Phase</p>
+          <p style="font-size: 1.1rem; font-weight: 600; margin: 0.25rem 0;">Ovulation Phase</p>
+        </div>
+        <div style="text-align: right;">
+          <p style="font-size: 12px; color: #f27319; margin: 0; font-weight: 500;">Peak performance — go for PRs!</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stat Cards (Updated) -->
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin-bottom: 1rem;">
+      <div style="background: white; border-radius: 8px; padding: 0.75rem; text-align: center; border: 1px solid #e5e0d0;">
+        <p style="font-size: 1.5rem; font-weight: bold; color: #f27319; margin: 0;">3</p>
+        <p style="font-size: 9px; text-transform: uppercase; color: #666; margin: 0.25rem 0 0;">This Week</p>
+      </div>
+      <div style="background: white; border-radius: 8px; padding: 0.75rem; text-align: center; border: 1px solid #e5e0d0;">
+        <p style="font-size: 1.5rem; font-weight: bold; color: #f27319; margin: 0;">2</p>
+        <p style="font-size: 9px; text-transform: uppercase; color: #666; margin: 0.25rem 0 0;">PRs This Month</p>
+      </div>
+      <div style="background: white; border-radius: 8px; padding: 0.75rem; text-align: center; border: 1px solid #e5e0d0;">
+        <p style="font-size: 1rem; font-weight: bold; color: #f27319; margin: 0;">BBOD</p>
+        <p style="font-size: 9px; text-transform: uppercase; color: #666; margin: 0.25rem 0 0;">Program</p>
+      </div>
+    </div>
+
+    <!-- Suggested Workout Card (Replaces "Start Workout" button) -->
+    <div style="background: white; border-radius: 12px; padding: 1rem; margin-bottom: 1rem; border: 1px solid #e5e0d0;">
+      <p style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.15em; color: #c9a227; margin: 0 0 0.5rem;">Today's Focus</p>
+      <h3 style="font-size: 1rem; color: #0d1a40; margin: 0 0 0.5rem;">Week 3 — Lower Body Power</h3>
+      <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
+        <span style="font-size: 11px; background: #f4f0df; padding: 0.25rem 0.5rem; border-radius: 4px; color: #666;">45 min</span>
+        <span style="font-size: 11px; background: #f4f0df; padding: 0.25rem 0.5rem; border-radius: 4px; color: #666;">Strength</span>
+      </div>
+      <div style="background: #e5e0d0; border-radius: 4px; height: 6px; margin-bottom: 0.75rem;">
+        <div style="background: #f27319; border-radius: 4px; height: 100%; width: 37.5%;"></div>
+      </div>
+      <button style="width: 100%; background: #f27319; color: #f4f0df; border: none; padding: 0.75rem; border-radius: 8px; font-weight: 600; cursor: pointer;">Start Session</button>
+    </div>
+
+    <!-- Quick Actions (Simplified - removed Start Workout) -->
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin-bottom: 1rem;">
+      <button style="background: #0d1a40; color: #f4f0df; border: none; padding: 0.75rem; border-radius: 8px; font-weight: 500; font-size: 12px;">Log Max</button>
+      <button style="background: white; color: #0d1a40; border: 1px solid #c9a227; padding: 0.75rem; border-radius: 8px; font-weight: 500; font-size: 12px;">Programs</button>
+      <button style="background: white; color: #0d1a40; border: 1px solid #c9a227; padding: 0.75rem; border-radius: 8px; font-weight: 500; font-size: 12px;">Benchmarks</button>
+    </div>
+
+    <!-- Recent Wins Card -->
+    <div style="background: white; border-radius: 12px; padding: 1rem; border: 1px solid #e5e0d0;">
+      <p style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.15em; color: #c9a227; margin: 0 0 0.75rem;">Recent Wins</p>
+
+      <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0; border-bottom: 1px solid #f4f0df;">
+        <span style="font-size: 1.25rem;">🏆</span>
+        <div>
+          <p style="font-size: 13px; font-weight: 600; color: #0d1a40; margin: 0;">New PR — Back Squat</p>
+          <p style="font-size: 11px; color: #666; margin: 0;">185 lb · 2 days ago</p>
+        </div>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0; border-bottom: 1px solid #f4f0df;">
+        <span style="font-size: 1.25rem;">⏱️</span>
+        <div>
+          <p style="font-size: 13px; font-weight: 600; color: #0d1a40; margin: 0;">Fran — New Best</p>
+          <p style="font-size: 11px; color: #666; margin: 0;">4:32 · 5 days ago</p>
+        </div>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0;">
+        <span style="font-size: 1.25rem;">✨</span>
+        <div>
+          <p style="font-size: 13px; font-weight: 600; color: #0d1a40; margin: 0;">First Workout!</p>
+          <p style="font-size: 11px; color: #666; margin: 0;">Welcome to Sundee Fundee · 2 weeks ago</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="section" style="margin-top: 2rem;">
+  <h3>Summary of Changes</h3>
+  <ul style="color: #666; line-height: 1.8;">
+    <li><strong>Cycle Phase Banner</strong> — Full-width below header, shows phase + training recommendation</li>
+    <li><strong>Stat Cards</strong> — Now show real data: weekly workouts, monthly PRs, program name</li>
+    <li><strong>Suggested Workout</strong> — Shows program progress (Week X, session details) OR AI workout prompt</li>
+    <li><strong>Quick Actions</strong> — Simplified to 3 buttons (Log Max, Programs, Benchmarks)</li>
+    <li><strong>Recent Wins</strong> — New card showing PRs, benchmark improvements, first workout, program completions</li>
+  </ul>
+</div>
+
+<div class="section" style="margin-top: 1.5rem;">
+  <h3>Behavior Notes</h3>
+  <ul style="color: #666; line-height: 1.8;">
+    <li>Cycle banner only shows if <code>cycleTrackingEnabled: true</code> in user profile</li>
+    <li>If no active program, Suggested Workout shows "Generate AI Workout" (respects tier limits)</li>
+    <li>Wins are limited to last 30 days, max 5 shown</li>
+    <li>Empty states handled gracefully for each section</li>
+  </ul>
+</div>
