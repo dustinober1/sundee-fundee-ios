@@ -104,6 +104,7 @@ function MenuBar({ editor }: { editor: ReturnType<typeof useEditor> }) {
 
 export function RichTextEditor({ content, onChange, placeholder }: RichTextEditorProps) {
   const editor = useEditor({
+    immediatelyRender: false,
     extensions: [
       StarterKit,
       LinkExtension.configure({ openOnClick: false }),
