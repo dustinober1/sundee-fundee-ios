@@ -10,6 +10,7 @@ export * from "./cycle-adaptation-policy";
 export * from "./injury-support";
 export * from "./injury-adaptation-engine";
 export * from "./benchmark-catalog";
+export * from "./benchmark-readiness";
 export * from "./celebration-event";
 export * from "./program-template-generator";
 export * from "./ai-workout";

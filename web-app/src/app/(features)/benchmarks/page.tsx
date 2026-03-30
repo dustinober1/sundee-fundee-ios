@@ -1,11 +1,23 @@
 import { Card } from "@/components/ui/card";
 import { PageHeader, SectionLabel } from "@/components/ui/art-deco";
 import { PREDEFINED_BENCHMARKS, groupedByCategory } from "@/lib/domain";
+import { calculateBenchmarkReadiness } from "@/lib/domain/benchmark-readiness";
 import { getBenchmarkResults } from "./actions";
+import { getCycleStatus } from "../cycle/actions";
 import Link from "next/link";
+import {
+  ReadinessBadge,
+  IntensityGauge,
+  MovementTags,
+  EquipmentIcons,
+  TimeDomainBadge,
+} from "@/components/ui/benchmark-ui";
 
 export default async function BenchmarksPage() {
-  const results = await getBenchmarkResults();
+  const [results, cycleStatus] = await Promise.all([
+    getBenchmarkResults(),
+    getCycleStatus(),
+  ]);
   const groups = groupedByCategory();
 
   // Map definitionId → best score
@@ -16,6 +28,8 @@ export default async function BenchmarksPage() {
       bestScores.set(r.definitionId, r.scoreValue);
     }
   }
+
+  const currentPhase = cycleStatus?.currentPhase ?? null;
 
   return (
     <div className="flex flex-col gap-8 pt-4">
@@ -29,21 +43,59 @@ export default async function BenchmarksPage() {
           </div>
           {benchmarks.map((bm) => {
             const best = bestScores.get(bm.id);
+            const readiness = calculateBenchmarkReadiness(
+              currentPhase,
+              bm.intensity,
+              bm.movementTags
+            );
+
             return (
               <Link key={bm.id} href={`/benchmarks/${bm.id}`}>
                 <Card className="hover:shadow-md hover:border-gold/20 border border-transparent transition-all">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <p className="font-heading font-semibold text-[14px]">{bm.name}</p>
-                      <p className="text-text-secondary text-[12px] line-clamp-1 mt-0.5">{bm.workoutDescription}</p>
+                  <div className="flex flex-col gap-2">
+                    {/* Top row: Name + Score */}
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <p className="font-heading font-semibold text-[14px]">{bm.name}</p>
+                        <p className="text-text-secondary text-[12px] line-clamp-1 mt-0.5">
+                          {bm.workoutDescription}
+                        </p>
+                      </div>
+                      {best != null ? (
+                        <span className="text-orange font-bold font-mono text-[15px] ml-2">
+                          {formatScore(best, bm.scoringType)}
+                        </span>
+                      ) : (
+                        <span className="text-gold/30 text-[12px] font-mono ml-2">—</span>
+                      )}
                     </div>
-                    {best != null ? (
-                      <span className="text-orange font-bold font-mono text-[15px]">
-                        {formatScore(best, bm.scoringType)}
-                      </span>
-                    ) : (
-                      <span className="text-gold/30 text-[12px] font-mono">—</span>
-                    )}
+
+                    {/* Bottom row: Readiness + Tags + Equipment */}
+                    <div className="flex flex-wrap items-center gap-2">
+                      <ReadinessBadge
+                        tier={readiness.tier}
+                        reason={readiness.reason}
+                        emoji={readiness.emoji}
+                        color={readiness.color}
+                        compact
+                      />
+
+                      {bm.intensity && (
+                        <IntensityGauge intensity={bm.intensity} showLabel={false} />
+                      )}
+
+                      {bm.movementTags && (
+                        <MovementTags tags={bm.movementTags} />
+                      )}
+
+                      {bm.equipment && (
+                        <EquipmentIcons equipment={bm.equipment} />
+                      )}
+
+                      {bm.timeDomain && (
+                        <TimeDomainBadge timeDomain={bm.timeDomain} />
+                      )}
+                    </div>
                   </div>
                 </Card>
               </Link>
@@ -58,8 +110,12 @@ export default async function BenchmarksPage() {
 function formatScore(value: number, type: string): string {
   switch (type) {
     case "time": {
-      const min = Math.floor(value / 60);
+      const hours = Math.floor(value / 3600);
+      const min = Math.floor((value % 3600) / 60);
       const sec = Math.floor(value % 60);
+      if (hours > 0) {
+        return `${hours}:${String(min).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
+      }
       return `${min}:${String(sec).padStart(2, "0")}`;
     }
     case "weight": return `${value} kg`;
