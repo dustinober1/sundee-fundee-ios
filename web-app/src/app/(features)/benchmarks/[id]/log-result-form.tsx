@@ -8,8 +8,13 @@ import { Card } from "@/components/ui/card";
 import { FormAlert } from "@/components/ui/form-alert";
 import { logBenchmarkResult } from "../actions";
 import { getErrorMessage } from "@/lib/client-errors";
+import { toKilograms, WeightUnit } from "@/lib/domain";
 
-export function LogResultForm({ definitionId, scoringType }: { definitionId: string; scoringType: string }) {
+export function LogResultForm({ definitionId, scoringType, weightUnit = WeightUnit.pounds }: {
+  definitionId: string;
+  scoringType: string;
+  weightUnit?: WeightUnit;
+}) {
   const router = useRouter();
   const [score, setScore] = useState("");
   const [hours, setHours] = useState("");
@@ -21,7 +26,7 @@ export function LogResultForm({ definitionId, scoringType }: { definitionId: str
 
   const isTime = scoringType === "time";
 
-  const label = scoringType === "weight" ? "Weight (kg)"
+  const label = scoringType === "weight" ? `Weight (${weightUnit})`
     : scoringType === "reps" ? "Reps"
     : "Score";
 
@@ -80,7 +85,7 @@ export function LogResultForm({ definitionId, scoringType }: { definitionId: str
             setError(null);
             setSaving(true);
             try {
-              const scoreValue = isTime ? timeValue : parseFloat(score);
+              const scoreValue = isTime ? timeValue : (scoringType === "weight" ? toKilograms(parseFloat(score), weightUnit) : parseFloat(score));
               await logBenchmarkResult({ definitionId, scoreValue, notes: notes || undefined });
               setScore(""); setNotes(""); setHours(""); setMinutes(""); setSeconds("");
               router.refresh();

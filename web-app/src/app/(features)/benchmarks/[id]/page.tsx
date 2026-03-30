@@ -5,6 +5,8 @@ import { PREDEFINED_BENCHMARKS } from "@/lib/domain";
 import { calculateBenchmarkReadiness, getBestAttemptWindow } from "@/lib/domain/benchmark-readiness";
 import { deleteBenchmarkResult, getBenchmarkResults } from "../actions";
 import { getCycleStatus, getCycleSettings, getPeriodLogs } from "../../cycle/actions";
+import { getUserProfile } from "../../settings/actions";
+import { fromKilograms, formatWeightWithUnit, WeightUnit } from "@/lib/domain";
 import { LogResultForm } from "./log-result-form";
 import {
   ReadinessPanel,
@@ -32,7 +34,7 @@ function parseDate(value: unknown): Date | null {
   return null;
 }
 
-function formatScore(value: number, type: string): string {
+function formatScore(value: number, type: string, weightUnit: WeightUnit = WeightUnit.kilograms): string {
   switch (type) {
     case "time": {
       const hours = Math.floor(value / 3600);
@@ -43,7 +45,7 @@ function formatScore(value: number, type: string): string {
       }
       return `${min}:${String(sec).padStart(2, "0")}`;
     }
-    case "weight": return `${value} kg`;
+    case "weight": return formatWeightWithUnit(value, weightUnit);
     case "reps": return `${Math.floor(value)} reps`;
     case "roundsAndReps": {
       const rounds = Math.floor(value / 10000);
@@ -65,12 +67,14 @@ export default async function BenchmarkDetailPage({ params }: { params: Promise<
   if (!benchmark) return <p>Benchmark not found.</p>;
 
   // Fetch all data in parallel
-  const [allResults, cycleStatus, cycleSettings, periodLogs] = await Promise.all([
+  const [allResults, cycleStatus, cycleSettings, periodLogs, profile] = await Promise.all([
     getBenchmarkResults(),
     getCycleStatus(),
     getCycleSettings(),
     getPeriodLogs(),
+    getUserProfile(),
   ]);
+  const weightUnit = (profile?.weightUnit as WeightUnit) ?? WeightUnit.pounds;
 
   const results = allResults.filter((r) => r.definitionId === id);
   const currentPhase = cycleStatus?.currentPhase ?? null;
@@ -167,7 +171,7 @@ export default async function BenchmarkDetailPage({ params }: { params: Promise<
       )}
 
       {/* Log Result Form */}
-      <LogResultForm definitionId={id} scoringType={benchmark.scoringType} />
+      <LogResultForm definitionId={id} scoringType={benchmark.scoringType} weightUnit={weightUnit} />
 
       {/* Coach Notes */}
       {benchmark.coachNotes && (
@@ -181,7 +185,7 @@ export default async function BenchmarkDetailPage({ params }: { params: Promise<
         <div className="grid grid-cols-2 gap-3">
           <StatCard
             label="Best Score"
-            value={formatScore(bestResult.scoreValue, benchmark.scoringType)}
+            value={formatScore(bestResult.scoreValue, benchmark.scoringType, weightUnit)}
           />
           <StatCard
             label="Attempts"
@@ -223,7 +227,7 @@ export default async function BenchmarkDetailPage({ params }: { params: Promise<
                         lowerIsBetter={lowerIsBetter}
                       />
                     )}
-                    <span className="font-mono font-semibold">{formatScore(r.scoreValue, benchmark.scoringType)}</span>
+                    <span className="font-mono font-semibold">{formatScore(r.scoreValue, benchmark.scoringType, weightUnit)}</span>
                     <DeleteRecordButton action={deleteBenchmarkResult} recordId={r.id} noun="Benchmark Result" />
                   </div>
                 </div>
