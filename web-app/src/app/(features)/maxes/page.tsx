@@ -3,9 +3,15 @@ import { PageHeader, ArtDecoRuleSmall } from "@/components/ui/art-deco";
 import { DeleteRecordButton } from "@/components/ui/delete-record-button";
 import { deleteMax, getMaxes } from "./actions";
 import { AddMaxForm } from "./add-max-form";
+import { getUserProfile } from "../settings/actions";
+import { formatWeightWithUnit, WeightUnit } from "@/lib/domain";
 
 export default async function MaxesPage() {
-  const maxes = await getMaxes();
+  const [maxes, profile] = await Promise.all([
+    getMaxes(),
+    getUserProfile(),
+  ]);
+  const weightUnit = (profile?.weightUnit as WeightUnit) ?? WeightUnit.pounds;
 
   // Group by exercise
   const grouped = new Map<string, typeof maxes>();
@@ -19,7 +25,7 @@ export default async function MaxesPage() {
     <div className="flex flex-col gap-8 pt-4">
       <PageHeader label="Strength" title="Max Lifts" />
 
-      <AddMaxForm />
+      <AddMaxForm weightUnit={weightUnit} />
 
       <ArtDecoRuleSmall className="text-gold/30 mx-auto" />
 
@@ -41,7 +47,7 @@ export default async function MaxesPage() {
           <Card key={exercise} className="hover:shadow-md transition-shadow">
             <div className="flex justify-between items-center mb-2">
               <h2 className="text-[15px]">{exercise}</h2>
-              <span className="text-orange font-bold font-mono text-lg">{records[0].weightKg} kg</span>
+              <span className="text-orange font-bold font-mono text-lg">{formatWeightWithUnit(records[0].weightKg, weightUnit)}</span>
             </div>
             <div className="border-t border-separator/50 pt-2">
               <div className="flex flex-col gap-1.5">
@@ -49,7 +55,7 @@ export default async function MaxesPage() {
                   <div key={r.id} className="flex items-start justify-between gap-3 text-[12px] text-text-secondary">
                     <div>
                       <span>{r.date ? new Date(r.date).toLocaleDateString() : ""}</span>
-                      <span className="ml-2 font-mono">{r.weightKg} kg {r.isEstimated ? "(est)" : ""}</span>
+                      <span className="ml-2 font-mono">{formatWeightWithUnit(r.weightKg, weightUnit)}{r.isEstimated ? " (est)" : ""}</span>
                     </div>
                     <DeleteRecordButton action={deleteMax} recordId={r.id} noun="Max" />
                   </div>
