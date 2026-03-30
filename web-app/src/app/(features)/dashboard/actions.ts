@@ -169,7 +169,7 @@ export async function getActiveProgram(): Promise<ActiveProgram | null>{
   const data = snapshot.docs[0].data();
 
   // Default values - these would ideally come from the program definition
-  const totalWeeks = data.totalWeeks ?? 8;
+  const totalWeeks = data.totalWeeks || 8;  // Use || to catch 0 as well
   const progressPercent = Math.round((data.currentWeek / totalWeeks) * 100);
 
   return{
