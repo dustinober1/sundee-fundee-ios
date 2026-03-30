@@ -13,16 +13,19 @@ export async function GET() {
     let aiGenerationsToday = 0;
     const today = new Date().toISOString().split("T")[0];
 
-    for (const userDoc of usersSnapshot.docs) {
-      const subDoc = await userDoc.ref.collection("subscription").doc("current").get();
-      const tier = subDoc.exists ? (subDoc.data()?.tier ?? "free") : "free";
-      if (tier in activeSubs) activeSubs[tier as keyof typeof activeSubs]++;
-
-      const aiDoc = await userDoc.ref.collection("aiUsage").doc(today).get();
-      if (aiDoc.exists) {
-        aiGenerationsToday += aiDoc.data()?.count ?? 0;
-      }
-    }
+    await Promise.all(
+      usersSnapshot.docs.map(async (userDoc) => {
+        const [subDoc, aiDoc] = await Promise.all([
+          userDoc.ref.collection("subscription").doc("current").get(),
+          userDoc.ref.collection("aiUsage").doc(today).get(),
+        ]);
+        const tier = subDoc.exists ? (subDoc.data()?.tier ?? "free") : "free";
+        if (tier in activeSubs) activeSubs[tier as keyof typeof activeSubs]++;
+        if (aiDoc.exists) {
+          aiGenerationsToday += aiDoc.data()?.count ?? 0;
+        }
+      })
+    );
 
     return NextResponse.json({
       totalUsers,

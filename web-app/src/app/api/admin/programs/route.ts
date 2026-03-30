@@ -22,6 +22,7 @@ export async function POST(request: NextRequest) {
     await requireAdmin();
     const body = await request.json();
     const { id, ...data } = body;
+    if (typeof id !== "string" || !id) return NextResponse.json({ error: "Missing or invalid id" }, { status: 400 });
     if (data.weeks) {
       data.weeks = data.weeks.map((week: any) => ({
         ...week,

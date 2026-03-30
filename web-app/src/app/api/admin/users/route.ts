@@ -6,7 +6,8 @@ export async function GET(request: NextRequest) {
   try {
     await requireAdmin();
     const url = new URL(request.url);
-    const limit = Number(url.searchParams.get("limit") ?? "50");
+    const rawLimit = Number(url.searchParams.get("limit") ?? "50");
+    const limit = Math.min(Math.max(1, isNaN(rawLimit) ? 50 : rawLimit), 200);
     const startAfter = url.searchParams.get("startAfter") ?? undefined;
     const users = await allUsers({ limit, startAfter });
     return NextResponse.json(users);

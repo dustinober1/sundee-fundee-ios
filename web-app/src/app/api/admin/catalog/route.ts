@@ -21,6 +21,7 @@ export async function POST(request: NextRequest) {
     await requireAdmin();
     const body = await request.json();
     const { id, ...data } = body;
+    if (typeof id !== "string" || !id) return NextResponse.json({ error: "Missing or invalid id" }, { status: 400 });
     await adminCollection("exerciseCatalog").doc(id).set(data);
     return NextResponse.json({ ok: true, id });
   } catch (e) {

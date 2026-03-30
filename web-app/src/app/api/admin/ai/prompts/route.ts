@@ -5,7 +5,7 @@ import { adminCollection } from "@/lib/admin-firestore";
 export async function GET() {
   try {
     await requireAdmin();
-    const snapshot = await adminCollection("aiPrompts").get();
+    const snapshot = await adminCollection("aiPrompts").orderBy("updatedAt", "desc").get();
     const prompts = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
     return NextResponse.json(prompts);
   } catch (e) {
@@ -21,6 +21,7 @@ export async function POST(request: NextRequest) {
     await requireAdmin();
     const body = await request.json();
     const { id, ...data } = body;
+    if (typeof id !== "string" || !id) return NextResponse.json({ error: "Missing or invalid id" }, { status: 400 });
     data.updatedAt = new Date().toISOString();
     await adminCollection("aiPrompts").doc(id).set(data);
     return NextResponse.json({ ok: true, id });
