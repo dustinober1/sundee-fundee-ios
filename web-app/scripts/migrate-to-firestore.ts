@@ -53,7 +53,7 @@ function mdxToHtml(mdx: string): string {
   // Wrap consecutive <li> in <ul>
   html = html.replace(/(<li>.*<\/li>\n?)+/gs, (match) => `<ul>${match}</ul>`);
   // Paragraphs (non-empty lines not already block elements)
-  html = html.replace(/^(?!<[hul]|$)(.+)$/gm, "<p>$1</p>");
+  html = html.replace(/^(?!<\/?[hul]|$)(.+)$/gm, "<p>$1</p>");
   // Clean up extra blank lines
   html = html.replace(/\n{3,}/g, "\n\n").trim();
   return html;
@@ -116,9 +116,29 @@ async function main() {
     entries.map((e) => ({ id: e.id, data: { name: e.name, category: e.category } }))
   );
 
+  // Parse ConditioningEntry format: { id: "X", defaultScoringType: "Y" }
+  const conditioningRegex = /\{\s*id:\s*"([^"]+)",\s*defaultScoringType:\s*"([^"]+)"\s*\}/g;
+  const conditioningEntries: { id: string; name: string; defaultScoringType: string }[] = [];
+  while ((match = conditioningRegex.exec(catalogSrc)) !== null) {
+    const name = match[1];
+    const defaultScoringType = match[2];
+    const id = name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "");
+    conditioningEntries.push({ id, name, defaultScoringType });
+  }
+  await batchWrite(
+    "exerciseCatalog",
+    conditioningEntries.map((e) => ({
+      id: e.id,
+      data: { name: e.name, category: "Conditioning", defaultScoringType: e.defaultScoringType },
+    }))
+  );
+
   // 5. Blog Posts (all .mdx files in content/blog)
   console.log("Migrating Blog Posts...");
-  const blogDir = path.join(ROOT, "content/blog");
+  const blogDir = path.join(ROOT, "web-app/content/blog");
   if (fs.existsSync(blogDir)) {
     const mdxFiles = fs.readdirSync(blogDir).filter((f) => f.endsWith(".mdx"));
     const blogDocs: { id: string; data: Record<string, unknown> }[] = [];
