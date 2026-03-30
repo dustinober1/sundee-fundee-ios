@@ -4,6 +4,7 @@
     "runtime": "nodejs20"
   },
   "firestore": {
-    "rules": "web-app/firestore.rules"
+    "rules": "web-app/firestore.rules",
+    "indexes": "firestore.indexes.json"
   }
 }
