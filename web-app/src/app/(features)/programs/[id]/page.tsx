@@ -1,7 +1,10 @@
 import { Card } from "@/components/ui/card";
 import { PageHeader, StatCard, SectionHeader, ArtDecoRuleSmall } from "@/components/ui/art-deco";
 import { generateProgram, type ProgramTemplate, exerciseValueToString } from "@/lib/domain";
+import { getPhaseAdjustmentSummary, applyPhaseAdjustment, resolveReadinessTier, resolveConfidence } from "@/lib/domain";
 import { EnrollButton } from "./enroll-button";
+import { getCycleStatus } from "@/app/(features)/cycle/actions";
+import { CyclePhaseBanner } from "@/components/ui/cycle-phase-banner";
 
 const VALID_TEMPLATES = ["strength", "hypertrophy", "fullBody", "linear", "dup", "block"];
 
@@ -13,6 +16,7 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
   }
 
   const program = generateProgram(id as ProgramTemplate, id.charAt(0).toUpperCase() + id.slice(1));
+  const cycleStatus = await getCycleStatus();
 
   return (
     <div className="flex flex-col gap-8 pt-4">
@@ -29,6 +33,14 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
       </div>
 
       <EnrollButton programId={id} />
+
+      {cycleStatus && (
+        <CyclePhaseBanner
+          phase={cycleStatus.currentPhase}
+          cycleDay={cycleStatus.cycleDay}
+          adjustmentSummary={getPhaseAdjustmentSummary(cycleStatus.currentPhase)}
+        />
+      )}
 
       <ArtDecoRuleSmall className="text-gold/30 mx-auto" />
 
@@ -59,15 +71,36 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
               <p className="font-heading font-semibold text-[14px] mb-2 pb-1 border-b border-gold/15">
                 {session.sessionName}
               </p>
-              {session.exercises.map((ex, i) => (
-                <div key={i} className="flex justify-between text-[13px] py-2 border-b border-separator/30 last:border-0">
-                  <span>{ex.exercise}</span>
-                  <span className="text-text-secondary font-mono">
-                    {exerciseValueToString(ex.sets)}×{exerciseValueToString(ex.reps)}
-                    {ex.percent1RM ? ` @ ${Math.round(ex.percent1RM * 100)}%` : ""}
-                  </span>
-                </div>
-              ))}
+              {session.exercises.map((ex, i) => {
+                const adjusted = cycleStatus
+                  ? applyPhaseAdjustment(
+                      ex,
+                      cycleStatus.currentPhase,
+                      resolveReadinessTier(null),
+                      resolveConfidence(cycleStatus.currentPhase, null, 1, null)
+                    )
+                  : ex;
+                const originalPct = ex.percent1RM ? Math.round(ex.percent1RM * 100) : null;
+                const adjustedPct = adjusted.percent1RM ? Math.round(adjusted.percent1RM * 100) : null;
+                const changed = originalPct !== null && adjustedPct !== null && originalPct !== adjustedPct;
+
+                return (
+                  <div key={i} className="flex justify-between text-[13px] py-2 border-b border-separator/30 last:border-0">
+                    <span>{ex.exercise}</span>
+                    <div className="text-right">
+                      <span className="text-text-secondary font-mono">
+                        {exerciseValueToString(adjusted.sets)}×{exerciseValueToString(adjusted.reps)}
+                        {adjustedPct ? ` @ ${adjustedPct}%` : ""}
+                      </span>
+                      {changed && (
+                        <div className="text-[9px] text-orange mt-0.5">
+                          {adjustedPct! > originalPct! ? "↑" : "↓"} was {originalPct}%
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           ))}
         </div>
