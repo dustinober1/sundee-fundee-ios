@@ -1,10 +1,13 @@
 import { Card } from "@/components/ui/card";
 import { PageHeader, SectionHeader, ArtDecoRuleSmall } from "@/components/ui/art-deco";
-import { DeleteRecordButton } from "@/components/ui/delete-record-button";
-import { deletePeriodLog, getPeriodLogs, getCycleSettings } from "./actions";
+import { getPeriodLogs, getCycleSettings } from "./actions";
+import type { PeriodLogRecord } from "./actions";
 import { calculateCycleStatus, getPhaseRecommendation } from "@/lib/domain";
-import { coerceStoredDateToLocalDate } from "@/lib/date-input";
+import type { CycleSettings, PeriodLog } from "@/lib/domain";
 import { LogPeriodForm } from "./log-period-form";
+import { CyclePhaseRibbon } from "./cycle-phase-ribbon";
+import { CycleCalendar } from "./cycle-calendar";
+import { CycleSettingsPanel } from "./cycle-settings-panel";
 
 const PHASE_COLORS: Record<string, string> = {
   menstrual: "text-warm-rose",
@@ -20,26 +23,29 @@ const PHASE_BG: Record<string, string> = {
   luteal: "from-navy/5",
 };
 
-export default async function CyclePage() {
-  const [logs, settings] = await Promise.all([getPeriodLogs(), getCycleSettings()]);
+const SYMPTOM_LABELS: Record<string, string> = {
+  cramps: "Cramps",
+  headache: "Headache",
+  fatigue: "Fatigue",
+  bloating: "Bloating",
+  mood_changes: "Mood",
+  back_pain: "Back Pain",
+};
 
-  const cycleConfig = {
-    averageCycleLengthDays: settings?.averageCycleLengthDays ?? 28,
-    averagePeriodLengthDays: settings?.averagePeriodLengthDays ?? 5,
-    lutealPhaseLengthDays: settings?.lutealPhaseLengthDays ?? 14,
+export default async function CyclePage() {
+  const [logs, settingsData] = await Promise.all([getPeriodLogs(), getCycleSettings()]);
+
+  const cycleConfig: CycleSettings = {
+    averageCycleLengthDays: (settingsData?.averageCycleLengthDays as number) ?? 28,
+    averagePeriodLengthDays: (settingsData?.averagePeriodLengthDays as number) ?? 5,
+    lutealPhaseLengthDays: (settingsData?.lutealPhaseLengthDays as number) ?? 14,
   };
 
-  const periodEntries = logs.flatMap((l) => {
-    const startDate = coerceStoredDateToLocalDate(l.startDate);
-    if (!startDate) return [];
+  const periodEntries: PeriodLog[] = logs.map((l: PeriodLogRecord) => ({
+    startDate: new Date(l.startDate),
+    endDate: l.endDate ? new Date(l.endDate) : undefined,
+  }));
 
-    const endDate = coerceStoredDateToLocalDate(l.endDate);
-
-    return [{
-      startDate,
-      ...(endDate ? { endDate } : {}),
-    }];
-  });
   const status = calculateCycleStatus(periodEntries, cycleConfig, new Date());
 
   return (
@@ -48,7 +54,14 @@ export default async function CyclePage() {
 
       {status ? (
         <>
-          <Card className={`text-center overflow-hidden relative`}>
+          {/* Phase Ribbon */}
+          <CyclePhaseRibbon cycleDay={status.cycleDay} settings={cycleConfig} />
+
+          {/* Calendar */}
+          <CycleCalendar periodLogs={periodEntries} settings={cycleConfig} />
+
+          {/* Current Phase Card */}
+          <Card className="text-center overflow-hidden relative">
             <div className={`absolute inset-0 bg-gradient-to-b ${PHASE_BG[status.currentPhase] ?? "from-navy/5"} to-transparent`} />
             <div className="relative">
               <h2 className={`text-xl font-heading font-bold ${PHASE_COLORS[status.currentPhase] ?? ""}`}>
@@ -60,6 +73,7 @@ export default async function CyclePage() {
             </div>
           </Card>
 
+          {/* Training Recommendation */}
           {(() => {
             const rec = getPhaseRecommendation(status.currentPhase);
             return (
@@ -68,10 +82,19 @@ export default async function CyclePage() {
                 <div className="mt-3 space-y-2">
                   <p className="text-[13px] text-text-secondary">{rec.description}</p>
                   <div className="border-t border-separator/30 pt-3 space-y-1.5">
-                    <p className="text-[13px]"><strong className="font-mono text-[11px] text-gold uppercase tracking-wider">Focus:</strong> {rec.trainingFocus}</p>
-                    <p className="text-[13px]"><strong className="font-mono text-[11px] text-gold uppercase tracking-wider">Intensity:</strong> {rec.intensityRecommendation}</p>
+                    <p className="text-[13px]">
+                      <strong className="font-mono text-[11px] text-gold uppercase tracking-wider">Focus:</strong>{" "}
+                      {rec.trainingFocus}
+                    </p>
+                    <p className="text-[13px]">
+                      <strong className="font-mono text-[11px] text-gold uppercase tracking-wider">Intensity:</strong>{" "}
+                      {rec.intensityRecommendation}
+                    </p>
                     {rec.exercisesToEmphasize.length > 0 && (
-                      <p className="text-[13px]"><strong className="font-mono text-[11px] text-gold uppercase tracking-wider">Emphasize:</strong> {rec.exercisesToEmphasize.join(", ")}</p>
+                      <p className="text-[13px]">
+                        <strong className="font-mono text-[11px] text-gold uppercase tracking-wider">Emphasize:</strong>{" "}
+                        {rec.exercisesToEmphasize.join(", ")}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -99,29 +122,60 @@ export default async function CyclePage() {
 
       <ArtDecoRuleSmall className="text-gold/30 mx-auto" />
 
+      {/* Log Period Form */}
       <LogPeriodForm />
 
+      {/* Cycle Settings */}
+      <CycleSettingsPanel
+        initialCycleLength={cycleConfig.averageCycleLengthDays}
+        initialPeriodLength={cycleConfig.averagePeriodLengthDays}
+        initialLutealLength={cycleConfig.lutealPhaseLengthDays}
+      />
+
+      {/* Period History */}
       {logs.length > 0 && (
         <Card>
           <SectionHeader label="Records" title="Period History" />
           <div className="flex flex-col gap-0 mt-3">
-            {logs.slice(0, 10).map((l) => (
-              (() => {
-                const startDate = coerceStoredDateToLocalDate(l.startDate);
+            {logs.slice(0, 10).map((l: PeriodLogRecord) => {
+              const start = new Date(l.startDate);
+              const end = l.endDate ? new Date(l.endDate) : null;
+              const flow = l.flowLevel ?? "medium";
+              const symptoms = l.symptoms ?? [];
+              const startStr = start.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+              const endStr = end
+                ? end.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+                : null;
 
-                if (!startDate) return null;
-
-                return (
-                  <div key={l.id} className="flex items-start justify-between gap-3 py-3 border-b border-separator/30 last:border-0">
-                    <div className="text-[13px]">
-                      <p>{startDate.toLocaleDateString()}</p>
-                      <p className="text-text-secondary font-mono mt-0.5">{l.flowLevel}</p>
+              return (
+                <div
+                  key={l.id}
+                  className="flex justify-between items-start text-[13px] py-3 border-b border-separator/30 last:border-0"
+                >
+                  <div>
+                    <p className="font-medium">
+                      {startStr}
+                      {endStr ? ` – ${endStr}` : ""}
+                    </p>
+                    <div className="flex items-center gap-1.5 mt-1">
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-warm-rose/10 text-warm-rose font-mono">
+                        {flow}
+                      </span>
+                      {symptoms.length > 0 && (
+                        <span className="text-[10px] text-text-secondary">
+                          {symptoms.map((s) => SYMPTOM_LABELS[s] ?? s).join(", ")}
+                        </span>
+                      )}
                     </div>
-                    <DeleteRecordButton action={deletePeriodLog} recordId={l.id} noun="Period Log" />
                   </div>
-                );
-              })()
-            ))}
+                  {end && (
+                    <span className="text-text-secondary font-mono text-[11px]">
+                      {Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1} days
+                    </span>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </Card>
       )}
