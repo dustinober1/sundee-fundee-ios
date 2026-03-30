@@ -50,14 +50,14 @@ function ExerciseRow({ ex, index, onChange, onRemove }: ExerciseRowProps) {
     ex.sets.type === "fixed"
       ? String(ex.sets.value)
       : ex.sets.type === "range"
-        ? `${(ex.sets as { type: "range"; min: number; max: number }).min}-${(ex.sets as { type: "range"; min: number; max: number }).max}`
+        ? `${(ex.sets as { type: "range"; low: number; high: number }).low}-${(ex.sets as { type: "range"; low: number; high: number }).high}`
         : "";
 
   const repsVal =
     ex.reps.type === "fixed"
       ? String(ex.reps.value)
       : ex.reps.type === "range"
-        ? `${(ex.reps as { type: "range"; min: number; max: number }).min}-${(ex.reps as { type: "range"; min: number; max: number }).max}`
+        ? `${(ex.reps as { type: "range"; low: number; high: number }).low}-${(ex.reps as { type: "range"; low: number; high: number }).high}`
         : ex.reps.type === "amrap"
           ? "AMRAP"
           : "";
@@ -65,12 +65,16 @@ function ExerciseRow({ ex, index, onChange, onRemove }: ExerciseRowProps) {
   function parseExerciseValue(val: string): ProgramExercise["sets"] {
     if (val.toLowerCase() === "amrap") return { type: "amrap" };
     if (val.includes("-")) {
-      const [min, max] = val.split("-").map(Number);
-      if (!isNaN(min) && !isNaN(max)) return { type: "range", min, max };
+      const parts = val.split("-");
+      if (parts.length === 2) {
+        const low = Number(parts[0].trim());
+        const high = Number(parts[1].trim());
+        if (!isNaN(low) && !isNaN(high)) return { type: "range", low, high };
+      }
     }
     const n = Number(val);
-    if (!isNaN(n)) return { type: "fixed", value: n };
-    return { type: "text", text: val };
+    if (!isNaN(n) && val.trim() !== "") return { type: "fixed", value: n };
+    return { type: "text", value: val };
   }
 
   return (
