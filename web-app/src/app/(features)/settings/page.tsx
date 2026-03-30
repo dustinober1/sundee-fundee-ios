@@ -29,7 +29,7 @@ export default async function SettingsPage() {
 
   return (
     <div className="flex flex-col gap-8 pt-4">
-      <PageHeader label="Account" title="Settings" />
+      <PageHeader label="Navigation" title="More" />
 
       {/* Profile Identity Card */}
       <Card className="overflow-hidden relative">
@@ -60,9 +60,9 @@ export default async function SettingsPage() {
 
       <ArtDecoRuleSmall className="text-gold/30 mx-auto" />
 
-      {/* Feature Links */}
+      {/* Navigation Links */}
       <Card>
-        <SectionHeader label="Features" title="More" />
+        <SectionHeader label="Browse" title="Navigate" />
         <div className="mt-4 flex flex-col gap-0">
           <Link
             href="/cycle"

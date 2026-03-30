@@ -2,6 +2,7 @@ import { Card } from "@/components/ui/card";
 import type { CyclePhase } from "@/lib/domain";
 import type { CycleSettings } from "@/lib/domain";
 import { getPhaseBoundaries } from "@/lib/domain";
+import { SharkIcon } from "@/components/ui/shark-week-label";
 
 const PHASE_RIBBON_COLORS: Record<CyclePhase, string> = {
   menstrual: "bg-warm-rose",
@@ -11,7 +12,7 @@ const PHASE_RIBBON_COLORS: Record<CyclePhase, string> = {
 };
 
 const PHASE_LABELS: Record<CyclePhase, string> = {
-  menstrual: "Menstrual",
+  menstrual: "Shark Week",
   follicular: "Follicular",
   ovulation: "Ov",
   luteal: "Luteal",
@@ -39,8 +40,9 @@ export function CyclePhaseRibbon({ cycleDay, settings }: CyclePhaseRibbonProps) 
               className={`${PHASE_RIBBON_COLORS[phase]} flex items-center justify-center relative`}
               style={{ width: `${width}%` }}
             >
-              <span className="text-[9px] font-semibold text-white/90 uppercase tracking-wide">
-                {PHASE_LABELS[phase]}
+              <span className="text-[9px] font-semibold text-white/90 uppercase tracking-wide inline-flex items-center gap-1">
+                {phase === "menstrual" && <SharkIcon className="w-3 h-3" />}
+                <span>{PHASE_LABELS[phase]}</span>
               </span>
             </div>
           );

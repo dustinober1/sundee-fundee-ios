@@ -6,6 +6,7 @@ import type { CyclePhase } from "@/lib/domain";
 import type { CalendarDayData } from "@/lib/domain";
 import { getCycleCalendarData } from "@/lib/domain";
 import type { CycleSettings, PeriodLog } from "@/lib/domain";
+import { SharkIcon } from "@/components/ui/shark-week-label";
 
 const PHASE_DAY_BG: Record<CyclePhase, string> = {
   menstrual: "bg-warm-rose text-white",
@@ -15,7 +16,7 @@ const PHASE_DAY_BG: Record<CyclePhase, string> = {
 };
 
 const PHASE_LEGEND: { phase: CyclePhase; label: string; color: string }[] = [
-  { phase: "menstrual", label: "Menstrual", color: "bg-warm-rose" },
+  { phase: "menstrual", label: "Shark Week", color: "bg-warm-rose" },
   { phase: "follicular", label: "Follicular", color: "bg-gold/50" },
   { phase: "ovulation", label: "Ovulation", color: "bg-orange/50" },
   { phase: "luteal", label: "Luteal", color: "bg-navy/20" },
@@ -105,7 +106,10 @@ export function CycleCalendar({ periodLogs, settings }: CycleCalendarProps) {
         {PHASE_LEGEND.map((item) => (
           <div key={item.phase} className="flex items-center gap-1">
             <div className={`w-2 h-2 rounded-sm ${item.color}`} />
-            <span className="text-[9px] text-text-secondary">{item.label}</span>
+            <span className="text-[9px] text-text-secondary inline-flex items-center gap-1">
+              {item.phase === "menstrual" && <SharkIcon className="w-3 h-3 text-warm-rose" />}
+              <span>{item.label}</span>
+            </span>
           </div>
         ))}
       </div>

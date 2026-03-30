@@ -188,7 +188,7 @@ export function getPhaseRecommendation(phase: CyclePhase): PhaseRecommendation {
     case "menstrual":
       return {
         phase: "menstrual",
-        title: "Menstrual Phase",
+        title: "Shark Week",
         description: "Your period phase. Energy may be lower — you might feel more fatigued.",
         trainingFocus: "Recovery and light movement",
         intensityRecommendation: "low",

@@ -120,7 +120,7 @@ describe("getPhaseRecommendation", () => {
   it("returns menstrual recommendation with low intensity", () => {
     const rec = getPhaseRecommendation("menstrual");
     expect(rec.phase).toBe("menstrual");
-    expect(rec.title).toBe("Menstrual Phase");
+    expect(rec.title).toBe("Shark Week");
     expect(rec.intensityRecommendation).toBe("low");
     expect(rec.exercisesToEmphasize.length).toBeGreaterThan(0);
     expect(rec.exercisesToAvoid.length).toBeGreaterThan(0);

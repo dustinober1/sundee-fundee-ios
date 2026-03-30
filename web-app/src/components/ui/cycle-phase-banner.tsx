@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { CyclePhase } from "@/lib/domain";
+import { SharkWeekLabel } from "@/components/ui/shark-week-label";
 
 const PHASE_STYLES: Record<CyclePhase, { bg: string; border: string; text: string; icon: string }> = {
   menstrual: {
@@ -30,6 +31,13 @@ const PHASE_STYLES: Record<CyclePhase, { bg: string; border: string; text: strin
   },
 };
 
+const PHASE_LABELS: Record<CyclePhase, string> = {
+  menstrual: "Shark Week",
+  follicular: "Follicular",
+  ovulation: "Ovulation",
+  luteal: "Luteal",
+};
+
 interface CyclePhaseBannerProps {
   phase: CyclePhase;
   cycleDay: number;
@@ -42,7 +50,7 @@ export function CyclePhaseBanner({ phase, cycleDay, adjustmentSummary }: CyclePh
 
   if (hidden) return null;
 
-  const phaseName = phase.charAt(0).toUpperCase() + phase.slice(1);
+  const phaseName = PHASE_LABELS[phase];
 
   return (
     <div className={`bg-gradient-to-r ${style.bg} border ${style.border} rounded-xl p-3 flex items-center gap-3`}>
@@ -51,7 +59,12 @@ export function CyclePhaseBanner({ phase, cycleDay, adjustmentSummary }: CyclePh
       </div>
       <div className="flex-1 min-w-0">
         <p className={`text-[11px] font-semibold ${style.text}`}>
-          {phaseName} Phase · Day {cycleDay}
+          {phase === "menstrual" ? (
+            <SharkWeekLabel iconClassName="w-3.5 h-3.5" />
+          ) : (
+            phaseName
+          )}{" "}
+          · Day {cycleDay}
         </p>
         <p className="text-[10px] text-text-secondary mt-0.5 truncate">
           {adjustmentSummary}

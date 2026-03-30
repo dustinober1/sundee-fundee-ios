@@ -8,6 +8,7 @@ import { LogPeriodForm } from "./log-period-form";
 import { CyclePhaseRibbon } from "./cycle-phase-ribbon";
 import { CycleCalendar } from "./cycle-calendar";
 import { CycleSettingsPanel } from "./cycle-settings-panel";
+import { SharkWeekLabel } from "@/components/ui/shark-week-label";
 
 const PHASE_COLORS: Record<string, string> = {
   menstrual: "text-warm-rose",
@@ -65,7 +66,11 @@ export default async function CyclePage() {
             <div className={`absolute inset-0 bg-gradient-to-b ${PHASE_BG[status.currentPhase] ?? "from-navy/5"} to-transparent`} />
             <div className="relative">
               <h2 className={`text-xl font-heading font-bold ${PHASE_COLORS[status.currentPhase] ?? ""}`}>
-                {status.currentPhase.charAt(0).toUpperCase() + status.currentPhase.slice(1)} Phase
+                {status.currentPhase === "menstrual" ? (
+                  <SharkWeekLabel iconClassName="w-5 h-5" />
+                ) : (
+                  `${status.currentPhase.charAt(0).toUpperCase() + status.currentPhase.slice(1)} Phase`
+                )}
               </h2>
               <p className="text-text-secondary text-[13px] mt-1">
                 Day {status.cycleDay} · {status.daysUntilNextPhase} days until next phase
