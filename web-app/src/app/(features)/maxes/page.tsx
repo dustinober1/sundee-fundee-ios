@@ -1,6 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { PageHeader, ArtDecoRuleSmall } from "@/components/ui/art-deco";
-import { getMaxes } from "./actions";
+import { DeleteRecordButton } from "@/components/ui/delete-record-button";
+import { deleteMax, getMaxes } from "./actions";
 import { AddMaxForm } from "./add-max-form";
 
 export default async function MaxesPage() {
@@ -45,9 +46,12 @@ export default async function MaxesPage() {
             <div className="border-t border-separator/50 pt-2">
               <div className="flex flex-col gap-1.5">
                 {records.slice(0, 3).map((r) => (
-                  <div key={r.id} className="flex justify-between text-[12px] text-text-secondary">
-                    <span>{r.date ? new Date(r.date).toLocaleDateString() : ""}</span>
-                    <span className="font-mono">{r.weightKg} kg {r.isEstimated ? "(est)" : ""}</span>
+                  <div key={r.id} className="flex items-start justify-between gap-3 text-[12px] text-text-secondary">
+                    <div>
+                      <span>{r.date ? new Date(r.date).toLocaleDateString() : ""}</span>
+                      <span className="ml-2 font-mono">{r.weightKg} kg {r.isEstimated ? "(est)" : ""}</span>
+                    </div>
+                    <DeleteRecordButton action={deleteMax} recordId={r.id} noun="Max" />
                   </div>
                 ))}
               </div>

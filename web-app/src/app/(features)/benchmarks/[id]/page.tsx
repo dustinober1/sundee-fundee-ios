@@ -1,8 +1,9 @@
 import { Card } from "@/components/ui/card";
 import { PageHeader, SectionHeader, ArtDecoRuleSmall, StatCard } from "@/components/ui/art-deco";
-import { PREDEFINED_BENCHMARKS, type CyclePhase } from "@/lib/domain";
+import { DeleteRecordButton } from "@/components/ui/delete-record-button";
+import { PREDEFINED_BENCHMARKS } from "@/lib/domain";
 import { calculateBenchmarkReadiness, getBestAttemptWindow } from "@/lib/domain/benchmark-readiness";
-import { getBenchmarkResults } from "../actions";
+import { deleteBenchmarkResult, getBenchmarkResults } from "../actions";
 import { getCycleStatus, getCycleSettings, getPeriodLogs } from "../../cycle/actions";
 import { LogResultForm } from "./log-result-form";
 import {
@@ -223,6 +224,7 @@ export default async function BenchmarkDetailPage({ params }: { params: Promise<
                       />
                     )}
                     <span className="font-mono font-semibold">{formatScore(r.scoreValue, benchmark.scoringType)}</span>
+                    <DeleteRecordButton action={deleteBenchmarkResult} recordId={r.id} noun="Benchmark Result" />
                   </div>
                 </div>
               );

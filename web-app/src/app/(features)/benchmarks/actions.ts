@@ -69,3 +69,11 @@ export async function logBenchmarkResult(data: { definitionId: string; scoreValu
     performedAt: new Date(),
   });
 }
+
+export async function deleteBenchmarkResult(resultId: string) {
+  const user = await getAuthUser();
+  if (!user) throw new Error("Unauthorized");
+
+  const id = requireTrimmedString(resultId, "Benchmark result");
+  await userCollection(user.uid, "benchmarkResults").doc(id).delete();
+}

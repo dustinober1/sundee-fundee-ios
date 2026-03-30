@@ -99,3 +99,11 @@ export async function saveWorkout(data: {
 
   return { id: workoutRef.id };
 }
+
+export async function deleteWorkout(workoutId: string) {
+  const user = await getAuthUser();
+  if (!user) throw new Error("Unauthorized");
+
+  const id = requireTrimmedString(workoutId, "Workout");
+  await userCollection(user.uid, "completedWorkouts").doc(id).delete();
+}

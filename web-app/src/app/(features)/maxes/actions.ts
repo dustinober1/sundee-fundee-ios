@@ -29,3 +29,11 @@ export async function addMax(data: { exerciseId: string; weightKg: number; isEst
     isEstimated: data.isEstimated,
   });
 }
+
+export async function deleteMax(maxId: string) {
+  const user = await getAuthUser();
+  if (!user) throw new Error("Unauthorized");
+
+  const id = requireTrimmedString(maxId, "Max");
+  await userCollection(user.uid, "oneRepMaxes").doc(id).delete();
+}

@@ -1,7 +1,8 @@
 import { Card } from "@/components/ui/card";
 import { PageHeader, ArtDecoRuleSmall } from "@/components/ui/art-deco";
+import { DeleteRecordButton } from "@/components/ui/delete-record-button";
 import Link from "next/link";
-import { getRecentWorkouts } from "./actions";
+import { deleteWorkout, getRecentWorkouts } from "./actions";
 
 export default async function WorkoutsPage() {
   const workouts = await getRecentWorkouts();
@@ -67,6 +68,9 @@ export default async function WorkoutsPage() {
                 {w.perceivedEffort && (
                   <span className="text-orange font-bold font-mono text-lg">{w.perceivedEffort}/10</span>
                 )}
+              </div>
+              <div className="mt-3 flex justify-end">
+                <DeleteRecordButton action={deleteWorkout} recordId={w.id} noun="Workout" />
               </div>
             </Card>
           ))}

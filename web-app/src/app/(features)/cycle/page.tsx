@@ -1,6 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { PageHeader, SectionHeader, ArtDecoRuleSmall } from "@/components/ui/art-deco";
-import { getPeriodLogs, getCycleSettings } from "./actions";
+import { DeleteRecordButton } from "@/components/ui/delete-record-button";
+import { deletePeriodLog, getPeriodLogs, getCycleSettings } from "./actions";
 import { calculateCycleStatus, getPhaseRecommendation } from "@/lib/domain";
 import { LogPeriodForm } from "./log-period-form";
 
@@ -94,9 +95,12 @@ export default async function CyclePage() {
           <SectionHeader label="Records" title="Period History" />
           <div className="flex flex-col gap-0 mt-3">
             {logs.slice(0, 10).map((l) => (
-              <div key={l.id} className="flex justify-between text-[13px] py-3 border-b border-separator/30 last:border-0">
-                <span>{new Date(l.startDate).toLocaleDateString()}</span>
-                <span className="text-text-secondary font-mono">{l.flowLevel}</span>
+              <div key={l.id} className="flex items-start justify-between gap-3 py-3 border-b border-separator/30 last:border-0">
+                <div className="text-[13px]">
+                  <p>{new Date(l.startDate).toLocaleDateString()}</p>
+                  <p className="text-text-secondary font-mono mt-0.5">{l.flowLevel}</p>
+                </div>
+                <DeleteRecordButton action={deletePeriodLog} recordId={l.id} noun="Period Log" />
               </div>
             ))}
           </div>

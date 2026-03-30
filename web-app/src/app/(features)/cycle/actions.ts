@@ -8,6 +8,7 @@ import {
   requireDateInput,
   requireFiniteNumber,
   requireOneOf,
+  requireTrimmedString,
 } from "@/lib/write-validation";
 
 // ---------------------------------------------------------------------------
@@ -118,6 +119,14 @@ export async function logPeriod(data: {
   }
 
   await userCollection(user.uid, "periodLogs").add(doc);
+}
+
+export async function deletePeriodLog(periodLogId: string) {
+  const user = await getAuthUser();
+  if (!user) throw new Error("Unauthorized");
+
+  const id = requireTrimmedString(periodLogId, "Period log");
+  await userCollection(user.uid, "periodLogs").doc(id).delete();
 }
 
 // ---------------------------------------------------------------------------
