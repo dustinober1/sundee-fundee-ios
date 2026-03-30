@@ -1,5 +1,5 @@
 import type { CyclePhase } from "./types";
-import { getPhaseBoundaries, type CycleSettings } from "./cycle-calculations";
+import { getPhaseBoundaries, calculateCycleStatus, type CycleSettings, type PeriodLog } from "./cycle-calculations";
 
 // ---------------------------------------------------------------------------
 // getPhaseForDay
@@ -49,6 +49,62 @@ export function getPhaseAdjustmentSummary(phase: CyclePhase): string {
 // ---------------------------------------------------------------------------
 // getPhaseExplanation
 // ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
+export interface CalendarDayData {
+  date: Date;
+  cycleDay: number | null;
+  phase: CyclePhase | null;
+  isToday: boolean;
+  isPeriodLogged: boolean;
+}
+
+// ---------------------------------------------------------------------------
+// getCycleCalendarData
+// ---------------------------------------------------------------------------
+
+export function getCycleCalendarData(
+  periodLogs: PeriodLog[],
+  settings: CycleSettings,
+  month: number,
+  year: number
+): CalendarDayData[] {
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`;
+  const daysInMonth = new Date(year, month, 0).getDate();
+  const result: CalendarDayData[] = [];
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const date = new Date(year, month - 1, day);
+    const dateStr = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+    const isToday = dateStr === todayStr;
+
+    const status = calculateCycleStatus(periodLogs, settings, date);
+
+    const isPeriodLogged = periodLogs.some((log) => {
+      const start = new Date(log.startDate);
+      start.setHours(0, 0, 0, 0);
+      const end = log.endDate
+        ? new Date(log.endDate)
+        : new Date(start.getFullYear(), start.getMonth(), start.getDate() + settings.averagePeriodLengthDays - 1);
+      end.setHours(23, 59, 59, 999);
+      return date >= start && date <= end;
+    });
+
+    result.push({
+      date,
+      cycleDay: status?.cycleDay ?? null,
+      phase: status?.currentPhase ?? null,
+      isToday,
+      isPeriodLogged,
+    });
+  }
+
+  return result;
+}
 
 export function getPhaseExplanation(phase: CyclePhase): string {
   switch (phase) {
