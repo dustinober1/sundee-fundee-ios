@@ -20,5 +20,6 @@ export const config = {
     "/benchmarks/:path*",
     "/cycle/:path*",
     "/settings/:path*",
+    "/admin/:path*",
   ],
 };
