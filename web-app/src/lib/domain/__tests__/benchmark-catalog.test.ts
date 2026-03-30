@@ -2,12 +2,13 @@ import { describe, it, expect } from "vitest";
 import {
   PREDEFINED_BENCHMARKS,
   BENCHMARK_CATEGORY_CLASSIC_WODS,
+  BENCHMARK_CATEGORY_SUNDEE_FUNDEE,
   groupedByCategory,
 } from "../benchmark-catalog";
 
 describe("PREDEFINED_BENCHMARKS", () => {
-  it("has at least 23 entries", () => {
-    expect(PREDEFINED_BENCHMARKS.length).toBeGreaterThanOrEqual(23);
+  it("has at least 28 entries", () => {
+    expect(PREDEFINED_BENCHMARKS.length).toBeGreaterThanOrEqual(28);
   });
 
   it("all benchmarks have isPredefined = true", () => {
@@ -81,9 +82,62 @@ describe("PREDEFINED_BENCHMARKS", () => {
       expect(PREDEFINED_BENCHMARKS[i].sortOrder).toBe(i);
     }
   });
+
+  // Sundee Fundee Exclusive Benchmarks
+  it("Vanessa is time-scored", () => {
+    const entry = PREDEFINED_BENCHMARKS.find((b) => b.name === "Vanessa");
+    expect(entry).toBeDefined();
+    expect(entry!.scoringType).toBe("time");
+    expect(entry!.category).toBe(BENCHMARK_CATEGORY_SUNDEE_FUNDEE);
+  });
+
+  it("Eliz is time-scored", () => {
+    const entry = PREDEFINED_BENCHMARKS.find((b) => b.name === "Eliz");
+    expect(entry).toBeDefined();
+    expect(entry!.scoringType).toBe("time");
+    expect(entry!.category).toBe(BENCHMARK_CATEGORY_SUNDEE_FUNDEE);
+  });
+
+  it("Adria is time-scored", () => {
+    const entry = PREDEFINED_BENCHMARKS.find((b) => b.name === "Adria");
+    expect(entry).toBeDefined();
+    expect(entry!.scoringType).toBe("time");
+    expect(entry!.category).toBe(BENCHMARK_CATEGORY_SUNDEE_FUNDEE);
+  });
+
+  it("Kelsey is time-scored", () => {
+    const entry = PREDEFINED_BENCHMARKS.find((b) => b.name === "Kelsey");
+    expect(entry).toBeDefined();
+    expect(entry!.scoringType).toBe("time");
+    expect(entry!.category).toBe(BENCHMARK_CATEGORY_SUNDEE_FUNDEE);
+  });
+
+  it("Margarita is time-scored", () => {
+    const entry = PREDEFINED_BENCHMARKS.find((b) => b.name === "Margarita");
+    expect(entry).toBeDefined();
+    expect(entry!.scoringType).toBe("time");
+    expect(entry!.category).toBe(BENCHMARK_CATEGORY_SUNDEE_FUNDEE);
+  });
 });
 
 describe("groupedByCategory", () => {
+  it("contains Sundee Fundee category as first", () => {
+    const grouped = groupedByCategory();
+    const categories = Array.from(grouped.keys());
+    expect(categories[0]).toBe(BENCHMARK_CATEGORY_SUNDEE_FUNDEE);
+    expect(grouped.has(BENCHMARK_CATEGORY_SUNDEE_FUNDEE)).toBe(true);
+  });
+
+  it("Sundee Fundee contains all exclusive benchmarks", () => {
+    const grouped = groupedByCategory();
+    const sundeeFundee = grouped.get(BENCHMARK_CATEGORY_SUNDEE_FUNDEE) ?? [];
+    expect(sundeeFundee.some((b) => b.name === "Vanessa")).toBe(true);
+    expect(sundeeFundee.some((b) => b.name === "Eliz")).toBe(true);
+    expect(sundeeFundee.some((b) => b.name === "Adria")).toBe(true);
+    expect(sundeeFundee.some((b) => b.name === "Kelsey")).toBe(true);
+    expect(sundeeFundee.some((b) => b.name === "Margarita")).toBe(true);
+  });
+
   it("contains Classic WODs category", () => {
     const grouped = groupedByCategory();
     expect(grouped.has(BENCHMARK_CATEGORY_CLASSIC_WODS)).toBe(true);
