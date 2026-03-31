@@ -1,4 +1,6 @@
-async function syncSessionCookie(idToken: string): Promise<void> {
+const REDIRECT_PROVIDER_STORAGE_KEY = "sf:authRedirectProvider";
+
+export async function syncSessionCookie(idToken: string): Promise<void> {
   await fetch("/api/auth/session", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -6,32 +8,23 @@ async function syncSessionCookie(idToken: string): Promise<void> {
   });
 }
 
-function isMobile(): boolean {
-  return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+export function markPendingRedirectProvider(providerId: string): void {
+  if (typeof window === "undefined") return;
+  window.sessionStorage.setItem(REDIRECT_PROVIDER_STORAGE_KEY, providerId);
 }
 
-export async function updateAppleDisplayName(
-  result: import("firebase/auth").UserCredential,
-): Promise<void> {
-  const { OAuthProvider, updateProfile } = await import("firebase/auth");
+export function getPendingRedirectProvider(): string | null {
+  if (typeof window === "undefined") return null;
+  return window.sessionStorage.getItem(REDIRECT_PROVIDER_STORAGE_KEY);
+}
 
-  if (result.user.displayName) return;
+export function clearPendingRedirectProvider(): void {
+  if (typeof window === "undefined") return;
+  window.sessionStorage.removeItem(REDIRECT_PROVIDER_STORAGE_KEY);
+}
 
-  const credential = OAuthProvider.credentialFromResult(result);
-  const appleIdToken = credential?.idToken;
-  if (!appleIdToken) return;
-
-  try {
-    const payload = JSON.parse(atob(appleIdToken.split(".")[1]));
-    const firstName = payload.first_name ?? payload.given_name ?? "";
-    const lastName = payload.last_name ?? payload.family_name ?? "";
-    const fullName = [firstName, lastName].filter(Boolean).join(" ");
-    if (fullName) {
-      await updateProfile(result.user, { displayName: fullName });
-    }
-  } catch {
-    // ID token parsing failed — not critical
-  }
+function isMobile(): boolean {
+  return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 }
 
 export async function signInWithGoogle(): Promise<void> {
@@ -45,6 +38,7 @@ export async function signInWithGoogle(): Promise<void> {
   const provider = new GoogleAuthProvider();
 
   if (isMobile()) {
+    markPendingRedirectProvider(provider.providerId);
     await signInWithRedirect(auth, provider);
     // Page will reload — AuthProvider handles session sync on return
     return;
@@ -53,24 +47,6 @@ export async function signInWithGoogle(): Promise<void> {
   const result = await signInWithPopup(auth, provider);
   const idToken = await result.user.getIdToken();
   await syncSessionCookie(idToken);
-}
-
-export async function signInWithApple(): Promise<void> {
-  const {
-    signInWithRedirect,
-    OAuthProvider,
-  } = await import("firebase/auth");
-  const { getFirebaseAuth } = await import("@/lib/firebase");
-  const auth = getFirebaseAuth();
-
-  const provider = new OAuthProvider("apple.com");
-  provider.addScope("email");
-  provider.addScope("name");
-
-  // Always use redirect for Apple — popups are blocked by browsers
-  // because dynamic imports delay the popup past the user-gesture window.
-  // The redirect result is handled in useEffect on the sign-in/sign-up pages.
-  await signInWithRedirect(auth, provider);
 }
 
 export function socialAuthErrorMessage(err: unknown): string {

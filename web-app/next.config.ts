@@ -11,6 +11,12 @@ const withSerwist = withSerwistInit({
 const nextConfig: NextConfig = {
   // Required to avoid "webpack config with no turbopack config" error in Next 16
   turbopack: {},
+  rewrites: async () => [
+    {
+      source: "/__/auth/:path*",
+      destination: "https://sundee-fundee.firebaseapp.com/__/auth/:path*",
+    },
+  ],
   headers: async () => [
     {
       source: "/(.*)",

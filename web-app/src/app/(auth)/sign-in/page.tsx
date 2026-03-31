@@ -17,45 +17,19 @@ export default function SignInPage() {
   // Handle redirect result after social sign-in (mobile or Apple)
   useEffect(() => {
     async function handleRedirectResult() {
-      const { getRedirectResult } = await import("firebase/auth");
-      const { getFirebaseAuth } = await import("@/lib/firebase");
-      const auth = getFirebaseAuth();
+      const { completeSocialRedirect } = await import("@/lib/complete-social-redirect");
+      const completion = await completeSocialRedirect();
 
-      try {
-        const result = await getRedirectResult(auth);
-        if (result?.user) {
-          // For Apple sign-in, update display name from the ID token
-          if (result.providerId === "apple.com") {
-            const { updateAppleDisplayName } = await import("@/lib/social-auth");
-            await updateAppleDisplayName(result);
-          }
-          const idToken = await result.user.getIdToken();
-          await fetch("/api/auth/session", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ idToken }),
-          });
-          router.push("/dashboard");
-          return;
-        }
-      } catch (err) {
-        const { socialAuthErrorMessage } = await import("@/lib/social-auth");
-        setError(socialAuthErrorMessage(err));
+      if (completion.status === "success") {
+        router.push("/dashboard");
         return;
       }
 
-      // Fallback: if Firebase already has a user signed in (redirect result
-      // consumed before getRedirectResult ran), sync session and redirect.
-      if (auth.currentUser) {
-        const idToken = await auth.currentUser.getIdToken();
-        await fetch("/api/auth/session", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ idToken }),
-        });
-        router.push("/dashboard");
+      if (completion.status === "error") {
+        setError(completion.message);
       }
     }
+
     handleRedirectResult();
   }, [router]);
 
@@ -80,18 +54,6 @@ export default function SignInPage() {
     try {
       const { signInWithGoogle } = await import("@/lib/social-auth");
       await signInWithGoogle();
-      router.push("/dashboard");
-    } catch (err) {
-      const { socialAuthErrorMessage } = await import("@/lib/social-auth");
-      setError(socialAuthErrorMessage(err));
-    }
-  }
-
-  async function handleAppleSignIn() {
-    setError("");
-    try {
-      const { signInWithApple } = await import("@/lib/social-auth");
-      await signInWithApple();
       router.push("/dashboard");
     } catch (err) {
       const { socialAuthErrorMessage } = await import("@/lib/social-auth");
@@ -141,9 +103,6 @@ export default function SignInPage() {
         <div className="flex flex-col gap-3">
           <Button variant="secondary" fullWidth className="!py-3 !border-gold/20 hover:!border-gold/40 transition-colors" onClick={handleGoogleSignIn}>
             Continue with Google
-          </Button>
-          <Button variant="secondary" fullWidth className="!py-3 !bg-navy !text-cream hover:!opacity-90 transition-opacity" onClick={handleAppleSignIn}>
-            Continue with Apple
           </Button>
         </div>
 
