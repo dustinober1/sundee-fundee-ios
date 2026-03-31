@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useSyncExternalStore } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
@@ -27,10 +27,6 @@ const initialState: InstallState = {
   isStandalone: false,
   dismissed: false,
 };
-
-function subscribe() {
-  return () => undefined;
-}
 
 function getInstallSnapshot(persistent: boolean): InstallState {
   if (typeof window === "undefined") {
@@ -63,18 +59,21 @@ export function IOSInstallCta({
   persistent = false,
 }: IOSInstallCtaProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [dismissedNow, setDismissedNow] = useState(false);
-  const installState = useSyncExternalStore(
-    subscribe,
-    () => getInstallSnapshot(persistent),
-    () => initialState
-  );
+  const [installState, setInstallState] = useState<InstallState>(initialState);
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      setInstallState(getInstallSnapshot(persistent));
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [persistent]);
 
   if (!installState.ready || !installState.isIOS || installState.isStandalone) {
     return null;
   }
 
-  if ((installState.dismissed || dismissedNow) && !persistent) {
+  if (installState.dismissed && !persistent) {
     return null;
   }
 
@@ -86,7 +85,7 @@ export function IOSInstallCta({
   const dismiss = () => {
     if (!persistent) {
       window.localStorage.setItem(DISMISS_KEY, "1");
-      setDismissedNow(true);
+      setInstallState((current) => ({ ...current, dismissed: true }));
     }
     setIsOpen(false);
   };
