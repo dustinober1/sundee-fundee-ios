@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import type { User } from "firebase/auth";
+import type { Auth, User } from "firebase/auth";
 
 interface AuthContextType {
   user: User | null;
@@ -20,13 +20,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let unsubscribe: (() => void) | undefined;
+    let cancelled = false;
 
     async function setupAuth() {
-      const { onAuthStateChanged } = await import("firebase/auth");
+      const {
+        browserLocalPersistence,
+        indexedDBLocalPersistence,
+        onIdTokenChanged,
+        setPersistence,
+      } = await import("firebase/auth");
       const { getFirebaseAuth } = await import("@/lib/firebase");
       const auth = getFirebaseAuth();
+      const authWithReady = auth as Auth & { authStateReady?: () => Promise<void> };
 
-      unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      try {
+        await setPersistence(auth, indexedDBLocalPersistence);
+      } catch {
+        await setPersistence(auth, browserLocalPersistence);
+      }
+
+      if (typeof authWithReady.authStateReady === "function") {
+        await authWithReady.authStateReady();
+      }
+
+      if (cancelled) {
+        return;
+      }
+
+      unsubscribe = onIdTokenChanged(auth, async (firebaseUser) => {
+        if (cancelled) {
+          return;
+        }
+
         setUser(firebaseUser);
         setLoading(false);
 
@@ -44,7 +69,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     setupAuth();
-    return () => unsubscribe?.();
+    return () => {
+      cancelled = true;
+      unsubscribe?.();
+    };
   }, []);
 
   return (

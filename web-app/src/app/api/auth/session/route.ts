@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { adminAuth } from "@/lib/firebase-admin";
 
-const SESSION_EXPIRY_MS = 60 * 60 * 24 * 5 * 1000; // 5 days
+const SESSION_EXPIRY_MS = 60 * 60 * 24 * 30 * 1000; // 30 days
 
 export async function POST(request: Request) {
   const { idToken } = (await request.json()) as { idToken: string };
