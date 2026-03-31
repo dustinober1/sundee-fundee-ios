@@ -1,6 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { ArtDecoRule, SectionLabel, SectionHeader } from "@/components/ui/art-deco";
 import { ImageWithPlaceholder } from "@/components/install/image-with-placeholder";
+import { IOSInstallCta } from "@/components/install/ios-install-cta";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -31,6 +32,8 @@ export default function InstallPage() {
         Install Sundee Fundee on your home screen for quick access, offline support, and a
         native app-like experience. No app store required.
       </p>
+
+      <IOSInstallCta className="mb-8" persistent />
 
       {/* Why Install */}
       <Card className="mb-10 border-l-[3px] border-l-gold bg-card-bg/50">

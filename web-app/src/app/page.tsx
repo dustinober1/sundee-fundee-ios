@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { IOSInstallCta } from "@/components/install/ios-install-cta";
 
 export const metadata: Metadata = {
   title: "Sundee Fundee — Train With Your Body, Not Against It",
@@ -307,6 +308,7 @@ export default function HomePage() {
               See How It Works
             </a>
           </div>
+          <IOSInstallCta className="mt-6 text-left" />
         </div>
 
         <ArtDecoRule className="absolute bottom-0 left-1/2 -translate-x-1/2 text-gold/40 max-w-sm" />
