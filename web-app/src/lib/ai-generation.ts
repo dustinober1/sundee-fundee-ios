@@ -125,10 +125,28 @@ export function buildWorkoutPrompt(request: AIWorkoutRequest): string {
   ].join("\n");
 }
 
-function stripCodeFences(text: string): string {
+function extractJSON(text: string): string {
   const trimmed = text.trim();
-  if (!trimmed.startsWith("```")) return trimmed;
-  return trimmed.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
+  // Strip markdown code fences
+  const stripped = trimmed.startsWith("```")
+    ? trimmed.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim()
+    : trimmed;
+  // Find the outermost JSON object: first '{' to its matching '}'
+  const start = stripped.indexOf("{");
+  if (start === -1) return stripped;
+  let depth = 0;
+  let inString = false;
+  let escape = false;
+  for (let i = start; i < stripped.length; i++) {
+    const ch = stripped[i];
+    if (escape) { escape = false; continue; }
+    if (ch === "\\") { escape = true; continue; }
+    if (ch === '"') { inString = !inString; continue; }
+    if (inString) continue;
+    if (ch === "{") depth++;
+    else if (ch === "}") { depth--; if (depth === 0) return stripped.slice(start, i + 1); }
+  }
+  return stripped;
 }
 
 function isGeneratedExercise(value: unknown, index: number): value is GeneratedExercise {
@@ -143,7 +161,7 @@ function isGeneratedExercise(value: unknown, index: number): value is GeneratedE
 }
 
 export function parseAIWorkoutResponse(rawText: string): { coachingSummary: string; exercises: GeneratedExercise[] } {
-  const cleaned = stripCodeFences(rawText);
+  const cleaned = extractJSON(rawText);
   const parsed = JSON.parse(cleaned) as Record<string, unknown>;
   if (typeof parsed.coachingSummary !== "string" || !Array.isArray(parsed.exercises)) {
     throw new Error("AI response did not match expected workout schema.");
