@@ -132,7 +132,7 @@ export type RecoveryPhase = (typeof RecoveryPhase)[keyof typeof RecoveryPhase];
 export const CyclePhase = { menstrual: "menstrual", follicular: "follicular", ovulation: "ovulation", luteal: "luteal" } as const;
 export type CyclePhase = (typeof CyclePhase)[keyof typeof CyclePhase];
 
-export const BenchmarkScoringType = { time: "time", reps: "reps", weight: "weight", distance: "distance", roundsAndReps: "roundsAndReps" } as const;
+export const BenchmarkScoringType = { time: "time", reps: "reps", weight: "weight", distance: "distance", roundsAndReps: "roundsAndReps", height: "height" } as const;
 export type BenchmarkScoringType = (typeof BenchmarkScoringType)[keyof typeof BenchmarkScoringType];
 
 export const ConditioningScoringType = { time: "time", reps: "reps" } as const;

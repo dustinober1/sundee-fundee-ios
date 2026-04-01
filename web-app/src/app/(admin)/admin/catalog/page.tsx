@@ -19,6 +19,7 @@ const SCORING_OPTIONS: { value: BenchmarkScoringType; label: string }[] = [
   { value: "reps", label: "Reps" },
   { value: "time", label: "Time" },
   { value: "distance", label: "Distance" },
+  { value: "height", label: "Height" },
   { value: "roundsAndReps", label: "Rounds & Reps" },
 ];
 
