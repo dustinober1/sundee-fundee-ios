@@ -15,8 +15,39 @@ export function tierDisplayName(tier: SubscriptionTier): string {
 export function tierValueProposition(tier: SubscriptionTier): string {
   switch (tier) {
     case "free":    return "Unlimited on-device AI workouts";
-    case "plus":    return "Cloud-powered AI workouts and programming tools";
-    case "premium": return "Personal AI coach that learns and adapts";
+    case "plus":    return "Gemini-powered AI workouts and programming tools";
+    case "premium": return "Personal AI coach with adaptive planning";
+  }
+}
+
+export function tierHeadline(tier: SubscriptionTier): string {
+  switch (tier) {
+    case "free":    return "Get started";
+    case "plus":    return "Smarter training";
+    case "premium": return "Personal AI coach";
+  }
+}
+
+export function tierHighlights(tier: SubscriptionTier): string[] {
+  switch (tier) {
+    case "free":
+      return [
+        "Unlimited on-device AI workouts",
+        "Cycle-aware training guidance",
+        "Browse all structured programs",
+      ];
+    case "plus":
+      return [
+        "Gemini Flash Lite cloud workouts",
+        "Custom programming tools",
+        "Full history, trends, and benchmarks",
+      ];
+    case "premium":
+      return [
+        "Higher cloud AI limits",
+        "AI coaching memory and reports",
+        "Premium planning and recovery features",
+      ];
   }
 }
 

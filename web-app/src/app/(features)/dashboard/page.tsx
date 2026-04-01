@@ -1,9 +1,10 @@
-import { getAuthUser, userCollection } from "@/lib/firestore";
+import { getAuthUser } from "@/lib/firestore";
 import { Card } from "@/components/ui/card";
 import { PageHeader, SectionHeader, StatCard, ArtDecoRuleSmall } from "@/components/ui/art-deco";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { CyclePhaseBanner, SuggestedWorkoutCard, RecentWinsCard } from "@/components/dashboard";
+import { resolveEntitlement } from "@/lib/subscription-state";
 import {
   getCycleStatus,
   getDashboardStats,
@@ -30,10 +31,7 @@ export default async function DashboardPage() {
     getRecentWins(),
   ]);
 
-  // Check AI access from subscription
-  const subscription = await userCollection(user.uid, "subscription").doc("current").get();
-  const subscriptionData = subscription.exists ? subscription.data() : null;
-  const hasAIAccess = subscriptionData?.tier === "plus" || subscriptionData?.tier === "premium";
+  const entitlement = await resolveEntitlement(user.uid);
 
   return (
     <div className="flex flex-col gap-6 pt-4">
@@ -52,7 +50,15 @@ export default async function DashboardPage() {
       <ArtDecoRuleSmall className="text-gold/30 mx-auto" />
 
       {/* Suggested Workout - replaces Start Workout button */}
-      <SuggestedWorkoutCard program={activeProgram} hasAIAccess={hasAIAccess} />
+      <SuggestedWorkoutCard
+        program={activeProgram}
+        aiEntitlement={{
+          canUseCloudAI: entitlement.canUseCloudAI,
+          tier: entitlement.tier,
+          remainingCloudGenerations: entitlement.remainingCloudGenerations,
+          dailyCloudLimit: entitlement.dailyCloudLimit,
+        }}
+      />
 
       {/* Quick Actions - simplified */}
       <Card>

@@ -12,7 +12,7 @@ Cycle-aware strength training — built for the web.
 | **Cache / Sessions** | Cloudflare KV |
 | **Auth** | Auth.js (NextAuth v5) + Google & Apple providers |
 | **Payments** | Stripe (checkout, portal, webhooks) |
-| **AI Workouts** | Cloudflare Worker (`ai-coach`) with Cloudflare AI |
+| **AI Workouts** | Next.js API route with Gemini on Vertex AI |
 | **Admin** | WOD Dashboard (Next.js) |
 | **Blog** | MDX with `next-mdx-remote` |
 | **PWA** | Serwist (service worker, offline support) |
@@ -30,7 +30,7 @@ sundee-fundee/
 │   │   │   └── api/         # Auth, AI generation, Stripe webhooks
 │   │   ├── components/      # Shared UI components
 │   │   ├── db/              # Drizzle schema (19 tables) + migrations
-│   │   └── lib/             # Auth config, theme, domain logic, blog parser
+│   │   └── lib/             # Auth config, AI config, entitlement logic, theme, domain logic
 │   ├── content/blog/        # MDX blog posts
 │   ├── drizzle/             # Database migrations
 │   └── public/              # Manifest, icons, generated sitemap
@@ -101,6 +101,11 @@ STRIPE_SECRET_KEY=sk_test_xxx
 STRIPE_WEBHOOK_SECRET=whsec_xxx
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_xxx
 NEXT_PUBLIC_APP_URL=http://localhost:3000
+
+# Firebase Admin / Vertex AI
+FIREBASE_PROJECT_ID=
+FIREBASE_CLIENT_EMAIL=
+FIREBASE_PRIVATE_KEY=
 ```
 
 Cloudflare bindings (`D1`, `KV`) are configured in `wrangler.jsonc`.

@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { PageHeader, SectionHeader } from "@/components/ui/art-deco";
-import type { WorkoutFocus, EnergyLevel, EquipmentAccess, GeneratedExercise } from "@/lib/domain";
+import type { WorkoutFocus, EnergyLevel, EquipmentAccess } from "@/lib/domain";
+import type { AIWorkoutResponse } from "@/lib/ai-generation";
 import { CyclePhaseBanner } from "@/components/ui/cycle-phase-banner";
 import { CycleAdjustmentToggle } from "@/components/ui/cycle-adjustment-toggle";
 import { getPhaseAdjustmentSummary, formatWeightWithUnit, WeightUnit } from "@/lib/domain";
@@ -43,7 +44,7 @@ export default function AIWorkoutPage() {
   const [focus, setFocus] = useState<WorkoutFocus>("full_body");
   const [energy, setEnergy] = useState<EnergyLevel>("medium");
   const [equipment, setEquipment] = useState<EquipmentAccess>("full_gym");
-  const [workout, setWorkout] = useState<{ coachingSummary: string; exercises: GeneratedExercise[] } | null>(null);
+  const [workout, setWorkout] = useState<AIWorkoutResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [cyclePhase, setCyclePhase] = useState<CyclePhase | null>(null);
   const [cycleDay, setCycleDay] = useState<number>(0);
@@ -99,12 +100,14 @@ export default function AIWorkoutPage() {
           cyclePhase: cycleAdjustments ? cyclePhase : undefined,
         }),
       });
-      if (!res.ok) throw new Error("Generation failed");
-      const data = await res.json() as { coachingSummary: string; exercises: GeneratedExercise[] };
+      const data = await res.json() as AIWorkoutResponse | { error?: string };
+      if (!res.ok) {
+        throw new Error("error" in data && typeof data.error === "string" ? data.error : "Generation failed");
+      }
       setWorkout(data);
       setStep("preview");
-    } catch {
-      setError("Failed to generate workout. Please try again.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to generate workout. Please try again.");
       setStep("questionnaire");
     }
   };
@@ -128,6 +131,10 @@ export default function AIWorkoutPage() {
 
         <Card className="border-l-[3px] border-l-gold">
           <p className="text-[14px] text-text-secondary italic">{workout.coachingSummary}</p>
+          <p className="text-[11px] text-text-secondary mt-2">
+            {workout.usage.model ? `${workout.usage.model} · ` : ""}
+            {workout.usage.generatedToday}/{workout.usage.dailyCloudLimit} used today · {workout.usage.remainingCloudGenerations} left
+          </p>
         </Card>
 
         {workout.exercises.map((ex, i) => (

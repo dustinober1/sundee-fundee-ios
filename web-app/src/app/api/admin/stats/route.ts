@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin-auth";
 import { db } from "@/lib/firebase-admin";
+import { getDailyAIUsage, resolveEntitlement } from "@/lib/subscription-state";
 
 export async function GET() {
   try {
@@ -11,19 +12,16 @@ export async function GET() {
 
     const activeSubs = { free: 0, plus: 0, premium: 0 };
     let aiGenerationsToday = 0;
-    const today = new Date().toISOString().split("T")[0];
 
     await Promise.all(
       usersSnapshot.docs.map(async (userDoc) => {
-        const [subDoc, aiDoc] = await Promise.all([
-          userDoc.ref.collection("subscription").doc("current").get(),
-          userDoc.ref.collection("aiUsage").doc(today).get(),
+        const [entitlement, usage] = await Promise.all([
+          resolveEntitlement(userDoc.id),
+          getDailyAIUsage(userDoc.id),
         ]);
-        const tier = subDoc.exists ? (subDoc.data()?.tier ?? "free") : "free";
+        const tier = entitlement.tier;
         if (tier in activeSubs) activeSubs[tier as keyof typeof activeSubs]++;
-        if (aiDoc.exists) {
-          aiGenerationsToday += aiDoc.data()?.count ?? 0;
-        }
+        aiGenerationsToday += usage.count;
       })
     );
 

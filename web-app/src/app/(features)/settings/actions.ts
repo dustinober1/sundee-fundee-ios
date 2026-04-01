@@ -1,6 +1,7 @@
 "use server";
 
-import { getAuthUser, userDoc, userCollection } from "@/lib/firestore";
+import { getAuthUser, userDoc } from "@/lib/firestore";
+import { resolveEntitlement, serializeSubscriptionRecord } from "@/lib/subscription-state";
 import { optionalTrimmedString } from "@/lib/write-validation";
 
 export async function getUserProfile() {
@@ -35,6 +36,14 @@ export async function getSubscription() {
   const user = await getAuthUser();
   if (!user) return null;
 
-  const doc = await userCollection(user.uid, "subscription").doc("current").get();
-  return doc.exists ? doc.data() : null;
+  const entitlement = await resolveEntitlement(user.uid);
+  return {
+    ...serializeSubscriptionRecord(entitlement.subscription),
+    resolvedTier: entitlement.tier,
+    hasActivePaidAccess: entitlement.hasActivePaidAccess,
+    dailyCloudLimit: entitlement.dailyCloudLimit,
+    generatedToday: entitlement.generatedToday,
+    remainingCloudGenerations: entitlement.remainingCloudGenerations,
+    canUseCloudAI: entitlement.canUseCloudAI,
+  };
 }

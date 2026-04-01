@@ -2,12 +2,15 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { adminAuth } from "@/lib/firebase-admin";
 
-const SESSION_EXPIRY_MS = 60 * 60 * 24 * 30 * 1000; // 30 days
+// Stay slightly under Firebase's 2-week hard limit to avoid boundary validation failures.
+const SESSION_EXPIRY_MS = 13 * 24 * 60 * 60 * 1000; // 13 days
 
 export async function POST(request: Request) {
   const { idToken } = (await request.json()) as { idToken: string };
 
   try {
+    await adminAuth.verifyIdToken(idToken);
+
     const sessionCookie = await adminAuth.createSessionCookie(idToken, {
       expiresIn: SESSION_EXPIRY_MS,
     });
@@ -22,8 +25,47 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({ success: true });
-  } catch {
-    return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown auth error";
+    const isConfigError =
+      message.includes("Firebase Admin credentials are missing") ||
+      message.includes("credential") ||
+      message.includes("Could not load the default credentials");
+
+    const isInvalidTokenError =
+      message.includes("verifyIdToken") ||
+      message.includes("ID token") ||
+      message.includes("incorrect \"aud\"") ||
+      message.includes("issuer") ||
+      message.includes("expired");
+
+    console.error("[auth/session] Failed to create session cookie", {
+      message,
+      isConfigError,
+      isInvalidTokenError,
+    });
+
+    if (isConfigError) {
+      return NextResponse.json(
+        {
+          error:
+            process.env.NODE_ENV === "production"
+              ? "Authentication server configuration is incomplete."
+              : message,
+        },
+        { status: 500 },
+      );
+    }
+
+    return NextResponse.json(
+      {
+        error:
+          process.env.NODE_ENV === "production"
+            ? "Invalid token"
+            : message,
+      },
+      { status: 401 },
+    );
   }
 }
 

@@ -1,24 +1,48 @@
 import { Card } from "@/components/ui/card";
 import { SectionHeader } from "@/components/ui/art-deco";
-import { tierDisplayName } from "@/lib/domain";
+import { tierDisplayName, tierHeadline, tierHighlights, tierValueProposition } from "@/lib/domain";
 import Link from "next/link";
-
-const TIER_DESCRIPTIONS: Record<string, string> = {
-  free: "Unlimited on-device AI workouts",
-  plus: "Cloud-powered AI workouts and programming tools",
-  premium: "Personal AI coach that learns and adapts",
-};
 
 const TIER_BADGE: Record<string, { bg: string; text: string; label: string }> = {
   free: { bg: "bg-orange/10", text: "text-orange", label: "Free" },
-  plus: { bg: "bg-gold/15", text: "text-navy", label: "Active" },
-  premium: { bg: "bg-navy/10", text: "text-navy", label: "Active" },
+  plus: { bg: "bg-gold/15", text: "text-navy", label: "Paid" },
+  premium: { bg: "bg-navy/10", text: "text-navy", label: "Paid" },
 };
 
-export function SubscriptionCard({ tier }: { tier: "free" | "plus" | "premium" }) {
+interface SubscriptionCardProps {
+  tier: "free" | "plus" | "premium";
+  status?: string | null;
+  currentPeriodEnd?: string | null;
+  cancelAtPeriodEnd?: boolean;
+  generatedToday?: number;
+  remainingCloudGenerations?: number;
+  dailyCloudLimit?: number;
+  hasActivePaidAccess?: boolean;
+}
+
+function formatStatus(status?: string | null, cancelAtPeriodEnd?: boolean) {
+  if (cancelAtPeriodEnd && status === "active") return "Cancels at period end";
+  if (!status) return "Free plan";
+  return status.replaceAll("_", " ");
+}
+
+export function SubscriptionCard({
+  tier,
+  status,
+  currentPeriodEnd,
+  cancelAtPeriodEnd,
+  generatedToday = 0,
+  remainingCloudGenerations = 0,
+  dailyCloudLimit = 0,
+  hasActivePaidAccess = false,
+}: SubscriptionCardProps) {
   const name = tierDisplayName(tier);
-  const description = TIER_DESCRIPTIONS[tier] ?? "";
+  const description = tierValueProposition(tier);
   const badge = TIER_BADGE[tier] ?? TIER_BADGE.free;
+  const periodLabel = currentPeriodEnd
+    ? `${cancelAtPeriodEnd ? "Access ends" : "Renews"} ${new Date(currentPeriodEnd).toLocaleDateString()}`
+    : null;
+  const highlights = tierHighlights(tier);
 
   return (
     <Card className="overflow-hidden relative">
@@ -40,23 +64,46 @@ export function SubscriptionCard({ tier }: { tier: "free" | "plus" | "premium" }
             </div>
             <div>
               <p className="text-[14px] font-medium text-navy">{name}</p>
-              <p className="text-text-secondary text-[11px]">{description}</p>
+              <p className="text-text-secondary text-[11px]">{tierHeadline(tier)} · {description}</p>
             </div>
           </div>
           <span className={`text-[11px] ${badge.bg} ${badge.text} px-2.5 py-1 rounded-sm font-medium font-mono tracking-wider uppercase`}>
             {badge.label}
           </span>
         </div>
-        {tier === "free" && (
-          <div className="mt-4 pt-3 border-t border-separator/30">
+        <div className="mt-4 pt-3 border-t border-separator/30 space-y-3">
+          <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-text-secondary">
+            <span className="capitalize">Status: {formatStatus(status, cancelAtPeriodEnd)}</span>
+            {periodLabel && <span>{periodLabel}</span>}
+            {dailyCloudLimit > 0 && (
+              <span>
+                Cloud AI: {generatedToday}/{dailyCloudLimit} used · {remainingCloudGenerations} left today
+              </span>
+            )}
+          </div>
+
+          <ul className="space-y-1 text-[12px] text-text-secondary">
+            {highlights.map((highlight) => (
+              <li key={highlight}>{highlight}</li>
+            ))}
+          </ul>
+
+          <div className="flex items-center justify-between gap-4">
+            <p className="text-[12px] text-text-secondary">
+              {hasActivePaidAccess
+                ? "Billing is connected and your entitlement is active."
+                : tier === "free"
+                  ? "Upgrade to unlock Gemini cloud workouts and advanced tools."
+                  : "Your paid access is not currently active."}
+            </p>
             <Link
-              href="/settings"
-              className="text-[12px] text-orange font-medium hover:text-orange/80 transition-colors"
+              href={hasActivePaidAccess ? "/api/stripe/portal" : "/settings#plans"}
+              className="text-[12px] text-orange font-medium hover:text-orange/80 transition-colors whitespace-nowrap"
             >
-              View upgrade options &rarr;
+              {hasActivePaidAccess ? "Manage billing" : "View upgrade options →"}
             </Link>
           </div>
-        )}
+        </div>
       </div>
     </Card>
   );

@@ -1,11 +1,19 @@
 const REDIRECT_PROVIDER_STORAGE_KEY = "sf:authRedirectProvider";
 
 export async function syncSessionCookie(idToken: string): Promise<void> {
-  await fetch("/api/auth/session", {
+  const response = await fetch("/api/auth/session", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ idToken }),
   });
+
+  if (!response.ok) {
+    const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+    const message = payload?.error ?? "We couldn't finish signing you in on the server.";
+    const error = new Error(message) as Error & { code?: string };
+    error.code = "auth/session-cookie-sync-failed";
+    throw error;
+  }
 }
 
 export function markPendingRedirectProvider(providerId: string): void {
@@ -60,6 +68,8 @@ export function socialAuthErrorMessage(err: unknown): string {
       return "This sign-in method is not enabled. Please enable it in Firebase Console.";
     case "auth/account-exists-with-different-credential":
       return "An account already exists with this email using a different sign-in method.";
+    case "auth/session-cookie-sync-failed":
+      return (err as Error).message;
     default:
       return `Sign-in failed: ${code || (err as Error).message}`;
   }

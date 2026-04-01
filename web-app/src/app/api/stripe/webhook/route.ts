@@ -1,6 +1,40 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createStripeClient, tierFromPriceId } from "@/lib/stripe";
+import { createStripeClient, subscriptionRecordFromStripe, tierFromPriceId } from "@/lib/stripe";
 import { db } from "@/lib/firebase-admin";
+import type Stripe from "stripe";
+
+function subscriptionPayload(
+  tier: "free" | "plus" | "premium",
+  input: {
+    status: string | null | undefined;
+    stripeCustomerId?: string | null;
+    stripeSubscriptionId?: string | null;
+    currentPeriodEnd?: number | null;
+    cancelAtPeriodEnd?: boolean | null;
+  }
+) {
+  const record = subscriptionRecordFromStripe(tier, input);
+  return {
+    ...record,
+    createdAt: record.createdAt ?? new Date(),
+    updatedAt: new Date(),
+  };
+}
+
+async function upsertSubscriptionByUserId(userId: string, payload: Record<string, unknown>) {
+  await db.collection("users").doc(userId).collection("subscription").doc("current").set(payload, { merge: true });
+}
+
+async function upsertSubscriptionByStripeId(stripeSubscriptionId: string, payload: Record<string, unknown>) {
+  const usersSnapshot = await db.collectionGroup("subscription")
+    .where("stripeSubscriptionId", "==", stripeSubscriptionId)
+    .limit(1)
+    .get();
+
+  if (!usersSnapshot.empty) {
+    await usersSnapshot.docs[0].ref.set(payload, { merge: true });
+  }
+}
 
 export async function POST(req: NextRequest) {
   const stripe = createStripeClient();
@@ -16,7 +50,7 @@ export async function POST(req: NextRequest) {
 
   switch (event.type) {
     case "checkout.session.completed": {
-      const session = event.data.object;
+      const session = event.data.object as Stripe.Checkout.Session;
       const userId = session.metadata?.userId;
       if (!userId || !session.subscription) break;
 
@@ -24,41 +58,31 @@ export async function POST(req: NextRequest) {
       const item = sub.items.data[0];
       const priceId = item?.price.id;
       const tier = tierFromPriceId(priceId ?? "") ?? "free";
-      const periodEnd = item?.current_period_end ?? 0;
-
-      await db.collection("users").doc(userId).collection("subscription").doc("current").set({
-        stripeCustomerId: session.customer as string,
-        stripeSubscriptionId: session.subscription as string,
-        tier,
-        status: "active",
-        currentPeriodEnd: new Date(periodEnd * 1000),
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }, { merge: true });
+      await upsertSubscriptionByUserId(userId, subscriptionPayload(tier, {
+        status: sub.status,
+        stripeCustomerId: typeof session.customer === "string" ? session.customer : null,
+        stripeSubscriptionId: typeof session.subscription === "string" ? session.subscription : null,
+        currentPeriodEnd: item?.current_period_end ?? null,
+        cancelAtPeriodEnd: sub.cancel_at_period_end,
+      }));
       break;
     }
 
     case "customer.subscription.updated":
-    case "customer.subscription.deleted": {
-      const sub = event.data.object;
+    case "customer.subscription.deleted":
+    case "customer.subscription.created": {
+      const sub = event.data.object as Stripe.Subscription;
       const item = sub.items.data[0];
       const priceId = item?.price.id;
-      const periodEnd = item?.current_period_end ?? 0;
-      const tier = sub.status === "active" ? (tierFromPriceId(priceId ?? "") ?? "free") : "free";
-
-      const usersSnapshot = await db.collectionGroup("subscription")
-        .where("stripeSubscriptionId", "==", sub.id)
-        .limit(1)
-        .get();
-
-      if (!usersSnapshot.empty) {
-        await usersSnapshot.docs[0].ref.update({
-          tier,
-          status: sub.status === "active" ? "active" : "canceled",
-          currentPeriodEnd: new Date(periodEnd * 1000),
-          updatedAt: new Date(),
-        });
-      }
+      const mappedTier = tierFromPriceId(priceId ?? "") ?? "free";
+      const tier = sub.status === "canceled" || sub.status === "unpaid" ? "free" : mappedTier;
+      await upsertSubscriptionByStripeId(sub.id, subscriptionPayload(tier, {
+        status: sub.status,
+        stripeCustomerId: typeof sub.customer === "string" ? sub.customer : null,
+        stripeSubscriptionId: sub.id,
+        currentPeriodEnd: item?.current_period_end ?? null,
+        cancelAtPeriodEnd: sub.cancel_at_period_end,
+      }));
       break;
     }
   }

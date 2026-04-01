@@ -56,13 +56,16 @@ export default function SignUpPage() {
 
   async function handleGoogleSignIn() {
     setError("");
+    setLoading(true);
     try {
       const { signInWithGoogle } = await import("@/lib/social-auth");
       await signInWithGoogle();
-      router.push("/dashboard");
+      router.replace("/dashboard");
+      router.refresh();
     } catch (err) {
       const { socialAuthErrorMessage } = await import("@/lib/social-auth");
       setError(socialAuthErrorMessage(err));
+      setLoading(false);
     }
   }
 
@@ -107,7 +110,7 @@ export default function SignUpPage() {
         </div>
 
         <div className="flex flex-col gap-3">
-          <Button variant="secondary" fullWidth className="!py-3 !border-gold/20 hover:!border-gold/40 transition-colors" onClick={handleGoogleSignIn}>
+          <Button type="button" variant="secondary" fullWidth className="!py-3 !border-gold/20 hover:!border-gold/40 transition-colors" onClick={handleGoogleSignIn} disabled={loading}>
             Continue with Google
           </Button>
         </div>

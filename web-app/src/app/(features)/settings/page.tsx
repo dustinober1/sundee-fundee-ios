@@ -1,4 +1,5 @@
 import { Card } from "@/components/ui/card";
+import { FeatureGate } from "@/components/ui/feature-gate";
 import { PageHeader, SectionHeader, ArtDecoRuleSmall, SectionLabel } from "@/components/ui/art-deco";
 import { getAuthUser } from "@/lib/firestore";
 import { getUserProfile, getSubscription } from "./actions";
@@ -17,8 +18,9 @@ export default async function SettingsPage() {
 
   if (!user) redirect("/sign-in");
 
-  const tier = ((subscription as Record<string, unknown>)?.tier as "free" | "plus" | "premium") ?? "free";
+  const tier = ((subscription as Record<string, unknown>)?.resolvedTier as "free" | "plus" | "premium") ?? "free";
   const profileData = profile as Record<string, unknown> | null;
+  const subscriptionData = subscription as Record<string, unknown> | null;
   const userName = (profileData?.name as string) ?? user.name ?? "Athlete";
   const initials = userName
     .split(" ")
@@ -108,7 +110,33 @@ export default async function SettingsPage() {
         </div>
       </Card>
 
-      <SubscriptionCard tier={tier} />
+      <div id="plans">
+        <SubscriptionCard
+          tier={tier}
+          status={(subscriptionData?.status as string | undefined) ?? null}
+          currentPeriodEnd={(subscriptionData?.currentPeriodEnd as string | undefined) ?? null}
+          cancelAtPeriodEnd={subscriptionData?.cancelAtPeriodEnd === true}
+          generatedToday={Number(subscriptionData?.generatedToday ?? 0)}
+          remainingCloudGenerations={Number(subscriptionData?.remainingCloudGenerations ?? 0)}
+          dailyCloudLimit={Number(subscriptionData?.dailyCloudLimit ?? 0)}
+          hasActivePaidAccess={subscriptionData?.hasActivePaidAccess === true}
+        />
+      </div>
+
+      <div className="grid gap-4">
+        <FeatureGate
+          title="Custom Program Builder"
+          description="Create your own training blocks with editable structure and programming tools."
+          minimumTier="plus"
+          unlocked={tier === "plus" || tier === "premium"}
+        />
+        <FeatureGate
+          title="AI Mesocycle Plans"
+          description="Unlock multi-week planning, adaptive coaching memory, and richer AI recommendations."
+          minimumTier="premium"
+          unlocked={tier === "premium"}
+        />
+      </div>
 
       {/* Account & Security */}
       <Card>

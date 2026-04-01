@@ -1,28 +1,26 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin-auth";
 import { db } from "@/lib/firebase-admin";
+import { resolveEntitlement, serializeSubscriptionRecord } from "@/lib/subscription-state";
 
 export async function GET() {
   try {
     await requireAdmin();
     const usersSnapshot = await db.collection("users").get();
-    const subDocs = await Promise.all(
-      usersSnapshot.docs.map((userDoc) =>
-        userDoc.ref.collection("subscription").doc("current").get()
-      )
-    );
     const subscriptions: Record<string, unknown>[] = [];
-    for (let i = 0; i < usersSnapshot.docs.length; i++) {
-      const userDoc = usersSnapshot.docs[i];
-      const subDoc = subDocs[i];
-      if (subDoc.exists) {
-        subscriptions.push({
-          uid: userDoc.id,
-          email: userDoc.data()?.email,
-          name: userDoc.data()?.name,
-          ...subDoc.data(),
-        });
-      }
+    for (const userDoc of usersSnapshot.docs) {
+      const entitlement = await resolveEntitlement(userDoc.id);
+      subscriptions.push({
+        uid: userDoc.id,
+        email: userDoc.data()?.email,
+        name: userDoc.data()?.name,
+        ...serializeSubscriptionRecord(entitlement.subscription),
+        resolvedTier: entitlement.tier,
+        hasActivePaidAccess: entitlement.hasActivePaidAccess,
+        dailyCloudLimit: entitlement.dailyCloudLimit,
+        generatedToday: entitlement.generatedToday,
+        remainingCloudGenerations: entitlement.remainingCloudGenerations,
+      });
     }
 
     return NextResponse.json(subscriptions);

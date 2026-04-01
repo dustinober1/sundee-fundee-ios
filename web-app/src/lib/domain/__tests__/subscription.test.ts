@@ -47,13 +47,13 @@ describe("tierValueProposition", () => {
 
   it("plus tier proposition", () => {
     expect(tierValueProposition("plus")).toBe(
-      "Cloud-powered AI workouts and programming tools"
+      "Gemini-powered AI workouts and programming tools"
     );
   });
 
   it("premium tier proposition", () => {
     expect(tierValueProposition("premium")).toBe(
-      "Personal AI coach that learns and adapts"
+      "Personal AI coach with adaptive planning"
     );
   });
 });

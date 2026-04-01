@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/firestore";
 import { createStripeClient, STRIPE_PRICES } from "@/lib/stripe";
+import { requireOneOf } from "@/lib/write-validation";
 
 export async function POST(req: NextRequest) {
   const user = await getAuthUser();
@@ -8,14 +9,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const body = await req.json();
-  const { tier, interval } = body as {
-    tier: "plus" | "premium";
-    interval: "monthly" | "annual";
-  };
-
-  if (!tier || !interval || !STRIPE_PRICES[tier]?.[interval]) {
-    return NextResponse.json({ error: "Invalid tier or interval" }, { status: 400 });
+  let tier: "plus" | "premium";
+  let interval: "monthly" | "annual";
+  try {
+    const body = await req.json() as Record<string, unknown>;
+    tier = requireOneOf(String(body.tier ?? ""), ["plus", "premium"], "tier");
+    interval = requireOneOf(String(body.interval ?? ""), ["monthly", "annual"], "interval");
+  } catch (error) {
+    return NextResponse.json({ error: (error as Error).message }, { status: 400 });
   }
 
   const stripe = createStripeClient();
@@ -28,7 +29,8 @@ export async function POST(req: NextRequest) {
     allow_promotion_codes: true,
     success_url: `${appUrl}/settings?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${appUrl}/settings`,
-    metadata: { userId: user.uid },
+    client_reference_id: user.uid,
+    metadata: { userId: user.uid, tier, interval },
   });
 
   return NextResponse.json({ url: checkoutSession.url });

@@ -1,4 +1,6 @@
 import Stripe from "stripe";
+import type { SubscriptionStatus, SubscriptionRecord } from "./subscription-state";
+import type { SubscriptionTier } from "./domain";
 
 export const STRIPE_PRICES = {
   plus: {
@@ -22,4 +24,40 @@ export function tierFromPriceId(priceId: string): "plus" | "premium" | null {
 
 export function createStripeClient(): Stripe {
   return new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2026-03-25.dahlia" });
+}
+
+export function normalizeStripeStatus(status: string | null | undefined): SubscriptionStatus {
+  switch (status) {
+    case "active":
+    case "trialing":
+    case "past_due":
+    case "incomplete":
+    case "unpaid":
+    case "canceled":
+      return status;
+    default:
+      return "incomplete";
+  }
+}
+
+export function subscriptionRecordFromStripe(
+  tier: SubscriptionTier,
+  input: {
+    status: string | null | undefined;
+    stripeCustomerId?: string | null;
+    stripeSubscriptionId?: string | null;
+    currentPeriodEnd?: number | null;
+    cancelAtPeriodEnd?: boolean | null;
+  }
+): SubscriptionRecord {
+  return {
+    tier,
+    status: normalizeStripeStatus(input.status),
+    stripeCustomerId: input.stripeCustomerId ?? undefined,
+    stripeSubscriptionId: input.stripeSubscriptionId ?? undefined,
+    currentPeriodEnd: input.currentPeriodEnd ? new Date(input.currentPeriodEnd * 1000) : null,
+    cancelAtPeriodEnd: input.cancelAtPeriodEnd === true,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
 }

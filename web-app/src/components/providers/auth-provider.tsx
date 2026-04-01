@@ -30,6 +30,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setPersistence,
       } = await import("firebase/auth");
       const { getFirebaseAuth } = await import("@/lib/firebase");
+      const { syncSessionCookie } = await import("@/lib/social-auth");
       const auth = getFirebaseAuth();
       const authWithReady = auth as Auth & { authStateReady?: () => Promise<void> };
 
@@ -57,11 +58,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         if (firebaseUser) {
           const idToken = await firebaseUser.getIdToken();
-          await fetch("/api/auth/session", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ idToken }),
-          });
+          try {
+            await syncSessionCookie(idToken);
+          } catch (error) {
+            console.error("[auth] Failed to sync session cookie", error);
+          }
         } else {
           await fetch("/api/auth/session", { method: "DELETE" });
         }

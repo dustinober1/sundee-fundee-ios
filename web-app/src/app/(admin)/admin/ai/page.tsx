@@ -12,11 +12,31 @@ interface GenerationRow {
   email?: string;
   createdAt?: string;
   exercises?: unknown[];
+  status?: string;
+  requestedTier?: string;
+  resolvedTier?: string;
+  model?: string;
+  errorMessage?: string;
   [key: string]: unknown;
 }
 
 const columns: Column<GenerationRow>[] = [
   { key: "email", header: "User", sortable: true },
+  {
+    key: "status",
+    header: "Status",
+    render: (row) => row.status ?? "unknown",
+  },
+  {
+    key: "resolvedTier",
+    header: "Tier",
+    render: (row) => row.resolvedTier ?? row.requestedTier ?? "—",
+  },
+  {
+    key: "model",
+    header: "Model",
+    render: (row) => row.model ?? "—",
+  },
   {
     key: "createdAt",
     header: "Date",

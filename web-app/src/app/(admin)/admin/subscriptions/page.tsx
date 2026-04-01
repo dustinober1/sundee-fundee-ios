@@ -10,9 +10,13 @@ interface SubscriptionRow {
   name?: string;
   email?: string;
   tier?: string;
+  resolvedTier?: string;
   status?: string;
-  currentPeriodStart?: string;
   currentPeriodEnd?: string;
+  cancelAtPeriodEnd?: boolean;
+  hasActivePaidAccess?: boolean;
+  generatedToday?: number;
+  dailyCloudLimit?: number;
 }
 
 const INPUT_CLASS =
@@ -46,20 +50,16 @@ const columns: Column<SubscriptionRow>[] = [
       </div>
     ),
   },
-  { key: "tier", header: "Tier", sortable: true },
+  {
+    key: "tier",
+    header: "Tier",
+    render: (row) => row.resolvedTier ?? row.tier ?? "free",
+    sortable: true,
+  },
   {
     key: "status",
     header: "Status",
     render: (row) => <StatusBadge status={row.status} />,
-    sortable: true,
-  },
-  {
-    key: "currentPeriodStart",
-    header: "Start Date",
-    render: (row) =>
-      row.currentPeriodStart
-        ? new Date(row.currentPeriodStart).toLocaleDateString()
-        : "—",
     sortable: true,
   },
   {
@@ -70,6 +70,14 @@ const columns: Column<SubscriptionRow>[] = [
         ? new Date(row.currentPeriodEnd).toLocaleDateString()
         : "—",
     sortable: true,
+  },
+  {
+    key: "usage",
+    header: "Cloud AI Today",
+    render: (row) =>
+      typeof row.dailyCloudLimit === "number" && row.dailyCloudLimit > 0
+        ? `${row.generatedToday ?? 0}/${row.dailyCloudLimit}`
+        : "—",
   },
 ];
 
@@ -89,14 +97,15 @@ export default function SubscriptionsPage() {
 
   const filtered = useMemo(() => {
     return data.filter((row) => {
-      const tierOk = tierFilter === "all" || row.tier === tierFilter;
+      const effectiveTier = row.resolvedTier ?? row.tier;
+      const tierOk = tierFilter === "all" || effectiveTier === tierFilter;
       const statusOk = statusFilter === "all" || row.status === statusFilter;
       return tierOk && statusOk;
     });
   }, [data, tierFilter, statusFilter]);
 
-  const plusCount = data.filter((r) => r.tier === "plus").length;
-  const premiumCount = data.filter((r) => r.tier === "premium").length;
+  const plusCount = data.filter((r) => (r.resolvedTier ?? r.tier) === "plus").length;
+  const premiumCount = data.filter((r) => (r.resolvedTier ?? r.tier) === "premium").length;
   const totalPaying = plusCount + premiumCount;
 
   return (

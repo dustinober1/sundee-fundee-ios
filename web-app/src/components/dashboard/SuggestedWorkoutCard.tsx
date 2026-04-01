@@ -5,10 +5,15 @@ import type { ActiveProgram } from "@/app/(features)/dashboard/actions";
 
 interface SuggestedWorkoutCardProps {
   program: ActiveProgram | null;
-  hasAIAccess: boolean;
+  aiEntitlement: {
+    canUseCloudAI: boolean;
+    tier: "free" | "plus" | "premium";
+    remainingCloudGenerations: number;
+    dailyCloudLimit: number;
+  };
 }
 
-export function SuggestedWorkoutCard({ program, hasAIAccess }: SuggestedWorkoutCardProps) {
+export function SuggestedWorkoutCard({ program, aiEntitlement }: SuggestedWorkoutCardProps) {
   if (program) {
     return (
       <div className="card p-4">
@@ -45,18 +50,20 @@ export function SuggestedWorkoutCard({ program, hasAIAccess }: SuggestedWorkoutC
     <div className="card p-4">
       <p className="text-[10px] uppercase tracking-[0.2em] text-gold mb-1">Today&apos;s Focus</p>
       <h3 className="text-base font-semibold text-navy mb-1">
-        {hasAIAccess ? "Generate AI Workout" : "Find a Program"}
+        {aiEntitlement.canUseCloudAI ? "Generate AI Workout" : "Find a Program"}
       </h3>
       <p className="text-sm text-text-secondary mb-3">
-        {hasAIAccess
-          ? "Personalized workout based on your cycle, goals, and equipment"
-          : "Browse programs tailored to your goals"}
+        {aiEntitlement.canUseCloudAI
+          ? `Gemini-powered workout based on your cycle, goals, and equipment. ${aiEntitlement.remainingCloudGenerations}/${aiEntitlement.dailyCloudLimit} remaining today.`
+          : aiEntitlement.tier === "free"
+            ? "Browse programs tailored to your goals or upgrade for cloud AI workouts."
+            : "Your cloud AI limit is reached for today. Browse programs or try again tomorrow."}
       </p>
       <Link
-        href={hasAIAccess ? "/workouts?generate=true" : "/programs"}
+        href={aiEntitlement.canUseCloudAI ? "/workouts/ai" : aiEntitlement.tier === "free" ? "/settings#plans" : "/programs"}
         className="block w-full bg-orange text-cream text-center py-3 rounded-button font-semibold hover:opacity-90 transition-opacity shadow-md shadow-orange/20"
       >
-        {hasAIAccess ? "Generate Workout" : "Browse Programs"}
+        {aiEntitlement.canUseCloudAI ? "Generate Workout" : aiEntitlement.tier === "free" ? "Upgrade to Plus" : "Browse Programs"}
       </Link>
     </div>
   );
