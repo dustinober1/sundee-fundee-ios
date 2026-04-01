@@ -153,17 +153,52 @@ export default function CatalogPage() {
     }
   }
 
+  async function handleQuickUpdate(id: string, field: Partial<CatalogExercise>) {
+    try {
+      const res = await fetch(`/api/admin/catalog/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(field),
+      });
+      if (!res.ok) throw new Error("Update failed");
+      setExercises((prev) =>
+        prev.map((e) => (e.id === id ? { ...e, ...field } : e))
+      );
+      if (selected?.id === id) {
+        setSelected((prev) => (prev ? { ...prev, ...field } : prev));
+        setDraft((prev) => (prev ? { ...prev, ...field } : prev));
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Failed to update exercise.");
+    }
+  }
+
   const columns: Column<CatalogExercise>[] = [
     { key: "name", header: "Name", sortable: true },
     { key: "category", header: "Category", sortable: true },
     { key: "subcategory", header: "Subcategory" },
     {
       key: "scoring",
-      header: "Scoring",
-      render: (row) => {
-        const opt = SCORING_OPTIONS.find((o) => o.value === row.scoring);
-        return <span className="capitalize">{opt?.label ?? row.scoring ?? "—"}</span>;
-      },
+      header: "Scoring Method",
+      render: (row) => (
+        <select
+          className="bg-card-bg border border-separator rounded-sm px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-orange/40"
+          value={row.scoring ?? "weight"}
+          onClick={(e) => e.stopPropagation()}
+          onChange={(e) =>
+            handleQuickUpdate(row.id, {
+              scoring: e.target.value as BenchmarkScoringType,
+            })
+          }
+        >
+          {SCORING_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+      ),
     },
   ];
 
