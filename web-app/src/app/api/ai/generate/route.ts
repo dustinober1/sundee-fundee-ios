@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
 
     const { GoogleGenAI } = await import("@google/genai");
     const client = new GoogleGenAI({
-      apiKey: process.env.GEMINI_API_KEY,
+      apiKey: process.env.GEMINI_API_KEY!.trim(),
     });
 
     const prompt = buildWorkoutPrompt(requestBody);
@@ -101,20 +101,27 @@ export async function POST(req: NextRequest) {
       },
     });
   } catch (error) {
-    await userCollection(user.uid, "generatedWorkoutRecords").add({
-      request: requestBody,
-      createdAt: new Date(),
-      requestedTier: entitlement.subscription.tier,
-      resolvedTier: entitlement.tier,
-      status: "error",
-      requestSource: "web-app-ai-workout",
-      feature: "aiWorkout",
-      errorMessage: error instanceof Error ? error.message : "AI generation failed",
-      usageDate: getUsageDateKey(),
-      userEmail: user.email ?? null,
-    });
+    const errorMsg = error instanceof Error ? error.message : "AI generation failed";
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    console.error("[ai/generate] Error:", errorMsg, errorStack);
+    try {
+      await userCollection(user.uid, "generatedWorkoutRecords").add({
+        request: requestBody,
+        createdAt: new Date(),
+        requestedTier: entitlement.subscription.tier,
+        resolvedTier: entitlement.tier,
+        status: "error",
+        requestSource: "web-app-ai-workout",
+        feature: "aiWorkout",
+        errorMessage: errorMsg,
+        usageDate: getUsageDateKey(),
+        userEmail: user.email ?? null,
+      });
+    } catch (logError) {
+      console.error("[ai/generate] Failed to log error:", logError);
+    }
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "AI generation failed" },
+      { error: errorMsg },
       { status: 500 }
     );
   }
