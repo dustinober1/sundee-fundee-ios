@@ -19,7 +19,15 @@ const nextConfig: NextConfig = {
   ],
   headers: async () => [
     {
-      source: "/(.*)",
+      // Firebase Auth uses an iframe at /__/auth/iframe — allow it to load
+      source: "/__/auth/:path*",
+      headers: [
+        { key: "X-Content-Type-Options", value: "nosniff" },
+        { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+      ],
+    },
+    {
+      source: "/((?!__/auth/).*)",
       headers: [
         { key: "X-Frame-Options", value: "DENY" },
         { key: "X-Content-Type-Options", value: "nosniff" },
