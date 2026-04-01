@@ -4,6 +4,31 @@ import { getAuth, type Auth } from "firebase/auth";
 let _app: FirebaseApp | undefined;
 let _auth: Auth | undefined;
 
+function resolveAuthDomain(): string | undefined {
+  const configuredAuthDomain = process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN;
+  const configuredAppUrl = process.env.NEXT_PUBLIC_APP_URL;
+
+  if (typeof window === "undefined" || !configuredAppUrl) {
+    return configuredAuthDomain;
+  }
+
+  try {
+    const appUrl = new URL(configuredAppUrl);
+    const isCustomProductionHost =
+      appUrl.protocol === "https:" &&
+      !/localhost|127\.0\.0\.1/.test(appUrl.hostname) &&
+      window.location.hostname === appUrl.hostname;
+
+    if (isCustomProductionHost) {
+      return window.location.hostname;
+    }
+  } catch {
+    // Fall back to the configured Firebase domain if NEXT_PUBLIC_APP_URL is invalid.
+  }
+
+  return configuredAuthDomain;
+}
+
 function getFirebaseApp(): FirebaseApp {
   if (_app) return _app;
   if (getApps().length > 0) {
@@ -13,7 +38,7 @@ function getFirebaseApp(): FirebaseApp {
 
   _app = initializeApp({
     apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+    authDomain: resolveAuthDomain(),
     projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
   });
   return _app;
