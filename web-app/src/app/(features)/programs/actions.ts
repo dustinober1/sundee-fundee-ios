@@ -28,6 +28,14 @@ export async function enrollInProgram(programId: string) {
   });
 }
 
+export async function unenrollProgram(enrollmentId: string) {
+  const user = await getAuthUser();
+  if (!user) throw new Error("Unauthorized");
+
+  const id = requireTrimmedString(enrollmentId, "Enrollment");
+  await userCollection(user.uid, "enrolledPrograms").doc(id).delete();
+}
+
 export async function generateProgramAction(template: string, name: string) {
   return generateProgram(template as ProgramTemplate, name);
 }

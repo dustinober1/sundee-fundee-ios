@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" },
   { href: "/programs", label: "Programs", icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" },
-  { href: "/cycle", label: "Cycle", icon: "M3 13c3.5-3.6 7.5-5.4 11.2-5.2l2.8-3.3.8 4.1c1.5.5 2.8 1.2 4.2 2.3-1.4 1.1-2.7 1.8-4.2 2.3l-.8 4.1-2.8-3.3c-1.2.1-2.4 0-3.6-.2l-3.8 2.2.8-3.1c-1.5-.6-3.1-1.7-4.6-3.9Zm12.9-1.1a.9.9 0 100-1.8.9.9 0 000 1.8Z" },
+  { href: "/maxes", label: "Maxes", icon: "M3 6l3 6h12l3-6M6 12v6m12-6v6M9 18h6" },
   { href: "/benchmarks", label: "Benchmarks", icon: "M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" },
   { href: "/settings", label: "More", icon: "M4 6h16M4 12h16M4 18h16" },
 ] as const;

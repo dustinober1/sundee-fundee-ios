@@ -1,7 +1,8 @@
 import { Card } from "@/components/ui/card";
 import { PageHeader, SectionHeader, ArtDecoRuleSmall } from "@/components/ui/art-deco";
+import { DeleteRecordButton } from "@/components/ui/delete-record-button";
 import Link from "next/link";
-import { getEnrolledPrograms } from "./actions";
+import { getEnrolledPrograms, unenrollProgram } from "./actions";
 
 const TEMPLATES = [
   { id: "strength", name: "Strength", desc: "4 weeks, 3x/week — build raw strength", difficulty: "Intermediate" },
@@ -40,6 +41,9 @@ export default async function ProgramsPage() {
                 <span className="text-[11px] bg-orange/10 text-orange px-2.5 py-1 rounded-full font-semibold font-mono tracking-wider uppercase">
                   Active
                 </span>
+              </div>
+              <div className="mt-3 flex justify-end">
+                <DeleteRecordButton action={unenrollProgram} recordId={p.id} noun="Program" />
               </div>
             </Card>
           ))}

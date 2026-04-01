@@ -1,6 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { PageHeader, SectionHeader, ArtDecoRuleSmall } from "@/components/ui/art-deco";
-import { getPeriodLogs, getCycleSettings } from "./actions";
+import { DeleteRecordButton } from "@/components/ui/delete-record-button";
+import { getPeriodLogs, getCycleSettings, deletePeriodLog } from "./actions";
 import type { PeriodLogRecord } from "./actions";
 import { calculateCycleStatus, getPhaseRecommendation } from "@/lib/domain";
 import type { CycleSettings, PeriodLog } from "@/lib/domain";
@@ -157,7 +158,7 @@ export default async function CyclePage() {
                   key={l.id}
                   className="flex justify-between items-start text-[13px] py-3 border-b border-separator/30 last:border-0"
                 >
-                  <div>
+                  <div className="flex-1">
                     <p className="font-medium">
                       {startStr}
                       {endStr ? ` – ${endStr}` : ""}
@@ -173,11 +174,14 @@ export default async function CyclePage() {
                       )}
                     </div>
                   </div>
-                  {end && (
-                    <span className="text-text-secondary font-mono text-[11px]">
-                      {Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1} days
-                    </span>
-                  )}
+                  <div className="flex items-center gap-3">
+                    {end && (
+                      <span className="text-text-secondary font-mono text-[11px]">
+                        {Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1} days
+                      </span>
+                    )}
+                    <DeleteRecordButton action={deletePeriodLog} recordId={l.id} noun="Period Log" />
+                  </div>
                 </div>
               );
             })}
