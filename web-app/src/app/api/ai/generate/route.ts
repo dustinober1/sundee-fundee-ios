@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
       request: sanitizedRequest,
       prompt,
       systemInstruction,
-      response: workout,
+      response: JSON.parse(JSON.stringify(workout)),
       createdAt: new Date(),
       requestedTier: entitlement.subscription.tier,
       resolvedTier: entitlement.tier,
