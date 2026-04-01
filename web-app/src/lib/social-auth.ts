@@ -31,6 +31,12 @@ export function clearPendingRedirectProvider(): void {
   window.sessionStorage.removeItem(REDIRECT_PROVIDER_STORAGE_KEY);
 }
 
+function isMobileApple(): boolean {
+  if (typeof navigator === "undefined") return false;
+  return /iPhone|iPad|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+}
+
 function shouldFallbackToRedirect(error: unknown): boolean {
   const code = (error as { code?: string }).code;
 
@@ -51,6 +57,15 @@ export async function signInWithGoogle(): Promise<void> {
   const { getFirebaseAuth } = await import("@/lib/firebase");
   const auth = getFirebaseAuth();
   const provider = new GoogleAuthProvider();
+
+  // iOS aggressively blocks popups (Safari, in-app browsers, PWA).
+  // signInWithPopup silently fails — no error thrown, nothing happens.
+  // Go straight to redirect on iOS to avoid the dead-click experience.
+  if (isMobileApple()) {
+    markPendingRedirectProvider(provider.providerId);
+    await signInWithRedirect(auth, provider);
+    return;
+  }
 
   try {
     const result = await signInWithPopup(auth, provider);
