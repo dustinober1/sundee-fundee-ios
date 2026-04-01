@@ -71,8 +71,9 @@ export async function POST(req: NextRequest) {
 
     const usage = await incrementDailyAIUsage(user.uid);
 
+    const sanitizedRequest = JSON.parse(JSON.stringify(requestBody));
     await userCollection(user.uid, "generatedWorkoutRecords").add({
-      request: requestBody,
+      request: sanitizedRequest,
       prompt,
       systemInstruction,
       response: workout,
@@ -106,7 +107,7 @@ export async function POST(req: NextRequest) {
     console.error("[ai/generate] Error:", errorMsg, errorStack);
     try {
       await userCollection(user.uid, "generatedWorkoutRecords").add({
-        request: requestBody,
+        request: JSON.parse(JSON.stringify(requestBody)),
         createdAt: new Date(),
         requestedTier: entitlement.subscription.tier,
         resolvedTier: entitlement.tier,
