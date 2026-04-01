@@ -15,14 +15,14 @@ const DEFAULT_STRIPE_PRICES = {
 
 export const STRIPE_PRICES = {
   plus: {
-    monthly: process.env.STRIPE_PRICE_PLUS_MONTHLY ?? DEFAULT_STRIPE_PRICES.plus.monthly,
-    annual: process.env.STRIPE_PRICE_PLUS_ANNUAL ?? DEFAULT_STRIPE_PRICES.plus.annual,
+    monthly: (process.env.STRIPE_PRICE_PLUS_MONTHLY ?? DEFAULT_STRIPE_PRICES.plus.monthly).trim(),
+    annual: (process.env.STRIPE_PRICE_PLUS_ANNUAL ?? DEFAULT_STRIPE_PRICES.plus.annual).trim(),
   },
   premium: {
-    monthly: process.env.STRIPE_PRICE_PREMIUM_MONTHLY ?? DEFAULT_STRIPE_PRICES.premium.monthly,
-    annual: process.env.STRIPE_PRICE_PREMIUM_ANNUAL ?? DEFAULT_STRIPE_PRICES.premium.annual,
+    monthly: (process.env.STRIPE_PRICE_PREMIUM_MONTHLY ?? DEFAULT_STRIPE_PRICES.premium.monthly).trim(),
+    annual: (process.env.STRIPE_PRICE_PREMIUM_ANNUAL ?? DEFAULT_STRIPE_PRICES.premium.annual).trim(),
   },
-} as const;
+};
 
 export function tierFromPriceId(priceId: string): "plus" | "premium" | null {
   for (const [tier, prices] of Object.entries(STRIPE_PRICES)) {
