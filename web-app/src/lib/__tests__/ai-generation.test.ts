@@ -63,6 +63,29 @@ describe("buildWorkoutPrompt", () => {
     expect(prompt).toContain("home dumbbells");
     expect(prompt).toContain("ovulation");
   });
+
+  it("includes user context when provided", () => {
+    const prompt = buildWorkoutPrompt({
+      time: 30,
+      focus: "full_body",
+      energy: "medium",
+      equipment: "full_gym",
+      userContext: {
+        experienceLevel: "intermediate",
+        primaryGoal: "strength",
+        maxes: [{ exerciseId: "back-squat", weightKg: 100 }],
+        recentWorkouts: [
+          { completedAt: "2026-03-30", durationSeconds: 2400, exercises: ["Bench Press", "Rows"] },
+        ],
+      },
+    });
+
+    expect(prompt).toContain("intermediate");
+    expect(prompt).toContain("strength");
+    expect(prompt).toContain("back-squat: 100 kg");
+    expect(prompt).toContain("Bench Press, Rows");
+    expect(prompt).toContain("2026-03-30");
+  });
 });
 
 describe("parseAIWorkoutResponse", () => {

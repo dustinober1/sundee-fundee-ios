@@ -37,12 +37,25 @@ export interface AIModelConfig {
   maxOutputTokens: number;
 }
 
+export interface UserContext {
+  experienceLevel?: string;
+  primaryGoal?: string;
+  weightUnit?: string;
+  maxes?: Array<{ exerciseId: string; weightKg: number }>;
+  recentWorkouts?: Array<{
+    completedAt: string;
+    durationSeconds: number;
+    exercises: string[];
+  }>;
+}
+
 export interface AIWorkoutRequest {
   time: number;
   focus: WorkoutFocus;
   energy: EnergyLevel;
   equipment: EquipmentAccess;
   cyclePhase?: CyclePhase;
+  userContext?: UserContext;
 }
 
 export interface AIWorkoutResponse {
@@ -107,21 +120,54 @@ export function buildWorkoutSystemInstruction(): string {
 }
 
 export function buildWorkoutPrompt(request: AIWorkoutRequest): string {
-  return [
+  const lines = [
     "Create one workout for the athlete using the following inputs.",
+    "",
+    "--- SESSION PARAMETERS ---",
     `Time available: ${request.time} minutes`,
     `Workout focus: ${request.focus.replaceAll("_", " ")}`,
     `Energy level: ${request.energy}`,
     `Equipment access: ${request.equipment.replaceAll("_", " ")}`,
     request.cyclePhase ? `Cycle phase: ${request.cyclePhase}` : "Cycle phase: not provided",
+  ];
+
+  const ctx = request.userContext;
+  if (ctx) {
+    lines.push("", "--- ATHLETE PROFILE ---");
+    if (ctx.experienceLevel) lines.push(`Experience level: ${ctx.experienceLevel}`);
+    if (ctx.primaryGoal) lines.push(`Primary goal: ${ctx.primaryGoal.replaceAll("_", " ")}`);
+    if (ctx.weightUnit) lines.push(`Preferred weight unit: ${ctx.weightUnit}`);
+
+    if (ctx.maxes && ctx.maxes.length > 0) {
+      lines.push("", "Known 1RM maxes (use these to prescribe weights via percentages):");
+      for (const m of ctx.maxes) {
+        lines.push(`  - ${m.exerciseId}: ${m.weightKg} kg`);
+      }
+      lines.push("When the athlete has a known max for an exercise, prescribe weightKg based on appropriate %1RM for the rep range.");
+    }
+
+    if (ctx.recentWorkouts && ctx.recentWorkouts.length > 0) {
+      lines.push("", "Recent workout history (avoid repeating the same exercises):");
+      for (const w of ctx.recentWorkouts) {
+        lines.push(`  - ${w.completedAt}: ${w.exercises.join(", ")} (${Math.round(w.durationSeconds / 60)}min)`);
+      }
+    }
+  }
+
+  lines.push(
+    "",
+    "--- OUTPUT FORMAT ---",
     "Return a JSON object with:",
-    '- "coachingSummary": 2-3 short sentences',
-    '- "exercises": an array of 4-8 exercises',
+    '- "coachingSummary": 2-3 short sentences explaining the workout design and any cycle/energy adjustments',
+    '- "exercises": an array of exercises appropriate for the time available',
     'Each exercise must include "name", "sets", "reps", and "bodyweightOnly".',
-    'Optional fields: "weightKg", "restMinutes", "notes", "reasoning".',
+    'Optional fields: "weightKg" (in kg), "restMinutes", "notes".',
     'Use reps as a string like "5", "8-10", or "AMRAP".',
     "Keep the workout realistic for the requested time and equipment.",
-  ].join("\n");
+    "Vary exercise selection from recent history when possible.",
+  );
+
+  return lines.join("\n");
 }
 
 function extractJSON(text: string): string {

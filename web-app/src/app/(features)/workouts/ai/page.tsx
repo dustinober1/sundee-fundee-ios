@@ -4,12 +4,12 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { PageHeader, SectionHeader } from "@/components/ui/art-deco";
+import { PageHeader, SectionHeader, ArtDecoRuleSmall, StatCard } from "@/components/ui/art-deco";
 import type { WorkoutFocus, EnergyLevel, EquipmentAccess } from "@/lib/domain";
 import type { AIWorkoutResponse } from "@/lib/ai-generation";
 import { CyclePhaseBanner } from "@/components/ui/cycle-phase-banner";
 import { CycleAdjustmentToggle } from "@/components/ui/cycle-adjustment-toggle";
-import { getPhaseAdjustmentSummary, formatWeightWithUnit, WeightUnit } from "@/lib/domain";
+import { getPhaseAdjustmentSummary, formatWeightWithUnit, WeightUnit, totalEstimatedMinutes, extractMuscleGroups } from "@/lib/domain";
 import type { CyclePhase } from "@/lib/domain";
 
 type Step = "questionnaire" | "loading" | "preview";
@@ -132,36 +132,69 @@ export default function AIWorkoutPage() {
   }
 
   if (step === "preview" && workout) {
+    const estMinutes = totalEstimatedMinutes(workout.exercises);
+    const muscleGroups = extractMuscleGroups(workout.exercises);
+    const exerciseCount = workout.exercises.length;
+
     return (
       <div className="flex flex-col gap-8 pt-4">
-        <PageHeader label="Generated" title="Your Workout" />
+        <PageHeader
+          label="AI Session"
+          title="Your Workout"
+          subtitle={workout.coachingSummary}
+        />
 
-        <Card className="border-l-[3px] border-l-gold">
-          <p className="text-[14px] text-text-secondary italic">{workout.coachingSummary}</p>
-          <p className="text-[11px] text-text-secondary mt-2">
-            {workout.usage.generatedToday}/{workout.usage.dailyCloudLimit} used today · {workout.usage.remainingCloudGenerations} left
-          </p>
+        <div className="grid grid-cols-3 gap-3">
+          <StatCard value={`~${estMinutes}`} label="Minutes" />
+          <StatCard value={exerciseCount} label="Exercises" />
+          <StatCard value={workout.exercises.reduce((s, e) => s + e.sets, 0)} label="Total Sets" />
+        </div>
+
+        {muscleGroups.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {muscleGroups.map((g) => (
+              <span key={g} className="text-[11px] bg-gold/10 text-gold border border-gold/20 px-2.5 py-1 rounded-full">
+                {g}
+              </span>
+            ))}
+          </div>
+        )}
+
+        <ArtDecoRuleSmall className="text-gold/30 mx-auto" />
+
+        <Card>
+          <SectionHeader label="Exercises" title="Workout Plan" />
+          <div className="mt-3">
+            {workout.exercises.map((ex, i) => (
+              <div key={i} className="flex justify-between text-[13px] py-2.5 border-b border-separator/30 last:border-0">
+                <div className="flex items-start gap-3 flex-1 min-w-0">
+                  <div className="flex-shrink-0 w-6 h-6 rounded-full bg-gold/10 border border-gold/20 flex items-center justify-center mt-0.5">
+                    <span className="text-[10px] font-mono font-bold text-gold">{i + 1}</span>
+                  </div>
+                  <div className="min-w-0">
+                    <span className="font-semibold block">{ex.name}</span>
+                    {ex.notes && (
+                      <span className="text-[11px] text-text-secondary block mt-0.5">{ex.notes}</span>
+                    )}
+                  </div>
+                </div>
+                <div className="text-right flex-shrink-0 ml-3">
+                  <span className="text-text-secondary font-mono">
+                    {ex.sets}×{ex.reps}
+                    {ex.weightKg ? ` @ ${formatWeightWithUnit(ex.weightKg, userWeightUnit)}` : ""}
+                  </span>
+                  {ex.restMinutes && (
+                    <div className="text-[10px] text-gold mt-0.5">{ex.restMinutes}m rest</div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
         </Card>
 
-        {workout.exercises.map((ex, i) => (
-          <Card key={i} className="hover:shadow-md transition-shadow">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="font-heading font-semibold">{ex.name}</p>
-                <p className="text-text-secondary text-[13px] mt-0.5 font-mono">
-                  {ex.sets} sets × {ex.reps} reps
-                  {ex.weightKg ? ` @ ${formatWeightWithUnit(ex.weightKg, userWeightUnit)}` : ""}
-                </p>
-              </div>
-              {ex.restMinutes && (
-                <span className="text-[11px] text-gold bg-gold/10 border border-gold/20 px-2.5 py-1 rounded-full font-mono">
-                  {ex.restMinutes}m rest
-                </span>
-              )}
-            </div>
-            {ex.notes && <p className="text-[12px] text-text-secondary mt-2 border-t border-separator/30 pt-2">{ex.notes}</p>}
-          </Card>
-        ))}
+        <p className="text-[11px] text-text-secondary text-center">
+          {workout.usage.generatedToday}/{workout.usage.dailyCloudLimit} used today · {workout.usage.remainingCloudGenerations} remaining
+        </p>
 
         <div className="flex gap-3">
           <Button variant="secondary" fullWidth onClick={() => setStep("questionnaire")}>

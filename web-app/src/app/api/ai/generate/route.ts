@@ -1,17 +1,69 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthUser, userCollection } from "@/lib/firestore";
+import { getAuthUser, userCollection, userDoc } from "@/lib/firestore";
 import {
   buildWorkoutPrompt,
   buildWorkoutSystemInstruction,
   getAIModelConfig,
   parseAIWorkoutResponse,
   validateAIWorkoutRequest,
+  type UserContext,
 } from "@/lib/ai-generation";
 import {
   getUsageDateKey,
   incrementDailyAIUsage,
   resolveEntitlement,
 } from "@/lib/subscription-state";
+
+async function fetchUserContext(uid: string): Promise<UserContext> {
+  const ctx: UserContext = {};
+
+  // Fetch profile, maxes, and recent workouts in parallel
+  const [profileSnap, maxesSnap, workoutsSnap] = await Promise.all([
+    userDoc(uid).get(),
+    userCollection(uid, "oneRepMaxes").orderBy("date", "desc").limit(20).get(),
+    userCollection(uid, "completedWorkouts").orderBy("completedAt", "desc").limit(5).get(),
+  ]);
+
+  if (profileSnap.exists) {
+    const profile = profileSnap.data() as Record<string, unknown>;
+    ctx.experienceLevel = typeof profile.experienceLevel === "string" ? profile.experienceLevel : undefined;
+    ctx.primaryGoal = typeof profile.primaryGoal === "string" ? profile.primaryGoal : undefined;
+    ctx.weightUnit = typeof profile.weightUnit === "string" ? profile.weightUnit : undefined;
+  }
+
+  if (!maxesSnap.empty) {
+    // Deduplicate by exerciseId (keep most recent)
+    const seen = new Set<string>();
+    ctx.maxes = [];
+    for (const doc of maxesSnap.docs) {
+      const data = doc.data() as { exerciseId: string; weightKg: number };
+      if (!seen.has(data.exerciseId)) {
+        seen.add(data.exerciseId);
+        ctx.maxes.push({ exerciseId: data.exerciseId, weightKg: data.weightKg });
+      }
+    }
+  }
+
+  if (!workoutsSnap.empty) {
+    ctx.recentWorkouts = workoutsSnap.docs.map((doc) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const data = doc.data() as Record<string, any>;
+      const raw = data.completedAt;
+      const completedAt = raw && typeof raw.toDate === "function"
+        ? (raw.toDate() as Date)
+        : new Date(String(raw));
+      const sets = Array.isArray(data.sets) ? data.sets : [];
+      const exercises = [...new Set(sets.map((s: { exerciseName: string }) => s.exerciseName))];
+      return {
+        completedAt: completedAt.toISOString().split("T")[0]!,
+        durationSeconds: data.durationSeconds ?? 0,
+        exercises,
+      };
+    });
+  }
+
+  return ctx;
+}
 
 export async function POST(req: NextRequest) {
   const user = await getAuthUser();
@@ -35,6 +87,10 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    // Fetch user context for richer prompts
+    const userContext = await fetchUserContext(user.uid);
+    requestBody = { ...requestBody, userContext };
+
     const modelConfig = getAIModelConfig(entitlement.tier);
     if (!modelConfig.model) {
       return NextResponse.json({ error: "Cloud AI is not configured for this tier" }, { status: 403 });
