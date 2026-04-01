@@ -7,11 +7,20 @@ import { DetailPanel } from "@/components/admin/detail-panel";
 import { EmptyState } from "@/components/admin/empty-state";
 import { ConfirmDialog } from "@/components/admin/confirm-dialog";
 import { Button } from "@/components/ui/button";
-import type { CatalogExercise } from "@/lib/domain/admin-types";
+import type { CatalogExercise, BenchmarkScoringType } from "@/lib/domain/admin-types";
 import { slugify } from "@/lib/domain/admin-types";
+import { WEIGHTLIFTING_EXERCISES, CONDITIONING_EXERCISES } from "@/lib/domain/exercise-catalog";
 
 const INPUT_CLASS =
   "w-full bg-card-bg border border-separator rounded-sm px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange/40";
+
+const SCORING_OPTIONS: { value: BenchmarkScoringType; label: string }[] = [
+  { value: "weight", label: "Weight" },
+  { value: "reps", label: "Reps" },
+  { value: "time", label: "Time" },
+  { value: "distance", label: "Distance" },
+  { value: "roundsAndReps", label: "Rounds & Reps" },
+];
 
 function newExercise(): CatalogExercise {
   return {
@@ -19,7 +28,7 @@ function newExercise(): CatalogExercise {
     name: "",
     category: "",
     subcategory: "",
-    scoring: "",
+    scoring: "weight",
   };
 }
 
@@ -29,6 +38,7 @@ export default function CatalogPage() {
   const [selected, setSelected] = useState<CatalogExercise | null>(null);
   const [draft, setDraft] = useState<CatalogExercise | null>(null);
   const [saving, setSaving] = useState(false);
+  const [importing, setImporting] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [isNew, setIsNew] = useState(false);
 
@@ -60,6 +70,46 @@ export default function CatalogPage() {
 
   function updateDraft(field: Partial<CatalogExercise>) {
     setDraft((prev) => (prev ? { ...prev, ...field } : prev));
+  }
+
+  async function handleImportDefaults() {
+    if (!confirm("This will import all default exercises from the catalog. Existing exercises with the same ID will be overwritten. Continue?")) return;
+    setImporting(true);
+    try {
+      const allDefaults: CatalogExercise[] = [
+        ...WEIGHTLIFTING_EXERCISES.map(ex => ({
+          id: slugify(ex.id),
+          name: ex.id,
+          category: ex.category,
+          scoring: "weight" as BenchmarkScoringType,
+        })),
+        ...CONDITIONING_EXERCISES.map(ex => ({
+          id: slugify(ex.id),
+          name: ex.id,
+          category: "Conditioning",
+          scoring: (ex.defaultScoringType === "time" ? "time" : "reps") as BenchmarkScoringType,
+        }))
+      ];
+
+      for (const ex of allDefaults) {
+        await fetch("/api/admin/catalog", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(ex),
+        });
+      }
+
+      // Refresh
+      const res = await fetch("/api/admin/catalog");
+      const data = await res.json();
+      setExercises(Array.isArray(data) ? data : []);
+      alert(`Imported ${allDefaults.length} exercises.`);
+    } catch (e) {
+      console.error(e);
+      alert("Import failed.");
+    } finally {
+      setImporting(false);
+    }
   }
 
   async function handleSave() {
@@ -107,7 +157,14 @@ export default function CatalogPage() {
     { key: "name", header: "Name", sortable: true },
     { key: "category", header: "Category", sortable: true },
     { key: "subcategory", header: "Subcategory" },
-    { key: "scoring", header: "Scoring" },
+    {
+      key: "scoring",
+      header: "Scoring",
+      render: (row) => {
+        const opt = SCORING_OPTIONS.find((o) => o.value === row.scoring);
+        return <span className="capitalize">{opt?.label ?? row.scoring ?? "—"}</span>;
+      },
+    },
   ];
 
   const panelTitle = isNew
@@ -121,9 +178,14 @@ export default function CatalogPage() {
       <AdminHeader
         title="Exercise Catalog"
         actions={
-          <Button variant="primary" onClick={handleNew}>
-            New Exercise
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="secondary" onClick={handleImportDefaults} disabled={importing}>
+              {importing ? "Importing..." : "Import Defaults"}
+            </Button>
+            <Button variant="primary" onClick={handleNew}>
+              New Exercise
+            </Button>
+          </div>
         }
       />
       <div className="flex flex-1 overflow-hidden">
@@ -133,9 +195,9 @@ export default function CatalogPage() {
           ) : exercises.length === 0 && !draft ? (
             <EmptyState
               title="No exercises yet"
-              description="Add your first exercise to the catalog."
-              actionLabel="New Exercise"
-              onAction={handleNew}
+              description="Add your first exercise to the catalog or import defaults."
+              actionLabel="Import Defaults"
+              onAction={handleImportDefaults}
             />
           ) : (
             <DataTable
@@ -151,7 +213,7 @@ export default function CatalogPage() {
         </div>
 
         {draft && (
-          <div className="w-1/2 overflow-hidden">
+          <div className="w-1/2 overflow-hidden border-l border-separator">
             <DetailPanel
               title={panelTitle}
               onClose={handleClose}
@@ -170,7 +232,7 @@ export default function CatalogPage() {
             >
               <div className="space-y-4">
                 <div>
-                  <label className="block text-xs text-text-secondary mb-1">Name</label>
+                  <label className="block text-xs text-text-secondary mb-1 font-medium uppercase tracking-wider">Name</label>
                   <input
                     className={INPUT_CLASS}
                     value={draft.name}
@@ -178,43 +240,48 @@ export default function CatalogPage() {
                     placeholder="Exercise name"
                   />
                 </div>
-                <div>
-                  <label className="block text-xs text-text-secondary mb-1">Category</label>
-                  <input
-                    className={INPUT_CLASS}
-                    value={draft.category}
-                    onChange={(e) => updateDraft({ category: e.target.value })}
-                    placeholder="e.g. Barbell, Bodyweight"
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs text-text-secondary mb-1 font-medium uppercase tracking-wider">Category</label>
+                    <input
+                      className={INPUT_CLASS}
+                      value={draft.category}
+                      onChange={(e) => updateDraft({ category: e.target.value })}
+                      placeholder="e.g. Barbell, Bodyweight"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-text-secondary mb-1 font-medium uppercase tracking-wider">
+                      Subcategory <span className="text-text-secondary/60">(optional)</span>
+                    </label>
+                    <input
+                      className={INPUT_CLASS}
+                      value={draft.subcategory ?? ""}
+                      onChange={(e) => updateDraft({ subcategory: e.target.value || undefined })}
+                      placeholder="e.g. Lower Body, Push"
+                    />
+                  </div>
                 </div>
                 <div>
-                  <label className="block text-xs text-text-secondary mb-1">
-                    Subcategory{" "}
-                    <span className="text-text-secondary/60">(optional)</span>
+                  <label className="block text-xs text-text-secondary mb-1 font-medium uppercase tracking-wider">
+                    Scoring Method
                   </label>
-                  <input
+                  <select
                     className={INPUT_CLASS}
-                    value={draft.subcategory ?? ""}
-                    onChange={(e) => updateDraft({ subcategory: e.target.value || undefined })}
-                    placeholder="e.g. Lower Body, Push"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-text-secondary mb-1">
-                    Scoring{" "}
-                    <span className="text-text-secondary/60">(optional)</span>
-                  </label>
-                  <input
-                    className={INPUT_CLASS}
-                    value={draft.scoring ?? ""}
-                    onChange={(e) => updateDraft({ scoring: e.target.value || undefined })}
-                    placeholder="e.g. weight, reps, time"
-                  />
+                    value={draft.scoring ?? "weight"}
+                    onChange={(e) => updateDraft({ scoring: e.target.value as BenchmarkScoringType })}
+                  >
+                    {SCORING_OPTIONS.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 {isNew && (
                   <div className="bg-navy/5 rounded-sm px-3 py-2 text-xs text-text-secondary">
                     ID will be auto-generated:{" "}
-                    <span className="font-mono text-navy">
+                    <span className="font-mono text-navy font-bold">
                       {slugify(draft.name) || "..."}
                     </span>
                   </div>

@@ -1,5 +1,4 @@
-import type { ProgramExercise } from "./types";
-import { encodeExerciseValue, decodeExerciseValue } from "./types";
+import { encodeExerciseValue, decodeExerciseValue, BenchmarkScoringType, ProgramExercise } from "./types";
 
 // Re-export shared types from domain/types so consumers can import from admin-types
 export type {
@@ -12,6 +11,7 @@ export type {
   ProgramPhaseAdjustmentSettings,
   Program,
   WOD,
+  BenchmarkScoringType,
 } from "./types";
 
 export { encodeExerciseValue, decodeExerciseValue } from "./types";
@@ -100,7 +100,7 @@ export interface CatalogExercise {
   name: string;
   category: string;
   subcategory?: string;
-  scoring?: string;
+  scoring?: BenchmarkScoringType;
 }
 
 export interface AdminUser {
@@ -131,3 +131,4 @@ export interface AdminSettings {
   };
   featureFlags: Record<string, boolean>;
 }
+

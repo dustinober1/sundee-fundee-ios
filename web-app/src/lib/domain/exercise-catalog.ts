@@ -25,6 +25,9 @@ export const WEIGHTLIFTING_EXERCISES: WeightliftingEntry[] = [
   { id: "Box Squat",             category: "Squat" },
   { id: "Pause Squat",           category: "Squat" },
   { id: "Goblet Squat",          category: "Squat" },
+  { id: "Leg Press",             category: "Squat" },
+  { id: "Hack Squat",            category: "Squat" },
+  { id: "Leg Extension",         category: "Squat" },
   // Hip Hinge
   { id: "Conventional Deadlift (No Straps)",   category: "Hip Hinge" },
   { id: "Conventional Deadlift (With Straps)", category: "Hip Hinge" },
@@ -36,13 +39,20 @@ export const WEIGHTLIFTING_EXERCISES: WeightliftingEntry[] = [
   { id: "Trap Bar Deadlift (With Straps)",     category: "Hip Hinge" },
   { id: "Good Morning",          category: "Hip Hinge" },
   { id: "Hip Thrust",            category: "Hip Hinge" },
+  { id: "Leg Curl (Lying)",      category: "Hip Hinge" },
+  { id: "Leg Curl (Seated)",     category: "Hip Hinge" },
+  { id: "Glute Ham Raise",       category: "Hip Hinge" },
   // Press
   { id: "Flat Barbell Bench Press",    category: "Press" },
   { id: "Incline Barbell Bench Press", category: "Press" },
+  { id: "Decline Barbell Bench Press", category: "Press" },
   { id: "Strict Press",                category: "Press" },
   { id: "Push Press",                  category: "Press" },
   { id: "Dumbbell Bench Press",        category: "Press" },
+  { id: "Dumbbell Incline Press",      category: "Press" },
   { id: "Dumbbell Overhead Press",     category: "Press" },
+  { id: "Dips (Weighted)",             category: "Press" },
+  { id: "Close Grip Bench Press",      category: "Press" },
   // Pull
   { id: "Barbell Row",       category: "Pull" },
   { id: "Pendlay Row",       category: "Pull" },
@@ -50,9 +60,17 @@ export const WEIGHTLIFTING_EXERCISES: WeightliftingEntry[] = [
   { id: "Weighted Pull-Up",  category: "Pull" },
   { id: "Lat Pulldown",      category: "Pull" },
   { id: "Cable Row",         category: "Pull" },
+  { id: "Dumbbell Row",      category: "Pull" },
+  { id: "Face Pull",         category: "Pull" },
+  { id: "Bicep Curl (Barbell)",  category: "Pull" },
+  { id: "Bicep Curl (Dumbbell)", category: "Pull" },
+  { id: "Hammer Curl",           category: "Pull" },
+  { id: "Upright Row",           category: "Pull" },
   // Carry
   { id: "Farmers Carry",   category: "Carry" },
   { id: "Suitcase Carry",  category: "Carry" },
+  { id: "Zercher Carry",   category: "Carry" },
+  { id: "Yoke Walk",       category: "Carry" },
   // Olympic Weightlifting
   { id: "Squat Snatch",    category: "Olympic Weightlifting" },
   { id: "Squat Clean",     category: "Olympic Weightlifting" },
@@ -63,6 +81,8 @@ export const WEIGHTLIFTING_EXERCISES: WeightliftingEntry[] = [
   { id: "Split Jerk",      category: "Olympic Weightlifting" },
   { id: "Push Jerk",       category: "Olympic Weightlifting" },
   { id: "Clean and Jerk",  category: "Olympic Weightlifting" },
+  { id: "Muscle Snatch",   category: "Olympic Weightlifting" },
+  { id: "Muscle Clean",    category: "Olympic Weightlifting" },
 ];
 
 const _weightliftingIDs = new Set(WEIGHTLIFTING_EXERCISES.map((e) => e.id));
@@ -96,6 +116,13 @@ export const CONDITIONING_EXERCISES: ConditioningEntry[] = [
   { id: "Thruster",                defaultScoringType: "reps" },
   { id: "Rowing (Calories)",       defaultScoringType: "reps" },
   { id: "Assault Bike (Calories)", defaultScoringType: "reps" },
+  { id: "SkiErg (Calories)",       defaultScoringType: "reps" },
+  { id: "Box Step-up",             defaultScoringType: "reps" },
+  { id: "Lunges (Alternating)",    defaultScoringType: "reps" },
+  { id: "Wall Walk",               defaultScoringType: "reps" },
+  { id: "Handstand Push-up",       defaultScoringType: "reps" },
+  { id: "GHD Sit-up",              defaultScoringType: "reps" },
+  { id: "V-up",                    defaultScoringType: "reps" },
   // Time-based
   { id: "400m Run",        defaultScoringType: "time" },
   { id: "800m Run",        defaultScoringType: "time" },
@@ -104,7 +131,11 @@ export const CONDITIONING_EXERCISES: ConditioningEntry[] = [
   { id: "500m Row",        defaultScoringType: "time" },
   { id: "2K Row",          defaultScoringType: "time" },
   { id: "1K Assault Bike", defaultScoringType: "time" },
+  { id: "2K SkiErg",       defaultScoringType: "time" },
+  { id: "Plank Hold",      defaultScoringType: "time" },
+  { id: "L-Sit Hold",      defaultScoringType: "time" },
 ];
+
 
 const _conditioningMap = new Map(
   CONDITIONING_EXERCISES.map((e) => [e.id, e.defaultScoringType])
