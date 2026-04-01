@@ -100,7 +100,13 @@ export default function AIWorkoutPage() {
           cyclePhase: cycleAdjustments ? cyclePhase : undefined,
         }),
       });
-      const data = await res.json() as AIWorkoutResponse | { error?: string };
+      const text = await res.text();
+      let data: AIWorkoutResponse | { error?: string };
+      try {
+        data = JSON.parse(text);
+      } catch {
+        throw new Error(`Server returned invalid JSON (${res.status}): ${text.substring(0, 200)}`);
+      }
       if (!res.ok) {
         throw new Error("error" in data && typeof data.error === "string" ? data.error : "Generation failed");
       }
