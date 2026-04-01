@@ -93,7 +93,7 @@ export function SubscriptionCard({
               {hasActivePaidAccess
                 ? "Billing is connected and your entitlement is active."
                 : tier === "free"
-                  ? "Upgrade to unlock Gemini cloud workouts and advanced tools."
+                  ? "Upgrade to unlock AI-enabled workouts and advanced tools."
                   : "Your paid access is not currently active."}
             </p>
             <Link

@@ -1,8 +1,8 @@
 import { Card } from "@/components/ui/card";
-import { FeatureGate } from "@/components/ui/feature-gate";
 import { PageHeader, SectionHeader, ArtDecoRuleSmall, SectionLabel } from "@/components/ui/art-deco";
 import { getAuthUser } from "@/lib/firestore";
 import { getUserProfile, getSubscription } from "./actions";
+import { PlansSection } from "./plans-section";
 import { ProfileForm } from "./profile-form";
 import { SubscriptionCard } from "./subscription-card";
 import { SignOutButton } from "./sign-out-button";
@@ -110,7 +110,7 @@ export default async function SettingsPage() {
         </div>
       </Card>
 
-      <div id="plans">
+      <div>
         <SubscriptionCard
           tier={tier}
           status={(subscriptionData?.status as string | undefined) ?? null}
@@ -123,20 +123,10 @@ export default async function SettingsPage() {
         />
       </div>
 
-      <div className="grid gap-4">
-        <FeatureGate
-          title="Custom Program Builder"
-          description="Create your own training blocks with editable structure and programming tools."
-          minimumTier="plus"
-          unlocked={tier === "plus" || tier === "premium"}
-        />
-        <FeatureGate
-          title="AI Mesocycle Plans"
-          description="Unlock multi-week planning, adaptive coaching memory, and richer AI recommendations."
-          minimumTier="premium"
-          unlocked={tier === "premium"}
-        />
-      </div>
+      <PlansSection
+        currentTier={tier}
+        hasActivePaidAccess={subscriptionData?.hasActivePaidAccess === true}
+      />
 
       {/* Account & Security */}
       <Card>

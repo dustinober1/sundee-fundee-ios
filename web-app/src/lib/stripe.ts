@@ -2,7 +2,7 @@ import Stripe from "stripe";
 import type { SubscriptionStatus, SubscriptionRecord } from "./subscription-state";
 import type { SubscriptionTier } from "./domain";
 
-export const STRIPE_PRICES = {
+const DEFAULT_STRIPE_PRICES = {
   plus: {
     monthly: "price_1TGMEmR3qTJLE6bbfrsZYIJt",
     annual: "price_1TGMEmR3qTJLE6bb2d7Xkocg",
@@ -10,6 +10,17 @@ export const STRIPE_PRICES = {
   premium: {
     monthly: "price_1TGMEnR3qTJLE6bbeooKfY0E",
     annual: "price_1TGMEoR3qTJLE6bbMW01HMya",
+  },
+} as const;
+
+export const STRIPE_PRICES = {
+  plus: {
+    monthly: process.env.STRIPE_PRICE_PLUS_MONTHLY ?? DEFAULT_STRIPE_PRICES.plus.monthly,
+    annual: process.env.STRIPE_PRICE_PLUS_ANNUAL ?? DEFAULT_STRIPE_PRICES.plus.annual,
+  },
+  premium: {
+    monthly: process.env.STRIPE_PRICE_PREMIUM_MONTHLY ?? DEFAULT_STRIPE_PRICES.premium.monthly,
+    annual: process.env.STRIPE_PRICE_PREMIUM_ANNUAL ?? DEFAULT_STRIPE_PRICES.premium.annual,
   },
 } as const;
 

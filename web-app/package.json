@@ -13,7 +13,7 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "@google-cloud/vertexai": "^1.10.3",
+    "@google/genai": "^1.47.0",
     "@serwist/next": "^9.5.7",
     "@tiptap/extension-code-block-lowlight": "^3.21.0",
     "@tiptap/extension-image": "^3.21.0",

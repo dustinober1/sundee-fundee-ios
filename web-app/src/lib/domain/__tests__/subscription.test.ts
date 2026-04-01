@@ -41,13 +41,13 @@ describe("tierDisplayName", () => {
 describe("tierValueProposition", () => {
   it("free tier proposition", () => {
     expect(tierValueProposition("free")).toBe(
-      "Unlimited on-device AI workouts"
+      "Core training tools and cycle-aware guidance"
     );
   });
 
   it("plus tier proposition", () => {
     expect(tierValueProposition("plus")).toBe(
-      "Gemini-powered AI workouts and programming tools"
+      "AI-enabled workouts and programming tools"
     );
   });
 

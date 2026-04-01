@@ -7,12 +7,12 @@ import {
 } from "../ai-generation";
 
 describe("getAIModelConfig", () => {
-  it("maps plus to gemini-flash-lite-latest", () => {
-    expect(getAIModelConfig("plus").model).toBe("gemini-flash-lite-latest");
+  it("maps plus to the default flash-lite model", () => {
+    expect(getAIModelConfig("plus").model).toBe("gemini-2.5-flash-lite");
   });
 
   it("keeps a premium model slot ready", () => {
-    expect(getAIModelConfig("premium").model).toBeTruthy();
+    expect(getAIModelConfig("premium").model).toBe("gemini-2.5-flash");
   });
 });
 

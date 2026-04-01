@@ -39,28 +39,30 @@ export async function POST(req: NextRequest) {
     if (!modelConfig.model) {
       return NextResponse.json({ error: "Cloud AI is not configured for this tier" }, { status: 403 });
     }
+    if (!process.env.GEMINI_API_KEY) {
+      return NextResponse.json({ error: "GEMINI_API_KEY is not configured on the server" }, { status: 500 });
+    }
 
-    const { VertexAI } = await import("@google-cloud/vertexai");
-    const vertexAI = new VertexAI({
-      project: process.env.FIREBASE_PROJECT_ID!,
-      location: "us-central1",
+    const { GoogleGenAI } = await import("@google/genai");
+    const client = new GoogleGenAI({
+      apiKey: process.env.GEMINI_API_KEY,
     });
-    const model = vertexAI.getGenerativeModel({ model: modelConfig.model });
 
     const prompt = buildWorkoutPrompt(requestBody);
     const systemInstruction = buildWorkoutSystemInstruction();
 
-    const result = await model.generateContent({
-      systemInstruction: { role: "system", parts: [{ text: systemInstruction }] },
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
-      generationConfig: {
+    const result = await client.models.generateContent({
+      model: modelConfig.model,
+      contents: prompt,
+      config: {
+        systemInstruction,
         responseMimeType: "application/json",
         temperature: modelConfig.temperature,
         maxOutputTokens: modelConfig.maxOutputTokens,
       },
     });
 
-    const raw = result.response.candidates?.[0]?.content?.parts?.[0]?.text;
+    const raw = typeof result.text === "string" ? result.text : "";
     if (!raw) {
       return NextResponse.json({ error: "No response from AI" }, { status: 502 });
     }
@@ -111,6 +113,9 @@ export async function POST(req: NextRequest) {
       usageDate: getUsageDateKey(),
       userEmail: user.email ?? null,
     });
-    return NextResponse.json({ error: "AI generation failed" }, { status: 500 });
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "AI generation failed" },
+      { status: 500 }
+    );
   }
 }
