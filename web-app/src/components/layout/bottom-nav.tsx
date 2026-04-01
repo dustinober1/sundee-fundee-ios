@@ -25,7 +25,7 @@ export function BottomNav() {
               key={item.href}
               href={item.href}
               className={`flex flex-col items-center gap-1 py-1.5 px-3 transition-colors ${
-                isActive ? "text-gold" : "text-cream/40 hover:text-cream/70"
+                isActive ? "text-gold" : "text-white hover:text-white/80"
               }`}
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={isActive ? 2 : 1.5}>
