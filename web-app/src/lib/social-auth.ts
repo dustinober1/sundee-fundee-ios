@@ -31,8 +31,15 @@ export function clearPendingRedirectProvider(): void {
   window.sessionStorage.removeItem(REDIRECT_PROVIDER_STORAGE_KEY);
 }
 
-function isMobile(): boolean {
-  return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+function shouldFallbackToRedirect(error: unknown): boolean {
+  const code = (error as { code?: string }).code;
+
+  return (
+    code === "auth/popup-blocked" ||
+    code === "auth/popup-closed-by-user" ||
+    code === "auth/cancelled-popup-request" ||
+    code === "auth/operation-not-supported-in-this-environment"
+  );
 }
 
 export async function signInWithGoogle(): Promise<void> {
@@ -45,16 +52,21 @@ export async function signInWithGoogle(): Promise<void> {
   const auth = getFirebaseAuth();
   const provider = new GoogleAuthProvider();
 
-  if (isMobile()) {
+  try {
+    const result = await signInWithPopup(auth, provider);
+    const idToken = await result.user.getIdToken();
+    await syncSessionCookie(idToken);
+    clearPendingRedirectProvider();
+    return;
+  } catch (error) {
+    if (!shouldFallbackToRedirect(error)) {
+      throw error;
+    }
+
     markPendingRedirectProvider(provider.providerId);
     await signInWithRedirect(auth, provider);
-    // Page will reload — AuthProvider handles session sync on return
-    return;
+    // Page will reload — AuthProvider handles session sync on return.
   }
-
-  const result = await signInWithPopup(auth, provider);
-  const idToken = await result.user.getIdToken();
-  await syncSessionCookie(idToken);
 }
 
 export function socialAuthErrorMessage(err: unknown): string {
@@ -68,6 +80,8 @@ export function socialAuthErrorMessage(err: unknown): string {
       return "This sign-in method is not enabled. Please enable it in Firebase Console.";
     case "auth/account-exists-with-different-credential":
       return "An account already exists with this email using a different sign-in method.";
+    case "auth/missing-initial-state":
+      return "We couldn't finish Google sign-in in this browser session. Please try again in Safari, not the installed home screen app.";
     case "auth/session-cookie-sync-failed":
       return (err as Error).message;
     default:
