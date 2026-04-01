@@ -104,7 +104,8 @@ export default function AIWorkoutPage() {
       if (!res.ok) {
         throw new Error("error" in data && typeof data.error === "string" ? data.error : "Generation failed");
       }
-      setWorkout(data);
+      const workoutResponse = data as AIWorkoutResponse;
+      setWorkout(workoutResponse);
       setStep("preview");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to generate workout. Please try again.");
