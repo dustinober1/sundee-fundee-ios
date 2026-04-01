@@ -54,7 +54,7 @@ export function SuggestedWorkoutCard({ program, aiEntitlement }: SuggestedWorkou
       </h3>
       <p className="text-sm text-text-secondary mb-3">
         {aiEntitlement.canUseCloudAI
-          ? `Gemini-powered workout based on your cycle, goals, and equipment. ${aiEntitlement.remainingCloudGenerations}/${aiEntitlement.dailyCloudLimit} remaining today.`
+          ? `AI-powered workout based on your cycle, goals, and equipment. ${aiEntitlement.remainingCloudGenerations}/${aiEntitlement.dailyCloudLimit} remaining today.`
           : aiEntitlement.tier === "free"
             ? "Browse programs tailored to your goals or upgrade for cloud AI workouts."
             : "Your cloud AI limit is reached for today. Browse programs or try again tomorrow."}

@@ -161,7 +161,7 @@ export function dailyCloudAILimit(tier: SubscriptionTier): number {
   switch (tier) {
     case "free":    return 0;
     case "plus":    return 1;
-    case "premium": return 10;
+    case "premium": return 25;
   }
 }
 

@@ -95,7 +95,6 @@ export async function POST(req: NextRequest) {
       ...workout,
       usage: {
         tier: entitlement.tier,
-        model: modelConfig.model,
         generatedToday: usage.count,
         remainingCloudGenerations: Math.max(0, entitlement.dailyCloudLimit - usage.count),
         dailyCloudLimit: entitlement.dailyCloudLimit,

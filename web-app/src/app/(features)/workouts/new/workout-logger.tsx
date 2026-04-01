@@ -9,7 +9,7 @@ import { FormAlert } from "@/components/ui/form-alert";
 import { PageHeader, SectionHeader } from "@/components/ui/art-deco";
 import { saveWorkout } from "../actions";
 import { getErrorMessage } from "@/lib/client-errors";
-import { WeightUnit, toKilograms } from "@/lib/domain";
+import { WeightUnit, toKilograms, fromKilograms } from "@/lib/domain";
 
 interface SetEntry {
   exerciseName: string;
@@ -18,15 +18,44 @@ interface SetEntry {
   completed: boolean;
 }
 
-interface WorkoutLoggerProps {
-  weightUnit: WeightUnit;
+interface AIExercise {
+  name: string;
+  sets: number;
+  reps: string;
+  weightKg?: number;
+  bodyweightOnly: boolean;
 }
 
-export function WorkoutLogger({ weightUnit }: WorkoutLoggerProps) {
+interface WorkoutLoggerProps {
+  weightUnit: WeightUnit;
+  aiExercises?: AIExercise[];
+}
+
+function buildSetsFromAI(exercises: AIExercise[], weightUnit: WeightUnit): SetEntry[] {
+  const entries: SetEntry[] = [];
+  for (const ex of exercises) {
+    for (let s = 0; s < ex.sets; s++) {
+      const displayWeight = ex.weightKg
+        ? String(Math.round(fromKilograms(ex.weightKg, weightUnit)))
+        : "";
+      entries.push({
+        exerciseName: ex.name,
+        reps: ex.reps,
+        weight: displayWeight,
+        completed: false,
+      });
+    }
+  }
+  return entries;
+}
+
+export function WorkoutLogger({ weightUnit, aiExercises }: WorkoutLoggerProps) {
   const router = useRouter();
   const [startTime] = useState(() => Date.now());
   const [elapsed, setElapsed] = useState(0);
-  const [sets, setSets] = useState<SetEntry[]>([]);
+  const [sets, setSets] = useState<SetEntry[]>(() =>
+    aiExercises ? buildSetsFromAI(aiExercises, weightUnit) : []
+  );
   const [currentExercise, setCurrentExercise] = useState("");
   const [effort, setEffort] = useState(5);
   const [notes, setNotes] = useState("");

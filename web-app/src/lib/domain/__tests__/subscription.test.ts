@@ -231,8 +231,8 @@ describe("dailyCloudAILimit", () => {
     expect(dailyCloudAILimit("plus")).toBe(1);
   });
 
-  it("premium → 10", () => {
-    expect(dailyCloudAILimit("premium")).toBe(10);
+  it("premium → 25", () => {
+    expect(dailyCloudAILimit("premium")).toBe(25);
   });
 });
 
@@ -249,16 +249,16 @@ describe("canGenerateCloud", () => {
     expect(canGenerateCloud("plus", 1)).toBe(false);
   });
 
-  it("premium user can generate when generatedToday = 9", () => {
-    expect(canGenerateCloud("premium", 9)).toBe(true);
+  it("premium user can generate when generatedToday = 24", () => {
+    expect(canGenerateCloud("premium", 24)).toBe(true);
   });
 
-  it("premium user cannot generate when generatedToday = 10 (limit reached)", () => {
-    expect(canGenerateCloud("premium", 10)).toBe(false);
+  it("premium user cannot generate when generatedToday = 25 (limit reached)", () => {
+    expect(canGenerateCloud("premium", 25)).toBe(false);
   });
 
   it("premium user cannot generate when generatedToday > limit", () => {
-    expect(canGenerateCloud("premium", 15)).toBe(false);
+    expect(canGenerateCloud("premium", 30)).toBe(false);
   });
 });
 

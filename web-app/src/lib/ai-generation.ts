@@ -50,7 +50,6 @@ export interface AIWorkoutResponse {
   exercises: GeneratedExercise[];
   usage: {
     tier: SubscriptionTier;
-    model: string | null;
     generatedToday: number;
     remainingCloudGenerations: number;
     dailyCloudLimit: number;
@@ -66,12 +65,12 @@ export const AI_MODEL_CONFIG: Record<SubscriptionTier, AIModelConfig> = {
   plus: {
     model: process.env.GEMINI_MODEL ?? "models/gemini-flash-lite-latest",
     temperature: 0.7,
-    maxOutputTokens: 4096,
+    maxOutputTokens: 16384,
   },
   premium: {
-    model: process.env.GEMINI_PREMIUM_MODEL ?? "models/gemini-flash-latest",
+    model: process.env.GEMINI_PREMIUM_MODEL ?? "models/gemini-flash-lite-latest",
     temperature: 0.8,
-    maxOutputTokens: 8192,
+    maxOutputTokens: 16384,
   },
 };
 

@@ -8,11 +8,11 @@ import {
 
 describe("getAIModelConfig", () => {
   it("maps plus to the default flash-lite model", () => {
-    expect(getAIModelConfig("plus").model).toBe("gemini-2.5-flash-lite");
+    expect(getAIModelConfig("plus").model).toBe("models/gemini-flash-lite-latest");
   });
 
-  it("keeps a premium model slot ready", () => {
-    expect(getAIModelConfig("premium").model).toBe("gemini-2.5-flash");
+  it("maps premium to flash-lite by default", () => {
+    expect(getAIModelConfig("premium").model).toBe("models/gemini-flash-lite-latest");
   });
 });
 

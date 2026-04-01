@@ -139,7 +139,6 @@ export default function AIWorkoutPage() {
         <Card className="border-l-[3px] border-l-gold">
           <p className="text-[14px] text-text-secondary italic">{workout.coachingSummary}</p>
           <p className="text-[11px] text-text-secondary mt-2">
-            {workout.usage.model ? `${workout.usage.model} · ` : ""}
             {workout.usage.generatedToday}/{workout.usage.dailyCloudLimit} used today · {workout.usage.remainingCloudGenerations} left
           </p>
         </Card>
@@ -168,7 +167,10 @@ export default function AIWorkoutPage() {
           <Button variant="secondary" fullWidth onClick={() => setStep("questionnaire")}>
             Regenerate
           </Button>
-          <Button fullWidth onClick={() => router.push("/workouts/new")}>
+          <Button fullWidth onClick={() => {
+            const encoded = encodeURIComponent(JSON.stringify(workout.exercises));
+            router.push(`/workouts/new?ai=${encoded}`);
+          }}>
             Start Workout
           </Button>
         </div>
