@@ -64,12 +64,12 @@ export const AI_MODEL_CONFIG: Record<SubscriptionTier, AIModelConfig> = {
     maxOutputTokens: 2048,
   },
   plus: {
-    model: process.env.GEMINI_MODEL ?? "gemini-flash-lite-latest",
+    model: process.env.GEMINI_MODEL ?? "models/gemini-flash-lite-latest",
     temperature: 0.7,
     maxOutputTokens: 2048,
   },
   premium: {
-    model: process.env.GEMINI_PREMIUM_MODEL ?? "gemini-flash-latest",
+    model: process.env.GEMINI_PREMIUM_MODEL ?? "models/gemini-flash-latest",
     temperature: 0.8,
     maxOutputTokens: 3072,
   },
