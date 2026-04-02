@@ -4,7 +4,7 @@ exports.generateWorkout = generateWorkout;
 const vertexai_1 = require("@google-cloud/vertexai");
 async function generateWorkout(projectId, prompt, systemInstruction) {
     const vertexAI = new vertexai_1.VertexAI({ project: projectId, location: "us-central1" });
-    const model = vertexAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const model = vertexAI.getGenerativeModel({ model: "gemini-flash-lite-latest" });
     const result = await model.generateContent({
         systemInstruction: { role: "system", parts: [{ text: systemInstruction }] },
         contents: [{ role: "user", parts: [{ text: prompt }] }],

@@ -21,7 +21,7 @@ export async function generateWorkout(
   systemInstruction: string,
 ): Promise<WorkoutResponse> {
   const vertexAI = new VertexAI({ project: projectId, location: "us-central1" });
-  const model = vertexAI.getGenerativeModel({ model: "gemini-2.0-flash-lite" });
+  const model = vertexAI.getGenerativeModel({ model: "gemini-flash-lite-latest" });
 
   const result = await model.generateContent({
     systemInstruction: { role: "system", parts: [{ text: systemInstruction }] },
