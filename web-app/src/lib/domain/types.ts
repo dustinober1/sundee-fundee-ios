@@ -103,6 +103,7 @@ export interface Program {
   phases: ProgramPhase[];
   weeks: ProgramWeek[];
   cycleAdjustmentProfile?: ProgramCycleAdjustmentProfile;
+  status?: "draft" | "published";
 }
 
 export interface WOD {

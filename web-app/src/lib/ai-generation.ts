@@ -37,6 +37,12 @@ export interface AIModelConfig {
   maxOutputTokens: number;
 }
 
+export interface CatalogEntry {
+  name: string;
+  category: string;
+  equipment?: string;
+}
+
 export interface UserContext {
   experienceLevel?: string;
   primaryGoal?: string;
@@ -47,6 +53,7 @@ export interface UserContext {
     durationSeconds: number;
     exercises: string[];
   }>;
+  catalog?: CatalogEntry[];
 }
 
 export interface AIWorkoutRequest {
@@ -138,12 +145,38 @@ export function buildWorkoutPrompt(request: AIWorkoutRequest): string {
     if (ctx.primaryGoal) lines.push(`Primary goal: ${ctx.primaryGoal.replaceAll("_", " ")}`);
     if (ctx.weightUnit) lines.push(`Preferred weight unit: ${ctx.weightUnit}`);
 
+    if (ctx.catalog && ctx.catalog.length > 0) {
+      lines.push("", "--- EXERCISE CATALOG ---");
+      lines.push("You MUST only select exercises from this list. Do not invent exercises outside this catalog.");
+      lines.push("Available exercises:");
+      for (const ex of ctx.catalog) {
+        const parts = [`  - ${ex.name}`];
+        if (ex.category) parts.push(`(${ex.category})`);
+        if (ex.equipment) parts.push(`[${ex.equipment}]`);
+        lines.push(parts.join(" "));
+      }
+    }
+
     if (ctx.maxes && ctx.maxes.length > 0) {
-      lines.push("", "Known 1RM maxes (use these to prescribe weights via percentages):");
+      lines.push("", "--- KNOWN 1RM MAXES ---");
+      lines.push("Use these to prescribe weight as a percentage of 1RM.");
       for (const m of ctx.maxes) {
         lines.push(`  - ${m.exerciseId}: ${m.weightKg} kg`);
       }
-      lines.push("When the athlete has a known max for an exercise, prescribe weightKg based on appropriate %1RM for the rep range.");
+      lines.push("");
+      lines.push("Percentage guidelines by rep range:");
+      lines.push("  1-3 reps: 85% 1RM");
+      lines.push("  4-5 reps: 80% 1RM");
+      lines.push("  6-8 reps: 70% 1RM");
+      lines.push("  9-12 reps: 65% 1RM");
+      lines.push("  12+ reps: 60% 1RM");
+      lines.push("Adjust percentages based on energy level and cycle phase:");
+      lines.push("  - Low energy: reduce by ~15%");
+      lines.push("  - High energy: increase by ~5%");
+      lines.push("  - Menstrual phase: reduce by ~10%");
+      lines.push("  - Ovulation phase: increase by ~12%");
+      lines.push("  - Luteal phase: reduce by ~3%");
+      lines.push("Calculate the final weightKg = 1RM × percentage × adjustments, rounded to nearest 2.5 kg.");
     }
 
     if (ctx.recentWorkouts && ctx.recentWorkouts.length > 0) {
@@ -160,8 +193,8 @@ export function buildWorkoutPrompt(request: AIWorkoutRequest): string {
     "Return a JSON object with:",
     '- "coachingSummary": 2-3 short sentences explaining the workout design and any cycle/energy adjustments',
     '- "exercises": an array of exercises appropriate for the time available',
-    'Each exercise must include "name", "sets", "reps", and "bodyweightOnly".',
-    'Optional fields: "weightKg" (in kg), "restMinutes", "notes".',
+    'Each exercise must include "name" (must match a catalog exercise exactly), "sets", "reps", and "bodyweightOnly".',
+    'Optional fields: "weightKg" (in kg, calculated from %1RM when a max is known), "restMinutes", "notes".',
     'Use reps as a string like "5", "8-10", or "AMRAP".',
     "Keep the workout realistic for the requested time and equipment.",
     "Vary exercise selection from recent history when possible.",

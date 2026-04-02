@@ -59,6 +59,7 @@ function newProgram(): Program {
     difficulty: "Intermediate",
     phases: [],
     weeks: [],
+    status: "draft",
   };
 }
 
@@ -412,6 +413,21 @@ export default function ProgramsPage() {
     { key: "category", header: "Category" },
     { key: "durationWeeks", header: "Duration (wks)" },
     { key: "difficulty", header: "Difficulty" },
+    {
+      key: "status",
+      header: "Status",
+      render: (p) => (
+        <span
+          className={`text-[10px] px-2 py-0.5 rounded-full font-mono tracking-wider uppercase ${
+            p.status === "published"
+              ? "bg-green-500/10 text-green-500 border border-green-500/20"
+              : "bg-text-secondary/10 text-text-secondary border border-text-secondary/20"
+          }`}
+        >
+          {p.status || "draft"}
+        </span>
+      ),
+    },
   ];
 
   const panelTitle = isNew ? "New Program" : selected ? selected.name || "Edit Program" : "";
@@ -474,9 +490,30 @@ export default function ProgramsPage() {
               <div className="space-y-4">
                 {/* Basic Info */}
                 <section>
-                  <p className="font-mono text-[11px] tracking-wider uppercase text-gold mb-2">
-                    Basic Info
-                  </p>
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="font-mono text-[11px] tracking-wider uppercase text-gold">
+                      Basic Info
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-mono uppercase text-text-secondary">
+                        {draft.status || "draft"}
+                      </span>
+                      <button
+                        onClick={() =>
+                          updateDraft({
+                            status: draft.status === "published" ? "draft" : "published",
+                          })
+                        }
+                        className={`text-[10px] px-2 py-0.5 rounded-full font-mono tracking-wider uppercase border transition-colors ${
+                          draft.status === "published"
+                            ? "border-error text-error hover:bg-error/10"
+                            : "border-green-500 text-green-500 hover:bg-green-500/10"
+                        }`}
+                      >
+                        {draft.status === "published" ? "Unpublish" : "Publish"}
+                      </button>
+                    </div>
+                  </div>
                   <div className="space-y-2">
                     <div>
                       <label className="block text-xs text-text-secondary mb-1">Name</label>

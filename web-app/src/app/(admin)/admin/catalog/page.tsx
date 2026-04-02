@@ -7,7 +7,7 @@ import { DetailPanel } from "@/components/admin/detail-panel";
 import { EmptyState } from "@/components/admin/empty-state";
 import { ConfirmDialog } from "@/components/admin/confirm-dialog";
 import { Button } from "@/components/ui/button";
-import type { CatalogExercise, BenchmarkScoringType } from "@/lib/domain/admin-types";
+import type { CatalogExercise, BenchmarkScoringType, CatalogEquipment } from "@/lib/domain/admin-types";
 import { slugify } from "@/lib/domain/admin-types";
 import { WEIGHTLIFTING_EXERCISES, CONDITIONING_EXERCISES } from "@/lib/domain/exercise-catalog";
 
@@ -21,6 +21,18 @@ const SCORING_OPTIONS: { value: BenchmarkScoringType; label: string }[] = [
   { value: "distance", label: "Distance" },
   { value: "height", label: "Height" },
   { value: "roundsAndReps", label: "Rounds & Reps" },
+];
+
+const EQUIPMENT_OPTIONS: { value: CatalogEquipment; label: string }[] = [
+  { value: "barbell", label: "Barbell" },
+  { value: "dumbbell", label: "Dumbbell" },
+  { value: "kettlebell", label: "Kettlebell" },
+  { value: "machine", label: "Machine" },
+  { value: "cable", label: "Cable" },
+  { value: "bodyweight", label: "Bodyweight" },
+  { value: "band", label: "Band" },
+  { value: "cardio", label: "Cardio" },
+  { value: "other", label: "Other" },
 ];
 
 function newExercise(): CatalogExercise {
@@ -178,7 +190,30 @@ export default function CatalogPage() {
   const columns: Column<CatalogExercise>[] = [
     { key: "name", header: "Name", sortable: true },
     { key: "category", header: "Category", sortable: true },
-    { key: "subcategory", header: "Subcategory" },
+    {
+      key: "equipment",
+      header: "Equipment",
+      sortable: true,
+      render: (row) => (
+        <select
+          className="bg-card-bg border border-separator rounded-sm px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-orange/40"
+          value={row.equipment ?? ""}
+          onClick={(e) => e.stopPropagation()}
+          onChange={(e) =>
+            handleQuickUpdate(row.id, {
+              equipment: (e.target.value || undefined) as CatalogEquipment | undefined,
+            })
+          }
+        >
+          <option value="">—</option>
+          {EQUIPMENT_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+      ),
+    },
     {
       key: "scoring",
       header: "Scoring Method",
@@ -298,21 +333,40 @@ export default function CatalogPage() {
                     />
                   </div>
                 </div>
-                <div>
-                  <label className="block text-xs text-text-secondary mb-1 font-medium uppercase tracking-wider">
-                    Scoring Method
-                  </label>
-                  <select
-                    className={INPUT_CLASS}
-                    value={draft.scoring ?? "weight"}
-                    onChange={(e) => updateDraft({ scoring: e.target.value as BenchmarkScoringType })}
-                  >
-                    {SCORING_OPTIONS.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs text-text-secondary mb-1 font-medium uppercase tracking-wider">
+                      Equipment
+                    </label>
+                    <select
+                      className={INPUT_CLASS}
+                      value={draft.equipment ?? ""}
+                      onChange={(e) => updateDraft({ equipment: (e.target.value || undefined) as CatalogEquipment | undefined })}
+                    >
+                      <option value="">— Select —</option>
+                      {EQUIPMENT_OPTIONS.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs text-text-secondary mb-1 font-medium uppercase tracking-wider">
+                      Scoring Method
+                    </label>
+                    <select
+                      className={INPUT_CLASS}
+                      value={draft.scoring ?? "weight"}
+                      onChange={(e) => updateDraft({ scoring: e.target.value as BenchmarkScoringType })}
+                    >
+                      {SCORING_OPTIONS.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
                 {isNew && (
                   <div className="bg-navy/5 rounded-sm px-3 py-2 text-xs text-text-secondary">

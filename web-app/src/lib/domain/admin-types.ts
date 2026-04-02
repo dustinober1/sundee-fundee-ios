@@ -95,11 +95,23 @@ export interface SupportArticle {
   updatedAt: string;
 }
 
+export type CatalogEquipment =
+  | "barbell"
+  | "dumbbell"
+  | "kettlebell"
+  | "machine"
+  | "cable"
+  | "bodyweight"
+  | "band"
+  | "cardio"
+  | "other";
+
 export interface CatalogExercise {
   id: string;
   name: string;
   category: string;
   subcategory?: string;
+  equipment?: CatalogEquipment;
   scoring?: BenchmarkScoringType;
 }
 

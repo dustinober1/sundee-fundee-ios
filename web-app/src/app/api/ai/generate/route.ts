@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthUser, userCollection, userDoc } from "@/lib/firestore";
+import { db, getAuthUser, userCollection, userDoc } from "@/lib/firestore";
 import {
   buildWorkoutPrompt,
   buildWorkoutSystemInstruction,
   getAIModelConfig,
   parseAIWorkoutResponse,
   validateAIWorkoutRequest,
+  type CatalogEntry,
   type UserContext,
 } from "@/lib/ai-generation";
 import {
@@ -14,15 +15,47 @@ import {
   resolveEntitlement,
 } from "@/lib/subscription-state";
 
-async function fetchUserContext(uid: string): Promise<UserContext> {
+// Map user equipment selection to catalog equipment types
+const EQUIPMENT_FILTER: Record<string, string[]> = {
+  full_gym: [], // no filter — all equipment available
+  home_dumbbells: ["dumbbell", "kettlebell", "bodyweight", "band"],
+  bodyweight_only: ["bodyweight"],
+  outdoor: ["bodyweight", "band", "cardio"],
+};
+
+async function fetchCatalog(equipmentAccess: string): Promise<CatalogEntry[]> {
+  const snapshot = await db.collection("exerciseCatalog").orderBy("name", "asc").get();
+  const allowedEquipment = EQUIPMENT_FILTER[equipmentAccess];
+
+  return snapshot.docs
+    .map((doc) => {
+      const data = doc.data();
+      return {
+        name: data.name as string,
+        category: (data.category as string) ?? "",
+        equipment: (data.equipment as string) ?? undefined,
+      };
+    })
+    .filter((ex) => {
+      // No filter for full_gym
+      if (!allowedEquipment || allowedEquipment.length === 0) return true;
+      // Include exercises that match allowed equipment or have no equipment set
+      return !ex.equipment || allowedEquipment.includes(ex.equipment);
+    });
+}
+
+async function fetchUserContext(uid: string, equipmentAccess: string): Promise<UserContext> {
   const ctx: UserContext = {};
 
-  // Fetch profile, maxes, and recent workouts in parallel
-  const [profileSnap, maxesSnap, workoutsSnap] = await Promise.all([
+  // Fetch profile, maxes, recent workouts, and catalog in parallel
+  const [profileSnap, maxesSnap, workoutsSnap, catalog] = await Promise.all([
     userDoc(uid).get(),
     userCollection(uid, "oneRepMaxes").orderBy("date", "desc").limit(20).get(),
     userCollection(uid, "completedWorkouts").orderBy("completedAt", "desc").limit(5).get(),
+    fetchCatalog(equipmentAccess),
   ]);
+
+  ctx.catalog = catalog;
 
   if (profileSnap.exists) {
     const profile = profileSnap.data() as Record<string, unknown>;
@@ -87,8 +120,8 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    // Fetch user context for richer prompts
-    const userContext = await fetchUserContext(user.uid);
+    // Fetch user context for richer prompts (filtered by equipment selection)
+    const userContext = await fetchUserContext(user.uid, requestBody.equipment);
     requestBody = { ...requestBody, userContext };
 
     const modelConfig = getAIModelConfig(entitlement.tier);
