@@ -30,7 +30,9 @@ export default function SignInPage() {
       }
     }
 
-    handleRedirectResult();
+    handleRedirectResult().catch((err) => {
+      console.error("[auth] Redirect completion failed", err);
+    });
   }, [router]);
 
   async function handleEmailSignIn(e: React.FormEvent) {

@@ -31,7 +31,9 @@ export default function SignUpPage() {
       }
     }
 
-    handleRedirectResult();
+    handleRedirectResult().catch((err) => {
+      console.error("[auth] Redirect completion failed", err);
+    });
   }, [router]);
 
   async function handleEmailSignUp(e: React.FormEvent) {
@@ -41,9 +43,12 @@ export default function SignUpPage() {
     try {
       const { createUserWithEmailAndPassword, updateProfile } = await import("firebase/auth");
       const { getFirebaseAuth } = await import("@/lib/firebase");
+      const { syncSessionCookie } = await import("@/lib/social-auth");
       const auth = getFirebaseAuth();
       const { user } = await createUserWithEmailAndPassword(auth, email, password);
       if (name) await updateProfile(user, { displayName: name });
+      const idToken = await user.getIdToken();
+      await syncSessionCookie(idToken);
       router.push("/dashboard");
     } catch (err) {
       const code = (err as { code?: string }).code;

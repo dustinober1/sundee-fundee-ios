@@ -61,23 +61,27 @@ export async function completeSocialRedirect(): Promise<RedirectCompletionResult
     pendingProvider,
   });
 
-  try {
-    const result = await getRedirectResult(auth);
-    console.info("[auth] getRedirectResult resolved", {
-      hasUser: Boolean(result?.user),
-      providerId: result?.providerId ?? null,
-    });
+  // Only call getRedirectResult when there's a pending social redirect.
+  // In PWA standalone mode, getRedirectResult can hang indefinitely without one.
+  if (pendingProvider) {
+    try {
+      const result = await getRedirectResult(auth);
+      console.info("[auth] getRedirectResult resolved", {
+        hasUser: Boolean(result?.user),
+        providerId: result?.providerId ?? null,
+      });
 
-    if (result?.user) {
-      const idToken = await result.user.getIdToken();
-      await syncSessionCookie(idToken);
+      if (result?.user) {
+        const idToken = await result.user.getIdToken();
+        await syncSessionCookie(idToken);
+        clearPendingRedirectProvider();
+        return { status: "success" };
+      }
+    } catch (err) {
+      console.error("[auth] getRedirectResult failed", err);
       clearPendingRedirectProvider();
-      return { status: "success" };
+      return { status: "error", message: socialAuthErrorMessage(err) };
     }
-  } catch (err) {
-    console.error("[auth] getRedirectResult failed", err);
-    clearPendingRedirectProvider();
-    return { status: "error", message: socialAuthErrorMessage(err) };
   }
 
   await waitForAuthState(auth, onAuthStateChanged);
@@ -86,10 +90,16 @@ export async function completeSocialRedirect(): Promise<RedirectCompletionResult
   });
 
   if (auth.currentUser) {
-    const idToken = await auth.currentUser.getIdToken();
-    await syncSessionCookie(idToken);
-    clearPendingRedirectProvider();
-    return { status: "success" };
+    try {
+      const idToken = await auth.currentUser.getIdToken();
+      await syncSessionCookie(idToken);
+      clearPendingRedirectProvider();
+      return { status: "success" };
+    } catch (err) {
+      console.error("[auth] Failed to sync existing session", err);
+      // Auth state is stale — let the user sign in manually
+      return { status: "idle" };
+    }
   }
 
   if (pendingProvider) {
