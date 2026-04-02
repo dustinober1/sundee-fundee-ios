@@ -1,7 +1,7 @@
 import Foundation
 
 // MARK: - Exercise Type
-public enum ExerciseType: Equatable, Codable {
+public enum ExerciseType: Equatable, Codable, Sendable {
     case fixed
     case amrap
     case range(min: Int, max: Int)
@@ -22,7 +22,7 @@ public enum ExerciseType: Equatable, Codable {
 }
 
 // MARK: - Exercise Category
-public enum ExerciseCategory: String, Equatable, Codable, CaseIterable {
+public enum ExerciseCategory: String, Equatable, Codable, CaseIterable, Sendable {
     case compound = "Compound"
     case isolation = "Isolation"
     case accessory = "Accessory"
@@ -31,7 +31,7 @@ public enum ExerciseCategory: String, Equatable, Codable, CaseIterable {
 }
 
 // MARK: - Exercise Set
-public struct ExerciseSet: Equatable, Codable, Identifiable {
+public struct ExerciseSet: Equatable, Codable, Identifiable, Sendable {
     public let id: String
     public var reps: Int
     public var prescribedWeight: Double
@@ -60,7 +60,7 @@ public struct ExerciseSet: Equatable, Codable, Identifiable {
 }
 
 // MARK: - Exercise
-public struct Exercise: Equatable, Codable, Identifiable {
+public struct Exercise: Equatable, Codable, Identifiable, Sendable {
     public let id: String
     public var name: String
     public var category: ExerciseCategory
