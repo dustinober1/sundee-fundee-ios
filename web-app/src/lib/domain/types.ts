@@ -38,6 +38,7 @@ export function decodeExerciseValue(raw: unknown): ExerciseValue {
 }
 
 export function encodeExerciseValue(ev: ExerciseValue): unknown {
+  if (!ev || typeof ev !== "object") return null;
   switch (ev.type) {
     case "fixed": return ev.value;
     case "amrap": return "AMRAP";

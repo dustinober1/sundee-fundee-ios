@@ -2,16 +2,32 @@ import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/admin-auth";
 import { adminCollection } from "@/lib/admin-firestore";
-import { exerciseToFirestore } from "@/lib/domain/admin-types";
+import { exerciseToFirestore, exerciseFromFirestore } from "@/lib/domain/admin-types";
 import type { ProgramWeek, ProgramSession } from "@/lib/domain/admin-types";
 
 export async function GET() {
   try {
     await requireAdmin();
     const snapshot = await adminCollection("programs").orderBy("name", "asc").get();
-    const programs = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    const programs = snapshot.docs.map((doc) => {
+      const data = doc.data() as any;
+      
+      // Sanitize the data for the UI
+      if (data.weeks) {
+        data.weeks = data.weeks.map((week: any) => ({
+          ...week,
+          sessions: (week.sessions || []).map((session: any) => ({
+            ...session,
+            exercises: (session.exercises || []).map((ex: any) => exerciseFromFirestore(ex)),
+          })),
+        }));
+      }
+      
+      return { id: doc.id, ...data };
+    });
     return NextResponse.json(programs);
   } catch (e) {
+    console.error("[Programs GET] Error:", e);
     const msg = (e as Error).message;
     if (msg === "UNAUTHORIZED") return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     if (msg === "FORBIDDEN") return NextResponse.json({ error: "Forbidden" }, { status: 403 });

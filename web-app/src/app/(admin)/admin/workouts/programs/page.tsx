@@ -79,6 +79,7 @@ function parseExerciseValue(val: string): ProgramExercise["sets"] {
 }
 
 function exerciseValueDisplay(ev: ProgramExercise["sets"]): string {
+  if (!ev) return "";
   if (ev.type === "fixed") return String(ev.value);
   if (ev.type === "amrap") return "AMRAP";
   if (ev.type === "range") return `${ev.low}-${ev.high}`;
@@ -94,6 +95,13 @@ interface ExerciseRowProps {
 }
 
 function ExerciseRow({ ex, onChange, onRemove, label }: ExerciseRowProps) {
+  // Ensure we have valid values for the inputs even if data is missing
+  const safeEx = {
+    ...ex,
+    sets: ex.sets || { type: "fixed", value: 0 },
+    reps: ex.reps || { type: "fixed", value: 0 },
+  };
+
   return (
     <div className="border border-separator/60 rounded-sm p-2 mb-2 bg-navy/2">
       <div className="flex items-center justify-between mb-1">
@@ -106,21 +114,21 @@ function ExerciseRow({ ex, onChange, onRemove, label }: ExerciseRowProps) {
         <div className="col-span-2">
           <input
             className={INPUT_CLASS}
-            value={ex.exercise}
-            onChange={(e) => onChange({ ...ex, exercise: e.target.value })}
+            value={safeEx.exercise || ""}
+            onChange={(e) => onChange({ ...safeEx, exercise: e.target.value })}
             placeholder="Exercise name"
           />
         </div>
         <input
           className={INPUT_CLASS}
-          value={exerciseValueDisplay(ex.sets)}
-          onChange={(e) => onChange({ ...ex, sets: parseExerciseValue(e.target.value) })}
+          value={exerciseValueDisplay(safeEx.sets)}
+          onChange={(e) => onChange({ ...safeEx, sets: parseExerciseValue(e.target.value) })}
           placeholder="Sets (e.g. 3)"
         />
         <input
           className={INPUT_CLASS}
-          value={exerciseValueDisplay(ex.reps)}
-          onChange={(e) => onChange({ ...ex, reps: parseExerciseValue(e.target.value) })}
+          value={exerciseValueDisplay(safeEx.reps)}
+          onChange={(e) => onChange({ ...safeEx, reps: parseExerciseValue(e.target.value) })}
           placeholder="Reps (e.g. 8-12)"
         />
         <input
@@ -129,9 +137,9 @@ function ExerciseRow({ ex, onChange, onRemove, label }: ExerciseRowProps) {
           max={1}
           step={0.01}
           className={INPUT_CLASS}
-          value={ex.percent1RM ?? ""}
+          value={safeEx.percent1RM ?? ""}
           onChange={(e) =>
-            onChange({ ...ex, percent1RM: e.target.value ? Number(e.target.value) : undefined })
+            onChange({ ...safeEx, percent1RM: e.target.value ? Number(e.target.value) : undefined })
           }
           placeholder="% 1RM (0-1)"
         />
@@ -140,25 +148,25 @@ function ExerciseRow({ ex, onChange, onRemove, label }: ExerciseRowProps) {
           min={0}
           step={0.5}
           className={INPUT_CLASS}
-          value={ex.restMinutes ?? ""}
+          value={safeEx.restMinutes ?? ""}
           onChange={(e) =>
-            onChange({ ...ex, restMinutes: e.target.value ? Number(e.target.value) : undefined })
+            onChange({ ...safeEx, restMinutes: e.target.value ? Number(e.target.value) : undefined })
           }
           placeholder="Rest min"
         />
         <div className="col-span-2">
           <input
             className={INPUT_CLASS}
-            value={ex.notes ?? ""}
-            onChange={(e) => onChange({ ...ex, notes: e.target.value })}
+            value={safeEx.notes ?? ""}
+            onChange={(e) => onChange({ ...safeEx, notes: e.target.value })}
             placeholder="Notes"
           />
         </div>
         <div className="col-span-2 flex items-center gap-2">
           <input
             type="checkbox"
-            checked={ex.bodyweightOnly ?? false}
-            onChange={(e) => onChange({ ...ex, bodyweightOnly: e.target.checked })}
+            checked={safeEx.bodyweightOnly ?? false}
+            onChange={(e) => onChange({ ...safeEx, bodyweightOnly: e.target.checked })}
           />
           <span className="text-xs text-text-secondary">Bodyweight only</span>
         </div>
