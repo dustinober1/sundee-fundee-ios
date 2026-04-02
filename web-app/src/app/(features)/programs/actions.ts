@@ -24,9 +24,16 @@ export async function getProgramById(id: string): Promise<Program | null> {
   if (data.weeks) {
     data.weeks = data.weeks.map((week: any) => ({
       ...week,
-      sessions: week.sessions.map((session: any) => ({
+      sessions: (week.sessions ?? []).map((session: any) => ({
         ...session,
-        exercises: session.exercises.map((ex: any) => exerciseFromFirestore(ex)),
+        exercises: (Array.isArray(session.exercises) ? session.exercises : []).map((ex: any) => {
+          try {
+            return exerciseFromFirestore(ex);
+          } catch (error) {
+            console.error("Error processing exercise:", error);
+            return null;
+          }
+        }).filter((ex: any) => ex !== null),
       })),
     }));
   }
@@ -84,13 +91,16 @@ export async function getSessionForEnrollment(enrollmentId: string) {
   const session = week.sessions?.[dayIndex];
   if (!session) return null;
 
+  // Ensure exercises array exists (default to empty array if undefined)
+  const exercises = Array.isArray(session.exercises) ? session.exercises : [];
+
   return {
     programId: enrollment.programId,
     programName: program.name,
     enrollmentId: enrollDoc.id,
     sessionId: session.sessionId,
     sessionName: session.sessionName,
-    exercises: session.exercises,
+    exercises,
   };
 }
 
