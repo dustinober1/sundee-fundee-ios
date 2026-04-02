@@ -26,9 +26,17 @@ interface AIExercise {
   bodyweightOnly: boolean;
 }
 
+interface ProgramContext {
+  programId: string;
+  sessionId: string;
+  sessionName: string;
+  enrollmentId: string;
+}
+
 interface WorkoutLoggerProps {
   weightUnit: WeightUnit;
   aiExercises?: AIExercise[];
+  programContext?: ProgramContext;
 }
 
 function buildSetsFromAI(exercises: AIExercise[], weightUnit: WeightUnit): SetEntry[] {
@@ -49,7 +57,7 @@ function buildSetsFromAI(exercises: AIExercise[], weightUnit: WeightUnit): SetEn
   return entries;
 }
 
-export function WorkoutLogger({ weightUnit, aiExercises }: WorkoutLoggerProps) {
+export function WorkoutLogger({ weightUnit, aiExercises, programContext }: WorkoutLoggerProps) {
   const router = useRouter();
   const [startTime] = useState(() => Date.now());
   const [elapsed, setElapsed] = useState(0);
@@ -91,6 +99,8 @@ export function WorkoutLogger({ weightUnit, aiExercises }: WorkoutLoggerProps) {
     setSaving(true);
     try {
       await saveWorkout({
+        programId: programContext?.programId,
+        sessionId: programContext?.sessionId,
         durationSeconds: Math.floor(elapsed / 1000),
         perceivedEffort: effort,
         notes: notes || undefined,
@@ -118,8 +128,8 @@ export function WorkoutLogger({ weightUnit, aiExercises }: WorkoutLoggerProps) {
   return (
     <div className="flex flex-col gap-8 pt-4">
       <PageHeader
-        label="In Progress"
-        title="Log Workout"
+        label={programContext ? programContext.sessionName : "In Progress"}
+        title={programContext ? "Program Workout" : "Log Workout"}
         action={
           <div className="bg-navy/5 border border-gold/20 rounded-button px-4 py-2">
             <span className="font-mono text-xl text-orange font-bold">{formatTime(elapsed)}</span>

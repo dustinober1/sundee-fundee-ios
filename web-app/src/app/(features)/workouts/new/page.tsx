@@ -1,9 +1,20 @@
 import { getUserProfile } from "../../settings/actions";
-import { WeightUnit } from "@/lib/domain";
+import { WeightUnit, exerciseValueToString } from "@/lib/domain";
+import type { ExerciseValue } from "@/lib/domain";
+import { getSessionForEnrollment } from "../../programs/actions";
 import { WorkoutLogger } from "./workout-logger";
 
 interface NewWorkoutPageProps {
-  searchParams: Promise<{ ai?: string }>;
+  searchParams: Promise<{ ai?: string; enrollment?: string }>;
+}
+
+function exerciseValueToNumber(ev: ExerciseValue): number {
+  switch (ev.type) {
+    case "fixed": return ev.value;
+    case "range": return ev.low;
+    case "amrap": return 1;
+    case "text": return 1;
+  }
 }
 
 export default async function NewWorkoutPage({ searchParams }: NewWorkoutPageProps) {
@@ -19,7 +30,30 @@ export default async function NewWorkoutPage({ searchParams }: NewWorkoutPagePro
     bodyweightOnly: boolean;
   }> | undefined;
 
-  if (params.ai) {
+  let programContext: {
+    programId: string;
+    sessionId: string;
+    sessionName: string;
+    enrollmentId: string;
+  } | undefined;
+
+  if (params.enrollment) {
+    const session = await getSessionForEnrollment(params.enrollment);
+    if (session) {
+      programContext = {
+        programId: session.programId,
+        sessionId: session.sessionId,
+        sessionName: session.sessionName,
+        enrollmentId: session.enrollmentId,
+      };
+      aiExercises = session.exercises.map((ex) => ({
+        name: ex.exercise,
+        sets: exerciseValueToNumber(ex.sets),
+        reps: exerciseValueToString(ex.reps),
+        bodyweightOnly: ex.bodyweightOnly ?? false,
+      }));
+    }
+  } else if (params.ai) {
     try {
       aiExercises = JSON.parse(decodeURIComponent(params.ai));
     } catch {
@@ -27,5 +61,5 @@ export default async function NewWorkoutPage({ searchParams }: NewWorkoutPagePro
     }
   }
 
-  return <WorkoutLogger weightUnit={weightUnit} aiExercises={aiExercises} />;
+  return <WorkoutLogger weightUnit={weightUnit} aiExercises={aiExercises} programContext={programContext} />;
 }

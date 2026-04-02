@@ -36,7 +36,7 @@ export function SuggestedWorkoutCard({ program, aiEntitlement }: SuggestedWorkou
           />
         </div>
         <Link
-          href="/workouts"
+          href={`/workouts/new?enrollment=${program.enrollmentId}`}
           className="block w-full bg-orange text-cream text-center py-3 rounded-button font-semibold hover:opacity-90 transition-opacity shadow-md shadow-orange/20"
         >
           Start Session

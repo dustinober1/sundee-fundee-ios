@@ -21,6 +21,7 @@ export interface DashboardStats {
 }
 
 export interface ActiveProgram{
+  enrollmentId: string;
   programId: string;
   programName: string;
   currentWeek: number;
@@ -173,6 +174,7 @@ export async function getActiveProgram(): Promise<ActiveProgram | null>{
   const progressPercent = Math.round((data.currentWeek / totalWeeks) * 100);
 
   return{
+    enrollmentId: snapshot.docs[0].id,
     programId: data.programId,
     programName: data.programName ?? "Training Program",
     currentWeek: data.currentWeek ?? 1,

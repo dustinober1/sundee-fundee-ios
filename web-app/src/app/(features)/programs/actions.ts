@@ -49,13 +49,49 @@ export async function enrollInProgram(programId: string) {
 
   const normalizedProgramId = requireTrimmedString(programId, "Program");
 
+  // Look up the program template to store the name
+  const program = await getProgramById(normalizedProgramId);
+
   await userCollection(user.uid, "enrolledPrograms").add({
     programId: normalizedProgramId,
+    programName: program?.name ?? normalizedProgramId,
     startDate: new Date(),
     currentWeek: 1,
     currentDay: 1,
     status: "active",
   });
+}
+
+/** Resolve the current session's exercises for an enrolled program. */
+export async function getSessionForEnrollment(enrollmentId: string) {
+  const user = await getAuthUser();
+  if (!user) return null;
+
+  const id = requireTrimmedString(enrollmentId, "Enrollment");
+  const enrollDoc = await userCollection(user.uid, "enrolledPrograms").doc(id).get();
+  if (!enrollDoc.exists) return null;
+
+  const enrollment = enrollDoc.data() as any;
+  const program = await getProgramById(enrollment.programId);
+  if (!program?.weeks?.length) return null;
+
+  const weekIndex = (enrollment.currentWeek ?? 1) - 1;
+  const dayIndex = (enrollment.currentDay ?? 1) - 1;
+
+  const week = program.weeks[weekIndex];
+  if (!week) return null;
+
+  const session = week.sessions?.[dayIndex];
+  if (!session) return null;
+
+  return {
+    programId: enrollment.programId,
+    programName: program.name,
+    enrollmentId: enrollDoc.id,
+    sessionId: session.sessionId,
+    sessionName: session.sessionName,
+    exercises: session.exercises,
+  };
 }
 
 export async function unenrollProgram(enrollmentId: string) {
