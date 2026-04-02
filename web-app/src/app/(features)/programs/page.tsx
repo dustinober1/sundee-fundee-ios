@@ -10,6 +10,8 @@ const DIFFICULTY_STYLES: Record<string, string> = {
   Advanced: "bg-navy/10 text-navy border border-navy/20",
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function ProgramsPage() {
   const [enrolled, templates] = await Promise.all([
     getEnrolledPrograms(),

@@ -367,6 +367,10 @@ export default function ProgramsPage() {
 
   async function handleSave() {
     if (!draft) return;
+    if (!draft.name.trim()) {
+      setSaveError("Program name is required");
+      return;
+    }
     setSaveError(null);
     setSaving(true);
     try {
@@ -379,7 +383,10 @@ export default function ProgramsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      if (!res.ok) throw new Error("Save failed");
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || "Save failed");
+      }
       const savedItem: Program = isNew ? { ...draft, id } : { ...draft };
       setPrograms((prev) =>
         isNew ? [savedItem, ...prev] : prev.map((p) => (p.id === id ? savedItem : p))
@@ -389,7 +396,7 @@ export default function ProgramsPage() {
       setIsNew(false);
     } catch (e) {
       console.error(e);
-      setSaveError("Failed to save. Please try again.");
+      setSaveError((e as Error).message || "Failed to save. Please try again.");
     } finally {
       setSaving(false);
     }

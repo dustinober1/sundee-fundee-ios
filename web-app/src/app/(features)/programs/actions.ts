@@ -11,6 +11,7 @@ export async function getPublishedPrograms(): Promise<Program[]> {
     .collection("programs")
     .where("status", "==", "published")
     .get();
+  console.log(`[getPublishedPrograms] Found ${snapshot.size} published programs`);
   return snapshot.docs.map((doc) => ({ id: doc.id, ...(doc.data() as any) }));
 }
 
