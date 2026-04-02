@@ -46,12 +46,14 @@ export default async function NewWorkoutPage({ searchParams }: NewWorkoutPagePro
         sessionName: session.sessionName,
         enrollmentId: session.enrollmentId,
       };
-      aiExercises = session.exercises.map((ex) => ({
-        name: ex.exercise,
-        sets: exerciseValueToNumber(ex.sets),
-        reps: exerciseValueToString(ex.reps),
-        bodyweightOnly: ex.bodyweightOnly ?? false,
-      }));
+      if (session.exercises && session.exercises.length > 0) {
+        aiExercises = session.exercises.map((ex) => ({
+          name: ex.exercise,
+          sets: exerciseValueToNumber(ex.sets),
+          reps: exerciseValueToString(ex.reps),
+          bodyweightOnly: ex.bodyweightOnly ?? false,
+        }));
+      }
     }
   } else if (params.ai) {
     try {
