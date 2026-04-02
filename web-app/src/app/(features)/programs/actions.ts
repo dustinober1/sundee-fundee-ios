@@ -72,31 +72,24 @@ export async function enrollInProgram(programId: string) {
 /** Resolve the current session's exercises for an enrolled program. */
 export async function getSessionForEnrollment(enrollmentId: string) {
   const user = await getAuthUser();
-  if (!user) { console.log("[getSessionForEnrollment] no user"); return null; }
+  if (!user) return null;
 
   const id = requireTrimmedString(enrollmentId, "Enrollment");
   const enrollDoc = await userCollection(user.uid, "enrolledPrograms").doc(id).get();
-  if (!enrollDoc.exists) { console.log("[getSessionForEnrollment] enrollment not found:", id); return null; }
+  if (!enrollDoc.exists) return null;
 
   const enrollment = enrollDoc.data() as any;
-  console.log("[getSessionForEnrollment] enrollment:", JSON.stringify({ programId: enrollment.programId, currentWeek: enrollment.currentWeek, currentDay: enrollment.currentDay }));
-
   const program = await getProgramById(enrollment.programId);
-  if (!program) { console.log("[getSessionForEnrollment] program not found:", enrollment.programId); return null; }
-  console.log("[getSessionForEnrollment] program loaded:", program.name, "weeks:", program.weeks?.length);
-
-  if (!program.weeks?.length) { console.log("[getSessionForEnrollment] no weeks"); return null; }
+  if (!program?.weeks?.length) return null;
 
   const weekIndex = (enrollment.currentWeek ?? 1) - 1;
   const dayIndex = (enrollment.currentDay ?? 1) - 1;
 
   const week = program.weeks[weekIndex];
-  if (!week) { console.log("[getSessionForEnrollment] week not found at index:", weekIndex); return null; }
-  console.log("[getSessionForEnrollment] week:", weekIndex, "sessions:", week.sessions?.length);
+  if (!week) return null;
 
   const session = week.sessions?.[dayIndex];
-  if (!session) { console.log("[getSessionForEnrollment] session not found at index:", dayIndex); return null; }
-  console.log("[getSessionForEnrollment] session:", session.sessionName, "exercises:", session.exercises?.length, "first exercise:", JSON.stringify(session.exercises?.[0]));
+  if (!session) return null;
 
   const exercises = Array.isArray(session.exercises) ? session.exercises : [];
 

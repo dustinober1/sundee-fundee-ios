@@ -8,13 +8,15 @@ interface NewWorkoutPageProps {
   searchParams: Promise<{ ai?: string; enrollment?: string }>;
 }
 
-function exerciseValueToNumber(ev: ExerciseValue): number {
+function exerciseValueToNumber(ev: ExerciseValue, min = 0): number {
+  let val: number;
   switch (ev.type) {
-    case "fixed": return ev.value;
-    case "range": return ev.low;
-    case "amrap": return 1;
-    case "text": return 1;
+    case "fixed": val = ev.value; break;
+    case "range": val = ev.low; break;
+    case "amrap": val = 1; break;
+    case "text": val = 1; break;
   }
+  return val > 0 ? val : min;
 }
 
 export default async function NewWorkoutPage({ searchParams }: NewWorkoutPageProps) {
@@ -47,12 +49,15 @@ export default async function NewWorkoutPage({ searchParams }: NewWorkoutPagePro
         enrollmentId: session.enrollmentId,
       };
       if (session.exercises && session.exercises.length > 0) {
-        aiExercises = session.exercises.map((ex) => ({
-          name: ex.exercise,
-          sets: exerciseValueToNumber(ex.sets),
-          reps: exerciseValueToString(ex.reps),
-          bodyweightOnly: ex.bodyweightOnly ?? false,
-        }));
+        aiExercises = session.exercises.map((ex) => {
+          const repsStr = exerciseValueToString(ex.reps);
+          return {
+            name: ex.exercise,
+            sets: exerciseValueToNumber(ex.sets, 3),    // default 3 sets if unspecified
+            reps: repsStr === "0" ? "" : repsStr,        // leave blank for user to fill in
+            bodyweightOnly: ex.bodyweightOnly ?? false,
+          };
+        });
       }
     }
   } else if (params.ai) {
