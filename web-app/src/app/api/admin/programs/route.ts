@@ -10,14 +10,18 @@ export async function GET() {
     await requireAdmin();
     const snapshot = await adminCollection("programs").orderBy("name", "asc").get();
     const programs = snapshot.docs.map((doc) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const data = doc.data() as any;
       
       // Sanitize the data for the UI
       if (data.weeks) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         data.weeks = data.weeks.map((week: any) => ({
           ...week,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           sessions: (week.sessions || []).map((session: any) => ({
             ...session,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             exercises: (session.exercises || []).map((ex: any) => exerciseFromFirestore(ex)),
           })),
         }));

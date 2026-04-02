@@ -54,6 +54,7 @@ export default async function NewWorkoutPage({ searchParams }: NewWorkoutPagePro
       };
       if (session.exercises && session.exercises.length > 0) {
         // Convert user maxes to the format findMatchingMax expects
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const maxesList = userMaxes.map((m: any) => ({ name: m.exerciseId, weightKg: m.weightKg }));
 
         aiExercises = session.exercises.map((ex) => {

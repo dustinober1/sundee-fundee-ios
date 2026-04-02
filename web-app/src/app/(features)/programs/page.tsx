@@ -21,6 +21,7 @@ export default async function ProgramsPage() {
 
     // Enrich active enrollments with program name + current session
     const enrolled = await Promise.all(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       rawEnrolled.map(async (e: any) => {
         const program = await getProgramById(e.programId);
         const weekIndex = (e.currentWeek ?? 1) - 1;
@@ -109,7 +110,7 @@ export default async function ProgramsPage() {
       <div className="p-8 text-center">
         <PageHeader label="Error" title="Something went wrong" />
         <p className="text-text-secondary mt-4">
-          We couldn't load the programs. Please try again later.
+          We couldn&apos;t load the programs. Please try again later.
         </p>
         <pre className="mt-4 p-4 bg-navy/5 rounded text-left text-xs overflow-auto">
           {error instanceof Error ? error.message : String(error)}

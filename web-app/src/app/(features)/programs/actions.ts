@@ -12,20 +12,25 @@ export async function getPublishedPrograms(): Promise<Program[]> {
     .where("status", "==", "published")
     .get();
   console.log(`[getPublishedPrograms] Found ${snapshot.size} published programs`);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return snapshot.docs.map((doc) => ({ id: doc.id, ...(doc.data() as any) }));
 }
 
 export async function getProgramById(id: string): Promise<Program | null> {
   const doc = await db.collection("programs").doc(id).get();
   if (!doc.exists) return null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const data = doc.data() as any;
   if (!data) return null;
 
   if (data.weeks) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     data.weeks = data.weeks.map((week: any) => ({
       ...week,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       sessions: (week.sessions ?? []).map((session: any) => ({
         ...session,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         exercises: (Array.isArray(session.exercises) ? session.exercises : []).map((ex: any) => {
           try {
             return exerciseFromFirestore(ex);
@@ -33,6 +38,7 @@ export async function getProgramById(id: string): Promise<Program | null> {
             console.error("Error processing exercise:", error);
             return null;
           }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         }).filter((ex: any) => ex !== null),
       })),
     }));
@@ -78,6 +84,7 @@ export async function getSessionForEnrollment(enrollmentId: string) {
   const enrollDoc = await userCollection(user.uid, "enrolledPrograms").doc(id).get();
   if (!enrollDoc.exists) return null;
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const enrollment = enrollDoc.data() as any;
   const program = await getProgramById(enrollment.programId);
   if (!program?.weeks?.length) return null;

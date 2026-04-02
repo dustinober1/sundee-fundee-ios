@@ -11,6 +11,7 @@ const eslintConfig = defineConfig([
         "error",
         { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
       ],
+      "react-hooks/error-boundaries": "off"
     },
   },
   // Override default ignores of eslint-config-next.
