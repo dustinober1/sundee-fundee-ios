@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { AdminHeader } from "@/components/admin/admin-header";
 import { DataTable, Column } from "@/components/admin/data-table";
 import { DetailPanel } from "@/components/admin/detail-panel";
@@ -29,6 +29,130 @@ function newBlogPost(): BlogPost {
   };
 }
 
+type AILength = "short" | "medium" | "long";
+
+interface AIGenerateResult {
+  title: string;
+  description: string;
+  tags: string[];
+  content: string;
+}
+
+function AIGeneratePanel({
+  onGenerated,
+  onClose,
+}: {
+  onGenerated: (result: AIGenerateResult) => void;
+  onClose: () => void;
+}) {
+  const [topic, setTopic] = useState("");
+  const [tone, setTone] = useState("");
+  const [length, setLength] = useState<AILength>("medium");
+  const [generating, setGenerating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleGenerate = useCallback(async () => {
+    if (!topic.trim()) return;
+    setGenerating(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/blog/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ topic: topic.trim(), tone: tone.trim() || undefined, length }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({ error: "Generation failed" }));
+        throw new Error(data.error || `HTTP ${res.status}`);
+      }
+      const result: AIGenerateResult = await res.json();
+      onGenerated(result);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setGenerating(false);
+    }
+  }, [topic, tone, length, onGenerated]);
+
+  return (
+    <div className="border border-orange/30 bg-orange/5 rounded-sm p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <p className="font-mono text-[11px] tracking-wider uppercase text-orange">
+          AI Blog Generator
+        </p>
+        <button
+          onClick={onClose}
+          className="text-text-secondary hover:text-navy text-xs"
+        >
+          Close
+        </button>
+      </div>
+      <div>
+        <label className="block text-xs text-text-secondary mb-1">
+          Topic / Prompt <span className="text-orange">*</span>
+        </label>
+        <textarea
+          className={INPUT_CLASS}
+          rows={3}
+          value={topic}
+          onChange={(e) => setTopic(e.target.value)}
+          placeholder="e.g. How to adapt your training during the luteal phase for maximum recovery..."
+          disabled={generating}
+        />
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        <div>
+          <label className="block text-xs text-text-secondary mb-1">
+            Tone <span className="text-text-secondary/60">(optional)</span>
+          </label>
+          <input
+            className={INPUT_CLASS}
+            value={tone}
+            onChange={(e) => setTone(e.target.value)}
+            placeholder="e.g. conversational, scientific"
+            disabled={generating}
+          />
+        </div>
+        <div>
+          <label className="block text-xs text-text-secondary mb-1">Length</label>
+          <div className="flex gap-1 p-1 bg-navy/5 rounded-sm">
+            {(["short", "medium", "long"] as const).map((l) => (
+              <button
+                key={l}
+                onClick={() => setLength(l)}
+                disabled={generating}
+                className={`flex-1 px-2 py-1.5 text-xs rounded-sm font-mono transition-colors ${
+                  length === l
+                    ? "bg-orange text-white"
+                    : "text-text-secondary hover:text-navy"
+                }`}
+              >
+                {l}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+      {error && (
+        <p className="text-xs text-red-600 bg-red-50 px-3 py-2 rounded-sm">{error}</p>
+      )}
+      <Button
+        variant="primary"
+        onClick={handleGenerate}
+        disabled={generating || topic.trim().length < 3}
+        className="w-full"
+      >
+        {generating ? "Generating..." : "Generate with AI"}
+      </Button>
+      {generating && (
+        <p className="text-xs text-text-secondary text-center">
+          This may take 10-30 seconds...
+        </p>
+      )}
+    </div>
+  );
+}
+
 function StatusBadge({ status }: { status: "draft" | "published" }) {
   return (
     <span
@@ -52,6 +176,7 @@ export default function BlogEditorPage() {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [isNew, setIsNew] = useState(false);
   const [slugEdited, setSlugEdited] = useState(false);
+  const [showAI, setShowAI] = useState(false);
 
   useEffect(() => {
     fetch("/api/admin/blog")
@@ -80,6 +205,7 @@ export default function BlogEditorPage() {
     setDraft(null);
     setIsNew(false);
     setSlugEdited(false);
+    setShowAI(false);
   }
 
   function updateDraft(field: Partial<BlogPost>) {
@@ -97,6 +223,18 @@ export default function BlogEditorPage() {
   function handleSlugChange(slug: string) {
     setSlugEdited(true);
     updateDraft({ slug });
+  }
+
+  function handleAIGenerated(result: AIGenerateResult) {
+    updateDraft({
+      title: result.title,
+      slug: slugify(result.title),
+      description: result.description,
+      tags: result.tags,
+      content: result.content,
+    });
+    setSlugEdited(false);
+    setShowAI(false);
   }
 
   async function handleSave() {
@@ -216,6 +354,27 @@ export default function BlogEditorPage() {
               }
             >
               <div className="space-y-4">
+                {/* AI Generator */}
+                {showAI ? (
+                  <AIGeneratePanel
+                    onGenerated={handleAIGenerated}
+                    onClose={() => setShowAI(false)}
+                  />
+                ) : (
+                  <button
+                    onClick={() => setShowAI(true)}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-dashed border-orange/40 rounded-sm text-sm text-orange hover:bg-orange/5 transition-colors font-mono"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 2a4 4 0 0 1 4 4c0 1.95-1.4 3.58-3.25 3.93L12 22" />
+                      <path d="M12 2a4 4 0 0 0-4 4c0 1.95 1.4 3.58 3.25 3.93" />
+                      <path d="M5 10c0 2 2.1 3.77 5 5.38" />
+                      <path d="M19 10c0 2-2.1 3.77-5 5.38" />
+                    </svg>
+                    Generate with AI
+                  </button>
+                )}
+
                 {/* Status toggle */}
                 <div>
                   <p className="font-mono text-[11px] tracking-wider uppercase text-gold mb-2">
