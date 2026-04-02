@@ -1,0 +1,126 @@
+import CloudKit
+import Foundation
+
+// MARK: - DataError
+
+/// Errors that can occur during CloudKit data operations.
+public enum DataError: Error, LocalizedError {
+    case recordNotFound(recordID: CKRecord.ID)
+    case networkError(underlying: Error?)
+    case permissionDenied
+    case invalidData(description: String)
+
+    public var errorDescription: String? {
+        switch self {
+        case .recordNotFound(let recordID):
+            return "Record not found: \(recordID.recordName)"
+        case .networkError(let underlying):
+            if let underlying = underlying {
+                return "Network error: \(underlying.localizedDescription)"
+            }
+            return "Network error occurred"
+        case .permissionDenied:
+            return "Permission denied. Please check iCloud settings."
+        case .invalidData(let description):
+            return "Invalid data: \(description)"
+        }
+    }
+
+    public var recoverySuggestion: String? {
+        switch self {
+        case .recordNotFound:
+            return "The record may have been deleted. Try refreshing your data."
+        case .networkError:
+            return "Check your internet connection and try again."
+        case .permissionDenied:
+            return "Sign in to iCloud in Settings and ensure the app has access."
+        case .invalidData:
+            return "Contact support if this issue persists."
+        }
+    }
+}
+
+// MARK: - DataClientProtocol
+
+/// Protocol defining CloudKit data operations.
+///
+/// Implementations handle fetching, saving, and deleting records from CloudKit.
+/// The generic `T` parameter represents the model type that conforms to `CloudKitRecordRepresentable`.
+///
+/// ## Example Usage
+/// ```swift
+/// let workouts = try await dataClient.fetch(
+///     recordType: "Workout",
+///     predicate: NSPredicate(value: true),
+///     sortDescriptors: [NSSortDescriptor(key: "date", ascending: false)]
+/// )
+/// ```
+public protocol DataClientProtocol: Sendable {
+    /// Fetches records of the specified type matching the given predicate.
+    ///
+    /// - Parameters:
+    ///   - recordType: The CloudKit record type identifier.
+    ///   - predicate: The predicate to filter records.
+    ///   - sortDescriptors: Optional sort descriptors for ordering results.
+    /// - Returns: An array of decoded model objects.
+    /// - Throws: `DataError` if the fetch operation fails.
+    func fetch<T>(
+        recordType: String,
+        predicate: NSPredicate,
+        sortDescriptors: [NSSortDescriptor]?
+    ) async throws -> [T] where T: Decodable
+
+    /// Saves records to CloudKit.
+    ///
+    /// - Parameters:
+    ///   - records: The model objects to save.
+    ///   - recordType: The CloudKit record type identifier.
+    /// - Throws: `DataError` if the save operation fails.
+    func save<T>(
+        _ records: [T],
+        recordType: String
+    ) async throws where T: Encodable
+
+    /// Deletes records from CloudKit.
+    ///
+    /// - Parameters:
+    ///   - recordIDs: The IDs of the records to delete.
+    ///   - recordType: The CloudKit record type identifier.
+    /// - Throws: `DataError` if the delete operation fails.
+    func delete(
+        recordIDs: [CKRecord.ID],
+        recordType: String
+    ) async throws
+}
+
+// MARK: - Default Implementations
+
+extension DataClientProtocol {
+    /// Fetches all records of the specified type.
+    public func fetchAll<T>(
+        recordType: String,
+        sortDescriptors: [NSSortDescriptor]? = nil
+    ) async throws -> [T] where T: Decodable {
+        try await fetch(
+            recordType: recordType,
+            predicate: NSPredicate(value: true),
+            sortDescriptors: sortDescriptors
+        )
+    }
+
+    /// Saves a single record to CloudKit.
+    public func save<T>(
+        _ record: T,
+        recordType: String
+    ) async throws where T: Encodable {
+        try await save([record], recordType: recordType)
+    }
+
+    /// Deletes a single record from CloudKit.
+    public func delete(
+        recordID: CKRecord.ID,
+        recordType: String
+    ) async throws {
+        try await delete(recordIDs: [recordID], recordType: recordType)
+    }
+}
