@@ -4,7 +4,7 @@ import Foundation
 // MARK: - DataError
 
 /// Errors that can occur during CloudKit data operations.
-public enum DataError: Error, LocalizedError {
+public enum DataError: Error, LocalizedError, Sendable {
     case recordNotFound(recordID: CKRecord.ID)
     case networkError(underlying: Error?)
     case permissionDenied
@@ -45,7 +45,7 @@ public enum DataError: Error, LocalizedError {
 /// Protocol defining CloudKit data operations.
 ///
 /// Implementations handle fetching, saving, and deleting records from CloudKit.
-/// The generic `T` parameter represents the model type that conforms to `CloudKitRecordRepresentable`.
+/// The generic `T` parameter represents the model type that conforms to `Decodable` and `Sendable`.
 ///
 /// ## Example Usage
 /// ```swift
@@ -68,7 +68,7 @@ public protocol DataClientProtocol: Sendable {
         recordType: String,
         predicate: NSPredicate,
         sortDescriptors: [NSSortDescriptor]?
-    ) async throws -> [T] where T: Decodable
+    ) async throws -> [T] where T: Decodable & Sendable
 
     /// Saves records to CloudKit.
     ///
@@ -79,7 +79,7 @@ public protocol DataClientProtocol: Sendable {
     func save<T>(
         _ records: [T],
         recordType: String
-    ) async throws where T: Encodable
+    ) async throws where T: Encodable & Sendable
 
     /// Deletes records from CloudKit.
     ///
@@ -100,7 +100,7 @@ extension DataClientProtocol {
     public func fetchAll<T>(
         recordType: String,
         sortDescriptors: [NSSortDescriptor]? = nil
-    ) async throws -> [T] where T: Decodable {
+    ) async throws -> [T] where T: Decodable & Sendable {
         try await fetch(
             recordType: recordType,
             predicate: NSPredicate(value: true),
@@ -112,7 +112,7 @@ extension DataClientProtocol {
     public func save<T>(
         _ record: T,
         recordType: String
-    ) async throws where T: Encodable {
+    ) async throws where T: Encodable & Sendable {
         try await save([record], recordType: recordType)
     }
 
