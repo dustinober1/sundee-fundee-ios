@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
 import {
   tierDisplayName,
+  tierHeadline,
+  tierHighlights,
   tierValueProposition,
   tierRank,
   PLUS_FEATURES,
@@ -38,6 +40,20 @@ describe("tierDisplayName", () => {
   });
 });
 
+describe("tierHeadline", () => {
+  it("free headline", () => {
+    expect(tierHeadline("free")).toBe("Core training");
+  });
+
+  it("plus headline", () => {
+    expect(tierHeadline("plus")).toBe("Smarter training");
+  });
+
+  it("premium headline", () => {
+    expect(tierHeadline("premium")).toBe("Personal AI coach");
+  });
+});
+
 describe("tierValueProposition", () => {
   it("free tier proposition", () => {
     expect(tierValueProposition("free")).toBe(
@@ -55,6 +71,32 @@ describe("tierValueProposition", () => {
     expect(tierValueProposition("premium")).toBe(
       "Personal AI coach with adaptive planning"
     );
+  });
+});
+
+describe("tierHighlights", () => {
+  it("free tier highlights", () => {
+    expect(tierHighlights("free")).toEqual([
+      "Cycle-aware training guidance",
+      "Browse all structured programs",
+      "Core logging and progress tracking",
+    ]);
+  });
+
+  it("plus tier highlights", () => {
+    expect(tierHighlights("plus")).toEqual([
+      "AI-enabled cloud workouts",
+      "Custom programming tools",
+      "Full history, trends, and benchmarks",
+    ]);
+  });
+
+  it("premium tier highlights", () => {
+    expect(tierHighlights("premium")).toEqual([
+      "Higher cloud AI limits",
+      "AI coaching memory and reports",
+      "Premium planning and recovery features",
+    ]);
   });
 });
 
@@ -125,6 +167,10 @@ describe("minimumTierRequired", () => {
 
   it("weeklyReports requires premium", () => {
     expect(minimumTierRequired("weeklyReports")).toBe("premium");
+  });
+
+  it("unknown/ungated feature defaults to free", () => {
+    expect(minimumTierRequired("unknownFeature" as GatedFeature)).toBe("free");
   });
 });
 

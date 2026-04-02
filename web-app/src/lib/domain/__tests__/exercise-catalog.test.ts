@@ -14,46 +14,46 @@ import {
 // ---------------------------------------------------------------------------
 
 describe("WEIGHTLIFTING_EXERCISES", () => {
-  it("contains exactly 39 exercises", () => {
-    expect(WEIGHTLIFTING_EXERCISES).toHaveLength(39);
+  it("contains exactly 59 exercises", () => {
+    expect(WEIGHTLIFTING_EXERCISES).toHaveLength(59);
   });
 
-  it("contains 6 squats", () => {
+  it("contains 9 squats", () => {
     expect(
       WEIGHTLIFTING_EXERCISES.filter((e) => e.category === "Squat")
-    ).toHaveLength(6);
+    ).toHaveLength(9);
   });
 
-  it("contains 10 hip hinge exercises", () => {
+  it("contains 13 hip hinge exercises", () => {
     expect(
       WEIGHTLIFTING_EXERCISES.filter((e) => e.category === "Hip Hinge")
+    ).toHaveLength(13);
+  });
+
+  it("contains 10 press exercises", () => {
+    expect(
+      WEIGHTLIFTING_EXERCISES.filter((e) => e.category === "Press")
     ).toHaveLength(10);
   });
 
-  it("contains 6 press exercises", () => {
-    expect(
-      WEIGHTLIFTING_EXERCISES.filter((e) => e.category === "Press")
-    ).toHaveLength(6);
-  });
-
-  it("contains 6 pull exercises", () => {
+  it("contains 12 pull exercises", () => {
     expect(
       WEIGHTLIFTING_EXERCISES.filter((e) => e.category === "Pull")
-    ).toHaveLength(6);
+    ).toHaveLength(12);
   });
 
-  it("contains 2 carry exercises", () => {
+  it("contains 4 carry exercises", () => {
     expect(
       WEIGHTLIFTING_EXERCISES.filter((e) => e.category === "Carry")
-    ).toHaveLength(2);
+    ).toHaveLength(4);
   });
 
-  it("contains 9 olympic weightlifting exercises", () => {
+  it("contains 11 olympic weightlifting exercises", () => {
     expect(
       WEIGHTLIFTING_EXERCISES.filter(
         (e) => e.category === "Olympic Weightlifting"
       )
-    ).toHaveLength(9);
+    ).toHaveLength(11);
   });
 });
 
@@ -86,20 +86,20 @@ describe("isWeightliftingExercise", () => {
 // ---------------------------------------------------------------------------
 
 describe("CONDITIONING_EXERCISES", () => {
-  it("contains exactly 21 exercises", () => {
-    expect(CONDITIONING_EXERCISES).toHaveLength(21);
+  it("contains exactly 31 exercises", () => {
+    expect(CONDITIONING_EXERCISES).toHaveLength(31);
   });
 
-  it("contains 14 reps-based exercises", () => {
+  it("contains 21 reps-based exercises", () => {
     expect(
       CONDITIONING_EXERCISES.filter((e) => e.defaultScoringType === "reps")
-    ).toHaveLength(14);
+    ).toHaveLength(21);
   });
 
-  it("contains 7 time-based exercises", () => {
+  it("contains 10 time-based exercises", () => {
     expect(
       CONDITIONING_EXERCISES.filter((e) => e.defaultScoringType === "time")
-    ).toHaveLength(7);
+    ).toHaveLength(10);
   });
 });
 
