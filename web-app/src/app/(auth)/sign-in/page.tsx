@@ -40,8 +40,11 @@ export default function SignInPage() {
     try {
       const { signInWithEmailAndPassword } = await import("firebase/auth");
       const { getFirebaseAuth } = await import("@/lib/firebase");
+      const { syncSessionCookie } = await import("@/lib/social-auth");
       const auth = getFirebaseAuth();
-      await signInWithEmailAndPassword(auth, email, password);
+      const result = await signInWithEmailAndPassword(auth, email, password);
+      const idToken = await result.user.getIdToken();
+      await syncSessionCookie(idToken);
       router.push("/dashboard");
     } catch {
       setError("Invalid email or password");
