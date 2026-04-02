@@ -1,7 +1,8 @@
 import { getUserProfile } from "../../settings/actions";
-import { WeightUnit, exerciseValueToString } from "@/lib/domain";
+import { WeightUnit, exerciseValueToString, findMatchingMax } from "@/lib/domain";
 import type { ExerciseValue } from "@/lib/domain";
 import { getSessionForEnrollment } from "../../programs/actions";
+import { getMaxes } from "../../maxes/actions";
 import { WorkoutLogger } from "./workout-logger";
 
 interface NewWorkoutPageProps {
@@ -40,7 +41,10 @@ export default async function NewWorkoutPage({ searchParams }: NewWorkoutPagePro
   } | undefined;
 
   if (params.enrollment) {
-    const session = await getSessionForEnrollment(params.enrollment);
+    const [session, userMaxes] = await Promise.all([
+      getSessionForEnrollment(params.enrollment),
+      getMaxes(),
+    ]);
     if (session) {
       programContext = {
         programId: session.programId,
@@ -49,12 +53,26 @@ export default async function NewWorkoutPage({ searchParams }: NewWorkoutPagePro
         enrollmentId: session.enrollmentId,
       };
       if (session.exercises && session.exercises.length > 0) {
+        // Convert user maxes to the format findMatchingMax expects
+        const maxesList = userMaxes.map((m: any) => ({ name: m.exerciseId, weightKg: m.weightKg }));
+
         aiExercises = session.exercises.map((ex) => {
           const repsStr = exerciseValueToString(ex.reps);
+
+          // Calculate weight from percent1RM and user's max
+          let weightKg: number | undefined;
+          if (ex.percent1RM && !ex.bodyweightOnly) {
+            const matched = findMatchingMax(ex.exercise, maxesList);
+            if (matched) {
+              weightKg = Math.round((matched.weightKg * ex.percent1RM) / 2.5) * 2.5; // round to nearest 2.5kg
+            }
+          }
+
           return {
             name: ex.exercise,
-            sets: exerciseValueToNumber(ex.sets, 3),    // default 3 sets if unspecified
-            reps: repsStr === "0" ? "" : repsStr,        // leave blank for user to fill in
+            sets: exerciseValueToNumber(ex.sets, 3),
+            reps: repsStr === "0" ? "" : repsStr,
+            weightKg,
             bodyweightOnly: ex.bodyweightOnly ?? false,
           };
         });
