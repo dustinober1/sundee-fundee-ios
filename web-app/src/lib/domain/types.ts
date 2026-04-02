@@ -43,6 +43,7 @@ export function encodeExerciseValue(ev: ExerciseValue): unknown {
     case "amrap": return "AMRAP";
     case "range": return [ev.low, ev.high];
     case "text": return ev.value;
+    default: return null;
   }
 }
 

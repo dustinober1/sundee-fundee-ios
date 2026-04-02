@@ -42,7 +42,10 @@ export const adminAuth: Auth = new Proxy({} as Auth, {
 
 export const db: Firestore = new Proxy({} as Firestore, {
   get(_, prop) {
-    if (!_db) _db = getFirestore(getAdminApp());
+    if (!_db) {
+      _db = getFirestore(getAdminApp());
+      _db.settings({ ignoreUndefinedProperties: true });
+    }
     return Reflect.get(_db, prop);
   },
 });
