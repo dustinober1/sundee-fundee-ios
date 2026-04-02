@@ -1,13 +1,13 @@
 import Foundation
 
 // MARK: - Exercise Type
-enum ExerciseType: Equatable, Codable {
+public enum ExerciseType: Equatable, Codable {
     case fixed
     case amrap
     case range(min: Int, max: Int)
     case text(String)
 
-    var description: String {
+    public var description: String {
         switch self {
         case .fixed:
             return "Fixed"
@@ -22,7 +22,7 @@ enum ExerciseType: Equatable, Codable {
 }
 
 // MARK: - Exercise Category
-enum ExerciseCategory: String, Equatable, Codable, CaseIterable {
+public enum ExerciseCategory: String, Equatable, Codable, CaseIterable {
     case compound = "Compound"
     case isolation = "Isolation"
     case accessory = "Accessory"
@@ -31,16 +31,16 @@ enum ExerciseCategory: String, Equatable, Codable, CaseIterable {
 }
 
 // MARK: - Exercise Set
-struct ExerciseSet: Equatable, Codable, Identifiable {
-    let id: String
-    var reps: Int
-    var prescribedWeight: Double
-    var type: ExerciseType
-    var completedWeight: Double?
-    var actualReps: Int?
-    var isComplete: Bool
+public struct ExerciseSet: Equatable, Codable, Identifiable {
+    public let id: String
+    public var reps: Int
+    public var prescribedWeight: Double
+    public var type: ExerciseType
+    public var completedWeight: Double?
+    public var actualReps: Int?
+    public var isComplete: Bool
 
-    init(
+    public init(
         id: String = UUID().uuidString,
         reps: Int,
         prescribedWeight: Double,
@@ -60,16 +60,16 @@ struct ExerciseSet: Equatable, Codable, Identifiable {
 }
 
 // MARK: - Exercise
-struct Exercise: Equatable, Codable, Identifiable {
-    let id: String
-    var name: String
-    var category: ExerciseCategory
-    var bodyweight: Double
-    var targetSets: [ExerciseSet]
-    var notes: String?
-    var restMinutes: Double
+public struct Exercise: Equatable, Codable, Identifiable {
+    public let id: String
+    public var name: String
+    public var category: ExerciseCategory
+    public var bodyweight: Double
+    public var targetSets: [ExerciseSet]
+    public var notes: String?
+    public var restMinutes: Double
 
-    init(
+    public init(
         id: String,
         name: String,
         category: ExerciseCategory,

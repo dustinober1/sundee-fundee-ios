@@ -1,15 +1,15 @@
 import Foundation
 
-struct Workout: Equatable, Codable, Identifiable {
-    let id: String
-    var date: Date
-    var name: String
-    var exercises: [Exercise]
-    var notes: String?
-    var duration: Int  // minutes
-    var completedAt: Date?
+public struct Workout: Equatable, Codable, Identifiable {
+    public let id: String
+    public var date: Date
+    public var name: String
+    public var exercises: [Exercise]
+    public var notes: String?
+    public var duration: Int  // minutes
+    public var completedAt: Date?
 
-    init(
+    public init(
         id: String = UUID().uuidString,
         date: Date,
         name: String,
@@ -27,7 +27,7 @@ struct Workout: Equatable, Codable, Identifiable {
         self.completedAt = completedAt
     }
 
-    var totalVolume: Double {
+    public var totalVolume: Double {
         exercises.flatMap { exercise in
             exercise.targetSets.map { set in
                 Double(set.reps) * (set.completedWeight ?? set.prescribedWeight)
@@ -35,7 +35,7 @@ struct Workout: Equatable, Codable, Identifiable {
         }.reduce(0, +)
     }
 
-    var isComplete: Bool {
+    public var isComplete: Bool {
         completedAt != nil
     }
 }
