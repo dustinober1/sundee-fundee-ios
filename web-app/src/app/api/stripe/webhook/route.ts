@@ -72,15 +72,15 @@ export async function POST(req: NextRequest) {
     case "customer.subscription.deleted":
     case "customer.subscription.created": {
       const sub = event.data.object as Stripe.Subscription;
-      const item = sub.items.data[0];
-      const priceId = item?.price.id;
+      const subItem = sub.items.data[0];
+      const priceId = subItem?.price.id;
       const mappedTier = tierFromPriceId(priceId ?? "") ?? "free";
       const tier = sub.status === "canceled" || sub.status === "unpaid" ? "free" : mappedTier;
       await upsertSubscriptionByStripeId(sub.id, subscriptionPayload(tier, {
         status: sub.status,
         stripeCustomerId: typeof sub.customer === "string" ? sub.customer : null,
         stripeSubscriptionId: sub.id,
-        currentPeriodEnd: item?.current_period_end ?? null,
+        currentPeriodEnd: subItem?.current_period_end ?? null,
         cancelAtPeriodEnd: sub.cancel_at_period_end,
       }));
       break;

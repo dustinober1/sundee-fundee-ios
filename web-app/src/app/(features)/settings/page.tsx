@@ -1,7 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { PageHeader, SectionHeader, ArtDecoRuleSmall, SectionLabel } from "@/components/ui/art-deco";
 import { getAuthUser } from "@/lib/firestore";
-import { getUserProfile, getSubscription } from "./actions";
+import { getUserProfile, getSubscription, fulfillCheckoutSession } from "./actions";
 import { PlansSection } from "./plans-section";
 import { ProfileForm } from "./profile-form";
 import { SubscriptionCard } from "./subscription-card";
@@ -9,7 +9,19 @@ import { SignOutButton } from "./sign-out-button";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 
-export default async function SettingsPage() {
+interface SettingsPageProps {
+  searchParams: Promise<{ session_id?: string }>;
+}
+
+export default async function SettingsPage({ searchParams }: SettingsPageProps) {
+  const { session_id } = await searchParams;
+
+  // Fulfill the checkout session before reading subscription state.
+  // This handles the case where the webhook hasn't processed yet.
+  if (session_id) {
+    await fulfillCheckoutSession(session_id);
+  }
+
   const [user, profile, subscription] = await Promise.all([
     getAuthUser(),
     getUserProfile(),
