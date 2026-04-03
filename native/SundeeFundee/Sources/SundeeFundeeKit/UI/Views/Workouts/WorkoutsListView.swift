@@ -249,10 +249,54 @@ struct NewWorkoutView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel = NewWorkoutViewModel()
 
+    @State private var showingAIWorkout: Bool = false
+
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: AppTheme.Spacing.lg) {
+                    // AI Generation Option
+                    Button {
+                        showingAIWorkout = true
+                    } label: {
+                        ArtDecoCard {
+                            HStack(spacing: AppTheme.Spacing.md) {
+                                Image(systemName: "sparkles")
+                                    .font(.system(size: 24))
+                                    .foregroundColor(AppTheme.Accent.orange)
+
+                                VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                                    Text("Generate AI Workout")
+                                        .font(AppTheme.Typography.headlineMedium)
+                                        .foregroundColor(AppTheme.Text.primary)
+
+                                    Text("Personalized to your cycle phase and energy")
+                                        .font(AppTheme.Typography.bodySmall)
+                                        .foregroundColor(AppTheme.Text.secondary)
+                                }
+
+                                Spacer()
+
+                                Image(systemName: "chevron.right")
+                                    .foregroundColor(AppTheme.Text.secondary)
+                            }
+                        }
+                    }
+                    .buttonStyle(.plain)
+
+                    // Divider
+                    HStack {
+                        Rectangle()
+                            .fill(AppTheme.Accent.gold.opacity(0.3))
+                            .frame(height: 1)
+                        Text("or build your own")
+                            .font(AppTheme.Typography.labelMedium)
+                            .foregroundColor(AppTheme.Text.secondary)
+                        Rectangle()
+                            .fill(AppTheme.Accent.gold.opacity(0.3))
+                            .frame(height: 1)
+                    }
+
                     // Workout Name
                     ArtDecoCard {
                         VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
@@ -338,6 +382,9 @@ struct NewWorkoutView: View {
                 ExercisePickerView { selectedNames in
                     viewModel.addExercises(selectedNames)
                 }
+            }
+            .sheet(isPresented: $showingAIWorkout) {
+                AIWorkoutView()
             }
         }
     }

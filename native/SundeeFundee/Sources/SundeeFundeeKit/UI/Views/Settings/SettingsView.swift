@@ -53,8 +53,14 @@ public struct SettingsView: View {
                     }
                 }
 
-                // Cycle Tracking Section
-                Section("Cycle Tracking") {
+                // Health & Tracking Section
+                Section("Health & Tracking") {
+                    NavigationLink {
+                        PainTrackingView()
+                    } label: {
+                        Label("Pain & Injuries", systemImage: "bandage")
+                    }
+
                     Toggle("Enable Cycle Tracking", isOn: $viewModel.cycleTrackingEnabled)
 
                     if viewModel.cycleTrackingEnabled {

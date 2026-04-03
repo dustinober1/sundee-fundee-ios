@@ -89,14 +89,42 @@ public struct MaxesListView: View {
     // MARK: - Maxes List
 
     private var maxesList: some View {
-        ScrollView {
-            VStack(spacing: AppTheme.Spacing.md) {
-                ForEach(viewModel.maxes) { max in
-                    MaxRow(max: max)
+        List {
+            ForEach(viewModel.maxes) { max in
+                HStack(spacing: AppTheme.Spacing.md) {
+                    VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                        Text(max.exerciseName)
+                            .font(AppTheme.Typography.headlineMedium)
+                            .foregroundColor(AppTheme.Text.primary)
+
+                        Text(max.date, style: .date)
+                            .font(AppTheme.Typography.bodySmall)
+                            .foregroundColor(AppTheme.Text.secondary)
+                    }
+
+                    Spacer()
+
+                    VStack(alignment: .trailing, spacing: AppTheme.Spacing.xs) {
+                        Text("\(max.weight, specifier: "%.0f")")
+                            .font(AppTheme.Typography.displayMedium)
+                            .foregroundColor(AppTheme.Text.primary)
+
+                        Text(max.unit.rawValue)
+                            .font(AppTheme.Typography.labelMedium)
+                            .foregroundColor(AppTheme.Text.secondary)
+                    }
+                }
+                .listRowBackground(Color.clear)
+                .listRowSeparator(.hidden)
+            }
+            .onDelete { indexSet in
+                for index in indexSet {
+                    let max = viewModel.maxes[index]
+                    Task { await viewModel.deleteMax(id: max.id) }
                 }
             }
-            .padding(AppTheme.Spacing.lg)
         }
+        .listStyle(.plain)
     }
 }
 
@@ -281,6 +309,13 @@ class MaxesListViewModel: ObservableObject {
 
         isLoading = false
     }
-}
 
-// MARK: - Model Types (shared in SharedModels.swift)
+    func deleteMax(id: String) async {
+        do {
+            try await dataClient.delete(recordType: "OneRepMaxRecord", id: id)
+            maxes.removeAll { $0.id == id }
+        } catch {
+            print("Error deleting max: \(error)")
+        }
+    }
+}
