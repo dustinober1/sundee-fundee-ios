@@ -150,6 +150,18 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
         }
     }
 
+    /// Deletes all data in the private database.
+    ///
+    /// For CloudKit, we delete the default record zone. This is a very efficient
+    /// way to remove all user records in the private database.
+    public func deleteAllData() async throws {
+        do {
+            _ = try await database.deleteRecordZone(withID: .default)
+        } catch {
+            throw mapCKError(error, recordID: nil)
+        }
+    }
+
     // MARK: - Private Helpers
 
     /// Performs the actual fetch with pagination support.
