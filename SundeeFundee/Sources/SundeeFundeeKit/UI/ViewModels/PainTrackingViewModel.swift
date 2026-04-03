@@ -15,15 +15,21 @@ public class PainTrackingViewModel: ObservableObject {
     @Published var painIntensity: Int = 5
     @Published var selectedPainType: PainType = .soreness
     @Published var notes: String = ""
+    @Published var substitutionSuggestions: [CoachSubstitutionResponse] = []
 
     // MARK: - Dependencies
 
     private let dataClient: DataClientProtocol
+    private let subscriptionClient: SubscriptionClientProtocol
 
     // MARK: - Initialization
 
-    public init(dataClient: DataClientProtocol = DataClientFactory.shared.client) {
+    public init(
+        dataClient: DataClientProtocol = DataClientFactory.shared.client,
+        subscriptionClient: SubscriptionClientProtocol = MockSubscriptionClient()
+    ) {
         self.dataClient = dataClient
+        self.subscriptionClient = subscriptionClient
     }
 
     // MARK: - Public Methods - Pain Logs
@@ -201,5 +207,60 @@ public class PainTrackingViewModel: ObservableObject {
             baseLoad: baseLoad,
             injuries: activeInjuries
         )
+    }
+
+    // MARK: - Smart Substitutions (Pro)
+
+    /// Loads substitution suggestions for contraindicated exercises.
+    /// Only available for Pro tier users with active injuries.
+    public func loadSubstitutionSuggestions() async {
+        guard !activeInjuries.isEmpty else {
+            substitutionSuggestions = []
+            return
+        }
+
+        // Check subscription tier
+        do {
+            let info = try await subscriptionClient.getSubscriptionInfo()
+            guard info.tier.hasSmartSubstitutions else {
+                substitutionSuggestions = []
+                return
+            }
+        } catch {
+            return
+        }
+
+        let coachService = CoachServiceFactory.makeService()
+        let context = CoachContext(
+            tier: .premium,
+            injuries: activeInjuries,
+            equipment: .fullGym
+        )
+
+        // Find contraindicated exercises from the catalog and suggest alternatives
+        let contraindicatedExercises = weightliftingExercises.filter { entry in
+            InjuryAdaptationEngine.isContraindicated(
+                exerciseName: entry.id,
+                exerciseCategory: nil,
+                injuries: activeInjuries
+            )
+        }
+
+        var suggestions: [CoachSubstitutionResponse] = []
+        for exercise in contraindicatedExercises.prefix(5) {
+            do {
+                let response = try await coachService.suggestSubstitutions(
+                    for: exercise.id,
+                    context: context
+                )
+                if !response.substitutions.isEmpty {
+                    suggestions.append(response)
+                }
+            } catch {
+                continue
+            }
+        }
+
+        substitutionSuggestions = suggestions
     }
 }
