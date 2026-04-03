@@ -160,9 +160,9 @@ public actor RevenueCatClient: SubscriptionClientProtocol {
         case .free:
             return nil
         case .plus:
-            return "$9.99/month"
+            return "$2.99/month"
         case .premium:
-            return "$19.99/month"
+            return "$4.99/month"
         }
     }
 
