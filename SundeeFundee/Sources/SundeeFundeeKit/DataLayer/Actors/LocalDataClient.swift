@@ -91,10 +91,14 @@ public actor LocalDataClient: @preconcurrency DataClientProtocol {
         persist(existing, recordType: recordType)
     }
 
+    public func deleteAllData() async throws {
+        clearAll()
+    }
+
     // MARK: - Helpers
 
     /// Removes all locally stored data — call when a guest signs out.
-    public func clearAll() {
+    private func clearAll() {
         userDefaults.dictionaryRepresentation().keys
             .filter { $0.hasPrefix(keyPrefix) }
             .forEach { userDefaults.removeObject(forKey: $0) }
