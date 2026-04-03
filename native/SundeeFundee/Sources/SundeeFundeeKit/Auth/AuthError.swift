@@ -6,7 +6,7 @@ import Foundation
 ///
 /// `AuthError` provides detailed error cases for common authentication failures,
 /// with localized descriptions and recovery suggestions for user-facing display.
-public enum AuthError: Error, LocalizedError, Sendable {
+public enum AuthError: Error, LocalizedError, Sendable, Equatable {
     /// The user cancelled the authentication flow.
     case cancelled
 
