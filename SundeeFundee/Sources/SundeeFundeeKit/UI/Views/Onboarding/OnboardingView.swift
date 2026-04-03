@@ -280,10 +280,8 @@ public struct OnboardingView: View {
                 .artDecoButton(style: .primary)
             } else {
                 Button("Get Started") {
-                    Task {
-                        await viewModel.completeOnboarding()
-                        onComplete()
-                    }
+                    viewModel.completeOnboarding()
+                    onComplete()
                 }
                 .artDecoButton(style: .accent)
             }
@@ -305,26 +303,27 @@ class OnboardingViewModel: ObservableObject {
 
     private let dataClient: DataClientProtocol
 
-    init(dataClient: DataClientProtocol = CloudKitClient(containerIdentifier: "icloud.com.sundeefundee.app")) {
+    init(dataClient: DataClientProtocol = DataClientFactory.shared.client) {
         self.dataClient = dataClient
     }
 
-    func completeOnboarding() async {
-        // Save user settings
+    func completeOnboarding() {
+        // Mark onboarding as complete in Keychain immediately
+        _ = KeychainHelper.save(key: "onboarding_complete", value: "true")
+
+        // Save user settings to CloudKit in the background (non-blocking)
         let settings = UserSettingsRecord(
             cycleTrackingEnabled: cycleTrackingEnabled,
             weightUnit: weightUnit.rawValue,
             experienceLevel: experienceLevel.rawValue,
             primaryGoal: primaryGoal.rawValue
         )
-
-        do {
-            try await dataClient.save(settings, recordType: "UserSettings")
-        } catch {
-            print("Error saving onboarding settings: \(error)")
+        Task {
+            do {
+                try await dataClient.save(settings, recordType: "UserSettings")
+            } catch {
+                print("Error saving onboarding settings: \(error)")
+            }
         }
-
-        // Mark onboarding as complete in Keychain
-        _ = KeychainHelper.save(key: "onboarding_complete", value: "true")
     }
 }

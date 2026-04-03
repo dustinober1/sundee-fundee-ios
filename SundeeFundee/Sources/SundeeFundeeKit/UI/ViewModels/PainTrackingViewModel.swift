@@ -22,7 +22,7 @@ public class PainTrackingViewModel: ObservableObject {
 
     // MARK: - Initialization
 
-    public init(dataClient: DataClientProtocol = CloudKitClient(containerIdentifier: "icloud.com.sundeefundee.app")) {
+    public init(dataClient: DataClientProtocol = DataClientFactory.shared.client) {
         self.dataClient = dataClient
     }
 

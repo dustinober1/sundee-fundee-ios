@@ -44,7 +44,7 @@ public actor HealthKitClient: @preconcurrency HealthClientProtocol {
     // MARK: - HealthClientProtocol
 
     /// Whether HealthKit is available on this device.
-    public var isAvailable: Bool {
+    public nonisolated var isAvailable: Bool {
         HKHealthStore.isHealthDataAvailable()
     }
 

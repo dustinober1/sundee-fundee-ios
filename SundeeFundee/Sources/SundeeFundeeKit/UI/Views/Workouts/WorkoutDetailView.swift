@@ -325,7 +325,7 @@ class WorkoutDetailViewModel: ObservableObject {
 
     init(
         workoutId: String,
-        dataClient: DataClientProtocol = CloudKitClient(containerIdentifier: "icloud.com.sundeefundee.app")
+        dataClient: DataClientProtocol = DataClientFactory.shared.client
     ) {
         self.workoutId = workoutId
         self.dataClient = dataClient

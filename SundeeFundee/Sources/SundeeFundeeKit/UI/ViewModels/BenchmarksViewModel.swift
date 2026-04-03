@@ -22,7 +22,7 @@ public class BenchmarksListViewModel: ObservableObject {
     // MARK: - Initialization
 
     public init(
-        dataClient: DataClientProtocol = CloudKitClient(containerIdentifier: "icloud.com.sundeefundee.app"),
+        dataClient: DataClientProtocol = DataClientFactory.shared.client,
         healthClient: HealthClientProtocol = HealthKitClient()
     ) {
         self.dataClient = dataClient
@@ -175,7 +175,7 @@ public class BenchmarkDetailViewModel: ObservableObject {
     // MARK: - Initialization
 
     public init(
-        dataClient: DataClientProtocol = CloudKitClient(containerIdentifier: "icloud.com.sundeefundee.app"),
+        dataClient: DataClientProtocol = DataClientFactory.shared.client,
         healthClient: HealthClientProtocol = HealthKitClient()
     ) {
         self.dataClient = dataClient

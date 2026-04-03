@@ -162,7 +162,7 @@ struct CycleSettingsView: View {
 
     private let dataClient: DataClientProtocol
 
-    init(dataClient: DataClientProtocol = CloudKitClient(containerIdentifier: "icloud.com.sundeefundee.app")) {
+    init(dataClient: DataClientProtocol = DataClientFactory.shared.client) {
         self.dataClient = dataClient
     }
 
@@ -446,7 +446,7 @@ class SettingsViewModel: ObservableObject {
     private let dataClient: DataClientProtocol
     private var hasLoaded = false
 
-    init(dataClient: DataClientProtocol = CloudKitClient(containerIdentifier: "icloud.com.sundeefundee.app")) {
+    init(dataClient: DataClientProtocol = DataClientFactory.shared.client) {
         self.dataClient = dataClient
         Task {
             await loadSettings()

@@ -285,7 +285,7 @@ class CycleCalendarViewModel: ObservableObject {
 
     init(
         healthClient: HealthClientProtocol = HealthKitClient(),
-        dataClient: DataClientProtocol = CloudKitClient(containerIdentifier: "icloud.com.sundeefundee.app")
+        dataClient: DataClientProtocol = DataClientFactory.shared.client
     ) {
         self.healthClient = healthClient
         self.dataClient = dataClient

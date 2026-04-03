@@ -549,7 +549,7 @@ class NewWorkoutViewModel: ObservableObject {
 
     private let dataClient: DataClientProtocol
 
-    init(dataClient: DataClientProtocol = CloudKitClient(containerIdentifier: "icloud.com.sundeefundee.app")) {
+    init(dataClient: DataClientProtocol = DataClientFactory.shared.client) {
         self.dataClient = dataClient
     }
 
@@ -632,7 +632,7 @@ class WorkoutsListViewModel: ObservableObject {
 
     private let dataClient: DataClientProtocol
 
-    init(dataClient: DataClientProtocol = CloudKitClient(containerIdentifier: "icloud.com.sundeefundee.app")) {
+    init(dataClient: DataClientProtocol = DataClientFactory.shared.client) {
         self.dataClient = dataClient
     }
 

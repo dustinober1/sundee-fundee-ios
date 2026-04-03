@@ -31,7 +31,7 @@ public class AuthViewModel: ObservableObject {
 
     public init(
         authClient: AppleAuthClientProtocol = AppleAuthClient(),
-        dataClient: DataClientProtocol = CloudKitClient(containerIdentifier: "icloud.com.sundeefundee.app")
+        dataClient: DataClientProtocol = DataClientFactory.shared.client
     ) {
         self.authClient = authClient
         self.dataClient = dataClient
@@ -81,9 +81,16 @@ public class AuthViewModel: ObservableObject {
 
     /// Signs in as a guest (local-only, no CloudKit, no Apple auth)
     public func continueAsGuest() {
+        // Switch to local storage before any ViewModels initialize
+        DataClientFactory.shared.client = LocalDataClient()
+
         isGuest = true
         userID = AuthViewModel.guestUserID
         userName = "Guest"
+
+        // Persist guest session so it survives app restarts
+        _ = KeychainHelper.save(key: KeychainHelper.userIDKey, value: AuthViewModel.guestUserID)
+
         isAuthenticated = true
         needsOnboarding = KeychainHelper.read(key: "onboarding_complete") == nil
     }
@@ -105,6 +112,10 @@ public class AuthViewModel: ObservableObject {
             _ = KeychainHelper.delete(key: KeychainHelper.userNameKey)
 
             await MainActor.run {
+                // Reset to CloudKit for the next sign-in
+                DataClientFactory.shared.client = CloudKitClient(
+                    containerIdentifier: "icloud.com.sundeefundee.app"
+                )
                 isAuthenticated = false
                 isGuest = false
                 userID = nil
@@ -121,6 +132,13 @@ public class AuthViewModel: ObservableObject {
     private func checkExistingSession() async {
         if let userID = await fetchStoredUserID() {
             self.userID = userID
+
+            // Restore guest state and local data client if this was a guest session
+            if userID == AuthViewModel.guestUserID {
+                isGuest = true
+                DataClientFactory.shared.client = LocalDataClient()
+            }
+
             isAuthenticated = true
             needsOnboarding = KeychainHelper.read(key: "onboarding_complete") == nil
         }
