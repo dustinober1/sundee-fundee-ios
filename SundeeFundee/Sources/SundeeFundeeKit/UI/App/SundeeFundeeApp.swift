@@ -113,6 +113,15 @@ public struct AuthView: View {
             }
             .buttonStyle(.plain)
 
+            Button(action: {
+                authViewModel.continueAsGuest()
+            }) {
+                Text("Continue as Guest")
+                    .font(AppTheme.Typography.labelMedium)
+                    .foregroundColor(AppTheme.Text.secondary)
+            }
+            .buttonStyle(.plain)
+
             if let error = authViewModel.errorMessage {
                 Text(error)
                     .font(AppTheme.Typography.bodySmall)

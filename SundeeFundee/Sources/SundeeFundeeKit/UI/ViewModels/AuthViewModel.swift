@@ -18,6 +18,9 @@ public class AuthViewModel: ObservableObject {
     @Published public var userEmail: String?
     @Published public var userName: String?
     @Published public var needsOnboarding: Bool = false
+    @Published public var isGuest: Bool = false
+
+    public static let guestUserID = "guest_local"
 
     // MARK: - Dependencies
 
@@ -76,6 +79,15 @@ public class AuthViewModel: ObservableObject {
         isLoading = false
     }
 
+    /// Signs in as a guest (local-only, no CloudKit, no Apple auth)
+    public func continueAsGuest() {
+        isGuest = true
+        userID = AuthViewModel.guestUserID
+        userName = "Guest"
+        isAuthenticated = true
+        needsOnboarding = KeychainHelper.read(key: "onboarding_complete") == nil
+    }
+
     /// Marks onboarding as complete
     public func completeOnboarding() {
         _ = KeychainHelper.save(key: "onboarding_complete", value: "true")
@@ -94,6 +106,7 @@ public class AuthViewModel: ObservableObject {
 
             await MainActor.run {
                 isAuthenticated = false
+                isGuest = false
                 userID = nil
                 userEmail = nil
                 userName = nil
