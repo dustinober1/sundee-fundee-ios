@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "ios-simulator": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--directory",
+        "/Users/dustinober/ios-simulator-mcp",
+        "ios-simulator-mcp"
+      ]
+    }
+  }
+}

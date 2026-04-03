@@ -59,7 +59,7 @@ public enum HealthError: Error, LocalizedError {
 /// ```
 public protocol HealthClientProtocol: Sendable {
     /// Whether HealthKit is available on this device.
-    var isAvailable: Bool { get }
+    nonisolated var isAvailable: Bool { get }
 
     /// Requests authorization to read and write health data types.
     ///
