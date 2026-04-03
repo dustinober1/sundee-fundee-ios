@@ -133,19 +133,19 @@ public class BenchmarksListViewModel: ObservableObject {
     private func loadCyclePhase() async {
         do {
             if healthClient.isAvailable {
+                let sixMonthsAgo = Calendar.current.date(byAdding: .month, value: -6, to: Date())
                 let cycles = try await healthClient.fetchMenstrualCycles(
-                    startDate: nil,
+                    startDate: sixMonthsAgo,
                     endDate: nil,
-                    limit: 1
+                    limit: 100
                 )
                 if !cycles.isEmpty {
-                    // Calculate phase from latest cycle
-                    // This is a simplified version
-                    cyclePhase = .follicular
+                    if let status = CyclePhaseHelper.calculatePhase(from: cycles) {
+                        cyclePhase = status.currentPhase
+                    }
                 }
             }
         } catch {
-            // HealthKit not available or permission denied
             print("Cycle phase unavailable: \(error)")
         }
     }
@@ -170,6 +170,7 @@ public class BenchmarkDetailViewModel: ObservableObject {
 
     private let dataClient: DataClientProtocol
     private let healthClient: HealthClientProtocol
+    private var cachedCyclePhase: CyclePhase?
 
     // MARK: - Initialization
 
@@ -276,18 +277,24 @@ public class BenchmarkDetailViewModel: ObservableObject {
     // MARK: - Private Methods
 
     private func loadReadiness(for benchmark: BenchmarkDefinition) async {
-        // Get current cycle phase
+        // Get current cycle phase from HealthKit
         var currentPhase: CyclePhase?
+        var lastPeriodStart: Date?
         do {
             if healthClient.isAvailable {
+                let sixMonthsAgo = Calendar.current.date(byAdding: .month, value: -6, to: Date())
                 let cycles = try await healthClient.fetchMenstrualCycles(
-                    startDate: nil,
+                    startDate: sixMonthsAgo,
                     endDate: nil,
-                    limit: 1
+                    limit: 100
                 )
                 if !cycles.isEmpty {
-                    // Calculate phase from latest cycle
-                    currentPhase = .follicular
+                    if let status = CyclePhaseHelper.calculatePhase(from: cycles) {
+                        currentPhase = status.currentPhase
+                        cachedCyclePhase = status.currentPhase
+                    }
+                    let periodLogs = CyclePhaseHelper.convertToPeriodLogs(cycles)
+                    lastPeriodStart = periodLogs.last?.startDate
                 }
             }
         } catch {
@@ -301,12 +308,10 @@ public class BenchmarkDetailViewModel: ObservableObject {
         )
 
         // Calculate best attempt window if we have cycle data
-        if currentPhase != nil {
-            // In a real implementation, we'd fetch the user's cycle settings
-            // For now, use defaults
+        if currentPhase != nil, let lastStart = lastPeriodStart {
             attemptWindow = BenchmarkReadinessCalculator.getBestAttemptWindow(
                 averageCycleLength: 28,
-                lastPeriodStart: Date().addingTimeInterval(-14 * 24 * 60 * 60)
+                lastPeriodStart: lastStart
             )
         }
     }
@@ -326,7 +331,6 @@ public class BenchmarkDetailViewModel: ObservableObject {
     }
 
     private func getCurrentCyclePhase() -> CyclePhase? {
-        // In a real implementation, this would calculate from actual cycle data
-        return nil
+        return cachedCyclePhase
     }
 }

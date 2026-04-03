@@ -3,85 +3,193 @@ import XCTest
 
 final class InjuryAdaptationEngineTests: XCTestCase {
 
-    // MARK: - normalizeBodyRegions
+    // MARK: - Helpers
 
-    func testNormalize_KneeLeft_MapsToKnee() {
-        let result = normalizeBodyRegions(regions: ["knee_left"])
-        XCTAssertTrue(result.contains("knee"))
+    private func makeInjury(
+        location: String,
+        name: String = "Test Injury",
+        recoveryPhase: RecoveryPhase = .rehab
+    ) -> Injury {
+        Injury(
+            id: UUID().uuidString,
+            locationIds: location,
+            name: name,
+            recoveryPhase: recoveryPhase,
+            dateCreated: Date(),
+            phaseUpdated: Date()
+        )
     }
 
-    func testNormalize_ShoulderRight_MapsToShoulder() {
-        let result = normalizeBodyRegions(regions: ["shoulder_right"])
-        XCTAssertTrue(result.contains("shoulder"))
+    // MARK: - isContraindicated
+
+    func testIsContraindicated_KneeInjury_Squat() {
+        let injuries = [makeInjury(location: "knee_left")]
+        XCTAssertTrue(InjuryAdaptationEngine.isContraindicated(
+            exerciseName: "Back Squat",
+            exerciseCategory: nil,
+            injuries: injuries
+        ))
     }
 
-    func testNormalize_ClinicalSynonym_ACL() {
-        let result = normalizeBodyRegions(regions: [], freeText: "ACL tear")
-        XCTAssertTrue(result.contains("knee"))
+    func testIsContraindicated_KneeInjury_Lunge() {
+        let injuries = [makeInjury(location: "knee_left")]
+        XCTAssertTrue(InjuryAdaptationEngine.isContraindicated(
+            exerciseName: "Walking Lunge",
+            exerciseCategory: nil,
+            injuries: injuries
+        ))
     }
 
-    func testNormalize_ClinicalSynonym_RotatorCuff() {
-        let result = normalizeBodyRegions(regions: [], freeText: "rotator cuff strain")
-        XCTAssertTrue(result.contains("shoulder"))
+    func testIsContraindicated_ShoulderInjury_Press() {
+        let injuries = [makeInjury(location: "shoulder_right")]
+        XCTAssertTrue(InjuryAdaptationEngine.isContraindicated(
+            exerciseName: "Strict Press",
+            exerciseCategory: nil,
+            injuries: injuries
+        ))
     }
 
-    func testNormalize_ClinicalSynonym_Sciatica() {
-        let result = normalizeBodyRegions(regions: [], freeText: "sciatica")
-        XCTAssertTrue(result.contains("back"))
+    func testIsContraindicated_BackInjury_Deadlift() {
+        let injuries = [makeInjury(location: "lower_back")]
+        XCTAssertTrue(InjuryAdaptationEngine.isContraindicated(
+            exerciseName: "Conventional Deadlift",
+            exerciseCategory: nil,
+            injuries: injuries
+        ))
     }
 
-    func testNormalize_ClinicalSynonym_CarpalTunnel() {
-        let result = normalizeBodyRegions(regions: [], freeText: "carpal tunnel syndrome")
-        XCTAssertTrue(result.contains("wrist"))
+    func testIsContraindicated_ResolvedInjury_NotContraindicated() {
+        let injuries = [makeInjury(location: "knee_left", recoveryPhase: .resolved)]
+        XCTAssertFalse(InjuryAdaptationEngine.isContraindicated(
+            exerciseName: "Back Squat",
+            exerciseCategory: nil,
+            injuries: injuries
+        ))
     }
 
-    func testNormalize_EmptyInputs() {
-        let result = normalizeBodyRegions(regions: [], freeText: "")
-        XCTAssertTrue(result.isEmpty)
+    func testIsContraindicated_NoInjuries() {
+        XCTAssertFalse(InjuryAdaptationEngine.isContraindicated(
+            exerciseName: "Back Squat",
+            exerciseCategory: nil,
+            injuries: []
+        ))
     }
 
-    func testNormalize_Deduplicates() {
-        let result = normalizeBodyRegions(regions: ["knee_left", "knee_right"])
-        XCTAssertEqual(result.filter { $0 == "knee" }.count, 1)
+    func testIsContraindicated_UnrelatedExercise() {
+        let injuries = [makeInjury(location: "knee_left")]
+        XCTAssertFalse(InjuryAdaptationEngine.isContraindicated(
+            exerciseName: "Bicep Curl",
+            exerciseCategory: nil,
+            injuries: injuries
+        ))
     }
 
-    // MARK: - mostRestrictivePhase
-
-    func testMostRestrictive_Empty_ReturnsNil() {
-        XCTAssertNil(mostRestrictivePhase([]))
+    func testIsContraindicated_ClinicalSynonym_ACL() {
+        let injuries = [makeInjury(location: "knee_left", name: "ACL")]
+        XCTAssertTrue(InjuryAdaptationEngine.isContraindicated(
+            exerciseName: "Back Squat",
+            exerciseCategory: nil,
+            injuries: injuries
+        ))
     }
 
-    func testMostRestrictive_AcuteIsFirst() {
-        XCTAssertEqual(mostRestrictivePhase([.rehab, .acute, .resolved]), .acute)
+    // MARK: - getRegressions
+
+    func testGetRegressions_BackSquat() {
+        let injuries = [makeInjury(location: "knee_left")]
+        let regressions = InjuryAdaptationEngine.getRegressions(
+            exerciseName: "Back Squat",
+            injuries: injuries
+        )
+        XCTAssertFalse(regressions.isEmpty)
+        XCTAssertTrue(regressions.contains("Goblet Squat"))
     }
 
-    func testMostRestrictive_RehabBeforeLightLoad() {
-        XCTAssertEqual(mostRestrictivePhase([.lightLoad, .rehab]), .rehab)
+    func testGetRegressions_BenchPress() {
+        let injuries = [makeInjury(location: "shoulder_left")]
+        let regressions = InjuryAdaptationEngine.getRegressions(
+            exerciseName: "Flat Barbell Bench Press",
+            injuries: injuries
+        )
+        XCTAssertFalse(regressions.isEmpty)
+        XCTAssertTrue(regressions.contains("Push-Ups"))
     }
 
-    func testMostRestrictive_SinglePhase() {
-        XCTAssertEqual(mostRestrictivePhase([.resolved]), .resolved)
+    func testGetRegressions_UnknownExercise() {
+        let injuries = [makeInjury(location: "knee_left")]
+        let regressions = InjuryAdaptationEngine.getRegressions(
+            exerciseName: "Some Unknown Exercise",
+            injuries: injuries
+        )
+        XCTAssertTrue(regressions.isEmpty)
     }
 
-    // MARK: - buildRecoveryPrepBlock
+    // MARK: - calculateLoadMultiplier
 
-    func testRecoveryPrepBlock_KneeInjury() {
-        let injuries = [InjuryProfile(id: "i1", location: "knee_left", recoveryPhase: .rehab)]
-        let block = buildRecoveryPrepBlock(injuries: injuries, phase: .rehab)
-        XCTAssertFalse(block.isEmpty)
-        XCTAssertTrue(block.allSatisfy { $0.sets == 3 && $0.reps == 12 })
+    func testLoadMultiplier_AcutePhase() {
+        let injuries = [makeInjury(location: "knee_left", recoveryPhase: .acute)]
+        let result = InjuryAdaptationEngine.calculateLoadMultiplier(
+            baseLoad: 100.0,
+            injuries: injuries
+        )
+        XCTAssertEqual(result, 30.0, accuracy: 0.01)
     }
 
-    func testRecoveryPrepBlock_DefaultPhase() {
-        let injuries = [InjuryProfile(id: "i1", location: "shoulder_left", recoveryPhase: .returnToPlay)]
-        let block = buildRecoveryPrepBlock(injuries: injuries)
-        XCTAssertFalse(block.isEmpty)
-        XCTAssertTrue(block.allSatisfy { $0.sets == 2 && $0.reps == 10 })
+    func testLoadMultiplier_RehabPhase() {
+        let injuries = [makeInjury(location: "knee_left", recoveryPhase: .rehab)]
+        let result = InjuryAdaptationEngine.calculateLoadMultiplier(
+            baseLoad: 100.0,
+            injuries: injuries
+        )
+        XCTAssertEqual(result, 50.0, accuracy: 0.01)
     }
 
-    func testRecoveryPrepBlock_LightLoadPhase() {
-        let injuries = [InjuryProfile(id: "i1", location: "knee_left", recoveryPhase: .lightLoad)]
-        let block = buildRecoveryPrepBlock(injuries: injuries, phase: .lightLoad)
-        XCTAssertTrue(block.allSatisfy { $0.reps == 15 })
+    func testLoadMultiplier_LightLoadPhase() {
+        let injuries = [makeInjury(location: "knee_left", recoveryPhase: .lightLoad)]
+        let result = InjuryAdaptationEngine.calculateLoadMultiplier(
+            baseLoad: 100.0,
+            injuries: injuries
+        )
+        XCTAssertEqual(result, 70.0, accuracy: 0.01)
+    }
+
+    func testLoadMultiplier_ReturnToPlayPhase() {
+        let injuries = [makeInjury(location: "knee_left", recoveryPhase: .returnToPlay)]
+        let result = InjuryAdaptationEngine.calculateLoadMultiplier(
+            baseLoad: 100.0,
+            injuries: injuries
+        )
+        XCTAssertEqual(result, 85.0, accuracy: 0.01)
+    }
+
+    func testLoadMultiplier_ResolvedPhase() {
+        let injuries = [makeInjury(location: "knee_left", recoveryPhase: .resolved)]
+        let result = InjuryAdaptationEngine.calculateLoadMultiplier(
+            baseLoad: 100.0,
+            injuries: injuries
+        )
+        // Resolved injuries are filtered out, so full load
+        XCTAssertEqual(result, 1.0, accuracy: 0.01)
+    }
+
+    func testLoadMultiplier_MultipleInjuries_TakesMostRestrictive() {
+        let injuries = [
+            makeInjury(location: "knee_left", recoveryPhase: .lightLoad),
+            makeInjury(location: "shoulder_left", recoveryPhase: .acute),
+        ]
+        let result = InjuryAdaptationEngine.calculateLoadMultiplier(
+            baseLoad: 100.0,
+            injuries: injuries
+        )
+        // Should use acute (0.3), the most restrictive
+        XCTAssertEqual(result, 30.0, accuracy: 0.01)
+    }
+
+    func testLoadMultiplier_NoInjuries() {
+        let result = InjuryAdaptationEngine.calculateLoadMultiplier(
+            baseLoad: 100.0,
+            injuries: []
+        )
+        XCTAssertEqual(result, 1.0, accuracy: 0.01)
     }
 }

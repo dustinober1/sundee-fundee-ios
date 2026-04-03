@@ -20,7 +20,11 @@ public struct ProgramsListView: View {
                     ScrollView {
                         VStack(spacing: AppTheme.Spacing.md) {
                             ForEach(viewModel.programs) { program in
-                                ProgramRow(program: program)
+                                ProgramRow(program: program, onEnroll: {
+                                    Task {
+                                        await viewModel.enrollInProgram(program.id)
+                                    }
+                                })
                             }
                         }
                         .padding(AppTheme.Spacing.lg)
@@ -46,6 +50,7 @@ public struct ProgramsListView: View {
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
 struct ProgramRow: View {
     let program: ProgramListItem
+    let onEnroll: () -> Void
 
     var body: some View {
         ArtDecoCard {
@@ -79,6 +84,10 @@ struct ProgramRow: View {
                 .font(AppTheme.Typography.bodySmall)
                 .foregroundColor(AppTheme.Text.secondary)
 
+                Text(program.difficulty)
+                    .font(AppTheme.Typography.labelMedium)
+                    .foregroundColor(AppTheme.Text.secondary)
+
                 if program.isEnrolled {
                     Button("Continue") {
                         // Navigate to program detail
@@ -86,7 +95,7 @@ struct ProgramRow: View {
                     .artDecoButton(style: .primary)
                 } else {
                     Button("Enroll") {
-                        // Enroll in program
+                        onEnroll()
                     }
                     .artDecoButton(style: .secondary)
                 }
@@ -126,41 +135,58 @@ class ProgramsListViewModel: ObservableObject {
     func loadPrograms() async {
         isLoading = true
 
-        // For now, use mock data
-        // In production, this would fetch from CloudKit or a bundled catalog
-        programs = [
-            ProgramListItem(
-                id: "strength-basics",
-                name: "Strength Basics",
-                category: "Strength",
-                description: "Build a solid foundation with compound movements and progressive overload",
-                durationWeeks: 8,
-                sessionsPerWeek: 3,
-                difficulty: "Beginner",
-                isEnrolled: false
-            ),
-            ProgramListItem(
-                id: "hypertrophy-phase-1",
-                name: "Hypertrophy Phase 1",
-                category: "Hypertrophy",
-                description: "Focus on muscle growth with volume and intensity progression",
-                durationWeeks: 12,
-                sessionsPerWeek: 4,
-                difficulty: "Intermediate",
-                isEnrolled: false
-            ),
-            ProgramListItem(
-                id: "powerbuilding",
-                name: "Powerbuilding",
-                category: "Strength",
-                description: "Combine strength and hypertrophy training for maximum gains",
-                durationWeeks: 16,
-                sessionsPerWeek: 5,
-                difficulty: "Advanced",
-                isEnrolled: false
+        // Load enrolled programs from CloudKit
+        var enrolledIds: Set<String> = []
+        do {
+            let enrolled = try await dataClient.fetchAll(
+                recordType: "EnrolledProgramRecord"
+            ) as [EnrolledProgramRecord]
+            enrolledIds = Set(enrolled.filter(\.isActive).map(\.id))
+        } catch {
+            print("Error loading enrolled programs: \(error)")
+        }
+
+        // Generate program catalog from domain templates
+        programs = ProgramTemplate.allCases.map { template in
+            let defaults = templateDefaults[template]!
+            let program = generateProgram(template: template, name: templateDisplayName(template))
+            return ProgramListItem(
+                id: program.id,
+                name: program.name,
+                category: program.category,
+                description: program.description,
+                durationWeeks: program.durationWeeks,
+                sessionsPerWeek: program.sessionsPerWeek,
+                difficulty: program.difficulty,
+                isEnrolled: enrolledIds.contains(program.id)
             )
-        ]
+        }
 
         isLoading = false
+    }
+
+    func enrollInProgram(_ programId: String) async {
+        do {
+            let record = EnrolledProgramRecord(
+                id: programId,
+                name: programs.first(where: { $0.id == programId })?.name ?? "",
+                isActive: true
+            )
+            try await dataClient.save(record, recordType: "EnrolledProgramRecord")
+            await loadPrograms()
+        } catch {
+            print("Error enrolling in program: \(error)")
+        }
+    }
+
+    private func templateDisplayName(_ template: ProgramTemplate) -> String {
+        switch template {
+        case .strength:    return "Strength Basics"
+        case .hypertrophy: return "Hypertrophy Phase"
+        case .fullBody:    return "Full Body"
+        case .linear:      return "Linear Progression"
+        case .dup:         return "Daily Undulating"
+        case .block:       return "Block Periodization"
+        }
     }
 }

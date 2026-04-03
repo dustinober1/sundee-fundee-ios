@@ -392,12 +392,25 @@ class DashboardViewModel: ObservableObject {
     private func loadCyclePhase() async {
         do {
             if healthClient.isAvailable {
-                let cycles = try await healthClient.fetchMenstrualCycles(startDate: nil, endDate: nil, limit: 1)
+                // Fetch recent menstrual flow samples (last 6 months)
+                let sixMonthsAgo = Calendar.current.date(byAdding: .month, value: -6, to: Date())
+                let cycles = try await healthClient.fetchMenstrualCycles(
+                    startDate: sixMonthsAgo,
+                    endDate: nil,
+                    limit: 100
+                )
                 if !cycles.isEmpty {
-                    // Calculate phase from latest cycle
-                    // This is a simplified version
-                    cyclePhase = .follicular
-                    cycleConfidence = 0.8
+                    // Convert HealthKit data to domain types and calculate phase
+                    if let status = CyclePhaseHelper.calculatePhase(from: cycles) {
+                        cyclePhase = status.currentPhase
+
+                        // Calculate confidence from data quality
+                        let periodLogs = CyclePhaseHelper.convertToPeriodLogs(cycles)
+                        cycleConfidence = CyclePhaseHelper.calculateConfidence(
+                            periodLogCount: periodLogs.count,
+                            lastPeriodStart: periodLogs.last?.startDate
+                        )
+                    }
                 }
             }
         } catch {

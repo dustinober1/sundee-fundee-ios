@@ -84,6 +84,10 @@ public struct SettingsView: View {
                         Text("Weight Loss").tag(PrimaryGoal.weightLoss)
                     }
                 }
+                .onChange(of: viewModel.weightUnit) { _, _ in Task { await viewModel.saveSettings() } }
+                .onChange(of: viewModel.experienceLevel) { _, _ in Task { await viewModel.saveSettings() } }
+                .onChange(of: viewModel.primaryGoal) { _, _ in Task { await viewModel.saveSettings() } }
+                .onChange(of: viewModel.cycleTrackingEnabled) { _, _ in Task { await viewModel.saveSettings() } }
 
                 // About Section
                 Section("About") {
@@ -141,13 +145,27 @@ public struct SettingsView: View {
 struct CycleSettingsView: View {
     @State private var cycleLength: Double = 28
     @State private var lastPeriodStart: Date = Date()
+    @State private var hasChanges: Bool = false
+    @State private var isSaving: Bool = false
+
+    private let dataClient: DataClientProtocol
+
+    init(dataClient: DataClientProtocol = CloudKitClient(containerIdentifier: "icloud.com.sundeefundee.app")) {
+        self.dataClient = dataClient
+    }
 
     var body: some View {
         Form {
             Section {
                 VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
-                    Text("Cycle Length")
-                        .font(AppTheme.Typography.headlineMedium)
+                    HStack {
+                        Text("Cycle Length")
+                            .font(AppTheme.Typography.headlineMedium)
+                        Spacer()
+                        Text("\(Int(cycleLength)) days")
+                            .font(AppTheme.Typography.bodyMedium)
+                            .foregroundColor(AppTheme.Accent.gold)
+                    }
 
                     Slider(value: $cycleLength, in: 21...35, step: 1) {
                         Text("\(Int(cycleLength)) days")
@@ -163,11 +181,62 @@ struct CycleSettingsView: View {
             Section {
                 DatePicker("Last Period Start", selection: $lastPeriodStart, displayedComponents: .date)
             }
+
+            Section {
+                Button {
+                    Task { await saveCycleSettings() }
+                } label: {
+                    HStack {
+                        Spacer()
+                        if isSaving {
+                            ProgressView()
+                        } else {
+                            Text("Save")
+                        }
+                        Spacer()
+                    }
+                }
+                .disabled(isSaving)
+            }
         }
         .navigationTitle("Cycle Settings")
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
         #endif
+        .task {
+            await loadCycleSettings()
+        }
+    }
+
+    private func loadCycleSettings() async {
+        do {
+            let records = try await dataClient.fetchAll(
+                recordType: "CycleSettings"
+            ) as [CycleSettingsRecord]
+
+            if let settings = records.first {
+                cycleLength = Double(settings.averageCycleLengthDays)
+                if let lastStart = settings.lastPeriodStart {
+                    lastPeriodStart = lastStart
+                }
+            }
+        } catch {
+            print("Error loading cycle settings: \(error)")
+        }
+    }
+
+    private func saveCycleSettings() async {
+        isSaving = true
+        let record = CycleSettingsRecord(
+            averageCycleLengthDays: Int(cycleLength),
+            lastPeriodStart: lastPeriodStart
+        )
+        do {
+            try await dataClient.save(record, recordType: "CycleSettings")
+        } catch {
+            print("Error saving cycle settings: \(error)")
+        }
+        isSaving = false
     }
 }
 
@@ -321,17 +390,33 @@ class SubscriptionViewModel: ObservableObject {
 
 // MARK: - Enums
 
-enum ExperienceLevel: String {
+enum ExperienceLevel: String, Codable, Sendable {
     case beginner
     case intermediate
     case advanced
 }
 
-enum PrimaryGoal: String {
+enum PrimaryGoal: String, Codable, Sendable {
     case strength
     case hypertrophy
     case endurance
     case weightLoss
+}
+
+// MARK: - UserSettings Model
+
+struct UserSettingsRecord: Codable, Sendable {
+    let cycleTrackingEnabled: Bool
+    let weightUnit: String
+    let experienceLevel: String
+    let primaryGoal: String
+}
+
+// MARK: - CycleSettingsRecord Model
+
+struct CycleSettingsRecord: Codable, Sendable {
+    let averageCycleLengthDays: Int
+    let lastPeriodStart: Date?
 }
 
 // MARK: - SettingsViewModel
@@ -344,13 +429,52 @@ class SettingsViewModel: ObservableObject {
     @Published var experienceLevel: ExperienceLevel = .intermediate
     @Published var primaryGoal: PrimaryGoal = .strength
     @Published var showingSubscription: Bool = false
+    @Published var isSaving: Bool = false
 
-    init() {
-        // Load settings from UserDefaults or CloudKit
-        loadSettings()
+    private let dataClient: DataClientProtocol
+    private var hasLoaded = false
+
+    init(dataClient: DataClientProtocol = CloudKitClient(containerIdentifier: "icloud.com.sundeefundee.app")) {
+        self.dataClient = dataClient
+        Task {
+            await loadSettings()
+        }
     }
 
-    private func loadSettings() {
-        // Stub: Load from persistent storage
+    func loadSettings() async {
+        guard !hasLoaded else { return }
+        do {
+            let records = try await dataClient.fetchAll(
+                recordType: "UserSettings"
+            ) as [UserSettingsRecord]
+
+            if let settings = records.first {
+                cycleTrackingEnabled = settings.cycleTrackingEnabled
+                weightUnit = WeightUnit(rawValue: settings.weightUnit) ?? .lbs
+                experienceLevel = ExperienceLevel(rawValue: settings.experienceLevel) ?? .intermediate
+                primaryGoal = PrimaryGoal(rawValue: settings.primaryGoal) ?? .strength
+            }
+            hasLoaded = true
+        } catch {
+            print("Error loading settings: \(error)")
+            hasLoaded = true
+        }
+    }
+
+    func saveSettings() async {
+        isSaving = true
+        let record = UserSettingsRecord(
+            cycleTrackingEnabled: cycleTrackingEnabled,
+            weightUnit: weightUnit.rawValue,
+            experienceLevel: experienceLevel.rawValue,
+            primaryGoal: primaryGoal.rawValue
+        )
+
+        do {
+            try await dataClient.save(record, recordType: "UserSettings")
+        } catch {
+            print("Error saving settings: \(error)")
+        }
+        isSaving = false
     }
 }

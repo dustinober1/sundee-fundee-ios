@@ -52,7 +52,11 @@ public struct MaxesListView: View {
                 await viewModel.loadMaxes()
             }
             .sheet(isPresented: $viewModel.showingEntry) {
-                OneRepMaxEntryView()
+                OneRepMaxEntryView(onSave: { name, weight, unit in
+                    Task {
+                        await viewModel.saveMax(exerciseName: name, weight: weight, unit: unit)
+                    }
+                })
             }
         }
     }
@@ -150,6 +154,9 @@ struct OneRepMaxEntryView: View {
     @State private var exerciseName: String = ""
     @State private var weight: String = ""
     @State private var unit: WeightUnit = .lbs
+    @State private var isSaving: Bool = false
+
+    let onSave: (String, Double, WeightUnit) -> Void
 
     var body: some View {
         NavigationStack {
@@ -159,6 +166,9 @@ struct OneRepMaxEntryView: View {
 
                     HStack {
                         TextField("Weight", text: $weight)
+                            #if os(iOS)
+                            .keyboardType(.decimalPad)
+                            #endif
 
                         Picker(selection: $unit, label: Text("Unit")) {
                             Text("lbs").tag(WeightUnit.lbs)
@@ -182,10 +192,9 @@ struct OneRepMaxEntryView: View {
 
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Save") {
-                        // Save the max
-                        dismiss()
+                        save()
                     }
-                    .disabled(exerciseName.isEmpty || weight.isEmpty)
+                    .disabled(!canSave)
                 }
                 #else
                 ToolbarItem(placement: .cancellationAction) {
@@ -196,14 +205,24 @@ struct OneRepMaxEntryView: View {
 
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
-                        // Save the max
-                        dismiss()
+                        save()
                     }
-                    .disabled(exerciseName.isEmpty || weight.isEmpty)
+                    .disabled(!canSave)
                 }
                 #endif
             }
         }
+    }
+
+    private var canSave: Bool {
+        !exerciseName.isEmpty && !weight.isEmpty && Double(weight) != nil && !isSaving
+    }
+
+    private func save() {
+        guard let weightValue = Double(weight) else { return }
+        isSaving = true
+        onSave(exerciseName, weightValue, unit)
+        dismiss()
     }
 }
 
@@ -220,6 +239,23 @@ class MaxesListViewModel: ObservableObject {
 
     init(dataClient: DataClientProtocol = CloudKitClient(containerIdentifier: "icloud.com.sundeefundee.app")) {
         self.dataClient = dataClient
+    }
+
+    func saveMax(exerciseName: String, weight: Double, unit: WeightUnit) async {
+        let record = OneRepMaxRecord(
+            id: UUID().uuidString,
+            exerciseName: exerciseName,
+            weight: weight,
+            unit: unit,
+            date: Date()
+        )
+
+        do {
+            try await dataClient.save(record, recordType: "OneRepMaxRecord")
+            await loadMaxes()
+        } catch {
+            print("Error saving max: \(error)")
+        }
     }
 
     func loadMaxes() async {
