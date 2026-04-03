@@ -185,7 +185,12 @@ public struct BenchmarkCatalog {
             workoutDescription: "AMRAP 20 min: 5 Pull-ups, 10 Push-ups, 15 Air Squats. Score = total rounds + partial reps.",
             scoringType: .roundsAndReps,
             isPredefined: true,
-            sortOrder: 12
+            sortOrder: 12,
+            intensity: .three,
+            movementTags: ["Bodyweight", "Gymnastics", "Volume"],
+            equipment: ["pull-up bar"],
+            timeDomain: "20 min fixed",
+            coachNotes: "The gold standard for tracking bodyweight fitness gains. Aim for consistent rounds throughout. Break pull-ups early (3+2) to save grip. Push-ups should be unbroken the first 10 rounds. Rest 10-15s between movements, not between rounds. 20+ rounds is elite."
         ),
         BenchmarkDefinition(
             id: "classic-fight-gone-bad",
@@ -194,7 +199,12 @@ public struct BenchmarkCatalog {
             workoutDescription: "3 rounds, 1 min each station: Wall Ball (20/14 lb), SDHP (75/55 lb), Box Jump (20\"), Push Press (75/55 lb), Row (calories). 1 min rest between rounds. Score = total reps.",
             scoringType: .reps,
             isPredefined: true,
-            sortOrder: 13
+            sortOrder: 13,
+            intensity: .four,
+            movementTags: ["Volume", "Cardio", "Conditioning"],
+            equipment: ["wall ball", "barbell", "box", "rower"],
+            timeDomain: "17 min structured",
+            coachNotes: "Sprint mentality at every station. Wall ball and row for calories are your biggest point sources. SDHP: move fast, light weight. Box jumps: step down if needed. Push press: keep cycling. Goal is 300+ reps total. Don't rest during the 1-min work windows."
         ),
 
         // MARK: - Strength
@@ -205,7 +215,12 @@ public struct BenchmarkCatalog {
             workoutDescription: "Find your 1-rep max back squat.",
             scoringType: .load,
             isPredefined: true,
-            sortOrder: 14
+            sortOrder: 14,
+            intensity: .five,
+            movementTags: ["Maximal Strength", "Lower Body"],
+            equipment: ["barbell", "squat rack", "plates"],
+            timeDomain: "20-30 min",
+            coachNotes: "Warm-up: 5@40%, 3@60%, 1@75%, 1@85%, 1@90%, then attempt. Rest 3-5 min between heavy singles. Belt and knee sleeves are standard. Hit depth — crease of hip below top of knee. If you miss, end the session."
         ),
         BenchmarkDefinition(
             id: "strength-conventional-deadlift-1rm",
@@ -214,7 +229,12 @@ public struct BenchmarkCatalog {
             workoutDescription: "Find your 1-rep max conventional deadlift without straps.",
             scoringType: .load,
             isPredefined: true,
-            sortOrder: 15
+            sortOrder: 15,
+            intensity: .five,
+            movementTags: ["Maximal Strength", "Posterior Chain", "Grip"],
+            equipment: ["barbell", "plates"],
+            timeDomain: "20-30 min",
+            coachNotes: "No straps — this tests grip too. Belt is fine. Hook grip recommended. Warm-up: 5@40%, 3@60%, 1@75%, 1@85%, 1@90%, then attempt. Bar drags up your shins. Lock out fully at the top. No hitching."
         ),
         BenchmarkDefinition(
             id: "strength-bench-press-1rm",
@@ -223,7 +243,12 @@ public struct BenchmarkCatalog {
             workoutDescription: "Find your 1-rep max flat barbell bench press.",
             scoringType: .load,
             isPredefined: true,
-            sortOrder: 16
+            sortOrder: 16,
+            intensity: .five,
+            movementTags: ["Maximal Strength", "Upper Body Push"],
+            equipment: ["barbell", "flat bench", "plates", "spotter"],
+            timeDomain: "20-30 min",
+            coachNotes: "Always use a spotter. Arch and leg drive are legal and recommended. Touch the chest, pause briefly, drive up. Grip just outside shoulder width. Wrist wraps help for heavy singles. Warm-up to 85-90% before your max attempt."
         ),
         BenchmarkDefinition(
             id: "strength-overhead-press-1rm",
@@ -232,7 +257,12 @@ public struct BenchmarkCatalog {
             workoutDescription: "Find your 1-rep max strict barbell overhead press.",
             scoringType: .load,
             isPredefined: true,
-            sortOrder: 17
+            sortOrder: 17,
+            intensity: .four,
+            movementTags: ["Maximal Strength", "Upper Body Push", "Strict"],
+            equipment: ["barbell", "plates"],
+            timeDomain: "15-25 min",
+            coachNotes: "Strict press — no leg drive. Squeeze glutes and brace hard. Bar path: close to face on the way up, slight lean back in the torso. Lower numbers here are normal. Don't let it turn into a push press on heavy attempts."
         ),
         BenchmarkDefinition(
             id: "strength-clean-and-jerk-1rm",
@@ -241,7 +271,12 @@ public struct BenchmarkCatalog {
             workoutDescription: "Find your 1-rep max clean and jerk.",
             scoringType: .load,
             isPredefined: true,
-            sortOrder: 18
+            sortOrder: 18,
+            intensity: .five,
+            movementTags: ["Olympic Lifting", "Full Body Power"],
+            equipment: ["barbell", "plates", "lifting shoes (optional)"],
+            timeDomain: "30-45 min",
+            coachNotes: "3-5 min rest between attempts. Warm up the full lift from 50%+. At max weight, commit to the jerk — a missed jerk under a heavy clean is the most dangerous scenario. Split jerk is standard. Lifting shoes and belt make a real difference."
         ),
         BenchmarkDefinition(
             id: "strength-snatch-1rm",
@@ -250,7 +285,12 @@ public struct BenchmarkCatalog {
             workoutDescription: "Find your 1-rep max snatch.",
             scoringType: .load,
             isPredefined: true,
-            sortOrder: 19
+            sortOrder: 19,
+            intensity: .five,
+            movementTags: ["Olympic Lifting", "Full Body Power", "High Skill"],
+            equipment: ["barbell", "plates", "lifting shoes (optional)"],
+            timeDomain: "30-45 min",
+            coachNotes: "The most technically demanding benchmark. Spend adequate time on warm-up technique before going heavy. Progress: high hang → hang → full. At 90%+, misses are expected — that's fine. Wrist mobility and shoulder flexibility are common limiters. Never rush a heavy attempt."
         ),
 
         // MARK: - Endurance
@@ -259,36 +299,56 @@ public struct BenchmarkCatalog {
             name: "1-Mile Run",
             category: BenchmarkCategory.endurance.rawValue,
             workoutDescription: "Run 1 mile (1.6 km) as fast as possible.",
-            scoringType: .distance,
+            scoringType: .time,
             isPredefined: true,
-            sortOrder: 20
+            sortOrder: 20,
+            intensity: .three,
+            movementTags: ["Cardio", "Running", "Aerobic Capacity"],
+            equipment: ["running shoes", "track or road"],
+            timeDomain: "4-10 min",
+            coachNotes: "This is a sprint, not a jog. Go out at 90% effort and hold on. Best results come from even pacing across 4 laps. Track is ideal for accuracy. Sub-6 min is elite for strength athletes. Even splits matter more than a fast first lap."
         ),
         BenchmarkDefinition(
             id: "endurance-5k-run",
             name: "5K Run",
             category: BenchmarkCategory.endurance.rawValue,
             workoutDescription: "Run 5 kilometers (3.1 miles) as fast as possible.",
-            scoringType: .distance,
+            scoringType: .time,
             isPredefined: true,
-            sortOrder: 21
+            sortOrder: 21,
+            intensity: .three,
+            movementTags: ["Cardio", "Endurance", "Running"],
+            equipment: ["running shoes", "track or road"],
+            timeDomain: "18-35 min",
+            coachNotes: "Pacing is everything. Don't start too fast — the first kilometer should feel easy. Mile 2 is where most athletes blow up. Stay controlled through the middle, then kick on the final 400m. Sub-20 min is competitive. Monitor heart rate if possible; aim for Zone 4."
         ),
         BenchmarkDefinition(
             id: "endurance-1.5-mile-run",
             name: "1.5-Mile Run",
             category: BenchmarkCategory.endurance.rawValue,
             workoutDescription: "Run 1.5 miles (2.4 km) as fast as possible. Used to estimate VO2 Max (Cooper Test).",
-            scoringType: .distance,
+            scoringType: .time,
             isPredefined: true,
-            sortOrder: 22
+            sortOrder: 22,
+            intensity: .three,
+            movementTags: ["Cardio", "VO2 Max", "Endurance"],
+            equipment: ["running shoes", "track"],
+            timeDomain: "8-15 min",
+            coachNotes: "The Cooper Test distance used to estimate VO2 max. 6 laps around a standard track. Start at a sustainable pace and commit to it. Sub-9 min is elite for general athletes. Use your time to estimate VO2 max: 483 ÷ (minutes + 3.5)."
         ),
         BenchmarkDefinition(
             id: "endurance-2k-row",
             name: "2K Row",
             category: BenchmarkCategory.endurance.rawValue,
             workoutDescription: "Row 2000 meters on an ergometer as fast as possible.",
-            scoringType: .distance,
+            scoringType: .time,
             isPredefined: true,
-            sortOrder: 23
+            sortOrder: 23,
+            intensity: .four,
+            movementTags: ["Cardio", "Rowing", "Full Body"],
+            equipment: ["Concept2 rower"],
+            timeDomain: "6-10 min",
+            coachNotes: "The gold standard rowing benchmark. Split the 2K into 4 x 500m mentally. Target a pace you can hold from the start — don't sprint the first 500. The 'red zone' is 1000-1500m, where races are won or lost. Sprint the final 250m. Sub-7:30 is elite for athletes."
         ),
 
         // MARK: - Gymnastics
@@ -299,7 +359,12 @@ public struct BenchmarkCatalog {
             workoutDescription: "Maximum strict pull-ups in one unbroken set.",
             scoringType: .reps,
             isPredefined: true,
-            sortOrder: 24
+            sortOrder: 24,
+            intensity: .three,
+            movementTags: ["Gymnastics", "Upper Body Pull", "Strict"],
+            equipment: ["pull-up bar"],
+            timeDomain: "1-5 min",
+            coachNotes: "Strict only — dead hang start, chin clears bar, no kipping. Grip just outside shoulders. Focus on pulling elbows down, not just pulling up. 20+ is strong; 30+ is elite. Rest at least 48 hours between max attempts."
         ),
         BenchmarkDefinition(
             id: "gymnastics-max-push-ups-2-min",
@@ -308,7 +373,12 @@ public struct BenchmarkCatalog {
             workoutDescription: "Maximum push-ups completed in 2 minutes.",
             scoringType: .reps,
             isPredefined: true,
-            sortOrder: 25
+            sortOrder: 25,
+            intensity: .two,
+            movementTags: ["Gymnastics", "Upper Body Push", "Volume"],
+            equipment: [],
+            timeDomain: "2 min fixed",
+            coachNotes: "Full range of motion required: chest to floor, elbows locked out at top. No resting in the up position. Pace the first 90 seconds at 60% effort, then empty the tank. 75+ in 2 min is excellent. Score drops fast if you rest mid-set."
         ),
         BenchmarkDefinition(
             id: "gymnastics-max-handstand-push-ups",
@@ -317,7 +387,12 @@ public struct BenchmarkCatalog {
             workoutDescription: "Maximum strict handstand push-ups in one unbroken set.",
             scoringType: .reps,
             isPredefined: true,
-            sortOrder: 26
+            sortOrder: 26,
+            intensity: .four,
+            movementTags: ["Gymnastics", "Overhead Strength", "Strict"],
+            equipment: ["wall"],
+            timeDomain: "1-5 min",
+            coachNotes: "Strict only — full lockout at top, head touches floor at bottom. Kick up to wall and engage your core hard. Narrower hand width increases difficulty. 10+ is strong; 20+ is elite. Wrist mobility is the most common limiter — warm it up carefully."
         ),
         BenchmarkDefinition(
             id: "gymnastics-max-muscle-ups",
@@ -326,7 +401,12 @@ public struct BenchmarkCatalog {
             workoutDescription: "Maximum ring or bar muscle-ups in one unbroken set.",
             scoringType: .reps,
             isPredefined: true,
-            sortOrder: 27
+            sortOrder: 27,
+            intensity: .five,
+            movementTags: ["Gymnastics", "Push/Pull", "High Skill"],
+            equipment: ["rings or pull-up bar"],
+            timeDomain: "1-5 min",
+            coachNotes: "Most demanding unbroken gymnastics benchmark. Ring muscle-ups are harder than bar. An aggressive kip is critical — the transition is where most athletes fail. False grip on rings makes the turnover easier. 5+ is strong; 10+ is elite. Rest 3-5 min before attempting."
         ),
 
         // MARK: - General Fitness
@@ -337,7 +417,12 @@ public struct BenchmarkCatalog {
             workoutDescription: "Complete 100 push-ups as fast as possible. Rest as needed.",
             scoringType: .time,
             isPredefined: true,
-            sortOrder: 28
+            sortOrder: 28,
+            intensity: .two,
+            movementTags: ["Bodyweight", "Upper Body Push", "Volume"],
+            equipment: [],
+            timeDomain: "3-15 min",
+            coachNotes: "Break early and often. Sets of 20-10-10-10-10-10-10-10-10-10 beats going unbroken and failing. Rest no more than 10-15s between sets. Chest must touch floor and elbows lock out. Sub-5 min is excellent."
         ),
         BenchmarkDefinition(
             id: "fitness-100-sit-ups-for-time",
@@ -346,7 +431,12 @@ public struct BenchmarkCatalog {
             workoutDescription: "Complete 100 sit-ups as fast as possible. Rest as needed.",
             scoringType: .time,
             isPredefined: true,
-            sortOrder: 29
+            sortOrder: 29,
+            intensity: .one,
+            movementTags: ["Bodyweight", "Core", "Volume"],
+            equipment: ["AbMat (optional)"],
+            timeDomain: "3-12 min",
+            coachNotes: "Use an AbMat for full range of motion. Anchor your feet. Go as fast as possible — sit-ups don't have a strength ceiling, just a conditioning one. Large sets of 25-30 work well. Sub-4 min is strong."
         ),
         BenchmarkDefinition(
             id: "fitness-l-sit-hold",
@@ -355,7 +445,12 @@ public struct BenchmarkCatalog {
             workoutDescription: "Hold an L-sit (legs straight, parallel to ground) as long as possible. Supported on floor, parallettes, or rings.",
             scoringType: .time,
             isPredefined: true,
-            sortOrder: 30
+            sortOrder: 30,
+            intensity: .three,
+            movementTags: ["Gymnastics", "Core", "Isometric"],
+            equipment: ["parallettes, floor, or rings"],
+            timeDomain: "5 sec - 60+ sec",
+            coachNotes: "Legs fully straight and parallel to ground. Parallettes are easiest; floor is hardest. Compress your hips and squeeze quads hard. 10s is a solid baseline; 30s is excellent; 60s is elite. Score as a single best hold or total accumulated time."
         ),
     ]
 
