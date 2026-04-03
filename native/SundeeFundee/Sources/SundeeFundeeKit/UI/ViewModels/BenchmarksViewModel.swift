@@ -1,0 +1,332 @@
+import Foundation
+
+// MARK: - Benchmarks List View Model
+
+@available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
+@MainActor
+public class BenchmarksListViewModel: ObservableObject {
+    // MARK: - Published Properties
+
+    @Published var isLoading: Bool = false
+    @Published var errorMessage: String?
+    @Published var selectedCategory: String = BenchmarkCategory.sundeeFundee.rawValue
+    @Published var benchmarks: [BenchmarkDefinition] = []
+    @Published var userResults: [String: [BenchmarkResult]] = [:]
+    @Published var cyclePhase: CyclePhase?
+
+    // MARK: - Dependencies
+
+    private let dataClient: DataClientProtocol
+    private let healthClient: HealthClientProtocol
+
+    // MARK: - Initialization
+
+    public init(
+        dataClient: DataClientProtocol = CloudKitClient(containerIdentifier: "icloud.com.sundeefundee.app"),
+        healthClient: HealthClientProtocol = HealthKitClient()
+    ) {
+        self.dataClient = dataClient
+        self.healthClient = healthClient
+    }
+
+    // MARK: - Public Methods
+
+    /// Load benchmarks and user results
+    public func loadData() async {
+        isLoading = true
+        errorMessage = nil
+
+        // Load user's benchmark results
+        await loadUserResults()
+
+        // Load current cycle phase for readiness
+        await loadCyclePhase()
+
+        // Update benchmarks for selected category
+        updateBenchmarksForCategory()
+
+        isLoading = false
+    }
+
+    /// Change selected category
+    public func selectCategory(_ category: String) {
+        selectedCategory = category
+        updateBenchmarksForCategory()
+    }
+
+    /// Get readiness for a benchmark
+    public func getReadiness(for benchmark: BenchmarkDefinition) -> BenchmarkReadiness {
+        return BenchmarkReadinessCalculator.calculateReadiness(
+            phase: cyclePhase,
+            benchmarkIntensity: benchmark.intensity,
+            movementTags: benchmark.movementTags
+        )
+    }
+
+    /// Check if user has completed this benchmark
+    public func hasCompletedBenchmark(_ benchmarkId: String) -> Bool {
+        return userResults[benchmarkId] != nil && !(userResults[benchmarkId]?.isEmpty ?? true)
+    }
+
+    /// Get best result for a benchmark
+    public func getBestResult(for benchmarkId: String) -> BenchmarkResult? {
+        guard let results = userResults[benchmarkId] else { return nil }
+
+        // For time-based, lower is better. For others, higher is better.
+        if let benchmark = BenchmarkCatalog.benchmark(id: benchmarkId),
+           benchmark.scoringType == .time {
+            return results.min(by: { $0.score < $1.score })
+        } else {
+            return results.max(by: { $0.score < $1.score })
+        }
+    }
+
+    /// Format score for display
+    public func formatScore(benchmark: BenchmarkDefinition, score: Double) -> String {
+        switch benchmark.scoringType {
+        case .time:
+            let minutes = Int(score) / 60
+            let seconds = Int(score) % 60
+            return String(format: "%d:%02d", minutes, seconds)
+        case .roundsAndReps:
+            let rounds = Int(score) / 10000
+            let reps = Int(score) % 10000
+            return "\(rounds) rounds + \(reps) reps"
+        case .load:
+            return "\(Int(score)) lb"
+        case .reps:
+            return "\(Int(score)) reps"
+        case .calories:
+            return "\(Int(score)) cal"
+        case .distance:
+            return "\(Int(score)) m"
+        }
+    }
+
+    // MARK: - Private Methods
+
+    private func updateBenchmarksForCategory() {
+        benchmarks = BenchmarkCatalog.benchmarks(in: selectedCategory)
+    }
+
+    private func loadUserResults() async {
+        do {
+            let records = try await dataClient.fetchAll(
+                recordType: "BenchmarkResult"
+            ) as [BenchmarkResult]
+
+            // Group by benchmark ID
+            var grouped: [String: [BenchmarkResult]] = [:]
+            for result in records {
+                if grouped[result.benchmarkId] == nil {
+                    grouped[result.benchmarkId] = []
+                }
+                grouped[result.benchmarkId]?.append(result)
+            }
+
+            userResults = grouped
+        } catch {
+            print("Error loading benchmark results: \(error)")
+        }
+    }
+
+    private func loadCyclePhase() async {
+        do {
+            if healthClient.isAvailable {
+                let cycles = try await healthClient.fetchMenstrualCycles(
+                    startDate: nil,
+                    endDate: nil,
+                    limit: 1
+                )
+                if !cycles.isEmpty {
+                    // Calculate phase from latest cycle
+                    // This is a simplified version
+                    cyclePhase = .follicular
+                }
+            }
+        } catch {
+            // HealthKit not available or permission denied
+            print("Cycle phase unavailable: \(error)")
+        }
+    }
+}
+
+// MARK: - Benchmark Detail View Model
+
+@available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
+@MainActor
+public class BenchmarkDetailViewModel: ObservableObject {
+    // MARK: - Published Properties
+
+    @Published var isLoading: Bool = false
+    @Published var errorMessage: String?
+    @Published var benchmark: BenchmarkDefinition?
+    @Published var readiness: BenchmarkReadiness?
+    @Published var attemptWindow: AttemptWindow?
+    @Published var previousResults: [BenchmarkResult] = []
+    @Published var showingScoreEntry: Bool = false
+
+    // MARK: - Dependencies
+
+    private let dataClient: DataClientProtocol
+    private let healthClient: HealthClientProtocol
+
+    // MARK: - Initialization
+
+    public init(
+        dataClient: DataClientProtocol = CloudKitClient(containerIdentifier: "icloud.com.sundeefundee.app"),
+        healthClient: HealthClientProtocol = HealthKitClient()
+    ) {
+        self.dataClient = dataClient
+        self.healthClient = healthClient
+    }
+
+    // MARK: - Public Methods
+
+    /// Load benchmark details
+    public func loadBenchmark(id: String) async {
+        isLoading = true
+        errorMessage = nil
+
+        guard let benchmark = BenchmarkCatalog.benchmark(id: id) else {
+            errorMessage = "Benchmark not found"
+            isLoading = false
+            return
+        }
+
+        self.benchmark = benchmark
+
+        // Load readiness
+        await loadReadiness(for: benchmark)
+
+        // Load previous results
+        await loadPreviousResults(benchmarkId: id)
+
+        isLoading = false
+    }
+
+    /// Save a new benchmark result
+    public func saveResult(
+        benchmarkId: String,
+        score: Double,
+        notes: String?
+    ) async {
+        isLoading = true
+
+        let result = BenchmarkResult(
+            id: UUID().uuidString,
+            benchmarkId: benchmarkId,
+            benchmarkName: benchmark?.name ?? "Unknown",
+            score: score,
+            notes: notes,
+            date: Date(),
+            cyclePhase: readiness?.tier != nil ? getCurrentCyclePhase() : nil
+        )
+
+        do {
+            try await dataClient.save(
+                [result],
+                recordType: "BenchmarkResult"
+            )
+
+            // Reload previous results
+            await loadPreviousResults(benchmarkId: benchmarkId)
+        } catch {
+            errorMessage = "Failed to save result: \(error.localizedDescription)"
+        }
+
+        isLoading = false
+    }
+
+    /// Delete a result
+    public func deleteResult(resultId: String) async {
+        isLoading = true
+
+        // For now, just reload the results (the result will be filtered out)
+        // In a full implementation, we'd need to track CKRecord.ID
+        await loadPreviousResults(benchmarkId: benchmark?.id ?? "")
+
+        isLoading = false
+    }
+
+    /// Format score for display
+    public func formatScore(score: Double) -> String {
+        guard let benchmark = benchmark else { return "\(score)" }
+
+        switch benchmark.scoringType {
+        case .time:
+            let minutes = Int(score) / 60
+            let seconds = Int(score) % 60
+            return String(format: "%d:%02d", minutes, seconds)
+        case .roundsAndReps:
+            let rounds = Int(score) / 10000
+            let reps = Int(score) % 10000
+            return "\(rounds) rounds + \(reps) reps"
+        case .load:
+            return "\(Int(score)) lb"
+        case .reps:
+            return "\(Int(score)) reps"
+        case .calories:
+            return "\(Int(score)) cal"
+        case .distance:
+            return "\(Int(score)) m"
+        }
+    }
+
+    // MARK: - Private Methods
+
+    private func loadReadiness(for benchmark: BenchmarkDefinition) async {
+        // Get current cycle phase
+        var currentPhase: CyclePhase?
+        do {
+            if healthClient.isAvailable {
+                let cycles = try await healthClient.fetchMenstrualCycles(
+                    startDate: nil,
+                    endDate: nil,
+                    limit: 1
+                )
+                if !cycles.isEmpty {
+                    // Calculate phase from latest cycle
+                    currentPhase = .follicular
+                }
+            }
+        } catch {
+            print("Cycle phase unavailable: \(error)")
+        }
+
+        readiness = BenchmarkReadinessCalculator.calculateReadiness(
+            phase: currentPhase,
+            benchmarkIntensity: benchmark.intensity,
+            movementTags: benchmark.movementTags
+        )
+
+        // Calculate best attempt window if we have cycle data
+        if currentPhase != nil {
+            // In a real implementation, we'd fetch the user's cycle settings
+            // For now, use defaults
+            attemptWindow = BenchmarkReadinessCalculator.getBestAttemptWindow(
+                averageCycleLength: 28,
+                lastPeriodStart: Date().addingTimeInterval(-14 * 24 * 60 * 60)
+            )
+        }
+    }
+
+    private func loadPreviousResults(benchmarkId: String) async {
+        do {
+            let allResults = try await dataClient.fetchAll(
+                recordType: "BenchmarkResult"
+            ) as [BenchmarkResult]
+
+            previousResults = allResults
+                .filter { $0.benchmarkId == benchmarkId }
+                .sorted { $0.date > $1.date }
+        } catch {
+            print("Error loading results: \(error)")
+        }
+    }
+
+    private func getCurrentCyclePhase() -> CyclePhase? {
+        // In a real implementation, this would calculate from actual cycle data
+        return nil
+    }
+}
