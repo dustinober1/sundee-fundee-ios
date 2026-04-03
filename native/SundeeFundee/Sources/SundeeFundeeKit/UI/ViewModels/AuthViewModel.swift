@@ -17,6 +17,7 @@ public class AuthViewModel: ObservableObject {
     @Published public var userID: String?
     @Published public var userEmail: String?
     @Published public var userName: String?
+    @Published public var needsOnboarding: Bool = false
 
     // MARK: - Dependencies
 
@@ -53,10 +54,20 @@ public class AuthViewModel: ObservableObject {
             self.userEmail = result.email
             self.userName = result.displayName
 
+            // Persist to Keychain for session restoration
+            _ = KeychainHelper.save(key: KeychainHelper.userIDKey, value: result.userID)
+            if let email = result.email {
+                _ = KeychainHelper.save(key: KeychainHelper.userEmailKey, value: email)
+            }
+            if let name = result.displayName {
+                _ = KeychainHelper.save(key: KeychainHelper.userNameKey, value: name)
+            }
+
             // Save user to CloudKit
             try await saveUserToCloudKit(result)
 
             self.isAuthenticated = true
+            self.needsOnboarding = KeychainHelper.read(key: "onboarding_complete") == nil
         } catch {
             self.errorMessage = "Sign in failed: \(error.localizedDescription)"
             print("Auth error: \(error)")
@@ -65,10 +76,22 @@ public class AuthViewModel: ObservableObject {
         isLoading = false
     }
 
+    /// Marks onboarding as complete
+    public func completeOnboarding() {
+        _ = KeychainHelper.save(key: "onboarding_complete", value: "true")
+        needsOnboarding = false
+    }
+
     /// Signs out the current user
     public func signOut() {
         Task {
             await authClient.signOut()
+
+            // Clear Keychain
+            _ = KeychainHelper.delete(key: KeychainHelper.userIDKey)
+            _ = KeychainHelper.delete(key: KeychainHelper.userEmailKey)
+            _ = KeychainHelper.delete(key: KeychainHelper.userNameKey)
+
             await MainActor.run {
                 isAuthenticated = false
                 userID = nil
@@ -83,11 +106,10 @@ public class AuthViewModel: ObservableObject {
 
     /// Checks for an existing authenticated session
     private func checkExistingSession() async {
-        // In a real implementation, this would check for stored credentials
-        // For now, we'll check if we have a user ID in CloudKit
         if let userID = await fetchStoredUserID() {
             self.userID = userID
             isAuthenticated = true
+            needsOnboarding = KeychainHelper.read(key: "onboarding_complete") == nil
         }
     }
 
@@ -104,11 +126,17 @@ public class AuthViewModel: ObservableObject {
         try await dataClient.save(userData, recordType: "UserData")
     }
 
-    /// Fetches stored user ID from CloudKit
+    /// Fetches stored user ID from Keychain
     private func fetchStoredUserID() async -> String? {
-        // This would check for existing user records in CloudKit
-        // For now, return nil to force sign-in
-        return nil
+        guard let storedID = KeychainHelper.read(key: KeychainHelper.userIDKey) else {
+            return nil
+        }
+
+        // Restore cached user info from Keychain
+        self.userEmail = KeychainHelper.read(key: KeychainHelper.userEmailKey)
+        self.userName = KeychainHelper.read(key: KeychainHelper.userNameKey)
+
+        return storedID
     }
 }
 

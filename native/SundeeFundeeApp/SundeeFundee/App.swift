@@ -10,9 +10,15 @@ struct SundeeFundeeMain: App {
         WindowGroup {
             Group {
                 if authViewModel.isAuthenticated {
-                    MainTabView()
-                        .environmentObject(authViewModel)
-                        .environmentObject(themeViewModel)
+                    if authViewModel.needsOnboarding {
+                        OnboardingView {
+                            authViewModel.completeOnboarding()
+                        }
+                    } else {
+                        MainTabView()
+                            .environmentObject(authViewModel)
+                            .environmentObject(themeViewModel)
+                    }
                 } else {
                     AuthView()
                         .environmentObject(authViewModel)

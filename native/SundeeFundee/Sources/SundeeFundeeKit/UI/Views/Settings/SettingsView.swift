@@ -64,6 +64,12 @@ public struct SettingsView: View {
                     Toggle("Enable Cycle Tracking", isOn: $viewModel.cycleTrackingEnabled)
 
                     if viewModel.cycleTrackingEnabled {
+                        NavigationLink {
+                            CycleCalendarView()
+                        } label: {
+                            Label("Cycle Calendar", systemImage: "calendar")
+                        }
+
                         NavigationLink("Cycle Settings") {
                             CycleSettingsView()
                         }

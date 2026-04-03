@@ -11,6 +11,7 @@ import SwiftUI
 public struct DashboardView: View {
     @StateObject private var viewModel = DashboardViewModel()
     @EnvironmentObject var authViewModel: AuthViewModel
+    @State private var showingAIWorkout = false
 
     public init() {}
 
@@ -53,6 +54,9 @@ public struct DashboardView: View {
         .refreshable {
             await viewModel.loadData()
         }
+        .sheet(isPresented: $showingAIWorkout) {
+            AIWorkoutView()
+        }
     }
 
     // MARK: - Welcome Header
@@ -90,6 +94,7 @@ public struct DashboardView: View {
     @ViewBuilder
     private var cyclePhaseBanner: some View {
         if let phase = viewModel.cyclePhase {
+            NavigationLink(destination: CycleCalendarView()) {
             ArtDecoCard {
                 HStack(spacing: AppTheme.Spacing.md) {
                     Image(systemName: cyclePhaseIcon(for: phase))
@@ -121,6 +126,8 @@ public struct DashboardView: View {
                         }
                     }
                 }
+            }
+            .buttonStyle(.plain)
             }
         }
     }
@@ -212,12 +219,9 @@ public struct DashboardView: View {
                             .foregroundColor(AppTheme.Text.secondary.opacity(0.8))
 
                         Button("Generate") {
-                            Task {
-                                await viewModel.generateAIWorkout()
-                            }
+                            showingAIWorkout = true
                         }
                         .artDecoButton(style: .accent)
-                        .disabled(viewModel.isGeneratingWorkout)
                     }
                 } else {
                     VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
@@ -257,32 +261,38 @@ public struct DashboardView: View {
                     GridItem(.flexible()),
                     GridItem(.flexible())
                 ], spacing: AppTheme.Spacing.sm) {
-                    quickActionButton("Log Max", icon: "scalemass", style: .primary)
-                    quickActionButton("Programs", icon: "list.bullet.rectangle", style: .secondary)
-                    quickActionButton("Benchmarks", icon: "trophy", style: .secondary)
+                    NavigationLink(destination: MaxesListView()) {
+                        quickActionContent("Log Max", icon: "scalemass", isPrimary: true)
+                    }
+                    .buttonStyle(.plain)
+
+                    NavigationLink(destination: PainTrackingView()) {
+                        quickActionContent("Pain Log", icon: "bandage", isPrimary: false)
+                    }
+                    .buttonStyle(.plain)
+
+                    NavigationLink(destination: BenchmarksListView()) {
+                        quickActionContent("Benchmarks", icon: "trophy", isPrimary: false)
+                    }
+                    .buttonStyle(.plain)
                 }
             }
         }
     }
 
-    private func quickActionButton(_ title: String, icon: String, style: AppButtonStyle) -> some View {
-        Button(action: {
-            // Handle navigation
-        }) {
-            VStack(spacing: AppTheme.Spacing.xs) {
-                Image(systemName: icon)
-                    .font(.system(size: 20))
+    private func quickActionContent(_ title: String, icon: String, isPrimary: Bool) -> some View {
+        VStack(spacing: AppTheme.Spacing.xs) {
+            Image(systemName: icon)
+                .font(.system(size: 20))
 
-                Text(title)
-                    .font(AppTheme.Typography.labelMedium)
-            }
-            .foregroundColor(style == .primary ? AppTheme.Text.cream : AppTheme.Text.primary)
-            .frame(maxWidth: .infinity)
-            .padding(AppTheme.Spacing.md)
-            .background(style == .primary ? AppTheme.Background.navy : AppTheme.Background.cream.opacity(0.5))
-            .cornerRadius(AppTheme.CornerRadius.small)
+            Text(title)
+                .font(AppTheme.Typography.labelMedium)
         }
-        .buttonStyle(.plain)
+        .foregroundColor(isPrimary ? AppTheme.Text.cream : AppTheme.Text.primary)
+        .frame(maxWidth: .infinity)
+        .padding(AppTheme.Spacing.md)
+        .background(isPrimary ? AppTheme.Background.navy : AppTheme.Background.cream.opacity(0.5))
+        .cornerRadius(AppTheme.CornerRadius.small)
     }
 
     // MARK: - Recent Wins
