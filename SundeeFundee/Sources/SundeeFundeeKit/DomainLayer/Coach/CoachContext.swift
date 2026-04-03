@@ -1,0 +1,223 @@
+import Foundation
+
+// MARK: - CoachContext
+
+/// Compact context assembled from multiple data sources for the coach.
+///
+/// Instead of passing raw full history, this builds rolling summaries
+/// that fit within on-device model context windows. Each field is
+/// optional because not all data may be available for every user.
+public struct CoachContext: Sendable {
+
+    // MARK: - User Profile
+
+    /// Current cycle phase (nil if cycle tracking is off).
+    public let cyclePhase: CyclePhase?
+
+    /// Cycle phase confidence (0.0–1.0).
+    public let cycleConfidence: Double?
+
+    /// User's experience level.
+    public let experienceLevel: String?
+
+    /// User's primary training goal.
+    public let primaryGoal: String?
+
+    /// Current subscription tier (determines available features).
+    public let tier: SubscriptionTier
+
+    // MARK: - Training State
+
+    /// User's current 1RM records (most recent per exercise).
+    public let maxes: [ExerciseMax]
+
+    /// Active injuries with recovery phases.
+    public let injuries: [Injury]
+
+    /// Workouts completed this week.
+    public let workoutsThisWeek: Int
+
+    /// Weekly summaries (last 4 weeks).
+    public let weeklySummaries: [WeeklyLoadAnalyzer.WeeklySummary]
+
+    /// Detected load trends.
+    public let trends: [WeeklyLoadAnalyzer.LoadTrend]
+
+    /// Detected plateau alerts.
+    public let plateaus: [PlateauDetector.PlateauAlert]
+
+    // MARK: - Equipment
+
+    /// Available equipment.
+    public let equipment: EquipmentAccess
+
+    // MARK: - Initialization
+
+    public init(
+        cyclePhase: CyclePhase? = nil,
+        cycleConfidence: Double? = nil,
+        experienceLevel: String? = nil,
+        primaryGoal: String? = nil,
+        tier: SubscriptionTier = .free,
+        maxes: [ExerciseMax] = [],
+        injuries: [Injury] = [],
+        workoutsThisWeek: Int = 0,
+        weeklySummaries: [WeeklyLoadAnalyzer.WeeklySummary] = [],
+        trends: [WeeklyLoadAnalyzer.LoadTrend] = [],
+        plateaus: [PlateauDetector.PlateauAlert] = [],
+        equipment: EquipmentAccess = .fullGym
+    ) {
+        self.cyclePhase = cyclePhase
+        self.cycleConfidence = cycleConfidence
+        self.experienceLevel = experienceLevel
+        self.primaryGoal = primaryGoal
+        self.tier = tier
+        self.maxes = maxes
+        self.injuries = injuries
+        self.workoutsThisWeek = workoutsThisWeek
+        self.weeklySummaries = weeklySummaries
+        self.trends = trends
+        self.plateaus = plateaus
+        self.equipment = equipment
+    }
+}
+
+// MARK: - CoachContextBuilder
+
+/// Assembles a CoachContext from the data layer.
+///
+/// Call `build()` to fetch data from HealthKit, CloudKit/Local storage,
+/// and the subscription client, then assemble it into a compact context.
+@available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
+public actor CoachContextBuilder {
+    private let healthClient: HealthClientProtocol
+    private let dataClient: DataClientProtocol
+    private let subscriptionClient: SubscriptionClientProtocol
+
+    public init(
+        healthClient: HealthClientProtocol = HealthKitClient(),
+        dataClient: DataClientProtocol = DataClientFactory.shared.client,
+        subscriptionClient: SubscriptionClientProtocol = MockSubscriptionClient()
+    ) {
+        self.healthClient = healthClient
+        self.dataClient = dataClient
+        self.subscriptionClient = subscriptionClient
+    }
+
+    /// Builds a complete context by fetching from all data sources.
+    public func build(equipment: EquipmentAccess = .fullGym) async -> CoachContext {
+        async let cycleData = loadCycleData()
+        async let maxes = loadMaxes()
+        async let injuries = loadInjuries()
+        async let workoutData = loadWorkoutData()
+        async let settings = loadSettings()
+        async let subscription = loadSubscription()
+
+        let (cycle, maxResult, injuryResult, workouts, userSettings, tier) = await (
+            cycleData, maxes, injuries, workoutData, settings, subscription
+        )
+
+        // Run analysis on the workout data
+        let summaries = WeeklyLoadAnalyzer.weeklySummaries(from: workouts)
+        let trends = WeeklyLoadAnalyzer.detectTrends(from: summaries)
+        let plateaus = PlateauDetector.detect(from: maxResult.records)
+
+        return CoachContext(
+            cyclePhase: cycle.phase,
+            cycleConfidence: cycle.confidence,
+            experienceLevel: userSettings.experienceLevel,
+            primaryGoal: userSettings.primaryGoal,
+            tier: tier,
+            maxes: maxResult.maxes,
+            injuries: injuryResult,
+            workoutsThisWeek: countThisWeek(workouts),
+            weeklySummaries: summaries,
+            trends: trends,
+            plateaus: plateaus,
+            equipment: equipment
+        )
+    }
+
+    // MARK: - Private Loaders
+
+    private func loadCycleData() async -> (phase: CyclePhase?, confidence: Double?) {
+        do {
+            guard healthClient.isAvailable else { return (nil, nil) }
+            let sixMonthsAgo = Calendar.current.date(byAdding: .month, value: -6, to: Date())
+            let cycles = try await healthClient.fetchMenstrualCycles(
+                startDate: sixMonthsAgo, endDate: nil, limit: 100
+            )
+            guard !cycles.isEmpty,
+                  let status = CyclePhaseHelper.calculatePhase(from: cycles) else {
+                return (nil, nil)
+            }
+            let logs = CyclePhaseHelper.convertToPeriodLogs(cycles)
+            let confidence = CyclePhaseHelper.calculateConfidence(
+                periodLogCount: logs.count,
+                lastPeriodStart: logs.last?.startDate
+            )
+            return (status.currentPhase, confidence)
+        } catch {
+            return (nil, nil)
+        }
+    }
+
+    private func loadMaxes() async -> (maxes: [ExerciseMax], records: [OneRepMaxRecord]) {
+        do {
+            let records = try await dataClient.fetchAll(
+                recordType: "OneRepMaxRecord"
+            ) as [OneRepMaxRecord]
+            let maxes = records.map { ExerciseMax(name: $0.exerciseName, weightKg: $0.weight) }
+            return (maxes, records)
+        } catch {
+            return ([], [])
+        }
+    }
+
+    private func loadInjuries() async -> [Injury] {
+        do {
+            return try await dataClient.fetchAll(recordType: "Injury") as [Injury]
+        } catch {
+            return []
+        }
+    }
+
+    private func loadWorkoutData() async -> [CompletedWorkoutRecord] {
+        do {
+            return try await dataClient.fetchAll(
+                recordType: "CompletedWorkoutRecord"
+            ) as [CompletedWorkoutRecord]
+        } catch {
+            return []
+        }
+    }
+
+    private func loadSettings() async -> (experienceLevel: String?, primaryGoal: String?) {
+        do {
+            let records = try await dataClient.fetchAll(
+                recordType: "UserSettings"
+            ) as [UserSettingsRecord]
+            if let s = records.first {
+                return (s.experienceLevel, s.primaryGoal)
+            }
+        } catch {}
+        return (nil, nil)
+    }
+
+    private func loadSubscription() async -> SubscriptionTier {
+        do {
+            let info = try await subscriptionClient.getSubscriptionInfo()
+            return info.tier
+        } catch {
+            return .free
+        }
+    }
+
+    private func countThisWeek(_ workouts: [CompletedWorkoutRecord]) -> Int {
+        let calendar = Calendar.current
+        guard let weekStart = calendar.dateInterval(of: .weekOfYear, for: Date())?.start else {
+            return 0
+        }
+        return workouts.filter { $0.date >= weekStart }.count
+    }
+}
