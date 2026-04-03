@@ -5,30 +5,62 @@ import Foundation
 /// The available subscription tiers for Sundee Fundee.
 ///
 /// Each tier offers different feature limits and capabilities.
-/// Tier benefits are cumulative - Premium includes all Plus benefits.
+/// Tier benefits are cumulative - Pro includes all Plus benefits.
+///
+/// Internal enum values stay as `.free`, `.plus`, `.premium` to avoid
+/// migration churn. Customer-facing copy uses "Pro" via `displayName`.
 public enum SubscriptionTier: String, Sendable, Equatable, Codable, CaseIterable {
     /// Free tier with limited features.
     /// - 5 lifts tracked
     /// - 1 injury profile
     /// - 30-day workout history
-    /// - 0 cloud AI generations per day
+    /// - Basic workout suggestions
+    /// - Prebuilt benchmarks only
+    /// - Basic cycle-aware training hints
     case free = "free"
 
-    /// Sundee Plus subscription.
-    /// - Unlimited lifts and injuries
-    /// - Full workout history
-    /// - 1 cloud AI generation per day
+    /// Sundee Plus ($2.99/mo).
+    /// - Unlimited lifts, injuries, and history
+    /// - Advanced charts (volume, consistency, muscle balance, pain/effort trends)
     /// - Custom benchmarks
-    /// - Pain trend analysis
+    /// - On-device AI workout builder
+    /// - Edit-before-save workout flow
+    /// - Saved templates and prompt presets
+    /// - Weekly planner draft
+    /// - Smart lighter-day adjustments (energy/cycle phase)
     case plus = "plus"
 
-    /// Sundee Premium subscription.
-    /// - All Plus features
-    /// - 10 cloud AI generations per day
-    /// - Rehab session recommendations
-    /// - AI coach memory
-    /// - Plateau detection
+    /// Sundee Pro ($4.99/mo). Internal key remains `premium`.
+    /// - Everything in Plus
+    /// - Coach memory across sessions
+    /// - Adaptive weekly programming
+    /// - Missed-workout reshuffle
+    /// - Plateau detection with specific next steps
+    /// - Smart substitutions (pain, equipment, time)
+    /// - Weekly recap + next-week recommendations
+    /// - Preference learning from edits and accepted swaps
+    /// - Export/share plan summaries
     case premium = "premium"
+
+    // MARK: - Display
+
+    /// Customer-facing tier name.
+    public var displayName: String {
+        switch self {
+        case .free: return "Free"
+        case .plus: return "Plus"
+        case .premium: return "Pro"
+        }
+    }
+
+    /// Short marketing tagline for each tier.
+    public var tagline: String {
+        switch self {
+        case .free: return "Get started"
+        case .plus: return "Smarter planning on demand"
+        case .premium: return "A coach that remembers and adapts"
+        }
+    }
 
     // MARK: - Feature Limits
 
@@ -60,33 +92,72 @@ public enum SubscriptionTier: String, Sendable, Equatable, Codable, CaseIterable
     public var dailyAIGenerations: Int {
         switch self {
         case .free: return 0
-        case .plus: return 1
+        case .plus: return 3
         case .premium: return 10
         }
     }
+
+    // MARK: - Capability Flags
 
     /// Whether custom benchmarks are available.
     public var hasCustomBenchmarks: Bool {
         self != .free
     }
 
-    /// Whether pain trend analysis is available.
+    /// Whether pain/effort trend analysis is available.
     public var hasPainTrends: Bool {
         self != .free
     }
 
-    /// Whether rehab session recommendations are available.
-    public var hasRehabSessions: Bool {
+    /// Whether advanced analytics (volume, consistency, muscle balance) are available.
+    public var hasAdvancedInsights: Bool {
+        self != .free
+    }
+
+    /// Whether the on-device AI workout builder is available.
+    public var hasAIBuilder: Bool {
+        self != .free
+    }
+
+    /// Whether recovery-aware training adjustments are available.
+    /// Replaces the previous "rehab sessions" concept with broader
+    /// pain-aware movement modifications and lighter-day suggestions.
+    public var hasRecoveryAdjustments: Bool {
+        self != .free
+    }
+
+    /// Whether adaptive weekly programming (reshuffle, auto-adjust) is available.
+    public var hasAdaptivePlanner: Bool {
         self == .premium
     }
 
-    /// Whether AI coach memory is available.
-    public var hasAICoachMemory: Bool {
+    /// Whether AI coach memory persists across sessions.
+    public var hasCoachMemory: Bool {
         self == .premium
     }
 
-    /// Whether plateau detection is available.
+    /// Whether smart exercise substitutions (pain, equipment, time) are available.
+    public var hasSmartSubstitutions: Bool {
+        self == .premium
+    }
+
+    /// Whether plateau detection with actionable recommendations is available.
     public var hasPlateauDetection: Bool {
+        self == .premium
+    }
+
+    /// Whether preference learning from edits and accepted swaps is available.
+    public var hasPreferenceLearning: Bool {
+        self == .premium
+    }
+
+    /// Whether weekly recap and next-week recommendations are available.
+    public var hasWeeklyRecap: Bool {
+        self == .premium
+    }
+
+    /// Whether plan export/share is available.
+    public var hasExportShare: Bool {
         self == .premium
     }
 }
