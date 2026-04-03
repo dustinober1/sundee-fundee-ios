@@ -105,28 +105,63 @@ public class AuthViewModel: ObservableObject {
     public func signOut() {
         Task {
             await authClient.signOut()
-
-            // Clear Keychain
-            _ = KeychainHelper.delete(key: KeychainHelper.userIDKey)
-            _ = KeychainHelper.delete(key: KeychainHelper.userEmailKey)
-            _ = KeychainHelper.delete(key: KeychainHelper.userNameKey)
-
-            await MainActor.run {
-                // Reset to CloudKit for the next sign-in
-                DataClientFactory.shared.client = CloudKitClient(
-                    containerIdentifier: "icloud.com.sundeefundee.app"
-                )
-                isAuthenticated = false
-                isGuest = false
-                userID = nil
-                userEmail = nil
-                userName = nil
-                errorMessage = nil
-            }
+            await resetState()
         }
     }
 
+    /// Deletes the user's account and all associated data.
+    ///
+    /// This is a destructive operation that cannot be undone.
+    /// Required for App Store compliance.
+    public func deleteAccount() async {
+        isLoading = true
+        errorMessage = nil
+
+        do {
+            // 1. Delete all data from CloudKit or Local storage
+            try await dataClient.deleteAllData()
+
+            // 2. Revoke Apple ID token if not a guest
+            if !isGuest {
+                // We'd ideally have the authorization code stored or prompt again.
+                // For now, we'll perform a best-effort revocation.
+                try await authClient.revokeToken(authorizationCode: nil)
+            }
+
+            // 3. Reset state and clear credentials
+            await resetState()
+        } catch {
+            self.errorMessage = "Failed to delete account: \(error.localizedDescription)"
+            print("Delete account error: \(error)")
+        }
+
+        isLoading = false
+    }
+
     // MARK: - Private Methods
+
+    /// Resets the authentication state and clears stored credentials
+    private func resetState() async {
+        // Clear Keychain
+        _ = KeychainHelper.delete(key: KeychainHelper.userIDKey)
+        _ = KeychainHelper.delete(key: KeychainHelper.userEmailKey)
+        _ = KeychainHelper.delete(key: KeychainHelper.userNameKey)
+        _ = KeychainHelper.delete(key: "onboarding_complete")
+
+        await MainActor.run {
+            // Reset to CloudKit for the next sign-in
+            DataClientFactory.shared.client = CloudKitClient(
+                containerIdentifier: "icloud.com.sundeefundee.app"
+            )
+            isAuthenticated = false
+            isGuest = false
+            userID = nil
+            userEmail = nil
+            userName = nil
+            errorMessage = nil
+            needsOnboarding = false
+        }
+    }
 
     /// Checks for an existing authenticated session
     private func checkExistingSession() async {
