@@ -81,56 +81,64 @@ public struct AuthView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
 
     public var body: some View {
-        VStack(spacing: AppTheme.Spacing.xl) {
-            Image(systemName: "figure.strengthtraining.traditional")
-                .font(.system(size: 60))
-                .foregroundColor(AppTheme.Accent.gold)
+        VStack(spacing: 0) {
+            Spacer()
 
-            Text("Sundee Fundee")
-                .font(AppTheme.Typography.displayMedium)
-                .foregroundColor(AppTheme.Text.primary)
+            VStack(spacing: AppTheme.Spacing.md) {
+                Image(systemName: "figure.strengthtraining.traditional")
+                    .font(.system(size: 90))
+                    .foregroundColor(AppTheme.Accent.gold)
 
-            Text("Cycle-Aware Strength Training")
-                .font(AppTheme.Typography.bodyMedium)
-                .foregroundColor(AppTheme.Text.secondary)
+                Text("Sundee Fundee")
+                    .font(AppTheme.Typography.displayLarge)
+                    .foregroundColor(AppTheme.Text.primary)
 
-            Button(action: {
-                Task {
-                    await authViewModel.signInWithApple()
-                }
-            }) {
-                HStack(spacing: AppTheme.Spacing.sm) {
-                    Image(systemName: "applelogo")
-                        .font(.system(size: 20))
-                    Text("Sign in with Apple")
-                        .font(AppTheme.Typography.labelLarge)
-                }
-                .foregroundColor(.white)
-                .padding(.horizontal, AppTheme.Spacing.xl)
-                .padding(.vertical, AppTheme.Spacing.lg)
-                .background(AppTheme.Text.primary)
-                .cornerRadius(AppTheme.CornerRadius.large)
-            }
-            .buttonStyle(.plain)
-
-            Button(action: {
-                authViewModel.continueAsGuest()
-            }) {
-                Text("Continue as Guest")
-                    .font(AppTheme.Typography.labelMedium)
+                Text("Cycle-Aware Strength Training")
+                    .font(AppTheme.Typography.bodyMedium)
                     .foregroundColor(AppTheme.Text.secondary)
             }
-            .buttonStyle(.plain)
 
-            if let error = authViewModel.errorMessage {
-                Text(error)
-                    .font(AppTheme.Typography.bodySmall)
-                    .foregroundColor(AppTheme.Semantic.error)
-                    .padding()
+            Spacer()
+
+            VStack(spacing: AppTheme.Spacing.lg) {
+                Button(action: {
+                    Task {
+                        await authViewModel.signInWithApple()
+                    }
+                }) {
+                    HStack(spacing: AppTheme.Spacing.sm) {
+                        Image(systemName: "applelogo")
+                            .font(.system(size: 20))
+                        Text("Sign in with Apple")
+                            .font(AppTheme.Typography.labelLarge)
+                    }
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, AppTheme.Spacing.lg)
+                    .background(AppTheme.Text.primary)
+                    .cornerRadius(AppTheme.CornerRadius.large)
+                }
+                .buttonStyle(.plain)
+
+                Button(action: {
+                    authViewModel.continueAsGuest()
+                }) {
+                    Text("Continue as Guest")
+                        .font(AppTheme.Typography.labelMedium)
+                        .foregroundColor(AppTheme.Text.secondary)
+                }
+                .buttonStyle(.plain)
+
+                if let error = authViewModel.errorMessage {
+                    Text(error)
+                        .font(AppTheme.Typography.bodySmall)
+                        .foregroundColor(AppTheme.Semantic.error)
+                }
             }
+            .padding(.bottom, AppTheme.Spacing.xxl)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding(AppTheme.Spacing.xxl)
+        .padding(.horizontal, AppTheme.Spacing.xxl)
         .artDecoBackground()
     }
 }

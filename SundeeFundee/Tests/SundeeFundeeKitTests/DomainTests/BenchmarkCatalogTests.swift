@@ -9,6 +9,10 @@ final class BenchmarkCatalogTests: XCTestCase {
         XCTAssertFalse(BenchmarkCatalog.allBenchmarks.isEmpty)
     }
 
+    func testAllBenchmarks_MatchesWebCatalogCount() {
+        XCTAssertEqual(BenchmarkCatalog.allBenchmarks.count, 31)
+    }
+
     func testAllBenchmarks_AllHaveUniqueIDs() {
         let ids = BenchmarkCatalog.allBenchmarks.map(\.id)
         XCTAssertEqual(ids.count, Set(ids).count, "All benchmark IDs should be unique")
@@ -31,7 +35,7 @@ final class BenchmarkCatalogTests: XCTestCase {
     // MARK: - benchmark(id:)
 
     func testBenchmarkByID_ReturnsCorrectBenchmark() {
-        let fran = BenchmarkCatalog.benchmark(id: "classic-fg")
+        let fran = BenchmarkCatalog.benchmark(id: "classic-fran")
         XCTAssertNotNil(fran)
         XCTAssertEqual(fran?.name, "Fran")
     }
@@ -52,7 +56,7 @@ final class BenchmarkCatalogTests: XCTestCase {
 
     func testBenchmarksByCategory_ReturnsCorrectCount() {
         let classics = BenchmarkCatalog.benchmarks(in: BenchmarkCategory.classicWODs.rawValue)
-        XCTAssertEqual(classics.count, 3) // Fran, Grace, Helen
+        XCTAssertEqual(classics.count, 9)
     }
 
     func testBenchmarksByCategory_ReturnsSortedBySortOrder() {
@@ -89,28 +93,28 @@ final class BenchmarkCatalogTests: XCTestCase {
     // MARK: - Specific benchmarks
 
     func testMurph_HasCorrectProperties() {
-        let murph = BenchmarkCatalog.benchmark(id: "fitness-murph")
+        let murph = BenchmarkCatalog.benchmark(id: "classic-murph")
         XCTAssertNotNil(murph)
         XCTAssertEqual(murph?.name, "Murph")
         XCTAssertEqual(murph?.scoringType, .time)
         XCTAssertEqual(murph?.intensity, .five)
-        XCTAssertEqual(murph?.category, BenchmarkCategory.generalFitness.rawValue)
+        XCTAssertEqual(murph?.category, BenchmarkCategory.classicWODs.rawValue)
     }
 
     func testCindy_IsRoundsAndReps() {
-        let cindy = BenchmarkCatalog.benchmark(id: "fitness-cindy")
+        let cindy = BenchmarkCatalog.benchmark(id: "classic-cindy")
         XCTAssertNotNil(cindy)
         XCTAssertEqual(cindy?.scoringType, .roundsAndReps)
     }
 
-    func testStrength1RM_IsScoredByLoad() {
-        let strength = BenchmarkCatalog.benchmark(id: "strength-1rm")
+    func testStrengthBackSquat_IsScoredByLoad() {
+        let strength = BenchmarkCatalog.benchmark(id: "strength-back-squat-1rm")
         XCTAssertNotNil(strength)
         XCTAssertEqual(strength?.scoringType, .load)
     }
 
     func testMuscleUpMaxReps_IsScoredByReps() {
-        let muscleup = BenchmarkCatalog.benchmark(id: "gymnastics-muscleup")
+        let muscleup = BenchmarkCatalog.benchmark(id: "gymnastics-max-muscle-ups")
         XCTAssertNotNil(muscleup)
         XCTAssertEqual(muscleup?.scoringType, .reps)
     }
