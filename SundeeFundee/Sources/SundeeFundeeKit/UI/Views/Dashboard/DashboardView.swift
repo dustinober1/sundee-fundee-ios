@@ -35,6 +35,9 @@ public struct DashboardView: View {
                 // Suggested Workout
                 suggestedWorkoutCard
 
+                // Coaching Insights (Pro)
+                coachingInsightsCard
+
                 // Quick Actions
                 quickActionsCard
 
@@ -302,6 +305,54 @@ public struct DashboardView: View {
         .cornerRadius(AppTheme.CornerRadius.small)
     }
 
+    // MARK: - Coaching Insights (Pro)
+
+    @ViewBuilder
+    private var coachingInsightsCard: some View {
+        if viewModel.subscriptionTier == .premium, let summary = viewModel.insightsSummary {
+            ArtDecoCard {
+                VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
+                    HStack {
+                        Image(systemName: "brain.head.profile")
+                            .foregroundColor(AppTheme.Semantic.success)
+
+                        Text("Your Coach")
+                            .font(AppTheme.Typography.headlineMedium)
+                            .foregroundColor(AppTheme.Text.primary)
+                    }
+
+                    Text(summary)
+                        .font(AppTheme.Typography.bodySmall)
+                        .foregroundColor(AppTheme.Text.secondary)
+
+                    if !viewModel.insightsActions.isEmpty {
+                        ForEach(viewModel.insightsActions.prefix(2), id: \.self) { action in
+                            HStack(alignment: .top, spacing: AppTheme.Spacing.xs) {
+                                Image(systemName: "arrow.right.circle.fill")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(AppTheme.Accent.gold)
+
+                                Text(action)
+                                    .font(AppTheme.Typography.bodySmall)
+                                    .foregroundColor(AppTheme.Text.primary)
+                            }
+                        }
+                    }
+
+                    NavigationLink(destination: InsightsView()) {
+                        Text("View All Insights")
+                            .font(AppTheme.Typography.labelMedium)
+                            .foregroundColor(AppTheme.Semantic.success)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, AppTheme.Spacing.sm)
+                            .background(AppTheme.Semantic.success.opacity(0.1))
+                            .cornerRadius(AppTheme.CornerRadius.medium)
+                    }
+                }
+            }
+        }
+    }
+
     // MARK: - Upgrade Prompts
 
     @ViewBuilder
@@ -421,6 +472,8 @@ class DashboardViewModel: ObservableObject {
     @Published var isGeneratingWorkout: Bool = false
     @Published var recentWins: [String] = []
     @Published var subscriptionTier: SubscriptionTier = .free
+    @Published var insightsSummary: String?
+    @Published var insightsActions: [String] = []
 
     // MARK: - Dependencies
 
@@ -558,8 +611,30 @@ class DashboardViewModel: ObservableObject {
             let subscription = try await subscriptionClient.getSubscriptionInfo()
             subscriptionTier = subscription.tier
             canGenerateAIWorkout = subscription.tier.hasAIBuilder
+
+            // Load coaching insights for Pro users
+            if subscription.tier.hasCoachMemory {
+                await loadCoachingInsights()
+            }
         } catch {
             print("Subscription load error: \(error)")
+        }
+    }
+
+    private func loadCoachingInsights() async {
+        let coachService = CoachServiceFactory.makeService()
+        let contextBuilder = CoachContextBuilder(
+            healthClient: healthClient,
+            dataClient: dataClient,
+            subscriptionClient: subscriptionClient
+        )
+        let context = await contextBuilder.build()
+        do {
+            let insights = try await coachService.getInsights(context: context)
+            insightsSummary = insights.summary
+            insightsActions = insights.priorityActions
+        } catch {
+            print("Coaching insights error: \(error)")
         }
     }
 
