@@ -1,43 +1,66 @@
-# Subscription Feature Roadmap
+# Launch Roadmap
 
-Infrastructure complete (2026-03-28). Each item below needs its own brainstorm → spec → plan cycle.
+Infrastructure complete (2026-03-28). Restructured tiers and pricing (2026-04-03).
 
-## Code Updates (from pricing/model revision)
+## Tier Structure
 
-- [x] **Update pricing in code** — Changed from $6.99/$12.99 to $4.99/$9.99 (monthly), $39.99/$79.99 (annual).
-- [x] **Switch AI model from Anthropic to Cloudflare Nemotron** — Replaced Haiku/Sonnet with `@cf/qwen/qwen3-30b-a3b-fp8` (Plus) and `@cf/nvidia/nemotron-3-120b-a12b` (Premium). User-facing branding: "Sundee AI" / "Sundee AI Pro".
+- **Free** — Basic workout logging, 5 lifts, 1 injury, 30-day history, prebuilt benchmarks, basic cycle hints
+- **Plus ($2.99/mo)** — Smarter planning on demand. Unlimited history/lifts/injuries, AI builder, advanced charts, custom benchmarks, templates, weekly planner, lighter-day adjustments
+- **Pro ($4.99/mo)** — A coach that remembers and adapts. Coach memory, adaptive weekly plan, missed-workout reshuffle, plateau detection, smart substitutions, weekly recap, preference learning, export/share
 
-## Prerequisites
+Internal enum stays `.premium`; customer-facing name is "Pro".
 
-- [x] **Cloudflare Worker AI Proxy** — Built `workers/ai-coach/` with JWT auth, KV rate limiting, and Workers AI routing (Qwen for Plus, Nemotron for Premium). Deploy with `cd workers/ai-coach && wrangler deploy`.
-- [x] **Cloud AI Workout Integration** — Added CloudAIWorkoutService, CloudAIConfig (JWT), CloudAIUsageTracker, and cloud AI toggle in QuestionnaireView for Plus/Premium users. Falls back to on-device on failure.
-- [x] **Re-enable StoreKit Entitlements** — Already complete: `AppState.subscriptionTier` defaults to `.free`, `SubscriptionManager.start()` calls `loadProducts()`/`refreshSubscriptionStatus()`, Subscription section present in SettingsView.
+## Phase 1: Membership Foundation
 
-## Plus Tier Features ($4.99/mo)
+- [x] **Capability flags in SubscriptionTier** — Added hasAIBuilder, hasAdaptivePlanner, hasCoachMemory, hasSmartSubstitutions, hasAdvancedInsights, hasRecoveryAdjustments, hasPreferenceLearning, hasWeeklyRecap, hasExportShare. Added displayName/tagline.
+- [x] **Update pricing** — Plus $2.99/mo, Pro $4.99/mo in RevenueCatClient stub.
+- [x] **Live tier badge in SettingsView** — Replaced hardcoded "Free" with TierBadge reading from subscription state.
+- [x] **SubscriptionView paywall** — Rebuilt with 3-tier comparison cards, Pro branding, feature lists, restore purchases.
+- [x] **Locked-state cards in DashboardView** — Free users see AI builder promo, Free/Plus users see Pro adaptive coach promo. Cards link to subscription sheet.
+- [ ] **App Store Connect** — Update subscription prices to $2.99/$4.99 (monthly). Recalculate annual pricing with ~34-36% savings.
 
-- [x] **Custom Program Builder** — Hybrid guided builder with 3 templates (Strength/Hypertrophy/Full Body), CustomProgramRecord SwiftData model, session/exercise editing, Plus-gated.
-- [x] **Periodization Templates** — Added Linear, Daily Undulating (DUP), and Block periodization templates with proper phase structures and progression patterns. Plus-gated in template picker.
-- [ ] **Auto-Deload Scheduling** — AI suggests deload weeks based on training volume/fatigue
-- [ ] **Advanced Analytics Dashboard** — Volume trends, intensity tracking, muscle group balance
-- [ ] **Streaks & Achievements** — Consistency tracking, milestone badges
+## Phase 2: Deterministic Intelligence
 
-## Premium Tier Features ($9.99/mo)
+- [ ] **Plateau detection** — Domain service that identifies stalled lifts from 1RM history and suggests changes
+- [ ] **Weekly load analysis** — Volume/intensity/frequency trends as pure domain functions
+- [ ] **Schedule reshuffling** — Deterministic missed-workout redistribution logic
+- [ ] **Substitution ranking** — Score exercises by similarity, equipment match, injury compatibility
+- [ ] **Auto-deload scheduling** — Suggest deload weeks based on training volume/fatigue accumulation
 
-- [ ] **AI Coach Memory** — Persistent training context across sessions
-- [ ] **AI Mesocycle Plans** — Multi-week periodized plans tailored to cycle phase and goals
-- [ ] **Progressive Overload Tracking** — Automatic load progression suggestions
-- [ ] **Plateau Detection & Recommendations** — AI identifies stalls, suggests changes
-- [ ] **Weekly AI Training Reports** — Volume, intensity, recovery summary + recommendations
-- [ ] **Smart Exercise Substitutions** — Context-aware swaps based on equipment, injuries, fatigue
-- [ ] **Custom AI Coaching Voice** — Personalized tone/style that adapts to how the user responds to motivation (tough love vs. encouraging)
-- [ ] **Competition Prep Mode** — Peaking/tapering programs for powerlifting meets or CrossFit comps
-- [ ] **Nutrition Timing Suggestions** — Pre/post workout nutrition windows tied to cycle phase (timing guidance, not full meal plans)
-- [ ] **Live Workout Coaching** — Real-time AI suggestions between sets based on current session performance (RPE tracking, auto-adjusting next set weight)
+## Phase 3: On-Device AI Layer
 
-## Future: Ultra Tier (2027)
+- [ ] **OnDeviceCoachService** — Wrapper around Apple Foundation Models with structured outputs
+- [ ] **Tool-calling orchestration** — AI fetches cycle phase, recent workouts, maxes, pain logs, equipment, goals
+- [ ] **Compact context summaries** — Send rolling summaries, not raw full history
+- [ ] **Graceful fallback** — Non-AI value for devices where Apple Intelligence is unavailable
 
-- [ ] **AI Form Check** — User uploads video of a lift, AI analyzes form and provides cues
+## Phase 4: Memory & Sync
 
-## Pricing Updates
+- [ ] **CoachProfile model** — Store training preferences, learned patterns, session summaries
+- [ ] **WorkoutPreferences** — Track exercise swaps, skipped movements, preferred session length
+- [ ] **Rolling coach memory** — Post-workout and weekly recap summaries
+- [ ] **Preference learning** — Learn from edits, accepted/rejected swaps, low-energy patterns
+- [ ] **CloudKit sync** — Sync memory models through existing data layer
 
-- [ ] **App Store Connect** — Update subscription prices to $4.99/$9.99 (monthly). Recalculate annual pricing with ~34-36% savings.
+## Phase 5: UX Surfaces
+
+- [ ] **Upgrade AIWorkoutView** — Main Plus/Pro funnel with edit-before-save flow
+- [ ] **Today's Plan / Adapt My Week card** — New dashboard card for Pro users
+- [ ] **Settings membership flow** — Plan benefits, AI availability messaging, restore/manage
+- [ ] **PainTracking → Pro substitutions** — Use pain logs to trigger smart substitution suggestions
+- [ ] **Advanced analytics dashboard** — Volume trends, consistency, muscle balance, pain/effort trends
+
+## Completed Prerequisites
+
+- [x] Cloudflare Worker AI Proxy (workers/ai-coach/)
+- [x] Cloud AI Workout Integration (CloudAIWorkoutService, CloudAIConfig, CloudAIUsageTracker)
+- [x] StoreKit Entitlements (AppState.subscriptionTier, SubscriptionManager)
+- [x] Account Deletion (App Store compliance)
+- [x] Custom Program Builder (3 templates, Plus-gated)
+- [x] Periodization Templates (Linear, DUP, Block)
+
+## Future (post-launch)
+
+- [ ] **AI Form Check** — Video upload + AI form analysis
+- [ ] **Competition Prep Mode** — Peaking/tapering programs
+- [ ] **Export & share** — Plan summaries as shareable images/PDFs
