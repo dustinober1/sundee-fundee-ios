@@ -323,6 +323,23 @@ struct AIWorkoutView: View {
                         }
                     }
 
+                    // Coaching Tips
+                    if !viewModel.coachingTips.isEmpty {
+                        ArtDecoCard {
+                            VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
+                                Label("Tips", systemImage: "lightbulb.fill")
+                                    .font(AppTheme.Typography.labelMedium)
+                                    .foregroundColor(AppTheme.Accent.gold)
+
+                                ForEach(viewModel.coachingTips, id: \.self) { tip in
+                                    Text("• \(tip)")
+                                        .font(AppTheme.Typography.bodySmall)
+                                        .foregroundColor(AppTheme.Text.secondary)
+                                }
+                            }
+                        }
+                    }
+
                     // Exercises
                     ForEach(generated.exercises) { exercise in
                         generatedExerciseCard(exercise)
@@ -502,34 +519,28 @@ class AIWorkoutViewModel: ObservableObject {
     @Published var equipment: EquipmentAccess = .fullGym
     @Published var cyclePhase: CyclePhase?
     @Published var generatedWorkout: GeneratedWorkout?
+    @Published var coachingTips: [String] = []
 
-    private let healthClient: HealthClientProtocol
+    private let coachService: CoachServiceProtocol
+    private let contextBuilder: CoachContextBuilder
+    private let memoryService: CoachMemoryService
     private let dataClient: DataClientProtocol
 
     init(
-        healthClient: HealthClientProtocol = HealthKitClient(),
+        coachService: CoachServiceProtocol = CoachServiceFactory.makeService(),
+        contextBuilder: CoachContextBuilder = CoachContextBuilder(),
+        memoryService: CoachMemoryService = CoachMemoryService(),
         dataClient: DataClientProtocol = DataClientFactory.shared.client
     ) {
-        self.healthClient = healthClient
+        self.coachService = coachService
+        self.contextBuilder = contextBuilder
+        self.memoryService = memoryService
         self.dataClient = dataClient
     }
 
     func loadContext() async {
-        // Load cycle phase
-        do {
-            if healthClient.isAvailable {
-                let sixMonthsAgo = Calendar.current.date(byAdding: .month, value: -6, to: Date())
-                let cycles = try await healthClient.fetchMenstrualCycles(
-                    startDate: sixMonthsAgo, endDate: nil, limit: 100
-                )
-                if !cycles.isEmpty,
-                   let status = CyclePhaseHelper.calculatePhase(from: cycles) {
-                    cyclePhase = status.currentPhase
-                }
-            }
-        } catch {
-            // Cycle data optional
-        }
+        let context = await contextBuilder.build(equipment: equipment)
+        cyclePhase = context.cyclePhase
     }
 
     func generateWorkout() async {
@@ -542,53 +553,20 @@ class AIWorkoutViewModel: ObservableObject {
             equipment: equipment
         )
 
-        // Build exercises based on focus and equipment
-        var exercises = buildExercisePlan(questionnaire: questionnaire)
-
-        // Load user's maxes for weight calculation
         do {
-            let maxRecords = try await dataClient.fetchAll(
-                recordType: "OneRepMaxRecord"
-            ) as [OneRepMaxRecord]
+            let context = await contextBuilder.build(equipment: equipment)
+            let response = try await coachService.generateWorkout(
+                context: context,
+                preferences: questionnaire
+            )
 
-            let maxes = maxRecords.map { record in
-                ExerciseMax(name: record.exerciseName, weightKg: record.weight)
-            }
-
-            // Apply weights using domain functions
-            let eMult = energyMultiplier(energyLevel)
-            let cMult = aiCyclePhaseMultiplier(cyclePhase)
-            exercises = applyWeights(exercises: exercises, maxes: maxes, energyMult: eMult, cycleMult: cMult)
-
-            // Assign rest times
-            exercises = exercises.map { ex in
-                var modified = ex
-                if modified.restMinutes == nil {
-                    modified = GeneratedExercise(
-                        id: ex.id, name: ex.name, sets: ex.sets, reps: ex.reps,
-                        weightKg: ex.weightKg,
-                        restMinutes: assignRestMinutes(bodyweight: ex.bodyweightOnly, reps: ex.reps),
-                        notes: ex.notes, reasoning: ex.reasoning, bodyweightOnly: ex.bodyweightOnly
-                    )
-                }
-                return modified
-            }
+            generatedWorkout = response.workout
+            coachingTips = response.tips
+            cyclePhase = context.cyclePhase
+            state = .preview
         } catch {
-            // Continue without maxes — bodyweight fallback
+            state = .error("Could not generate workout. Please try again.")
         }
-
-        let coachingSummary = buildCoachingSummary(questionnaire: questionnaire, phase: cyclePhase)
-
-        generatedWorkout = GeneratedWorkout(
-            id: UUID().uuidString,
-            createdAt: Date(),
-            isFavorite: false,
-            coachingSummary: coachingSummary,
-            exercises: exercises,
-            questionnaire: questionnaire
-        )
-
-        state = .preview
     }
 
     func startGeneratedWorkout() async {
@@ -619,129 +597,14 @@ class AIWorkoutViewModel: ObservableObject {
 
         do {
             try await dataClient.save(workout, recordType: "Workout")
+
+            // Record workout completion in coach memory
+            await memoryService.recordWorkoutCompletion(
+                questionnaire: generated.questionnaire,
+                exerciseNames: generated.exercises.map(\.name)
+            )
         } catch {
             print("Error saving AI workout: \(error)")
         }
-    }
-
-    // MARK: - Exercise Plan Builder
-
-    private func buildExercisePlan(questionnaire: QuestionnaireAnswers) -> [GeneratedExercise] {
-        let targetExerciseCount = max(3, questionnaire.timeMinutes / 10)
-        var pool: [(name: String, bw: Bool)] = []
-
-        switch questionnaire.focus {
-        case .upperBody, .push:
-            pool = [
-                ("Flat Barbell Bench Press", false),
-                ("Strict Press", false),
-                ("Dumbbell Incline Press", false),
-                ("Dips (Weighted)", false),
-                ("Close Grip Bench Press", false),
-                ("Face Pull", false),
-                ("Push-Up", true),
-            ]
-        case .pull:
-            pool = [
-                ("Barbell Row", false),
-                ("Pull-Up", true),
-                ("Lat Pulldown", false),
-                ("Cable Row", false),
-                ("Dumbbell Row", false),
-                ("Bicep Curl (Barbell)", false),
-                ("Hammer Curl", false),
-                ("Face Pull", false),
-            ]
-        case .lowerBody:
-            pool = [
-                ("Back Squat", false),
-                ("Romanian Deadlift (No Straps)", false),
-                ("Leg Press", false),
-                ("Hip Thrust", false),
-                ("Leg Curl (Lying)", false),
-                ("Leg Extension", false),
-                ("Goblet Squat", false),
-            ]
-        case .fullBody:
-            pool = [
-                ("Back Squat", false),
-                ("Flat Barbell Bench Press", false),
-                ("Barbell Row", false),
-                ("Strict Press", false),
-                ("Romanian Deadlift (No Straps)", false),
-                ("Pull-Up", true),
-                ("Dumbbell Row", false),
-            ]
-        case .core:
-            pool = [
-                ("Plank Hold", true),
-                ("V-up", true),
-                ("GHD Sit-up", true),
-                ("Toes-to-Bar", true),
-                ("Sit-Up", true),
-                ("L-Sit Hold", true),
-            ]
-        case .conditioning:
-            pool = [
-                ("Burpee", true),
-                ("Kettlebell Swing", false),
-                ("Wall Ball", false),
-                ("Box Jump", true),
-                ("Thruster", false),
-                ("Double Under", true),
-                ("Air Squat", true),
-                ("Push-Up", true),
-            ]
-        }
-
-        // Filter by equipment
-        if questionnaire.equipment == .bodyweightOnly {
-            pool = pool.filter { $0.bw }
-            if pool.isEmpty {
-                pool = [("Push-Up", true), ("Air Squat", true), ("Burpee", true), ("Plank Hold", true)]
-            }
-        }
-
-        let selected = Array(pool.shuffled().prefix(targetExerciseCount))
-        let setsPerExercise = questionnaire.energyLevel == .low ? 3 : 4
-        let reps = questionnaire.focus == .conditioning ? "12-15" : "6-8"
-
-        return selected.enumerated().map { index, entry in
-            GeneratedExercise(
-                id: UUID().uuidString,
-                name: entry.name,
-                sets: setsPerExercise,
-                reps: reps,
-                weightKg: nil,
-                restMinutes: nil,
-                notes: nil,
-                reasoning: index == 0 ? "Primary movement for \(questionnaire.focus.rawValue.replacingOccurrences(of: "_", with: " "))" : nil,
-                bodyweightOnly: entry.bw
-            )
-        }
-    }
-
-    private func buildCoachingSummary(questionnaire: QuestionnaireAnswers, phase: CyclePhase?) -> String {
-        var parts: [String] = []
-
-        parts.append("\(questionnaire.timeMinutes)-minute \(questionnaire.focus.rawValue.replacingOccurrences(of: "_", with: " ")) session")
-
-        if let phase {
-            let mult = aiCyclePhaseMultiplier(phase)
-            if mult < 1.0 {
-                parts.append("loads scaled to \(Int(mult * 100))% for \(phase) phase")
-            } else if mult > 1.0 {
-                parts.append("peak phase — push intensity to \(Int(mult * 100))%")
-            }
-        }
-
-        let eMult = energyMultiplier(questionnaire.energyLevel)
-        if eMult < 1.0 {
-            parts.append("adjusted for lower energy today")
-        } else if eMult > 1.0 {
-            parts.append("high energy — weights bumped up")
-        }
-
-        return parts.joined(separator: ". ") + "."
     }
 }
