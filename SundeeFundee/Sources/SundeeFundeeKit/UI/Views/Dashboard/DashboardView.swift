@@ -12,6 +12,7 @@ public struct DashboardView: View {
     @StateObject private var viewModel = DashboardViewModel()
     @EnvironmentObject var authViewModel: AuthViewModel
     @State private var showingAIWorkout = false
+    @State private var showingSubscription = false
 
     public init() {}
 
@@ -37,6 +38,9 @@ public struct DashboardView: View {
                 // Quick Actions
                 quickActionsCard
 
+                // Upgrade Prompts (locked-state cards)
+                upgradePrompts
+
                 // Recent Wins
                 if !viewModel.recentWins.isEmpty {
                     recentWinsCard
@@ -56,6 +60,9 @@ public struct DashboardView: View {
         }
         .sheet(isPresented: $showingAIWorkout) {
             AIWorkoutView()
+        }
+        .sheet(isPresented: $showingSubscription) {
+            SubscriptionView()
         }
     }
 
@@ -295,6 +302,79 @@ public struct DashboardView: View {
         .cornerRadius(AppTheme.CornerRadius.small)
     }
 
+    // MARK: - Upgrade Prompts
+
+    @ViewBuilder
+    private var upgradePrompts: some View {
+        let tier = viewModel.subscriptionTier
+
+        if tier == .free {
+            // Promote Plus: AI builder + analytics
+            lockedFeatureCard(
+                icon: "brain",
+                title: "AI Workout Builder",
+                description: "Get personalized workouts based on your cycle phase, energy, and goals.",
+                ctaLabel: "Unlock with Plus",
+                accentColor: AppTheme.Accent.gold
+            )
+        }
+
+        if tier == .free || tier == .plus {
+            // Promote Pro: coach memory + adaptive planning
+            lockedFeatureCard(
+                icon: "sparkles",
+                title: "Adaptive Coach",
+                description: "A coach that remembers your preferences, reshuffles missed workouts, and detects plateaus.",
+                ctaLabel: "Unlock with Pro",
+                accentColor: AppTheme.Semantic.success
+            )
+        }
+    }
+
+    private func lockedFeatureCard(
+        icon: String,
+        title: String,
+        description: String,
+        ctaLabel: String,
+        accentColor: Color
+    ) -> some View {
+        ArtDecoCard {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
+                HStack(spacing: AppTheme.Spacing.sm) {
+                    Image(systemName: icon)
+                        .font(.system(size: 20))
+                        .foregroundColor(accentColor)
+
+                    Text(title)
+                        .font(AppTheme.Typography.headlineMedium)
+                        .foregroundColor(AppTheme.Text.primary)
+
+                    Spacer()
+
+                    Image(systemName: "lock.fill")
+                        .font(.system(size: 12))
+                        .foregroundColor(AppTheme.Text.secondary)
+                }
+
+                Text(description)
+                    .font(AppTheme.Typography.bodySmall)
+                    .foregroundColor(AppTheme.Text.secondary)
+
+                Button {
+                    showingSubscription = true
+                } label: {
+                    Text(ctaLabel)
+                        .font(AppTheme.Typography.labelMedium)
+                        .foregroundColor(accentColor)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, AppTheme.Spacing.sm)
+                        .background(accentColor.opacity(0.1))
+                        .cornerRadius(AppTheme.CornerRadius.medium)
+                }
+            }
+        }
+    }
+
     // MARK: - Recent Wins
 
     private var recentWinsCard: some View {
@@ -340,6 +420,7 @@ class DashboardViewModel: ObservableObject {
     @Published var canGenerateAIWorkout: Bool = false
     @Published var isGeneratingWorkout: Bool = false
     @Published var recentWins: [String] = []
+    @Published var subscriptionTier: SubscriptionTier = .free
 
     // MARK: - Dependencies
 
@@ -475,7 +556,8 @@ class DashboardViewModel: ObservableObject {
     private func loadSubscriptionInfo() async {
         do {
             let subscription = try await subscriptionClient.getSubscriptionInfo()
-            canGenerateAIWorkout = subscription.tier.dailyAIGenerations > 0
+            subscriptionTier = subscription.tier
+            canGenerateAIWorkout = subscription.tier.hasAIBuilder
         } catch {
             print("Subscription load error: \(error)")
         }
