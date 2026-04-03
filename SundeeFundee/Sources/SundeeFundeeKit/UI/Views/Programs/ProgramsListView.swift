@@ -89,10 +89,11 @@ struct ProgramRow: View {
                     .foregroundColor(AppTheme.Text.secondary)
 
                 if program.isEnrolled {
-                    Button("Continue") {
-                        // Navigate to program detail
-                    }
-                    .artDecoButton(style: .primary)
+                    Label("Enrolled", systemImage: "checkmark.circle.fill")
+                        .font(AppTheme.Typography.labelMedium)
+                        .foregroundColor(AppTheme.Accent.gold)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, AppTheme.Spacing.sm)
                 } else {
                     Button("Enroll") {
                         onEnroll()
