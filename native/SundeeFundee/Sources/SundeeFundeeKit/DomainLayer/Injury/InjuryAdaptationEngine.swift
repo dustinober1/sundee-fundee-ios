@@ -1,233 +1,225 @@
 import Foundation
 
-// MARK: - Injury Profile
+// MARK: - Injury Adaptation Engine
 
-/// Minimal interface for injury adaptation
-public struct InjuryProfile: Sendable {
-    public let id: String
-    public let location: String  // comma-separated region IDs or free-text
-    public let recoveryPhase: RecoveryPhase
+/// Modifies workouts based on user's active injuries
+public struct InjuryAdaptationEngine {
 
-    public init(id: String, location: String, recoveryPhase: RecoveryPhase) {
-        self.id = id
-        self.location = location
-        self.recoveryPhase = recoveryPhase
-    }
-}
+    // MARK: - Contraindication Rules
 
-// MARK: - Contraindication Rules
-
-private struct ContraindicationRule {
-    let categories: [String]
-    let keywords: [String]
-}
-
-private let contraindicationRules: [String: ContraindicationRule] = [
-    "knee": ContraindicationRule(
-        categories: ["Squat"],
-        keywords: ["squat", "lunge", "leg press", "leg extension", "box jump", "jump"]
-    ),
-    "shoulder": ContraindicationRule(
-        categories: ["Press", "Olympic Weightlifting"],
-        keywords: ["press", "overhead", "bench", "push-up", "dip", "fly", "raise"]
-    ),
-    "back": ContraindicationRule(
-        categories: ["Hip Hinge"],
-        keywords: ["deadlift", "good morning", "row", "back extension", "hyperextension"]
-    ),
-    "hip": ContraindicationRule(
-        categories: [],
-        keywords: ["hip thrust", "glute", "hamstring", "lunge", "step-up"]
-    ),
-    "wrist": ContraindicationRule(
-        categories: ["Olympic Weightlifting"],
-        keywords: ["clean", "snatch", "jerk", "front squat", "wrist"]
-    ),
-    "elbow": ContraindicationRule(
-        categories: [],
-        keywords: ["curl", "tricep", "extension", "press"]
-    ),
-    "ankle": ContraindicationRule(
-        categories: [],
-        keywords: ["calf", "jump", "run", "sprint", "box jump"]
-    ),
-]
-
-// MARK: - Clinical Synonyms
-
-private let clinicalSynonyms: [String: String] = [
-    "acl": "knee",
-    "mcl": "knee",
-    "meniscus": "knee",
-    "patella": "knee",
-    "rotator cuff": "shoulder",
-    "labrum": "shoulder",
-    "frozen shoulder": "shoulder",
-    "lumbar": "back",
-    "herniated disc": "back",
-    "sciatica": "back",
-    "si joint": "hip",
-    "piriformis": "hip",
-    "carpal tunnel": "wrist",
-    "tennis elbow": "elbow",
-    "golfers elbow": "elbow",
-    "achilles": "ankle",
-    "plantar fascia": "ankle",
-]
-
-// MARK: - Regression Table
-
-private let regressionTable: [String: [String]] = [
-    "Back Squat":                  ["Goblet Squat", "Box Squat", "Air Squats"],
-    "Front Squat":                 ["Goblet Squat", "Box Squat", "Air Squats"],
-    "Flat Barbell Bench Press":    ["Dumbbell Bench Press", "Push-Ups", "Floor Press"],
-    "Incline Barbell Bench Press": ["Dumbbell Bench Press", "Push-Ups", "Floor Press"],
-    "Strict Press":                ["Lateral Raises", "Z-Press", "Seated Dumbbell Press"],
-    "Push Press":                  ["Dumbbell Overhead Press", "Lateral Raises", "Arnold Press"],
-    "Conventional Deadlift (No Straps)":   ["Romanian Deadlift (No Straps)", "Trap Bar Deadlift (No Straps)", "Kettlebell Deadlift"],
-    "Conventional Deadlift (With Straps)": ["Romanian Deadlift (No Straps)", "Trap Bar Deadlift (No Straps)", "Kettlebell Deadlift"],
-    "Romanian Deadlift (No Straps)":  ["Nordic Curl", "Glute Bridge", "Hip Thrust"],
-    "Romanian Deadlift (With Straps)": ["Nordic Curl", "Glute Bridge", "Hip Thrust"],
-    "Squat Snatch":    ["Power Snatch", "Hang Snatch", "Overhead Squat"],
-    "Squat Clean":     ["Power Clean", "Hang Clean", "Front Squat"],
-    "Power Clean":     ["Hang Clean", "Kettlebell Deadlift", "Hip Thrust"],
-    "Power Snatch":    ["Hang Snatch", "Kettlebell Deadlift", "Hip Thrust"],
-    "Clean and Jerk":  ["Power Clean", "Push Press", "Front Squat"],
-    "Split Jerk":      ["Push Press", "Push Jerk", "Strict Press"],
-    "Pull-Up":         ["Lat Pulldown", "Band-Assisted Pull-Up", "TRX Row"],
-    "Barbell Row":     ["Dumbbell Row", "Cable Row", "TRX Row"],
-    "Pendlay Row":     ["Dumbbell Row", "Cable Row", "TRX Row"],
-]
-
-// MARK: - Recovery Prep Map
-
-private let recoveryPrepMap: [String: [String]] = [
-    "knee":     ["Bird-Dogs", "Reverse Lunges", "Terminal Knee Extension"],
-    "shoulder": ["Band Pull-Aparts", "Face Pulls", "Wall Slides"],
-    "back":     ["Cat-Cow", "Bird-Dogs", "Dead Bugs"],
-    "hip":      ["Glute Bridges", "Clamshells", "Side-Lying Hip Abduction"],
-    "wrist":    ["Wrist Circles", "Finger Extensions", "Prayer Stretches"],
-    "elbow":    ["Wrist Curls", "Reverse Wrist Curls", "Forearm Pronation"],
-    "ankle":    ["Calf Raises", "Ankle Circles", "Banded Dorsiflexion"],
-]
-
-private let safeBodyweight = ["Air Squats", "Bird-Dogs", "Bodyweight Lunges"]
-
-// MARK: - normalizeBodyRegions
-
-/// Normalize injury location to engine keys
-public func normalizeBodyRegions(regions: [String], freeText: String? = nil) -> [String] {
-    var result = Set<String>()
-    let knownKeys = Set(contraindicationRules.keys)
-
-    for regionId in regions {
-        if let bodyRegion = bodyRegions.first(where: { $0.id == regionId }),
-           knownKeys.contains(bodyRegion.engineKey) {
-            result.insert(bodyRegion.engineKey)
-        }
+    struct ContraindicationRule {
+        let categories: [String]
+        let keywords: [String]
     }
 
-    if let freeText, !freeText.isEmpty {
-        let lower = freeText.lowercased()
-        for key in knownKeys {
-            if lower.contains(key) { result.insert(key) }
-        }
-        for (synonym, key) in clinicalSynonyms {
-            if lower.contains(synonym) { result.insert(key) }
-        }
-    }
+    /// Rules for determining which exercises are contraindicated for each body region
+    private static let contraindicationRules: [String: ContraindicationRule] = [
+        "knee": ContraindicationRule(
+            categories: ["Squat"],
+            keywords: ["squat", "lunge", "leg press", "leg extension", "box jump", "jump"]
+        ),
+        "shoulder": ContraindicationRule(
+            categories: ["Press", "Olympic Weightlifting"],
+            keywords: ["press", "overhead", "bench", "push-up", "dip", "fly", "raise"]
+        ),
+        "back": ContraindicationRule(
+            categories: ["Hip Hinge"],
+            keywords: ["deadlift", "good morning", "row", "back extension", "hyperextension"]
+        ),
+        "hip": ContraindicationRule(
+            categories: [],
+            keywords: ["hip thrust", "glute", "hamstring", "lunge", "step-up"]
+        ),
+        "wrist": ContraindicationRule(
+            categories: ["Olympic Weightlifting"],
+            keywords: ["clean", "snatch", "jerk", "front squat", "wrist"]
+        ),
+        "elbow": ContraindicationRule(
+            categories: [],
+            keywords: ["curl", "tricep", "extension", "press"]
+        ),
+        "ankle": ContraindicationRule(
+            categories: [],
+            keywords: ["calf", "jump", "run", "sprint", "box jump"]
+        ),
+    ]
 
-    return Array(result)
-}
+    // MARK: - Clinical Synonyms
 
-// MARK: - mostRestrictivePhase
+    /// Maps clinical terms to body region engine keys
+    private static let clinicalSynonyms: [String: String] = [
+        "acl": "knee",
+        "mcl": "knee",
+        "meniscus": "knee",
+        "patella": "knee",
+        "rotator cuff": "shoulder",
+        "labrum": "shoulder",
+        "frozen shoulder": "shoulder",
+        "lumbar": "back",
+        "herniated disc": "back",
+        "sciatica": "back",
+        "si joint": "hip",
+        "piriformis": "hip",
+        "carpal tunnel": "wrist",
+        "tennis elbow": "elbow",
+        "golfers elbow": "elbow",
+        "achilles": "ankle",
+        "plantar fascia": "ankle",
+    ]
 
-private let phaseOrder: [RecoveryPhase] = [.acute, .rehab, .lightLoad, .returnToPlay, .resolved]
+    // MARK: - Regression Table
 
-/// Find the most restrictive phase among a set of phases
-public func mostRestrictivePhase(_ phases: [RecoveryPhase]) -> RecoveryPhase? {
-    guard !phases.isEmpty else { return nil }
-    return phases.min { a, b in
-        (phaseOrder.firstIndex(of: a) ?? 0) < (phaseOrder.firstIndex(of: b) ?? 0)
-    }
-}
+    /// Maps exercises to progressively easier alternatives
+    private static let regressionTable: [String: [String]] = [
+        "Back Squat": ["Goblet Squat", "Box Squat", "Air Squats"],
+        "Front Squat": ["Goblet Squat", "Box Squat", "Air Squats"],
+        "Flat Barbell Bench Press": ["Dumbbell Bench Press", "Push-Ups", "Floor Press"],
+        "Incline Barbell Bench Press": ["Dumbbell Bench Press", "Push-Ups", "Floor Press"],
+        "Strict Press": ["Lateral Raises", "Z-Press", "Seated Dumbbell Press"],
+        "Push Press": ["Dumbbell Overhead Press", "Lateral Raises", "Arnold Press"],
+        "Conventional Deadlift": ["Romanian Deadlift", "Trap Bar Deadlift", "Kettlebell Deadlift"],
+        "Romanian Deadlift": ["Nordic Curl", "Glute Bridge", "Hip Thrust"],
+        "Squat Snatch": ["Power Snatch", "Hang Snatch", "Overhead Squat"],
+        "Squat Clean": ["Power Clean", "Hang Clean", "Front Squat"],
+        "Power Clean": ["Hang Clean", "Kettlebell Deadlift", "Hip Thrust"],
+        "Power Snatch": ["Hang Snatch", "Kettlebell Deadlift", "Hip Thrust"],
+        "Clean and Jerk": ["Power Clean", "Push Press", "Front Squat"],
+        "Split Jerk": ["Push Press", "Push Jerk", "Strict Press"],
+        "Pull-Up": ["Lat Pulldown", "Band-Assisted Pull-Up", "TRX Row"],
+        "Toes-to-Bar": ["Knees-to-Elbows", "Hanging Leg Raises", "Lying Leg Raises"],
+        "Box Jump": ["Step-Up", "Box Step-Up", "Air Squats"],
+        "Burpee": ["Step-Up Burpee", "Squat Thrust", "Air Squat"],
+    ]
 
-// MARK: - Contraindication Check
+    // MARK: - Load Multipliers by Phase
 
-private func isContraindicated(_ exerciseName: String, engineKeys: [String]) -> Bool {
-    let lower = exerciseName.lowercased()
-    for key in engineKeys {
-        guard let rule = contraindicationRules[key] else { continue }
-        for keyword in rule.keywords {
-            if lower.contains(keyword) { return true }
-        }
-        for cat in rule.categories {
-            if lower.contains(cat.lowercased()) { return true }
-        }
-    }
-    return false
-}
+    /// Load reduction multipliers for each recovery phase
+    private static let loadMultipliers: [RecoveryPhase: Double] = [
+        .acute: 0.3,
+        .rehab: 0.5,
+        .lightLoad: 0.7,
+        .returnToPlay: 0.85,
+        .resolved: 1.0,
+    ]
 
-private func findReplacement(_ exerciseName: String, engineKeys: [String]) -> String {
-    if let regressions = regressionTable[exerciseName] {
-        for candidate in regressions {
-            if !isContraindicated(candidate, engineKeys: engineKeys) {
-                return candidate
+    // MARK: - Public Methods
+
+    /// Check if an exercise is contraindicated for the given injuries
+    public static func isContraindicated(
+        exerciseName: String,
+        exerciseCategory: String?,
+        injuries: [Injury]
+    ) -> Bool {
+        // No active injuries (only resolved ones)
+        let activeInjuries = injuries.filter { $0.recoveryPhase != .resolved }
+        guard !activeInjuries.isEmpty else { return false }
+
+        let lowerExerciseName = exerciseName.lowercased()
+
+        for injury in activeInjuries {
+            let regions = injury.bodyRegions
+
+            for region in regions {
+                // Check clinical synonyms first
+                let engineKey = clinicalSynonyms[injury.name.lowercased()] ?? region.engineKey
+
+                guard let rule = contraindicationRules[engineKey] else { continue }
+
+                // Check category match
+                if let category = exerciseCategory {
+                    if rule.categories.contains(where: { category.localizedCaseInsensitiveContains($0) }) {
+                        return true
+                    }
+                }
+
+                // Check keyword match
+                for keyword in rule.keywords {
+                    if lowerExerciseName.contains(keyword.lowercased()) {
+                        return true
+                    }
+                }
             }
         }
+
+        return false
     }
-    for safe in safeBodyweight {
-        if !isContraindicated(safe, engineKeys: engineKeys) {
-            return safe
-        }
-    }
-    return exerciseName
-}
 
-// MARK: - Recovery Prep Block
-
-/// A simple exercise entry for recovery prep
-public struct RecoveryPrepExercise: Sendable {
-    public let exercise: String
-    public let sets: Int
-    public let reps: Int
-    public let restMinutes: Double
-    public let notes: String
-}
-
-/// Build a recovery prep block for the given injuries
-public func buildRecoveryPrepBlock(injuries: [InjuryProfile], phase: RecoveryPhase? = nil) -> [RecoveryPrepExercise] {
-    var seen = Set<String>()
-    var block: [RecoveryPrepExercise] = []
-
-    var engineKeys: [String] = []
-    for injury in injuries {
-        let regions = injury.location.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
-        let keys = normalizeBodyRegions(regions: regions, freeText: injury.location)
-        engineKeys.append(contentsOf: keys)
-    }
-    let uniqueKeys = Array(Set(engineKeys))
-
-    for key in uniqueKeys {
-        let exercises = recoveryPrepMap[key] ?? []
-        for ex in exercises {
-            guard !seen.contains(ex) else { continue }
-            seen.insert(ex)
-
-            var sets = 2, reps = 10
-            var notes = "Recovery prep — gentle movement only"
-
-            if phase == .rehab {
-                sets = 3; reps = 12
-                notes = "Recovery prep — controlled movement"
-            } else if phase == .lightLoad {
-                sets = 2; reps = 15
-                notes = "Recovery prep — slow and controlled"
+    /// Get regressions for an exercise based on injuries
+    public static func getRegressions(
+        exerciseName: String,
+        injuries: [Injury]
+    ) -> [String] {
+        // Find the base exercise name in the regression table
+        for (baseExercise, regressions) in regressionTable {
+            if exerciseName.lowercased().contains(baseExercise.lowercased()) ||
+               baseExercise.lowercased().contains(exerciseName.lowercased()) {
+                return regressions
             }
-
-            block.append(RecoveryPrepExercise(exercise: ex, sets: sets, reps: reps, restMinutes: 1, notes: notes))
         }
+
+        return []
     }
 
-    return block
+    /// Calculate appropriate load multiplier based on injuries
+    public static func calculateLoadMultiplier(
+        baseLoad: Double,
+        injuries: [Injury]
+    ) -> Double {
+        // Find the most severe (lowest multiplier) injury
+        let activeInjuries = injuries.filter { $0.recoveryPhase != .resolved }
+
+        guard !activeInjuries.isEmpty else { return 1.0 }
+
+        let minMultiplier = activeInjuries
+            .compactMap { loadMultipliers[$0.recoveryPhase] }
+            .min() ?? 1.0
+
+        return baseLoad * minMultiplier
+    }
+
+    /// Get recommended exercises for a given injury
+    public static func getRecommendedExercises(for injury: Injury) -> [String] {
+        let regions = injury.bodyRegions
+        var recommendations: [String] = []
+
+        for region in regions {
+            switch region.engineKey {
+            case "knee":
+                recommendations += ["Box Squat", "Glute Bridge", "Hip Thrust", "Calf Raises"]
+            case "shoulder":
+                recommendations += ["Lateral Raises", "Front Raises", "Face Pulls", "Band Pull-Aparts"]
+            case "back":
+                recommendations += ["Bird Dog", "Cat-Cow", "Plank", "Side Plank"]
+            case "hip":
+                recommendations += ["Clamshells", "Fire Hydrants", "Glute Bridges", "Lateral Band Walks"]
+            case "wrist":
+                recommendations += ["Knuckle Push-Ups", "Ring Rows", "Farmer's Carries"]
+            case "elbow":
+                recommendations += ["Hammer Curls", "Reverse Curls", "Tricep Pushdowns (Light Band)"]
+            case "ankle":
+                recommendations += ["Ankle Circles", "Single-Leg Balance", "Calf Raises (Seated)"]
+            default:
+                break
+            }
+        }
+
+        return Array(Set(recommendations)) // Remove duplicates
+    }
+
+    /// Get contraindicated keywords for a given injury
+    public static func getContraindicatedKeywords(for injury: Injury) -> [String] {
+        let regions = injury.bodyRegions
+        var keywords: [String] = []
+
+        for region in regions {
+            // Check clinical synonyms first
+            let engineKey = clinicalSynonyms[injury.name.lowercased()] ?? region.engineKey
+
+            if let rule = contraindicationRules[engineKey] {
+                keywords.append(contentsOf: rule.keywords)
+            }
+        }
+
+        return Array(Set(keywords)) // Remove duplicates
+    }
 }

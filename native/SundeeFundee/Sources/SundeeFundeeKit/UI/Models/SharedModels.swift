@@ -45,9 +45,4 @@ struct CyclePhaseInfo: Codable, Sendable {
     let endDate: Date
 }
 
-public enum CyclePhase: String, Codable, Sendable {
-    case menstrual
-    case follicular
-    case ovulation
-    case luteal
-}
+// CyclePhase is defined in DomainLayer/Cycle/CycleCalculations.swift

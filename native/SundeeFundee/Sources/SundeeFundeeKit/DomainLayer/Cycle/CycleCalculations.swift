@@ -1,5 +1,15 @@
 import Foundation
 
+// MARK: - Cycle Phase
+
+/// The four phases of the menstrual cycle
+public enum CyclePhase: String, Codable, Sendable {
+    case menstrual
+    case follicular
+    case ovulation
+    case luteal
+}
+
 // MARK: - Types
 
 /// Settings for cycle phase calculations
