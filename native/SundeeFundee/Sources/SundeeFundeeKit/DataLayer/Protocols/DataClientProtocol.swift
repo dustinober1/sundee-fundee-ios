@@ -123,4 +123,13 @@ extension DataClientProtocol {
     ) async throws {
         try await delete(recordIDs: [recordID], recordType: recordType)
     }
+
+    /// Deletes a record by its string ID.
+    public func delete(
+        recordType: String,
+        id: String
+    ) async throws {
+        let recordID = CKRecord.ID(recordName: id)
+        try await delete(recordIDs: [recordID], recordType: recordType)
+    }
 }

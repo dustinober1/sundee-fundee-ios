@@ -7,40 +7,18 @@ import SwiftUI
 //
 // This file should be placed in an Xcode project's main app target.
 
-@available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
-public struct SundeeFundeeApp: App {
-    @StateObject private var authViewModel = AuthViewModel()
-    @StateObject private var themeViewModel = ThemeViewModel()
-
-    public init() {}
-
-    public var body: some Scene {
-        WindowGroup {
-            Group {
-                if authViewModel.isAuthenticated {
-                    MainTabView()
-                        .environmentObject(authViewModel)
-                        .environmentObject(themeViewModel)
-                } else {
-                    AuthView()
-                        .environmentObject(authViewModel)
-                }
-            }
-            .artDecoBackground()
-            .onAppear {
-                themeViewModel.applyTheme()
-            }
-        }
-    }
-}
+// NOTE: @main entry point is in the Xcode app project (SundeeFundeeApp/SundeeFundee/App.swift).
+// This file provides the reusable views that the app wraps.
 
 // MARK: - MainTabView
 
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
-struct MainTabView: View {
+public struct MainTabView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
 
-    var body: some View {
+    public init() {}
+
+    public var body: some View {
         TabView(selection: $selectedTab) {
             DashboardView()
                 .tabItem {
@@ -86,7 +64,7 @@ struct MainTabView: View {
 
 // MARK: - Tab Enum
 
-enum Tab: String {
+public enum Tab: String {
     case dashboard
     case workouts
     case programs
@@ -98,10 +76,11 @@ enum Tab: String {
 // MARK: - AuthView Placeholder
 
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
-struct AuthView: View {
+public struct AuthView: View {
+    public init() {}
     @EnvironmentObject var authViewModel: AuthViewModel
 
-    var body: some View {
+    public var body: some View {
         VStack(spacing: AppTheme.Spacing.xl) {
             Image(systemName: "figure.strengthtraining.traditional")
                 .font(.system(size: 60))
@@ -149,8 +128,10 @@ struct AuthView: View {
 // MARK: - ThemeViewModel
 
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
-class ThemeViewModel: ObservableObject {
-    func applyTheme() {
+public class ThemeViewModel: ObservableObject {
+    public init() {}
+
+    public func applyTheme() {
         // Configure any global theme settings here
         // For example, custom navigation bar appearance
     }

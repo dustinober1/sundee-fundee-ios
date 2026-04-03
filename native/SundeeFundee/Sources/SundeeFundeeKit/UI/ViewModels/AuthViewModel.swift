@@ -11,12 +11,12 @@ import SwiftUI
 public class AuthViewModel: ObservableObject {
     // MARK: - Published Properties
 
-    @Published var isAuthenticated: Bool = false
-    @Published var isLoading: Bool = false
-    @Published var errorMessage: String?
-    @Published var userID: String?
-    @Published var userEmail: String?
-    @Published var userName: String?
+    @Published public var isAuthenticated: Bool = false
+    @Published public var isLoading: Bool = false
+    @Published public var errorMessage: String?
+    @Published public var userID: String?
+    @Published public var userEmail: String?
+    @Published public var userName: String?
 
     // MARK: - Dependencies
 
