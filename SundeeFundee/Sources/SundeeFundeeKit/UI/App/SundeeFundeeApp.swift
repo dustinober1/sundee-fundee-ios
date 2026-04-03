@@ -120,6 +120,7 @@ public struct AuthView: View {
                     .padding()
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(AppTheme.Spacing.xxl)
         .artDecoBackground()
     }
