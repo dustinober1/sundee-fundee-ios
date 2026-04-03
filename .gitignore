@@ -2,6 +2,11 @@
 *.xcuserstate
 xcuserdata/
 DerivedData/
+.swiftpm/
+
+# Swift Package Manager
+.build/
+Package.resolved
 *.pbxuser
 *.mode1v3
 *.mode2v3
