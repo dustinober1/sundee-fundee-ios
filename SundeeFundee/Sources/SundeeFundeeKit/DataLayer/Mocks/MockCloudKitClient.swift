@@ -198,6 +198,14 @@ public final class MockCloudKitClient: DataClientProtocol, @unchecked Sendable {
         }
     }
 
+    /// Deletes all data from the database.
+    ///
+    /// Used for account deletion to ensure no user data remains.
+    /// - Throws: `DataError` if the operation fails.
+    public func deleteAllData() async throws {
+        reset()
+    }
+
     // MARK: - Test Helpers
 
     /// Clears all stored data.
