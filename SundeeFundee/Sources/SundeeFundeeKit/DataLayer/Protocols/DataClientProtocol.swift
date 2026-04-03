@@ -91,6 +91,12 @@ public protocol DataClientProtocol: Sendable {
         recordIDs: [CKRecord.ID],
         recordType: String
     ) async throws
+
+    /// Deletes all data from the database.
+    ///
+    /// Used for account deletion to ensure no user data remains.
+    /// - Throws: `DataError` if the operation fails.
+    func deleteAllData() async throws
 }
 
 // MARK: - Default Implementations
