@@ -7,7 +7,7 @@ import Foundation
 // Implements the same DataClientProtocol as CloudKitClient so all ViewModels
 // work without modification. Data survives app restarts but stays on-device only.
 
-public actor LocalDataClient: DataClientProtocol {
+public actor LocalDataClient: @preconcurrency DataClientProtocol {
 
     // MARK: - Properties
 
