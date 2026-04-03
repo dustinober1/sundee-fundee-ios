@@ -9,6 +9,7 @@ import SwiftUI
 public struct SettingsView: View {
     @StateObject private var viewModel = SettingsViewModel()
     @EnvironmentObject var authViewModel: AuthViewModel
+    @State private var showingDeleteConfirmation = false
 
     public init() {}
 
@@ -37,13 +38,7 @@ public struct SettingsView: View {
 
                             Spacer()
 
-                            Text("Free")
-                                .font(AppTheme.Typography.labelMedium)
-                                .foregroundColor(AppTheme.Accent.gold)
-                                .padding(.horizontal, AppTheme.Spacing.md)
-                                .padding(.vertical, AppTheme.Spacing.xs)
-                                .background(AppTheme.Accent.goldLight)
-                                .cornerRadius(AppTheme.CornerRadius.small)
+                            TierBadge(tier: viewModel.currentTier)
                         }
                         .padding(.vertical, AppTheme.Spacing.xs)
                     }
@@ -132,10 +127,15 @@ public struct SettingsView: View {
                     }
                 }
 
-                // Sign Out Section
+                // Account Actions Section
                 Section {
                     Button("Sign Out") {
                         authViewModel.signOut()
+                    }
+                    .foregroundColor(AppTheme.Text.primary)
+
+                    Button("Delete All Data & Account") {
+                        showingDeleteConfirmation = true
                     }
                     .foregroundColor(AppTheme.Semantic.error)
                 }
@@ -146,6 +146,20 @@ public struct SettingsView: View {
             #endif
             .sheet(isPresented: $viewModel.showingSubscription) {
                 SubscriptionView()
+            }
+            .confirmationDialog(
+                "Delete Account?",
+                isPresented: $showingDeleteConfirmation,
+                titleVisibility: .visible
+            ) {
+                Button("Delete Everything", role: .destructive) {
+                    Task {
+                        await authViewModel.deleteAccount()
+                    }
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("This will permanently delete all your workouts, benchmarks, and settings. This action cannot be undone.")
             }
         }
     }
@@ -261,69 +275,88 @@ struct SubscriptionView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: AppTheme.Spacing.lg) {
-                // Current Plan
-                VStack(spacing: AppTheme.Spacing.md) {
-                    Text("Current Plan")
-                        .font(AppTheme.Typography.labelMedium)
-                        .foregroundColor(AppTheme.Text.secondary)
+            ScrollView {
+                VStack(spacing: AppTheme.Spacing.lg) {
+                    // Header
+                    VStack(spacing: AppTheme.Spacing.sm) {
+                        Text("Choose Your Plan")
+                            .font(AppTheme.Typography.displayLarge)
+                            .foregroundColor(AppTheme.Text.primary)
 
-                    Text(viewModel.subscription.tier.rawValue.capitalized)
-                        .font(AppTheme.Typography.displayLarge)
-                        .foregroundColor(AppTheme.Text.primary)
-
-                    if viewModel.subscription.hasAccess {
-                        Text("Active")
-                            .font(AppTheme.Typography.labelMedium)
-                            .foregroundColor(.green)
-                            .padding(.horizontal, AppTheme.Spacing.md)
-                            .padding(.vertical, AppTheme.Spacing.xs)
-                            .background(Color.green.opacity(0.1))
-                            .cornerRadius(AppTheme.CornerRadius.small)
+                        Text("Train smarter. Recover better.")
+                            .font(AppTheme.Typography.bodyMedium)
+                            .foregroundColor(AppTheme.Text.secondary)
                     }
-                }
+                    .padding(.top, AppTheme.Spacing.md)
 
-                // Features
-                VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
-                    Text("Features")
-                        .font(AppTheme.Typography.headlineMedium)
+                    // Tier Cards
+                    tierCard(
+                        tier: .free,
+                        price: "Free",
+                        features: [
+                            "5 lifts tracked",
+                            "1 injury profile",
+                            "30-day workout history",
+                            "Basic cycle-aware hints",
+                            "Prebuilt benchmarks",
+                        ]
+                    )
 
-                    featureRow("Lifts Tracked", value: viewModel.maxLiftsText)
-                    featureRow("AI Generations", value: "\(viewModel.subscription.tier.dailyAIGenerations)/day")
-                    featureRow("Custom Benchmarks", isEnabled: viewModel.subscription.tier.hasCustomBenchmarks)
-                    featureRow("Pain Trends", isEnabled: viewModel.subscription.tier.hasPainTrends)
-                }
+                    tierCard(
+                        tier: .plus,
+                        price: "$2.99/mo",
+                        features: [
+                            "Unlimited lifts, injuries & history",
+                            "On-device AI workout builder",
+                            "Advanced charts & trends",
+                            "Custom benchmarks",
+                            "Editable workouts & templates",
+                            "Weekly planner draft",
+                            "Smart lighter-day adjustments",
+                        ]
+                    )
 
-                Spacer()
+                    tierCard(
+                        tier: .premium,
+                        price: "$4.99/mo",
+                        features: [
+                            "Everything in Plus",
+                            "Coach memory across sessions",
+                            "Adaptive weekly programming",
+                            "Missed-workout reshuffle",
+                            "Plateau detection & next steps",
+                            "Smart substitutions",
+                            "Weekly recap & recommendations",
+                            "Preference learning",
+                            "Export & share plans",
+                        ]
+                    )
 
-                // Upgrade Button
-                if !viewModel.subscription.hasAccess {
-                    Button("Upgrade to Premium") {
-                        Task {
-                            await viewModel.purchase(tier: .premium)
-                        }
+                    // Restore Purchases
+                    Button {
+                        Task { await viewModel.restorePurchases() }
+                    } label: {
+                        Text("Restore Purchases")
+                            .font(AppTheme.Typography.bodySmall)
+                            .foregroundColor(AppTheme.Text.secondary)
                     }
-                    .artDecoButton(style: .accent)
+                    .padding(.top, AppTheme.Spacing.sm)
                 }
+                .padding(AppTheme.Spacing.lg)
             }
-            .padding(AppTheme.Spacing.lg)
             .artDecoBackground()
-            .navigationTitle("Subscription")
+            .navigationTitle("Membership")
             #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
             #endif
             .toolbar {
                 #if os(iOS)
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
-                        dismiss()
-                    }
+                    Button("Done") { dismiss() }
                 }
                 #else
                 ToolbarItem(placement: .primaryAction) {
-                    Button("Done") {
-                        dismiss()
-                    }
+                    Button("Done") { dismiss() }
                 }
                 #endif
             }
@@ -333,23 +366,87 @@ struct SubscriptionView: View {
         }
     }
 
-    private func featureRow(_ label: String, value: String? = nil, isEnabled: Bool = true) -> some View {
-        HStack {
-            Image(systemName: isEnabled ? "checkmark.circle.fill" : "circle")
-                .foregroundColor(isEnabled ? AppTheme.Accent.gold : AppTheme.Text.secondary)
+    private func tierCard(
+        tier: SubscriptionTier,
+        price: String,
+        features: [String]
+    ) -> some View {
+        let isCurrent = viewModel.subscription.tier == tier
+        let accentColor: Color = switch tier {
+        case .free: AppTheme.Text.secondary
+        case .plus: AppTheme.Accent.gold
+        case .premium: AppTheme.Semantic.success
+        }
 
-            Text(label)
-                .font(AppTheme.Typography.bodyMedium)
-                .foregroundColor(AppTheme.Text.primary)
+        return VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
+            // Tier header
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(tier.displayName)
+                        .font(AppTheme.Typography.headlineMedium)
+                        .foregroundColor(AppTheme.Text.primary)
 
-            Spacer()
+                    Text(tier.tagline)
+                        .font(AppTheme.Typography.bodySmall)
+                        .foregroundColor(AppTheme.Text.secondary)
+                }
 
-            if let value = value {
-                Text(value)
-                    .font(AppTheme.Typography.bodyMedium)
-                    .foregroundColor(AppTheme.Text.secondary)
+                Spacer()
+
+                Text(price)
+                    .font(AppTheme.Typography.headlineMedium)
+                    .foregroundColor(accentColor)
+            }
+
+            Divider()
+                .background(accentColor.opacity(0.3))
+
+            // Feature list
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
+                ForEach(features, id: \.self) { feature in
+                    HStack(alignment: .top, spacing: AppTheme.Spacing.sm) {
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundColor(accentColor)
+                            .frame(width: 16, height: 16)
+
+                        Text(feature)
+                            .font(AppTheme.Typography.bodySmall)
+                            .foregroundColor(AppTheme.Text.primary)
+                    }
+                }
+            }
+
+            // Action button
+            if isCurrent {
+                Text("Current Plan")
+                    .font(AppTheme.Typography.labelMedium)
+                    .foregroundColor(accentColor)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, AppTheme.Spacing.sm)
+                    .background(accentColor.opacity(0.08))
+                    .cornerRadius(AppTheme.CornerRadius.medium)
+            } else if tier != .free {
+                Button {
+                    Task { await viewModel.purchase(tier: tier) }
+                } label: {
+                    Text("Upgrade to \(tier.displayName)")
+                        .font(AppTheme.Typography.labelMedium)
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, AppTheme.Spacing.sm)
+                        .background(accentColor)
+                        .cornerRadius(AppTheme.CornerRadius.medium)
+                }
             }
         }
+        .padding(AppTheme.Spacing.lg)
+        .background(AppTheme.Background.card)
+        .cornerRadius(AppTheme.CornerRadius.large)
+        .overlay(
+            RoundedRectangle(cornerRadius: AppTheme.CornerRadius.large)
+                .stroke(isCurrent ? accentColor : Color.clear, lineWidth: 2)
+        )
     }
 }
 
@@ -360,6 +457,7 @@ struct SubscriptionView: View {
 class SubscriptionViewModel: ObservableObject {
     @Published var subscription: SubscriptionInfo = SubscriptionInfo(tier: .free, status: .active)
     @Published var isLoading: Bool = false
+    @Published var errorMessage: String?
 
     private let subscriptionClient: SubscriptionClientProtocol
 
@@ -367,35 +465,37 @@ class SubscriptionViewModel: ObservableObject {
         self.subscriptionClient = subscriptionClient
     }
 
-    var maxLiftsText: String {
-        if let max = subscription.tier.maxLifts {
-            return "\(max)"
-        } else {
-            return "Unlimited"
-        }
-    }
-
     func loadSubscription() async {
         isLoading = true
-
         do {
             subscription = try await subscriptionClient.getSubscriptionInfo()
         } catch {
             print("Error loading subscription: \(error)")
         }
-
         isLoading = false
     }
 
     func purchase(tier: SubscriptionTier) async {
         isLoading = true
-
+        errorMessage = nil
         do {
             subscription = try await subscriptionClient.purchase(tier: tier)
         } catch {
+            errorMessage = "Purchase failed. Please try again."
             print("Error purchasing: \(error)")
         }
+        isLoading = false
+    }
 
+    func restorePurchases() async {
+        isLoading = true
+        errorMessage = nil
+        do {
+            subscription = try await subscriptionClient.restorePurchases()
+        } catch {
+            errorMessage = "No purchases to restore."
+            print("Error restoring: \(error)")
+        }
         isLoading = false
     }
 }
@@ -442,14 +542,30 @@ class SettingsViewModel: ObservableObject {
     @Published var primaryGoal: PrimaryGoal = .strength
     @Published var showingSubscription: Bool = false
     @Published var isSaving: Bool = false
+    @Published var currentTier: SubscriptionTier = .free
 
     private let dataClient: DataClientProtocol
+    private let subscriptionClient: SubscriptionClientProtocol
     private var hasLoaded = false
 
-    init(dataClient: DataClientProtocol = DataClientFactory.shared.client) {
+    init(
+        dataClient: DataClientProtocol = DataClientFactory.shared.client,
+        subscriptionClient: SubscriptionClientProtocol = MockSubscriptionClient()
+    ) {
         self.dataClient = dataClient
+        self.subscriptionClient = subscriptionClient
         Task {
             await loadSettings()
+            await loadSubscriptionTier()
+        }
+    }
+
+    func loadSubscriptionTier() async {
+        do {
+            let info = try await subscriptionClient.getSubscriptionInfo()
+            currentTier = info.tier
+        } catch {
+            currentTier = .free
         }
     }
 
@@ -488,5 +604,30 @@ class SettingsViewModel: ObservableObject {
             print("Error saving settings: \(error)")
         }
         isSaving = false
+    }
+}
+
+// MARK: - TierBadge
+
+@available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
+struct TierBadge: View {
+    let tier: SubscriptionTier
+
+    private var badgeColor: Color {
+        switch tier {
+        case .free: return AppTheme.Text.secondary
+        case .plus: return AppTheme.Accent.gold
+        case .premium: return AppTheme.Semantic.success
+        }
+    }
+
+    var body: some View {
+        Text(tier.displayName)
+            .font(AppTheme.Typography.labelMedium)
+            .foregroundColor(badgeColor)
+            .padding(.horizontal, AppTheme.Spacing.md)
+            .padding(.vertical, AppTheme.Spacing.xs)
+            .background(badgeColor.opacity(0.12))
+            .cornerRadius(AppTheme.CornerRadius.small)
     }
 }
