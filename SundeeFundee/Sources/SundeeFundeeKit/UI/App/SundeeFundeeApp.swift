@@ -28,7 +28,7 @@ public struct MainTabView: View {
 
             WorkoutsListView()
                 .tabItem {
-                    Label("Workouts", systemImage: selectedTab == .workouts ? "figure.strengthtraining.traditional.fill" : "figure.strengthtraining.traditional")
+                    Label("Workouts", systemImage: "figure.strengthtraining.traditional")
                 }
                 .tag(Tab.workouts)
 
