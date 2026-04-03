@@ -36,6 +36,7 @@ public struct PainTrackingView: View {
         .task {
             await viewModel.loadPainLogs()
             await viewModel.loadInjuries()
+            await viewModel.loadSubstitutionSuggestions()
         }
         .sheet(isPresented: $showingLogForm) {
             PainLogFormView(viewModel: viewModel) {
@@ -81,6 +82,11 @@ public struct PainTrackingView: View {
                 }
                 .buttonStyle(.plain)
 
+                // Smart Substitutions (Pro)
+                if !viewModel.substitutionSuggestions.isEmpty {
+                    substitutionSection
+                }
+
                 // Recent Pain Logs
                 if !viewModel.painLogs.isEmpty {
                     VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
@@ -114,6 +120,63 @@ public struct PainTrackingView: View {
             .padding(AppTheme.Spacing.lg)
         }
     }
+
+    // MARK: - Smart Substitutions
+
+    private var substitutionSection: some View {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
+            HStack {
+                Image(systemName: "arrow.triangle.swap")
+                    .foregroundColor(AppTheme.Semantic.success)
+
+                Text("Smart Substitutions")
+                    .font(AppTheme.Typography.headlineMedium)
+                    .foregroundColor(AppTheme.Text.primary)
+            }
+
+            Text("Alternatives for exercises affected by your injuries")
+                .font(AppTheme.Typography.bodySmall)
+                .foregroundColor(AppTheme.Text.secondary)
+
+            ForEach(viewModel.substitutionSuggestions, id: \.originalExercise) { suggestion in
+                ArtDecoCard {
+                    VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
+                        HStack {
+                            Text(suggestion.originalExercise)
+                                .font(AppTheme.Typography.labelMedium)
+                                .foregroundColor(AppTheme.Semantic.error)
+                                .strikethrough()
+
+                            Image(systemName: "arrow.right")
+                                .font(.system(size: 10))
+                                .foregroundColor(AppTheme.Text.secondary)
+                        }
+
+                        ForEach(suggestion.substitutions.prefix(3), id: \.exerciseName) { sub in
+                            HStack(spacing: AppTheme.Spacing.sm) {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(AppTheme.Semantic.success)
+
+                                Text(sub.exerciseName)
+                                    .font(AppTheme.Typography.bodySmall)
+                                    .foregroundColor(AppTheme.Text.primary)
+
+                                Spacer()
+
+                                Text(sub.reason)
+                                    .font(AppTheme.Typography.labelSmall)
+                                    .foregroundColor(AppTheme.Text.secondary)
+                                    .lineLimit(1)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // MARK: - Active Injuries Banner
 
     private var activeInjuriesBanner: some View {
         ArtDecoCard {
