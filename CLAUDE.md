@@ -259,3 +259,30 @@ Bottom nav (`src/components/layout/bottom-nav.tsx`) has 5 tabs:
 5. Settings (`/settings`)
 
 Features layout (`src/app/(features)/layout.tsx`) renders `<BottomNav />` with `max-w-lg` container and `pb-16` bottom padding.
+
+## iOS App (Native SwiftUI)
+
+Two directories for the native app:
+- **`SundeeFundee/`** — Swift Package (`SundeeFundeeKit`): all domain logic, views, viewmodels, auth, CloudKit
+- **`SundeeFundeeApp/`** — Xcode project that imports the package; entry point: `SundeeFundeeApp/SundeeFundee/App.swift`
+
+### Key Files
+
+- **`SundeeFundeeKit/UI/App/SundeeFundeeApp.swift`** — `AuthView`, `MainTabView`, `ThemeViewModel` (all in one file)
+- **`SundeeFundeeKit/UI/ViewModels/AuthViewModel.swift`** — auth state; `isGuest` flag for guest/test mode
+- **`SundeeFundeeKit/UI/Theme/AppTheme.swift`** — `AppTheme.*` tokens + `.artDecoBackground()` modifier
+
+### Auth
+
+- Apple Sign In only (no Firebase); session stored in Keychain; user data saved to CloudKit
+- Guest mode: `authViewModel.continueAsGuest()` sets `isGuest = true`, `userID = "guest_local"`, skips CloudKit
+- Gate CloudKit writes on `!authViewModel.isGuest`
+
+### Patterns
+
+- Simulator screenshots showing a cream card on white = `AuthView` (not the web app sign-in page)
+- SwiftUI views need `.frame(maxWidth: .infinity, maxHeight: .infinity)` before `.artDecoBackground()` to fill screen
+
+## Git Workflow
+
+- **Commit each file separately** — stage and commit one file at a time rather than bundling changes together
