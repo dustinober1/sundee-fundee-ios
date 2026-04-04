@@ -284,7 +284,7 @@ class CycleCalendarViewModel: ObservableObject {
     private let dataClient: DataClientProtocol
 
     init(
-        healthClient: HealthClientProtocol = HealthKitClient(),
+        healthClient: HealthClientProtocol = HealthClientFactory.shared.client,
         dataClient: DataClientProtocol = DataClientFactory.shared.client
     ) {
         self.healthClient = healthClient

@@ -610,21 +610,28 @@ extension MockHealthKitClient {
     ///   - startDate: The sample start date.
     ///   - endDate: The sample end date.
     ///   - value: The menstrual flow value (0=unspecified, 1=none, 2=light, 3=medium, 4=heavy).
+    ///   - isStartOfCycle: Whether this sample marks the start of a menstrual cycle.
     /// - Returns: A mock HKCategorySample instance for menstrual flow.
     public static func createMockMenstrualCycle(
         startDate: Date,
         endDate: Date,
-        value: Int = 3  // medium
+        value: Int = 3,  // medium
+        isStartOfCycle: Bool = false
     ) -> HKCategorySample? {
         guard let cycleType = HKObjectType.categoryType(forIdentifier: .menstrualFlow) else {
             return nil
         }
 
+        let metadata: [String: Any] = [
+            HKMetadataKeyMenstrualCycleStart: isStartOfCycle
+        ]
+
         return HKCategorySample(
             type: cycleType,
             value: value,
             start: startDate,
-            end: endDate
+            end: endDate,
+            metadata: metadata
         )
     }
 }

@@ -6,6 +6,8 @@ struct SundeeFundeeMain: App {
     @StateObject private var authViewModel = AuthViewModel()
     @StateObject private var themeViewModel = ThemeViewModel()
 
+    private static let isScreenshotMode = CommandLine.arguments.contains("--seed-screenshots")
+
     var body: some Scene {
         WindowGroup {
             Group {
@@ -27,6 +29,17 @@ struct SundeeFundeeMain: App {
             .artDecoBackground()
             .onAppear {
                 themeViewModel.applyTheme()
+            }
+            .task {
+                if Self.isScreenshotMode {
+                    await ScreenshotSeeder.seed()
+                    // Restore auth state after seeding
+                    authViewModel.isGuest = true
+                    authViewModel.userID = AuthViewModel.guestUserID
+                    authViewModel.userName = "Sarah"
+                    authViewModel.isAuthenticated = true
+                    authViewModel.needsOnboarding = false
+                }
             }
         }
     }

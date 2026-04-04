@@ -23,7 +23,7 @@ public class BenchmarksListViewModel: ObservableObject {
 
     public init(
         dataClient: DataClientProtocol = DataClientFactory.shared.client,
-        healthClient: HealthClientProtocol = HealthKitClient()
+        healthClient: HealthClientProtocol = HealthClientFactory.shared.client
     ) {
         self.dataClient = dataClient
         self.healthClient = healthClient
@@ -176,7 +176,7 @@ public class BenchmarkDetailViewModel: ObservableObject {
 
     public init(
         dataClient: DataClientProtocol = DataClientFactory.shared.client,
-        healthClient: HealthClientProtocol = HealthKitClient()
+        healthClient: HealthClientProtocol = HealthClientFactory.shared.client
     ) {
         self.dataClient = dataClient
         self.healthClient = healthClient
