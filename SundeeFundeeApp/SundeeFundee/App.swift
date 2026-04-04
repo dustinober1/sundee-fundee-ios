@@ -8,6 +8,16 @@ struct SundeeFundeeMain: App {
 
     private static let isScreenshotMode = CommandLine.arguments.contains("--seed-screenshots")
 
+    init() {
+        // Configure RevenueCat SDK at launch.
+        // Using Test Store key for development. Replace with appl_ production key
+        // from RevenueCat dashboard once App Store app configuration is complete.
+        RevenueCatClient.configure(apiKey: "test_OEEKBfjRMUXzQmqMyQGqLsBgEjt")
+
+        // Set the production subscription client
+        SubscriptionClientFactory.shared.client = RevenueCatClient()
+    }
+
     var body: some Scene {
         WindowGroup {
             Group {

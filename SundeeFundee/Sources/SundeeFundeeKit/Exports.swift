@@ -533,13 +533,18 @@
 // - getPrice(for tier:) async -> String?
 // Conformance: Sendable
 
-// RevenueCatClient - Actor-based RevenueCat subscription client (stub)
-// - init(apiKey: String)
+// SubscriptionClientFactory - Singleton holding the active subscription client
+// - shared.client: SubscriptionClientProtocol (thread-safe read/write)
+// Pattern mirrors DataClientFactory
+
+// RevenueCatClient - Actor-based RevenueCat subscription client
+// - configure(apiKey: String) - Call once at app launch (static, @MainActor)
+// - init() - Create client instance (call configure first)
 // - identify(userId: String) async - Associate user with RevenueCat
 // - logout() async - Clear user association
 // - Methods from SubscriptionClientProtocol
 // Thread-safe via actor isolation
-// Note: Full implementation requires RevenueCat SDK dependency
+// Requires RevenueCat SDK dependency (purchases-ios)
 
 // MockSubscriptionClient - Actor-based mock for testing
 // - init(subscription: SubscriptionInfo? = nil)

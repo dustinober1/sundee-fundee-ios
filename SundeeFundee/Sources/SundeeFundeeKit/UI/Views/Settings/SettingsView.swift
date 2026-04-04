@@ -461,7 +461,7 @@ class SubscriptionViewModel: ObservableObject {
 
     private let subscriptionClient: SubscriptionClientProtocol
 
-    init(subscriptionClient: SubscriptionClientProtocol = MockSubscriptionClient()) {
+    init(subscriptionClient: SubscriptionClientProtocol = SubscriptionClientFactory.shared.client) {
         self.subscriptionClient = subscriptionClient
     }
 
@@ -550,7 +550,7 @@ class SettingsViewModel: ObservableObject {
 
     init(
         dataClient: DataClientProtocol = DataClientFactory.shared.client,
-        subscriptionClient: SubscriptionClientProtocol = MockSubscriptionClient()
+        subscriptionClient: SubscriptionClientProtocol = SubscriptionClientFactory.shared.client
     ) {
         self.dataClient = dataClient
         self.subscriptionClient = subscriptionClient

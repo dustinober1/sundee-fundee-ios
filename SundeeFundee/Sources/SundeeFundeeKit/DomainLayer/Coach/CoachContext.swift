@@ -97,7 +97,7 @@ public actor CoachContextBuilder {
     public init(
         healthClient: HealthClientProtocol = HealthClientFactory.shared.client,
         dataClient: DataClientProtocol = DataClientFactory.shared.client,
-        subscriptionClient: SubscriptionClientProtocol = MockSubscriptionClient()
+        subscriptionClient: SubscriptionClientProtocol = SubscriptionClientFactory.shared.client
     ) {
         self.healthClient = healthClient
         self.dataClient = dataClient

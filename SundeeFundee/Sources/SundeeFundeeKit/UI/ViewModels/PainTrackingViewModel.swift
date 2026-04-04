@@ -26,7 +26,7 @@ public class PainTrackingViewModel: ObservableObject {
 
     public init(
         dataClient: DataClientProtocol = DataClientFactory.shared.client,
-        subscriptionClient: SubscriptionClientProtocol = MockSubscriptionClient()
+        subscriptionClient: SubscriptionClientProtocol = SubscriptionClientFactory.shared.client
     ) {
         self.dataClient = dataClient
         self.subscriptionClient = subscriptionClient

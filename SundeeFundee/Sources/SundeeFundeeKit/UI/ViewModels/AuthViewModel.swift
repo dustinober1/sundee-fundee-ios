@@ -69,6 +69,11 @@ public class AuthViewModel: ObservableObject {
             // Save user to CloudKit
             try await saveUserToCloudKit(result)
 
+            // Identify with RevenueCat for subscription tracking
+            if let subscriptionClient = SubscriptionClientFactory.shared.client as? RevenueCatClient {
+                await subscriptionClient.identify(userId: result.userID)
+            }
+
             self.isAuthenticated = true
             self.needsOnboarding = KeychainHelper.read(key: "onboarding_complete") == nil
         } catch {
@@ -142,6 +147,11 @@ public class AuthViewModel: ObservableObject {
 
     /// Resets the authentication state and clears stored credentials
     private func resetState() async {
+        // Logout from RevenueCat
+        if let subscriptionClient = SubscriptionClientFactory.shared.client as? RevenueCatClient {
+            await subscriptionClient.logout()
+        }
+
         // Clear Keychain
         _ = KeychainHelper.delete(key: KeychainHelper.userIDKey)
         _ = KeychainHelper.delete(key: KeychainHelper.userEmailKey)
@@ -172,6 +182,11 @@ public class AuthViewModel: ObservableObject {
             if userID == AuthViewModel.guestUserID {
                 isGuest = true
                 DataClientFactory.shared.client = LocalDataClient()
+            } else {
+                // Re-identify with RevenueCat for returning signed-in users
+                if let subscriptionClient = SubscriptionClientFactory.shared.client as? RevenueCatClient {
+                    await subscriptionClient.identify(userId: userID)
+                }
             }
 
             isAuthenticated = true
