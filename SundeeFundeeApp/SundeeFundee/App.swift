@@ -10,9 +10,7 @@ struct SundeeFundeeMain: App {
 
     init() {
         // Configure RevenueCat SDK at launch.
-        // Using Test Store key for development. Replace with appl_ production key
-        // from RevenueCat dashboard once App Store app configuration is complete.
-        RevenueCatClient.configure(apiKey: "test_OEEKBfjRMUXzQmqMyQGqLsBgEjt")
+        RevenueCatClient.configure(apiKey: "appl_MBEMGbZNcktcPVhelaXKOhfetHk")
 
         // Set the production subscription client
         SubscriptionClientFactory.shared.client = RevenueCatClient()

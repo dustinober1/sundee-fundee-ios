@@ -1,5 +1,8 @@
 import Foundation
 @preconcurrency import RevenueCat
+#if os(iOS)
+import UIKit
+#endif
 
 // MARK: - RevenueCatClient
 
@@ -35,7 +38,7 @@ public actor RevenueCatClient: SubscriptionClientProtocol {
 
     /// Whether RevenueCat SDK has been configured.
     private static let configuredLock = NSLock()
-    private static var _configured = false
+    nonisolated(unsafe) private static var _configured: Bool = false
     private static var isConfigured: Bool {
         get { configuredLock.withLock { _configured } }
         set { configuredLock.withLock { _configured = newValue } }
