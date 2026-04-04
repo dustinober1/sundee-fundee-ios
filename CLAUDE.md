@@ -283,6 +283,32 @@ Two directories for the native app:
 - Simulator screenshots showing a cream card on white = `AuthView` (not the web app sign-in page)
 - SwiftUI views need `.frame(maxWidth: .infinity, maxHeight: .infinity)` before `.artDecoBackground()` to fill screen
 
+### App Store Requirements
+
+- **Privacy Manifest** (`PrivacyInfo.xcprivacy`) is required — declares API usage (UserDefaults CA92.1) and collected data types (HealthKit, Fitness, UserID)
+- **UIRequiredDeviceCapabilities** must be `arm64`, not `armv7` (deprecated, causes rejection)
+- **Code signing** should be `CODE_SIGN_STYLE = Automatic` — don't hardcode `iPhone Developer`
+- **App icon**: Single 1024x1024 universal icon is sufficient for modern Xcode (auto-generates all sizes)
+- **Screenshot dimensions**: iPhone 6.5" = 1284x2778, iPad 12.9" = 2048x2732 (not 1290x2796)
+- **Subscription apps** must include Terms of Use + Privacy Policy links in the App Store description
+- **Privacy Policy URL** is set in App Store Connect > Distribution > App Privacy (not in the version page)
+- **App Review notes** should include steps to find IAP if the purchase flow isn't on the main screen
+
+### iOS Simulator UI Automation Quirks
+
+- SwiftUI `Toggle` (AXSwitch) doesn't respond to `tap` by label — use `touch` with coordinates on the switch knob
+- Tab bar items on iPhone may not expose individual children in accessibility — use coordinate taps
+- iPad has "Next Page" button in tab bar overflow when there are more than ~5 tabs
+- Guest mode requires completing onboarding flow before reaching main app screens
+
+### App Store Marketing Screenshots
+
+- Raw simulator screenshots saved to `screenshots/`
+- Enhanced marketing images (with navy background + headline) generated via `scripts/generate_appstore_marketing.py` (Pillow)
+- iPhone output: `screenshots/appstore/` (1284x2778)
+- iPad output: `screenshots/appstore_ipad/` (2048x2732)
+- Art Deco theme: navy `#0d1a40` background, cream `#f4f0df` headlines
+
 ## Git Workflow
 
 - **Commit each file separately** — stage and commit one file at a time rather than bundling changes together

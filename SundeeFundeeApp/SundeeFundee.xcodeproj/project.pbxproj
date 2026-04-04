@@ -10,6 +10,7 @@
 		C7FB1AE00824A23591E646D0 /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = F47E72DC5446634AE7210CE4 /* App.swift */; };
 		CC55A72B627E73DE3865884E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 57BCA73D87A152BF2F3A81D1 /* Assets.xcassets */; };
 		CFDF444DB32D9E05ACF7EAA4 /* SundeeFundeeKit in Frameworks */ = {isa = PBXBuildFile; productRef = 0344363F4B100A32D7BC231D /* SundeeFundeeKit */; };
+		D2C1B0A918076F5E4D3C2B1A /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718A9B0C1D2 /* PrivacyInfo.xcprivacy */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -18,6 +19,7 @@
 		9440F3F428ED2EAB4291ABD3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		C99B9014B8F76C3124C8DA6A /* SundeeFundee.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SundeeFundee.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C9FE2C96B12B8F5EF9D089ED /* SundeeFundee */ = {isa = PBXFileReference; lastKnownFileType = folder; name = SundeeFundee; path = ../SundeeFundee; sourceTree = SOURCE_ROOT; };
+		A1B2C3D4E5F60718A9B0C1D2 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		F47E72DC5446634AE7210CE4 /* App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -56,6 +58,7 @@
 				F47E72DC5446634AE7210CE4 /* App.swift */,
 				57BCA73D87A152BF2F3A81D1 /* Assets.xcassets */,
 				9440F3F428ED2EAB4291ABD3 /* Info.plist */,
+				A1B2C3D4E5F60718A9B0C1D2 /* PrivacyInfo.xcprivacy */,
 				423F82176D7FA3B1A6B4754B /* SundeeFundee.entitlements */,
 			);
 			path = SundeeFundee;
@@ -129,6 +132,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CC55A72B627E73DE3865884E /* Assets.xcassets in Resources */,
+				D2C1B0A918076F5E4D3C2B1A /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -211,7 +215,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = SundeeFundee/SundeeFundee.entitlements;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 87VVCMCW3F;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = SundeeFundee/Info.plist;
@@ -230,7 +234,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = SundeeFundee/SundeeFundee.entitlements;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 87VVCMCW3F;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = SundeeFundee/Info.plist;
