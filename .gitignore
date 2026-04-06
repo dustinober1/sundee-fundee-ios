@@ -61,3 +61,6 @@ tmp/
 .bg-shell/
 .vercel
 .env*.local
+
+# ── GSD baseline (auto-generated) ──
+.gsd-id
