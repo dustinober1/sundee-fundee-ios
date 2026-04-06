@@ -14,6 +14,7 @@ settings:
     DEVELOPMENT_TEAM: "87VVCMCW3F"
     MARKETING_VERSION: "1.0.0"
     CURRENT_PROJECT_VERSION: 1
+    APP_GROUP_IDENTIFIER: group.com.sundeefundee.shared
 
 packages:
   SundeeFundeeKit:
@@ -27,6 +28,8 @@ targets:
       - SundeeFundee
     dependencies:
       - package: SundeeFundeeKit
+      - target: SundeeFundeeWidgetsExtension
+        embed: true
     settings:
       base:
         INFOPLIST_FILE: SundeeFundee/Info.plist
@@ -35,3 +38,20 @@ targets:
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         GENERATE_INFOPLIST_FILE: false
     postCompileScripts: []
+
+  SundeeFundeeWidgetsExtension:
+    type: app-extension
+    platform: iOS
+    sources:
+      - SundeeFundeeWidgets
+    dependencies:
+      - package: SundeeFundeeKit
+    settings:
+      base:
+        INFOPLIST_FILE: SundeeFundeeWidgets/Info.plist
+        CODE_SIGN_ENTITLEMENTS: SundeeFundeeWidgets/SundeeFundeeWidgets.entitlements
+        PRODUCT_BUNDLE_IDENTIFIER: com.sundeefundee.app.widgets
+        PRODUCT_NAME: SundeeFundeeWidgetsExtension
+        GENERATE_INFOPLIST_FILE: false
+        APPLICATION_EXTENSION_API_ONLY: true
+        SKIP_INSTALL: true
