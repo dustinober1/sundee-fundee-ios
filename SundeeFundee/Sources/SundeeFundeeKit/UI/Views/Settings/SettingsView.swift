@@ -96,6 +96,21 @@ public struct SettingsView: View {
                 .onChange(of: viewModel.primaryGoal) { _, _ in Task { await viewModel.saveSettings() } }
                 .onChange(of: viewModel.cycleTrackingEnabled) { _, _ in Task { await viewModel.saveSettings() } }
 
+                // Data & Privacy Section
+                Section("Data & Privacy") {
+                    NavigationLink {
+                        ExportView()
+                    } label: {
+                        HStack {
+                            Label("Export My Data", systemImage: "square.and.arrow.up")
+                            Spacer()
+                            Text("Pro")
+                                .font(AppTheme.Typography.labelSmall)
+                                .foregroundColor(AppTheme.Accent.gold)
+                        }
+                    }
+                }
+
                 // About Section
                 Section("About") {
                     HStack {
@@ -522,13 +537,6 @@ struct UserSettingsRecord: Codable, Sendable {
     let weightUnit: String
     let experienceLevel: String
     let primaryGoal: String
-}
-
-// MARK: - CycleSettingsRecord Model
-
-struct CycleSettingsRecord: Codable, Sendable {
-    let averageCycleLengthDays: Int
-    let lastPeriodStart: Date?
 }
 
 // MARK: - SettingsViewModel

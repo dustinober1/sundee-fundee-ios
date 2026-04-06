@@ -10,6 +10,11 @@ public struct WorkoutDetailView: View {
     @StateObject private var viewModel: WorkoutDetailViewModel
     @Environment(\.dismiss) private var dismiss
 
+    #if os(iOS)
+    @State private var shareImage: UIImage?
+    @State private var showingShareSheet = false
+    #endif
+
     public init(workoutId: String) {
         _viewModel = StateObject(wrappedValue: WorkoutDetailViewModel(workoutId: workoutId))
     }
@@ -31,15 +36,43 @@ public struct WorkoutDetailView: View {
         .navigationBarTitleDisplayMode(.large)
         #endif
         .toolbar {
-            if let workout = viewModel.workout, !workout.isComplete {
-                ToolbarItem(placement: .primaryAction) {
-                    Button("Finish") {
-                        Task { await viewModel.completeWorkout() }
+            if let workout = viewModel.workout {
+                if workout.isComplete {
+                    ToolbarItem(placement: .primaryAction) {
+                        #if os(iOS)
+                        Button {
+                            renderShareCard(workout: workout)
+                        } label: {
+                            Image(systemName: "square.and.arrow.up")
+                        }
+                        .artDecoButton(style: .secondary)
+                        #endif
                     }
-                    .artDecoButton(style: .accent)
+                } else {
+                    ToolbarItem(placement: .primaryAction) {
+                        Button("Finish") {
+                            Task { await viewModel.completeWorkout() }
+                        }
+                        .artDecoButton(style: .accent)
+                    }
                 }
             }
         }
+        #if os(iOS)
+        .sheet(isPresented: $showingShareSheet) {
+            if let image = shareImage {
+                ShareLink(
+                    item: Image(uiImage: image),
+                    preview: SharePreview(
+                        viewModel.workout?.name ?? "Workout",
+                        image: Image(uiImage: image)
+                    )
+                )
+                .presentationDetents([.medium])
+                .padding()
+            }
+        }
+        #endif
         .task {
             await viewModel.loadWorkout()
         }
@@ -309,6 +342,21 @@ public struct WorkoutDetailView: View {
         }
         return "\(Int(volume))"
     }
+
+    // MARK: - Share Card
+
+    #if os(iOS)
+    private func renderShareCard(workout: Workout) {
+        let card = WorkoutShareCardView(
+            workout: workout,
+            personalRecords: viewModel.personalRecords
+        )
+        let renderer = ImageRenderer(content: card)
+        renderer.scale = 3.0
+        shareImage = renderer.uiImage
+        showingShareSheet = true
+    }
+    #endif
 }
 
 // MARK: - WorkoutDetailViewModel
@@ -319,6 +367,7 @@ class WorkoutDetailViewModel: ObservableObject {
     @Published var workout: Workout?
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
+    @Published var personalRecords: Set<String> = []
 
     private let workoutId: String
     private let dataClient: DataClientProtocol
@@ -338,6 +387,9 @@ class WorkoutDetailViewModel: ObservableObject {
                 recordType: "Workout"
             ) as [Workout]
             workout = workouts.first { $0.id == workoutId }
+            if let workout, workout.isComplete {
+                await detectPersonalRecords()
+            }
         } catch {
             errorMessage = "Failed to load workout: \(error.localizedDescription)"
         }
@@ -382,6 +434,35 @@ class WorkoutDetailViewModel: ObservableObject {
             try await dataClient.save(workout, recordType: "Workout")
         } catch {
             errorMessage = "Failed to complete workout: \(error.localizedDescription)"
+        }
+    }
+
+    // MARK: - PR Detection
+
+    func detectPersonalRecords() async {
+        do {
+            let records: [OneRepMaxRecord] = try await dataClient.fetchAll(recordType: "OneRepMaxRecord")
+            guard let workout = workout else { return }
+            var prs: Set<String> = []
+            for exercise in workout.exercises {
+                let maxCompletedWeight = exercise.targetSets
+                    .compactMap { $0.completedWeight }
+                    .max() ?? 0
+                guard maxCompletedWeight > 0 else { continue }
+                let previousRecord = records
+                    .filter { $0.exerciseName == exercise.name }
+                    .max(by: { $0.weight < $1.weight })
+                if let previous = previousRecord {
+                    if maxCompletedWeight > previous.weight {
+                        prs.insert(exercise.name)
+                    }
+                }
+                // If no previous record exists and they lifted > 0, it's their first time logging — not a PR
+            }
+            personalRecords = prs
+        } catch {
+            // Non-critical — PR highlights are best-effort
+            personalRecords = []
         }
     }
 }

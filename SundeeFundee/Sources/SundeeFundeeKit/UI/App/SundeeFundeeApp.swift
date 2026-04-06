@@ -44,6 +44,12 @@ public struct MainTabView: View {
                 }
                 .tag(Tab.maxes)
 
+            AnalyticsView()
+                .tabItem {
+                    Label("Analytics", systemImage: selectedTab == .analytics ? "chart.xyaxis.line" : "chart.xyaxis.line")
+                }
+                .tag(Tab.analytics)
+
             BenchmarksListView()
                 .tabItem {
                     Label("Benchmarks", systemImage: selectedTab == .benchmarks ? "trophy.fill" : "trophy")
@@ -69,6 +75,7 @@ public enum Tab: String {
     case workouts
     case programs
     case maxes
+    case analytics
     case benchmarks
     case settings
 }
