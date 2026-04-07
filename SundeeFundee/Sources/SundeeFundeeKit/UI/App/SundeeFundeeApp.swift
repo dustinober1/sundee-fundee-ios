@@ -63,12 +63,25 @@ public struct MainTabView: View {
                 .tag(Tab.settings)
         }
         .tint(AppTheme.Accent.gold)
+        .onReceive(NotificationCenter.default.publisher(for: .aiWorkoutStarted)) { _ in
+            handleWorkoutStarted()
+        }
     }
 
     @State private var selectedTab: Tab = .dashboard
+
+    private func handleWorkoutStarted() {
+        selectedTab = .workouts
+    }
 }
 
 // MARK: - Tab Enum
+
+// MARK: - Notifications
+
+public extension Notification.Name {
+    static let aiWorkoutStarted = Notification.Name("aiWorkoutStarted")
+}
 
 public enum Tab: String {
     case dashboard
