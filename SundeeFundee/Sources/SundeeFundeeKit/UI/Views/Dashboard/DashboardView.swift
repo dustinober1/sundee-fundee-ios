@@ -17,55 +17,57 @@ public struct DashboardView: View {
     public init() {}
 
     public var body: some View {
-        ScrollView {
-            VStack(spacing: AppTheme.Spacing.lg) {
-                // Welcome Header
-                welcomeHeader
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: AppTheme.Spacing.lg) {
+                    // Welcome Header
+                    welcomeHeader
 
-                // Cycle Phase Banner (if enabled)
-                cyclePhaseBanner
+                    // Cycle Phase Banner (if enabled)
+                    cyclePhaseBanner
 
-                // Stat Cards
-                statCards
+                    // Stat Cards
+                    statCards
 
-                // Divider
-                Divider()
-                    .background(AppTheme.Accent.gold.opacity(0.3))
+                    // Divider
+                    Divider()
+                        .background(AppTheme.Accent.gold.opacity(0.3))
 
-                // Suggested Workout
-                suggestedWorkoutCard
+                    // Suggested Workout
+                    suggestedWorkoutCard
 
-                // Coaching Insights (Pro)
-                coachingInsightsCard
+                    // Coaching Insights (Pro)
+                    coachingInsightsCard
 
-                // Quick Actions
-                quickActionsCard
+                    // Quick Actions
+                    quickActionsCard
 
-                // Upgrade Prompts (locked-state cards)
-                upgradePrompts
+                    // Upgrade Prompts (locked-state cards)
+                    upgradePrompts
 
-                // Recent Wins
-                if !viewModel.recentWins.isEmpty {
-                    recentWinsCard
+                    // Recent Wins
+                    if !viewModel.recentWins.isEmpty {
+                        recentWinsCard
+                    }
                 }
+                .padding(AppTheme.Spacing.lg)
             }
-            .padding(AppTheme.Spacing.lg)
-        }
-        .navigationTitle("Dashboard")
-        #if os(iOS)
-        .navigationBarTitleDisplayMode(.large)
-        #endif
-        .task {
-            await viewModel.loadData()
-        }
-        .refreshable {
-            await viewModel.loadData()
-        }
-        .sheet(isPresented: $showingAIWorkout) {
-            AIWorkoutView()
-        }
-        .sheet(isPresented: $showingSubscription) {
-            SubscriptionView()
+            .navigationTitle("Dashboard")
+            #if os(iOS)
+            .navigationBarTitleDisplayMode(.large)
+            #endif
+            .task {
+                await viewModel.loadData()
+            }
+            .refreshable {
+                await viewModel.loadData()
+            }
+            .sheet(isPresented: $showingAIWorkout) {
+                AIWorkoutView()
+            }
+            .sheet(isPresented: $showingSubscription) {
+                SubscriptionView()
+            }
         }
     }
 
@@ -89,7 +91,10 @@ public struct DashboardView: View {
     }
 
     private var userName: String {
-        authViewModel.userName ?? "Athlete"
+        if let name = authViewModel.userName, !name.isEmpty {
+            return name
+        }
+        return "Athlete"
     }
 
     private var todayDate: String {
