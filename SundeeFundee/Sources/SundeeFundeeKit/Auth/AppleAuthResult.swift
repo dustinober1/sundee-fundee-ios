@@ -114,6 +114,30 @@ public struct AppleAuthResult: Sendable, Equatable {
         fullName?.formatted(.name(style: .medium))
     }
 
+    /// Extracts the email from the identity token JWT payload.
+    ///
+    /// The identity token always contains the email claim, even on
+    /// subsequent sign-ins where `credential.email` is nil.
+    public var tokenEmail: String? {
+        guard let tokenString = identityTokenString else { return nil }
+        let parts = tokenString.split(separator: ".")
+        guard parts.count >= 2 else { return nil }
+
+        // Decode the JWT payload (second segment, base64url)
+        var base64 = String(parts[1])
+            .replacingOccurrences(of: "-", with: "+")
+            .replacingOccurrences(of: "_", with: "/")
+        // Pad to multiple of 4
+        while base64.count % 4 != 0 { base64.append("=") }
+
+        guard let data = Data(base64Encoded: base64),
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let email = json["email"] as? String else {
+            return nil
+        }
+        return email
+    }
+
     /// Whether the user authorized access to their email.
     public var hasEmailScope: Bool {
         authorizedScopes.contains(.email)
