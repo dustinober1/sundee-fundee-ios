@@ -211,7 +211,7 @@ public struct SubscriptionInfo: Sendable, Equatable, Codable {
     /// Whether the subscription will auto-renew.
     public let willRenew: Bool
 
-    /// The RevenueCat entitlement identifier.
+    /// The StoreKit product or entitlement identifier.
     public let entitlementId: String?
 
     /// The original transaction ID from App Store.
