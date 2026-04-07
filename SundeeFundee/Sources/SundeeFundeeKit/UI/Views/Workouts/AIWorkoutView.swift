@@ -350,6 +350,7 @@ struct AIWorkoutView: View {
                         Button {
                             Task {
                                 await viewModel.startGeneratedWorkout()
+                                NotificationCenter.default.post(name: .aiWorkoutStarted, object: nil)
                                 dismiss()
                             }
                         } label: {
