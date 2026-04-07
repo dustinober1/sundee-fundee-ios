@@ -9,11 +9,12 @@ struct SundeeFundeeMain: App {
     private static let isScreenshotMode = CommandLine.arguments.contains("--seed-screenshots")
 
     init() {
-        // Configure RevenueCat SDK at launch.
-        RevenueCatClient.configure(apiKey: "appl_MBEMGbZNcktcPVhelaXKOhfetHk")
+        // Set the production subscription client (native StoreKit 2)
+        let storeKitClient = StoreKitClient()
+        SubscriptionClientFactory.shared.client = storeKitClient
 
-        // Set the production subscription client
-        SubscriptionClientFactory.shared.client = RevenueCatClient()
+        // Start listening for transaction updates
+        Task { await storeKitClient.startTransactionListener() }
     }
 
     var body: some Scene {
