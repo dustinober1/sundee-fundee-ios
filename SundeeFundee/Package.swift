@@ -17,16 +17,12 @@ let package = Package(
             targets: ["SundeeFundeeKit"]
         ),
     ],
-    dependencies: [
-        .package(url: "https://github.com/RevenueCat/purchases-ios.git", from: "5.0.0"),
-    ],
+    dependencies: [],
     targets: [
         // Core library target
         .target(
             name: "SundeeFundeeKit",
-            dependencies: [
-                .product(name: "RevenueCat", package: "purchases-ios"),
-            ],
+            dependencies: [],
             path: "Sources/SundeeFundeeKit"
         ),
         // Tests for core library
