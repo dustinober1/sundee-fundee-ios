@@ -20,6 +20,13 @@
         "claude-in-mobile"
       ],
       "command" : "npx"
+    },
+    "ios-control" : {
+      "command" : "uvx",
+      "args" : ["chuk-mcp-ios", "mcp"],
+      "env" : {
+        "LOG_LEVEL" : "INFO"
+      }
     }
   }
 }
