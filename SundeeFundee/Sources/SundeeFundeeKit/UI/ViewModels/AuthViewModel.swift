@@ -55,23 +55,30 @@ public class AuthViewModel: ObservableObject {
             // Store user info
             self.userID = result.userID
             self.userEmail = result.email
-            self.userName = result.displayName
+
+            // Apple only sends the name on the first authorization.
+            // On subsequent sign-ins, preserve the previously saved name from Keychain.
+            if let name = result.displayName, !name.isEmpty {
+                self.userName = name
+            } else {
+                self.userName = KeychainHelper.read(key: KeychainHelper.userNameKey)
+            }
 
             // Persist to Keychain for session restoration
             _ = KeychainHelper.save(key: KeychainHelper.userIDKey, value: result.userID)
             if let email = result.email {
                 _ = KeychainHelper.save(key: KeychainHelper.userEmailKey, value: email)
             }
-            if let name = result.displayName {
+            if let name = result.displayName, !name.isEmpty {
                 _ = KeychainHelper.save(key: KeychainHelper.userNameKey, value: name)
             }
 
             // Save user to CloudKit
             try await saveUserToCloudKit(result)
 
-            // Identify with RevenueCat for subscription tracking
-            if let subscriptionClient = SubscriptionClientFactory.shared.client as? RevenueCatClient {
-                await subscriptionClient.identify(userId: result.userID)
+            // Identify with subscription client for tracking
+            if let subscriptionClient = SubscriptionClientFactory.shared.client as? StoreKitClient {
+                await subscriptionClient.identify(userId: result.userID, email: result.email)
             }
 
             self.isAuthenticated = true
@@ -147,8 +154,8 @@ public class AuthViewModel: ObservableObject {
 
     /// Resets the authentication state and clears stored credentials
     private func resetState() async {
-        // Logout from RevenueCat
-        if let subscriptionClient = SubscriptionClientFactory.shared.client as? RevenueCatClient {
+        // Logout from subscription client
+        if let subscriptionClient = SubscriptionClientFactory.shared.client as? StoreKitClient {
             await subscriptionClient.logout()
         }
 
@@ -161,7 +168,7 @@ public class AuthViewModel: ObservableObject {
         await MainActor.run {
             // Reset to CloudKit for the next sign-in
             DataClientFactory.shared.client = CloudKitClient(
-                containerIdentifier: "icloud.com.sundeefundee.app"
+                containerIdentifier: "iCloud.com.sundeefundee.app"
             )
             isAuthenticated = false
             isGuest = false
@@ -183,9 +190,9 @@ public class AuthViewModel: ObservableObject {
                 isGuest = true
                 DataClientFactory.shared.client = LocalDataClient()
             } else {
-                // Re-identify with RevenueCat for returning signed-in users
-                if let subscriptionClient = SubscriptionClientFactory.shared.client as? RevenueCatClient {
-                    await subscriptionClient.identify(userId: userID)
+                // Re-identify with subscription client for returning signed-in users
+                if let subscriptionClient = SubscriptionClientFactory.shared.client as? StoreKitClient {
+                    await subscriptionClient.identify(userId: userID, email: self.userEmail)
                 }
             }
 
