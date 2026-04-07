@@ -54,10 +54,18 @@ public class AuthViewModel: ObservableObject {
 
             // Store user info
             self.userID = result.userID
-            self.userEmail = result.email
 
-            // Apple only sends the name on the first authorization.
-            // On subsequent sign-ins, preserve the previously saved name from Keychain.
+            // Apple only sends email via credential on the first authorization.
+            // On subsequent sign-ins, extract from the identity token JWT
+            // or fall back to Keychain.
+            if let email = result.email, !email.isEmpty {
+                self.userEmail = email
+            } else if let tokenEmail = result.tokenEmail {
+                self.userEmail = tokenEmail
+            } else {
+                self.userEmail = KeychainHelper.read(key: KeychainHelper.userEmailKey)
+            }
+
             if let name = result.displayName, !name.isEmpty {
                 self.userName = name
             } else {
@@ -66,7 +74,7 @@ public class AuthViewModel: ObservableObject {
 
             // Persist to Keychain for session restoration
             _ = KeychainHelper.save(key: KeychainHelper.userIDKey, value: result.userID)
-            if let email = result.email {
+            if let email = self.userEmail {
                 _ = KeychainHelper.save(key: KeychainHelper.userEmailKey, value: email)
             }
             if let name = result.displayName, !name.isEmpty {
@@ -78,7 +86,7 @@ public class AuthViewModel: ObservableObject {
 
             // Identify with subscription client for tracking
             if let subscriptionClient = SubscriptionClientFactory.shared.client as? StoreKitClient {
-                await subscriptionClient.identify(userId: result.userID, email: result.email)
+                await subscriptionClient.identify(userId: result.userID, email: self.userEmail)
             }
 
             self.isAuthenticated = true
