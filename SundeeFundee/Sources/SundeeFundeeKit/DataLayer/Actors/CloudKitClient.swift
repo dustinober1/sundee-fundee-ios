@@ -72,31 +72,17 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
     // MARK: - DataClientProtocol
 
     /// Fetches records of the specified type matching the given predicate.
-    ///
-    /// - Parameters:
-    ///   - recordType: The CloudKit record type identifier.
-    ///   - predicate: The predicate to filter records.
-    ///   - sortDescriptors: Optional sort descriptors for ordering results.
-    /// - Returns: An array of decoded model objects.
-    /// - Throws: `DataError` if the fetch operation fails.
     public func fetch<T>(
         recordType: String,
         predicate: NSPredicate,
         sortDescriptors: [NSSortDescriptor]?
     ) async throws -> [T] where T: Decodable & Sendable {
-        // Create query
         let query = CKQuery(recordType: recordType, predicate: predicate)
         query.sortDescriptors = sortDescriptors
-
         return try await fetchWithQuery(query)
     }
 
     /// Saves records to CloudKit.
-    ///
-    /// - Parameters:
-    ///   - records: The model objects to save.
-    ///   - recordType: The CloudKit record type identifier.
-    /// - Throws: `DataError` if the save operation fails.
     public func save<T>(
         _ records: [T],
         recordType: String
@@ -104,14 +90,12 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
         guard !records.isEmpty else { return }
 
         var ckRecords: [CKRecord] = []
-
         for record in records {
             let ckRecord = try encodeToCKRecord(record, recordType: recordType)
             ckRecords.append(ckRecord)
         }
 
         let (savedRecords, _) = try await database.modifyRecords(saving: ckRecords, deleting: [])
-        // Check for any save errors in the results
         for (recordID, result) in savedRecords {
             switch result {
             case .failure(let error):
@@ -123,11 +107,6 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
     }
 
     /// Deletes records from CloudKit.
-    ///
-    /// - Parameters:
-    ///   - recordIDs: The IDs of the records to delete.
-    ///   - recordType: The CloudKit record type identifier.
-    /// - Throws: `DataError` if the delete operation fails.
     public func delete(
         recordIDs: [CKRecord.ID],
         recordType: String
@@ -139,7 +118,6 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
             deleting: recordIDs
         )
 
-        // Check for any delete errors
         for (recordID, result) in deletedRecordIDs {
             switch result {
             case .failure(let error):
@@ -151,14 +129,57 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
     }
 
     /// Deletes all data in the private database.
-    ///
-    /// For CloudKit, we delete the default record zone. This is a very efficient
-    /// way to remove all user records in the private database.
     public func deleteAllData() async throws {
         do {
             _ = try await database.deleteRecordZone(withID: .default)
         } catch {
             throw mapCKError(error, recordID: nil)
+        }
+    }
+
+    // MARK: - saveFromJSON (SyncQueue replay path)
+
+    /// Saves records from raw JSON data without going through Codable.
+    ///
+    /// Parses each JSON element into a dictionary and creates CKRecords directly.
+    /// This is the replay path for SyncQueue — it allows queued mutations to be
+    /// replayed without knowing the original Codable type.
+    public func saveFromJSON(
+        _ jsonRecords: [Data],
+        recordType: String
+    ) async throws {
+        guard !jsonRecords.isEmpty else { return }
+
+        var ckRecords: [CKRecord] = []
+
+        for jsonData in jsonRecords {
+            guard let jsonDict = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any] else {
+                throw DataError.invalidData(description: "Failed to parse JSON record")
+            }
+
+            let recordID: CKRecord.ID
+            if let id = jsonDict["id"] as? String {
+                recordID = CKRecord.ID(recordName: id)
+            } else {
+                recordID = CKRecord.ID(recordName: UUID().uuidString)
+            }
+
+            let record = CKRecord(recordType: recordType, recordID: recordID)
+            for (key, value) in jsonDict {
+                guard key != "id" else { continue }
+                record[key] = convertToCKRecordValue(value) as? (any CKRecordValueProtocol)
+            }
+            ckRecords.append(record)
+        }
+
+        let (savedRecords, _) = try await database.modifyRecords(saving: ckRecords, deleting: [])
+        for (recordID, result) in savedRecords {
+            switch result {
+            case .failure(let error):
+                throw mapCKError(error, recordID: recordID)
+            default:
+                break
+            }
         }
     }
 
@@ -171,12 +192,10 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
         var allResults: [T] = []
         var cursor: CKQueryOperation.Cursor?
 
-        // Perform initial query
         let (results, nextCursor): ([T], CKQueryOperation.Cursor?) = try await performQuery(query: query)
         allResults.append(contentsOf: results)
         cursor = nextCursor
 
-        // Continue fetching if there are more results
         while let currentCursor = cursor {
             let (moreResults, nextCursor): ([T], CKQueryOperation.Cursor?) = try await performQueryContinuation(with: currentCursor)
             allResults.append(contentsOf: moreResults)
@@ -193,7 +212,6 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
         let (results, cursor) = try await database.records(matching: query)
 
         var decodedResults: [T] = []
-
         for (_, result) in results {
             switch result {
             case .success(let record):
@@ -201,7 +219,6 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
                     let decoded: T = try decodeFromCKRecord(record)
                     decodedResults.append(decoded)
                 } catch {
-                    // Skip records that can't be decoded
                     continue
                 }
             case .failure(let error):
@@ -219,7 +236,6 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
         let (results, nextCursor) = try await database.records(continuingMatchFrom: cursor)
 
         var decodedResults: [T] = []
-
         for (_, result) in results {
             switch result {
             case .success(let record):
@@ -242,15 +258,12 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
         _ value: T,
         recordType: String
     ) throws -> CKRecord {
-        // Encode to JSON data
         let jsonData = try encoder.encode(value)
 
-        // Decode JSON to dictionary
         guard let jsonDict = try JSONSerialization.jsonObject(with: jsonData) as? [String: Any] else {
             throw DataError.invalidData(description: "Failed to serialize to JSON dictionary")
         }
 
-        // Extract ID if present, otherwise generate one
         let recordID: CKRecord.ID
         if let id = jsonDict["id"] as? String {
             recordID = CKRecord.ID(recordName: id)
@@ -258,10 +271,7 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
             recordID = CKRecord.ID(recordName: UUID().uuidString)
         }
 
-        // Create CKRecord
         let record = CKRecord(recordType: recordType, recordID: recordID)
-
-        // Add all fields except "id" to the record
         for (key, value) in jsonDict {
             guard key != "id" else { continue }
             record[key] = convertToCKRecordValue(value) as? (any CKRecordValueProtocol)
@@ -282,7 +292,6 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
         case let boolValue as Bool:
             return boolValue
         case let dateValue as String:
-            // Try to parse ISO8601 date
             if let date = ISO8601DateFormatter().date(from: dateValue) {
                 return date
             }
@@ -290,7 +299,6 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
         case let arrayValue as [Any]:
             return arrayValue.compactMap { convertToCKRecordValue($0) }
         case let dictValue as [String: Any]:
-            // Convert nested dictionaries to JSON strings
             if let jsonData = try? JSONSerialization.data(withJSONObject: dictValue),
                let jsonString = String(data: jsonData, encoding: .utf8) {
                 return jsonString
