@@ -118,8 +118,36 @@ public actor LocalDataClient: @preconcurrency DataClientProtocol {
         return array
     }
 
+    public func saveFromJSON(
+        _ jsonRecords: [Data],
+        recordType: String
+    ) async throws {
+        guard !jsonRecords.isEmpty else { return }
+        // For local client, parse each JSON record and a dictionary and save
+        for jsonData in jsonRecords {
+            guard var dict = try JSONSerialization.jsonObject(with: jsonData) as? [String: Any] else {
+                throw DataError.invalidData(description: "Failed to parse JSON record for local save")
+            }
+            var existing = load(recordType: recordType)
+
+            if dict["id"] == nil {
+                dict["id"] = UUID().uuidString
+            }
+
+            if let id = dict["id"] as? String,
+               let idx = existing.firstIndex(where: { $0["id"] as? String == id }) {
+                existing[idx] = dict
+            } else {
+                existing.append(dict)
+            }
+
+            persist(existing, recordType: recordType)
+        }
+    }
+
     private func persist(_ records: [[String: Any]], recordType: String) {
         guard let data = try? JSONSerialization.data(withJSONObject: records) else { return }
         userDefaults.set(data, forKey: storageKey(for: recordType))
     }
 }
+
