@@ -41,6 +41,14 @@ public struct ProgramsListView: View {
             .refreshable {
                 await viewModel.loadPrograms()
             }
+            .alert("Error", isPresented: Binding(
+                get: { viewModel.errorMessage != nil },
+                set: { if !$0 { viewModel.errorMessage = nil } }
+            )) {
+                Button("OK") { viewModel.errorMessage = nil }
+            } message: {
+                Text(viewModel.errorMessage ?? "")
+            }
         }
     }
 }
@@ -126,6 +134,7 @@ struct ProgramListItem: Identifiable {
 class ProgramsListViewModel: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var programs: [ProgramListItem] = []
+    @Published var errorMessage: String?
 
     private let dataClient: DataClientProtocol
 
@@ -144,7 +153,7 @@ class ProgramsListViewModel: ObservableObject {
             ) as [EnrolledProgramRecord]
             enrolledIds = Set(enrolled.filter(\.isActive).map(\.id))
         } catch {
-            print("Error loading enrolled programs: \(error)")
+            errorMessage = "Failed to load programs: \(error.localizedDescription)"
         }
 
         // Generate program catalog from domain templates
@@ -175,7 +184,7 @@ class ProgramsListViewModel: ObservableObject {
             try await dataClient.save(record, recordType: "EnrolledProgramRecord")
             await loadPrograms()
         } catch {
-            print("Error enrolling in program: \(error)")
+            errorMessage = "Failed to enroll: \(error.localizedDescription)"
         }
     }
 
