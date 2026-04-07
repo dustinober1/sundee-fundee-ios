@@ -87,7 +87,7 @@ public enum PlateauDetector {
 
             // Check if there's meaningful progress
             // Progress = current weight is meaningfully higher than oldest in window
-            let oldestInWindow = recent.first!.weight
+            let oldestInWindow = first.weight
             let improvement = oldestInWindow > 0
                 ? (bestWeight - oldestInWindow) / oldestInWindow
                 : 0

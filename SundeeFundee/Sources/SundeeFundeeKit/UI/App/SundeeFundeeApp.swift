@@ -166,6 +166,7 @@ public struct AuthView: View {
 // MARK: - ThemeViewModel
 
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
+@MainActor
 public class ThemeViewModel: ObservableObject {
     public init() {}
 

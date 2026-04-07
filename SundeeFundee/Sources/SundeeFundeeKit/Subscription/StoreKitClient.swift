@@ -51,10 +51,15 @@ public actor StoreKitClient: SubscriptionClientProtocol {
     // MARK: - Pro Test Overrides
 
     /// Emails that are hardcoded as Pro (premium) members for testing.
+    /// Only active in DEBUG builds — never ships to production.
+    #if DEBUG
     private static let proTestEmails: Set<String> = [
         "elizabethober@icloud.com",
         "dustinober@me.com"
     ]
+    #else
+    private static let proTestEmails: Set<String> = []
+    #endif
 
     /// The identified user's email, if provided.
     private var userEmail: String?

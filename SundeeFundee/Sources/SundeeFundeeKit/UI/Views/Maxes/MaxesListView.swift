@@ -34,6 +34,7 @@ public struct MaxesListView: View {
                     } label: {
                         Image(systemName: "plus")
                     }
+                    .accessibilityLabel("Add One-Rep Max")
                 }
                 #else
                 ToolbarItem(placement: .primaryAction) {
@@ -42,6 +43,7 @@ public struct MaxesListView: View {
                     } label: {
                         Image(systemName: "plus")
                     }
+                    .accessibilityLabel("Add One-Rep Max")
                 }
                 #endif
             }

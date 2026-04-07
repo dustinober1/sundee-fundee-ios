@@ -276,7 +276,9 @@ public actor HealthKitClient: @preconcurrency HealthClientProtocol {
         }
 
         // Create energy sample to add to the workout
-        let energyType = HKObjectType.quantityType(forIdentifier: .activeEnergyBurned)!
+        guard let energyType = HKObjectType.quantityType(forIdentifier: .activeEnergyBurned) else {
+            throw HealthError.queryFailed(underlying: nil)
+        }
         let energySample = HKQuantitySample(
             type: energyType,
             quantity: energyQuantity,

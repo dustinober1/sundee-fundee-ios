@@ -200,7 +200,9 @@ public actor CoachContextBuilder {
             if let s = records.first {
                 return (s.experienceLevel, s.primaryGoal)
             }
-        } catch {}
+        } catch {
+            print("[CoachContext] loadSettings failed: \(error)")
+        }
         return (nil, nil)
     }
 

@@ -259,11 +259,13 @@ public final class MockCloudKitClient: DataClientProtocol, @unchecked Sendable {
             switch compound.compoundPredicateType {
             case .and:
                 return compound.subpredicates.allSatisfy {
-                    evaluatePredicate($0 as! NSPredicate, against: record)
+                    guard let pred = $0 as? NSPredicate else { return false }
+                    return evaluatePredicate(pred, against: record)
                 }
             case .or:
                 return compound.subpredicates.contains {
-                    evaluatePredicate($0 as! NSPredicate, against: record)
+                    guard let pred = $0 as? NSPredicate else { return false }
+                    return evaluatePredicate(pred, against: record)
                 }
             case .not:
                 guard let subpredicate = compound.subpredicates.first as? NSPredicate else {
