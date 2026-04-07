@@ -1,5 +1,10 @@
 import CloudKit
-import Foundation
+@preconcurrency import Foundation
+
+// NSPredicate and NSSortDescriptor are immutable after creation and thread-safe
+// in practice, but Foundation hasn't formally added Sendable conformances yet.
+extension NSPredicate: @retroactive @unchecked Sendable {}
+extension NSSortDescriptor: @retroactive @unchecked Sendable {}
 
 // MARK: - DataError
 
@@ -97,6 +102,21 @@ public protocol DataClientProtocol: Sendable {
     /// Used for account deletion to ensure no user data remains.
     /// - Throws: `DataError` if the operation fails.
     func deleteAllData() async throws
+
+    /// Saves records from raw JSON data.
+    ///
+    /// Used by SyncQueue to replay previously queued mutations without
+    /// knowing the original Codable type. Each element of `jsonRecords`
+    /// is a complete JSON object that will be deserialized and stored.
+    ///
+    /// - Parameters:
+    ///   - jsonRecords: Array of raw JSON data, one per record.
+    ///   - recordType: The CloudKit record type identifier.
+    /// - Throws: `DataError` if the operation fails.
+    func saveFromJSON(
+        _ jsonRecords: [Data],
+        recordType: String
+    ) async throws
 }
 
 // MARK: - Default Implementations
@@ -122,6 +142,16 @@ extension DataClientProtocol {
         try await save([record], recordType: recordType)
     }
 
+    /// Saves records from raw JSON data (default: decode then delegate).
+    public func saveFromJSON(
+        _ jsonRecords: [Data],
+        recordType: String
+    ) async throws {
+        // No default implementation — clients must implement this
+        // if they support offline replay.
+        throw DataError.invalidData(description: "saveFromJSON not implemented")
+    }
+
     /// Deletes a single record from CloudKit.
     public func delete(
         recordID: CKRecord.ID,
@@ -139,3 +169,4 @@ extension DataClientProtocol {
         try await delete(recordIDs: [recordID], recordType: recordType)
     }
 }
+

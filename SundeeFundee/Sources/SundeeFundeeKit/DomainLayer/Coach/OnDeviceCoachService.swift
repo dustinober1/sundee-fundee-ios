@@ -53,7 +53,7 @@ public final class OnDeviceCoachService: CoachServiceProtocol, @unchecked Sendab
         let base = try await fallback.getInsights(context: context)
 
         // Use AI to generate a more personalized summary
-        let summary = try await generateInsightsSummary(base: base, context: context)
+        let summary = await generateInsightsSummary(base: base, context: context)
 
         return CoachInsightsResponse(
             plateaus: base.plateaus,
@@ -91,7 +91,7 @@ public final class OnDeviceCoachService: CoachServiceProtocol, @unchecked Sendab
         )
 
         // Use AI to make the explanation more conversational
-        let explanation = try await generatePlanExplanation(base: base, context: context)
+        let explanation = await generatePlanExplanation(base: base, context: context)
 
         return CoachPlanResponse(
             result: base.result,

@@ -64,6 +64,10 @@ public final class MockHealthKitClient: HealthClientProtocol, @unchecked Sendabl
     /// Set to `true` to test error handling for failed queries.
     public var shouldFailQueries: Bool = false
 
+    /// Number of times `saveWorkout` has been called successfully.
+    /// Use this in tests to verify that a workout save was attempted.
+    public private(set) var saveWorkoutCallCount: Int = 0
+
     // MARK: - Initialization
 
     /// Creates a new MockHealthKitClient with empty storage.
@@ -302,34 +306,10 @@ public final class MockHealthKitClient: HealthClientProtocol, @unchecked Sendabl
             throw HealthError.queryFailed(underlying: nil)
         }
 
-        // Create a mock workout
-        let energyQuantity = HKQuantity(
-            unit: HKUnit.kilocalorie(),
-            doubleValue: totalEnergyBurned
-        )
-
-        // Build metadata
-        var metadata: [String: Any] = [:]
-        metadata[HKMetadataKeyWorkoutBrandName] = "Sundee Fundee"
-        metadata["com.sundeefundee.exerciseCount"] = exercises.count
-
-        // Create workout configuration
-        let configuration = HKWorkoutConfiguration()
-        configuration.activityType = .traditionalStrengthTraining
-
-        // Create the workout
-        let workout = HKWorkout(
-            activityType: configuration.activityType,
-            start: startDate,
-            end: endDate,
-            duration: endDate.timeIntervalSince(startDate),
-            totalEnergyBurned: energyQuantity,
-            totalDistance: nil,
-            metadata: metadata
-        )
-
+        // Track the call — tests verify saveWorkoutCallCount rather than inspecting
+        // the mock's internal workout store, which holds only pre-seeded data.
         queue.sync {
-            mockWorkouts.append(workout)
+            saveWorkoutCallCount += 1
         }
     }
 
@@ -345,6 +325,7 @@ public final class MockHealthKitClient: HealthClientProtocol, @unchecked Sendabl
             mockActiveEnergy.removeAll()
             mockHeartRateVariability.removeAll()
             mockRestingHeartRate.removeAll()
+            saveWorkoutCallCount = 0
             isAvailable = true
             authorizationGranted = true
             shouldFailQueries = false

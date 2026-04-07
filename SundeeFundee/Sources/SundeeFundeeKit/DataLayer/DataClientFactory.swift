@@ -20,7 +20,7 @@ public final class DataClientFactory: @unchecked Sendable {
 
     private let lock = NSLock()
     private var _client: any DataClientProtocol = CloudKitClient(
-        containerIdentifier: "icloud.com.sundeefundee.app"
+        containerIdentifier: "iCloud.com.sundeefundee.app"
     )
 
     /// The active data client. Thread-safe read/write.

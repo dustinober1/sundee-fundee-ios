@@ -149,7 +149,6 @@ class ProgramsListViewModel: ObservableObject {
 
         // Generate program catalog from domain templates
         programs = ProgramTemplate.allCases.map { template in
-            let defaults = templateDefaults[template]!
             let program = generateProgram(template: template, name: templateDisplayName(template))
             return ProgramListItem(
                 id: program.id,
