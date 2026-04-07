@@ -537,14 +537,14 @@
 // - shared.client: SubscriptionClientProtocol (thread-safe read/write)
 // Pattern mirrors DataClientFactory
 
-// RevenueCatClient - Actor-based RevenueCat subscription client
-// - configure(apiKey: String) - Call once at app launch (static, @MainActor)
-// - init() - Create client instance (call configure first)
-// - identify(userId: String) async - Associate user with RevenueCat
+// StoreKitClient - Actor-based native StoreKit 2 subscription client
+// - init() - Create client instance
+// - startTransactionListener() - Start listening for transaction updates
+// - identify(userId: String, email: String?) async - Associate user for tracking
 // - logout() async - Clear user association
 // - Methods from SubscriptionClientProtocol
 // Thread-safe via actor isolation
-// Requires RevenueCat SDK dependency (purchases-ios)
+// Uses native StoreKit 2 (no third-party dependencies)
 
 // MockSubscriptionClient - Actor-based mock for testing
 // - init(subscription: SubscriptionInfo? = nil)
