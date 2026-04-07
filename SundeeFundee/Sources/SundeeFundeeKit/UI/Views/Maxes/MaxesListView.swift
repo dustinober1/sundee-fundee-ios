@@ -58,6 +58,14 @@ public struct MaxesListView: View {
                     }
                 })
             }
+            .alert("Error", isPresented: Binding(
+                get: { viewModel.errorMessage != nil },
+                set: { if !$0 { viewModel.errorMessage = nil } }
+            )) {
+                Button("OK") { viewModel.errorMessage = nil }
+            } message: {
+                Text(viewModel.errorMessage ?? "")
+            }
         }
     }
 
@@ -262,6 +270,7 @@ class MaxesListViewModel: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var maxes: [OneRepMaxItem] = []
     @Published var showingEntry: Bool = false
+    @Published var errorMessage: String?
 
     private let dataClient: DataClientProtocol
 
@@ -282,7 +291,7 @@ class MaxesListViewModel: ObservableObject {
             try await dataClient.save(record, recordType: "OneRepMaxRecord")
             await loadMaxes()
         } catch {
-            print("Error saving max: \(error)")
+            errorMessage = "Failed to save max: \(error.localizedDescription)"
         }
     }
 
@@ -304,7 +313,7 @@ class MaxesListViewModel: ObservableObject {
                 )
             }
         } catch {
-            print("Error loading maxes: \(error)")
+            errorMessage = "Failed to load maxes: \(error.localizedDescription)"
         }
 
         isLoading = false
@@ -315,7 +324,7 @@ class MaxesListViewModel: ObservableObject {
             try await dataClient.delete(recordType: "OneRepMaxRecord", id: id)
             maxes.removeAll { $0.id == id }
         } catch {
-            print("Error deleting max: \(error)")
+            errorMessage = "Failed to delete max: \(error.localizedDescription)"
         }
     }
 }
