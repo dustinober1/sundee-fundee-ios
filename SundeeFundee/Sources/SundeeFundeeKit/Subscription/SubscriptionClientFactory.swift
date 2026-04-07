@@ -3,11 +3,11 @@ import Foundation
 // MARK: - SubscriptionClientFactory
 //
 // Singleton that holds the active subscription client for the current session.
-// Switch between RevenueCatClient (production) and MockSubscriptionClient (testing/guest)
+// Switch between StoreKitClient (production) and MockSubscriptionClient (testing/guest)
 // by setting SubscriptionClientFactory.shared.client at app launch.
 //
 // Usage:
-//   SubscriptionClientFactory.shared.client = RevenueCatClient(apiKey: "appl_xxx")
+//   SubscriptionClientFactory.shared.client = StoreKitClient()
 //   SubscriptionClientFactory.shared.client = MockSubscriptionClient()  // guest/test
 
 public final class SubscriptionClientFactory: @unchecked Sendable {
