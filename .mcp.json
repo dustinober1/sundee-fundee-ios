@@ -22,8 +22,11 @@
       "command" : "npx"
     },
     "ios-control" : {
+      "args" : [
+        "chuk-mcp-ios",
+        "mcp"
+      ],
       "command" : "uvx",
-      "args" : ["chuk-mcp-ios", "mcp"],
       "env" : {
         "LOG_LEVEL" : "INFO"
       }
