@@ -35,7 +35,7 @@ public actor CoachMemoryService {
         do {
             try await dataClient.save(profile, recordType: "CoachProfile")
         } catch {
-            print("Error saving coach profile: \(error)")
+            // Coach memory save is best-effort — degrade silently
         }
     }
 
@@ -68,7 +68,7 @@ public actor CoachMemoryService {
         do {
             try await dataClient.save(edit, recordType: "WorkoutEdit")
         } catch {
-            print("Error saving workout edit: \(error)")
+            // Coach memory save is best-effort — degrade silently
         }
     }
 
@@ -79,7 +79,7 @@ public actor CoachMemoryService {
         do {
             try await dataClient.save(decision, recordType: "AcceptedSubstitution")
         } catch {
-            print("Error saving substitution decision: \(error)")
+            // Coach memory save is best-effort — degrade silently
         }
     }
 
@@ -107,7 +107,7 @@ public actor CoachMemoryService {
             try await dataClient.save(summary, recordType: "CoachWeeklySummary")
             return summary
         } catch {
-            print("Error generating weekly summary: \(error)")
+            // Weekly summary generation is best-effort — degrade silently
             return nil
         }
     }
@@ -153,7 +153,7 @@ public actor CoachMemoryService {
 
             await saveProfile(updated)
         } catch {
-            print("Error refreshing coach profile: \(error)")
+            // Profile refresh is best-effort — degrade silently
         }
     }
 }
