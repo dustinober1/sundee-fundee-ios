@@ -82,11 +82,13 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
         do {
             return try await fetchWithQuery(query)
         } catch {
-            // Fall back to zone-based fetch when CloudKit indexes are missing
-            // (e.g., "Field 'recordName' is not marked queryable")
+            // Fall back to fetching all records when CloudKit indexes are missing
+            // (e.g., "Field 'recordName' is not marked queryable").
+            // Uses NSPredicate(value: true) which requires no field-specific indexes.
             if let ckError = error as? CKError,
                ckError.localizedDescription.contains("not marked queryable") {
-                return try await fetchViaZoneChanges(recordType: recordType)
+                let fallbackQuery = CKQuery(recordType: recordType, predicate: NSPredicate(value: true))
+                return try await fetchWithQuery(fallbackQuery)
             }
             throw error
         }
@@ -194,31 +196,6 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
     }
 
     // MARK: - Private Helpers
-
-    /// Fetches all records of a given type via zone changes (no queryable indexes required).
-    /// Used as a fallback when CKQuery fails due to missing schema indexes.
-    private func fetchViaZoneChanges<T: Decodable & Sendable>(
-        recordType: String
-    ) async throws -> [T] {
-        let changes = try await database.recordZoneChanges(
-            inZoneWith: .default,
-            since: nil
-        )
-        var results: [T] = []
-        for (_, result) in changes.modificationResultsByID {
-            if case .success(let modification) = result {
-                let record = modification.record
-                guard record.recordType == recordType else { continue }
-                do {
-                    let decoded: T = try decodeFromCKRecord(record)
-                    results.append(decoded)
-                } catch {
-                    continue
-                }
-            }
-        }
-        return results
-    }
 
     /// Performs the actual fetch with pagination support.
     private func fetchWithQuery<T: Decodable & Sendable>(
