@@ -81,7 +81,19 @@ public func generateProgram(
     durationWeeks: Int? = nil,
     sessionsPerWeek: Int? = nil
 ) -> GeneratedProgram {
-    let defaults = templateDefaults[template]!
+    guard let defaults = templateDefaults[template] else {
+        return GeneratedProgram(
+            id: "template-\(template.rawValue)-\(Int(Date().timeIntervalSince1970 * 1000))",
+            name: name,
+            category: "custom",
+            description: "\(name) program",
+            durationWeeks: durationWeeks ?? 4,
+            sessionsPerWeek: sessionsPerWeek ?? 3,
+            difficulty: "intermediate",
+            phases: [],
+            weeks: []
+        )
+    }
     let totalWeeks = durationWeeks ?? defaults.durationWeeks
     let totalSessions = sessionsPerWeek ?? defaults.sessionsPerWeek
 
