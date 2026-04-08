@@ -273,6 +273,7 @@ class MaxesListViewModel: ObservableObject {
     @Published var maxes: [OneRepMaxItem] = []
     @Published var showingEntry: Bool = false
     @Published var errorMessage: String?
+    @Published var preferredUnit: WeightUnit = .lbs
 
     private let dataClient: DataClientProtocol
 
@@ -301,16 +302,32 @@ class MaxesListViewModel: ObservableObject {
         isLoading = true
 
         do {
+            // Load user's preferred unit from settings
+            let settings = try? await dataClient.fetchAll(
+                recordType: "UserSettings"
+            ) as [UserSettingsRecord]
+            if let unit = settings?.first.flatMap({ WeightUnit(rawValue: $0.weightUnit) }) {
+                preferredUnit = unit
+            }
+
             let records = try await dataClient.fetchAll(
                 recordType: "OneRepMaxRecord"
             ) as [OneRepMaxRecord]
 
             maxes = records.map { record in
-                OneRepMaxItem(
+                let displayWeight: Double
+                if record.unit == preferredUnit {
+                    displayWeight = record.weight
+                } else if record.unit == .lbs {
+                    displayWeight = lbsToKg(record.weight)
+                } else {
+                    displayWeight = kgToLbs(record.weight)
+                }
+                return OneRepMaxItem(
                     id: record.id,
                     exerciseName: record.exerciseName,
-                    weight: record.weight,
-                    unit: record.unit,
+                    weight: displayWeight,
+                    unit: preferredUnit,
                     date: record.date
                 )
             }
