@@ -84,6 +84,14 @@ public struct InsightsView: View {
         .refreshable {
             await viewModel.loadInsights()
         }
+        .alert("Error", isPresented: Binding(
+            get: { viewModel.errorMessage != nil },
+            set: { if !$0 { viewModel.errorMessage = nil } }
+        )) {
+            Button("OK") { viewModel.errorMessage = nil }
+        } message: {
+            Text(viewModel.errorMessage ?? "")
+        }
     }
 
     // MARK: - Plateaus
@@ -245,6 +253,7 @@ class InsightsViewModel: ObservableObject {
     @Published var insights: CoachInsightsResponse?
     @Published var weeklySummaries: [CoachWeeklySummary] = []
     @Published var isLoading = false
+    @Published var errorMessage: String?
 
     private let coachService: CoachServiceProtocol
     private let contextBuilder: CoachContextBuilder
@@ -267,7 +276,7 @@ class InsightsViewModel: ObservableObject {
         do {
             insights = try await coachService.getInsights(context: context)
         } catch {
-            print("Error loading insights: \(error)")
+            errorMessage = "Failed to load insights: \(error.localizedDescription)"
         }
 
         weeklySummaries = await memoryService.getRecentSummaries(limit: 4)
