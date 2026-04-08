@@ -250,6 +250,7 @@ public struct OnboardingView: View {
 
                             Toggle("", isOn: $viewModel.cycleTrackingEnabled)
                                 .labelsHidden()
+                                .accessibilityLabel("Enable cycle tracking")
                         }
                     }
                 }
@@ -322,7 +323,7 @@ class OnboardingViewModel: ObservableObject {
             do {
                 try await dataClient.save(settings, recordType: "UserSettings")
             } catch {
-                print("Error saving onboarding settings: \(error)")
+                // Settings save is best-effort during onboarding; user can re-save in Settings
             }
         }
     }
