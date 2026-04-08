@@ -31,6 +31,7 @@ public struct PainTrackingView: View {
                 } label: {
                     Image(systemName: "plus")
                 }
+                .accessibilityLabel("Log Pain")
             }
         }
         .task {
@@ -270,6 +271,7 @@ struct PainLogFormView: View {
                                 step: 1
                             )
                             .tint(intensityColor)
+                            .accessibilityLabel("Pain intensity, \(viewModel.painIntensity) out of 10")
 
                             HStack {
                                 Text("Mild")
