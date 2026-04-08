@@ -93,7 +93,6 @@ public class AuthViewModel: ObservableObject {
             self.needsOnboarding = KeychainHelper.read(key: "onboarding_complete") == nil
         } catch {
             self.errorMessage = "Sign in failed: \(error.localizedDescription)"
-            print("Auth error: \(error)")
         }
 
         isLoading = false
@@ -152,7 +151,6 @@ public class AuthViewModel: ObservableObject {
             await resetState()
         } catch {
             self.errorMessage = "Failed to delete account: \(error.localizedDescription)"
-            print("Delete account error: \(error)")
         }
 
         isLoading = false
