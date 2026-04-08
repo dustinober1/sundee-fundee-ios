@@ -30,7 +30,9 @@ public struct Workout: Equatable, Codable, Identifiable, Sendable {
     public var totalVolume: Double {
         exercises.flatMap { exercise in
             exercise.targetSets.map { set in
-                Double(set.reps) * (set.completedWeight ?? set.prescribedWeight)
+                let reps = set.actualReps ?? set.reps
+                let weight = set.completedWeight ?? set.prescribedWeight
+                return Double(reps) * weight
             }
         }.reduce(0, +)
     }
