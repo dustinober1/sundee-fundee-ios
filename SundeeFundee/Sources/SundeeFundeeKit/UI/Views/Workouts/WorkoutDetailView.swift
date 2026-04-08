@@ -427,6 +427,24 @@ class WorkoutDetailViewModel: ObservableObject {
 
     func completeWorkout() async {
         guard var workout = workout else { return }
+
+        // Mark all incomplete sets as complete with prescribed defaults
+        for i in workout.exercises.indices {
+            for j in workout.exercises[i].targetSets.indices {
+                var set = workout.exercises[i].targetSets[j]
+                if !set.isComplete {
+                    set.isComplete = true
+                    if set.completedWeight == nil {
+                        set.completedWeight = set.prescribedWeight
+                    }
+                    if set.actualReps == nil {
+                        set.actualReps = set.reps
+                    }
+                    workout.exercises[i].targetSets[j] = set
+                }
+            }
+        }
+
         workout.completedAt = Date()
         self.workout = workout
 
