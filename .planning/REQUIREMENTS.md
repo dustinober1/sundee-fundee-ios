@@ -68,27 +68,27 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ARCH-01 | — | Pending |
-| ARCH-02 | — | Pending |
-| ARCH-03 | — | Pending |
-| ARCH-04 | — | Pending |
-| ARCH-05 | — | Pending |
-| ARCH-06 | — | Pending |
-| ARCH-07 | — | Pending |
-| ARCH-08 | — | Pending |
-| ARCH-09 | — | Pending |
-| DOCS-01 | — | Pending |
-| DOCS-02 | — | Pending |
-| DOCS-03 | — | Pending |
-| VERF-01 | — | Pending |
-| QUAL-01 | — | Pending |
-| QUAL-02 | — | Pending |
+| ARCH-01 | Phase 2 | Pending |
+| ARCH-02 | Phase 3 | Pending |
+| ARCH-03 | Phase 3 | Pending |
+| ARCH-04 | Phase 3 | Pending |
+| ARCH-05 | Phase 3 | Pending |
+| ARCH-06 | Phase 4 | Pending |
+| ARCH-07 | Phase 4 | Pending |
+| ARCH-08 | Phase 5 | Pending |
+| ARCH-09 | Phase 6 | Pending |
+| DOCS-01 | Phase 7 | Pending |
+| DOCS-02 | Phase 7 | Pending |
+| DOCS-03 | Phase 8 | Pending |
+| VERF-01 | Phase 1, Phase 9 | Pending |
+| QUAL-01 | Phase 10 | Pending |
+| QUAL-02 | Phase 11 | Pending |
 
 **Coverage:**
 - v1 requirements: 15 total
-- Mapped to phases: 0
-- Unmapped: 15 ⚠️
+- Mapped to phases: 15
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-04-08*
-*Last updated: 2026-04-08 after initial definition*
+*Last updated: 2026-04-08 after roadmap creation*
