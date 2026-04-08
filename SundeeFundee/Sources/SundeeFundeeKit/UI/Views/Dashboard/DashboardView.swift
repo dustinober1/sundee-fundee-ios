@@ -68,6 +68,14 @@ public struct DashboardView: View {
             .sheet(isPresented: $showingSubscription) {
                 SubscriptionView()
             }
+            .alert("Error", isPresented: Binding(
+                get: { viewModel.errorMessage != nil },
+                set: { if !$0 { viewModel.errorMessage = nil } }
+            )) {
+                Button("OK") { viewModel.errorMessage = nil }
+            } message: {
+                Text(viewModel.errorMessage ?? "")
+            }
         }
     }
 
@@ -564,7 +572,7 @@ class DashboardViewModel: ObservableObject {
             }
         } catch {
             // HealthKit not available or permission denied
-            print("Cycle phase unavailable: \(error)")
+            // HealthKit not available or permission denied — degrade gracefully
         }
     }
 
@@ -592,7 +600,7 @@ class DashboardViewModel: ObservableObject {
                 }.count
             }
         } catch {
-            print("Stats load error: \(error)")
+            errorMessage = "Failed to load stats: \(error.localizedDescription)"
         }
     }
 
@@ -607,7 +615,7 @@ class DashboardViewModel: ObservableObject {
                 nextWorkout = "Day \(programs.count + 1)" // Simplified
             }
         } catch {
-            print("Program load error: \(error)")
+            errorMessage = "Failed to load program: \(error.localizedDescription)"
         }
     }
 
@@ -622,7 +630,7 @@ class DashboardViewModel: ObservableObject {
                 await loadCoachingInsights()
             }
         } catch {
-            print("Subscription load error: \(error)")
+            errorMessage = "Failed to load subscription: \(error.localizedDescription)"
         }
     }
 
@@ -639,7 +647,7 @@ class DashboardViewModel: ObservableObject {
             insightsSummary = insights.summary
             insightsActions = insights.priorityActions
         } catch {
-            print("Coaching insights error: \(error)")
+            // Coaching insights are non-critical — degrade gracefully
         }
     }
 
@@ -653,7 +661,7 @@ class DashboardViewModel: ObservableObject {
                 String(win.description.prefix(50))
             }
         } catch {
-            print("Recent wins load error: \(error)")
+            // Recent wins are non-critical — degrade gracefully
         }
     }
 }
