@@ -54,6 +54,7 @@ public struct CycleCalendarView: View {
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(AppTheme.Text.primary)
             }
+            .accessibilityLabel("Previous Month")
 
             Spacer()
 
@@ -71,6 +72,7 @@ public struct CycleCalendarView: View {
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(AppTheme.Text.primary)
             }
+            .accessibilityLabel("Next Month")
         }
         .padding(.horizontal, AppTheme.Spacing.md)
     }
