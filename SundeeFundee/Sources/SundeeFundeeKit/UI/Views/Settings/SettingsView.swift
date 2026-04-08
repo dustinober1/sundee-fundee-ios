@@ -140,6 +140,16 @@ public struct SettingsView: View {
                                 .foregroundColor(AppTheme.Accent.gold)
                         }
                     }
+
+                    Link(destination: URL(string: "https://sundeefundee.com/terms")!) {
+                        HStack {
+                            Text("Terms of Service")
+                            Spacer()
+                            Image(systemName: "link")
+                                .font(.system(size: 12))
+                                .foregroundColor(AppTheme.Accent.gold)
+                        }
+                    }
                 }
 
                 // Account Actions Section
@@ -176,6 +186,14 @@ public struct SettingsView: View {
             } message: {
                 Text("This will permanently delete all your workouts, benchmarks, and settings. This action cannot be undone.")
             }
+            .alert("Error", isPresented: Binding(
+                get: { viewModel.errorMessage != nil },
+                set: { if !$0 { viewModel.errorMessage = nil } }
+            )) {
+                Button("OK") { viewModel.errorMessage = nil }
+            } message: {
+                Text(viewModel.errorMessage ?? "")
+            }
         }
     }
 }
@@ -188,6 +206,7 @@ struct CycleSettingsView: View {
     @State private var lastPeriodStart: Date = Date()
     @State private var hasChanges: Bool = false
     @State private var isSaving: Bool = false
+    @State private var errorMessage: String?
 
     private let dataClient: DataClientProtocol
 
@@ -211,6 +230,7 @@ struct CycleSettingsView: View {
                     Slider(value: $cycleLength, in: 21...35, step: 1) {
                         Text("\(Int(cycleLength)) days")
                     }
+                    .accessibilityLabel("Cycle length, \(Int(cycleLength)) days")
 
                     Text("Average menstrual cycle length")
                         .font(AppTheme.Typography.bodySmall)
@@ -247,6 +267,14 @@ struct CycleSettingsView: View {
         .task {
             await loadCycleSettings()
         }
+        .alert("Error", isPresented: Binding(
+            get: { errorMessage != nil },
+            set: { if !$0 { errorMessage = nil } }
+        )) {
+            Button("OK") { errorMessage = nil }
+        } message: {
+            Text(errorMessage ?? "")
+        }
     }
 
     private func loadCycleSettings() async {
@@ -262,7 +290,7 @@ struct CycleSettingsView: View {
                 }
             }
         } catch {
-            print("Error loading cycle settings: \(error)")
+            errorMessage = "Failed to load cycle settings: \(error.localizedDescription)"
         }
     }
 
@@ -275,7 +303,7 @@ struct CycleSettingsView: View {
         do {
             try await dataClient.save(record, recordType: "CycleSettings")
         } catch {
-            print("Error saving cycle settings: \(error)")
+            errorMessage = "Failed to save cycle settings: \(error.localizedDescription)"
         }
         isSaving = false
     }
@@ -485,7 +513,7 @@ class SubscriptionViewModel: ObservableObject {
         do {
             subscription = try await subscriptionClient.getSubscriptionInfo()
         } catch {
-            print("Error loading subscription: \(error)")
+            errorMessage = "Failed to load subscription: \(error.localizedDescription)"
         }
         isLoading = false
     }
@@ -497,7 +525,6 @@ class SubscriptionViewModel: ObservableObject {
             subscription = try await subscriptionClient.purchase(tier: tier)
         } catch {
             errorMessage = "Purchase failed. Please try again."
-            print("Error purchasing: \(error)")
         }
         isLoading = false
     }
@@ -509,7 +536,6 @@ class SubscriptionViewModel: ObservableObject {
             subscription = try await subscriptionClient.restorePurchases()
         } catch {
             errorMessage = "No purchases to restore."
-            print("Error restoring: \(error)")
         }
         isLoading = false
     }
@@ -551,6 +577,7 @@ class SettingsViewModel: ObservableObject {
     @Published var showingSubscription: Bool = false
     @Published var isSaving: Bool = false
     @Published var currentTier: SubscriptionTier = .free
+    @Published var errorMessage: String?
 
     private let dataClient: DataClientProtocol
     private let subscriptionClient: SubscriptionClientProtocol
@@ -592,7 +619,7 @@ class SettingsViewModel: ObservableObject {
             }
             hasLoaded = true
         } catch {
-            print("Error loading settings: \(error)")
+            errorMessage = "Failed to load settings: \(error.localizedDescription)"
             hasLoaded = true
         }
     }
@@ -609,7 +636,7 @@ class SettingsViewModel: ObservableObject {
         do {
             try await dataClient.save(record, recordType: "UserSettings")
         } catch {
-            print("Error saving settings: \(error)")
+            errorMessage = "Failed to save settings: \(error.localizedDescription)"
         }
         isSaving = false
     }
