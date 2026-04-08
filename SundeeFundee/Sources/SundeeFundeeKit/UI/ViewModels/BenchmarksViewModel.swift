@@ -126,7 +126,7 @@ public class BenchmarksListViewModel: ObservableObject {
 
             userResults = grouped
         } catch {
-            print("Error loading benchmark results: \(error)")
+            errorMessage = "Failed to load benchmark results: \(error.localizedDescription)"
         }
     }
 
@@ -146,7 +146,7 @@ public class BenchmarksListViewModel: ObservableObject {
                 }
             }
         } catch {
-            print("Cycle phase unavailable: \(error)")
+            // HealthKit not available or permission denied — degrade gracefully
         }
     }
 }
@@ -298,7 +298,7 @@ public class BenchmarkDetailViewModel: ObservableObject {
                 }
             }
         } catch {
-            print("Cycle phase unavailable: \(error)")
+            // HealthKit not available or permission denied — degrade gracefully
         }
 
         readiness = BenchmarkReadinessCalculator.calculateReadiness(
@@ -326,7 +326,7 @@ public class BenchmarkDetailViewModel: ObservableObject {
                 .filter { $0.benchmarkId == benchmarkId }
                 .sorted { $0.date > $1.date }
         } catch {
-            print("Error loading results: \(error)")
+            errorMessage = "Failed to load results: \(error.localizedDescription)"
         }
     }
 
