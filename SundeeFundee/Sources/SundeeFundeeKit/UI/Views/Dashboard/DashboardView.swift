@@ -577,30 +577,34 @@ class DashboardViewModel: ObservableObject {
     }
 
     private func loadStats() async {
-        do {
-            if healthClient.isAvailable {
+        // Load HealthKit workout count — degrade gracefully if unavailable or unauthorized
+        if healthClient.isAvailable {
+            do {
                 let workouts = try await healthClient.fetchWorkouts(startDate: nil, endDate: nil, limit: 30)
-
-                // Calculate workouts this week
                 let calendar = Calendar.current
                 let now = Date()
                 if let weekStart = calendar.dateInterval(of: .weekOfYear, for: now)?.start {
                     workoutsThisWeek = workouts.filter { $0.startDate >= weekStart }.count
                 }
-
-                // Load PRs from CloudKit
-                let prs = try await dataClient.fetchAll(
-                    recordType: "OneRepMaxRecord"
-                ) as [OneRepMaxRecord]
-
-                // Calculate PRs this month
-                let monthStart = calendar.date(byAdding: .month, value: -1, to: now) ?? now
-                prsThisMonth = prs.filter { pr in
-                    pr.date >= monthStart
-                }.count
+            } catch {
+                // HealthKit not authorized or query failed — show "—" via default 0
             }
+        }
+
+        // Load PRs from CloudKit (independent of HealthKit)
+        do {
+            let prs = try await dataClient.fetchAll(
+                recordType: "OneRepMaxRecord"
+            ) as [OneRepMaxRecord]
+
+            let calendar = Calendar.current
+            let now = Date()
+            let monthStart = calendar.date(byAdding: .month, value: -1, to: now) ?? now
+            prsThisMonth = prs.filter { pr in
+                pr.date >= monthStart
+            }.count
         } catch {
-            errorMessage = "Failed to load stats: \(error.localizedDescription)"
+            // CloudKit unavailable — leave prsThisMonth at default 0
         }
     }
 
@@ -615,7 +619,7 @@ class DashboardViewModel: ObservableObject {
                 nextWorkout = "Day \(programs.count + 1)" // Simplified
             }
         } catch {
-            errorMessage = "Failed to load program: \(error.localizedDescription)"
+            // CloudKit unavailable — leave program info at defaults
         }
     }
 
@@ -630,7 +634,7 @@ class DashboardViewModel: ObservableObject {
                 await loadCoachingInsights()
             }
         } catch {
-            errorMessage = "Failed to load subscription: \(error.localizedDescription)"
+            // Subscription info unavailable — leave at free tier defaults
         }
     }
 
