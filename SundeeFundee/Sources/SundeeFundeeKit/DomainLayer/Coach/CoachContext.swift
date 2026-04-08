@@ -201,7 +201,7 @@ public actor CoachContextBuilder {
                 return (s.experienceLevel, s.primaryGoal)
             }
         } catch {
-            print("[CoachContext] loadSettings failed: \(error)")
+            // Settings unavailable — degrade to nil defaults
         }
         return (nil, nil)
     }
