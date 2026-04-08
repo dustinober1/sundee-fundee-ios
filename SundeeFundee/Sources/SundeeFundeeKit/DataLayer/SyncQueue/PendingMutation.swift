@@ -87,7 +87,7 @@ public actor SyncQueueStore: Sendable {
                 self.mutations = try decoder.decode([PendingMutation].self, from: data)
             } catch {
                 // Corrupted data — clear and start fresh
-                print("[SyncQueueStore] Failed to decode persisted mutations: \(error). Clearing queue.")
+                // Corrupted queue data — clear and rebuild on next mutation
                 self.mutations = []
                 userDefaults.removeObject(forKey: storageKey)
             }
@@ -143,7 +143,7 @@ public actor SyncQueueStore: Sendable {
             let data = try encoder.encode(mutations)
             userDefaults.set(data, forKey: storageKey)
         } catch {
-            print("[SyncQueueStore] Failed to persist mutations: \(error)")
+            // Persistence failure — mutations will be lost on restart but app continues
         }
     }
 }
