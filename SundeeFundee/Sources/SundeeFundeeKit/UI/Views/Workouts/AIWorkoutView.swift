@@ -605,7 +605,7 @@ class AIWorkoutViewModel: ObservableObject {
                 exerciseNames: generated.exercises.map(\.name)
             )
         } catch {
-            print("Error saving AI workout: \(error)")
+            state = .error("Failed to save workout: \(error.localizedDescription)")
         }
     }
 }
