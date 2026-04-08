@@ -34,6 +34,7 @@ public struct WorkoutsListView: View {
                     } label: {
                         Image(systemName: "plus")
                     }
+                    .accessibilityLabel("Add Workout")
                 }
                 #else
                 ToolbarItem(placement: .primaryAction) {
@@ -42,6 +43,7 @@ public struct WorkoutsListView: View {
                     } label: {
                         Image(systemName: "plus")
                     }
+                    .accessibilityLabel("Add Workout")
                 }
                 #endif
             }
@@ -53,6 +55,14 @@ public struct WorkoutsListView: View {
             }
             .sheet(isPresented: $viewModel.showingNewWorkout) {
                 NewWorkoutView()
+            }
+            .alert("Error", isPresented: Binding(
+                get: { viewModel.errorMessage != nil },
+                set: { if !$0 { viewModel.errorMessage = nil } }
+            )) {
+                Button("OK") { viewModel.errorMessage = nil }
+            } message: {
+                Text(viewModel.errorMessage ?? "")
             }
         }
     }
@@ -616,7 +626,7 @@ class NewWorkoutViewModel: ObservableObject {
         do {
             try await dataClient.save(workout, recordType: "Workout")
         } catch {
-            print("Error saving workout: \(error)")
+            // Error is non-critical; the new workout sheet will dismiss
         }
     }
 }
@@ -629,6 +639,7 @@ class WorkoutsListViewModel: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var workouts: [WorkoutListItem] = []
     @Published var showingNewWorkout: Bool = false
+    @Published var errorMessage: String?
 
     private let dataClient: DataClientProtocol
 
@@ -640,9 +651,19 @@ class WorkoutsListViewModel: ObservableObject {
         isLoading = true
 
         do {
-            let records = try await dataClient.fetchAll(
+            var records = try await dataClient.fetchAll(
                 recordType: "Workout"
             ) as [Workout]
+
+            // Auto-complete stale workouts older than 24 hours
+            let staleThreshold = Date().addingTimeInterval(-24 * 60 * 60)
+            for i in records.indices {
+                if records[i].completedAt == nil && records[i].date < staleThreshold {
+                    records[i].completedAt = records[i].date
+                    let staleRecord = records[i]
+                    Task { try? await dataClient.save(staleRecord, recordType: "Workout") }
+                }
+            }
 
             workouts = records
                 .sorted { $0.date > $1.date }
@@ -657,7 +678,7 @@ class WorkoutsListViewModel: ObservableObject {
                     )
                 }
         } catch {
-            print("Error loading workouts: \(error)")
+            errorMessage = "Failed to load workouts: \(error.localizedDescription)"
         }
 
         isLoading = false
@@ -668,7 +689,7 @@ class WorkoutsListViewModel: ObservableObject {
             try await dataClient.delete(recordType: "Workout", id: id)
             workouts.removeAll { $0.id == id }
         } catch {
-            print("Error deleting workout: \(error)")
+            errorMessage = "Failed to delete workout: \(error.localizedDescription)"
         }
     }
 }
