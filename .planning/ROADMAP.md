@@ -14,7 +14,7 @@
 - [ ] **Phase 5: Root Config Cleanup** - Remove firebase.json, firestore.indexes.json, wrangler.toml, root package.json
 - [ ] **Phase 6: Gitignore Update** - Remove web patterns and ensure iOS patterns present
 - [x] **Phase 7: Documentation Core** - Rewrite CLAUDE.md and README.md for iOS-only (completed 2026-04-09)
-- [ ] **Phase 8: Migration Documentation** - Create MIGRATION.md documenting platform transition
+- [x] **Phase 8: Migration Documentation** - Create MIGRATION.md documenting platform transition (completed 2026-04-09)
 - [ ] **Phase 9: Cross-Reference Verification** - Verify no broken references in remaining codebase
 - [ ] **Phase 10: CHANGELOG Creation** - Add Keep a Changelog format tracking
 - [ ] **Phase 11: SwiftLint Configuration** - Add project-specific linting configuration
@@ -178,7 +178,7 @@ Plans:
 | 5. Root Config Cleanup | 0/5 | Not started | - |
 | 6. Gitignore Update | 0/5 | Not started | - |
 | 7. Documentation Core | 0/0 | Complete    | 2026-04-09 |
-| 8. Migration Documentation | 0/5 | Not started | - |
+| 8. Migration Documentation | 0/0 | Complete    | 2026-04-09 |
 | 9. Cross-Reference Verification | 0/5 | Not started | - |
 | 10. CHANGELOG Creation | 0/4 | Not started | - |
 | 11. SwiftLint Configuration | 0/5 | Not started | - |
