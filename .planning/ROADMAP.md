@@ -50,7 +50,11 @@ Full details: [.planning/milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
   2. App.swift initializes with FreeSubscriptionClient instead of StoreKitClient
   3. SubscriptionTier capability flags all return true and quantitative limits return unlimited
   4. CoachContext no longer references subscription tier
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 12-01-PLAN.md — Create FreeSubscriptionClient + modify SubscriptionTier for premium-equivalent access
+- [ ] 12-02-PLAN.md — Swap App.swift entry point + make CoachContext always resolve to .premium
 
 ### Phase 13: Remove Paywall UI
 **Goal**: Users see no subscription-related UI anywhere in the app
@@ -140,7 +144,7 @@ Phases execute in numeric order: 12 -> 13 -> 14 -> 15 -> 16 -> 17 -> 18 -> 19
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 12. Unlock Features | v1.1 | 0/? | Not started | - |
+| 12. Unlock Features | v1.1 | 0/2 | Planned | - |
 | 13. Remove Paywall UI | v1.1 | 0/? | Not started | - |
 | 14. Entitlements and Tests | v1.1 | 0/? | Not started | - |
 | 15. Fix Stubs and Guest Mode | v1.1 | 0/? | Not started | - |
@@ -151,4 +155,4 @@ Phases execute in numeric order: 12 -> 13 -> 14 -> 15 -> 16 -> 17 -> 18 -> 19
 
 ---
 *Roadmap created: 2026-04-08*
-*Last updated: 2026-04-08 after v1.1 roadmap creation*
+*Last updated: 2026-04-08 after Phase 12 planning*
