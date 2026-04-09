@@ -10,6 +10,16 @@ The repository is now iOS-only — all web app (Next.js PWA), Firebase, and back
 
 A clean, iOS-only repository with updated docs reflecting the native-only direction.
 
+## Current Milestone: v1.1 Free App Launch
+
+**Goal:** Remove the paywall, polish the app, and ship to the App Store as a 100% free app.
+
+**Target features:**
+- Strip StoreKit subscription gating — all current features free
+- Full app audit — code quality, error handling, edge cases, accessibility, UX friction
+- Polish pass — fix issues found in audit
+- App Store submission — screenshots, metadata, privacy labels, build, submit for review
+
 ## Requirements
 
 ### Validated
@@ -32,14 +42,13 @@ A clean, iOS-only repository with updated docs reflecting the native-only direct
 
 ### Active
 
-(No active requirements — milestone v1.0 complete)
+(To be defined in requirements gathering)
 
 ### Out of Scope
 
-- New iOS features or improvements — this was cleanup only
 - Database migration — CloudKit data is independent of Firestore
 - CI/CD pipeline setup — deferred to future work
-- App Store submission preparation — out of scope for cleanup
+- New paid features or monetization — deferred until following is established
 
 ## Context
 
@@ -66,5 +75,22 @@ A clean, iOS-only repository with updated docs reflecting the native-only direct
 | Update docs to match new state | Stale web-app docs would be confusing going forward | ✓ Good — all docs updated |
 | Move archive ref to CLAUDE.md + MIGRATION.md | Discoverability across both reference docs | ✓ Good — dual reference |
 
+## Evolution
+
+This document evolves at phase transitions and milestone boundaries.
+
+**After each phase transition** (via `/gsd-transition`):
+1. Requirements invalidated? → Move to Out of Scope with reason
+2. Requirements validated? → Move to Validated with phase reference
+3. New requirements emerged? → Add to Active
+4. Decisions to log? → Add to Key Decisions
+5. "What This Is" still accurate? → Update if drifted
+
+**After each milestone** (via `/gsd-complete-milestone`):
+1. Full review of all sections
+2. Core Value check — still the right priority?
+3. Audit Out of Scope — reasons still valid?
+4. Update Context with current state
+
 ---
-*Last updated: 2026-04-08 after v1.0 milestone completion*
+*Last updated: 2026-04-08 after v1.1 milestone started*
