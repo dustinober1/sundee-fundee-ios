@@ -86,22 +86,19 @@ public struct CoachContext: Sendable {
 
 /// Assembles a CoachContext from the data layer.
 ///
-/// Call `build()` to fetch data from HealthKit, CloudKit/Local storage,
-/// and the subscription client, then assemble it into a compact context.
+/// Call `build()` to fetch data from HealthKit and CloudKit/Local storage,
+/// then assemble it into a compact context. Tier is always premium.
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
 public actor CoachContextBuilder {
     private let healthClient: HealthClientProtocol
     private let dataClient: DataClientProtocol
-    private let subscriptionClient: SubscriptionClientProtocol
 
     public init(
         healthClient: HealthClientProtocol = HealthClientFactory.shared.client,
-        dataClient: DataClientProtocol = DataClientFactory.shared.client,
-        subscriptionClient: SubscriptionClientProtocol = SubscriptionClientFactory.shared.client
+        dataClient: DataClientProtocol = DataClientFactory.shared.client
     ) {
         self.healthClient = healthClient
         self.dataClient = dataClient
-        self.subscriptionClient = subscriptionClient
     }
 
     /// Builds a complete context by fetching from all data sources.
@@ -111,10 +108,9 @@ public actor CoachContextBuilder {
         async let injuries = loadInjuries()
         async let workoutData = loadWorkoutData()
         async let settings = loadSettings()
-        async let subscription = loadSubscription()
 
-        let (cycle, maxResult, injuryResult, workouts, userSettings, tier) = await (
-            cycleData, maxes, injuries, workoutData, settings, subscription
+        let (cycle, maxResult, injuryResult, workouts, userSettings) = await (
+            cycleData, maxes, injuries, workoutData, settings
         )
 
         // Run analysis on the workout data
@@ -127,7 +123,7 @@ public actor CoachContextBuilder {
             cycleConfidence: cycle.confidence,
             experienceLevel: userSettings.experienceLevel,
             primaryGoal: userSettings.primaryGoal,
-            tier: tier,
+            tier: .premium,
             maxes: maxResult.maxes,
             injuries: injuryResult,
             workoutsThisWeek: countThisWeek(workouts),
@@ -204,15 +200,6 @@ public actor CoachContextBuilder {
             // Settings unavailable — degrade to nil defaults
         }
         return (nil, nil)
-    }
-
-    private func loadSubscription() async -> SubscriptionTier {
-        do {
-            let info = try await subscriptionClient.getSubscriptionInfo()
-            return info.tier
-        } catch {
-            return .free
-        }
     }
 
     private func countThisWeek(_ workouts: [CompletedWorkoutRecord]) -> Int {
