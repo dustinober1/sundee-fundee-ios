@@ -65,7 +65,12 @@ Plans:
   2. Dashboard, Analytics, Export, PainTracking, and Settings views contain zero subscription UI elements
   3. Dashboard, Analytics, Export, PainTracking, and Settings view models contain zero subscription-checking code
   4. The Subscription/ directory is fully deleted from the codebase
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 13-01-PLAN.md — Strip subscription UI from views and subscription-checking code from view models
+- [ ] 13-02-PLAN.md — Delete Subscription/ files, clean AuthViewModel and App.swift, verify build
+
 **UI hint**: yes
 
 ### Phase 14: Entitlements and Tests
@@ -145,7 +150,7 @@ Phases execute in numeric order: 12 -> 13 -> 14 -> 15 -> 16 -> 17 -> 18 -> 19
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 12. Unlock Features | v1.1 | 0/2 | Complete    | 2026-04-09 |
-| 13. Remove Paywall UI | v1.1 | 0/? | Not started | - |
+| 13. Remove Paywall UI | v1.1 | 0/2 | Not started | - |
 | 14. Entitlements and Tests | v1.1 | 0/? | Not started | - |
 | 15. Fix Stubs and Guest Mode | v1.1 | 0/? | Not started | - |
 | 16. Accessibility | v1.1 | 0/? | Not started | - |
@@ -155,4 +160,4 @@ Phases execute in numeric order: 12 -> 13 -> 14 -> 15 -> 16 -> 17 -> 18 -> 19
 
 ---
 *Roadmap created: 2026-04-08*
-*Last updated: 2026-04-08 after Phase 12 planning*
+*Last updated: 2026-04-09 after Phase 13 planning*
