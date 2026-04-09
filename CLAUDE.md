@@ -4,311 +4,127 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Sundee Fundee is a web-based PWA for cycle-aware strength training. Next.js 16 + TypeScript + Tailwind CSS 4, deployed to Vercel with Firebase (Auth, Firestore, Cloud Functions).
+Sundee Fundee is a native iOS app for cycle-aware strength training. Built with SwiftUI and Swift 6 (strict concurrency), using CloudKit for persistence, StoreKit 2 for subscriptions, and HealthKit for health data. The app uses an Art Deco design theme (cream/navy/orange).
 
 ## Commands
 
-### Development
-```bash
-cd web-app
-npm run dev              # Next.js dev server (http://localhost:3000)
-```
-
 ### Build
 ```bash
-cd web-app
-npm run build            # Next.js production build (+ sitemap generation)
+cd SundeeFundeeApp
+xcodebuild -project SundeeFundee.xcodeproj -scheme SundeeFundee -destination 'platform=iOS Simulator,name=iPhone 16' build
 ```
 
 ### Test
 ```bash
-cd web-app
-npm test                 # Run all tests (Vitest)
-npm run test:watch       # Watch mode
-npm run test:coverage    # Coverage report (domain layer only)
+cd SundeeFundee
+swift test
 ```
 
-### Lint
+### Generate Xcode Project (if needed)
 ```bash
-cd web-app
-npm run lint             # ESLint
-```
-
-### Cloud Functions
-```bash
-cd firebase/functions
-npm run build            # Compile TypeScript
-npm run deploy           # Deploy functions to Firebase
-```
-
-### Deploy
-No CI/CD pipeline in GitHub. Web app is deployed manually via `vercel deploy --prod`. Cloud Functions deployed separately:
-```bash
-cd web-app
-vercel deploy --prod       # Deploy web app to Vercel
-cd ../firebase/functions
-firebase deploy --only functions
-firebase deploy --only firestore:rules
+cd SundeeFundeeApp
+xcodegen generate
 ```
 
 ## Architecture
 
 ```
-Next.js App Router on Vercel (React 19 Server Components)
-    ↓
-API Routes (/api/auth/session, /api/stripe, /api/ai)
-    ↓
-Firebase Admin SDK (server-side auth + Firestore)
-    ↓
-Firebase Auth + Firestore (NoSQL)
-    ↓
-Cloud Functions (AI workout generation via Vertex AI)
-    ↓
-Domain/ (pure TypeScript, zero dependencies, 100% tested)
+SundeeFundeeApp/ (Xcode project — app entry point)
+    ↓ imports
+SundeeFundee/ (Swift Package — SundeeFundeeKit)
+    ├── DomainLayer/     Pure business logic (zero dependencies)
+    ├── DataLayer/       Protocol-based persistence (CloudKit, Local, Mock)
+    ├── UI/              SwiftUI views, view models, theme
+    ├── Auth/            Apple Sign-In + Keychain session
+    ├── Subscription/    StoreKit 2 subscription management
+    ├── Models/          Shared data models (Codable)
+    ├── Calculations/    Weight calculations, cycle math
+    ├── Activity/        Activity ring integration
+    └── Screenshot/      Screenshot seeding utilities
 ```
 
 ### Key Directories
 
-- **`web-app/`** — Main application (Next.js PWA)
-  - **`src/app/(auth)/`** — Sign in / sign up pages (Firebase Auth SDK)
-  - **`src/app/(features)/`** — Protected routes: dashboard, workouts, programs, maxes, benchmarks, cycle, settings
-  - **`src/app/(marketing)/`** — Public pages: blog, privacy, terms, support
-  - **`src/app/api/`** — API routes: auth session, AI generation, Stripe webhooks
-  - **`src/lib/firebase.ts`** — Firebase Client SDK initialization
-  - **`src/lib/firebase-admin.ts`** — Firebase Admin SDK initialization (server-side)
-  - **`src/lib/firestore.ts`** — Firestore helpers: `getAuthUser()`, `userCollection()`, `userDoc()`
-  - **`src/lib/domain/`** — Pure business logic: weight calculations, cycle phases, injury adaptation, benchmark catalog, subscription tiers. No framework dependencies — fully unit tested.
-  - **`src/lib/stripe.ts`** — Stripe price ID mapping
-  - **`src/lib/blog.ts`** — MDX blog post parser
-  - **`src/lib/theme.ts`** — Art Deco design tokens (cream/navy/orange)
-  - **`src/components/`** — UI primitives (`button`, `card`, `input`) + layout (`bottom-nav`)
-  - **`src/components/providers/auth-provider.tsx`** — Firebase Auth React context
-  - **`content/blog/`** — MDX blog posts
-- **`firebase/functions/`** — Cloud Functions for AI workout generation (Vertex AI Gemini)
-  - **`src/index.ts`** — `generateWorkoutFn` callable function
-  - **`src/ai.ts`** — Vertex AI Gemini integration
-  - **`src/rate-limit.ts`** — Firestore-based daily rate limiting
-- **`wod-dashboard/`** — Admin dashboard for WODs, programs, benchmarks
-  - **`data/`** — Shared JSON data files (programs.json, wods.json, benchmarks.json)
-
-### Auth & Routing
-
-Firebase Auth with session cookies for server-side verification.
-
-**Providers:** Google OAuth, Apple Sign-In, Email/Password.
-
-**Social auth:** `src/lib/social-auth.ts` contains shared `signInWithGoogle()` and `signInWithApple()` helpers used by both sign-in and sign-up pages. `signInWithPopup` handles account creation and login automatically — no separate logic needed per page.
-
-**Apple Sign-In quirks:** Apple only sends the user's name on the **first** authorization. `signInWithApple()` extracts the name from the Apple ID token and calls `updateProfile`. If a user revokes and re-authorizes, the name is sent again. Firebase Console requires the full OAuth code flow config (Team ID, Key ID, Private Key from `.p8` file) for web — the toggle alone is not enough.
-
-**Client-side:** Firebase Client SDK (`firebase/auth`) handles sign-in flows via dynamic imports (required to avoid SSR pre-render failures). `AuthProvider` context wraps the app, syncs Firebase ID tokens to server-side session cookies via `/api/auth/session`. Use `getFirebaseAuth()` from `src/lib/firebase.ts` — never import `firebase/auth` at the top level of client components.
-
-**Server-side:** Firebase Admin SDK verifies session cookies. `getAuthUser()` from `src/lib/firestore.ts` returns `{ uid, email, name }` or `null`.
-
-**Middleware** (`src/middleware.ts`) checks for `__session` cookie presence on protected routes:
-- `/dashboard`, `/workouts`, `/programs`, `/maxes`, `/benchmarks`, `/cycle`, `/settings`
-
-Marketing routes (`/blog`, `/privacy`, `/terms`, `/support`) and auth routes (`/sign-in`, `/sign-up`) are unprotected.
-
-**Always use `user.uid`** for data ownership queries.
-
-**Environment variables:**
-- `FIREBASE_PROJECT_ID` / `FIREBASE_CLIENT_EMAIL` / `FIREBASE_PRIVATE_KEY` — Admin SDK
-- `NEXT_PUBLIC_FIREBASE_API_KEY` / `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` / `NEXT_PUBLIC_FIREBASE_PROJECT_ID` — Client SDK
-- `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` — Stripe server-side
-- `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` / `NEXT_PUBLIC_APP_URL` — Stripe client-side + redirects
-
-**Apple Sign-In Firebase Config** (set in Firebase Console, not env vars): Services ID (`com.sundeefundee.web`), Apple Team ID, Key ID, and `.p8` private key. Apple Developer Services ID must have `sundee-fundee.firebaseapp.com` and `sundeefundee.com` as authorized domains with return URL `https://sundee-fundee.firebaseapp.com/__/auth/handler`.
-
-### Database
-
-Cloud Firestore (NoSQL). Access via Firebase Admin SDK in server actions and API routes.
-
-**Data model:**
-- **`users/{uid}`** — User profile: experienceLevel, primaryGoal, gender, weightUnit, cycleTrackingEnabled, onboardingComplete
-- **`users/{uid}/oneRepMaxes/{id}`** — 1RM tracking
-- **`users/{uid}/completedWorkouts/{id}`** — Workouts with sets array (denormalized)
-- **`users/{uid}/enrolledPrograms/{id}`** — Program enrollment
-- **`users/{uid}/periodLogs/{id}`** — Cycle period logs
-- **`users/{uid}/cycleSettings/default`** — Cycle settings (single doc)
-- **`users/{uid}/benchmarkResults/{id}`** — Benchmark results
-- **`users/{uid}/subscription/current`** — Stripe subscription (single doc)
-- **`users/{uid}/generatedWorkoutRecords/{id}`** — AI workout history
-- **`users/{uid}/aiUsage/{YYYY-MM-DD}`** — Daily AI rate limit counter
-- **`benchmarkDefinitions/{id}`** — Shared benchmark catalog (top-level)
-
-**Security rules** in `web-app/firestore.rules`: User subcollections restricted to `request.auth.uid == userId`. benchmarkDefinitions readable by all authenticated users, writable only via Admin SDK.
-
-**Data access pattern in server actions:**
-```typescript
-const user = await getAuthUser();
-if (!user) return [];
-const snapshot = await userCollection(user.uid, "collectionName").orderBy("date", "desc").get();
-return snapshot.docs.map((doc) => ({ id: doc.id, ...(doc.data() as any) }));
-```
-
-### Offline / PWA
-
-**Service worker:** Serwist (`src/app/sw.ts`) — precaching, runtime caching, navigation preload. Disabled in dev (conflicts with Turbopack). Compiles to `public/sw.js`.
-
-**Manifest:** `public/manifest.json` — standalone display, portrait orientation, 192/512 icons.
-
-### Subscriptions
-
-Stripe integration with checkout sessions, webhooks, and customer portal.
-
-**Price IDs** (in `src/lib/stripe.ts`):
-- `price_plus_monthly` / `price_plus_annual`
-- `price_premium_monthly` / `price_premium_annual`
-
-**Tiers** (in `src/lib/domain/subscription.ts`):
-- **Free** — 5 lifts, 1 injury, 30-day history, 0 cloud AI/day
-- **Sundee Plus** — unlimited lifts/injuries/history, 1 cloud AI/day, custom benchmarks, pain trends
-- **Sundee Premium** — unlimited all, 10 cloud AI/day, rehab sessions, AI coach memory, plateau detection
-
-**Webhook events** (`src/app/api/stripe/webhook/route.ts`):
-- `checkout.session.completed` — upsert subscription in `users/{uid}/subscription/current`
-- `customer.subscription.updated` — update tier/status/expiry
-- `customer.subscription.deleted` — mark canceled
-
-**Portal** (`src/app/api/stripe/portal/route.ts`): Creates Stripe billing portal from user's `stripeCustomerId`.
-
-### AI Workouts
-
-**Cloud Function** (`firebase/functions/src/index.ts`) — `generateWorkoutFn` callable function. Uses Vertex AI Gemini Flash + Firestore rate limiting.
-
-**Web-app API route** (`src/app/api/ai/generate/route.ts`): Authenticates user, checks subscription tier, rate limits, calls Vertex AI directly, saves record to Firestore.
-
-**Domain logic** (`src/lib/domain/ai-workout.ts`):
-- `energyMultiplier(level)` — low: 0.85, medium: 1.0, high: 1.05
-- `cyclePhaseMultiplier(phase)` — applies phase-specific load adjustments
-- `defaultPercentage(reps)` — maps rep count to %1RM (1–3: 85%, 6–8: 70%, 9–12: 65%)
-- `assignRestMinutes(bodyweight, reps)` — heavy: 2.5min, light: 1.5min
-- `applyWeights(exercises, maxes, energyMult, cycleMult)` — calculates prescribed weights from 1RM
-- `findMatchingMax(exerciseName, maxes)` — fuzzy match exercise to user's 1RM data
-
-### Blog / SEO
-
-**Content:** MDX files in `content/blog/*.mdx`. Parsed with `gray-matter` (YAML frontmatter), rendered with `next-mdx-remote`.
-
-**Frontmatter format:**
-```yaml
----
-title: "Post Title"
-description: "Brief description"
-date: "2026-03-29"
-author: "Author Name"
-tags: ["training", "cycle"]
-image: "/optional-image.jpg"
----
-```
-
-**Routes:** `/blog` (list, sorted by date desc), `/blog/[slug]` (individual post).
-
-**Sitemap** (`next-sitemap.config.js`): Generated on `npm run build`. Site URL: `https://sundeefundee.com`. Excludes `/api/*` and all protected feature routes.
-
-### Testing
-
-- **Framework:** Vitest with v8 coverage provider
-- **Coverage scope:** `src/lib/domain/**` only (pure business logic)
-- **Convention:** Tests in `src/lib/domain/__tests__/`. One test file per domain module.
-- **Pattern:** Pure function unit tests — no mocking needed. Helper factories at top of each file (e.g., `makeProgram()`, `makeInjury()`).
-- **When adding new domain types or functions**, add corresponding tests. Maintain full coverage of the domain layer.
-- **Never ignore pre-existing failures.** If test runs, builds, or CI surface issues that predate your changes, investigate and resolve them.
-
-### WOD Dashboard Patterns
-
-When adding a new entity type to the dashboard (`wod-dashboard/`):
-1. Add type to `src/lib/types.ts`
-2. Add path to `src/lib/paths.ts`
-3. Create API route at `src/app/api/<entity>/route.ts` (GET/PATCH/DELETE, uses `readJSONFile`/`writeJSONFile`)
-4. Add CloudKit save function to `src/lib/cloudkit.ts`
-5. Update `src/app/api/cloudkit/publish/route.ts` to support the new type
-6. Create list + editor components in `src/components/`
-7. Create page at `src/app/<entity>/page.tsx` (two-panel split-view)
-8. Add nav link to `src/components/sidebar.tsx`
-
-JSON data files live in `wod-dashboard/data/` (programs.json, wods.json, benchmarks.json).
-
-### CloudKit Server-to-Server Auth
-
-The WOD Dashboard uses ECDSA server-to-server authentication (no user sign-in needed). Keys:
-- Private key: `wod-dashboard/cloudkit-server.pem` (gitignored)
-- Key IDs are environment-scoped: development and production keys are separate
-- Signature format: `sha256(date:base64(sha256(body)):subpath)` signed with EC P-256
-- Required headers: `X-Apple-CloudKit-Request-KeyID`, `X-Apple-CloudKit-Request-ISO8601Date`, `X-Apple-CloudKit-Request-SignatureV1`
-
-### Coding Conventions
-
-- **Benchmark `roundsAndReps` scoring** encodes as `rounds * 10000 + reps` in a single number. Higher is better. Decode: `rounds = Math.floor(value / 10000)`, `reps = value % 10000`.
-- **Disable buttons for invalid input** rather than silently failing on save.
-- **Thread `user.uid`** through all data-writing operations. Never hardcode empty strings.
-- **Const objects for enums** — use `as const` objects, not TypeScript `enum`. Stored as text fields in Firestore.
-- **Discriminated unions** for flexible types (e.g., `ExerciseValue` with `type` field: `fixed`, `amrap`, `range`, `text`).
-- **Multiplier-based adaptation** — cycle phase, recovery phase, and energy level compose multiplicatively on base weights.
-- **Domain functions are pure** — no side effects, no framework imports. Accept data, return data.
-- **Art Deco theme:** cream `#f4f0df`, navy `#0d1a40`, orange `#f27319`. Fonts: Playfair Display (headings), Inter (body), JetBrains Mono (mono).
-
-### Navigation
-
-Bottom nav (`src/components/layout/bottom-nav.tsx`) has 5 tabs:
-1. Dashboard (`/dashboard`)
-2. Programs (`/programs`)
-3. Workouts (`/workouts`)
-4. Maxes (`/maxes`)
-5. Settings (`/settings`)
-
-Features layout (`src/app/(features)/layout.tsx`) renders `<BottomNav />` with `max-w-lg` container and `pb-16` bottom padding.
-
-## iOS App (Native SwiftUI)
-
-Two directories for the native app:
-- **`SundeeFundee/`** — Swift Package (`SundeeFundeeKit`): all domain logic, views, viewmodels, auth, CloudKit
-- **`SundeeFundeeApp/`** — Xcode project that imports the package; entry point: `SundeeFundeeApp/SundeeFundee/App.swift`
-
-### Key Files
-
-- **`SundeeFundeeKit/UI/App/SundeeFundeeApp.swift`** — `AuthView`, `MainTabView`, `ThemeViewModel` (all in one file)
-- **`SundeeFundeeKit/UI/ViewModels/AuthViewModel.swift`** — auth state; `isGuest` flag for guest/test mode
-- **`SundeeFundeeKit/UI/Theme/AppTheme.swift`** — `AppTheme.*` tokens + `.artDecoBackground()` modifier
+- **`SundeeFundee/`** — Swift Package (`SundeeFundeeKit`)
+  - **`Sources/SundeeFundeeKit/DomainLayer/`** — Pure business logic: cycle calculations, injury models, benchmark catalog, AI workout types, program templates, coach logic, intelligence features. Zero framework dependencies.
+  - **`Sources/SundeeFundeeKit/DataLayer/`** — Abstract persistence via `DataClientProtocol`. Implementations: `CloudKitClient` (signed-in users), `LocalDataClient` (guest mode), `MockCloudKitClient`/`MockHealthKitClient` (testing). Factory: `DataClientFactory.shared.client`.
+  - **`Sources/SundeeFundeeKit/UI/`** — SwiftUI views and view models organized by feature: App entry, Auth, Benchmark, Cycle, Dashboard, Maxes, Programs, Settings, Workout.
+  - **`Sources/SundeeFundeeKit/Auth/`** — Apple Sign-In authentication, Keychain session storage.
+  - **`Sources/SundeeFundeeKit/Subscription/`** — StoreKit 2 subscription tiers and management.
+- **`SundeeFundeeApp/`** — Xcode project
+  - **`SundeeFundee/App.swift`** — App entry point, `@StateObject` instances for `AuthViewModel` and `ThemeViewModel`.
 
 ### Auth
 
-- Apple Sign In only (no Firebase); session stored in Keychain; user data saved to CloudKit
+- Apple Sign-In only (no Firebase); session stored in Keychain; user data saved to CloudKit
 - Guest mode: `authViewModel.continueAsGuest()` sets `isGuest = true`, `userID = "guest_local"`, skips CloudKit
-- Gate CloudKit writes on `!authViewModel.isGuest`
+- Gate CloudKit writes with `!authViewModel.isGuest`
 
-### Patterns
+### Data Layer
 
-- Simulator screenshots showing a cream card on white = `AuthView` (not the web app sign-in page)
-- SwiftUI views need `.frame(maxWidth: .infinity, maxHeight: .infinity)` before `.artDecoBackground()` to fill screen
+- **`DataClientProtocol`** — Async protocol for fetch/save/delete with generic `Codable & Sendable` types
+- **`DataClientFactory.shared.client`** — Thread-safe singleton for client switching
+- **`CloudKitClient`** — Actor-based CloudKit implementation for signed-in users
+- **`LocalDataClient`** — Local storage for guest users
+- **`SyncQueue`** — Queues mutations offline, replays when connectivity returns
 
-### App Store Requirements
+### Subscriptions
 
-- **Privacy Manifest** (`PrivacyInfo.xcprivacy`) is required — declares API usage (UserDefaults CA92.1) and collected data types (HealthKit, Fitness, UserID)
-- **UIRequiredDeviceCapabilities** must be `arm64`, not `armv7` (deprecated, causes rejection)
-- **Code signing** should be `CODE_SIGN_STYLE = Automatic` — don't hardcode `iPhone Developer`
-- **App icon**: Single 1024x1024 universal icon is sufficient for modern Xcode (auto-generates all sizes)
-- **Screenshot dimensions**: iPhone 6.5" = 1284x2778, iPad 12.9" = 2048x2732 (not 1290x2796)
-- **Subscription apps** must include Terms of Use + Privacy Policy links in the App Store description
-- **Privacy Policy URL** is set in App Store Connect > Distribution > App Privacy (not in the version page)
-- **App Review notes** should include steps to find IAP if the purchase flow isn't on the main screen
+StoreKit 2 with three tiers:
+- **Free** — 5 lifts, 1 injury, 30-day history, limited AI
+- **Sundee Plus** — unlimited lifts/injuries/history, daily AI, custom benchmarks, pain trends
+- **Sundee Premium** — unlimited all, 10 AI/day, rehab sessions, AI coach memory, plateau detection
 
-### iOS Simulator UI Automation Quirks
+### Domain Layer
 
-- SwiftUI `Toggle` (AXSwitch) doesn't respond to `tap` by label — use `touch` with coordinates on the switch knob
-- Tab bar items on iPhone may not expose individual children in accessibility — use coordinate taps
-- iPad has "Next Page" button in tab bar overflow when there are more than ~5 tabs
-- Guest mode requires completing onboarding flow before reaching main app screens
+Pure Swift business logic mirroring the original web app's domain layer:
+- `Cycle/` — Cycle calculations, adaptation policy, calendar, settings
+- `Injury/` — Body location, adaptation engine, injury models, support
+- `Benchmark/` — Catalog, models, readiness
+- `AIWorkout/` — AI workout types and generation helpers
+- `Program/` — Program template generator
+- `Coach/` — Coach context, memory models, deterministic and on-device coach services
+- `Intelligence/` — Plateau detector, schedule reshuffler, substitution ranker, weekly load analyzer
+- `Analytics/` — Chart data aggregation
+- `Export/` — Data export service
+- `Celebration/` — Celebration events
 
-### App Store Marketing Screenshots
+## Coding Conventions
 
-- Raw simulator screenshots saved to `screenshots/`
-- Enhanced marketing images (with navy background + headline) generated via `scripts/generate_appstore_marketing.py` (Pillow)
-- iPhone output: `screenshots/appstore/` (1284x2778)
-- iPad output: `screenshots/appstore_ipad/` (2048x2732)
-- Art Deco theme: navy `#0d1a40` background, cream `#f4f0df` headlines
+- **Swift 6 strict concurrency** — `SWIFT_STRICT_CONCURRENCY: complete`
+- **Const structs for enums** — use Swift enums, not stringly-typed dictionaries
+- **Discriminated enums** for flexible types (e.g., `ExerciseValue` with cases: `fixed`, `amrap`, `range`, `text`)
+- **Multiplier-based adaptation** — cycle phase, recovery phase, and energy level compose multiplicatively on base weights
+- **Domain functions are pure** — no side effects, no framework imports. Accept data, return data.
+- **Actor-based data clients** — `CloudKitClient` is an actor for thread safety
+- **Benchmark `roundsAndReps` scoring** encodes as `rounds * 10000 + reps`. Higher is better. Decode: `rounds = value / 10000`, `reps = value % 10000`.
+- **Art Deco theme tokens** via `AppTheme.*` — cream `#f4f0df`, navy `#0d1a40`, orange `#f27319`
+- **Fonts**: Playfair Display (headings), Inter (body), JetBrains Mono (numbers)
+
+### Testing
+
+- **Framework:** XCTest and Swift Testing (`import Testing`, `@Test` functions)
+- **Location:** `SundeeFundee/Tests/SundeeFundeeKitTests/`
+- **Pattern:** Pure function unit tests with factory helpers (`makeDate()`, `makeWorkout()`, `makeExercise()`)
+- **Access:** `@testable import SundeeFundeeKit`
+
+## App Store Requirements
+
+- **Privacy Manifest** (`PrivacyInfo.xcprivacy`) — declares API usage and collected data types
+- **UIRequiredDeviceCapabilities** must be `arm64`, not `armv7`
+- **Code signing:** `CODE_SIGN_STYLE = Automatic` — don't hardcode
+- **App icon:** Single 1024x1024 universal icon
+- **Screenshot dimensions:** iPhone 6.5" = 1284x2778, iPad 12.9" = 2048x2732
+- **Subscription apps** must include Terms of Use + Privacy Policy links in description
+
+## iOS Simulator UI Automation
+
+- SwiftUI `Toggle` (AXSwitch) doesn't respond to `tap` by label — use coordinates
+- Tab bar items may not expose individual children — use coordinate taps
+- Guest mode requires completing onboarding before reaching main screens
 
 ## Git Workflow
 
-- **Commit each file separately** — stage and commit one file at a time rather than bundling changes together
+- **Commit each file separately** — stage and commit one file at a time
+- **Commit message format:** `type(scope): description`
+- **Main branch:** `main`
