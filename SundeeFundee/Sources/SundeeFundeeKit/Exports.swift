@@ -516,13 +516,6 @@
 // - Computed: hasAccess, daysUntilExpiry
 // - Conformance: Sendable, Equatable, Codable
 
-// SubscriptionError - Errors from subscription operations
-// - Cases: notSubscribed, subscriptionExpired(expiryDate: Date?), purchaseFailed(underlying: Error?),
-//          purchaseCancelled, restoreFailed(underlying: Error?), noPurchasesToRestore,
-//          productUnavailable(productId: String), storeNotAvailable, networkError(underlying: Error?),
-//          invalidReceipt
-// - Conformance: Error, LocalizedError, Sendable, Equatable
-
 // SubscriptionClientProtocol - Protocol for subscription management
 // - currentSubscription: SubscriptionInfo? { get async }
 // - getSubscriptionInfo() async throws -> SubscriptionInfo
@@ -533,26 +526,8 @@
 // - getPrice(for tier:) async -> String?
 // Conformance: Sendable
 
-// SubscriptionClientFactory - Singleton holding the active subscription client
-// - shared.client: SubscriptionClientProtocol (thread-safe read/write)
-// Pattern mirrors DataClientFactory
-
-// StoreKitClient - Actor-based native StoreKit 2 subscription client
+// FreeSubscriptionClient - Free-app subscription client (always premium)
 // - init() - Create client instance
-// - startTransactionListener() - Start listening for transaction updates
-// - identify(userId: String, email: String?) async - Associate user for tracking
-// - logout() async - Clear user association
-// - Methods from SubscriptionClientProtocol
-// Thread-safe via actor isolation
-// Uses native StoreKit 2 (no third-party dependencies)
-
-// MockSubscriptionClient - Actor-based mock for testing
-// - init(subscription: SubscriptionInfo? = nil)
-// - seedSubscription(_ subscription: SubscriptionInfo?) async - Set subscription state
-// - setAvailableTiers(_ tiers: [SubscriptionTier: String]) async - Set available tiers/prices
-// - setSimulatePurchaseFailure(_ value: Bool) async - Simulate purchase failures
-// - setSimulateRestoreFailure(_ value: Bool) async - Simulate restore failures
-// - setSimulatedError(_ error: SubscriptionError) async - Set error to throw
-// - Methods from SubscriptionClientProtocol
-// Convenience factories: .plus(), .premium(), .expired(tier:)
-// Thread-safe via actor isolation
+// - All methods return premium-tier SubscriptionInfo with active status
+// - Purchase and restore are silent no-ops
+// Conformance: SubscriptionClientProtocol
