@@ -20,16 +20,13 @@ public class PainTrackingViewModel: ObservableObject {
     // MARK: - Dependencies
 
     private let dataClient: DataClientProtocol
-    private let subscriptionClient: SubscriptionClientProtocol
 
     // MARK: - Initialization
 
     public init(
-        dataClient: DataClientProtocol = DataClientFactory.shared.client,
-        subscriptionClient: SubscriptionClientProtocol = SubscriptionClientFactory.shared.client
+        dataClient: DataClientProtocol = DataClientFactory.shared.client
     ) {
         self.dataClient = dataClient
-        self.subscriptionClient = subscriptionClient
     }
 
     // MARK: - Public Methods - Pain Logs
@@ -216,17 +213,6 @@ public class PainTrackingViewModel: ObservableObject {
     public func loadSubstitutionSuggestions() async {
         guard !activeInjuries.isEmpty else {
             substitutionSuggestions = []
-            return
-        }
-
-        // Check subscription tier
-        do {
-            let info = try await subscriptionClient.getSubscriptionInfo()
-            guard info.tier.hasSmartSubstitutions else {
-                substitutionSuggestions = []
-                return
-            }
-        } catch {
             return
         }
 

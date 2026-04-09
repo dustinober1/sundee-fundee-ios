@@ -52,16 +52,9 @@ public class AnalyticsViewModel: ObservableObject {
     /// Error message to display if data fetching fails.
     @Published public var errorMessage: String?
 
-    /// The user's current subscription tier.
-    @Published public var subscriptionTier: SubscriptionTier = .free
-
-    /// Whether the user has access to the cycle correlation chart.
-    @Published public var hasCycleAccess: Bool = false
-
     // MARK: - Dependencies
 
     private let dataClient: DataClientProtocol
-    private let subscriptionClient: SubscriptionClientProtocol
 
     // MARK: - Cached Raw Data
 
@@ -77,11 +70,9 @@ public class AnalyticsViewModel: ObservableObject {
     // MARK: - Initialization
 
     public init(
-        dataClient: DataClientProtocol = DataClientFactory.shared.client,
-        subscriptionClient: SubscriptionClientProtocol = SubscriptionClientFactory.shared.client
+        dataClient: DataClientProtocol = DataClientFactory.shared.client
     ) {
         self.dataClient = dataClient
-        self.subscriptionClient = subscriptionClient
     }
 
     // MARK: - Public Methods
@@ -93,11 +84,6 @@ public class AnalyticsViewModel: ObservableObject {
         errorMessage = nil
 
         do {
-            // Check subscription tier
-            let info = try await subscriptionClient.getSubscriptionInfo()
-            subscriptionTier = info.tier
-            hasCycleAccess = info.tier.hasAdvancedInsights
-
             // Fetch all record types in parallel
             async let ormFetch: [OneRepMaxRecord] = dataClient.fetchAll(
                 recordType: "OneRepMaxRecord"
@@ -172,16 +158,12 @@ public class AnalyticsViewModel: ObservableObject {
             timeRange: range
         )
 
-        // Cycle correlation — only compute if user has access
-        if hasCycleAccess {
-            cycleData = ChartDataAggregator.cycleCorrelation(
-                from: allWorkouts,
-                phases: allCyclePhases,
-                timeRange: range
-            )
-        } else {
-            cycleData = []
-        }
+        // Cycle correlation
+        cycleData = ChartDataAggregator.cycleCorrelation(
+            from: allWorkouts,
+            phases: allCyclePhases,
+            timeRange: range
+        )
     }
 
     /// Filters strength data to the selected exercise without re-fetching.

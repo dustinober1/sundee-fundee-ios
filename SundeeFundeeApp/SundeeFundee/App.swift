@@ -9,8 +9,12 @@ struct SundeeFundeeMain: App {
     private static let isScreenshotMode = CommandLine.arguments.contains("--seed-screenshots")
 
     init() {
-        // Set the free subscription client (all features unlocked)
-        SubscriptionClientFactory.shared.client = FreeSubscriptionClient()
+        // Set the production subscription client (native StoreKit 2)
+        let storeKitClient = StoreKitClient()
+        SubscriptionClientFactory.shared.client = storeKitClient
+
+        // Start listening for transaction updates
+        Task { await storeKitClient.startTransactionListener() }
     }
 
     var body: some Scene {

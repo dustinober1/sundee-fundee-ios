@@ -11,7 +11,6 @@ import SwiftUI
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
 public struct AnalyticsView: View {
     @StateObject private var viewModel = AnalyticsViewModel()
-    @State private var showingSubscription = false
 
     public init() {}
 
@@ -39,8 +38,7 @@ public struct AnalyticsView: View {
                     FrequencyChart(data: viewModel.frequencyData)
 
                     CycleCorrelationChart(
-                        data: viewModel.cycleData,
-                        hasAccess: viewModel.hasCycleAccess
+                        data: viewModel.cycleData
                     )
                 }
             }

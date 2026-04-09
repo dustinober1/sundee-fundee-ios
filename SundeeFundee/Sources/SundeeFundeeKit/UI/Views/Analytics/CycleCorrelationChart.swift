@@ -12,69 +12,21 @@ import Charts
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
 struct CycleCorrelationChart: View {
     let data: [CyclePerformancePoint]
-    let hasAccess: Bool
-    @State private var showingSubscription = false
 
     var body: some View {
         ArtDecoCard {
             VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
                 // Section header
-                HStack {
-                    Text("Cycle Correlation")
-                        .font(AppTheme.Typography.headlineMedium)
-                        .foregroundColor(AppTheme.Text.primary)
+                Text("Cycle Correlation")
+                    .font(AppTheme.Typography.headlineMedium)
+                    .foregroundColor(AppTheme.Text.primary)
 
-                    if !hasAccess {
-                        Spacer()
-                        Image(systemName: "lock.fill")
-                            .font(.system(size: 12))
-                            .foregroundColor(AppTheme.Text.secondary)
-                    }
-                }
-
-                if !hasAccess {
-                    upgradeCard
-                } else if data.isEmpty {
+                if data.isEmpty {
                     emptyState
                 } else {
                     chartContent
                 }
             }
-        }
-    }
-
-    // MARK: - Upgrade Card
-
-    private var upgradeCard: some View {
-        VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
-            VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
-                Text("See how your cycle affects performance")
-                    .font(AppTheme.Typography.bodyMedium)
-                    .foregroundColor(AppTheme.Text.secondary)
-
-                Text("Track volume, frequency, and intensity across menstrual, follicular, ovulation, and luteal phases.")
-                    .font(AppTheme.Typography.bodySmall)
-                    .foregroundColor(AppTheme.Text.secondary.opacity(0.8))
-            }
-
-            Button {
-                showingSubscription = true
-            } label: {
-                HStack(spacing: AppTheme.Spacing.xs) {
-                    Image(systemName: "lock.open.fill")
-                        .font(.system(size: 14))
-                    Text("Unlock with Plus")
-                        .font(AppTheme.Typography.labelLarge)
-                }
-                .foregroundColor(AppTheme.Accent.gold)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, AppTheme.Spacing.md)
-                .background(AppTheme.Accent.gold.opacity(0.1))
-                .cornerRadius(AppTheme.CornerRadius.medium)
-            }
-        }
-        .sheet(isPresented: $showingSubscription) {
-            SubscriptionView()
         }
     }
 

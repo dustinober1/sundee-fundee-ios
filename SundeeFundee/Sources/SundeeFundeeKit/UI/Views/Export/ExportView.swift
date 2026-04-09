@@ -5,7 +5,6 @@ import UniformTypeIdentifiers
 //
 // Data export screen showing record category counts, export progress,
 // and ShareLink for delivering the JSON file via the system share sheet.
-// Gated behind SubscriptionTier.hasExportShare (Pro only).
 
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
 public struct ExportView: View {
@@ -15,64 +14,19 @@ public struct ExportView: View {
 
     public var body: some View {
         List {
-            if !viewModel.canExport {
-                upgradeSection
-            } else {
-                dataCategoriesSection
-                exportSection
-                if viewModel.exportedData != nil {
-                    shareSection
-                }
-                if let error = viewModel.errorMessage {
-                    errorSection(error)
-                }
+            dataCategoriesSection
+            exportSection
+            if viewModel.exportedData != nil {
+                shareSection
+            }
+            if let error = viewModel.errorMessage {
+                errorSection(error)
             }
         }
         .navigationTitle("Export My Data")
         #if os(iOS)
         .navigationBarTitleDisplayMode(.large)
         #endif
-        .sheet(isPresented: $viewModel.showingSubscription) {
-            SubscriptionView()
-        }
-        .task {
-            await viewModel.checkSubscription()
-        }
-    }
-
-    // MARK: - Upgrade Section
-
-    private var upgradeSection: some View {
-        Section {
-            VStack(spacing: AppTheme.Spacing.md) {
-                Image(systemName: "lock.fill")
-                    .font(.system(size: 32))
-                    .foregroundColor(AppTheme.Accent.gold)
-
-                Text("Export My Data")
-                    .font(AppTheme.Typography.headlineMedium)
-                    .foregroundColor(AppTheme.Text.primary)
-
-                Text("Export all your training data as a JSON file. This feature is available on the Pro plan.")
-                    .font(AppTheme.Typography.bodyMedium)
-                    .foregroundColor(AppTheme.Text.secondary)
-                    .multilineTextAlignment(.center)
-
-                Button {
-                    viewModel.showingSubscription = true
-                } label: {
-                    Text("Upgrade to Pro")
-                        .font(AppTheme.Typography.labelMedium)
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, AppTheme.Spacing.sm)
-                        .background(AppTheme.Accent.gold)
-                        .cornerRadius(AppTheme.CornerRadius.medium)
-                }
-            }
-            .padding(.vertical, AppTheme.Spacing.lg)
-            .frame(maxWidth: .infinity)
-        }
     }
 
     // MARK: - Data Categories Section

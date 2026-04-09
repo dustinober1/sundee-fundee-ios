@@ -25,55 +25,26 @@ public class ExportViewModel: ObservableObject {
     /// Error message to display if export fails.
     @Published public var errorMessage: String?
 
-    /// The user's current subscription tier.
-    @Published public var currentTier: SubscriptionTier = .free
-
-    /// Whether the subscription upgrade sheet is showing.
-    @Published public var showingSubscription: Bool = false
-
     // MARK: - Dependencies
 
     private let service: DataExportService
-    private let subscriptionClient: SubscriptionClientProtocol
 
     // MARK: - Initialization
 
     public init(
-        dataClient: DataClientProtocol = DataClientFactory.shared.client,
-        subscriptionClient: SubscriptionClientProtocol = SubscriptionClientFactory.shared.client
+        dataClient: DataClientProtocol = DataClientFactory.shared.client
     ) {
         self.service = DataExportService(dataClient: dataClient)
-        self.subscriptionClient = subscriptionClient
     }
 
     /// Initializer accepting a pre-built service (for testing).
     init(
-        service: DataExportService,
-        subscriptionClient: SubscriptionClientProtocol
+        service: DataExportService
     ) {
         self.service = service
-        self.subscriptionClient = subscriptionClient
-    }
-
-    // MARK: - Computed Properties
-
-    /// Whether the current subscription tier allows export.
-    public var canExport: Bool {
-        currentTier.hasExportShare
     }
 
     // MARK: - Public Methods
-
-    /// Checks the user's subscription tier and updates `currentTier`.
-    public func checkSubscription() async {
-        do {
-            let info = try await subscriptionClient.getSubscriptionInfo()
-            currentTier = info.tier
-        } catch {
-            // Default to free on error — safe fallback
-            currentTier = .free
-        }
-    }
 
     /// Fetches all user data and populates `exportedData` and `categoryCounts`.
     public func loadExportData() async {
