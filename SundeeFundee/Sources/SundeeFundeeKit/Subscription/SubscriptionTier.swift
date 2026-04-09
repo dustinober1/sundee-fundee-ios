@@ -66,100 +66,61 @@ public enum SubscriptionTier: String, Sendable, Equatable, Codable, CaseIterable
 
     /// Maximum number of lifts that can be tracked.
     public var maxLifts: Int? {
-        switch self {
-        case .free: return 5
-        case .plus, .premium: return nil // Unlimited
-        }
+        nil // Unlimited for all tiers
     }
 
     /// Maximum number of injury profiles.
     public var maxInjuries: Int? {
-        switch self {
-        case .free: return 1
-        case .plus, .premium: return nil // Unlimited
-        }
+        nil // Unlimited for all tiers
     }
 
     /// Maximum days of workout history retained.
     public var maxHistoryDays: Int? {
-        switch self {
-        case .free: return 30
-        case .plus, .premium: return nil // Unlimited
-        }
+        nil // Unlimited for all tiers
     }
 
     /// Number of cloud AI generations allowed per day.
     public var dailyAIGenerations: Int {
-        switch self {
-        case .free: return 0
-        case .plus: return 3
-        case .premium: return 10
-        }
+        999 // Effectively unlimited for all tiers
     }
 
     // MARK: - Capability Flags
 
     /// Whether custom benchmarks are available.
-    public var hasCustomBenchmarks: Bool {
-        self != .free
-    }
+    public var hasCustomBenchmarks: Bool { true }
 
     /// Whether pain/effort trend analysis is available.
-    public var hasPainTrends: Bool {
-        self != .free
-    }
+    public var hasPainTrends: Bool { true }
 
     /// Whether advanced analytics (volume, consistency, muscle balance) are available.
-    public var hasAdvancedInsights: Bool {
-        self != .free
-    }
+    public var hasAdvancedInsights: Bool { true }
 
     /// Whether the on-device AI workout builder is available.
-    public var hasAIBuilder: Bool {
-        self != .free
-    }
+    public var hasAIBuilder: Bool { true }
 
     /// Whether recovery-aware training adjustments are available.
-    /// Replaces the previous "rehab sessions" concept with broader
-    /// pain-aware movement modifications and lighter-day suggestions.
-    public var hasRecoveryAdjustments: Bool {
-        self != .free
-    }
+    public var hasRecoveryAdjustments: Bool { true }
 
     /// Whether adaptive weekly programming (reshuffle, auto-adjust) is available.
-    public var hasAdaptivePlanner: Bool {
-        self == .premium
-    }
+    public var hasAdaptivePlanner: Bool { true }
 
     /// Whether AI coach memory persists across sessions.
-    public var hasCoachMemory: Bool {
-        self == .premium
-    }
+    public var hasCoachMemory: Bool { true }
 
     /// Whether smart exercise substitutions (pain, equipment, time) are available.
-    public var hasSmartSubstitutions: Bool {
-        self == .premium
-    }
+    public var hasSmartSubstitutions: Bool { true }
 
     /// Whether plateau detection with actionable recommendations is available.
-    public var hasPlateauDetection: Bool {
-        self == .premium
-    }
+    public var hasPlateauDetection: Bool { true }
 
     /// Whether preference learning from edits and accepted swaps is available.
-    public var hasPreferenceLearning: Bool {
-        self == .premium
-    }
+    public var hasPreferenceLearning: Bool { true }
 
     /// Whether weekly recap and next-week recommendations are available.
-    public var hasWeeklyRecap: Bool {
-        self == .premium
-    }
+    public var hasWeeklyRecap: Bool { true }
 
     /// Whether plan export/share is available.
-    public var hasExportShare: Bool {
-        self == .premium
-    }
+    public var hasExportShare: Bool { true }
 }
 
 // MARK: - SubscriptionStatus
@@ -238,7 +199,7 @@ public struct SubscriptionInfo: Sendable, Equatable, Codable {
 
     /// Whether the subscription currently grants access to paid features.
     public var hasAccess: Bool {
-        status.hasAccess && tier != .free
+        status.hasAccess
     }
 
     /// Days until the subscription expires (nil if no expiry or unlimited).
