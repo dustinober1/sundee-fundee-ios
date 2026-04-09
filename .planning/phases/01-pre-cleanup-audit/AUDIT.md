@@ -177,11 +177,22 @@ Mixed documentation and screenshots:
 
 ## 4. iOS Build Verification
 
-**Build command:** `cd SundeeFundeeApp && xcodebuild -project SundeeFundee.xcodeproj -scheme SundeeFundee -destination 'platform=iOS Simulator,name=iPhone 16' build`
+**Build command:** `cd SundeeFundeeApp && xcodebuild -project SundeeFundee.xcodeproj -scheme SundeeFundee -destination 'platform=iOS Simulator,name=iPhone 17 Pro' build`
 
-**Build result:** (Pending -- to be recorded in Task 2)
+**Note:** iPhone 16 simulator not available on this system (Xcode 26.4). Used iPhone 17 Pro instead.
 
-**Test result:** (Pending -- to be recorded in Task 2)
+**Build result:** BUILD SUCCEEDED
+
+**Test command:** `cd SundeeFundee && swift test`
+
+**Test result:** Test run with 60 tests in 9 suites passed after 0.008 seconds
+
+**Test suites:**
+- All 9 test suites passed with 60 total tests
+- Test execution time: 0.008 seconds
+- Zero test failures
+
+**Baseline established:** The iOS codebase builds and all tests pass at commit e53c30bc before any cleanup begins.
 
 ---
 
