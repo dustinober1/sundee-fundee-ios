@@ -6,6 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Sundee Fundee is a native iOS app for cycle-aware strength training. Built with SwiftUI and Swift 6 (strict concurrency), using CloudKit for persistence, StoreKit 2 for subscriptions, and HealthKit for health data. The app uses an Art Deco design theme (cream/navy/orange).
 
+**Archive:** The retired web app code is preserved in `sundee-fundee-archive-2026-04-08.zip` at the repository root. See `MIGRATION.md` for details.
+
 ## Commands
 
 ### Build
