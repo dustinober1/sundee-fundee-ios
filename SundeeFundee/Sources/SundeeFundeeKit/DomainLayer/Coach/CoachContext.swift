@@ -111,10 +111,9 @@ public actor CoachContextBuilder {
         async let injuries = loadInjuries()
         async let workoutData = loadWorkoutData()
         async let settings = loadSettings()
-        async let subscription = loadSubscription()
 
-        let (cycle, maxResult, injuryResult, workouts, userSettings, tier) = await (
-            cycleData, maxes, injuries, workoutData, settings, subscription
+        let (cycle, maxResult, injuryResult, workouts, userSettings) = await (
+            cycleData, maxes, injuries, workoutData, settings
         )
 
         // Run analysis on the workout data
@@ -127,7 +126,7 @@ public actor CoachContextBuilder {
             cycleConfidence: cycle.confidence,
             experienceLevel: userSettings.experienceLevel,
             primaryGoal: userSettings.primaryGoal,
-            tier: tier,
+            tier: .premium,
             maxes: maxResult.maxes,
             injuries: injuryResult,
             workoutsThisWeek: countThisWeek(workouts),
@@ -204,15 +203,6 @@ public actor CoachContextBuilder {
             // Settings unavailable — degrade to nil defaults
         }
         return (nil, nil)
-    }
-
-    private func loadSubscription() async -> SubscriptionTier {
-        do {
-            let info = try await subscriptionClient.getSubscriptionInfo()
-            return info.tier
-        } catch {
-            return .free
-        }
     }
 
     private func countThisWeek(_ workouts: [CompletedWorkoutRecord]) -> Int {
