@@ -31,20 +31,20 @@ public protocol SubscriptionClientProtocol: Sendable {
     /// Gets the latest subscription info from the server.
     ///
     /// - Returns: The current subscription information.
-    /// - Throws: `SubscriptionError` if the fetch fails.
+    /// - Throws: An error if the fetch fails.
     func getSubscriptionInfo() async throws -> SubscriptionInfo
 
     /// Purchases a subscription for the specified tier.
     ///
     /// - Parameter tier: The subscription tier to purchase.
     /// - Returns: The updated subscription info after purchase.
-    /// - Throws: `SubscriptionError` if the purchase fails.
+    /// - Throws: An error if the purchase fails.
     func purchase(tier: SubscriptionTier) async throws -> SubscriptionInfo
 
     /// Restores previous purchases for the current Apple ID.
     ///
     /// - Returns: The restored subscription info, if any.
-    /// - Throws: `SubscriptionError` if restoration fails or no purchases found.
+    /// - Throws: An error if restoration fails or no purchases found.
     func restorePurchases() async throws -> SubscriptionInfo
 
     /// Presents the App Store's manage subscriptions UI.

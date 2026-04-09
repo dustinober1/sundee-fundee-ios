@@ -81,17 +81,13 @@ struct AnalyticsViewModelTests {
 
     // MARK: - Helpers
 
-    /// Creates a ViewModel with seeded mock data and a given subscription tier.
+    /// Creates a ViewModel with seeded mock data.
     private func makeViewModel(
-        tier: SubscriptionTier = .free,
         ormRecords: [OneRepMaxRecord] = [],
         workouts: [Workout] = [],
         phases: [CyclePhaseInfo] = []
     ) async throws -> AnalyticsViewModel {
         let mockData = MockCloudKitClient()
-        let mockSub = MockSubscriptionClient(
-            subscription: SubscriptionInfo(tier: tier, status: .active)
-        )
 
         // Seed mock data client with records
         try await mockData.save(ormRecords, recordType: "OneRepMaxRecord")
@@ -99,8 +95,7 @@ struct AnalyticsViewModelTests {
         try await mockData.save(phases, recordType: "CyclePhaseInfo")
 
         return AnalyticsViewModel(
-            dataClient: mockData,
-            subscriptionClient: mockSub
+            dataClient: mockData
         )
     }
 
@@ -114,7 +109,6 @@ struct AnalyticsViewModelTests {
         let workout = makeWorkout(date: recent, completedAt: recent, volume: 5000)
 
         let vm = try await makeViewModel(
-            tier: .plus,
             ormRecords: [orm],
             workouts: [workout]
         )
@@ -134,7 +128,7 @@ struct AnalyticsViewModelTests {
 
     @Test("loadAnalytics handles empty data gracefully")
     func testEmptyData() async throws {
-        let vm = try await makeViewModel(tier: .free)
+        let vm = try await makeViewModel()
         await vm.loadAnalytics()
 
         #expect(vm.strengthData.isEmpty)
@@ -157,7 +151,6 @@ struct AnalyticsViewModelTests {
         let oldORM = makeORM(exerciseName: "Squat", weight: 150, date: old)
 
         let vm = try await makeViewModel(
-            tier: .free,
             ormRecords: [recentORM, oldORM]
         )
         await vm.loadAnalytics()
@@ -181,7 +174,6 @@ struct AnalyticsViewModelTests {
         let benchORM = makeORM(exerciseName: "Bench Press", weight: 150, date: date)
 
         let vm = try await makeViewModel(
-            tier: .free,
             ormRecords: [squatORM, benchORM]
         )
         await vm.loadAnalytics()
@@ -208,7 +200,6 @@ struct AnalyticsViewModelTests {
         let orm3 = makeORM(exerciseName: "Squat", weight: 210, date: date) // duplicate name
 
         let vm = try await makeViewModel(
-            tier: .free,
             ormRecords: [orm1, orm2, orm3]
         )
         await vm.loadAnalytics()
@@ -216,28 +207,10 @@ struct AnalyticsViewModelTests {
         #expect(vm.availableExercises == ["Deadlift", "Squat"])
     }
 
-    // MARK: - Subscription Gating
+    // MARK: - Cycle Data
 
-    @Test("free tier has no cycle access")
-    func testFreeTierNoCycleAccess() async throws {
-        let date = makeDate(year: 2026, month: 3, day: 1)
-        let phase = makeCyclePhase(phase: .follicular, start: date, end: date)
-        let workout = makeWorkout(date: date, completedAt: date, volume: 3000)
-
-        let vm = try await makeViewModel(
-            tier: .free,
-            workouts: [workout],
-            phases: [phase]
-        )
-        await vm.loadAnalytics()
-
-        #expect(vm.subscriptionTier == .free)
-        #expect(vm.hasCycleAccess == false)
-        #expect(vm.cycleData.isEmpty)
-    }
-
-    @Test("plus tier has cycle access")
-    func testPlusTierHasCycleAccess() async throws {
+    @Test("cycle data is always available when phase data exists")
+    func testCycleDataAlwaysAvailable() async throws {
         let date = makeDate(year: 2026, month: 3, day: 1)
         let phaseStart = makeDate(year: 2026, month: 2, day: 25)
         let phaseEnd = makeDate(year: 2026, month: 3, day: 5)
@@ -245,20 +218,17 @@ struct AnalyticsViewModelTests {
         let workout = makeWorkout(date: date, completedAt: date, volume: 3000)
 
         let vm = try await makeViewModel(
-            tier: .plus,
             workouts: [workout],
             phases: [phase]
         )
         await vm.loadAnalytics()
 
-        #expect(vm.subscriptionTier == .plus)
-        #expect(vm.hasCycleAccess == true)
         #expect(vm.cycleData.count == 1)
         #expect(vm.cycleData.first?.phase == .follicular)
     }
 
-    @Test("premium tier has cycle access")
-    func testPremiumTierHasCycleAccess() async throws {
+    @Test("cycle data shows luteal phase correlation")
+    func testCycleDataLutealPhase() async throws {
         let date = makeDate(year: 2026, month: 3, day: 1)
         let phaseStart = makeDate(year: 2026, month: 2, day: 25)
         let phaseEnd = makeDate(year: 2026, month: 3, day: 5)
@@ -266,13 +236,11 @@ struct AnalyticsViewModelTests {
         let workout = makeWorkout(date: date, completedAt: date, volume: 4000)
 
         let vm = try await makeViewModel(
-            tier: .premium,
             workouts: [workout],
             phases: [phase]
         )
         await vm.loadAnalytics()
 
-        #expect(vm.hasCycleAccess == true)
         #expect(vm.cycleData.count == 1)
         #expect(vm.cycleData.first?.phase == .luteal)
     }
@@ -282,13 +250,9 @@ struct AnalyticsViewModelTests {
     @Test("loadAnalytics sets errorMessage when data client throws")
     func testErrorHandling() async throws {
         let throwingDataClient = ThrowingMockDataClient()
-        let mockSub = MockSubscriptionClient(
-            subscription: SubscriptionInfo(tier: .free, status: .active)
-        )
 
         let vm = AnalyticsViewModel(
-            dataClient: throwingDataClient,
-            subscriptionClient: mockSub
+            dataClient: throwingDataClient
         )
         await vm.loadAnalytics()
 
@@ -303,13 +267,9 @@ struct AnalyticsViewModelTests {
     @Test("isLoading is reset to false after error")
     func testLoadingStateAfterError() async throws {
         let throwingDataClient = ThrowingMockDataClient()
-        let mockSub = MockSubscriptionClient(
-            subscription: SubscriptionInfo(tier: .free, status: .active)
-        )
 
         let vm = AnalyticsViewModel(
-            dataClient: throwingDataClient,
-            subscriptionClient: mockSub
+            dataClient: throwingDataClient
         )
 
         #expect(vm.isLoading == false)
@@ -329,7 +289,6 @@ struct AnalyticsViewModelTests {
         let squatOld = makeORM(exerciseName: "Squat", weight: 170, date: old)
 
         let vm = try await makeViewModel(
-            tier: .free,
             ormRecords: [squatRecent, benchRecent, squatOld]
         )
         await vm.loadAnalytics()
@@ -346,25 +305,24 @@ struct AnalyticsViewModelTests {
         #expect(vm.strengthData.count == 2)
     }
 
-    // MARK: - Cycle Gating on Time Range Change
+    // MARK: - Cycle Data on Time Range Change
 
-    @Test("cycle data remains empty for free tier after time range change")
-    func testCycleGatingOnTimeRangeChange() async throws {
+    @Test("cycle data is recalculated on time range change")
+    func testCycleDataOnTimeRangeChange() async throws {
         let date = makeDate(year: 2026, month: 3, day: 1)
         let phase = makeCyclePhase(phase: .luteal, start: date, end: date)
         let workout = makeWorkout(date: date, completedAt: date, volume: 3000)
 
         let vm = try await makeViewModel(
-            tier: .free,
             workouts: [workout],
             phases: [phase]
         )
         await vm.loadAnalytics()
 
-        #expect(vm.cycleData.isEmpty)
+        #expect(vm.cycleData.count == 1)
 
         vm.selectedTimeRange = .allTime
-        #expect(vm.cycleData.isEmpty)
+        #expect(vm.cycleData.count == 1)
     }
 }
 

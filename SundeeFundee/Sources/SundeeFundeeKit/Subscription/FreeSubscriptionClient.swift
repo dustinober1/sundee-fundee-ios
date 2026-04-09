@@ -4,9 +4,9 @@ import Foundation
 
 /// Free-app subscription client that always returns premium-level access.
 ///
-/// Replaces `StoreKitClient` for the free app launch. All features are
-/// fully accessible without a subscription — every protocol method returns
-/// premium-tier info with active status. Purchase and restore are no-ops.
+/// All features are fully accessible without a subscription — every protocol
+/// method returns premium-tier info with active status. Purchase and restore
+/// are no-ops.
 public struct FreeSubscriptionClient: SubscriptionClientProtocol {
 
     public init() {}
