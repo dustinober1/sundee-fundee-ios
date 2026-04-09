@@ -60,8 +60,14 @@ The repository now contains only the iOS-native codebase:
 - **`CLAUDE.md`** — Updated project instructions for iOS-only development
 - **`readme.md`** — Updated project overview
 - **`.gitignore`** — Updated for iOS/Xcode patterns
-- **`.mcp.json`** — MCP server configuration (XcodeBuildMCP)
+- **`.mcp.json`** — MCP server configuration (Blitz, Claude-in-Mobile)
 - **`Logo.jpeg`** — App logo image
+- **`MIGRATION.md`** — This file
+- **`CHANGELOG.md`** — Version history
+- **`.swiftlint.yml`** — Swift code style rules
+- **`AGENTS.md`** — Agent instructions
+- **`sundee-fundee-archive-2026-04-08.zip`** — Archive of removed code
+- **`.planning/`** — Cleanup project planning artifacts
 
 ## Domain Logic Migration
 
