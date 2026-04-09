@@ -1,1 +1,0 @@
-add plate calculator to workout screen
