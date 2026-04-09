@@ -1,0 +1,81 @@
+# SwiftLint Configuration for Sundee Fundee
+# Swift 6 with strict concurrency
+
+# Rules specific to this project
+opt_in_rules:
+  - closure_end_indentation
+  - closure_spacing
+  - collection_alignment
+  - empty_count
+  - empty_string
+  - explicit_init
+  - fallthrough
+  - first_where
+  - force_unwrapping
+  - implicitly_unwrapped_optional
+  - last_where
+  - legacy_random
+  - literal_expression_end_indentation
+  - missing_docs
+  - nimble_operator
+  - no_extension_access_modifier
+  - operator_usage_whitespace
+  - overridden_super_call
+  - override_in_extension
+  - private_action
+  - private_outlet
+  - prohibited_super_call
+  - reduce_into
+  - redundant_nil_coalescing
+  - sorted_first_last
+  - sorted_imports
+  - static_operator
+  - toggle_bool
+  - trailing_closure
+  - type_contents_order
+  - unneeded_parentheses_in_closure_argument
+  - unowned_variable_capture
+  - vertical_parameter_alignment_on_call
+  - vertical_whitespace_closing_braces
+  - vertical_whitespace_opening_braces
+  - weak_delegate
+  - yoda_condition
+
+# Disabled rules that conflict with project patterns
+disabled_rules:
+  - trailing_whitespace
+  - line_length
+  - function_body_length
+  - type_body_length
+  - file_length
+  - nesting
+
+# Excluded paths (third-party, generated code)
+excluded:
+  - .build/
+  - DerivedData/
+  - .swiftpm/
+  - Package.resolved
+  - SundeeFundee/Tests/
+
+# Configurable rules
+identifier_name:
+  min_length:
+    warning: 2
+    error: 1
+  excluded:
+    - id
+    - db
+    - ui
+    - vm
+    - x
+    - y
+    - z
+    - i
+    - j
+    - k
+
+type_name:
+  min_length: 3
+
+reporter: "xcode"
