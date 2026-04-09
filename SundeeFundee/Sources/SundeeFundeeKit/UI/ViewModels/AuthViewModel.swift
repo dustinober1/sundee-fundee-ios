@@ -84,11 +84,6 @@ public class AuthViewModel: ObservableObject {
             // Save user to CloudKit
             try await saveUserToCloudKit(result)
 
-            // Identify with subscription client for tracking
-            if let subscriptionClient = SubscriptionClientFactory.shared.client as? StoreKitClient {
-                await subscriptionClient.identify(userId: result.userID, email: self.userEmail)
-            }
-
             self.isAuthenticated = true
             self.needsOnboarding = KeychainHelper.read(key: "onboarding_complete") == nil
         } catch {
@@ -160,11 +155,6 @@ public class AuthViewModel: ObservableObject {
 
     /// Resets the authentication state and clears stored credentials
     private func resetState() async {
-        // Logout from subscription client
-        if let subscriptionClient = SubscriptionClientFactory.shared.client as? StoreKitClient {
-            await subscriptionClient.logout()
-        }
-
         // Clear Keychain
         _ = KeychainHelper.delete(key: KeychainHelper.userIDKey)
         _ = KeychainHelper.delete(key: KeychainHelper.userEmailKey)
@@ -195,11 +185,6 @@ public class AuthViewModel: ObservableObject {
             if userID == AuthViewModel.guestUserID {
                 isGuest = true
                 DataClientFactory.shared.client = LocalDataClient()
-            } else {
-                // Re-identify with subscription client for returning signed-in users
-                if let subscriptionClient = SubscriptionClientFactory.shared.client as? StoreKitClient {
-                    await subscriptionClient.identify(userId: userID, email: self.userEmail)
-                }
             }
 
             isAuthenticated = true
