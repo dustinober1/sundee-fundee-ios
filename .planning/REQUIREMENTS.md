@@ -77,35 +77,37 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SUB-01 | — | Pending |
-| SUB-02 | — | Pending |
-| SUB-03 | — | Pending |
-| SUB-04 | — | Pending |
-| SUB-05 | — | Pending |
-| SUB-06 | — | Pending |
-| SUB-07 | — | Pending |
-| SUB-08 | — | Pending |
-| AUD-01 | — | Pending |
-| AUD-02 | — | Pending |
-| AUD-03 | — | Pending |
-| AUD-04 | — | Pending |
-| AUD-05 | — | Pending |
-| AUD-06 | — | Pending |
-| ASC-01 | — | Pending |
-| ASC-02 | — | Pending |
-| ASC-03 | — | Pending |
-| ASC-04 | — | Pending |
-| ASC-05 | — | Pending |
-| ASC-06 | — | Pending |
-| ASC-07 | — | Pending |
-| ASC-08 | — | Pending |
-| ASC-09 | — | Pending |
+| SUB-01 | Phase 12 | Pending |
+| SUB-02 | Phase 12, Phase 13 | Pending |
+| SUB-03 | Phase 13 | Pending |
+| SUB-04 | Phase 13 | Pending |
+| SUB-05 | Phase 12 | Pending |
+| SUB-06 | Phase 12 | Pending |
+| SUB-07 | Phase 14 | Pending |
+| SUB-08 | Phase 14 | Pending |
+| AUD-01 | Phase 15 | Pending |
+| AUD-02 | Phase 15 | Pending |
+| AUD-03 | Phase 17 | Pending |
+| AUD-04 | Phase 16 | Pending |
+| AUD-05 | Phase 16 | Pending |
+| AUD-06 | Phase 16 | Pending |
+| ASC-01 | Phase 18 | Pending |
+| ASC-02 | Phase 18 | Pending |
+| ASC-03 | Phase 18 | Pending |
+| ASC-04 | Phase 18 | Pending |
+| ASC-05 | Phase 18 | Pending |
+| ASC-06 | Phase 18 | Pending |
+| ASC-07 | Phase 18 | Pending |
+| ASC-08 | Phase 19 | Pending |
+| ASC-09 | Phase 19 | Pending |
 
 **Coverage:**
 - v1 requirements: 23 total
-- Mapped to phases: 0
-- Unmapped: 23 ⚠️
+- Mapped to phases: 23
+- Unmapped: 0
+
+Note: SUB-02 spans Phase 12 (FreeSubscriptionClient replaces StoreKitClient) and Phase 13 (Subscription/ directory deleted). The requirement is assigned to both phases since each handles a distinct part of the StoreKit removal.
 
 ---
 *Requirements defined: 2026-04-08*
-*Last updated: 2026-04-08 after initial definition*
+*Last updated: 2026-04-08 after roadmap creation with traceability*

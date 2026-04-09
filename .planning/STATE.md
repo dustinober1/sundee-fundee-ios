@@ -1,123 +1,62 @@
----
-gsd_state_version: 1.0
-milestone: v1.1
-milestone_name: Free App Launch
-current_phase: 0
-status: defining_requirements
-last_updated: "2026-04-08T12:00:00.000Z"
-progress:
-  total_phases: 0
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
----
-
 # Sundee Fundee — Project State
-
-**Project:** Sundee Fundee — Free App Launch
-**Started:** 2026-04-08
-**Current Phase:** Not started (defining requirements)
 
 ## Project Reference
 
-**Core Value:** A polished, 100% free iOS app for cycle-aware strength training, shipped to the App Store.
+See: .planning/PROJECT.md (updated 2026-04-08)
 
-**What this is:**
-
-- Remove StoreKit subscription gating, make all current features free
-- Full app audit (code quality, error handling, edge cases, accessibility, UX)
-- Polish pass to fix issues found in audit
-- App Store submission prep (screenshots, metadata, privacy labels, build, submit)
-
-**Constraints:**
-
-- All current features must remain functional after paywall removal
-- App must pass App Store review guidelines
-- No new paid features — monetization deferred
+**Core value:** A polished, 100% free iOS app for cycle-aware strength training, shipped to the App Store.
+**Current focus:** Phase 12 — Unlock Features
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 12 of 19 (Unlock Features)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-04-08 — Milestone v1.1 started
+Status: Ready to plan
+Last activity: 2026-04-08 — v1.1 roadmap created (8 phases, 23 requirements mapped)
 
-**Progress Bar:**
-
-```
-[░░░░░░░░░░░░░░░░░░░░░] 0% complete
-```
+Progress: [░░░░░░░░░░░░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
-**Total Requirements:** TBD
-**Requirements Mapped:** TBD
-**Phases Defined:** TBD
+**Velocity:**
+- Total plans completed: 0 (v1.1 just started)
+- v1.0 history: 11 phases, 3 plans shipped
+
+**By Phase:**
+
+| Phase | Plans | Total | Avg/Plan |
+|-------|-------|-------|----------|
+| — | — | — | — |
+
+*No v1.1 plans executed yet*
 
 ## Accumulated Context
 
-### Decisions Made
+### Decisions
 
-- All features free for v1.1 — no subscription gating, monetization deferred until following established
-- On-device AI means zero marginal cost per user
-- CloudKit free tier should be sufficient for initial user base
+Recent decisions affecting current work:
 
-### Active Todos
+- All features free for v1.1 — no subscription gating, monetization deferred
+- Protocol-replacement strategy: keep SubscriptionClientProtocol, create FreeSubscriptionClient, swap implementation
+- Subscription/ directory deleted entirely in Phase 13 (not just disabled)
+- Stub fixes before accessibility — working features are prerequisite for meaningful a11y testing
 
-None yet — requirements not defined
+### Pending Todos
 
-### Blockers
+None yet.
 
-None
+### Blockers/Concerns
 
-### Technical Context
-
-**iOS Stack:**
-
-- Swift 6 with complete concurrency checking
-- SwiftUI (iOS 18+)
-- Swift Package Manager (SundeeFundeeKit)
-- CloudKit for data persistence
-- StoreKit 2 for subscriptions (to be removed/gated)
-- HealthKit for workout data
-- XcodeGen for project generation
-
-**Subscription Tiers (current — to be removed):**
-
-- Free — limited lifts, injuries, history, AI
-- Sundee Plus — unlimited lifts/injuries/history, daily AI, custom benchmarks
-- Sundee Premium — unlimited all, 10 AI/day, rehab sessions, AI coach memory
-
-### Key Risks
-
-**Paywall removal breaks existing users:** Subscription checks may guard features throughout the app
-- Mitigation: Audit all subscription gate points before removing
-
-**App Store rejection:** First submission may have review issues
-- Mitigation: Thorough audit of privacy, metadata, and guideline compliance
+- App Store Connect current requirements may have changed — verify during Phase 18 planning
+- Privacy Policy and Support URLs must be hosted before submission — verify sundeefundee.com availability
+- Orphaned StoreKit products in App Store Connect must be disabled AFTER free binary is approved, not before
 
 ## Session Continuity
 
-### Last Session
-
-**Date:** 2026-04-08
-**Completed:** v1.0 milestone (Repo Cleanup) — 11 phases shipped
-**Next:** Define requirements for v1.1 Free App Launch
-
-### Current Context
-
-Working directory: `/Users/dustinober/Projects/sundee-fundee`
-Git status: Clean (main branch)
-
-### Commands to Resume
-
-```bash
-cat .planning/ROADMAP.md
-cat .planning/STATE.md
-/gsd-plan-phase 12
-```
+Last session: 2026-04-08
+Stopped at: v1.1 roadmap created, 8 phases defined, ready to plan Phase 12
+Resume file: None
 
 ---
 *State initialized: 2026-04-08 for v1.1 Free App Launch*
-*Last updated: 2026-04-08*
+*Last updated: 2026-04-08 after roadmap creation*
