@@ -30,7 +30,7 @@ Full details: [.planning/milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 
 **Milestone Goal:** Remove the paywall, polish the app, and ship to the App Store as a 100% free app.
 
-- [ ] **Phase 12: Unlock Features** -- Flip all subscription tier flags to unlocked, create FreeSubscriptionClient, swap App.swift entry point
+- [x] **Phase 12: Unlock Features** -- Flip all subscription tier flags to unlocked, create FreeSubscriptionClient, swap App.swift entry point (completed 2026-04-09)
 - [ ] **Phase 13: Remove Paywall UI** -- Strip all subscription gating UI from views and view models, delete Subscription/ directory
 - [ ] **Phase 14: Entitlements and Tests** -- Clean entitlements, update tests to verify always-unlocked behavior
 - [ ] **Phase 15: Fix Stubs and Guest Mode** -- Replace all placeholder implementations, verify guest mode works end-to-end
@@ -144,7 +144,7 @@ Phases execute in numeric order: 12 -> 13 -> 14 -> 15 -> 16 -> 17 -> 18 -> 19
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 12. Unlock Features | v1.1 | 0/2 | Planned | - |
+| 12. Unlock Features | v1.1 | 0/2 | Complete    | 2026-04-09 |
 | 13. Remove Paywall UI | v1.1 | 0/? | Not started | - |
 | 14. Entitlements and Tests | v1.1 | 0/? | Not started | - |
 | 15. Fix Stubs and Guest Mode | v1.1 | 0/? | Not started | - |
