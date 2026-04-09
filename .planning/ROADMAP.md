@@ -31,7 +31,7 @@ Full details: [.planning/milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 **Milestone Goal:** Remove the paywall, polish the app, and ship to the App Store as a 100% free app.
 
 - [x] **Phase 12: Unlock Features** -- Flip all subscription tier flags to unlocked, create FreeSubscriptionClient, swap App.swift entry point (completed 2026-04-09)
-- [ ] **Phase 13: Remove Paywall UI** -- Strip all subscription gating UI from views and view models, delete Subscription/ directory
+- [x] **Phase 13: Remove Paywall UI** -- Strip all subscription gating UI from views and view models, delete Subscription/ directory (completed 2026-04-09)
 - [ ] **Phase 14: Entitlements and Tests** -- Clean entitlements, update tests to verify always-unlocked behavior
 - [ ] **Phase 15: Fix Stubs and Guest Mode** -- Replace all placeholder implementations, verify guest mode works end-to-end
 - [ ] **Phase 16: Accessibility** -- VoiceOver labels, Dynamic Type, and color contrast across all views
@@ -68,8 +68,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 13-01-PLAN.md — Strip subscription UI from views and subscription-checking code from view models
-- [ ] 13-02-PLAN.md — Delete Subscription/ files, clean AuthViewModel and App.swift, verify build
+- [x] 13-01-PLAN.md — Strip subscription UI from views and subscription-checking code from view models
+- [x] 13-02-PLAN.md — Delete Subscription/ files, clean AuthViewModel and App.swift, verify build
 
 **UI hint**: yes
 
@@ -150,7 +150,7 @@ Phases execute in numeric order: 12 -> 13 -> 14 -> 15 -> 16 -> 17 -> 18 -> 19
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 12. Unlock Features | v1.1 | 0/2 | Complete    | 2026-04-09 |
-| 13. Remove Paywall UI | v1.1 | 0/2 | Not started | - |
+| 13. Remove Paywall UI | v1.1 | 2/2 | Complete    | 2026-04-09 |
 | 14. Entitlements and Tests | v1.1 | 0/? | Not started | - |
 | 15. Fix Stubs and Guest Mode | v1.1 | 0/? | Not started | - |
 | 16. Accessibility | v1.1 | 0/? | Not started | - |
