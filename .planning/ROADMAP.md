@@ -41,11 +41,13 @@ Plans:
 **Depends on**: Phase 1
 **Requirements**: ARCH-01
 **Success Criteria** (what must be TRUE):
-  1. Developer can download a zip archive containing all non-iOS directories (web-app/, firebase/, wod-dashboard/, backend/, scripts/, screenshots/, docs/, plans/, .agents/)
+  1. Developer can download a zip archive containing all non-iOS directories (web-app/, firebase/, backend/, scripts/, docs/, plans/, .agents/, plus hidden config dirs)
   2. Zip archive includes all root-level config files to be removed (firebase.json, firestore.indexes.json, wrangler.toml, root package.json, etc.)
   3. Zip archive is named with date and version for clear identification
   4. Archive location is documented in CLAUDE.md for future reference
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 02-01-PLAN.md -- Create zip archive of all non-iOS directories and root config files with completeness validation
 
 ### Phase 3: Directory Deletion
 
@@ -170,7 +172,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Pre-Cleanup Audit | 0/1 | Planning complete | - |
-| 2. Archive Creation | 0/4 | Not started | - |
+| 2. Archive Creation | 0/1 | Planning complete | - |
 | 3. Directory Deletion | 0/5 | Not started | - |
 | 4. Supporting Files Deletion | 0/5 | Not started | - |
 | 5. Root Config Cleanup | 0/5 | Not started | - |
