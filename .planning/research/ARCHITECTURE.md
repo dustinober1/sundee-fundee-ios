@@ -1,342 +1,413 @@
-# Architecture Patterns
+# Architecture: Paywall Removal and App Store Preparation
 
-**Domain:** iOS App (Swift Package + Xcode Project)
+**Domain:** iOS App -- removing StoreKit subscription gating and shipping free app
 **Researched:** 2026-04-08
+**Confidence:** HIGH (source code fully audited)
 
-## Recommended Architecture
-
-```
-sundee-fundee/
-├── SundeeFundee/                    # Swift Package (domain logic, data layer, auth, subscriptions)
-│   ├── Package.swift                # Package manifest
-│   ├── Sources/SundeeFundeeKit/     # All source code
-│   ├── Tests/SundeeFundeeKitTests/  # Test suite
-│   ├── README.md                    # Package-specific docs
-│   └── scripts/                     # Package-specific scripts
-├── SundeeFundeeApp/                 # Xcode project (app target, widgets, assets, entitlements)
-│   ├── project.yml                  # XcodeGen project definition
-│   ├── SundeeFundee.xcodeproj/      # Generated Xcode project
-│   ├── SundeeFundee/                # App target source
-│   ├── SundeeFundeeWidgets/         # Widget extension
-│   └── SundeeFundee.xcodeproj/      # Workspace with package reference
-├── .github/
-│   └── workflows/
-│       └── ci.yml                   # iOS CI (test, build)
-├── .gitignore                       # iOS-specific ignore patterns
-├── CLAUDE.md                        # AI assistant context
-├── README.md                        # Project documentation
-└── Logo.jpeg                        # App icon source
-```
-
-### Component Boundaries
-
-| Component | Responsibility | Communicates With |
-|-----------|---------------|-------------------|
-| **SundeeFundeeKit** (Swift Package) | Pure business logic, domain models, data layer, auth, subscriptions, HealthKit, CloudKit | Xcode targets via local package dependency |
-| **SundeeFundee** (App Target) | SwiftUI views, view models, app lifecycle, Live Activities | SundeeFundeeKit (imported) |
-| **SundeeFundeeWidgets** (Widget Extension) | Live Activity widget for workout tracking | SundeeFundeeKit (imported) |
-| **project.yml** (XcodeGen) | Declares local package reference `../SundeeFundee`, generates Xcode project | Reads Package.swift from sibling directory |
-
-### Data Flow
+## Current Architecture Overview
 
 ```
-User Interaction (SwiftUI)
-    ↓
-View Model (SundeeFundeeApp/)
-    ↓
-Domain Layer (SundeeFundeeKit/DomainLayer/)
-    ↓
-Data Layer (SundeeFundeeKit/DataLayer/)
-    ↓
-CloudKit / HealthKit / Keychain (SundeeFundeeKit/DataLayer/)
+SundeeFundeeApp/ (Xcode project)
+    App.swift -- bootstraps StoreKitClient into SubscriptionClientFactory
+        |
+SundeeFundee/ (Swift Package -- SundeeFundeeKit)
+    Subscription/       <-- Entire module to modify/remove
+        SubscriptionTier.swift         -- .free/.plus/.premium with capability flags
+        SubscriptionClientProtocol.swift -- async protocol for purchase/restore/check
+        StoreKitClient.swift           -- Actor wrapping StoreKit 2
+        SubscriptionClientFactory.swift -- Thread-safe singleton
+        MockSubscriptionClient.swift   -- Test mock
+        SubscriptionError.swift        -- Error types
+    UI/
+        Views/Dashboard/DashboardView.swift  -- upgradePrompts, subscriptionTier checks
+        Views/Settings/SettingsView.swift    -- SubscriptionView, SubscriptionViewModel, TierBadge
+        Views/Analytics/CycleCorrelationChart.swift -- upgradeCard, hasAccess gate
+        Views/Analytics/AnalyticsView.swift  -- hasCycleAccess gate
+        Views/Export/ExportView.swift        -- upgradeSection, canExport gate
+        Views/Insights/InsightsView.swift    -- Pro-gated (comment only, no runtime gate)
+        ViewModels/AnalyticsViewModel.swift  -- subscriptionTier, hasCycleAccess
+        ViewModels/ExportViewModel.swift     -- currentTier, canExport, showingSubscription
+        ViewModels/PainTrackingViewModel.swift -- tier.hasSmartSubstitutions gate
+        ViewModels/AuthViewModel.swift       -- StoreKitClient.identify/logout calls
+    DomainLayer/
+        Coach/CoachContext.swift -- tier field + CoachContextBuilder.loadSubscription()
 ```
 
-**Direction:** Unidirectional from UI → Domain → Data. Domain layer is pure Swift with no framework dependencies.
+## Paywall Gate Inventory
 
-## Patterns to Follow
+Every location in the codebase that checks subscription status to gate features.
 
-### Pattern 1: Local Swift Package Sibling Directory
+### Layer 1: SubscriptionTier Capability Flags (SubscriptionTier.swift)
 
-**What:** Swift Package in sibling directory to Xcode project, referenced via relative path in XcodeGen config.
+These computed properties return `true`/`false` based on tier. They are the authoritative feature gates.
 
-**When:** 
-- Separating reusable business logic from app-specific UI
-- Enabling independent testing of domain layer
-- Sharing code across multiple targets (app, widgets, tests)
+| Flag | Returns true for | Gated Feature |
+|------|-----------------|---------------|
+| `hasCustomBenchmarks` | .plus, .premium | Custom benchmark creation |
+| `hasPainTrends` | .plus, .premium | Pain/effort trend analysis |
+| `hasAdvancedInsights` | .plus, .premium | Cycle correlation chart, advanced analytics |
+| `hasAIBuilder` | .plus, .premium | AI workout generation |
+| `hasRecoveryAdjustments` | .plus, .premium | Pain-aware movement modifications |
+| `hasAdaptivePlanner` | .premium only | Adaptive weekly programming |
+| `hasCoachMemory` | .premium only | AI coach memory across sessions |
+| `hasSmartSubstitutions` | .premium only | Smart exercise substitutions |
+| `hasPlateauDetection` | .premium only | Plateau detection + recommendations |
+| `hasPreferenceLearning` | .premium only | Preference learning from edits/swaps |
+| `hasWeeklyRecap` | .premium only | Weekly recap + next-week recommendations |
+| `hasExportShare` | .premium only | Data export/share |
+| `maxLifts` | nil for .plus/.premium | Max lifts tracked (5 for free) |
+| `maxInjuries` | nil for .plus/.premium | Max injury profiles (1 for free) |
+| `maxHistoryDays` | nil for .plus/.premium | History retention (30 days for free) |
+| `dailyAIGenerations` | 0 free, 3 plus, 10 premium | AI generations per day |
 
-**Example:**
-```yaml
-# SundeeFundeeApp/project.yml
-packages:
-  SundeeFundeeKit:
-    path: ../SundeeFundee  # Sibling directory reference
+### Layer 2: ViewModel Subscription Checks
 
-targets:
-  SundeeFundee:
-    dependencies:
-      - package: SundeeFundeeKit  # Import domain layer
-```
+These view models call `subscriptionClient.getSubscriptionInfo()` and store tier state.
 
-**Why:** Clean separation between framework-agnostic business logic and iOS-specific UI code. Package can be tested independently with `swift test`.
+| File | Property/Method | Gate Logic |
+|------|----------------|------------|
+| `DashboardViewModel` (in DashboardView.swift:487-656) | `subscriptionTier`, `canGenerateAIWorkout` | `tier.hasAIBuilder`, `tier.hasCoachMemory` |
+| `AnalyticsViewModel` | `subscriptionTier`, `hasCycleAccess` | `tier.hasAdvancedInsights` controls `cycleData` computation |
+| `ExportViewModel` | `currentTier`, `canExport` | `tier.hasExportShare` |
+| `PainTrackingViewModel` | Inline check in `loadSubstitutionSuggestions()` | `tier.hasSmartSubstitutions` |
+| `SettingsViewModel` | `currentTier`, `showingSubscription` | Loads tier for UI display, manages subscription sheet |
+| `CoachContextBuilder` | `loadSubscription()` | Fetches tier and passes into `CoachContext.tier` |
 
-### Pattern 2: XcodeGen with project.yml
+### Layer 3: UI Views with Paywall/Upgrade UX
 
-**What:** Generate Xcode project from YAML config instead of manual `.pbxproj` editing.
+These views render upgrade cards, lock icons, or subscription sheets.
 
-**When:** 
-- Working with teams (avoid merge conflicts in `.pbxproj`)
-- Need reproducible project generation
-- Managing multiple targets with complex dependencies
+| File | Element | Behavior |
+|------|---------|----------|
+| `DashboardView.swift:369-440` | `upgradePrompts` + `lockedFeatureCard` | Shows "Unlock with Plus" for free users, "Unlock with Pro" for free/plus users |
+| `DashboardView.swift:321-367` | `coachingInsightsCard` | Only renders if `tier == .premium` |
+| `CycleCorrelationChart.swift:48-79` | `upgradeCard` | Lock icon + "Unlock with Plus" CTA when `!hasAccess` |
+| `ExportView.swift:43-76` | `upgradeSection` | Lock icon + "Upgrade to Pro" when `!canExport` |
+| `SettingsView.swift:312-410` | `SubscriptionView` | Full subscription management UI with tier cards, purchase, restore |
+| `SettingsView.swift:645-668` | `TierBadge` | Visual badge showing current tier |
 
-**Example:**
-```bash
-# Install XcodeGen
-brew install xcodegen
+### Layer 4: App Entry Point (StoreKit Bootstrap)
 
-# Generate project
-cd SundeeFundeeApp
-xcodegen generate
-```
+| File | Code | Purpose |
+|------|------|---------|
+| `App.swift:12-17` | `StoreKitClient()` creation, `SubscriptionClientFactory.shared.client` assignment | Initializes StoreKit for entire app |
+| `AuthViewModel.swift:88-89` | `SubscriptionClientFactory.shared.client as? StoreKitClient` + `identify()` | Associates user with subscription tracking |
+| `AuthViewModel.swift:164-165` | `subscriptionClient.logout()` on sign-out | Clears subscription identity |
+| `AuthViewModel.swift:200-201` | `subscriptionClient.identify()` on session restore | Re-associates user after app restart |
 
-**Why:** Declarative project configuration, easier to maintain, git-friendly. Changes to `project.yml` are readable; changes to `.pbxproj` are opaque.
+### Layer 5: Domain Layer
 
-### Pattern 3: Protocol-Based Data Layer
+| File | Code | Purpose |
+|------|------|---------|
+| `CoachContext.swift:27` | `tier: SubscriptionTier` field | Tier passed into coach context |
+| `CoachContext.swift:209-215` | `loadSubscription()` async method | Fetches tier from subscription client |
 
-**What:** Data layer defined as protocols (e.g., `CloudKitRepository`, `HealthKitClient`), implemented with actors for concurrency.
+## Recommended Architecture Changes
 
-**When:**
-- Need to swap implementations for testing
-- Accessing external services (CloudKit, HealthKit, Keychain)
-- Requires async/await concurrency
+### Strategy: Tier Flag Flip (Not File Deletion)
 
-**Example:**
+The safest, most incremental approach is to flip all capability flags to `true` while preserving the module structure. This avoids cascading build failures from removing types that ViewModels still reference.
+
+**Why not delete the Subscription module outright:**
+- `SubscriptionTier` enum is referenced in 15+ files across Domain, UI, and Tests
+- `SubscriptionClientProtocol` is injected into 6 view models via constructors
+- `CoachContext` stores a `SubscriptionTier` value
+- Removing the module means touching 20+ files simultaneously with high regression risk
+
+**Why flipping flags is better:**
+- Single file change (`SubscriptionTier.swift`) unlocks all features
+- View models still load subscription info (no broken references)
+- Tests still compile and pass (just need expectation updates)
+- Can be done in one commit, verified in one build
+
+### Phase 1: Remove Feature Gating (Core Change)
+
+**File: `SubscriptionTier.swift`**
+
+Change all capability flags to return `true` and remove limits:
+
 ```swift
-// Protocol
-protocol WorkoutRepository {
-    func fetchWorkouts() async throws -> [Workout]
-    func saveWorkout(_ workout: Workout) async throws
-}
+// BEFORE (current)
+public var hasCustomBenchmarks: Bool { self != .free }
+public var maxLifts: Int? { switch self { case .free: return 5 ... } }
 
-// Implementation
-actor CloudKitWorkoutRepository: WorkoutRepository {
-    func fetchWorkouts() async throws -> [Workout] {
-        // CloudKit fetch logic
-    }
-}
+// AFTER (free app -- all features unlocked)
+public var hasCustomBenchmarks: Bool { true }
+public var maxLifts: Int? { nil }  // unlimited for all
 ```
 
-**Why:** Testability (mock protocols), Swift 6 concurrency safety (actors), clear contracts between layers.
+Every flag and limit in `SubscriptionTier` changes:
+- `hasCustomBenchmarks` -> `true`
+- `hasPainTrends` -> `true`
+- `hasAdvancedInsights` -> `true`
+- `hasAIBuilder` -> `true`
+- `hasRecoveryAdjustments` -> `true`
+- `hasAdaptivePlanner` -> `true`
+- `hasCoachMemory` -> `true`
+- `hasSmartSubstitutions` -> `true`
+- `hasPlateauDetection` -> `true`
+- `hasPreferenceLearning` -> `true`
+- `hasWeeklyRecap` -> `true`
+- `hasExportShare` -> `true`
+- `maxLifts` -> `nil`
+- `maxInjuries` -> `nil`
+- `maxHistoryDays` -> `nil`
+- `dailyAIGenerations` -> `Int.max` (or a very high number)
 
-### Pattern 4: SwiftUI + Combine View Models
+**File: `SubscriptionInfo.swift` (in SubscriptionTier.swift)**
 
-**What:** Views observe `@ObservableObject` view models via `@StateObject`. View models use Combine publishers for state.
-
-**When:** 
-- Building reactive UI
-- Need to separate view logic from business logic
-- Managing complex app state
-
-**Example:**
 ```swift
-// ViewModel
-@Observable
-final class DashboardViewModel {
-    var workouts: [Workout] = []
-    private let repository: WorkoutRepository
-    
-    func loadWorkouts() async {
-        workouts = try? await repository.fetchWorkouts()
-    }
-}
+// BEFORE
+public var hasAccess: Bool { status.hasAccess && tier != .free }
 
-// View
-struct DashboardView: View {
-    @State private var viewModel = DashboardViewModel()
-    
-    var body: some View {
-        List(viewModel.workouts) { workout in
-            Text(workout.name)
-        }
-        .task {
-            await viewModel.loadWorkouts()
-        }
+// AFTER (free app -- always has access)
+public var hasAccess: Bool { true }
+```
+
+### Phase 2: Remove Paywall UI
+
+**Files to modify (not delete):**
+
+| File | Change |
+|------|--------|
+| `DashboardView.swift` | Remove `upgradePrompts` view builder (lines 369-440). Remove `lockedFeatureCard` helper. Remove `showingSubscription` state. Remove `.sheet` for SubscriptionView. Change `coachingInsightsCard` to show for all users (remove `== .premium` check). Remove `canGenerateAIWorkout` gate or always set to `true`. |
+| `CycleCorrelationChart.swift` | Remove `hasAccess` parameter. Remove `upgradeCard` view builder. Remove `showingSubscription` state and `.sheet`. Always show chart data (never show lock icon). |
+| `ExportView.swift` | Remove `upgradeSection` view builder. Remove `canExport` conditional in body. Remove `showingSubscription` state and `.sheet`. Always show export flow. |
+| `SettingsView.swift` | Remove entire `SubscriptionView` struct (lines 312-410). Remove `SubscriptionViewModel` class (lines 496-542). Remove `TierBadge` struct (lines 645-668). Remove `showingSubscription` from `SettingsViewModel`. Remove membership/subscription section from settings UI. Remove "Restore Purchases" button. |
+| `AnalyticsView.swift` | Remove `showingSubscription` state (unused if CycleCorrelationChart no longer needs it). |
+
+### Phase 3: Simplify Subscription Infrastructure
+
+**Option A (Recommended): Stub the protocol, keep the module**
+
+Keep `SubscriptionClientProtocol` and `MockSubscriptionClient` for test injection, but replace `StoreKitClient` with a simple stub that always returns premium access.
+
+**New file: `FreeSubscriptionClient.swift`**
+
+```swift
+/// Client for the free app -- always returns full access.
+public actor FreeSubscriptionClient: SubscriptionClientProtocol {
+    public init() {}
+
+    public var currentSubscription: SubscriptionInfo? {
+        SubscriptionInfo(tier: .premium, status: .active)
     }
+
+    public func getSubscriptionInfo() async throws -> SubscriptionInfo {
+        SubscriptionInfo(tier: .premium, status: .active)
+    }
+
+    public func purchase(tier: SubscriptionTier) async throws -> SubscriptionInfo {
+        throw SubscriptionError.productUnavailable(productId: tier.rawValue)
+    }
+
+    public func restorePurchases() async throws -> SubscriptionInfo {
+        SubscriptionInfo(tier: .premium, status: .active)
+    }
+
+    public func presentManageSubscriptions() async throws { /* no-op */ }
+    public func isTierAvailable(_ tier: SubscriptionTier) async -> Bool { false }
+    public func getPrice(for tier: SubscriptionTier) async -> String? { nil }
 }
 ```
 
-**Why:** Unidirectional data flow, testable view models, automatic UI updates.
+**Option B (Later cleanup): Delete the module entirely**
 
-## Anti-Patterns to Avoid
+This is a larger refactor that removes `StoreKitClient.swift`, `SubscriptionError.swift`, and the `StoreKit` import entirely. Only do this after Phase 1-3 are verified stable.
 
-### Anti-Pattern 1: Business Logic in Views
+### Phase 4: App Entry Point Changes
 
-**What:** Embedding calculations, data transformations, or business rules directly in SwiftUI views.
+**File: `SundeeFundeeApp/SundeeFundee/App.swift`**
 
-**Why bad:** 
-- Untestable (can't unit test views easily)
-- Unreusable (logic locked to UI)
-- Hard to debug (mix of view and logic concerns)
+```swift
+// BEFORE
+init() {
+    let storeKitClient = StoreKitClient()
+    SubscriptionClientFactory.shared.client = storeKitClient
+    Task { await storeKitClient.startTransactionListener() }
+}
 
-**Instead:** Move all business logic to `SundeeFundeeKit/DomainLayer/`. Views should only handle presentation and user interaction.
-
-### Anti-Pattern 2: Direct CloudKit/HealthKit in Views
-
-**What:** Importing `CloudKit` or `HealthKit` directly in SwiftUI views.
-
-**Why bad:**
-- Tight coupling to Apple frameworks
-- Impossible to test (need real device + permissions)
-- Violates dependency inversion
-
-**Instead:** Use protocol-based repository pattern in `SundeeFundeeKit/DataLayer/`. Inject mock implementations for testing.
-
-### Anti-Pattern 3: Ignoring Swift 6 Concurrency
-
-**What:** Using `@MainActor` everywhere, ignoring data races, or marking everything as nonisolated.
-
-**Why bad:** 
-- Runtime crashes from data races
-- Defeats purpose of Swift 6 concurrency safety
-- Hard to debug intermittent issues
-
-**Instead:** Use actors for data isolation, strict concurrency checking in Xcode build settings (`SWIFT_STRICT_CONCURRENCY = complete`).
-
-### Anti-Pattern 4: Manual .pbxproj Editing
-
-**What:** Directly editing `SundeeFundee.xcodeproj/project.pbxproj` to add files or targets.
-
-**Why bad:**
-- High risk of merge conflicts
-- Fragile (easy to corrupt project)
-- Hard to review changes
-
-**Instead:** Edit `project.yml` and regenerate with `xcodegen generate`. Commit YAML changes, not `.pbxproj`.
-
-## Scalability Considerations
-
-| Concern | At 1K Users | At 100K Users | At 1M Users |
-|---------|------------|---------------|-------------|
-| **CloudKit Database** | Private database sufficient | Private database + CloudKit schema optimization | Consider CloudKit web service for bulk operations |
-| **App Size** | Current size fine | Optimize assets, consider on-demand resources | Bitcode, thining, asset catalogs |
-| **Build Time** | Full build acceptable | Use build phases, precompiled frameworks | Parallelize targets, use Xcode build system optimizations |
-| **Testing** | Unit tests + manual QA | Add XCUITest suite | Automated testing pipeline, TestFlight beta groups |
-| **Crash Reporting** | macOS Console | Firebase Crashlytics | Custom analytics, performance monitoring |
-
-### Build Order Considerations
-
-1. **Swift Package first** (`SundeeFundee/`) — must build before app can link it
-2. **App target** (`SundeeFundee/`) — depends on package
-3. **Widget extension** (`SundeeFundeeWidgets/`) — depends on package
-4. **Tests** (`SundeeFundeeKitTests/`) — run in parallel with app build
-
-**Xcode workspace handles this automatically**. Package dependency declared in `project.yml` ensures correct build order.
-
-### Root-Level Files After Cleanup
-
-| File | Purpose | Why Keep? |
-|------|---------|-----------|
-| `README.md` | Project overview, setup, stack | Entry point for developers |
-| `CLAUDE.md` | AI assistant context | Improves AI code assistance |
-| `.gitignore` | Ignore patterns | iOS-specific ignore (Xcode user data, derived data) |
-| `.github/workflows/ci.yml` | CI/CD pipeline | Run tests on push/PR, catch issues early |
-| `Logo.jpeg` | App icon source | Asset generation for multiple sizes |
-
-**Files to remove:** `package.json`, `package-lock.json`, `wrangler.toml`, `firebase.json`, `firestore.indexes.json`, `opencode.json`, `skills-lock.json`, `.mcp.json`, `AGENTS.md`, `backlog.md`, `teenybase.ts`.
-
-## Documentation Strategy
-
-### Current State
-- `readme.md` — outdated, describes web app stack (Next.js, Cloudflare, etc.)
-- `docs/` — mixed web/iOS content
-- `CLAUDE.md` — comprehensive but includes web app references
-
-### Target State (iOS-Only)
-- `README.md` — iOS app overview, setup, stack (Swift, SwiftUI, CloudKit)
-- `CLAUDE.md` — iOS-only context (no web app, Firebase, Stripe)
-- `docs/` — iOS-specific docs (App Store screenshots, TODO, superpowers)
-- `SundeeFundee/README.md` — Swift Package-specific docs (already exists)
-- Optional: `ARCHITECTURE.md` (this file) for deeper architectural decisions
-
-**Key:** Keep documentation close to code. Package docs in package dir. App docs in repo root or `docs/`.
-
-## Build System
-
-### Current Setup
-- **XcodeGen**: `project.yml` defines targets, dependencies, bundle IDs
-- **Local Package**: Referenced as `../SundeeFundee` in `project.yml`
-- **Generated Project**: `SundeeFundee.xcodeproj/` (regenerate after `project.yml` changes)
-
-### Build Commands
-```bash
-# Regenerate Xcode project (after project.yml changes)
-cd SundeeFundeeApp
-xcodegen generate
-
-# Build app
-xcodebuild -project SundeeFundee.xcodeproj -scheme SundeeFundee -configuration Release
-
-# Build Swift Package standalone
-cd ../SundeeFundee
-swift build
-
-# Run Swift Package tests
-swift test
-
-# Run Xcode tests
-xcodebuild test -project SundeeFundee.xcodeproj -scheme SundeeFundee
+// AFTER
+init() {
+    SubscriptionClientFactory.shared.client = FreeSubscriptionClient()
+}
 ```
 
-### CI/CD Pipeline
-`.github/workflows/ci.yml` should:
-1. Install dependencies (Swift, Xcode)
-2. Run Swift Package tests (`cd SundeeFundee && swift test`)
-3. Run Xcode tests (`xcodebuild test`)
-4. Build app (`xcodebuild build`)
-5. Archive for TestFlight (optional, on main branch)
+Remove `StoreKitClient` import/creation. No transaction listener needed.
 
-**Replace web-app CI** (Node, npm, ESLint, Vitest) with iOS CI (Swift, Xcode, xcodebuild, XCTest).
+**File: `AuthViewModel.swift`**
+
+Remove three `StoreKitClient` identify/logout calls (lines 88-89, 164-165, 200-201). The `FreeSubscriptionClient` has no user identity to manage.
+
+### Phase 5: Entitlements Cleanup
+
+**File: `SundeeFundee.entitlements`**
+
+Remove the `com.apple.developer.in-app-payments` entry:
+```xml
+<!-- REMOVE THIS -->
+<key>com.apple.developer.in-app-payments</key>
+<array>
+    <string>merchant.com.sundeefundee.app</string>
+</array>
+```
+
+Keep all other entitlements (Apple Sign-In, HealthKit, CloudKit) -- they are still needed.
+
+### Phase 6: Test Updates
+
+**File: `AnalyticsViewModelTests.swift`**
+
+Tests that check `tier == .free` expecting `hasCycleAccess == false` need updating:
+
+| Test | Current Expectation | New Expectation |
+|------|-------------------|-----------------|
+| `testFreeTierNoCycleAccess` | `hasCycleAccess == false`, `cycleData.isEmpty` | `hasCycleAccess == true`, cycle data populated |
+| `testCycleGatingOnTimeRangeChange` | `cycleData.isEmpty` after range change | `cycleData` populated (no longer gated) |
+| `testPlusTierHasCycleAccess` | Verifies plus tier gets cycle data | Still passes (plus still works) |
+| `testPremiumTierHasCycleAccess` | Verifies premium tier gets cycle data | Still passes |
+
+Strategy: These tests currently pass `tier: .free` to `MockSubscriptionClient`. Since the flag change is in `SubscriptionTier`, the mock setup stays the same, but `hasAdvancedInsights` now returns `true` for `.free`. Tests verifying gating need to be updated to verify feature availability instead.
+
+### Phase 7: App Store Preparation
+
+**Files that need attention for App Store submission:**
+
+| File/Area | Change | Reason |
+|-----------|--------|--------|
+| `PrivacyInfo.xcprivacy` | Review -- currently declares Health, Fitness, UserID data collection | App Store privacy labels must match. Since no purchase data is collected, no changes needed for subscription removal. |
+| `project.yml` | `MARKETING_VERSION` bump to `1.1.0`, `CURRENT_PROJECT_VERSION` bump | Version for new submission |
+| `Info.plist` | Ensure `NSHealthShareUsageDescription` and `NSHealthUpdateUsageDescription` are present | HealthKit permissions text for review |
+| App Store Connect metadata | Set `isFree` = true, remove subscription products | App is now free with no IAP |
+| App Store Connect metadata | Remove any subscription-related screenshots or marketing text | Store listing must not reference paid tiers |
+| `SundeeFundee.entitlements` | Remove `com.apple.developer.in-app-payments` | No longer processing payments |
+
+## Component Change Matrix
+
+Summary of every file touched, categorized by change type.
+
+### MODIFY (feature unlock)
+
+| File | Change Type | Risk |
+|------|-------------|------|
+| `SubscriptionTier.swift` | Flip all flags to true/unlimited | LOW -- single source of truth |
+| `SubscriptionInfo.hasAccess` | Return `true` always | LOW |
+
+### MODIFY (UI cleanup)
+
+| File | Change Type | Risk |
+|------|-------------|------|
+| `DashboardView.swift` | Remove upgrade prompts, unlock coaching card | MEDIUM -- substantial UI change |
+| `CycleCorrelationChart.swift` | Remove upgrade card, always show chart | LOW -- small view |
+| `ExportView.swift` | Remove upgrade section, always show export | LOW -- small view |
+| `AnalyticsView.swift` | Remove unused subscription state | LOW -- minor |
+| `SettingsView.swift` | Remove subscription section, ViewModel, TierBadge | MEDIUM -- multiple removals |
+
+### MODIFY (infrastructure)
+
+| File | Change Type | Risk |
+|------|-------------|------|
+| `App.swift` | Replace StoreKitClient with FreeSubscriptionClient | MEDIUM -- app bootstrap |
+| `AuthViewModel.swift` | Remove StoreKit identify/logout calls | LOW -- 3 lines removed |
+| `SundeeFundee.entitlements` | Remove in-app-payments | LOW -- config only |
+
+### CREATE
+
+| File | Change Type | Risk |
+|------|-------------|------|
+| `FreeSubscriptionClient.swift` | New stub client | LOW -- simple implementation |
+
+### POTENTIALLY DELETE (after Phase 3 verified)
+
+| File | Change Type | Risk |
+|------|-------------|------|
+| `StoreKitClient.swift` | Delete entirely | MEDIUM -- verify no other references |
+| `SubscriptionError.swift` | Delete entirely | LOW -- only used by StoreKitClient |
+| `StoreKitConfiguration.storekit` | Delete (does not exist yet) | N/A |
+
+### UPDATE (tests)
+
+| File | Change Type | Risk |
+|------|-------------|------|
+| `AnalyticsViewModelTests.swift` | Update expectations for unlocked features | LOW |
+
+## Build Order (Dependency-Aware)
+
+This order respects that changes in `SubscriptionTier` cascade to all consumers.
+
+```
+1. SubscriptionTier.swift          (foundation -- all flags flip here)
+   |
+2. FreeSubscriptionClient.swift    (new file, depends on SubscriptionClientProtocol)
+   |
+3. App.swift                       (swap StoreKitClient -> FreeSubscriptionClient)
+   AuthViewModel.swift             (remove StoreKit identify/logout)
+   |
+4. DashboardView.swift             (remove upgrade UI)
+   CycleCorrelationChart.swift     (remove upgrade card)
+   ExportView.swift                 (remove upgrade section)
+   AnalyticsView.swift              (minor cleanup)
+   SettingsView.swift               (remove subscription UI)
+   |
+5. SundeeFundee.entitlements       (remove in-app-payments)
+   |
+6. Tests                           (update expectations)
+   |
+7. Build & Verify                  (full test run + manual verification)
+```
+
+Steps 1-3 can be committed together as one atomic "remove paywall" change. Steps 4-5 are UI/config cleanup that can follow. Step 6 validates.
+
+## Data Flow After Changes
+
+```
+Before (current):
+  App.swift -> StoreKitClient -> SubscriptionClientFactory
+  ViewModel -> subscriptionClient.getSubscriptionInfo() -> SubscriptionInfo(tier: .free/.plus/.premium)
+  ViewModel -> tier.hasFeature -> Bool (gated)
+  View -> if !hasAccess { upgradeCard } else { feature }
+
+After (free app):
+  App.swift -> FreeSubscriptionClient -> SubscriptionClientFactory
+  ViewModel -> subscriptionClient.getSubscriptionInfo() -> SubscriptionInfo(tier: .premium)
+  ViewModel -> tier.hasFeature -> always true (flags flipped)
+  View -> feature always shown (no upgradeCard code paths remain)
+```
+
+The key insight: `SubscriptionTier.premium` becomes the universal default. Every user gets premium-tier access. The protocol-based architecture means this swap is a one-line change in `App.swift`.
+
+## What Stays Unchanged
+
+These components remain exactly as-is:
+
+- **Data Layer** (`DataClientProtocol`, `CloudKitClient`, `LocalDataClient`, `SyncQueue`) -- no subscription dependency
+- **Domain Layer** (`Cycle/`, `Injury/`, `Benchmark/`, `AIWorkout/`, `Program/`, `Analytics/`, `Celebration/`) -- pure logic, no tier checks
+- **Auth** (`AuthViewModel`, Apple Sign-In, Keychain) -- only the StoreKit identify calls change
+- **HealthKit** (`HealthClientProtocol`, `HealthClientFactory`) -- no subscription dependency
+- **Coach Domain** (`CoachServiceProtocol`, `CoachServiceFactory`) -- the tier field in CoachContext becomes `.premium` for all users
+- **MockSubscriptionClient** -- still useful for tests
+- **SubscriptionClientProtocol** -- still useful as the protocol FreeSubscriptionClient conforms to
+- **SubscriptionClientFactory** -- still the central lookup for subscription client
+
+## App Store Submission Checklist
+
+Architecture-adjacent items for App Store readiness:
+
+| Item | Status | Action Needed |
+|------|--------|---------------|
+| Privacy manifest (`PrivacyInfo.xcprivacy`) | EXISTS | Review -- health data collection declared, no purchase data. Valid for free app. |
+| Entitlements | EXISTS | Remove `com.apple.developer.in-app-payments`. Keep HealthKit, CloudKit, Apple Sign-In. |
+| `UIRequiredDeviceCapabilities` | Need to verify | Must be `arm64`, not `armv7` per CLAUDE.md |
+| Code signing | `CODE_SIGN_STYLE: Automatic` | Correct -- no change needed |
+| App icon | Need 1024x1024 universal | Verify in asset catalog |
+| Subscription products in App Store Connect | Need to remove | Delete `sundee_plus_monthly`, `sundee_plus_annual`, `sundee_premium_monthly`, `sundee_premium_annual` |
+| StoreKit configuration file | DOES NOT EXIST | Good -- nothing to clean up |
+| Test email overrides | In `StoreKitClient.swift` DEBUG only | Will be removed when StoreKitClient is deleted |
 
 ## Sources
 
-### HIGH Confidence (Official Documentation)
-- **Swift Package Manager**: [swift.org/package-manager](https://swift.org/package-manager/) — Official SPM documentation
-- **XcodeGen**: [github.com/yonaskolb/XcodeGen](https://github.com/yonaskolb/XcodeGen) — Project specification format
-- **Swift 6 Concurrency**: [swift.org/blog/concurrency](https://swift.org/blog/concurrency) — Actor isolation, data races
-
-### MEDIUM Confidence (Established Patterns)
-- **Protocol-Oriented Programming**: WWDC sessions "Protocol-Oriented Programming in Swift" (2015+)
-- **SwiftUI + Combine**: SwiftUI documentation, Combine framework reference
-- **Xcode Project Structure**: Standard iOS app organization patterns
-
-### LOW Confidence (Needs Validation)
-- **Specific CI/CD workflows**: Need to research iOS CI best practices (GitHub Actions for macOS, TestFlight automation)
-- **App Store release automation**: Fastlane vs. Xcode Cloud vs. custom scripts
-- **Crash reporting/analytics**: Firebase Crashlytics vs. Sentry vs. custom solutions
-
-### Gaps Identified
-1. **CI/CD for iOS**: Research GitHub Actions for macOS, TestFlight beta automation
-2. **App Store screenshots**: Current workflow uses Python scripts — validate this is best practice
-3. **Widget extension testing**: How to unit test Live Activity widgets
-4. **CloudKit testing**: Best practices for mocking CloudKit in unit tests
-5. **Performance monitoring**: Tools for tracking app performance in production
-
-## Recommendations
-
-### Immediate (Cleanup Phase)
-1. Keep `SundeeFundee/` and `SundeeFundeeApp/` structure as-is — it's already well-organized
-2. Remove all web/backend/config files from root
-3. Update `README.md` to describe iOS stack only
-4. Rewrite `.github/workflows/ci.yml` for iOS (remove Node/npm steps)
-5. Clean `.gitignore` to remove Node/Firebase/wrangler entries
-
-### Short-Term (Post-Cleanup)
-1. Add `ARCHITECTURE.md` to `docs/` for deeper architectural decisions
-2. Separate `docs/screenshots/` into App Store assets vs. internal screenshots
-3. Consider `CONTRIBUTING.md` for Swift/SwiftUI coding standards
-4. Add `scripts/` for common tasks (build, test, archive, screenshots)
-
-### Long-Term (Enhancement)
-1. Evaluate Fastlane for App Store automation (screenshots, TestFlight, release)
-2. Add performance monitoring (Firebase Performance, Sentry, or custom)
-3. Implement CI for screenshots (ensure no visual regressions)
-4. Add integration tests for CloudKit/HealthKit interactions
+- Full source code audit of SundeeFundee/ and SundeeFundeeApp/ directories
+- All 6 files in `Subscription/` module read and analyzed
+- All paywall UI views traced through view model dependency injection
+- Entitlements and privacy manifest reviewed
+- App entry point bootstrap flow verified

@@ -1,163 +1,158 @@
 # Project Research Summary
 
-**Project:** Sundee Fundee (iOS-only repo transition)
-**Domain:** iOS app repository cleanup (multi-platform → iOS-only)
+**Project:** Sundee Fundee v1.1 Free App Launch
+**Domain:** iOS app -- removing StoreKit paywall and submitting free app to App Store
 **Researched:** 2026-04-08
-**Confidence:** MEDIUM
+**Confidence:** HIGH
 
 ## Executive Summary
 
-Sundee Fundee is transitioning from a multi-platform codebase (Next.js web app + Firebase + iOS) to an iOS-only repository. The iOS app is a native Swift/SwiftUI application using CloudKit for persistence, StoreKit 2 for subscriptions, and HealthKit for workout data. The research reveals this is a straightforward repository cleanup project with well-established iOS patterns. The recommended approach is to archive the existing multi-platform state, remove all web/backend directories and configuration, and consolidate around the existing SundeeFundeeKit Swift Package and SundeeFundeeApp Xcode project.
+Sundee Fundee is a native iOS cycle-aware strength training app built with SwiftUI and Swift 6. The v1.1 milestone is a **reduction milestone**: removing the entire StoreKit 2 subscription layer and shipping a 100% free app to the App Store. No new frameworks, libraries, or SaaS tools are needed. The work is purely removal and simplification of existing code, followed by App Store submission.
 
-The key risk is cross-reference blindness: iOS code or documentation may reference deleted files through imports, configuration, or documentation. Prevention requires a comprehensive dependency audit before deletion, tagging the pre-cleanup state in git, and updating all documentation in the same commit as deletions. The research indicates this is a low-complexity cleanup with HIGH confidence on the iOS stack (Swift 6, SwiftUI, CloudKit are all standard 2025-2026 technologies) but MEDIUM confidence on repository transition patterns, as authoritative sources on platform retirement were sparse.
+The recommended approach is a **protocol-replacement strategy**: keep `SubscriptionClientProtocol` and `SubscriptionClientFactory` intact, flip all `SubscriptionTier` capability flags to return `true`, swap `StoreKitClient` for a new `FreeSubscriptionClient` in the app entry point, and then surgically remove all paywall UI (upgrade prompts, lock icons, subscription sheets). This minimizes blast radius -- the protocol/factory pattern is used in 7+ view models and 21 files total, so replacing the implementation rather than deleting the abstraction layer avoids touching every consumer simultaneously.
+
+The key risks are (1) incomplete feature unlock leaving dead gates in the app, (2) orphaned StoreKit configuration in App Store Connect causing review rejection, (3) placeholder or stub code triggering Guideline 2.1 rejections, and (4) privacy nutrition label mismatches between the binary manifest and App Store Connect. All are preventable with systematic grep-based auditing and a manual QA pass before submission.
 
 ## Key Findings
 
 ### Recommended Stack
 
-The iOS codebase already follows modern best practices. Swift 6 with complete concurrency checking is the current stable release (2024) and critical for apps with heavy async operations (CloudKit sync, HealthKit queries). SwiftUI + iOS 18 provides native declarative UI with preview support, perfect for apps with custom design systems. Swift Package Manager separates domain logic from app target, enabling independent testing. CloudKit provides native Apple sync with no backend costs, while StoreKit 2 offers modern async/await APIs for subscriptions.
+No new technologies are needed. The core stack (Swift 6, SwiftUI, CloudKit, HealthKit, Keychain, WidgetKit, XcodeGen) remains unchanged. The single stack change is **removing StoreKit 2** and its entitlements. App Store submission uses tools already configured in the project: Blitz MCP for build/upload/form-filling, `asc` CLI for API operations, and `blitz-iphone` for simulator screenshots.
 
 **Core technologies:**
-- **Swift 6** — Core language with complete concurrency checking, prevents data races in CloudKit/HealthKit actors
-- **SwiftUI (iOS 18+)** — Native declarative UI, preview support, fits custom Art Deco design system
-- **Swift Package Manager** — Modern dependency management, separates SundeeFundeeKit from app target
-- **CloudKit** — Native Apple sync, no backend costs, offline-first architecture
-- **StoreKit 2** — Modern async/await API for subscriptions, better than StoreKit 1
-- **XcodeGen** — Generate Xcode project from YAML, avoid merge conflicts in .pbxproj
+- **FreeSubscriptionClient (NEW):** Actor-based stub conforming to `SubscriptionClientProtocol` -- returns full access for all subscription checks. One new file.
+- **SubscriptionTier (MODIFIED):** All 12 capability flags return `true`, all 4 quantitative limits return `nil`/unlimited. Central gatekeeper change.
+- **Blitz MCP + asc CLI (EXISTING):** Handles build, upload, metadata fill, screenshot capture, and submission. Already configured.
 
 ### Expected Features
 
-**Must have (table stakes):**
-- **README.md** — First thing developers see; explains project overview, setup, features
-- **.gitignore** — Prevents committing Xcode build artifacts (DerivedData/, *.xcuserstate)
-- **LICENSE file** — Apache 2.0 or MIT for open source; clarifies usage rights
-- **PrivacyInfo.xcprivacy** — Required by Apple for App Store submission; declares API usage
-- **Unit tests (XCTest)** — Confidence code works; expected for any serious iOS project
-- **.swift-format** — Consistent code formatting; reduces bike-shedding in PRs
+This milestone has no new user-facing features. The work is entirely about **unlocking existing features** and **removing barriers**.
 
-**Should have (competitive):**
-- **Swift Package structure (SundeeFundeeKit)** — Clean separation: reusable logic vs app target; easier testing
-- **Live Activity widget** — Dynamic Island/lock screen integration during workouts; modern iOS feature
-- **StoreKit 2 subscriptions** — Native iOS subscriptions (Free/Plus/Premium tiers); modern, type-safe API
-- **CloudKit integration** — Native Apple sync; no backend needed; offline-first architecture
-- **HealthKit integration** — Reads/writes health data; integrates with Apple Health ecosystem
-- **Domain-driven design** — Pure business logic separate from UI; testable, framework-agnostic
+**Must have (table stakes for free app launch):**
+- Remove all subscription UI (upgrade prompts, lock icons, tier badges, subscription sheets) -- 7 view files affected
+- Remove StoreKit 2 code layer -- 6 files in Subscription/ directory, plus references in 15+ other files
+- Unlock all gated features unconditionally -- 12 capability flags and 4 quantitative limits
+- App Store metadata (title, subtitle, description, keywords, screenshots, age rating, privacy policy URL, support URL)
+- Privacy manifest verification (PrivacyInfo.xcprivacy)
+- QA pass verifying all features work in guest mode and signed-in mode
 
-**Defer (v2+):**
-- **Full API documentation (Jazzy)** — Overkill for single-developer app; use inline code comments
-- **Performance benchmarks** — Nice-to-have, not table stakes
-- **Localization setup** — Only if supporting multiple languages
+**Should have (competitive advantage):**
+- "100% Free" positioning in App Store listing -- rare in fitness category
+- Subtitle emphasizing "Cycle-Smart Strength Training" (29 chars)
+- Screenshot storytelling showing narrative flow across 3-5 screenshots
+- Art Deco visual identity leveraged in screenshots for distinctiveness
+
+**Defer (v1.2+):**
+- App Store preview video -- production-intensive, ship without it
+- Comprehensive accessibility audit -- multi-week effort, not launch-critical
+- Localization -- English-only for launch
+- Monetization strategy (tip jar, patron model) -- deferred entirely
 
 ### Architecture Approach
 
-The recommended architecture maintains the existing SundeeFundeeKit (Swift Package) + SundeeFundeeApp (Xcode project) structure. The Swift Package contains pure business logic, domain models, data layer, auth, subscriptions, HealthKit, and CloudKit integration. The Xcode project contains SwiftUI views, view models, app lifecycle, and Live Activities. Data flow is unidirectional: User Interaction → View Model → Domain Layer → Data Layer → CloudKit/HealthKit/Keychain. The domain layer is pure Swift with no framework dependencies.
+The architecture strategy is **layer-by-layer removal from consumers inward**: first flip the `SubscriptionTier` flags (foundation), then create `FreeSubscriptionClient` (infrastructure), then swap the app entry point (bootstrap), then remove paywall UI from views (presentation), then clean up entitlements and tests. This dependency-aware order prevents cascading build failures because each layer's consumers are updated before the layer itself is modified.
 
-**Major components:**
-1. **SundeeFundeeKit (Swift Package)** — Pure business logic, domain models, data layer, auth, subscriptions; communicates with Xcode targets via local package dependency
-2. **SundeeFundeeApp (App Target)** — SwiftUI views, view models, app lifecycle, Live Activities; imports SundeeFundeeKit
-3. **SundeeFundeeWidgets (Widget Extension)** — Live Activity widget for workout tracking; imports SundeeFundeeKit
-4. **project.yml (XcodeGen)** — Declares local package reference ../SundeeFundee, generates Xcode project
+**Major components to modify:**
+1. **SubscriptionTier.swift** -- Flip all capability flags to `true`, remove quantitative limits. Single source of truth for feature gating.
+2. **FreeSubscriptionClient.swift (NEW)** -- Actor-based stub returning `SubscriptionInfo(tier: .premium, status: .active)` for all protocol methods. Replaces StoreKitClient without changing any view model's subscription-checking code.
+3. **App.swift** -- Replace `StoreKitClient()` initialization with `FreeSubscriptionClient()`. Remove transaction listener Task.
+4. **Paywall UI views** -- DashboardView, SettingsView, ExportView, AnalyticsView, CycleCorrelationChart, PainTrackingView. Remove upgrade cards, subscription sheets, lock icons, and tier-gated conditional rendering.
+5. **AuthViewModel** -- Remove three `StoreKitClient` cast-and-call sites (identify/logout on sign-in, sign-out, session restore).
 
 ### Critical Pitfalls
 
-**Top 5 pitfalls from research:**
+1. **Incomplete feature unlock** -- The `SubscriptionTier` enum has 12 boolean flags and 4 quantitative limits. Missing even one leaves a dead gate. Prevention: flip ALL flags in a single pass, grep for every flag name across the codebase, then manually test each previously-gated feature.
 
-1. **Cross-Reference Blindness** — iOS code or documentation references deleted files through imports, configuration, or docs. Prevention: Before deletion, create comprehensive dependency map by grepping for references to web-app/, firebase/, backend/ in iOS code. Update docs before deleting code. Verify iOS builds independently before committing deletions.
+2. **Orphaned StoreKit configuration in App Store Connect** -- Subscription products (`sundee_plus_monthly`, `sundee_plus_annual`, `sundee_premium_monthly`, `sundee_premium_annual`) must be disabled AFTER the free binary is approved, not before. Prevention: submit free binary first, then set products to "Not Cleared for Sale."
 
-2. **Git History Orphaning** — Large-scale deletion makes git history difficult to navigate. Prevention: Create navigable archive before deletion (zip entire repo, tag pre-cleanup commit). Document archive location in CLAUDE.md. Use detailed commit messages explaining what was deleted and why.
+3. **Placeholder/stub content causing Guideline 2.1 rejection** -- `generateAIWorkout()` has `try? await Task.sleep` with a "In real implementation" comment. `deletePainLog()` only removes from local array. Prevention: audit every user-facing flow for "TODO", "stub", "placeholder" comments; remove or fully implement all stubs.
 
-3. **Configuration Drift** — Root-level configs (firebase.json, firestore.indexes.json, wrangler.toml, package.json) remain after cleanup, confusing future contributors. Prevention: Audit all root-level configs before cleanup. Delete platform-specific configs. Update .gitignore to remove web-specific entries and add iOS-specific ignores.
+4. **Privacy nutrition label mismatch** -- The binary's `PrivacyInfo.xcprivacy` and App Store Connect's privacy questionnaire are separate systems that must match. Prevention: audit the manifest, fill App Store Connect labels to match exactly, declare HealthKit as "Linked to Identity."
 
-4. **Documentation Staleness** — CLAUDE.md, README, and other docs still reference web app, Firebase, Stripe, and deleted components. Prevention: Audit all documentation before deletion. Update docs in same commit as deletions. Rewrite CLAUDE.md to describe iOS-only architecture. Verify all commands in CLAUDE.md work after cleanup.
-
-5. **Breaking Relative Imports** — Swift files or Package.swift reference code in deleted directories. Prevention: Before deletion, check Swift Package dependencies for local path dependencies. Search for imports outside the Swift Package. Test build before deletion: `xcodebuild -scheme SundeeFundee build`.
+5. **Dead paywall strings surviving the removal** -- "Unlock with Plus", "Upgrade to Pro", `lock.fill` icons, `showingSubscription` state variables. Prevention: grep for "Unlock", "Pro", "Plus", "Upgrade", "lock.fill", "subscription" across all UI files after removal.
 
 ## Implications for Roadmap
 
-Based on research, suggested phase structure:
+Based on combined research, the work naturally groups into four phases ordered by dependency and risk.
 
-### Phase 1: Archive & Delete
-**Rationale:** Must create permanent archive and dependency audit before any deletions to prevent data loss and build failures. This is the critical foundation phase.
-**Delivers:** Archived multi-platform state, cleaned repository with iOS-only directories, updated .gitignore, removed root-level configs
-**Addresses:** Table stakes features (README.md, .gitignore, LICENSE, PrivacyInfo.xcprivacy)
-**Avoids:** Cross-reference blindness, git history orphaning, configuration drift
+### Phase 1: Strip Subscription Gating
+**Rationale:** The subscription tier flags are the foundation that all other changes depend on. Flipping them first means every downstream change (UI removal, view model cleanup) can be tested against already-unlocked features. Creating `FreeSubscriptionClient` and swapping it in `App.swift` completes the infrastructure change.
+**Delivers:** A buildable app where all features are functionally unlocked, even though dead paywall UI may still exist.
+**Addresses:** SubscriptionTier flag flips, FreeSubscriptionClient creation, App.swift swap, AuthViewModel cleanup, entitlements removal.
+**Avoids:** Pitfall 1 (dead code with broken imports) by working consumer-inward, Pitfall 3 (incomplete unlock) by flipping all flags in one pass.
 
-### Phase 2: Documentation Updates
-**Rationale:** Documentation must reflect iOS-only architecture to prevent confusion for future contributors. Cannot be done until Phase 1 completes because docs reference deleted paths.
-**Delivers:** Updated README.md (iOS stack only), rewritten CLAUDE.md (iOS-only context), removed web/Firebase/Stripe references, MIGRATION.md explaining platform transition
-**Uses:** Swift Package Manager structure from STACK.md
-**Implements:** Architecture documentation approach
+### Phase 2: Remove Paywall UI and Audit Stubs
+**Rationale:** With features unlocked, the dead paywall UI (upgrade cards, subscription sheets, tier badges) can be removed from all views without fear of accidentally hiding features. Simultaneously audit for placeholder implementations.
+**Delivers:** A clean UI with no paywall remnants and no stub/placeholder code.
+**Addresses:** DashboardView upgrade prompts, SettingsView subscription section, ExportView lock, AnalyticsView gating, CycleCorrelationChart lock overlay, PainTrackingView smart substitution gate.
+**Avoids:** Pitfall 5 (placeholder content rejection) by auditing all user-facing flows, Pitfall UX issues (empty spaces where upgrade cards were).
 
-### Phase 3: Verification & CI/CD
-**Rationale:** Must verify iOS app builds and tests pass after cleanup, then replace Node-based CI with iOS CI. Cannot run CI until Phase 1-2 complete because repo structure changes.
-**Delivers:** Verified iOS build, passing unit tests, GitHub Actions workflow for iOS (swift test, xcodebuild test), clean git history with detailed commit messages
-**Uses:** XCTest from STACK.md, Xcode build system from ARCHITECTURE.md
-**Avoids:** Breaking relative imports, lost context in git commits
+### Phase 3: Tests and Build Verification
+**Rationale:** All code changes are complete. Update tests to reflect the new unlocked-everything behavior, run the full test suite, and do a manual QA pass.
+**Delivers:** Confirmed build, all tests passing, manual verification that every feature works in both guest and signed-in modes.
+**Addresses:** AnalyticsViewModelTests updates, any other subscription-dependent test fixtures, full `swift test` run, `xcodebuild` build verification, manual QA pass.
+**Avoids:** Pitfall of shipping with broken tests or undetected regressions.
 
-### Phase 4: Quality of Life (Optional)
-**Rationale:** Polish improvements that enhance developer experience but aren't critical for repo functionality. Can be deferred post-cleanup.
-**Delivers:** CHANGELOG.md, CONTRIBUTING.md, issue/PR templates, SwiftLint configuration, architecture documentation in docs/
-**Uses:** .swift-format from FEATURES.md, documentation strategy from ARCHITECTURE.md
+### Phase 4: App Store Submission
+**Rationale:** Code is complete and verified. Now prepare all App Store Connect metadata, screenshots, and privacy declarations, then submit.
+**Delivers:** App submitted for App Store review.
+**Addresses:** App Store metadata (title, subtitle, description, keywords, support URL, privacy policy URL), age rating questionnaire, content rights declaration, screenshots, privacy nutrition labels, build archive and upload, submission for review.
+**Avoids:** Pitfall 2 (orphaned StoreKit config) by managing App Store Connect products in the correct order, Pitfall 4 (privacy label mismatch) by auditing both systems.
 
 ### Phase Ordering Rationale
 
-- **Phase 1 first** because deletion is destructive and must be done carefully with proper archiving and dependency auditing. Cannot update docs or verify builds until deletion completes.
-- **Phase 2 second** because documentation updates depend on Phase 1 completion (docs reference deleted paths). Verification in Phase 3 depends on accurate docs.
-- **Phase 3 third** because CI/CD and verification require stable repo structure from Phases 1-2. Cannot test until deletion and doc updates complete.
-- **Phase 4 last** because quality-of-life improvements are optional and don't block core functionality. Can be iterated on post-launch.
-
-This ordering follows the dependency graph: Archive → Delete → Update Docs → Verify → Add Polish.
+- **Phase 1 before Phase 2** because removing UI before unlocking features would hide features behind dead gates. Unlock first, then clean up.
+- **Phase 2 before Phase 3** because test updates must reflect the final code state (both flag flips and UI removal).
+- **Phase 3 before Phase 4** because App Store submission requires a verified, crash-free binary. Submitting before QA risks rejection for bugs.
+- **Dependency-aware grouping:** Phase 1 handles the data/infrastructure layer, Phase 2 handles the presentation layer, Phase 3 validates, Phase 4 submits. Each phase's output is the next phase's prerequisite.
 
 ### Research Flags
 
 Phases likely needing deeper research during planning:
-- **Phase 3 (CI/CD):** Need to research GitHub Actions for macOS runners, TestFlight automation, and iOS-specific CI patterns. Current research identifies this as a gap (LOW confidence on specific workflows).
-- **Phase 4 (Quality of Life):** SwiftLint configuration and rule sets may vary. Should validate against Swift 6 language mode.
+- **Phase 4 (App Store Submission):** App Store Connect metadata requirements, privacy nutrition label questionnaire, age rating specifics, and screenshot specifications may have changed since training data cutoff. Verify current requirements via Blitz MCP or Apple Developer documentation before submitting.
 
 Phases with standard patterns (skip research-phase):
-- **Phase 1 (Archive & Delete):** Standard git operations and file deletion. Well-established patterns. HIGH confidence.
-- **Phase 2 (Documentation Updates):** Markdown documentation updates. No specialized knowledge needed. HIGH confidence.
-- **Phase 3 (Verification):** XCTest and xcodebuild are standard iOS tools. Official documentation is comprehensive. HIGH confidence.
+- **Phase 1 (Strip Subscription Gating):** Well-documented codebase patterns. All 21 referencing files identified. Pure removal work.
+- **Phase 2 (Remove Paywall UI):** Straightforward SwiftUI view modifications. All gate points inventoried.
+- **Phase 3 (Tests and Build Verification):** Standard XCTest updates and build commands. No unknowns.
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | Verified with official Apple documentation (Swift 6, SwiftUI, CloudKit, StoreKit 2). All technologies are standard 2025-2026 iOS stack. |
-| Features | MEDIUM | Table stakes features based on iOS community standards (apple/swift-log, Alamofire repos). Differentiators are established iOS patterns. Some sources were MEDIUM confidence (GitHub repos vs. official docs). |
-| Architecture | HIGH | Current SundeeFundeeKit structure follows Apple's recommended Swift Package patterns. Protocol-oriented design and MVVM are well-documented. XcodeGen is established tool. |
-| Pitfalls | LOW-MEDIUM | Specific authoritative sources on repository cleanup and platform transition were sparse. Recommendations based on general software engineering principles, Git best practices, and common patterns. Some pitfalls inferred from first principles rather than verified sources. |
+| Stack | HIGH | No new technologies. Pure removal. All 21 referencing files identified via grep. Existing tooling handles submission. |
+| Features | HIGH | Feature gate inventory is complete and verified against source code. Every check point in every file is documented. |
+| Architecture | HIGH | Protocol-replacement strategy is sound. Source code fully audited. Build order respects dependency graph. |
+| Pitfalls | HIGH (code) / MEDIUM (App Store) | Code pitfalls verified against actual source. App Store rejection patterns based on training data and community reports, not current Apple documentation. |
 
-**Overall confidence:** MEDIUM. Stack and architecture are HIGH confidence (aligned with official Apple documentation). Features are MEDIUM confidence (based on established community patterns). Pitfalls are LOW-MEDIUM confidence (lack of specific authoritative sources on platform retirement, though recommendations are sound).
+**Overall confidence:** HIGH for code changes, MEDIUM for App Store submission (Apple review is inherently unpredictable).
 
 ### Gaps to Address
 
-- **CI/CD for iOS:** Research GitHub Actions for macOS runners, TestFlight automation, and iOS-specific CI workflows. Current research identifies this as LOW confidence. Consider Xcode Cloud as alternative (native to Apple ecosystem, free tier included).
-- **App Store screenshot automation:** Current Python script workflow should be validated as best practice. Research if Fastlane or Xcode Cloud offers better solution.
-- **SwiftLint configuration:** Validate SwiftLint rules against Swift 6 language mode. Some rules may conflict with new concurrency features.
-- **Widget extension testing:** How to unit test Live Activity widgets. Not well-documented in current research.
-- **CloudKit testing:** Best practices for mocking CloudKit in unit tests. Gap in current research.
+- **App Store Connect current requirements:** Screenshot dimensions, required device sizes, and metadata field requirements may have changed. Verify via Apple Developer documentation or Blitz MCP before Phase 4.
+- **Privacy nutrition label questionnaire:** Must be filled manually in App Store Connect (not available via API). Exact questions and options need verification during Phase 4.
+- **Existing subscriber handling:** The app has never launched on iOS with subscriptions, so there are no existing subscribers. However, verify in App Store Connect that no subscription products were previously configured and left in an active state.
+- **URL availability:** `sundeefundee.com/privacy` and `sundeefundee.com/terms` must resolve to live pages. Verify before submission.
+- **Placeholder audit completeness:** The grep-based audit for stubs may miss semantic placeholders (code that works but provides a poor user experience, like empty state views with no guidance). Manual QA pass in Phase 3 should catch these.
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- [Swift.org Documentation](https://www.swift.org/documentation/) — Swift 6 language features, Package Manager, concurrency checking
-- [Apple Developer Documentation](https://developer.apple.com/documentation/) — Platform SDKs, frameworks (SwiftUI, CloudKit, HealthKit, StoreKit 2)
-- [XcodeGen GitHub](https://github.com/yonaskolb/XcodeGen) — Project specification format, build system
-- [swift.org/package-manager](https://swift.org/package-manager/) — Official SPM documentation
-- [apple/swift-log GitHub repo](https://github.com/apple/swift-log) — Example of well-structured Swift package (README, LICENSE, CONTRIBUTING.md, .swift-format, .gitignore)
+- Codebase analysis: 21 files referencing `SubscriptionTier`, all 6 files in `Subscription/` directory, all paywall UI views and view models
+- Project configuration: `project.yml`, `Package.swift`, `SundeeFundee.entitlements`, `PrivacyInfo.xcprivacy`, `Info.plist`
+- Blitz MCP documentation: `.claude/rules/blitz.md` and `SundeeFundeeApp/CLAUDE.md`
 
 ### Secondary (MEDIUM confidence)
-- [Alamofire/Alamofire GitHub repo](https://github.com/Alamofire/Alamofire) — Popular iOS library demonstrating comprehensive README, migration guides
-- [Kodeco Swift Style Guide](https://github.com/kodecocodes/swift-style-guide) — Industry-standard Swift conventions (naming, spacing, access control)
-- WWDC sessions "Protocol-Oriented Programming in Swift" (2015+) — Established patterns for protocol-based design
-- [Atlassian Git Tutorial](https://www.atlassian.com/git/tutorials/undoing-changes/git-clean) — Authoritative source on Git commands for cleanup
+- Apple App Store Review Guidelines (Guidelines 2.1, 3.1.1, 5.1.1) -- verified through official docs
+- Apple Privacy Manifest Documentation -- required declarations for health/fitness apps
+- StoreKit 2 documentation -- subscription lifecycle and product management
+- App Store Connect Help -- subscription product management, metadata requirements
 
 ### Tertiary (LOW confidence)
-- Repository management best practices — General software engineering knowledge, not tied to specific sources
-- Platform migration common issues — General experience with platform retirement projects
-- Specific CI/CD workflows for iOS — Need validation through additional sources
-- App Store release automation — Fastlane vs. Xcode Cloud vs. custom scripts (gap identified)
+- App Store screenshot requirements for 2026 -- may have new required device sizes beyond 6.7"/6.5"
+- App Store review timeline estimates -- historically 24-48 hours but variable
+- App Store featuring criteria -- based on general knowledge, not verified against 2026 guidelines
+- Community rejection pattern reports (r/iOSProgramming, r/appledev) -- anecdotal
 
 ---
 *Research completed: 2026-04-08*

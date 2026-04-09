@@ -1,493 +1,295 @@
 # Domain Pitfalls
 
-**Domain:** Repo cleanup and platform transition (multi-platform → iOS-only)
+**Domain:** Removing StoreKit subscription paywall, making app 100% free, first App Store submission
 **Researched:** 2026-04-08
+**Confidence:** HIGH (based on code analysis), MEDIUM (App Store rejection patterns from training data)
 
 ## Critical Pitfalls
 
-Mistakes that cause rewrites, major issues, or permanent data loss.
+Mistakes that cause rewrites, App Store rejections, or broken builds.
 
-### Pitfall 1: Cross-Reference Blindness
+### Pitfall 1: Dead Subscription Code Leaves Broken Imports and Runtime Crashes
 
-**What goes wrong:** After removing web-app/ and Firebase directories, iOS code still references deleted files through imports, configuration, or documentation. Xcode builds fail with "File not found" errors, or Swift code references non-existent shared utilities.
+**What goes wrong:**
+Removing StoreKit imports and subscription files without tracing every downstream reference causes compile errors or, worse, runtime crashes when views try to present `SubscriptionView` or check `subscriptionClient.getSubscriptionInfo()`.
 
-**Why it happens:** The codebase evolved organically with implicit dependencies. iOS-specific code may import shared types or utilities that live in the deleted web directories. Documentation (CLAUDE.md, README) describes commands that reference removed paths.
+**Why it happens:**
+The subscription system is deeply woven through the codebase. There are at least 7 view models, 5+ views, the app entry point, and domain-layer types (`CoachContext`) that depend on subscription types. A simple "delete the Subscription folder" approach will leave 30+ broken references. Developers underestimate the blast radius because the protocol-based architecture (`SubscriptionClientProtocol`) spreads the dependency far from its source.
 
 **Consequences:**
-- Xcode build failures immediately after cleanup
-- Broken documentation leads to confusion for future contributors
-- Git history shows references to deleted files that no longer exist
-- CI/CD (if any) fails with path errors
+- Xcode build failures across view models and views
+- Runtime crashes if subscription protocol calls are not fully removed
+- Tests fail (AnalyticsViewModelTests, other VM tests inject `subscriptionClient`)
+- CoachContext and CoachContextBuilder need tier references updated
+- AuthViewModel has hardcoded `StoreKitClient` casts that must be removed
 
-**Prevention:**
-1. **Before deletion:** Create a comprehensive dependency map
-   - Search for all references to `web-app/`, `firebase/`, `backend/`, `wod-dashboard/` in iOS code
-   - Grep for imports, paths, and references to removed directories
-   - Check Package.swift for any local package dependencies
-   - Audit Xcode project file for absolute path references
+**How to avoid:**
+1. Do NOT delete subscription files first. Instead, start by making `SubscriptionTier` always return "unlocked" values.
+2. Trace every file that references `SubscriptionClientProtocol`, `SubscriptionTier`, `SubscriptionInfo`, or `SubscriptionClientFactory` (grep found 20+ files).
+3. Remove subscription parameters from view model initializers one at a time, building after each change.
+4. Remove `SubscriptionView`, `SubscriptionViewModel`, `TierBadge`, and all "upgrade" card UI from views.
+5. Remove the `import StoreKit` from `StoreKitClient.swift` last, then delete the entire `Subscription/` directory.
+6. Run tests after each file modification.
 
-2. **During deletion:** Delete references first, then directories
-   - Update CLAUDE.md and README before removing code
-   - Search-and-replace all documentation references to deleted paths
-   - Update any build scripts that reference removed directories
-   - Verify iOS project builds independently before committing deletions
+**Warning signs:**
+- `SubscriptionClientFactory.shared.client` appears in a file you did not touch
+- Any view still has `showingSubscription` state variable or `.sheet(isPresented: $showingSubscription)`
+- `CoachContext` still has a `tier` parameter
+- `SubscriptionTier` enum still exists but nothing gates on it
 
-3. **After deletion:** Verification step
-   - Clean Xcode build folder (Product > Clean Build Folder)
-   - Build fresh: `xcodebuild -scheme SundeeFundee -destination 'platform=iOS Simulator,name=iPhone 16' clean build`
-   - Run all iOS tests to ensure no hidden dependencies remain
-
-**Detection:**
-- Xcode build errors mentioning deleted paths
-- Swift compiler errors for missing imports
-- Git grep showing references to deleted directories in iOS code
-- Documentation mentioning commands that no longer work
-
-**Phase to address:** Phase 1 (Archive & Delete) — The dependency audit must happen before any files are deleted.
+**Phase to address:** Phase 1 (Strip Subscription Gating) -- The subscription removal must be systematic, not surgical. Remove references from consumers first, delete providers last.
 
 ---
 
-### Pitfall 2: Git History Orphaning
+### Pitfall 2: Orphaned StoreKit Configuration in App Store Connect Causes Rejection
 
-**What goes wrong:** Large-scale file deletion makes git history difficult to navigate. Commands like `git blame` become confusing because they reference deleted files. Binary file history (screenshots, assets) becomes inaccessible.
+**What goes wrong:**
+The app has StoreKit subscription products configured in App Store Connect (`sundee_plus_monthly`, `sundee_plus_annual`, `sundee_premium_monthly`, `sundee_premium_annual`). If these in-app purchase products remain in App Store Connect but the app binary no longer implements StoreKit, Apple's review process may flag an inconsistency. Alternatively, if the products are deleted before the new binary is submitted, existing subscribers have no way to manage or cancel.
 
-**Why it happens:** Git tracks all file history by default. When you delete directories containing years of commits, those commits remain in git log but their file contents become inaccessible through normal commands. The repo shrinks on disk but git log still shows the deleted work.
+**Why it happens:**
+App Store Connect products and the app binary are managed independently. There is no automatic synchronization. Developers focus on the code side and forget the App Store Connect configuration side. Additionally, `StoreKitClient` contains hardcoded product IDs (`sundee_plus_monthly`, etc.) that will become dead references.
 
 **Consequences:**
-- `git show <commit>:path/to/deleted/file` fails
-- `git blame` on remaining files loses context from deleted related files
-- Future contributors cannot understand the evolution of features that were deleted
-- If mistakes are found, reverting specific changes becomes harder
-- Binary assets (screenshots, design files) become permanently inaccessible
+- App Store review rejection for orphaned IAP products with no purchase flow in the binary
+- Existing paid subscribers cannot cancel or manage their subscription through the app
+- Apple may reject if subscription products are listed but the app does not implement `StoreKit`
+- If products are deleted prematurely, existing subscribers get errors when trying to manage billing
 
-**Prevention:**
-1. **Before deletion:** Create navigable archive
-   - Zip the entire repo state before cleanup: `sundee-fundee-archive.zip`
-   - Store the zip in a permanent location (not just local)
-   - Tag the commit before deletion: `git tag archive/pre-ios-only-cleanup`
-   - Document the archive location in CLAUDE.md
+**How to avoid:**
+1. Before removing StoreKit code, check if any real users have active subscriptions. If yes, communicate the transition and let subscriptions naturally expire.
+2. Remove subscription products from App Store Connect AFTER the new free binary is approved and live.
+3. In the interim build, remove the purchase flow but keep a minimal "manage subscription" path that redirects to `https://apps.apple.com/account/subscriptions` for any existing subscribers.
+4. Set the app to "Free" in App Store Connect monetization settings before submission.
 
-2. **During deletion:** Preserve context in commits
-   - Commit message should explain what was deleted and why
-   - Reference the archive location in the commit message
-   - Use detailed commit messages: "Retire web-app: Next.js PWA, moved to iOS-only"
-   - Avoid squashing the deletion commit
+**Warning signs:**
+- App Store Connect shows active subscription products with no corresponding code
+- No manage-subscription UI for existing paid users
+- Reviewer sees IAP products listed but no purchase buttons in the app
 
-3. **After deletion:** Update documentation
-   - Document that history exists but is in archive
-   - Update README to explain the platform transition
-   - Create a MIGRATION.md explaining the transition
-   - Link to the archive for anyone needing historical context
-
-**Detection:**
-- `git log --follow` on remaining files shows truncated history
-- Trying to view old commits results in "fatal: bad revision" errors
-- Team members ask "Where did the web app code go?"
-- Need to reference an old implementation but cannot access it
-
-**Phase to address:** Phase 1 (Archive & Delete) — Archive creation must happen before any git operations.
+**Phase to address:** Phase 1 (Strip Subscription Gating) for code changes, Phase 4 (App Store Submission) for App Store Connect cleanup.
 
 ---
 
-### Pitfall 3: Configuration Drift
+### Pitfall 3: Incomplete Feature Unlock Leaves Users With a Worse Experience Than Before
 
-**What goes wrong:** Root-level configuration files (firebase.json, firestore.indexes.json, wrangler.toml, package.json) remain after cleanup, confusing future contributors. CI/CD configs (if added later) reference removed directories.
+**What goes wrong:**
+Removing the paywall but forgetting to actually unlock all gated features. Users who previously had free-tier access still see locked states because the code that checks `tier.hasAIBuilder`, `tier.hasAdvancedInsights`, `tier.hasExportShare`, etc. was not updated to always return `true`.
 
-**Why it happens:** These files sit at the repo root and are easy to forget. They're not in the deleted directories, so they survive the initial cleanup pass. They reference services that no longer exist (Firebase, Cloudflare Workers, Vercel).
+**Why it happens:**
+The `SubscriptionTier` enum has 12 capability flags (`hasCustomBenchmarks`, `hasPainTrends`, `hasAdvancedInsights`, `hasAIBuilder`, `hasRecoveryAdjustments`, `hasAdaptivePlanner`, `hasCoachMemory`, `hasSmartSubstitutions`, `hasPlateauDetection`, `hasPreferenceLearning`, `hasWeeklyRecap`, `hasExportShare`) and 4 quantitative limits (`maxLifts`, `maxInjuries`, `maxHistoryDays`, `dailyAIGenerations`). These are spread across view models, views, and domain logic. It is easy to remove the subscription UI but miss a capability check deep in a view model.
 
 **Consequences:**
-- Future contributors are confused by configs for non-existent services
-- Build scripts fail trying to deploy to Firebase/Vercel
-- New CI/CD pipelines reference directories that don't exist
-- Onboarding documentation contradicts actual project structure
-- Search results index stale config keys
+- Users see features that are still locked despite the app being "free"
+- `maxLifts` still limits to 5 lifts even though there is no upgrade path
+- `dailyAIGenerations` returns 0 for free tier, blocking AI features entirely
+- `canGenerateAIWorkout` returns false in DashboardView
+- Export is gated behind `hasExportShare` which returns false
+- PainTrackingViewModel skips substitution suggestions because `hasSmartSubstitutions` is false
 
-**Prevention:**
-1. **Audit all config files before cleanup:**
-   - List all root-level configs: `ls -la | grep -E '\.(json|toml|yml|yaml|config)'`
-   - Check each file for references to deleted platforms
-   - Document what each config does and whether it's still needed
+**How to avoid:**
+1. The cleanest approach: delete the `SubscriptionTier` enum entirely and remove all tier checks. Replace gated code paths with the unlocked behavior.
+2. The safer transitional approach: make `SubscriptionTier` a single case (no `.free`/`.plus`/`.premium` distinction) where all capability flags return `true` and all limits return `nil` (unlimited).
+3. Audit every usage of these properties:
+   - `DashboardView.loadSubscriptionInfo()` checks `hasAIBuilder` and `hasCoachMemory`
+   - `AnalyticsViewModel` checks `hasAdvancedInsights`
+   - `ExportViewModel.canExport` checks `hasExportShare`
+   - `PainTrackingViewModel.loadSubstitutionSuggestions()` checks `hasSmartSubstitutions`
+   - `DashboardView.upgradePrompts` checks `tier == .free` and `tier == .plus`
+   - `DashboardView.coachingInsightsCard` checks `tier == .premium`
+4. Run the app after changes and manually verify every previously-gated feature works.
 
-2. **Delete platform-specific configs:**
-   - `firebase.json` — Firebase deployment (delete)
-   - `firestore.indexes.json` — Firestore indexes (delete)
-   - `wrangler.toml` — Cloudflare Workers (delete)
-   - Root `package.json` if only used by web backend (delete)
-   - `.vercelignore`, `.vercel` directory (delete)
-   - `next-sitemap.config.js` (delete, even though it's in web-app/)
+**Warning signs:**
+- Any view still shows a lock icon or "Unlock with Plus/Pro" button
+- Feature count limits are still enforced (e.g., "5 lifts max")
+- Any capability flag still returns `false`
+- Analytics charts still show upgrade cards
 
-3. **Keep iOS-relevant configs:**
-   - `.gitignore` (update to remove web-specific entries)
-   - Any iOS-specific scripts or tooling configs
-   - `.agents/skills/` directory (iOS App Store automation)
-   - App Store metadata files
-
-4. **Update .gitignore:**
-   - Remove entries for deleted directories
-   - Remove web-specific ignores (node_modules, .next, build/, etc.)
-   - Add iOS-specific ignores if not present (Xcode derived data, etc.)
-
-**Detection:**
-- Root directory lists Firebase/Cloudflare configs in a iOS-only repo
-- Documentation mentions Firebase deployment commands
-- `npm install` fails because package.json references deleted directories
-- CI/CD pipeline references non-existent deploy targets
-
-**Phase to address:** Phase 1 (Archive & Delete) — Config cleanup should be part of the initial deletion pass.
+**Phase to address:** Phase 1 (Strip Subscription Gating) -- Feature unlocking must happen in the same pass as subscription code removal.
 
 ---
 
-### Pitfall 4: Documentation Staleness
+### Pitfall 4: App Store Rejection for Missing or Inaccurate Privacy Nutrition Labels
 
-**What goes wrong:** CLAUDE.md, README, and other documentation still reference the web app, Firebase, Stripe, and other deleted components. Commands don't work, paths are wrong, architecture descriptions are outdated.
+**What goes wrong:**
+The app collects HealthKit data, stores data in CloudKit, and uses Apple Sign-In. The existing `PrivacyInfo.xcprivacy` declares health data, fitness data, and user ID. But App Store Connect requires a separate "App Privacy" nutrition label that must match. If the privacy manifest in the binary does not match the App Store Connect privacy labels, or if required fields are missing, Apple rejects the submission.
 
-**Why it happens:** Documentation is updated manually and easily overlooked. The focus is on code deletion, not docs. Multiple documentation files may exist (CLAUDE.md, README.md, docs/ directory, inline comments).
+**Why it happens:**
+Apple has two separate privacy declaration systems: (1) the `PrivacyInfo.xcprivacy` file in the binary, and (2) the App Store Connect privacy nutrition label questionnaire. They are not automatically synchronized. The binary manifest declares API usage (e.g., `NSPrivacyAccessedAPICategoryUserDefaults`), while App Store Connect asks about data collection (what data, is it linked to identity, is it used for tracking). A mismatch between these two causes rejection. Additionally, Apple's "required reason API" rules mandate that every accessed API has a declared reason in the privacy manifest.
 
 **Consequences:**
-- New contributors follow outdated instructions and hit errors
-- `npm run dev` commands fail because web-app/ doesn't exist
-- Architecture docs describe Firebase when iOS uses CloudKit
-- Onboarding takes longer due to contradictory information
-- Support tickets from confused users referencing deleted features
+- Rejection under Guideline 5.1.1 (Privacy and Data Collection)
+- Delays of 24-48+ hours per rejection-resubmission cycle
+- May require binary update if the manifest is wrong (cannot fix in App Store Connect alone)
 
-**Prevention:**
-1. **Before deletion:** Audit all documentation
-   - Find all markdown files: `find . -name "*.md" -not -path "./node_modules/*"`
-   - Grep for references to deleted platforms: `grep -r "web-app\|Firebase\|Stripe\|Next.js" *.md`
-   - List all documentation locations: README.md, CLAUDE.md, docs/, .planning/
+**How to avoid:**
+1. Audit the existing `PrivacyInfo.xcprivacy` for completeness:
+   - Current: Health data, Fitness data, User ID, UserDefaults API -- verify these are accurate
+   - Missing: Check if CloudKit triggers any additional declarations
+   - Verify all "required reason API" declarations (UserDefaults is declared with `CA92.1`)
+2. Fill out App Store Connect privacy nutrition labels to match the manifest exactly
+3. Declare HealthKit data collection as "Linked to Identity" (it is -- CloudKit stores it per user)
+4. Ensure the app does NOT track users across apps (already declared `NSPrivacyTracking: false`)
+5. Note: Privacy Nutrition Labels must be set manually in App Store Connect -- this is not exposed via API
 
-2. **During deletion:** Update docs in same commit
-   - Rewrite CLAUDE.md to describe iOS-only architecture
-   - Update README to reflect iOS app only
-   - Remove web-specific setup instructions
-   - Update architecture diagrams to remove Firebase/Stripe
-   - Remove blog, PWA, and web feature references
-   - Keep iOS-relevant sections (auth, CloudKit, StoreKit, HealthKit)
+**Warning signs:**
+- Privacy manifest lists data types not declared in App Store Connect
+- App Store Connect nutrition label says "No Data Collected" but the app uses HealthKit
+- Missing "required reason API" entries in the manifest
 
-3. **After deletion:** Documentation verification
-   - All commands in CLAUDE.md must work
-   - All file paths referenced must exist
-   - Architecture diagram matches actual structure
-   - Setup instructions work for a fresh clone
-   - Onboarding section reflects iOS development workflow
-
-**Detection:**
-- `grep -r "web-app" CLAUDE.md README.md` returns results
-- Documentation mentions Firebase/Firestore in iOS-only repo
-- Commands like `cd web-app && npm run dev` fail
-- Architecture section describes components that don't exist
-- Users report confusion about missing features
-
-**Phase to address:** Phase 1 (Archive & Delete) — Documentation updates must happen in the same commit as deletions.
+**Phase to address:** Phase 4 (App Store Submission) -- Privacy labels must be verified before submitting for review.
 
 ---
 
-## Moderate Pitfalls
+### Pitfall 5: App Store Rejection for Incomplete App or Placeholder Content
 
-Mistakes that cause confusion, extra work, or temporary issues but are recoverable.
+**What goes wrong:**
+The app contains placeholder text, stub implementations, or incomplete features that Apple reviewers will flag. The DashboardViewModel has `generateAIWorkout()` with a `try? await Task.sleep` and a comment "In real implementation, this would call the AI service." Reviewers test all app flows and will find non-functional buttons or screens that show empty states with no data.
 
-### Pitfall 1: Forgetting to Update .gitignore
-
-**What goes wrong:** .gitignore still references web-app specific patterns (node_modules, .next, build/, firebase-debug.log) and misses iOS-specific ignores (DerivedData/, *.pbxuser, .swiftpm).
-
-**Why it happens:** .gitignore is at the root and easily overlooked. It's not in any deleted directory, so it survives cleanup unchanged. Web ignores are harmless but add noise. iOS ignores are missing entirely.
+**Why it happens:**
+Apple's Guideline 2.1 (Performance: App Completeness) requires that every feature in the app is fully functional. Placeholder implementations, "coming soon" sections, or buttons that do nothing are automatic rejections. The app has several stub implementations that were acceptable during development but are not shippable.
 
 **Consequences:**
-- `git status` shows noise from Xcode build artifacts
-- Accidental commits of .DS_Store, xcuserdata, or DerivedData
-- Repository bloated with ignored files that should have been excluded
-- Team members commit different sets of build artifacts
-- `git clean -fd` behaves differently than expected
+- Immediate rejection under Guideline 2.1
+- Reviewer sends a screenshot of the broken flow with "This feature does not work"
+- Each rejection cycle costs 24-48 hours
+- Multiple rejections for different issues compound the delay
 
-**Prevention:**
-1. **Audit .gitignore before cleanup:**
-   - Remove web-specific entries: node_modules, .next, out/, build/, dist/
-   - Remove Firebase-specific: firebase-debug.log, firebase-debug.*.log
-   - Remove Cloudflare-specific: .wrangler/, wrangler.toml
-   - Keep generic entries: .DS_Store, *.log, .env
+**How to avoid:**
+1. Audit every user-facing flow for completeness:
+   - `DashboardViewModel.generateAIWorkout()` -- either implement or remove the AI workout button
+   - `DashboardView.suggestedWorkoutCard` -- verify the "Generate" button leads to a working flow
+   - `PainTrackingViewModel.deletePainLog()` -- has comment "In a full implementation..." and only removes from local array, not CloudKit
+   - `PainTrackingViewModel.deleteInjury()` -- same issue
+   - Any NavigationLink that leads to `Text("Workout Detail")` placeholder views
+2. Remove or fully implement stub functions
+3. Remove debug-only features (the `proTestEmails` hardcoded list in StoreKitClient is already `#if DEBUG` gated, but verify)
+4. Test every tab and every navigation path as a reviewer would -- fresh install, guest mode, signed-in mode
 
-2. **Add iOS-specific ignores:**
-   - Xcode user data: *.xcuserstate, xcuserdata/, *.hmap
-   - Build artifacts: DerivedData/, build/, *.ipa
-   - Swift Package Manager: .swiftpm/, .build/
-   - CocoaPods (if ever used): Pods/, Podfile.lock
-   - SPM resolution: .swiftpm/xcode/package.resolved
+**Warning signs:**
+- Comments containing "TODO", "In real implementation", "placeholder", "stub"
+- NavigationLinks to `Text("...")` views
+- Buttons that call `Task.sleep` and do nothing
+- Delete operations that only update local state without persisting
+- Empty list states with no onboarding or guidance
 
-3. **Test .gitignore:**
-   - Create files that should be ignored
-   - Run `git status` to verify they don't appear
-   - Add .gitignore to the cleanup commit
-
-**Detection:**
-- `git status` shows DerivedData/, *.xcuserstate, or other build artifacts
-- Team members have different git status outputs
-- Repository size grows due to committed build artifacts
-- `git clean -fd` removes files that should be tracked
-
-**Phase to address:** Phase 1 (Archive & Delete) — Update .gitignore in the cleanup commit.
+**Phase to address:** Phase 2 (Full App Audit) -- Every stub and placeholder must be found and either completed or removed before submission.
 
 ---
 
-### Pitfall 2: Breaking Relative Imports
-
-**What goes wrong:** Swift files or Package.swift reference code in directories that will be deleted. After deletion, imports fail and Xcode shows red "file not found" errors.
-
-**Why it happens:** If the Swift Package ever had local dependencies on code outside SundeeFundee/ or SundeeFundeeApp/, those imports break. Package.swift may reference local modules that no longer exist.
-
-**Consequences:**
-- Xcode build fails immediately after cleanup
-- Red error icons in Xcode navigator
-- Autocomplete stops working
-- Cannot open the project in Xcode until imports are fixed
-
-**Prevention:**
-1. **Before deletion:** Check Swift Package dependencies
-   - Read `SundeeFundee/Package.swift` for local path dependencies
-   - Search for imports outside the Swift Package: `grep -r "^import" SundeeFundee/Sources/ | grep -v "Foundation\|SwiftUI\|CloudKit\|HealthKit\|StoreKit"`
-   - Check for local module imports
-
-2. **Verify Xcode project references:**
-   - Open `SundeeFundeeApp/SundeeFundee.xcodeproj/project.pbxproj`
-   - Search for path references outside SundeeFundeeApp/ and SundeeFundee/
-   - Check for any absolute path references (should never exist)
-
-3. **Test build before deletion:**
-   - Build the iOS app: `xcodebuild -scheme SundeeFundee build`
-   - If build succeeds, no cross-platform dependencies exist
-   - If build fails, fix imports before cleanup
-
-**Detection:**
-- Xcode shows red "file not found" errors after cleanup
-- `xcodebuild` fails with "No such module" errors
-- Imports reference paths that no longer exist
-- Package.swift lists local dependencies on deleted directories
-
-**Phase to address:** Phase 1 (Archive & Delete) — Verify iOS builds before and after cleanup.
-
----
-
-### Pitfall 3: Lost Context in Git Commits
-
-**What goes wrong:** Future contributors reading git log see "Remove web-app" and cannot understand what was deleted or why. Commit messages lack context, and the archive location is not documented.
-
-**Why it happens:** Commit messages like "Cleanup" or "Delete web stuff" provide no context. The archive is created separately and not linked in the git history. Tagging the pre-cleanup state is forgotten.
-
-**Consequences:**
-- Git history becomes opaque after cleanup
-- Cannot understand project evolution without accessing archive
-- "Why was this deleted?" questions cannot be answered from git log
-- Harder to revert specific changes if needed
-- Historical context requires leaving the repo (to find the archive)
-
-**Prevention:**
-1. **Tag before cleanup:**
-   ```bash
-   git tag archive/pre-ios-only -m "Multi-platform repo before iOS-only cleanup. Contains web-app, Firebase, Cloud Functions, WOD dashboard, backend."
-   git push origin archive/pre-ios-only
-   ```
-
-2. **Write detailed commit messages:**
-   ```
-   Retire web app and Firebase backend, transition to iOS-only
-
-   Deleted directories:
-   - web-app/: Next.js 16 PWA, Firebase/Firestore/Stripe integration
-   - firebase/functions/: Cloud Functions for AI workout generation
-   - backend/: Experimental Cloudflare Workers backend
-   - wod-dashboard/: Admin dashboard for WODs/programs/benchmarks (not in current repo)
-   - docs/, scripts/, plans/: Planning and documentation files
-
-   Archive: sundee-fundee-archive.zip stored in [LOCATION]
-
-   Reason: iOS app is feature-complete and ready for App Store. Web app served as MVP but is being retired. iOS uses CloudKit for persistence, not Firebase.
-
-   Remaining: SundeeFundee/ (Swift Package), SundeeFundeeApp/ (Xcode project), .agents/ (App Store automation)
-   ```
-
-3. **Document the transition:**
-   - Create MIGRATION.md explaining the platform transition
-   - Link to archive in README
-   - Update CLAUDE.md with iOS-only architecture
-   - Reference the tag and archive in documentation
-
-**Detection:**
-- `git log --oneline` shows unhelpful messages like "cleanup"
-- No tag exists for pre-cleanup state
-- Archive location not documented anywhere
-- Team members don't know where to find historical code
-
-**Phase to address:** Phase 1 (Archive & Delete) — Tag and document before any deletions.
-
----
-
-### Pitfall 4: Forgetting Shared Scripts
-
-**What goes wrong:** Root-level scripts (`scripts/generate_appstore_marketing.py`) rely on files that will be deleted (e.g., scripts expect to be run from web-app/ directory, or reference web assets). After cleanup, scripts fail.
-
-**Why it happens:** Scripts sit at the repo root, not in deleted directories. They may have implicit dependencies on directory structure that isn't obvious until they're run.
-
-**Consequences:**
-- App Store screenshot generation fails
-- Deployment scripts error out
-- Build automation breaks
-- Team members manually work around broken scripts
-- Scripts are abandoned rather than fixed
-
-**Prevention:**
-1. **Audit all scripts before cleanup:**
-   - List all executable scripts: `find . -name "*.py" -o -name "*.sh" -type f -not -path "./node_modules/*" -not -path "./.git/*"`
-   - Read each script for directory references
-   - Test each script to verify it works
-
-2. **Update script dependencies:**
-   - Change working directory assumptions
-   - Update file paths to reference iOS locations
-   - Remove scripts that are no longer needed
-   - Document script usage in CLAUDE.md
-
-3. **Test scripts after cleanup:**
-   - Run `scripts/generate_appstore_marketing.py` to verify it works
-   - Run any other automation scripts
-   - Fix or remove broken scripts
-
-**Detection:**
-- Scripts fail with "No such file or directory" errors
-- `scripts/` directory contains references to deleted paths
-- Documentation mentions scripts that don't work
-- Team members avoid using automation scripts
-
-**Phase to address:** Phase 1 (Archive & Delete) — Test all scripts before and after cleanup.
-
----
-
-## Minor Pitfalls
-
-Mistakes that cause annoyance or minor cleanup work but are quickly fixed.
-
-### Pitfall 1: Leaving Empty Directories
-
-**What goes wrong:** After deleting files, empty directories remain (e.g., `docs/` becomes empty after all web docs are removed). These clutter the repo and confuse newcomers.
-
-**Why it happens:** `git rm` removes files but not parent directories. If all files in a directory are deleted, the empty directory remains unless explicitly removed.
-
-**Consequences:**
-- `ls` shows empty directories that serve no purpose
-- Confusing for new contributors exploring the repo
-- `git clean -fd` wants to delete them (adds noise)
-- Documentation references non-existent files in otherwise-empty dirs
-
-**Prevention:**
-1. **After deletion, remove empty directories:**
-   ```bash
-   find . -type d -empty -not -path "./.git/*" -not -path "./node_modules/*"
-   # Remove the listed directories
-   ```
-
-2. **Add to cleanup commit:**
-   - Include empty directory removal in the deletion commit
-   - Commit message: "Remove empty directories after platform cleanup"
-
-**Detection:**
-- `find . -type d -empty` returns results
-- `ls -R` shows empty directories
-- Team members ask "What's this directory for?"
-
-**Phase to address:** Phase 1 (Archive & Delete) — Clean up empty dirs as part of the deletion commit.
-
----
-
-### Pitfall 2: Outdated Code Comments
-
-**What goes wrong:** Swift source files have comments referencing "web app" or "Firebase" or "shared with Next.js." After cleanup, these comments are confusing.
-
-**Why it happens:** Code comments are not automatically updated when architecture changes. Developers wrote comments assuming the multi-platform structure.
-
-**Consequences:**
-- Comments reference non-existent platforms
-- "Shared with web app" comments are misleading
-- Future contributors are confused by architectural references
-- Code understanding requires mental filtering of outdated comments
-
-**Prevention:**
-1. **Search for outdated comments:**
-   ```bash
-   grep -r "web app\|Firebase\|Next.js\|shared with" SundeeFundee/Sources/
-   ```
-
-2. **Update comments during cleanup:**
-   - Remove "shared with web app" references
-   - Update "Firebase" references to "CloudKit" (if applicable)
-   - Remove platform comparison comments
-   - Update architectural descriptions
-
-**Detection:**
-- Comments mention platforms that don't exist
-- "Shared with..." references nothing
-- Architectural comments contradict actual structure
-
-**Phase to address:** Phase 2 (Documentation Updates) — Clean up comments as part of doc updates.
-
----
-
-### Pitfall 3: Breaking External Links
-
-**What goes wrong:** External documentation, blog posts, or GitHub issues link to specific file paths in the repo. After cleanup, those links return 404.
-
-**Why it happens:** GitHub permalinks to files break when those files are deleted. External blogs or Stack Overflow answers may link to repo files. Documentation outside the repo becomes stale.
-
-**Consequences:**
-- External resources link to deleted files
-- GitHub issues reference file paths that no longer exist
-- Blog posts or tutorials have broken example links
-- Search engines index 404 pages for the repo
-- Users report "broken link" issues
-
-**Prevention:**
-1. **Before deletion:** Identify external links
-   - Check GitHub issues for file references
-   - Search for blog posts mentioning the repo
-   - Look for Stack Overflow answers linking to repo files
-
-2. **Create redirects if possible:**
-   - GitHub doesn't support file-level redirects
-   - Add a note to deleted file locations in README
-   - Update external resources if you control them
-
-3. **Document the change:**
-   - Add a MIGRATION.md explaining what moved where
-   - Update README with link to historical archive
-   - Respond to GitHub issues with updated links
-
-**Detection:**
-- GitHub issues reference deleted file paths
-- External links to repo return 404
-- Users report broken documentation links
-- Search results show deleted file paths
-
-**Phase to address:** Phase 2 (Documentation Updates) — Update external links if possible, document changes.
-
----
-
-## Phase-Specific Warnings
-
-| Phase | Likely Pitfall | Mitigation |
-|-------|----------------|------------|
-| **Phase 1: Archive & Delete** | Cross-reference blindness | Dependency audit before deletion |
-| **Phase 1: Archive & Delete** | Git history orphaning | Create archive and tag before cleanup |
-| **Phase 1: Archive & Delete** | Configuration drift | Delete all platform-specific configs |
-| **Phase 1: Archive & Delete** | Documentation staleness | Update docs in same commit as deletions |
-| **Phase 1: Archive & Delete** | Breaking relative imports | Verify iOS builds before and after |
-| **Phase 2: Doc Updates** | Leaving outdated comments | Search and update platform references |
-| **Phase 2: Doc Updates** | Breaking external links | Document changes, update external resources |
-| **Phase 3: Verification** | Missing broken references | Comprehensive grep for deleted paths |
-| **Phase 3: Verification** | Assuming build success | Run full test suite after cleanup |
+## Technical Debt Patterns
+
+Shortcuts that seem reasonable during paywall removal but create long-term problems.
+
+| Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
+|----------|-------------------|----------------|-----------------|
+| Keep `SubscriptionTier` enum but make all flags return true | Faster removal, fewer files to edit | Dead code that confuses future contributors, unnecessary complexity | Never -- remove the enum entirely or collapse to a single "all access" state |
+| Comment out StoreKit code instead of deleting it | Easy rollback if something goes wrong | Dead imports, binary still links StoreKit framework, confusing codebase | Only during active debugging; delete before commit |
+| Keep `SubscriptionView` but hide it behind a flag | Avoids touching all the sheet presentations | View still compiles into binary, accessibility scanner finds hidden views | Never -- remove the view and all sheet presentations |
+| Hardcode `tier: .premium` everywhere instead of removing tier checks | Quick way to "unlock everything" | Every view model still has a dead `subscriptionClient` dependency | Acceptable as a first pass during removal, but must be cleaned up before Phase 3 |
+
+## Integration Gotchas
+
+Common mistakes when connecting to external services during this transition.
+
+| Integration | Common Mistake | Correct Approach |
+|-------------|----------------|------------------|
+| StoreKit | Removing `StoreKitClient` but leaving `import StoreKit` in other files | Grep for `import StoreKit` and remove all occurrences before deleting the Subscription directory |
+| CloudKit | Assuming removing subscriptions means removing CloudKit | CloudKit is the data persistence layer, NOT the subscription layer. Keep CloudKit, only remove StoreKit |
+| HealthKit | Assuming HealthKit permission requests will be automatically approved by reviewers | Reviewers test with a fresh device; HealthKit authorization requires explicit user approval. Ensure the app works even if HealthKit is denied |
+| App Store Connect | Deleting IAP products before the new binary is live | Submit the free binary first, get it approved, THEN remove IAP products from App Store Connect |
+| App Store Connect | Setting app to "Free" but leaving subscription products in "Ready to Submit" state | Subscription products in App Store Connect must be removed or moved to "Developer Removed from Sale" before the free binary is reviewed |
+| Auth | Removing subscription identity from `AuthViewModel` but breaking the auth flow | `AuthViewModel` calls `StoreKitClient.identify()` on sign-in and `logout()` on sign-out. Remove these calls but ensure auth flow still works without them |
+
+## Performance Traps
+
+Patterns that work at small scale but fail as usage grows.
+
+| Trap | Symptoms | Prevention | When It Breaks |
+|------|----------|------------|----------------|
+| Removing subscription checks but leaving async `getSubscriptionInfo()` calls | View models still make unnecessary async calls on load that add latency | Remove the subscription check entirely, not just the gating logic | On first launch -- every view model will still await a subscription check that returns free tier |
+| Keeping `CoachContextBuilder` subscription fetch | Coach context assembly still calls `loadSubscription()` unnecessarily | Remove the subscription fetch from context builder, hardcode tier or remove the tier field | Every time coach insights are generated |
+
+## Security Mistakes
+
+Domain-specific security issues for this transition.
+
+| Mistake | Risk | Prevention |
+|---------|------|------------|
+| Leaving `proTestEmails` in production code | Hardcoded test emails bypass subscription (moot after removal, but looks unprofessional to reviewers) | Remove the `#if DEBUG` proTestEmails block entirely -- it serves no purpose in a free app |
+| Removing subscription but keeping debug logging of subscription state | Console logs may leak user IDs or email addresses | Remove all `print("[StoreKit]...")` debug logging |
+| Forgetting to remove StoreKit product IDs from binary | Product IDs (`sundee_plus_monthly`, etc.) in the binary may trigger App Store Connect warnings | Remove all product ID string constants |
+
+## UX Pitfalls
+
+Common user experience mistakes when removing paywalls.
+
+| Pitfall | User Impact | Better Approach |
+|---------|-------------|-----------------|
+| Removing "Manage Subscription" from Settings but existing paid users still need it | Existing subscribers cannot find how to cancel | Keep a "Manage Subscription" link that opens `https://apps.apple.com/account/subscriptions` for a transition period |
+| Removing "Upgrade to Pro" labels but leaving empty space where upgrade cards were | Dashboard has awkward blank sections | Remove the entire `upgradePrompts` section and `coachingInsightsCard` conditional, not just the text |
+| Settings still shows "TierBadge" next to user name | Badge says "Free" which is confusing when the app is entirely free | Remove the TierBadge component entirely |
+| Export link in Settings still shows "Pro" label | Users think export is still locked | Remove the "Pro" text badge from the Export navigation link |
+| Forgetting to update the onboarding flow if it mentions subscription tiers | New users see references to paid plans during first-run experience | Audit OnboardingView for any subscription or tier references |
+
+## "Looks Done But Isn't" Checklist
+
+Things that appear complete but are missing critical pieces.
+
+- **Subscription removal:** `SubscriptionTier` enum deleted but `CoachContext` still has a `tier` parameter that won't compile
+- **Subscription removal:** `SubscriptionClientFactory` deleted but `DashboardViewModel` still injects `subscriptionClient` in its init
+- **Subscription removal:** All subscription code removed but tests still reference `MockSubscriptionClient` and `subscriptionClient` parameters
+- **UI cleanup:** Upgrade cards removed but `showingSubscription` state variables and `.sheet(isPresented: $showingSubscription)` modifiers still exist in views
+- **UI cleanup:** SubscriptionView removed but SettingsView "Manage Subscription" button still presents it
+- **App metadata:** App description mentions "Plus" and "Pro" tiers and their pricing
+- **App metadata:** Screenshots show locked/gated features or upgrade prompts
+- **Privacy manifest:** Still accurate after StoreKit removal (StoreKit does NOT need to be declared, but verify no other APIs were added)
+- **Build settings:** `StoreKit` framework is no longer linked in the Xcode project after removing all `import StoreKit`
+- **Version string:** Info.plist `CFBundleShortVersionString` updated from 1.0.0 to 1.1.0 (or whatever the new version is)
+- **App Store Connect:** What's New text does not reference new subscription features
+- **URL links:** SettingsView links to `sundeefundee.com/privacy` and `sundeefundee.com/terms` -- verify these URLs actually resolve to live pages
+- **Accessibility:** VoiceOver works on all views after removing subscription-related UI elements
+
+## Recovery Strategies
+
+When pitfalls occur despite prevention, how to recover.
+
+| Pitfall | Recovery Cost | Recovery Steps |
+|---------|---------------|----------------|
+| Missed subscription reference causes build failure | LOW | Grep for the specific error, remove the reference, rebuild |
+| App Store rejection for placeholder content | MEDIUM | Fix the placeholder, resubmit. Cost: 24-48 hours per cycle |
+| App Store rejection for privacy label mismatch | LOW | Update labels in App Store Connect, resubmit. No binary change needed if manifest is correct |
+| Orphaned IAP products in App Store Connect | LOW | Remove products via App Store Connect. Can be done after approval |
+| Existing subscriber complaints about removed features | HIGH | Communicate transition via email, offer support contact, ensure "manage subscription" still accessible |
+| Feature still locked after paywall removal | MEDIUM | Find the specific capability flag check, fix it, rebuild and resubmit. Cost: 24-48 hours |
+| Tests fail after subscription removal | LOW | Update test fixtures to remove subscription client injection, fix assertions. Straightforward |
+
+## Pitfall-to-Phase Mapping
+
+How roadmap phases should address these pitfalls.
+
+| Pitfall | Prevention Phase | Verification |
+|---------|------------------|--------------|
+| Dead subscription code causes broken imports | Phase 1: Strip Subscription Gating | Build succeeds with zero StoreKit imports |
+| Orphaned StoreKit config in App Store Connect | Phase 4: App Store Submission | App Store Connect shows no IAP products after submission |
+| Incomplete feature unlock | Phase 1: Strip Subscription Gating | Manual test of every previously-gated feature |
+| Privacy nutrition label mismatch | Phase 4: App Store Submission | App Store Connect privacy labels match PrivacyInfo.xcprivacy |
+| Placeholder/stub content | Phase 2: Full App Audit | No "TODO", "stub", "placeholder" in user-facing code; all buttons functional |
+| Missed subscription UI elements | Phase 3: Polish | App shows zero lock icons, upgrade cards, or tier badges |
+| Test failures from subscription removal | Phase 1: Strip Subscription Gating | All 60+ tests pass with subscription code removed |
+| UX regression from removed UI sections | Phase 3: Polish | Dashboard, Analytics, Settings, Export all render correctly without gaps |
+| Hardcoded test emails in binary | Phase 2: Full App Audit | Grep for email addresses in source, verify none reach production binary |
+| Broken external links (privacy/terms) | Phase 4: App Store Submission | `curl` both URLs and verify 200 response |
+| App Store metadata mentions paid tiers | Phase 4: App Store Submission | App description, screenshots, keywords contain zero pricing/tier references |
 
 ## Sources
 
-- **Git documentation:** git clean, git rm, git history navigation (general Git knowledge, LOW confidence due to lack of specific sources)
-- **Repository management best practices:** (general software engineering knowledge, LOW confidence due to lack of specific sources)
-- **Platform migration common issues:** (general software engineering experience, LOW confidence due to lack of specific sources)
-- **Atlassian Git Tutorial:** [How to Remove Untracked Files in Git](https://www.atlassian.com/git/tutorials/undoing-changes/git-clean) (MEDIUM confidence - authoritative source on Git commands)
-- **GitHub documentation:** [Using files - GitHub Docs](https://docs.github.com/en/repositories/working-with-files/using-files) (LOW confidence - general docs, not specific to cleanup)
+- **Apple App Store Review Guidelines:** [developer.apple.com/app-store/review/guidelines](https://developer.apple.com/app-store/review/guidelines/) (MEDIUM confidence -- training data, not current version)
+- **Apple Privacy Manifest Documentation:** [developer.apple.com/documentation/bundleresources/privacy_manifest](https://developer.apple.com/documentation/bundleresources/privacy_manifest) (MEDIUM confidence)
+- **Apple Required Reason API Documentation:** [developer.apple.com/documentation/bundleresources/privacy_manifest/describing_use_of_required_reason_api](https://developer.apple.com/documentation/bundleresources/privacy_manifest/describing_use_of_required_reason_api) (MEDIUM confidence)
+- **Codebase analysis:** Full audit of 20+ files containing subscription references (HIGH confidence -- direct observation)
+- **Community reports:** r/iOSProgramming, r/appledev rejection pattern reports (LOW confidence -- community anecdotes)
+- **App Store Connect Help:** [help.apple.com/app-store-connect](https://help.apple.com/app-store-connect/) (MEDIUM confidence)
 
-**Confidence assessment:** LOW to MEDIUM overall. Specific authoritative sources on repository cleanup and platform transition pitfalls were not accessible through web search. Recommendations are based on general software engineering principles, Git best practices, and common patterns in platform retirement projects. Verification through additional sources is recommended before executing the cleanup.
+---
+*Pitfalls research for: Removing StoreKit paywall and first App Store submission*
+*Researched: 2026-04-08*
