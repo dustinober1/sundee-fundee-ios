@@ -34,7 +34,7 @@ Full details: [.planning/milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 - [x] **Phase 13: Remove Paywall UI** -- Strip all subscription gating UI from views and view models, delete Subscription/ directory (completed 2026-04-09)
 - [x] **Phase 14: Entitlements and Tests** -- Clean entitlements, update tests to verify always-unlocked behavior (completed 2026-04-09)
 - [x] **Phase 15: Fix Stubs and Guest Mode** -- Replace all placeholder implementations, verify guest mode works end-to-end (completed 2026-04-10)
-- [ ] **Phase 16: Accessibility** -- VoiceOver labels, Dynamic Type, and color contrast across all views
+- [x] **Phase 16: Accessibility** -- VoiceOver labels, Dynamic Type, and color contrast across all views (completed 2026-04-10)
 - [ ] **Phase 17: QA Pass** -- Manual QA through all screens, verify no crashes or broken navigation
 - [ ] **Phase 18: App Store Prep** -- Host URLs, complete metadata, screenshots, privacy declarations
 - [ ] **Phase 19: Archive and Submit** -- Archive build, upload to App Store Connect, submit for review
@@ -113,8 +113,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 16-01-PLAN.md — Add VoiceOver labels and hints to all interactive elements across all views
-- [ ] 16-02-PLAN.md — Convert typography to Dynamic Type + adjust colors for WCAG AA contrast
+- [x] 16-01-PLAN.md — Add VoiceOver labels and hints to all interactive elements across all views
+- [x] 16-02-PLAN.md — Convert typography to Dynamic Type + adjust colors for WCAG AA contrast
 
 **UI hint**: yes
 
@@ -164,7 +164,7 @@ Phases execute in numeric order: 12 -> 13 -> 14 -> 15 -> 16 -> 17 -> 18 -> 19
 | 13. Remove Paywall UI | v1.1 | 2/2 | Complete | 2026-04-09 |
 | 14. Entitlements and Tests | v1.1 | 1/1 | Complete | 2026-04-09 |
 | 15. Fix Stubs and Guest Mode | v1.1 | 1/1 | Complete | 2026-04-10 |
-| 16. Accessibility | v1.1 | 0/2 | Not started | - |
+| 16. Accessibility | v1.1 | 2/2 | Complete    | 2026-04-10 |
 | 17. QA Pass | v1.1 | 0/? | Not started | - |
 | 18. App Store Prep | v1.1 | 0/? | Not started | - |
 | 19. Archive and Submit | v1.1 | 0/? | Not started | - |
