@@ -252,5 +252,7 @@ public struct StatCard: View {
         .background(AppTheme.Background.card)
         .cornerRadius(AppTheme.CornerRadius.medium)
         .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(value) \(label)")
     }
 }

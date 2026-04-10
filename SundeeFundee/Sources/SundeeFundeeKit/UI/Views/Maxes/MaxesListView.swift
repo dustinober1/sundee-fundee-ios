@@ -78,6 +78,7 @@ public struct MaxesListView: View {
             Image(systemName: "scalemass")
                 .font(.system(size: 60))
                 .foregroundColor(AppTheme.Accent.gold.opacity(0.5))
+                .accessibilityHidden(true)
 
             Text("No Maxes Yet")
                 .font(AppTheme.Typography.headlineMedium)
@@ -92,6 +93,7 @@ public struct MaxesListView: View {
                 viewModel.showingEntry = true
             }
             .artDecoButton(style: .primary)
+            .accessibilityHint("Record your first one-rep max lift")
         }
         .padding(AppTheme.Spacing.xxl)
     }
@@ -126,6 +128,7 @@ public struct MaxesListView: View {
                 }
                 .listRowBackground(Color.clear)
                 .listRowSeparator(.hidden)
+                .accessibilityLabel("\(max.exerciseName), \(Int(max.weight)) \(max.unit.rawValue)")
             }
             .onDelete { indexSet in
                 for index in indexSet {

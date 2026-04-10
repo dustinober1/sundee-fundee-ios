@@ -47,6 +47,7 @@ struct AIWorkoutView: View {
                     Image(systemName: "sparkles")
                         .font(.system(size: 36))
                         .foregroundColor(AppTheme.Accent.gold)
+                        .accessibilityHidden(true)
 
                     Text("Generate Your Workout")
                         .font(AppTheme.Typography.displaySmall)
@@ -145,6 +146,7 @@ struct AIWorkoutView: View {
                     .frame(maxWidth: .infinity)
                 }
                 .artDecoButton(style: .accent)
+                .accessibilityHint("Create a personalized workout based on your selections")
             }
             .padding(AppTheme.Spacing.lg)
         }
@@ -162,6 +164,7 @@ struct AIWorkoutView: View {
                 Image(systemName: phaseIcon(phase))
                     .font(.system(size: 20))
                     .foregroundColor(phaseColor(phase))
+                    .accessibilityHidden(true)
 
                 VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
                     Text("Current Phase")
@@ -182,8 +185,11 @@ struct AIWorkoutView: View {
                     .padding(.vertical, AppTheme.Spacing.xs)
                     .background(AppTheme.Accent.goldLight)
                     .cornerRadius(AppTheme.CornerRadius.small)
+                    .accessibilityLabel("Cycle phase multiplier: \(Int(aiCyclePhaseMultiplier(phase) * 100)) percent")
             }
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Current phase: \(phaseName(phase)), multiplier \(Int(aiCyclePhaseMultiplier(phase) * 100)) percent")
     }
 
     // MARK: - Option Buttons
@@ -205,6 +211,7 @@ struct AIWorkoutView: View {
             .cornerRadius(AppTheme.CornerRadius.small)
         }
         .buttonStyle(.plain)
+        .accessibilityHint("Select \(title) focus area")
     }
 
     private func energyOption(_ level: EnergyLevel, _ title: String, _ icon: String) -> some View {
@@ -224,6 +231,7 @@ struct AIWorkoutView: View {
             .cornerRadius(AppTheme.CornerRadius.small)
         }
         .buttonStyle(.plain)
+        .accessibilityHint("Select \(title) energy level")
     }
 
     private func equipmentOption(_ equipment: EquipmentAccess, _ title: String, _ subtitle: String) -> some View {
@@ -250,6 +258,7 @@ struct AIWorkoutView: View {
             .cornerRadius(AppTheme.CornerRadius.small)
         }
         .buttonStyle(.plain)
+        .accessibilityHint("Select \(title) equipment access")
     }
 
     // MARK: - Generating
@@ -361,6 +370,7 @@ struct AIWorkoutView: View {
                             .frame(maxWidth: .infinity)
                         }
                         .artDecoButton(style: .accent)
+                        .accessibilityHint("Begin the generated workout now")
 
                         Button {
                             Task { await viewModel.generateWorkout() }
@@ -372,6 +382,7 @@ struct AIWorkoutView: View {
                             .frame(maxWidth: .infinity)
                         }
                         .artDecoButton(style: .secondary)
+                        .accessibilityHint("Generate a different workout")
                     }
                 }
                 .padding(AppTheme.Spacing.lg)

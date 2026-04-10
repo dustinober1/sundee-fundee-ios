@@ -88,6 +88,9 @@ public struct AnalyticsView: View {
                 )
         }
         .buttonStyle(.plain)
+        .accessibilityLabel("\(range.shortLabel) time range")
+        .accessibilityHint("Filter analytics to \(range.shortLabel)")
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 
     // MARK: - Loading State
@@ -97,6 +100,7 @@ public struct AnalyticsView: View {
             ProgressView()
                 .progressViewStyle(.circular)
                 .tint(AppTheme.Accent.gold)
+                .accessibilityLabel("Loading analytics data")
 
             Text("Loading analytics…")
                 .font(AppTheme.Typography.bodyMedium)
@@ -113,6 +117,7 @@ public struct AnalyticsView: View {
                 Image(systemName: "exclamationmark.triangle")
                     .font(.system(size: 32))
                     .foregroundColor(AppTheme.Semantic.warning)
+                    .accessibilityHidden(true)
 
                 Text("Could not load analytics")
                     .font(AppTheme.Typography.headlineMedium)
@@ -129,6 +134,7 @@ public struct AnalyticsView: View {
                     }
                 }
                 .artDecoButton(style: .accent)
+                .accessibilityHint("Reload analytics data")
             }
         }
     }

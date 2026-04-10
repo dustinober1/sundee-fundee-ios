@@ -112,6 +112,10 @@ public struct CycleCalendarView: View {
 
     private func dayCellView(_ dayData: CalendarDayData) -> some View {
         let dayNumber = Calendar.current.component(.day, from: dayData.date)
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "MMMM"
+        let monthName = dateFormatter.string(from: dayData.date)
+        let phaseName = dayData.phase.map { phaseLabel($0) } ?? ""
 
         return VStack(spacing: 2) {
             Text("\(dayNumber)")
@@ -144,6 +148,13 @@ public struct CycleCalendarView: View {
             }
         }
         .frame(height: 48)
+        .accessibilityLabel({
+            var parts = ["\(dayNumber), \(monthName)"]
+            if !phaseName.isEmpty { parts.append(phaseName) }
+            if let cycleDay = dayData.cycleDay { parts.append("cycle day \(cycleDay)") }
+            if dayData.isPeriodLogged { parts.append("period logged") }
+            return parts.joined(separator: ", ")
+        }())
     }
 
     // MARK: - Phase Legend
@@ -170,11 +181,13 @@ public struct CycleCalendarView: View {
             Circle()
                 .fill(phaseColor(phase))
                 .frame(width: 10, height: 10)
+                .accessibilityHidden(true)
 
             Text(label)
                 .font(AppTheme.Typography.labelSmall)
                 .foregroundColor(AppTheme.Text.primary)
         }
+        .accessibilityLabel("\(label) phase")
     }
 
     // MARK: - Phase Detail Card
@@ -188,6 +201,7 @@ public struct CycleCalendarView: View {
                     Image(systemName: phaseIcon(status.currentPhase))
                         .font(.system(size: 24))
                         .foregroundColor(phaseColor(status.currentPhase))
+                        .accessibilityHidden(true)
 
                     VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
                         Text(rec.title)
@@ -230,6 +244,7 @@ public struct CycleCalendarView: View {
                 HStack(spacing: AppTheme.Spacing.xs) {
                     Image(systemName: "calendar")
                         .foregroundColor(AppTheme.Text.secondary)
+                        .accessibilityHidden(true)
                     Text("Next period: \(status.predictedNextPeriod, style: .date)")
                         .font(AppTheme.Typography.bodySmall)
                         .foregroundColor(AppTheme.Text.secondary)
@@ -265,6 +280,15 @@ public struct CycleCalendarView: View {
         case .follicular: return "sun.max.fill"
         case .ovulation: return "sparkles"
         case .luteal: return "moon.fill"
+        }
+    }
+
+    private func phaseLabel(_ phase: CyclePhase) -> String {
+        switch phase {
+        case .menstrual: return "Menstrual"
+        case .follicular: return "Follicular"
+        case .ovulation: return "Ovulation"
+        case .luteal: return "Luteal"
         }
     }
 }

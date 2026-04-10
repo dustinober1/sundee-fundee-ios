@@ -95,6 +95,7 @@ struct ExercisePickerView: View {
                 .cornerRadius(AppTheme.CornerRadius.small)
         }
         .buttonStyle(.plain)
+        .accessibilityLabel("Filter by \(title)")
     }
 
     // MARK: - Exercise Row

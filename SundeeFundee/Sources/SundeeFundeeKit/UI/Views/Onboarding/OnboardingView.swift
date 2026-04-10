@@ -30,6 +30,7 @@ public struct OnboardingView: View {
             .tabViewStyle(.page(indexDisplayMode: .never))
             #endif
             .animation(.easeInOut(duration: 0.3), value: viewModel.currentStep)
+            .accessibilityLabel("Onboarding step \(viewModel.currentStep + 1)")
 
             // Navigation Buttons
             navigationButtons
@@ -52,6 +53,8 @@ public struct OnboardingView: View {
             }
         }
         .frame(height: 4)
+        .accessibilityLabel("Step \(viewModel.currentStep + 1) of 4")
+        .accessibilityValue("\(viewModel.currentStep + 1)")
     }
 
     // MARK: - Step 0: Welcome
@@ -63,6 +66,7 @@ public struct OnboardingView: View {
             Image(systemName: "figure.strengthtraining.traditional")
                 .font(.system(size: 80))
                 .foregroundColor(AppTheme.Accent.gold)
+                .accessibilityHidden(true)
 
             Text("Welcome to\nSundee Fundee")
                 .font(AppTheme.Typography.displayLarge)
@@ -138,6 +142,7 @@ public struct OnboardingView: View {
             .cornerRadius(AppTheme.CornerRadius.medium)
         }
         .buttonStyle(.plain)
+        .accessibilityHint("Select \(title) experience level")
     }
 
     // MARK: - Step 2: Primary Goal
@@ -200,6 +205,7 @@ public struct OnboardingView: View {
             .cornerRadius(AppTheme.CornerRadius.medium)
         }
         .buttonStyle(.plain)
+        .accessibilityHint("Select \(title) as your primary goal")
     }
 
     // MARK: - Step 3: Preferences
@@ -270,6 +276,7 @@ public struct OnboardingView: View {
                     viewModel.currentStep -= 1
                 }
                 .artDecoButton(style: .ghost)
+                .accessibilityLabel("Go back")
             }
 
             Spacer()
@@ -279,12 +286,14 @@ public struct OnboardingView: View {
                     viewModel.currentStep += 1
                 }
                 .artDecoButton(style: .primary)
+                .accessibilityLabel("Next step")
             } else {
                 Button("Get Started") {
                     viewModel.completeOnboarding()
                     onComplete()
                 }
                 .artDecoButton(style: .accent)
+                .accessibilityHint("Complete onboarding and start using the app")
             }
         }
         .padding(AppTheme.Spacing.lg)

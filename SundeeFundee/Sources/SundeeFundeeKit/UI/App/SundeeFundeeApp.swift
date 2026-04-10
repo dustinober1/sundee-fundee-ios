@@ -25,42 +25,49 @@ public struct MainTabView: View {
                     Label("Dashboard", systemImage: selectedTab == .dashboard ? "chart.bar.fill" : "chart.bar")
                 }
                 .tag(Tab.dashboard)
+                .accessibilityHint("View your dashboard overview")
 
             WorkoutsListView()
                 .tabItem {
                     Label("Workouts", systemImage: "figure.strengthtraining.traditional")
                 }
                 .tag(Tab.workouts)
+                .accessibilityHint("View and manage your workouts")
 
             ProgramsListView()
                 .tabItem {
                     Label("Programs", systemImage: selectedTab == .programs ? "list.bullet.rectangle.fill" : "list.bullet.rectangle")
                 }
                 .tag(Tab.programs)
+                .accessibilityHint("Browse training programs")
 
             MaxesListView()
                 .tabItem {
                     Label("Maxes", systemImage: selectedTab == .maxes ? "scalemass.fill" : "scalemass")
                 }
                 .tag(Tab.maxes)
+                .accessibilityHint("View your one-rep max lifts")
 
             AnalyticsView()
                 .tabItem {
                     Label("Analytics", systemImage: selectedTab == .analytics ? "chart.xyaxis.line" : "chart.xyaxis.line")
                 }
                 .tag(Tab.analytics)
+                .accessibilityHint("View training analytics and charts")
 
             BenchmarksListView()
                 .tabItem {
                     Label("Benchmarks", systemImage: selectedTab == .benchmarks ? "trophy.fill" : "trophy")
                 }
                 .tag(Tab.benchmarks)
+                .accessibilityHint("View fitness benchmarks")
 
             SettingsView()
                 .tabItem {
                     Label("Settings", systemImage: selectedTab == .settings ? "gearshape.fill" : "gearshape")
                 }
                 .tag(Tab.settings)
+                .accessibilityHint("View app settings")
         }
         .tint(AppTheme.Accent.gold)
         .onReceive(NotificationCenter.default.publisher(for: .aiWorkoutStarted)) { _ in
@@ -108,6 +115,7 @@ public struct AuthView: View {
                 Image(systemName: "figure.strengthtraining.traditional")
                     .font(.system(size: 90))
                     .foregroundColor(AppTheme.Accent.gold)
+                    .accessibilityHidden(true)
 
                 Text("Sundee Fundee")
                     .font(AppTheme.Typography.displayLarge)
@@ -139,6 +147,7 @@ public struct AuthView: View {
                     .cornerRadius(AppTheme.CornerRadius.large)
                 }
                 .buttonStyle(.plain)
+                .accessibilityHint("Sign in using your Apple ID")
 
                 Button(action: {
                     authViewModel.continueAsGuest()
@@ -148,6 +157,7 @@ public struct AuthView: View {
                         .foregroundColor(AppTheme.Text.secondary)
                 }
                 .buttonStyle(.plain)
+                .accessibilityHint("Use the app without an account")
 
                 if let error = authViewModel.errorMessage {
                     Text(error)

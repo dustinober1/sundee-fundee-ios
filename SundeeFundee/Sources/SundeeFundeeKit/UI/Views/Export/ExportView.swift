@@ -72,6 +72,7 @@ public struct ExportView: View {
                 .padding(.vertical, AppTheme.Spacing.sm)
             }
             .disabled(viewModel.isExporting)
+            .accessibilityHint("Generate a JSON file of all your data")
         }
     }
 
@@ -90,6 +91,7 @@ public struct ExportView: View {
                     Label("Share Export File", systemImage: "square.and.arrow.up")
                         .foregroundColor(AppTheme.Accent.gold)
                 }
+                .accessibilityLabel("Share exported data file")
             }
         }
     }

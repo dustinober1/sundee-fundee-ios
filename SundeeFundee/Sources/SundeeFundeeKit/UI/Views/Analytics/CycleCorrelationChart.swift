@@ -28,6 +28,10 @@ struct CycleCorrelationChart: View {
                 }
             }
         }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(data.isEmpty
+            ? "No data available for cycle correlation chart"
+            : "Cycle correlation chart showing average volume by menstrual phase: \(data.map { "\(phaseLabel($0.phase)): \(Int($0.averageVolume))" }.joined(separator: ", "))")
     }
 
     // MARK: - Chart
@@ -65,6 +69,7 @@ struct CycleCorrelationChart: View {
             Image(systemName: "heart.text.square")
                 .font(.system(size: 32))
                 .foregroundColor(AppTheme.Text.secondary.opacity(0.5))
+                .accessibilityHidden(true)
 
             Text("Track cycle phases to see correlation")
                 .font(AppTheme.Typography.bodyMedium)

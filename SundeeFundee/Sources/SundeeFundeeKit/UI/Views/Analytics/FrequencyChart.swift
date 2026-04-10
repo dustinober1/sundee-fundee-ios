@@ -27,6 +27,10 @@ struct FrequencyChart: View {
                 }
             }
         }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(data.isEmpty
+            ? "No data available for workout frequency chart"
+            : "Workout frequency chart showing workouts per week over \(data.count) weeks")
     }
 
     // MARK: - Chart
@@ -73,6 +77,7 @@ struct FrequencyChart: View {
             Image(systemName: "calendar")
                 .font(.system(size: 32))
                 .foregroundColor(AppTheme.Text.secondary.opacity(0.5))
+                .accessibilityHidden(true)
 
             Text("Start training to see frequency")
                 .font(AppTheme.Typography.bodyMedium)

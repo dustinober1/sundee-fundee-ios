@@ -46,6 +46,7 @@ public struct WorkoutDetailView: View {
                             Image(systemName: "square.and.arrow.up")
                         }
                         .artDecoButton(style: .secondary)
+                        .accessibilityLabel("Share workout")
                         #endif
                     }
                 } else {
@@ -54,6 +55,7 @@ public struct WorkoutDetailView: View {
                             Task { await viewModel.completeWorkout() }
                         }
                         .artDecoButton(style: .accent)
+                        .accessibilityHint("Complete all remaining sets and finish the workout")
                     }
                 }
             }
@@ -280,6 +282,7 @@ public struct WorkoutDetailView: View {
                     .foregroundColor(set.isComplete ? AppTheme.Accent.gold : AppTheme.Text.secondary.opacity(0.3))
             }
             .buttonStyle(.plain)
+            .accessibilityLabel("Set \(setNumber), \(repDisplay(set)) reps at \(weightDisplay(set.prescribedWeight)). \(set.isComplete ? "Completed" : "Not completed")")
             .frame(width: 36)
         }
         .padding(.vertical, AppTheme.Spacing.xs)

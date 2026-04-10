@@ -35,6 +35,8 @@ public struct WorkoutShareCardView: View {
         .frame(width: 400, height: 500)
         .background(AppTheme.Background.navy)
         .drawingGroup()
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Workout share card: \(workout.name), \(workout.exercises.count) exercises")
     }
 
     // MARK: - Header Section

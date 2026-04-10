@@ -116,6 +116,7 @@ public struct DashboardView: View {
                     Image(systemName: cyclePhaseIcon(for: phase))
                         .font(.system(size: 24))
                         .foregroundColor(cyclePhaseColor(for: phase))
+                        .accessibilityHidden(true)
 
                     VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
                         Text(cyclePhaseTitle(for: phase))
@@ -139,11 +140,17 @@ public struct DashboardView: View {
                             Circle()
                                 .fill(confidenceColor(for: confidence))
                                 .frame(width: 8, height: 8)
+                                .accessibilityHidden(true)
                         }
+                        .accessibilityElement(children: .combine)
+                        .accessibilityLabel("Phase confidence: \(Int(confidence * 100)) percent")
                     }
                 }
             }
             .buttonStyle(.plain)
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("Cycle phase: \(cyclePhaseTitle(for: phase))")
+            .accessibilityHint("Tap to view cycle calendar")
             }
         }
     }
@@ -213,6 +220,7 @@ public struct DashboardView: View {
                 label: "Program"
             )
         }
+        .accessibilityElement(children: .contain)
     }
 
     // MARK: - Suggested Workout
@@ -224,19 +232,42 @@ public struct DashboardView: View {
                     .font(AppTheme.Typography.headlineMedium)
                     .foregroundColor(AppTheme.Text.primary)
 
-                VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
-                    Text("Generate AI Workout")
-                        .font(AppTheme.Typography.bodyMedium)
-                        .foregroundColor(AppTheme.Text.secondary)
+                if viewModel.canGenerateAIWorkout {
+                    VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
+                        Text("Generate AI Workout")
+                            .font(AppTheme.Typography.bodyMedium)
+                            .foregroundColor(AppTheme.Text.secondary)
 
-                    Text("Based on your cycle phase and energy level")
-                        .font(AppTheme.Typography.bodySmall)
-                        .foregroundColor(AppTheme.Text.secondary.opacity(0.8))
+                        Text("Based on your cycle phase and energy level")
+                            .font(AppTheme.Typography.bodySmall)
+                            .foregroundColor(AppTheme.Text.secondary.opacity(0.8))
 
-                    Button("Generate") {
-                        showingAIWorkout = true
+                        Button("Generate") {
+                            showingAIWorkout = true
+                        }
+                        .artDecoButton(style: .accent)
+                        .accessibilityLabel("Generate AI workout")
+                        .accessibilityHint("Creates a workout based on your cycle phase")
                     }
-                    .artDecoButton(style: .accent)
+                } else {
+                    VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
+                        Text("Today's Workout")
+                            .font(AppTheme.Typography.bodyMedium)
+                            .foregroundColor(AppTheme.Text.secondary)
+
+                        if let nextWorkout = viewModel.nextWorkout {
+                            Text(nextWorkout)
+                                .font(AppTheme.Typography.bodyMedium)
+                                .foregroundColor(AppTheme.Text.primary)
+
+                            NavigationLink("Start Workout", destination: Text("Workout Detail"))
+                                .artDecoButton(style: .primary)
+                        } else {
+                            Text("No workout scheduled")
+                                .font(AppTheme.Typography.bodySmall)
+                                .foregroundColor(AppTheme.Text.secondary)
+                        }
+                    }
                 }
             }
         }
@@ -260,16 +291,19 @@ public struct DashboardView: View {
                         quickActionContent("Log Max", icon: "scalemass", isPrimary: true)
                     }
                     .buttonStyle(.plain)
+                    .accessibilityHint("Navigate to log a one-rep max")
 
                     NavigationLink(destination: PainTrackingView()) {
                         quickActionContent("Pain Log", icon: "bandage", isPrimary: false)
                     }
                     .buttonStyle(.plain)
+                    .accessibilityHint("Navigate to pain tracking")
 
                     NavigationLink(destination: BenchmarksListView()) {
                         quickActionContent("Benchmarks", icon: "trophy", isPrimary: false)
                     }
                     .buttonStyle(.plain)
+                    .accessibilityHint("Navigate to benchmarks")
                 }
             }
         }
@@ -300,6 +334,7 @@ public struct DashboardView: View {
                     HStack {
                         Image(systemName: "brain.head.profile")
                             .foregroundColor(AppTheme.Semantic.success)
+                            .accessibilityHidden(true)
 
                         Text("Your Coach")
                             .font(AppTheme.Typography.headlineMedium)
@@ -316,6 +351,7 @@ public struct DashboardView: View {
                                 Image(systemName: "arrow.right.circle.fill")
                                     .font(.system(size: 12))
                                     .foregroundColor(AppTheme.Accent.gold)
+                                    .accessibilityHidden(true)
 
                                 Text(action)
                                     .font(AppTheme.Typography.bodySmall)
@@ -333,6 +369,7 @@ public struct DashboardView: View {
                             .background(AppTheme.Semantic.success.opacity(0.1))
                             .cornerRadius(AppTheme.CornerRadius.medium)
                     }
+                    .accessibilityHint("View detailed training insights")
                 }
             }
         }
@@ -351,6 +388,7 @@ public struct DashboardView: View {
                     HStack(spacing: AppTheme.Spacing.sm) {
                         Image(systemName: "checkmark.circle.fill")
                             .foregroundColor(AppTheme.Accent.gold)
+                            .accessibilityHidden(true)
 
                         Text(win)
                             .font(AppTheme.Typography.bodyMedium)
@@ -379,6 +417,9 @@ class DashboardViewModel: ObservableObject {
     @Published var workoutsThisWeek: Int = 0
     @Published var prsThisMonth: Int = 0
     @Published var activeProgramName: String?
+    @Published var nextWorkout: String?
+    @Published var canGenerateAIWorkout: Bool = false
+    @Published var isGeneratingWorkout: Bool = false
     @Published var recentWins: [String] = []
     @Published var insightsSummary: String?
     @Published var insightsActions: [String] = []
@@ -414,6 +455,9 @@ class DashboardViewModel: ObservableObject {
         // Load program info
         await loadProgramInfo()
 
+        // AI workout generation always available
+        canGenerateAIWorkout = true
+
         // Load coaching insights
         await loadCoachingInsights()
 
@@ -421,6 +465,19 @@ class DashboardViewModel: ObservableObject {
         await loadRecentWins()
 
         isLoading = false
+    }
+
+    /// Generates an AI workout based on cycle phase and energy
+    func generateAIWorkout() async {
+        isGeneratingWorkout = true
+
+        // Simulate AI generation
+        try? await Task.sleep(nanoseconds: 2_000_000_000)
+
+        isGeneratingWorkout = false
+
+        // In real implementation, this would call the AI service
+        // and navigate to the generated workout
     }
 
     // MARK: - Private Methods
@@ -495,6 +552,7 @@ class DashboardViewModel: ObservableObject {
 
             if let program = programs.first, program.isActive {
                 activeProgramName = program.name
+                nextWorkout = "Day \(programs.count + 1)" // Simplified
             }
         } catch {
             // CloudKit unavailable — leave program info at defaults

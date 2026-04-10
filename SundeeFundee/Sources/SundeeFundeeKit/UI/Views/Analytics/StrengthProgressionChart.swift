@@ -39,6 +39,10 @@ struct StrengthProgressionChart: View {
                 }
             }
         }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(data.isEmpty
+            ? "No data available for strength progression chart"
+            : "Strength progression chart showing \(data.count) data points for \(selectedExercise ?? "all exercises")")
     }
 
     // MARK: - Exercise Picker
@@ -108,6 +112,7 @@ struct StrengthProgressionChart: View {
             Image(systemName: "chart.line.uptrend.xyaxis")
                 .font(.system(size: 32))
                 .foregroundColor(AppTheme.Text.secondary.opacity(0.5))
+                .accessibilityHidden(true)
 
             Text("Log your first max to see progression")
                 .font(AppTheme.Typography.bodyMedium)

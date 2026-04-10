@@ -23,6 +23,7 @@ public struct SettingsView: View {
                             Image(systemName: "person.circle.fill")
                                 .font(.system(size: 40))
                                 .foregroundColor(AppTheme.Accent.gold)
+                                .accessibilityHidden(true)
 
                             VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
                                 Text(userName)
@@ -116,6 +117,7 @@ public struct SettingsView: View {
                             Image(systemName: "link")
                                 .font(.system(size: 12))
                                 .foregroundColor(AppTheme.Accent.gold)
+                                .accessibilityHidden(true)
                         }
                     }
 
@@ -126,6 +128,7 @@ public struct SettingsView: View {
                             Image(systemName: "link")
                                 .font(.system(size: 12))
                                 .foregroundColor(AppTheme.Accent.gold)
+                                .accessibilityHidden(true)
                         }
                     }
 
@@ -136,6 +139,7 @@ public struct SettingsView: View {
                             Image(systemName: "link")
                                 .font(.system(size: 12))
                                 .foregroundColor(AppTheme.Accent.gold)
+                                .accessibilityHidden(true)
                         }
                     }
                 }
@@ -146,11 +150,13 @@ public struct SettingsView: View {
                         authViewModel.signOut()
                     }
                     .foregroundColor(AppTheme.Text.primary)
+                    .accessibilityHint("Sign out of your account")
 
                     Button("Delete All Data & Account") {
                         showingDeleteConfirmation = true
                     }
                     .foregroundColor(AppTheme.Semantic.error)
+                    .accessibilityHint("Permanently delete all data. This cannot be undone.")
                 }
             }
             .navigationTitle("Settings")

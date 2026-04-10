@@ -129,6 +129,8 @@ public struct InsightsView: View {
                             .foregroundColor(AppTheme.Accent.gold)
                     }
                 }
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("\(plateau.exerciseName), stalled at \(Int(plateau.currentWeight)) \(plateau.unit.rawValue), \(plateau.stallCount) attempts, \(plateau.daysSinceBest) days since personal best")
             }
         }
     }
@@ -145,6 +147,7 @@ public struct InsightsView: View {
                 HStack(spacing: AppTheme.Spacing.sm) {
                     Image(systemName: trendIcon(trend.severity))
                         .foregroundColor(trendColor(trend.severity))
+                        .accessibilityHidden(true)
 
                     Text(trend.message)
                         .font(AppTheme.Typography.bodySmall)
@@ -229,6 +232,7 @@ public struct InsightsView: View {
             Image(systemName: "chart.line.uptrend.xyaxis")
                 .font(.system(size: 48))
                 .foregroundColor(AppTheme.Text.secondary.opacity(0.5))
+                .accessibilityHidden(true)
 
             Text("No insights yet")
                 .font(AppTheme.Typography.headlineMedium)

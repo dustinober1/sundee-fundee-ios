@@ -48,6 +48,8 @@ public struct BenchmarksListView: View {
                     .padding(.vertical, AppTheme.Spacing.sm)
                     .background(viewModel.selectedCategory == category ? AppTheme.Background.navy : AppTheme.Background.cream.opacity(0.5))
                     .cornerRadius(AppTheme.CornerRadius.small)
+                    .accessibilityLabel("\(category) category")
+                    .accessibilityAddTraits(viewModel.selectedCategory == category ? .isSelected : [])
                 }
             }
             .padding(.horizontal, AppTheme.Spacing.lg)
@@ -102,11 +104,13 @@ struct BenchmarkRow: View {
                         if hasCompleted {
                             Image(systemName: "checkmark.circle.fill")
                                 .foregroundColor(AppTheme.Accent.gold)
+                                .accessibilityLabel("Completed")
                         }
 
                         // Readiness indicator
                         Text(readiness.emoji)
                             .font(.system(size: 20))
+                            .accessibilityLabel(readiness.tier.rawValue)
                     }
 
                     // Readiness Banner
@@ -170,6 +174,7 @@ struct BenchmarkRow: View {
             }
         }
         .buttonStyle(.plain)
+        .accessibilityHint("View benchmark details and log results")
     }
 
     private var intensityIndicator: some View {
@@ -186,6 +191,7 @@ struct BenchmarkRow: View {
                 }
             }
         }
+        .accessibilityLabel("Intensity: \(benchmark.intensity?.rawValue ?? 0) out of 5")
     }
 
     private func readinessTierColor(_ tier: ReadinessTier) -> Color {
@@ -252,6 +258,7 @@ public struct BenchmarkDetailView: View {
                         viewModel.showingScoreEntry = true
                     }
                     .artDecoButton(style: .primary)
+                    .accessibilityLabel("Log benchmark result")
                 }
             }
             .task {

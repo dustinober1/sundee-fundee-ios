@@ -27,6 +27,10 @@ struct VolumeChart: View {
                 }
             }
         }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(data.isEmpty
+            ? "No data available for training volume chart"
+            : "Training volume chart showing weekly volume over \(data.count) weeks")
     }
 
     // MARK: - Chart
@@ -73,6 +77,7 @@ struct VolumeChart: View {
             Image(systemName: "chart.bar")
                 .font(.system(size: 32))
                 .foregroundColor(AppTheme.Text.secondary.opacity(0.5))
+                .accessibilityHidden(true)
 
             Text("Complete workouts to track volume")
                 .font(AppTheme.Typography.bodyMedium)

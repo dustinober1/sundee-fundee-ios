@@ -73,6 +73,7 @@ struct ProgramRow: View {
                     if program.isEnrolled {
                         Image(systemName: "checkmark.seal.fill")
                             .foregroundColor(AppTheme.Accent.gold)
+                            .accessibilityLabel("Currently enrolled")
                     }
                 }
 
@@ -107,6 +108,7 @@ struct ProgramRow: View {
                         onEnroll()
                     }
                     .artDecoButton(style: .secondary)
+                    .accessibilityHint("Start this program")
                 }
             }
         }

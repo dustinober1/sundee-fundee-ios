@@ -74,6 +74,7 @@ public struct WorkoutsListView: View {
             Image(systemName: "figure.strengthtraining.traditional")
                 .font(.system(size: 60))
                 .foregroundColor(AppTheme.Accent.gold.opacity(0.5))
+                .accessibilityHidden(true)
 
             Text("No Workouts Yet")
                 .font(AppTheme.Typography.headlineMedium)
@@ -133,6 +134,7 @@ struct WorkoutRow: View {
                     if workout.isComplete {
                         Image(systemName: "checkmark.circle.fill")
                             .foregroundColor(AppTheme.Accent.gold)
+                            .accessibilityLabel("Completed")
                     }
                 }
 
@@ -144,11 +146,13 @@ struct WorkoutRow: View {
                     HStack(spacing: AppTheme.Spacing.xs) {
                         Image(systemName: "clock")
                             .font(.system(size: 12))
+                            .accessibilityHidden(true)
 
                         Text("\(duration) min")
                             .font(AppTheme.Typography.bodySmall)
                     }
                     .foregroundColor(AppTheme.Text.secondary)
+                    .accessibilityElement(children: .combine)
                 }
 
                 if !workout.exercises.isEmpty {
@@ -162,6 +166,7 @@ struct WorkoutRow: View {
                                 Circle()
                                     .fill(AppTheme.Accent.gold.opacity(0.5))
                                     .frame(width: 4, height: 4)
+                                    .accessibilityHidden(true)
 
                                 Text(exercise)
                                     .font(AppTheme.Typography.bodySmall)
@@ -199,6 +204,7 @@ struct WorkoutRowContent: View {
                 if workout.isComplete {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundColor(AppTheme.Accent.gold)
+                        .accessibilityLabel("Completed")
                 }
             }
 
@@ -210,10 +216,12 @@ struct WorkoutRowContent: View {
                 HStack(spacing: AppTheme.Spacing.xs) {
                     Image(systemName: "clock")
                         .font(.system(size: 12))
+                        .accessibilityHidden(true)
                     Text("\(duration) min")
                         .font(AppTheme.Typography.bodySmall)
                 }
                 .foregroundColor(AppTheme.Text.secondary)
+                .accessibilityElement(children: .combine)
             }
 
             if !workout.exercises.isEmpty {
@@ -274,6 +282,7 @@ struct NewWorkoutView: View {
                                 Image(systemName: "sparkles")
                                     .font(.system(size: 24))
                                     .foregroundColor(AppTheme.Accent.orange)
+                                    .accessibilityHidden(true)
 
                                 VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
                                     Text("Generate AI Workout")
@@ -289,6 +298,7 @@ struct NewWorkoutView: View {
 
                                 Image(systemName: "chevron.right")
                                     .foregroundColor(AppTheme.Text.secondary)
+                                    .accessibilityHidden(true)
                             }
                         }
                     }
@@ -407,6 +417,7 @@ struct NewWorkoutView: View {
                 Image(systemName: "figure.strengthtraining.traditional")
                     .font(.system(size: 36))
                     .foregroundColor(AppTheme.Accent.gold.opacity(0.5))
+                    .accessibilityHidden(true)
 
                 Text("No exercises added yet")
                     .font(AppTheme.Typography.bodyMedium)
@@ -441,6 +452,7 @@ struct NewWorkoutView: View {
                             .foregroundColor(AppTheme.Text.secondary.opacity(0.5))
                     }
                     .buttonStyle(.plain)
+                    .accessibilityLabel("Remove \(config.name)")
                 }
 
                 // Sets & Reps
@@ -458,6 +470,7 @@ struct NewWorkoutView: View {
                                     .foregroundColor(AppTheme.Text.secondary)
                             }
                             .buttonStyle(.plain)
+                            .accessibilityLabel("Decrease sets")
                             .disabled(config.sets <= 1)
 
                             Text("\(config.sets)")
@@ -472,6 +485,7 @@ struct NewWorkoutView: View {
                                     .foregroundColor(AppTheme.Accent.gold)
                             }
                             .buttonStyle(.plain)
+                            .accessibilityLabel("Increase sets")
                         }
                     }
 
@@ -488,6 +502,7 @@ struct NewWorkoutView: View {
                                     .foregroundColor(AppTheme.Text.secondary)
                             }
                             .buttonStyle(.plain)
+                            .accessibilityLabel("Decrease reps")
                             .disabled(config.reps <= 1)
 
                             Text("\(config.reps)")
@@ -502,6 +517,7 @@ struct NewWorkoutView: View {
                                     .foregroundColor(AppTheme.Accent.gold)
                             }
                             .buttonStyle(.plain)
+                            .accessibilityLabel("Increase reps")
                         }
                     }
 

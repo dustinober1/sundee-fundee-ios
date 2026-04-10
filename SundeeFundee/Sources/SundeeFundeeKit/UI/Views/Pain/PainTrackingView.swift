@@ -63,6 +63,7 @@ public struct PainTrackingView: View {
                             Image(systemName: "plus.circle.fill")
                                 .font(.system(size: 24))
                                 .foregroundColor(AppTheme.Accent.orange)
+                                .accessibilityHidden(true)
 
                             VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
                                 Text("Log Pain")
@@ -78,10 +79,12 @@ public struct PainTrackingView: View {
 
                             Image(systemName: "chevron.right")
                                 .foregroundColor(AppTheme.Text.secondary)
+                                .accessibilityHidden(true)
                         }
                     }
                 }
                 .buttonStyle(.plain)
+                .accessibilityHint("Open pain logging form")
 
                 // Smart Substitutions (Pro)
                 if !viewModel.substitutionSuggestions.isEmpty {
@@ -105,6 +108,7 @@ public struct PainTrackingView: View {
                         Image(systemName: "heart.text.square")
                             .font(.system(size: 48))
                             .foregroundColor(AppTheme.Accent.gold.opacity(0.5))
+                            .accessibilityHidden(true)
 
                         Text("No Pain Logs")
                             .font(AppTheme.Typography.headlineMedium)
@@ -185,6 +189,7 @@ public struct PainTrackingView: View {
                 Label("Active Injuries", systemImage: "exclamationmark.triangle.fill")
                     .font(AppTheme.Typography.headlineMedium)
                     .foregroundColor(AppTheme.Accent.orange)
+                    .accessibilityLabel("Active injuries: \(viewModel.activeInjuries.count) injuries")
 
                 ForEach(viewModel.activeInjuries) { injury in
                     HStack {
@@ -437,6 +442,8 @@ struct PainLogRow: View {
                         .font(AppTheme.Typography.headlineMedium)
                         .foregroundColor(.white)
                 }
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("Pain intensity: \(log.intensity) out of 10")
 
                 VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
                     Text(log.painType.displayName)
