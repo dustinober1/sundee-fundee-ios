@@ -36,7 +36,7 @@ Full details: [.planning/milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 - [x] **Phase 15: Fix Stubs and Guest Mode** -- Replace all placeholder implementations, verify guest mode works end-to-end (completed 2026-04-10)
 - [x] **Phase 16: Accessibility** -- VoiceOver labels, Dynamic Type, and color contrast across all views (completed 2026-04-10)
 - [x] **Phase 17: QA Pass** -- Manual QA through all screens, verify no crashes or broken navigation (completed 2026-04-10)
-- [ ] **Phase 18: App Store Prep** -- Host URLs, complete metadata, screenshots, privacy declarations
+- [x] **Phase 18: App Store Prep** -- Host URLs, complete metadata, screenshots, privacy declarations (completed 2026-04-10)
 - [ ] **Phase 19: Archive and Submit** -- Archive build, upload to App Store Connect, submit for review
 
 ## Phase Details
@@ -166,7 +166,7 @@ Phases execute in numeric order: 12 -> 13 -> 14 -> 15 -> 16 -> 17 -> 18 -> 19
 | 15. Fix Stubs and Guest Mode | v1.1 | 1/1 | Complete | 2026-04-10 |
 | 16. Accessibility | v1.1 | 2/2 | Complete    | 2026-04-10 |
 | 17. QA Pass | v1.1 | 0/0 | Complete    | 2026-04-10 |
-| 18. App Store Prep | v1.1 | 0/? | Not started | - |
+| 18. App Store Prep | v1.1 | 0/0 | Complete    | 2026-04-10 |
 | 19. Archive and Submit | v1.1 | 0/? | Not started | - |
 
 ---
