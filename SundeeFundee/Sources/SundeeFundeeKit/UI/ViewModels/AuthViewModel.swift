@@ -66,10 +66,17 @@ public class AuthViewModel: ObservableObject {
                 self.userEmail = KeychainHelper.read(key: KeychainHelper.userEmailKey)
             }
 
-            if let name = result.displayName, !name.isEmpty {
-                self.userName = name
+            // Apple only provides the name on the very first sign-in for this Apple ID + app.
+            // On subsequent sign-ins (including after account deletion), fullName is nil.
+            // Priority: Apple credential → Keychain → CloudKit (saved after first sign-in).
+            if let givenName = result.givenName, !givenName.isEmpty {
+                self.userName = givenName
+            } else if let stored = KeychainHelper.read(key: KeychainHelper.userNameKey), !stored.isEmpty {
+                self.userName = stored
             } else {
-                self.userName = KeychainHelper.read(key: KeychainHelper.userNameKey)
+                // Final fallback: fetch from CloudKit (saved during first-ever sign-in)
+                let cloudName = await fetchUserNameFromCloudKit(userID: result.userID)
+                self.userName = cloudName
             }
 
             // Persist to Keychain for session restoration
@@ -77,7 +84,7 @@ public class AuthViewModel: ObservableObject {
             if let email = self.userEmail {
                 _ = KeychainHelper.save(key: KeychainHelper.userEmailKey, value: email)
             }
-            if let name = result.displayName, !name.isEmpty {
+            if let name = self.userName, !name.isEmpty {
                 _ = KeychainHelper.save(key: KeychainHelper.userNameKey, value: name)
             }
 
@@ -187,9 +194,34 @@ public class AuthViewModel: ObservableObject {
                 DataClientFactory.shared.client = LocalDataClient()
             }
 
+            // If userName wasn't in Keychain, try fetching from CloudKit
+            if userName == nil || userName?.isEmpty == true {
+                if let cloudName = await fetchUserNameFromCloudKit(userID: userID) {
+                    self.userName = cloudName
+                    _ = KeychainHelper.save(key: KeychainHelper.userNameKey, value: cloudName)
+                }
+            }
+
             isAuthenticated = true
             needsOnboarding = KeychainHelper.read(key: "onboarding_complete") == nil
         }
+    }
+
+    /// Fetches user's first name from CloudKit UserData record
+    private func fetchUserNameFromCloudKit(userID: String) async -> String? {
+        do {
+            let results: [UserData] = try await dataClient.fetch(
+                recordType: "UserData",
+                predicate: NSPredicate(format: "userID == %@", userID),
+                sortDescriptors: nil
+            )
+            if let user = results.first, !user.givenName.isEmpty {
+                return user.givenName
+            }
+        } catch {
+            // Silently fail — will show "Athlete" as fallback
+        }
+        return nil
     }
 
     /// Saves user info to CloudKit after successful authentication
