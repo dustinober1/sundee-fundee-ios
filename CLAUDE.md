@@ -13,7 +13,7 @@ Sundee Fundee is a native iOS app for cycle-aware strength training. Built with 
 ### Build
 ```bash
 cd SundeeFundeeApp
-xcodebuild -project SundeeFundee.xcodeproj -scheme SundeeFundee -destination 'platform=iOS Simulator,name=iPhone 16' build
+xcodebuild -project SundeeFundee.xcodeproj -scheme SundeeFundee -destination 'platform=iOS Simulator,name=iPhone 17 Pro' build
 ```
 
 ### Test
@@ -61,6 +61,7 @@ SundeeFundee/ (Swift Package — SundeeFundeeKit)
 - Apple Sign-In only (no Firebase); session stored in Keychain; user data saved to CloudKit
 - Guest mode: `authViewModel.continueAsGuest()` sets `isGuest = true`, `userID = "guest_local"`, skips CloudKit
 - Gate CloudKit writes with `!authViewModel.isGuest`
+- **Name only on first sign-in** — `fullName` is nil on subsequent sign-ins (including after account deletion). Persist `givenName` to CloudKit as the source of truth for session restore. Use `givenName` (first name) for display, not `displayName` (full formatted name).
 
 ### Data Layer
 
@@ -99,6 +100,7 @@ Pure Swift business logic mirroring the original web app's domain layer:
 - **Multiplier-based adaptation** — cycle phase, recovery phase, and energy level compose multiplicatively on base weights
 - **Domain functions are pure** — no side effects, no framework imports. Accept data, return data.
 - **Actor-based data clients** — `CloudKitClient` is an actor for thread safety
+- **SourceKit false positives** — "Cannot find type in scope" for cross-module types (KeychainHelper, DataClientFactory, etc.) are SourceKit noise; trust `xcodebuild` results only.
 - **Benchmark `roundsAndReps` scoring** encodes as `rounds * 10000 + reps`. Higher is better. Decode: `rounds = value / 10000`, `reps = value % 10000`.
 - **Art Deco theme tokens** via `AppTheme.*` — cream `#f4f0df`, navy `#0d1a40`, orange `#f27319`
 - **Fonts**: Playfair Display (headings), Inter (body), JetBrains Mono (numbers)
@@ -127,6 +129,7 @@ Pure Swift business logic mirroring the original web app's domain layer:
 
 ## Git Workflow
 
+- **Auto-commit as you go** — commit each file immediately after editing it; don't wait until the entire task is done
 - **Commit each file separately** — stage and commit one file at a time
 - **Commit message format:** `type(scope): description`
 - **Main branch:** `main`
