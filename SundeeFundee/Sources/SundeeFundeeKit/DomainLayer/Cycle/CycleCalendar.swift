@@ -46,7 +46,7 @@ public func getPhaseAdjustmentSummary(_ phase: CyclePhase) -> String {
 public func getPhaseExplanation(_ phase: CyclePhase) -> String {
     switch phase {
     case .menstrual:
-        return "During menstruation, your body is actively recovering. Energy and iron levels may be lower, so we reduce load and volume to support recovery while keeping you active."
+        return "During menstruation, energy levels may be lower. We reduce load and volume so you can focus on lighter movements while staying active."
     case .follicular:
         return "Rising estrogen supports muscle growth and endurance. This is your building phase — no adjustments needed, train at your normal capacity."
     case .ovulation:
