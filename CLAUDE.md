@@ -73,10 +73,11 @@ SundeeFundee/ (Swift Package — SundeeFundeeKit)
 
 ### Subscriptions
 
-StoreKit 2 with three tiers:
-- **Free** — 5 lifts, 1 injury, 30-day history, limited AI
-- **Sundee Plus** — unlimited lifts/injuries/history, daily AI, custom benchmarks, pain trends
-- **Sundee Premium** — unlimited all, 10 AI/day, rehab sessions, AI coach memory, plateau detection
+**The app is free with no in-app purchases or subscriptions.** All features are available to all users. Do not introduce paywalls, purchase flows, or subscription gating.
+
+### App Store Submission
+
+- **NEVER submit the app for App Store review unless explicitly told to by the user.** This includes building, uploading, or submitting. Always stop and ask first.
 
 ### Domain Layer
 
@@ -119,7 +120,7 @@ Pure Swift business logic mirroring the original web app's domain layer:
 - **Code signing:** `CODE_SIGN_STYLE = Automatic` — don't hardcode
 - **App icon:** Single 1024x1024 universal icon
 - **Screenshot dimensions:** iPhone 6.5" = 1284x2778, iPad 12.9" = 2048x2732
-- **Subscription apps** must include Terms of Use + Privacy Policy links in description
+- **Free apps** must include Privacy Policy link in description
 
 ## iOS Simulator UI Automation
 
