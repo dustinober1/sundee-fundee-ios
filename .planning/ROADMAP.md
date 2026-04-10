@@ -110,7 +110,12 @@ Plans:
   1. VoiceOver reads meaningful labels on every interactive element (buttons, toggles, sliders, tabs)
   2. All views remain usable and readable at maximum Dynamic Type size
   3. Art Deco theme colors (cream/navy/orange) meet WCAG AA contrast ratios
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 16-01-PLAN.md — Add VoiceOver labels and hints to all interactive elements across all views
+- [ ] 16-02-PLAN.md — Convert typography to Dynamic Type + adjust colors for WCAG AA contrast
+
 **UI hint**: yes
 
 ### Phase 17: QA Pass
@@ -156,14 +161,14 @@ Phases execute in numeric order: 12 -> 13 -> 14 -> 15 -> 16 -> 17 -> 18 -> 19
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 12. Unlock Features | v1.1 | 0/2 | Complete    | 2026-04-09 |
-| 13. Remove Paywall UI | v1.1 | 2/2 | Complete    | 2026-04-09 |
-| 14. Entitlements and Tests | v1.1 | 1/1 | Complete    | 2026-04-09 |
-| 15. Fix Stubs and Guest Mode | v1.1 | 1/1 | Complete    | 2026-04-10 |
-| 16. Accessibility | v1.1 | 0/? | Not started | - |
+| 13. Remove Paywall UI | v1.1 | 2/2 | Complete | 2026-04-09 |
+| 14. Entitlements and Tests | v1.1 | 1/1 | Complete | 2026-04-09 |
+| 15. Fix Stubs and Guest Mode | v1.1 | 1/1 | Complete | 2026-04-10 |
+| 16. Accessibility | v1.1 | 0/2 | Not started | - |
 | 17. QA Pass | v1.1 | 0/? | Not started | - |
 | 18. App Store Prep | v1.1 | 0/? | Not started | - |
 | 19. Archive and Submit | v1.1 | 0/? | Not started | - |
 
 ---
 *Roadmap created: 2026-04-08*
-*Last updated: 2026-04-09 after Phase 15 planning*
+*Last updated: 2026-04-10 after Phase 16 planning*
