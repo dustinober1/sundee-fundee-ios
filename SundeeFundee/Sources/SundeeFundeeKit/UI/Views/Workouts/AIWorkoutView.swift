@@ -13,7 +13,7 @@ struct AIWorkoutView: View {
 
     var body: some View {
         NavigationStack {
-            Group {
+            ZStack {
                 switch viewModel.state {
                 case .questionnaire:
                     questionnaireView
@@ -25,6 +25,8 @@ struct AIWorkoutView: View {
                     errorView(message)
                 }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .animation(nil, value: viewModel.state)
             .navigationTitle("AI Workout")
             #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
@@ -281,6 +283,7 @@ struct AIWorkoutView: View {
 
             Spacer()
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .artDecoBackground()
     }
 

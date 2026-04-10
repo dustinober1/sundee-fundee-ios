@@ -84,14 +84,22 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
         } catch {
             // Fall back to fetching all records when CloudKit indexes are missing
             // (e.g., "Field 'recordName' is not marked queryable").
-            // Uses NSPredicate(value: true) which requires no field-specific indexes.
-            if let ckError = error as? CKError,
-               ckError.localizedDescription.contains("not marked queryable") {
-                let fallbackQuery = CKQuery(recordType: recordType, predicate: NSPredicate(value: true))
-                return try await fetchWithQuery(fallbackQuery)
+            // This happens when the schema hasn't been deployed — return empty
+            // instead of crashing, since the record type simply doesn't exist yet.
+            if isQueryableError(error) {
+                return []
             }
             throw error
         }
+    }
+
+    /// Checks if a CloudKit error is due to missing queryable indexes or unknown record types.
+    private func isQueryableError(_ error: Error) -> Bool {
+        let description = error.localizedDescription.lowercased()
+        return description.contains("not marked queryable")
+            || description.contains("unknown item")
+            || description.contains("record type does not exist")
+            || description.contains("did not find record type")
     }
 
     /// Saves records to CloudKit.

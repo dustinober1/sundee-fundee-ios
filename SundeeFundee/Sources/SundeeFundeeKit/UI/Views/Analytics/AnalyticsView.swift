@@ -25,6 +25,8 @@ public struct AnalyticsView: View {
                     loadingState
                 } else if let error = viewModel.errorMessage {
                     errorState(message: error)
+                } else if viewModel.hasNoData {
+                    emptyState
                 } else {
                     // Charts
                     StrengthProgressionChart(
@@ -137,6 +139,32 @@ public struct AnalyticsView: View {
                 .accessibilityHint("Reload analytics data")
             }
         }
+    }
+
+    // MARK: - Empty State
+
+    private var emptyState: some View {
+        VStack(spacing: AppTheme.Spacing.lg) {
+            Spacer()
+
+            Image(systemName: "chart.bar")
+                .font(.system(size: 48))
+                .foregroundColor(AppTheme.Text.secondary.opacity(0.5))
+                .accessibilityHidden(true)
+
+            Text("No Data Yet")
+                .font(AppTheme.Typography.headlineMedium)
+                .foregroundColor(AppTheme.Text.primary)
+
+            Text("Complete your first workout and log a max to start seeing your analytics.")
+                .font(AppTheme.Typography.bodyMedium)
+                .foregroundColor(AppTheme.Text.secondary)
+                .multilineTextAlignment(.center)
+
+            Spacer()
+        }
+        .padding(AppTheme.Spacing.xl)
+        .frame(maxWidth: .infinity, minHeight: 400)
     }
 }
 

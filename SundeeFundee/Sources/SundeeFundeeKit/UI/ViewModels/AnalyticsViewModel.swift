@@ -52,6 +52,12 @@ public class AnalyticsViewModel: ObservableObject {
     /// Error message to display if data fetching fails.
     @Published public var errorMessage: String?
 
+    /// Whether there is no data to display (all sources empty).
+    public var hasNoData: Bool {
+        !isLoading && errorMessage == nil
+            && allWorkouts.isEmpty && allORMRecords.isEmpty && allCyclePhases.isEmpty
+    }
+
     // MARK: - Dependencies
 
     private let dataClient: DataClientProtocol
