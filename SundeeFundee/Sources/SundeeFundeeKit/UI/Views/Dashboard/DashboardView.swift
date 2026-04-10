@@ -268,6 +268,9 @@ public struct DashboardView: View {
                                 .foregroundColor(AppTheme.Text.secondary)
                         }
                     }
+                    .artDecoButton(style: .accent)
+                    .accessibilityLabel("Generate AI workout")
+                    .accessibilityHint("Creates a workout based on your cycle phase")
                 }
             }
         }

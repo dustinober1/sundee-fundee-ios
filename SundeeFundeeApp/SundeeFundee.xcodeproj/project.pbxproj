@@ -17,9 +17,9 @@
 		423F82176D7FA3B1A6B4754B /* SundeeFundee.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SundeeFundee.entitlements; sourceTree = "<group>"; };
 		57BCA73D87A152BF2F3A81D1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		9440F3F428ED2EAB4291ABD3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		A1B2C3D4E5F60718A9B0C1D2 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		C99B9014B8F76C3124C8DA6A /* SundeeFundee.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SundeeFundee.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C9FE2C96B12B8F5EF9D089ED /* SundeeFundee */ = {isa = PBXFileReference; lastKnownFileType = folder; name = SundeeFundee; path = ../SundeeFundee; sourceTree = SOURCE_ROOT; };
-		A1B2C3D4E5F60718A9B0C1D2 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		F47E72DC5446634AE7210CE4 /* App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -219,6 +219,7 @@
 				DEVELOPMENT_TEAM = 87VVCMCW3F;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = SundeeFundee/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -238,6 +239,7 @@
 				DEVELOPMENT_TEAM = 87VVCMCW3F;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = SundeeFundee/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
