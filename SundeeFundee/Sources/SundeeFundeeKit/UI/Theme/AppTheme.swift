@@ -1,4 +1,7 @@
 import SwiftUI
+#if canImport(UIKit)
+import UIKit
+#endif
 
 // MARK: - AppTheme
 //
@@ -10,6 +13,10 @@ import SwiftUI
 // - Navy: #0d1a40 (primary text, cards)
 // - Gold: #d4a520 (accents, highlights)
 // - Orange: #f27319 (CTAs, active states)
+//
+// Typography:
+// - Display/Headline: Fixed-size (per CONTEXT.md decision)
+// - Body/Label/Mono: Dynamic Type-scalable via UIFontMetrics (AUD-05)
 
 /// App theme container for Art Deco design tokens
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
@@ -75,32 +82,83 @@ public enum AppTheme {
 
     // MARK: - Typography
 
-    /// Custom font sizes and weights
+    /// Custom font sizes and weights.
+    /// Display and headline fonts are fixed-size (per CONTEXT.md decision).
+    /// Body, label, and mono fonts scale with Dynamic Type via UIFontMetrics (AUD-05).
     public enum Typography {
-        // Display - headings
+        // Display - headings (FIXED SIZE)
         public static let displayLarge = Font.system(size: 32, weight: .bold, design: .serif)
         public static let displayMedium = Font.system(size: 24, weight: .bold, design: .serif)
         public static let displaySmall = Font.system(size: 20, weight: .semibold, design: .serif)
 
-        // Headline - section headers
+        // Headline - section headers (FIXED SIZE)
         public static let headlineLarge = Font.system(size: 18, weight: .semibold)
         public static let headlineMedium = Font.system(size: 16, weight: .semibold)
         public static let headlineSmall = Font.system(size: 14, weight: .medium)
 
-        // Body - content text
-        public static let bodyLarge = Font.system(size: 16, weight: .regular)
-        public static let bodyMedium = Font.system(size: 14, weight: .regular)
-        public static let bodySmall = Font.system(size: 12, weight: .regular)
+        // Body - content text (DYNAMIC TYPE scalable)
+        /// Scales with Dynamic Type. Base 16pt at default size.
+        public static var bodyLarge: Font {
+            scaledFont(baseSize: 16, weight: .regular)
+        }
+        /// Scales with Dynamic Type. Base 14pt at default size.
+        public static var bodyMedium: Font {
+            scaledFont(baseSize: 14, weight: .regular)
+        }
+        /// Scales with Dynamic Type. Base 12pt at default size.
+        public static var bodySmall: Font {
+            scaledFont(baseSize: 12, weight: .regular)
+        }
 
-        // Label - metadata, captions
-        public static let labelLarge = Font.system(size: 12, weight: .medium)
-        public static let labelMedium = Font.system(size: 11, weight: .medium)
-        public static let labelSmall = Font.system(size: 10, weight: .medium)
+        // Label - metadata, captions (DYNAMIC TYPE scalable)
+        /// Scales with Dynamic Type. Base 12pt at default size.
+        public static var labelLarge: Font {
+            scaledFont(baseSize: 12, weight: .medium)
+        }
+        /// Scales with Dynamic Type. Base 11pt at default size.
+        public static var labelMedium: Font {
+            scaledFont(baseSize: 11, weight: .medium)
+        }
+        /// Scales with Dynamic Type. Base 10pt at default size.
+        public static var labelSmall: Font {
+            scaledFont(baseSize: 10, weight: .medium)
+        }
 
-        // Mono - numbers, IDs, metrics
-        public static let monoLarge = Font.system(size: 14, weight: .regular, design: .monospaced)
-        public static let monoMedium = Font.system(size: 12, weight: .regular, design: .monospaced)
-        public static let monoSmall = Font.system(size: 10, weight: .regular, design: .monospaced)
+        // Mono - numbers, IDs, metrics (DYNAMIC TYPE scalable)
+        /// Scales with Dynamic Type. Base 14pt at default size, monospaced.
+        public static var monoLarge: Font {
+            scaledFont(baseSize: 14, weight: .regular, design: .monospaced)
+        }
+        /// Scales with Dynamic Type. Base 12pt at default size, monospaced.
+        public static var monoMedium: Font {
+            scaledFont(baseSize: 12, weight: .regular, design: .monospaced)
+        }
+        /// Scales with Dynamic Type. Base 10pt at default size, monospaced.
+        public static var monoSmall: Font {
+            scaledFont(baseSize: 10, weight: .regular, design: .monospaced)
+        }
+
+        /// Scales a font size using UIFontMetrics for Dynamic Type support.
+        /// Falls back to fixed size on non-iOS platforms.
+        private static func scaledFont(
+            baseSize: CGFloat,
+            weight: Font.Weight,
+            design: Font.Design? = nil
+        ) -> Font {
+            #if os(iOS)
+            let metrics = UIFontMetrics(forTextStyle: .body)
+            let scaledSize = metrics.scaledValue(for: baseSize)
+            if let design {
+                return Font.system(size: scaledSize, weight: weight, design: design)
+            }
+            return Font.system(size: scaledSize, weight: weight)
+            #else
+            if let design {
+                return Font.system(size: baseSize, weight: weight, design: design)
+            }
+            return Font.system(size: baseSize, weight: weight)
+            #endif
+        }
     }
 }
 
@@ -119,6 +177,14 @@ extension View {
             .background(AppTheme.Background.card)
             .cornerRadius(AppTheme.CornerRadius.medium)
             .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
+    }
+
+    /// Prevents text clipping at large Dynamic Type sizes by allowing
+    /// the font to scale down to 50% of its rendered size within a single line.
+    /// Apply to constrained text elements like stat values, metrics, and badges.
+    public func artDecoScalableText() -> some View {
+        self.minimumScaleFactor(0.5)
+            .lineLimit(1)
     }
 }
 
@@ -246,6 +312,7 @@ public struct StatCard: View {
             Text(label)
                 .font(AppTheme.Typography.labelSmall)
                 .foregroundColor(AppTheme.Text.secondary)
+                .artDecoScalableText()
         }
         .frame(maxWidth: .infinity)
         .padding(AppTheme.Spacing.lg)
