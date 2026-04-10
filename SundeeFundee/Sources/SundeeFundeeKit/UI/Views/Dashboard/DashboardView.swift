@@ -224,40 +224,19 @@ public struct DashboardView: View {
                     .font(AppTheme.Typography.headlineMedium)
                     .foregroundColor(AppTheme.Text.primary)
 
-                if viewModel.canGenerateAIWorkout {
-                    VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
-                        Text("Generate AI Workout")
-                            .font(AppTheme.Typography.bodyMedium)
-                            .foregroundColor(AppTheme.Text.secondary)
+                VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
+                    Text("Generate AI Workout")
+                        .font(AppTheme.Typography.bodyMedium)
+                        .foregroundColor(AppTheme.Text.secondary)
 
-                        Text("Based on your cycle phase and energy level")
-                            .font(AppTheme.Typography.bodySmall)
-                            .foregroundColor(AppTheme.Text.secondary.opacity(0.8))
+                    Text("Based on your cycle phase and energy level")
+                        .font(AppTheme.Typography.bodySmall)
+                        .foregroundColor(AppTheme.Text.secondary.opacity(0.8))
 
-                        Button("Generate") {
-                            showingAIWorkout = true
-                        }
-                        .artDecoButton(style: .accent)
+                    Button("Generate") {
+                        showingAIWorkout = true
                     }
-                } else {
-                    VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
-                        Text("Today's Workout")
-                            .font(AppTheme.Typography.bodyMedium)
-                            .foregroundColor(AppTheme.Text.secondary)
-
-                        if let nextWorkout = viewModel.nextWorkout {
-                            Text(nextWorkout)
-                                .font(AppTheme.Typography.bodyMedium)
-                                .foregroundColor(AppTheme.Text.primary)
-
-                            NavigationLink("Start Workout", destination: Text("Workout Detail"))
-                                .artDecoButton(style: .primary)
-                        } else {
-                            Text("No workout scheduled")
-                                .font(AppTheme.Typography.bodySmall)
-                                .foregroundColor(AppTheme.Text.secondary)
-                        }
-                    }
+                    .artDecoButton(style: .accent)
                 }
             }
         }
@@ -400,9 +379,6 @@ class DashboardViewModel: ObservableObject {
     @Published var workoutsThisWeek: Int = 0
     @Published var prsThisMonth: Int = 0
     @Published var activeProgramName: String?
-    @Published var nextWorkout: String?
-    @Published var canGenerateAIWorkout: Bool = false
-    @Published var isGeneratingWorkout: Bool = false
     @Published var recentWins: [String] = []
     @Published var insightsSummary: String?
     @Published var insightsActions: [String] = []
@@ -438,9 +414,6 @@ class DashboardViewModel: ObservableObject {
         // Load program info
         await loadProgramInfo()
 
-        // AI workout generation always available
-        canGenerateAIWorkout = true
-
         // Load coaching insights
         await loadCoachingInsights()
 
@@ -448,19 +421,6 @@ class DashboardViewModel: ObservableObject {
         await loadRecentWins()
 
         isLoading = false
-    }
-
-    /// Generates an AI workout based on cycle phase and energy
-    func generateAIWorkout() async {
-        isGeneratingWorkout = true
-
-        // Simulate AI generation
-        try? await Task.sleep(nanoseconds: 2_000_000_000)
-
-        isGeneratingWorkout = false
-
-        // In real implementation, this would call the AI service
-        // and navigate to the generated workout
     }
 
     // MARK: - Private Methods
@@ -535,7 +495,6 @@ class DashboardViewModel: ObservableObject {
 
             if let program = programs.first, program.isActive {
                 activeProgramName = program.name
-                nextWorkout = "Day \(programs.count + 1)" // Simplified
             }
         } catch {
             // CloudKit unavailable — leave program info at defaults
