@@ -97,7 +97,10 @@ Plans:
   3. No TODO, stub, or placeholder comments remain in user-facing code paths
   4. Guest mode user can navigate all screens and use all features without hitting dead ends or empty states
   5. Signed-in user experience is unchanged from pre-stub-fix behavior
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+- [ ] 15-01-PLAN.md — Remove dead AI workout stub from DashboardViewModel + verify guest mode navigation
 
 ### Phase 16: Accessibility
 **Goal**: The app is usable by people relying on VoiceOver, Dynamic Type, and sufficient color contrast
@@ -155,7 +158,7 @@ Phases execute in numeric order: 12 -> 13 -> 14 -> 15 -> 16 -> 17 -> 18 -> 19
 | 12. Unlock Features | v1.1 | 0/2 | Complete    | 2026-04-09 |
 | 13. Remove Paywall UI | v1.1 | 2/2 | Complete    | 2026-04-09 |
 | 14. Entitlements and Tests | v1.1 | 1/1 | Complete    | 2026-04-09 |
-| 15. Fix Stubs and Guest Mode | v1.1 | 0/? | Not started | - |
+| 15. Fix Stubs and Guest Mode | v1.1 | 0/1 | Not started | - |
 | 16. Accessibility | v1.1 | 0/? | Not started | - |
 | 17. QA Pass | v1.1 | 0/? | Not started | - |
 | 18. App Store Prep | v1.1 | 0/? | Not started | - |
@@ -163,4 +166,4 @@ Phases execute in numeric order: 12 -> 13 -> 14 -> 15 -> 16 -> 17 -> 18 -> 19
 
 ---
 *Roadmap created: 2026-04-08*
-*Last updated: 2026-04-09 after Phase 14 planning*
+*Last updated: 2026-04-09 after Phase 15 planning*
