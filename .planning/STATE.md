@@ -4,7 +4,7 @@ milestone: v1.1
 milestone_name: Free App Launch
 status: executing
 stopped_at: v1.1 roadmap created, 8 phases defined, ready to plan Phase 12
-last_updated: "2026-04-10T02:35:50.041Z"
+last_updated: "2026-04-10T20:35:58.937Z"
 last_activity: 2026-04-10
 progress:
   total_phases: 8
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-08)
 
 **Core value:** A polished, 100% free iOS app for cycle-aware strength training, shipped to the App Store.
-**Current focus:** Phase 13 — remove-paywall-ui
+**Current focus:** Phase 17 — qa-pass
 
 ## Current Position
 
-Phase: 17
+Phase: 18
 Plan: Not started
-Status: Ready to execute
+Status: Executing Phase 17
 Last activity: 2026-04-10
 
 Progress: [░░░░░░░░░░░░░░░░░░░░░] 0%
@@ -49,6 +49,7 @@ Progress: [░░░░░░░░░░░░░░░░░░░░░] 0%
 | 14 | 1 | - | - |
 | 15 | 1 | - | - |
 | 16 | 2 | - | - |
+| 17 | 0 | - | - |
 
 *No v1.1 plans executed yet*
 
