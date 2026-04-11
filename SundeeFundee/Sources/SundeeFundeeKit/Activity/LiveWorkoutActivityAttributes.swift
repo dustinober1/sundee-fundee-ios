@@ -1,3 +1,6 @@
+#if canImport(ActivityKit)
+import ActivityKit
+#endif
 import Foundation
 
 public enum ActiveWorkoutStatus: String, Codable, Hashable, Sendable {
@@ -382,4 +385,8 @@ extension LiveWorkoutActivityAttributes.Status {
         }
     }
 }
+
+#if canImport(ActivityKit) && os(iOS)
+extension LiveWorkoutActivityAttributes: ActivityAttributes {}
+#endif
 

@@ -1,5 +1,8 @@
 import Foundation
 import Combine
+#if canImport(UIKit) && os(iOS)
+import UIKit
+#endif
 
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
 @MainActor
@@ -27,7 +30,9 @@ public class ActiveWorkoutSessionViewModel: ObservableObject {
     private var elapsedTimerCancellable: AnyCancellable?
     private var restStartedAt: Date?
     private var restTargetDuration: TimeInterval = 0
+#if canImport(ActivityKit) && os(iOS)
     private var liveActivityManager: LiveWorkoutActivityManager?
+#endif
 
     // MARK: - Computed Properties
 
@@ -79,7 +84,9 @@ public class ActiveWorkoutSessionViewModel: ObservableObject {
     // MARK: - Session Lifecycle
 
     public func beginSession() {
+#if canImport(ActivityKit) && os(iOS)
         liveActivityManager = LiveWorkoutActivityManager()
+#endif
         startElapsedTimer()
         updateLiveActivity()
     }
@@ -156,7 +163,7 @@ public class ActiveWorkoutSessionViewModel: ObservableObject {
             for event in celebrationEvents {
                 let record = CelebrationEventRecord(
                     id: UUID().uuidString,
-                    description: event.description,
+                    description: "\(celebrationTitle(event)) \(celebrationSubtitle(event))",
                     date: Date()
                 )
                 try? await dataClient.save(record, recordType: "Celebration")
@@ -182,7 +189,9 @@ public class ActiveWorkoutSessionViewModel: ObservableObject {
 
         // End Live Activity
         let finalSnapshot = buildSnapshot(status: .completed)
+#if canImport(ActivityKit) && os(iOS)
         liveActivityManager?.end(finalSnapshot: finalSnapshot)
+#endif
 
         stopRestTimer()
         elapsedTimerCancellable?.cancel()
@@ -196,7 +205,9 @@ public class ActiveWorkoutSessionViewModel: ObservableObject {
         try? await dataClient.save(workout, recordType: "Workout")
 
         let finalSnapshot = buildSnapshot(status: .completed)
+#if canImport(ActivityKit) && os(iOS)
         liveActivityManager?.end(finalSnapshot: finalSnapshot)
+#endif
 
         stopRestTimer()
         elapsedTimerCancellable?.cancel()
@@ -236,7 +247,9 @@ public class ActiveWorkoutSessionViewModel: ObservableObject {
                     self.restTimerCancellable = nil
                     self.restStartedAt = nil
                     // Haptic feedback
+#if canImport(UIKit) && os(iOS)
                     UINotificationFeedbackGenerator().notificationOccurred(.success)
+#endif
                 } else {
                     self.restTimeRemaining = remaining
                 }
@@ -309,7 +322,9 @@ public class ActiveWorkoutSessionViewModel: ObservableObject {
     private func updateLiveActivity() {
         let status: ActiveWorkoutStatus = isResting ? .resting : .active
         let snapshot = buildSnapshot(status: status)
+#if canImport(ActivityKit) && os(iOS)
         liveActivityManager?.update(snapshot)
+#endif
     }
 
     private func buildSnapshot(status: ActiveWorkoutStatus) -> ActiveWorkoutState {
