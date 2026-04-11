@@ -117,10 +117,81 @@ const kvStoreTable: TableData = {
     extensions: [],
 }
 
+const exercisesTable: TableData = {
+    name: "exercises",
+    autoSetUid: true,
+    fields: [
+        ...baseFields,
+        {name: "name", type: "text", sqlType: "text", notNull: true},
+        {name: "category", type: "text", sqlType: "text", notNull: true},
+        {name: "bodyweight", type: "bool", sqlType: "boolean", default: sqlValue(false)},
+        {name: "equipment", type: "text", sqlType: "text"},
+        {name: "movementTags", type: "text", sqlType: "text"},
+        {name: "status", type: "text", sqlType: "text", default: sqlValue("draft")},
+        {name: "sortOrder", type: "number", sqlType: "integer", default: sqlValue(0)},
+    ],
+    indexes: [
+        {fields: "status COLLATE NOCASE"},
+        {fields: "category COLLATE NOCASE"},
+    ],
+    extensions: [],
+    triggers: [createdTrigger],
+}
+
+const programsTable: TableData = {
+    name: "programs",
+    autoSetUid: true,
+    fields: [
+        ...baseFields,
+        {name: "name", type: "text", sqlType: "text", notNull: true},
+        {name: "templateKey", type: "text", sqlType: "text"},
+        {name: "category", type: "text", sqlType: "text", notNull: true},
+        {name: "description", type: "text", sqlType: "text", notNull: true},
+        {name: "durationWeeks", type: "number", sqlType: "integer", notNull: true},
+        {name: "sessionsPerWeek", type: "number", sqlType: "integer", notNull: true},
+        {name: "difficulty", type: "text", sqlType: "text", notNull: true},
+        {name: "phases", type: "json", sqlType: "json"},
+        {name: "status", type: "text", sqlType: "text", default: sqlValue("draft")},
+        {name: "version", type: "number", sqlType: "integer", default: sqlValue(1)},
+        {name: "sortOrder", type: "number", sqlType: "integer", default: sqlValue(0)},
+    ],
+    indexes: [
+        {fields: "status COLLATE NOCASE"},
+        {fields: "category COLLATE NOCASE"},
+    ],
+    extensions: [],
+    triggers: [createdTrigger],
+}
+
+const benchmarksTable: TableData = {
+    name: "benchmarks",
+    autoSetUid: true,
+    fields: [
+        ...baseFields,
+        {name: "name", type: "text", sqlType: "text", notNull: true},
+        {name: "category", type: "text", sqlType: "text", notNull: true},
+        {name: "workoutDescription", type: "text", sqlType: "text", notNull: true},
+        {name: "scoringType", type: "text", sqlType: "text", notNull: true},
+        {name: "intensity", type: "number", sqlType: "integer"},
+        {name: "movementTags", type: "text", sqlType: "text"},
+        {name: "equipment", type: "text", sqlType: "text"},
+        {name: "timeDomain", type: "text", sqlType: "text"},
+        {name: "coachNotes", type: "text", sqlType: "text"},
+        {name: "status", type: "text", sqlType: "text", default: sqlValue("draft")},
+        {name: "sortOrder", type: "number", sqlType: "integer", default: sqlValue(0)},
+    ],
+    indexes: [
+        {fields: "status COLLATE NOCASE"},
+        {fields: "category COLLATE NOCASE"},
+    ],
+    extensions: [],
+    triggers: [createdTrigger],
+}
+
 export default {
-    tables: [userTable, notesTable, kvStoreTable],
-    appName: "Sample app",
-    appUrl: "https://sample.example.com",
+    tables: [userTable, notesTable, kvStoreTable, exercisesTable, programsTable, benchmarksTable],
+    appName: "Sundee Fundee",
+    appUrl: "https://sundeefundee.com",
     jwtSecret: "$JWT_SECRET_MAIN",
 
     email: {
