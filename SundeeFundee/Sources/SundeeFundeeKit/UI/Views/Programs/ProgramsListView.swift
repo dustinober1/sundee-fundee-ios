@@ -139,15 +139,23 @@ class ProgramsListViewModel: ObservableObject {
     @Published var errorMessage: String?
 
     private let dataClient: DataClientProtocol
+    private let contentClient: ContentClientProtocol
 
-    init(dataClient: DataClientProtocol = DataClientFactory.shared.client) {
+    init(
+        dataClient: DataClientProtocol = DataClientFactory.shared.client,
+        contentClient: ContentClientProtocol? = nil
+    ) {
         self.dataClient = dataClient
+        self.contentClient = contentClient ?? RemoteContentClient(
+            baseURL: ContentConfig.baseURL,
+            token: ContentConfig.adminToken,
+            cacheDirectory: ContentConfig.cacheDirectory
+        )
     }
 
     func loadPrograms() async {
         isLoading = true
 
-        // Load enrolled programs from CloudKit
         var enrolledIds: Set<String> = []
         do {
             let enrolled = try await dataClient.fetchAll(
@@ -158,19 +166,34 @@ class ProgramsListViewModel: ObservableObject {
             errorMessage = "Failed to load programs: \(error.localizedDescription)"
         }
 
-        // Generate program catalog from domain templates
-        programs = ProgramTemplate.allCases.map { template in
-            let program = generateProgram(template: template, name: templateDisplayName(template))
-            return ProgramListItem(
-                id: program.id,
-                name: program.name,
-                category: program.category,
-                description: program.description,
-                durationWeeks: program.durationWeeks,
-                sessionsPerWeek: program.sessionsPerWeek,
-                difficulty: program.difficulty,
-                isEnrolled: enrolledIds.contains(program.id)
-            )
+        do {
+            let contentPrograms = try await contentClient.fetchPrograms()
+            programs = contentPrograms.map { prog in
+                ProgramListItem(
+                    id: prog.id,
+                    name: prog.name,
+                    category: prog.category,
+                    description: prog.description,
+                    durationWeeks: prog.durationWeeks,
+                    sessionsPerWeek: prog.sessionsPerWeek,
+                    difficulty: prog.difficulty,
+                    isEnrolled: enrolledIds.contains(prog.id)
+                )
+            }
+        } catch {
+            programs = ProgramTemplate.allCases.map { template in
+                let program = generateProgram(template: template, name: templateDisplayName(template))
+                return ProgramListItem(
+                    id: program.id,
+                    name: program.name,
+                    category: program.category,
+                    description: program.description,
+                    durationWeeks: program.durationWeeks,
+                    sessionsPerWeek: program.sessionsPerWeek,
+                    difficulty: program.difficulty,
+                    isEnrolled: enrolledIds.contains(program.id)
+                )
+            }
         }
 
         isLoading = false
