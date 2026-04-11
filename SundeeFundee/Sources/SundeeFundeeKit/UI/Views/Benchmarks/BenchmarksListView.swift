@@ -83,7 +83,7 @@ public struct BenchmarksListView: View {
 
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
 struct BenchmarkRow: View {
-    let benchmark: BenchmarkDefinition
+    let benchmark: ContentBenchmark
     let readiness: BenchmarkReadiness
     let hasCompleted: Bool
     let bestResult: BenchmarkResult?
@@ -186,12 +186,12 @@ struct BenchmarkRow: View {
             ForEach(1...5, id: \.self) { level in
                 if let intensity = benchmark.intensity {
                     Circle()
-                        .fill(level <= intensity.rawValue ? AppTheme.Accent.gold : AppTheme.Accent.gold.opacity(0.3))
+                        .fill(level <= intensity ? AppTheme.Accent.gold : AppTheme.Accent.gold.opacity(0.3))
                         .frame(width: 8, height: 8)
                 }
             }
         }
-        .accessibilityLabel("Intensity: \(benchmark.intensity?.rawValue ?? 0) out of 5")
+        .accessibilityLabel("Intensity: \(benchmark.intensity ?? 0) out of 5")
     }
 
     private func readinessTierColor(_ tier: ReadinessTier) -> Color {
@@ -204,22 +204,24 @@ struct BenchmarkRow: View {
 
     private func formatScore(_ score: Double) -> String {
         switch benchmark.scoringType {
-        case .time:
+        case "time":
             let minutes = Int(score) / 60
             let seconds = Int(score) % 60
             return String(format: "%d:%02d", minutes, seconds)
-        case .roundsAndReps:
+        case "roundsAndReps":
             let rounds = Int(score) / 10000
             let reps = Int(score) % 10000
             return "\(rounds) + \(reps)"
-        case .load:
+        case "load":
             return "\(Int(score)) lb"
-        case .reps:
+        case "reps":
             return "\(Int(score)) reps"
-        case .calories:
+        case "calories":
             return "\(Int(score)) cal"
-        case .distance:
+        case "distance":
             return "\(Int(score)) m"
+        default:
+            return "\(Int(score))"
         }
     }
 }
