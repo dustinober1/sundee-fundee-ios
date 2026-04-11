@@ -10,7 +10,7 @@ public class BenchmarksListViewModel: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
     @Published var selectedCategory: String = BenchmarkCategory.sundeeFundee.rawValue
-    @Published var benchmarks: [BenchmarkDefinition] = []
+    @Published var benchmarks: [ContentBenchmark] = []
     @Published var userResults: [String: [BenchmarkResult]] = [:]
     @Published var cyclePhase: CyclePhase?
 
@@ -18,15 +18,22 @@ public class BenchmarksListViewModel: ObservableObject {
 
     private let dataClient: DataClientProtocol
     private let healthClient: HealthClientProtocol
+    private let contentClient: ContentClientProtocol
 
     // MARK: - Initialization
 
     public init(
         dataClient: DataClientProtocol = DataClientFactory.shared.client,
-        healthClient: HealthClientProtocol = HealthClientFactory.shared.client
+        healthClient: HealthClientProtocol = HealthClientFactory.shared.client,
+        contentClient: ContentClientProtocol? = nil
     ) {
         self.dataClient = dataClient
         self.healthClient = healthClient
+        self.contentClient = contentClient ?? RemoteContentClient(
+            baseURL: ContentConfig.baseURL,
+            token: ContentConfig.adminToken,
+            cacheDirectory: ContentConfig.cacheDirectory
+        )
     }
 
     // MARK: - Public Methods
@@ -55,10 +62,11 @@ public class BenchmarksListViewModel: ObservableObject {
     }
 
     /// Get readiness for a benchmark
-    public func getReadiness(for benchmark: BenchmarkDefinition) -> BenchmarkReadiness {
+    public func getReadiness(for benchmark: ContentBenchmark) -> BenchmarkReadiness {
+        let intensity = benchmark.intensity.flatMap { BenchmarkIntensity(rawValue: $0) }
         return BenchmarkReadinessCalculator.calculateReadiness(
             phase: cyclePhase,
-            benchmarkIntensity: benchmark.intensity,
+            benchmarkIntensity: intensity,
             movementTags: benchmark.movementTags
         )
     }
@@ -71,10 +79,8 @@ public class BenchmarksListViewModel: ObservableObject {
     /// Get best result for a benchmark
     public func getBestResult(for benchmarkId: String) -> BenchmarkResult? {
         guard let results = userResults[benchmarkId] else { return nil }
-
-        // For time-based, lower is better. For others, higher is better.
-        if let benchmark = BenchmarkCatalog.benchmark(id: benchmarkId),
-           benchmark.scoringType == .time {
+        let scoringType = benchmarks.first { $0.id == benchmarkId }?.scoringType ?? "reps"
+        if scoringType == "time" {
             return results.min(by: { $0.score < $1.score })
         } else {
             return results.max(by: { $0.score < $1.score })
@@ -82,31 +88,58 @@ public class BenchmarksListViewModel: ObservableObject {
     }
 
     /// Format score for display
-    public func formatScore(benchmark: BenchmarkDefinition, score: Double) -> String {
+    public func formatScore(benchmark: ContentBenchmark, score: Double) -> String {
         switch benchmark.scoringType {
-        case .time:
+        case "time":
             let minutes = Int(score) / 60
             let seconds = Int(score) % 60
             return String(format: "%d:%02d", minutes, seconds)
-        case .roundsAndReps:
+        case "roundsAndReps":
             let rounds = Int(score) / 10000
             let reps = Int(score) % 10000
             return "\(rounds) rounds + \(reps) reps"
-        case .load:
+        case "load":
             return "\(Int(score)) lb"
-        case .reps:
+        case "reps":
             return "\(Int(score)) reps"
-        case .calories:
+        case "calories":
             return "\(Int(score)) cal"
-        case .distance:
+        case "distance":
             return "\(Int(score)) m"
+        default:
+            return "\(Int(score))"
         }
     }
 
     // MARK: - Private Methods
 
     private func updateBenchmarksForCategory() {
-        benchmarks = BenchmarkCatalog.benchmarks(in: selectedCategory)
+        Task {
+            do {
+                let allContent = try await contentClient.fetchBenchmarks()
+                benchmarks = allContent
+                    .filter { $0.category == selectedCategory }
+                    .sorted { $0.sortOrder < $1.sortOrder }
+            } catch {
+                // Fallback to bundled catalog
+                benchmarks = BenchmarkCatalog.benchmarks(in: selectedCategory).map { def in
+                    ContentBenchmark(
+                        id: def.id,
+                        name: def.name,
+                        category: def.category,
+                        workoutDescription: def.workoutDescription,
+                        scoringType: def.scoringType.rawValue,
+                        intensity: def.intensity?.rawValue,
+                        movementTags: def.movementTags,
+                        equipment: def.equipment,
+                        timeDomain: def.timeDomain,
+                        coachNotes: def.coachNotes,
+                        sortOrder: def.sortOrder,
+                        source: .bundled
+                    )
+                }
+            }
+        }
     }
 
     private func loadUserResults() async {
