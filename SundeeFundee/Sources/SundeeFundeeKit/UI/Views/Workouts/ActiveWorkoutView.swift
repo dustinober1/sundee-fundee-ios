@@ -345,7 +345,7 @@ public struct ActiveWorkoutView: View {
                         .font(AppTheme.Typography.labelLarge)
                         .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(ArtDecoButtonStyle(style: .accent))
+                .buttonStyle(ArtDecoButtonStyle(style: .primary))
                 .padding(.horizontal, AppTheme.Spacing.lg)
 
                 Spacer()
@@ -366,7 +366,7 @@ public struct ActiveWorkoutView: View {
                         .font(AppTheme.Typography.headlineMedium)
                         .foregroundColor(AppTheme.Text.primary)
 
-                    Text(celebrationSubtitle(event))
+                    Text(celebrationSubtitle(event, unit: "lb"))
                         .font(AppTheme.Typography.bodySmall)
                         .foregroundColor(AppTheme.Text.secondary)
                 }
