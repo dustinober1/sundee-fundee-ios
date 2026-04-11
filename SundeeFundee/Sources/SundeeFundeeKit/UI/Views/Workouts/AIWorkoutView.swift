@@ -10,6 +10,7 @@ import SwiftUI
 struct AIWorkoutView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel = AIWorkoutViewModel()
+    @State private var activeWorkoutSession: ActiveWorkoutSessionViewModel?
 
     var body: some View {
         NavigationStack {
@@ -36,6 +37,11 @@ struct AIWorkoutView: View {
                     Button("Cancel") { dismiss() }
                 }
             }
+            #if os(iOS)
+            .fullScreenCover(item: $activeWorkoutSession) { session in
+                ActiveWorkoutView(viewModel: session)
+            }
+            #endif
         }
     }
 
@@ -146,8 +152,9 @@ struct AIWorkoutView: View {
                         Text("Generate Workout")
                     }
                     .frame(maxWidth: .infinity)
+                    .contentShape(Rectangle())
                 }
-                .artDecoButton(style: .accent)
+                .buttonStyle(ArtDecoButtonStyle(style: .accent))
                 .accessibilityHint("Create a personalized workout based on your selections")
             }
             .padding(AppTheme.Spacing.lg)
@@ -360,10 +367,8 @@ struct AIWorkoutView: View {
                     // Actions
                     VStack(spacing: AppTheme.Spacing.md) {
                         Button {
-                            Task {
-                                await viewModel.startGeneratedWorkout()
-                                NotificationCenter.default.post(name: .aiWorkoutStarted, object: nil)
-                                dismiss()
+                            if let workout = viewModel.buildWorkoutForSession() {
+                                activeWorkoutSession = ActiveWorkoutSessionViewModel(workout: workout)
                             }
                         } label: {
                             HStack {
@@ -371,8 +376,9 @@ struct AIWorkoutView: View {
                                 Text("Start This Workout")
                             }
                             .frame(maxWidth: .infinity)
+                            .contentShape(Rectangle())
                         }
-                        .artDecoButton(style: .accent)
+                        .buttonStyle(ArtDecoButtonStyle(style: .accent))
                         .accessibilityHint("Begin the generated workout now")
 
                         Button {
@@ -383,8 +389,9 @@ struct AIWorkoutView: View {
                                 Text("Regenerate")
                             }
                             .frame(maxWidth: .infinity)
+                            .contentShape(Rectangle())
                         }
-                        .artDecoButton(style: .secondary)
+                        .buttonStyle(ArtDecoButtonStyle(style: .secondary))
                         .accessibilityHint("Generate a different workout")
                     }
                 }
@@ -421,6 +428,13 @@ struct AIWorkoutView: View {
 
                     if let weight = exercise.weightKg, weight > 0 {
                         Label("\(Int(weight)) lb", systemImage: "scalemass")
+
+                        // Show percentage of max if available
+                        if let pct = exercise.percentageOfMax {
+                            Text("\(Int(pct * 100))% max")
+                                .font(AppTheme.Typography.bodySmall)
+                                .foregroundColor(AppTheme.Accent.gold)
+                        }
                     }
 
                     if let rest = exercise.restMinutes {
@@ -584,10 +598,10 @@ class AIWorkoutViewModel: ObservableObject {
         }
     }
 
-    func startGeneratedWorkout() async {
-        guard let generated = generatedWorkout else { return }
+    func buildWorkoutForSession() -> Workout? {
+        guard let generated = generatedWorkout else { return nil }
 
-        let workout = Workout(
+        return Workout(
             date: Date(),
             name: "\(focus.rawValue.replacingOccurrences(of: "_", with: " ").capitalized) — AI",
             exercises: generated.exercises.map { ex in
@@ -609,17 +623,5 @@ class AIWorkoutViewModel: ObservableObject {
             },
             notes: "AI Generated — \(generated.coachingSummary)"
         )
-
-        do {
-            try await dataClient.save(workout, recordType: "Workout")
-
-            // Record workout completion in coach memory
-            await memoryService.recordWorkoutCompletion(
-                questionnaire: generated.questionnaire,
-                exerciseNames: generated.exercises.map(\.name)
-            )
-        } catch {
-            state = .error("Failed to save workout: \(error.localizedDescription)")
-        }
     }
 }

@@ -6,11 +6,13 @@ import UIKit
 
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
 @MainActor
-public class ActiveWorkoutSessionViewModel: ObservableObject {
+public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
 
     // MARK: - Published State
 
     @Published public private(set) var workout: Workout
+
+    public let id: String
     @Published public private(set) var currentExerciseIndex: Int = 0
     @Published public private(set) var currentSetIndex: Int = 0
     @Published public private(set) var restTimeRemaining: TimeInterval = 0
@@ -76,6 +78,7 @@ public class ActiveWorkoutSessionViewModel: ObservableObject {
         healthClient: HealthClientProtocol = HealthClientFactory.shared.client
     ) {
         self.workout = workout
+        self.id = workout.id
         self.dataClient = dataClient
         self.healthClient = healthClient
         self.startedAt = Date()
