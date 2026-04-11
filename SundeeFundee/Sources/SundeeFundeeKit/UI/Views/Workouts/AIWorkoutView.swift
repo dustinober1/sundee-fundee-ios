@@ -386,7 +386,7 @@ struct AIWorkoutView: View {
                         } label: {
                             HStack {
                                 Image(systemName: "arrow.clockwise")
-                                Text("Regenerate")
+                                Text("Regenerate All")
                             }
                             .frame(maxWidth: .infinity)
                             .contentShape(Rectangle())
@@ -399,6 +399,12 @@ struct AIWorkoutView: View {
             }
         }
         .artDecoBackground()
+        .sheet(isPresented: Binding(
+            get: { viewModel.swapState != nil },
+            set: { if !$0 { viewModel.dismissSwap() } }
+        )) {
+            substitutionSheet
+        }
     }
 
     private func generatedExerciseCard(_ exercise: GeneratedExercise) -> some View {
@@ -420,6 +426,16 @@ struct AIWorkoutView: View {
                             .background(AppTheme.Accent.goldLight)
                             .cornerRadius(AppTheme.CornerRadius.small)
                     }
+
+                    Button {
+                        Task { await viewModel.loadSubstitutions(for: exercise.id) }
+                    } label: {
+                        Image(systemName: "arrow.2.squarepath")
+                            .font(.system(size: 14))
+                            .foregroundColor(AppTheme.Accent.gold)
+                    }
+                    .accessibilityLabel("Swap \(exercise.name)")
+                    .accessibilityHint("Replace this exercise with an alternative")
                 }
 
                 HStack(spacing: AppTheme.Spacing.lg) {
@@ -464,6 +480,106 @@ struct AIWorkoutView: View {
                 }
             }
         }
+    }
+
+    // MARK: - Substitution Sheet
+
+    private var substitutionSheet: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: AppTheme.Spacing.lg) {
+                    if let swap = viewModel.swapState {
+                        if swap.isLoading {
+                            VStack(spacing: AppTheme.Spacing.md) {
+                                Spacer().frame(height: 40)
+                                ProgressView()
+                                    .tint(AppTheme.Accent.gold)
+                                Text("Finding alternatives...")
+                                    .font(AppTheme.Typography.bodyMedium)
+                                    .foregroundColor(AppTheme.Text.secondary)
+                            }
+                        } else if swap.substitutions.isEmpty {
+                            VStack(spacing: AppTheme.Spacing.md) {
+                                Spacer().frame(height: 40)
+                                Image(systemName: "xmark.circle")
+                                    .font(.system(size: 32))
+                                    .foregroundColor(AppTheme.Text.secondary)
+                                Text("No alternatives found")
+                                    .font(AppTheme.Typography.headlineMedium)
+                                    .foregroundColor(AppTheme.Text.primary)
+                                Text("Try regenerating the full workout instead.")
+                                    .font(AppTheme.Typography.bodySmall)
+                                    .foregroundColor(AppTheme.Text.secondary)
+                            }
+                        } else {
+                            VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
+                                Text("Replace \(swap.exerciseName)")
+                                    .font(AppTheme.Typography.headlineMedium)
+                                    .foregroundColor(AppTheme.Text.primary)
+
+                                if let explanation = swap.explanation {
+                                    Text(explanation)
+                                        .font(AppTheme.Typography.bodySmall)
+                                        .foregroundColor(AppTheme.Text.secondary)
+                                }
+                            }
+                            .padding(.top, AppTheme.Spacing.sm)
+
+                            ForEach(swap.substitutions, id: \.exerciseName) { sub in
+                                Button {
+                                    viewModel.swapExercise(with: sub)
+                                } label: {
+                                    ArtDecoCard {
+                                        HStack {
+                                            VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                                                Text(sub.exerciseName)
+                                                    .font(AppTheme.Typography.bodyMedium)
+                                                    .foregroundColor(AppTheme.Text.primary)
+                                                    .multilineTextAlignment(.leading)
+
+                                                Text(sub.reason)
+                                                    .font(AppTheme.Typography.bodySmall)
+                                                    .foregroundColor(AppTheme.Text.secondary)
+                                                    .multilineTextAlignment(.leading)
+                                            }
+
+                                            Spacer()
+
+                                            VStack(alignment: .trailing, spacing: AppTheme.Spacing.xs) {
+                                                Text("\(Int(sub.score * 100))%")
+                                                    .font(AppTheme.Typography.monoLarge)
+                                                    .foregroundColor(AppTheme.Accent.gold)
+
+                                                Text("match")
+                                                    .font(AppTheme.Typography.labelMedium)
+                                                    .foregroundColor(AppTheme.Text.secondary)
+                                            }
+                                        }
+                                    }
+                                }
+                                .buttonStyle(.plain)
+                                .accessibilityLabel("Swap with \(sub.exerciseName), \(Int(sub.score * 100))% match")
+                                .accessibilityHint("Replace current exercise with this alternative")
+                            }
+                        }
+                    }
+                }
+                .padding(AppTheme.Spacing.lg)
+            }
+            .artDecoBackground()
+            .navigationTitle("Swap Exercise")
+            #if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { viewModel.dismissSwap() }
+                }
+            }
+        }
+        #if os(iOS)
+        .presentationDetents([.medium, .large])
+        #endif
     }
 
     // MARK: - Error
@@ -549,11 +665,13 @@ class AIWorkoutViewModel: ObservableObject {
     @Published var cyclePhase: CyclePhase?
     @Published var generatedWorkout: GeneratedWorkout?
     @Published var coachingTips: [String] = []
+    @Published var swapState: ExerciseSwapState?
 
     private let coachService: CoachServiceProtocol
     private let contextBuilder: CoachContextBuilder
     private let memoryService: CoachMemoryService
     private let dataClient: DataClientProtocol
+    private var cachedContext: CoachContext?
 
     init(
         coachService: CoachServiceProtocol = CoachServiceFactory.makeService(),
@@ -584,6 +702,7 @@ class AIWorkoutViewModel: ObservableObject {
 
         do {
             let context = await contextBuilder.build(equipment: equipment)
+            cachedContext = context
             let response = try await coachService.generateWorkout(
                 context: context,
                 preferences: questionnaire
@@ -596,6 +715,108 @@ class AIWorkoutViewModel: ObservableObject {
         } catch {
             state = .error("Could not generate workout. Please try again.")
         }
+    }
+
+    func loadSubstitutions(for exerciseId: String) async {
+        guard let workout = generatedWorkout,
+              let exercise = workout.exercises.first(where: { $0.id == exerciseId }) else { return }
+
+        swapState = ExerciseSwapState(exerciseId: exerciseId, exerciseName: exercise.name, substitutions: [], isLoading: true)
+
+        do {
+            let context: CoachContext
+            if let cached = cachedContext {
+                context = cached
+            } else {
+                context = await contextBuilder.build(equipment: equipment)
+            }
+            cachedContext = context
+            let response = try await coachService.suggestSubstitutions(
+                for: exercise.name,
+                context: context
+            )
+            swapState = ExerciseSwapState(
+                exerciseId: exerciseId,
+                exerciseName: exercise.name,
+                substitutions: response.substitutions,
+                explanation: response.explanation,
+                isLoading: false
+            )
+        } catch {
+            swapState = ExerciseSwapState(
+                exerciseId: exerciseId,
+                exerciseName: exercise.name,
+                substitutions: [],
+                isLoading: false
+            )
+        }
+    }
+
+    func swapExercise(with substitution: SubstitutionRanker.RankedSubstitution) {
+        guard let workout = generatedWorkout,
+              let index = workout.exercises.firstIndex(where: { $0.id == swapState?.exerciseId }) else { return }
+
+        let old = workout.exercises[index]
+        let isBodyweight = !SubstitutionRanker.rank(substitutesFor: substitution.exerciseName, limit: 1).isEmpty
+            || substitution.exerciseName.lowercased().contains("push-up")
+            || substitution.exerciseName.lowercased().contains("pull-up")
+            || substitution.exerciseName.lowercased().contains("air squat")
+            || substitution.exerciseName.lowercased().contains("burpee")
+            || substitution.exerciseName.lowercased().contains("plank")
+            || substitution.exerciseName.lowercased().contains("sit-up")
+            || substitution.exerciseName.lowercased().contains("v-up")
+            || substitution.exerciseName.lowercased().contains("dip")
+
+        let newExercise = GeneratedExercise(
+            id: UUID().uuidString,
+            name: substitution.exerciseName,
+            sets: old.sets,
+            reps: old.reps,
+            weightKg: nil,
+            restMinutes: nil,
+            notes: "Swapped for \(old.name)",
+            reasoning: substitution.reason,
+            bodyweightOnly: isBodyweight
+        )
+
+        var updatedExercises = workout.exercises
+        updatedExercises[index] = newExercise
+
+        let eMult = energyMultiplier(energyLevel)
+        let cMult = aiCyclePhaseMultiplier(cyclePhase)
+        let context = cachedContext
+        let maxes = context?.maxes ?? []
+        let weighted = applyWeights(
+            exercises: updatedExercises,
+            maxes: maxes,
+            energyMult: eMult,
+            cycleMult: cMult
+        )
+        let final = weighted.map { ex -> GeneratedExercise in
+            guard ex.restMinutes == nil else { return ex }
+            return GeneratedExercise(
+                id: ex.id, name: ex.name, sets: ex.sets, reps: ex.reps,
+                weightKg: ex.weightKg,
+                restMinutes: assignRestMinutes(bodyweight: ex.bodyweightOnly, reps: ex.reps),
+                notes: ex.notes, reasoning: ex.reasoning, bodyweightOnly: ex.bodyweightOnly,
+                percentageOfMax: ex.percentageOfMax
+            )
+        }
+
+        generatedWorkout = GeneratedWorkout(
+            id: workout.id,
+            createdAt: workout.createdAt,
+            isFavorite: workout.isFavorite,
+            coachingSummary: workout.coachingSummary,
+            exercises: final,
+            questionnaire: workout.questionnaire
+        )
+
+        swapState = nil
+    }
+
+    func dismissSwap() {
+        swapState = nil
     }
 
     func buildWorkoutForSession() -> Workout? {
@@ -623,5 +844,32 @@ class AIWorkoutViewModel: ObservableObject {
             },
             notes: "AI Generated — \(generated.coachingSummary)"
         )
+    }
+}
+
+@available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
+struct ExerciseSwapState: Equatable {
+    let exerciseId: String
+    let exerciseName: String
+    let substitutions: [SubstitutionRanker.RankedSubstitution]
+    let explanation: String?
+    let isLoading: Bool
+
+    init(exerciseId: String, exerciseName: String,
+         substitutions: [SubstitutionRanker.RankedSubstitution] = [],
+         explanation: String? = nil, isLoading: Bool = false) {
+        self.exerciseId = exerciseId
+        self.exerciseName = exerciseName
+        self.substitutions = substitutions
+        self.explanation = explanation
+        self.isLoading = isLoading
+    }
+
+    static func == (lhs: ExerciseSwapState, rhs: ExerciseSwapState) -> Bool {
+        lhs.exerciseId == rhs.exerciseId &&
+        lhs.exerciseName == rhs.exerciseName &&
+        lhs.substitutions == rhs.substitutions &&
+        lhs.explanation == rhs.explanation &&
+        lhs.isLoading == rhs.isLoading
     }
 }

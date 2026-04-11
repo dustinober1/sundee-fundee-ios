@@ -54,10 +54,11 @@ public struct GeneratedExercise: Codable, Sendable, Identifiable {
     public let notes: String?
     public let reasoning: String?
     public let bodyweightOnly: Bool
+    public var percentageOfMax: Double?  // Percentage of 1RM used (e.g., 0.70 for 70%)
 
     public init(id: String, name: String, sets: Int, reps: String, weightKg: Double? = nil,
                 restMinutes: Double? = nil, notes: String? = nil, reasoning: String? = nil,
-                bodyweightOnly: Bool = false) {
+                bodyweightOnly: Bool = false, percentageOfMax: Double? = nil) {
         self.id = id
         self.name = name
         self.sets = sets
@@ -67,6 +68,7 @@ public struct GeneratedExercise: Codable, Sendable, Identifiable {
         self.notes = notes
         self.reasoning = reasoning
         self.bodyweightOnly = bodyweightOnly
+        self.percentageOfMax = percentageOfMax
     }
 }
 
@@ -188,8 +190,12 @@ public func applyWeights(
         let raw = matched.weightKg * pct * energyMult * cycleMult
         let rounded = Double(Int(raw / 5.0 + 0.5)) * 5.0
 
+        // Store the effective percentage (including multipliers) for display
+        let effectivePct = pct * energyMult * cycleMult
+
         var modified = ex
         modified.weightKg = rounded
+        modified.percentageOfMax = effectivePct
         return modified
     }
 }
