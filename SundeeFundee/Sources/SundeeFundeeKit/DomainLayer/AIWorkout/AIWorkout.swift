@@ -162,15 +162,15 @@ public func energyMultiplier(_ level: EnergyLevel) -> Double {
 
 // MARK: - Cycle Phase Multiplier (AI)
 
-/// Get cycle phase multiplier for AI workout generation
-public func aiCyclePhaseMultiplier(_ phase: CyclePhase?) -> Double {
+/// Get cycle phase multiplier for AI workout generation.
+/// When an exercise region is provided, uses region-specific multipliers
+/// (e.g., lower body gets bigger menstrual reduction).
+public func aiCyclePhaseMultiplier(
+    _ phase: CyclePhase?,
+    region: ExerciseRegion? = nil
+) -> Double {
     guard let phase else { return 1.0 }
-    switch phase {
-    case .menstrual:  return 0.90
-    case .follicular: return 1.00
-    case .ovulation:  return 1.12
-    case .luteal:     return 0.97
-    }
+    return resolvePhaseMultipliers(phase: phase, region: region).load
 }
 
 // MARK: - Apply Weights
