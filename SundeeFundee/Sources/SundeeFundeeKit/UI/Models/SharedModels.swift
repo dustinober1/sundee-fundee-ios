@@ -49,6 +49,22 @@ public struct CelebrationEventRecord: Codable, Sendable {
     }
 }
 
+public struct ProgramSessionRecord: Codable, Sendable {
+    public let id: String
+    public let programId: String
+    public let sessionId: String
+    public let workoutId: String
+    public let week: Int
+
+    public init(id: String, programId: String, sessionId: String, workoutId: String, week: Int) {
+        self.id = id
+        self.programId = programId
+        self.sessionId = sessionId
+        self.workoutId = workoutId
+        self.week = week
+    }
+}
+
 public struct CompletedWorkoutRecord: Codable, Sendable {
     public let id: String
     public let name: String
