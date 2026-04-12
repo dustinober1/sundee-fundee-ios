@@ -15,6 +15,7 @@ import SwiftUI
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
 public struct MainTabView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
+    @StateObject private var cyclePhaseCache = CyclePhaseCache()
     @StateObject private var sharkWeekMonitor = SharkWeekMonitor()
 
     public init() {}
@@ -79,15 +80,23 @@ public struct MainTabView: View {
             }
         }
         .animation(.easeInOut(duration: 0.3), value: sharkWeekMonitor.isSharkWeek)
+        .environmentObject(cyclePhaseCache)
         .environmentObject(sharkWeekMonitor)
         .task {
-            await sharkWeekMonitor.check()
+            await cyclePhaseCache.refreshIfNeeded()
+            sharkWeekMonitor.sync(with: cyclePhaseCache)
         }
         .onReceive(NotificationCenter.default.publisher(for: .cycleDataUpdated)) { _ in
-            Task { await sharkWeekMonitor.check() }
+            Task {
+                await cyclePhaseCache.refresh()
+                sharkWeekMonitor.sync(with: cyclePhaseCache)
+            }
         }
         .onReceive(NotificationCenter.default.publisher(for: .workoutCompleted)) { _ in
             selectedTab = .workouts
+        }
+        .onChange(of: cyclePhaseCache.isSharkWeek) { _, newValue in
+            sharkWeekMonitor.isSharkWeek = newValue
         }
     }
 
