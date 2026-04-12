@@ -5,9 +5,9 @@ import Charts
 
 /// Bar chart showing average training volume by menstrual cycle phase.
 ///
-/// Pro-gated: free users see an upgrade card with a lock icon and CTA
-/// instead of chart data. Paid users see a BarMark chart with
-/// phase-appropriate colors (menstrual=red, follicular=gold, ovulation=orange, luteal=navy).
+/// Shows a BarMark chart with phase-appropriate colors
+/// (menstrual=red, follicular=gold, ovulation=orange, luteal=navy).
+/// Displays an empty state when no cycle data is available.
 
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
 struct CycleCorrelationChart: View {
