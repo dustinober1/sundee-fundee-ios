@@ -25,6 +25,9 @@ app.get('/', (c)=>{
   return c.json({message: 'Hello Hono'})
 })
 
+// Admin content dashboard removed — workout content is now bundled in the iOS app.
+// Remote content management (exercises, programs, benchmarks) is deferred to v2.
+
 const ADMIN_HTML = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -820,10 +823,5 @@ const ADMIN_HTML = `<!DOCTYPE html>
   </script>
 </body>
 </html>`;
-
-app.get('/admin', async (c) => {
-  const html = ADMIN_HTML
-  return c.html(html)
-})
 
 export default app
