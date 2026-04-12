@@ -137,25 +137,62 @@ public actor CoachContextBuilder {
     // MARK: - Private Loaders
 
     private func loadCycleData() async -> (phase: CyclePhase?, confidence: Double?) {
+        // Fast path: active manual period = menstrual phase with full confidence
         do {
-            guard healthClient.isAvailable else { return (nil, nil) }
-            let sixMonthsAgo = Calendar.current.date(byAdding: .month, value: -6, to: Date())
-            let cycles = try await healthClient.fetchMenstrualCycles(
-                startDate: sixMonthsAgo, endDate: nil, limit: 100
-            )
-            guard !cycles.isEmpty,
-                  let status = CyclePhaseHelper.calculatePhase(from: cycles) else {
-                return (nil, nil)
+            let manualRecords = try await dataClient.fetchAll(
+                recordType: "PeriodLogRecord"
+            ) as [PeriodLogRecord]
+            if manualRecords.contains(where: { $0.isActive }) {
+                return (.menstrual, 1.0)
             }
-            let logs = CyclePhaseHelper.convertToPeriodLogs(cycles)
-            let confidence = CyclePhaseHelper.calculateConfidence(
-                periodLogCount: logs.count,
-                lastPeriodStart: logs.last?.startDate
-            )
-            return (status.currentPhase, confidence)
-        } catch {
+        } catch { /* continue */ }
+
+        var periodLogs: [PeriodLog] = []
+
+        // Load HealthKit cycles if available
+        if healthClient.isAvailable {
+            do {
+                let sixMonthsAgo = Calendar.current.date(byAdding: .month, value: -6, to: Date())
+                let cycles = try await healthClient.fetchMenstrualCycles(
+                    startDate: sixMonthsAgo, endDate: nil, limit: 100
+                )
+                if !cycles.isEmpty {
+                    periodLogs = CyclePhaseHelper.convertToPeriodLogs(cycles)
+                }
+            } catch { /* no HealthKit */ }
+        }
+
+        // Merge manual period logs
+        do {
+            let manualRecords = try await dataClient.fetchAll(
+                recordType: "PeriodLogRecord"
+            ) as [PeriodLogRecord]
+            for log in manualRecords.map({ $0.toPeriodLog() }) {
+                let isDuplicate = periodLogs.contains {
+                    abs($0.startDate.timeIntervalSince(log.startDate)) < 86400
+                }
+                if !isDuplicate { periodLogs.append(log) }
+            }
+        } catch { /* no manual logs */ }
+
+        guard !periodLogs.isEmpty else { return (nil, nil) }
+
+        var settings = CycleSettings()
+        if let records = try? await dataClient.fetchAll(
+            recordType: "CycleSettings"
+        ) as [CycleSettingsRecord], let first = records.first {
+            settings = CycleSettings(averageCycleLengthDays: first.averageCycleLengthDays)
+        }
+
+        guard let status = calculateCycleStatus(periodLogs: periodLogs, settings: settings) else {
             return (nil, nil)
         }
+
+        let confidence = CyclePhaseHelper.calculateConfidence(
+            periodLogCount: periodLogs.count,
+            lastPeriodStart: periodLogs.sorted(by: { $0.startDate > $1.startDate }).first?.startDate
+        )
+        return (status.currentPhase, confidence)
     }
 
     private func loadMaxes() async -> (maxes: [ExerciseMax], records: [OneRepMaxRecord]) {
