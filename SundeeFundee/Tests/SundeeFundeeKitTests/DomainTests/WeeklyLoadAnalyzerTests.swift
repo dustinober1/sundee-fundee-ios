@@ -121,15 +121,78 @@ final class WeeklyLoadAnalyzerTests: XCTestCase {
         XCTAssertTrue(trends.isEmpty, "Single week should not produce trends")
     }
 
+    // MARK: - Push/Pull Imbalance
+
+    func testDetectTrends_PushHeavy_ImbalanceWarning() {
+        let summaries = [
+            makeWeeklySummary(workoutCount: 3, weeksAgo: 1),
+            makeWeeklySummary(
+                workoutCount: 4, weeksAgo: 0,
+                exercises: [
+                    "Flat Barbell Bench Press", "Incline Barbell Bench Press",
+                    "Dumbbell Bench Press", "Push Press",
+                    "Strict Press", "Dips (Weighted)",
+                    "Barbell Row"
+                ]
+            ),
+        ]
+        let trends = WeeklyLoadAnalyzer.detectTrends(from: summaries)
+        let hasImbalance = trends.contains { $0.type == .pushPullImbalance }
+        XCTAssertTrue(hasImbalance, "6 push vs 1 pull should trigger imbalance")
+    }
+
+    func testDetectTrends_BalancedPushPull_NoImbalance() {
+        let summaries = [
+            makeWeeklySummary(workoutCount: 3, weeksAgo: 1),
+            makeWeeklySummary(
+                workoutCount: 4, weeksAgo: 0,
+                exercises: [
+                    "Flat Barbell Bench Press", "Strict Press",
+                    "Barbell Row", "Pull-Up"
+                ]
+            ),
+        ]
+        let trends = WeeklyLoadAnalyzer.detectTrends(from: summaries)
+        let hasImbalance = trends.contains { $0.type == .pushPullImbalance }
+        XCTAssertFalse(hasImbalance, "2:2 push/pull should not trigger imbalance")
+    }
+
+    // MARK: - Missed Session Pattern
+
+    func testDetectTrends_RecurringDropPattern_MissedSessionWarning() {
+        // Pattern: 4, 4, 1, 4, 4, 1 — drop every 3rd week
+        let summaries = [
+            makeWeeklySummary(workoutCount: 4, weeksAgo: 5),
+            makeWeeklySummary(workoutCount: 4, weeksAgo: 4),
+            makeWeeklySummary(workoutCount: 0, weeksAgo: 3),
+            makeWeeklySummary(workoutCount: 4, weeksAgo: 2),
+            makeWeeklySummary(workoutCount: 4, weeksAgo: 1),
+            makeWeeklySummary(workoutCount: 0, weeksAgo: 0),
+        ]
+        let trends = WeeklyLoadAnalyzer.detectTrends(from: summaries)
+        let hasPattern = trends.contains { $0.type == .missedSessionPattern }
+        XCTAssertTrue(hasPattern, "Should detect recurring drop-off pattern")
+    }
+
     // MARK: - Test Helpers
 
-    private func makeWeeklySummary(workoutCount: Int, weeksAgo: Int) -> WeeklyLoadAnalyzer.WeeklySummary {
-        WeeklyLoadAnalyzer.WeeklySummary(
+    private func makeWeeklySummary(
+        workoutCount: Int,
+        weeksAgo: Int,
+        exercises: [String] = []
+    ) -> WeeklyLoadAnalyzer.WeeklySummary {
+        let muscleGroups: Set<String>
+        if exercises.isEmpty {
+            muscleGroups = ["Lower", "Upper Push", "Upper Pull"]
+        } else {
+            muscleGroups = Set(exercises.compactMap { WeeklyLoadAnalyzer.classifyMuscleGroup($0) })
+        }
+        return WeeklyLoadAnalyzer.WeeklySummary(
             weekStartDate: Calendar.current.date(byAdding: .weekOfYear, value: -weeksAgo, to: Date())!,
             workoutCount: workoutCount,
             totalMinutes: workoutCount * 60,
-            muscleGroupsHit: ["Lower", "Upper Push", "Upper Pull"],
-            exerciseNames: []
+            muscleGroupsHit: muscleGroups,
+            exerciseNames: exercises
         )
     }
 }
