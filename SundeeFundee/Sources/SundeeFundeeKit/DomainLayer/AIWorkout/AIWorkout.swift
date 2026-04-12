@@ -212,3 +212,66 @@ public func findMatchingMax(_ exerciseName: String, maxes: [ExerciseMax]) -> Exe
         m.name.lowercased().contains(lower) || lower.contains(m.name.lowercased())
     }
 }
+
+// MARK: - Volume-Targeted Workout Generation
+
+/// Suggested set breakdown for reaching a volume target.
+public struct VolumeTargetBreakdown: Sendable {
+    /// Suggested sets.
+    public let sets: Int
+    /// Suggested reps per set.
+    public let reps: Int
+    /// Weight per rep in the user's unit.
+    public let weight: Double
+    /// Total volume from this breakdown.
+    public let totalVolume: Double
+    /// How close this is to the target (within ±5% is ideal).
+    public let variancePercent: Double
+}
+
+/// Generates a suggested sets/reps/weight breakdown to reach a target volume for an exercise.
+///
+/// Uses the user's working weight (from maxes at 70% 1RM) and distributes reps
+/// across sets to approximate the target volume.
+///
+/// - Parameters:
+///   - targetVolumeLbs: The volume goal (reps × weight).
+///   - exerciseName: The exercise to target.
+///   - maxes: The user's 1RM records.
+/// - Returns: A breakdown suggestion, or nil if no max is found.
+public func generateVolumeTargetedBreakdown(
+    targetVolumeLbs: Double,
+    exerciseName: String,
+    maxes: [ExerciseMax]
+) -> VolumeTargetBreakdown? {
+    guard let matched = findMatchingMax(exerciseName, maxes: maxes) else {
+        return nil
+    }
+
+    // Use 70% of 1RM as the working weight (moderate intensity for volume work)
+    let workingWeight = (matched.weightKg * 0.70 * 2.20462).rounded() // Convert kg to lbs
+    let roundedWeight = Double(Int(workingWeight / 5.0 + 0.5)) * 5.0 // Round to nearest 5 lbs
+
+    guard roundedWeight > 0 else { return nil }
+
+    // Calculate total reps needed
+    let totalRepsNeeded = targetVolumeLbs / roundedWeight
+
+    // Distribute across sets (target 8-12 reps per set)
+    let idealReps = 8
+    let setsNeeded = max(1, min(6, Int((totalRepsNeeded / Double(idealReps)).rounded(.up))))
+    let repsPerSet = max(1, min(15, Int((totalRepsNeeded / Double(setsNeeded)).rounded())))
+
+    let totalVolume = Double(setsNeeded * repsPerSet) * roundedWeight
+    let variance = targetVolumeLbs > 0
+        ? (totalVolume - targetVolumeLbs) / targetVolumeLbs * 100
+        : 0
+
+    return VolumeTargetBreakdown(
+        sets: setsNeeded,
+        reps: repsPerSet,
+        weight: roundedWeight,
+        totalVolume: totalVolume,
+        variancePercent: variance
+    )
+}
