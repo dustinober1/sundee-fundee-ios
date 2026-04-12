@@ -13,6 +13,20 @@ public enum ScheduleReshuffler {
 
     // MARK: - Types
 
+    /// Priority level for sessions — determines drop order when capacity is limited.
+    public enum SessionPriority: Int, Sendable, Equatable, Comparable {
+        /// Conditioning/cardio — dropped first.
+        case conditioning = 0
+        /// Accessory/isolation work — dropped second.
+        case accessory = 1
+        /// Major compound lifts — dropped last.
+        case compound = 2
+
+        public static func < (lhs: SessionPriority, rhs: SessionPriority) -> Bool {
+            lhs.rawValue < rhs.rawValue
+        }
+    }
+
     /// A planned session in the weekly schedule.
     public struct PlannedSession: Sendable, Equatable {
         /// The day of the week (1 = Monday, 7 = Sunday).
@@ -27,11 +41,22 @@ public enum ScheduleReshuffler {
         /// Estimated duration in minutes.
         public let estimatedMinutes: Int
 
-        public init(dayOfWeek: Int, sessionName: String, focus: String, estimatedMinutes: Int) {
+        /// Priority level (compound > accessory > conditioning).
+        /// Defaults to `.accessory` for backward compatibility.
+        public let priority: SessionPriority
+
+        public init(
+            dayOfWeek: Int,
+            sessionName: String,
+            focus: String,
+            estimatedMinutes: Int,
+            priority: SessionPriority = .accessory
+        ) {
             self.dayOfWeek = dayOfWeek
             self.sessionName = sessionName
             self.focus = focus
             self.estimatedMinutes = estimatedMinutes
+            self.priority = priority
         }
     }
 
@@ -102,9 +127,13 @@ public enum ScheduleReshuffler {
         var rescheduled: [PlannedSession] = futurePlanned
         var dropped: [PlannedSession] = []
 
+        // Sort missed sessions by priority descending (compound first, conditioning last)
+        // so that high-priority sessions get placed first and are dropped last.
+        let missedByPriority = missed.sorted { $0.priority > $1.priority }
+
         // Try to place each missed session into the best available day
         // Prefer days with the same focus, then days with the most remaining capacity
-        for session in missed {
+        for session in missedByPriority {
             var bestDay: Int?
             var bestScore = -1
 
@@ -133,7 +162,8 @@ public enum ScheduleReshuffler {
                     dayOfWeek: day,
                     sessionName: session.sessionName,
                     focus: session.focus,
-                    estimatedMinutes: session.estimatedMinutes
+                    estimatedMinutes: session.estimatedMinutes,
+                    priority: session.priority
                 )
                 rescheduled.append(moved)
                 dayLoad[day]?.count += 1
@@ -176,8 +206,15 @@ public enum ScheduleReshuffler {
         }
 
         if !dropped.isEmpty {
-            let names = dropped.map(\.sessionName).joined(separator: ", ")
-            parts.append("Couldn't fit \(dropped.count) session(s) (\(names)) — consider a longer session or adding them next week.")
+            let keptNames = rescheduled.map(\.sessionName)
+            let droppedNames = dropped.map(\.sessionName).joined(separator: ", ")
+
+            if !keptNames.isEmpty && dropped.contains(where: { $0.priority < rescheduled.first?.priority ?? .accessory }) {
+                let keptStr = keptNames.joined(separator: ", ")
+                parts.append("Kept higher-priority session(s) (\(keptStr)) and dropped \(droppedNames) due to limited availability.")
+            } else {
+                parts.append("Couldn't fit \(dropped.count) session(s) (\(droppedNames)) — consider a longer session or adding them next week.")
+            }
         }
 
         return parts.isEmpty ? "Schedule unchanged." : parts.joined(separator: " ")
