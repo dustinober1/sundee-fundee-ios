@@ -102,6 +102,11 @@ public struct SettingsView: View {
 
                 // About Section
                 Section("About") {
+                    Text("Sundee Fundee is a fitness tool, not a medical device. It is not a substitute for professional medical advice, diagnosis, or treatment. Consult your doctor before starting any exercise program.")
+                        .font(AppTheme.Typography.bodySmall)
+                        .foregroundColor(AppTheme.Text.secondary)
+                        .padding(.vertical, AppTheme.Spacing.xs)
+
                     HStack {
                         Text("Version")
                         Spacer()
