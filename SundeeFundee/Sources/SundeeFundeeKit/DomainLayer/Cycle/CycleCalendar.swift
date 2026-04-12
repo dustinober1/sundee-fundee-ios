@@ -92,7 +92,8 @@ public func getCycleCalendarData(
             if let logEnd = log.endDate {
                 end = calendar.startOfDay(for: logEnd)
             } else {
-                end = calendar.date(byAdding: .day, value: settings.averagePeriodLengthDays - 1, to: start)!
+                // Active period (no end date): show as logged through today
+                end = max(today, start)
             }
             return dateStart >= start && dateStart <= end
         }
