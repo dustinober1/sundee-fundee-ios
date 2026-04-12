@@ -63,29 +63,101 @@ public enum SubstitutionRanker {
         )
     }
 
+    // MARK: - Muscle Activation Map
+
+    /// Primary muscle groups activated by each exercise.
+    /// Keys match exact catalog IDs from `weightliftingExercises`.
+    private static let muscleGroups: [String: Set<String>] = [
+        // Squat
+        "Back Squat":           ["Quads", "Glutes", "Hamstrings", "Core"],
+        "Front Squat":          ["Quads", "Glutes", "Core", "Upper Back"],
+        "Safety Bar Squat":     ["Quads", "Glutes", "Hamstrings", "Core"],
+        "Box Squat":            ["Quads", "Glutes", "Hamstrings"],
+        "Pause Squat":          ["Quads", "Glutes", "Hamstrings", "Core"],
+        "Goblet Squat":         ["Quads", "Glutes", "Core"],
+        "Leg Press":            ["Quads", "Glutes", "Hamstrings"],
+        "Hack Squat":           ["Quads", "Glutes"],
+        "Leg Extension":        ["Quads"],
+        // Hip Hinge
+        "Conventional Deadlift (No Straps)":   ["Hamstrings", "Glutes", "Lower Back", "Core", "Upper Back"],
+        "Conventional Deadlift (With Straps)": ["Hamstrings", "Glutes", "Lower Back", "Core", "Upper Back"],
+        "Romanian Deadlift (No Straps)":       ["Hamstrings", "Glutes", "Lower Back"],
+        "Romanian Deadlift (With Straps)":     ["Hamstrings", "Glutes", "Lower Back"],
+        "Sumo Deadlift (No Straps)":           ["Hamstrings", "Glutes", "Adductors", "Lower Back"],
+        "Sumo Deadlift (With Straps)":         ["Hamstrings", "Glutes", "Adductors", "Lower Back"],
+        "Trap Bar Deadlift (No Straps)":       ["Quads", "Glutes", "Hamstrings", "Lower Back"],
+        "Trap Bar Deadlift (With Straps)":     ["Quads", "Glutes", "Hamstrings", "Lower Back"],
+        "Good Morning":         ["Hamstrings", "Glutes", "Lower Back"],
+        "Hip Thrust":           ["Glutes", "Hamstrings"],
+        "Leg Curl (Lying)":     ["Hamstrings"],
+        "Leg Curl (Seated)":    ["Hamstrings"],
+        "Glute Ham Raise":      ["Hamstrings", "Glutes", "Lower Back"],
+        // Press
+        "Flat Barbell Bench Press":    ["Chest", "Triceps", "Front Delts"],
+        "Incline Barbell Bench Press": ["Upper Chest", "Triceps", "Front Delts"],
+        "Decline Barbell Bench Press": ["Chest", "Triceps", "Front Delts"],
+        "Strict Press":                ["Front Delts", "Triceps", "Upper Chest"],
+        "Push Press":                  ["Front Delts", "Triceps", "Upper Chest", "Core"],
+        "Dumbbell Bench Press":        ["Chest", "Triceps", "Front Delts"],
+        "Dumbbell Incline Press":      ["Upper Chest", "Triceps", "Front Delts"],
+        "Dumbbell Overhead Press":     ["Front Delts", "Triceps", "Side Delts"],
+        "Dips (Weighted)":             ["Chest", "Triceps", "Front Delts"],
+        "Close Grip Bench Press":      ["Triceps", "Chest", "Front Delts"],
+        // Pull
+        "Barbell Row":              ["Upper Back", "Lats", "Biceps", "Rear Delts"],
+        "Pendlay Row":              ["Upper Back", "Lats", "Biceps"],
+        "Pull-Up":                  ["Lats", "Biceps", "Upper Back"],
+        "Weighted Pull-Up":         ["Lats", "Biceps", "Upper Back"],
+        "Lat Pulldown":             ["Lats", "Biceps", "Upper Back"],
+        "Cable Row":                ["Upper Back", "Lats", "Biceps"],
+        "Dumbbell Row":             ["Upper Back", "Lats", "Biceps"],
+        "Face Pull":                ["Rear Delts", "Upper Back"],
+        "Bicep Curl (Barbell)":     ["Biceps"],
+        "Bicep Curl (Dumbbell)":    ["Biceps"],
+        "Hammer Curl":              ["Biceps", "Forearms"],
+        "Upright Row":              ["Side Delts", "Traps", "Biceps"],
+        // Carry
+        "Farmers Carry":     ["Grip", "Core", "Traps", "Shoulders"],
+        "Suitcase Carry":    ["Core", "Grip", "Shoulders"],
+        "Zercher Carry":     ["Core", "Upper Back", "Biceps"],
+        "Yoke Walk":         ["Core", "Traps", "Quads", "Glutes"],
+        // Olympic
+        "Squat Snatch":      ["Quads", "Glutes", "Shoulders", "Core", "Upper Back"],
+        "Squat Clean":       ["Quads", "Glutes", "Hamstrings", "Upper Back", "Core"],
+        "Power Clean":       ["Quads", "Glutes", "Hamstrings", "Upper Back", "Core"],
+        "Power Snatch":      ["Quads", "Glutes", "Shoulders", "Core"],
+        "Hang Clean":        ["Hamstrings", "Glutes", "Upper Back", "Core"],
+        "Hang Snatch":       ["Hamstrings", "Glutes", "Shoulders", "Core"],
+        "Split Jerk":        ["Quads", "Shoulders", "Triceps", "Core"],
+        "Push Jerk":         ["Shoulders", "Triceps", "Core", "Quads"],
+        "Clean and Jerk":    ["Quads", "Glutes", "Hamstrings", "Shoulders", "Core", "Upper Back"],
+        "Muscle Snatch":     ["Shoulders", "Upper Back", "Core"],
+        "Muscle Clean":      ["Upper Back", "Biceps", "Core"],
+    ]
+
     // MARK: - Ranking
 
     /// Finds and ranks substitute exercises for a given target.
     ///
     /// - Parameters:
     ///   - target: The exercise to substitute.
-    ///   - injuries: Current active injuries (used to filter out contraindicated exercises).
+    ///   - injuries: Current active injuries (used for graded injury compatibility scoring).
     ///   - equipment: Available equipment.
+    ///   - profile: Optional coach profile for user history preferences.
     ///   - limit: Maximum number of results (default 5).
     /// - Returns: Ranked substitutions, best first.
     public static func rank(
         substitutesFor target: String,
         injuries: [Injury] = [],
         equipment: EquipmentContext = .fullGym,
+        profile: CoachProfile? = nil,
         limit: Int = 5
     ) -> [RankedSubstitution] {
-        // Find the target's category
         guard let targetEntry = weightliftingExercises.first(where: { $0.id == target }) else {
             return []
         }
         let targetCategory = targetEntry.category
 
-        // Get all exercises in the same category (excluding the target)
         let candidates = weightliftingExercises.filter {
             $0.id != target
         }
@@ -93,45 +165,50 @@ public enum SubstitutionRanker {
         var scored: [RankedSubstitution] = []
 
         for candidate in candidates {
-            // Skip if contraindicated by injuries
-            if !injuries.isEmpty {
-                let contraindicated = InjuryAdaptationEngine.isContraindicated(
-                    exerciseName: candidate.id,
-                    exerciseCategory: nil,
-                    injuries: injuries
-                )
-                if contraindicated { continue }
-            }
+            // Graded injury compatibility (replaces binary filtering)
+            let injuryScore = injuryCompatibilityScore(
+                exerciseName: candidate.id,
+                injuries: injuries
+            )
+            // Skip fully contraindicated exercises (acute/rehab phase)
+            if injuryScore <= 0 { continue }
 
             // Skip if equipment doesn't match
             if !matchesEquipment(candidate.id, equipment: equipment) {
                 continue
             }
 
-            // Calculate score
             var score = 0.0
             var reasons: [String] = []
 
-            // Same category = strongest signal
-            if candidate.category == targetCategory {
-                score += 0.5
-                reasons.append("same movement pattern")
-            } else {
-                // Adjacent categories get partial credit
-                if areRelatedCategories(targetCategory, candidate.category) {
-                    score += 0.25
-                    reasons.append("related movement")
+            // Muscle activation overlap (strongest signal)
+            let muscleOverlap = muscleOverlapScore(target, candidate.id)
+            if muscleOverlap > 0 {
+                score += muscleOverlap * 0.4
+                if muscleOverlap > 0.5 {
+                    reasons.append("targets similar muscles")
                 }
+            }
+
+            // Same category bonus (reduced from 0.5 to 0.35 since muscle overlap is now primary)
+            if candidate.category == targetCategory {
+                score += 0.35
+                if muscleOverlap == 0 {
+                    reasons.append("same movement pattern")
+                }
+            } else if areRelatedCategories(targetCategory, candidate.category) {
+                score += 0.2
+                reasons.append("related movement")
             }
 
             // Similarity bonus based on name overlap
             let nameSimilarity = nameSimilarityScore(target, candidate.id)
-            score += nameSimilarity * 0.3
+            score += nameSimilarity * 0.2
             if nameSimilarity > 0.3 {
                 reasons.append("similar exercise variant")
             }
 
-            // Equipment simplicity bonus (dumbbells > barbells for substitutes)
+            // Equipment simplicity bonus
             if isDumbbellExercise(candidate.id) && !isDumbbellExercise(target) {
                 score += 0.1
                 reasons.append("dumbbell alternative")
@@ -143,8 +220,26 @@ public enum SubstitutionRanker {
                 reasons.append("machine (more controlled)")
             }
 
+            // User history preferences from CoachProfile
+            if let profile = profile {
+                if profile.favoriteExercises.contains(candidate.id) {
+                    score += 0.15
+                    reasons.append("matches your preferences")
+                }
+                if profile.avoidedExercises.contains(candidate.id) {
+                    score -= 0.2
+                    reasons.append("previously avoided")
+                }
+            }
+
+            // Apply graded injury penalty
+            score *= injuryScore
+            if injuryScore < 1.0 && injuryScore > 0 {
+                reasons.append("caution: near injury area")
+            }
+
             let reason = reasons.isEmpty ? "alternative option" : reasons.joined(separator: ", ")
-            let capped = min(score, 1.0)
+            let capped = min(max(score, 0), 1.0)
 
             scored.append(RankedSubstitution(
                 exerciseName: candidate.id,
@@ -154,8 +249,54 @@ public enum SubstitutionRanker {
             ))
         }
 
-        // Sort by score descending, take top N
         return Array(scored.sorted { $0.score > $1.score }.prefix(limit))
+    }
+
+    // MARK: - Muscle Overlap
+
+    /// Computes Jaccard similarity between the muscle groups of two exercises.
+    /// Returns 0 if either exercise has no known muscle data.
+    private static func muscleOverlapScore(_ a: String, _ b: String) -> Double {
+        guard let aMuscles = muscleGroups[a], let bMuscles = muscleGroups[b] else {
+            return 0
+        }
+        let intersection = aMuscles.intersection(bMuscles)
+        let union = aMuscles.union(bMuscles)
+        guard !union.isEmpty else { return 0 }
+        return Double(intersection.count) / Double(union.count)
+    }
+
+    // MARK: - Injury Compatibility
+
+    /// Returns a graded injury compatibility score.
+    /// - 1.0: fully safe (no relevant injuries or resolved phase)
+    /// - 0.5: partially restricted (lightLoad or returnToPlay phase)
+    /// - 0.0: contraindicated (acute or rehab phase)
+    private static func injuryCompatibilityScore(
+        exerciseName: String,
+        injuries: [Injury]
+    ) -> Double {
+        guard !injuries.isEmpty else { return 1.0 }
+
+        var worstScore = 1.0
+        for injury in injuries {
+            let contraindicated = InjuryAdaptationEngine.isContraindicated(
+                exerciseName: exerciseName,
+                exerciseCategory: nil,
+                injuries: [injury]
+            )
+            if contraindicated {
+                switch injury.recoveryPhase {
+                case .acute, .rehab:
+                    return 0.0
+                case .lightLoad, .returnToPlay:
+                    worstScore = min(worstScore, 0.5)
+                case .resolved:
+                    break
+                }
+            }
+        }
+        return worstScore
     }
 
     // MARK: - Private Helpers
@@ -178,7 +319,6 @@ public enum SubstitutionRanker {
             return equipment.hasMachines
         }
 
-        // Default: assume it's available (bodyweight, kettlebell, etc.)
         return true
     }
 
