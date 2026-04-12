@@ -29,6 +29,11 @@ public struct DashboardView: View {
                     // Stat Cards
                     statCards
 
+                    // Challenge Progress Widget
+                    if let challengeData = viewModel.activeChallengeData {
+                        challengeProgressCard(challengeData)
+                    }
+
                     // Divider
                     Divider()
                         .background(AppTheme.Accent.gold.opacity(0.3))
@@ -417,6 +422,59 @@ public struct DashboardView: View {
             }
         }
     }
+
+    // MARK: - Challenge Progress Widget
+
+    private func challengeProgressCard(_ data: (Challenge, ChallengeProgress)) -> some View {
+        let (challenge, progress) = data
+        return NavigationLink(destination: ChallengesView()) {
+            ArtDecoCard {
+                VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
+                    HStack {
+                        Image(systemName: "trophy.fill")
+                            .foregroundColor(AppTheme.Accent.gold)
+                        Text(challenge.title)
+                            .font(AppTheme.Typography.headlineMedium)
+                            .foregroundColor(AppTheme.Text.primary)
+                        Spacer()
+                        Text(progress.currentTierName)
+                            .font(AppTheme.Typography.labelMedium)
+                            .foregroundColor(AppTheme.Accent.gold)
+                    }
+
+                    GeometryReader { geo in
+                        ZStack(alignment: .leading) {
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(AppTheme.Background.navy.opacity(0.1))
+                                .frame(height: 6)
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(AppTheme.Accent.gold)
+                                .frame(width: geo.size.width * progress.percentComplete, height: 6)
+                        }
+                    }
+                    .frame(height: 6)
+
+                    HStack {
+                        Text("\(Int(progress.percentComplete * 100))%")
+                            .font(AppTheme.Typography.monoMedium)
+                            .foregroundColor(AppTheme.Text.secondary)
+                        Spacer()
+                        let remaining = progress.volumeRemaining
+                        if remaining >= 1_000 {
+                            Text("\(String(format: "%.0fK", remaining / 1_000)) lbs to go")
+                                .font(AppTheme.Typography.labelMedium)
+                                .foregroundColor(AppTheme.Text.secondary)
+                        } else {
+                            Text("\(Int(remaining)) lbs to go")
+                                .font(AppTheme.Typography.labelMedium)
+                                .foregroundColor(AppTheme.Text.secondary)
+                        }
+                    }
+                }
+            }
+        }
+        .buttonStyle(.plain)
+    }
 }
 
 // MARK: - DashboardViewModel
@@ -438,6 +496,7 @@ class DashboardViewModel: ObservableObject {
     @Published var recentWins: [String] = []
     @Published var insightsSummary: String?
     @Published var insightsActions: [String] = []
+    @Published var activeChallengeData: (Challenge, ChallengeProgress)?
 
     // MARK: - Dependencies
 
@@ -478,8 +537,9 @@ class DashboardViewModel: ObservableObject {
         canGenerateAIWorkout = true
         isLoading = false
 
-        // Tier 2: Non-critical coaching insights load after UI is visible
+        // Tier 2: Non-critical data loads after UI is visible
         await loadCoachingInsights()
+        await loadActiveChallenge()
     }
 
     /// Generates an AI workout based on cycle phase and energy
@@ -583,6 +643,17 @@ class DashboardViewModel: ObservableObject {
             }
         } catch {
             // Recent wins are non-critical — degrade gracefully
+        }
+    }
+
+    private func loadActiveChallenge() async {
+        let service = ChallengeService(dataClient: dataClient)
+        do {
+            if let closest = try await service.closestToCompletion() {
+                activeChallengeData = closest
+            }
+        } catch {
+            // Challenges are non-critical — degrade gracefully
         }
     }
 }
