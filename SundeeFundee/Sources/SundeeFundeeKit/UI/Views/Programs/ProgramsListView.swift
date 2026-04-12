@@ -20,11 +20,15 @@ public struct ProgramsListView: View {
                     ScrollView {
                         VStack(spacing: AppTheme.Spacing.md) {
                             ForEach(viewModel.programs) { program in
-                                ProgramRow(program: program, onEnroll: {
-                                    Task {
-                                        await viewModel.enrollInProgram(program.id)
+                                ProgramRow(
+                                    program: program,
+                                    isEnrolling: viewModel.enrollingProgramId == program.id,
+                                    onEnroll: {
+                                        Task {
+                                            await viewModel.enrollInProgram(program.id)
+                                        }
                                     }
-                                })
+                                )
                             }
                         }
                         .padding(AppTheme.Spacing.lg)
@@ -58,6 +62,7 @@ public struct ProgramsListView: View {
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
 struct ProgramRow: View {
     let program: ProgramListItem
+    let isEnrolling: Bool
     let onEnroll: () -> Void
 
     var body: some View {
@@ -104,11 +109,21 @@ struct ProgramRow: View {
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, AppTheme.Spacing.sm)
                 } else {
-                    Button("Enroll") {
+                    Button {
                         onEnroll()
+                    } label: {
+                        if isEnrolling {
+                            ProgressView()
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, AppTheme.Spacing.sm)
+                        } else {
+                            Text("Enroll")
+                        }
                     }
                     .artDecoButton(style: .secondary)
+                    .disabled(isEnrolling)
                     .accessibilityHint("Start this program")
+                    .accessibilityValue(isEnrolling ? "Enrolling…" : "")
                 }
             }
         }
@@ -137,6 +152,8 @@ class ProgramsListViewModel: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var programs: [ProgramListItem] = []
     @Published var errorMessage: String?
+    /// Tracks which program is currently being enrolled so the row can show a spinner.
+    @Published var enrollingProgramId: String? = nil
 
     private let dataClient: DataClientProtocol
     private let contentClient: ContentClientProtocol
@@ -196,6 +213,9 @@ class ProgramsListViewModel: ObservableObject {
     }
 
     func enrollInProgram(_ programId: String) async {
+        enrollingProgramId = programId
+        defer { enrollingProgramId = nil }
+
         do {
             let record = EnrolledProgramRecord(
                 id: programId,
@@ -203,7 +223,23 @@ class ProgramsListViewModel: ObservableObject {
                 isActive: true
             )
             try await dataClient.save(record, recordType: "EnrolledProgramRecord")
-            await loadPrograms()
+
+            // Update local state immediately. CloudKit query indexes may not reflect
+            // a fresh write instantly (especially under rate limiting), so re-fetching
+            // can silently return stale empty results and leave the row showing as unenrolled.
+            programs = programs.map { p in
+                guard p.id == programId else { return p }
+                return ProgramListItem(
+                    id: p.id,
+                    name: p.name,
+                    category: p.category,
+                    description: p.description,
+                    durationWeeks: p.durationWeeks,
+                    sessionsPerWeek: p.sessionsPerWeek,
+                    difficulty: p.difficulty,
+                    isEnrolled: true
+                )
+            }
         } catch {
             errorMessage = "Failed to enroll: \(error.localizedDescription)"
         }
