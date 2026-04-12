@@ -10,23 +10,20 @@ struct SharkWeekBanner: View {
     @State private var isPulsing = false
 
     var body: some View {
-        HStack(spacing: AppTheme.Spacing.sm) {
+        HStack(spacing: AppTheme.Spacing.xs) {
             Text("\u{1F988}")
-                .font(.system(size: 20))
+                .font(.system(size: 14))
 
             Text("Shark Week")
-                .font(AppTheme.Typography.headlineMedium)
+                .font(AppTheme.Typography.labelLarge)
                 .foregroundColor(.white)
         }
-        .padding(.horizontal, AppTheme.Spacing.lg)
-        .padding(.vertical, AppTheme.Spacing.md)
-        .background(
-            RoundedRectangle(cornerRadius: AppTheme.CornerRadius.medium)
-                .fill(Color.red)
-        )
+        .padding(.horizontal, AppTheme.Spacing.sm)
+        .padding(.vertical, AppTheme.Spacing.xs)
+        .background(Capsule().fill(Color.red))
         .opacity(isPulsing ? 0.7 : 1.0)
-        .scaleEffect(isPulsing ? 0.97 : 1.0)
-        .shadow(color: Color.red.opacity(isPulsing ? 0.3 : 0.5), radius: isPulsing ? 4 : 8, y: 2)
+        .scaleEffect(isPulsing ? 0.98 : 1.0)
+        .shadow(color: Color.red.opacity(isPulsing ? 0.3 : 0.5), radius: isPulsing ? 2 : 4, y: 1)
         .animation(
             .easeInOut(duration: 1.0).repeatForever(autoreverses: true),
             value: isPulsing
