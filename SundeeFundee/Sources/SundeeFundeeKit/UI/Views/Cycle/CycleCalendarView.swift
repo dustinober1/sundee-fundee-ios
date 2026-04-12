@@ -365,6 +365,9 @@ class CycleCalendarViewModel: ObservableObject {
             // Use defaults
         }
 
+        // Reset period logs before loading
+        periodLogs = []
+
         // Load period logs from HealthKit
         do {
             if healthClient.isAvailable {
@@ -381,10 +384,14 @@ class CycleCalendarViewModel: ObservableObject {
         }
 
         // Merge manual period logs
+        var hasActivePeriod = false
         do {
             let manualRecords = try await dataClient.fetchAll(
                 recordType: "PeriodLogRecord"
             ) as [PeriodLogRecord]
+            if manualRecords.contains(where: { $0.isActive }) {
+                hasActivePeriod = true
+            }
             let manualLogs = manualRecords.map { $0.toPeriodLog() }
             for log in manualLogs {
                 let isDuplicate = periodLogs.contains { existing in
@@ -399,10 +406,29 @@ class CycleCalendarViewModel: ObservableObject {
         }
 
         // Calculate current status
-        currentStatus = calculateCycleStatus(
-            periodLogs: periodLogs,
-            settings: settings
-        )
+        if hasActivePeriod, let activePeriodLog = periodLogs.first(where: { $0.endDate == nil }) {
+            // Active period: force menstrual status
+            let cycleDay = Calendar.current.dateComponents(
+                [.day],
+                from: Calendar.current.startOfDay(for: activePeriodLog.startDate),
+                to: Calendar.current.startOfDay(for: Date())
+            ).day.map { $0 + 1 } ?? 1
+
+            let boundaries = getPhaseBoundaries(settings: settings)
+            currentStatus = CycleStatusResult(
+                currentPhase: .menstrual,
+                cycleDay: cycleDay,
+                daysUntilNextPhase: max(0, (boundaries[.follicular]?.start ?? cycleDay) - cycleDay),
+                predictedNextPeriod: Calendar.current.date(byAdding: .day, value: settings.averageCycleLengthDays, to: activePeriodLog.startDate) ?? Date(),
+                phaseStartDate: activePeriodLog.startDate,
+                phaseEndDate: Calendar.current.date(byAdding: .day, value: settings.averagePeriodLengthDays - 1, to: activePeriodLog.startDate) ?? Date()
+            )
+        } else {
+            currentStatus = calculateCycleStatus(
+                periodLogs: periodLogs,
+                settings: settings
+            )
+        }
 
         await loadCalendarData()
     }
