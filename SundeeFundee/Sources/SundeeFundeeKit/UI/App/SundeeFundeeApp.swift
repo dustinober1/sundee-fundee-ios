@@ -72,10 +72,10 @@ public struct MainTabView: View {
                 .accessibilityHint("View app settings")
         }
         .tint(AppTheme.Accent.gold)
-        .safeAreaInset(edge: .bottom) {
+        .overlay(alignment: .bottom) {
             if sharkWeekMonitor.isSharkWeek {
                 SharkWeekBanner()
-                    .padding(.bottom, AppTheme.Spacing.xs)
+                    .padding(.bottom, 54)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
