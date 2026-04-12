@@ -135,4 +135,25 @@ public final class CyclePhaseCache: ObservableObject {
 
         lastRefreshed = Date()
     }
+
+    // MARK: - Optimistic Updates
+
+    /// Optimistically marks the current state as shark week without re-fetching.
+    /// Call immediately after the user starts a period, before the async data
+    /// store has been re-indexed.
+    public func markPeriodStarted() {
+        currentPhase = .menstrual
+        confidence = 1.0
+        isSharkWeek = true
+        // Don't update lastRefreshed — let the next refreshIfNeeded() do a
+        // real fetch to reconcile with the server.
+    }
+
+    /// Optimistically clears shark week status without re-fetching.
+    /// Call immediately after the user ends (or deletes) the active period.
+    public func markPeriodEnded() {
+        isSharkWeek = false
+        // Force the next refreshIfNeeded() to do a full fetch.
+        lastRefreshed = nil
+    }
 }
