@@ -206,16 +206,15 @@ struct CycleSettingsView: View {
     @State private var isLogging: Bool = false
     @State private var isEndingPeriod: Bool = false
     @State private var errorMessage: String?
+    @State private var loadTrigger: Int = 0
 
-    private let dataClient: DataClientProtocol
+    @EnvironmentObject var cyclePhaseCache: CyclePhaseCache
+
+    private let dataClient: DataClientProtocol = DataClientFactory.shared.client
 
     /// Whether there is an active period (started but not ended).
     private var activePeriod: PeriodLogRecord? {
         loggedPeriods.first(where: { $0.isActive })
-    }
-
-    init(dataClient: DataClientProtocol = DataClientFactory.shared.client) {
-        self.dataClient = dataClient
     }
 
     var body: some View {
@@ -400,8 +399,11 @@ struct CycleSettingsView: View {
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
         #endif
-        .task {
+        .task(id: loadTrigger) {
             await loadData()
+        }
+        .onAppear {
+            loadTrigger += 1
         }
         .alert("Error", isPresented: Binding(
             get: { errorMessage != nil },
@@ -468,6 +470,7 @@ struct CycleSettingsView: View {
             )
             try await dataClient.save(settingsRecord, recordType: "CycleSettings")
 
+            cyclePhaseCache.markPeriodStarted()
             NotificationCenter.default.post(name: .cycleDataUpdated, object: nil)
             periodStartDate = Date()
         } catch {
@@ -486,6 +489,7 @@ struct CycleSettingsView: View {
             if let idx = loggedPeriods.firstIndex(where: { $0.id == active.id }) {
                 loggedPeriods[idx] = updated
             }
+            cyclePhaseCache.markPeriodEnded()
             NotificationCenter.default.post(name: .cycleDataUpdated, object: nil)
         } catch {
             errorMessage = "Failed to end period: \(error.localizedDescription)"
@@ -519,6 +523,9 @@ struct CycleSettingsView: View {
 
     private func deletePeriods(ids: [String]) async {
         loggedPeriods.removeAll { ids.contains($0.id) }
+        if loggedPeriods.first(where: { $0.isActive }) == nil {
+            cyclePhaseCache.markPeriodEnded()
+        }
         for id in ids {
             do {
                 try await dataClient.delete(recordType: "PeriodLogRecord", id: id)
