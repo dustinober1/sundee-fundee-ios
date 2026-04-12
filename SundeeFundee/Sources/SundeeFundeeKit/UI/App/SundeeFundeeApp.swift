@@ -87,7 +87,11 @@ public struct MainTabView: View {
             sharkWeekMonitor.sync(with: cyclePhaseCache)
         }
         .onReceive(NotificationCenter.default.publisher(for: .cycleDataUpdated)) { _ in
+            // Optimistic state is already set by the caller (e.g. CycleSettingsView).
+            // .onChange(of: cyclePhaseCache.isSharkWeek) propagates to sharkWeekMonitor.
+            // Delay the server-side refresh so CloudKit has time to index.
             Task {
+                try? await Task.sleep(for: .seconds(2))
                 await cyclePhaseCache.refresh()
                 sharkWeekMonitor.sync(with: cyclePhaseCache)
             }
