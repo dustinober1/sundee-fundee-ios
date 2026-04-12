@@ -103,11 +103,13 @@ struct ProgramRow: View {
                     .foregroundColor(AppTheme.Text.secondary)
 
                 if program.isEnrolled {
-                    Label("Enrolled", systemImage: "checkmark.circle.fill")
-                        .font(AppTheme.Typography.labelMedium)
-                        .foregroundColor(AppTheme.Accent.gold)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, AppTheme.Spacing.sm)
+                    NavigationLink(destination: ProgramDetailView(program: program)) {
+                        Label("View Program", systemImage: "play.circle.fill")
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, AppTheme.Spacing.sm)
+                    }
+                    .artDecoButton(style: .primary)
+                    .accessibilityHint("Open the program and start a session")
                 } else {
                     Button {
                         onEnroll()
@@ -142,6 +144,303 @@ struct ProgramListItem: Identifiable {
     let sessionsPerWeek: Int
     let difficulty: String
     let isEnrolled: Bool
+    let template: ProgramTemplate?
+}
+
+// MARK: - ProgramDetailView
+
+@available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
+struct ProgramDetailView: View {
+    let program: ProgramListItem
+    @StateObject private var viewModel: ProgramDetailViewModel
+    @State private var activeWorkoutId: String?
+
+    init(program: ProgramListItem) {
+        self.program = program
+        _viewModel = StateObject(wrappedValue: ProgramDetailViewModel(program: program))
+    }
+
+    var body: some View {
+        ScrollView {
+            VStack(spacing: AppTheme.Spacing.lg) {
+                programHeaderCard
+
+                if let generated = viewModel.generatedProgram {
+                    ForEach(generated.weeks, id: \.week) { week in
+                        weekSection(week, phases: generated.phases)
+                    }
+                } else {
+                    ProgressView("Loading sessions...")
+                        .padding(AppTheme.Spacing.xxl)
+                }
+            }
+            .padding(AppTheme.Spacing.lg)
+        }
+        .artDecoBackground()
+        .navigationTitle(program.name)
+        #if os(iOS)
+        .navigationBarTitleDisplayMode(.large)
+        #endif
+        .navigationDestination(item: $activeWorkoutId) { workoutId in
+            WorkoutDetailView(workoutId: workoutId)
+        }
+        .onAppear {
+            viewModel.generateSessions()
+        }
+        .alert("Error", isPresented: Binding(
+            get: { viewModel.errorMessage != nil },
+            set: { if !$0 { viewModel.errorMessage = nil } }
+        )) {
+            Button("OK") { viewModel.errorMessage = nil }
+        } message: {
+            Text(viewModel.errorMessage ?? "")
+        }
+    }
+
+    // MARK: - Program Header
+
+    private var programHeaderCard: some View {
+        ArtDecoCard {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
+                HStack(spacing: AppTheme.Spacing.lg) {
+                    statPill(value: "\(program.durationWeeks)", label: "Weeks")
+                    statPill(value: "\(program.sessionsPerWeek)", label: "Sessions/wk")
+                    statPill(value: program.difficulty.capitalized, label: "Level")
+                }
+
+                Text(program.description)
+                    .font(AppTheme.Typography.bodyMedium)
+                    .foregroundColor(AppTheme.Text.secondary)
+            }
+        }
+    }
+
+    private func statPill(value: String, label: String) -> some View {
+        VStack(spacing: AppTheme.Spacing.xs) {
+            Text(value)
+                .font(AppTheme.Typography.monoLarge)
+                .foregroundColor(AppTheme.Text.primary)
+            Text(label)
+                .font(AppTheme.Typography.labelSmall)
+                .foregroundColor(AppTheme.Text.secondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, AppTheme.Spacing.sm)
+        .background(AppTheme.Background.cream.opacity(0.5))
+        .cornerRadius(AppTheme.CornerRadius.small)
+    }
+
+    // MARK: - Week Section
+
+    private func weekSection(_ week: GeneratedProgramWeek, phases: [GeneratedProgramPhase]) -> some View {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
+            weekHeader(week, phases: phases)
+
+            ForEach(week.sessions, id: \.sessionId) { session in
+                sessionCard(session, week: week.week)
+            }
+        }
+    }
+
+    private func weekHeader(_ week: GeneratedProgramWeek, phases: [GeneratedProgramPhase]) -> some View {
+        HStack(spacing: AppTheme.Spacing.sm) {
+            Text("Week \(week.week)")
+                .font(AppTheme.Typography.headlineMedium)
+                .foregroundColor(AppTheme.Text.primary)
+
+            if let phaseId = week.phaseId,
+               let phase = phases.first(where: { $0.id == phaseId }) {
+                Text("· \(phase.name)")
+                    .font(AppTheme.Typography.bodySmall)
+                    .foregroundColor(AppTheme.Accent.gold)
+            }
+
+            Spacer()
+        }
+        .padding(.top, AppTheme.Spacing.sm)
+    }
+
+    // MARK: - Session Card
+
+    private func sessionCard(_ session: GeneratedProgramSession, week: Int) -> some View {
+        ArtDecoCard {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
+                HStack {
+                    VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                        Text(session.sessionName)
+                            .font(AppTheme.Typography.headlineSmall)
+                            .foregroundColor(AppTheme.Text.primary)
+
+                        Text(session.focus.prefix(1).uppercased() + session.focus.dropFirst())
+                            .font(AppTheme.Typography.labelMedium)
+                            .foregroundColor(AppTheme.Accent.gold)
+                    }
+
+                    Spacer()
+
+                    Label("\(session.exercises.count) exercises", systemImage: "list.bullet")
+                        .font(AppTheme.Typography.labelSmall)
+                        .foregroundColor(AppTheme.Text.secondary)
+                }
+
+                Divider()
+                    .background(AppTheme.Accent.gold.opacity(0.2))
+
+                VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                    ForEach(session.exercises.prefix(4), id: \.exercise) { ex in
+                        exercisePreviewRow(ex)
+                    }
+                    if session.exercises.count > 4 {
+                        Text("+ \(session.exercises.count - 4) more")
+                            .font(AppTheme.Typography.bodySmall)
+                            .foregroundColor(AppTheme.Accent.gold)
+                    }
+                }
+
+                Button {
+                    Task {
+                        let id = await viewModel.startSession(session, week: week, programName: program.name)
+                        if let id {
+                            activeWorkoutId = id
+                        }
+                    }
+                } label: {
+                    if viewModel.startingSessionId == session.sessionId {
+                        ProgressView()
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, AppTheme.Spacing.sm)
+                    } else {
+                        Label("Start Session", systemImage: "play.fill")
+                            .frame(maxWidth: .infinity)
+                    }
+                }
+                .artDecoButton(style: .accent)
+                .disabled(viewModel.startingSessionId != nil)
+                .accessibilityHint("Create a workout from this session and open it")
+            }
+        }
+    }
+
+    private func exercisePreviewRow(_ ex: GeneratedProgramExercise) -> some View {
+        HStack(spacing: AppTheme.Spacing.sm) {
+            Circle()
+                .fill(AppTheme.Accent.gold.opacity(0.4))
+                .frame(width: 4, height: 4)
+                .accessibilityHidden(true)
+
+            Text(ex.exercise)
+                .font(AppTheme.Typography.bodySmall)
+                .foregroundColor(AppTheme.Text.primary)
+
+            Spacer()
+
+            Text("\(ex.sets.description) × \(ex.reps.description)")
+                .font(AppTheme.Typography.monoSmall)
+                .foregroundColor(AppTheme.Text.secondary)
+        }
+    }
+}
+
+// MARK: - ProgramDetailViewModel
+
+@available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
+@MainActor
+class ProgramDetailViewModel: ObservableObject {
+    @Published var generatedProgram: GeneratedProgram?
+    @Published var errorMessage: String?
+    @Published var startingSessionId: String?
+
+    private let program: ProgramListItem
+    private let dataClient: DataClientProtocol
+
+    init(
+        program: ProgramListItem,
+        dataClient: DataClientProtocol = DataClientFactory.shared.client
+    ) {
+        self.program = program
+        self.dataClient = dataClient
+    }
+
+    func generateSessions() {
+        guard let template = program.template else {
+            // Fallback: build a minimal program structure from metadata without sessions
+            generatedProgram = GeneratedProgram(
+                id: program.id,
+                name: program.name,
+                category: program.category,
+                description: program.description,
+                durationWeeks: program.durationWeeks,
+                sessionsPerWeek: program.sessionsPerWeek,
+                difficulty: program.difficulty,
+                phases: [],
+                weeks: []
+            )
+            return
+        }
+        generatedProgram = generateProgram(
+            template: template,
+            name: program.name,
+            durationWeeks: program.durationWeeks,
+            sessionsPerWeek: program.sessionsPerWeek
+        )
+    }
+
+    func startSession(_ session: GeneratedProgramSession, week: Int, programName: String) async -> String? {
+        startingSessionId = session.sessionId
+        defer { startingSessionId = nil }
+
+        let workout = Workout(
+            date: Date(),
+            name: "\(programName) — \(session.sessionName)",
+            exercises: session.exercises.map { ex in
+                let setsCount: Int
+                if case .fixed(let n) = ex.sets { setsCount = n } else { setsCount = 3 }
+
+                let repCount: Int
+                let setType: ExerciseType
+                switch ex.reps {
+                case .fixed(let n):
+                    repCount = n
+                    setType = .fixed
+                case .amrap:
+                    repCount = 0
+                    setType = .amrap
+                case .range(let lo, let hi):
+                    repCount = lo
+                    setType = .range(min: lo, max: hi)
+                case .text(let t):
+                    repCount = 0
+                    setType = .text(t)
+                }
+
+                let targetSets = (0..<setsCount).map { _ in
+                    ExerciseSet(
+                        reps: repCount,
+                        prescribedWeight: 0,
+                        prescribedPercentage: ex.percent1RM,
+                        type: setType
+                    )
+                }
+
+                return Exercise(
+                    id: UUID().uuidString,
+                    name: ex.exercise,
+                    category: ex.bodyweightOnly ? .accessory : (isWeightliftingExercise(ex.exercise) ? .compound : .accessory),
+                    bodyweight: ex.bodyweightOnly ? 1.0 : 0.0,
+                    targetSets: targetSets,
+                    restMinutes: ex.restMinutes
+                )
+            }
+        )
+
+        do {
+            try await dataClient.save(workout, recordType: "Workout")
+            return workout.id
+        } catch {
+            errorMessage = "Failed to start session: \(error.localizedDescription)"
+            return nil
+        }
+    }
 }
 
 // MARK: - ProgramsListViewModel
@@ -157,6 +456,19 @@ class ProgramsListViewModel: ObservableObject {
 
     private let dataClient: DataClientProtocol
     private let contentClient: ContentClientProtocol
+
+    // Maps known program display names to their template type so the detail view
+    // can regenerate sessions without storing the full program in CloudKit.
+    private static let nameToTemplate: [String: ProgramTemplate] = [
+        "Strength Basics": .strength,
+        "Hypertrophy Phase": .hypertrophy,
+        "Full Body Split": .fullBody,
+        "Full Body": .fullBody,
+        "Linear Progression": .linear,
+        "Daily Undulating Periodization": .dup,
+        "Daily Undulating": .dup,
+        "Block Periodization": .block,
+    ]
 
     init(
         dataClient: DataClientProtocol = DataClientFactory.shared.client,
@@ -190,7 +502,8 @@ class ProgramsListViewModel: ObservableObject {
                     durationWeeks: prog.durationWeeks,
                     sessionsPerWeek: prog.sessionsPerWeek,
                     difficulty: prog.difficulty,
-                    isEnrolled: enrolledIds.contains(prog.id)
+                    isEnrolled: enrolledIds.contains(prog.id),
+                    template: Self.nameToTemplate[prog.name]
                 )
             }
         } catch {
@@ -204,7 +517,8 @@ class ProgramsListViewModel: ObservableObject {
                     durationWeeks: program.durationWeeks,
                     sessionsPerWeek: program.sessionsPerWeek,
                     difficulty: program.difficulty,
-                    isEnrolled: enrolledIds.contains(program.id)
+                    isEnrolled: enrolledIds.contains(program.id),
+                    template: template
                 )
             }
         }
@@ -237,7 +551,8 @@ class ProgramsListViewModel: ObservableObject {
                     durationWeeks: p.durationWeeks,
                     sessionsPerWeek: p.sessionsPerWeek,
                     difficulty: p.difficulty,
-                    isEnrolled: true
+                    isEnrolled: true,
+                    template: p.template
                 )
             }
         } catch {
