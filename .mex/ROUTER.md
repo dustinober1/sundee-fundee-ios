@@ -36,6 +36,7 @@ Then read this file fully before doing anything else in this session.
 - Active workout session tracking with Live Activity widget
 - ContentClientProtocol with BundledContentProvider (all content bundled; remote delivery deferred to v2)
 - Art Deco themed UI (cream/navy/orange) across all screens
+- Program detail view: enrolled programs show "View Program" button → ProgramDetailView with week/session list and "Start Session" per session (creates Workout, navigates to WorkoutDetailView)
 
 **Not yet built:**
 - Email notification system
