@@ -19,6 +19,12 @@ public struct WorkoutDetailView: View {
         _viewModel = StateObject(wrappedValue: WorkoutDetailViewModel(workoutId: workoutId))
     }
 
+    /// Initialise with a pre-loaded workout (e.g. one just created) to skip
+    /// the CloudKit fetch entirely and avoid index-lag "not found" errors.
+    public init(workout: Workout) {
+        _viewModel = StateObject(wrappedValue: WorkoutDetailViewModel(workout: workout))
+    }
+
     public var body: some View {
         Group {
             if viewModel.isLoading && viewModel.workout == nil {
@@ -388,7 +394,26 @@ class WorkoutDetailViewModel: ObservableObject {
         self.dataClient = dataClient
     }
 
+    /// Initialise with a pre-loaded workout to skip the CloudKit fetch.
+    /// Used when navigating from a just-created workout (e.g. program session start)
+    /// so CloudKit index lag can't produce a "not found" result.
+    init(
+        workout: Workout,
+        dataClient: DataClientProtocol = DataClientFactory.shared.client
+    ) {
+        self.workoutId = workout.id
+        self.workout = workout
+        self.dataClient = dataClient
+    }
+
     func loadWorkout() async {
+        // Skip fetch if the workout was injected directly (already have it).
+        guard workout == nil else {
+            if let workout, workout.isComplete {
+                await detectPersonalRecords()
+            }
+            return
+        }
         isLoading = true
         do {
             let workouts = try await dataClient.fetchAll(

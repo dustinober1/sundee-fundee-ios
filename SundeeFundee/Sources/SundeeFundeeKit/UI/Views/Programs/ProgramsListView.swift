@@ -153,7 +153,7 @@ struct ProgramListItem: Identifiable {
 struct ProgramDetailView: View {
     let program: ProgramListItem
     @StateObject private var viewModel: ProgramDetailViewModel
-    @State private var activeWorkoutId: String?
+    @State private var activeWorkout: Workout?
 
     init(program: ProgramListItem) {
         self.program = program
@@ -181,8 +181,13 @@ struct ProgramDetailView: View {
         #if os(iOS)
         .navigationBarTitleDisplayMode(.large)
         #endif
-        .navigationDestination(item: $activeWorkoutId) { workoutId in
-            WorkoutDetailView(workoutId: workoutId)
+        .navigationDestination(isPresented: Binding(
+            get: { activeWorkout != nil },
+            set: { if !$0 { activeWorkout = nil } }
+        )) {
+            if let workout = activeWorkout {
+                WorkoutDetailView(workout: workout)
+            }
         }
         .onAppear {
             viewModel.generateSessions()
@@ -299,9 +304,9 @@ struct ProgramDetailView: View {
 
                 Button {
                     Task {
-                        let id = await viewModel.startSession(session, week: week, programName: program.name)
-                        if let id {
-                            activeWorkoutId = id
+                        let workout = await viewModel.startSession(session, week: week, programName: program.name)
+                        if let workout {
+                            activeWorkout = workout
                         }
                     }
                 } label: {
@@ -385,7 +390,7 @@ class ProgramDetailViewModel: ObservableObject {
         )
     }
 
-    func startSession(_ session: GeneratedProgramSession, week: Int, programName: String) async -> String? {
+    func startSession(_ session: GeneratedProgramSession, week: Int, programName: String) async -> Workout? {
         startingSessionId = session.sessionId
         defer { startingSessionId = nil }
 
@@ -435,7 +440,7 @@ class ProgramDetailViewModel: ObservableObject {
 
         do {
             try await dataClient.save(workout, recordType: "Workout")
-            return workout.id
+            return workout
         } catch {
             errorMessage = "Failed to start session: \(error.localizedDescription)"
             return nil
