@@ -10,10 +10,16 @@ public struct WorkoutDetailView: View {
     @StateObject private var viewModel: WorkoutDetailViewModel
     @Environment(\.dismiss) private var dismiss
 
+    @State private var activeWorkoutSession: ActiveWorkoutSessionViewModel?
+
     #if os(iOS)
     @State private var shareImage: UIImage?
     @State private var showingShareSheet = false
     #endif
+
+    @State private var editingSetKey: String?
+    @State private var editRepsInput: String = ""
+    @State private var editWeightInput: String = ""
 
     public init(workoutId: String) {
         _viewModel = StateObject(wrappedValue: WorkoutDetailViewModel(workoutId: workoutId))
@@ -45,15 +51,27 @@ public struct WorkoutDetailView: View {
             if let workout = viewModel.workout {
                 if workout.isComplete {
                     ToolbarItem(placement: .primaryAction) {
-                        #if os(iOS)
-                        Button {
-                            renderShareCard(workout: workout)
-                        } label: {
-                            Image(systemName: "square.and.arrow.up")
+                        HStack(spacing: AppTheme.Spacing.sm) {
+                            Button {
+                                Task {
+                                    if let session = await viewModel.redoWorkout() {
+                                        activeWorkoutSession = session
+                                    }
+                                }
+                            } label: {
+                                Label("Redo", systemImage: "arrow.counterclockwise")
+                            }
+                            .accessibilityLabel("Redo this workout")
+
+                            #if os(iOS)
+                            Button {
+                                renderShareCard(workout: workout)
+                            } label: {
+                                Image(systemName: "square.and.arrow.up")
+                            }
+                            .accessibilityLabel("Share workout")
+                            #endif
                         }
-                        .artDecoButton(style: .secondary)
-                        .accessibilityLabel("Share workout")
-                        #endif
                     }
                 } else {
                     ToolbarItem(placement: .primaryAction) {
@@ -79,6 +97,12 @@ public struct WorkoutDetailView: View {
                 .presentationDetents([.medium])
                 .padding()
             }
+        }
+        .fullScreenCover(item: $activeWorkoutSession) { session in
+            ActiveWorkoutView(viewModel: session)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .workoutCompleted)) { _ in
+            activeWorkoutSession = nil
         }
         #endif
         .task {
@@ -252,48 +276,121 @@ public struct WorkoutDetailView: View {
     private func setRow(_ set: ExerciseSet, setNumber: Int, exerciseIndex: Int, setIndex: Int) -> some View {
         let exercises = viewModel.workout?.exercises ?? []
         let isBodyweight = exerciseIndex < exercises.count ? exercises[exerciseIndex].bodyweight > 0 : false
-        return HStack {
-            Text("\(setNumber)")
-                .font(AppTheme.Typography.monoMedium)
-                .foregroundColor(AppTheme.Text.secondary)
-                .frame(width: 30, alignment: .leading)
+        let setKey = "\(exerciseIndex)-\(setIndex)"
+        let isEditing = editingSetKey == setKey
 
-            Text(repDisplay(set))
-                .font(AppTheme.Typography.monoMedium)
-                .foregroundColor(AppTheme.Text.primary)
-                .frame(width: 50, alignment: .center)
-
-            Text(weightDisplay(set.prescribedWeight, isBodyweight: isBodyweight, percentage: set.prescribedPercentage))
-                .font(AppTheme.Typography.monoMedium)
-                .foregroundColor(AppTheme.Text.primary)
-                .frame(maxWidth: .infinity, alignment: .center)
-
-            if set.isComplete {
-                Text(actualDisplay(set, isBodyweight: isBodyweight))
+        return VStack(spacing: 0) {
+            HStack {
+                Text("\(setNumber)")
                     .font(AppTheme.Typography.monoMedium)
-                    .foregroundColor(AppTheme.Accent.gold)
-                    .frame(maxWidth: .infinity, alignment: .center)
-            } else {
-                Text("--")
-                    .font(AppTheme.Typography.monoMedium)
-                    .foregroundColor(AppTheme.Text.secondary.opacity(0.5))
-                    .frame(maxWidth: .infinity, alignment: .center)
-            }
+                    .foregroundColor(AppTheme.Text.secondary)
+                    .frame(width: 30, alignment: .leading)
 
-            Button {
-                Task {
-                    await viewModel.toggleSetComplete(exerciseIndex: exerciseIndex, setIndex: setIndex)
+                Text(repDisplay(set))
+                    .font(AppTheme.Typography.monoMedium)
+                    .foregroundColor(AppTheme.Text.primary)
+                    .frame(width: 50, alignment: .center)
+
+                Text(weightDisplay(set.prescribedWeight, isBodyweight: isBodyweight, percentage: set.prescribedPercentage))
+                    .font(AppTheme.Typography.monoMedium)
+                    .foregroundColor(AppTheme.Text.primary)
+                    .frame(maxWidth: .infinity, alignment: .center)
+
+                if set.isComplete {
+                    Text(actualDisplay(set, isBodyweight: isBodyweight))
+                        .font(AppTheme.Typography.monoMedium)
+                        .foregroundColor(AppTheme.Accent.gold)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .onTapGesture {
+                            editRepsInput = "\(set.actualReps ?? set.reps)"
+                            editWeightInput = "\(Int(set.completedWeight ?? set.prescribedWeight))"
+                            editingSetKey = setKey
+                        }
+                } else {
+                    Text("--")
+                        .font(AppTheme.Typography.monoMedium)
+                        .foregroundColor(AppTheme.Text.secondary.opacity(0.5))
+                        .frame(maxWidth: .infinity, alignment: .center)
                 }
-            } label: {
-                Image(systemName: set.isComplete ? "checkmark.circle.fill" : "circle")
-                    .font(.system(size: 22))
-                    .foregroundColor(set.isComplete ? AppTheme.Accent.gold : AppTheme.Text.secondary.opacity(0.3))
+
+                Button {
+                    Task {
+                        await viewModel.toggleSetComplete(exerciseIndex: exerciseIndex, setIndex: setIndex)
+                    }
+                } label: {
+                    Image(systemName: set.isComplete ? "checkmark.circle.fill" : "circle")
+                        .font(.system(size: 22))
+                        .foregroundColor(set.isComplete ? AppTheme.Accent.gold : AppTheme.Text.secondary.opacity(0.3))
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Set \(setNumber), \(repDisplay(set)) reps at \(weightDisplay(set.prescribedWeight, isBodyweight: isBodyweight, percentage: set.prescribedPercentage)). \(set.isComplete ? "Completed" : "Not completed")")
+                .frame(width: 36)
             }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Set \(setNumber), \(repDisplay(set)) reps at \(weightDisplay(set.prescribedWeight, isBodyweight: isBodyweight, percentage: set.prescribedPercentage)). \(set.isComplete ? "Completed" : "Not completed")")
-            .frame(width: 36)
+
+            // Inline edit row for completed sets
+            if isEditing {
+                HStack(spacing: AppTheme.Spacing.sm) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Reps")
+                            .font(AppTheme.Typography.labelSmall)
+                            .foregroundColor(AppTheme.Text.secondary)
+                        TextField("Reps", text: $editRepsInput)
+                            .font(AppTheme.Typography.monoMedium)
+                            .padding(AppTheme.Spacing.xs)
+                            .background(AppTheme.Background.cream.opacity(0.5))
+                            .cornerRadius(AppTheme.CornerRadius.small)
+                            #if os(iOS)
+                            .keyboardType(.numberPad)
+                            #endif
+                    }
+                    .frame(maxWidth: .infinity)
+
+                    if !isBodyweight {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Weight")
+                                .font(AppTheme.Typography.labelSmall)
+                                .foregroundColor(AppTheme.Text.secondary)
+                            TextField("Weight", text: $editWeightInput)
+                                .font(AppTheme.Typography.monoMedium)
+                                .padding(AppTheme.Spacing.xs)
+                                .background(AppTheme.Background.cream.opacity(0.5))
+                                .cornerRadius(AppTheme.CornerRadius.small)
+                                #if os(iOS)
+                                .keyboardType(.decimalPad)
+                                #endif
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+
+                    Button("Save") {
+                        let newReps = Int(editRepsInput)
+                        let newWeight = Double(editWeightInput)
+                        Task {
+                            await viewModel.updateSet(
+                                exerciseIndex: exerciseIndex,
+                                setIndex: setIndex,
+                                actualReps: newReps,
+                                completedWeight: newWeight
+                            )
+                        }
+                        editingSetKey = nil
+                    }
+                    .font(AppTheme.Typography.labelMedium)
+                    .foregroundColor(AppTheme.Accent.gold)
+
+                    Button("Cancel") {
+                        editingSetKey = nil
+                    }
+                    .font(AppTheme.Typography.labelMedium)
+                    .foregroundColor(AppTheme.Text.secondary)
+                }
+                .padding(.top, AppTheme.Spacing.xs)
+                .padding(.leading, 30)
+                .transition(.opacity.combined(with: .move(edge: .top)))
+            }
         }
         .padding(.vertical, AppTheme.Spacing.xs)
+        .animation(.easeInOut(duration: 0.2), value: editingSetKey)
     }
 
     // MARK: - Helpers
@@ -484,6 +581,67 @@ class WorkoutDetailViewModel: ObservableObject {
         } catch {
             errorMessage = "Failed to complete workout: \(error.localizedDescription)"
         }
+    }
+
+    // MARK: - Edit Set
+
+    func updateSet(exerciseIndex: Int, setIndex: Int, actualReps: Int?, completedWeight: Double?) async {
+        guard var workout = workout else { return }
+        guard exerciseIndex < workout.exercises.count,
+              setIndex < workout.exercises[exerciseIndex].targetSets.count else { return }
+
+        if let reps = actualReps {
+            workout.exercises[exerciseIndex].targetSets[setIndex].actualReps = reps
+        }
+        if let weight = completedWeight {
+            workout.exercises[exerciseIndex].targetSets[setIndex].completedWeight = weight
+        }
+
+        self.workout = workout
+
+        do {
+            try await dataClient.save(workout, recordType: "Workout")
+        } catch {
+            errorMessage = "Failed to save: \(error.localizedDescription)"
+        }
+    }
+
+    // MARK: - Redo Workout
+
+    func redoWorkout() async -> ActiveWorkoutSessionViewModel? {
+        guard let original = workout else { return nil }
+
+        let newWorkout = Workout(
+            date: Date(),
+            name: original.name,
+            exercises: original.exercises.map { exercise in
+                Exercise(
+                    id: UUID().uuidString,
+                    name: exercise.name,
+                    category: exercise.category,
+                    bodyweight: exercise.bodyweight,
+                    targetSets: exercise.targetSets.map { set in
+                        ExerciseSet(
+                            reps: set.reps,
+                            prescribedWeight: set.completedWeight ?? set.prescribedWeight,
+                            prescribedPercentage: set.prescribedPercentage,
+                            type: set.type
+                        )
+                    },
+                    notes: exercise.notes,
+                    restMinutes: exercise.restMinutes
+                )
+            },
+            notes: original.notes
+        )
+
+        do {
+            try await dataClient.save(newWorkout, recordType: "Workout")
+        } catch {
+            // Non-critical — continue to active session
+        }
+
+        return ActiveWorkoutSessionViewModel(workout: newWorkout)
     }
 
     // MARK: - PR Detection

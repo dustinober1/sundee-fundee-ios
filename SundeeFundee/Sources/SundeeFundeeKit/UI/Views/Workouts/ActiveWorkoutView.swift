@@ -14,7 +14,9 @@ public struct ActiveWorkoutView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var showAbandonAlert = false
     @State private var weightInput: String = ""
+    @State private var repsInput: String = ""
     @FocusState private var isWeightFocused: Bool
+    @FocusState private var isRepsFocused: Bool
 
     public init(viewModel: ActiveWorkoutSessionViewModel) {
         self.viewModel = viewModel
@@ -190,6 +192,10 @@ public struct ActiveWorkoutView: View {
                             statBox(value: restText, label: "Rest")
                         }
 
+                        // Reps input (always shown)
+                        repsInputSection(prescribedReps: set.reps)
+                            .padding(.top, AppTheme.Spacing.xs)
+
                         if exercise.bodyweight == 0 {
                             weightInputSection(prescribedWeight: set.prescribedWeight)
                                 .padding(.top, AppTheme.Spacing.xs)
@@ -205,6 +211,32 @@ public struct ActiveWorkoutView: View {
         .onChange(of: viewModel.currentSetIndex) { _, _ in resetWeightInput() }
         .onChange(of: viewModel.currentExerciseIndex) { _, _ in resetWeightInput() }
         .onAppear { resetWeightInput() }
+    }
+
+    private func repsInputSection(prescribedReps: Int) -> some View {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+            Text("Reps")
+                .font(AppTheme.Typography.labelSmall)
+                .foregroundColor(AppTheme.Text.secondary)
+
+            TextField(
+                "\(prescribedReps)",
+                text: $repsInput
+            )
+            .font(AppTheme.Typography.monoMedium)
+            .foregroundColor(AppTheme.Text.primary)
+            .padding(AppTheme.Spacing.sm)
+            .background(AppTheme.Background.cream.opacity(0.5))
+            .cornerRadius(AppTheme.CornerRadius.small)
+            .overlay(
+                RoundedRectangle(cornerRadius: AppTheme.CornerRadius.small)
+                    .stroke(isRepsFocused ? AppTheme.Accent.gold : AppTheme.Text.secondary.opacity(0.3), lineWidth: 1)
+            )
+            .focused($isRepsFocused)
+            #if os(iOS)
+            .keyboardType(.numberPad)
+            #endif
+        }
     }
 
     private func weightInputSection(prescribedWeight: Double) -> some View {
@@ -235,6 +267,7 @@ public struct ActiveWorkoutView: View {
 
     private func resetWeightInput() {
         if let set = viewModel.currentSet {
+            repsInput = "\(set.reps)"
             if set.prescribedWeight > 0 {
                 weightInput = "\(Int(set.prescribedWeight))"
             } else if let completedWeight = viewModel.lastCompletedWeight, completedWeight > 0 {
@@ -244,8 +277,10 @@ public struct ActiveWorkoutView: View {
             }
         } else {
             weightInput = ""
+            repsInput = ""
         }
         isWeightFocused = false
+        isRepsFocused = false
     }
 
     private func statBox(value: String, label: String) -> some View {
@@ -336,10 +371,11 @@ public struct ActiveWorkoutView: View {
     private var completeSetButton: some View {
         Button {
             guard let set = viewModel.currentSet else { return }
+            let enteredReps = Int(repsInput) ?? set.reps
             let enteredWeight = Double(weightInput) ?? set.prescribedWeight
             Task {
                 await viewModel.completeSet(
-                    actualReps: set.reps,
+                    actualReps: enteredReps,
                     completedWeight: enteredWeight
                 )
             }

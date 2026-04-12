@@ -8,6 +8,7 @@ import SwiftUI
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
 public struct WorkoutsListView: View {
     @StateObject private var viewModel = WorkoutsListViewModel()
+    @State private var activeWorkoutSession: ActiveWorkoutSessionViewModel?
 
     public init() {}
 
@@ -54,11 +55,17 @@ public struct WorkoutsListView: View {
                 await viewModel.loadWorkouts()
             }
             .onReceive(NotificationCenter.default.publisher(for: .workoutCompleted)) { _ in
+                activeWorkoutSession = nil
                 Task { await viewModel.loadWorkouts() }
             }
             .sheet(isPresented: $viewModel.showingNewWorkout) {
                 NewWorkoutView()
             }
+            #if os(iOS)
+            .fullScreenCover(item: $activeWorkoutSession) { session in
+                ActiveWorkoutView(viewModel: session)
+            }
+            #endif
             .alert("Error", isPresented: Binding(
                 get: { viewModel.errorMessage != nil },
                 set: { if !$0 { viewModel.errorMessage = nil } }
@@ -106,6 +113,20 @@ public struct WorkoutsListView: View {
                 }
                 .listRowBackground(Color.clear)
                 .listRowSeparator(.hidden)
+                .swipeActions(edge: .leading) {
+                    if workout.isComplete {
+                        Button {
+                            Task {
+                                if let session = await viewModel.redoWorkout(id: workout.id) {
+                                    activeWorkoutSession = session
+                                }
+                            }
+                        } label: {
+                            Label("Redo", systemImage: "arrow.counterclockwise")
+                        }
+                        .tint(AppTheme.Accent.orange)
+                    }
+                }
             }
             .onDelete { indexSet in
                 for index in indexSet {
@@ -682,32 +703,34 @@ class WorkoutsListViewModel: ObservableObject {
         isLoading = true
 
         do {
-            var records = try await dataClient.fetchAll(
-                recordType: "Workout"
-            ) as [Workout]
+            let records: [Workout] = try await dataClient.fetchAll(
+                recordType: "Workout",
+                sortDescriptors: [NSSortDescriptor(key: "date", ascending: false)]
+            )
 
-            // Auto-complete stale workouts older than 24 hours
-            let staleThreshold = Date().addingTimeInterval(-24 * 60 * 60)
-            for i in records.indices {
-                if records[i].completedAt == nil && records[i].date < staleThreshold {
-                    records[i].completedAt = records[i].date
-                    let staleRecord = records[i]
-                    Task { try? await dataClient.save(staleRecord, recordType: "Workout") }
-                }
+            workouts = records.map { workout in
+                WorkoutListItem(
+                    id: workout.id,
+                    name: workout.name,
+                    date: workout.date,
+                    duration: workout.duration > 0 ? workout.duration : nil,
+                    exercises: workout.exercises.map(\.name),
+                    isComplete: workout.isComplete
+                )
             }
 
-            workouts = records
-                .sorted { $0.date > $1.date }
-                .map { workout in
-                    WorkoutListItem(
-                        id: workout.id,
-                        name: workout.name,
-                        date: workout.date,
-                        duration: workout.duration > 0 ? workout.duration : nil,
-                        exercises: workout.exercises.map(\.name),
-                        isComplete: workout.isComplete
-                    )
+            // Auto-complete stale workouts in background (non-blocking)
+            let staleThreshold = Date().addingTimeInterval(-24 * 60 * 60)
+            let staleWorkouts = records.filter { $0.completedAt == nil && $0.date < staleThreshold }
+            if !staleWorkouts.isEmpty {
+                let client = dataClient
+                Task.detached {
+                    for var workout in staleWorkouts {
+                        workout.completedAt = workout.date
+                        try? await client.save(workout, recordType: "Workout")
+                    }
                 }
+            }
         } catch {
             errorMessage = "Failed to load workouts: \(error.localizedDescription)"
         }
@@ -721,6 +744,47 @@ class WorkoutsListViewModel: ObservableObject {
             workouts.removeAll { $0.id == id }
         } catch {
             errorMessage = "Failed to delete workout: \(error.localizedDescription)"
+        }
+    }
+
+    func redoWorkout(id: String) async -> ActiveWorkoutSessionViewModel? {
+        do {
+            let allWorkouts: [Workout] = try await dataClient.fetchAll(recordType: "Workout")
+            guard let original = allWorkouts.first(where: { $0.id == id }) else {
+                errorMessage = "Workout not found"
+                return nil
+            }
+
+            // Create a fresh copy with reset sets
+            let newWorkout = Workout(
+                date: Date(),
+                name: original.name,
+                exercises: original.exercises.map { exercise in
+                    Exercise(
+                        id: UUID().uuidString,
+                        name: exercise.name,
+                        category: exercise.category,
+                        bodyweight: exercise.bodyweight,
+                        targetSets: exercise.targetSets.map { set in
+                            ExerciseSet(
+                                reps: set.reps,
+                                prescribedWeight: set.completedWeight ?? set.prescribedWeight,
+                                prescribedPercentage: set.prescribedPercentage,
+                                type: set.type
+                            )
+                        },
+                        notes: exercise.notes,
+                        restMinutes: exercise.restMinutes
+                    )
+                },
+                notes: original.notes
+            )
+
+            try await dataClient.save(newWorkout, recordType: "Workout")
+            return ActiveWorkoutSessionViewModel(workout: newWorkout)
+        } catch {
+            errorMessage = "Failed to redo workout: \(error.localizedDescription)"
+            return nil
         }
     }
 }
