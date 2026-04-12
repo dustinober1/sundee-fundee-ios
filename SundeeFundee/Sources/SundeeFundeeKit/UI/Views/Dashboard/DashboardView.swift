@@ -488,7 +488,9 @@ class DashboardViewModel: ObservableObject {
     // MARK: - Private Methods
 
     private func loadCyclePhase() async {
-        // Try HealthKit first
+        var periodLogs: [PeriodLog] = []
+
+        // Load HealthKit cycles if available
         do {
             if healthClient.isAvailable {
                 let sixMonthsAgo = Calendar.current.date(byAdding: .month, value: -6, to: Date())
@@ -498,45 +500,46 @@ class DashboardViewModel: ObservableObject {
                     limit: 100
                 )
                 if !cycles.isEmpty {
-                    if let status = CyclePhaseHelper.calculatePhase(from: cycles) {
-                        cyclePhase = status.currentPhase
-                        let periodLogs = CyclePhaseHelper.convertToPeriodLogs(cycles)
-                        cycleConfidence = CyclePhaseHelper.calculateConfidence(
-                            periodLogCount: periodLogs.count,
-                            lastPeriodStart: periodLogs.last?.startDate
-                        )
-                        return
-                    }
+                    periodLogs = CyclePhaseHelper.convertToPeriodLogs(cycles)
                 }
             }
         } catch {
-            // Fall through to manual logs
+            // No HealthKit data
         }
 
-        // Fallback: manual period logs
+        // Always merge manual period logs
         do {
-            let records = try await dataClient.fetchAll(
+            let manualRecords = try await dataClient.fetchAll(
                 recordType: "PeriodLogRecord"
             ) as [PeriodLogRecord]
-            guard !records.isEmpty else { return }
-
-            let periodLogs = records.map { $0.toPeriodLog() }
-            var settings = CycleSettings()
-            if let settingsRecords = try? await dataClient.fetchAll(
-                recordType: "CycleSettings"
-            ) as [CycleSettingsRecord], let first = settingsRecords.first {
-                settings = CycleSettings(averageCycleLengthDays: first.averageCycleLengthDays)
-            }
-
-            if let status = calculateCycleStatus(periodLogs: periodLogs, settings: settings) {
-                cyclePhase = status.currentPhase
-                cycleConfidence = CyclePhaseHelper.calculateConfidence(
-                    periodLogCount: periodLogs.count,
-                    lastPeriodStart: periodLogs.last?.startDate
-                )
+            let manualLogs = manualRecords.map { $0.toPeriodLog() }
+            for log in manualLogs {
+                let isDuplicate = periodLogs.contains { existing in
+                    abs(existing.startDate.timeIntervalSince(log.startDate)) < 86400
+                }
+                if !isDuplicate {
+                    periodLogs.append(log)
+                }
             }
         } catch {
-            // Data unavailable — degrade gracefully
+            // No manual logs
+        }
+
+        guard !periodLogs.isEmpty else { return }
+
+        var settings = CycleSettings()
+        if let settingsRecords = try? await dataClient.fetchAll(
+            recordType: "CycleSettings"
+        ) as [CycleSettingsRecord], let first = settingsRecords.first {
+            settings = CycleSettings(averageCycleLengthDays: first.averageCycleLengthDays)
+        }
+
+        if let status = calculateCycleStatus(periodLogs: periodLogs, settings: settings) {
+            cyclePhase = status.currentPhase
+            cycleConfidence = CyclePhaseHelper.calculateConfidence(
+                periodLogCount: periodLogs.count,
+                lastPeriodStart: periodLogs.sorted(by: { $0.startDate > $1.startDate }).first?.startDate
+            )
         }
     }
 
