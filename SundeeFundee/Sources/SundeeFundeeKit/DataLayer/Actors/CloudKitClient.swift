@@ -119,20 +119,18 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
     ) async throws where T: Encodable & Sendable {
         guard !records.isEmpty else { return }
 
+        var nilKeyMap: [CKRecord.ID: Set<String>] = [:]
         var ckRecords: [CKRecord] = []
         for record in records {
-            let ckRecord = try encodeToCKRecord(record, recordType: recordType)
+            let ckRecord = try encodeToCKRecord(record, recordType: recordType, nilKeyMap: &nilKeyMap)
             ckRecords.append(ckRecord)
         }
 
         do {
             let (savedRecords, _) = try await database.modifyRecords(saving: ckRecords, deleting: [])
-            for (recordID, result) in savedRecords {
-                switch result {
-                case .failure(let error):
+            for (_, result) in savedRecords {
+                if case .failure(let error) = result {
                     throw error
-                default:
-                    break
                 }
             }
         } catch {
@@ -140,14 +138,11 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
                 throw mapCKError(error, recordID: nil)
             }
             let existingRecords = await fetchExistingRecords(ckRecords.map(\.recordID))
-            ckRecords = ckRecords.map { mergeWithExisting($0, existing: existingRecords) }
+            ckRecords = ckRecords.map { mergeWithExisting($0, existing: existingRecords, nilKeys: nilKeyMap) }
             let (savedRecords, _) = try await database.modifyRecords(saving: ckRecords, deleting: [])
             for (recordID, result) in savedRecords {
-                switch result {
-                case .failure(let error):
+                if case .failure(let error) = result {
                     throw mapCKError(error, recordID: recordID)
-                default:
-                    break
                 }
             }
         }
@@ -234,7 +229,7 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
                 throw mapCKError(error, recordID: nil)
             }
             let existingRecords = await fetchExistingRecords(ckRecords.map(\.recordID))
-            ckRecords = ckRecords.map { mergeWithExisting($0, existing: existingRecords) }
+            ckRecords = ckRecords.map { mergeWithExisting($0, existing: existingRecords, nilKeys: [:]) }
             let (savedRecords, _) = try await database.modifyRecords(saving: ckRecords, deleting: [])
             for (recordID, result) in savedRecords {
                 switch result {
@@ -272,13 +267,20 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
     ///
     /// If the record already exists in CloudKit, copies field values from the
     /// new record onto the existing record (preserving the server change tag).
+    /// Also clears any fields that were nil in the source model.
     /// Otherwise returns the new record unchanged for a fresh insert.
-    private func mergeWithExisting(_ newRecord: CKRecord, existing: [CKRecord.ID: CKRecord]) -> CKRecord {
+    private func mergeWithExisting(_ newRecord: CKRecord, existing: [CKRecord.ID: CKRecord], nilKeys: [CKRecord.ID: Set<String>]) -> CKRecord {
         guard let existingRecord = existing[newRecord.recordID] else {
             return newRecord
         }
         for key in newRecord.allKeys() {
             existingRecord[key] = newRecord[key]
+        }
+        // Clear fields that were nil in the new record
+        if let keysToNil = nilKeys[newRecord.recordID] {
+            for key in keysToNil {
+                existingRecord[key] = nil
+            }
         }
         return existingRecord
     }
@@ -351,10 +353,11 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
         return (decodedResults, nextCursor)
     }
 
-    /// Encodes an encodable value to a CKRecord.
+    /// Encodes an encodable value to a CKRecord and tracks which keys were nil.
     private func encodeToCKRecord<T: Encodable>(
         _ value: T,
-        recordType: String
+        recordType: String,
+        nilKeyMap: inout [CKRecord.ID: Set<String>]
     ) throws -> CKRecord {
         let jsonData = try encoder.encode(value)
 
@@ -370,9 +373,17 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
         }
 
         let record = CKRecord(recordType: recordType, recordID: recordID)
+        var keysWithNil = Set<String>()
         for (key, value) in jsonDict {
             guard key != "id" else { continue }
+            if value is NSNull {
+                keysWithNil.insert(key)
+                continue
+            }
             record[key] = convertToCKRecordValue(value) as? (any CKRecordValueProtocol)
+        }
+        if !keysWithNil.isEmpty {
+            nilKeyMap[recordID] = keysWithNil
         }
 
         return record
@@ -380,8 +391,13 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
 
     /// Converts a JSON value to a CKRecord-compatible value.
     private func convertToCKRecordValue(_ value: Any) -> Any? {
+        if value is NSNull { return nil }
         switch value {
         case let stringValue as String:
+            // Check if this is an ISO 8601 date string
+            if let date = ISO8601DateFormatter().date(from: stringValue) {
+                return date
+            }
             return stringValue
         case let intValue as Int:
             return intValue
@@ -389,11 +405,6 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
             return doubleValue
         case let boolValue as Bool:
             return boolValue
-        case let dateValue as String:
-            if let date = ISO8601DateFormatter().date(from: dateValue) {
-                return date
-            }
-            return dateValue
         case let arrayValue as [Any]:
             return arrayValue.compactMap { convertToCKRecordValue($0) }
         case let dictValue as [String: Any]:
@@ -401,8 +412,6 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
                let jsonString = String(data: jsonData, encoding: .utf8) {
                 return jsonString
             }
-            return nil
-        case Optional<Any>.none:
             return nil
         default:
             return nil
