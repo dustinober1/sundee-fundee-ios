@@ -154,6 +154,7 @@ struct ProgramDetailView: View {
     let program: ProgramListItem
     @StateObject private var viewModel: ProgramDetailViewModel
     @State private var activeWorkout: Workout?
+    @State private var resumeWorkoutId: String?
 
     init(program: ProgramListItem) {
         self.program = program
@@ -189,8 +190,22 @@ struct ProgramDetailView: View {
                 WorkoutDetailView(workout: workout)
             }
         }
+        .navigationDestination(isPresented: Binding(
+            get: { resumeWorkoutId != nil },
+            set: { if !$0 { resumeWorkoutId = nil } }
+        )) {
+            if let id = resumeWorkoutId {
+                WorkoutDetailView(workoutId: id)
+            }
+        }
         .onAppear {
             viewModel.generateSessions()
+        }
+        .task {
+            await viewModel.loadSessionProgress()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .workoutCompleted)) { _ in
+            Task { await viewModel.loadSessionProgress() }
         }
         .alert("Error", isPresented: Binding(
             get: { viewModel.errorMessage != nil },
@@ -268,7 +283,10 @@ struct ProgramDetailView: View {
     // MARK: - Session Card
 
     private func sessionCard(_ session: GeneratedProgramSession, week: Int) -> some View {
-        ArtDecoCard {
+        let isCompleted = viewModel.completedSessionIds.contains(session.sessionId)
+        let resumeId = viewModel.resumeWorkoutId(for: session.sessionId)
+
+        return ArtDecoCard {
             VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
                 HStack {
                     VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
@@ -283,9 +301,21 @@ struct ProgramDetailView: View {
 
                     Spacer()
 
-                    Label("\(session.exercises.count) exercises", systemImage: "list.bullet")
-                        .font(AppTheme.Typography.labelSmall)
-                        .foregroundColor(AppTheme.Text.secondary)
+                    VStack(alignment: .trailing, spacing: AppTheme.Spacing.xs) {
+                        Label("\(session.exercises.count) exercises", systemImage: "list.bullet")
+                            .font(AppTheme.Typography.labelSmall)
+                            .foregroundColor(AppTheme.Text.secondary)
+
+                        if isCompleted {
+                            Label("Completed", systemImage: "checkmark.circle.fill")
+                                .font(AppTheme.Typography.labelSmall)
+                                .foregroundColor(AppTheme.Accent.gold)
+                        } else if resumeId != nil {
+                            Label("In Progress", systemImage: "circle.dashed")
+                                .font(AppTheme.Typography.labelSmall)
+                                .foregroundColor(AppTheme.Accent.orange)
+                        }
+                    }
                 }
 
                 Divider()
@@ -302,6 +332,17 @@ struct ProgramDetailView: View {
                     }
                 }
 
+                if let workoutId = resumeId {
+                    Button {
+                        resumeWorkoutId = workoutId
+                    } label: {
+                        Label("Resume Session", systemImage: "arrow.forward.circle.fill")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .artDecoButton(style: .secondary)
+                    .accessibilityHint("Return to your in-progress workout")
+                }
+
                 Button {
                     Task {
                         let workout = await viewModel.startSession(session, week: week, programName: program.name)
@@ -315,13 +356,16 @@ struct ProgramDetailView: View {
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, AppTheme.Spacing.sm)
                     } else {
-                        Label("Start Session", systemImage: "play.fill")
+                        Label(isCompleted ? "Start Again" : "Start Session",
+                              systemImage: isCompleted ? "arrow.clockwise" : "play.fill")
                             .frame(maxWidth: .infinity)
                     }
                 }
-                .artDecoButton(style: .accent)
+                .artDecoButton(style: isCompleted ? .secondary : .accent)
                 .disabled(viewModel.startingSessionId != nil)
-                .accessibilityHint("Create a workout from this session and open it")
+                .accessibilityHint(isCompleted
+                    ? "Start this session again from scratch"
+                    : "Create a workout from this session and open it")
             }
         }
     }
@@ -354,6 +398,9 @@ class ProgramDetailViewModel: ObservableObject {
     @Published var generatedProgram: GeneratedProgram?
     @Published var errorMessage: String?
     @Published var startingSessionId: String?
+    @Published var completedSessionIds: Set<String> = []
+    @Published var inProgressSessionIds: Set<String> = []
+    private var sessionWorkoutMap: [String: String] = [:]
 
     private let program: ProgramListItem
     private let dataClient: DataClientProtocol
@@ -388,6 +435,41 @@ class ProgramDetailViewModel: ObservableObject {
             durationWeeks: program.durationWeeks,
             sessionsPerWeek: program.sessionsPerWeek
         )
+    }
+
+    func loadSessionProgress() async {
+        do {
+            let allRecords: [ProgramSessionRecord] = try await dataClient.fetchAll(recordType: "ProgramSessionRecord")
+            let programRecords = allRecords.filter { $0.programId == program.id }
+            guard !programRecords.isEmpty else { return }
+
+            let allWorkouts: [Workout] = try await dataClient.fetchAll(recordType: "Workout")
+            let completedWorkoutIds = Set(allWorkouts.filter(\.isComplete).map(\.id))
+
+            var newInProgress: Set<String> = []
+            var newCompleted: Set<String> = []
+            var newWorkoutMap: [String: String] = [:]
+            for record in programRecords {
+                newInProgress.insert(record.sessionId)
+                newWorkoutMap[record.sessionId] = record.workoutId
+                if completedWorkoutIds.contains(record.workoutId) {
+                    newCompleted.insert(record.sessionId)
+                }
+            }
+
+            inProgressSessionIds = newInProgress
+            completedSessionIds = newCompleted
+            sessionWorkoutMap = newWorkoutMap
+        } catch {
+            // Non-critical — progress display is best-effort
+        }
+    }
+
+    func resumeWorkoutId(for sessionId: String) -> String? {
+        let workoutId = sessionWorkoutMap[sessionId]
+        guard let workoutId, inProgressSessionIds.contains(sessionId),
+              !completedSessionIds.contains(sessionId) else { return nil }
+        return workoutId
     }
 
     func startSession(_ session: GeneratedProgramSession, week: Int, programName: String) async -> Workout? {
@@ -440,6 +522,20 @@ class ProgramDetailViewModel: ObservableObject {
 
         do {
             try await dataClient.save(workout, recordType: "Workout")
+
+            // Save session record to track progress through the program.
+            // Non-critical — workout is already saved; session record is for progress display.
+            let sessionRecord = ProgramSessionRecord(
+                id: UUID().uuidString,
+                programId: program.id,
+                sessionId: session.sessionId,
+                workoutId: workout.id,
+                week: week
+            )
+            try? await dataClient.save(sessionRecord, recordType: "ProgramSessionRecord")
+            inProgressSessionIds.insert(session.sessionId)
+            sessionWorkoutMap[session.sessionId] = workout.id
+
             return workout
         } catch {
             errorMessage = "Failed to start session: \(error.localizedDescription)"
@@ -458,6 +554,10 @@ class ProgramsListViewModel: ObservableObject {
     @Published var errorMessage: String?
     /// Tracks which program is currently being enrolled so the row can show a spinner.
     @Published var enrollingProgramId: String? = nil
+
+    /// Persists across CloudKit re-fetches so optimistically-enrolled programs
+    /// stay visible even while CloudKit index lag hasn't caught up yet.
+    private var knownEnrolledIds: Set<String> = []
 
     private let dataClient: DataClientProtocol
     private let contentClient: ContentClientProtocol
@@ -495,6 +595,9 @@ class ProgramsListViewModel: ObservableObject {
         } catch {
             errorMessage = "Failed to load programs: \(error.localizedDescription)"
         }
+        // Merge with locally-known enrolled IDs so CloudKit index lag doesn't
+        // wipe enrollment state on every tab switch.
+        enrolledIds = enrolledIds.union(knownEnrolledIds)
 
         do {
             let contentPrograms = try await contentClient.fetchPrograms()
@@ -542,6 +645,7 @@ class ProgramsListViewModel: ObservableObject {
                 isActive: true
             )
             try await dataClient.save(record, recordType: "EnrolledProgramRecord")
+            knownEnrolledIds.insert(programId)
 
             // Update local state immediately. CloudKit query indexes may not reflect
             // a fresh write instantly (especially under rate limiting), so re-fetching
