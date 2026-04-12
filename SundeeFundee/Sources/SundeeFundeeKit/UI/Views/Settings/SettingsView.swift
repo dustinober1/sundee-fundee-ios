@@ -330,35 +330,37 @@ struct CycleSettingsView: View {
                     Text("You can end it later, or log a past period with start and end dates below.")
                 }
 
-                // Log a past period (with both dates)
-                Section {
-                    DatePicker("Start Date", selection: $periodStartDate, in: ...Date(), displayedComponents: .date)
-                    DatePicker("End Date", selection: $periodEndDate, in: ...Date(), displayedComponents: .date)
+                // Log a past period (with both dates) — only show when there are previous periods
+                if !loggedPeriods.isEmpty {
+                    Section {
+                        DatePicker("Start Date", selection: $periodStartDate, in: ...Date(), displayedComponents: .date)
+                        DatePicker("End Date", selection: $periodEndDate, in: ...Date(), displayedComponents: .date)
 
-                    Button {
-                        Task { await logPastPeriod() }
-                    } label: {
-                        HStack {
-                            Spacer()
-                            if isLogging {
-                                ProgressView()
-                            } else {
-                                HStack(spacing: AppTheme.Spacing.sm) {
-                                    Image(systemName: "plus.circle.fill")
-                                    Text("Log Past Period")
+                        Button {
+                            Task { await logPastPeriod() }
+                        } label: {
+                            HStack {
+                                Spacer()
+                                if isLogging {
+                                    ProgressView()
+                                } else {
+                                    HStack(spacing: AppTheme.Spacing.sm) {
+                                        Image(systemName: "plus.circle.fill")
+                                        Text("Log Past Period")
+                                    }
+                                    .font(AppTheme.Typography.labelLarge)
                                 }
-                                .font(AppTheme.Typography.labelLarge)
+                                Spacer()
                             }
-                            Spacer()
                         }
-                    }
-                    .disabled(isLogging || periodEndDate < periodStartDate)
-                } header: {
-                    Text("Log Past Period")
-                } footer: {
-                    if periodEndDate < periodStartDate {
-                        Text("End date must be on or after start date.")
-                            .foregroundColor(AppTheme.Semantic.error)
+                        .disabled(isLogging || periodEndDate < periodStartDate)
+                    } header: {
+                        Text("Log Past Period")
+                    } footer: {
+                        if periodEndDate < periodStartDate {
+                            Text("End date must be on or after start date.")
+                                .foregroundColor(AppTheme.Semantic.error)
+                        }
                     }
                 }
             }
@@ -560,10 +562,24 @@ enum PrimaryGoal: String, Codable, Sendable {
 // MARK: - UserSettings Model
 
 struct UserSettingsRecord: Codable, Sendable {
+    let id: String
     let cycleTrackingEnabled: Bool
     let weightUnit: String
     let experienceLevel: String
     let primaryGoal: String
+
+    init(
+        cycleTrackingEnabled: Bool,
+        weightUnit: String,
+        experienceLevel: String,
+        primaryGoal: String
+    ) {
+        self.id = "user_settings"
+        self.cycleTrackingEnabled = cycleTrackingEnabled
+        self.weightUnit = weightUnit
+        self.experienceLevel = experienceLevel
+        self.primaryGoal = primaryGoal
+    }
 }
 
 // MARK: - SettingsViewModel
@@ -597,7 +613,7 @@ class SettingsViewModel: ObservableObject {
                 recordType: "UserSettings"
             ) as [UserSettingsRecord]
 
-            if let settings = records.first {
+            if let settings = records.last {
                 cycleTrackingEnabled = settings.cycleTrackingEnabled
                 weightUnit = WeightUnit(rawValue: settings.weightUnit) ?? .lbs
                 experienceLevel = ExperienceLevel(rawValue: settings.experienceLevel) ?? .intermediate
@@ -611,6 +627,7 @@ class SettingsViewModel: ObservableObject {
     }
 
     func saveSettings() async {
+        guard hasLoaded else { return }
         isSaving = true
         let record = UserSettingsRecord(
             cycleTrackingEnabled: cycleTrackingEnabled,
