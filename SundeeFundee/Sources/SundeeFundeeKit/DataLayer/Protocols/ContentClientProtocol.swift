@@ -2,10 +2,9 @@ import Foundation
 
 // MARK: - Content Source
 
-/// Origin of content: bundled with the app or fetched from remote backend
+/// Origin of content — all content is bundled with the app
 public enum ContentSource: String, Codable, Sendable, Equatable {
     case bundled
-    case remote
 }
 
 // MARK: - Content Models
