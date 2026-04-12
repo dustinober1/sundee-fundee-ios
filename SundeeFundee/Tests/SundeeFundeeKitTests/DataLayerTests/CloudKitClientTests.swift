@@ -104,3 +104,78 @@ final class DataErrorTests: XCTestCase {
         XCTAssertTrue(suggestion!.contains("iCloud"))
     }
 }
+
+// MARK: - MockCloudKitClient Upsert Tests
+
+final class MockCloudKitClientUpsertTests: XCTestCase {
+    private var sut: MockCloudKitClient!
+
+    override func setUp() {
+        sut = MockCloudKitClient()
+    }
+
+    override func tearDown() {
+        sut = nil
+    }
+
+    func testSave_NewRecord_InsertsSuccessfully() async throws {
+        let record = EnrolledProgramRecord(id: "prog-1", name: "Test Program", isActive: true)
+        try await sut.save(record, recordType: "EnrolledProgramRecord")
+
+        XCTAssertEqual(sut.recordCount(for: "EnrolledProgramRecord"), 1)
+
+        let fetched: [EnrolledProgramRecord] = try await sut.fetch(
+            recordType: "EnrolledProgramRecord",
+            predicate: NSPredicate(value: true),
+            sortDescriptors: nil
+        )
+        XCTAssertEqual(fetched.count, 1)
+        XCTAssertEqual(fetched.first?.id, "prog-1")
+        XCTAssertEqual(fetched.first?.name, "Test Program")
+        XCTAssertTrue(fetched.first!.isActive)
+    }
+
+    func testSave_ExistingRecord_UpdatesInPlace() async throws {
+        let original = EnrolledProgramRecord(id: "prog-1", name: "Test Program", isActive: true)
+        try await sut.save(original, recordType: "EnrolledProgramRecord")
+
+        let updated = EnrolledProgramRecord(id: "prog-1", name: "Test Program Updated", isActive: false)
+        try await sut.save(updated, recordType: "EnrolledProgramRecord")
+
+        XCTAssertEqual(sut.recordCount(for: "EnrolledProgramRecord"), 1)
+
+        let fetched: [EnrolledProgramRecord] = try await sut.fetch(
+            recordType: "EnrolledProgramRecord",
+            predicate: NSPredicate(value: true),
+            sortDescriptors: nil
+        )
+        XCTAssertEqual(fetched.count, 1)
+        XCTAssertEqual(fetched.first?.name, "Test Program Updated")
+        XCTAssertFalse(fetched.first!.isActive)
+    }
+
+    func testSave_MultipleRecordsSameID_ResultsInSingleRecord() async throws {
+        for i in 0..<3 {
+            let record = EnrolledProgramRecord(id: "prog-1", name: "Attempt \(i)", isActive: true)
+            try await sut.save(record, recordType: "EnrolledProgramRecord")
+        }
+
+        XCTAssertEqual(sut.recordCount(for: "EnrolledProgramRecord"), 1)
+
+        let fetched: [EnrolledProgramRecord] = try await sut.fetch(
+            recordType: "EnrolledProgramRecord",
+            predicate: NSPredicate(value: true),
+            sortDescriptors: nil
+        )
+        XCTAssertEqual(fetched.first?.name, "Attempt 2")
+    }
+
+    func testSave_DifferentRecords_CreatesSeparateEntries() async throws {
+        let record1 = EnrolledProgramRecord(id: "prog-1", name: "Program 1", isActive: true)
+        let record2 = EnrolledProgramRecord(id: "prog-2", name: "Program 2", isActive: true)
+        try await sut.save(record1, recordType: "EnrolledProgramRecord")
+        try await sut.save(record2, recordType: "EnrolledProgramRecord")
+
+        XCTAssertEqual(sut.recordCount(for: "EnrolledProgramRecord"), 2)
+    }
+}

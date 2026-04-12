@@ -48,6 +48,7 @@ Then read this file fully before doing anything else in this session.
 - SourceKit false positives for cross-module types — trust `xcodebuild` results only
 - SwiftUI Toggle and tab bar items not reliably accessible in UI automation tests
 - README subscription tier table is outdated — app is now free with no paywalls
+- ~~Program enrollment fails with CloudKit duplicate record error~~ (fixed: `CloudKitClient.save()` now uses fetch-or-update upsert semantics)
 
 ## Routing Table
 

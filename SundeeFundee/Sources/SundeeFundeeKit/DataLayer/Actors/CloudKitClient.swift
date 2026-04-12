@@ -102,7 +102,12 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
             || description.contains("did not find record type")
     }
 
-    /// Saves records to CloudKit.
+    /// Saves records to CloudKit using upsert semantics (insert-or-update).
+    ///
+    /// Fetches any existing records by ID before saving. If a record already
+    /// exists, its fields are updated on the existing CKRecord (preserving the
+    /// server change tag) so CloudKit treats it as an update rather than a
+    /// duplicate insert.
     public func save<T>(
         _ records: [T],
         recordType: String
@@ -113,6 +118,11 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
         for record in records {
             let ckRecord = try encodeToCKRecord(record, recordType: recordType)
             ckRecords.append(ckRecord)
+        }
+
+        let existingRecords = await fetchExistingRecords(ckRecords.map(\.recordID))
+        ckRecords = ckRecords.map { ckRecord in
+            mergeWithExisting(ckRecord, existing: existingRecords)
         }
 
         let (savedRecords, _) = try await database.modifyRecords(saving: ckRecords, deleting: [])
@@ -192,6 +202,11 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
             ckRecords.append(record)
         }
 
+        let existingRecords = await fetchExistingRecords(ckRecords.map(\.recordID))
+        ckRecords = ckRecords.map { ckRecord in
+            mergeWithExisting(ckRecord, existing: existingRecords)
+        }
+
         let (savedRecords, _) = try await database.modifyRecords(saving: ckRecords, deleting: [])
         for (recordID, result) in savedRecords {
             switch result {
@@ -204,6 +219,40 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
     }
 
     // MARK: - Private Helpers
+
+    /// Fetches existing CKRecords for the given record IDs.
+    ///
+    /// Returns a dictionary mapping record IDs to their existing CKRecords.
+    /// Failures for individual records (e.g., not found) are silently skipped.
+    private func fetchExistingRecords(_ recordIDs: [CKRecord.ID]) async -> [CKRecord.ID: CKRecord] {
+        do {
+            let results = try await database.records(for: recordIDs)
+            var map: [CKRecord.ID: CKRecord] = [:]
+            for (id, result) in results {
+                if case .success(let record) = result {
+                    map[id] = record
+                }
+            }
+            return map
+        } catch {
+            return [:]
+        }
+    }
+
+    /// Merges a new CKRecord with an existing one if present.
+    ///
+    /// If the record already exists in CloudKit, copies field values from the
+    /// new record onto the existing record (preserving the server change tag).
+    /// Otherwise returns the new record unchanged for a fresh insert.
+    private func mergeWithExisting(_ newRecord: CKRecord, existing: [CKRecord.ID: CKRecord]) -> CKRecord {
+        guard let existingRecord = existing[newRecord.recordID] else {
+            return newRecord
+        }
+        for key in newRecord.allKeys() {
+            existingRecord[key] = newRecord[key]
+        }
+        return existingRecord
+    }
 
     /// Performs the actual fetch with pagination support.
     private func fetchWithQuery<T: Decodable & Sendable>(
