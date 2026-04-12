@@ -126,4 +126,115 @@ final class CycleAdaptationPolicyTests: XCTestCase {
         )
         XCTAssertNil(result.percent1RM)
     }
+
+    // MARK: - Exercise Region Classification
+
+    func testClassifyExerciseRegion_LowerBody() {
+        XCTAssertEqual(classifyExerciseRegion("Back Squat"), .lower)
+        XCTAssertEqual(classifyExerciseRegion("Conventional Deadlift (No Straps)"), .lower)
+        XCTAssertEqual(classifyExerciseRegion("Leg Press"), .lower)
+        XCTAssertEqual(classifyExerciseRegion("Hip Thrust"), .lower)
+    }
+
+    func testClassifyExerciseRegion_UpperBody() {
+        XCTAssertEqual(classifyExerciseRegion("Flat Barbell Bench Press"), .upper)
+        XCTAssertEqual(classifyExerciseRegion("Barbell Row"), .upper)
+        XCTAssertEqual(classifyExerciseRegion("Pull-Up"), .upper)
+        XCTAssertEqual(classifyExerciseRegion("Dumbbell Overhead Press"), .upper)
+    }
+
+    func testClassifyExerciseRegion_Core() {
+        XCTAssertEqual(classifyExerciseRegion("Plank Hold"), .core)
+        XCTAssertEqual(classifyExerciseRegion("V-up"), .core)
+    }
+
+    // MARK: - Region-Specific Multipliers
+
+    func testApplyPhaseAdjustment_LowerBody_MenstrualPhase_BiggerReduction() {
+        let lowerResult = applyPhaseAdjustment(
+            sets: .fixed(value: 4),
+            reps: .fixed(value: 8),
+            percent1RM: 0.80,
+            phase: .menstrual,
+            readinessTier: .neutral,
+            confidence: .high,
+            exerciseRegion: .lower
+        )
+        let upperResult = applyPhaseAdjustment(
+            sets: .fixed(value: 4),
+            reps: .fixed(value: 8),
+            percent1RM: 0.80,
+            phase: .menstrual,
+            readinessTier: .neutral,
+            confidence: .high,
+            exerciseRegion: .upper
+        )
+        // Lower body should get a bigger reduction during menstrual phase
+        XCTAssertLessThan(lowerResult.percent1RM!, upperResult.percent1RM!,
+                          "Lower body should have bigger menstrual reduction than upper body")
+    }
+
+    func testApplyPhaseAdjustment_UpperBody_MenstrualPhase_SmallerReduction() {
+        let upperResult = applyPhaseAdjustment(
+            sets: .fixed(value: 4),
+            reps: .fixed(value: 8),
+            percent1RM: 0.80,
+            phase: .menstrual,
+            readinessTier: .neutral,
+            confidence: .high,
+            exerciseRegion: .upper
+        )
+        let defaultResult = applyPhaseAdjustment(
+            sets: .fixed(value: 4),
+            reps: .fixed(value: 8),
+            percent1RM: 0.80,
+            phase: .menstrual,
+            readinessTier: .neutral,
+            confidence: .high
+        )
+        // Upper body should have a smaller reduction than the default
+        XCTAssertGreaterThan(upperResult.percent1RM!, defaultResult.percent1RM!,
+                             "Upper body should have smaller menstrual reduction than default")
+    }
+
+    // MARK: - Phase Transition Blending
+
+    func testBlendedMultiplier_AtPhaseBoundary_Interpolates() {
+        let settings = CycleSettings()
+        let boundaries = getPhaseBoundaries(settings: settings)
+        let follicularEnd = boundaries[.follicular]!.end
+
+        // At the end of follicular (transition to ovulation), should blend
+        let blended = blendedMultiplier(
+            phase: .follicular,
+            cycleDay: follicularEnd,
+            settings: settings
+        )
+        let follicular = resolvePhaseMultipliers(phase: .follicular)
+        let ovulation = resolvePhaseMultipliers(phase: .ovulation)
+
+        // Blended load should be between follicular (1.0) and ovulation (1.12)
+        XCTAssertGreaterThan(blended.load, follicular.load,
+                             "Blended load at transition should be above follicular")
+        XCTAssertLessThan(blended.load, ovulation.load,
+                          "Blended load at transition should be below ovulation")
+    }
+
+    func testBlendedMultiplier_MidPhase_UsesExactMultiplier() {
+        let settings = CycleSettings()
+        let boundaries = getPhaseBoundaries(settings: settings)
+        let follicularMid = (boundaries[.follicular]!.start + boundaries[.follicular]!.end) / 2
+
+        let result = blendedMultiplier(
+            phase: .follicular,
+            cycleDay: follicularMid,
+            settings: settings
+        )
+        let expected = resolvePhaseMultipliers(phase: .follicular)
+
+        // Mid-phase should use exact multipliers, no blending
+        XCTAssertEqual(result.load, expected.load, accuracy: 0.001)
+        XCTAssertEqual(result.sets, expected.sets, accuracy: 0.001)
+        XCTAssertEqual(result.reps, expected.reps, accuracy: 0.001)
+    }
 }
