@@ -29,11 +29,7 @@ public class BenchmarksListViewModel: ObservableObject {
     ) {
         self.dataClient = dataClient
         self.healthClient = healthClient
-        self.contentClient = contentClient ?? RemoteContentClient(
-            baseURL: ContentConfig.baseURL,
-            token: ContentConfig.adminToken,
-            cacheDirectory: ContentConfig.cacheDirectory
-        )
+        self.contentClient = contentClient ?? BundledContentProvider()
     }
 
     // MARK: - Public Methods

@@ -146,11 +146,7 @@ class ProgramsListViewModel: ObservableObject {
         contentClient: ContentClientProtocol? = nil
     ) {
         self.dataClient = dataClient
-        self.contentClient = contentClient ?? RemoteContentClient(
-            baseURL: ContentConfig.baseURL,
-            token: ContentConfig.adminToken,
-            cacheDirectory: ContentConfig.cacheDirectory
-        )
+        self.contentClient = contentClient ?? BundledContentProvider()
     }
 
     func loadPrograms() async {
