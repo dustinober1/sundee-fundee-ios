@@ -154,4 +154,74 @@ final class ScheduleReshufflerTests: XCTestCase {
         )
         XCTAssertFalse(result.droppedSessions.isEmpty, "Should drop the session with no available days")
     }
+
+    // MARK: - Priority-Based Dropping
+
+    func testReshuffle_DropsConditioningBeforeCompound() {
+        // Two missed sessions, only room for one.
+        // Day 7 has a 50-min existing session. Adding one 70-min session = 120 (exactly at limit).
+        // Second 70-min session won't fit (session count=2 is ok, but 50+70+70=190 > 120).
+        // Compound should be placed first, conditioning dropped.
+        let plan = [
+            ScheduleReshuffler.PlannedSession(
+                dayOfWeek: 1, sessionName: "Squats", focus: "Lower",
+                estimatedMinutes: 70, priority: .compound
+            ),
+            ScheduleReshuffler.PlannedSession(
+                dayOfWeek: 2, sessionName: "Cardio", focus: "Conditioning",
+                estimatedMinutes: 70, priority: .conditioning
+            ),
+            makeSession(day: 7, name: "Sunday", minutes: 50),
+        ]
+        let result = ScheduleReshuffler.reshuffle(
+            plan: plan,
+            completedDays: [3, 4, 5, 6],
+            missedDays: [1, 2],
+            currentDay: 7
+        )
+        let droppedNames = result.droppedSessions.map(\.sessionName)
+        let keptNames = result.rescheduledSessions.map(\.sessionName)
+        XCTAssertTrue(droppedNames.contains("Cardio"), "Conditioning should be dropped")
+        XCTAssertTrue(keptNames.contains("Squats"), "Compound session should be kept")
+    }
+
+    func testReshuffle_CompoundSessionPlacedFirst() {
+        // Compound session should get first pick of available slots
+        let plan = [
+            ScheduleReshuffler.PlannedSession(
+                dayOfWeek: 1, sessionName: "Accessory Arms", focus: "Upper",
+                estimatedMinutes: 60, priority: .accessory
+            ),
+            ScheduleReshuffler.PlannedSession(
+                dayOfWeek: 2, sessionName: "Heavy Squat", focus: "Lower",
+                estimatedMinutes: 60, priority: .compound
+            ),
+        ]
+        let result = ScheduleReshuffler.reshuffle(
+            plan: plan,
+            completedDays: [],
+            missedDays: [1, 2],
+            currentDay: 5
+        )
+        // Both should fit (2 sessions, 120 min on one day)
+        XCTAssertTrue(result.droppedSessions.isEmpty, "Both sessions should fit")
+        XCTAssertEqual(result.rescheduledSessions.count, 2)
+    }
+
+    func testReshuffle_AllSamePriority_FallsBackToExistingLogic() {
+        // When all sessions have the same (default) priority, behavior is unchanged
+        let plan = [
+            makeSession(day: 1, name: "A"),
+            makeSession(day: 3, name: "B"),
+            makeSession(day: 5, name: "C"),
+        ]
+        let result = ScheduleReshuffler.reshuffle(
+            plan: plan,
+            completedDays: [1],
+            missedDays: [3],
+            currentDay: 4
+        )
+        let movedB = result.rescheduledSessions.contains { $0.sessionName == "B" }
+        XCTAssertTrue(movedB, "Default priority sessions should still be rescheduled normally")
+    }
 }
