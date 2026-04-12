@@ -37,6 +37,8 @@ Then read this file fully before doing anything else in this session.
 - ContentClientProtocol with BundledContentProvider (all content bundled; remote delivery deferred to v2)
 - Art Deco themed UI (cream/navy/orange) across all screens
 - Program detail view: enrolled programs show "View Program" button → ProgramDetailView with week/session list and "Start Session" per session (creates Workout, navigates to WorkoutDetailView)
+- Program session progress: ProgramSessionRecord links each started session to its Workout; ProgramDetailView shows Completed/In Progress badges, Resume button for in-progress sessions, Start Again for completed ones; refreshes on workoutCompleted notification
+- Enrollment persistence: knownEnrolledIds in ProgramsListViewModel survives CloudKit re-fetches (merges on every loadPrograms call) so enrollment state is never wiped by index lag
 
 **Not yet built:**
 - Email notification system
