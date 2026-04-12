@@ -295,8 +295,10 @@ public struct OnboardingView: View {
                 .accessibilityLabel("Next step")
             } else {
                 Button("Get Started") {
-                    viewModel.completeOnboarding()
-                    onComplete()
+                    Task {
+                        await viewModel.completeOnboarding()
+                        onComplete()
+                    }
                 }
                 .artDecoButton(style: .accent)
                 .accessibilityHint("Complete onboarding and start using the app")
@@ -323,23 +325,22 @@ class OnboardingViewModel: ObservableObject {
         self.dataClient = dataClient
     }
 
-    func completeOnboarding() {
+    func completeOnboarding() async {
         // Mark onboarding as complete in Keychain immediately
         _ = KeychainHelper.save(key: "onboarding_complete", value: "true")
 
-        // Save user settings to CloudKit in the background (non-blocking)
+        // Save user settings to CloudKit before transitioning so Settings view
+        // picks up the onboarding choices (especially cycle tracking)
         let settings = UserSettingsRecord(
             cycleTrackingEnabled: cycleTrackingEnabled,
             weightUnit: weightUnit.rawValue,
             experienceLevel: experienceLevel.rawValue,
             primaryGoal: primaryGoal.rawValue
         )
-        Task {
-            do {
-                try await dataClient.save(settings, recordType: "UserSettings")
-            } catch {
-                // Settings save is best-effort during onboarding; user can re-save in Settings
-            }
+        do {
+            try await dataClient.save(settings, recordType: "UserSettings")
+        } catch {
+            // Settings save is best-effort during onboarding; user can re-save in Settings
         }
     }
 }

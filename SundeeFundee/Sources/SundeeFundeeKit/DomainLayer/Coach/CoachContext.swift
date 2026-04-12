@@ -137,15 +137,18 @@ public actor CoachContextBuilder {
     // MARK: - Private Loaders
 
     private func loadCycleData() async -> (phase: CyclePhase?, confidence: Double?) {
-        // Fast path: active manual period = menstrual phase with full confidence
+        // Single fetch for manual records — used for both fast path and merge
+        let manualRecords: [PeriodLogRecord]
         do {
-            let manualRecords = try await dataClient.fetchAll(
-                recordType: "PeriodLogRecord"
-            ) as [PeriodLogRecord]
-            if manualRecords.contains(where: { $0.isActive }) {
-                return (.menstrual, 1.0)
-            }
-        } catch { /* continue */ }
+            manualRecords = try await dataClient.fetchAll(recordType: "PeriodLogRecord")
+        } catch {
+            manualRecords = []
+        }
+
+        // Fast path: active manual period = menstrual phase with full confidence
+        if manualRecords.contains(where: { $0.isActive }) {
+            return (.menstrual, 1.0)
+        }
 
         var periodLogs: [PeriodLog] = []
 
@@ -162,18 +165,13 @@ public actor CoachContextBuilder {
             } catch { /* no HealthKit */ }
         }
 
-        // Merge manual period logs
-        do {
-            let manualRecords = try await dataClient.fetchAll(
-                recordType: "PeriodLogRecord"
-            ) as [PeriodLogRecord]
-            for log in manualRecords.map({ $0.toPeriodLog() }) {
-                let isDuplicate = periodLogs.contains {
-                    abs($0.startDate.timeIntervalSince(log.startDate)) < 86400
-                }
-                if !isDuplicate { periodLogs.append(log) }
+        // Merge manual period logs (reusing the single fetch from above)
+        for log in manualRecords.map({ $0.toPeriodLog() }) {
+            let isDuplicate = periodLogs.contains {
+                abs($0.startDate.timeIntervalSince(log.startDate)) < 86400
             }
-        } catch { /* no manual logs */ }
+            if !isDuplicate { periodLogs.append(log) }
+        }
 
         guard !periodLogs.isEmpty else { return (nil, nil) }
 

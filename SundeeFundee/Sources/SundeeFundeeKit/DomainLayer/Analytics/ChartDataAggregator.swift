@@ -116,6 +116,14 @@ public struct CyclePerformancePoint: Equatable, Sendable, Identifiable {
 /// with data fetched from the persistence store.
 public enum ChartDataAggregator {
 
+    // MARK: - Cached Formatters
+
+    private static let weekLabelFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "MMM d"
+        return f
+    }()
+
     // MARK: Strength Progression
 
     /// Groups one-rep-max records by exercise, filters by time range, and sorts by date.
@@ -217,11 +225,8 @@ public enum ChartDataAggregator {
             weekMap[weekStart, default: 0] += 1
         }
 
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MMM d"
-
         return weekMap.map { key, count in
-            let label = "Week of \(formatter.string(from: key))"
+            let label = "Week of \(weekLabelFormatter.string(from: key))"
             return FrequencyDataPoint(weekStartDate: key, workoutCount: count, label: label)
         }.sorted { $0.weekStartDate < $1.weekStartDate }
     }

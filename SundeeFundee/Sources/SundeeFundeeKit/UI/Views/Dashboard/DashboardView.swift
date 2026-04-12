@@ -11,6 +11,7 @@ import SwiftUI
 public struct DashboardView: View {
     @StateObject private var viewModel = DashboardViewModel()
     @EnvironmentObject var authViewModel: AuthViewModel
+    @EnvironmentObject var cyclePhaseCache: CyclePhaseCache
     @State private var showingAIWorkout = false
 
     public init() {}
@@ -53,16 +54,19 @@ public struct DashboardView: View {
             .navigationBarTitleDisplayMode(.large)
             #endif
             .task {
-                await viewModel.loadData()
+                await viewModel.loadData(cyclePhaseCache: cyclePhaseCache)
             }
             .refreshable {
-                await viewModel.loadData()
+                await viewModel.loadData(cyclePhaseCache: cyclePhaseCache)
             }
             .onReceive(NotificationCenter.default.publisher(for: .workoutCompleted)) { _ in
-                Task { await viewModel.loadData() }
+                Task { await viewModel.loadData(cyclePhaseCache: cyclePhaseCache) }
             }
             .onReceive(NotificationCenter.default.publisher(for: .cycleDataUpdated)) { _ in
-                Task { await viewModel.loadData() }
+                Task {
+                    await cyclePhaseCache.refresh()
+                    await viewModel.loadData(cyclePhaseCache: cyclePhaseCache)
+                }
             }
             .sheet(isPresented: $showingAIWorkout) {
                 AIWorkoutView()
@@ -104,18 +108,22 @@ public struct DashboardView: View {
         return "Athlete"
     }
 
+    private static let dateFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateStyle = .long
+        f.timeStyle = .none
+        return f
+    }()
+
     private var todayDate: String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .long
-        formatter.timeStyle = .none
-        return formatter.string(from: Date())
+        Self.dateFormatter.string(from: Date())
     }
 
     // MARK: - Cycle Phase Banner
 
     @ViewBuilder
     private var cyclePhaseBanner: some View {
-        if let phase = viewModel.cyclePhase {
+        if let phase = cyclePhaseCache.currentPhase {
             NavigationLink(destination: CycleCalendarView()) {
             ArtDecoCard {
                 HStack(spacing: AppTheme.Spacing.md) {
@@ -137,7 +145,7 @@ public struct DashboardView: View {
                     Spacer()
 
                     // Confidence indicator
-                    if let confidence = viewModel.cycleConfidence {
+                    if let confidence = cyclePhaseCache.confidence {
                         HStack(spacing: AppTheme.Spacing.xs) {
                             Text("\(Int(confidence * 100))%")
                                 .font(AppTheme.Typography.labelMedium)
@@ -421,8 +429,6 @@ class DashboardViewModel: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
 
-    @Published var cyclePhase: CyclePhase?
-    @Published var cycleConfidence: Double?
     @Published var workoutsThisWeek: Int = 0
     @Published var prsThisMonth: Int = 0
     @Published var activeProgramName: String?
@@ -451,7 +457,7 @@ class DashboardViewModel: ObservableObject {
 
     // MARK: - Public Methods
 
-    func loadData() async {
+    func loadData(cyclePhaseCache: CyclePhaseCache) async {
         isLoading = true
         errorMessage = nil
 
@@ -462,14 +468,18 @@ class DashboardViewModel: ObservableObject {
             }
         }
 
-        await loadCyclePhase()
-        await loadStats()
-        await loadProgramInfo()
-        canGenerateAIWorkout = true
-        await loadCoachingInsights()
-        await loadRecentWins()
+        // Tier 1: Load critical data in parallel
+        async let statsTask: Void = loadStats()
+        async let programTask: Void = loadProgramInfo()
+        async let winsTask: Void = loadRecentWins()
+        async let cycleTask: Void = cyclePhaseCache.refreshIfNeeded()
+        _ = await (statsTask, programTask, winsTask, cycleTask)
 
+        canGenerateAIWorkout = true
         isLoading = false
+
+        // Tier 2: Non-critical coaching insights load after UI is visible
+        await loadCoachingInsights()
     }
 
     /// Generates an AI workout based on cycle phase and energy
@@ -487,84 +497,15 @@ class DashboardViewModel: ObservableObject {
 
     // MARK: - Private Methods
 
-    private func loadCyclePhase() async {
-        // Fast path: active (un-ended) manual period = menstrual phase
-        do {
-            let manualRecords = try await dataClient.fetchAll(
-                recordType: "PeriodLogRecord"
-            ) as [PeriodLogRecord]
-            if manualRecords.contains(where: { $0.isActive }) {
-                cyclePhase = .menstrual
-                cycleConfidence = 1.0
-                return
-            }
-        } catch {
-            // Continue with calculation
-        }
-
-        var periodLogs: [PeriodLog] = []
-
-        // Load HealthKit cycles if available
-        do {
-            if healthClient.isAvailable {
-                let sixMonthsAgo = Calendar.current.date(byAdding: .month, value: -6, to: Date())
-                let cycles = try await healthClient.fetchMenstrualCycles(
-                    startDate: sixMonthsAgo,
-                    endDate: nil,
-                    limit: 100
-                )
-                if !cycles.isEmpty {
-                    periodLogs = CyclePhaseHelper.convertToPeriodLogs(cycles)
-                }
-            }
-        } catch {
-            // No HealthKit data
-        }
-
-        // Always merge manual period logs
-        do {
-            let manualRecords = try await dataClient.fetchAll(
-                recordType: "PeriodLogRecord"
-            ) as [PeriodLogRecord]
-            let manualLogs = manualRecords.map { $0.toPeriodLog() }
-            for log in manualLogs {
-                let isDuplicate = periodLogs.contains { existing in
-                    abs(existing.startDate.timeIntervalSince(log.startDate)) < 86400
-                }
-                if !isDuplicate {
-                    periodLogs.append(log)
-                }
-            }
-        } catch {
-            // No manual logs
-        }
-
-        guard !periodLogs.isEmpty else { return }
-
-        var settings = CycleSettings()
-        if let settingsRecords = try? await dataClient.fetchAll(
-            recordType: "CycleSettings"
-        ) as [CycleSettingsRecord], let first = settingsRecords.first {
-            settings = CycleSettings(averageCycleLengthDays: first.averageCycleLengthDays)
-        }
-
-        if let status = calculateCycleStatus(periodLogs: periodLogs, settings: settings) {
-            cyclePhase = status.currentPhase
-            cycleConfidence = CyclePhaseHelper.calculateConfidence(
-                periodLogCount: periodLogs.count,
-                lastPeriodStart: periodLogs.sorted(by: { $0.startDate > $1.startDate }).first?.startDate
-            )
-        }
-    }
-
     private func loadStats() async {
         let calendar = Calendar.current
         let now = Date()
         let weekStart = calendar.dateInterval(of: .weekOfYear, for: now)?.start
+        let monthStart = calendar.date(byAdding: .month, value: -1, to: now) ?? now
 
         if healthClient.isAvailable {
             do {
-                let workouts = try await healthClient.fetchWorkouts(startDate: nil, endDate: nil, limit: 30)
+                let workouts = try await healthClient.fetchWorkouts(startDate: weekStart, endDate: nil, limit: 30)
                 if let weekStart {
                     workoutsThisWeek = workouts.filter { $0.startDate >= weekStart }.count
                 }
@@ -575,9 +516,13 @@ class DashboardViewModel: ObservableObject {
 
         if workoutsThisWeek == 0 {
             do {
-                let workouts = try await dataClient.fetchAll(recordType: "Workout") as [Workout]
+                let recentWorkouts: [Workout] = try await dataClient.fetch(
+                    recordType: "Workout",
+                    predicate: NSPredicate(value: true),
+                    sortDescriptors: [NSSortDescriptor(key: "date", ascending: false)]
+                )
                 if let weekStart {
-                    workoutsThisWeek = workouts.filter { $0.completedAt != nil && $0.completedAt! >= weekStart }.count
+                    workoutsThisWeek = recentWorkouts.filter { $0.completedAt != nil && $0.completedAt! >= weekStart }.count
                 }
             } catch {
                 // CloudKit unavailable — leave at default 0
@@ -585,14 +530,12 @@ class DashboardViewModel: ObservableObject {
         }
 
         do {
-            let prs = try await dataClient.fetchAll(
-                recordType: "OneRepMaxRecord"
-            ) as [OneRepMaxRecord]
-
-            let monthStart = calendar.date(byAdding: .month, value: -1, to: now) ?? now
-            prsThisMonth = prs.filter { pr in
-                pr.date >= monthStart
-            }.count
+            let prs: [OneRepMaxRecord] = try await dataClient.fetch(
+                recordType: "OneRepMaxRecord",
+                predicate: NSPredicate(value: true),
+                sortDescriptors: [NSSortDescriptor(key: "date", ascending: false)]
+            )
+            prsThisMonth = prs.filter { $0.date >= monthStart }.count
         } catch {
             // CloudKit unavailable — leave prsThisMonth at default 0
         }
