@@ -12,7 +12,12 @@ import Foundation
 /// this service packages and explains them.
 public final class DeterministicCoachService: CoachServiceProtocol, @unchecked Sendable {
 
-    public init() {}
+    /// Optional coach profile for user preference-aware substitutions.
+    public var coachProfile: CoachProfile?
+
+    public init(coachProfile: CoachProfile? = nil) {
+        self.coachProfile = coachProfile
+    }
 
     // MARK: - Generate Workout
 
@@ -72,13 +77,28 @@ public final class DeterministicCoachService: CoachServiceProtocol, @unchecked S
         var actions: [String] = []
         var summaryParts: [String] = []
 
-        // Plateaus
+        // Strength plateaus
         if !plateaus.isEmpty {
             let names = plateaus.prefix(3).map(\.exerciseName).joined(separator: ", ")
             summaryParts.append("\(plateaus.count) lift(s) have stalled: \(names).")
             for p in plateaus.prefix(2) {
                 actions.append(p.recommendation)
             }
+        }
+
+        // Volume plateaus
+        if !context.volumePlateaus.isEmpty {
+            let volNames = context.volumePlateaus.prefix(2).map(\.exerciseName).joined(separator: ", ")
+            summaryParts.append("Volume has plateaued on \(volNames).")
+            for p in context.volumePlateaus.prefix(1) {
+                actions.append(p.recommendation)
+            }
+        }
+
+        // Progress slowdown warnings
+        for warning in context.progressWarnings.prefix(2) {
+            summaryParts.append(warning.message)
+            actions.append(warning.message)
         }
 
         // Trends
@@ -118,7 +138,8 @@ public final class DeterministicCoachService: CoachServiceProtocol, @unchecked S
         let subs = SubstitutionRanker.rank(
             substitutesFor: exercise,
             injuries: context.injuries,
-            equipment: equipmentContext
+            equipment: equipmentContext,
+            profile: coachProfile
         )
 
         var explanation: String
