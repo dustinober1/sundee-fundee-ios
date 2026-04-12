@@ -41,12 +41,12 @@ struct ExercisePickerView: View {
                     }
                 }
                 .listStyle(.plain)
+                .searchable(text: $searchText, prompt: "Search exercises")
             }
             .navigationTitle("Add Exercises")
             #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
             #endif
-            .searchable(text: $searchText, prompt: "Search exercises")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }

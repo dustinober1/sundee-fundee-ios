@@ -318,8 +318,9 @@ public struct StatCard: View {
             Text(value)
                 .font(AppTheme.Typography.displaySmall)
                 .foregroundColor(AppTheme.Text.primary)
-                .lineLimit(2)
-                .minimumScaleFactor(0.7)
+                .lineLimit(1)
+                .minimumScaleFactor(0.5)
+                .truncationMode(.tail)
                 .multilineTextAlignment(.center)
 
             Text(label)

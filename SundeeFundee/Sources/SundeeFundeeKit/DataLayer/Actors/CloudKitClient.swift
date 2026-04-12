@@ -354,6 +354,16 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
             return reference.recordID.recordName
         case let asset as CKAsset:
             return asset.fileURL?.absoluteString ?? ""
+        case let stringValue as String:
+            if let data = stringValue.data(using: .utf8),
+               let json = try? JSONSerialization.jsonObject(with: data) {
+                if json is [String: Any] || json is [Any] {
+                    return json
+                }
+            }
+            return stringValue
+        case let arrayValue as [Any]:
+            return arrayValue.map { convertFromCKRecordValue($0) }
         default:
             return value
         }

@@ -70,16 +70,12 @@ public struct MainTabView: View {
                 .accessibilityHint("View app settings")
         }
         .tint(AppTheme.Accent.gold)
-        .onReceive(NotificationCenter.default.publisher(for: .aiWorkoutStarted)) { _ in
-            handleWorkoutStarted()
+        .onReceive(NotificationCenter.default.publisher(for: .workoutCompleted)) { _ in
+            selectedTab = .workouts
         }
     }
 
     @State private var selectedTab: Tab = .dashboard
-
-    private func handleWorkoutStarted() {
-        selectedTab = .workouts
-    }
 }
 
 // MARK: - Tab Enum
@@ -88,6 +84,7 @@ public struct MainTabView: View {
 
 public extension Notification.Name {
     static let aiWorkoutStarted = Notification.Name("aiWorkoutStarted")
+    static let workoutCompleted = Notification.Name("workoutCompleted")
 }
 
 public enum Tab: String {

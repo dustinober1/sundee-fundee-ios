@@ -43,6 +43,10 @@ struct AIWorkoutView: View {
             }
             #endif
         }
+        .onReceive(NotificationCenter.default.publisher(for: .workoutCompleted)) { _ in
+            activeWorkoutSession = nil
+            dismiss()
+        }
     }
 
     // MARK: - Questionnaire
@@ -444,13 +448,16 @@ struct AIWorkoutView: View {
 
                     if let weight = exercise.weightKg, weight > 0 {
                         Label("\(Int(weight)) lb", systemImage: "scalemass")
+                    }
 
-                        // Show percentage of max if available
-                        if let pct = exercise.percentageOfMax {
-                            Text("\(Int(pct * 100))% max")
-                                .font(AppTheme.Typography.bodySmall)
-                                .foregroundColor(AppTheme.Accent.gold)
-                        }
+                    if let pct = exercise.percentageOfMax {
+                        Text("\(Int(pct * 100))% max")
+                            .font(AppTheme.Typography.bodySmall)
+                            .foregroundColor(AppTheme.Accent.gold)
+                    } else if exercise.weightKg == nil || exercise.weightKg == 0, !exercise.bodyweightOnly {
+                        Text("Enter weight")
+                            .font(AppTheme.Typography.bodySmall)
+                            .foregroundColor(AppTheme.Text.secondary)
                     }
 
                     if let rest = exercise.restMinutes {
@@ -836,6 +843,7 @@ class AIWorkoutViewModel: ObservableObject {
                         ExerciseSet(
                             reps: reps,
                             prescribedWeight: ex.weightKg ?? 0,
+                            prescribedPercentage: ex.percentageOfMax,
                             type: .fixed
                         )
                     },

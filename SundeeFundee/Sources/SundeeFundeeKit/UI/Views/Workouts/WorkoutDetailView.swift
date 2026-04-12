@@ -244,7 +244,9 @@ public struct WorkoutDetailView: View {
     // MARK: - Set Row
 
     private func setRow(_ set: ExerciseSet, setNumber: Int, exerciseIndex: Int, setIndex: Int) -> some View {
-        HStack {
+        let exercises = viewModel.workout?.exercises ?? []
+        let isBodyweight = exerciseIndex < exercises.count ? exercises[exerciseIndex].bodyweight > 0 : false
+        return HStack {
             Text("\(setNumber)")
                 .font(AppTheme.Typography.monoMedium)
                 .foregroundColor(AppTheme.Text.secondary)
@@ -255,13 +257,13 @@ public struct WorkoutDetailView: View {
                 .foregroundColor(AppTheme.Text.primary)
                 .frame(width: 50, alignment: .center)
 
-            Text(weightDisplay(set.prescribedWeight))
+            Text(weightDisplay(set.prescribedWeight, isBodyweight: isBodyweight, percentage: set.prescribedPercentage))
                 .font(AppTheme.Typography.monoMedium)
                 .foregroundColor(AppTheme.Text.primary)
                 .frame(maxWidth: .infinity, alignment: .center)
 
             if set.isComplete {
-                Text(actualDisplay(set))
+                Text(actualDisplay(set, isBodyweight: isBodyweight))
                     .font(AppTheme.Typography.monoMedium)
                     .foregroundColor(AppTheme.Accent.gold)
                     .frame(maxWidth: .infinity, alignment: .center)
@@ -282,7 +284,7 @@ public struct WorkoutDetailView: View {
                     .foregroundColor(set.isComplete ? AppTheme.Accent.gold : AppTheme.Text.secondary.opacity(0.3))
             }
             .buttonStyle(.plain)
-            .accessibilityLabel("Set \(setNumber), \(repDisplay(set)) reps at \(weightDisplay(set.prescribedWeight)). \(set.isComplete ? "Completed" : "Not completed")")
+            .accessibilityLabel("Set \(setNumber), \(repDisplay(set)) reps at \(weightDisplay(set.prescribedWeight, isBodyweight: isBodyweight, percentage: set.prescribedPercentage)). \(set.isComplete ? "Completed" : "Not completed")")
             .frame(width: 36)
         }
         .padding(.vertical, AppTheme.Spacing.xs)
@@ -323,16 +325,19 @@ public struct WorkoutDetailView: View {
         }
     }
 
-    private func weightDisplay(_ weight: Double) -> String {
-        if weight == 0 { return "BW" }
-        return "\(Int(weight)) lb"
+    private func weightDisplay(_ weight: Double, isBodyweight: Bool, percentage: Double? = nil) -> String {
+        if weight > 0 { return "\(Int(weight)) lb" }
+        if isBodyweight { return "BW" }
+        if let pct = percentage { return "\(Int(pct * 100))%" }
+        return "--"
     }
 
-    private func actualDisplay(_ set: ExerciseSet) -> String {
+    private func actualDisplay(_ set: ExerciseSet, isBodyweight: Bool) -> String {
         let weight = set.completedWeight ?? set.prescribedWeight
         let reps = set.actualReps ?? set.reps
-        if weight == 0 { return "\(reps) reps" }
-        return "\(Int(weight)) \u{00D7} \(reps)"
+        if isBodyweight { return "\(reps) reps" }
+        if weight > 0 { return "\(Int(weight)) \u{00D7} \(reps)" }
+        return "\(reps) reps"
     }
 
     private func totalSets(_ workout: Workout) -> Int {
@@ -408,8 +413,7 @@ class WorkoutDetailViewModel: ObservableObject {
         set.isComplete.toggle()
 
         if set.isComplete {
-            // Default actual to prescribed values when completing
-            if set.completedWeight == nil {
+            if set.completedWeight == nil, set.prescribedWeight > 0 {
                 set.completedWeight = set.prescribedWeight
             }
             if set.actualReps == nil {
@@ -431,13 +435,12 @@ class WorkoutDetailViewModel: ObservableObject {
     func completeWorkout() async {
         guard var workout = workout else { return }
 
-        // Mark all incomplete sets as complete with prescribed defaults
         for i in workout.exercises.indices {
             for j in workout.exercises[i].targetSets.indices {
                 var set = workout.exercises[i].targetSets[j]
                 if !set.isComplete {
                     set.isComplete = true
-                    if set.completedWeight == nil {
+                    if set.completedWeight == nil, set.prescribedWeight > 0 {
                         set.completedWeight = set.prescribedWeight
                     }
                     if set.actualReps == nil {

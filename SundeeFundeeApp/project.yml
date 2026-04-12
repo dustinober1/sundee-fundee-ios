@@ -55,3 +55,16 @@ targets:
         GENERATE_INFOPLIST_FILE: false
         APPLICATION_EXTENSION_API_ONLY: true
         SKIP_INSTALL: true
+
+  SundeeFundeeTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: ../SundeeFundee/Tests/SundeeFundeeKitTests
+    dependencies:
+      - package: SundeeFundeeKit
+      - target: SundeeFundee
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.sundeefundee.app.tests
+        GENERATE_INFOPLIST_FILE: true

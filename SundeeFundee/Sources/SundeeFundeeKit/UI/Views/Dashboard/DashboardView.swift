@@ -58,6 +58,9 @@ public struct DashboardView: View {
             .refreshable {
                 await viewModel.loadData()
             }
+            .onReceive(NotificationCenter.default.publisher(for: .workoutCompleted)) { _ in
+                Task { await viewModel.loadData() }
+            }
             .sheet(isPresented: $showingAIWorkout) {
                 AIWorkoutView()
             }
@@ -431,6 +434,7 @@ class DashboardViewModel: ObservableObject {
 
     private let healthClient: HealthClientProtocol
     private let dataClient: DataClientProtocol
+    private var hasRequestedHealthAuth = false
 
     // MARK: - Initialization
 
@@ -444,27 +448,22 @@ class DashboardViewModel: ObservableObject {
 
     // MARK: - Public Methods
 
-    /// Loads all dashboard data
     func loadData() async {
         isLoading = true
         errorMessage = nil
 
-        // Load cycle phase
+        if !hasRequestedHealthAuth {
+            hasRequestedHealthAuth = true
+            if healthClient.isAvailable {
+                try? await healthClient.requestStandardAuthorization()
+            }
+        }
+
         await loadCyclePhase()
-
-        // Load stats
         await loadStats()
-
-        // Load program info
         await loadProgramInfo()
-
-        // AI workout generation always available
         canGenerateAIWorkout = true
-
-        // Load coaching insights
         await loadCoachingInsights()
-
-        // Load recent wins
         await loadRecentWins()
 
         isLoading = false
@@ -516,28 +515,37 @@ class DashboardViewModel: ObservableObject {
     }
 
     private func loadStats() async {
-        // Load HealthKit workout count — degrade gracefully if unavailable or unauthorized
+        let calendar = Calendar.current
+        let now = Date()
+        let weekStart = calendar.dateInterval(of: .weekOfYear, for: now)?.start
+
         if healthClient.isAvailable {
             do {
                 let workouts = try await healthClient.fetchWorkouts(startDate: nil, endDate: nil, limit: 30)
-                let calendar = Calendar.current
-                let now = Date()
-                if let weekStart = calendar.dateInterval(of: .weekOfYear, for: now)?.start {
+                if let weekStart {
                     workoutsThisWeek = workouts.filter { $0.startDate >= weekStart }.count
                 }
             } catch {
-                // HealthKit not authorized or query failed — show "—" via default 0
+                // HealthKit not authorized or query failed
             }
         }
 
-        // Load PRs from CloudKit (independent of HealthKit)
+        if workoutsThisWeek == 0 {
+            do {
+                let workouts = try await dataClient.fetchAll(recordType: "Workout") as [Workout]
+                if let weekStart {
+                    workoutsThisWeek = workouts.filter { $0.completedAt != nil && $0.completedAt! >= weekStart }.count
+                }
+            } catch {
+                // CloudKit unavailable — leave at default 0
+            }
+        }
+
         do {
             let prs = try await dataClient.fetchAll(
                 recordType: "OneRepMaxRecord"
             ) as [OneRepMaxRecord]
 
-            let calendar = Calendar.current
-            let now = Date()
             let monthStart = calendar.date(byAdding: .month, value: -1, to: now) ?? now
             prsThisMonth = prs.filter { pr in
                 pr.date >= monthStart

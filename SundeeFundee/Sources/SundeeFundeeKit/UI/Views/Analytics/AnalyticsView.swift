@@ -57,6 +57,9 @@ public struct AnalyticsView: View {
         .refreshable {
             await viewModel.loadAnalytics()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .workoutCompleted)) { _ in
+            Task { await viewModel.loadAnalytics() }
+        }
     }
 
     // MARK: - Time Range Picker

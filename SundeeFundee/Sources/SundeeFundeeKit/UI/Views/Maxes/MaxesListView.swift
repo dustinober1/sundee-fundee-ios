@@ -53,6 +53,9 @@ public struct MaxesListView: View {
             .refreshable {
                 await viewModel.loadMaxes()
             }
+            .onReceive(NotificationCenter.default.publisher(for: .workoutCompleted)) { _ in
+                Task { await viewModel.loadMaxes() }
+            }
             .sheet(isPresented: $viewModel.showingEntry) {
                 OneRepMaxEntryView(onSave: { name, weight, unit in
                     Task {

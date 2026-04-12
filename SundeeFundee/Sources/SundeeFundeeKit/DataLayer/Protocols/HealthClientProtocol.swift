@@ -150,6 +150,9 @@ public protocol HealthClientProtocol: Sendable {
         totalEnergyBurned: Double,
         exercises: [Exercise]
     ) async throws
+
+    /// Requests authorization for standard workout tracking types.
+    func requestStandardAuthorization() async throws
 }
 
 // MARK: - Default Implementations

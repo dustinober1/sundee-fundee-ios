@@ -53,6 +53,9 @@ public struct WorkoutsListView: View {
             .refreshable {
                 await viewModel.loadWorkouts()
             }
+            .onReceive(NotificationCenter.default.publisher(for: .workoutCompleted)) { _ in
+                Task { await viewModel.loadWorkouts() }
+            }
             .sheet(isPresented: $viewModel.showingNewWorkout) {
                 NewWorkoutView()
             }

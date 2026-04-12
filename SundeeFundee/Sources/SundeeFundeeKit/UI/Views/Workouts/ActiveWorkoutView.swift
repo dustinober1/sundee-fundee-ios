@@ -1,4 +1,7 @@
 import SwiftUI
+#if canImport(UIKit)
+import UIKit
+#endif
 
 // MARK: - ActiveWorkoutView
 //
@@ -10,6 +13,8 @@ public struct ActiveWorkoutView: View {
     @ObservedObject var viewModel: ActiveWorkoutSessionViewModel
     @Environment(\.dismiss) private var dismiss
     @State private var showAbandonAlert = false
+    @State private var weightInput: String = ""
+    @FocusState private var isWeightFocused: Bool
 
     public init(viewModel: ActiveWorkoutSessionViewModel) {
         self.viewModel = viewModel
@@ -150,29 +155,32 @@ public struct ActiveWorkoutView: View {
     private var currentExerciseCard: some View {
         ArtDecoCard {
             VStack(spacing: AppTheme.Spacing.md) {
-                // Exercise name
                 if let exercise = viewModel.currentExercise {
                     Text(exercise.name)
                         .font(AppTheme.Typography.headlineLarge)
                         .foregroundColor(AppTheme.Text.primary)
                         .frame(maxWidth: .infinity, alignment: .leading)
 
-                    // Set info
                     if let set = viewModel.currentSet {
                         Text("Set \(viewModel.currentSetIndex + 1) of \(exercise.targetSets.count)")
                             .font(AppTheme.Typography.bodySmall)
                             .foregroundColor(AppTheme.Text.secondary)
                             .frame(maxWidth: .infinity, alignment: .leading)
 
-                        // Stat boxes
                         HStack(spacing: AppTheme.Spacing.sm) {
                             statBox(value: "\(set.reps)", label: "Reps")
 
                             let weightText: String = {
-                                if set.prescribedWeight == 0 {
+                                if exercise.bodyweight > 0 && set.prescribedWeight == 0 {
                                     return "BW"
                                 }
-                                return "\(Int(set.prescribedWeight))"
+                                if set.prescribedWeight > 0 {
+                                    return "\(Int(set.prescribedWeight))"
+                                }
+                                if let pct = set.prescribedPercentage {
+                                    return "\(Int(pct * 100))%"
+                                }
+                                return "--"
                             }()
                             statBox(value: weightText, label: "Weight")
 
@@ -180,6 +188,11 @@ public struct ActiveWorkoutView: View {
                                 ? "\(Int(exercise.restMinutes * 60))s"
                                 : "—"
                             statBox(value: restText, label: "Rest")
+                        }
+
+                        if exercise.bodyweight == 0 {
+                            weightInputSection(prescribedWeight: set.prescribedWeight)
+                                .padding(.top, AppTheme.Spacing.xs)
                         }
                     }
                 } else {
@@ -189,6 +202,50 @@ public struct ActiveWorkoutView: View {
                 }
             }
         }
+        .onChange(of: viewModel.currentSetIndex) { _, _ in resetWeightInput() }
+        .onChange(of: viewModel.currentExerciseIndex) { _, _ in resetWeightInput() }
+        .onAppear { resetWeightInput() }
+    }
+
+    private func weightInputSection(prescribedWeight: Double) -> some View {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+            Text("Weight Lifted (lb)")
+                .font(AppTheme.Typography.labelSmall)
+                .foregroundColor(AppTheme.Text.secondary)
+
+            TextField(
+                prescribedWeight > 0 ? "\(Int(prescribedWeight))" : "Enter weight",
+                text: $weightInput
+            )
+            .font(AppTheme.Typography.monoMedium)
+            .foregroundColor(AppTheme.Text.primary)
+            .padding(AppTheme.Spacing.sm)
+            .background(AppTheme.Background.cream.opacity(0.5))
+            .cornerRadius(AppTheme.CornerRadius.small)
+            .overlay(
+                RoundedRectangle(cornerRadius: AppTheme.CornerRadius.small)
+                    .stroke(isWeightFocused ? AppTheme.Accent.gold : AppTheme.Text.secondary.opacity(0.3), lineWidth: 1)
+            )
+            .focused($isWeightFocused)
+            #if os(iOS)
+            .keyboardType(.decimalPad)
+            #endif
+        }
+    }
+
+    private func resetWeightInput() {
+        if let set = viewModel.currentSet {
+            if set.prescribedWeight > 0 {
+                weightInput = "\(Int(set.prescribedWeight))"
+            } else if let completedWeight = viewModel.lastCompletedWeight, completedWeight > 0 {
+                weightInput = "\(Int(completedWeight))"
+            } else {
+                weightInput = ""
+            }
+        } else {
+            weightInput = ""
+        }
+        isWeightFocused = false
     }
 
     private func statBox(value: String, label: String) -> some View {
@@ -279,10 +336,11 @@ public struct ActiveWorkoutView: View {
     private var completeSetButton: some View {
         Button {
             guard let set = viewModel.currentSet else { return }
+            let enteredWeight = Double(weightInput) ?? set.prescribedWeight
             Task {
                 await viewModel.completeSet(
                     actualReps: set.reps,
-                    completedWeight: set.prescribedWeight
+                    completedWeight: enteredWeight
                 )
             }
         } label: {
@@ -338,7 +396,7 @@ public struct ActiveWorkoutView: View {
 
                 // Done button
                 Button {
-                    NotificationCenter.default.post(name: .aiWorkoutStarted, object: nil)
+                    NotificationCenter.default.post(name: .workoutCompleted, object: nil)
                     dismiss()
                 } label: {
                     Text("Done")

@@ -306,10 +306,18 @@ public final class MockHealthKitClient: HealthClientProtocol, @unchecked Sendabl
             throw HealthError.queryFailed(underlying: nil)
         }
 
-        // Track the call — tests verify saveWorkoutCallCount rather than inspecting
-        // the mock's internal workout store, which holds only pre-seeded data.
         queue.sync {
             saveWorkoutCallCount += 1
+        }
+    }
+
+    public func requestStandardAuthorization() async throws {
+        guard isAvailable else {
+            throw HealthError.notAvailable
+        }
+
+        guard authorizationGranted else {
+            throw HealthError.authorizationDenied(feature: "standard types")
         }
     }
 

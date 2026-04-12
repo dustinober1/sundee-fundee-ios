@@ -70,6 +70,17 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
         !hasNextSet && !hasNextExercise
     }
 
+    public var lastCompletedWeight: Double? {
+        for exercise in workout.exercises {
+            for set in exercise.targetSets {
+                if let w = set.completedWeight, w > 0 {
+                    return w
+                }
+            }
+        }
+        return nil
+    }
+
     // MARK: - Initialization
 
     public init(
@@ -136,12 +147,12 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
     public func finishWorkout() async {
         isFinishing = true
 
-        // Mark all incomplete sets as complete with prescribed defaults
         for i in workout.exercises.indices {
             for j in workout.exercises[i].targetSets.indices {
                 if !workout.exercises[i].targetSets[j].isComplete {
                     workout.exercises[i].targetSets[j].isComplete = true
-                    if workout.exercises[i].targetSets[j].completedWeight == nil {
+                    if workout.exercises[i].targetSets[j].completedWeight == nil,
+                       workout.exercises[i].targetSets[j].prescribedWeight > 0 {
                         workout.exercises[i].targetSets[j].completedWeight = workout.exercises[i].targetSets[j].prescribedWeight
                     }
                     if workout.exercises[i].targetSets[j].actualReps == nil {

@@ -35,6 +35,7 @@ public struct ExerciseSet: Equatable, Codable, Identifiable, Sendable {
     public let id: String
     public var reps: Int
     public var prescribedWeight: Double
+    public var prescribedPercentage: Double?
     public var type: ExerciseType
     public var completedWeight: Double?
     public var actualReps: Int?
@@ -44,6 +45,7 @@ public struct ExerciseSet: Equatable, Codable, Identifiable, Sendable {
         id: String = UUID().uuidString,
         reps: Int,
         prescribedWeight: Double,
+        prescribedPercentage: Double? = nil,
         type: ExerciseType,
         completedWeight: Double? = nil,
         actualReps: Int? = nil,
@@ -52,6 +54,7 @@ public struct ExerciseSet: Equatable, Codable, Identifiable, Sendable {
         self.id = id
         self.reps = reps
         self.prescribedWeight = prescribedWeight
+        self.prescribedPercentage = prescribedPercentage
         self.type = type
         self.completedWeight = completedWeight
         self.actualReps = actualReps
