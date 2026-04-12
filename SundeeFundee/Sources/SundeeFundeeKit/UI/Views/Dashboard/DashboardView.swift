@@ -488,6 +488,20 @@ class DashboardViewModel: ObservableObject {
     // MARK: - Private Methods
 
     private func loadCyclePhase() async {
+        // Fast path: active (un-ended) manual period = menstrual phase
+        do {
+            let manualRecords = try await dataClient.fetchAll(
+                recordType: "PeriodLogRecord"
+            ) as [PeriodLogRecord]
+            if manualRecords.contains(where: { $0.isActive }) {
+                cyclePhase = .menstrual
+                cycleConfidence = 1.0
+                return
+            }
+        } catch {
+            // Continue with calculation
+        }
+
         var periodLogs: [PeriodLog] = []
 
         // Load HealthKit cycles if available
