@@ -390,14 +390,13 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
     }
 
     /// Converts a JSON value to a CKRecord-compatible value.
+    /// Note: ISO 8601 date strings are stored as STRING in CloudKit (not TIMESTAMP)
+    /// because the schema was created that way. The JSONDecoder handles the
+    /// string→Date conversion on read via .iso8601 date decoding strategy.
     private func convertToCKRecordValue(_ value: Any) -> Any? {
         if value is NSNull { return nil }
         switch value {
         case let stringValue as String:
-            // Check if this is an ISO 8601 date string
-            if let date = ISO8601DateFormatter().date(from: stringValue) {
-                return date
-            }
             return stringValue
         case let intValue as Int:
             return intValue
