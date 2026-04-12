@@ -43,6 +43,7 @@ public struct BundledContentProvider: Sendable, ContentClientProtocol {
 
     /// Display names for program templates
     private static let templateDisplayNames: [ProgramTemplate: String] = [
+        .firstMargarita: "The First Margarita",
         .strength: "Strength Basics",
         .hypertrophy: "Hypertrophy Phase",
         .fullBody: "Full Body Split",
