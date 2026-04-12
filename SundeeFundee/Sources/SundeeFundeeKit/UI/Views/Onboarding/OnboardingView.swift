@@ -79,6 +79,12 @@ public struct OnboardingView: View {
                 .multilineTextAlignment(.center)
 
             Spacer()
+
+            Text("Sundee Fundee is a fitness tool, not a medical device. It is not a substitute for professional medical advice, diagnosis, or treatment. Consult your doctor before starting any exercise program.")
+                .font(AppTheme.Typography.bodySmall)
+                .foregroundColor(AppTheme.Text.secondary.opacity(0.7))
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, AppTheme.Spacing.xl)
         }
         .padding(AppTheme.Spacing.xl)
     }
