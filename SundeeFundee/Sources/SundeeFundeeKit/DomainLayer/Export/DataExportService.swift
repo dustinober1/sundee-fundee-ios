@@ -1,4 +1,7 @@
 import Foundation
+import os.log
+
+private let exportLogger = Logger(subsystem: "com.sundeefundee.app", category: "DataExport")
 
 // MARK: - DataExportService
 
@@ -97,7 +100,7 @@ public struct DataExportService: Sendable {
             return try await dataClient.fetchAll(recordType: recordType)
         } catch {
             // Log but don't propagate — a partial export is better than none.
-            print("[DataExportService] Failed to fetch \(recordType): \(error.localizedDescription)")
+            exportLogger.error("Failed to fetch \(recordType): \(error.localizedDescription)")
             return []
         }
     }
