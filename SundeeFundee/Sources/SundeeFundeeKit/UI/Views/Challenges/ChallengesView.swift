@@ -1,0 +1,258 @@
+import SwiftUI
+
+// MARK: - ChallengesView
+
+@available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
+public struct ChallengesView: View {
+    @StateObject private var viewModel = ChallengesViewModel()
+    @State private var showingCreateChallenge = false
+
+    public init() {}
+
+    public var body: some View {
+        ScrollView {
+            VStack(spacing: AppTheme.Spacing.lg) {
+                if viewModel.isLoading {
+                    ProgressView()
+                        .frame(maxWidth: .infinity, minHeight: 200)
+                } else if viewModel.activeChallenges.isEmpty && viewModel.completedChallenges.isEmpty {
+                    emptyState
+                } else {
+                    // Active Challenges
+                    if !viewModel.activeChallenges.isEmpty {
+                        sectionHeader("Active Challenges")
+                        ForEach(viewModel.activeChallenges) { challenge in
+                            challengeCard(challenge)
+                        }
+                    }
+
+                    // Completed Challenges
+                    if !viewModel.completedChallenges.isEmpty {
+                        sectionHeader("Completed")
+                        ForEach(viewModel.completedChallenges) { challenge in
+                            challengeCard(challenge)
+                        }
+                    }
+                }
+            }
+            .padding(AppTheme.Spacing.lg)
+        }
+        .navigationTitle("Challenges")
+        #if os(iOS)
+        .navigationBarTitleDisplayMode(.large)
+        #endif
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    showingCreateChallenge = true
+                } label: {
+                    Image(systemName: "plus")
+                }
+                .tint(AppTheme.Accent.gold)
+            }
+        }
+        .sheet(isPresented: $showingCreateChallenge) {
+            CreateChallengeView(viewModel: viewModel)
+        }
+        .task {
+            await viewModel.loadChallenges()
+        }
+    }
+
+    // MARK: - Empty State
+
+    private var emptyState: some View {
+        VStack(spacing: AppTheme.Spacing.md) {
+            Image(systemName: "trophy")
+                .font(.system(size: 48))
+                .foregroundColor(AppTheme.Accent.gold)
+
+            Text("No Challenges Yet")
+                .font(AppTheme.Typography.headlineLarge)
+                .foregroundColor(AppTheme.Text.primary)
+
+            Text("Start a volume challenge to track total pounds lifted across your workouts.")
+                .font(AppTheme.Typography.bodyLarge)
+                .foregroundColor(AppTheme.Text.secondary)
+                .multilineTextAlignment(.center)
+
+            Button {
+                showingCreateChallenge = true
+            } label: {
+                Text("Create Challenge")
+                    .font(AppTheme.Typography.headlineMedium)
+                    .foregroundColor(AppTheme.Background.cream)
+                    .padding(.horizontal, AppTheme.Spacing.xl)
+                    .padding(.vertical, AppTheme.Spacing.sm)
+                    .background(AppTheme.Accent.gold)
+                    .cornerRadius(AppTheme.CornerRadius.medium)
+            }
+        }
+        .padding(.vertical, AppTheme.Spacing.xxl)
+    }
+
+    // MARK: - Section Header
+
+    private func sectionHeader(_ title: String) -> some View {
+        HStack {
+            Text(title)
+                .font(AppTheme.Typography.headlineLarge)
+                .foregroundColor(AppTheme.Text.primary)
+            Spacer()
+        }
+    }
+
+    // MARK: - Challenge Card
+
+    private func challengeCard(_ challenge: Challenge) -> some View {
+        let progress = ChallengeEngine.computeProgress(challenge: challenge)
+
+        return VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(challenge.title)
+                        .font(AppTheme.Typography.headlineMedium)
+                        .foregroundColor(AppTheme.Text.primary)
+
+                    if challenge.status == .completed {
+                        Text("Completed")
+                            .font(AppTheme.Typography.labelMedium)
+                            .foregroundColor(AppTheme.Accent.gold)
+                    } else if challenge.status == .expired {
+                        Text("Expired")
+                            .font(AppTheme.Typography.labelMedium)
+                            .foregroundColor(AppTheme.Text.secondary)
+                    } else {
+                        Text(progress.currentTierName)
+                            .font(AppTheme.Typography.labelMedium)
+                            .foregroundColor(AppTheme.Accent.gold)
+                    }
+                }
+                Spacer()
+                Text("\(Int(progress.percentComplete * 100))%")
+                    .font(AppTheme.Typography.monoMedium)
+                    .foregroundColor(AppTheme.Accent.gold)
+            }
+
+            // Progress bar
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(AppTheme.Background.navy.opacity(0.1))
+                        .frame(height: 8)
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(AppTheme.Accent.gold)
+                        .frame(width: geo.size.width * progress.percentComplete, height: 8)
+                }
+            }
+            .frame(height: 8)
+
+            // Volume info
+            HStack {
+                Text(formatVolume(challenge.accumulatedVolumeLbs))
+                    .font(AppTheme.Typography.labelMedium)
+                    .foregroundColor(AppTheme.Text.secondary)
+
+                if challenge.status == .active {
+                    Spacer()
+                    Text("\(formatVolume(progress.volumeRemaining)) remaining")
+                        .font(AppTheme.Typography.labelMedium)
+                        .foregroundColor(AppTheme.Text.secondary)
+                }
+            }
+
+            if let endDate = challenge.endDate, challenge.status == .active {
+                let daysLeft = Calendar.current.dateComponents([.day], from: Date(), to: endDate).day ?? 0
+                Text("\(max(0, daysLeft)) days left")
+                    .font(AppTheme.Typography.labelMedium)
+                    .foregroundColor(daysLeft < 7 ? AppTheme.Accent.orange : AppTheme.Text.secondary)
+            }
+        }
+        .padding(AppTheme.Spacing.md)
+        .background(AppTheme.Background.cream)
+        .cornerRadius(AppTheme.CornerRadius.medium)
+        .overlay(
+            RoundedRectangle(cornerRadius: AppTheme.CornerRadius.medium)
+                .stroke(AppTheme.Background.navy.opacity(0.1), lineWidth: 1)
+        )
+    }
+
+    private func formatVolume(_ lbs: Double) -> String {
+        if lbs >= 1_000_000 {
+            return String(format: "%.1fM lbs", lbs / 1_000_000)
+        } else if lbs >= 1_000 {
+            return String(format: "%.0fK lbs", lbs / 1_000)
+        }
+        return "\(Int(lbs)) lbs"
+    }
+}
+
+// MARK: - ChallengesViewModel
+
+@available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
+@MainActor
+class ChallengesViewModel: ObservableObject {
+    @Published var activeChallenges: [Challenge] = []
+    @Published var completedChallenges: [Challenge] = []
+    @Published var isLoading = false
+
+    private let challengeService: ChallengeService
+
+    init(dataClient: DataClientProtocol = DataClientFactory.shared.client) {
+        self.challengeService = ChallengeService(dataClient: dataClient)
+    }
+
+    func loadChallenges() async {
+        isLoading = true
+        do {
+            let all = try await challengeService.loadAll()
+            activeChallenges = all.filter { $0.status == .active }
+                .sorted { $0.createdAt > $1.createdAt }
+            completedChallenges = all.filter { $0.status == .completed || $0.status == .expired }
+                .sorted { $0.createdAt > $1.createdAt }
+        } catch {
+            // Silently fail — empty state shown
+        }
+        isLoading = false
+    }
+
+    func createLifetimeChallenge() async {
+        do {
+            let workouts: [Workout] = try await DataClientFactory.shared.client.fetchAll(
+                recordType: "Workout"
+            )
+            _ = try await challengeService.initializeLifetimeChallenge(from: workouts)
+            await loadChallenges()
+        } catch {
+            // Show error in future iteration
+        }
+    }
+
+    func createCustomChallenge(title: String, targetVolume: Double, endDate: Date?) async {
+        let challenge = ChallengeEngine.createCustomChallenge(
+            title: title,
+            targetVolumeLbs: targetVolume,
+            endDate: endDate
+        )
+        do {
+            try await challengeService.save(challenge)
+            await loadChallenges()
+        } catch {
+            // Show error in future iteration
+        }
+    }
+
+    func createExerciseChallenge(exerciseName: String, targetVolume: Double) async {
+        let tier = ChallengeTier(name: "Goal", targetVolumeLbs: targetVolume, ordinal: 0)
+        let challenge = ChallengeEngine.createExerciseChallenge(
+            exerciseName: exerciseName,
+            tiers: [tier]
+        )
+        do {
+            try await challengeService.save(challenge)
+            await loadChallenges()
+        } catch {
+            // Show error in future iteration
+        }
+    }
+}
