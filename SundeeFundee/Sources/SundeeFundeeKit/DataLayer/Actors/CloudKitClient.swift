@@ -102,12 +102,17 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
             || description.contains("did not find record type")
     }
 
-    /// Saves records to CloudKit using upsert semantics (insert-or-update).
+    /// Checks if a CloudKit error indicates a duplicate record insert.
+    private func isDuplicateRecordError(_ error: Error) -> Bool {
+        error.localizedDescription.lowercased().contains("record to insert already exists")
+    }
+
+    /// Saves records to CloudKit with upsert semantics (insert-or-update).
     ///
-    /// Fetches any existing records by ID before saving. If a record already
-    /// exists, its fields are updated on the existing CKRecord (preserving the
-    /// server change tag) so CloudKit treats it as an update rather than a
-    /// duplicate insert.
+    /// First attempts a normal save. If CloudKit rejects a record because it
+    /// already exists ("record to insert already exists"), fetches the existing
+    /// record, merges the new field values onto it (preserving the server change
+    /// tag), and retries the save.
     public func save<T>(
         _ records: [T],
         recordType: String
@@ -120,18 +125,30 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
             ckRecords.append(ckRecord)
         }
 
-        let existingRecords = await fetchExistingRecords(ckRecords.map(\.recordID))
-        ckRecords = ckRecords.map { ckRecord in
-            mergeWithExisting(ckRecord, existing: existingRecords)
-        }
-
-        let (savedRecords, _) = try await database.modifyRecords(saving: ckRecords, deleting: [])
-        for (recordID, result) in savedRecords {
-            switch result {
-            case .failure(let error):
-                throw mapCKError(error, recordID: recordID)
-            default:
-                break
+        do {
+            let (savedRecords, _) = try await database.modifyRecords(saving: ckRecords, deleting: [])
+            for (recordID, result) in savedRecords {
+                switch result {
+                case .failure(let error):
+                    throw error
+                default:
+                    break
+                }
+            }
+        } catch {
+            guard isDuplicateRecordError(error) else {
+                throw mapCKError(error, recordID: nil)
+            }
+            let existingRecords = await fetchExistingRecords(ckRecords.map(\.recordID))
+            ckRecords = ckRecords.map { mergeWithExisting($0, existing: existingRecords) }
+            let (savedRecords, _) = try await database.modifyRecords(saving: ckRecords, deleting: [])
+            for (recordID, result) in savedRecords {
+                switch result {
+                case .failure(let error):
+                    throw mapCKError(error, recordID: recordID)
+                default:
+                    break
+                }
             }
         }
     }
@@ -202,18 +219,30 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
             ckRecords.append(record)
         }
 
-        let existingRecords = await fetchExistingRecords(ckRecords.map(\.recordID))
-        ckRecords = ckRecords.map { ckRecord in
-            mergeWithExisting(ckRecord, existing: existingRecords)
-        }
-
-        let (savedRecords, _) = try await database.modifyRecords(saving: ckRecords, deleting: [])
-        for (recordID, result) in savedRecords {
-            switch result {
-            case .failure(let error):
-                throw mapCKError(error, recordID: recordID)
-            default:
-                break
+        do {
+            let (savedRecords, _) = try await database.modifyRecords(saving: ckRecords, deleting: [])
+            for (recordID, result) in savedRecords {
+                switch result {
+                case .failure(let error):
+                    throw error
+                default:
+                    break
+                }
+            }
+        } catch {
+            guard isDuplicateRecordError(error) else {
+                throw mapCKError(error, recordID: nil)
+            }
+            let existingRecords = await fetchExistingRecords(ckRecords.map(\.recordID))
+            ckRecords = ckRecords.map { mergeWithExisting($0, existing: existingRecords) }
+            let (savedRecords, _) = try await database.modifyRecords(saving: ckRecords, deleting: [])
+            for (recordID, result) in savedRecords {
+                switch result {
+                case .failure(let error):
+                    throw mapCKError(error, recordID: recordID)
+                default:
+                    break
+                }
             }
         }
     }
