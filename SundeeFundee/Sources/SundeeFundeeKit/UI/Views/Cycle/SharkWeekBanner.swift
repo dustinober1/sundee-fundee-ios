@@ -61,7 +61,9 @@ final class SharkWeekMonitor: ObservableObject {
     }
 
     func check() async {
-        // Try HealthKit first
+        var periodLogs: [PeriodLog] = []
+
+        // Load HealthKit cycles if available
         if healthClient.isAvailable {
             do {
                 try? await healthClient.requestStandardAuthorization()
@@ -71,47 +73,48 @@ final class SharkWeekMonitor: ObservableObject {
                     endDate: nil,
                     limit: 100
                 )
-                if let status = CyclePhaseHelper.calculatePhase(from: cycles) {
-                    isSharkWeek = status.currentPhase == .menstrual
-                    return
+                if !cycles.isEmpty {
+                    periodLogs = CyclePhaseHelper.convertToPeriodLogs(cycles)
                 }
             } catch {
-                // Fall through to manual logs
+                // No HealthKit data
             }
         }
 
-        // Fallback: manual period logs
-        await checkManualLogs()
-    }
-
-    private func checkManualLogs() async {
+        // Always merge manual period logs
         do {
-            let records = try await dataClient.fetchAll(
+            let manualRecords = try await dataClient.fetchAll(
                 recordType: "PeriodLogRecord"
             ) as [PeriodLogRecord]
-
-            guard !records.isEmpty else {
-                isSharkWeek = false
-                return
-            }
-
-            let periodLogs = records.map { $0.toPeriodLog() }
-
-            // Load cycle settings for calculation
-            var settings = CycleSettings()
-            if let settingsRecords = try? await dataClient.fetchAll(
-                recordType: "CycleSettings"
-            ) as [CycleSettingsRecord], let first = settingsRecords.first {
-                settings = CycleSettings(averageCycleLengthDays: first.averageCycleLengthDays)
-            }
-
-            if let status = calculateCycleStatus(periodLogs: periodLogs, settings: settings) {
-                isSharkWeek = status.currentPhase == .menstrual
-            } else {
-                isSharkWeek = false
+            let manualLogs = manualRecords.map { $0.toPeriodLog() }
+            for log in manualLogs {
+                let isDuplicate = periodLogs.contains { existing in
+                    abs(existing.startDate.timeIntervalSince(log.startDate)) < 86400
+                }
+                if !isDuplicate {
+                    periodLogs.append(log)
+                }
             }
         } catch {
-            // Data unavailable — degrade gracefully
+            // No manual logs
+        }
+
+        guard !periodLogs.isEmpty else {
+            isSharkWeek = false
+            return
+        }
+
+        var settings = CycleSettings()
+        if let settingsRecords = try? await dataClient.fetchAll(
+            recordType: "CycleSettings"
+        ) as [CycleSettingsRecord], let first = settingsRecords.first {
+            settings = CycleSettings(averageCycleLengthDays: first.averageCycleLengthDays)
+        }
+
+        if let status = calculateCycleStatus(periodLogs: periodLogs, settings: settings) {
+            isSharkWeek = status.currentPhase == .menstrual
+        } else {
+            isSharkWeek = false
         }
     }
 }
