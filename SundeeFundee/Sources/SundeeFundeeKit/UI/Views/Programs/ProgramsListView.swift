@@ -405,12 +405,16 @@ class ProgramDetailViewModel: ObservableObject {
     private let program: ProgramListItem
     private let dataClient: DataClientProtocol
 
+    private let healthClient: HealthClientProtocol
+
     init(
         program: ProgramListItem,
-        dataClient: DataClientProtocol = DataClientFactory.shared.client
+        dataClient: DataClientProtocol = DataClientFactory.shared.client,
+        healthClient: HealthClientProtocol = HealthClientFactory.shared.client
     ) {
         self.program = program
         self.dataClient = dataClient
+        self.healthClient = healthClient
     }
 
     func generateSessions() {
@@ -476,6 +480,12 @@ class ProgramDetailViewModel: ObservableObject {
         startingSessionId = session.sessionId
         defer { startingSessionId = nil }
 
+        // Load cycle phase for workout adjustment
+        let cycleMult = await loadCycleMultiplier()
+
+        // Load user maxes for weight calculation
+        let maxes = await loadMaxes()
+
         let workout = Workout(
             date: Date(),
             name: "\(programName) — \(session.sessionName)",
@@ -500,10 +510,21 @@ class ProgramDetailViewModel: ObservableObject {
                     setType = .text(t)
                 }
 
+                // Calculate prescribed weight from user's max + cycle adjustment
+                var prescribedWeight: Double = 0
+                if !ex.bodyweightOnly, let pct = ex.percent1RM,
+                   let userMax = maxes.first(where: { $0.exerciseName.lowercased() == ex.exercise.lowercased() }) {
+                    prescribedWeight = calculatePrescribedWeight(
+                        max: userMax.weight,
+                        reps: repCount > 0 ? repCount : 5,
+                        cycleMultiplier: cycleMult
+                    )
+                }
+
                 let targetSets = (0..<setsCount).map { _ in
                     ExerciseSet(
                         reps: repCount,
-                        prescribedWeight: 0,
+                        prescribedWeight: prescribedWeight,
                         prescribedPercentage: ex.percent1RM,
                         type: setType
                     )
@@ -541,6 +562,65 @@ class ProgramDetailViewModel: ObservableObject {
             errorMessage = "Failed to start session: \(error.localizedDescription)"
             return nil
         }
+    }
+
+    // MARK: - Cycle & Max Helpers
+
+    private func loadCycleMultiplier() async -> Double {
+        // Fast path: active manual period = menstrual phase
+        do {
+            let manualRecords = try await dataClient.fetchAll(
+                recordType: "PeriodLogRecord"
+            ) as [PeriodLogRecord]
+            if manualRecords.contains(where: { $0.isActive }) {
+                return aiCyclePhaseMultiplier(.menstrual)
+            }
+        } catch { /* continue */ }
+
+        var periodLogs: [PeriodLog] = []
+
+        if healthClient.isAvailable {
+            do {
+                try? await healthClient.requestStandardAuthorization()
+                let sixMonthsAgo = Calendar.current.date(byAdding: .month, value: -6, to: Date())
+                let cycles = try await healthClient.fetchMenstrualCycles(
+                    startDate: sixMonthsAgo, endDate: nil, limit: 100
+                )
+                if !cycles.isEmpty {
+                    periodLogs = CyclePhaseHelper.convertToPeriodLogs(cycles)
+                }
+            } catch { /* no HealthKit */ }
+        }
+
+        do {
+            let manualRecords = try await dataClient.fetchAll(
+                recordType: "PeriodLogRecord"
+            ) as [PeriodLogRecord]
+            for log in manualRecords.map({ $0.toPeriodLog() }) {
+                let isDuplicate = periodLogs.contains {
+                    abs($0.startDate.timeIntervalSince(log.startDate)) < 86400
+                }
+                if !isDuplicate { periodLogs.append(log) }
+            }
+        } catch { /* no manual logs */ }
+
+        guard !periodLogs.isEmpty else { return 1.0 }
+
+        var settings = CycleSettings()
+        if let records = try? await dataClient.fetchAll(
+            recordType: "CycleSettings"
+        ) as [CycleSettingsRecord], let first = records.first {
+            settings = CycleSettings(averageCycleLengthDays: first.averageCycleLengthDays)
+        }
+
+        if let status = calculateCycleStatus(periodLogs: periodLogs, settings: settings) {
+            return aiCyclePhaseMultiplier(status.currentPhase)
+        }
+        return 1.0
+    }
+
+    private func loadMaxes() async -> [OneRepMaxRecord] {
+        (try? await dataClient.fetchAll(recordType: "OneRepMaxRecord") as [OneRepMaxRecord]) ?? []
     }
 }
 
