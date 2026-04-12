@@ -1,5 +1,8 @@
 import Foundation
 import HealthKit
+import os.log
+
+private let seederLogger = Logger(subsystem: "com.sundeefundee.app", category: "ScreenshotSeeder")
 
 // MARK: - ScreenshotSeeder
 //
@@ -45,7 +48,7 @@ public enum ScreenshotSeeder {
         _ = KeychainHelper.save(key: "onboarding_complete", value: "true")
         _ = KeychainHelper.save(key: KeychainHelper.userNameKey, value: "Sarah")
 
-        print("[ScreenshotSeeder] Data seeded successfully")
+        seederLogger.info("Screenshot data seeded successfully")
     }
 
     // MARK: - One Rep Maxes
