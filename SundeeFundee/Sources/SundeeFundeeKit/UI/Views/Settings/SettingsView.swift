@@ -199,9 +199,11 @@ public struct SettingsView: View {
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
 struct CycleSettingsView: View {
     @State private var cycleLength: Double = 28
-    @State private var lastPeriodStart: Date = Date()
-    @State private var hasChanges: Bool = false
+    @State private var periodStartDate: Date = Date()
+    @State private var periodEndDate: Date = Date()
+    @State private var loggedPeriods: [PeriodLogRecord] = []
     @State private var isSaving: Bool = false
+    @State private var isLogging: Bool = false
     @State private var errorMessage: String?
 
     private let dataClient: DataClientProtocol
@@ -212,6 +214,7 @@ struct CycleSettingsView: View {
 
     var body: some View {
         Form {
+            // Cycle Length
             Section {
                 VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
                     HStack {
@@ -236,10 +239,6 @@ struct CycleSettingsView: View {
             }
 
             Section {
-                DatePicker("Last Period Start", selection: $lastPeriodStart, displayedComponents: .date)
-            }
-
-            Section {
                 Button {
                     Task { await saveCycleSettings() }
                 } label: {
@@ -248,12 +247,69 @@ struct CycleSettingsView: View {
                         if isSaving {
                             ProgressView()
                         } else {
-                            Text("Save")
+                            Text("Save Cycle Length")
                         }
                         Spacer()
                     }
                 }
                 .disabled(isSaving)
+            }
+
+            // Log Period
+            Section {
+                DatePicker("Start Date", selection: $periodStartDate, displayedComponents: .date)
+                DatePicker("End Date", selection: $periodEndDate, displayedComponents: .date)
+
+                Button {
+                    Task { await logPeriod() }
+                } label: {
+                    HStack {
+                        Spacer()
+                        if isLogging {
+                            ProgressView()
+                        } else {
+                            HStack(spacing: AppTheme.Spacing.sm) {
+                                Image(systemName: "plus.circle.fill")
+                                Text("Log Period")
+                            }
+                            .font(AppTheme.Typography.labelLarge)
+                        }
+                        Spacer()
+                    }
+                }
+                .disabled(isLogging || periodEndDate < periodStartDate)
+            } header: {
+                Text("Log Period")
+            } footer: {
+                if periodEndDate < periodStartDate {
+                    Text("End date must be on or after start date.")
+                        .foregroundColor(AppTheme.Semantic.error)
+                }
+            }
+
+            // Logged Periods
+            if !loggedPeriods.isEmpty {
+                Section("Logged Periods") {
+                    ForEach(loggedPeriods) { period in
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(formatDate(period.startDate))
+                                    .font(AppTheme.Typography.bodyMedium)
+                                    .foregroundColor(AppTheme.Text.primary)
+                                Text("to \(formatDate(period.endDate))")
+                                    .font(AppTheme.Typography.bodySmall)
+                                    .foregroundColor(AppTheme.Text.secondary)
+                            }
+                            Spacer()
+                            Text("\(daysBetween(period.startDate, period.endDate)) days")
+                                .font(AppTheme.Typography.labelMedium)
+                                .foregroundColor(AppTheme.Accent.gold)
+                        }
+                    }
+                    .onDelete { offsets in
+                        Task { await deletePeriods(at: offsets) }
+                    }
+                }
             }
         }
         .navigationTitle("Cycle Settings")
@@ -261,7 +317,7 @@ struct CycleSettingsView: View {
         .navigationBarTitleDisplayMode(.inline)
         #endif
         .task {
-            await loadCycleSettings()
+            await loadData()
         }
         .alert("Error", isPresented: Binding(
             get: { errorMessage != nil },
@@ -273,7 +329,9 @@ struct CycleSettingsView: View {
         }
     }
 
-    private func loadCycleSettings() async {
+    // MARK: - Data
+
+    private func loadData() async {
         do {
             let records = try await dataClient.fetchAll(
                 recordType: "CycleSettings"
@@ -281,27 +339,89 @@ struct CycleSettingsView: View {
 
             if let settings = records.first {
                 cycleLength = Double(settings.averageCycleLengthDays)
-                if let lastStart = settings.lastPeriodStart {
-                    lastPeriodStart = lastStart
-                }
             }
         } catch {
-            errorMessage = "Failed to load cycle settings: \(error.localizedDescription)"
+            // Use defaults
+        }
+
+        do {
+            loggedPeriods = try await dataClient.fetchAll(
+                recordType: "PeriodLogRecord"
+            ) as [PeriodLogRecord]
+            loggedPeriods.sort { $0.startDate > $1.startDate }
+        } catch {
+            // No logged periods yet
         }
     }
 
     private func saveCycleSettings() async {
         isSaving = true
+        let lastStart = loggedPeriods.sorted(by: { $0.startDate > $1.startDate }).first?.startDate
         let record = CycleSettingsRecord(
             averageCycleLengthDays: Int(cycleLength),
-            lastPeriodStart: lastPeriodStart
+            lastPeriodStart: lastStart
         )
         do {
             try await dataClient.save(record, recordType: "CycleSettings")
+            NotificationCenter.default.post(name: .cycleDataUpdated, object: nil)
         } catch {
-            errorMessage = "Failed to save cycle settings: \(error.localizedDescription)"
+            errorMessage = "Failed to save: \(error.localizedDescription)"
         }
         isSaving = false
+    }
+
+    private func logPeriod() async {
+        isLogging = true
+        let startOfDay = Calendar.current.startOfDay(for: periodStartDate)
+        let endOfDay = Calendar.current.startOfDay(for: periodEndDate)
+        let record = PeriodLogRecord(startDate: startOfDay, endDate: endOfDay)
+        do {
+            try await dataClient.save(record, recordType: "PeriodLogRecord")
+            loggedPeriods.insert(record, at: 0)
+
+            // Also update CycleSettings.lastPeriodStart to stay in sync
+            let settingsRecord = CycleSettingsRecord(
+                averageCycleLengthDays: Int(cycleLength),
+                lastPeriodStart: startOfDay
+            )
+            try await dataClient.save(settingsRecord, recordType: "CycleSettings")
+
+            NotificationCenter.default.post(name: .cycleDataUpdated, object: nil)
+
+            // Reset pickers for next entry
+            periodStartDate = Date()
+            periodEndDate = Date()
+        } catch {
+            errorMessage = "Failed to log period: \(error.localizedDescription)"
+        }
+        isLogging = false
+    }
+
+    private func deletePeriods(at offsets: IndexSet) async {
+        let toDelete = offsets.map { loggedPeriods[$0] }
+        loggedPeriods.remove(atOffsets: offsets)
+        for record in toDelete {
+            do {
+                try await dataClient.delete(recordType: "PeriodLogRecord", id: record.id)
+            } catch {
+                // Best effort
+            }
+        }
+        NotificationCenter.default.post(name: .cycleDataUpdated, object: nil)
+    }
+
+    // MARK: - Helpers
+
+    private func formatDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .none
+        return formatter.string(from: date)
+    }
+
+    private func daysBetween(_ start: Date, _ end: Date) -> Int {
+        let days = Calendar.current.dateComponents([.day], from: Calendar.current.startOfDay(for: start), to: Calendar.current.startOfDay(for: end)).day ?? 0
+        return days + 1
     }
 }
 
