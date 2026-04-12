@@ -61,6 +61,9 @@ public struct DashboardView: View {
             .onReceive(NotificationCenter.default.publisher(for: .workoutCompleted)) { _ in
                 Task { await viewModel.loadData() }
             }
+            .onReceive(NotificationCenter.default.publisher(for: .cycleDataUpdated)) { _ in
+                Task { await viewModel.loadData() }
+            }
             .sheet(isPresented: $showingAIWorkout) {
                 AIWorkoutView()
             }
@@ -485,9 +488,9 @@ class DashboardViewModel: ObservableObject {
     // MARK: - Private Methods
 
     private func loadCyclePhase() async {
+        // Try HealthKit first
         do {
             if healthClient.isAvailable {
-                // Fetch recent menstrual flow samples (last 6 months)
                 let sixMonthsAgo = Calendar.current.date(byAdding: .month, value: -6, to: Date())
                 let cycles = try await healthClient.fetchMenstrualCycles(
                     startDate: sixMonthsAgo,
@@ -495,22 +498,45 @@ class DashboardViewModel: ObservableObject {
                     limit: 100
                 )
                 if !cycles.isEmpty {
-                    // Convert HealthKit data to domain types and calculate phase
                     if let status = CyclePhaseHelper.calculatePhase(from: cycles) {
                         cyclePhase = status.currentPhase
-
-                        // Calculate confidence from data quality
                         let periodLogs = CyclePhaseHelper.convertToPeriodLogs(cycles)
                         cycleConfidence = CyclePhaseHelper.calculateConfidence(
                             periodLogCount: periodLogs.count,
                             lastPeriodStart: periodLogs.last?.startDate
                         )
+                        return
                     }
                 }
             }
         } catch {
-            // HealthKit not available or permission denied
-            // HealthKit not available or permission denied — degrade gracefully
+            // Fall through to manual logs
+        }
+
+        // Fallback: manual period logs
+        do {
+            let records = try await dataClient.fetchAll(
+                recordType: "PeriodLogRecord"
+            ) as [PeriodLogRecord]
+            guard !records.isEmpty else { return }
+
+            let periodLogs = records.map { $0.toPeriodLog() }
+            var settings = CycleSettings()
+            if let settingsRecords = try? await dataClient.fetchAll(
+                recordType: "CycleSettings"
+            ) as [CycleSettingsRecord], let first = settingsRecords.first {
+                settings = CycleSettings(averageCycleLengthDays: first.averageCycleLengthDays)
+            }
+
+            if let status = calculateCycleStatus(periodLogs: periodLogs, settings: settings) {
+                cyclePhase = status.currentPhase
+                cycleConfidence = CyclePhaseHelper.calculateConfidence(
+                    periodLogCount: periodLogs.count,
+                    lastPeriodStart: periodLogs.last?.startDate
+                )
+            }
+        } catch {
+            // Data unavailable — degrade gracefully
         }
     }
 
