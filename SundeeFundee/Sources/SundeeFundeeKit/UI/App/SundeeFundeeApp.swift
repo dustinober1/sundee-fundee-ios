@@ -82,6 +82,9 @@ public struct MainTabView: View {
         .task {
             await sharkWeekMonitor.check()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .cycleDataUpdated)) { _ in
+            Task { await sharkWeekMonitor.check() }
+        }
         .onReceive(NotificationCenter.default.publisher(for: .workoutCompleted)) { _ in
             selectedTab = .workouts
         }
@@ -97,6 +100,7 @@ public struct MainTabView: View {
 public extension Notification.Name {
     static let aiWorkoutStarted = Notification.Name("aiWorkoutStarted")
     static let workoutCompleted = Notification.Name("workoutCompleted")
+    static let cycleDataUpdated = Notification.Name("cycleDataUpdated")
 }
 
 public enum Tab: String {
