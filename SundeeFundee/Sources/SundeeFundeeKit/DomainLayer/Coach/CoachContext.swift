@@ -232,12 +232,18 @@ public actor CoachContextBuilder {
 
     private func loadWorkoutData() async -> [CompletedWorkoutRecord] {
         do {
-            return try await dataClient.fetchAll(
+            let completed = try await dataClient.fetchAll(
                 recordType: "CompletedWorkoutRecord"
             ) as [CompletedWorkoutRecord]
+            if !completed.isEmpty {
+                return completed
+            }
         } catch {
-            return []
+            // Fall back to Workout because the app persists completed sessions there.
         }
+
+        let workouts = await loadFullWorkouts()
+        return workouts.compactMap(\.completedWorkoutRecord)
     }
 
     private func loadFullWorkouts() async -> [Workout] {

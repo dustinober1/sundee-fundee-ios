@@ -92,9 +92,7 @@ public actor CoachMemoryService {
         let profile = await getProfile()
 
         do {
-            let workouts = try await dataClient.fetchAll(
-                recordType: "CompletedWorkoutRecord"
-            ) as [CompletedWorkoutRecord]
+            let workouts = try await loadCompletedWorkouts()
 
             guard let summary = PreferenceLearner.generateWeeklySummary(
                 workouts: workouts,
@@ -134,9 +132,7 @@ public actor CoachMemoryService {
         let profile = await getProfile()
 
         do {
-            let workouts = try await dataClient.fetchAll(
-                recordType: "CompletedWorkoutRecord"
-            ) as [CompletedWorkoutRecord]
+            let workouts = try await loadCompletedWorkouts()
             let edits = try await dataClient.fetchAll(
                 recordType: "WorkoutEdit"
             ) as [WorkoutEdit]
@@ -155,5 +151,21 @@ public actor CoachMemoryService {
         } catch {
             // Profile refresh is best-effort — degrade silently
         }
+    }
+
+    private func loadCompletedWorkouts() async throws -> [CompletedWorkoutRecord] {
+        do {
+            let completed = try await dataClient.fetchAll(
+                recordType: "CompletedWorkoutRecord"
+            ) as [CompletedWorkoutRecord]
+            if !completed.isEmpty {
+                return completed
+            }
+        } catch {
+            // Fall back to Workout because completed sessions are persisted there.
+        }
+
+        let workouts = try await dataClient.fetchAll(recordType: "Workout") as [Workout]
+        return workouts.compactMap(\.completedWorkoutRecord)
     }
 }

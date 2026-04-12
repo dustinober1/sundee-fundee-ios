@@ -83,6 +83,21 @@ public struct CompletedWorkoutRecord: Codable, Sendable {
     }
 }
 
+public extension Workout {
+    var completedWorkoutRecord: CompletedWorkoutRecord? {
+        guard isComplete else { return nil }
+
+        return CompletedWorkoutRecord(
+            id: id,
+            name: name,
+            date: completedAt ?? date,
+            duration: duration,
+            exerciseNames: exercises.map(\.name),
+            isComplete: true
+        )
+    }
+}
+
 public struct CyclePhaseInfo: Codable, Sendable {
     public let phase: CyclePhase
     public let confidence: Double

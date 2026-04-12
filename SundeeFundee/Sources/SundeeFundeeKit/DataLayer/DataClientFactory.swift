@@ -1,4 +1,7 @@
 import Foundation
+import os.log
+
+private let factoryLogger = Logger(subsystem: "com.sundeefundee.app", category: "DataClient")
 
 // MARK: - DataClientFactory
 //
@@ -26,7 +29,10 @@ public final class DataClientFactory: @unchecked Sendable {
     /// The active data client. Thread-safe read/write.
     public var client: any DataClientProtocol {
         get { lock.withLock { _client } }
-        set { lock.withLock { _client = newValue } }
+        set {
+            lock.withLock { _client = newValue }
+            factoryLogger.info("🔀 DataClient switched to: \(String(describing: type(of: newValue)))")
+        }
     }
 
     // MARK: - Initialization

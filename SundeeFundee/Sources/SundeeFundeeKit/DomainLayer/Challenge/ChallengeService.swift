@@ -54,6 +54,20 @@ public actor ChallengeService {
         return challenge
     }
 
+    /// Ensures a default lifetime challenge exists when the user has workout history.
+    public func ensureLifetimeChallenge(from workouts: [Workout]) async throws -> Challenge? {
+        let existing = try await loadAll()
+        if let lifetime = existing.first(where: { $0.type == .lifetimeVolume }) {
+            return lifetime
+        }
+
+        guard workouts.contains(where: \.isComplete) else {
+            return nil
+        }
+
+        return try await initializeLifetimeChallenge(from: workouts)
+    }
+
     // MARK: - Volume Recording
 
     /// Updates all active challenges with volume from a completed workout.

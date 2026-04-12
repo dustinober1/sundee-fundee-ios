@@ -189,7 +189,7 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
                     description: "\(celebrationTitle(event)) \(celebrationSubtitle(event))",
                     date: Date()
                 )
-                try? await dataClient.save(record, recordType: "Celebration")
+                try? await dataClient.save(record, recordType: "CelebrationEventRecord")
             }
         }
 

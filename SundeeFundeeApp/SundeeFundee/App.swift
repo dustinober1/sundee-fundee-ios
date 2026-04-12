@@ -1,5 +1,9 @@
+import CloudKit
 import SwiftUI
 import SundeeFundeeKit
+import os.log
+
+private let appLogger = Logger(subsystem: "com.sundeefundee.app", category: "AppStartup")
 
 @main
 struct SundeeFundeeMain: App {
@@ -29,6 +33,31 @@ struct SundeeFundeeMain: App {
             .artDecoBackground()
             .onAppear {
                 themeViewModel.applyTheme()
+                Task {
+                    let container = CKContainer(identifier: "iCloud.com.sundeefundee.app")
+                    do {
+                        let status = try await container.accountStatus()
+                        switch status {
+                        case .available:
+                            appLogger.info("☁️ iCloud: AVAILABLE")
+                        case .noAccount:
+                            appLogger.error("☁️ iCloud: NO ACCOUNT — user not signed into iCloud")
+                        case .restricted:
+                            appLogger.error("☁️ iCloud: RESTRICTED")
+                        case .couldNotDetermine:
+                            appLogger.error("☁️ iCloud: COULD NOT DETERMINE")
+                        case .temporarilyUnavailable:
+                            appLogger.error("☁️ iCloud: TEMPORARILY UNAVAILABLE")
+                        @unknown default:
+                            appLogger.error("☁️ iCloud: UNKNOWN STATUS")
+                        }
+                    } catch {
+                        appLogger.error("☁️ iCloud status check failed: \(error.localizedDescription)")
+                    }
+                    let client = DataClientFactory.shared.client
+                    appLogger.info("📦 Active DataClient: \(String(describing: type(of: client)))")
+                    appLogger.info("👤 Auth: authenticated=\(authViewModel.isAuthenticated), guest=\(authViewModel.isGuest)")
+                }
             }
             .task {
                 if Self.isScreenshotMode {

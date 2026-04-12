@@ -8,4 +8,5 @@ Lookup table for all pattern files in this directory. Check here before starting
 | [add-domain-logic.md](add-domain-logic.md) | Adding new business logic (calculations, analyzers) to the DomainLayer |
 | [add-view-feature.md](add-view-feature.md) | Adding a new UI feature with ViewModel and SwiftUI View |
 | [debug-build-failures.md](debug-build-failures.md) | Diagnosing build failures, SourceKit false positives, and Swift 6 concurrency errors |
+| [fix-cloudkit-schema-mismatch.md](fix-cloudkit-schema-mismatch.md) | Fixing missing CloudKit record types, unqueryable fields, and save/fetch schema drift |
 | [fix-cloudkit-duplicate-record.md](fix-cloudkit-duplicate-record.md) | Fixing CloudKit "record to insert already exists" errors in save/upsert flows |

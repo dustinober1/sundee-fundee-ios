@@ -167,6 +167,17 @@ public struct ChallengesView: View {
                     .font(AppTheme.Typography.labelMedium)
                     .foregroundColor(daysLeft < 7 ? AppTheme.Accent.orange : AppTheme.Text.secondary)
             }
+
+            if challenge.type == .lifetimeVolume {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: AppTheme.Spacing.sm) {
+                        ForEach(challenge.tiers.sorted { $0.ordinal < $1.ordinal }, id: \.ordinal) { tier in
+                            tierBadge(tier, challenge: challenge)
+                        }
+                    }
+                }
+                .padding(.top, AppTheme.Spacing.xs)
+            }
         }
         .padding(AppTheme.Spacing.md)
         .background(AppTheme.Background.cream)
@@ -185,6 +196,40 @@ public struct ChallengesView: View {
         }
         return "\(Int(lbs)) lbs"
     }
+
+    private func tierBadge(_ tier: ChallengeTier, challenge: Challenge) -> some View {
+        let isUnlocked = challenge.currentTierIndex > tier.ordinal || challenge.status == .completed
+        let isCurrent = challenge.status == .active && challenge.currentTierIndex == tier.ordinal
+
+        return VStack(alignment: .leading, spacing: 2) {
+            Text(tier.name)
+                .font(AppTheme.Typography.labelMedium)
+                .foregroundColor(isUnlocked ? AppTheme.Text.cream : AppTheme.Text.primary)
+            Text(formatVolume(tier.targetVolumeLbs))
+                .font(AppTheme.Typography.monoSmall)
+                .foregroundColor(isUnlocked ? AppTheme.Text.cream.opacity(0.85) : AppTheme.Text.secondary)
+        }
+        .padding(.horizontal, AppTheme.Spacing.md)
+        .padding(.vertical, AppTheme.Spacing.sm)
+        .background(badgeBackground(isUnlocked: isUnlocked, isCurrent: isCurrent))
+        .overlay(
+            Capsule()
+                .stroke(isCurrent ? AppTheme.Accent.orange : AppTheme.Background.navy.opacity(0.12), lineWidth: 1)
+        )
+        .clipShape(Capsule())
+    }
+
+    private func badgeBackground(isUnlocked: Bool, isCurrent: Bool) -> Color {
+        if isUnlocked {
+            return AppTheme.Background.navy
+        }
+
+        if isCurrent {
+            return AppTheme.Accent.goldLight
+        }
+
+        return AppTheme.Background.white
+    }
 }
 
 // MARK: - ChallengesViewModel
@@ -197,14 +242,18 @@ class ChallengesViewModel: ObservableObject {
     @Published var isLoading = false
 
     private let challengeService: ChallengeService
+    private let dataClient: DataClientProtocol
 
     init(dataClient: DataClientProtocol = DataClientFactory.shared.client) {
+        self.dataClient = dataClient
         self.challengeService = ChallengeService(dataClient: dataClient)
     }
 
     func loadChallenges() async {
         isLoading = true
         do {
+            let workouts: [Workout] = try await dataClient.fetchAll(recordType: "Workout")
+            _ = try await challengeService.ensureLifetimeChallenge(from: workouts)
             let all = try await challengeService.loadAll()
             activeChallenges = all.filter { $0.status == .active }
                 .sorted { $0.createdAt > $1.createdAt }

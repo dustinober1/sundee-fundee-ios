@@ -1,0 +1,338 @@
+DEFINE SCHEMA
+
+    RECORD TYPE BenchmarkDefinition (
+        "___createTime"    TIMESTAMP,
+        "___createdBy"     REFERENCE,
+        "___etag"          STRING,
+        "___modTime"       TIMESTAMP,
+        "___modifiedBy"    REFERENCE,
+        "___recordID"      REFERENCE QUERYABLE,
+        category           STRING QUERYABLE,
+        id                 STRING,
+        name               STRING QUERYABLE SORTABLE,
+        scoringTypeRaw     STRING,
+        sortOrder          INT64 SORTABLE,
+        workoutDescription STRING,
+        GRANT WRITE TO "_creator",
+        GRANT CREATE TO "_icloud",
+        GRANT READ TO "_world"
+    );
+
+    RECORD TYPE BenchmarkResult (
+        "___createTime" TIMESTAMP,
+        "___createdBy"  REFERENCE,
+        "___etag"       STRING,
+        "___modTime"    TIMESTAMP,
+        "___modifiedBy" REFERENCE,
+        "___recordID"   REFERENCE QUERYABLE,
+        benchmarkId     STRING QUERYABLE SEARCHABLE SORTABLE,
+        benchmarkName   STRING QUERYABLE SEARCHABLE SORTABLE,
+        date            STRING QUERYABLE SEARCHABLE SORTABLE,
+        score           INT64 QUERYABLE SORTABLE,
+        GRANT WRITE TO "_creator",
+        GRANT CREATE TO "_icloud",
+        GRANT READ TO "_world"
+    );
+
+    RECORD TYPE Celebration (
+        "___createTime" TIMESTAMP,
+        "___createdBy"  REFERENCE,
+        "___etag"       STRING,
+        "___modTime"    TIMESTAMP,
+        "___modifiedBy" REFERENCE,
+        "___recordID"   REFERENCE QUERYABLE,
+        date            STRING QUERYABLE SEARCHABLE SORTABLE,
+        description     STRING QUERYABLE SEARCHABLE SORTABLE,
+        GRANT WRITE TO "_creator",
+        GRANT CREATE TO "_icloud",
+        GRANT READ TO "_world"
+    );
+
+    RECORD TYPE Challenge (
+        "___createTime"      TIMESTAMP,
+        "___createdBy"       REFERENCE,
+        "___etag"            STRING,
+        "___modTime"         TIMESTAMP,
+        "___modifiedBy"      REFERENCE,
+        "___recordID"        REFERENCE QUERYABLE,
+        accumulatedVolumeLbs DOUBLE,
+        createdAt            TIMESTAMP,
+        currentTierIndex     INT64,
+        endDate              TIMESTAMP,
+        exerciseName         STRING,
+        startDate            TIMESTAMP,
+        status               STRING,
+        tiers                LIST<STRING>,
+        title                STRING,
+        type                 STRING,
+        GRANT WRITE TO "_creator",
+        GRANT CREATE TO "_icloud",
+        GRANT READ TO "_world"
+    );
+
+    RECORD TYPE CelebrationEventRecord (
+        "___createTime" TIMESTAMP,
+        "___createdBy"  REFERENCE,
+        "___etag"       STRING,
+        "___modTime"    TIMESTAMP,
+        "___modifiedBy" REFERENCE,
+        "___recordID"   REFERENCE QUERYABLE,
+        date            STRING QUERYABLE SEARCHABLE SORTABLE,
+        description     STRING QUERYABLE SEARCHABLE SORTABLE,
+        GRANT WRITE TO "_creator",
+        GRANT CREATE TO "_icloud",
+        GRANT READ TO "_world"
+    );
+
+    RECORD TYPE CompletedWorkoutRecord (
+        "___createTime" TIMESTAMP,
+        "___createdBy"  REFERENCE,
+        "___etag"       STRING,
+        "___modTime"    TIMESTAMP,
+        "___modifiedBy" REFERENCE,
+        "___recordID"   REFERENCE QUERYABLE,
+        date            STRING QUERYABLE SEARCHABLE SORTABLE,
+        duration        INT64 QUERYABLE SORTABLE,
+        exerciseNames   LIST<STRING>,
+        isComplete      INT64 QUERYABLE SORTABLE,
+        name            STRING QUERYABLE SEARCHABLE SORTABLE,
+        GRANT WRITE TO "_creator",
+        GRANT CREATE TO "_icloud",
+        GRANT READ TO "_world"
+    );
+
+    RECORD TYPE CoachProfile (
+        "___createTime"         TIMESTAMP,
+        "___createdBy"          REFERENCE,
+        "___etag"               STRING,
+        "___modTime"            TIMESTAMP,
+        "___modifiedBy"         REFERENCE,
+        "___recordID"           REFERENCE,
+        avgWorkoutsPerWeek      INT64 QUERYABLE SORTABLE,
+        energyDistribution      STRING QUERYABLE SEARCHABLE SORTABLE,
+        lastUpdated             STRING QUERYABLE SEARCHABLE SORTABLE,
+        preferredEquipment      STRING QUERYABLE SEARCHABLE SORTABLE,
+        preferredSessionMinutes INT64 QUERYABLE SORTABLE,
+        totalWorkoutsObserved   INT64 QUERYABLE SORTABLE,
+        GRANT WRITE TO "_creator",
+        GRANT CREATE TO "_icloud",
+        GRANT READ TO "_world"
+    );
+
+    RECORD TYPE CycleSettings (
+        "___createTime"        TIMESTAMP,
+        "___createdBy"         REFERENCE,
+        "___etag"              STRING,
+        "___modTime"           TIMESTAMP,
+        "___modifiedBy"        REFERENCE,
+        "___recordID"          REFERENCE QUERYABLE,
+        averageCycleLengthDays INT64 QUERYABLE SORTABLE,
+        lastPeriodStart        STRING QUERYABLE SEARCHABLE SORTABLE,
+        GRANT WRITE TO "_creator",
+        GRANT CREATE TO "_icloud",
+        GRANT READ TO "_world"
+    );
+
+    RECORD TYPE CyclePhaseInfo (
+        "___createTime" TIMESTAMP,
+        "___createdBy"  REFERENCE,
+        "___etag"       STRING,
+        "___modTime"    TIMESTAMP,
+        "___modifiedBy" REFERENCE,
+        "___recordID"   REFERENCE QUERYABLE,
+        confidence       DOUBLE QUERYABLE SORTABLE,
+        endDate          STRING QUERYABLE SEARCHABLE SORTABLE,
+        phase            STRING QUERYABLE SEARCHABLE SORTABLE,
+        startDate        STRING QUERYABLE SEARCHABLE SORTABLE,
+        GRANT WRITE TO "_creator",
+        GRANT CREATE TO "_icloud",
+        GRANT READ TO "_world"
+    );
+
+    RECORD TYPE DailyPainLog (
+        "___createTime" TIMESTAMP,
+        "___createdBy"  REFERENCE,
+        "___etag"       STRING,
+        "___modTime"    TIMESTAMP,
+        "___modifiedBy" REFERENCE,
+        "___recordID"   REFERENCE QUERYABLE,
+        date            STRING QUERYABLE SEARCHABLE SORTABLE,
+        intensity       INT64 QUERYABLE SORTABLE,
+        locationIds     STRING QUERYABLE SEARCHABLE SORTABLE,
+        painType        STRING QUERYABLE SEARCHABLE SORTABLE,
+        GRANT WRITE TO "_creator",
+        GRANT CREATE TO "_icloud",
+        GRANT READ TO "_world"
+    );
+
+    RECORD TYPE EnrolledProgramRecord (
+        "___createTime" TIMESTAMP,
+        "___createdBy"  REFERENCE,
+        "___etag"       STRING,
+        "___modTime"    TIMESTAMP,
+        "___modifiedBy" REFERENCE,
+        "___recordID"   REFERENCE QUERYABLE,
+        isActive        INT64 QUERYABLE SORTABLE,
+        name            STRING QUERYABLE SEARCHABLE SORTABLE,
+        GRANT WRITE TO "_creator",
+        GRANT CREATE TO "_icloud",
+        GRANT READ TO "_world"
+    );
+
+    RECORD TYPE Injury (
+        "___createTime" TIMESTAMP,
+        "___createdBy"  REFERENCE,
+        "___etag"       STRING,
+        "___modTime"    TIMESTAMP,
+        "___modifiedBy" REFERENCE,
+        "___recordID"   REFERENCE QUERYABLE,
+        dateCreated     TIMESTAMP,
+        locationIds     LIST<INT64>,
+        name            STRING,
+        notes           STRING,
+        phaseUpdated    TIMESTAMP,
+        recoveryPhase   STRING,
+        GRANT WRITE TO "_creator",
+        GRANT CREATE TO "_icloud",
+        GRANT READ TO "_world"
+    );
+
+    RECORD TYPE OneRepMaxRecord (
+        "___createTime" TIMESTAMP,
+        "___createdBy"  REFERENCE,
+        "___etag"       STRING,
+        "___modTime"    TIMESTAMP,
+        "___modifiedBy" REFERENCE,
+        "___recordID"   REFERENCE QUERYABLE,
+        date            STRING QUERYABLE SEARCHABLE SORTABLE,
+        exerciseName    STRING QUERYABLE SEARCHABLE SORTABLE,
+        unit            STRING QUERYABLE SEARCHABLE SORTABLE,
+        weight          INT64 QUERYABLE SORTABLE,
+        GRANT WRITE TO "_creator",
+        GRANT CREATE TO "_icloud",
+        GRANT READ TO "_world"
+    );
+
+    RECORD TYPE PeriodLogRecord (
+        "___createTime" TIMESTAMP,
+        "___createdBy"  REFERENCE,
+        "___etag"       STRING,
+        "___modTime"    TIMESTAMP,
+        "___modifiedBy" REFERENCE,
+        "___recordID"   REFERENCE QUERYABLE,
+        endDate         STRING QUERYABLE SEARCHABLE SORTABLE,
+        startDate       STRING QUERYABLE SEARCHABLE SORTABLE,
+        GRANT WRITE TO "_creator",
+        GRANT CREATE TO "_icloud",
+        GRANT READ TO "_world"
+    );
+
+    RECORD TYPE Program (
+        "___createTime"            TIMESTAMP,
+        "___createdBy"             REFERENCE,
+        "___etag"                  STRING,
+        "___modTime"               TIMESTAMP,
+        "___modifiedBy"            REFERENCE,
+        "___recordID"              REFERENCE QUERYABLE,
+        category                   STRING,
+        createdAt                  STRING,
+        cycleAdjustmentProfileJSON STRING,
+        description                STRING,
+        difficulty                 STRING,
+        durationWeeks              INT64,
+        endDate                    STRING,
+        id                         STRING,
+        name                       STRING QUERYABLE SORTABLE,
+        phasesJSON                 STRING,
+        sessionsPerWeek            INT64,
+        startDate                  STRING,
+        status                     STRING,
+        updatedAt                  STRING,
+        weeksJSON                  STRING,
+        GRANT WRITE TO "_creator",
+        GRANT CREATE TO "_icloud",
+        GRANT READ TO "_world"
+    );
+
+    RECORD TYPE UserData (
+        "___createTime" TIMESTAMP,
+        "___createdBy"  REFERENCE,
+        "___etag"       STRING,
+        "___modTime"    TIMESTAMP,
+        "___modifiedBy" REFERENCE,
+        "___recordID"   REFERENCE,
+        createdAt       STRING QUERYABLE SEARCHABLE SORTABLE,
+        email           STRING QUERYABLE SEARCHABLE SORTABLE,
+        familyName      STRING QUERYABLE SEARCHABLE SORTABLE,
+        givenName       STRING QUERYABLE SEARCHABLE SORTABLE,
+        userID          STRING QUERYABLE SEARCHABLE SORTABLE,
+        GRANT WRITE TO "_creator",
+        GRANT CREATE TO "_icloud",
+        GRANT READ TO "_world"
+    );
+
+    RECORD TYPE UserSettings (
+        "___createTime"      TIMESTAMP,
+        "___createdBy"       REFERENCE,
+        "___etag"            STRING,
+        "___modTime"         TIMESTAMP,
+        "___modifiedBy"      REFERENCE,
+        "___recordID"        REFERENCE QUERYABLE,
+        cycleTrackingEnabled INT64 QUERYABLE SORTABLE,
+        experienceLevel      STRING QUERYABLE SEARCHABLE SORTABLE,
+        primaryGoal          STRING QUERYABLE SEARCHABLE SORTABLE,
+        weightUnit           STRING QUERYABLE SEARCHABLE SORTABLE,
+        GRANT WRITE TO "_creator",
+        GRANT CREATE TO "_icloud",
+        GRANT READ TO "_world"
+    );
+
+    RECORD TYPE Users (
+        "___createTime" TIMESTAMP,
+        "___createdBy"  REFERENCE,
+        "___etag"       STRING,
+        "___modTime"    TIMESTAMP,
+        "___modifiedBy" REFERENCE,
+        "___recordID"   REFERENCE,
+        roles           LIST<INT64>,
+        GRANT WRITE TO "_creator",
+        GRANT READ TO "_world"
+    );
+
+    RECORD TYPE WOD (
+        "___createTime" TIMESTAMP,
+        "___createdBy"  REFERENCE,
+        "___etag"       STRING,
+        "___modTime"    TIMESTAMP,
+        "___modifiedBy" REFERENCE,
+        "___recordID"   REFERENCE QUERYABLE,
+        date            STRING QUERYABLE SORTABLE,
+        description     STRING,
+        exercisesJSON   STRING,
+        id              STRING,
+        publishDate     STRING,
+        status          STRING,
+        templateType    STRING,
+        title           STRING,
+        GRANT WRITE TO "_creator",
+        GRANT CREATE TO "_icloud",
+        GRANT READ TO "_world"
+    );
+
+    RECORD TYPE Workout (
+        "___createTime" TIMESTAMP,
+        "___createdBy"  REFERENCE,
+        "___etag"       STRING,
+        "___modTime"    TIMESTAMP,
+        "___modifiedBy" REFERENCE,
+        "___recordID"   REFERENCE QUERYABLE,
+        completedAt     STRING QUERYABLE SEARCHABLE SORTABLE,
+        date            STRING QUERYABLE SEARCHABLE SORTABLE,
+        duration        INT64 QUERYABLE SORTABLE,
+        exercises       LIST<STRING>,
+        name            STRING QUERYABLE SEARCHABLE SORTABLE,
+        notes           STRING QUERYABLE SEARCHABLE SORTABLE,
+        GRANT WRITE TO "_creator",
+        GRANT CREATE TO "_icloud",
+        GRANT READ TO "_world"
+    );

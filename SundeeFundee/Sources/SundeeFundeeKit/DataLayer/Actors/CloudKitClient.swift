@@ -1,5 +1,8 @@
 import CloudKit
 import Foundation
+import os.log
+
+private let ckLogger = Logger(subsystem: "com.sundeefundee.app", category: "CloudKit")
 
 // MARK: - CloudKitClient
 
@@ -80,15 +83,19 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
         let query = CKQuery(recordType: recordType, predicate: predicate)
         query.sortDescriptors = sortDescriptors
         do {
-            return try await fetchWithQuery(query)
+            let results: [T] = try await fetchWithQuery(query)
+            ckLogger.info("✅ FETCH \(recordType): \(results.count) records")
+            return results
         } catch {
             // Fall back to fetching all records when CloudKit indexes are missing
             // (e.g., "Field 'recordName' is not marked queryable").
             // This happens when the schema hasn't been deployed — return empty
             // instead of crashing, since the record type simply doesn't exist yet.
             if isQueryableError(error) {
+                ckLogger.error("❌ FETCH \(recordType): queryable error — \(error.localizedDescription)")
                 return []
             }
+            ckLogger.error("❌ FETCH \(recordType): \(error.localizedDescription)")
             throw error
         }
     }
@@ -118,6 +125,7 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
         recordType: String
     ) async throws where T: Encodable & Sendable {
         guard !records.isEmpty else { return }
+        ckLogger.info("💾 SAVE \(recordType): \(records.count) records")
 
         var nilKeyMap: [CKRecord.ID: Set<String>] = [:]
         var ckRecords: [CKRecord] = []
@@ -130,13 +138,21 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
             let (savedRecords, _) = try await database.modifyRecords(saving: ckRecords, deleting: [])
             for (_, result) in savedRecords {
                 if case .failure(let error) = result {
+                    if isDuplicateRecordError(error) {
+                        ckLogger.info("ℹ️ SAVE \(recordType): duplicate detected during insert, retrying merge")
+                    } else {
+                        ckLogger.error("❌ SAVE \(recordType): record error — \(error.localizedDescription)")
+                    }
                     throw error
                 }
             }
+            ckLogger.info("✅ SAVE \(recordType): success")
         } catch {
             guard isDuplicateRecordError(error) else {
+                ckLogger.error("❌ SAVE \(recordType): \(error.localizedDescription)")
                 throw mapCKError(error, recordID: nil)
             }
+            ckLogger.info("🔄 SAVE \(recordType): duplicate detected, merging")
             let existingRecords = await fetchExistingRecords(ckRecords.map(\.recordID))
             ckRecords = ckRecords.map { mergeWithExisting($0, existing: existingRecords, nilKeys: nilKeyMap) }
             let (savedRecords, _) = try await database.modifyRecords(saving: ckRecords, deleting: [])
@@ -145,6 +161,7 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
                     throw mapCKError(error, recordID: recordID)
                 }
             }
+            ckLogger.info("✅ SAVE \(recordType): merge success")
         }
     }
 
