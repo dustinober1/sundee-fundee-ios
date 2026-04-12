@@ -1,5 +1,8 @@
 import AuthenticationServices
 import Foundation
+import os.log
+
+private let authLogger = Logger(subsystem: "com.sundeefundee.app", category: "AppleAuth")
 
 // MARK: - AppleAuthClientProtocol
 
@@ -216,7 +219,7 @@ public actor AppleAuthClient: AppleAuthClientProtocol {
         // Note: For full revocation, you often need to perform this against
         // Apple's REST API using a client secret. On-device revocation is limited.
         // We'll simulate the intent here.
-        print("Revoking token for authorization code: \(codeString.prefix(10))...")
+        authLogger.info("Revoking Apple ID authorization token")
         await signOut()
     }
 }
