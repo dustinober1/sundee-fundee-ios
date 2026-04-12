@@ -34,8 +34,7 @@ Then read this file fully before doing anything else in this session.
 - SyncQueue offline-first mutation queuing with automatic replay
 - Domain layer: cycle calculations, injury models, benchmark catalog, intelligence features (plateau detection, load analysis, schedule reshuffling, substitution ranking)
 - Active workout session tracking with Live Activity widget
-- Remote content delivery via Teenybase backend (exercises, programs, benchmarks)
-- ContentClientProtocol with RemoteContentClient + BundledContentProvider fallback
+- ContentClientProtocol with BundledContentProvider (all content bundled; remote delivery deferred to v2)
 - Art Deco themed UI (cream/navy/orange) across all screens
 
 **Not yet built:**
@@ -49,6 +48,12 @@ Then read this file fully before doing anything else in this session.
 - SwiftUI Toggle and tab bar items not reliably accessible in UI automation tests
 - README subscription tier table is outdated — app is now free with no paywalls
 - ~~Program enrollment fails with CloudKit duplicate record error~~ (fixed: `CloudKitClient.save()` now uses fetch-or-update upsert semantics)
+
+**Pre-submission items remaining (issue #128):**
+- Token revocation (`revokeToken`) needs server-side client_secret JWT to properly call Apple's revoke endpoint
+- Add review notes: cycle/pain data is user-entered training preferences, not HealthKit-sourced
+- Verify `https://sundeefundee.com/privacy` and `/terms` are live
+- Set age rating in App Store Connect: `healthOrWellnessTopics: true`, `medicalOrTreatmentInformation: INFREQUENT_OR_MILD`
 
 ## Routing Table
 
