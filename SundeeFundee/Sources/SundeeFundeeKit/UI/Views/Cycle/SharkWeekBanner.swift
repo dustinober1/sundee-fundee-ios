@@ -61,6 +61,19 @@ final class SharkWeekMonitor: ObservableObject {
     }
 
     func check() async {
+        // Fast path: if there's an active (un-ended) manual period, user is on their period
+        do {
+            let manualRecords = try await dataClient.fetchAll(
+                recordType: "PeriodLogRecord"
+            ) as [PeriodLogRecord]
+            if manualRecords.contains(where: { $0.isActive }) {
+                isSharkWeek = true
+                return
+            }
+        } catch {
+            // Continue with calculation-based approach
+        }
+
         var periodLogs: [PeriodLog] = []
 
         // Load HealthKit cycles if available
