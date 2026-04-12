@@ -8,12 +8,17 @@ import Foundation
 public struct PeriodLogRecord: Codable, Sendable, Equatable, Identifiable {
     public let id: String
     public let startDate: Date
-    public let endDate: Date
+    public var endDate: Date?
 
-    public init(id: String = UUID().uuidString, startDate: Date, endDate: Date) {
+    public init(id: String = UUID().uuidString, startDate: Date, endDate: Date? = nil) {
         self.id = id
         self.startDate = startDate
         self.endDate = endDate
+    }
+
+    /// Whether this period is still active (no end date set).
+    public var isActive: Bool {
+        endDate == nil
     }
 
     /// Convert to the domain PeriodLog type used by cycle calculations.
