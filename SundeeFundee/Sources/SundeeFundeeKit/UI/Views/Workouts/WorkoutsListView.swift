@@ -271,6 +271,7 @@ struct NewWorkoutView: View {
     @StateObject private var viewModel = NewWorkoutViewModel()
 
     @State private var showingAIWorkout: Bool = false
+    @State private var activeWorkoutSession: ActiveWorkoutSessionViewModel?
 
     var body: some View {
         NavigationStack {
@@ -376,8 +377,9 @@ struct NewWorkoutView: View {
                     // Start Workout Button
                     Button {
                         Task {
-                            await viewModel.createWorkout()
-                            dismiss()
+                            if let workout = await viewModel.createWorkout() {
+                                activeWorkoutSession = ActiveWorkoutSessionViewModel(workout: workout)
+                            }
                         }
                     } label: {
                         HStack {
@@ -408,6 +410,15 @@ struct NewWorkoutView: View {
             }
             .sheet(isPresented: $showingAIWorkout) {
                 AIWorkoutView()
+            }
+            #if os(iOS)
+            .fullScreenCover(item: $activeWorkoutSession) { session in
+                ActiveWorkoutView(viewModel: session)
+            }
+            #endif
+            .onReceive(NotificationCenter.default.publisher(for: .workoutCompleted)) { _ in
+                activeWorkoutSession = nil
+                dismiss()
             }
         }
     }
@@ -619,7 +630,7 @@ class NewWorkoutViewModel: ObservableObject {
         exercises[index].weight = max(0, value)
     }
 
-    func createWorkout() async {
+    func createWorkout() async -> Workout? {
         let workout = Workout(
             date: Date(),
             name: workoutName.trimmingCharacters(in: .whitespaces),
@@ -645,8 +656,9 @@ class NewWorkoutViewModel: ObservableObject {
         do {
             try await dataClient.save(workout, recordType: "Workout")
         } catch {
-            // Error is non-critical; the new workout sheet will dismiss
+            // Error is non-critical; proceed to active session anyway
         }
+        return workout
     }
 }
 
