@@ -4,6 +4,7 @@ import Foundation
 
 /// Available program templates
 public enum ProgramTemplate: String, Codable, Sendable, CaseIterable {
+    case firstMargarita
     case strength
     case hypertrophy
     case fullBody
@@ -20,6 +21,7 @@ public struct TemplateDefaults: Sendable {
 
 /// Template defaults
 public let templateDefaults: [ProgramTemplate: TemplateDefaults] = [
+    .firstMargarita: TemplateDefaults(durationWeeks: 8, sessionsPerWeek: 3),
     .strength:    TemplateDefaults(durationWeeks: 4, sessionsPerWeek: 3),
     .hypertrophy: TemplateDefaults(durationWeeks: 6, sessionsPerWeek: 4),
     .fullBody:    TemplateDefaults(durationWeeks: 4, sessionsPerWeek: 3),
@@ -81,6 +83,11 @@ public func generateProgram(
     durationWeeks: Int? = nil,
     sessionsPerWeek: Int? = nil
 ) -> GeneratedProgram {
+    // Hand-crafted programs bypass the generic generation path
+    if template == .firstMargarita {
+        return generateFirstMargaritaProgram()
+    }
+
     guard let defaults = templateDefaults[template] else {
         return GeneratedProgram(
             id: "template-\(template.rawValue)-\(Int(Date().timeIntervalSince1970 * 1000))",
@@ -126,6 +133,7 @@ public func generateProgram(
 
 private func templateDisplayName(_ template: ProgramTemplate) -> String {
     switch template {
+    case .firstMargarita: return "The First Margarita"
     case .strength:    return "Strength"
     case .hypertrophy: return "Hypertrophy"
     case .fullBody:    return "Full Body"
@@ -155,7 +163,7 @@ private func buildSessionName(template: ProgramTemplate, day: Int, focus: String
 private func sessionFocus(template: ProgramTemplate, day: Int) -> String {
     let idx = day - 1
     switch template {
-    case .strength, .linear, .block:
+    case .firstMargarita, .strength, .linear, .block:
         let focuses = ["squat", "bench", "deadlift", "overhead press", "squat"]
         return focuses[idx % focuses.count]
     case .hypertrophy:
@@ -174,6 +182,8 @@ private typealias ExerciseTuple = (String, Int, Int, Double, Double, Bool)
 
 private func sessionExercises(template: ProgramTemplate, focus: String, week: Int, day: Int, totalWeeks: Int) -> [GeneratedProgramExercise] {
     switch template {
+    case .firstMargarita:
+        return [] // Hand-crafted; generateProgram short-circuits before reaching here
     case .strength, .hypertrophy, .fullBody:
         let pool = exercisePool(template: template, focus: focus)
         let progressionOffset = Double(week - 1) * 0.02
