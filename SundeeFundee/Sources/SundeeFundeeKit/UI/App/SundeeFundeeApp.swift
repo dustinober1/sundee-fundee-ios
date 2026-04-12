@@ -15,6 +15,7 @@ import SwiftUI
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
 public struct MainTabView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
+    @StateObject private var sharkWeekMonitor = SharkWeekMonitor()
 
     public init() {}
 
@@ -70,6 +71,17 @@ public struct MainTabView: View {
                 .accessibilityHint("View app settings")
         }
         .tint(AppTheme.Accent.gold)
+        .overlay(alignment: .top) {
+            if sharkWeekMonitor.isSharkWeek {
+                SharkWeekBanner()
+                    .padding(.top, AppTheme.Spacing.sm)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+            }
+        }
+        .animation(.easeInOut(duration: 0.3), value: sharkWeekMonitor.isSharkWeek)
+        .task {
+            await sharkWeekMonitor.check()
+        }
         .onReceive(NotificationCenter.default.publisher(for: .workoutCompleted)) { _ in
             selectedTab = .workouts
         }
