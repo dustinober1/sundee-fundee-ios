@@ -69,9 +69,18 @@ struct ProgramRow: View {
         ArtDecoCard {
             VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
                 HStack {
-                    Text(program.name)
-                        .font(AppTheme.Typography.headlineMedium)
-                        .foregroundColor(AppTheme.Text.primary)
+                    VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                        if program.template == .firstMargarita {
+                            Text("FEATURED")
+                                .font(AppTheme.Typography.labelSmall)
+                                .foregroundColor(AppTheme.Accent.orange)
+                                .accessibilityLabel("Featured program")
+                        }
+
+                        Text(program.name)
+                            .font(AppTheme.Typography.headlineMedium)
+                            .foregroundColor(AppTheme.Text.primary)
+                    }
 
                     Spacer()
 
@@ -645,6 +654,7 @@ class ProgramsListViewModel: ObservableObject {
     // Maps known program display names to their template type so the detail view
     // can regenerate sessions without storing the full program in CloudKit.
     private static let nameToTemplate: [String: ProgramTemplate] = [
+        "The First Margarita": .firstMargarita,
         "Strength Basics": .strength,
         "Hypertrophy Phase": .hypertrophy,
         "Full Body Split": .fullBody,
@@ -751,6 +761,7 @@ class ProgramsListViewModel: ObservableObject {
 
     private func templateDisplayName(_ template: ProgramTemplate) -> String {
         switch template {
+        case .firstMargarita: return "The First Margarita"
         case .strength:    return "Strength Basics"
         case .hypertrophy: return "Hypertrophy Phase"
         case .fullBody:    return "Full Body"
