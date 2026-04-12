@@ -172,6 +172,15 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
             errorMessage = "Failed to save workout: \(error.localizedDescription)"
         }
 
+        // Update challenge volume
+        do {
+            let challengeService = ChallengeService(dataClient: dataClient)
+            let challengeCelebrations = try await challengeService.recordWorkoutVolume(workout)
+            celebrationEvents.append(contentsOf: challengeCelebrations)
+        } catch {
+            // Challenge update is non-critical
+        }
+
         // Save celebration
         if !celebrationEvents.isEmpty {
             for event in celebrationEvents {
