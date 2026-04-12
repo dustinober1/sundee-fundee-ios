@@ -204,9 +204,15 @@ struct CycleSettingsView: View {
     @State private var loggedPeriods: [PeriodLogRecord] = []
     @State private var isSaving: Bool = false
     @State private var isLogging: Bool = false
+    @State private var isEndingPeriod: Bool = false
     @State private var errorMessage: String?
 
     private let dataClient: DataClientProtocol
+
+    /// Whether there is an active period (started but not ended).
+    private var activePeriod: PeriodLogRecord? {
+        loggedPeriods.first(where: { $0.isActive })
+    }
 
     init(dataClient: DataClientProtocol = DataClientFactory.shared.client) {
         self.dataClient = dataClient
@@ -255,59 +261,135 @@ struct CycleSettingsView: View {
                 .disabled(isSaving)
             }
 
-            // Log Period
-            Section {
-                DatePicker("Start Date", selection: $periodStartDate, displayedComponents: .date)
-                DatePicker("End Date", selection: $periodEndDate, displayedComponents: .date)
-
-                Button {
-                    Task { await logPeriod() }
-                } label: {
+            // Active Period / Start Period
+            if let active = activePeriod {
+                Section {
                     HStack {
-                        Spacer()
-                        if isLogging {
-                            ProgressView()
-                        } else {
-                            HStack(spacing: AppTheme.Spacing.sm) {
-                                Image(systemName: "plus.circle.fill")
-                                Text("Log Period")
-                            }
-                            .font(AppTheme.Typography.labelLarge)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Period started")
+                                .font(AppTheme.Typography.bodyMedium)
+                                .foregroundColor(AppTheme.Text.primary)
+                            Text(formatDate(active.startDate))
+                                .font(AppTheme.Typography.bodySmall)
+                                .foregroundColor(AppTheme.Text.secondary)
                         }
                         Spacer()
+                        Text("\u{1F988} Active")
+                            .font(AppTheme.Typography.labelMedium)
+                            .foregroundColor(.red)
                     }
+
+                    Button {
+                        Task { await endActivePeriod() }
+                    } label: {
+                        HStack {
+                            Spacer()
+                            if isEndingPeriod {
+                                ProgressView()
+                            } else {
+                                HStack(spacing: AppTheme.Spacing.sm) {
+                                    Image(systemName: "checkmark.circle.fill")
+                                    Text("End Period")
+                                }
+                                .font(AppTheme.Typography.labelLarge)
+                                .foregroundColor(.red)
+                            }
+                            Spacer()
+                        }
+                    }
+                    .disabled(isEndingPeriod)
+                } header: {
+                    Text("Current Period")
                 }
-                .disabled(isLogging || periodEndDate < periodStartDate)
-            } header: {
-                Text("Log Period")
-            } footer: {
-                if periodEndDate < periodStartDate {
-                    Text("End date must be on or after start date.")
-                        .foregroundColor(AppTheme.Semantic.error)
+            } else {
+                Section {
+                    DatePicker("Start Date", selection: $periodStartDate, in: ...Date(), displayedComponents: .date)
+
+                    Button {
+                        Task { await startPeriod() }
+                    } label: {
+                        HStack {
+                            Spacer()
+                            if isLogging {
+                                ProgressView()
+                            } else {
+                                HStack(spacing: AppTheme.Spacing.sm) {
+                                    Image(systemName: "drop.fill")
+                                    Text("Start Period")
+                                }
+                                .font(AppTheme.Typography.labelLarge)
+                                .foregroundColor(.red)
+                            }
+                            Spacer()
+                        }
+                    }
+                    .disabled(isLogging)
+                } header: {
+                    Text("Log Period")
+                } footer: {
+                    Text("You can end it later, or log a past period with start and end dates below.")
+                }
+
+                // Log a past period (with both dates)
+                Section {
+                    DatePicker("Start Date", selection: $periodStartDate, in: ...Date(), displayedComponents: .date)
+                    DatePicker("End Date", selection: $periodEndDate, in: ...Date(), displayedComponents: .date)
+
+                    Button {
+                        Task { await logPastPeriod() }
+                    } label: {
+                        HStack {
+                            Spacer()
+                            if isLogging {
+                                ProgressView()
+                            } else {
+                                HStack(spacing: AppTheme.Spacing.sm) {
+                                    Image(systemName: "plus.circle.fill")
+                                    Text("Log Past Period")
+                                }
+                                .font(AppTheme.Typography.labelLarge)
+                            }
+                            Spacer()
+                        }
+                    }
+                    .disabled(isLogging || periodEndDate < periodStartDate)
+                } header: {
+                    Text("Log Past Period")
+                } footer: {
+                    if periodEndDate < periodStartDate {
+                        Text("End date must be on or after start date.")
+                            .foregroundColor(AppTheme.Semantic.error)
+                    }
                 }
             }
 
-            // Logged Periods
-            if !loggedPeriods.isEmpty {
-                Section("Logged Periods") {
-                    ForEach(loggedPeriods) { period in
+            // Logged Periods (completed ones only)
+            let completedPeriods = loggedPeriods.filter { !$0.isActive }
+            if !completedPeriods.isEmpty {
+                Section("Past Periods") {
+                    ForEach(completedPeriods) { period in
                         HStack {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(formatDate(period.startDate))
                                     .font(AppTheme.Typography.bodyMedium)
                                     .foregroundColor(AppTheme.Text.primary)
-                                Text("to \(formatDate(period.endDate))")
-                                    .font(AppTheme.Typography.bodySmall)
-                                    .foregroundColor(AppTheme.Text.secondary)
+                                if let endDate = period.endDate {
+                                    Text("to \(formatDate(endDate))")
+                                        .font(AppTheme.Typography.bodySmall)
+                                        .foregroundColor(AppTheme.Text.secondary)
+                                }
                             }
                             Spacer()
-                            Text("\(daysBetween(period.startDate, period.endDate)) days")
-                                .font(AppTheme.Typography.labelMedium)
-                                .foregroundColor(AppTheme.Accent.gold)
+                            if let endDate = period.endDate {
+                                Text("\(daysBetween(period.startDate, endDate)) days")
+                                    .font(AppTheme.Typography.labelMedium)
+                                    .foregroundColor(AppTheme.Accent.gold)
+                            }
                         }
                     }
                     .onDelete { offsets in
-                        Task { await deletePeriods(at: offsets) }
+                        let ids = offsets.map { completedPeriods[$0].id }
+                        Task { await deletePeriods(ids: ids) }
                     }
                 }
             }
@@ -370,7 +452,46 @@ struct CycleSettingsView: View {
         isSaving = false
     }
 
-    private func logPeriod() async {
+    private func startPeriod() async {
+        isLogging = true
+        let startOfDay = Calendar.current.startOfDay(for: periodStartDate)
+        let record = PeriodLogRecord(startDate: startOfDay, endDate: nil)
+        do {
+            try await dataClient.save(record, recordType: "PeriodLogRecord")
+            loggedPeriods.insert(record, at: 0)
+
+            let settingsRecord = CycleSettingsRecord(
+                averageCycleLengthDays: Int(cycleLength),
+                lastPeriodStart: startOfDay
+            )
+            try await dataClient.save(settingsRecord, recordType: "CycleSettings")
+
+            NotificationCenter.default.post(name: .cycleDataUpdated, object: nil)
+            periodStartDate = Date()
+        } catch {
+            errorMessage = "Failed to start period: \(error.localizedDescription)"
+        }
+        isLogging = false
+    }
+
+    private func endActivePeriod() async {
+        guard let active = activePeriod else { return }
+        isEndingPeriod = true
+        let endOfDay = Calendar.current.startOfDay(for: Date())
+        let updated = PeriodLogRecord(id: active.id, startDate: active.startDate, endDate: endOfDay)
+        do {
+            try await dataClient.save(updated, recordType: "PeriodLogRecord")
+            if let idx = loggedPeriods.firstIndex(where: { $0.id == active.id }) {
+                loggedPeriods[idx] = updated
+            }
+            NotificationCenter.default.post(name: .cycleDataUpdated, object: nil)
+        } catch {
+            errorMessage = "Failed to end period: \(error.localizedDescription)"
+        }
+        isEndingPeriod = false
+    }
+
+    private func logPastPeriod() async {
         isLogging = true
         let startOfDay = Calendar.current.startOfDay(for: periodStartDate)
         let endOfDay = Calendar.current.startOfDay(for: periodEndDate)
@@ -379,7 +500,6 @@ struct CycleSettingsView: View {
             try await dataClient.save(record, recordType: "PeriodLogRecord")
             loggedPeriods.insert(record, at: 0)
 
-            // Also update CycleSettings.lastPeriodStart to stay in sync
             let settingsRecord = CycleSettingsRecord(
                 averageCycleLengthDays: Int(cycleLength),
                 lastPeriodStart: startOfDay
@@ -387,8 +507,6 @@ struct CycleSettingsView: View {
             try await dataClient.save(settingsRecord, recordType: "CycleSettings")
 
             NotificationCenter.default.post(name: .cycleDataUpdated, object: nil)
-
-            // Reset pickers for next entry
             periodStartDate = Date()
             periodEndDate = Date()
         } catch {
@@ -397,12 +515,11 @@ struct CycleSettingsView: View {
         isLogging = false
     }
 
-    private func deletePeriods(at offsets: IndexSet) async {
-        let toDelete = offsets.map { loggedPeriods[$0] }
-        loggedPeriods.remove(atOffsets: offsets)
-        for record in toDelete {
+    private func deletePeriods(ids: [String]) async {
+        loggedPeriods.removeAll { ids.contains($0.id) }
+        for id in ids {
             do {
-                try await dataClient.delete(recordType: "PeriodLogRecord", id: record.id)
+                try await dataClient.delete(recordType: "PeriodLogRecord", id: id)
             } catch {
                 // Best effort
             }
