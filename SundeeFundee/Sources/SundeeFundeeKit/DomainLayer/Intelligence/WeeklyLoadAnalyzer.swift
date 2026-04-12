@@ -48,6 +48,10 @@ public enum WeeklyLoadAnalyzer {
         case undertraining
         /// Consistent training pattern.
         case consistent
+        /// Push/pull ratio imbalance within a week.
+        case pushPullImbalance
+        /// Repeating pattern of missed/dropped weeks.
+        case missedSessionPattern
     }
 
     public enum TrendSeverity: String, Sendable, Equatable {
@@ -163,6 +167,34 @@ public enum WeeklyLoadAnalyzer {
             }
         }
 
+        // Push/pull ratio imbalance
+        if let lastWeek = summaries.last, lastWeek.workoutCount >= 2 {
+            let ratio = pushPullRatio(from: lastWeek)
+            if ratio.push > 0 && ratio.pull > 0 {
+                if ratio.push > ratio.pull * 2 {
+                    trends.append(LoadTrend(
+                        type: .pushPullImbalance,
+                        message: "Push/Pull ratio is \(ratio.push):\(ratio.pull) this week. Aim for roughly 1:1 to prevent shoulder and posture issues.",
+                        severity: .warning
+                    ))
+                } else if ratio.pull > ratio.push * 2 {
+                    trends.append(LoadTrend(
+                        type: .pushPullImbalance,
+                        message: "Pull/Push ratio is \(ratio.pull):\(ratio.push) this week. Add some pressing to maintain balance.",
+                        severity: .warning
+                    ))
+                }
+            }
+        }
+
+        // Missed session pattern detection
+        if summaries.count >= 4 {
+            let pattern = detectMissedSessionPattern(counts: counts)
+            if let pattern {
+                trends.append(pattern)
+            }
+        }
+
         // Consistency
         if trends.isEmpty && summaries.count >= 3 {
             let variance = counts.variance()
@@ -176,6 +208,54 @@ public enum WeeklyLoadAnalyzer {
         }
 
         return trends
+    }
+
+    // MARK: - Push/Pull Ratio
+
+    /// Computes the count of Upper Push vs Upper Pull exercises in a weekly summary.
+    public static func pushPullRatio(from summary: WeeklySummary) -> (push: Int, pull: Int) {
+        var push = 0
+        var pull = 0
+        for name in summary.exerciseNames {
+            let group = classifyMuscleGroup(name)
+            if group == "Upper Push" { push += 1 }
+            if group == "Upper Pull" { pull += 1 }
+        }
+        return (push, pull)
+    }
+
+    // MARK: - Missed Session Pattern Detection
+
+    /// Looks for repeating drop-off patterns in workout counts.
+    /// E.g., [4, 4, 1, 4, 4, 1] → drop-off every 3rd week.
+    private static func detectMissedSessionPattern(counts: [Int]) -> LoadTrend? {
+        guard counts.count >= 4 else { return nil }
+
+        let avg = Double(counts.reduce(0, +)) / Double(counts.count)
+        guard avg > 1 else { return nil }
+
+        // Find weeks that are significantly below average (< 40% of avg)
+        let dropThreshold = avg * 0.4
+        let dropWeeks = counts.enumerated().filter { Double($0.element) < dropThreshold }
+
+        // Need at least 2 drop weeks to detect a pattern
+        guard dropWeeks.count >= 2 else { return nil }
+
+        // Check if drops are evenly spaced
+        let gaps = zip(dropWeeks, dropWeeks.dropFirst()).map { $1.offset - $0.offset }
+        guard let firstGap = gaps.first, firstGap >= 2 else { return nil }
+        let allSameGap = gaps.allSatisfy { $0 == firstGap }
+
+        if allSameGap {
+            let ordinal = firstGap == 2 ? "3rd" : "\(firstGap + 1)th"
+            return LoadTrend(
+                type: .missedSessionPattern,
+                message: "You tend to drop off every \(ordinal) week. Consider scheduling a deliberate lighter week instead of skipping.",
+                severity: .info
+            )
+        }
+
+        return nil
     }
 
     // MARK: - Muscle Group Classification
