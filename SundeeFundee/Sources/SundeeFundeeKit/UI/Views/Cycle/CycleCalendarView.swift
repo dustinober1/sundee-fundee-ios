@@ -40,6 +40,9 @@ public struct CycleCalendarView: View {
         .task {
             await viewModel.loadData()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .cycleDataUpdated)) { _ in
+            Task { await viewModel.loadData() }
+        }
     }
 
     // MARK: - Month Navigation
@@ -375,6 +378,24 @@ class CycleCalendarViewModel: ObservableObject {
             }
         } catch {
             // No HealthKit data
+        }
+
+        // Merge manual period logs
+        do {
+            let manualRecords = try await dataClient.fetchAll(
+                recordType: "PeriodLogRecord"
+            ) as [PeriodLogRecord]
+            let manualLogs = manualRecords.map { $0.toPeriodLog() }
+            for log in manualLogs {
+                let isDuplicate = periodLogs.contains { existing in
+                    abs(existing.startDate.timeIntervalSince(log.startDate)) < 86400
+                }
+                if !isDuplicate {
+                    periodLogs.append(log)
+                }
+            }
+        } catch {
+            // No manual logs
         }
 
         // Calculate current status
