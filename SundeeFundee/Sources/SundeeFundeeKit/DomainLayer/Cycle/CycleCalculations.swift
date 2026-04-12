@@ -132,7 +132,15 @@ public func calculateCycleStatus(
 
     for period in sorted {
         let pStart = startOfDay(period.startDate)
-        let pEnd = period.endDate.map(startOfDay) ?? addDays(pStart, settings.averagePeriodLengthDays - 1)
+        let pEnd: Date
+        if let logEnd = period.endDate {
+            pEnd = startOfDay(logEnd)
+        } else if ref >= pStart {
+            // Active period (no end date): treat as ongoing through reference date
+            pEnd = ref
+        } else {
+            pEnd = addDays(pStart, settings.averagePeriodLengthDays - 1)
+        }
 
         if isWithin(ref, start: pStart, end: pEnd) {
             cycleStartDate = pStart
