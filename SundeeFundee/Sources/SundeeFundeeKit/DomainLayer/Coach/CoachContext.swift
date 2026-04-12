@@ -43,8 +43,14 @@ public struct CoachContext: Sendable {
     /// Detected load trends.
     public let trends: [WeeklyLoadAnalyzer.LoadTrend]
 
-    /// Detected plateau alerts.
+    /// Detected strength plateau alerts.
     public let plateaus: [PlateauDetector.PlateauAlert]
+
+    /// Detected volume plateau alerts.
+    public let volumePlateaus: [PlateauDetector.PlateauAlert]
+
+    /// Early warnings for slowing progress.
+    public let progressWarnings: [PlateauDetector.RateOfProgressAlert]
 
     // MARK: - Equipment
 
@@ -65,6 +71,8 @@ public struct CoachContext: Sendable {
         weeklySummaries: [WeeklyLoadAnalyzer.WeeklySummary] = [],
         trends: [WeeklyLoadAnalyzer.LoadTrend] = [],
         plateaus: [PlateauDetector.PlateauAlert] = [],
+        volumePlateaus: [PlateauDetector.PlateauAlert] = [],
+        progressWarnings: [PlateauDetector.RateOfProgressAlert] = [],
         equipment: EquipmentAccess = .fullGym
     ) {
         self.cyclePhase = cyclePhase
@@ -78,6 +86,8 @@ public struct CoachContext: Sendable {
         self.weeklySummaries = weeklySummaries
         self.trends = trends
         self.plateaus = plateaus
+        self.volumePlateaus = volumePlateaus
+        self.progressWarnings = progressWarnings
         self.equipment = equipment
     }
 }
@@ -116,7 +126,12 @@ public actor CoachContextBuilder {
         // Run analysis on the workout data
         let summaries = WeeklyLoadAnalyzer.weeklySummaries(from: workouts)
         let trends = WeeklyLoadAnalyzer.detectTrends(from: summaries)
-        let plateaus = PlateauDetector.detect(from: maxResult.records)
+        let plateaus = PlateauDetector.detect(from: maxResult.records, catalog: weightliftingExercises)
+        let progressWarnings = PlateauDetector.detectSlowingProgress(from: maxResult.records)
+
+        // Load full workouts for volume plateau detection
+        let fullWorkouts = await loadFullWorkouts()
+        let volumePlateaus = PlateauDetector.detectVolumePlateaus(from: fullWorkouts)
 
         return CoachContext(
             cyclePhase: cycle.phase,
@@ -130,6 +145,8 @@ public actor CoachContextBuilder {
             weeklySummaries: summaries,
             trends: trends,
             plateaus: plateaus,
+            volumePlateaus: volumePlateaus,
+            progressWarnings: progressWarnings,
             equipment: equipment
         )
     }
@@ -218,6 +235,14 @@ public actor CoachContextBuilder {
             return try await dataClient.fetchAll(
                 recordType: "CompletedWorkoutRecord"
             ) as [CompletedWorkoutRecord]
+        } catch {
+            return []
+        }
+    }
+
+    private func loadFullWorkouts() async -> [Workout] {
+        do {
+            return try await dataClient.fetchAll(recordType: "Workout") as [Workout]
         } catch {
             return []
         }
