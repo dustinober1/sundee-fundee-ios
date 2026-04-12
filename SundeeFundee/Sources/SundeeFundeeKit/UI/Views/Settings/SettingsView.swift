@@ -52,6 +52,7 @@ public struct SettingsView: View {
                     }
 
                     Toggle("Enable Cycle Tracking", isOn: $viewModel.cycleTrackingEnabled)
+                        .padding(.vertical, 4)
 
                     if viewModel.cycleTrackingEnabled {
                         NavigationLink {

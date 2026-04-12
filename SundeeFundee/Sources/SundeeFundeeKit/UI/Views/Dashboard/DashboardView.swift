@@ -326,6 +326,12 @@ public struct DashboardView: View {
                     }
                     .buttonStyle(.plain)
                     .accessibilityHint("Navigate to benchmarks")
+
+                    NavigationLink(destination: ChallengesView()) {
+                        quickActionContent("Challenges", icon: "flag.fill", isPrimary: false)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityHint("Navigate to challenges")
                 }
             }
         }
@@ -649,6 +655,8 @@ class DashboardViewModel: ObservableObject {
     private func loadActiveChallenge() async {
         let service = ChallengeService(dataClient: dataClient)
         do {
+            let workouts: [Workout] = try await dataClient.fetchAll(recordType: "Workout")
+            _ = try await service.ensureLifetimeChallenge(from: workouts)
             if let closest = try await service.closestToCompletion() {
                 activeChallengeData = closest
             }

@@ -125,6 +125,7 @@ struct ExercisePickerView: View {
                         .foregroundColor(AppTheme.Text.secondary.opacity(0.3))
                 }
             }
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }
