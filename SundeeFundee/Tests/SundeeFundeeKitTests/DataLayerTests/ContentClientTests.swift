@@ -27,11 +27,9 @@ struct ContentClientTests {
         #expect(exercises.allSatisfy { $0.source == .bundled })
     }
 
-    @Test("ContentSource enum has bundled and remote cases")
+    @Test("ContentSource enum has bundled case")
     func testContentSourceCases() {
-        #expect(ContentSource.bundled != ContentSource.remote)
         #expect(ContentSource.bundled.rawValue == "bundled")
-        #expect(ContentSource.remote.rawValue == "remote")
     }
 
     @Test("ContentExercise model is properly initialized")
