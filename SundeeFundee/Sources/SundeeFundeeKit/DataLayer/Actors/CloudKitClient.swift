@@ -336,7 +336,8 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
                     let decoded: T = try decodeFromCKRecord(record)
                     decodedResults.append(decoded)
                 } catch {
-                    ckLogger.error("⚠️ DECODE \(record.recordType)/\(record.recordID.recordName): \(error.localizedDescription)")
+                    ckLogger.error("⚠️ DECODE \(record.recordType)/\(record.recordID.recordName): \(String(describing: error))")
+                    ckLogger.error("⚠️ DECODE \(record.recordType)/\(record.recordID.recordName) keys: \(record.allKeys().joined(separator: ", "))")
                     continue
                 }
             case .failure(let error):
@@ -361,7 +362,8 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
                     let decoded: T = try decodeFromCKRecord(record)
                     decodedResults.append(decoded)
                 } catch {
-                    ckLogger.error("⚠️ DECODE \(record.recordType)/\(record.recordID.recordName): \(error.localizedDescription)")
+                    ckLogger.error("⚠️ DECODE \(record.recordType)/\(record.recordID.recordName): \(String(describing: error))")
+                    ckLogger.error("⚠️ DECODE \(record.recordType)/\(record.recordID.recordName) keys: \(record.allKeys().joined(separator: ", "))")
                     continue
                 }
             case .failure(let error):
