@@ -314,8 +314,14 @@ public struct WorkoutDetailView: View {
                 }
 
                 Button {
-                    Task {
-                        await viewModel.toggleSetComplete(exerciseIndex: exerciseIndex, setIndex: setIndex)
+                    if set.isComplete {
+                        Task {
+                            await viewModel.toggleSetComplete(exerciseIndex: exerciseIndex, setIndex: setIndex)
+                        }
+                    } else {
+                        editRepsInput = "\(set.reps)"
+                        editWeightInput = set.prescribedWeight > 0 ? "\(Int(set.prescribedWeight))" : ""
+                        editingSetKey = setKey
                     }
                 } label: {
                     Image(systemName: set.isComplete ? "checkmark.circle.fill" : "circle")
@@ -362,16 +368,25 @@ public struct WorkoutDetailView: View {
                         .frame(maxWidth: .infinity)
                     }
 
-                    Button("Save") {
+                    Button(set.isComplete ? "Save" : "Complete") {
                         let newReps = Int(editRepsInput)
                         let newWeight = Double(editWeightInput)
                         Task {
-                            await viewModel.updateSet(
-                                exerciseIndex: exerciseIndex,
-                                setIndex: setIndex,
-                                actualReps: newReps,
-                                completedWeight: newWeight
-                            )
+                            if !set.isComplete {
+                                await viewModel.completeSetWithValues(
+                                    exerciseIndex: exerciseIndex,
+                                    setIndex: setIndex,
+                                    actualReps: newReps ?? set.reps,
+                                    completedWeight: newWeight ?? set.prescribedWeight
+                                )
+                            } else {
+                                await viewModel.updateSet(
+                                    exerciseIndex: exerciseIndex,
+                                    setIndex: setIndex,
+                                    actualReps: newReps,
+                                    completedWeight: newWeight
+                                )
+                            }
                         }
                         editingSetKey = nil
                     }
@@ -524,6 +539,26 @@ class WorkoutDetailViewModel: ObservableObject {
             errorMessage = "Failed to load workout: \(error.localizedDescription)"
         }
         isLoading = false
+    }
+
+    func completeSetWithValues(exerciseIndex: Int, setIndex: Int, actualReps: Int, completedWeight: Double) async {
+        guard var workout = workout else { return }
+        guard exerciseIndex < workout.exercises.count,
+              setIndex < workout.exercises[exerciseIndex].targetSets.count else { return }
+
+        var set = workout.exercises[exerciseIndex].targetSets[setIndex]
+        set.isComplete = true
+        set.actualReps = actualReps
+        set.completedWeight = completedWeight
+
+        workout.exercises[exerciseIndex].targetSets[setIndex] = set
+        self.workout = workout
+
+        do {
+            try await dataClient.save(workout, recordType: "Workout")
+        } catch {
+            errorMessage = "Failed to save: \(error.localizedDescription)"
+        }
     }
 
     func toggleSetComplete(exerciseIndex: Int, setIndex: Int) async {
