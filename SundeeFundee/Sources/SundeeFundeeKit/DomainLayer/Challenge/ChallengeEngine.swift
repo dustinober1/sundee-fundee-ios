@@ -54,7 +54,7 @@ public enum ChallengeEngine {
             type: .custom,
             title: title,
             tiers: [tier],
-            endDate: endDate
+            challengeEndDate: endDate
         )
     }
 
@@ -183,7 +183,7 @@ public enum ChallengeEngine {
         referenceDate: Date = Date()
     ) -> Challenge {
         guard challenge.status == .active,
-              let endDate = challenge.endDate,
+              let endDate = challenge.challengeEndDate,
               referenceDate > endDate else {
             return challenge
         }

@@ -48,9 +48,9 @@ public struct Challenge: Codable, Sendable, Identifiable, Equatable {
     public var currentTierIndex: Int
     public var accumulatedVolumeLbs: Double
     public var status: ChallengeStatus
-    public let startDate: Date
+    public let challengeStartDate: Date
     /// Nil = no deadline (lifetime challenges).
-    public let endDate: Date?
+    public let challengeEndDate: Date?
     public let dateCreated: Date
 
     public init(
@@ -62,8 +62,8 @@ public struct Challenge: Codable, Sendable, Identifiable, Equatable {
         currentTierIndex: Int = 0,
         accumulatedVolumeLbs: Double = 0,
         status: ChallengeStatus = .active,
-        startDate: Date = Date(),
-        endDate: Date? = nil,
+        challengeStartDate: Date = Date(),
+        challengeEndDate: Date? = nil,
         dateCreated: Date = Date()
     ) {
         self.id = id
@@ -74,8 +74,8 @@ public struct Challenge: Codable, Sendable, Identifiable, Equatable {
         self.currentTierIndex = currentTierIndex
         self.accumulatedVolumeLbs = accumulatedVolumeLbs
         self.status = status
-        self.startDate = startDate
-        self.endDate = endDate
+        self.challengeStartDate = challengeStartDate
+        self.challengeEndDate = challengeEndDate
         self.dateCreated = dateCreated
     }
 }

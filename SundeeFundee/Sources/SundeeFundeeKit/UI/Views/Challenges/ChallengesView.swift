@@ -161,7 +161,7 @@ public struct ChallengesView: View {
                 }
             }
 
-            if let endDate = challenge.endDate, challenge.status == .active {
+            if let endDate = challenge.challengeEndDate, challenge.status == .active {
                 let daysLeft = Calendar.current.dateComponents([.day], from: Date(), to: endDate).day ?? 0
                 Text("\(max(0, daysLeft)) days left")
                     .font(AppTheme.Typography.labelMedium)

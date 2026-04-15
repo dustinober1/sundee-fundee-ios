@@ -56,7 +56,7 @@ final class ChallengeEngineTests: XCTestCase {
         XCTAssertEqual(challenge.type, .lifetimeVolume)
         XCTAssertEqual(challenge.tiers.count, 3)
         XCTAssertEqual(challenge.status, .active)
-        XCTAssertNil(challenge.endDate)
+        XCTAssertNil(challenge.challengeEndDate)
     }
 
     func testCreateExerciseChallenge() {
@@ -79,7 +79,7 @@ final class ChallengeEngineTests: XCTestCase {
         )
         XCTAssertEqual(challenge.type, .custom)
         XCTAssertEqual(challenge.title, "March Madness")
-        XCTAssertNotNil(challenge.endDate)
+        XCTAssertNotNil(challenge.challengeEndDate)
         XCTAssertEqual(challenge.tiers.count, 1)
         XCTAssertEqual(challenge.tiers[0].targetVolumeLbs, 100_000)
     }
