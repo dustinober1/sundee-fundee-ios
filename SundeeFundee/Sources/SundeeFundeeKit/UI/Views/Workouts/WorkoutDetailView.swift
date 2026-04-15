@@ -613,6 +613,15 @@ class WorkoutDetailViewModel: ObservableObject {
 
         do {
             try await dataClient.save(workout, recordType: "Workout")
+
+            // Record volume toward lifetime challenges
+            let challengeService = ChallengeService(dataClient: dataClient)
+            _ = try await challengeService.recordWorkoutVolume(workout)
+
+            // Notify other views to refresh
+            await MainActor.run {
+                NotificationCenter.default.post(name: .workoutCompleted, object: nil)
+            }
         } catch {
             errorMessage = "Failed to complete workout: \(error.localizedDescription)"
         }
