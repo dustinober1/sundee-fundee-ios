@@ -87,13 +87,12 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
             ckLogger.info("✅ FETCH \(recordType): \(results.count) records")
             return results
         } catch {
-            // Fall back to fetching all records when CloudKit indexes are missing
-            // (e.g., "Field 'recordName' is not marked queryable").
-            // This happens when the schema hasn't been deployed — return empty
-            // instead of crashing, since the record type simply doesn't exist yet.
             if isQueryableError(error) {
-                ckLogger.error("❌ FETCH \(recordType): queryable error — \(error.localizedDescription)")
-                return []
+                ckLogger.error("❌ FETCH \(recordType): queryable/index error — \(error.localizedDescription)")
+                throw DataError.schemaNotDeployed(
+                    recordType: recordType,
+                    detail: error.localizedDescription
+                )
             }
             ckLogger.error("❌ FETCH \(recordType): \(error.localizedDescription)")
             throw error
