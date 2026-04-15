@@ -85,7 +85,11 @@ SundeeFundee/ (Swift Package — SundeeFundeeKit)
 
 #### CloudKit Schema Rules
 - **Date encoding** — `JSONEncoder` with `.iso8601` produces strings. CloudKit stores dates as STRING (not TIMESTAMP) when auto-created. Do NOT name model fields `createdAt`, `modifiedAt`, `startDate`, or `endDate` — these collide with CloudKit system TIMESTAMP fields. Use alternative names (e.g. `dateCreated`, `challengeStartDate`).
-- **New record types** need a `recordName` QUERYABLE index added in CloudKit Dashboard (Development → Indexes), then deployed to Production. Without this, `fetchAll` returns empty with a "not marked queryable/indexable" error.
+- **New record types** need a `recordName` QUERYABLE index added in CloudKit Dashboard (Development → Indexes), then deployed to Production. Without this, `fetchAll` throws `DataError.schemaNotDeployed`.
+- **Bool fields** — CloudKit stores `Bool` as `Int64` (0/1). Models with Bool fields need a custom `init(from:)` that tries `Bool` first, falls back to `Int`. See `EnrolledProgramRecord` and `UserSettingsRecord` for examples.
+- **Nested arrays/structs** — CloudKit does not support `[Any]` arrays. The `CloudKitClient.convertToCKRecordValue` serializes arrays of dicts as typed `[String]` arrays (each element JSON-encoded) or falls back to a single JSON string. When adding new models with nested struct arrays, verify the data round-trips by checking CloudKit Dashboard > Records.
+- **Backwards-compatible decoding** — When renaming fields, add a custom `init(from:)` that tries the new key first, falls back to the legacy key. See `Challenge` model for an example with `dateCreated`/`createdAt` fallback. Always use `try?` with a default for fields that may be missing from old records.
+- **Decode resilience** — Both `CloudKitClient` and `LocalDataClient` skip individual records that fail to decode (logged as warnings) rather than failing the entire query. This prevents one corrupt record from breaking all data loading.
 
 ### Subscriptions
 
