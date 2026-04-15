@@ -212,6 +212,19 @@ public struct PainTrackingView: View {
                             .padding(.vertical, 2)
                             .background(Color.orange.opacity(0.15))
                             .cornerRadius(AppTheme.CornerRadius.small)
+
+                        Button {
+                            Task { await viewModel.resolveInjury(id: injury.id) }
+                        } label: {
+                            Text("Healed")
+                                .font(AppTheme.Typography.labelMedium)
+                                .foregroundColor(.green)
+                                .padding(.horizontal, AppTheme.Spacing.sm)
+                                .padding(.vertical, 2)
+                                .background(Color.green.opacity(0.15))
+                                .cornerRadius(AppTheme.CornerRadius.small)
+                        }
+                        .accessibilityLabel("Mark \(injury.name) as healed")
                     }
 
                     if injury.id != viewModel.activeInjuries.last?.id {
