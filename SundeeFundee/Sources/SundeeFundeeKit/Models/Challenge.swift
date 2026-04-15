@@ -99,7 +99,10 @@ public struct Challenge: Codable, Sendable, Identifiable, Equatable {
         type = try container.decode(ChallengeType.self, forKey: .type)
         title = try container.decode(String.self, forKey: .title)
         exerciseName = try container.decodeIfPresent(String.self, forKey: .exerciseName)
-        tiers = try container.decode([ChallengeTier].self, forKey: .tiers)
+        // tiers may be missing from old records that were saved before the
+        // CloudKit array serialisation fix. Default to lifetime tiers.
+        tiers = (try? container.decode([ChallengeTier].self, forKey: .tiers))
+            ?? ChallengeEngine.defaultLifetimeTiers()
         currentTierIndex = try container.decode(Int.self, forKey: .currentTierIndex)
         accumulatedVolumeLbs = try container.decode(Double.self, forKey: .accumulatedVolumeLbs)
         status = try container.decode(ChallengeStatus.self, forKey: .status)
