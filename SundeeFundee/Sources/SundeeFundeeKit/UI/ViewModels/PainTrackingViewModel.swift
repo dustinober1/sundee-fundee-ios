@@ -155,6 +155,18 @@ public class PainTrackingViewModel: ObservableObject {
         isLoading = false
     }
 
+    /// Resolve an injury (mark as healed)
+    public func resolveInjury(id: String) async {
+        guard let injury = injuries.first(where: { $0.id == id }) else { return }
+        await saveInjury(
+            id: injury.id,
+            locationIds: injury.locationIds,
+            name: injury.name,
+            recoveryPhase: .resolved,
+            notes: injury.notes
+        )
+    }
+
     /// Delete an injury
     public func deleteInjury(id: String) async {
         isLoading = true
