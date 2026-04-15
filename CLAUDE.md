@@ -83,6 +83,10 @@ SundeeFundee/ (Swift Package — SundeeFundeeKit)
 - **`LocalDataClient`** — Local storage for guest users
 - **`SyncQueue`** — Queues mutations offline, replays when connectivity returns
 
+#### CloudKit Schema Rules
+- **Date encoding** — `JSONEncoder` with `.iso8601` produces strings. CloudKit stores dates as STRING (not TIMESTAMP) when auto-created. Do NOT name model fields `createdAt`, `modifiedAt`, `startDate`, or `endDate` — these collide with CloudKit system TIMESTAMP fields. Use alternative names (e.g. `dateCreated`, `challengeStartDate`).
+- **New record types** need a `recordName` QUERYABLE index added in CloudKit Dashboard (Development → Indexes), then deployed to Production. Without this, `fetchAll` returns empty with a "not marked queryable/indexable" error.
+
 ### Subscriptions
 
 **The app is free with no in-app purchases or subscriptions.** All features are available to all users. Do not introduce paywalls, purchase flows, or subscription gating.
