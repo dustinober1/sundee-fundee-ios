@@ -51,7 +51,7 @@ public struct Challenge: Codable, Sendable, Identifiable, Equatable {
     public let startDate: Date
     /// Nil = no deadline (lifetime challenges).
     public let endDate: Date?
-    public let createdAt: Date
+    public let dateCreated: Date
 
     public init(
         id: String = UUID().uuidString,
@@ -64,7 +64,7 @@ public struct Challenge: Codable, Sendable, Identifiable, Equatable {
         status: ChallengeStatus = .active,
         startDate: Date = Date(),
         endDate: Date? = nil,
-        createdAt: Date = Date()
+        dateCreated: Date = Date()
     ) {
         self.id = id
         self.type = type
@@ -76,7 +76,7 @@ public struct Challenge: Codable, Sendable, Identifiable, Equatable {
         self.status = status
         self.startDate = startDate
         self.endDate = endDate
-        self.createdAt = createdAt
+        self.dateCreated = dateCreated
     }
 }
 

@@ -256,9 +256,9 @@ class ChallengesViewModel: ObservableObject {
             _ = try await challengeService.ensureLifetimeChallenge(from: workouts)
             let all = try await challengeService.loadAll()
             activeChallenges = all.filter { $0.status == .active }
-                .sorted { $0.createdAt > $1.createdAt }
+                .sorted { $0.dateCreated > $1.dateCreated }
             completedChallenges = all.filter { $0.status == .completed || $0.status == .expired }
-                .sorted { $0.createdAt > $1.createdAt }
+                .sorted { $0.dateCreated > $1.dateCreated }
         } catch {
             // Silently fail — empty state shown
         }
