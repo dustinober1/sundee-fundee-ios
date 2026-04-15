@@ -216,21 +216,23 @@ public struct ActiveWorkoutView: View {
     private func repsInputSection(prescribedReps: Int) -> some View {
         VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
             Text("Reps")
-                .font(AppTheme.Typography.labelSmall)
+                .font(AppTheme.Typography.labelMedium)
                 .foregroundColor(AppTheme.Text.secondary)
 
             TextField(
                 "\(prescribedReps)",
                 text: $repsInput
             )
-            .font(AppTheme.Typography.monoMedium)
+            .font(AppTheme.Typography.displaySmall)
             .foregroundColor(AppTheme.Text.primary)
-            .padding(AppTheme.Spacing.sm)
+            .padding(.horizontal, AppTheme.Spacing.md)
+            .padding(.vertical, AppTheme.Spacing.md)
+            .frame(minHeight: 52)
             .background(AppTheme.Background.cream.opacity(0.5))
-            .cornerRadius(AppTheme.CornerRadius.small)
+            .cornerRadius(AppTheme.CornerRadius.medium)
             .overlay(
-                RoundedRectangle(cornerRadius: AppTheme.CornerRadius.small)
-                    .stroke(isRepsFocused ? AppTheme.Accent.gold : AppTheme.Text.secondary.opacity(0.3), lineWidth: 1)
+                RoundedRectangle(cornerRadius: AppTheme.CornerRadius.medium)
+                    .stroke(isRepsFocused ? AppTheme.Accent.gold : AppTheme.Text.secondary.opacity(0.3), lineWidth: 1.5)
             )
             .focused($isRepsFocused)
             #if os(iOS)
@@ -242,21 +244,23 @@ public struct ActiveWorkoutView: View {
     private func weightInputSection(prescribedWeight: Double) -> some View {
         VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
             Text("Weight Lifted (lb)")
-                .font(AppTheme.Typography.labelSmall)
+                .font(AppTheme.Typography.labelMedium)
                 .foregroundColor(AppTheme.Text.secondary)
 
             TextField(
                 prescribedWeight > 0 ? "\(Int(prescribedWeight))" : "Enter weight",
                 text: $weightInput
             )
-            .font(AppTheme.Typography.monoMedium)
+            .font(AppTheme.Typography.displaySmall)
             .foregroundColor(AppTheme.Text.primary)
-            .padding(AppTheme.Spacing.sm)
+            .padding(.horizontal, AppTheme.Spacing.md)
+            .padding(.vertical, AppTheme.Spacing.md)
+            .frame(minHeight: 52)
             .background(AppTheme.Background.cream.opacity(0.5))
-            .cornerRadius(AppTheme.CornerRadius.small)
+            .cornerRadius(AppTheme.CornerRadius.medium)
             .overlay(
-                RoundedRectangle(cornerRadius: AppTheme.CornerRadius.small)
-                    .stroke(isWeightFocused ? AppTheme.Accent.gold : AppTheme.Text.secondary.opacity(0.3), lineWidth: 1)
+                RoundedRectangle(cornerRadius: AppTheme.CornerRadius.medium)
+                    .stroke(isWeightFocused ? AppTheme.Accent.gold : AppTheme.Text.secondary.opacity(0.3), lineWidth: 1.5)
             )
             .focused($isWeightFocused)
             #if os(iOS)
