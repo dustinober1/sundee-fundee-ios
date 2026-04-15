@@ -54,10 +54,23 @@ public actor ChallengeService {
         return challenge
     }
 
-    /// Ensures a default lifetime challenge exists when the user has workout history.
+    /// Ensures exactly one lifetime challenge exists. Deduplicates if multiple
+    /// were created (e.g. from previous decode failures causing repeated creates).
     public func ensureLifetimeChallenge(from workouts: [Workout]) async throws -> Challenge? {
         let existing = try await loadAll()
-        if let lifetime = existing.first(where: { $0.type == .lifetimeVolume }) {
+        let lifetimes = existing.filter { $0.type == .lifetimeVolume }
+
+        if lifetimes.count > 1 {
+            // Keep the one with the most volume, delete the rest
+            let sorted = lifetimes.sorted { $0.accumulatedVolumeLbs > $1.accumulatedVolumeLbs }
+            let keeper = sorted[0]
+            for duplicate in sorted.dropFirst() {
+                try? await delete(duplicate.id)
+            }
+            return keeper
+        }
+
+        if let lifetime = lifetimes.first {
             return lifetime
         }
 
