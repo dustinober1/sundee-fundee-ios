@@ -407,24 +407,12 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
         return record
     }
 
-    /// ISO 8601 formatter (with fractional seconds) for round-tripping dates.
+    /// ISO 8601 formatter (with fractional seconds) for round-tripping dates from CloudKit.
     private nonisolated(unsafe) static let iso8601FractionalFormatter: ISO8601DateFormatter = {
         let f = ISO8601DateFormatter()
         f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         return f
     }()
-
-    /// ISO 8601 formatter (without fractional seconds) matching JSONEncoder's .iso8601 output.
-    private nonisolated(unsafe) static let iso8601Formatter: ISO8601DateFormatter = {
-        let f = ISO8601DateFormatter()
-        f.formatOptions = [.withInternetDateTime]
-        return f
-    }()
-
-    /// Parse an ISO 8601 string to Date, trying both with and without fractional seconds.
-    private static func parseISO8601(_ string: String) -> Date? {
-        iso8601FractionalFormatter.date(from: string) ?? iso8601Formatter.date(from: string)
-    }
 
     /// Converts a JSON value to a CKRecord-compatible value.
     /// ISO 8601 date strings are converted to native Date objects so CloudKit
@@ -433,10 +421,6 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
         if value is NSNull { return nil }
         switch value {
         case let stringValue as String:
-            // Convert ISO 8601 date strings to native Date for CloudKit TIMESTAMP fields
-            if let date = Self.parseISO8601(stringValue) {
-                return date
-            }
             return stringValue
         case let intValue as Int:
             return intValue
@@ -475,6 +459,7 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
     private func convertFromCKRecordValue(_ value: Any) -> Any {
         switch value {
         case let dateValue as Date:
+            // Convert CloudKit TIMESTAMP dates to ISO 8601 strings for JSONDecoder
             return Self.iso8601FractionalFormatter.string(from: dateValue)
         case let reference as CKRecord.Reference:
             return reference.recordID.recordName
