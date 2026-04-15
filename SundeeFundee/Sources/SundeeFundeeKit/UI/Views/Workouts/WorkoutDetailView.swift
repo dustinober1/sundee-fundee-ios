@@ -127,9 +127,30 @@ public struct WorkoutDetailView: View {
                 ForEach(Array(workout.exercises.enumerated()), id: \.element.id) { index, exercise in
                     exerciseCard(exercise, exerciseIndex: index)
                 }
+
+                // Complete Workout button for in-progress workouts
+                if !workout.isComplete {
+                    completeWorkoutButton
+                        .padding(.top, AppTheme.Spacing.md)
+                }
             }
             .padding(AppTheme.Spacing.lg)
         }
+    }
+
+    // MARK: - Complete Workout Button
+
+    private var completeWorkoutButton: some View {
+        Button {
+            Task { await viewModel.completeWorkout() }
+        } label: {
+            Label("Complete Workout", systemImage: "checkmark.circle.fill")
+                .font(AppTheme.Typography.labelLarge)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, AppTheme.Spacing.md)
+        }
+        .buttonStyle(ArtDecoButtonStyle(style: .accent))
+        .accessibilityHint("Mark all remaining sets as complete and finish this workout")
     }
 
     // MARK: - Summary Card
