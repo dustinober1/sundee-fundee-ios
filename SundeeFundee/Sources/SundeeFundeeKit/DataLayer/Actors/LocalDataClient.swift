@@ -1,5 +1,8 @@
 import CloudKit
 import Foundation
+import os.log
+
+private let localLogger = Logger(subsystem: "com.sundeefundee.app", category: "LocalData")
 
 // MARK: - LocalDataClient
 //
@@ -43,9 +46,15 @@ public actor LocalDataClient: @preconcurrency DataClientProtocol {
             sorted = filtered
         }
 
-        return try sorted.map { record in
-            let jsonData = try JSONSerialization.data(withJSONObject: record)
-            return try decoder.decode(T.self, from: jsonData)
+        return sorted.compactMap { record in
+            do {
+                let jsonData = try JSONSerialization.data(withJSONObject: record)
+                return try decoder.decode(T.self, from: jsonData)
+            } catch {
+                let id = record["id"] as? String ?? "unknown"
+                localLogger.error("⚠️ DECODE \(recordType)/\(id): \(error.localizedDescription)")
+                return nil
+            }
         }
     }
 
