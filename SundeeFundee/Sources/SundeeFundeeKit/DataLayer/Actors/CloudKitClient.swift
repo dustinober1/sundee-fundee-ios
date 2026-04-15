@@ -432,7 +432,21 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
         case let boolValue as Bool:
             return boolValue
         case let arrayValue as [Any]:
-            return arrayValue.compactMap { convertToCKRecordValue($0) }
+            let converted = arrayValue.compactMap { convertToCKRecordValue($0) }
+            // CloudKit requires typed arrays ([String], [Int], etc.).
+            // [Any] does NOT conform to CKRecordValueProtocol and will be
+            // silently dropped. Try typed casts first; if the array contains
+            // mixed types or dicts-as-strings, serialize the whole thing as
+            // a single JSON string.
+            if let strings = converted as? [String] { return strings }
+            if let ints = converted as? [Int] { return ints }
+            if let doubles = converted as? [Double] { return doubles }
+            // Fallback: serialize entire array as a JSON string
+            if let data = try? JSONSerialization.data(withJSONObject: arrayValue),
+               let jsonString = String(data: data, encoding: .utf8) {
+                return jsonString
+            }
+            return nil
         case let dictValue as [String: Any]:
             if let jsonData = try? JSONSerialization.data(withJSONObject: dictValue),
                let jsonString = String(data: jsonData, encoding: .utf8) {
