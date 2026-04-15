@@ -1,0 +1,13 @@
+Bug Fixes & Improvements:
+
+- Fixed challenges not loading due to CloudKit data compatibility issues
+- Fixed duplicate lifetime challenges appearing on the dashboard
+- Fixed workout exercises disappearing for older CloudKit records
+- Fixed challenge tiers missing from older records
+- Fixed CloudKit array serialization losing nested data
+- Improved data resilience: corrupt records are now skipped instead of blocking all data
+- Enlarged weight and reps input fields for easier data entry
+- Added prominent Complete Workout button
+- Added ability to mark injuries as healed
+- Added actual weight/reps prompts when completing sets
+- Fixed challenge volume tracking when completing workouts

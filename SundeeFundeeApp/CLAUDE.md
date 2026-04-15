@@ -29,6 +29,61 @@ bundle exec fastlane <lane_name>
 bundle exec fastlane list
 ```
 
+### Upload Without Rebuild
+
+When you already have an IPA (e.g. from a manual archive/export), upload directly:
+```bash
+FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD="<app-specific-password>" \
+  bundle exec fastlane deliver --ipa /path/to/SundeeFundee.ipa \
+  --skip_screenshots --force --app_version "X.Y.Z"
+```
+
+### Manual Archive + Export
+
+The `release` lane handles this automatically, but for manual control:
+```bash
+# Archive
+xcodebuild -scheme SundeeFundee -project ./SundeeFundee.xcodeproj \
+  -destination 'generic/platform=iOS' \
+  -archivePath /tmp/SundeeFundee.xcarchive \
+  -allowProvisioningUpdates archive
+
+# Export (uses automatic signing)
+xcodebuild -exportArchive -archivePath /tmp/SundeeFundee.xcarchive \
+  -exportOptionsPlist /tmp/export_options.plist \
+  -exportPath /tmp/sundee-export \
+  -allowProvisioningUpdates
+```
+
+Export options plist for App Store:
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>method</key>
+    <string>app-store</string>
+    <key>signingStyle</key>
+    <string>automatic</string>
+    <key>teamID</key>
+    <string>87VVCMCW3F</string>
+</dict>
+</plist>
+```
+
+### Signing Requirements
+
+- **Apple Development** certificate — for building/archiving
+- **Apple Distribution** certificate — required for App Store export
+- Both managed via Xcode > Settings > Accounts > Manage Certificates
+- App-specific password required for `altool` uploads (set via `FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD` env var)
+
+### Version Bumping
+
+- **Marketing version** (`CFBundleShortVersionString`): `agvtool new-marketing-version X.Y.Z`
+- **Build number** (`CFBundleVersion`): `agvtool new-version -all N`
+- Keep Info.plist using `$(MARKETING_VERSION)` and `$(CURRENT_PROJECT_VERSION)` variables — don't hardcode
+
 ### Adding New Lanes
 
 Define lanes in `fastlane/Fastfile` under `platform :ios do`. Common patterns:
