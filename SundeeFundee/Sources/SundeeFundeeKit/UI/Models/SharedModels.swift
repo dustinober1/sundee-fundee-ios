@@ -35,6 +35,18 @@ public struct EnrolledProgramRecord: Codable, Sendable {
         self.name = name
         self.isActive = isActive
     }
+
+    // CloudKit stores Bool as Int64. JSONDecoder expects Bool.
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        name = try container.decode(String.self, forKey: .name)
+        if let boolVal = try? container.decode(Bool.self, forKey: .isActive) {
+            isActive = boolVal
+        } else {
+            isActive = (try? container.decode(Int.self, forKey: .isActive)) != 0
+        }
+    }
 }
 
 public struct CelebrationEventRecord: Codable, Sendable {

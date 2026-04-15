@@ -588,6 +588,20 @@ struct UserSettingsRecord: Codable, Sendable {
         self.experienceLevel = experienceLevel
         self.primaryGoal = primaryGoal
     }
+
+    // CloudKit stores Bool as Int64. JSONDecoder expects Bool.
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        if let boolVal = try? container.decode(Bool.self, forKey: .cycleTrackingEnabled) {
+            cycleTrackingEnabled = boolVal
+        } else {
+            cycleTrackingEnabled = (try? container.decode(Int.self, forKey: .cycleTrackingEnabled)) != 0
+        }
+        weightUnit = try container.decode(String.self, forKey: .weightUnit)
+        experienceLevel = try container.decode(String.self, forKey: .experienceLevel)
+        primaryGoal = try container.decode(String.self, forKey: .primaryGoal)
+    }
 }
 
 // MARK: - SettingsViewModel
