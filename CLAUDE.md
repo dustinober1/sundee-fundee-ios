@@ -34,6 +34,13 @@ swift test --filter 'SundeeFundeeKitTests.CyclePhaseHelperTests/testPhaseCalcula
 swiftlint --config .swiftlint.yml
 ```
 
+### Release (Fastlane)
+```bash
+cd SundeeFundeeApp
+bundle exec fastlane release    # increment build, archive, upload to ASC
+bundle exec fastlane list       # see all available lanes
+```
+
 ### Generate Xcode Project (if needed)
 ```bash
 cd SundeeFundeeApp
@@ -102,10 +109,12 @@ SundeeFundee/ (Swift Package — SundeeFundeeKit)
 ### Domain Layer
 
 Pure Swift business logic mirroring the original web app's domain layer:
-- `Cycle/` — Cycle calculations, adaptation policy, calendar, settings
-- `Injury/` — Body location, adaptation engine, injury models, support
-- `Benchmark/` — Catalog, models, readiness
 - `AIWorkout/` — AI workout types and generation helpers
+- `Benchmark/` — Catalog, models, readiness
+- `Challenge/` — Challenge models, tracking, lifetime deduplication
+- `Cycle/` — Cycle calculations, adaptation policy, calendar, settings
+- `Exercise/` — Exercise definitions, categories, muscle groups
+- `Injury/` — Body location, adaptation engine, injury models, support
 - `Program/` — Program template generator
 - `Coach/` — Coach context, memory models, deterministic and on-device coach services
 - `Intelligence/` — Plateau detector, schedule reshuffler, substitution ranker, weekly load analyzer
