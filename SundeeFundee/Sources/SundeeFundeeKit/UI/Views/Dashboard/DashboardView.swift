@@ -1,4 +1,7 @@
 import SwiftUI
+import os.log
+
+private let dashLogger = Logger(subsystem: "com.sundeefundee.app", category: "Dashboard")
 
 // MARK: - DashboardView
 
@@ -656,12 +659,17 @@ class DashboardViewModel: ObservableObject {
         let service = ChallengeService(dataClient: dataClient)
         do {
             let workouts: [Workout] = try await dataClient.fetchAll(recordType: "Workout")
-            _ = try await service.ensureLifetimeChallenge(from: workouts)
+            dashLogger.info("📊 Challenge: fetched \(workouts.count) workouts")
+            let challenge = try await service.ensureLifetimeChallenge(from: workouts)
+            dashLogger.info("📊 Challenge: ensured lifetime challenge = \(challenge?.id ?? "nil")")
             if let closest = try await service.closestToCompletion() {
+                dashLogger.info("📊 Challenge: closest = \(closest.0.title), \(Int(closest.1.percentComplete * 100))%")
                 activeChallengeData = closest
+            } else {
+                dashLogger.info("📊 Challenge: no active challenge found by closestToCompletion")
             }
         } catch {
-            // Challenges are non-critical — degrade gracefully
+            dashLogger.error("📊 Challenge load failed: \(error.localizedDescription)")
         }
     }
 }
