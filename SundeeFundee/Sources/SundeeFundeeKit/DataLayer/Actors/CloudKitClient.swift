@@ -104,6 +104,7 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
     private func isQueryableError(_ error: Error) -> Bool {
         let description = error.localizedDescription.lowercased()
         return description.contains("not marked queryable")
+            || description.contains("not marked indexable")
             || description.contains("unknown item")
             || description.contains("record type does not exist")
             || description.contains("did not find record type")
