@@ -27,6 +27,27 @@ public struct Workout: Equatable, Codable, Identifiable, Sendable {
         self.completedAt = completedAt
     }
 
+    // MARK: - Backwards-compatible decoding
+    //
+    // Old CloudKit records may be missing `exercises` because the nested
+    // array wasn't saved correctly (CloudKit [Any] cast issue). Default
+    // to an empty array so the record is still usable for volume/stats.
+
+    private enum CodingKeys: String, CodingKey {
+        case id, date, name, exercises, notes, duration, completedAt
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        date = try container.decode(Date.self, forKey: .date)
+        name = try container.decode(String.self, forKey: .name)
+        exercises = (try? container.decode([Exercise].self, forKey: .exercises)) ?? []
+        notes = try container.decodeIfPresent(String.self, forKey: .notes)
+        duration = (try? container.decode(Int.self, forKey: .duration)) ?? 0
+        completedAt = try container.decodeIfPresent(Date.self, forKey: .completedAt)
+    }
+
     public var totalVolume: Double {
         exercises.flatMap { exercise in
             exercise.targetSets.map { set in
