@@ -359,13 +359,15 @@ public struct WorkoutDetailView: View {
                 HStack(spacing: AppTheme.Spacing.sm) {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Reps")
-                            .font(AppTheme.Typography.labelSmall)
+                            .font(AppTheme.Typography.labelMedium)
                             .foregroundColor(AppTheme.Text.secondary)
                         TextField("Reps", text: $editRepsInput)
-                            .font(AppTheme.Typography.monoMedium)
-                            .padding(AppTheme.Spacing.xs)
+                            .font(AppTheme.Typography.displaySmall)
+                            .padding(.horizontal, AppTheme.Spacing.sm)
+                            .padding(.vertical, AppTheme.Spacing.sm)
+                            .frame(minHeight: 44)
                             .background(AppTheme.Background.cream.opacity(0.5))
-                            .cornerRadius(AppTheme.CornerRadius.small)
+                            .cornerRadius(AppTheme.CornerRadius.medium)
                             #if os(iOS)
                             .keyboardType(.numberPad)
                             #endif
@@ -375,13 +377,15 @@ public struct WorkoutDetailView: View {
                     if !isBodyweight {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Weight")
-                                .font(AppTheme.Typography.labelSmall)
+                                .font(AppTheme.Typography.labelMedium)
                                 .foregroundColor(AppTheme.Text.secondary)
                             TextField("Weight", text: $editWeightInput)
-                                .font(AppTheme.Typography.monoMedium)
-                                .padding(AppTheme.Spacing.xs)
+                                .font(AppTheme.Typography.displaySmall)
+                                .padding(.horizontal, AppTheme.Spacing.sm)
+                                .padding(.vertical, AppTheme.Spacing.sm)
+                                .frame(minHeight: 44)
                                 .background(AppTheme.Background.cream.opacity(0.5))
-                                .cornerRadius(AppTheme.CornerRadius.small)
+                                .cornerRadius(AppTheme.CornerRadius.medium)
                                 #if os(iOS)
                                 .keyboardType(.decimalPad)
                                 #endif
