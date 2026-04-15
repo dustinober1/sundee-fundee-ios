@@ -15,6 +15,8 @@ public struct ChallengesView: View {
                 if viewModel.isLoading {
                     ProgressView()
                         .frame(maxWidth: .infinity, minHeight: 200)
+                } else if let error = viewModel.loadError {
+                    errorState(error)
                 } else if viewModel.activeChallenges.isEmpty && viewModel.completedChallenges.isEmpty {
                     emptyState
                 } else {
@@ -80,6 +82,43 @@ public struct ChallengesView: View {
                 showingCreateChallenge = true
             } label: {
                 Text("Create Challenge")
+                    .font(AppTheme.Typography.headlineMedium)
+                    .foregroundColor(AppTheme.Background.cream)
+                    .padding(.horizontal, AppTheme.Spacing.xl)
+                    .padding(.vertical, AppTheme.Spacing.sm)
+                    .background(AppTheme.Accent.gold)
+                    .cornerRadius(AppTheme.CornerRadius.medium)
+            }
+        }
+        .padding(.vertical, AppTheme.Spacing.xxl)
+    }
+
+    // MARK: - Error State
+
+    private func errorState(_ message: String) -> some View {
+        VStack(spacing: AppTheme.Spacing.md) {
+            Image(systemName: "exclamationmark.icloud")
+                .font(.system(size: 48))
+                .foregroundColor(AppTheme.Accent.orange)
+
+            Text("Unable to Load Progress")
+                .font(AppTheme.Typography.headlineLarge)
+                .foregroundColor(AppTheme.Text.primary)
+
+            Text("Challenge data couldn't be loaded from iCloud. Make sure you're signed in to iCloud and try again.")
+                .font(AppTheme.Typography.bodyMedium)
+                .foregroundColor(AppTheme.Text.secondary)
+                .multilineTextAlignment(.center)
+
+            Text(message)
+                .font(AppTheme.Typography.monoSmall)
+                .foregroundColor(AppTheme.Text.secondary.opacity(0.7))
+                .multilineTextAlignment(.center)
+
+            Button {
+                Task { await viewModel.loadChallenges() }
+            } label: {
+                Label("Retry", systemImage: "arrow.clockwise")
                     .font(AppTheme.Typography.headlineMedium)
                     .foregroundColor(AppTheme.Background.cream)
                     .padding(.horizontal, AppTheme.Spacing.xl)
@@ -240,6 +279,7 @@ class ChallengesViewModel: ObservableObject {
     @Published var activeChallenges: [Challenge] = []
     @Published var completedChallenges: [Challenge] = []
     @Published var isLoading = false
+    @Published var loadError: String?
 
     private let challengeService: ChallengeService
     private let dataClient: DataClientProtocol
@@ -260,7 +300,7 @@ class ChallengesViewModel: ObservableObject {
             completedChallenges = all.filter { $0.status == .completed || $0.status == .expired }
                 .sorted { $0.dateCreated > $1.dateCreated }
         } catch {
-            // Silently fail — empty state shown
+            loadError = error.localizedDescription
         }
         isLoading = false
     }
