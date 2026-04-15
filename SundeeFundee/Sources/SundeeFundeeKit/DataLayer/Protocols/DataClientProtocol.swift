@@ -14,6 +14,7 @@ public enum DataError: Error, LocalizedError, Sendable {
     case networkError(underlying: Error?)
     case permissionDenied
     case invalidData(description: String)
+    case schemaNotDeployed(recordType: String, detail: String)
 
     public var errorDescription: String? {
         switch self {
@@ -28,6 +29,8 @@ public enum DataError: Error, LocalizedError, Sendable {
             return "Permission denied. Please check iCloud settings."
         case .invalidData(let description):
             return "Invalid data: \(description)"
+        case .schemaNotDeployed(let recordType, _):
+            return "'\(recordType)' data is not available yet. Please ensure iCloud is set up."
         }
     }
 
@@ -41,6 +44,8 @@ public enum DataError: Error, LocalizedError, Sendable {
             return "Sign in to iCloud in Settings and ensure the app has access."
         case .invalidData:
             return "Contact support if this issue persists."
+        case .schemaNotDeployed:
+            return "Sign in to iCloud and ensure the app has access. If the problem persists, the data may need to sync."
         }
     }
 }
