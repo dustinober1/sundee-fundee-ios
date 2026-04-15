@@ -407,14 +407,24 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
         return record
     }
 
+    /// ISO 8601 formatter for detecting date strings in JSON.
+    private nonisolated(unsafe) static let iso8601Formatter: ISO8601DateFormatter = {
+        let f = ISO8601DateFormatter()
+        f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return f
+    }()
+
     /// Converts a JSON value to a CKRecord-compatible value.
-    /// Note: ISO 8601 date strings are stored as STRING in CloudKit (not TIMESTAMP)
-    /// because the schema was created that way. The JSONDecoder handles the
-    /// string→Date conversion on read via .iso8601 date decoding strategy.
+    /// ISO 8601 date strings are converted to native Date objects so CloudKit
+    /// stores them as TIMESTAMP, matching fields defined that way in the schema.
     private func convertToCKRecordValue(_ value: Any) -> Any? {
         if value is NSNull { return nil }
         switch value {
         case let stringValue as String:
+            // Convert ISO 8601 date strings to native Date for CloudKit TIMESTAMP fields
+            if let date = Self.iso8601Formatter.date(from: stringValue) {
+                return date
+            }
             return stringValue
         case let intValue as Int:
             return intValue
@@ -453,7 +463,7 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
     private func convertFromCKRecordValue(_ value: Any) -> Any {
         switch value {
         case let dateValue as Date:
-            return ISO8601DateFormatter().string(from: dateValue)
+            return Self.iso8601Formatter.string(from: dateValue)
         case let reference as CKRecord.Reference:
             return reference.recordID.recordName
         case let asset as CKAsset:
