@@ -61,10 +61,6 @@ public actor ChallengeService {
             return lifetime
         }
 
-        guard workouts.contains(where: \.isComplete) else {
-            return nil
-        }
-
         return try await initializeLifetimeChallenge(from: workouts)
     }
 
