@@ -58,9 +58,7 @@ public struct MaxesListView: View {
             }
             .sheet(isPresented: $viewModel.showingEntry) {
                 OneRepMaxEntryView(onSave: { name, weight, unit in
-                    Task {
-                        await viewModel.saveMax(exerciseName: name, weight: weight, unit: unit)
-                    }
+                    await viewModel.saveMax(exerciseName: name, weight: weight, unit: unit)
                 })
             }
             .alert("Error", isPresented: Binding(
@@ -200,7 +198,7 @@ struct OneRepMaxEntryView: View {
     @State private var unit: WeightUnit = .lbs
     @State private var isSaving: Bool = false
 
-    let onSave: (String, Double, WeightUnit) -> Void
+    let onSave: (String, Double, WeightUnit) async -> Void
 
     var body: some View {
         NavigationStack {
@@ -265,8 +263,10 @@ struct OneRepMaxEntryView: View {
     private func save() {
         guard let weightValue = Double(weight) else { return }
         isSaving = true
-        onSave(exerciseName, weightValue, unit)
-        dismiss()
+        Task {
+            await onSave(exerciseName, weightValue, unit)
+            dismiss()
+        }
     }
 }
 
