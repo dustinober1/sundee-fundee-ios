@@ -78,6 +78,66 @@ public struct Challenge: Codable, Sendable, Identifiable, Equatable {
         self.challengeEndDate = challengeEndDate
         self.dateCreated = dateCreated
     }
+
+    // MARK: - Backwards-compatible decoding
+    //
+    // Older records used `startDate`/`endDate`/`createdAt` which collide with
+    // CloudKit system fields. The model was renamed but existing records in
+    // CloudKit and LocalDataClient still have the old keys.
+
+    private enum CodingKeys: String, CodingKey {
+        case id, type, title, exerciseName, tiers
+        case currentTierIndex, accumulatedVolumeLbs, status
+        case challengeStartDate, challengeEndDate, dateCreated
+        // Legacy keys
+        case startDate, endDate, createdAt
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        type = try container.decode(ChallengeType.self, forKey: .type)
+        title = try container.decode(String.self, forKey: .title)
+        exerciseName = try container.decodeIfPresent(String.self, forKey: .exerciseName)
+        tiers = try container.decode([ChallengeTier].self, forKey: .tiers)
+        currentTierIndex = try container.decode(Int.self, forKey: .currentTierIndex)
+        accumulatedVolumeLbs = try container.decode(Double.self, forKey: .accumulatedVolumeLbs)
+        status = try container.decode(ChallengeStatus.self, forKey: .status)
+
+        // Date fields: try new name first, fall back to legacy name
+        if let date = try container.decodeIfPresent(Date.self, forKey: .challengeStartDate) {
+            challengeStartDate = date
+        } else {
+            challengeStartDate = try container.decodeIfPresent(Date.self, forKey: .startDate) ?? Date()
+        }
+
+        if let date = try container.decodeIfPresent(Date.self, forKey: .challengeEndDate) {
+            challengeEndDate = date
+        } else {
+            challengeEndDate = try container.decodeIfPresent(Date.self, forKey: .endDate)
+        }
+
+        if let date = try container.decodeIfPresent(Date.self, forKey: .dateCreated) {
+            dateCreated = date
+        } else {
+            dateCreated = try container.decodeIfPresent(Date.self, forKey: .createdAt) ?? Date()
+        }
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(type, forKey: .type)
+        try container.encode(title, forKey: .title)
+        try container.encodeIfPresent(exerciseName, forKey: .exerciseName)
+        try container.encode(tiers, forKey: .tiers)
+        try container.encode(currentTierIndex, forKey: .currentTierIndex)
+        try container.encode(accumulatedVolumeLbs, forKey: .accumulatedVolumeLbs)
+        try container.encode(status, forKey: .status)
+        try container.encode(challengeStartDate, forKey: .challengeStartDate)
+        try container.encodeIfPresent(challengeEndDate, forKey: .challengeEndDate)
+        try container.encode(dateCreated, forKey: .dateCreated)
+    }
 }
 
 // MARK: - Challenge Progress
