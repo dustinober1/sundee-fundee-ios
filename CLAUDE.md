@@ -22,6 +22,18 @@ cd SundeeFundee
 swift test
 ```
 
+### Run a Single Test
+```bash
+cd SundeeFundee
+swift test --filter 'SundeeFundeeKitTests.CyclePhaseHelperTests'
+swift test --filter 'SundeeFundeeKitTests.CyclePhaseHelperTests/testPhaseCalculation'
+```
+
+### Lint
+```bash
+swiftlint --config .swiftlint.yml
+```
+
 ### Generate Xcode Project (if needed)
 ```bash
 cd SundeeFundeeApp
@@ -109,9 +121,21 @@ Pure Swift business logic mirroring the original web app's domain layer:
 ### Testing
 
 - **Framework:** XCTest and Swift Testing (`import Testing`, `@Test` functions)
-- **Location:** `SundeeFundee/Tests/SundeeFundeeKitTests/`
+- **Location:** `SundeeFundee/Tests/SundeeFundeeKitTests/` — subdirs: `DomainTests/`, `DataLayerTests/`, `AuthTests/`, `SubscriptionTests/`, `ActivityTests/`, `ViewModelTests/`, `ModelTests/`
 - **Pattern:** Pure function unit tests with factory helpers (`makeDate()`, `makeWorkout()`, `makeExercise()`)
 - **Access:** `@testable import SundeeFundeeKit`
+
+### Bundled Content & Program Templates
+
+- **`ContentClientProtocol`** — Protocol for fetching exercises, programs, benchmarks. Implementations: `BundledContentProvider` (hardcoded fallback), `MockContentClient` (testing).
+- **`ProgramTemplate` enum** — Cases: `firstMargarita`, `strength`, `hypertrophy`, `fullBody`, `linear`, `dup`, `block`. Each has `TemplateDefaults` (duration, sessions/week).
+- **Adding a new program:** Define program data → add case to `ProgramTemplate` → wire into `ProgramTemplateGenerator` → add display name in `BundledContentProvider` → add to UI list in Programs view.
+
+### Build Configuration
+
+- **`SundeeFundeeApp/project.yml`** — XcodeGen config: iOS 18+, Swift 6, app target + `SundeeFundeeWidgetsExtension` + test target
+- **`SundeeFundee/Package.swift`** — Swift Package 6.0, single `SundeeFundeeKit` library, zero external dependencies
+- **`.swiftlint.yml`** — 45 opt-in rules, Swift 6 strict concurrency compatible
 
 ## App Store Requirements
 
@@ -127,6 +151,10 @@ Pure Swift business logic mirroring the original web app's domain layer:
 - SwiftUI `Toggle` (AXSwitch) doesn't respond to `tap` by label — use coordinates
 - Tab bar items may not expose individual children — use coordinate taps
 - Guest mode requires completing onboarding before reaching main screens
+
+## Research
+
+Use the Gemini MCP (`mcp__gemini-cli__ask-gemini`) for all internet research — API lookups, documentation questions, troubleshooting errors, Apple guidelines, etc. Prefer Gemini over web search tools.
 
 ## Git Workflow
 
