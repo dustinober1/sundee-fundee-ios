@@ -619,6 +619,11 @@ class SettingsViewModel: ObservableObject {
     private let dataClient: DataClientProtocol
     private var hasLoaded = false
 
+    /// Holds the in-flight save task, if any. New writes cancel the pending one
+    /// so only the latest state is committed. Prevents CloudKit "client oplock"
+    /// conflicts from rapid toggles across multiple `.onChange` handlers.
+    private var saveTask: Task<Void, Never>?
+
     init(
         dataClient: DataClientProtocol = DataClientFactory.shared.client
     ) {
@@ -648,22 +653,50 @@ class SettingsViewModel: ObservableObject {
         }
     }
 
+    /// Schedules a save of the current settings. If another save is pending or
+    /// in-flight, it is cancelled and superseded by this one. Ensures only the
+    /// latest state is committed and prevents parallel saves from racing the
+    /// server's changeTag.
+    ///
+    /// A 150ms coalescing window gives other `.onChange` handlers a chance to
+    /// cancel this task before it hits the network — rapid sequential toggles
+    /// (e.g. a user flipping through picker options) collapse to a single save.
     func saveSettings() async {
         guard hasLoaded else { return }
-        isSaving = true
-        let record = UserSettingsRecord(
-            cycleTrackingEnabled: cycleTrackingEnabled,
-            weightUnit: weightUnit.rawValue,
-            experienceLevel: experienceLevel.rawValue,
-            primaryGoal: primaryGoal.rawValue
-        )
 
-        do {
-            try await dataClient.save(record, recordType: "UserSettings")
-        } catch {
-            errorMessage = "Failed to save settings: \(error.localizedDescription)"
+        // Cancel any in-flight save — the new one will use the latest @Published values.
+        saveTask?.cancel()
+
+        let task = Task { @MainActor [weak self] in
+            guard let self else { return }
+
+            // Coalescing window: if another onChange fires within 150ms,
+            // it cancels this task before the actual save runs.
+            try? await Task.sleep(nanoseconds: 150_000_000)
+            if Task.isCancelled { return }
+
+            self.isSaving = true
+            let record = UserSettingsRecord(
+                cycleTrackingEnabled: self.cycleTrackingEnabled,
+                weightUnit: self.weightUnit.rawValue,
+                experienceLevel: self.experienceLevel.rawValue,
+                primaryGoal: self.primaryGoal.rawValue
+            )
+
+            do {
+                try await self.dataClient.save(record, recordType: "UserSettings")
+            } catch {
+                if !Task.isCancelled {
+                    self.errorMessage = "Failed to save settings: \(error.localizedDescription)"
+                }
+            }
+
+            if !Task.isCancelled {
+                self.isSaving = false
+            }
         }
-        isSaving = false
+        saveTask = task
+        await task.value
     }
 }
 
