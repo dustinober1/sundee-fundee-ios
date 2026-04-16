@@ -239,8 +239,18 @@ public actor HealthKitClient: @preconcurrency HealthClientProtocol {
             throw HealthError.notAvailable
         }
 
-        // Stub — will be fully implemented in Task 2
-        return []
+        guard let sleepType = HKObjectType.categoryType(forIdentifier: .sleepAnalysis) else {
+            throw HealthError.noData(type: "sleep analysis")
+        }
+
+        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate, options: .strictStartDate)
+
+        return try await fetchSamples(
+            sampleType: sleepType,
+            predicate: predicate,
+            sortDescriptor: NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: false),
+            limit: HKObjectQueryNoLimit
+        ) as? [HKCategorySample] ?? []
     }
 
     /// Saves a workout to HealthKit.
@@ -412,6 +422,9 @@ extension HealthKitClient {
         }
         if let menstrualFlow = HKObjectType.categoryType(forIdentifier: .menstrualFlow) {
             types.insert(menstrualFlow)
+        }
+        if let sleepAnalysis = HKObjectType.categoryType(forIdentifier: .sleepAnalysis) {
+            types.insert(sleepAnalysis)
         }
 
         return types

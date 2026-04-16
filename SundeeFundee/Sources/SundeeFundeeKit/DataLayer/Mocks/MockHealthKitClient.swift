@@ -49,6 +49,9 @@ public final class MockHealthKitClient: HealthClientProtocol, @unchecked Sendabl
     /// In-memory storage for mock resting heart rate samples.
     private var mockRestingHeartRate: [HKQuantitySample] = []
 
+    /// In-memory storage for mock sleep analysis samples.
+    private var mockSleepAnalysis: [HKCategorySample] = []
+
     /// Serial queue for thread-safe access.
     private let queue = DispatchQueue(label: "com.sundeefundee.mock-healthkit-client", qos: .userInitiated)
 
@@ -303,8 +306,17 @@ public final class MockHealthKitClient: HealthClientProtocol, @unchecked Sendabl
             throw HealthError.queryFailed(underlying: nil)
         }
 
-        // Stub — will be fully implemented in Task 2
-        return []
+        let samples = queue.sync {
+            mockSleepAnalysis
+        }
+
+        // Filter by date range
+        let filtered = samples.filter { sample in
+            sample.startDate >= startDate && sample.startDate <= endDate
+        }
+
+        // Sort by start date descending
+        return filtered.sorted { $0.startDate > $1.startDate }
     }
 
     /// Saves a workout to in-memory storage.
@@ -357,6 +369,7 @@ public final class MockHealthKitClient: HealthClientProtocol, @unchecked Sendabl
             mockActiveEnergy.removeAll()
             mockHeartRateVariability.removeAll()
             mockRestingHeartRate.removeAll()
+            mockSleepAnalysis.removeAll()
             saveWorkoutCallCount = 0
             isAvailable = true
             authorizationGranted = true
@@ -454,6 +467,24 @@ public final class MockHealthKitClient: HealthClientProtocol, @unchecked Sendabl
         }
     }
 
+    /// Sets mock sleep analysis data.
+    ///
+    /// - Parameter samples: The sleep analysis samples to store.
+    public func setMockSleepAnalysis(_ samples: [HKCategorySample]) {
+        queue.sync {
+            mockSleepAnalysis = samples
+        }
+    }
+
+    /// Adds a single mock sleep analysis sample.
+    ///
+    /// - Parameter sample: The sleep analysis sample to add.
+    public func addMockSleepAnalysis(_ sample: HKCategorySample) {
+        queue.sync {
+            mockSleepAnalysis.append(sample)
+        }
+    }
+
     /// Returns the count of stored mock workouts.
     ///
     /// - Returns: The number of stored mock workouts.
@@ -496,6 +527,15 @@ public final class MockHealthKitClient: HealthClientProtocol, @unchecked Sendabl
     public func restingHeartRateCount() -> Int {
         queue.sync {
             mockRestingHeartRate.count
+        }
+    }
+
+    /// Returns the count of stored mock sleep analysis samples.
+    ///
+    /// - Returns: The number of stored mock sleep analysis samples.
+    public func sleepAnalysisCount() -> Int {
+        queue.sync {
+            mockSleepAnalysis.count
         }
     }
 }
@@ -641,6 +681,38 @@ extension MockHealthKitClient {
 
         return HKCategorySample(
             type: cycleType,
+            value: value,
+            start: startDate,
+            end: endDate,
+            metadata: metadata
+        )
+    }
+
+    /// Creates a mock HKCategorySample for sleep analysis testing.
+    ///
+    /// - Parameters:
+    ///   - startDate: The sample start date.
+    ///   - endDate: The sample end date.
+    ///   - value: The sleep stage value (0=inBed, 1=asleepLegacy, 2=awake, 3=asleepCore, 4=asleepDeep, 5=asleepREM).
+    ///   - sourceName: The source name (used by SleepDeduplicator to determine device).
+    /// - Returns: A mock HKCategorySample instance for sleep analysis.
+    public static func createMockSleepSample(
+        startDate: Date,
+        endDate: Date,
+        value: Int = 3,
+        sourceName: String = "Apple Watch"
+    ) -> HKCategorySample? {
+        guard let sleepType = HKObjectType.categoryType(forIdentifier: .sleepAnalysis) else {
+            return nil
+        }
+
+        let metadata: [String: Any] = [
+            HKMetadataKeySyncIdentifier: UUID().uuidString,
+            "HKSourceName": sourceName
+        ]
+
+        return HKCategorySample(
+            type: sleepType,
             value: value,
             start: startDate,
             end: endDate,
