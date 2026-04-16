@@ -28,7 +28,13 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. User can view a 30-day recovery trend chart with cycle phase color bands
   4. Score computes correctly when Apple Watch or HealthKit permissions are absent — missing components are omitted and weights redistributed, score is not blank
   5. HRV does not read as "low recovery" every luteal phase — per-phase HRV baseline normalizes the score against cycle phase expectation
-**Plans**: TBD
+**Plans**: 5 plans
+Plans:
+- [ ] 01-01-PLAN.md — Pure domain recovery score calculator with TDD (types, sub-scorers, HRV normalization)
+- [ ] 01-02-PLAN.md — HealthKit sleep integration and sleep deduplication with TDD
+- [ ] 01-03-PLAN.md — RecoveryScoreRecord CloudKit model and RecoveryScoreViewModel
+- [ ] 01-04-PLAN.md — AppTheme recovery tokens, RecoveryScoreCard, InputBarRow UI components
+- [ ] 01-05-PLAN.md — Dashboard integration, RecoveryBreakdownView, RecoveryTrendChart, visual verification
 **UI hint**: yes
 
 ### Phase 2: Deload Detection and Active Recovery
@@ -62,6 +68,6 @@ Phases execute in numeric order: 1 → 2 → 3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Recovery Score Foundation | 0/TBD | Not started | - |
+| 1. Recovery Score Foundation | 0/5 | Planning complete | - |
 | 2. Deload Detection and Active Recovery | 0/TBD | Not started | - |
 | 3. Social Layer | 0/TBD | Not started | - |
