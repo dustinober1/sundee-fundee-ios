@@ -44,6 +44,8 @@ All tokens map directly to AppTheme.Spacing values. Source: AppTheme.swift.
 | xxxl | 32pt | AppTheme.Spacing.xxxl | Major section breaks |
 
 Exceptions:
+- `AppTheme.Spacing.md = 12pt` — AppTheme exception: existing design system constant, not introduced by this spec. 12pt is a multiple of 4 (grid-aligned) and is pre-defined in AppTheme.Spacing. Used for input breakdown bar inner padding.
+- `AppTheme.Spacing.xl = 20pt` — AppTheme exception: existing design system constant, not introduced by this spec. 20pt is a multiple of 4 (grid-aligned) and is pre-defined in AppTheme.Spacing. Used for section spacing within the breakdown screen.
 - Score ring diameter: 200pt (not on scale — sized for visual hierarchy as hero element)
 - Ring stroke width: 20pt (proportional to ring diameter, not on spacing scale)
 - Touch target minimum: 44pt for all tappable elements (HIG requirement)
