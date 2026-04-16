@@ -34,7 +34,7 @@ Plans:
 - [x] 01-02-PLAN.md — HealthKit sleep integration and sleep deduplication with TDD
 - [x] 01-03-PLAN.md — RecoveryScoreRecord CloudKit model and RecoveryScoreViewModel
 - [x] 01-04-PLAN.md — AppTheme recovery tokens, RecoveryScoreCard, InputBarRow UI components
-- [ ] 01-05-PLAN.md — Dashboard integration, RecoveryBreakdownView, RecoveryTrendChart, visual verification
+- [x] 01-05-PLAN.md — Dashboard integration, RecoveryBreakdownView, RecoveryTrendChart, visual verification
 **UI hint**: yes
 
 ### Phase 2: Deload Detection and Active Recovery
