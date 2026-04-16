@@ -54,17 +54,23 @@ Exceptions:
 
 All fonts use AppTheme.Typography constants. Source: AppTheme.swift.
 
+Exactly 4 sizes, exactly 2 weights.
+
 | Role | AppTheme Constant | Base Size | Weight | Notes |
 |------|-------------------|-----------|--------|-------|
 | Score number (ring hero) | Typography.displayLarge | 32pt | bold | .serif (Playfair Display). Fixed size — not Dynamic Type |
-| "Push Day" / "Rest Day" label | Typography.displaySmall | 20pt | semibold | .serif. Fixed size — hero readability |
-| Breakdown screen section title | Typography.headlineLarge | 18pt | semibold | SF Pro |
-| Input bar label | Typography.headlineSmall | 14pt | medium | SF Pro |
+| "Push Day" / "Rest Day" label | Typography.displaySmall | 20pt | bold | .serif. Fixed size — hero readability |
+| Breakdown screen section title | Typography.headlineLarge | 18pt | bold | SF Pro |
+| Input bar label | Typography.headlineSmall | 14pt | bold | SF Pro |
 | Input bar explanation line | Typography.bodyMedium | 14pt | regular | Dynamic Type scalable |
-| Trend chart axis labels | Typography.monoSmall | 10pt | regular | .monospaced. Dynamic Type scalable |
+| Trend chart axis labels | Typography.monoLarge | 14pt | regular | .monospaced. Dynamic Type scalable |
 | Score sub-number on bars | Typography.monoLarge | 14pt | regular | .monospaced. Dynamic Type scalable |
-| Badge text ("3/5 inputs") | Typography.labelMedium | 11pt | medium | Dynamic Type scalable |
+| Badge text ("3/5 inputs") | Typography.labelMedium | 14pt | regular | Dynamic Type scalable |
 | Sign-in prompt body | Typography.bodyMedium | 14pt | regular | Dynamic Type scalable |
+
+Size scale (4 sizes): 14pt — 18pt — 20pt — 32pt
+
+Weight scale (2 weights): bold (emphasis: score, labels, headings) — regular (body, supporting, mono)
 
 Line heights:
 - Fixed-size display fonts: SwiftUI default (approximately 1.2 for serif)
@@ -138,11 +144,11 @@ ArtDecoCard (padding: lg all sides)
         │     ├── Circle arc fill (color by score zone, stroke 20pt, trimFrom: 0, trimTo: score/100)
         │     │     └── animation: .spring(response: 0.8, dampingFraction: 0.7) on appear
         │     └── VStack(spacing: xs)
-        │           ├── Text(score) — Typography.displayLarge, Text.primary
-        │           └── Text("Push Day" | "Rest Day" | "Rest") — Typography.displaySmall, zone color
-        ├── Text("Recovery Score") — Typography.headlineSmall, Text.secondary
+        │           ├── Text(score) — Typography.displayLarge (32pt bold), Text.primary
+        │           └── Text("Push Day" | "Rest Day" | "Rest") — Typography.displaySmall (20pt bold), zone color
+        ├── Text("Recovery Score") — Typography.headlineSmall (14pt bold), Text.secondary
         └── HStack (conditional — only when partial data)
-              └── Badge "X/5 inputs" — Typography.labelMedium, Text.secondary, Background.card, CornerRadius.small
+              └── Badge "X/5 inputs" — Typography.labelMedium (14pt regular), Text.secondary, Background.card, CornerRadius.small
 ```
 
 Tap target: entire card navigates to RecoveryBreakdownView via NavigationStack push.
@@ -171,13 +177,13 @@ Structure:
 VStack(spacing: xs)
   ├── HStack
   │     ├── SF Symbol icon (16pt, Text.secondary)
-  │     ├── Text(label) — Typography.headlineSmall, Text.primary
-  │     └── Spacer + Text(sub-score or "—") — Typography.monoLarge, zone color
+  │     ├── Text(label) — Typography.headlineSmall (14pt bold), Text.primary
+  │     └── Spacer + Text(sub-score or "—") — Typography.monoLarge (14pt regular), zone color
   ├── GeometryReader → ZStack(alignment: .leading)
   │     ├── RoundedRectangle (Background.cream, height 8pt, CornerRadius.circle)
   │     └── RoundedRectangle (zone color, height 8pt, width: geo.size.width × sub-score/100)
   │           └── animation: .easeOut(duration: 0.5) on appear, staggered 0.1s per bar
-  └── Text(explanation) — Typography.bodyMedium, Text.secondary
+  └── Text(explanation) — Typography.bodyMedium (14pt regular), Text.secondary
 ```
 
 Grayed-out state (missing input — D-08):
@@ -192,8 +198,8 @@ Uses SwiftUI Charts framework (consistent with VolumeChart, StrengthProgressionC
 Structure:
 - Background: cycle phase colored bands (RectangleMark per phase date range, opacity per table above)
 - Foreground: LineMark connecting daily recovery scores, color Text.primary, lineWidth 2pt
-- X axis: date labels, Typography.monoSmall, Text.secondary, show every 7 days
-- Y axis: 0–100, Typography.monoSmall, Text.secondary, gridlines at 40 and 70 (zone boundaries)
+- X axis: date labels, Typography.monoLarge (14pt regular), Text.secondary, show every 7 days
+- Y axis: 0–100, Typography.monoLarge (14pt regular), Text.secondary, gridlines at 40 and 70 (zone boundaries)
 - PointMark on each data point: 4pt radius, color by zone
 - Chart height: 200pt fixed
 
@@ -206,7 +212,7 @@ Structure:
 ArtDecoCard
   └── VStack(spacing: md)
         ├── Image(systemName: "heart.circle") — 40pt, Accent.gold
-        ├── Text("Sign in to unlock Recovery Score") — Typography.displaySmall
+        ├── Text("Sign in to unlock Recovery Score") — Typography.displaySmall (20pt bold)
         └── Button("Sign In") — AppButtonStyle.primary
 ```
 
@@ -247,7 +253,7 @@ ArtDecoCard
 ### Error States
 
 - HealthKit authorization denied: Show GuestPlaceholder-style card with SF Symbol "exclamationmark.shield" and copy from Copywriting Contract below
-- Score computation failure (unexpected): Show "Score unavailable" text in ring center, Typography.bodyMedium, Text.secondary
+- Score computation failure (unexpected): Show "Score unavailable" text in ring center, Typography.bodyMedium (14pt regular), Text.secondary
 
 ---
 
