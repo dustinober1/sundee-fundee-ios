@@ -336,3 +336,26 @@ DEFINE SCHEMA
         GRANT CREATE TO "_icloud",
         GRANT READ TO "_world"
     );
+
+    RECORD TYPE RecoveryScore (
+        "___createTime"        TIMESTAMP,
+        "___createdBy"         REFERENCE,
+        "___etag"              STRING,
+        "___modTime"           TIMESTAMP,
+        "___modifiedBy"        REFERENCE,
+        "___recordID"          REFERENCE QUERYABLE,
+        cyclePhaseRaw          STRING QUERYABLE SORTABLE,
+        cyclePhaseSubScore     INT64 QUERYABLE SORTABLE,
+        dateCreated            STRING QUERYABLE SORTABLE,
+        hrvSubScore            INT64 QUERYABLE SORTABLE,
+        loadSubScore           INT64 QUERYABLE SORTABLE,
+        painSubScore           INT64 QUERYABLE SORTABLE,
+        presentInputCount      INT64 QUERYABLE SORTABLE,
+        recommendationRaw      STRING QUERYABLE SORTABLE,
+        scoreDate              STRING QUERYABLE SEARCHABLE SORTABLE,
+        sleepSubScore          INT64 QUERYABLE SORTABLE,
+        totalScore             INT64 QUERYABLE SORTABLE,
+        GRANT WRITE TO "_creator",
+        GRANT CREATE TO "_icloud",
+        GRANT READ TO "_world"
+    );
