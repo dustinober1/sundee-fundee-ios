@@ -114,12 +114,99 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
         error.localizedDescription.lowercased().contains("record to insert already exists")
     }
 
-    /// Saves records to CloudKit with upsert semantics (insert-or-update).
+    /// Detects whether an error is CKError.serverRecordChanged (client's changeTag is stale).
     ///
-    /// First attempts a normal save. If CloudKit rejects a record because it
-    /// already exists ("record to insert already exists"), fetches the existing
-    /// record, merges the new field values onto it (preserving the server change
-    /// tag), and retries the save.
+    /// Happens when another device (or an earlier in-flight save from the same device)
+    /// has already updated the server copy since we last fetched it. The client's
+    /// in-memory changeTag is out of date and CloudKit refuses the write. The fix is
+    /// to re-merge against the server's current copy and retry once.
+    private func isServerRecordChangedError(_ error: Error) -> Bool {
+        guard let ckError = error as? CKError else { return false }
+        return ckError.code == .serverRecordChanged
+    }
+
+    /// Extracts per-item errors from a CKError.partialFailure batch wrapper.
+    ///
+    /// `modifyRecords` can throw a batch-level `CKError.partialFailure` whose
+    /// `userInfo[CKPartialErrorsByItemIDKey]` maps each record ID to its own error.
+    /// Returns that map, or nil if the error is not a partialFailure.
+    private func perItemErrors(from error: Error) -> [CKRecord.ID: Error]? {
+        guard let ckError = error as? CKError else { return nil }
+        if ckError.code == .partialFailure,
+           let items = ckError.userInfo[CKPartialErrorsByItemIDKey] as? [CKRecord.ID: Error] {
+            return items
+        }
+        return nil
+    }
+
+    /// Pulls `CKRecordChangedErrorServerRecordKey` out of each serverRecordChanged CKError.
+    ///
+    /// CloudKit attaches the server's current copy of the record to every
+    /// `.serverRecordChanged` error — cheaper than re-fetching. Records without a
+    /// server copy in userInfo are omitted (caller falls back to the original new record).
+    private func extractServerRecords(from errors: [CKRecord.ID: Error]) -> [CKRecord.ID: CKRecord] {
+        var map: [CKRecord.ID: CKRecord] = [:]
+        for (id, error) in errors {
+            guard let ckError = error as? CKError,
+                  let server = ckError.userInfo[CKRecordChangedErrorServerRecordKey] as? CKRecord
+            else { continue }
+            map[id] = server
+        }
+        return map
+    }
+
+    /// Builds replacement CKRecords by overlaying new field values + nil-key clears
+    /// onto the server copies returned in CKError.serverRecordChanged userInfo.
+    ///
+    /// For records without a server copy, falls back to the original newRecord —
+    /// the retry will either succeed (new insert) or fail with a real error.
+    private func mergeWithServerRecords(
+        newRecords: [CKRecord],
+        serverRecords: [CKRecord.ID: CKRecord],
+        nilKeys: [CKRecord.ID: Set<String>]
+    ) -> [CKRecord] {
+        newRecords.map { newRecord in
+            guard let serverCopy = serverRecords[newRecord.recordID] else {
+                return newRecord
+            }
+            for key in newRecord.allKeys() {
+                serverCopy[key] = newRecord[key]
+            }
+            if let keysToNil = nilKeys[newRecord.recordID] {
+                for key in keysToNil {
+                    serverCopy[key] = nil
+                }
+            }
+            return serverCopy
+        }
+    }
+
+    /// Final bounded-retry step — runs modifyRecords once and throws mapCKError on any failure.
+    ///
+    /// Bounded retry: caller must not invoke this in a loop. If this throws, the
+    /// caller surfaces the error up to the user.
+    private func retryModifyRecords(_ records: [CKRecord], recordType: String) async throws {
+        let (savedRecords, _) = try await database.modifyRecords(saving: records, deleting: [])
+        for (recordID, result) in savedRecords {
+            if case .failure(let error) = result {
+                throw mapCKError(error, recordID: recordID)
+            }
+        }
+    }
+
+    /// Saves records to CloudKit with upsert semantics (insert-or-update) and
+    /// resolves changeTag conflicts via server-merge.
+    ///
+    /// First attempts a normal save. Two recovery paths are supported, each bounded
+    /// to ONE additional attempt:
+    /// 1. **Duplicate-on-insert** — CloudKit rejects a record because a record with
+    ///    that ID already exists ("record to insert already exists"). We fetch the
+    ///    existing record, overlay the new field values onto it (preserving the
+    ///    server changeTag), and retry.
+    /// 2. **ServerRecordChanged** — CloudKit rejects a record because our in-memory
+    ///    changeTag is stale (another device updated the server copy). We use the
+    ///    server's current CKRecord attached to the error's userInfo, overlay our
+    ///    field values, and retry. This is the multi-device "oplock" fix.
     public func save<T>(
         _ records: [T],
         recordType: String
@@ -136,31 +223,86 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
 
         do {
             let (savedRecords, _) = try await database.modifyRecords(saving: ckRecords, deleting: [])
-            for (_, result) in savedRecords {
+
+            // Collect per-record errors; classify into duplicate, serverRecordChanged, or fatal
+            var serverChangedErrors: [CKRecord.ID: Error] = [:]
+            var duplicateDetected = false
+            for (recordID, result) in savedRecords {
                 if case .failure(let error) = result {
                     if isDuplicateRecordError(error) {
-                        ckLogger.info("ℹ️ SAVE \(recordType): duplicate detected during insert, retrying merge")
+                        duplicateDetected = true
+                    } else if isServerRecordChangedError(error) {
+                        serverChangedErrors[recordID] = error
                     } else {
                         ckLogger.error("❌ SAVE \(recordType): record error — \(error.localizedDescription)")
+                        throw mapCKError(error, recordID: recordID)
                     }
-                    throw error
                 }
             }
+
+            if !serverChangedErrors.isEmpty {
+                ckLogger.info("🔄 SAVE \(recordType): serverRecordChanged for \(serverChangedErrors.count) record(s), merging with server copy")
+                let serverCopies = extractServerRecords(from: serverChangedErrors)
+                let merged = mergeWithServerRecords(
+                    newRecords: ckRecords,
+                    serverRecords: serverCopies,
+                    nilKeys: nilKeyMap
+                )
+                try await retryModifyRecords(merged, recordType: recordType)
+                ckLogger.info("✅ SAVE \(recordType): server-merge retry success")
+                return
+            }
+
+            if duplicateDetected {
+                ckLogger.info("🔄 SAVE \(recordType): duplicate detected, merging")
+                let existingRecords = await fetchExistingRecords(ckRecords.map(\.recordID))
+                let merged = ckRecords.map { mergeWithExisting($0, existing: existingRecords, nilKeys: nilKeyMap) }
+                try await retryModifyRecords(merged, recordType: recordType)
+                ckLogger.info("✅ SAVE \(recordType): merge success")
+                return
+            }
+
             ckLogger.info("✅ SAVE \(recordType): success")
         } catch {
+            // Batch-level throw: may wrap partialFailure with per-item serverRecordChanged,
+            // or be a top-level duplicate/changeTag error.
+            if let perItem = perItemErrors(from: error) {
+                let serverChanged = perItem.filter { isServerRecordChangedError($0.value) }
+                if !serverChanged.isEmpty {
+                    ckLogger.info("🔄 SAVE \(recordType): serverRecordChanged in batch (\(serverChanged.count)), merging with server copy")
+                    let serverCopies = extractServerRecords(from: serverChanged)
+                    let merged = mergeWithServerRecords(
+                        newRecords: ckRecords,
+                        serverRecords: serverCopies,
+                        nilKeys: nilKeyMap
+                    )
+                    try await retryModifyRecords(merged, recordType: recordType)
+                    ckLogger.info("✅ SAVE \(recordType): server-merge retry success")
+                    return
+                }
+            }
+            if isServerRecordChangedError(error),
+               let ckError = error as? CKError,
+               let serverRecord = ckError.userInfo[CKRecordChangedErrorServerRecordKey] as? CKRecord {
+                ckLogger.info("🔄 SAVE \(recordType): serverRecordChanged (top-level), merging with server copy")
+                let serverCopies: [CKRecord.ID: CKRecord] = [serverRecord.recordID: serverRecord]
+                let merged = mergeWithServerRecords(
+                    newRecords: ckRecords,
+                    serverRecords: serverCopies,
+                    nilKeys: nilKeyMap
+                )
+                try await retryModifyRecords(merged, recordType: recordType)
+                ckLogger.info("✅ SAVE \(recordType): server-merge retry success")
+                return
+            }
             guard isDuplicateRecordError(error) else {
                 ckLogger.error("❌ SAVE \(recordType): \(error.localizedDescription)")
                 throw mapCKError(error, recordID: nil)
             }
             ckLogger.info("🔄 SAVE \(recordType): duplicate detected, merging")
             let existingRecords = await fetchExistingRecords(ckRecords.map(\.recordID))
-            ckRecords = ckRecords.map { mergeWithExisting($0, existing: existingRecords, nilKeys: nilKeyMap) }
-            let (savedRecords, _) = try await database.modifyRecords(saving: ckRecords, deleting: [])
-            for (recordID, result) in savedRecords {
-                if case .failure(let error) = result {
-                    throw mapCKError(error, recordID: recordID)
-                }
-            }
+            let merged = ckRecords.map { mergeWithExisting($0, existing: existingRecords, nilKeys: nilKeyMap) }
+            try await retryModifyRecords(merged, recordType: recordType)
             ckLogger.info("✅ SAVE \(recordType): merge success")
         }
     }
@@ -202,7 +344,10 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
     ///
     /// Parses each JSON element into a dictionary and creates CKRecords directly.
     /// This is the replay path for SyncQueue — it allows queued mutations to be
-    /// replayed without knowing the original Codable type.
+    /// replayed without knowing the original Codable type. Offline-queued mutations
+    /// are especially prone to stale changeTags (the server has moved on while we
+    /// were offline), so this path handles `serverRecordChanged` the same way
+    /// `save()` does.
     public func saveFromJSON(
         _ jsonRecords: [Data],
         recordType: String
@@ -231,31 +376,82 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
             ckRecords.append(record)
         }
 
+        // saveFromJSON has no nilKeyMap (raw JSON path) — pass an empty map throughout.
+        let emptyNilKeys: [CKRecord.ID: Set<String>] = [:]
+
         do {
             let (savedRecords, _) = try await database.modifyRecords(saving: ckRecords, deleting: [])
+
+            var serverChangedErrors: [CKRecord.ID: Error] = [:]
+            var duplicateDetected = false
             for (recordID, result) in savedRecords {
-                switch result {
-                case .failure(let error):
-                    throw error
-                default:
-                    break
+                if case .failure(let error) = result {
+                    if isDuplicateRecordError(error) {
+                        duplicateDetected = true
+                    } else if isServerRecordChangedError(error) {
+                        serverChangedErrors[recordID] = error
+                    } else {
+                        throw mapCKError(error, recordID: recordID)
+                    }
                 }
             }
+
+            if !serverChangedErrors.isEmpty {
+                ckLogger.info("🔄 SAVE-JSON \(recordType): serverRecordChanged for \(serverChangedErrors.count) record(s), merging with server copy")
+                let serverCopies = extractServerRecords(from: serverChangedErrors)
+                let merged = mergeWithServerRecords(
+                    newRecords: ckRecords,
+                    serverRecords: serverCopies,
+                    nilKeys: emptyNilKeys
+                )
+                try await retryModifyRecords(merged, recordType: recordType)
+                ckLogger.info("✅ SAVE-JSON \(recordType): server-merge retry success")
+                return
+            }
+
+            if duplicateDetected {
+                let existingRecords = await fetchExistingRecords(ckRecords.map(\.recordID))
+                let merged = ckRecords.map { mergeWithExisting($0, existing: existingRecords, nilKeys: emptyNilKeys) }
+                try await retryModifyRecords(merged, recordType: recordType)
+                return
+            }
         } catch {
+            // Batch-level throw: check partialFailure-wrapped serverRecordChanged first.
+            if let perItem = perItemErrors(from: error) {
+                let serverChanged = perItem.filter { isServerRecordChangedError($0.value) }
+                if !serverChanged.isEmpty {
+                    ckLogger.info("🔄 SAVE-JSON \(recordType): serverRecordChanged in batch (\(serverChanged.count)), merging")
+                    let serverCopies = extractServerRecords(from: serverChanged)
+                    let merged = mergeWithServerRecords(
+                        newRecords: ckRecords,
+                        serverRecords: serverCopies,
+                        nilKeys: emptyNilKeys
+                    )
+                    try await retryModifyRecords(merged, recordType: recordType)
+                    ckLogger.info("✅ SAVE-JSON \(recordType): server-merge retry success")
+                    return
+                }
+            }
+            if isServerRecordChangedError(error),
+               let ckError = error as? CKError,
+               let serverRecord = ckError.userInfo[CKRecordChangedErrorServerRecordKey] as? CKRecord {
+                ckLogger.info("🔄 SAVE-JSON \(recordType): serverRecordChanged (top-level), merging with server copy")
+                let serverCopies: [CKRecord.ID: CKRecord] = [serverRecord.recordID: serverRecord]
+                let merged = mergeWithServerRecords(
+                    newRecords: ckRecords,
+                    serverRecords: serverCopies,
+                    nilKeys: emptyNilKeys
+                )
+                try await retryModifyRecords(merged, recordType: recordType)
+                ckLogger.info("✅ SAVE-JSON \(recordType): server-merge retry success")
+                return
+            }
             guard isDuplicateRecordError(error) else {
                 throw mapCKError(error, recordID: nil)
             }
             let existingRecords = await fetchExistingRecords(ckRecords.map(\.recordID))
-            ckRecords = ckRecords.map { mergeWithExisting($0, existing: existingRecords, nilKeys: [:]) }
-            let (savedRecords, _) = try await database.modifyRecords(saving: ckRecords, deleting: [])
-            for (recordID, result) in savedRecords {
-                switch result {
-                case .failure(let error):
-                    throw mapCKError(error, recordID: recordID)
-                default:
-                    break
-                }
-            }
+            let merged = ckRecords.map { mergeWithExisting($0, existing: existingRecords, nilKeys: emptyNilKeys) }
+            try await retryModifyRecords(merged, recordType: recordType)
         }
     }
 
