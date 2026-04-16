@@ -51,3 +51,4 @@ tmp/
 .claude/
 .bg-shell/
 .gsd-id
+node_modules/*
