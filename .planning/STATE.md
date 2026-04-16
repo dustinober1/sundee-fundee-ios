@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 Phase: 01 (recovery-score-foundation) — EXECUTING
 Plan: 1 of 5
 Status: Executing Phase 01
-Last activity: 2026-04-16 -- Phase 01 execution started
+Last activity: 2026-04-16 - Completed quick task 260416-qbs: Fix CloudKit oplock error
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -73,6 +73,12 @@ None yet.
 
 - Phase 1: HRV threshold calibration per cycle phase — specific ratio thresholds and window sizes should be validated against menstrual cycle HRV literature before scoring formula is finalized. Plan to tune via TestFlight feedback post-ship. (MEDIUM confidence on specific numbers; HIGH on approach)
 - Phase 3: CloudKit zone participant limits are officially undocumented. Test empirically with two real iCloud accounts during Phase 3. Plan a UI friend-count cap warning as fallback.
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260416-qbs | Fix CloudKit oplock error: serverRecordChanged merge + saveSettings serialization | 2026-04-16 | 292986a9 | [260416-qbs-fix-cloudkit-oplock-error-handle-serverr](./quick/260416-qbs-fix-cloudkit-oplock-error-handle-serverr/) |
 
 ## Deferred Items
 
