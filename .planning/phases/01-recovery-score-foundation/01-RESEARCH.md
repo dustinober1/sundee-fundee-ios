@@ -622,23 +622,16 @@ Circle()
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **What DailyPainLog intensity scale maps to what recovery penalty?**
-   - What we know: `DailyPainLog.intensity` is `INT64` (0-10 by convention, unverified)
-   - What's unclear: Is 0 = no pain or 0 = unknown? Is scale 0-5 or 0-10?
-   - Recommendation: Read `DailyPainLog` model source and/or `PainTrackingViewModel` to confirm scale before writing `PainScorer`. If scale is 0-10: linear map `max(0, 100 - intensity * 10)`.
+   - **RESOLVED:** `DailyPainLog.intensity` is 1-10 scale (verified in `InjuryModels.swift` line 51: `/// Pain intensity (1-10 scale)` and `isValidIntensity` checks `(1...10).contains(intensity)`). 0 is NOT a valid value — the model enforces 1-10 on save (`PainTrackingViewModel` validates `guard (1...10).contains(painIntensity)`). PainScorer formula: `score = max(0, 100 - ((intensity - 1) * 11))` mapping 1->100, 10->1. When no DailyPainLog exists for today, painIntensity is nil (not 0) and the input is absent.
 
-2. **Does the app already store historical `RecoveryScoreRecord`s for the trend chart, or does it compute them lazily?**
-   - What we know: Nothing is stored yet — this is new.
-   - What's unclear: Should we back-fill scores on first launch (using existing HRV/sleep history), or only start recording from installation of the new build?
-   - Recommendation: Back-fill scores on first launch for the last 30 days using available HealthKit history. This makes the trend chart immediately useful. Store each back-filled score with its `scoreDate`. Mark back-filled records if future features need to distinguish them.
+2. **Does the app already store historical RecoveryScoreRecords for the trend chart, or does it compute them lazily?**
+   - **RESOLVED:** No back-fill in Phase 1. Scores are recorded going forward only, starting from the first app foreground after the update. The trend chart will populate over time. Rationale: back-filling requires fetching 30 days of HealthKit history per-input and running the calculator 30 times — significant complexity for diminishing-return first-launch UX. The chart empty state ("Not enough data yet") handles this gracefully.
 
-3. **Does `CyclePhaseCache` need to expose per-day phase history (not just today)?**
-   - What we know: `CyclePhaseCache` only exposes `currentPhase` for today.
-   - What's unclear: The trend chart needs 30 days of phase bands, requiring per-day phase computation.
-   - Recommendation: The `RecoveryScoreViewModel` should compute phase bands itself using `calculateCycleStatus(periodLogs:settings:referenceDate:)` with each past date as `referenceDate`. Do not modify `CyclePhaseCache` for this use case.
-
+3. **Does CyclePhaseCache need to expose per-day phase history (not just today)?**
+   - **RESOLVED:** No. `RecoveryScoreViewModel.computePhaseBands(periodLogs:settings:)` computes per-day phase bands itself using `CycleCalculations.calculateCycleStatus(periodLogs:settings:referenceDate:)` with each past date as referenceDate. The ViewModel fetches PeriodLog records and CycleSettings from CloudKit in `loadHistory()` and passes them to `computePhaseBands`.
 ---
 
 ## Environment Availability
