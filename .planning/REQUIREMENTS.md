@@ -73,31 +73,31 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| REC-01 | — | Pending |
-| REC-02 | — | Pending |
-| REC-03 | — | Pending |
-| REC-04 | — | Pending |
-| REC-05 | — | Pending |
-| REC-06 | — | Pending |
-| HK-01 | — | Pending |
-| HK-02 | — | Pending |
-| HK-03 | — | Pending |
-| DLD-01 | — | Pending |
-| DLD-02 | — | Pending |
-| DLD-03 | — | Pending |
-| DLD-04 | — | Pending |
-| SOC-01 | — | Pending |
-| SOC-02 | — | Pending |
-| SOC-03 | — | Pending |
-| SOC-04 | — | Pending |
-| SOC-05 | — | Pending |
-| SOC-06 | — | Pending |
+| REC-01 | Phase 1 | Pending |
+| REC-02 | Phase 1 | Pending |
+| REC-03 | Phase 1 | Pending |
+| REC-04 | Phase 1 | Pending |
+| REC-05 | Phase 1 | Pending |
+| REC-06 | Phase 1 | Pending |
+| HK-01 | Phase 1 | Pending |
+| HK-02 | Phase 1 | Pending |
+| HK-03 | Phase 1 | Pending |
+| DLD-01 | Phase 2 | Pending |
+| DLD-02 | Phase 2 | Pending |
+| DLD-03 | Phase 2 | Pending |
+| DLD-04 | Phase 2 | Pending |
+| SOC-01 | Phase 3 | Pending |
+| SOC-02 | Phase 3 | Pending |
+| SOC-03 | Phase 3 | Pending |
+| SOC-04 | Phase 3 | Pending |
+| SOC-05 | Phase 3 | Pending |
+| SOC-06 | Phase 3 | Pending |
 
 **Coverage:**
 - v1 requirements: 19 total
-- Mapped to phases: 0
-- Unmapped: 19
+- Mapped to phases: 19
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-04-15*
-*Last updated: 2026-04-15 after initial definition*
+*Last updated: 2026-04-15 after roadmap creation*
