@@ -13,6 +13,7 @@ private let dashLogger = Logger(subsystem: "com.sundeefundee.app", category: "Da
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
 public struct DashboardView: View {
     @StateObject private var viewModel = DashboardViewModel()
+    @StateObject private var recoveryScoreViewModel = RecoveryScoreViewModel()
     @EnvironmentObject var authViewModel: AuthViewModel
     @EnvironmentObject var cyclePhaseCache: CyclePhaseCache
     @State private var showingAIWorkout = false
@@ -25,6 +26,16 @@ public struct DashboardView: View {
                 VStack(spacing: AppTheme.Spacing.lg) {
                     // Welcome Header
                     welcomeHeader
+
+                    // Recovery Score Card (D-03: hero element at top of dashboard)
+                    NavigationLink(destination: RecoveryBreakdownView(viewModel: recoveryScoreViewModel)) {
+                        RecoveryScoreCard(
+                            score: recoveryScoreViewModel.score,
+                            isLoading: recoveryScoreViewModel.isLoading,
+                            isGuest: authViewModel.isGuest
+                        )
+                    }
+                    .buttonStyle(.plain)
 
                     // Cycle Phase Banner (if enabled)
                     cyclePhaseBanner
@@ -63,9 +74,18 @@ public struct DashboardView: View {
             #endif
             .task {
                 await viewModel.loadData(cyclePhaseCache: cyclePhaseCache)
+                // D-11: score computes on foreground only
+                await recoveryScoreViewModel.loadScore(
+                    cyclePhase: cyclePhaseCache.currentPhase,
+                    isGuest: authViewModel.isGuest
+                )
             }
             .refreshable {
                 await viewModel.loadData(cyclePhaseCache: cyclePhaseCache)
+                await recoveryScoreViewModel.loadScore(
+                    cyclePhase: cyclePhaseCache.currentPhase,
+                    isGuest: authViewModel.isGuest
+                )
             }
             .onReceive(NotificationCenter.default.publisher(for: .workoutCompleted)) { _ in
                 Task { await viewModel.loadData(cyclePhaseCache: cyclePhaseCache) }
