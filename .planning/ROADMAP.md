@@ -30,8 +30,8 @@ Decimal phases appear between their surrounding integers in numeric order.
   5. HRV does not read as "low recovery" every luteal phase — per-phase HRV baseline normalizes the score against cycle phase expectation
 **Plans**: 5 plans
 Plans:
-- [ ] 01-01-PLAN.md — Pure domain recovery score calculator with TDD (types, sub-scorers, HRV normalization)
-- [ ] 01-02-PLAN.md — HealthKit sleep integration and sleep deduplication with TDD
+- [x] 01-01-PLAN.md — Pure domain recovery score calculator with TDD (types, sub-scorers, HRV normalization)
+- [x] 01-02-PLAN.md — HealthKit sleep integration and sleep deduplication with TDD
 - [ ] 01-03-PLAN.md — RecoveryScoreRecord CloudKit model and RecoveryScoreViewModel
 - [ ] 01-04-PLAN.md — AppTheme recovery tokens, RecoveryScoreCard, InputBarRow UI components
 - [ ] 01-05-PLAN.md — Dashboard integration, RecoveryBreakdownView, RecoveryTrendChart, visual verification
