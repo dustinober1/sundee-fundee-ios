@@ -136,6 +136,18 @@ public protocol HealthClientProtocol: Sendable {
         endDate: Date
     ) async throws -> [HKQuantitySample]
 
+    /// Fetches sleep analysis samples from HealthKit.
+    ///
+    /// - Parameters:
+    ///   - startDate: Start date for the query range.
+    ///   - endDate: End date for the query range.
+    /// - Returns: An array of HKCategorySample samples for sleep stages.
+    /// - Throws: `HealthError` if the query fails.
+    func fetchSleepAnalysis(
+        startDate: Date,
+        endDate: Date
+    ) async throws -> [HKCategorySample]
+
     /// Saves a workout to HealthKit.
     ///
     /// - Parameters:
@@ -195,5 +207,12 @@ extension HealthClientProtocol {
         let endDate = Date()
         let startDate = Calendar.current.date(byAdding: .day, value: -7, to: endDate) ?? endDate
         return try await fetchRestingHeartRate(startDate: startDate, endDate: endDate)
+    }
+
+    /// Fetches sleep analysis for the past 48 hours (covers last night with buffer).
+    public func fetchRecentSleepAnalysis() async throws -> [HKCategorySample] {
+        let endDate = Date()
+        let startDate = Calendar.current.date(byAdding: .hour, value: -48, to: endDate) ?? endDate
+        return try await fetchSleepAnalysis(startDate: startDate, endDate: endDate)
     }
 }

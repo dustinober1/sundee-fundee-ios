@@ -283,6 +283,30 @@ public final class MockHealthKitClient: HealthClientProtocol, @unchecked Sendabl
         return filtered.sorted { $0.startDate > $1.startDate }
     }
 
+    /// Fetches sleep analysis samples from in-memory storage.
+    ///
+    /// - Parameters:
+    ///   - startDate: Start date for the query range.
+    ///   - endDate: End date for the query range.
+    /// - Returns: An array of HKCategorySample samples filtered by date range.
+    /// - Throws: `HealthError.notAvailable` if `isAvailable` is false,
+    ///           `HealthError.queryFailed` if `shouldFailQueries` is true.
+    public func fetchSleepAnalysis(
+        startDate: Date,
+        endDate: Date
+    ) async throws -> [HKCategorySample] {
+        guard isAvailable else {
+            throw HealthError.notAvailable
+        }
+
+        guard !shouldFailQueries else {
+            throw HealthError.queryFailed(underlying: nil)
+        }
+
+        // Stub — will be fully implemented in Task 2
+        return []
+    }
+
     /// Saves a workout to in-memory storage.
     ///
     /// - Parameters:

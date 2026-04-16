@@ -224,6 +224,25 @@ public actor HealthKitClient: @preconcurrency HealthClientProtocol {
         ) as? [HKQuantitySample] ?? []
     }
 
+    /// Fetches sleep analysis samples from HealthKit.
+    ///
+    /// - Parameters:
+    ///   - startDate: Start date for the query range.
+    ///   - endDate: End date for the query range.
+    /// - Returns: An array of HKCategorySample samples for sleep stages.
+    /// - Throws: `HealthError` if the query fails.
+    public func fetchSleepAnalysis(
+        startDate: Date,
+        endDate: Date
+    ) async throws -> [HKCategorySample] {
+        guard isAvailable else {
+            throw HealthError.notAvailable
+        }
+
+        // Stub — will be fully implemented in Task 2
+        return []
+    }
+
     /// Saves a workout to HealthKit.
     ///
     /// - Parameters:
