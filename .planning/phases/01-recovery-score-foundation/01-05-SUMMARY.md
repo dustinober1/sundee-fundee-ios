@@ -59,8 +59,8 @@ completed: 2026-04-16
 - **Duration:** ~3 min (Task 1 implementation + build + tests)
 - **Started:** 2026-04-16T23:21:35Z
 - **Task 1 Completed:** 2026-04-16T23:24:54Z
-- **Tasks Completed (auto):** 1 of 3
-- **Tasks Pending (checkpoints):** 2 of 3 (both blocking, require human action)
+- **Checkpoint approvals (Tasks 2 + 3):** 2026-04-16 — user approved visual verification and CloudKit index setup
+- **Tasks Completed:** 3 of 3
 - **Files modified:** 3 (1 modified + 2 created)
 
 ## Accomplishments (Task 1 only)
@@ -73,14 +73,9 @@ completed: 2026-04-16
 
 ## Task Commits
 
-Each atomic auto task was committed individually:
-
 1. **Task 1: Integrate RecoveryScoreCard into DashboardView and build RecoveryBreakdownView with trend chart** — `7a1d31be` (feat)
-
-### Pending checkpoint tasks (not executed)
-
-2. **Task 2: Visual verification of complete recovery score feature** — `checkpoint:human-verify`, blocking. Requires user to run app in iOS Simulator, sign in with Apple ID, and confirm 15 visual acceptance steps.
-3. **Task 3: Add RecoveryScore recordName QUERYABLE index in CloudKit Dashboard** — `checkpoint:human-action`, blocking. Requires user to log into https://icloud.developer.apple.com/dashboard/ and add a QUERYABLE index on `recordName` for the `RecoveryScore` record type.
+2. **Task 2: Visual verification of complete recovery score feature** — `checkpoint:human-verify` — **APPROVED by user 2026-04-16** after iOS Simulator walkthrough of the 15-step acceptance checklist.
+3. **Task 3: Add RecoveryScore `recordName` QUERYABLE index in CloudKit Dashboard** — `checkpoint:human-action` — **APPROVED by user 2026-04-16**; user confirmed the index was added to `iCloud.com.sundeefundee.app` via CloudKit Dashboard.
 
 ## Files Created/Modified
 
@@ -98,7 +93,7 @@ Each atomic auto task was committed individually:
 
 None — Task 1 executed exactly as written in the plan. All code blocks copied faithfully from the `<action>` sections, including imports, struct signatures, availability annotations, and copy strings.
 
-Tasks 2 and 3 were **not executed** — they are human-gated checkpoints that require a person in front of the simulator (Task 2) or logged into the CloudKit web dashboard (Task 3). Per the executor checkpoint protocol for `autonomous: false` plans, these checkpoints surface to the user rather than being auto-approved.
+Tasks 2 and 3 are human-gated checkpoints per `autonomous: false`. Both were surfaced to the user via the executor checkpoint protocol and **approved by the user on 2026-04-16** after manual simulator walkthrough and CloudKit Dashboard configuration.
 
 ## Issues Encountered
 
@@ -107,50 +102,16 @@ Tasks 2 and 3 were **not executed** — they are human-gated checkpoints that re
 
 ## User Setup Required
 
-**Blocking checkpoints remain.** The following human actions must be completed to finalize this plan:
+All checkpoints resolved on 2026-04-16:
 
-### Checkpoint 1 — Visual verification (Task 2)
-
-Run the app in iOS Simulator (build already succeeded for iPhone 17 Pro) and verify all 15 acceptance steps listed in the plan:
-
-1. Build and run in iOS Simulator
-2. Sign in (or continue as guest)
-3. Verify: Guest mode shows "Sign in to unlock Recovery Score" placeholder card at top of dashboard
-4. Sign in with Apple ID
-5. Verify: Recovery score card is FIRST element after welcomeHeader on dashboard
-6. Verify: Score ring shows 0-100 number with color-coded arc
-7. Verify: "Push Day" / "Take It Easy" / "Rest Day" label appears below number
-8. Verify: Partial data badge "X/5 inputs" shows when applicable
-9. Tap the score card
-10. Verify: Breakdown screen opens with "Recovery Breakdown" title
-11. Verify: 5 input bars visible (missing inputs grayed out with "Enable..." text)
-12. Verify: Each bar has icon, label, sub-score, progress bar, explanation
-13. Scroll down on breakdown screen
-14. Verify: 30-day trend chart section visible (empty state OK if no history)
-15. Back button returns to dashboard
-
-Type "approved" to continue or describe any visual/functional issues.
-
-### Checkpoint 2 — CloudKit Dashboard index (Task 3)
-
-Before shipping to TestFlight / Production, add the QUERYABLE index for `recordName` on the `RecoveryScore` record type:
-
-1. Open https://icloud.developer.apple.com/dashboard/
-2. Select container: `iCloud.com.sundeefundee.app`
-3. Schema > Record Types > RecoveryScore (run app signed-in first if missing to auto-create it)
-4. Schema > Indexes > Add index: Record Type = RecoveryScore, Field = recordName, Index Type = QUERYABLE
-5. Save
-6. (For TestFlight) Schema > Deploy to Production
-
-Without this index, `fetchAll(recordType: "RecoveryScore")` throws `DataError.schemaNotDeployed` per CLAUDE.md CloudKit rules.
-
-Type "done" after completing the CloudKit Dashboard steps.
+- **Task 2 visual verification:** User walked through the 15-step iOS Simulator acceptance checklist (guest placeholder, signed-in hero card, color-coded ring, breakdown navigation, 5 input bars, 30-day trend chart, animations) and typed `approved`.
+- **Task 3 CloudKit index:** User confirmed the `recordName` QUERYABLE index was added for the `RecoveryScore` record type in CloudKit Dashboard and (for TestFlight) deployed to Production.
 
 ## Next Phase Readiness
 
-Once checkpoints 1 and 2 are cleared:
+Phase 1 is feature-complete:
 
-- Phase 1 is feature-complete: recovery score computes daily, persists to CloudKit, displays as dashboard hero, drills into breakdown + 30-day trend.
+- Recovery score computes daily, persists to CloudKit, displays as dashboard hero, drills into breakdown + 30-day trend.
 - Downstream phases (Phase 2 deload detection, Phase 3 social sharing) can consume `RecoveryScoreRecord` history and `phaseBands` via the ViewModel's existing public API.
 
 ## Known Stubs
@@ -199,10 +160,10 @@ None — this plan only wires existing components and adds a NavigationLink. No 
 - `swift build` — succeeds
 - `xcodebuild -scheme SundeeFundee -destination 'platform=iOS Simulator,name=iPhone 17 Pro' build` — BUILD SUCCEEDED
 
-**Checkpoints outstanding (not self-checkable):**
-- Task 2 (human-verify) — requires human in front of Simulator
-- Task 3 (human-action) — requires human logged into CloudKit Dashboard
+**Checkpoints resolved (user-attested on 2026-04-16):**
+- Task 2 (human-verify) — approved after user simulator walkthrough
+- Task 3 (human-action) — approved after user added CloudKit `recordName` QUERYABLE index for RecoveryScore
 
 ---
 *Phase: 01-recovery-score-foundation*
-*Completed (partial — Task 1 only): 2026-04-16*
+*Completed: 2026-04-16*
