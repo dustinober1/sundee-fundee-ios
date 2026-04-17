@@ -144,9 +144,9 @@ public class AuthViewModel: ObservableObject {
 
             // 2. Revoke Apple ID token if not a guest
             if !isGuest {
-                // We'd ideally have the authorization code stored or prompt again.
-                // For now, we'll perform a best-effort revocation.
-                try await authClient.revokeToken(authorizationCode: nil)
+                // Re-authenticate to get a fresh authorization code for revocation
+                let result = try await authClient.signIn(scopes: [])
+                try await authClient.revokeToken(authorizationCode: result.authorizationCode)
             }
 
             // 3. Reset state and clear credentials
