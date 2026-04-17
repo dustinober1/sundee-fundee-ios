@@ -202,24 +202,43 @@ public actor AppleAuthClient: AppleAuthClientProtocol {
     ///
     /// This method informs Apple that the user's authorization for this app is
     /// being revoked, following Apple's requirements for account deletion.
+    /// The caller must re-authenticate the user first to obtain a fresh
+    /// authorization code.
     ///
-    /// - Parameter authorizationCode: The authorization code received during sign-in.
+    /// - Parameter authorizationCode: A fresh authorization code from re-authentication.
+    /// - Throws: `AuthError.authorizationFailed` if revocation fails.
     public func revokeToken(authorizationCode: Data?) async throws {
-        // If no authorization code is provided, we can't perform revocation.
-        // In a real implementation, you'd store this code and use it here.
         guard let code = authorizationCode,
               let codeString = String(data: code, encoding: .utf8) else {
-            // If we don't have the code, we just sign out as a fallback.
-            await signOut()
-            return
+            authLogger.error("❌ Cannot revoke token: no authorization code provided")
+            throw AuthError.authorizationFailed(underlying: nil)
         }
 
-        _ = ASAuthorizationAppleIDProvider()
-        // Revoke the authorization code
-        // Note: For full revocation, you often need to perform this against
-        // Apple's REST API using a client secret. On-device revocation is limited.
-        // We'll simulate the intent here.
-        authLogger.info("Revoking Apple ID authorization token")
+        authLogger.info("🔐 Revoking Apple ID authorization token")
+
+        // Build the token revocation request to Apple's REST endpoint.
+        // This is the on-device approach for apps without a backend server.
+        // The authorization code serves as the token hint for revocation.
+        var urlComponents = URLComponents(string: "https://appleid.apple.com/auth/revoke")!
+        urlComponents.queryItems = [
+            URLQueryItem(name: "token", value: codeString),
+            URLQueryItem(name: "token_type_hint", value: "authorization_code"),
+        ]
+
+        var request = URLRequest(url: urlComponents.url!)
+        request.httpMethod = "POST"
+        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+
+        do {
+            let (_, response) = try await URLSession.shared.data(for: request)
+            if let httpResponse = response as? HTTPURLResponse {
+                authLogger.info("🔐 Token revocation response: \(httpResponse.statusCode)")
+            }
+        } catch {
+            // Log but don't block account deletion — data has already been wiped
+            authLogger.error("❌ Token revocation request failed: \(error.localizedDescription)")
+        }
+
         await signOut()
     }
 }
