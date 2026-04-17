@@ -7,20 +7,136 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0171AD01A64EB2E4626A403C /* CelebrationEventTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF150AE69ABA6C9259066A04 /* CelebrationEventTests.swift */; };
+		065F73C20CCF2B4B4A80EF70 /* RecoveryScoreCalculatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 017001789E6B343217CFE7CB /* RecoveryScoreCalculatorTests.swift */; };
+		0AD29856D92CDD09394B830B /* BenchmarkReadinessTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16EA74C133F402FD9FEAD1BC /* BenchmarkReadinessTests.swift */; };
+		0FD2F89109A91F2D92E8A040 /* AppleAuthClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18AF801E1F1F5454B239F166 /* AppleAuthClientTests.swift */; };
+		308CD867C728DC87B26CEE85 /* ProgramsListViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7987105BE8890D17EDB5C8E /* ProgramsListViewModelTests.swift */; };
+		373B8FAA2FA3AF29EDADD3FD /* PlateCalculatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11BC24919771C1886B25AD7D /* PlateCalculatorTests.swift */; };
+		45AE802A49137F45ECCC6BF7 /* WeightCalculatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96D6CD239D89F9ED1E699ACB /* WeightCalculatorTests.swift */; };
+		47189FC43F88DA19101B25AE /* WorkoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96DD921A91D0B5443EB2FF3A /* WorkoutTests.swift */; };
+		4C6BD830DCD16C9065A26517 /* FreeSubscriptionClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AE0237254D4CA9D80B75F72 /* FreeSubscriptionClientTests.swift */; };
+		57C9E7984DFA95EB001DD913 /* SundeeFundeeWidgetsExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 7C4C38D3026141D6EE494174 /* SundeeFundeeWidgetsExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		5D69FCF997B5B96DB4463FF7 /* UnitConverterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 921DCFF3183370E90C1C43B3 /* UnitConverterTests.swift */; };
+		5F4B8CC1D1029622960F56DA /* DataExportServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE6CFD0706EB19DA6DFE0480 /* DataExportServiceTests.swift */; };
+		6187AE5E8463DC732ABB562D /* BodyLocationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 503B9910E4D76A81FDC805D6 /* BodyLocationTests.swift */; };
+		643DD1C7EFE713C2C1BEB44A /* CloudKitClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 294506637061D5E994B4E7A8 /* CloudKitClientTests.swift */; };
+		64452C3BEE54E50E254B885A /* InjuryAdaptationEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CAEEFE98AF51DB56FAC2E22 /* InjuryAdaptationEngineTests.swift */; };
+		6B8AFFCAE1801E81119B9D79 /* CycleCalculationsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 388CC0716EBC63583FB62823 /* CycleCalculationsTests.swift */; };
+		727B21C1D50AE914DF534756 /* PlateauDetectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CD7D90FE223A841A37A4593 /* PlateauDetectorTests.swift */; };
+		7832A4A86CF59EF3984371C2 /* SleepDeduplicatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 354D229BE5D20707E3D5986C /* SleepDeduplicatorTests.swift */; };
+		7BC3176EDB907BA783FB8BBA /* ProgramTemplateGeneratorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E59CE81B34CFCD8E420D308 /* ProgramTemplateGeneratorTests.swift */; };
+		8A965EF40B5B310457328FE6 /* CyclePhaseHelperTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C333B264035D9076D23308ED /* CyclePhaseHelperTests.swift */; };
+		9179DE753F065906FE357796 /* AIWorkoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D7BD47139CECAB999540BA2 /* AIWorkoutTests.swift */; };
+		95E2E2C11BF4AFAE16F69712 /* InjurySupportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CE8B2AF9D7F669F8CBAF195 /* InjurySupportTests.swift */; };
+		9A1BC5C6390252A864673DAB /* WeeklyLoadAnalyzerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06652DA244A952CA03DE5CFE /* WeeklyLoadAnalyzerTests.swift */; };
+		A316D48CBC4D8A1423D6ED6C /* ExerciseCatalogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D6D20B7233D5FAFBC914270 /* ExerciseCatalogTests.swift */; };
+		AA693CC5F6012DA8505E3E98 /* SundeeFundeeKit in Frameworks */ = {isa = PBXBuildFile; productRef = E5D818355C15FD611DF98B2C /* SundeeFundeeKit */; };
+		ACA392EBD78136C041DE7A98 /* ContentClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0080AFC9943CB2215B0DA0E /* ContentClientTests.swift */; };
+		B91F85CB2E2B17ABB152CEB6 /* BenchmarkCatalogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0399801C749DA5CAEB38B0FF /* BenchmarkCatalogTests.swift */; };
+		B9F5B66F8CD62DF2CAFA9B9C /* SubstitutionRankerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4143308968600CFDD005F537 /* SubstitutionRankerTests.swift */; };
+		BA32442C19B6F335C6B71CB8 /* WorkoutDetailViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E3CBAFD58D7DFF764B06A5F /* WorkoutDetailViewModelTests.swift */; };
+		BA4FC72DFCB08D8EF71831B5 /* LiveWorkoutActivityStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72F09E45AB83024AD6A6C97D /* LiveWorkoutActivityStateTests.swift */; };
+		BAA633CAFCD2008795B24A9A /* ExerciseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00D0C2C6A6F46E38A1AFC8CF /* ExerciseTests.swift */; };
+		BB6F854C5EBD4E6F9880E151 /* PreferenceLearnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F81E8250A08BF2FCC0A6106 /* PreferenceLearnerTests.swift */; };
+		BDB3509A360D751493C378CE /* CycleCalendarTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A435FF42A0ADD1A9C8C47ED4 /* CycleCalendarTests.swift */; };
+		BEBB052653A7324B3DF4DB19 /* LiveWorkoutWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = D397DCE979CD70EEE7CD6F64 /* LiveWorkoutWidget.swift */; };
+		C609EFC92C8769685199996B /* ScheduleReshufflerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C144225F2E7BE71F89E5FF7 /* ScheduleReshufflerTests.swift */; };
 		C7FB1AE00824A23591E646D0 /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = F47E72DC5446634AE7210CE4 /* App.swift */; };
 		CC55A72B627E73DE3865884E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 57BCA73D87A152BF2F3A81D1 /* Assets.xcassets */; };
 		CFDF444DB32D9E05ACF7EAA4 /* SundeeFundeeKit in Frameworks */ = {isa = PBXBuildFile; productRef = 0344363F4B100A32D7BC231D /* SundeeFundeeKit */; };
-		D2C1B0A918076F5E4D3C2B1A /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718A9B0C1D2 /* PrivacyInfo.xcprivacy */; };
+		D4A8EEC34CE1E467476B3FE8 /* ChartDataAggregatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9053D9E47341E0C9CE6C69A2 /* ChartDataAggregatorTests.swift */; };
+		D5D79E1E57FF1AB26B413C90 /* HealthKitClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F0B9E46E7A3FE0B9C37324C /* HealthKitClientTests.swift */; };
+		D63F77FE178E59D6137AED15 /* SyncQueueTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D90E2CBAB51EF678BE6C558 /* SyncQueueTests.swift */; };
+		E20EADBD3CC990D63937B328 /* CycleAdaptationPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76A2B96F8806C4C654BB5A12 /* CycleAdaptationPolicyTests.swift */; };
+		E81CFCB1EA221C8BB278C448 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = D5798C24CE84AA1EEC7D80E3 /* PrivacyInfo.xcprivacy */; };
+		F5902C9A5CAA8C490BBA0F66 /* SundeeFundeeKit in Frameworks */ = {isa = PBXBuildFile; productRef = 641F11E52B68F0FAA926FA13 /* SundeeFundeeKit */; };
+		F798AC249E60EEA920A6516E /* AnalyticsViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6811FF5BBBCEA28CDB2BC2D0 /* AnalyticsViewModelTests.swift */; };
+		FE9CE16F0DBFCB74D963C051 /* ChallengeEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B12A1F0631C31D542C20196E /* ChallengeEngineTests.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		310C845A2DCACB62A22CD591 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A23AA027FBDBC591792DA380 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 6A65F4B4731A18FE7E162E4E;
+			remoteInfo = SundeeFundee;
+		};
+		8546652E88CE8E51607AE379 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A23AA027FBDBC591792DA380 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 38E0473811F3273AE38A8631;
+			remoteInfo = SundeeFundeeWidgetsExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		36E14959B1240696107D9659 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				57C9E7984DFA95EB001DD913 /* SundeeFundeeWidgetsExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		00D0C2C6A6F46E38A1AFC8CF /* ExerciseTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseTests.swift; sourceTree = "<group>"; };
+		017001789E6B343217CFE7CB /* RecoveryScoreCalculatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecoveryScoreCalculatorTests.swift; sourceTree = "<group>"; };
+		0399801C749DA5CAEB38B0FF /* BenchmarkCatalogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BenchmarkCatalogTests.swift; sourceTree = "<group>"; };
+		06652DA244A952CA03DE5CFE /* WeeklyLoadAnalyzerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeeklyLoadAnalyzerTests.swift; sourceTree = "<group>"; };
+		09F2CCD701D6D0EA783701B0 /* SundeeFundeeTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = SundeeFundeeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		0AE0237254D4CA9D80B75F72 /* FreeSubscriptionClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FreeSubscriptionClientTests.swift; sourceTree = "<group>"; };
+		0D90E2CBAB51EF678BE6C558 /* SyncQueueTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncQueueTests.swift; sourceTree = "<group>"; };
+		11BC24919771C1886B25AD7D /* PlateCalculatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlateCalculatorTests.swift; sourceTree = "<group>"; };
+		16EA74C133F402FD9FEAD1BC /* BenchmarkReadinessTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BenchmarkReadinessTests.swift; sourceTree = "<group>"; };
+		18AF801E1F1F5454B239F166 /* AppleAuthClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleAuthClientTests.swift; sourceTree = "<group>"; };
+		294506637061D5E994B4E7A8 /* CloudKitClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudKitClientTests.swift; sourceTree = "<group>"; };
+		2CE8B2AF9D7F669F8CBAF195 /* InjurySupportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InjurySupportTests.swift; sourceTree = "<group>"; };
+		354D229BE5D20707E3D5986C /* SleepDeduplicatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepDeduplicatorTests.swift; sourceTree = "<group>"; };
+		388CC0716EBC63583FB62823 /* CycleCalculationsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleCalculationsTests.swift; sourceTree = "<group>"; };
+		3D6D20B7233D5FAFBC914270 /* ExerciseCatalogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseCatalogTests.swift; sourceTree = "<group>"; };
+		3F81E8250A08BF2FCC0A6106 /* PreferenceLearnerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferenceLearnerTests.swift; sourceTree = "<group>"; };
+		4143308968600CFDD005F537 /* SubstitutionRankerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubstitutionRankerTests.swift; sourceTree = "<group>"; };
 		423F82176D7FA3B1A6B4754B /* SundeeFundee.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SundeeFundee.entitlements; sourceTree = "<group>"; };
+		4E59CE81B34CFCD8E420D308 /* ProgramTemplateGeneratorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramTemplateGeneratorTests.swift; sourceTree = "<group>"; };
+		4F0B9E46E7A3FE0B9C37324C /* HealthKitClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitClientTests.swift; sourceTree = "<group>"; };
+		503B9910E4D76A81FDC805D6 /* BodyLocationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyLocationTests.swift; sourceTree = "<group>"; };
 		57BCA73D87A152BF2F3A81D1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		5CAEEFE98AF51DB56FAC2E22 /* InjuryAdaptationEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InjuryAdaptationEngineTests.swift; sourceTree = "<group>"; };
+		6811FF5BBBCEA28CDB2BC2D0 /* AnalyticsViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsViewModelTests.swift; sourceTree = "<group>"; };
+		6E3CBAFD58D7DFF764B06A5F /* WorkoutDetailViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutDetailViewModelTests.swift; sourceTree = "<group>"; };
+		7171E9CD0635CF4CC1DA0CC0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		72F09E45AB83024AD6A6C97D /* LiveWorkoutActivityStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveWorkoutActivityStateTests.swift; sourceTree = "<group>"; };
+		76A2B96F8806C4C654BB5A12 /* CycleAdaptationPolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleAdaptationPolicyTests.swift; sourceTree = "<group>"; };
+		7C4C38D3026141D6EE494174 /* SundeeFundeeWidgetsExtension.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = SundeeFundeeWidgetsExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		8D7BD47139CECAB999540BA2 /* AIWorkoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIWorkoutTests.swift; sourceTree = "<group>"; };
+		9053D9E47341E0C9CE6C69A2 /* ChartDataAggregatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChartDataAggregatorTests.swift; sourceTree = "<group>"; };
+		921DCFF3183370E90C1C43B3 /* UnitConverterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnitConverterTests.swift; sourceTree = "<group>"; };
 		9440F3F428ED2EAB4291ABD3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
-		A1B2C3D4E5F60718A9B0C1D2 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-		C99B9014B8F76C3124C8DA6A /* SundeeFundee.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SundeeFundee.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		96D6CD239D89F9ED1E699ACB /* WeightCalculatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightCalculatorTests.swift; sourceTree = "<group>"; };
+		96DD921A91D0B5443EB2FF3A /* WorkoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutTests.swift; sourceTree = "<group>"; };
+		9C144225F2E7BE71F89E5FF7 /* ScheduleReshufflerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleReshufflerTests.swift; sourceTree = "<group>"; };
+		9CD7D90FE223A841A37A4593 /* PlateauDetectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlateauDetectorTests.swift; sourceTree = "<group>"; };
+		A435FF42A0ADD1A9C8C47ED4 /* CycleCalendarTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleCalendarTests.swift; sourceTree = "<group>"; };
+		A56B3641B39ABABD9066F3AC /* SundeeFundeeWidgets.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SundeeFundeeWidgets.entitlements; sourceTree = "<group>"; };
+		AF150AE69ABA6C9259066A04 /* CelebrationEventTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CelebrationEventTests.swift; sourceTree = "<group>"; };
+		B12A1F0631C31D542C20196E /* ChallengeEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChallengeEngineTests.swift; sourceTree = "<group>"; };
+		C333B264035D9076D23308ED /* CyclePhaseHelperTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CyclePhaseHelperTests.swift; sourceTree = "<group>"; };
+		C99B9014B8F76C3124C8DA6A /* SundeeFundee.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = SundeeFundee.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C9FE2C96B12B8F5EF9D089ED /* SundeeFundee */ = {isa = PBXFileReference; lastKnownFileType = folder; name = SundeeFundee; path = ../SundeeFundee; sourceTree = SOURCE_ROOT; };
+		D0080AFC9943CB2215B0DA0E /* ContentClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentClientTests.swift; sourceTree = "<group>"; };
+		D397DCE979CD70EEE7CD6F64 /* LiveWorkoutWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveWorkoutWidget.swift; sourceTree = "<group>"; };
+		D5798C24CE84AA1EEC7D80E3 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		D7987105BE8890D17EDB5C8E /* ProgramsListViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramsListViewModelTests.swift; sourceTree = "<group>"; };
 		F47E72DC5446634AE7210CE4 /* App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
+		FE6CFD0706EB19DA6DFE0480 /* DataExportServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataExportServiceTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -32,6 +148,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		D312AE31D305D7F65BB1516D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F5902C9A5CAA8C490BBA0F66 /* SundeeFundeeKit in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F6BDEF0462865C1687C90F80 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA693CC5F6012DA8505E3E98 /* SundeeFundeeKit in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -39,17 +171,140 @@
 			isa = PBXGroup;
 			children = (
 				F06D23E8ED1C14D186B84039 /* Packages */,
+				201BFF94BBBDBD1EB18DA9EC /* sundee-fundee */,
 				DEA45E21D11C2110AA682199 /* SundeeFundee */,
+				6F6564DAE083123652AFA48F /* SundeeFundeeWidgets */,
 				97B281320B0F062699145758 /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		16C280FA2D86AA3FB0859C38 /* DataLayerTests */ = {
+			isa = PBXGroup;
+			children = (
+				294506637061D5E994B4E7A8 /* CloudKitClientTests.swift */,
+				D0080AFC9943CB2215B0DA0E /* ContentClientTests.swift */,
+				4F0B9E46E7A3FE0B9C37324C /* HealthKitClientTests.swift */,
+				354D229BE5D20707E3D5986C /* SleepDeduplicatorTests.swift */,
+				0D90E2CBAB51EF678BE6C558 /* SyncQueueTests.swift */,
+			);
+			path = DataLayerTests;
+			sourceTree = "<group>";
+		};
+		201BFF94BBBDBD1EB18DA9EC /* sundee-fundee */ = {
+			isa = PBXGroup;
+			children = (
+				2DA3BD045DD9A092ABDBB0D7 /* SundeeFundee */,
+			);
+			name = "sundee-fundee";
+			path = ..;
+			sourceTree = "<group>";
+		};
+		2DA3BD045DD9A092ABDBB0D7 /* SundeeFundee */ = {
+			isa = PBXGroup;
+			children = (
+				B2A1145A108B19E9B265C613 /* Tests */,
+			);
+			path = SundeeFundee;
+			sourceTree = "<group>";
+		};
+		5479FB470F326D360A006ADC /* ViewModelTests */ = {
+			isa = PBXGroup;
+			children = (
+				6811FF5BBBCEA28CDB2BC2D0 /* AnalyticsViewModelTests.swift */,
+				D7987105BE8890D17EDB5C8E /* ProgramsListViewModelTests.swift */,
+				6E3CBAFD58D7DFF764B06A5F /* WorkoutDetailViewModelTests.swift */,
+			);
+			path = ViewModelTests;
+			sourceTree = "<group>";
+		};
+		6F6564DAE083123652AFA48F /* SundeeFundeeWidgets */ = {
+			isa = PBXGroup;
+			children = (
+				7171E9CD0635CF4CC1DA0CC0 /* Info.plist */,
+				D397DCE979CD70EEE7CD6F64 /* LiveWorkoutWidget.swift */,
+				A56B3641B39ABABD9066F3AC /* SundeeFundeeWidgets.entitlements */,
+			);
+			path = SundeeFundeeWidgets;
+			sourceTree = "<group>";
+		};
+		8631CDB38FF91EABE50F70A2 /* DomainTests */ = {
+			isa = PBXGroup;
+			children = (
+				8D7BD47139CECAB999540BA2 /* AIWorkoutTests.swift */,
+				0399801C749DA5CAEB38B0FF /* BenchmarkCatalogTests.swift */,
+				16EA74C133F402FD9FEAD1BC /* BenchmarkReadinessTests.swift */,
+				503B9910E4D76A81FDC805D6 /* BodyLocationTests.swift */,
+				AF150AE69ABA6C9259066A04 /* CelebrationEventTests.swift */,
+				B12A1F0631C31D542C20196E /* ChallengeEngineTests.swift */,
+				9053D9E47341E0C9CE6C69A2 /* ChartDataAggregatorTests.swift */,
+				76A2B96F8806C4C654BB5A12 /* CycleAdaptationPolicyTests.swift */,
+				388CC0716EBC63583FB62823 /* CycleCalculationsTests.swift */,
+				A435FF42A0ADD1A9C8C47ED4 /* CycleCalendarTests.swift */,
+				C333B264035D9076D23308ED /* CyclePhaseHelperTests.swift */,
+				FE6CFD0706EB19DA6DFE0480 /* DataExportServiceTests.swift */,
+				3D6D20B7233D5FAFBC914270 /* ExerciseCatalogTests.swift */,
+				5CAEEFE98AF51DB56FAC2E22 /* InjuryAdaptationEngineTests.swift */,
+				2CE8B2AF9D7F669F8CBAF195 /* InjurySupportTests.swift */,
+				9CD7D90FE223A841A37A4593 /* PlateauDetectorTests.swift */,
+				11BC24919771C1886B25AD7D /* PlateCalculatorTests.swift */,
+				3F81E8250A08BF2FCC0A6106 /* PreferenceLearnerTests.swift */,
+				4E59CE81B34CFCD8E420D308 /* ProgramTemplateGeneratorTests.swift */,
+				017001789E6B343217CFE7CB /* RecoveryScoreCalculatorTests.swift */,
+				9C144225F2E7BE71F89E5FF7 /* ScheduleReshufflerTests.swift */,
+				4143308968600CFDD005F537 /* SubstitutionRankerTests.swift */,
+				921DCFF3183370E90C1C43B3 /* UnitConverterTests.swift */,
+				06652DA244A952CA03DE5CFE /* WeeklyLoadAnalyzerTests.swift */,
+				96D6CD239D89F9ED1E699ACB /* WeightCalculatorTests.swift */,
+			);
+			path = DomainTests;
+			sourceTree = "<group>";
+		};
+		95C14495253E9A6F9C907468 /* ActivityTests */ = {
+			isa = PBXGroup;
+			children = (
+				72F09E45AB83024AD6A6C97D /* LiveWorkoutActivityStateTests.swift */,
+			);
+			path = ActivityTests;
 			sourceTree = "<group>";
 		};
 		97B281320B0F062699145758 /* Products */ = {
 			isa = PBXGroup;
 			children = (
 				C99B9014B8F76C3124C8DA6A /* SundeeFundee.app */,
+				09F2CCD701D6D0EA783701B0 /* SundeeFundeeTests.xctest */,
+				7C4C38D3026141D6EE494174 /* SundeeFundeeWidgetsExtension.appex */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		B2A1145A108B19E9B265C613 /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				D7C05633902C830A33F6D6C9 /* SundeeFundeeKitTests */,
+			);
+			path = Tests;
+			sourceTree = "<group>";
+		};
+		BF161D4C6F09FF1FFDDFE92C /* AuthTests */ = {
+			isa = PBXGroup;
+			children = (
+				18AF801E1F1F5454B239F166 /* AppleAuthClientTests.swift */,
+			);
+			path = AuthTests;
+			sourceTree = "<group>";
+		};
+		D7C05633902C830A33F6D6C9 /* SundeeFundeeKitTests */ = {
+			isa = PBXGroup;
+			children = (
+				95C14495253E9A6F9C907468 /* ActivityTests */,
+				BF161D4C6F09FF1FFDDFE92C /* AuthTests */,
+				16C280FA2D86AA3FB0859C38 /* DataLayerTests */,
+				8631CDB38FF91EABE50F70A2 /* DomainTests */,
+				E79F8839340F1DCB687B903D /* ModelTests */,
+				EA866869132707B156B8C67A /* SubscriptionTests */,
+				5479FB470F326D360A006ADC /* ViewModelTests */,
+			);
+			path = SundeeFundeeKitTests;
 			sourceTree = "<group>";
 		};
 		DEA45E21D11C2110AA682199 /* SundeeFundee */ = {
@@ -58,10 +313,27 @@
 				F47E72DC5446634AE7210CE4 /* App.swift */,
 				57BCA73D87A152BF2F3A81D1 /* Assets.xcassets */,
 				9440F3F428ED2EAB4291ABD3 /* Info.plist */,
-				A1B2C3D4E5F60718A9B0C1D2 /* PrivacyInfo.xcprivacy */,
+				D5798C24CE84AA1EEC7D80E3 /* PrivacyInfo.xcprivacy */,
 				423F82176D7FA3B1A6B4754B /* SundeeFundee.entitlements */,
 			);
 			path = SundeeFundee;
+			sourceTree = "<group>";
+		};
+		E79F8839340F1DCB687B903D /* ModelTests */ = {
+			isa = PBXGroup;
+			children = (
+				00D0C2C6A6F46E38A1AFC8CF /* ExerciseTests.swift */,
+				96DD921A91D0B5443EB2FF3A /* WorkoutTests.swift */,
+			);
+			path = ModelTests;
+			sourceTree = "<group>";
+		};
+		EA866869132707B156B8C67A /* SubscriptionTests */ = {
+			isa = PBXGroup;
+			children = (
+				0AE0237254D4CA9D80B75F72 /* FreeSubscriptionClientTests.swift */,
+			);
+			path = SubscriptionTests;
 			sourceTree = "<group>";
 		};
 		F06D23E8ED1C14D186B84039 /* Packages */ = {
@@ -75,6 +347,45 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		210638487B33D83A1059A242 /* SundeeFundeeTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 760B8A32B45FDF7F9B7E8EA4 /* Build configuration list for PBXNativeTarget "SundeeFundeeTests" */;
+			buildPhases = (
+				C9FB05F0FF36551BC0EB8B6D /* Sources */,
+				D312AE31D305D7F65BB1516D /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				94A1698B6BA3B4BC2D33686F /* PBXTargetDependency */,
+			);
+			name = SundeeFundeeTests;
+			packageProductDependencies = (
+				641F11E52B68F0FAA926FA13 /* SundeeFundeeKit */,
+			);
+			productName = SundeeFundeeTests;
+			productReference = 09F2CCD701D6D0EA783701B0 /* SundeeFundeeTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		38E0473811F3273AE38A8631 /* SundeeFundeeWidgetsExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 53FB5133137BC8C0B4037288 /* Build configuration list for PBXNativeTarget "SundeeFundeeWidgetsExtension" */;
+			buildPhases = (
+				AE5F79133E4C2D10761EA40A /* Sources */,
+				F6BDEF0462865C1687C90F80 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = SundeeFundeeWidgetsExtension;
+			packageProductDependencies = (
+				E5D818355C15FD611DF98B2C /* SundeeFundeeKit */,
+			);
+			productName = SundeeFundeeWidgetsExtension;
+			productReference = 7C4C38D3026141D6EE494174 /* SundeeFundeeWidgetsExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		6A65F4B4731A18FE7E162E4E /* SundeeFundee */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = F1454FE610F6C6B5F73CE2E0 /* Build configuration list for PBXNativeTarget "SundeeFundee" */;
@@ -82,10 +393,12 @@
 				5BD97D9877216B463335E81E /* Sources */,
 				71BF2BFB19B604FE2546224E /* Resources */,
 				3A47C591BC0F4800CB523504 /* Frameworks */,
+				36E14959B1240696107D9659 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				7BEF99D262DDD2CBDB649C9E /* PBXTargetDependency */,
 			);
 			name = SundeeFundee;
 			packageProductDependencies = (
@@ -103,6 +416,17 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					210638487B33D83A1059A242 = {
+						DevelopmentTeam = 87VVCMCW3F;
+					};
+					38E0473811F3273AE38A8631 = {
+						DevelopmentTeam = 87VVCMCW3F;
+					};
+					6A65F4B4731A18FE7E162E4E = {
+						DevelopmentTeam = 87VVCMCW3F;
+					};
+				};
 			};
 			buildConfigurationList = 79EC31CDDDB335CD6E0033B8 /* Build configuration list for PBXProject "SundeeFundee" */;
 			developmentRegion = en;
@@ -122,6 +446,8 @@
 			projectRoot = "";
 			targets = (
 				6A65F4B4731A18FE7E162E4E /* SundeeFundee */,
+				210638487B33D83A1059A242 /* SundeeFundeeTests */,
+				38E0473811F3273AE38A8631 /* SundeeFundeeWidgetsExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -132,7 +458,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CC55A72B627E73DE3865884E /* Assets.xcassets in Resources */,
-				D2C1B0A918076F5E4D3C2B1A /* PrivacyInfo.xcprivacy in Resources */,
+				E81CFCB1EA221C8BB278C448 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -147,13 +473,80 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		AE5F79133E4C2D10761EA40A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BEBB052653A7324B3DF4DB19 /* LiveWorkoutWidget.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C9FB05F0FF36551BC0EB8B6D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9179DE753F065906FE357796 /* AIWorkoutTests.swift in Sources */,
+				F798AC249E60EEA920A6516E /* AnalyticsViewModelTests.swift in Sources */,
+				0FD2F89109A91F2D92E8A040 /* AppleAuthClientTests.swift in Sources */,
+				B91F85CB2E2B17ABB152CEB6 /* BenchmarkCatalogTests.swift in Sources */,
+				0AD29856D92CDD09394B830B /* BenchmarkReadinessTests.swift in Sources */,
+				6187AE5E8463DC732ABB562D /* BodyLocationTests.swift in Sources */,
+				0171AD01A64EB2E4626A403C /* CelebrationEventTests.swift in Sources */,
+				FE9CE16F0DBFCB74D963C051 /* ChallengeEngineTests.swift in Sources */,
+				D4A8EEC34CE1E467476B3FE8 /* ChartDataAggregatorTests.swift in Sources */,
+				643DD1C7EFE713C2C1BEB44A /* CloudKitClientTests.swift in Sources */,
+				ACA392EBD78136C041DE7A98 /* ContentClientTests.swift in Sources */,
+				E20EADBD3CC990D63937B328 /* CycleAdaptationPolicyTests.swift in Sources */,
+				6B8AFFCAE1801E81119B9D79 /* CycleCalculationsTests.swift in Sources */,
+				BDB3509A360D751493C378CE /* CycleCalendarTests.swift in Sources */,
+				8A965EF40B5B310457328FE6 /* CyclePhaseHelperTests.swift in Sources */,
+				5F4B8CC1D1029622960F56DA /* DataExportServiceTests.swift in Sources */,
+				A316D48CBC4D8A1423D6ED6C /* ExerciseCatalogTests.swift in Sources */,
+				BAA633CAFCD2008795B24A9A /* ExerciseTests.swift in Sources */,
+				4C6BD830DCD16C9065A26517 /* FreeSubscriptionClientTests.swift in Sources */,
+				D5D79E1E57FF1AB26B413C90 /* HealthKitClientTests.swift in Sources */,
+				64452C3BEE54E50E254B885A /* InjuryAdaptationEngineTests.swift in Sources */,
+				95E2E2C11BF4AFAE16F69712 /* InjurySupportTests.swift in Sources */,
+				BA4FC72DFCB08D8EF71831B5 /* LiveWorkoutActivityStateTests.swift in Sources */,
+				373B8FAA2FA3AF29EDADD3FD /* PlateCalculatorTests.swift in Sources */,
+				727B21C1D50AE914DF534756 /* PlateauDetectorTests.swift in Sources */,
+				BB6F854C5EBD4E6F9880E151 /* PreferenceLearnerTests.swift in Sources */,
+				7BC3176EDB907BA783FB8BBA /* ProgramTemplateGeneratorTests.swift in Sources */,
+				308CD867C728DC87B26CEE85 /* ProgramsListViewModelTests.swift in Sources */,
+				065F73C20CCF2B4B4A80EF70 /* RecoveryScoreCalculatorTests.swift in Sources */,
+				C609EFC92C8769685199996B /* ScheduleReshufflerTests.swift in Sources */,
+				7832A4A86CF59EF3984371C2 /* SleepDeduplicatorTests.swift in Sources */,
+				B9F5B66F8CD62DF2CAFA9B9C /* SubstitutionRankerTests.swift in Sources */,
+				D63F77FE178E59D6137AED15 /* SyncQueueTests.swift in Sources */,
+				5D69FCF997B5B96DB4463FF7 /* UnitConverterTests.swift in Sources */,
+				9A1BC5C6390252A864673DAB /* WeeklyLoadAnalyzerTests.swift in Sources */,
+				45AE802A49137F45ECCC6BF7 /* WeightCalculatorTests.swift in Sources */,
+				BA32442C19B6F335C6B71CB8 /* WorkoutDetailViewModelTests.swift in Sources */,
+				47189FC43F88DA19101B25AE /* WorkoutTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		7BEF99D262DDD2CBDB649C9E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 38E0473811F3273AE38A8631 /* SundeeFundeeWidgetsExtension */;
+			targetProxy = 8546652E88CE8E51607AE379 /* PBXContainerItemProxy */;
+		};
+		94A1698B6BA3B4BC2D33686F /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 6A65F4B4731A18FE7E162E4E /* SundeeFundee */;
+			targetProxy = 310C845A2DCACB62A22CD591 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		00785899C87890E23E6F59A0 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				APP_GROUP_IDENTIFIER = group.com.sundeefundee.shared;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -184,7 +577,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 87VVCMCW3F;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -198,7 +591,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.0.1;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -210,16 +603,34 @@
 			};
 			name = Release;
 		};
+		103743F745465BE67B7F244A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = SundeeFundeeWidgets/SundeeFundeeWidgets.entitlements;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = SundeeFundeeWidgets/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.sundeefundee.app.widgets;
+				PRODUCT_NAME = SundeeFundeeWidgetsExtension;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		60B93AE946F8181060D7B08E /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = SundeeFundee/SundeeFundee.entitlements;
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 87VVCMCW3F;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = SundeeFundee/Info.plist;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -230,16 +641,34 @@
 			};
 			name = Debug;
 		};
+		6B395EF2BAB7D5092A8A4035 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = SundeeFundeeWidgets/SundeeFundeeWidgets.entitlements;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = SundeeFundeeWidgets/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.sundeefundee.app.widgets;
+				PRODUCT_NAME = SundeeFundeeWidgetsExtension;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
 		A142C9D634AC0FF202EFC222 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = SundeeFundee/SundeeFundee.entitlements;
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 87VVCMCW3F;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = SundeeFundee/Info.plist;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -250,10 +679,28 @@
 			};
 			name = Release;
 		};
+		B9DCDE05A6646AA78EA7B607 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.sundeefundee.app.tests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SundeeFundee.app/SundeeFundee";
+			};
+			name = Debug;
+		};
 		BABDF7F7ECA08BF270B2BB3F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				APP_GROUP_IDENTIFIER = group.com.sundeefundee.shared;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -284,7 +731,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 87VVCMCW3F;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -304,7 +751,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.0.1;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -317,9 +764,44 @@
 			};
 			name = Debug;
 		};
+		D6129B3BED8A16713A5A7C54 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.sundeefundee.app.tests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SundeeFundee.app/SundeeFundee";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		53FB5133137BC8C0B4037288 /* Build configuration list for PBXNativeTarget "SundeeFundeeWidgetsExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6B395EF2BAB7D5092A8A4035 /* Debug */,
+				103743F745465BE67B7F244A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		760B8A32B45FDF7F9B7E8EA4 /* Build configuration list for PBXNativeTarget "SundeeFundeeTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B9DCDE05A6646AA78EA7B607 /* Debug */,
+				D6129B3BED8A16713A5A7C54 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		79EC31CDDDB335CD6E0033B8 /* Build configuration list for PBXProject "SundeeFundee" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -349,6 +831,14 @@
 
 /* Begin XCSwiftPackageProductDependency section */
 		0344363F4B100A32D7BC231D /* SundeeFundeeKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = SundeeFundeeKit;
+		};
+		641F11E52B68F0FAA926FA13 /* SundeeFundeeKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = SundeeFundeeKit;
+		};
+		E5D818355C15FD611DF98B2C /* SundeeFundeeKit */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = SundeeFundeeKit;
 		};
