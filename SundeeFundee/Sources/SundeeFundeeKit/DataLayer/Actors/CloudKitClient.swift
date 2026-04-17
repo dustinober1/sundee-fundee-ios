@@ -242,7 +242,17 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
 
             if !serverChangedErrors.isEmpty {
                 ckLogger.info("🔄 SAVE \(recordType): serverRecordChanged for \(serverChangedErrors.count) record(s), merging with server copy")
-                let serverCopies = extractServerRecords(from: serverChangedErrors)
+                var serverCopies = extractServerRecords(from: serverChangedErrors)
+                // Fallback: if the error didn't include the server record (modern async API),
+                // fetch it from CloudKit so the retry has a valid changeTag.
+                let missingIDs = serverChangedErrors.keys.filter { serverCopies[$0] == nil }
+                if !missingIDs.isEmpty {
+                    ckLogger.info("🔄 SAVE \(recordType): fetching \(missingIDs.count) missing server record(s)")
+                    let fetched = await fetchExistingRecords(Array(missingIDs))
+                    for (id, record) in fetched {
+                        serverCopies[id] = record
+                    }
+                }
                 let merged = mergeWithServerRecords(
                     newRecords: ckRecords,
                     serverRecords: serverCopies,
@@ -270,7 +280,15 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
                 let serverChanged = perItem.filter { isServerRecordChangedError($0.value) }
                 if !serverChanged.isEmpty {
                     ckLogger.info("🔄 SAVE \(recordType): serverRecordChanged in batch (\(serverChanged.count)), merging with server copy")
-                    let serverCopies = extractServerRecords(from: serverChanged)
+                    var serverCopies = extractServerRecords(from: serverChanged)
+                    let missingIDs = serverChanged.keys.filter { serverCopies[$0] == nil }
+                    if !missingIDs.isEmpty {
+                        ckLogger.info("🔄 SAVE \(recordType): fetching \(missingIDs.count) missing server record(s)")
+                        let fetched = await fetchExistingRecords(Array(missingIDs))
+                        for (id, record) in fetched {
+                            serverCopies[id] = record
+                        }
+                    }
                     let merged = mergeWithServerRecords(
                         newRecords: ckRecords,
                         serverRecords: serverCopies,
@@ -281,11 +299,23 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
                     return
                 }
             }
-            if isServerRecordChangedError(error),
-               let ckError = error as? CKError,
-               let serverRecord = ckError.userInfo[CKRecordChangedErrorServerRecordKey] as? CKRecord {
+            if isServerRecordChangedError(error) {
                 ckLogger.info("🔄 SAVE \(recordType): serverRecordChanged (top-level), merging with server copy")
-                let serverCopies: [CKRecord.ID: CKRecord] = [serverRecord.recordID: serverRecord]
+                var serverCopies: [CKRecord.ID: CKRecord] = [:]
+                if let ckError = error as? CKError,
+                   let serverRecord = ckError.userInfo[CKRecordChangedErrorServerRecordKey] as? CKRecord {
+                    serverCopies[serverRecord.recordID] = serverRecord
+                }
+                // Fallback: fetch from CloudKit if server record not in error userInfo
+                let allIDs = ckRecords.map(\.recordID)
+                let missingIDs = allIDs.filter { serverCopies[$0] == nil }
+                if !missingIDs.isEmpty {
+                    ckLogger.info("🔄 SAVE \(recordType): fetching \(missingIDs.count) missing server record(s)")
+                    let fetched = await fetchExistingRecords(missingIDs)
+                    for (id, record) in fetched {
+                        serverCopies[id] = record
+                    }
+                }
                 let merged = mergeWithServerRecords(
                     newRecords: ckRecords,
                     serverRecords: serverCopies,
