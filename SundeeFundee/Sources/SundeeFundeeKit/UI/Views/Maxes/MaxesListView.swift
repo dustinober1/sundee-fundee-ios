@@ -194,6 +194,7 @@ struct OneRepMaxItem: Identifiable {
 struct OneRepMaxEntryView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var exerciseName: String = ""
+    @State private var isCustom: Bool = false
     @State private var weight: String = ""
     @State private var unit: WeightUnit = .lbs
     @State private var isSaving: Bool = false
@@ -204,7 +205,10 @@ struct OneRepMaxEntryView: View {
         NavigationStack {
             Form {
                 Section {
-                    TextField("Exercise Name", text: $exerciseName)
+                    ExerciseCatalogMenu(selectedName: $exerciseName, isCustom: $isCustom)
+                    if isCustom {
+                        TextField("Custom Exercise Name", text: $exerciseName)
+                    }
 
                     HStack {
                         TextField("Weight", text: $weight)

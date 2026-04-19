@@ -50,6 +50,22 @@ public struct MainTabView: View {
                 .tag(Tab.maxes)
                 .accessibilityHint("View your one-rep max lifts")
 
+            NavigationStack {
+                PainTrackingView()
+            }
+            .tabItem {
+                Label("Pain", systemImage: "bandage")
+            }
+            .tag(Tab.painInjuries)
+            .accessibilityHint("Track pain and injuries")
+
+            CycleTrackingView()
+                .tabItem {
+                    Label("Cycle", systemImage: "moon.circle")
+                }
+                .tag(Tab.cycle)
+                .accessibilityHint("Track your menstrual cycle")
+
             AnalyticsView()
                 .tabItem {
                     Label("Analytics", systemImage: selectedTab == .analytics ? "chart.xyaxis.line" : "chart.xyaxis.line")
@@ -99,6 +115,9 @@ public struct MainTabView: View {
         .onReceive(NotificationCenter.default.publisher(for: .workoutCompleted)) { _ in
             selectedTab = .workouts
         }
+        .onReceive(NotificationCenter.default.publisher(for: .startWorkoutFromIntent)) { _ in
+            selectedTab = .workouts
+        }
         .onChange(of: cyclePhaseCache.isSharkWeek) { _, newValue in
             sharkWeekMonitor.isSharkWeek = newValue
         }
@@ -122,6 +141,8 @@ public enum Tab: String {
     case workouts
     case programs
     case maxes
+    case painInjuries
+    case cycle
     case analytics
     case benchmarks
     case settings

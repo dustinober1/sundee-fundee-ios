@@ -2,6 +2,7 @@ import Foundation
 import HealthKit
 import os.log
 import SwiftUI
+import WidgetKit
 
 private let recoveryLogger = Logger(subsystem: "com.sundeefundee.app", category: "RecoveryScore")
 
@@ -138,6 +139,16 @@ public final class RecoveryScoreViewModel: ObservableObject {
             recoveryLogger.info("Recovery score: \(score.total) (\(score.recommendation.rawValue)) with \(score.presentInputCount)/5 inputs")
             // Persist to CloudKit
             await persistScore(score, cyclePhase: cyclePhase)
+            // Snapshot to App Group for widgets
+            SharedSnapshotStore.writeRecovery(
+                RecoverySnapshot(
+                    total: score.total,
+                    recommendationRaw: score.recommendation.rawValue,
+                    capturedAt: Date(),
+                    presentInputCount: score.presentInputCount
+                )
+            )
+            WidgetCenter.shared.reloadTimelines(ofKind: "RecoveryScoreWidget")
         }
 
         isLoading = false

@@ -7,6 +7,8 @@ import SundeeFundeeKit
 struct SundeeFundeeWidgetsBundle: WidgetBundle {
     var body: some Widget {
         LiveWorkoutWidget()
+        RecoveryScoreWidget()
+        CyclePhaseWidget()
     }
 }
 
