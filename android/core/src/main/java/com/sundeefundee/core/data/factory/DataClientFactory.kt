@@ -10,8 +10,10 @@ import com.sundeefundee.core.data.protocol.MenstrualCycleRecord
 import com.sundeefundee.core.data.protocol.RestingHeartRateRecord
 import com.sundeefundee.core.data.protocol.SleepRecord
 import com.sundeefundee.core.data.room.RoomDataClient
+import com.sundeefundee.core.data.room.SundeeFundeeDatabase
 import com.sundeefundee.core.data.supabase.SupabaseDataClient
 import com.sundeefundee.core.data.sync.NetworkMonitor
+import com.sundeefundee.core.data.sync.SyncQueue
 import kotlinx.datetime.Instant
 import java.util.concurrent.atomic.AtomicReference
 import javax.inject.Inject
@@ -21,6 +23,7 @@ import javax.inject.Singleton
 @Singleton
 class DataClientFactory @Inject constructor(
     private val roomDataClient: RoomDataClient,
+    private val database: SundeeFundeeDatabase,
     private val supabaseDataClient: SupabaseDataClient,
     private val networkMonitor: NetworkMonitor
 ) {
@@ -30,7 +33,7 @@ class DataClientFactory @Inject constructor(
         get() = _client.get()
 
     fun switchToAuthenticated() {
-        _client.set(SyncQueue(supabaseDataClient, roomDataClient.db.syncQueueDao(), networkMonitor))
+        _client.set(SyncQueue(supabaseDataClient, database.syncQueueDao(), networkMonitor))
     }
 
     fun switchToGuest() {
