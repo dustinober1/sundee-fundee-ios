@@ -100,7 +100,7 @@ struct RecoveryTrendChart: View {
     private var emptyState: some View {
         VStack(spacing: AppTheme.Spacing.sm) {
             Image(systemName: "chart.line.uptrend.xyaxis")
-                .font(.system(size: 32))
+                .font(.title)
                 .foregroundColor(AppTheme.Text.secondary.opacity(0.5))
                 .accessibilityHidden(true)
             Text("Not enough data yet - check back after a few days.")
