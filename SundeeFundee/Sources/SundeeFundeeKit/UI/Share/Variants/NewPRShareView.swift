@@ -61,7 +61,7 @@ struct NewPRShareView: View {
                 .fill(AppTheme.Accent.gold.opacity(0.5))
                 .frame(width: 40, height: 1)
             Image(systemName: "star.fill")
-                .font(.system(size: 20))
+                .font(.headline)
                 .foregroundColor(AppTheme.Accent.gold)
             Rectangle()
                 .fill(AppTheme.Accent.gold.opacity(0.5))
