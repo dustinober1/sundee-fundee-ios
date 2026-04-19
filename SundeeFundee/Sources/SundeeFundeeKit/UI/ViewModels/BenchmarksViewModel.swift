@@ -39,11 +39,10 @@ public class BenchmarksListViewModel: ObservableObject {
         isLoading = true
         errorMessage = nil
 
-        // Load user's benchmark results
-        await loadUserResults()
-
-        // Load current cycle phase for readiness
-        await loadCyclePhase()
+        // Load user results and cycle phase in parallel
+        async let userResultsTask: Void = loadUserResults()
+        async let cyclePhaseTask: Void = loadCyclePhase()
+        _ = await (userResultsTask, cyclePhaseTask)
 
         // Update benchmarks for selected category
         updateBenchmarksForCategory()
@@ -226,11 +225,10 @@ public class BenchmarkDetailViewModel: ObservableObject {
 
         self.benchmark = benchmark
 
-        // Load readiness
-        await loadReadiness(for: benchmark)
-
-        // Load previous results
-        await loadPreviousResults(benchmarkId: id)
+        // Load readiness and previous results in parallel
+        async let readinessTask: Void = loadReadiness(for: benchmark)
+        async let resultsTask: Void = loadPreviousResults(benchmarkId: id)
+        _ = await (readinessTask, resultsTask)
 
         isLoading = false
     }
