@@ -21,7 +21,6 @@ import com.sundeefundee.core.model.ChallengeProgress
 import java.text.SimpleDateFormat
 import java.util.*
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(
     onNavigateToWorkouts: () -> Unit = {},
@@ -48,168 +47,156 @@ fun DashboardScreen(
 
     LaunchedEffect(Unit) { viewModel.loadData() }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Dashboard", style = SundeeFundeeTheme.typography.displayLarge) },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = SundeeFundeeTheme.colors.cream
-                )
-            )
+    if (isLoading) {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(color = SundeeFundeeTheme.colors.navy)
         }
-    ) { padding ->
-        if (isLoading) {
-            Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = SundeeFundeeTheme.colors.navy)
+    } else {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = Spacing.lg, vertical = Spacing.md)
+        ) {
+            // Welcome Header
+            Text(
+                "Welcome Back",
+                style = SundeeFundeeTheme.typography.labelMedium,
+                color = SundeeFundeeTheme.colors.gold
+            )
+            Text(
+                "Hey, $userName",
+                style = SundeeFundeeTheme.typography.headlineLarge,
+                color = SundeeFundeeTheme.colors.navy
+            )
+            Text(
+                SimpleDateFormat("MMMM d, yyyy", Locale.getDefault()).format(Date()),
+                style = SundeeFundeeTheme.typography.bodyMedium,
+                color = SundeeFundeeTheme.colors.navy.copy(alpha = 0.6f)
+            )
+
+            Spacer(Modifier.height(Spacing.lg))
+
+            // Cycle Phase Banner
+            cyclePhase?.let { phase ->
+                CyclePhaseBanner(
+                    phase = phase,
+                    confidence = cycleConfidence,
+                    onClick = onNavigateToCycle
+                )
+                Spacer(Modifier.height(Spacing.md))
             }
-        } else {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = Spacing.lg, vertical = Spacing.md)
+
+            // Stat Cards
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(Spacing.md)
             ) {
-                // Welcome Header
-                Text(
-                    "Welcome Back",
-                    style = SundeeFundeeTheme.typography.labelMedium,
-                    color = SundeeFundeeTheme.colors.gold
+                StatCard(
+                    value = "$workoutsThisWeek",
+                    label = "This Week",
+                    modifier = Modifier.weight(1f)
                 )
-                Text(
-                    "Hey, $userName",
-                    style = SundeeFundeeTheme.typography.displayLarge,
-                    color = SundeeFundeeTheme.colors.navy
+                StatCard(
+                    value = "$prsThisMonth",
+                    label = "PRs Month",
+                    modifier = Modifier.weight(1f)
                 )
-                Text(
-                    SimpleDateFormat("MMMM d, yyyy", Locale.getDefault()).format(Date()),
-                    style = SundeeFundeeTheme.typography.bodyMedium,
-                    color = SundeeFundeeTheme.colors.navy.copy(alpha = 0.6f)
+                StatCard(
+                    value = activeProgramName ?: "None",
+                    label = "Program",
+                    modifier = Modifier.weight(1f)
                 )
-
-                Spacer(Modifier.height(Spacing.lg))
-
-                // Cycle Phase Banner
-                cyclePhase?.let { phase ->
-                    CyclePhaseBanner(
-                        phase = phase,
-                        confidence = cycleConfidence,
-                        onClick = onNavigateToCycle
-                    )
-                    Spacer(Modifier.height(Spacing.md))
-                }
-
-                // Stat Cards
-                Row(
-                    Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(Spacing.md)
-                ) {
-                    StatCard(
-                        value = "$workoutsThisWeek",
-                        label = "This Week",
-                        modifier = Modifier.weight(1f)
-                    )
-                    StatCard(
-                        value = "$prsThisMonth",
-                        label = "PRs Month",
-                        modifier = Modifier.weight(1f)
-                    )
-                    StatCard(
-                        value = activeProgramName ?: "None",
-                        label = "Program",
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-
-                Spacer(Modifier.height(Spacing.lg))
-
-                // Challenge Progress
-                activeChallengeData?.let { (challenge, progress) ->
-                    ChallengeProgressCard(
-                        challenge = challenge,
-                        progress = progress,
-                        onClick = onNavigateToChallenges
-                    )
-                    Spacer(Modifier.height(Spacing.lg))
-                }
-
-                HorizontalDivider(color = SundeeFundeeTheme.colors.gold.copy(alpha = 0.3f))
-
-                Spacer(Modifier.height(Spacing.lg))
-
-                // Suggested Workout
-                ArtDecoCard {
-                    Column(Modifier.padding(Spacing.md)) {
-                        Text("Suggested Workout", style = SundeeFundeeTheme.typography.headlineMedium, color = SundeeFundeeTheme.colors.navy)
-                        Spacer(Modifier.height(Spacing.sm))
-                        Text("Generate a workout based on your cycle phase and energy level", style = SundeeFundeeTheme.typography.bodySmall, color = SundeeFundeeTheme.colors.navy.copy(alpha = 0.6f))
-                        Spacer(Modifier.height(Spacing.md))
-                        ArtDecoAccentButton(text = "Generate Workout", onClick = onNavigateToAIWorkout)
-                    }
-                }
-
-                Spacer(Modifier.height(Spacing.lg))
-
-                // Coaching Insights
-                insightsSummary?.let { summary ->
-                    ArtDecoCard {
-                        Column(Modifier.padding(Spacing.md)) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.Psychology, contentDescription = null, tint = SundeeFundeeTheme.colors.orange)
-                                Spacer(Modifier.width(Spacing.sm))
-                                Text("Your Coach", style = SundeeFundeeTheme.typography.headlineMedium, color = SundeeFundeeTheme.colors.navy)
-                            }
-                            Spacer(Modifier.height(Spacing.sm))
-                            Text(summary, style = SundeeFundeeTheme.typography.bodySmall, color = SundeeFundeeTheme.colors.navy.copy(alpha = 0.7f))
-                            insightsActions.take(2).forEach { action ->
-                                Row(Modifier.padding(top = Spacing.xs)) {
-                                    Icon(Icons.Default.ArrowRight, contentDescription = null, modifier = Modifier.size(12.dp), tint = SundeeFundeeTheme.colors.gold)
-                                    Spacer(Modifier.width(Spacing.xs))
-                                    Text(action, style = SundeeFundeeTheme.typography.bodySmall, color = SundeeFundeeTheme.colors.navy)
-                                }
-                            }
-                            Spacer(Modifier.height(Spacing.sm))
-                            TextButton(onClick = onNavigateToInsights) {
-                                Text("View All Insights", color = SundeeFundeeTheme.colors.orange)
-                            }
-                        }
-                    }
-                    Spacer(Modifier.height(Spacing.lg))
-                }
-
-                // Quick Actions
-                ArtDecoCard {
-                    Column(Modifier.padding(Spacing.md)) {
-                        Text("Shortcuts", style = SundeeFundeeTheme.typography.headlineMedium, color = SundeeFundeeTheme.colors.navy)
-                        Spacer(Modifier.height(Spacing.md))
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-                            QuickActionTile("Log Max", Icons.Default.MonitorWeight, true, onNavigateToMaxes, Modifier.weight(1f))
-                            QuickActionTile("Pain Log", Icons.Default.Healing, false, onNavigateToPain, Modifier.weight(1f))
-                            QuickActionTile("Bench", Icons.Default.EmojiEvents, false, onNavigateToBenchmarks, Modifier.weight(1f))
-                        }
-                    }
-                }
-
-                Spacer(Modifier.height(Spacing.lg))
-
-                // Recent Wins
-                if (recentWins.isNotEmpty()) {
-                    ArtDecoCard {
-                        Column(Modifier.padding(Spacing.md)) {
-                            Text("Recent Wins", style = SundeeFundeeTheme.typography.headlineMedium, color = SundeeFundeeTheme.colors.navy)
-                            recentWins.take(3).forEach { win ->
-                                Row(Modifier.padding(top = Spacing.sm), verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(Icons.Default.CheckCircle, contentDescription = null, tint = SundeeFundeeTheme.colors.gold, modifier = Modifier.size(20.dp))
-                                    Spacer(Modifier.width(Spacing.sm))
-                                    Text(win, style = SundeeFundeeTheme.typography.bodyMedium, color = SundeeFundeeTheme.colors.navy)
-                                }
-                            }
-                        }
-                    }
-                }
-
-                Spacer(Modifier.height(Spacing.xl))
             }
+
+            Spacer(Modifier.height(Spacing.lg))
+
+            // Challenge Progress
+            activeChallengeData?.let { (challenge, progress) ->
+                ChallengeProgressCard(
+                    challenge = challenge,
+                    progress = progress,
+                    onClick = onNavigateToChallenges
+                )
+                Spacer(Modifier.height(Spacing.lg))
+            }
+
+            HorizontalDivider(color = SundeeFundeeTheme.colors.gold.copy(alpha = 0.3f))
+
+            Spacer(Modifier.height(Spacing.lg))
+
+            // Suggested Workout
+            ArtDecoCard {
+                Column(Modifier.padding(Spacing.lg)) {
+                    Text("Suggested Workout", style = SundeeFundeeTheme.typography.headlineMedium, color = SundeeFundeeTheme.colors.navy)
+                    Spacer(Modifier.height(Spacing.sm))
+                    Text("Generate a workout based on your cycle phase and energy level", style = SundeeFundeeTheme.typography.bodySmall, color = SundeeFundeeTheme.colors.navy.copy(alpha = 0.6f))
+                    Spacer(Modifier.height(Spacing.md))
+                    ArtDecoAccentButton(text = "Generate Workout", onClick = onNavigateToAIWorkout)
+                }
+            }
+
+            Spacer(Modifier.height(Spacing.lg))
+
+            // Coaching Insights
+            insightsSummary?.let { summary ->
+                ArtDecoCard {
+                    Column(Modifier.padding(Spacing.lg)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.Psychology, contentDescription = null, tint = SundeeFundeeTheme.colors.orange)
+                            Spacer(Modifier.width(Spacing.sm))
+                            Text("Your Coach", style = SundeeFundeeTheme.typography.headlineMedium, color = SundeeFundeeTheme.colors.navy)
+                        }
+                        Spacer(Modifier.height(Spacing.sm))
+                        Text(summary, style = SundeeFundeeTheme.typography.bodySmall, color = SundeeFundeeTheme.colors.navy.copy(alpha = 0.7f))
+                        insightsActions.take(2).forEach { action ->
+                            Row(Modifier.padding(top = Spacing.xs)) {
+                                Icon(Icons.Default.ArrowRight, contentDescription = null, modifier = Modifier.size(12.dp), tint = SundeeFundeeTheme.colors.gold)
+                                Spacer(Modifier.width(Spacing.xs))
+                                Text(action, style = SundeeFundeeTheme.typography.bodySmall, color = SundeeFundeeTheme.colors.navy)
+                            }
+                        }
+                        Spacer(Modifier.height(Spacing.sm))
+                        TextButton(onClick = onNavigateToInsights) {
+                            Text("View All Insights", color = SundeeFundeeTheme.colors.orange)
+                        }
+                    }
+                }
+                Spacer(Modifier.height(Spacing.lg))
+            }
+
+            // Quick Actions
+            ArtDecoCard {
+                Column(Modifier.padding(Spacing.lg)) {
+                    Text("Shortcuts", style = SundeeFundeeTheme.typography.headlineMedium, color = SundeeFundeeTheme.colors.navy)
+                    Spacer(Modifier.height(Spacing.md))
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                        QuickActionTile("Log Max", Icons.Default.MonitorWeight, true, onNavigateToMaxes, Modifier.weight(1f))
+                        QuickActionTile("Pain Log", Icons.Default.Healing, false, onNavigateToPain, Modifier.weight(1f))
+                        QuickActionTile("Bench", Icons.Default.EmojiEvents, false, onNavigateToBenchmarks, Modifier.weight(1f))
+                    }
+                }
+            }
+
+            Spacer(Modifier.height(Spacing.lg))
+
+            // Recent Wins
+            if (recentWins.isNotEmpty()) {
+                ArtDecoCard {
+                    Column(Modifier.padding(Spacing.lg)) {
+                        Text("Recent Wins", style = SundeeFundeeTheme.typography.headlineMedium, color = SundeeFundeeTheme.colors.navy)
+                        recentWins.take(3).forEach { win ->
+                            Row(Modifier.padding(top = Spacing.sm), verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.CheckCircle, contentDescription = null, tint = SundeeFundeeTheme.colors.gold, modifier = Modifier.size(20.dp))
+                                Spacer(Modifier.width(Spacing.sm))
+                                Text(win, style = SundeeFundeeTheme.typography.bodyMedium, color = SundeeFundeeTheme.colors.navy)
+                            }
+                        }
+                    }
+                }
+            }
+
+            Spacer(Modifier.height(Spacing.xl))
         }
     }
 }
