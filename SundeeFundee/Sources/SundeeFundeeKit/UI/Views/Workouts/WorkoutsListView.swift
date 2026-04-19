@@ -82,7 +82,7 @@ public struct WorkoutsListView: View {
     private var emptyState: some View {
         VStack(spacing: AppTheme.Spacing.xl) {
             Image(systemName: "figure.strengthtraining.traditional")
-                .font(.system(size: 60))
+                .font(.system(.largeTitle))
                 .foregroundColor(AppTheme.Accent.gold.opacity(0.5))
                 .accessibilityHidden(true)
 
@@ -169,7 +169,7 @@ struct WorkoutRow: View {
                 if let duration = workout.duration {
                     HStack(spacing: AppTheme.Spacing.xs) {
                         Image(systemName: "clock")
-                            .font(.system(size: 12))
+                            .font(.caption)
                             .accessibilityHidden(true)
 
                         Text("\(duration) min")
@@ -239,7 +239,7 @@ struct WorkoutRowContent: View {
             if let duration = workout.duration {
                 HStack(spacing: AppTheme.Spacing.xs) {
                     Image(systemName: "clock")
-                        .font(.system(size: 12))
+                        .font(.caption)
                         .accessibilityHidden(true)
                     Text("\(duration) min")
                         .font(AppTheme.Typography.bodySmall)
@@ -305,7 +305,7 @@ struct NewWorkoutView: View {
                         ArtDecoCard {
                             HStack(spacing: AppTheme.Spacing.md) {
                                 Image(systemName: "sparkles")
-                                    .font(.system(size: 24))
+                                    .font(.title3)
                                     .foregroundColor(AppTheme.Accent.orange)
                                     .accessibilityHidden(true)
 
@@ -451,7 +451,7 @@ struct NewWorkoutView: View {
         ArtDecoCard {
             VStack(spacing: AppTheme.Spacing.md) {
                 Image(systemName: "figure.strengthtraining.traditional")
-                    .font(.system(size: 36))
+                    .font(.title2)
                     .foregroundColor(AppTheme.Accent.gold.opacity(0.5))
                     .accessibilityHidden(true)
 
