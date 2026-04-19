@@ -15,7 +15,6 @@ import com.sundeefundee.app.ui.theme.*
 import com.sundeefundee.app.viewmodel.ProgramsViewModel
 import com.sundeefundee.core.domain.program.ProgramTemplate
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProgramsScreen(
     onEnroll: (String) -> Unit = {},
@@ -26,48 +25,39 @@ fun ProgramsScreen(
 
     LaunchedEffect(Unit) { viewModel.loadData() }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Programs") },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = SundeeFundeeTheme.colors.cream)
-            )
-        }
-    ) { padding ->
-        LazyColumn(
-            Modifier.fillMaxSize().padding(padding).padding(horizontal = Spacing.md),
-            verticalArrangement = Arrangement.spacedBy(Spacing.md),
-            contentPadding = PaddingValues(vertical = Spacing.md)
-        ) {
-            // Active Program
-            enrolledPrograms.firstOrNull()?.let { program ->
-                item {
-                    ArtDecoCard {
-                        Column(Modifier.padding(Spacing.md)) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.FitnessCenter, contentDescription = null, tint = SundeeFundeeTheme.colors.orange)
-                                Spacer(Modifier.width(Spacing.sm))
-                                Text("Active Program", style = SundeeFundeeTheme.typography.labelMedium, color = SundeeFundeeTheme.colors.orange)
-                            }
-                            Spacer(Modifier.height(Spacing.sm))
-                            Text(program.name, style = SundeeFundeeTheme.typography.headlineMedium, color = SundeeFundeeTheme.colors.navy)
-                            if (program.isActive) {
-                                Text("In Progress", style = SundeeFundeeTheme.typography.bodySmall, color = SundeeFundeeTheme.colors.gold)
-                            }
+    LazyColumn(
+        Modifier.fillMaxSize().padding(horizontal = Spacing.md),
+        verticalArrangement = Arrangement.spacedBy(Spacing.md),
+        contentPadding = PaddingValues(vertical = Spacing.md)
+    ) {
+        // Active Program
+        enrolledPrograms.firstOrNull()?.let { program ->
+            item {
+                ArtDecoCard {
+                    Column(Modifier.padding(Spacing.md)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.FitnessCenter, contentDescription = null, tint = SundeeFundeeTheme.colors.orange)
+                            Spacer(Modifier.width(Spacing.sm))
+                            Text("Active Program", style = SundeeFundeeTheme.typography.labelMedium, color = SundeeFundeeTheme.colors.orange)
+                        }
+                        Spacer(Modifier.height(Spacing.sm))
+                        Text(program.name, style = SundeeFundeeTheme.typography.headlineMedium, color = SundeeFundeeTheme.colors.navy)
+                        if (program.isActive) {
+                            Text("In Progress", style = SundeeFundeeTheme.typography.bodySmall, color = SundeeFundeeTheme.colors.gold)
                         }
                     }
                 }
             }
+        }
 
-            // Available Templates
-            item {
-                Text("Available Programs", style = SundeeFundeeTheme.typography.headlineMedium, color = SundeeFundeeTheme.colors.navy)
-                Spacer(Modifier.height(Spacing.sm))
-            }
+        // Available Templates
+        item {
+            Text("Available Programs", style = SundeeFundeeTheme.typography.headlineMedium, color = SundeeFundeeTheme.colors.navy)
+            Spacer(Modifier.height(Spacing.sm))
+        }
 
-            items(ProgramTemplate.entries.toList()) { template ->
-                ProgramTemplateCard(template = template, onEnroll = { onEnroll(template.name) })
-            }
+        items(ProgramTemplate.entries.toList()) { template ->
+            ProgramTemplateCard(template = template, onEnroll = { onEnroll(template.name) })
         }
     }
 }
