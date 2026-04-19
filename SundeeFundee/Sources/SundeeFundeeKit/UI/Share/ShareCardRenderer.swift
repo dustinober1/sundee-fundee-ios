@@ -12,14 +12,15 @@ import UIKit
 public enum ShareCardRenderer {
     public static let renderScale: CGFloat = 3.0
 
-    @MainActor
     public static func render(
         _ variant: ShareCardVariant,
         aspect: ShareCardAspect
-    ) -> UIImage? {
-        let renderer = ImageRenderer(content: content(for: variant, aspect: aspect))
-        renderer.scale = renderScale
-        return renderer.uiImage
+    ) async -> UIImage? {
+        await Task.detached(priority: .userInitiated) { @MainActor in
+            let renderer = ImageRenderer(content: content(for: variant, aspect: aspect))
+            renderer.scale = renderScale
+            return renderer.uiImage
+        }.value
     }
 
     // MARK: - View routing

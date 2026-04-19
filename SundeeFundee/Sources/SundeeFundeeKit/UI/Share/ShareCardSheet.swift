@@ -44,7 +44,7 @@ public struct ShareCardSheet: View {
                 }
             }
             .task(id: aspect) {
-                renderedImage = ShareCardRenderer.render(variant, aspect: aspect)
+                renderedImage = await ShareCardRenderer.render(variant, aspect: aspect)
             }
         }
     }

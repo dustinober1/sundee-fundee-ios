@@ -39,7 +39,7 @@ struct ShareCardRendererTests {
         )
 
         for aspect in ShareCardAspect.allCases {
-            let image = ShareCardRenderer.render(
+            let image = await ShareCardRenderer.render(
                 .completedWorkout(workout: workout, personalRecords: ["Bench Press"]),
                 aspect: aspect
             )
@@ -51,11 +51,11 @@ struct ShareCardRendererTests {
 
     @Test("Renders newPR variant with and without previous best")
     func rendersNewPR() async {
-        let withPrev = ShareCardRenderer.render(
+        let withPrev = await ShareCardRenderer.render(
             .newPR(exerciseName: "Squat", weight: 315, unit: "lb", previousBest: 305),
             aspect: .story
         )
-        let withoutPrev = ShareCardRenderer.render(
+        let withoutPrev = await ShareCardRenderer.render(
             .newPR(exerciseName: "Squat", weight: 225, unit: "lb", previousBest: nil),
             aspect: .square
         )
@@ -67,7 +67,7 @@ struct ShareCardRendererTests {
     func rendersCycleInsightAllPhases() async {
         let phases: [CyclePhase] = [.menstrual, .follicular, .ovulation, .luteal]
         for phase in phases {
-            let image = ShareCardRenderer.render(
+            let image = await ShareCardRenderer.render(
                 .cycleInsight(phase: phase, cycleDay: 7, insight: "Build & rise."),
                 aspect: .story
             )
