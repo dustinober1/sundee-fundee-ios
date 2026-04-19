@@ -226,6 +226,16 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
         do {
             let challengeService = ChallengeService(dataClient: dataClient)
             let challengeCelebrations = try await challengeService.recordWorkoutVolume(workout)
+            for celebration in challengeCelebrations {
+                switch celebration {
+                case .challengeTierCompleted:
+                    HapticFeedback.medium()
+                case .challengeCompleted:
+                    HapticFeedback.success()
+                default:
+                    break
+                }
+            }
             celebrationEvents.append(contentsOf: challengeCelebrations)
         } catch {
             // Challenge update is non-critical
