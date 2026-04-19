@@ -477,7 +477,7 @@ struct AIWorkoutView: View {
                 if let reasoning = exercise.reasoning, !reasoning.isEmpty {
                     HStack(alignment: .top, spacing: AppTheme.Spacing.xs) {
                         Image(systemName: "lightbulb.fill")
-                            .font(.system(size: 10))
+                            .font(.caption2)
                             .foregroundColor(AppTheme.Accent.gold)
 
                         Text(reasoning)
@@ -509,7 +509,7 @@ struct AIWorkoutView: View {
                             VStack(spacing: AppTheme.Spacing.md) {
                                 Spacer().frame(height: 40)
                                 Image(systemName: "xmark.circle")
-                                    .font(.system(size: 32))
+                                    .font(.title)
                                     .foregroundColor(AppTheme.Text.secondary)
                                 Text("No alternatives found")
                                     .font(AppTheme.Typography.headlineMedium)
@@ -596,7 +596,7 @@ struct AIWorkoutView: View {
             Spacer()
 
             Image(systemName: "exclamationmark.triangle.fill")
-                .font(.system(size: 40))
+                .font(.system(.largeTitle))
                 .foregroundColor(AppTheme.Semantic.warning)
 
             Text("Generation Failed")
