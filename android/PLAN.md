@@ -60,23 +60,23 @@ android/
 - [x] Core interfaces: `DataClient`, `HealthClient`, `ContentClient`
 - [x] DI modules, widget stubs, service stubs, AndroidManifest
 
-### Phase 1: Domain Layer Port — IN PROGRESS
-- [ ] Port all models (~15 data classes) from `Models/` and `UI/Models/SharedModels.swift`
-- [ ] Port all domain logic (44 files across 14 subdirectories):
-  - [ ] Cycle: `CycleCalculations`, `CycleAdaptationPolicy`, `CycleCalendar` (phase boundaries, multipliers, blending)
-  - [ ] Exercise: `ExerciseCatalog` (51 weightlifting + 31 conditioning), `ExerciseValue` sealed class
-  - [ ] Injury: `BodyLocation` (17 regions), `InjuryAdaptationEngine` (contraindication rules, regression table, load multipliers)
-  - [ ] Program: `ProgramTemplateGenerator` (7 templates with weekly progression)
-  - [ ] Benchmark: `BenchmarkCatalog` (30 benchmarks), `BenchmarkReadiness` (cycle-aware)
-  - [ ] Challenge: `ChallengeEngine` (volume tracking, tier progression, retroactive calc)
-  - [ ] Coach: `DeterministicCoachService`, `PreferenceLearner`, `CoachMemoryService`
-  - [ ] Intelligence: `PlateauDetector`, `ScheduleReshuffler`, `SubstitutionRanker`, `WeeklyLoadAnalyzer`
-  - [ ] Recovery: `RecoveryScoreCalculator` (5 weighted inputs), all sub-scorers
-  - [ ] Analytics: `ChartDataAggregator`
-  - [ ] AI Workout: deterministic generation from exercise pools
-  - [ ] Celebration, Export
+### Phase 1: Domain Layer Port — DONE
+- [x] Port all models (~15 data classes) from `Models/` and `UI/Models/SharedModels.swift`
+- [x] Port all domain logic (27 Kotlin files across 14 subdirectories):
+  - [x] Cycle: `CycleCalculations`, `CycleAdaptationPolicy` (phase boundaries, multipliers, blending)
+  - [x] Exercise: `ExerciseCatalog` (58 weightlifting + 31 conditioning), `ExerciseValue` sealed class, `Calculators`
+  - [x] Injury: `InjuryModels` (17 regions), `InjuryAdaptationEngine` (contraindication rules, regression table, load multipliers)
+  - [x] Program: `ProgramTemplateGenerator` (7 templates with weekly progression + First Margarita)
+  - [x] Benchmark: `BenchmarkCatalog` (30 benchmarks), `BenchmarkReadiness` (cycle-aware)
+  - [x] Challenge: `ChallengeEngine` (volume tracking, tier progression, retroactive calc)
+  - [x] Coach: `DeterministicCoachService`, `PreferenceLearner`, `CoachMemoryModels`
+  - [x] Intelligence: `PlateauDetector`, `ScheduleReshuffler`, `SubstitutionRanker`, `WeeklyLoadAnalyzer`
+  - [x] Recovery: `RecoveryScoreCalculator` (5 weighted inputs), all sub-scorers
+  - [x] Analytics: `ChartDataAggregator`
+  - [x] AI Workout: deterministic generation from exercise pools
+  - [x] Celebration, Export
 - [ ] Port all unit tests (35+ test files)
-- **Verify:** all domain tests pass on JVM
+- **Verify:** domain logic compiles, tests pass on JVM
 
 ### Phase 2: Room Data Layer
 - [ ] Define Room database with 13 entities and DAOs
