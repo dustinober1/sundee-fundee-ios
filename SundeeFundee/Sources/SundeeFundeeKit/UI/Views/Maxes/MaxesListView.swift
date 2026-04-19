@@ -313,6 +313,7 @@ class MaxesListViewModel: ObservableObject {
     @Published var plateauAlerts: [String: PlateauDetector.PlateauAlert] = [:]
 
     private let dataClient: DataClientProtocol
+    private var cachedPreferredUnit: WeightUnit?
 
     init(dataClient: DataClientProtocol = DataClientFactory.shared.client) {
         self.dataClient = dataClient
@@ -339,13 +340,16 @@ class MaxesListViewModel: ObservableObject {
         isLoading = true
 
         do {
-            // Load user's preferred unit from settings
-            let settings = try? await dataClient.fetchAll(
-                recordType: "UserSettings"
-            ) as [UserSettingsRecord]
-            if let unit = settings?.first.flatMap({ WeightUnit(rawValue: $0.weightUnit) }) {
-                preferredUnit = unit
+            // Load user's preferred unit from settings — only fetch if cache is empty
+            if cachedPreferredUnit == nil {
+                let settings = try? await dataClient.fetchAll(
+                    recordType: "UserSettings"
+                ) as [UserSettingsRecord]
+                if let unit = settings?.first.flatMap({ WeightUnit(rawValue: $0.weightUnit) }) {
+                    cachedPreferredUnit = unit
+                }
             }
+            preferredUnit = cachedPreferredUnit ?? .lbs
 
             let records = try await dataClient.fetchAll(
                 recordType: "OneRepMaxRecord"
