@@ -30,13 +30,12 @@ class HealthConnectClientWrapper @Inject constructor(
         get() = client != null
 
     override suspend fun requestAuthorization() {
-        client?.requestPermissions(
-            activity = TODO("Launch permission contract from UI"),
-            permissions = buildSet {
-                addAll(READ_PERMISSIONS)
-                addAll(WRITE_PERMISSIONS)
-            }
-        )
+        // Health Connect uses an intent-based permission flow via PermissionController
+        // The calling UI should launch the permission contract instead
+        val hcClient = client ?: return
+        val requestPermissionContract = PermissionController.createRequestPermissionResultContract()
+        // Permissions are requested from the UI layer using the contract
+        // This method is a no-op placeholder; actual permission request happens in the Activity
     }
 
     override suspend fun fetchWorkouts(
@@ -79,7 +78,7 @@ class HealthConnectClientWrapper @Inject constructor(
             MenstrualCycleRecord(
                 startDate = Instant.fromEpochMilliseconds(record.time.toEpochMilli()),
                 endDate = null,
-                flowLevel = record.flow?.value
+                flowLevel = record.flow
             )
         }
     }
@@ -116,7 +115,7 @@ class HealthConnectClientWrapper @Inject constructor(
         return response.records.map { record ->
             HRVRecord(
                 startDate = Instant.fromEpochMilliseconds(record.time.toEpochMilli()),
-                valueMillis = record.heartRateVariabilityMillis.inWholeMilliseconds.toDouble()
+                valueMillis = record.heartRateVariabilityMillis
             )
         }
     }
@@ -124,15 +123,15 @@ class HealthConnectClientWrapper @Inject constructor(
     override suspend fun fetchRestingHeartRate(
         startDate: Instant,
         endDate: Instant
-    ): List<RestingHeartRateRecord> {
+    ): List<com.sundeefundee.core.data.protocol.RestingHeartRateRecord> {
         val hcClient = client ?: return emptyList()
         val request = ReadRecordsRequest(
-            recordType = RestingHeartRateRecord::class,
+            recordType = androidx.health.connect.client.records.RestingHeartRateRecord::class,
             timeRangeFilter = buildTimeRange(startDate, endDate)
         )
         val response = hcClient.readRecords(request)
         return response.records.map { record ->
-            RestingHeartRateRecord(
+            com.sundeefundee.core.data.protocol.RestingHeartRateRecord(
                 startDate = Instant.fromEpochMilliseconds(record.time.toEpochMilli()),
                 beatsPerMinute = record.beatsPerMinute.toDouble()
             )
@@ -189,7 +188,7 @@ class HealthConnectClientWrapper @Inject constructor(
             MenstruationFlowRecord::class,
             HeartRateVariabilityRmssdRecord::class,
             SleepSessionRecord::class,
-            RestingHeartRateRecord::class,
+            androidx.health.connect.client.records.RestingHeartRateRecord::class,
             ActiveCaloriesBurnedRecord::class,
         ).mapNotNull {
             try {
