@@ -161,7 +161,7 @@ public struct AuthView: View {
 
             VStack(spacing: AppTheme.Spacing.md) {
                 Image(systemName: "figure.strengthtraining.traditional")
-                    .font(.system(size: 90))
+                    .font(.system(.largeTitle))
                     .foregroundColor(AppTheme.Accent.gold)
                     .accessibilityHidden(true)
 
@@ -184,7 +184,7 @@ public struct AuthView: View {
                 }) {
                     HStack(spacing: AppTheme.Spacing.sm) {
                         Image(systemName: "applelogo")
-                            .font(.system(size: 20))
+                            .font(.headline)
                         Text("Sign in with Apple")
                             .font(AppTheme.Typography.labelLarge)
                     }
