@@ -28,7 +28,7 @@ struct InputBarRow: View {
             // Label row
             HStack {
                 Image(systemName: iconName(for: input))
-                    .font(.system(size: 16))
+                    .font(.subheadline)
                     .foregroundColor(AppTheme.Text.secondary)
                     .accessibilityHidden(true)
 
