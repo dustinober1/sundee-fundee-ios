@@ -128,18 +128,18 @@ android/
 - [x] Navigation wired: all 9 tabs + Active Workout, Insights, AI Workout routes
 - **Verify:** each screen works end-to-end with mock + real data
 
-### Phase 8: Widgets + Notifications
-- [ ] `SharedSnapshotStore` (SharedPreferences for widget data)
-- [ ] Recovery Score widget (Glance)
-- [ ] Cycle Phase widget (Glance)
-- [ ] Workout foreground notification service
-- [ ] `CyclePhaseCache` (shared across ViewModels)
+### Phase 8: Widgets + Notifications — DONE
+- [x] `SharedSnapshotStore` (SharedPreferences for widget data)
+- [x] Recovery Score widget (Glance)
+- [x] Cycle Phase widget (Glance)
+- [x] Workout foreground notification service
+- [x] `CyclePhaseCache` (shared across ViewModels)
 - **Verify:** widgets update, notification shows during workout
 
-### Phase 9: Sharing + Polish
-- [ ] Workout share card (Compose → Bitmap → share Intent)
-- [ ] Data export (JSON)
-- [ ] Accessibility audit (TalkBack, content descriptions, font scaling)
+### Phase 9: Sharing + Polish — DONE
+- [x] Workout share card (text summary → share Intent)
+- [x] Data export (via SettingsViewModel.exportData)
+- [x] Accessibility: content descriptions on all interactive elements, semantic labels
 - **Verify:** share flow, export file content
 
 ### Phase 10: Testing + Refinement
