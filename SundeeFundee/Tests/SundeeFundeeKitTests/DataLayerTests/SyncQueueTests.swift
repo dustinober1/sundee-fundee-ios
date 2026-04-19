@@ -49,9 +49,10 @@ final class PendingMutationTests: XCTestCase {
     func testMutationEquality() throws {
         let id = UUID()
         let data = Data()
-        let m1 = PendingMutation(id: id, recordType: "Workout", operation: .save, encodedData: data)
-        let m2 = PendingMutation(id: id, recordType: "Workout", operation: .save, encodedData: data)
-        let m3 = PendingMutation(id: UUID(), recordType: "Workout", operation: .save, encodedData: data)
+        let enqueuedAt = Date()
+        let m1 = PendingMutation(id: id, recordType: "Workout", operation: .save, encodedData: data, enqueuedAt: enqueuedAt)
+        let m2 = PendingMutation(id: id, recordType: "Workout", operation: .save, encodedData: data, enqueuedAt: enqueuedAt)
+        let m3 = PendingMutation(id: UUID(), recordType: "Workout", operation: .save, encodedData: data, enqueuedAt: enqueuedAt)
 
         XCTAssertEqual(m1, m2)
         XCTAssertNotEqual(m1, m3)
