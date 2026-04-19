@@ -6,8 +6,7 @@ import com.sundeefundee.core.data.factory.DataClientFactory
 import com.sundeefundee.core.data.factory.HealthClientFactory
 import com.sundeefundee.core.data.protocol.DataClient
 import com.sundeefundee.core.data.protocol.HealthClient
-import com.sundeefundee.core.domain.cycle.CycleCalculations
-import com.sundeefundee.core.domain.cycle.CycleAdaptationPolicy
+import com.sundeefundee.core.domain.cycle.getPhaseRecommendation
 import com.sundeefundee.core.model.CyclePhase
 import com.sundeefundee.core.model.CyclePhaseInfo
 import com.sundeefundee.core.model.CycleSettings
@@ -16,8 +15,12 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.datetime.Clock
+import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.minus
+import kotlinx.datetime.plus
 import kotlinx.datetime.todayIn
 import javax.inject.Inject
 
@@ -57,7 +60,7 @@ class CycleViewModel @Inject constructor(
     private val _calendarDays = MutableStateFlow<List<CalendarDay>>(emptyList())
     val calendarDays = _calendarDays.asStateFlow()
 
-    private val _selectedDate = MutableStateFlow(LocalDate.todayIn(TimeZone.currentSystemDefault()))
+    private val _selectedDate = MutableStateFlow(Clock.System.todayIn(TimeZone.currentSystemDefault()))
     val selectedDate = _selectedDate.asStateFlow()
 
     fun loadData() {
@@ -82,8 +85,7 @@ class CycleViewModel @Inject constructor(
             val record = PeriodLogRecord(
                 id = java.util.UUID.randomUUID().toString(),
                 startDate = date.toString(),
-                endDate = null,
-                flowLevel = "medium"
+                endDate = null
             )
             try {
                 client.save(record, "PeriodLogRecord")
@@ -117,7 +119,7 @@ class CycleViewModel @Inject constructor(
         if (logs.isEmpty()) return
 
         val lastPeriodStart = LocalDate.parse(logs.first().startDate)
-        val today = LocalDate.todayIn(TimeZone.currentSystemDefault())
+        val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
         val daysSinceStart = today.toEpochDays() - lastPeriodStart.toEpochDays()
         val cycleLength = _cycleSettings.value.averageCycleLengthDays
 
@@ -128,24 +130,24 @@ class CycleViewModel @Inject constructor(
             daysSinceStart < 14 -> CyclePhase.FOLLICULAR
             daysSinceStart < 17 -> CyclePhase.OVULATION
             daysSinceStart < cycleLength -> CyclePhase.LUTEAL
-            else -> CyclePhase.MENSTRUAL // late, assume new cycle
+            else -> CyclePhase.MENSTRUAL
         }
 
         _cyclePhase.value = phase
         _isSharkWeek.value = phase == CyclePhase.MENSTRUAL
 
-        val recommendation = CycleAdaptationPolicy.getPhaseRecommendation(phase)
-        _phaseDescription.value = recommendation
+        val recommendation = getPhaseRecommendation(phase)
+        _phaseDescription.value = recommendation.description
     }
 
     private fun buildCalendarDays() {
-        val today = LocalDate.todayIn(TimeZone.currentSystemDefault())
+        val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
         val startOfMonth = LocalDate(today.year, today.month, 1)
-        val daysInMonth = startOfMonth.plusMonths(1).minusDays(1).dayOfMonth
-        val firstDayOfWeek = startOfMonth.dayOfWeek.ordinal // 0=Mon
+        val nextMonth = startOfMonth.plus(1, DateTimeUnit.MONTH)
+        val daysInMonth = nextMonth.minus(1, DateTimeUnit.DAY).dayOfMonth
+        val firstDayOfWeek = startOfMonth.dayOfWeek.ordinal
 
         val days = mutableListOf<CalendarDay>()
-        // Empty cells before first day
         repeat(firstDayOfWeek) { days.add(CalendarDay(null, null, false)) }
 
         val logs = _periodLogs.value
@@ -154,7 +156,7 @@ class CycleViewModel @Inject constructor(
             val isToday = date == today
             val isPeriod = logs.any { log ->
                 val start = LocalDate.parse(log.startDate)
-                val end = log.endDate?.let { LocalDate.parse(it) } ?: start.plusDays(4)
+                val end = log.endDate?.let { LocalDate.parse(it) } ?: start.plus(4, DateTimeUnit.DAY)
                 date in start..end
             }
             days.add(CalendarDay(date, _cyclePhase.value, isPeriod, isToday))
