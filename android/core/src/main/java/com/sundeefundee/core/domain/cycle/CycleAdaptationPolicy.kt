@@ -182,6 +182,12 @@ fun adjustExerciseValueByMultiplier(value: ExerciseValue, multiplier: Double): E
     is ExerciseValue.Text -> value
 }
 
+// Convenience: adjust weight by phase (returns adjusted weight)
+fun adjustWeightByPhase(weight: Double, phase: CyclePhase): Double {
+    val multiplier = PHASE_MULTIPLIERS[phase]?.load ?: 1.0
+    return weight * multiplier
+}
+
 // Apply cycle phase adjustment to sets, reps, and load
 fun applyPhaseAdjustment(
     sets: ExerciseValue,

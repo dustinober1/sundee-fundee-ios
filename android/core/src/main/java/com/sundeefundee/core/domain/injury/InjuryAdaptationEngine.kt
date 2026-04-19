@@ -217,6 +217,19 @@ object InjuryAdaptationEngine {
         return recommendations.toList()
     }
 
+    /** Get substitution exercises for a body region (convenience for UI) */
+    fun getSubstitutionsForRegion(regionName: String): List<String> {
+        val region = BodyRegion.ALL.find { it.name == regionName || it.displayName.equals(regionName, ignoreCase = true) }
+            ?: return emptyList()
+        val injuries = listOf(Injury(
+            id = "temp", name = region.displayName,
+            bodyRegion = region.name, dateOccurred = "",
+            isActive = true, recoveryPhase = RecoveryPhase.LIGHT_LOAD,
+            bodyRegions = listOf(region)
+        ))
+        return getRecommendedExercises(injuries.first())
+    }
+
     /** Get contraindicated keywords for a given injury */
     fun getContraindicatedKeywords(injury: Injury): List<String> {
         val regions = injury.bodyRegions

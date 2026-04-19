@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sundeefundee.core.data.factory.DataClientFactory
 import com.sundeefundee.core.domain.injury.BodyRegion
+import com.sundeefundee.core.domain.injury.BodyRegions
 import com.sundeefundee.core.domain.injury.InjuryAdaptationEngine
 import com.sundeefundee.core.model.DailyPainLog
 import com.sundeefundee.core.model.Injury
@@ -45,7 +46,7 @@ class PainTrackingViewModel @Inject constructor(
     private val _substitutions = MutableStateFlow<List<String>>(emptyList())
     val substitutions = _substitutions.asStateFlow()
 
-    val bodyRegions = BodyRegion.ALL
+    val bodyRegions = BodyRegions.allRegions
 
     fun loadData() {
         viewModelScope.launch {
