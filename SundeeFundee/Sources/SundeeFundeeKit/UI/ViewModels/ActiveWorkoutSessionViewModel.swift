@@ -383,7 +383,7 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
                     date: Date()
                 )
                 try await dataClient.save(newRecord, recordType: "OneRepMaxRecord")
-                celebrationEvents.append(.newPersonalRecord(exerciseName: exerciseName, weightKg: estimated))
+                celebrationEvents.append(.newPersonalRecord(exerciseName: exerciseName, weightKg: estimated / 2.20462))
                 pendingPRShare = PendingPRShare(
                     exerciseName: exerciseName,
                     weight: estimated,
