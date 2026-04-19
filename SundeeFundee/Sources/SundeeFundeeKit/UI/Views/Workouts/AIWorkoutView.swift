@@ -57,7 +57,7 @@ struct AIWorkoutView: View {
                 // Header
                 VStack(spacing: AppTheme.Spacing.sm) {
                     Image(systemName: "sparkles")
-                        .font(.system(size: 36))
+                        .font(.title2)
                         .foregroundColor(AppTheme.Accent.gold)
                         .accessibilityHidden(true)
 
@@ -175,7 +175,7 @@ struct AIWorkoutView: View {
         ArtDecoCard {
             HStack(spacing: AppTheme.Spacing.md) {
                 Image(systemName: phaseIcon(phase))
-                    .font(.system(size: 20))
+                    .font(.headline)
                     .foregroundColor(phaseColor(phase))
                     .accessibilityHidden(true)
 
@@ -213,7 +213,7 @@ struct AIWorkoutView: View {
         } label: {
             VStack(spacing: AppTheme.Spacing.xs) {
                 Image(systemName: icon)
-                    .font(.system(size: 20))
+                    .font(.headline)
                 Text(title)
                     .font(AppTheme.Typography.labelMedium)
             }
@@ -233,7 +233,7 @@ struct AIWorkoutView: View {
         } label: {
             VStack(spacing: AppTheme.Spacing.xs) {
                 Image(systemName: icon)
-                    .font(.system(size: 20))
+                    .font(.headline)
                 Text(title)
                     .font(AppTheme.Typography.labelMedium)
             }
@@ -435,7 +435,7 @@ struct AIWorkoutView: View {
                         Task { await viewModel.loadSubstitutions(for: exercise.id) }
                     } label: {
                         Image(systemName: "arrow.2.squarepath")
-                            .font(.system(size: 14))
+                            .font(.footnote)
                             .foregroundColor(AppTheme.Accent.gold)
                     }
                     .accessibilityLabel("Swap \(exercise.name)")
