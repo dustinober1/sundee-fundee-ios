@@ -11,6 +11,7 @@ import SwiftUI
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
 public struct AnalyticsView: View {
     @StateObject private var viewModel = AnalyticsViewModel()
+    @State private var showLogMax = false
 
     public init() {}
 
@@ -51,6 +52,9 @@ public struct AnalyticsView: View {
         .navigationBarTitleDisplayMode(.large)
         #endif
         .background(AppTheme.Background.cream)
+        .sheet(isPresented: $showLogMax) {
+            NavigationStack { MaxesListView() }
+        }
         .task {
             await viewModel.loadAnalytics()
         }
@@ -147,26 +151,13 @@ public struct AnalyticsView: View {
     // MARK: - Empty State
 
     private var emptyState: some View {
-        VStack(spacing: AppTheme.Spacing.lg) {
-            Spacer()
-
-            Image(systemName: "chart.bar")
-                .font(.system(.largeTitle))
-                .foregroundColor(AppTheme.Text.secondary.opacity(0.5))
-                .accessibilityHidden(true)
-
-            Text("No Data Yet")
-                .font(AppTheme.Typography.headlineMedium)
-                .foregroundColor(AppTheme.Text.primary)
-
-            Text("Complete your first workout and log a max to start seeing your analytics.")
-                .font(AppTheme.Typography.bodyMedium)
-                .foregroundColor(AppTheme.Text.secondary)
-                .multilineTextAlignment(.center)
-
-            Spacer()
-        }
-        .padding(AppTheme.Spacing.xl)
+        EmptyStateView(
+            icon: "chart.bar",
+            title: "No Data Yet",
+            subtitle: "Complete your first workout and log a max to start seeing your analytics.",
+            actionLabel: "Log a Max",
+            action: { showLogMax = true }
+        )
         .frame(maxWidth: .infinity, minHeight: 400)
     }
 }
