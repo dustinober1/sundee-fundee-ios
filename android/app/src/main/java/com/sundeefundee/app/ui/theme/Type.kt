@@ -2,25 +2,17 @@ package com.sundeefundee.app.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
-import com.sundeefundee.app.R
 
 // Font families — mirrors iOS: Playfair Display (headings), Inter (body), JetBrains Mono (numbers)
-val PlayfairDisplay = FontFamily(
-    Font(R.font.playfair_display_bold, FontWeight.Bold)
-)
+// Using system font families as fallback when custom fonts are not bundled
+val PlayfairDisplay = FontFamily.Serif
 
-val Inter = FontFamily(
-    Font(R.font.inter_regular, FontWeight.Normal),
-    Font(R.font.inter_medium, FontWeight.Medium)
-)
+val Inter = FontFamily.SansSerif
 
-val JetBrainsMono = FontFamily(
-    Font(R.font.jetbrains_mono_regular, FontWeight.Normal)
-)
+val JetBrainsMono = FontFamily.Monospace
 
 // Art Deco Typography — mirrors iOS AppTheme.Typography
 // Display/Headline: fixed sizes. Body/Label/Mono: scalable via sp units.

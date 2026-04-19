@@ -67,3 +67,48 @@ fun SundeeFundeeTheme(
         content = content
     )
 }
+
+/**
+ * Provides direct access to theme colors and typography from @Composable functions.
+ * Usage: `SundeeFundeeTheme.colors.cream` or `SundeeFundeeTheme.typography.bodyLarge`
+ */
+object SundeeFundeeTheme {
+    /** Access the current color scheme within a @Composable context. */
+    val colors: SundeeFundeeColors
+        @Composable get() = SundeeFundeeColors(
+            cream = Cream,
+            navy = Navy,
+            orange = Orange,
+            gold = Gold,
+            goldLight = GoldLight,
+            success = Success,
+            warning = Warning,
+            error = Error,
+            textPrimary = TextPrimary,
+            textSecondary = TextSecondary,
+            textCream = TextCream,
+            textWhite = TextWhite,
+            cardBackground = CardBackground,
+        )
+
+    /** Access the current typography within a @Composable context. */
+    val typography: androidx.compose.material3.Typography
+        @Composable get() = MaterialTheme.typography
+}
+
+/** Flat color access object for convenient usage in screens. */
+data class SundeeFundeeColors(
+    val cream: Color,
+    val navy: Color,
+    val orange: Color,
+    val gold: Color,
+    val goldLight: Color,
+    val success: Color,
+    val warning: Color,
+    val error: Color,
+    val textPrimary: Color,
+    val textSecondary: Color,
+    val textCream: Color,
+    val textWhite: Color,
+    val cardBackground: Color,
+)

@@ -1,6 +1,7 @@
 package com.sundeefundee.app.ui.theme
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
@@ -16,6 +17,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -46,6 +48,28 @@ fun ArtDecoCard(
 ) {
     Card(
         modifier = modifier,
+        shape = RoundedCornerShape(CornerRadius.medium),
+        colors = CardDefaults.cardColors(
+            containerColor = CardBackground
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        content()
+    }
+}
+
+@Composable
+fun ArtDecoCard(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
+    Card(
+        modifier = modifier.clickable(
+            onClickLabel = null,
+            role = Role.Button,
+            onClick = onClick
+        ),
         shape = RoundedCornerShape(CornerRadius.medium),
         colors = CardDefaults.cardColors(
             containerColor = CardBackground
