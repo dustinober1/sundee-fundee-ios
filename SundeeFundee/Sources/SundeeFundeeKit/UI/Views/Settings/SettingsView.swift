@@ -1,4 +1,5 @@
 import SwiftUI
+import os.log
 
 // MARK: - SettingsView
 //
@@ -281,7 +282,10 @@ class SettingsViewModel: ObservableObject {
             }
             hasLoaded = true
         } catch {
-            errorMessage = "Failed to load settings: \(error.localizedDescription)"
+            // Log the raw error for debugging
+            let logger = Logger(subsystem: "com.sundeefundee.app", category: "Settings")
+            logger.error("Failed to load settings: \(error)")
+            errorMessage = "We couldn't load your settings. Check your connection and try again."
             hasLoaded = true
         }
     }
@@ -320,7 +324,10 @@ class SettingsViewModel: ObservableObject {
                 try await self.dataClient.save(record, recordType: "UserSettings")
             } catch {
                 if !Task.isCancelled {
-                    self.errorMessage = "Failed to save settings: \(error.localizedDescription)"
+                    // Log the raw error for debugging
+                    let logger = Logger(subsystem: "com.sundeefundee.app", category: "Settings")
+                    logger.error("Failed to save settings: \(error)")
+                    self.errorMessage = "We couldn't save your settings. Check your connection and try again."
                 }
             }
 
