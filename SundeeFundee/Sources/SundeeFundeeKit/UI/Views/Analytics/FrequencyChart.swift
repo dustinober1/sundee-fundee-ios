@@ -75,7 +75,7 @@ struct FrequencyChart: View {
     private var emptyState: some View {
         VStack(spacing: AppTheme.Spacing.sm) {
             Image(systemName: "calendar")
-                .font(.system(size: 32))
+                .font(.title)
                 .foregroundColor(AppTheme.Text.secondary.opacity(0.5))
                 .accessibilityHidden(true)
 
