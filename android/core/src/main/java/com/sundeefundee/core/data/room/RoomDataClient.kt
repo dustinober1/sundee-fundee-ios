@@ -177,7 +177,7 @@ class RoomDataClient @Inject constructor(
             "CyclePhaseInfo" -> {
                 val model = record as CyclePhaseInfo
                 db.cyclePhaseInfoDao().insert(CyclePhaseInfoEntity(
-                    id = model.id,
+                    id = java.util.UUID.randomUUID().toString(),
                     phase = model.phase.name,
                     confidence = model.confidence,
                     startDate = model.startDate,
@@ -246,8 +246,10 @@ class RoomDataClient @Inject constructor(
 
 // Entity ↔ Model mappers
 
+private val mapperJson = Json { ignoreUnknownKeys = true; encodeDefaults = true }
+
 private fun WorkoutEntity.toModel(): Workout {
-    val exercises = try { json.decodeFromString<List<Exercise>>(exercisesJson) } catch (_: Exception) { emptyList() }
+    val exercises = try { mapperJson.decodeFromString<List<Exercise>>(exercisesJson) } catch (_: Exception) { emptyList() }
     return Workout(id = id, date = date, name = name, exercises = exercises, notes = notes, duration = duration, completedAt = completedAt)
 }
 
@@ -267,7 +269,7 @@ private fun OneRepMaxRecord.toEntity() = OneRepMaxEntity(
 )
 
 private fun ChallengeEntity.toModel(): Challenge {
-    val tiers = try { json.decodeFromString<List<ChallengeTier>>(tiersJson) } catch (_: Exception) { emptyList() }
+    val tiers = try { mapperJson.decodeFromString<List<ChallengeTier>>(tiersJson) } catch (_: Exception) { emptyList() }
     return Challenge(
         id = id, type = try { ChallengeType.valueOf(type) } catch (_: Exception) { ChallengeType.CUSTOM },
         title = title, exerciseName = exerciseName, tiers = tiers,
@@ -327,13 +329,12 @@ private fun RecoveryScoreEntity.toModel() = RecoveryScoreRecord(
 private fun CelebrationEntity.toModel() = CelebrationEventRecord(id = id, description = description, date = date)
 
 private fun CompletedWorkoutEntity.toModel(): CompletedWorkoutRecord {
-    val names = try { json.decodeFromString<List<String>>(exerciseNamesJson) } catch (_: Exception) { emptyList() }
+    val names = try { mapperJson.decodeFromString<List<String>>(exerciseNamesJson) } catch (_: Exception) { emptyList() }
     return CompletedWorkoutRecord(id = id, name = name, date = date, duration = duration, exerciseNames = names, isComplete = isComplete)
 }
 
 private fun CyclePhaseInfoEntity.toModel() = CyclePhaseInfo(
     phase = try { CyclePhase.valueOf(phase) } catch (_: Exception) { CyclePhase.FOLLICULAR },
-    confidence = confidence, startDate = startDate, endDate = endDate,
-    id = id
+    confidence = confidence, startDate = startDate, endDate = endDate
 )
 
