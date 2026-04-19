@@ -61,7 +61,7 @@ public struct PainTrackingView: View {
                     ArtDecoCard {
                         HStack(spacing: AppTheme.Spacing.md) {
                             Image(systemName: "plus.circle.fill")
-                                .font(.system(size: 24))
+                                .font(.title3)
                                 .foregroundColor(AppTheme.Accent.orange)
                                 .accessibilityHidden(true)
 
@@ -106,7 +106,7 @@ public struct PainTrackingView: View {
                     // Empty State
                     VStack(spacing: AppTheme.Spacing.lg) {
                         Image(systemName: "heart.text.square")
-                            .font(.system(size: 48))
+                            .font(.system(.largeTitle))
                             .foregroundColor(AppTheme.Accent.gold.opacity(0.5))
                             .accessibilityHidden(true)
 
@@ -153,14 +153,14 @@ public struct PainTrackingView: View {
                                 .strikethrough()
 
                             Image(systemName: "arrow.right")
-                                .font(.system(size: 10))
+                                .font(.caption2)
                                 .foregroundColor(AppTheme.Text.secondary)
                         }
 
                         ForEach(suggestion.substitutions.prefix(3), id: \.exerciseName) { sub in
                             HStack(spacing: AppTheme.Spacing.sm) {
                                 Image(systemName: "checkmark.circle.fill")
-                                    .font(.system(size: 12))
+                                    .font(.caption)
                                     .foregroundColor(AppTheme.Semantic.success)
 
                                 Text(sub.exerciseName)
@@ -207,10 +207,10 @@ public struct PainTrackingView: View {
 
                         Text(injury.recoveryPhase.displayName)
                             .font(AppTheme.Typography.labelMedium)
-                            .foregroundColor(.orange)
+                            .foregroundColor(AppTheme.Text.orange)
                             .padding(.horizontal, AppTheme.Spacing.sm)
                             .padding(.vertical, 2)
-                            .background(Color.orange.opacity(0.15))
+                            .background(AppTheme.Accent.orange.opacity(0.15))
                             .cornerRadius(AppTheme.CornerRadius.small)
 
                         Button {
@@ -218,10 +218,10 @@ public struct PainTrackingView: View {
                         } label: {
                             Text("Healed")
                                 .font(AppTheme.Typography.labelMedium)
-                                .foregroundColor(.green)
+                                .foregroundColor(AppTheme.Recovery.green)
                                 .padding(.horizontal, AppTheme.Spacing.sm)
                                 .padding(.vertical, 2)
-                                .background(Color.green.opacity(0.15))
+                                .background(AppTheme.Recovery.green.opacity(0.15))
                                 .cornerRadius(AppTheme.CornerRadius.small)
                         }
                         .accessibilityLabel("Mark \(injury.name) as healed")
