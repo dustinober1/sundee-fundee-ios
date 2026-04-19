@@ -115,6 +115,9 @@ public struct MainTabView: View {
         .onReceive(NotificationCenter.default.publisher(for: .workoutCompleted)) { _ in
             selectedTab = .workouts
         }
+        .onReceive(NotificationCenter.default.publisher(for: .startWorkoutFromIntent)) { _ in
+            selectedTab = .workouts
+        }
         .onChange(of: cyclePhaseCache.isSharkWeek) { _, newValue in
             sharkWeekMonitor.isSharkWeek = newValue
         }
