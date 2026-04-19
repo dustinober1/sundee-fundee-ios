@@ -16,7 +16,7 @@ public struct InsightsView: View {
         ScrollView {
             VStack(spacing: AppTheme.Spacing.lg) {
                 if viewModel.isLoading {
-                    ProgressView()
+                    ProgressView("Loading your insights…")
                         .padding(.top, AppTheme.Spacing.xl)
                 } else if let insights = viewModel.insights {
                     // Summary Card
