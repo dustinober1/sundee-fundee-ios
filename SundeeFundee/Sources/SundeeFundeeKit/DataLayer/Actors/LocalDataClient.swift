@@ -46,16 +46,24 @@ public actor LocalDataClient: @preconcurrency DataClientProtocol {
             sorted = filtered
         }
 
-        return sorted.compactMap { record in
+        var decoded: [T] = []
+        for record in sorted {
             do {
                 let jsonData = try JSONSerialization.data(withJSONObject: record)
-                return try decoder.decode(T.self, from: jsonData)
+                decoded.append(try decoder.decode(T.self, from: jsonData))
             } catch {
                 let id = record["id"] as? String ?? "unknown"
                 localLogger.error("⚠️ DECODE \(recordType)/\(id): \(error.localizedDescription)")
-                return nil
+                await MainActor.run {
+                    DiagnosticsService.shared.recordDecodeFailure(
+                        recordType: recordType,
+                        recordID: id,
+                        error: error
+                    )
+                }
             }
         }
+        return decoded
     }
 
     public func save<T>(
