@@ -330,6 +330,8 @@ struct ProgramDetailView: View {
                 Divider()
                     .background(AppTheme.Accent.gold.opacity(0.2))
 
+                sessionLoadBar(session)
+
                 VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
                     ForEach(session.exercises.prefix(4), id: \.exercise) { ex in
                         exercisePreviewRow(ex)
@@ -376,6 +378,59 @@ struct ProgramDetailView: View {
                     ? "Start this session again from scratch"
                     : "Create a workout from this session and open it")
             }
+        }
+    }
+
+    private func sessionLoadBar(_ session: GeneratedProgramSession) -> some View {
+        let totalSets = session.exercises.reduce(0) { $0 + setsCount($1.sets) }
+        let lightCeiling = 18
+        let moderateCeiling = 26
+        let displayCap = 32
+        let fillFraction = min(Double(totalSets) / Double(displayCap), 1.0)
+        let (color, label): (Color, String) = {
+            switch totalSets {
+            case 0..<lightCeiling:
+                return (AppTheme.Recovery.green, "Light")
+            case lightCeiling..<moderateCeiling:
+                return (AppTheme.Recovery.yellow, "Moderate")
+            default:
+                return (AppTheme.Accent.orange, "Heavy")
+            }
+        }()
+
+        return VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+            HStack {
+                Text("Session load")
+                    .font(AppTheme.Typography.labelSmall)
+                    .foregroundColor(AppTheme.Text.secondary)
+                    .tracking(1)
+                Spacer()
+                Text("\(label) \u{00B7} \(totalSets) sets")
+                    .font(AppTheme.Typography.labelSmall)
+                    .foregroundColor(color)
+            }
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    RoundedRectangle(cornerRadius: 2)
+                        .fill(AppTheme.Accent.gold.opacity(0.15))
+                    RoundedRectangle(cornerRadius: 2)
+                        .fill(color)
+                        .frame(width: geo.size.width * fillFraction)
+                }
+            }
+            .frame(height: 4)
+        }
+        .padding(.vertical, 2)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Session load: \(label), \(totalSets) total sets")
+    }
+
+    private func setsCount(_ value: ExerciseValue) -> Int {
+        switch value {
+        case .fixed(let v): return v
+        case .range(let low, let high): return (low + high) / 2
+        case .amrap: return 1
+        case .text: return 3
         }
     }
 
