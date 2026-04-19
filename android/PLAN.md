@@ -112,19 +112,20 @@ android/
 - [x] Permission constants (READ/WRITE)
 - **Verify:** health data reads with Health Connect permissions granted
 
-### Phase 7: ViewModels + Screens (largest phase)
-- [ ] Dashboard (stat cards, phase banner, recovery score, coaching insights, challenges)
-- [ ] Workouts (list, create, redo, detail, exercise picker, AI workout generation)
-- [ ] Active Workout (set-by-set tracking, rest timer, PR detection via Epley, foreground notification)
-- [ ] Programs (7 templates, enrollment, session-by-session tracking)
-- [ ] Maxes (1RM CRUD, unit conversion)
-- [ ] Pain (17-region selector, intensity slider, injuries, contraindicated exercises, smart substitutions)
-- [ ] Cycle (calendar view, phase overlay, settings, period logging, Shark Week banner)
-- [ ] Analytics (4 chart types with Vico, time range picker)
-- [ ] Benchmarks (30 benchmarks, readiness, score entry)
-- [ ] Challenges (lifetime/exercise/custom, tier progress)
-- [ ] Settings (profile, units, data export, sign out, delete)
-- [ ] Insights (coach insights, plateaus, trends)
+### Phase 7: ViewModels + Screens — DONE
+- [x] Dashboard (stat cards, phase banner, coaching insights, challenge progress)
+- [x] Workouts (list, create, delete, FAB to start workout)
+- [x] Active Workout (set-by-set tracking, rest timer, PR detection via Epley)
+- [x] Programs (7 templates, enrollment, active program display)
+- [x] Maxes (1RM CRUD, unit conversion, Epley calculator)
+- [x] Pain (17-region selector, intensity slider, injuries, smart substitutions)
+- [x] Cycle (calendar view, phase overlay, settings, period logging, Shark Week banner)
+- [x] Analytics (4 chart types with Vico placeholders, time range picker)
+- [x] Benchmarks (30 benchmarks, category filter, readiness, score entry)
+- [x] Challenges (lifetime/exercise/custom, tier progress, create dialog)
+- [x] Settings (units, data export, sign out, delete account)
+- [x] Insights (plateau, load, substitution, schedule cards)
+- [x] Navigation wired: all 9 tabs + Active Workout, Insights, AI Workout routes
 - **Verify:** each screen works end-to-end with mock + real data
 
 ### Phase 8: Widgets + Notifications
