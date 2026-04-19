@@ -119,11 +119,12 @@ public struct SubstitutionPickerSheet: View {
     private func errorState(_ message: String) -> some View {
         VStack(spacing: AppTheme.Spacing.md) {
             Image(systemName: "exclamationmark.triangle")
-                .foregroundColor(AppTheme.Text.orange)
-            Text(message)
-                .font(AppTheme.Typography.bodyMedium)
+                .foregroundColor(AppTheme.Semantic.warning)
+            Text("Couldn't find alternatives")
+                .font(AppTheme.Typography.headlineMedium)
+            Text("Try another exercise or adjust your setup.")
+                .font(AppTheme.Typography.bodySmall)
                 .foregroundColor(AppTheme.Text.secondary)
-                .multilineTextAlignment(.center)
         }
         .padding(AppTheme.Spacing.xxl)
     }
