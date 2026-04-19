@@ -71,7 +71,7 @@ public struct ChallengesView: View {
     private var emptyState: some View {
         VStack(spacing: AppTheme.Spacing.md) {
             Image(systemName: "trophy")
-                .font(.system(size: 48))
+                .font(.system(.largeTitle))
                 .foregroundColor(AppTheme.Accent.gold)
 
             Text("No Challenges Yet")
@@ -103,7 +103,7 @@ public struct ChallengesView: View {
     private func errorState(_ message: String) -> some View {
         VStack(spacing: AppTheme.Spacing.md) {
             Image(systemName: "exclamationmark.icloud")
-                .font(.system(size: 48))
+                .font(.system(.largeTitle))
                 .foregroundColor(AppTheme.Accent.orange)
 
             Text("Unable to Load Progress")
