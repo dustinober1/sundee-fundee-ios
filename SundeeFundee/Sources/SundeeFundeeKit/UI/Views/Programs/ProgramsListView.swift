@@ -544,11 +544,10 @@ class ProgramDetailViewModel: ObservableObject {
         startingSessionId = session.sessionId
         defer { startingSessionId = nil }
 
-        // Load cycle phase for workout adjustment
-        let cycleMult = await loadCycleMultiplier()
-
-        // Load user maxes for weight calculation
-        let maxes = await loadMaxes()
+        // Load cycle phase and user maxes in parallel
+        async let cycleTask = loadCycleMultiplier()
+        async let maxesTask = loadMaxes()
+        let (cycleMult, maxes) = await (cycleTask, maxesTask)
 
         let workout = Workout(
             date: Date(),
