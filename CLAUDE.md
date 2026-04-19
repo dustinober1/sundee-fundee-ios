@@ -163,11 +163,22 @@ Pure Swift business logic mirroring the original web app's domain layer:
 - **Screenshot dimensions:** iPhone 6.5" = 1284x2778, iPad 12.9" = 2048x2732
 - **Free apps** must include Privacy Policy link in description
 
-## iOS Simulator UI Automation
+## iOS UI Automation (mobile-mcp)
 
+### Simulator
+- Build + install: `xcodebuild ... -destination 'platform=iOS Simulator,id=<UDID>' build` then `xcrun simctl install <UDID> <path-to>.app`
 - SwiftUI `Toggle` (AXSwitch) doesn't respond to `tap` by label — use coordinates
 - Tab bar items may not expose individual children — use coordinate taps
 - Guest mode requires completing onboarding before reaching main screens
+- HealthKit permission dialog uses system (not app) coordinate space — screenshot visual coords differ from `list_elements` coords; tap visually or dismiss via background tap
+- iPad `.sheet`/form-sheet **coordinates shift when the keyboard shows/hides** — always re-`list_elements` after keyboard visibility changes, never reuse stale coords
+- Disabled buttons (e.g. from `.disabled(!viewModel.canCreate)`) still appear in the accessibility tree and accept taps silently — reduce `.opacity` to make disabled state visible, and check for disable modifiers before debugging "unresponsive" buttons
+- Keyboard dismiss: tap the "Hide keyboard" button in the bottom-right of the iPad keyboard (around real coords `(957, 1324)` on iPad Pro 13")
+
+### Physical device
+- Requires `go-ios` (`npm i -g go-ios`) + `sudo ios tunnel start` running in the background for iOS 17+
+- Requires WebDriverAgent signed + installed on the device (clone `appium/WebDriverAgent`, sign in Xcode with team `87VVCMCW3F`, Product → Test once to deploy the runner, trust the dev cert in iPad Settings)
+- Without WDA the mobile-mcp tools see the device but `list_elements_on_screen` / `click_on_screen_at_coordinates` fail with "Port forwarding to WebDriverAgent is not running"
 
 ## Research
 
