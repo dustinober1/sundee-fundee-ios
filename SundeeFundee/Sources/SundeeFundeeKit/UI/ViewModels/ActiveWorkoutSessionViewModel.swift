@@ -124,6 +124,7 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
         workout.exercises[currentExerciseIndex].targetSets[currentSetIndex].isComplete = true
         workout.exercises[currentExerciseIndex].targetSets[currentSetIndex].actualReps = actualReps
         workout.exercises[currentExerciseIndex].targetSets[currentSetIndex].completedWeight = completedWeight
+        HapticFeedback.light()
 
         // 2. Check for PR using Epley formula
         let exerciseName = workout.exercises[currentExerciseIndex].name
