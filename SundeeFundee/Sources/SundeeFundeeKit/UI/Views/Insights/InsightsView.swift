@@ -43,7 +43,7 @@ public struct InsightsView: View {
                                 ForEach(insights.priorityActions, id: \.self) { action in
                                     HStack(alignment: .top, spacing: AppTheme.Spacing.sm) {
                                         Image(systemName: "arrow.right.circle.fill")
-                                            .font(.system(size: 14))
+                                            .font(.footnote)
                                             .foregroundColor(AppTheme.Accent.gold)
 
                                         Text(action)
@@ -231,7 +231,7 @@ public struct InsightsView: View {
             Spacer()
 
             Image(systemName: "chart.line.uptrend.xyaxis")
-                .font(.system(size: 48))
+                .font(.system(.largeTitle))
                 .foregroundColor(AppTheme.Text.secondary.opacity(0.5))
                 .accessibilityHidden(true)
 
