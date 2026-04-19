@@ -343,7 +343,7 @@ public struct WorkoutDetailView: View {
                     }
                 } label: {
                     Image(systemName: set.isComplete ? "checkmark.circle.fill" : "circle")
-                        .font(.system(size: 22))
+                        .font(.body)
                         .foregroundColor(set.isComplete ? AppTheme.Accent.gold : AppTheme.Text.secondary.opacity(0.3))
                 }
                 .buttonStyle(.plain)
