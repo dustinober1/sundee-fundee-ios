@@ -142,7 +142,7 @@ public struct DashboardView: View {
             ArtDecoCard {
                 HStack(spacing: AppTheme.Spacing.md) {
                     Image(systemName: cyclePhaseIcon(for: phase))
-                        .font(.system(size: 24))
+                        .font(.title3)
                         .foregroundColor(cyclePhaseColor(for: phase))
                         .accessibilityHidden(true)
 
@@ -370,7 +370,7 @@ public struct DashboardView: View {
     private func quickActionContent(_ title: String, icon: String, isPrimary: Bool) -> some View {
         VStack(spacing: AppTheme.Spacing.xs) {
             Image(systemName: icon)
-                .font(.system(size: 20))
+                .font(.headline)
 
             Text(title)
                 .font(AppTheme.Typography.labelMedium)
@@ -407,7 +407,7 @@ public struct DashboardView: View {
                         ForEach(viewModel.insightsActions.prefix(2), id: \.self) { action in
                             HStack(alignment: .top, spacing: AppTheme.Spacing.xs) {
                                 Image(systemName: "arrow.right.circle.fill")
-                                    .font(.system(size: 12))
+                                    .font(.caption)
                                     .foregroundColor(AppTheme.Accent.gold)
                                     .accessibilityHidden(true)
 
