@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sundeefundee.core.data.factory.DataClientFactory
 import com.sundeefundee.core.domain.exercise.epley1RM
-import com.sundeefundee.core.domain.cycle.CycleAdaptationPolicy
+import com.sundeefundee.core.domain.cycle.adjustWeightByPhase
 import com.sundeefundee.core.model.CyclePhase
 import com.sundeefundee.core.model.Exercise
 import com.sundeefundee.core.model.ExerciseSet
@@ -67,8 +67,8 @@ class ActiveWorkoutViewModel @Inject constructor(
 
     fun startWorkout(exerciseList: List<Exercise>, phase: CyclePhase? = null) {
         _exercises.value = exerciseList.map { exercise ->
-            exercise.copy(sets = exercise.sets.map { set ->
-                set.copy(completed = false, actualReps = null, actualWeight = null)
+            exercise.copy(targetSets = exercise.targetSets.map { set ->
+                set.copy(isComplete = false, actualReps = null, completedWeight = null)
             })
         }
         _cyclePhase.value = phase
@@ -88,22 +88,22 @@ class ActiveWorkoutViewModel @Inject constructor(
 
         if (exIdx >= exercises.size) return
         val exercise = exercises[exIdx]
-        if (setIdx >= exercise.sets.size) return
+        if (setIdx >= exercise.targetSets.size) return
 
-        val currentSet = exercise.sets[setIdx]
+        val currentSet = exercise.targetSets[setIdx]
         val adjustedWeight = _cyclePhase.value?.let {
-            CycleAdaptationPolicy.adjustWeightByPhase(weight, it)
+            adjustWeightByPhase(weight, it)
         } ?: weight
 
         val updatedSet = currentSet.copy(
-            completed = true,
+            isComplete = true,
             actualReps = reps,
-            actualWeight = adjustedWeight
+            completedWeight = adjustedWeight
         )
 
-        val updatedSets = exercise.sets.toMutableList()
+        val updatedSets = exercise.targetSets.toMutableList()
         updatedSets[setIdx] = updatedSet
-        exercises[exIdx] = exercise.copy(sets = updatedSets)
+        exercises[exIdx] = exercise.copy(targetSets = updatedSets)
         _exercises.value = exercises
 
         // Check for PR (simplified — compare to Epley 1RM)
@@ -152,10 +152,11 @@ class ActiveWorkoutViewModel @Inject constructor(
             val now = Clock.System.now()
             val workout = Workout(
                 id = java.util.UUID.randomUUID().toString(),
+                name = "Workout",
                 exercises = _exercises.value,
                 date = startTime?.toString() ?: now.toString(),
                 completedAt = now.toString(),
-                totalDuration = _elapsedSeconds.value
+                duration = _elapsedSeconds.value / 60
             )
             try {
                 dataClientFactory.client.save(workout, "Workout")
@@ -174,7 +175,7 @@ class ActiveWorkoutViewModel @Inject constructor(
         if (exIdx >= exercises.size) return
         val currentExercise = exercises[exIdx]
 
-        if (setIdx + 1 < currentExercise.sets.size) {
+        if (setIdx + 1 < currentExercise.targetSets.size) {
             _currentSetIndex.value = setIdx + 1
         } else if (exIdx + 1 < exercises.size) {
             _currentExerciseIndex.value = exIdx + 1
