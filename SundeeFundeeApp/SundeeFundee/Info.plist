@@ -26,6 +26,8 @@
 	<string>Sundee Fundee uses your health data to track workouts and adapt training to your menstrual cycle phase.</string>
 	<key>NSHealthUpdateUsageDescription</key>
 	<string>Sundee Fundee saves your workout data to Apple Health to keep your fitness records in sync.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Sundee Fundee uses the camera so you can add a photo to your share card.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
