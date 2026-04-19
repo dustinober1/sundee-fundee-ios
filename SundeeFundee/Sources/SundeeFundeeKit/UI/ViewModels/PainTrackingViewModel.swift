@@ -94,9 +94,12 @@ public class PainTrackingViewModel: ObservableObject {
     public func deletePainLog(id: String) async {
         isLoading = true
 
-        // In a full implementation, we'd need to track CKRecord.ID
-        // For now, just remove from local array
-        painLogs.removeAll { $0.id == id }
+        do {
+            try await dataClient.delete(recordType: "DailyPainLog", id: id)
+            painLogs.removeAll { $0.id == id }
+        } catch {
+            errorMessage = "We couldn't delete that log. Check your connection and try again."
+        }
 
         isLoading = false
     }
@@ -171,9 +174,12 @@ public class PainTrackingViewModel: ObservableObject {
     public func deleteInjury(id: String) async {
         isLoading = true
 
-        // In a full implementation, we'd need to track CKRecord.ID
-        // For now, just remove from local array
-        injuries.removeAll { $0.id == id }
+        do {
+            try await dataClient.delete(recordType: "Injury", id: id)
+            injuries.removeAll { $0.id == id }
+        } catch {
+            errorMessage = "We couldn't delete that injury. Check your connection and try again."
+        }
 
         isLoading = false
     }
