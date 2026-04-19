@@ -33,6 +33,9 @@ struct SundeeFundeeMain: App {
             .artDecoBackground()
             .onAppear {
                 themeViewModel.applyTheme()
+                // Force-load App Shortcuts provider so iOS discovers intents
+                // declared inside the SundeeFundeeKit package.
+                _ = SundeeFundeeShortcuts.self
                 Task {
                     let container = CKContainer(identifier: "iCloud.com.sundeefundee.app")
                     do {
