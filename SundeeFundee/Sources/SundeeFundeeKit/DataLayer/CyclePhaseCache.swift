@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import WidgetKit
 
 // MARK: - CyclePhaseCache
 
@@ -18,6 +19,7 @@ public final class CyclePhaseCache: ObservableObject {
     @Published public private(set) var currentPhase: CyclePhase?
     @Published public private(set) var confidence: Double?
     @Published public private(set) var isSharkWeek: Bool = false
+    @Published public private(set) var cycleDay: Int?
 
     // MARK: - Dependencies
 
@@ -69,7 +71,9 @@ public final class CyclePhaseCache: ObservableObject {
             currentPhase = .menstrual
             confidence = 1.0
             isSharkWeek = true
+            cycleDay = 1
             lastRefreshed = Date()
+            writeSnapshot()
             return
         }
 
@@ -107,7 +111,9 @@ public final class CyclePhaseCache: ObservableObject {
             currentPhase = nil
             confidence = nil
             isSharkWeek = false
+            cycleDay = nil
             lastRefreshed = Date()
+            writeSnapshot()
             return
         }
 
@@ -127,13 +133,16 @@ public final class CyclePhaseCache: ObservableObject {
                 lastPeriodStart: periodLogs.sorted(by: { $0.startDate > $1.startDate }).first?.startDate
             )
             isSharkWeek = status.currentPhase == .menstrual
+            cycleDay = status.cycleDay
         } else {
             currentPhase = nil
             confidence = nil
             isSharkWeek = false
+            cycleDay = nil
         }
 
         lastRefreshed = Date()
+        writeSnapshot()
     }
 
     // MARK: - Optimistic Updates
@@ -145,6 +154,8 @@ public final class CyclePhaseCache: ObservableObject {
         currentPhase = .menstrual
         confidence = 1.0
         isSharkWeek = true
+        cycleDay = 1
+        writeSnapshot()
         // Don't update lastRefreshed — let the next refreshIfNeeded() do a
         // real fetch to reconcile with the server.
     }
@@ -153,7 +164,22 @@ public final class CyclePhaseCache: ObservableObject {
     /// Call immediately after the user ends (or deletes) the active period.
     public func markPeriodEnded() {
         isSharkWeek = false
+        writeSnapshot()
         // Force the next refreshIfNeeded() to do a full fetch.
         lastRefreshed = nil
+    }
+
+    // MARK: - Snapshot
+
+    private func writeSnapshot() {
+        SharedSnapshotStore.writeCycle(
+            CyclePhaseSnapshot(
+                phaseRaw: currentPhase?.rawValue,
+                cycleDay: cycleDay,
+                capturedAt: Date(),
+                isSharkWeek: isSharkWeek
+            )
+        )
+        WidgetCenter.shared.reloadTimelines(ofKind: "CyclePhaseWidget")
     }
 }
