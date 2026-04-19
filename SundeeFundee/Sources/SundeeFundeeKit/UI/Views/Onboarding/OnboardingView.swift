@@ -64,7 +64,7 @@ public struct OnboardingView: View {
             Spacer()
 
             Image(systemName: "figure.strengthtraining.traditional")
-                .font(.system(size: 80))
+                .font(.system(.largeTitle))
                 .foregroundColor(AppTheme.Accent.gold)
                 .accessibilityHidden(true)
 
@@ -120,7 +120,7 @@ public struct OnboardingView: View {
         } label: {
             HStack(spacing: AppTheme.Spacing.md) {
                 Image(systemName: icon)
-                    .font(.system(size: 24))
+                    .font(.title3)
                     .foregroundColor(viewModel.experienceLevel == level ? AppTheme.Accent.gold : AppTheme.Text.secondary)
                     .frame(width: 40)
 
@@ -183,7 +183,7 @@ public struct OnboardingView: View {
         } label: {
             HStack(spacing: AppTheme.Spacing.md) {
                 Image(systemName: icon)
-                    .font(.system(size: 24))
+                    .font(.title3)
                     .foregroundColor(viewModel.primaryGoal == goal ? AppTheme.Accent.gold : AppTheme.Text.secondary)
                     .frame(width: 40)
 
