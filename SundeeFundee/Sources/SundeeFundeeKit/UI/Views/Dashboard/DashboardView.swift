@@ -36,7 +36,22 @@ public struct DashboardView: View {
                     cyclePhaseBanner
 
                     // Stat Cards
-                    statCards
+                    if viewModel.isInitialLoad {
+                        SkeletonStatRow()
+                    } else {
+                        statCards
+                    }
+
+                    // Empty state for brand-new users (no data anywhere)
+                    if viewModel.showsNewUserEmptyState {
+                        EmptyStateView(
+                            icon: "figure.strengthtraining.traditional",
+                            title: "Welcome to Sundee Fundee",
+                            subtitle: "Log your first workout or one-rep max to unlock stats, benchmarks, and cycle-aware programming.",
+                            actionLabel: "Log a Max",
+                            action: { viewModel.navigateToLogMax = true }
+                        )
+                    }
 
                     // Challenge Progress Widget
                     if let challengeData = viewModel.activeChallengeData {
@@ -84,6 +99,9 @@ public struct DashboardView: View {
             }
             .sheet(isPresented: $showingAIWorkout) {
                 AIWorkoutView()
+            }
+            .navigationDestination(isPresented: $viewModel.navigateToLogMax) {
+                MaxesListView()
             }
             .alert("Error", isPresented: Binding(
                 get: { viewModel.errorMessage != nil },
@@ -258,16 +276,22 @@ public struct DashboardView: View {
                 value: "\(viewModel.workoutsThisWeek)",
                 label: "This Week"
             )
+            .accessibilityLabel("Workouts this week")
+            .accessibilityValue("\(viewModel.workoutsThisWeek)")
 
             StatCard(
                 value: "\(viewModel.prsThisMonth)",
                 label: "PRs Month"
             )
+            .accessibilityLabel("Personal records this month")
+            .accessibilityValue("\(viewModel.prsThisMonth)")
 
             StatCard(
                 value: viewModel.activeProgramName ?? "None",
                 label: "Program"
             )
+            .accessibilityLabel("Active program")
+            .accessibilityValue(viewModel.activeProgramName ?? "none")
         }
         .accessibilityElement(children: .contain)
     }
@@ -521,6 +545,8 @@ class DashboardViewModel: ObservableObject {
     // MARK: - Published Properties
 
     @Published var isLoading: Bool = false
+    @Published var isInitialLoad: Bool = true
+    @Published var navigateToLogMax: Bool = false
     @Published var errorMessage: String?
 
     @Published var workoutsThisWeek: Int = 0
@@ -550,6 +576,14 @@ class DashboardViewModel: ObservableObject {
         self.dataClient = dataClient
     }
 
+    var showsNewUserEmptyState: Bool {
+        !isInitialLoad
+            && workoutsThisWeek == 0
+            && prsThisMonth == 0
+            && activeProgramName == nil
+            && recentWins.isEmpty
+    }
+
     // MARK: - Public Methods
 
     func loadData(cyclePhaseCache: CyclePhaseCache) async {
@@ -572,6 +606,7 @@ class DashboardViewModel: ObservableObject {
 
         canGenerateAIWorkout = true
         isLoading = false
+        isInitialLoad = false
 
         // Tier 2: Non-critical data loads after UI is visible
         await loadCoachingInsights()
