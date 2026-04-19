@@ -93,6 +93,51 @@ public struct CompletedWorkoutRecord: Codable, Sendable {
         self.exerciseNames = exerciseNames
         self.isComplete = isComplete
     }
+
+    private enum CodingKeys: String, CodingKey {
+        case id, name, date, duration, exerciseNames, isComplete, completedAt, exercises
+    }
+
+    private struct NamedExercise: Decodable {
+        let name: String
+    }
+
+    // Backwards-compatible decoding: "Workout" CloudKit records are also decoded
+    // as CompletedWorkoutRecord (see RecoveryScoreViewModel). Those records lack
+    // `exerciseNames`/`isComplete` but carry `exercises` and `completedAt`.
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        name = try container.decode(String.self, forKey: .name)
+        let completedAt = try container.decodeIfPresent(Date.self, forKey: .completedAt)
+        let rawDate = try container.decodeIfPresent(Date.self, forKey: .date)
+        date = completedAt ?? rawDate ?? Date()
+        duration = try container.decodeIfPresent(Int.self, forKey: .duration)
+        if let names = try? container.decode([String].self, forKey: .exerciseNames) {
+            exerciseNames = names
+        } else if let exercises = try? container.decode([NamedExercise].self, forKey: .exercises) {
+            exerciseNames = exercises.map(\.name)
+        } else {
+            exerciseNames = []
+        }
+        if let flag = try? container.decode(Bool.self, forKey: .isComplete) {
+            isComplete = flag
+        } else if let intFlag = try? container.decode(Int.self, forKey: .isComplete) {
+            isComplete = intFlag != 0
+        } else {
+            isComplete = completedAt != nil
+        }
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(name, forKey: .name)
+        try container.encode(date, forKey: .date)
+        try container.encodeIfPresent(duration, forKey: .duration)
+        try container.encode(exerciseNames, forKey: .exerciseNames)
+        try container.encode(isComplete, forKey: .isComplete)
+    }
 }
 
 public extension Workout {
