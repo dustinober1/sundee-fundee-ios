@@ -554,8 +554,8 @@ class ProgramDetailViewModel: ObservableObject {
             date: Date(),
             name: "\(programName) — \(session.sessionName)",
             exercises: session.exercises.map { ex in
-                let setsCount: Int
-                if case .fixed(let n) = ex.sets { setsCount = n } else { setsCount = 3 }
+                let setCount: Int
+                if case .fixed(let n) = ex.sets { setCount = n } else { setCount = 3 }
 
                 let repCount: Int
                 let setType: ExerciseType
@@ -585,7 +585,7 @@ class ProgramDetailViewModel: ObservableObject {
                     )
                 }
 
-                let targetSets = (0..<setsCount).map { _ in
+                let targetSets = (0..<setCount).map { _ in
                     ExerciseSet(
                         reps: repCount,
                         prescribedWeight: prescribedWeight,
