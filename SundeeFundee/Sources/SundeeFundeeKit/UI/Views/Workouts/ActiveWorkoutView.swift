@@ -15,6 +15,9 @@ public struct ActiveWorkoutView: View {
     @State private var showAbandonAlert = false
     @State private var weightInput: String = ""
     @State private var repsInput: String = ""
+    @State private var showingSwapSheet = false
+    @State private var showingSwapConfirm = false
+    @State private var pendingSwap: SubstitutionRanker.RankedSubstitution?
     @FocusState private var isWeightFocused: Bool
     @FocusState private var isRepsFocused: Bool
 
@@ -44,6 +47,42 @@ public struct ActiveWorkoutView: View {
         }
         .onAppear {
             viewModel.beginSession()
+        }
+        #if canImport(UIKit)
+        .sheet(item: $viewModel.pendingPRShare) { pr in
+            ShareCardSheet(
+                variant: .newPR(
+                    exerciseName: pr.exerciseName,
+                    weight: pr.weight,
+                    unit: pr.unit,
+                    previousBest: pr.previousBest
+                ),
+                defaultAspect: .story
+            )
+        }
+        #endif
+        .sheet(isPresented: $showingSwapSheet) {
+            if let exercise = viewModel.currentExercise {
+                SubstitutionPickerSheet(exerciseName: exercise.name) { sub in
+                    if viewModel.currentExerciseHasProgress {
+                        pendingSwap = sub
+                        showingSwapConfirm = true
+                    } else {
+                        viewModel.swapCurrentExercise(to: sub.exerciseName)
+                    }
+                }
+            }
+        }
+        .alert("Swap mid-exercise?", isPresented: $showingSwapConfirm, presenting: pendingSwap) { sub in
+            Button("Swap & reset progress", role: .destructive) {
+                viewModel.swapCurrentExercise(to: sub.exerciseName)
+                pendingSwap = nil
+            }
+            Button("Cancel", role: .cancel) {
+                pendingSwap = nil
+            }
+        } message: { _ in
+            Text("You've already logged sets on this exercise. Swapping will clear that progress.")
         }
     }
 
@@ -158,10 +197,24 @@ public struct ActiveWorkoutView: View {
         ArtDecoCard {
             VStack(spacing: AppTheme.Spacing.md) {
                 if let exercise = viewModel.currentExercise {
-                    Text(exercise.name)
-                        .font(AppTheme.Typography.headlineLarge)
-                        .foregroundColor(AppTheme.Text.primary)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                    HStack(spacing: AppTheme.Spacing.sm) {
+                        Text(exercise.name)
+                            .font(AppTheme.Typography.headlineLarge)
+                            .foregroundColor(AppTheme.Text.primary)
+                        Spacer()
+                        Menu {
+                            Button {
+                                showingSwapSheet = true
+                            } label: {
+                                Label("Swap exercise", systemImage: "arrow.triangle.swap")
+                            }
+                        } label: {
+                            Image(systemName: "ellipsis.circle")
+                                .foregroundColor(AppTheme.Text.secondary)
+                        }
+                        .accessibilityLabel("Exercise options")
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
 
                     if let set = viewModel.currentSet {
                         Text("Set \(viewModel.currentSetIndex + 1) of \(exercise.targetSets.count)")
