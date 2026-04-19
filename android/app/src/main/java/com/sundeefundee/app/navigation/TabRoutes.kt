@@ -14,4 +14,5 @@ object TabRoutes {
     const val SETTINGS = "settings"
     const val INSIGHTS = "insights"
     const val AI_WORKOUT = "ai_workout"
+    const val MORE = "more"
 }

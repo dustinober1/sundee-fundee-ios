@@ -2,20 +2,17 @@ package com.sundeefundee.app.navigation
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.FitnessCenter
-import androidx.compose.material.icons.filled.Healing
-import androidx.compose.material.icons.filled.List
-import androidx.compose.material.icons.filled.MonitorWeight
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.NightsStay
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.ShowChart
-import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -29,6 +26,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.sundeefundee.app.R
 import com.sundeefundee.app.ui.screen.*
+import com.sundeefundee.app.ui.theme.SundeeFundeeTheme
 
 data class TabItem(
     val route: String,
@@ -39,13 +37,8 @@ data class TabItem(
 val tabs = listOf(
     TabItem(TabRoutes.DASHBOARD, R.string.tab_dashboard, Icons.Filled.ShowChart),
     TabItem(TabRoutes.WORKOUTS, R.string.tab_workouts, Icons.Filled.FitnessCenter),
-    TabItem(TabRoutes.PROGRAMS, R.string.tab_programs, Icons.Filled.List),
-    TabItem(TabRoutes.MAXES, R.string.tab_maxes, Icons.Filled.MonitorWeight),
-    TabItem(TabRoutes.PAIN, R.string.tab_pain, Icons.Filled.Healing),
     TabItem(TabRoutes.CYCLE, R.string.tab_cycle, Icons.Filled.NightsStay),
-    TabItem(TabRoutes.ANALYTICS, R.string.tab_analytics, Icons.Filled.BarChart),
-    TabItem(TabRoutes.BENCHMARKS, R.string.tab_benchmarks, Icons.Filled.EmojiEvents),
-    TabItem(TabRoutes.SETTINGS, R.string.tab_settings, Icons.Filled.Settings),
+    TabItem(TabRoutes.MORE, R.string.tab_more, Icons.Filled.Menu),
 )
 
 // Routes that should hide the bottom bar
@@ -54,15 +47,49 @@ private val fullScreenRoutes = setOf(
     TabRoutes.AI_WORKOUT
 )
 
+private val routeTitleMap = mapOf(
+    TabRoutes.DASHBOARD to "Dashboard",
+    TabRoutes.WORKOUTS to "Workouts",
+    TabRoutes.CYCLE to "Cycle",
+    TabRoutes.MORE to "More",
+    TabRoutes.PROGRAMS to "Programs",
+    TabRoutes.MAXES to "Maxes",
+    TabRoutes.PAIN to "Pain & Injuries",
+    TabRoutes.ANALYTICS to "Analytics",
+    TabRoutes.BENCHMARKS to "Benchmarks",
+    TabRoutes.SETTINGS to "Settings",
+    TabRoutes.INSIGHTS to "Insights",
+    TabRoutes.ACTIVE_WORKOUT to "Active Workout",
+    TabRoutes.AI_WORKOUT to "AI Workout"
+)
+
 @Composable
 fun MainNavHost() {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
+    val currentRoute = currentDestination?.route
+    val showBottomBar = currentRoute !in fullScreenRoutes
+    val topBarTitle = routeTitleMap[currentRoute] ?: ""
 
     Scaffold(
+        topBar = {
+            if (currentRoute !in fullScreenRoutes && topBarTitle.isNotEmpty()) {
+                TopAppBar(
+                    title = {
+                        Text(
+                            topBarTitle,
+                            style = SundeeFundeeTheme.typography.headlineLarge
+                        )
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = SundeeFundeeTheme.colors.cream
+                    )
+                )
+            }
+        },
         bottomBar = {
-            if (currentDestination?.route !in fullScreenRoutes) {
+            if (showBottomBar) {
                 NavigationBar {
                     tabs.forEach { tab ->
                         NavigationBarItem(
@@ -131,6 +158,16 @@ fun MainNavHost() {
             composable(TabRoutes.AI_WORKOUT) {
                 // TODO: AI Workout generation screen
                 PlaceholderScreen("AI Workout")
+            }
+            composable(TabRoutes.MORE) {
+                MoreScreen(
+                    onNavigateToPrograms = { navController.navigate(TabRoutes.PROGRAMS) },
+                    onNavigateToMaxes = { navController.navigate(TabRoutes.MAXES) },
+                    onNavigateToPain = { navController.navigate(TabRoutes.PAIN) },
+                    onNavigateToAnalytics = { navController.navigate(TabRoutes.ANALYTICS) },
+                    onNavigateToBenchmarks = { navController.navigate(TabRoutes.BENCHMARKS) },
+                    onNavigateToSettings = { navController.navigate(TabRoutes.SETTINGS) }
+                )
             }
         }
     }
