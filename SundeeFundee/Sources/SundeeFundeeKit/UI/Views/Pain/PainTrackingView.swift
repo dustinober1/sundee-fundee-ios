@@ -15,7 +15,7 @@ public struct PainTrackingView: View {
     public var body: some View {
         Group {
             if viewModel.isLoading && viewModel.painLogs.isEmpty && viewModel.injuries.isEmpty {
-                ProgressView("Loading...")
+                ProgressView("Loading injuries and pain logs…")
             } else {
                 contentView
             }
