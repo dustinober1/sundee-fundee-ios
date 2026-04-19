@@ -22,6 +22,17 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
     @Published public private(set) var isFinishing: Bool = false
     @Published public var celebrationEvents: [CelebrationEvent] = []
     @Published public var errorMessage: String?
+    @Published public var pendingPRShare: PendingPRShare?
+
+    // MARK: - PR Share Prompt
+
+    public struct PendingPRShare: Identifiable, Equatable {
+        public let id: UUID = UUID()
+        public let exerciseName: String
+        public let weight: Double
+        public let unit: String
+        public let previousBest: Double?
+    }
 
     // MARK: - Private Properties
 
@@ -142,6 +153,44 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
     public func skipRest() {
         stopRestTimer()
         updateLiveActivity()
+    }
+
+    /// Swaps the current exercise with an alternative. Preserves set structure
+    /// (reps / prescribed weight) but clears any logged progress on the current
+    /// exercise — callers should confirm with the user before calling if any
+    /// sets have already been completed on this exercise.
+    public func swapCurrentExercise(to newName: String) {
+        guard currentExerciseIndex < workout.exercises.count else { return }
+        var updated = workout
+        var existing = updated.exercises[currentExerciseIndex]
+        let resetSets = existing.targetSets.map { set in
+            ExerciseSet(
+                id: UUID().uuidString,
+                reps: set.reps,
+                prescribedWeight: set.prescribedWeight,
+                type: set.type,
+                completedWeight: nil,
+                actualReps: nil,
+                isComplete: false
+            )
+        }
+        existing = Exercise(
+            id: existing.id,
+            name: newName,
+            category: existing.category,
+            bodyweight: existing.bodyweight,
+            targetSets: resetSets
+        )
+        updated.exercises[currentExerciseIndex] = existing
+        workout = updated
+        currentSetIndex = 0
+    }
+
+    /// True when at least one set of the current exercise has been logged —
+    /// UI uses this to prompt the user before swapping mid-exercise.
+    public var currentExerciseHasProgress: Bool {
+        guard let ex = currentExercise else { return false }
+        return ex.targetSets.contains(where: \.isComplete)
     }
 
     public func finishWorkout() async {
@@ -324,6 +373,12 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
                 )
                 try await dataClient.save(newRecord, recordType: "OneRepMaxRecord")
                 celebrationEvents.append(.newPersonalRecord(exerciseName: exerciseName, weightKg: estimated))
+                pendingPRShare = PendingPRShare(
+                    exerciseName: exerciseName,
+                    weight: estimated,
+                    unit: "lb",
+                    previousBest: currentMax?.weight
+                )
             }
         } catch {
             errorMessage = "Could not check PR: \(error.localizedDescription)"
