@@ -1,4 +1,5 @@
 import SwiftUI
+import os.log
 
 // MARK: - InsightsView
 //
@@ -280,7 +281,10 @@ class InsightsViewModel: ObservableObject {
         do {
             insights = try await coachService.getInsights(context: context)
         } catch {
-            errorMessage = "Failed to load insights: \(error.localizedDescription)"
+            // Log the raw error for debugging
+            let logger = Logger(subsystem: "com.sundeefundee.app", category: "Insights")
+            logger.error("Failed to load insights: \(error)")
+            errorMessage = "We couldn't load your insights right now. Pull down to refresh."
         }
 
         weeklySummaries = await memoryService.getRecentSummaries(limit: 4)
