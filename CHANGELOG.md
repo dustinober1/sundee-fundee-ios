@@ -4,6 +4,39 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.5] - 2026-04-19
+
+### Added
+
+- Share Card Library (`UI/Share/`): unified `ShareCardRenderer` with four variants
+  — Completed Workout, New PR, Cycle Insight, and Selfie Overlay (PhotosPicker) —
+  rendered at 9:16 (Story) and 1:1 (Square) aspects with branded footer.
+- `ShareCardSheet`: live preview, segmented aspect picker, native `ShareLink`
+  export. Used from `WorkoutDetailView`, the active workout PR flow, and the
+  dashboard cycle phase banner.
+- Post-PR share prompt: `ActiveWorkoutSessionViewModel.pendingPRShare` surfaces
+  a share sheet immediately when a new 1RM is detected.
+- Dashboard cycle phase banner now has a "Share insight" context-menu action.
+- In-flow swap on active workouts: "Swap exercise" menu on the current exercise
+  card opens `SubstitutionPickerSheet` (backed by `DeterministicCoachService`);
+  mid-exercise swaps confirm before clearing logged sets.
+- Plateau badge on `MaxesListView` rows with popover showing the recommendation.
+- Session load heat bar on program session cards (Light / Moderate / Heavy by
+  total set count).
+
+### Changed
+
+- Legacy `WorkoutShareCardView` removed; its layout was ported into
+  `CompletedWorkoutShareView` with two aspect ratios.
+- `WorkoutDetailView` share pipeline now routes through `ShareCardSheet`.
+- `MARKETING_VERSION` bumped to 1.5, build 4.
+
+### Notes
+
+- Dashboard insight cards (surfacing CoachInsightsResponse plateaus/trends in
+  place of the summary snippet) and the Reschedule Week flow are planned for a
+  follow-up release; underlying `DeterministicCoachService` wiring is unchanged.
+
 ## [1.4] - 2026-04-19
 
 ### Added
