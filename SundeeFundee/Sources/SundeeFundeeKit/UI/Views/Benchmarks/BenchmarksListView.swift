@@ -17,17 +17,17 @@ public struct BenchmarksListView: View {
                 if viewModel.isLoading && viewModel.benchmarks.isEmpty {
                     ProgressView("Loading benchmarks...")
                 } else if viewModel.benchmarks.isEmpty {
-                    VStack(spacing: AppTheme.Spacing.xl) {
-                        Image(systemName: "target")
-                            .font(.system(.largeTitle))
-                            .foregroundColor(AppTheme.Accent.gold.opacity(0.5))
-                        Text("No Benchmarks in This Category")
-                            .font(AppTheme.Typography.headlineMedium)
-                        Text("Try selecting a different category")
-                            .font(AppTheme.Typography.bodyMedium)
-                            .foregroundColor(AppTheme.Text.secondary)
-                    }
-                    .padding(AppTheme.Spacing.xxl)
+                    EmptyStateView(
+                        icon: "target",
+                        title: "No Benchmarks in This Category",
+                        subtitle: "Try selecting a different category above, or pull to refresh.",
+                        actionLabel: "Show All",
+                        action: {
+                            if let first = BenchmarkCatalog.categories.first {
+                                viewModel.selectCategory(first)
+                            }
+                        }
+                    )
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     benchmarkList
@@ -123,7 +123,7 @@ struct BenchmarkRow: View {
                         // Readiness indicator
                         Text(readiness.emoji)
                             .font(.headline)
-                            .accessibilityLabel(readiness.tier.rawValue)
+                            .accessibilityHidden(true)
                     }
 
                     // Readiness Banner
@@ -168,6 +168,7 @@ struct BenchmarkRow: View {
                         HStack(spacing: AppTheme.Spacing.xs) {
                             Image(systemName: "trophy.fill")
                                 .foregroundColor(AppTheme.Accent.gold)
+                                .accessibilityHidden(true)
 
                             Text("Best: \(formatScore(result.score))")
                                 .font(AppTheme.Typography.bodyMedium)
@@ -187,7 +188,19 @@ struct BenchmarkRow: View {
             }
         }
         .buttonStyle(.plain)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(accessibilitySummary)
         .accessibilityHint("View benchmark details and log results")
+    }
+
+    private var accessibilitySummary: String {
+        var parts: [String] = [benchmark.name]
+        parts.append("Readiness: \(readiness.tier.rawValue.capitalized)")
+        if hasCompleted { parts.append("Completed") }
+        if let result = bestResult {
+            parts.append("Best: \(formatScore(result.score))")
+        }
+        return parts.joined(separator: ". ")
     }
 
     private var intensityIndicator: some View {
