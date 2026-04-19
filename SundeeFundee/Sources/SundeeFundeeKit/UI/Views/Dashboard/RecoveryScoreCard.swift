@@ -101,7 +101,7 @@ struct RecoveryScoreCard: View {
         ArtDecoCard {
             VStack(spacing: AppTheme.Spacing.md) {
                 Image(systemName: "heart.circle")
-                    .font(.system(size: 40))
+                    .font(.system(.largeTitle))
                     .foregroundColor(AppTheme.Accent.gold)
                     .accessibilityHidden(true)
 
@@ -135,7 +135,7 @@ struct RecoveryScoreCard: View {
         ArtDecoCard {
             VStack(spacing: AppTheme.Spacing.sm) {
                 Image(systemName: "heart.circle")
-                    .font(.system(size: 32))
+                    .font(.title)
                     .foregroundColor(AppTheme.Text.secondary.opacity(0.5))
                     .accessibilityHidden(true)
 
