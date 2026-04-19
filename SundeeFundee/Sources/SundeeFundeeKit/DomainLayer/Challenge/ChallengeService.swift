@@ -118,6 +118,11 @@ public actor ChallengeService {
                     volumeLbs: tier.targetVolumeLbs
                 ))
             }
+
+            // Fire celebration for full challenge completion
+            if updated.status == .completed && challenge.status == .active {
+                celebrations.append(.challengeCompleted(challengeTitle: challenge.title))
+            }
         }
 
         return celebrations
