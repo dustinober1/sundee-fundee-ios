@@ -17,7 +17,6 @@ import com.sundeefundee.app.viewmodel.BenchmarksViewModel
 import com.sundeefundee.core.domain.benchmark.BenchmarkCategory
 import com.sundeefundee.core.domain.benchmark.BenchmarkDefinition
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BenchmarksScreen(
     viewModel: BenchmarksViewModel = hiltViewModel()
@@ -30,49 +29,40 @@ fun BenchmarksScreen(
 
     LaunchedEffect(Unit) { viewModel.loadData() }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Benchmarks") },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = SundeeFundeeTheme.colors.cream)
-            )
-        }
-    ) { padding ->
-        Column(Modifier.fillMaxSize().padding(padding)) {
-            // Category Filter
-            ScrollableTabRow(
-                selectedTabIndex = BenchmarkCategory.entries.indexOfFirst { it.displayName == selectedCategory }.coerceAtLeast(0),
-                containerColor = SundeeFundeeTheme.colors.cream,
-                contentColor = SundeeFundeeTheme.colors.navy,
-                edgePadding = Spacing.md
-            ) {
-                BenchmarkCategory.entries.forEach { category ->
-                    Tab(
-                        selected = selectedCategory == category.displayName,
-                        onClick = { viewModel.selectCategory(category.displayName) },
-                        text = { Text(category.displayName, style = SundeeFundeeTheme.typography.labelMedium) }
-                    )
-                }
+    Column(Modifier.fillMaxSize()) {
+        // Category Filter
+        ScrollableTabRow(
+            selectedTabIndex = BenchmarkCategory.entries.indexOfFirst { it.displayName == selectedCategory }.coerceAtLeast(0),
+            containerColor = SundeeFundeeTheme.colors.cream,
+            contentColor = SundeeFundeeTheme.colors.navy,
+            edgePadding = Spacing.md
+        ) {
+            BenchmarkCategory.entries.forEach { category ->
+                Tab(
+                    selected = selectedCategory == category.displayName,
+                    onClick = { viewModel.selectCategory(category.displayName) },
+                    text = { Text(category.displayName, style = SundeeFundeeTheme.typography.labelMedium) }
+                )
             }
+        }
 
-            if (isLoading) {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = SundeeFundeeTheme.colors.navy)
-                }
-            } else {
-                LazyColumn(
-                    Modifier.fillMaxSize().padding(horizontal = Spacing.md),
-                    verticalArrangement = Arrangement.spacedBy(Spacing.sm),
-                    contentPadding = PaddingValues(vertical = Spacing.md)
-                ) {
-                    items(benchmarks, key = { it.id }) { benchmark ->
-                        BenchmarkCard(
-                            benchmark = benchmark,
-                            bestScore = viewModel.getBestResult(benchmark.id)?.let { viewModel.formatScore(benchmark.scoringType.name.lowercase(), it.score) },
-                            hasCompleted = userResults[benchmark.id]?.isNotEmpty() == true,
-                            onClick = { viewModel.showScoreEntry(benchmark.id) }
-                        )
-                    }
+        if (isLoading) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = SundeeFundeeTheme.colors.navy)
+            }
+        } else {
+            LazyColumn(
+                Modifier.fillMaxSize().padding(horizontal = Spacing.md),
+                verticalArrangement = Arrangement.spacedBy(Spacing.sm),
+                contentPadding = PaddingValues(vertical = Spacing.md)
+            ) {
+                items(benchmarks, key = { it.id }) { benchmark ->
+                    BenchmarkCard(
+                        benchmark = benchmark,
+                        bestScore = viewModel.getBestResult(benchmark.id)?.let { viewModel.formatScore(benchmark.scoringType.name.lowercase(), it.score) },
+                        hasCompleted = userResults[benchmark.id]?.isNotEmpty() == true,
+                        onClick = { viewModel.showScoreEntry(benchmark.id) }
+                    )
                 }
             }
         }
