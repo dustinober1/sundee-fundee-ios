@@ -36,7 +36,7 @@ public struct SettingsView: View {
                     if let userName = authViewModel.userName {
                         HStack {
                             Image(systemName: "person.circle.fill")
-                                .font(.system(size: 40))
+                                .font(.system(.title))
                                 .foregroundColor(AppTheme.Accent.gold)
                                 .accessibilityHidden(true)
 
@@ -112,10 +112,12 @@ public struct SettingsView: View {
                             Text("Website")
                             Spacer()
                             Image(systemName: "link")
-                                .font(.system(size: 12))
+                                .font(.caption2)
                                 .foregroundColor(AppTheme.Accent.gold)
                                 .accessibilityHidden(true)
                         }
+                        .accessibilityElement(children: .combine)
+                        .accessibilityLabel("Website, opens in browser")
                     }
 
                     Link(destination: SettingsLinks.privacy) {
@@ -123,10 +125,12 @@ public struct SettingsView: View {
                             Text("Privacy Policy")
                             Spacer()
                             Image(systemName: "link")
-                                .font(.system(size: 12))
+                                .font(.caption2)
                                 .foregroundColor(AppTheme.Accent.gold)
                                 .accessibilityHidden(true)
                         }
+                        .accessibilityElement(children: .combine)
+                        .accessibilityLabel("Privacy Policy, opens in browser")
                     }
 
                     Link(destination: SettingsLinks.terms) {
@@ -134,10 +138,12 @@ public struct SettingsView: View {
                             Text("Terms of Service")
                             Spacer()
                             Image(systemName: "link")
-                                .font(.system(size: 12))
+                                .font(.caption2)
                                 .foregroundColor(AppTheme.Accent.gold)
                                 .accessibilityHidden(true)
                         }
+                        .accessibilityElement(children: .combine)
+                        .accessibilityLabel("Terms of Service, opens in browser")
                     }
                 }
 
