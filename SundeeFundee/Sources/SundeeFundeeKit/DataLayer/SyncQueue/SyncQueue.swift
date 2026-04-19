@@ -94,6 +94,21 @@ public actor SyncQueue: @preconcurrency DataClientProtocol, @unchecked Sendable 
         }
     }
 
+    /// Mutations that exceeded `maxRetryAttempts` and were moved out of the
+    /// active queue. Surfaced so diagnostics UI can warn the user that some
+    /// writes will not be retried automatically.
+    public var stuckMutations: [PendingMutation] {
+        get async {
+            await store.allStuckMutations()
+        }
+    }
+
+    /// Clears the stuck-mutations list — e.g. after the user acknowledges them
+    /// or manually re-enqueues them. Does not affect `pending`.
+    public func clearStuckMutations() async {
+        await store.clearStuck()
+    }
+
     // MARK: - DataClientProtocol
 
     public func fetch<T>(
@@ -170,11 +185,13 @@ public actor SyncQueue: @preconcurrency DataClientProtocol, @unchecked Sendable 
 
         var succeeded: Set<UUID> = []
         var failedToReplay: Set<UUID> = []
+        var stuckOut: Set<UUID> = []
 
         for mutation in mutations {
-            // Skip mutations that have exceeded max retries
+            // Mutations already at/over the retry budget are stuck —
+            // move them aside so they don't clog the queue forever.
             if mutation.attempts >= maxRetryAttempts {
-                failedToReplay.insert(mutation.id)
+                stuckOut.insert(mutation.id)
                 continue
             }
 
@@ -182,15 +199,25 @@ public actor SyncQueue: @preconcurrency DataClientProtocol, @unchecked Sendable 
                 try await replay(mutation)
                 succeeded.insert(mutation.id)
             } catch {
-                failedToReplay.insert(mutation.id)
+                // Bumping this attempt would exceed the retry budget —
+                // move to stuck instead of incrementing.
+                if mutation.attempts + 1 >= maxRetryAttempts {
+                    stuckOut.insert(mutation.id)
+                } else {
+                    failedToReplay.insert(mutation.id)
+                }
                 lastFlushError = "Mutation \(mutation.id) failed on attempt \(mutation.attempts + 1): \(error.localizedDescription)"
             }
         }
 
-        // Remove succeeded mutations, increment attempts on failed ones
+        // Remove succeeded mutations, increment attempts on failed ones,
+        // and move stuck mutations out of the active queue.
         await store.remove(ids: succeeded)
         if !failedToReplay.isEmpty {
             await store.incrementAttempts(ids: failedToReplay)
+        }
+        if !stuckOut.isEmpty {
+            await store.moveToStuck(ids: stuckOut)
         }
     }
 

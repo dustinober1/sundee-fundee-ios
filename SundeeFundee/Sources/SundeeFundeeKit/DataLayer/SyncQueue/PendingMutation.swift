@@ -66,11 +66,17 @@ public actor SyncQueueStore: Sendable {
 
     private let userDefaults: UserDefaults
     private let storageKey = "sync_queue_pending_mutations"
+    private let stuckStorageKey = "sync_queue_stuck_mutations"
     private let encoder: JSONEncoder
     private let decoder: JSONDecoder
 
     /// In-memory cache of pending mutations, loaded from disk on init.
     private var mutations: [PendingMutation]
+
+    /// Mutations that exceeded `maxRetryAttempts` and were moved out of the
+    /// active queue. Persisted under a separate key so they survive restarts
+    /// and can be surfaced in diagnostics UI.
+    private var stuck: [PendingMutation]
 
     // MARK: - Initialization
 
@@ -93,6 +99,17 @@ public actor SyncQueueStore: Sendable {
             }
         } else {
             self.mutations = []
+        }
+
+        if let stuckData = userDefaults.data(forKey: stuckStorageKey) {
+            do {
+                self.stuck = try decoder.decode([PendingMutation].self, from: stuckData)
+            } catch {
+                self.stuck = []
+                userDefaults.removeObject(forKey: stuckStorageKey)
+            }
+        } else {
+            self.stuck = []
         }
     }
 
@@ -136,6 +153,31 @@ public actor SyncQueueStore: Sendable {
         userDefaults.removeObject(forKey: storageKey)
     }
 
+    // MARK: - Stuck Mutations
+
+    /// Mutations that exceeded the retry budget. Surfaced for diagnostics.
+    public func allStuckMutations() -> [PendingMutation] {
+        stuck
+    }
+
+    /// Moves the given mutations out of `pending` into `stuck` and persists both.
+    /// IDs not found in `pending` are ignored.
+    public func moveToStuck(ids: Set<UUID>) {
+        guard !ids.isEmpty else { return }
+        let moved = mutations.filter { ids.contains($0.id) }
+        guard !moved.isEmpty else { return }
+        mutations.removeAll { ids.contains($0.id) }
+        stuck.append(contentsOf: moved)
+        persistToDisk()
+        persistStuckToDisk()
+    }
+
+    /// Clears all stuck mutations (e.g. after the user acknowledges them).
+    public func clearStuck() {
+        stuck = []
+        userDefaults.removeObject(forKey: stuckStorageKey)
+    }
+
     // MARK: - Private
 
     private func persistToDisk() {
@@ -144,6 +186,15 @@ public actor SyncQueueStore: Sendable {
             userDefaults.set(data, forKey: storageKey)
         } catch {
             // Persistence failure — mutations will be lost on restart but app continues
+        }
+    }
+
+    private func persistStuckToDisk() {
+        do {
+            let data = try encoder.encode(stuck)
+            userDefaults.set(data, forKey: stuckStorageKey)
+        } catch {
+            // Persistence failure — stuck mutations may be lost on restart
         }
     }
 }
