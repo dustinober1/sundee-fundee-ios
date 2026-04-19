@@ -256,3 +256,41 @@ data class ChallengeProgress(
     val justCompletedTier: ChallengeTier? = null,
     val isFullyComplete: Boolean = false
 )
+
+// MARK: - Injury Models
+
+@Serializable
+data class Injury(
+    val id: String,
+    val locationIds: String, // comma-separated region IDs
+    val name: String,
+    val recoveryPhase: String,
+    val dateCreated: String, // ISO8601
+    val phaseUpdated: String, // ISO8601
+    val notes: String? = null
+)
+
+// MARK: - Pain Log Models
+
+@Serializable
+data class DailyPainLog(
+    val id: String,
+    val locationIds: String, // comma-separated region IDs
+    val intensity: Int, // 1-10
+    val painType: String,
+    val date: String, // ISO8601
+    val notes: String? = null
+)
+
+// MARK: - Benchmark Result
+
+@Serializable
+data class BenchmarkResult(
+    val id: String,
+    val benchmarkId: String,
+    val benchmarkName: String,
+    val score: Double,
+    val notes: String? = null,
+    val date: String, // ISO8601
+    val cyclePhase: String? = null
+)
