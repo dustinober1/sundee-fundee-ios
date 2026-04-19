@@ -54,7 +54,7 @@ public struct CycleCalendarView: View {
                 Task { await viewModel.loadCalendarData() }
             } label: {
                 Image(systemName: "chevron.left")
-                    .font(.system(size: 16, weight: .semibold))
+                    .font(.subheadline.weight(.semibold))
                     .foregroundColor(AppTheme.Text.primary)
             }
             .accessibilityLabel("Previous Month")
@@ -72,7 +72,7 @@ public struct CycleCalendarView: View {
                 Task { await viewModel.loadCalendarData() }
             } label: {
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 16, weight: .semibold))
+                    .font(.subheadline.weight(.semibold))
                     .foregroundColor(AppTheme.Text.primary)
             }
             .accessibilityLabel("Next Month")
@@ -135,7 +135,7 @@ public struct CycleCalendarView: View {
             // Period indicator dot
             if dayData.isPeriodLogged {
                 Circle()
-                    .fill(Color.red)
+                    .fill(AppTheme.Accent.orange)
                     .frame(width: 5, height: 5)
             } else {
                 Color.clear.frame(width: 5, height: 5)
@@ -202,7 +202,7 @@ public struct CycleCalendarView: View {
             VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
                 HStack {
                     Image(systemName: phaseIcon(status.currentPhase))
-                        .font(.system(size: 24))
+                        .font(.title3)
                         .foregroundColor(phaseColor(status.currentPhase))
                         .accessibilityHidden(true)
 
@@ -261,7 +261,7 @@ public struct CycleCalendarView: View {
     private func phaseBackgroundColor(_ phase: CyclePhase?) -> Color {
         guard let phase else { return .clear }
         switch phase {
-        case .menstrual: return Color.red.opacity(0.15)
+        case .menstrual: return AppTheme.Accent.orange.opacity(0.15)
         case .follicular: return AppTheme.Accent.gold.opacity(0.15)
         case .ovulation: return AppTheme.Accent.orange.opacity(0.15)
         case .luteal: return AppTheme.Text.secondary.opacity(0.1)
