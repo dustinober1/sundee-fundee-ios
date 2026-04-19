@@ -16,7 +16,6 @@ import com.sundeefundee.app.ui.theme.MonoMedium
 import com.sundeefundee.app.viewmodel.MaxesViewModel
 import com.sundeefundee.core.model.OneRepMaxRecord
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MaxesScreen(
     viewModel: MaxesViewModel = hiltViewModel()
@@ -31,41 +30,47 @@ fun MaxesScreen(
 
     LaunchedEffect(Unit) { viewModel.loadMaxes() }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Maxes") },
-                actions = {
-                    IconButton(onClick = viewModel::toggleUnit) {
-                        Text(if (unit.name == "LBS") "kg" else "lb", style = SundeeFundeeTheme.typography.labelMedium)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = SundeeFundeeTheme.colors.cream)
-            )
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { showAddDialog = true },
-                containerColor = SundeeFundeeTheme.colors.orange
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Add Max", tint = SundeeFundeeTheme.colors.cream)
-            }
-        }
-    ) { padding ->
+    Box(Modifier.fillMaxSize()) {
         if (isLoading) {
-            Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(color = SundeeFundeeTheme.colors.navy)
             }
         } else {
             LazyColumn(
-                Modifier.fillMaxSize().padding(padding).padding(horizontal = Spacing.md),
+                Modifier.fillMaxSize().padding(horizontal = Spacing.md),
                 verticalArrangement = Arrangement.spacedBy(Spacing.sm),
                 contentPadding = PaddingValues(vertical = Spacing.md)
             ) {
+                // Unit toggle
+                item {
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        TextButton(onClick = viewModel::toggleUnit) {
+                            Text(
+                                if (unit.name == "LBS") "Switch to kg" else "Switch to lb",
+                                style = SundeeFundeeTheme.typography.labelMedium,
+                                color = SundeeFundeeTheme.colors.navy.copy(alpha = 0.6f)
+                            )
+                        }
+                    }
+                }
+
                 items(maxes, key = { it.id }) { max ->
                     MaxCard(max = max, unit = unit, onDelete = { viewModel.deleteMax(max.id) })
                 }
             }
+        }
+
+        FloatingActionButton(
+            onClick = { showAddDialog = true },
+            containerColor = SundeeFundeeTheme.colors.orange,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(Spacing.md)
+        ) {
+            Icon(Icons.Default.Add, contentDescription = "Add Max", tint = SundeeFundeeTheme.colors.cream)
         }
     }
 
