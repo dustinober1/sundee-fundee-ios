@@ -17,7 +17,6 @@ import com.sundeefundee.app.ui.theme.*
 import com.sundeefundee.app.ui.theme.MonoMedium
 import com.sundeefundee.app.viewmodel.ActiveWorkoutViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ActiveWorkoutScreen(
     onFinish: () -> Unit = {},
@@ -37,29 +36,31 @@ fun ActiveWorkoutScreen(
         return
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(viewModel.formatElapsedTime()) },
-                navigationIcon = {
-                    IconButton(onClick = viewModel::togglePause) {
-                        Icon(
-                            if (isPaused) Icons.Default.PlayArrow else Icons.Default.Pause,
-                            contentDescription = if (isPaused) "Resume" else "Pause"
-                        )
-                    }
-                },
-                actions = {
-                    TextButton(onClick = viewModel::completeWorkout) {
-                        Text("Finish", color = SundeeFundeeTheme.colors.orange)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = SundeeFundeeTheme.colors.cream)
+    Column(Modifier.fillMaxSize()) {
+        // Workout controls bar (replaces TopAppBar)
+        Row(
+            Modifier.fillMaxWidth().padding(horizontal = Spacing.md, vertical = Spacing.sm),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                viewModel.formatElapsedTime(),
+                style = SundeeFundeeTheme.typography.headlineLarge,
+                color = SundeeFundeeTheme.colors.navy,
+                modifier = Modifier.weight(1f)
             )
+            IconButton(onClick = viewModel::togglePause) {
+                Icon(
+                    if (isPaused) Icons.Default.PlayArrow else Icons.Default.Pause,
+                    contentDescription = if (isPaused) "Resume" else "Pause"
+                )
+            }
+            TextButton(onClick = viewModel::completeWorkout) {
+                Text("Finish", color = SundeeFundeeTheme.colors.orange)
+            }
         }
-    ) { padding ->
+
         Column(
-            Modifier.fillMaxSize().padding(padding).padding(horizontal = Spacing.md),
+            Modifier.fillMaxSize().padding(horizontal = Spacing.md),
             verticalArrangement = Arrangement.spacedBy(Spacing.md)
         ) {
             // Rest Timer Overlay
