@@ -103,7 +103,7 @@ public struct SubstitutionPickerSheet: View {
     private var emptyState: some View {
         VStack(spacing: AppTheme.Spacing.md) {
             Image(systemName: "magnifyingglass")
-                .font(.system(size: 32))
+                .font(.title)
                 .foregroundColor(AppTheme.Text.secondary)
             Text("No alternatives found")
                 .font(AppTheme.Typography.headlineMedium)
