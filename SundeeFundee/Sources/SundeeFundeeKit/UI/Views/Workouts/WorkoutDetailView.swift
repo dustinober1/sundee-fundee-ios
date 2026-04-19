@@ -13,7 +13,6 @@ public struct WorkoutDetailView: View {
     @State private var activeWorkoutSession: ActiveWorkoutSessionViewModel?
 
     #if os(iOS)
-    @State private var shareImage: UIImage?
     @State private var showingShareSheet = false
     #endif
 
@@ -65,7 +64,7 @@ public struct WorkoutDetailView: View {
 
                             #if os(iOS)
                             Button {
-                                renderShareCard(workout: workout)
+                                showingShareSheet = true
                             } label: {
                                 Image(systemName: "square.and.arrow.up")
                             }
@@ -86,16 +85,14 @@ public struct WorkoutDetailView: View {
         }
         #if os(iOS)
         .sheet(isPresented: $showingShareSheet) {
-            if let image = shareImage {
-                ShareLink(
-                    item: Image(uiImage: image),
-                    preview: SharePreview(
-                        viewModel.workout?.name ?? "Workout",
-                        image: Image(uiImage: image)
-                    )
+            if let workout = viewModel.workout {
+                ShareCardSheet(
+                    variant: .completedWorkout(
+                        workout: workout,
+                        personalRecords: viewModel.personalRecords
+                    ),
+                    defaultAspect: .story
                 )
-                .presentationDetents([.medium])
-                .padding()
             }
         }
         .fullScreenCover(item: $activeWorkoutSession) { session in
@@ -494,20 +491,6 @@ public struct WorkoutDetailView: View {
         return "\(Int(volume))"
     }
 
-    // MARK: - Share Card
-
-    #if os(iOS)
-    private func renderShareCard(workout: Workout) {
-        let card = WorkoutShareCardView(
-            workout: workout,
-            personalRecords: viewModel.personalRecords
-        )
-        let renderer = ImageRenderer(content: card)
-        renderer.scale = 3.0
-        shareImage = renderer.uiImage
-        showingShareSheet = true
-    }
-    #endif
 }
 
 // MARK: - WorkoutDetailViewModel
