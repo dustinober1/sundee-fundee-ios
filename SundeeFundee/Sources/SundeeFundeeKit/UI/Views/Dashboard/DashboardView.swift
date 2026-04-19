@@ -682,11 +682,17 @@ class DashboardViewModel: ObservableObject {
         }
     }
 
-    private func loadActiveChallenge() async {
+    private func loadActiveChallenge(cachedWorkouts: [Workout]? = nil) async {
         let service = ChallengeService(dataClient: dataClient)
         do {
-            let workouts: [Workout] = try await dataClient.fetchAll(recordType: "Workout")
-            dashLogger.info("📊 Challenge: fetched \(workouts.count) workouts")
+            let workouts: [Workout]
+            if let cached = cachedWorkouts {
+                workouts = cached
+                dashLogger.info("📊 Challenge: using cached \(workouts.count) workouts")
+            } else {
+                workouts = try await dataClient.fetchAll(recordType: "Workout")
+                dashLogger.info("📊 Challenge: fetched \(workouts.count) workouts")
+            }
             let challenge = try await service.ensureLifetimeChallenge(from: workouts)
             dashLogger.info("📊 Challenge: ensured lifetime challenge = \(challenge?.id ?? "nil")")
             if let closest = try await service.closestToCompletion() {
