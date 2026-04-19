@@ -47,7 +47,10 @@ public enum SharedSnapshotStore {
     private static let cycleKey = "cycleSnapshot.v1"
 
     /// Overridable suite for tests. Defaults to the shared App Group.
-    public static var defaults: UserDefaults? = UserDefaults(suiteName: suiteName)
+    /// `nonisolated(unsafe)` because this is a test seam — production code
+    /// only reads/writes through the enum's static methods from the main actor
+    /// (RecoveryScoreViewModel, CyclePhaseCache, widget timeline provider).
+    nonisolated(unsafe) public static var defaults: UserDefaults? = UserDefaults(suiteName: suiteName)
 
     // MARK: - Recovery
 
