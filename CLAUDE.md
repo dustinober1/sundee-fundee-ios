@@ -96,7 +96,12 @@ SundeeFundee/ (Swift Package — SundeeFundeeKit)
 - **Bool fields** — CloudKit stores `Bool` as `Int64` (0/1). Models with Bool fields need a custom `init(from:)` that tries `Bool` first, falls back to `Int`. See `EnrolledProgramRecord` and `UserSettingsRecord` for examples.
 - **Nested arrays/structs** — CloudKit does not support `[Any]` arrays. The `CloudKitClient.convertToCKRecordValue` serializes arrays of dicts as typed `[String]` arrays (each element JSON-encoded) or falls back to a single JSON string. When adding new models with nested struct arrays, verify the data round-trips by checking CloudKit Dashboard > Records.
 - **Backwards-compatible decoding** — When renaming fields, add a custom `init(from:)` that tries the new key first, falls back to the legacy key. See `Challenge` model for an example with `dateCreated`/`createdAt` fallback. Always use `try?` with a default for fields that may be missing from old records.
-- **Decode resilience** — Both `CloudKitClient` and `LocalDataClient` skip individual records that fail to decode (logged as warnings) rather than failing the entire query. This prevents one corrupt record from breaking all data loading.
+- **Decode resilience** — Both `CloudKitClient` and `LocalDataClient` skip individual records that fail to decode (logged as warnings) rather than failing the entire query. This prevents one corrupt record from breaking all data loading. Decode failures also increment `DiagnosticsService.shared.decodeFailureCount` (MainActor `ObservableObject`), surfaced as a Settings row when count > 0.
+
+#### 1.5.1 data-layer additions
+- **`DataLayer/Diagnostics/DiagnosticsService.swift`** — MainActor singleton tracking decode failures. `recentDecodeFailures` is a capped 50-item FIFO. Read `DiagnosticsService.shared.decodeFailureCount` in Settings.
+- **`DataLayer/Migration/GuestDataMigrator.swift`** — Atomic guest→CloudKit migration on Apple sign-in. Runs in `AuthViewModel.signInWithApple` BEFORE the factory swap. Source (LocalDataClient) is only cleared after every destination save succeeds. On failure, user is signed in but `isGuest` stays true and local data is preserved for a later retry (surfaced via `errorMessage`). The `DataClientProtocol` bulk clear used here is `deleteAllData()` (no per-type `deleteAll(recordType:)` exists).
+- **`SyncQueue.stuckMutations`** — Mutations that exceed `maxRetryAttempts` are moved to `stuckMutations` (persisted under `sync_queue_stuck_mutations`) instead of being silently dropped. **Currently dormant** — `SyncQueue` is not yet instantiated into `DataClientFactory.shared.client`; wire it in before the stuck-mutations diagnostic can light up in production.
 
 ### Subscriptions
 
@@ -132,8 +137,11 @@ Pure Swift business logic mirroring the original web app's domain layer:
 - **Actor-based data clients** — `CloudKitClient` is an actor for thread safety
 - **SourceKit false positives** — "Cannot find type in scope" for cross-module types (KeychainHelper, DataClientFactory, etc.) are SourceKit noise; trust `xcodebuild` results only.
 - **Benchmark `roundsAndReps` scoring** encodes as `rounds * 10000 + reps`. Higher is better. Decode: `rounds = value / 10000`, `reps = value % 10000`.
-- **Art Deco theme tokens** via `AppTheme.*` — cream `#f4f0df`, navy `#0d1a40`, orange `#f27319`
+- **Art Deco theme tokens** via `AppTheme.*` — cream `#f4f0df`, navy `#0d1a40`, orange `#f27319`. Do NOT hardcode `Color.red/.orange/.green`; use `AppTheme.Semantic.*`, `AppTheme.Accent.*`, or `AppTheme.Recovery.*`.
 - **Fonts**: Playfair Display (headings), Inter (body), JetBrains Mono (numbers)
+- **Dynamic Type for icons** — use semantic sizes (`.font(.title3)`, `.font(.system(.largeTitle))`) on decorative / hero `Image(systemName:)`. Avoid new `.font(.system(size: N))` unless locking size is intentional.
+- **Haptics** — use the `HapticFeedback` helper in `UI/Theme/HapticFeedback.swift`. `HapticFeedback.light()` (set complete, minor taps), `.medium()` (tier milestones), `.success()` (PR, challenge completion, share saved), `.warning()` (failed saves). MainActor-isolated — from an actor, wrap in `Task { @MainActor in ... }`.
+- **User-facing errors** — never display `error.localizedDescription` directly in alerts / views. Wrap with actionable copy ("We couldn't save your settings. Check your connection and try again."). Keep the raw error in logs for debugging.
 
 ### Testing
 
