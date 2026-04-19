@@ -9,6 +9,8 @@ import SwiftUI
 public struct PainTrackingView: View {
     @StateObject private var viewModel = PainTrackingViewModel()
     @State private var showingLogForm = false
+    @State private var injuryPendingHeal: Injury?
+    @State private var logPendingDelete: DailyPainLog?
 
     public init() {}
 
@@ -43,6 +45,42 @@ public struct PainTrackingView: View {
             PainLogFormView(viewModel: viewModel) {
                 showingLogForm = false
             }
+        }
+        .alert(
+            "Mark as Healed?",
+            isPresented: Binding(
+                get: { injuryPendingHeal != nil },
+                set: { if !$0 { injuryPendingHeal = nil } }
+            ),
+            presenting: injuryPendingHeal
+        ) { injury in
+            Button("Mark Healed") {
+                Task { await viewModel.resolveInjury(id: injury.id) }
+                injuryPendingHeal = nil
+            }
+            Button("Cancel", role: .cancel) {
+                injuryPendingHeal = nil
+            }
+        } message: { injury in
+            Text("\(injury.name) will move out of your active injuries. You can still see it in your history.")
+        }
+        .alert(
+            "Delete Pain Log?",
+            isPresented: Binding(
+                get: { logPendingDelete != nil },
+                set: { if !$0 { logPendingDelete = nil } }
+            ),
+            presenting: logPendingDelete
+        ) { log in
+            Button("Delete", role: .destructive) {
+                Task { await viewModel.deletePainLog(id: log.id) }
+                logPendingDelete = nil
+            }
+            Button("Cancel", role: .cancel) {
+                logPendingDelete = nil
+            }
+        } message: { _ in
+            Text("This pain log will be removed permanently.")
         }
     }
 
@@ -100,6 +138,16 @@ public struct PainTrackingView: View {
 
                         ForEach(viewModel.painLogs.prefix(10)) { log in
                             PainLogRow(log: log)
+                                .contextMenu {
+                                    Button(role: .destructive) {
+                                        logPendingDelete = log
+                                    } label: {
+                                        Label("Delete", systemImage: "trash")
+                                    }
+                                }
+                                .accessibilityAction(named: "Delete") {
+                                    logPendingDelete = log
+                                }
                         }
                     }
                 } else {
@@ -214,7 +262,7 @@ public struct PainTrackingView: View {
                             .cornerRadius(AppTheme.CornerRadius.small)
 
                         Button {
-                            Task { await viewModel.resolveInjury(id: injury.id) }
+                            injuryPendingHeal = injury
                         } label: {
                             Text("Healed")
                                 .font(AppTheme.Typography.labelMedium)
