@@ -1,13 +1,11 @@
-Bug Fixes & Improvements:
+What's New in 1.4:
 
-- Fixed challenges not loading due to CloudKit data compatibility issues
-- Fixed duplicate lifetime challenges appearing on the dashboard
-- Fixed workout exercises disappearing for older CloudKit records
-- Fixed challenge tiers missing from older records
-- Fixed CloudKit array serialization losing nested data
-- Improved data resilience: corrupt records are now skipped instead of blocking all data
-- Enlarged weight and reps input fields for easier data entry
-- Added prominent Complete Workout button
-- Added ability to mark injuries as healed
-- Added actual weight/reps prompts when completing sets
-- Fixed challenge volume tracking when completing workouts
+- Home Screen & Lock Screen widgets for Cycle Phase and Recovery Score
+- Siri Shortcuts: "Start Workout," "Log Set," and quick recovery lookups
+- Pain and Cycle are now top-level tabs for faster access
+- New exercise catalog picker when setting your 1-rep max
+- Improved Sign in with Apple account deletion (proper token revocation)
+- Better offline resilience: CloudKit conflicts now merge cleanly
+- Numerous stability and performance fixes
+
+Thanks for training with Sundee Fundee!

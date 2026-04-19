@@ -314,7 +314,7 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
                 .filter { $0.exerciseName == exerciseName }
                 .max(by: { $0.weight < $1.weight })
 
-            if currentMax == nil || estimated > currentMax!.weight {
+            if estimated > (currentMax?.weight ?? 0) {
                 let newRecord = OneRepMaxRecord(
                     id: UUID().uuidString,
                     exerciseName: exerciseName,

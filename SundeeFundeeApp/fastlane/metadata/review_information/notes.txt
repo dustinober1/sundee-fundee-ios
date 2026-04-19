@@ -9,10 +9,18 @@ KEY FEATURES TO TEST:
 - Dashboard: View stats, suggested AI workouts, coaching insights, and shortcuts.
 - Workouts tab: Browse workouts and tap "Generate AI Workout" to create a personalized session.
 - Programs tab: View structured training programs.
-- Maxes tab: Log and track one-rep max lifts.
+- Maxes tab: Log and track one-rep max lifts (now with an exercise catalog picker).
+- Cycle tab (NEW in 1.4): Log periods and view cycle phase; top-level tab for faster access.
+- Pain tab (NEW in 1.4): Log injuries by body region; adaptations feed into workout recommendations.
 - Analytics tab: View training charts and progress.
 - Benchmarks tab: Test against standardized fitness benchmarks.
 - Settings: Configure cycle tracking, weight units, experience level, and goals.
+
+NEW IN 1.4:
+- Home Screen & Lock Screen widgets (Cycle Phase + Recovery Score placeholder).
+- Siri Shortcuts: "Start Workout," "Log Set," recovery queries (App Intents).
+- Exercise catalog dropdown in 1RM entry.
+- Improved account deletion: proper Sign in with Apple token revocation.
 
 HEALTHKIT:
 The app requests HealthKit access for workout data and menstrual cycle tracking to adapt training recommendations. Granting permissions is optional — the app works without HealthKit.

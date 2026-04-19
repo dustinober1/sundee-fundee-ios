@@ -4,6 +4,35 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.4] - 2026-04-19
+
+### Added
+
+- Home Screen and Lock Screen widgets for Cycle Phase and Recovery Score
+- Siri / App Intents: `StartWorkoutIntent`, `LogWorkoutSetIntent`, `GetRecoveryScoreIntent`, `ExerciseCatalogEntity`
+- Pain and Cycle promoted to top-level tabs (new `CycleTrackingView`)
+- Exercise catalog dropdown (`ExerciseCatalogMenu`) wired into 1RM entry
+- Recovery Score infrastructure (calculator, CloudKit `RecoveryScoreRecord`, dashboard card, trend chart) — card hidden on dashboard pending algorithm rework
+- App Group (`group.com.sundeefundee.shared`) + `SharedSnapshotStore` for widget data sharing
+
+### Fixed
+
+- Sign in with Apple: proper token revocation in `deleteAccount` with re-authentication
+- CloudKit `serverRecordChanged` now merges server state and retries
+- Decode legacy `Workout` records as `CompletedWorkoutRecord`
+- `EnrolledProgramRecord` and `UserSettings` handle Bool-as-Int64 from CloudKit
+- Workout exercises default to empty array for old CloudKit records; challenge tiers default when missing
+- Deduplicate lifetime challenges on load
+- Swift 6 concurrency fixes: static `AppIntent` properties, `SharedSnapshotStore.defaults`
+- Settings save race serialized with cancellable task
+- Force-unwrap cleanup in `SettingsView` and `ActiveWorkoutSessionViewModel`
+- Settings now shows dynamic version from bundle (was hardcoded)
+
+### Changed
+
+- `MARKETING_VERSION` bumped to 1.4, build 3
+- Removed unused iCloud Key-Value Store entitlement
+
 ## [1.0.0] - 2026-04-08
 
 ### Changed

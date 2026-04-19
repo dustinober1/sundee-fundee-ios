@@ -7,7 +7,8 @@ struct AppIntentsTests {
 
     // MARK: - Helpers
 
-    private func withMockClient(_ body: (MockCloudKitClient) async throws -> Void) async rethrows {
+    @MainActor
+    private func withMockClient(_ body: @MainActor (MockCloudKitClient) async throws -> Void) async rethrows {
         let mock = MockCloudKitClient()
         let previous = DataClientFactory.shared.client
         DataClientFactory.shared.client = mock
@@ -15,7 +16,8 @@ struct AppIntentsTests {
         try await body(mock)
     }
 
-    private func withSnapshotSuite(_ body: () async throws -> Void) async rethrows {
+    @MainActor
+    private func withSnapshotSuite(_ body: @MainActor () async throws -> Void) async rethrows {
         let suiteName = "com.sundeefundee.tests.intents-\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)
         let previous = SharedSnapshotStore.defaults

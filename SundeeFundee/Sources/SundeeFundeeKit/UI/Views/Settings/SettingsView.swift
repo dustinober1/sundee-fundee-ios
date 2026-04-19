@@ -5,6 +5,20 @@ import SwiftUI
 // App settings including profile, subscription, cycle tracking, and preferences.
 // Matches the web app's settings feature.
 
+private enum SettingsLinks {
+    // swiftlint:disable force_unwrapping
+    static let homepage = URL(string: "https://sundeefundee.com")!
+    static let privacy = URL(string: "https://sundeefundee.com/privacy")!
+    static let terms = URL(string: "https://sundeefundee.com/terms")!
+    // swiftlint:enable force_unwrapping
+}
+
+private var appVersionString: String {
+    let marketing = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.4"
+    let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? ""
+    return build.isEmpty ? marketing : "\(marketing) (\(build))"
+}
+
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
 public struct SettingsView: View {
     @StateObject private var viewModel = SettingsViewModel()
@@ -87,12 +101,12 @@ public struct SettingsView: View {
                     HStack {
                         Text("Version")
                         Spacer()
-                        Text("1.0.0")
+                        Text(appVersionString)
                             .font(AppTheme.Typography.bodySmall)
                             .foregroundColor(AppTheme.Text.secondary)
                     }
 
-                    Link(destination: URL(string: "https://sundeefundee.com")!) {
+                    Link(destination: SettingsLinks.homepage) {
                         HStack {
                             Text("Website")
                             Spacer()
@@ -103,7 +117,7 @@ public struct SettingsView: View {
                         }
                     }
 
-                    Link(destination: URL(string: "https://sundeefundee.com/privacy")!) {
+                    Link(destination: SettingsLinks.privacy) {
                         HStack {
                             Text("Privacy Policy")
                             Spacer()
@@ -114,7 +128,7 @@ public struct SettingsView: View {
                         }
                     }
 
-                    Link(destination: URL(string: "https://sundeefundee.com/terms")!) {
+                    Link(destination: SettingsLinks.terms) {
                         HStack {
                             Text("Terms of Service")
                             Spacer()
