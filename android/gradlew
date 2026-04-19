@@ -1,0 +1,4 @@
+#!/bin/sh
+# Gradle wrapper stub — replace with actual gradle wrapper
+# Run: cd android && gradle wrapper
+exec gradle "$@"
