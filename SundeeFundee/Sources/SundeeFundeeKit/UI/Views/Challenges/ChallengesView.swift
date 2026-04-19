@@ -56,6 +56,7 @@ public struct ChallengesView: View {
                     Image(systemName: "plus")
                 }
                 .tint(AppTheme.Accent.gold)
+                .accessibilityLabel("Create new challenge")
             }
         }
         .sheet(isPresented: $showingCreateChallenge) {
@@ -230,6 +231,8 @@ public struct ChallengesView: View {
             RoundedRectangle(cornerRadius: AppTheme.CornerRadius.medium)
                 .stroke(AppTheme.Background.navy.opacity(0.1), lineWidth: 1)
         )
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(challenge.title). \(Int(progress.percentComplete * 100)) percent complete. \(formatVolume(challenge.accumulatedVolumeLbs)) accumulated")
     }
 
     private func formatVolume(_ lbs: Double) -> String {
