@@ -1,5 +1,8 @@
 import Foundation
+import os.log
 import SwiftUI
+
+private let authLogger = Logger(subsystem: "com.sundeefundee.app", category: "AppleAuth")
 
 // MARK: - AuthViewModel
 //
@@ -49,6 +52,14 @@ public class AuthViewModel: ObservableObject {
         isLoading = true
         errorMessage = nil
 
+        // Capture guest state BEFORE credentials change — we use this after
+        // sign-in succeeds to decide whether to migrate local data to CloudKit.
+        let wasGuest = self.isGuest
+        // Capture the pre-sign-in data client as the migration source. For a
+        // guest this is LocalDataClient (set by continueAsGuest). We capture
+        // BEFORE any factory swap so we read from the correct store.
+        let migrationSource: any DataClientProtocol = DataClientFactory.shared.client
+
         do {
             let result = try await authClient.signIn(scopes: [.fullName, .email])
 
@@ -90,6 +101,30 @@ public class AuthViewModel: ObservableObject {
 
             // Save user to CloudKit
             try await saveUserToCloudKit(result)
+
+            // If this user was previously a guest, copy their local-only data
+            // to CloudKit before any ViewModel starts reading from the new
+            // data store. Sign-in itself must never fail because of migration:
+            // on error we log, surface a message, and leave the local data
+            // (and the LocalDataClient factory) in place for a later retry.
+            if wasGuest {
+                let destination: any DataClientProtocol = CloudKitClient(
+                    containerIdentifier: "iCloud.com.sundeefundee.app"
+                )
+                let migrator = GuestDataMigrator(source: migrationSource, destination: destination)
+                do {
+                    let result = try await migrator.migrate()
+                    authLogger.info("✅ Migrated \(result.totalCount) guest records to CloudKit")
+                    // Only swap to CloudKit after a successful migration. On
+                    // failure we keep LocalDataClient so the guest's data is
+                    // still readable during the retry.
+                    DataClientFactory.shared.client = destination
+                    self.isGuest = false
+                } catch {
+                    authLogger.error("❌ Guest migration failed: \(error.localizedDescription)")
+                    self.errorMessage = "You're signed in. We couldn't copy your guest data yet — it's still on this device. Try again later from Settings."
+                }
+            }
 
             self.isAuthenticated = true
             self.needsOnboarding = KeychainHelper.read(key: "onboarding_complete") == nil
