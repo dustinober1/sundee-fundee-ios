@@ -12,7 +12,7 @@ struct SharkWeekBanner: View {
     var body: some View {
         HStack(spacing: AppTheme.Spacing.xs) {
             Text("\u{1F988}")
-                .font(.system(size: 14))
+                .font(.caption)
 
             Text("Shark Week")
                 .font(AppTheme.Typography.labelLarge)
@@ -20,10 +20,10 @@ struct SharkWeekBanner: View {
         }
         .padding(.horizontal, AppTheme.Spacing.sm)
         .padding(.vertical, AppTheme.Spacing.xs)
-        .background(Capsule().fill(Color.red))
+        .background(Capsule().fill(AppTheme.Accent.orange))
         .opacity(isPulsing ? 0.7 : 1.0)
         .scaleEffect(isPulsing ? 0.98 : 1.0)
-        .shadow(color: Color.red.opacity(isPulsing ? 0.3 : 0.5), radius: isPulsing ? 2 : 4, y: 1)
+        .shadow(color: AppTheme.Accent.orange.opacity(isPulsing ? 0.3 : 0.5), radius: isPulsing ? 2 : 4, y: 1)
         .animation(
             .easeInOut(duration: 1.0).repeatForever(autoreverses: true),
             value: isPulsing
