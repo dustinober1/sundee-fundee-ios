@@ -4,6 +4,67 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.5.1] - 2026-04-19
+
+### Fixed
+
+- Guest data now migrates to CloudKit on Apple sign-in — guest
+  workouts, challenges, injuries, 1RMs, benchmark results, enrolled
+  programs, settings, and celebration events are copied across
+  atomically (source only cleared on full success). Previously this
+  data was orphaned on-device after sign-in.
+- Friendlier error copy across Settings load/save, Insights,
+  Substitution picker, and Challenges (replaces raw
+  `localizedDescription`).
+- Labeled loading spinners in Challenges, Insights, Analytics, and
+  Pain Tracking (no more context-free spinners).
+- Variable shadowing in `ProgramsListView.startSession` renamed.
+
+### Improved
+
+- Parallelized fetches in `BenchmarkDetailViewModel.loadBenchmark`,
+  `BenchmarksListViewModel.loadData`, and
+  `ProgramDetailViewModel.startSession` — ~700ms total latency
+  removed across those screens.
+- `MaxesListViewModel` caches `UserSettings` at VM lifetime scope
+  instead of refetching on every `.refreshable`.
+- `DashboardView.loadActiveChallenge` accepts optional cached
+  workouts to avoid a second `fetchAll("Workout")` when the stats
+  tier already fetched.
+- `ShareCardRenderer.render(_:aspect:)` is now async; the 3×
+  `ImageRenderer` work is dispatched via `Task.detached` to remove
+  the save-time main-thread stall.
+- Empty state for Benchmarks when a category filter has no matches.
+- Haptics on set complete, PR detection, challenge tier and
+  completion, and share save/copy (via new centralized
+  `HapticFeedback` helper).
+- Dynamic Type support for icon sizes across Dashboard, Insights,
+  Settings, Workouts, Benchmarks, Maxes, Challenges, Pain Tracking,
+  Analytics, Cycle, and onboarding views.
+- Combined accessibility elements on Settings link rows with explicit
+  "opens in browser" labels for VoiceOver.
+- Art Deco theme consistency: `Color.red/.orange/.green` replaced
+  with `AppTheme.Accent.orange` / `AppTheme.Recovery.green` tokens in
+  `SharkWeekBanner`, `CycleCalendarView`, and `PainTrackingView`.
+
+### Internal
+
+- New `DiagnosticsService` tracks record decode failures across
+  `CloudKitClient` and `LocalDataClient`. Surfaced via a new
+  Diagnostics section in Settings (only visible when there's
+  something to show).
+- `SyncQueue` now moves mutations to `stuckMutations` after
+  `maxRetryAttempts` is exceeded instead of silently dropping them.
+  Persisted across app launches under a new UserDefaults key.
+  (Currently dormant — will light up once SyncQueue is wired into
+  `DataClientFactory` in production.)
+- `GuestDataMigrator` + unit tests for atomic guest→CloudKit data
+  migration (failure-atomic: source is only cleared on full success).
+- Removed dead `MaxRow` struct in `MaxesListView`.
+- `CelebrationEvent.challengeCompleted(challengeTitle:)` case added
+  so completion haptics can distinguish full completion from tier
+  milestones.
+
 ## [1.5] - 2026-04-19
 
 ### Added
