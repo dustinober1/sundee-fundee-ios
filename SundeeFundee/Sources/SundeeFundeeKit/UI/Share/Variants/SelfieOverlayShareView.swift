@@ -47,6 +47,11 @@ struct SelfieOverlayShareView: View {
             }
             .padding(AppTheme.Spacing.xl)
             .frame(maxWidth: .infinity, alignment: .leading)
+
+            // QR badge: bottom-right, sized ~10% of card width.
+            QRBadge(url: ShareURL.appStore, size: aspect.size.width * 0.10)
+                .padding(AppTheme.Spacing.xl)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
         }
         .frame(width: aspect.size.width, height: aspect.size.height)
         .background(AppTheme.Background.navy)
