@@ -27,10 +27,10 @@ class BenchmarksViewModel @Inject constructor(
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage = _errorMessage.asStateFlow()
 
-    private val _selectedCategory = MutableStateFlow(BenchmarkCategory.SUNDEE_FUNDEE.rawValue)
+    private val _selectedCategory = MutableStateFlow(BenchmarkCategory.SUNDEE_FUNDEE.displayName)
     val selectedCategory = _selectedCategory.asStateFlow()
 
-    private val _benchmarks = MutableStateFlow(BenchmarkCatalog.benchmarksIn(BenchmarkCategory.SUNDEE_FUNDEE))
+    private val _benchmarks = MutableStateFlow(BenchmarkCatalog.benchmarksIn(BenchmarkCategory.SUNDEE_FUNDEE.displayName))
     val benchmarks = _benchmarks.asStateFlow()
 
     private val _userResults = MutableStateFlow<Map<String, List<BenchmarkResult>>>(emptyMap())
@@ -57,15 +57,16 @@ class BenchmarksViewModel @Inject constructor(
         updateBenchmarksForCategory()
     }
 
-    fun saveResult(benchmarkId: String, score: Double, notes: String?) {
+    fun saveResult(benchmarkId: String, benchmarkName: String, score: Double, notes: String?) {
         viewModelScope.launch {
             val result = BenchmarkResult(
                 id = java.util.UUID.randomUUID().toString(),
                 benchmarkId = benchmarkId,
+                benchmarkName = benchmarkName,
                 score = score,
                 notes = notes,
                 date = kotlinx.datetime.Clock.System.now().toString(),
-                cyclePhase = _cyclePhase.value
+                cyclePhase = _cyclePhase.value?.name
             )
             try {
                 dataClientFactory.client.save(result, "BenchmarkResult")
@@ -87,6 +88,7 @@ class BenchmarksViewModel @Inject constructor(
 
     fun getReadiness(benchmarkId: String) = BenchmarkReadinessCalculator.calculateReadiness(
         phase = _cyclePhase.value,
+        benchmarkIntensity = null,
         movementTags = emptyList()
     )
 
@@ -145,8 +147,8 @@ class BenchmarksViewModel @Inject constructor(
     }
 
     private fun updateBenchmarksForCategory() {
-        val category = BenchmarkCategory.entries.find { it.rawValue == _selectedCategory.value }
+        val category = BenchmarkCategory.entries.find { it.displayName == _selectedCategory.value }
             ?: BenchmarkCategory.SUNDEE_FUNDEE
-        _benchmarks.value = BenchmarkCatalog.benchmarksIn(category)
+        _benchmarks.value = BenchmarkCatalog.benchmarksIn(category.displayName)
     }
 }
