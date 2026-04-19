@@ -40,9 +40,8 @@ class ProgramsViewModel @Inject constructor(
         viewModelScope.launch {
             val record = EnrolledProgramRecord(
                 id = java.util.UUID.randomUUID().toString(),
-                programName = templateName,
-                isActive = true,
-                startDate = kotlinx.datetime.Clock.System.now().toString()
+                name = templateName,
+                isActive = true
             )
             try {
                 dataClientFactory.client.save(record, "EnrolledProgramRecord")

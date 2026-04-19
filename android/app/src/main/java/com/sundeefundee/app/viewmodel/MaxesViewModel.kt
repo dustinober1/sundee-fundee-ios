@@ -35,7 +35,8 @@ class MaxesViewModel @Inject constructor(
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                _maxes.value = dataClientFactory.client.fetchAll("OneRepMaxRecord")
+                val records: List<OneRepMaxRecord> = dataClientFactory.client.fetchAll("OneRepMaxRecord")
+                _maxes.value = records
                     .sortedByDescending { it.date }
             } catch (e: Exception) {
                 _errorMessage.value = e.message
@@ -50,11 +51,9 @@ class MaxesViewModel @Inject constructor(
             val record = OneRepMaxRecord(
                 id = java.util.UUID.randomUUID().toString(),
                 exerciseName = exerciseName,
-                oneRepMax = estimated1RM,
-                weight = weight,
-                reps = reps,
+                weight = estimated1RM,
                 unit = unit,
-                date = kotlinx.datetime.Clock.System.now().toString()
+                date = java.time.Instant.now().toString()
             )
             try {
                 dataClientFactory.client.save(record, "OneRepMaxRecord")

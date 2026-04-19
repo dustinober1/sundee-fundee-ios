@@ -64,10 +64,10 @@ class SettingsViewModel @Inject constructor(
             try {
                 val client = dataClientFactory.client
                 val service = DataExportService(object : com.sundeefundee.core.domain.export.DataExportClient {
-                    override suspend fun <T : Any> fetchAll(recordType: String): List<T> = client.fetchAll(recordType)
+                    override suspend fun <T> fetchAll(recordType: String): List<T> = client.fetchAll(recordType)
                 })
                 val exported = service.exportAll()
-                _exportJson.value = exported
+                _exportJson.value = service.encode(exported)
             } catch (e: Exception) {
                 _errorMessage.value = e.message
             }

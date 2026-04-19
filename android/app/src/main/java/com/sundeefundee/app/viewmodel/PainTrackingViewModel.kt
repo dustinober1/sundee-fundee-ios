@@ -83,11 +83,11 @@ class PainTrackingViewModel @Inject constructor(
             val region = _selectedRegion.value ?: return@launch
             val log = DailyPainLog(
                 id = java.util.UUID.randomUUID().toString(),
-                bodyRegion = region,
+                locationIds = region,
                 intensity = _painIntensity.value,
                 painType = _painType.value,
-                notes = _notes.value.ifBlank { null },
-                date = kotlinx.datetime.Clock.System.now().toString()
+                date = kotlinx.datetime.Clock.System.now().toString(),
+                notes = _notes.value.ifBlank { null }
             )
             try {
                 dataClientFactory.client.save(log, "DailyPainLog")
@@ -103,13 +103,15 @@ class PainTrackingViewModel @Inject constructor(
 
     fun saveInjury(name: String, region: String, notes: String?) {
         viewModelScope.launch {
+            val now = kotlinx.datetime.Clock.System.now().toString()
             val injury = Injury(
                 id = java.util.UUID.randomUUID().toString(),
+                locationIds = region,
                 name = name,
-                bodyRegion = region,
-                notes = notes,
-                dateOccurred = kotlinx.datetime.Clock.System.now().toString(),
-                isActive = true
+                recoveryPhase = "ACUTE",
+                dateCreated = now,
+                phaseUpdated = now,
+                notes = notes
             )
             try {
                 dataClientFactory.client.save(injury, "Injury")

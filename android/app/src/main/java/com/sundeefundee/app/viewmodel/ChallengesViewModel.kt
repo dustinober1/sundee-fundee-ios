@@ -4,8 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sundeefundee.core.data.factory.DataClientFactory
 import com.sundeefundee.core.domain.challenge.ChallengeEngine
-import com.sundeefundee.core.domain.challenge.computeProgress
-import com.sundeefundee.core.domain.challenge.updateVolume
 import com.sundeefundee.core.model.Challenge
 import com.sundeefundee.core.model.ChallengeProgress
 import com.sundeefundee.core.model.ChallengeType
@@ -48,11 +46,12 @@ class ChallengesViewModel @Inject constructor(
 
                 _challenges.value = allChallenges.map { challenge ->
                     val totalVolume = when (challenge.type) {
-                        ChallengeType.LIFETIME -> workouts.sumOf { it.totalVolume }
-                        ChallengeType.EXERCISE -> workouts.sumOf { it.totalVolume } // simplified
-                        ChallengeType.CUSTOM -> challenge.currentVolume
+                        ChallengeType.LIFETIME_VOLUME -> workouts.sumOf { it.totalVolume }
+                        ChallengeType.EXERCISE_VOLUME -> workouts.sumOf { it.totalVolume }
+                        ChallengeType.CUSTOM -> challenge.accumulatedVolumeLbs
                     }
-                    val progress = computeProgress(challenge, totalVolume)
+                    val updated = challenge.copy(accumulatedVolumeLbs = totalVolume)
+                    val progress = ChallengeEngine.computeProgress(updated)
                     challenge to progress
                 }
             } catch (e: Exception) {
@@ -65,9 +64,12 @@ class ChallengesViewModel @Inject constructor(
     fun createChallenge(title: String, targetVolume: Double, type: ChallengeType) {
         viewModelScope.launch {
             val challenge = when (type) {
-                ChallengeType.EXERCISE -> ChallengeEngine.createExerciseChallenge(title)
-                ChallengeType.CUSTOM -> ChallengeEngine.createCustomChallenge(title, targetVolume.toLong())
-                ChallengeType.LIFETIME -> ChallengeEngine.createLifetimeChallenge()
+                ChallengeType.EXERCISE_VOLUME -> ChallengeEngine.createExerciseChallenge(
+                    title,
+                    ChallengeEngine.defaultLifetimeTiers()
+                )
+                ChallengeType.CUSTOM -> ChallengeEngine.createCustomChallenge(title, targetVolume)
+                ChallengeType.LIFETIME_VOLUME -> ChallengeEngine.createLifetimeChallenge()
             }
             try {
                 dataClientFactory.client.save(challenge, "Challenge")

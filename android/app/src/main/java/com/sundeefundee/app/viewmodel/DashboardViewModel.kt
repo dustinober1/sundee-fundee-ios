@@ -7,7 +7,6 @@ import com.sundeefundee.core.data.factory.HealthClientFactory
 import com.sundeefundee.core.data.protocol.DataClient
 import com.sundeefundee.core.data.protocol.HealthClient
 import com.sundeefundee.core.domain.challenge.ChallengeEngine
-import com.sundeefundee.core.domain.challenge.computeProgress
 import com.sundeefundee.core.model.CelebrationEventRecord
 import com.sundeefundee.core.model.Challenge
 import com.sundeefundee.core.model.ChallengeProgress
@@ -101,12 +100,6 @@ class DashboardViewModel @Inject constructor(
     }
 
     private suspend fun loadStats() {
-        val now = kotlinx.datetime.Clock.System.now()
-        val weekStart = now.minus(kotlinx.datetime.DateTimeUnit.DAY, kotlinx.datetime.TimeZone.currentSystemDefault()).let {
-            // Approximate — start of this week
-            now.minus(kotlinx.datetime.DateTimeUnit.DAY_BY_DAYS * 7)
-        }
-
         try {
             val workouts: List<Workout> = client.fetchAll("Workout")
             _workoutsThisWeek.value = workouts.count { it.completedAt != null }
@@ -114,7 +107,6 @@ class DashboardViewModel @Inject constructor(
 
         try {
             val prs: List<OneRepMaxRecord> = client.fetchAll("OneRepMaxRecord")
-            val monthAgo = now.minus(kotlinx.datetime.DateTimeUnit.MONTH, kotlinx.datetime.TimeZone.currentSystemDefault())
             _prsThisMonth.value = prs.count { true } // simplified date filtering
         } catch (_: Exception) {}
     }
@@ -124,7 +116,7 @@ class DashboardViewModel @Inject constructor(
             val programs: List<EnrolledProgramRecord> = client.fetchAll("EnrolledProgramRecord")
             val active = programs.firstOrNull { it.isActive }
             if (active != null) {
-                _activeProgramName.value = active.programName
+                _activeProgramName.value = active.name
                 _nextWorkout.value = "Day ${programs.size + 1}"
             }
         } catch (_: Exception) {}
@@ -140,18 +132,16 @@ class DashboardViewModel @Inject constructor(
     private suspend fun loadCyclePhase() {
         try {
             if (healthClient.isAvailable) {
-                val sixMonthsAgo = kotlinx.datetime.Clock.System.now()
-                    .minus(kotlinx.datetime.DateTimeUnit.MONTH, kotlinx.datetime.TimeZone.currentSystemDefault())
                 val cycles = healthClient.fetchMenstrualCycles(
-                    startDate = sixMonthsAgo,
+                    startDate = null,
                     endDate = null,
                     limit = 100
                 )
                 if (cycles.isNotEmpty()) {
                     // Simplified phase calculation from last cycle
                     val lastCycle = cycles.last()
-                    val daysSinceStart = (kotlinx.datetime.Clock.System.now()
-                        .toEpochMilliseconds() - lastCycle.startDate.toEpochMilliseconds()) / (1000 * 60 * 60 * 24)
+                    val daysSinceStart = (System.currentTimeMillis()
+                        - lastCycle.startDate.toEpochMilliseconds()) / (1000 * 60 * 60 * 24)
                     _cyclePhase.value = when (daysSinceStart.toInt()) {
                         in 0..4 -> CyclePhase.MENSTRUAL
                         in 5..13 -> CyclePhase.FOLLICULAR
@@ -170,7 +160,8 @@ class DashboardViewModel @Inject constructor(
                 val workouts: List<Workout> = client.fetchAll("Workout")
                 val totalVolume = workouts.sumOf { it.totalVolume }
                 val challenge = ChallengeEngine.createLifetimeChallenge()
-                val progress = computeProgress(challenge, totalVolume)
+                val updated = challenge.copy(accumulatedVolumeLbs = totalVolume)
+                val progress = ChallengeEngine.computeProgress(updated)
                 _activeChallengeData.value = challenge to progress
             } catch (_: Exception) {}
         }

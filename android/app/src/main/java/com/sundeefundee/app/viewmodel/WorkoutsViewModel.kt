@@ -28,8 +28,8 @@ class WorkoutsViewModel @Inject constructor(
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                _workouts.value = dataClientFactory.client.fetchAll("Workout")
-                    .sortedByDescending { it.completedAt ?: it.date }
+                val workouts: List<Workout> = dataClientFactory.client.fetchAll("Workout")
+                _workouts.value = workouts.sortedByDescending { it.completedAt ?: it.date }
             } catch (e: Exception) {
                 _errorMessage.value = e.message
             }
