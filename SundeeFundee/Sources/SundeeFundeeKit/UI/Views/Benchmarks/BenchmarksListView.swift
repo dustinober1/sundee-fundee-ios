@@ -122,7 +122,7 @@ struct BenchmarkRow: View {
 
                         // Readiness indicator
                         Text(readiness.emoji)
-                            .font(.system(size: 20))
+                            .font(.headline)
                             .accessibilityLabel(readiness.tier.rawValue)
                     }
 
@@ -345,7 +345,7 @@ public struct BenchmarkDetailView: View {
             VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
                 HStack {
                     Text(readiness.emoji)
-                        .font(.system(size: 32))
+                        .font(.title)
 
                     VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
                         Text(readiness.tier.rawValue.capitalized)
@@ -465,7 +465,7 @@ struct ResultRow: View {
 
                 if let phase = result.cyclePhase {
                     Text(cyclePhaseEmoji(phase))
-                        .font(.system(size: 20))
+                        .font(.headline)
                 }
             }
         }
