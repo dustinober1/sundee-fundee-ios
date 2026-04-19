@@ -104,32 +104,12 @@ public struct MaxesListView: View {
     private var maxesList: some View {
         List {
             ForEach(viewModel.maxes) { max in
-                HStack(spacing: AppTheme.Spacing.md) {
-                    VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
-                        Text(max.exerciseName)
-                            .font(AppTheme.Typography.headlineMedium)
-                            .foregroundColor(AppTheme.Text.primary)
-
-                        Text(max.date, style: .date)
-                            .font(AppTheme.Typography.bodySmall)
-                            .foregroundColor(AppTheme.Text.secondary)
-                    }
-
-                    Spacer()
-
-                    VStack(alignment: .trailing, spacing: AppTheme.Spacing.xs) {
-                        Text("\(max.weight, specifier: "%.0f")")
-                            .font(AppTheme.Typography.displayMedium)
-                            .foregroundColor(AppTheme.Text.primary)
-
-                        Text(max.unit.rawValue)
-                            .font(AppTheme.Typography.labelMedium)
-                            .foregroundColor(AppTheme.Text.secondary)
-                    }
-                }
+                MaxesListRow(
+                    max: max,
+                    plateau: viewModel.plateauAlerts[max.exerciseName]
+                )
                 .listRowBackground(Color.clear)
                 .listRowSeparator(.hidden)
-                .accessibilityLabel("\(max.exerciseName), \(Int(max.weight)) \(max.unit.rawValue)")
             }
             .onDelete { indexSet in
                 for index in indexSet {
@@ -139,6 +119,87 @@ public struct MaxesListView: View {
             }
         }
         .listStyle(.plain)
+    }
+}
+
+// MARK: - MaxesListRow
+
+@available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
+private struct MaxesListRow: View {
+    let max: OneRepMaxItem
+    let plateau: PlateauDetector.PlateauAlert?
+
+    @State private var showingPlateauDetail = false
+
+    var body: some View {
+        HStack(spacing: AppTheme.Spacing.md) {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                Text(max.exerciseName)
+                    .font(AppTheme.Typography.headlineMedium)
+                    .foregroundColor(AppTheme.Text.primary)
+
+                Text(max.date, style: .date)
+                    .font(AppTheme.Typography.bodySmall)
+                    .foregroundColor(AppTheme.Text.secondary)
+            }
+
+            if plateau != nil {
+                Button {
+                    showingPlateauDetail = true
+                } label: {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundColor(AppTheme.Text.orange)
+                        .font(.system(size: 16))
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Plateau detected on \(max.exerciseName)")
+                .accessibilityHint("Tap to view recommendation")
+                #if os(iOS)
+                .popover(isPresented: $showingPlateauDetail, arrowEdge: .top) {
+                    plateauPopover
+                }
+                #endif
+            }
+
+            Spacer()
+
+            VStack(alignment: .trailing, spacing: AppTheme.Spacing.xs) {
+                Text("\(max.weight, specifier: "%.0f")")
+                    .font(AppTheme.Typography.displayMedium)
+                    .foregroundColor(AppTheme.Text.primary)
+
+                Text(max.unit.rawValue)
+                    .font(AppTheme.Typography.labelMedium)
+                    .foregroundColor(AppTheme.Text.secondary)
+            }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("\(max.exerciseName), \(Int(max.weight)) \(max.unit.rawValue)\(plateau != nil ? ", plateaued" : "")")
+    }
+
+    @ViewBuilder
+    private var plateauPopover: some View {
+        if let p = plateau {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
+                HStack(spacing: AppTheme.Spacing.xs) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundColor(AppTheme.Text.orange)
+                    Text("Plateau detected")
+                        .font(AppTheme.Typography.headlineMedium)
+                        .foregroundColor(AppTheme.Text.primary)
+                }
+                Text(p.recommendation)
+                    .font(AppTheme.Typography.bodyMedium)
+                    .foregroundColor(AppTheme.Text.primary)
+                    .fixedSize(horizontal: false, vertical: true)
+                Text("\(p.stallCount) attempts, \(p.daysSinceBest) days since best")
+                    .font(AppTheme.Typography.labelMedium)
+                    .foregroundColor(AppTheme.Text.secondary)
+            }
+            .padding(AppTheme.Spacing.lg)
+            .frame(minWidth: 260, maxWidth: 320)
+            .presentationCompactAdaptation(.popover)
+        }
     }
 }
 
@@ -284,6 +345,7 @@ class MaxesListViewModel: ObservableObject {
     @Published var showingEntry: Bool = false
     @Published var errorMessage: String?
     @Published var preferredUnit: WeightUnit = .lbs
+    @Published var plateauAlerts: [String: PlateauDetector.PlateauAlert] = [:]
 
     private let dataClient: DataClientProtocol
 
@@ -323,6 +385,9 @@ class MaxesListViewModel: ObservableObject {
             let records = try await dataClient.fetchAll(
                 recordType: "OneRepMaxRecord"
             ) as [OneRepMaxRecord]
+
+            let alerts = PlateauDetector.detect(from: records)
+            plateauAlerts = Dictionary(uniqueKeysWithValues: alerts.map { ($0.exerciseName, $0) })
 
             maxes = records.map { record in
                 let displayWeight: Double
