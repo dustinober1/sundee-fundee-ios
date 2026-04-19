@@ -1,20 +1,26 @@
 package com.sundeefundee.app.di
 
-import com.sundeefundee.core.data.protocol.DataClient
-import com.sundeefundee.core.data.protocol.HealthClient
-import com.sundeefundee.core.data.room.RoomDataClient
-import com.sundeefundee.core.data.healthconnect.HealthConnectClientWrapper
-import com.sundeefundee.core.data.supabase.SupabaseDataClient
+import android.content.Context
+import androidx.room.Room
+import com.sundeefundee.core.data.room.SundeeFundeeDatabase
 import dagger.Module
+import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-abstract class DataModule {
+object DataModule {
 
-    // Default binding is Room (guest mode). Supabase binding is swapped at runtime
-    // when user signs in via DataClientFactory.
-    // TODO: Bind SupabaseDataClient when Supabase is configured.
+    @Provides
+    @Singleton
+    fun provideDatabase(@ApplicationContext context: Context): SundeeFundeeDatabase {
+        return Room.databaseBuilder(
+            context,
+            SundeeFundeeDatabase::class.java,
+            "sundeefundee.db"
+        ).build()
+    }
 }

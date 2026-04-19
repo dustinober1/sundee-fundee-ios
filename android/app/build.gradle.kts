@@ -47,6 +47,8 @@ android {
 
 dependencies {
     implementation(project(":core"))
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.1")
+    implementation("androidx.room:room-runtime:2.6.1")
 
     // Compose BOM
     val composeBom = platform("androidx.compose:compose-bom:2024.12.01")
