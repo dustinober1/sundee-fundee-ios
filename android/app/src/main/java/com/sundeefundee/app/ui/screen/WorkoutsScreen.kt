@@ -12,11 +12,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.sundeefundee.app.ui.theme.*
-import com.sundeefundee.app.viewmodel.WorkoutsViewModel
 import com.sundeefundee.app.ui.theme.MonoMedium
+import com.sundeefundee.app.viewmodel.WorkoutsViewModel
 import com.sundeefundee.core.model.Workout
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WorkoutsScreen(
     onStartWorkout: () -> Unit = {},
@@ -28,28 +27,13 @@ fun WorkoutsScreen(
 
     LaunchedEffect(Unit) { viewModel.loadWorkouts() }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Workouts") },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = SundeeFundeeTheme.colors.cream)
-            )
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = onStartWorkout,
-                containerColor = SundeeFundeeTheme.colors.orange
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Start Workout", tint = SundeeFundeeTheme.colors.cream)
-            }
-        }
-    ) { padding ->
+    Box(Modifier.fillMaxSize()) {
         if (isLoading) {
-            Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(color = SundeeFundeeTheme.colors.navy)
             }
         } else if (workouts.isEmpty()) {
-            Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(Icons.Default.FitnessCenter, contentDescription = null, modifier = Modifier.size(64.dp), tint = SundeeFundeeTheme.colors.navy.copy(alpha = 0.3f))
                     Spacer(Modifier.height(Spacing.md))
@@ -60,7 +44,7 @@ fun WorkoutsScreen(
             }
         } else {
             LazyColumn(
-                Modifier.fillMaxSize().padding(padding).padding(horizontal = Spacing.md),
+                Modifier.fillMaxSize().padding(horizontal = Spacing.md),
                 verticalArrangement = Arrangement.spacedBy(Spacing.sm),
                 contentPadding = PaddingValues(vertical = Spacing.md)
             ) {
@@ -68,6 +52,16 @@ fun WorkoutsScreen(
                     WorkoutCard(workout = workout, onClick = { onWorkoutClick(workout.id) })
                 }
             }
+        }
+
+        FloatingActionButton(
+            onClick = onStartWorkout,
+            containerColor = SundeeFundeeTheme.colors.orange,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(Spacing.md)
+        ) {
+            Icon(Icons.Default.Add, contentDescription = "Start Workout", tint = SundeeFundeeTheme.colors.cream)
         }
     }
 }
