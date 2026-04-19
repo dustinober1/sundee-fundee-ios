@@ -10,11 +10,10 @@ public struct ExerciseCatalogEntity: AppEntity, Identifiable {
     public let id: String
     public let categoryRaw: String
 
-    public static var defaultQuery = ExerciseCatalogQuery()
+    public static let defaultQuery = ExerciseCatalogQuery()
 
-    public static var typeDisplayRepresentation: TypeDisplayRepresentation {
+    public static let typeDisplayRepresentation: TypeDisplayRepresentation =
         TypeDisplayRepresentation(name: "Exercise")
-    }
 
     public var displayRepresentation: DisplayRepresentation {
         DisplayRepresentation(title: "\(id)", subtitle: "\(categoryRaw)")

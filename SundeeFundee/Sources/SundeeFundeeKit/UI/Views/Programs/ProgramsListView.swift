@@ -521,7 +521,7 @@ class ProgramDetailViewModel: ObservableObject {
 
                 // Calculate prescribed weight from user's max + cycle adjustment
                 var prescribedWeight: Double = 0
-                if !ex.bodyweightOnly, let pct = ex.percent1RM,
+                if !ex.bodyweightOnly, ex.percent1RM != nil,
                    let userMax = maxes.first(where: { $0.exerciseName.lowercased() == ex.exercise.lowercased() }) {
                     prescribedWeight = calculatePrescribedWeight(
                         max: userMax.weight,

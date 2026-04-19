@@ -9,8 +9,8 @@ import Foundation
 
 @available(iOS 18.0, *)
 public struct GetRecoveryScoreIntent: AppIntent {
-    public static var title: LocalizedStringResource = "Get recovery score"
-    public static var description = IntentDescription("Reports today's recovery score and training verdict.")
+    public static let title: LocalizedStringResource = "Get recovery score"
+    public static let description = IntentDescription("Reports today's recovery score and training verdict.")
 
     public init() {}
 

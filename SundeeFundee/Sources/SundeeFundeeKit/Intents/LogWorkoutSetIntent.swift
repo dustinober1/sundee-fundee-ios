@@ -12,8 +12,8 @@ private let intentLogger = Logger(subsystem: "com.sundeefundee.app", category: "
 
 @available(iOS 18.0, *)
 public struct LogWorkoutSetIntent: AppIntent {
-    public static var title: LocalizedStringResource = "Log a set"
-    public static var description = IntentDescription("Log a set for today's workout.")
+    public static let title: LocalizedStringResource = "Log a set"
+    public static let description = IntentDescription("Log a set for today's workout.")
 
     @Parameter(title: "Exercise")
     public var exercise: ExerciseCatalogEntity

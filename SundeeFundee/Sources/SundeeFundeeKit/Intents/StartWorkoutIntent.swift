@@ -9,9 +9,9 @@ import Foundation
 
 @available(iOS 18.0, *)
 public struct StartWorkoutIntent: AppIntent {
-    public static var title: LocalizedStringResource = "Start my workout"
-    public static var description = IntentDescription("Opens Sundee Fundee on the Workouts tab.")
-    public static var openAppWhenRun: Bool = true
+    public static let title: LocalizedStringResource = "Start my workout"
+    public static let description = IntentDescription("Opens Sundee Fundee on the Workouts tab.")
+    public static let openAppWhenRun: Bool = true
 
     public init() {}
 
