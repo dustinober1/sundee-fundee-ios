@@ -18,7 +18,6 @@ import com.sundeefundee.core.model.Challenge
 import com.sundeefundee.core.model.ChallengeProgress
 import com.sundeefundee.core.model.ChallengeType
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChallengesScreen(
     viewModel: ChallengesViewModel = hiltViewModel()
@@ -33,28 +32,13 @@ fun ChallengesScreen(
 
     LaunchedEffect(Unit) { viewModel.loadData() }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Challenges") },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = SundeeFundeeTheme.colors.cream)
-            )
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { viewModel.showCreate() },
-                containerColor = SundeeFundeeTheme.colors.orange
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Create Challenge", tint = SundeeFundeeTheme.colors.cream)
-            }
-        }
-    ) { padding ->
+    Box(Modifier.fillMaxSize()) {
         if (isLoading) {
-            Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(color = SundeeFundeeTheme.colors.navy)
             }
         } else if (challenges.isEmpty()) {
-            Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(Icons.Default.Flag, contentDescription = null, modifier = Modifier.size(64.dp), tint = SundeeFundeeTheme.colors.navy.copy(alpha = 0.3f))
                     Spacer(Modifier.height(Spacing.md))
@@ -63,7 +47,7 @@ fun ChallengesScreen(
             }
         } else {
             LazyColumn(
-                Modifier.fillMaxSize().padding(padding).padding(horizontal = Spacing.md),
+                Modifier.fillMaxSize().padding(horizontal = Spacing.md),
                 verticalArrangement = Arrangement.spacedBy(Spacing.md),
                 contentPadding = PaddingValues(vertical = Spacing.md)
             ) {
@@ -71,6 +55,16 @@ fun ChallengesScreen(
                     ChallengeCard(challenge = challenge, progress = progress)
                 }
             }
+        }
+
+        FloatingActionButton(
+            onClick = { viewModel.showCreate() },
+            containerColor = SundeeFundeeTheme.colors.orange,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(Spacing.md)
+        ) {
+            Icon(Icons.Default.Add, contentDescription = "Create Challenge", tint = SundeeFundeeTheme.colors.cream)
         }
     }
 
