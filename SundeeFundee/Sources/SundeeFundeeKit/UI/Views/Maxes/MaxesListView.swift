@@ -77,7 +77,7 @@ public struct MaxesListView: View {
     private var emptyState: some View {
         VStack(spacing: AppTheme.Spacing.xl) {
             Image(systemName: "scalemass")
-                .font(.system(size: 60))
+                .font(.system(.largeTitle))
                 .foregroundColor(AppTheme.Accent.gold.opacity(0.5))
                 .accessibilityHidden(true)
 
@@ -149,7 +149,7 @@ private struct MaxesListRow: View {
                 } label: {
                     Image(systemName: "exclamationmark.triangle.fill")
                         .foregroundColor(AppTheme.Text.orange)
-                        .font(.system(size: 16))
+                        .font(.subheadline)
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Plateau detected on \(max.exerciseName)")
