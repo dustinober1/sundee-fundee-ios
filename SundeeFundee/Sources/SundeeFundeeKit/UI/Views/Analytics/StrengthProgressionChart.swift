@@ -60,7 +60,7 @@ struct StrengthProgressionChart: View {
         } label: {
             HStack(spacing: AppTheme.Spacing.xs) {
                 Image(systemName: "line.3.horizontal.decrease.circle")
-                    .font(.system(size: 14))
+                    .font(.footnote)
                 Text(selectedExercise ?? "All")
                     .font(AppTheme.Typography.labelMedium)
             }
@@ -110,7 +110,7 @@ struct StrengthProgressionChart: View {
     private var emptyState: some View {
         VStack(spacing: AppTheme.Spacing.sm) {
             Image(systemName: "chart.line.uptrend.xyaxis")
-                .font(.system(size: 32))
+                .font(.title)
                 .foregroundColor(AppTheme.Text.secondary.opacity(0.5))
                 .accessibilityHidden(true)
 
