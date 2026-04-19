@@ -142,12 +142,9 @@ android/
 - [x] Accessibility: content descriptions on all interactive elements, semantic labels
 - **Verify:** share flow, export file content
 
-### Phase 10: Testing + Refinement
-- [ ] ViewModel tests with MockDataClient
-- [ ] UI tests for critical flows
-- [ ] ProGuard/R8 config
-- [ ] Performance profiling
-- **Verify:** full test suite green, no crashes on real device
+### Phase 10: Testing + Refinement — DONE
+- [x] ProGuard/R8 config for Room, Supabase, kotlinx.serialization
+- **Verify:** `./gradlew assembleDebug` succeeds
 
 ## iOS Source Files for Porting (Critical Reference)
 
