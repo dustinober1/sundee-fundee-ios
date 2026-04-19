@@ -5,11 +5,14 @@ import com.sundeefundee.core.data.protocol.Predicate
 import com.sundeefundee.core.data.protocol.SortDescriptor
 import com.sundeefundee.core.data.room.dao.SyncQueueDao
 import com.sundeefundee.core.data.room.entity.PendingMutationEntity
+import com.sundeefundee.core.data.supabase.SupabaseDataClient
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -23,6 +26,7 @@ class SyncQueue @Inject constructor(
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val maxAttempts = 10
+    private val queueJson = Json { ignoreUnknownKeys = true; encodeDefaults = true }
 
     init {
         scope.launch {
@@ -92,8 +96,15 @@ class SyncQueue @Inject constructor(
         }
     }
 
+    @Suppress("UNCHECKED_CAST")
     private suspend fun <T : Any> enqueueSave(record: T, recordType: String) {
-        val jsonStr = serializeForQueue(record)
+        val serializer = SupabaseDataClient.serializerFor(recordType)
+        val jsonStr = if (serializer != null) {
+            queueJson.encodeToString(serializer as kotlinx.serialization.KSerializer<T>, record)
+        } else {
+            // Fallback: use toString() for unknown types
+            record.toString()
+        }
         syncQueueDao.insert(
             PendingMutationEntity(
                 recordType = recordType,
@@ -107,7 +118,7 @@ class SyncQueue @Inject constructor(
     }
 
     private suspend fun enqueueDelete(recordIds: List<String>, recordType: String) {
-        val jsonStr = kotlinx.serialization.encodeToString(recordIds)
+        val jsonStr = queueJson.encodeToString(recordIds)
         syncQueueDao.insert(
             PendingMutationEntity(
                 recordType = recordType,
@@ -120,18 +131,6 @@ class SyncQueue @Inject constructor(
         )
     }
 
-    companion object {
-        private val queueJson = kotlinx.serialization.json.Json { ignoreUnknownKeys = true; encodeDefaults = true }
-
-        private fun <T : Any> serializeForQueue(record: T): String {
-            val jsonElement = queueJson.encodeToJsonElement(
-                kotlinx.serialization.serializer(record::class.java),
-                record
-            )
-            return jsonElement.toString()
-        }
-    }
-
     suspend fun flushQueue() {
         val pending = syncQueueDao.getAll()
         for (mutation in pending) {
@@ -140,7 +139,7 @@ class SyncQueue @Inject constructor(
                     "save" -> delegate.saveFromJSON(listOf(mutation.encodedData), mutation.recordType)
                     "delete" -> {
                         val ids = mutation.recordIdsJson?.let {
-                            kotlinx.serialization.json.Json.decodeFromString<List<String>>(it)
+                            queueJson.decodeFromString<List<String>>(it)
                         } ?: emptyList()
                         delegate.delete(ids, mutation.recordType)
                     }
