@@ -411,6 +411,7 @@ struct NewWorkoutView: View {
                     }
                     .artDecoButton(style: .accent)
                     .disabled(!viewModel.canCreate)
+                    .opacity(viewModel.canCreate ? 1.0 : 0.4)
                 }
                 .padding(AppTheme.Spacing.lg)
             }
