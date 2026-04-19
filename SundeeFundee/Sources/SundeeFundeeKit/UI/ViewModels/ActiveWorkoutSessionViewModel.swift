@@ -380,6 +380,7 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
                     unit: "lb",
                     previousBest: currentMax?.weight
                 )
+                HapticFeedback.success()
             }
         } catch {
             errorMessage = "Could not check PR: \(error.localizedDescription)"
