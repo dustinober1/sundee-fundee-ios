@@ -16,6 +16,9 @@ public struct DashboardView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @EnvironmentObject var cyclePhaseCache: CyclePhaseCache
     @State private var showingAIWorkout = false
+    #if canImport(UIKit)
+    @State private var showingCycleShare = false
+    #endif
 
     public init() {}
 
@@ -175,7 +178,28 @@ public struct DashboardView: View {
             .buttonStyle(.plain)
             .accessibilityElement(children: .combine)
             .accessibilityLabel("Cycle phase: \(cyclePhaseTitle(for: phase))")
-            .accessibilityHint("Tap to view cycle calendar")
+            .accessibilityHint("Tap to view cycle calendar. Long press for share options.")
+            #if canImport(UIKit)
+            .contextMenu {
+                Button {
+                    showingCycleShare = true
+                } label: {
+                    Label("Share insight", systemImage: "square.and.arrow.up")
+                }
+            }
+            .sheet(isPresented: $showingCycleShare) {
+                if let currentPhase = cyclePhaseCache.currentPhase {
+                    ShareCardSheet(
+                        variant: .cycleInsight(
+                            phase: currentPhase,
+                            cycleDay: cyclePhaseCache.cycleDay ?? 1,
+                            insight: cyclePhaseDescription(for: currentPhase)
+                        ),
+                        defaultAspect: .story
+                    )
+                }
+            }
+            #endif
             }
         }
     }
