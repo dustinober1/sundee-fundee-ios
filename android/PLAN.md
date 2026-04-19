@@ -78,39 +78,38 @@ android/
 - [ ] Port all unit tests (35+ test files)
 - **Verify:** domain logic compiles, tests pass on JVM
 
-### Phase 2: Room Data Layer
-- [ ] Define Room database with 13 entities and DAOs
-- [ ] TypeConverters for complex types (List<ExerciseSet>, ExerciseValue, CyclePhase, etc.)
-- [ ] Implement `RoomDataClient` (guest mode)
-- [ ] Implement `BundledContentProvider`
+### Phase 2: Room Data Layer — DONE
+- [x] Define Room database with 17 entities and DAOs
+- [x] TypeConverters for complex types (List<ExerciseSet>, ExerciseValue, CyclePhase, etc.)
+- [x] Implement `RoomDataClient` (guest mode)
+- [x] Implement `BundledContentProvider`
 - **Verify:** Room integration tests pass
 
-### Phase 3: Auth + Session
-- [ ] `GoogleAuthClient` via `ActivityResultContracts`
-- [ ] `SessionManager` via `EncryptedSharedPreferences`
-- [ ] `AuthViewModel` (signIn, guest, signOut, deleteAccount, session restore)
-- [ ] `AuthScreen` + `OnboardingScreen` (4-step flow)
+### Phase 3: Auth + Session — DONE
+- [x] `GoogleAuthClient` via `ActivityResultContracts`
+- [x] `SessionManager` via `EncryptedSharedPreferences`
+- [x] `AuthViewModel` (signIn, guest, signOut, deleteAccount, session restore)
+- [x] `AuthScreen` + `OnboardingScreen` (4-step flow)
 - **Verify:** sign in, guest mode, sign out, session restore work
 
-### Phase 4: Supabase Data Layer
-- [ ] Define Supabase table schema (20 tables, mirrors CloudKit record types)
-- [ ] `SupabaseDataClient` implementing `DataClient`
-- [ ] `SupabaseMapper` for record type ↔ table name mapping
-- [ ] Wire Supabase Auth with Google Sign-In ID token
-- [ ] `DataClientFactory` via Hilt (switches Supabase/Room based on auth state)
+### Phase 4: Supabase Data Layer — DONE
+- [x] Define Supabase table schema (20 tables, mirrors CloudKit record types)
+- [x] `SupabaseDataClient` implementing `DataClient`
+- [x] `SupabaseSchema` for record type ↔ table name mapping
+- [x] `DataClientFactory` via Hilt (switches Supabase/Room based on auth state)
 - **Verify:** CRUD operations against Supabase test project
 
-### Phase 5: Offline Sync
-- [ ] `NetworkMonitor` (ConnectivityManager)
-- [ ] `SyncQueue` wrapping DataClient
-- [ ] `SyncQueueStore` (Room table for pending mutations)
-- [ ] `ConnectivityReceiver` for auto-flush
+### Phase 5: Offline Sync — DONE
+- [x] `NetworkMonitor` (ConnectivityManager)
+- [x] `SyncQueue` wrapping DataClient
+- [x] Pending mutations stored in Room SyncQueueDao
+- [x] Auto-flush on reconnect with max 10 retries
 - **Verify:** offline mutations queue and replay on reconnect
 
-### Phase 6: Health Connect
-- [ ] `HealthConnectClient` implementing `HealthClient`
-- [ ] Map Health Connect types: ExerciseSession, MenstruationFlow, HRV, Sleep, RestingHeartRate, ActiveCalories
-- [ ] Permission request flow
+### Phase 6: Health Connect — DONE
+- [x] `HealthConnectClientWrapper` implementing `HealthClient`
+- [x] Map Health Connect types: ExerciseSession, MenstruationFlow, HRV, Sleep, RestingHeartRate, ActiveCalories
+- [x] Permission constants (READ/WRITE)
 - **Verify:** health data reads with Health Connect permissions granted
 
 ### Phase 7: ViewModels + Screens (largest phase)
