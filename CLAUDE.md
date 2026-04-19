@@ -190,6 +190,27 @@ Use the Gemini MCP (`mcp__gemini-cli__ask-gemini`) for all internet research —
 - **Commit each file separately** — stage and commit one file at a time
 - **Commit message format:** `type(scope): description`
 - **Main branch:** `main`
+- **Delegate git operations to a Haiku subagent.** Routine git work — staging, writing commit messages, committing, pushing, checking status/diffs, fetching, rebasing with no conflicts — should be dispatched to a `general-purpose` subagent with `model: "haiku"`. Haiku is fast and cheap enough that per-file commits become painless, and it keeps git noise (long diffs, status output, commit-message drafting) out of the main conversation's context window. Give the subagent: the exact files to stage, the desired commit message (or the facts it needs to write one), and the branch. Reserve the main model for code changes and decisions — not for typing `git add`.
+- **Do not delegate** destructive or irreversible git actions (force pushes, `reset --hard`, branch deletions, history rewrites, resolving non-trivial merge conflicts). The main model handles those with explicit user confirmation.
+
+### Dispatching the Haiku git subagent
+
+Use the `Agent` tool with `subagent_type: "general-purpose"` and `model: "haiku"`. Prompt template:
+
+> You are handling a git operation. Working directory: `/Users/dustinober/Projects/sundee-fundee`. Branch: `main`. Do the following and report back concisely:
+> 1. `git add <exact files>`
+> 2. Commit with this message (HEREDOC, preserve formatting):
+>    ```
+>    type(scope): subject line
+>
+>    Body explaining the why.
+>
+>    Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
+>    ```
+> 3. Run `git status` to confirm the tree is clean.
+> 4. (If asked) `git push`.
+>
+> Do not stage files other than those listed. Do not use `git add .` or `git add -A`. Do not amend or force-push. If anything unexpected appears (merge conflict, detached HEAD, unstaged changes you weren't told about), stop and report instead of proceeding.
 
 <!-- GSD:project-start source:PROJECT.md -->
 ## Project
