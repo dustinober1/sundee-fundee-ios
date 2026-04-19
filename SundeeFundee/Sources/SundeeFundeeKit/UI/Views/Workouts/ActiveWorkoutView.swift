@@ -456,7 +456,7 @@ public struct ActiveWorkoutView: View {
 
                 // Trophy icon
                 Image(systemName: "trophy.fill")
-                    .font(.system(size: 60))
+                    .font(.system(.largeTitle))
                     .foregroundColor(AppTheme.Accent.gold)
 
                 // Title
@@ -509,7 +509,7 @@ public struct ActiveWorkoutView: View {
         ArtDecoCard {
             HStack(spacing: AppTheme.Spacing.md) {
                 Image(systemName: "star.fill")
-                    .font(.system(size: 24))
+                    .font(.title3)
                     .foregroundColor(AppTheme.Accent.gold)
 
                 VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
