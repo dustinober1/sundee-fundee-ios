@@ -14,6 +14,7 @@ public struct ShareCardSheet: View {
 
     @State private var aspect: ShareCardAspect
     @State private var renderedImage: UIImage?
+    @State private var showCopyFeedback = false
     @Environment(\.dismiss) private var dismiss
 
     public init(
@@ -85,14 +86,37 @@ public struct ShareCardSheet: View {
     @ViewBuilder
     private var shareButton: some View {
         if let image = renderedImage {
-            ShareLink(
-                item: Image(uiImage: image),
-                preview: SharePreview(variant.shareTitle, image: Image(uiImage: image))
-            ) {
-                Label("Share", systemImage: "square.and.arrow.up")
+            VStack(spacing: AppTheme.Spacing.sm) {
+                ShareLink(
+                    item: Image(uiImage: image),
+                    preview: SharePreview(variant.shareTitle, image: Image(uiImage: image))
+                ) {
+                    Label("Share", systemImage: "square.and.arrow.up")
+                        .frame(maxWidth: .infinity)
+                }
+                .artDecoButton(style: .accent)
+                .simultaneousGesture(
+                    TapGesture().onEnded {
+                        HapticFeedback.success()
+                    }
+                )
+
+                Button {
+                    UIPasteboard.general.image = image
+                    HapticFeedback.success()
+                    showCopyFeedback = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                        showCopyFeedback = false
+                    }
+                } label: {
+                    Label(
+                        showCopyFeedback ? "Copied!" : "Copy to Photos",
+                        systemImage: showCopyFeedback ? "checkmark" : "photo.on.rectangle"
+                    )
                     .frame(maxWidth: .infinity)
+                }
+                .artDecoButton(style: .secondary)
             }
-            .artDecoButton(style: .accent)
         } else {
             Button { } label: {
                 Label("Share", systemImage: "square.and.arrow.up")
