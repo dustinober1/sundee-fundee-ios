@@ -16,6 +16,19 @@ public struct BenchmarksListView: View {
             Group {
                 if viewModel.isLoading && viewModel.benchmarks.isEmpty {
                     ProgressView("Loading benchmarks...")
+                } else if viewModel.benchmarks.isEmpty {
+                    VStack(spacing: AppTheme.Spacing.xl) {
+                        Image(systemName: "target")
+                            .font(.system(.largeTitle))
+                            .foregroundColor(AppTheme.Accent.gold.opacity(0.5))
+                        Text("No Benchmarks in This Category")
+                            .font(AppTheme.Typography.headlineMedium)
+                        Text("Try selecting a different category")
+                            .font(AppTheme.Typography.bodyMedium)
+                            .foregroundColor(AppTheme.Text.secondary)
+                    }
+                    .padding(AppTheme.Spacing.xxl)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     benchmarkList
                 }
