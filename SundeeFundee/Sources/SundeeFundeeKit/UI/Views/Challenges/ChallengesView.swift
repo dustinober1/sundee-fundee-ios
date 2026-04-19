@@ -13,8 +13,13 @@ public struct ChallengesView: View {
         ScrollView {
             VStack(spacing: AppTheme.Spacing.lg) {
                 if viewModel.isLoading {
-                    ProgressView()
-                        .frame(maxWidth: .infinity, minHeight: 200)
+                    VStack(spacing: AppTheme.Spacing.md) {
+                        ProgressView()
+                        Text("Loading challenges…")
+                            .font(AppTheme.Typography.bodySmall)
+                            .foregroundColor(AppTheme.Text.secondary)
+                    }
+                    .frame(maxWidth: .infinity, minHeight: 200)
                 } else if let error = viewModel.loadError {
                     errorState(error)
                 } else if viewModel.activeChallenges.isEmpty && viewModel.completedChallenges.isEmpty {
