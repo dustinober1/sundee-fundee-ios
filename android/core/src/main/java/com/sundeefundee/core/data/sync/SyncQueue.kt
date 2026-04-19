@@ -93,12 +93,12 @@ class SyncQueue @Inject constructor(
     }
 
     private suspend fun <T : Any> enqueueSave(record: T, recordType: String) {
-        val json = kotlinx.serialization.json.Json.encodeToString(record)
+        val jsonStr = serializeForQueue(record)
         syncQueueDao.insert(
             PendingMutationEntity(
                 recordType = recordType,
                 operation = "save",
-                encodedData = json,
+                encodedData = jsonStr,
                 recordIdsJson = null,
                 attempts = 0,
                 enqueuedAt = kotlinx.datetime.Clock.System.now().toString()
@@ -107,17 +107,29 @@ class SyncQueue @Inject constructor(
     }
 
     private suspend fun enqueueDelete(recordIds: List<String>, recordType: String) {
-        val json = kotlinx.serialization.json.Json.encodeToString(recordIds)
+        val jsonStr = kotlinx.serialization.encodeToString(recordIds)
         syncQueueDao.insert(
             PendingMutationEntity(
                 recordType = recordType,
                 operation = "delete",
                 encodedData = "",
-                recordIdsJson = json,
+                recordIdsJson = jsonStr,
                 attempts = 0,
                 enqueuedAt = kotlinx.datetime.Clock.System.now().toString()
             )
         )
+    }
+
+    companion object {
+        private val queueJson = kotlinx.serialization.json.Json { ignoreUnknownKeys = true; encodeDefaults = true }
+
+        private fun <T : Any> serializeForQueue(record: T): String {
+            val jsonElement = queueJson.encodeToJsonElement(
+                kotlinx.serialization.serializer(record::class.java),
+                record
+            )
+            return jsonElement.toString()
+        }
     }
 
     suspend fun flushQueue() {

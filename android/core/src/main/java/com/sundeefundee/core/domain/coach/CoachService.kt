@@ -406,7 +406,7 @@ class DeterministicCoachService(
         }
 
         val subs = SubstitutionRanker.rank(
-            substitutesFor = exercise,
+            target = exercise,
             injuries = context.injuries,
             equipment = equipmentContext,
             profile = profile

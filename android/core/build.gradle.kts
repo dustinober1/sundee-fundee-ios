@@ -47,7 +47,7 @@ dependencies {
     implementation("com.google.android.gms:play-services-auth:21.2.0")
 
     // Health Connect
-    implementation("androidx.health.connect:connect-client:1.1.0-rc01")
+    implementation("androidx.health.connect:connect-client:1.1.0-alpha07")
 
     // Hilt
     implementation("com.google.dagger:hilt-android:2.53.1")

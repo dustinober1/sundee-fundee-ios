@@ -14,16 +14,13 @@ object ScheduleReshuffler {
     // MARK: - Types
 
     /** Priority level for sessions -- determines drop order when capacity is limited. */
-    enum class SessionPriority(val value: Int) : Comparable<SessionPriority> {
+    enum class SessionPriority(val value: Int) {
         /** Conditioning/cardio -- dropped first. */
         CONDITIONING(0),
         /** Accessory/isolation work -- dropped second. */
         ACCESSORY(1),
         /** Major compound lifts -- dropped last. */
-        COMPOUND(2);
-
-        override fun compareTo(other: SessionPriority): Int =
-            this.value.compareTo(other.value)
+        COMPOUND(2)
     }
 
     /** A planned session in the weekly schedule. */

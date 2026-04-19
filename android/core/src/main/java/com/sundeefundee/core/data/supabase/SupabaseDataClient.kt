@@ -5,8 +5,7 @@ import com.sundeefundee.core.data.protocol.Predicate
 import com.sundeefundee.core.data.protocol.SortDescriptor
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.from
-import io.github.jan.supabase.postgrest.query.filter.FilterOperation
-import io.github.jan.supabase.postgrest.query.filter.FilterOperator
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
@@ -59,7 +58,7 @@ class SupabaseDataClient @Inject constructor(
 
     override suspend fun <T : Any> save(record: T, recordType: String) {
         val table = SupabaseSchema.recordTypeToTable[recordType] ?: return
-        val jsonStr = json.encodeToString(record)
+        val jsonStr = serializeRecord(record)
         client.from(table).upsert(jsonStr)
     }
 
@@ -87,6 +86,22 @@ class SupabaseDataClient @Inject constructor(
             try {
                 client.from(table).upsert(jsonStr)
             } catch (_: Exception) { /* skip malformed records */ }
+        }
+    }
+
+    companion object {
+        /**
+         * Serializes a record to JSON string.
+         * Uses runtime serializer resolution via kotlinx.serialization.
+         */
+        private fun <T : Any> serializeRecord(record: T): String {
+            // Use the Json instance to encode via reflection on the runtime class
+            // All model types are @Serializable, so this works at runtime
+            val jsonElement = Json.encodeToJsonElement(
+                kotlinx.serialization.serializer(record::class.java),
+                record
+            )
+            return jsonElement.toString()
         }
     }
 }
