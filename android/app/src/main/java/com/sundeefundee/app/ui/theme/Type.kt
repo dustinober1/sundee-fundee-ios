@@ -87,14 +87,14 @@ val ArtDecoTypography = Typography(
     labelMedium = TextStyle(
         fontFamily = Inter,
         fontWeight = FontWeight.Medium,
-        fontSize = 11.sp,
-        lineHeight = 14.sp
+        fontSize = 12.sp,
+        lineHeight = 16.sp
     ),
     labelSmall = TextStyle(
         fontFamily = Inter,
         fontWeight = FontWeight.Medium,
-        fontSize = 10.sp,
-        lineHeight = 14.sp
+        fontSize = 12.sp,
+        lineHeight = 16.sp
     )
 )
 
@@ -116,6 +116,6 @@ val MonoMedium = TextStyle(
 val MonoSmall = TextStyle(
     fontFamily = JetBrainsMono,
     fontWeight = FontWeight.Normal,
-    fontSize = 10.sp,
-    lineHeight = 14.sp
+    fontSize = 12.sp,
+    lineHeight = 16.sp
 )
