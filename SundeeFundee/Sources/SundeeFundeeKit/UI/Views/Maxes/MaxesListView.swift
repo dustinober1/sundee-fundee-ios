@@ -173,7 +173,7 @@ private struct MaxesListRow: View {
                     .foregroundColor(AppTheme.Text.secondary)
             }
         }
-        .accessibilityElement(children: .contain)
+        .accessibilityElement(children: .combine)
         .accessibilityLabel("\(max.exerciseName), \(Int(max.weight)) \(max.unit.rawValue)\(plateau != nil ? ", plateaued" : "")")
     }
 
