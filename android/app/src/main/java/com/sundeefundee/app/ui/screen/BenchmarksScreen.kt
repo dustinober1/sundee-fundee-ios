@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.sundeefundee.app.ui.theme.*
+import com.sundeefundee.app.ui.theme.MonoMedium
 import com.sundeefundee.app.viewmodel.BenchmarksViewModel
 import com.sundeefundee.core.domain.benchmark.BenchmarkCategory
 import com.sundeefundee.core.domain.benchmark.BenchmarkDefinition
@@ -40,15 +41,15 @@ fun BenchmarksScreen(
         Column(Modifier.fillMaxSize().padding(padding)) {
             // Category Filter
             ScrollableTabRow(
-                selectedTabIndex = BenchmarkCategory.entries.indexOfFirst { it.rawValue == selectedCategory }.coerceAtLeast(0),
+                selectedTabIndex = BenchmarkCategory.entries.indexOfFirst { it.displayName == selectedCategory }.coerceAtLeast(0),
                 containerColor = SundeeFundeeTheme.colors.cream,
                 contentColor = SundeeFundeeTheme.colors.navy,
                 edgePadding = Spacing.md
             ) {
                 BenchmarkCategory.entries.forEach { category ->
                     Tab(
-                        selected = selectedCategory == category.rawValue,
-                        onClick = { viewModel.selectCategory(category.rawValue) },
+                        selected = selectedCategory == category.displayName,
+                        onClick = { viewModel.selectCategory(category.displayName) },
                         text = { Text(category.displayName, style = SundeeFundeeTheme.typography.labelMedium) }
                     )
                 }
@@ -67,7 +68,7 @@ fun BenchmarksScreen(
                     items(benchmarks, key = { it.id }) { benchmark ->
                         BenchmarkCard(
                             benchmark = benchmark,
-                            bestScore = viewModel.getBestResult(benchmark.id)?.let { viewModel.formatScore(benchmark.scoringType, it.score) },
+                            bestScore = viewModel.getBestResult(benchmark.id)?.let { viewModel.formatScore(benchmark.scoringType.name.lowercase(), it.score) },
                             hasCompleted = userResults[benchmark.id]?.isNotEmpty() == true,
                             onClick = { viewModel.showScoreEntry(benchmark.id) }
                         )
@@ -96,7 +97,8 @@ fun BenchmarksScreen(
             confirmButton = {
                 TextButton(onClick = {
                     scoreInput.toDoubleOrNull()?.let { score ->
-                        viewModel.saveResult(benchmarkId, score, notesInput.ifBlank { null })
+                        val name = benchmark?.name ?: ""
+                        viewModel.saveResult(benchmarkId, name, score, notesInput.ifBlank { null })
                     }
                 }) { Text("Save") }
             },
@@ -122,21 +124,11 @@ private fun BenchmarkCard(
                     }
                     Text(benchmark.name, style = SundeeFundeeTheme.typography.bodyMedium, color = SundeeFundeeTheme.colors.navy)
                 }
-                Text(benchmark.scoringType, style = SundeeFundeeTheme.typography.bodySmall, color = SundeeFundeeTheme.colors.navy.copy(alpha = 0.5f))
+                Text(benchmark.scoringType.displayName, style = SundeeFundeeTheme.typography.bodySmall, color = SundeeFundeeTheme.colors.navy.copy(alpha = 0.5f))
             }
             bestScore?.let { score ->
-                Text(score, style = SundeeFundeeTheme.typography.monoMedium, color = SundeeFundeeTheme.colors.gold)
+                Text(score, style = MonoMedium, color = SundeeFundeeTheme.colors.gold)
             }
         }
     }
 }
-
-private val BenchmarkCategory.displayName: String
-    get() = when (this) {
-        BenchmarkCategory.SUNDEE_FUNDEE -> "Sundee Fundee"
-        BenchmarkCategory.CLASSIC_WOD -> "Classic WODs"
-        BenchmarkCategory.STRENGTH -> "Strength"
-        BenchmarkCategory.ENDURANCE -> "Endurance"
-        BenchmarkCategory.GYMNASTICS -> "Gymnastics"
-        BenchmarkCategory.GENERAL_FITNESS -> "General"
-    }

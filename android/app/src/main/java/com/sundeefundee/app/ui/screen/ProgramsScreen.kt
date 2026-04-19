@@ -12,8 +12,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.sundeefundee.app.ui.theme.*
+import com.sundeefundee.app.viewmodel.ProgramsViewModel
 import com.sundeefundee.core.domain.program.ProgramTemplate
-import com.sundeefundee.core.domain.program.ProgramTemplateGenerator
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -50,7 +50,7 @@ fun ProgramsScreen(
                                 Text("Active Program", style = SundeeFundeeTheme.typography.labelMedium, color = SundeeFundeeTheme.colors.orange)
                             }
                             Spacer(Modifier.height(Spacing.sm))
-                            Text(program.programName, style = SundeeFundeeTheme.typography.headlineMedium, color = SundeeFundeeTheme.colors.navy)
+                            Text(program.name, style = SundeeFundeeTheme.typography.headlineMedium, color = SundeeFundeeTheme.colors.navy)
                             if (program.isActive) {
                                 Text("In Progress", style = SundeeFundeeTheme.typography.bodySmall, color = SundeeFundeeTheme.colors.gold)
                             }
@@ -80,19 +80,14 @@ private fun ProgramTemplateCard(template: ProgramTemplate, onEnroll: () -> Unit)
             Text(template.description, style = SundeeFundeeTheme.typography.bodySmall, color = SundeeFundeeTheme.colors.navy.copy(alpha = 0.6f))
             Spacer(Modifier.height(Spacing.sm))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-                Text("${template.defaults.durationWeeks} weeks", style = SundeeFundeeTheme.typography.labelMedium, color = SundeeFundeeTheme.colors.gold)
-                Text("${template.defaults.sessionsPerWeek}x/week", style = SundeeFundeeTheme.typography.labelMedium, color = SundeeFundeeTheme.colors.gold)
+                Text("${template.defaultDurationWeeks} weeks", style = SundeeFundeeTheme.typography.labelMedium, color = SundeeFundeeTheme.colors.gold)
+                Text("${template.defaultSessionsPerWeek}x/week", style = SundeeFundeeTheme.typography.labelMedium, color = SundeeFundeeTheme.colors.gold)
             }
             Spacer(Modifier.height(Spacing.md))
-            ArtDecoAccentButton(onClick = onEnroll) {
-                Text("Enroll")
-            }
+            ArtDecoAccentButton(text = "Enroll", onClick = onEnroll)
         }
     }
 }
-
-private val ProgramTemplate.displayName: String
-    get() = name.replace("_", " ").lowercase().replaceFirstChar { it.uppercase() }
 
 private val ProgramTemplate.description: String
     get() = when (this) {

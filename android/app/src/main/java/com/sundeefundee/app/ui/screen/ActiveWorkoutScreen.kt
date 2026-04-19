@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.sundeefundee.app.ui.theme.*
+import com.sundeefundee.app.ui.theme.MonoMedium
 import com.sundeefundee.app.viewmodel.ActiveWorkoutViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -65,7 +66,7 @@ fun ActiveWorkoutScreen(
             if (isResting) {
                 Card(
                     colors = CardDefaults.cardColors(containerColor = SundeeFundeeTheme.colors.navy),
-                    shape = SundeeFundeeTheme.shapes.medium
+                    shape = MaterialTheme.shapes.medium
                 ) {
                     Column(
                         Modifier.fillMaxWidth().padding(Spacing.lg),
@@ -77,9 +78,7 @@ fun ActiveWorkoutScreen(
                             style = SundeeFundeeTheme.typography.displayLarge.copy(fontSize = 48.sp),
                             color = SundeeFundeeTheme.colors.cream
                         )
-                        ArtDecoGhostButton(onClick = viewModel::skipRest) {
-                            Text("Skip Rest", color = SundeeFundeeTheme.colors.cream)
-                        }
+                        ArtDecoGhostButton(text = "Skip Rest", onClick = viewModel::skipRest)
                     }
                 }
             }
@@ -95,7 +94,7 @@ fun ActiveWorkoutScreen(
                             color = SundeeFundeeTheme.colors.navy
                         )
                         Text(
-                            "Set ${currentSetIndex + 1} of ${exercise.sets.size}",
+                            "Set ${currentSetIndex + 1} of ${exercise.targetSets.size}",
                             style = SundeeFundeeTheme.typography.bodyMedium,
                             color = SundeeFundeeTheme.colors.navy.copy(alpha = 0.6f)
                         )
@@ -103,9 +102,9 @@ fun ActiveWorkoutScreen(
                         Spacer(Modifier.height(Spacing.md))
 
                         // Set input
-                        val currentSet = exercise.sets.getOrNull(currentSetIndex)
-                        var repsInput by remember(currentSetIndex) { mutableIntStateOf(currentSet?.targetReps ?: 0) }
-                        var weightInput by remember(currentSetIndex) { mutableDoubleStateOf(currentSet?.targetWeight ?: 0.0) }
+                        val currentSet = exercise.targetSets.getOrNull(currentSetIndex)
+                        var repsInput by remember(currentSetIndex) { mutableIntStateOf(currentSet?.reps ?: 0) }
+                        var weightInput by remember(currentSetIndex) { mutableDoubleStateOf(currentSet?.prescribedWeight ?: 0.0) }
 
                         Row(
                             Modifier.fillMaxWidth(),
@@ -136,14 +135,11 @@ fun ActiveWorkoutScreen(
 
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
                             ArtDecoPrimaryButton(
+                                text = "Log Set",
                                 onClick = { viewModel.logSet(repsInput, weightInput) },
                                 modifier = Modifier.weight(1f)
-                            ) {
-                                Text("Log Set")
-                            }
-                            ArtDecoGhostButton(onClick = viewModel::skipSet) {
-                                Text("Skip")
-                            }
+                            )
+                            ArtDecoGhostButton(text = "Skip", onClick = viewModel::skipSet)
                         }
                     }
                 }
@@ -153,21 +149,21 @@ fun ActiveWorkoutScreen(
             LazyColumn {
                 itemsIndexed(exercises) { index, exercise ->
                     val isCurrent = index == currentExerciseIndex
-                    val isComplete = exercise.sets.all { it.completed }
+                    val allComplete = exercise.targetSets.all { it.isComplete }
 
                     Surface(
                         color = when {
                             isCurrent -> SundeeFundeeTheme.colors.gold.copy(alpha = 0.1f)
-                            isComplete -> SundeeFundeeTheme.colors.cream
+                            allComplete -> SundeeFundeeTheme.colors.cream
                             else -> SundeeFundeeTheme.colors.cream.copy(alpha = 0.5f)
                         },
-                        shape = SundeeFundeeTheme.shapes.small
+                        shape = MaterialTheme.shapes.small
                     ) {
                         Row(
                             Modifier.fillMaxWidth().padding(Spacing.sm),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            if (isComplete) {
+                            if (allComplete) {
                                 Icon(Icons.Default.CheckCircle, contentDescription = null, tint = SundeeFundeeTheme.colors.orange, modifier = Modifier.size(20.dp))
                             } else {
                                 Text("${index + 1}", style = SundeeFundeeTheme.typography.labelMedium, color = SundeeFundeeTheme.colors.navy.copy(alpha = 0.5f))
@@ -175,7 +171,7 @@ fun ActiveWorkoutScreen(
                             Spacer(Modifier.width(Spacing.sm))
                             Text(exercise.name, style = SundeeFundeeTheme.typography.bodyMedium, color = SundeeFundeeTheme.colors.navy)
                             Spacer(Modifier.weight(1f))
-                            Text("${exercise.sets.count { it.completed }}/${exercise.sets.size}", style = SundeeFundeeTheme.typography.monoMedium, color = SundeeFundeeTheme.colors.navy.copy(alpha = 0.5f))
+                            Text("${exercise.targetSets.count { it.isComplete }}/${exercise.targetSets.size}", style = MonoMedium, color = SundeeFundeeTheme.colors.navy.copy(alpha = 0.5f))
                         }
                     }
                 }
@@ -192,9 +188,7 @@ private fun WorkoutCompleteScreen(onFinish: () -> Unit) {
             Spacer(Modifier.height(Spacing.lg))
             Text("Workout Complete!", style = SundeeFundeeTheme.typography.displayLarge, color = SundeeFundeeTheme.colors.navy)
             Spacer(Modifier.height(Spacing.xl))
-            ArtDecoPrimaryButton(onClick = onFinish) {
-                Text("Done")
-            }
+            ArtDecoPrimaryButton(text = "Done", onClick = onFinish)
         }
     }
 }

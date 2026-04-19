@@ -131,9 +131,9 @@ fun AnalyticsScreen(
 
 private val TimeRange.displayName: String
     get() = when (this) {
-        TimeRange.ONE_MONTH -> "1M"
-        TimeRange.THREE_MONTHS -> "3M"
-        TimeRange.SIX_MONTHS -> "6M"
-        TimeRange.ONE_YEAR -> "1Y"
+        TimeRange.LAST_MONTH -> "1M"
+        TimeRange.LAST_THREE_MONTHS -> "3M"
+        TimeRange.LAST_SIX_MONTHS -> "6M"
+        TimeRange.LAST_YEAR -> "1Y"
         TimeRange.ALL_TIME -> "All"
     }

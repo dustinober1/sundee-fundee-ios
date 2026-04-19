@@ -17,8 +17,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.sundeefundee.app.ui.theme.*
+import com.sundeefundee.app.ui.theme.MonoMedium
 import com.sundeefundee.app.viewmodel.PainTrackingViewModel
-import com.sundeefundee.core.domain.injury.BodyRegion
+import com.sundeefundee.core.domain.injury.BodyRegions
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,12 +58,12 @@ fun PainScreen(
                     horizontalArrangement = Arrangement.spacedBy(Spacing.xs),
                     verticalArrangement = Arrangement.spacedBy(Spacing.xs)
                 ) {
-                    items(BodyRegion.ALL) { region ->
-                        val isSelected = selectedRegion == region.name
+                    items(BodyRegions.allRegions) { region ->
+                        val isSelected = selectedRegion == region.id
                         Surface(
-                            modifier = Modifier.clip(SundeeFundeeTheme.shapes.small).clickable { viewModel.selectRegion(region.name) },
+                            modifier = Modifier.clip(MaterialTheme.shapes.small).clickable { viewModel.selectRegion(region.id) },
                             color = if (isSelected) SundeeFundeeTheme.colors.orange.copy(alpha = 0.2f) else SundeeFundeeTheme.colors.cream,
-                            shape = SundeeFundeeTheme.shapes.small
+                            shape = MaterialTheme.shapes.small
                         ) {
                             Text(
                                 region.displayName,
@@ -92,9 +93,7 @@ fun PainScreen(
                                 )
                             )
                             Spacer(Modifier.height(Spacing.md))
-                            ArtDecoPrimaryButton(onClick = viewModel::savePainLog, modifier = Modifier.fillMaxWidth()) {
-                                Text("Log Pain")
-                            }
+                            ArtDecoPrimaryButton(text = "Log Pain", onClick = viewModel::savePainLog, modifier = Modifier.fillMaxWidth())
                         }
                     }
                 }
@@ -112,7 +111,7 @@ fun PainScreen(
                             }
                             Spacer(Modifier.height(Spacing.sm))
                             substitutions.forEach { sub ->
-                                Text("• $sub", style = SundeeFundeeTheme.typography.bodyMedium, color = SundeeFundeeTheme.colors.navy)
+                                Text("  $sub", style = SundeeFundeeTheme.typography.bodyMedium, color = SundeeFundeeTheme.colors.navy)
                             }
                         }
                     }
@@ -131,7 +130,7 @@ fun PainScreen(
                             Spacer(Modifier.width(Spacing.sm))
                             Column(Modifier.weight(1f)) {
                                 Text(injury.name, style = SundeeFundeeTheme.typography.bodyMedium, color = SundeeFundeeTheme.colors.navy)
-                                Text(injury.bodyRegion, style = SundeeFundeeTheme.typography.bodySmall, color = SundeeFundeeTheme.colors.navy.copy(alpha = 0.6f))
+                                Text(injury.locationIds, style = SundeeFundeeTheme.typography.bodySmall, color = SundeeFundeeTheme.colors.navy.copy(alpha = 0.6f))
                             }
                         }
                     }
@@ -147,10 +146,10 @@ fun PainScreen(
                     ArtDecoCard {
                         Row(Modifier.padding(Spacing.sm).fillMaxWidth()) {
                             Column(Modifier.weight(1f)) {
-                                Text(log.bodyRegion, style = SundeeFundeeTheme.typography.bodyMedium, color = SundeeFundeeTheme.colors.navy)
+                                Text(log.locationIds, style = SundeeFundeeTheme.typography.bodyMedium, color = SundeeFundeeTheme.colors.navy)
                                 Text(log.painType, style = SundeeFundeeTheme.typography.bodySmall, color = SundeeFundeeTheme.colors.navy.copy(alpha = 0.6f))
                             }
-                            Text("${log.intensity}/10", style = SundeeFundeeTheme.typography.monoMedium, color = SundeeFundeeTheme.colors.orange)
+                            Text("${log.intensity}/10", style = MonoMedium, color = SundeeFundeeTheme.colors.orange)
                         }
                     }
                 }

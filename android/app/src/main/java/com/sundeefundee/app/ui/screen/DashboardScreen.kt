@@ -13,6 +13,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.sundeefundee.app.ui.theme.*
+import com.sundeefundee.app.ui.theme.MonoMedium
 import com.sundeefundee.app.viewmodel.DashboardViewModel
 import com.sundeefundee.core.model.CyclePhase
 import com.sundeefundee.core.model.Challenge
@@ -143,9 +144,7 @@ fun DashboardScreen(
                         Spacer(Modifier.height(Spacing.sm))
                         Text("Generate a workout based on your cycle phase and energy level", style = SundeeFundeeTheme.typography.bodySmall, color = SundeeFundeeTheme.colors.navy.copy(alpha = 0.6f))
                         Spacer(Modifier.height(Spacing.md))
-                        ArtDecoAccentButton(onClick = onNavigateToAIWorkout) {
-                            Text("Generate Workout")
-                        }
+                        ArtDecoAccentButton(text = "Generate Workout", onClick = onNavigateToAIWorkout)
                     }
                 }
 
@@ -276,7 +275,7 @@ private fun ChallengeProgressCard(challenge: Challenge, progress: ChallengeProgr
             )
             Spacer(Modifier.height(Spacing.xs))
             Row(Modifier.fillMaxWidth()) {
-                Text("${(progress.percentComplete * 100).toInt()}%", style = SundeeFundeeTheme.typography.monoMedium, color = SundeeFundeeTheme.colors.navy.copy(alpha = 0.5f))
+                Text("${(progress.percentComplete * 100).toInt()}%", style = MonoMedium, color = SundeeFundeeTheme.colors.navy.copy(alpha = 0.5f))
                 Spacer(Modifier.weight(1f))
                 val remaining = progress.volumeRemaining
                 val text = if (remaining >= 1000) "${"%.0f".format(remaining / 1000)}K lbs to go" else "${remaining.toInt()} lbs to go"
@@ -298,7 +297,7 @@ private fun QuickActionTile(
         onClick = onClick,
         modifier = modifier,
         color = if (isPrimary) SundeeFundeeTheme.colors.navy else SundeeFundeeTheme.colors.cream.copy(alpha = 0.5f),
-        shape = SundeeFundeeTheme.shapes.small
+        shape = MaterialTheme.shapes.small
     ) {
         Column(
             Modifier.padding(Spacing.md),

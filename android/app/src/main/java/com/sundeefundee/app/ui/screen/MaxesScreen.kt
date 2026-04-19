@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.sundeefundee.app.ui.theme.*
+import com.sundeefundee.app.ui.theme.MonoMedium
 import com.sundeefundee.app.viewmodel.MaxesViewModel
 import com.sundeefundee.core.model.OneRepMaxRecord
 
@@ -103,10 +104,10 @@ private fun MaxCard(max: OneRepMaxRecord, unit: com.sundeefundee.core.model.Weig
         Row(Modifier.padding(Spacing.md).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
                 Text(max.exerciseName, style = SundeeFundeeTheme.typography.headlineMedium, color = SundeeFundeeTheme.colors.navy)
-                Text("${max.weight} x ${max.reps} reps", style = SundeeFundeeTheme.typography.bodySmall, color = SundeeFundeeTheme.colors.navy.copy(alpha = 0.6f))
+                Text(max.date.take(10), style = SundeeFundeeTheme.typography.bodySmall, color = SundeeFundeeTheme.colors.navy.copy(alpha = 0.6f))
             }
             Column(horizontalAlignment = Alignment.End) {
-                Text("${"%.1f".format(max.oneRepMax)} ${unit.name}", style = SundeeFundeeTheme.typography.monoMedium, color = SundeeFundeeTheme.colors.gold)
+                Text("${"%.1f".format(max.weight)} ${unit.name}", style = MonoMedium, color = SundeeFundeeTheme.colors.gold)
                 Text("1RM", style = SundeeFundeeTheme.typography.labelMedium, color = SundeeFundeeTheme.colors.navy.copy(alpha = 0.5f))
             }
             IconButton(onClick = onDelete) {

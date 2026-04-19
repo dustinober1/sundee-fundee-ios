@@ -21,9 +21,9 @@ object WorkoutShareCard {
         sb.appendLine("─".repeat(24))
         workout.exercises.forEach { exercise ->
             sb.appendLine("${exercise.name}")
-            exercise.sets.filter { it.completed }.forEachIndexed { i, set ->
-                val reps = set.actualReps ?: set.targetReps
-                val weight = set.actualWeight ?: set.targetWeight
+            exercise.targetSets.filter { it.isComplete }.forEachIndexed { i, set ->
+                val reps = set.actualReps ?: set.reps
+                val weight = set.completedWeight ?: set.prescribedWeight
                 sb.appendLine("  Set ${i + 1}: ${reps} reps @ ${"%.0f".format(weight)} lbs")
             }
         }
@@ -31,7 +31,7 @@ object WorkoutShareCard {
         if (workout.totalVolume > 0) {
             sb.appendLine("Total Volume: ${"%,.0f".format(workout.totalVolume)} lbs")
         }
-        val duration = workout.totalDuration
+        val duration = workout.duration
         if (duration > 0) {
             val mins = duration / 60
             val secs = duration % 60

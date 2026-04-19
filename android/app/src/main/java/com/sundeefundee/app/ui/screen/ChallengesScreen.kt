@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.sundeefundee.app.ui.theme.*
+import com.sundeefundee.app.ui.theme.MonoMedium
 import com.sundeefundee.app.viewmodel.ChallengesViewModel
 import com.sundeefundee.core.model.Challenge
 import com.sundeefundee.core.model.ChallengeProgress
@@ -129,7 +130,7 @@ private fun ChallengeCard(challenge: Challenge, progress: ChallengeProgress) {
             )
             Spacer(Modifier.height(Spacing.xs))
             Row(Modifier.fillMaxWidth()) {
-                Text("${(progress.percentComplete * 100).toInt()}%", style = SundeeFundeeTheme.typography.monoMedium, color = SundeeFundeeTheme.colors.navy.copy(alpha = 0.5f))
+                Text("${(progress.percentComplete * 100).toInt()}%", style = MonoMedium, color = SundeeFundeeTheme.colors.navy.copy(alpha = 0.5f))
                 Spacer(Modifier.weight(1f))
                 Text("${"%,.0f".format(progress.volumeRemaining)} lbs to go", style = SundeeFundeeTheme.typography.labelMedium, color = SundeeFundeeTheme.colors.navy.copy(alpha = 0.5f))
             }

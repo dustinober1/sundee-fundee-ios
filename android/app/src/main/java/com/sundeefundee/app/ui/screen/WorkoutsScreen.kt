@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.sundeefundee.app.ui.theme.*
 import com.sundeefundee.app.viewmodel.WorkoutsViewModel
+import com.sundeefundee.app.ui.theme.MonoMedium
 import com.sundeefundee.core.model.Workout
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -89,7 +90,7 @@ private fun WorkoutCard(workout: Workout, onClick: () -> Unit) {
                 if (workout.totalVolume > 0) {
                     Text(
                         "${"%,.0f".format(workout.totalVolume)} lbs volume",
-                        style = SundeeFundeeTheme.typography.monoMedium,
+                        style = MonoMedium,
                         color = SundeeFundeeTheme.colors.gold
                     )
                 }
