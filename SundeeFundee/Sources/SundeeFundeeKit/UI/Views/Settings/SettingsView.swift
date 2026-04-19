@@ -23,6 +23,7 @@ private var appVersionString: String {
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
 public struct SettingsView: View {
     @StateObject private var viewModel = SettingsViewModel()
+    @StateObject private var diagnostics = DiagnosticsService.shared
     @EnvironmentObject var authViewModel: AuthViewModel
     @State private var showingDeleteConfirmation = false
 
@@ -89,6 +90,24 @@ public struct SettingsView: View {
                         ExportView()
                     } label: {
                         Label("Export My Data", systemImage: "square.and.arrow.up")
+                    }
+                }
+
+                // Diagnostics Section — only visible when there's something to surface
+                if diagnostics.decodeFailureCount > 0 {
+                    Section("Diagnostics") {
+                        HStack(spacing: AppTheme.Spacing.sm) {
+                            Image(systemName: "exclamationmark.triangle")
+                                .foregroundColor(AppTheme.Accent.orange)
+                                .accessibilityHidden(true)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("\(diagnostics.decodeFailureCount) record\(diagnostics.decodeFailureCount == 1 ? "" : "s") couldn't be loaded")
+                                    .font(AppTheme.Typography.bodyMedium)
+                                Text("Some of your history may be missing. Try signing out and back in.")
+                                    .font(AppTheme.Typography.bodySmall)
+                                    .foregroundColor(AppTheme.Text.secondary)
+                            }
+                        }
                     }
                 }
 
