@@ -16,6 +16,16 @@ public struct ProgramsListView: View {
             Group {
                 if viewModel.isLoading && viewModel.programs.isEmpty {
                     ProgressView("Loading programs...")
+                } else if viewModel.programs.isEmpty {
+                    EmptyStateView(
+                        icon: "list.bullet.rectangle",
+                        title: "No Programs Available",
+                        subtitle: "Programs couldn't be loaded. Pull to refresh or check your connection.",
+                        actionLabel: "Try Again",
+                        action: {
+                            Task { await viewModel.loadPrograms() }
+                        }
+                    )
                 } else {
                     ScrollView {
                         VStack(spacing: AppTheme.Spacing.md) {
