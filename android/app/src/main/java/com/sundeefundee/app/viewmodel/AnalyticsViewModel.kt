@@ -4,7 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sundeefundee.core.data.factory.DataClientFactory
 import com.sundeefundee.core.domain.analytics.ChartDataAggregator
+import com.sundeefundee.core.domain.analytics.FrequencyDataPoint
+import com.sundeefundee.core.domain.analytics.StrengthDataPoint
 import com.sundeefundee.core.domain.analytics.TimeRange
+import com.sundeefundee.core.domain.analytics.VolumeDataPoint
 import com.sundeefundee.core.model.CyclePhaseInfo
 import com.sundeefundee.core.model.OneRepMaxRecord
 import com.sundeefundee.core.model.Workout
@@ -25,16 +28,16 @@ class AnalyticsViewModel @Inject constructor(
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage = _errorMessage.asStateFlow()
 
-    private val _selectedRange = MutableStateFlow(TimeRange.THREE_MONTHS)
+    private val _selectedRange = MutableStateFlow(TimeRange.LAST_THREE_MONTHS)
     val selectedRange = _selectedRange.asStateFlow()
 
-    private val _strengthData = MutableStateFlow<List<ChartDataAggregator.StrengthDataPoint>>(emptyList())
+    private val _strengthData = MutableStateFlow<List<StrengthDataPoint>>(emptyList())
     val strengthData = _strengthData.asStateFlow()
 
-    private val _volumeData = MutableStateFlow<List<ChartDataAggregator.VolumeDataPoint>>(emptyList())
+    private val _volumeData = MutableStateFlow<List<VolumeDataPoint>>(emptyList())
     val volumeData = _volumeData.asStateFlow()
 
-    private val _frequencyData = MutableStateFlow<List<ChartDataAggregator.FrequencyDataPoint>>(emptyList())
+    private val _frequencyData = MutableStateFlow<List<FrequencyDataPoint>>(emptyList())
     val frequencyData = _frequencyData.asStateFlow()
 
     private val _selectedExercise = MutableStateFlow<String?>(null)
