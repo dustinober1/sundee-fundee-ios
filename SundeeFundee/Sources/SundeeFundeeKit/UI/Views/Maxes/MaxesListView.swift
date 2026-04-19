@@ -203,41 +203,6 @@ private struct MaxesListRow: View {
     }
 }
 
-// MARK: - MaxRow
-
-@available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
-struct MaxRow: View {
-    let max: OneRepMaxItem
-
-    var body: some View {
-        ArtDecoCard {
-            HStack(spacing: AppTheme.Spacing.md) {
-                VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
-                    Text(max.exerciseName)
-                        .font(AppTheme.Typography.headlineMedium)
-                        .foregroundColor(AppTheme.Text.primary)
-
-                    Text(max.date, style: .date)
-                        .font(AppTheme.Typography.bodySmall)
-                        .foregroundColor(AppTheme.Text.secondary)
-                }
-
-                Spacer()
-
-                VStack(alignment: .trailing, spacing: AppTheme.Spacing.xs) {
-                    Text("\(max.weight, specifier: "%.0f")")
-                        .font(AppTheme.Typography.displayMedium)
-                        .foregroundColor(AppTheme.Text.primary)
-
-                    Text(max.unit.rawValue)
-                        .font(AppTheme.Typography.labelMedium)
-                        .foregroundColor(AppTheme.Text.secondary)
-                }
-            }
-        }
-    }
-}
-
 // MARK: - OneRepMaxItem
 
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
