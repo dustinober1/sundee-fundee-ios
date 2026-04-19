@@ -120,7 +120,7 @@ public struct AnalyticsView: View {
         ArtDecoCard {
             VStack(spacing: AppTheme.Spacing.md) {
                 Image(systemName: "exclamationmark.triangle")
-                    .font(.system(size: 32))
+                    .font(.title)
                     .foregroundColor(AppTheme.Semantic.warning)
                     .accessibilityHidden(true)
 
@@ -151,7 +151,7 @@ public struct AnalyticsView: View {
             Spacer()
 
             Image(systemName: "chart.bar")
-                .font(.system(size: 48))
+                .font(.system(.largeTitle))
                 .foregroundColor(AppTheme.Text.secondary.opacity(0.5))
                 .accessibilityHidden(true)
 
