@@ -564,6 +564,15 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
                 } catch {
                     ckLogger.error("⚠️ DECODE \(record.recordType)/\(record.recordID.recordName): \(String(describing: error))")
                     ckLogger.error("⚠️ DECODE \(record.recordType)/\(record.recordID.recordName) keys: \(record.allKeys().joined(separator: ", "))")
+                    let recordType = record.recordType
+                    let recordID = record.recordID.recordName
+                    await MainActor.run {
+                        DiagnosticsService.shared.recordDecodeFailure(
+                            recordType: recordType,
+                            recordID: recordID,
+                            error: error
+                        )
+                    }
                     continue
                 }
             case .failure(let error):
@@ -590,6 +599,15 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
                 } catch {
                     ckLogger.error("⚠️ DECODE \(record.recordType)/\(record.recordID.recordName): \(String(describing: error))")
                     ckLogger.error("⚠️ DECODE \(record.recordType)/\(record.recordID.recordName) keys: \(record.allKeys().joined(separator: ", "))")
+                    let recordType = record.recordType
+                    let recordID = record.recordID.recordName
+                    await MainActor.run {
+                        DiagnosticsService.shared.recordDecodeFailure(
+                            recordType: recordType,
+                            recordID: recordID,
+                            error: error
+                        )
+                    }
                     continue
                 }
             case .failure(let error):
