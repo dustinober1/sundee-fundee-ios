@@ -10,6 +10,7 @@ public enum CelebrationEvent: Sendable {
     case weightMilestone(exerciseName: String, thresholdKg: Double)
     case newConditioningPR(exerciseName: String, value: Double, scoringType: BenchmarkScoringType)
     case challengeTierCompleted(challengeTitle: String, tierName: String, volumeLbs: Double)
+    case challengeCompleted(challengeTitle: String)
 }
 
 // MARK: - Formatting Helpers
@@ -53,6 +54,8 @@ public func celebrationTitle(_ event: CelebrationEvent) -> String {
         return "New Conditioning PR!"
     case .challengeTierCompleted:
         return "Challenge Milestone!"
+    case .challengeCompleted:
+        return "Challenge Complete!"
     }
 }
 
@@ -77,6 +80,8 @@ public func celebrationSubtitle(_ event: CelebrationEvent, unit: String = "kg") 
     case .challengeTierCompleted(let challengeTitle, let tierName, let volumeLbs):
         let formatted = formatWeight(volumeLbs)
         return "\(challengeTitle) — \(tierName) tier at \(formatted) lbs!"
+    case .challengeCompleted(let challengeTitle):
+        return "You've completed \(challengeTitle)!"
     }
 }
 
