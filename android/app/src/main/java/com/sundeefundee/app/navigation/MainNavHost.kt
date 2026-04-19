@@ -28,7 +28,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.sundeefundee.app.R
-import com.sundeefundee.app.ui.screen.PlaceholderScreen
+import com.sundeefundee.app.ui.screen.*
 
 data class TabItem(
     val route: String,
@@ -48,6 +48,12 @@ val tabs = listOf(
     TabItem(TabRoutes.SETTINGS, R.string.tab_settings, Icons.Filled.Settings),
 )
 
+// Routes that should hide the bottom bar
+private val fullScreenRoutes = setOf(
+    TabRoutes.ACTIVE_WORKOUT,
+    TabRoutes.AI_WORKOUT
+)
+
 @Composable
 fun MainNavHost() {
     val navController = rememberNavController()
@@ -56,22 +62,24 @@ fun MainNavHost() {
 
     Scaffold(
         bottomBar = {
-            NavigationBar {
-                tabs.forEach { tab ->
-                    NavigationBarItem(
-                        icon = { Icon(tab.icon, contentDescription = stringResource(tab.labelResId)) },
-                        label = { Text(stringResource(tab.labelResId), maxLines = 1) },
-                        selected = currentDestination?.hierarchy?.any { it.route == tab.route } == true,
-                        onClick = {
-                            navController.navigate(tab.route) {
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
+            if (currentDestination?.route !in fullScreenRoutes) {
+                NavigationBar {
+                    tabs.forEach { tab ->
+                        NavigationBarItem(
+                            icon = { Icon(tab.icon, contentDescription = stringResource(tab.labelResId)) },
+                            label = { Text(stringResource(tab.labelResId), maxLines = 1) },
+                            selected = currentDestination?.hierarchy?.any { it.route == tab.route } == true,
+                            onClick = {
+                                navController.navigate(tab.route) {
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
                                 }
-                                launchSingleTop = true
-                                restoreState = true
                             }
-                        }
-                    )
+                        )
+                    }
                 }
             }
         }
@@ -81,15 +89,49 @@ fun MainNavHost() {
             startDestination = TabRoutes.DASHBOARD,
             modifier = Modifier.padding(innerPadding)
         ) {
-            composable(TabRoutes.DASHBOARD) { PlaceholderScreen("Dashboard") }
-            composable(TabRoutes.WORKOUTS) { PlaceholderScreen("Workouts") }
-            composable(TabRoutes.PROGRAMS) { PlaceholderScreen("Programs") }
-            composable(TabRoutes.MAXES) { PlaceholderScreen("Maxes") }
-            composable(TabRoutes.PAIN) { PlaceholderScreen("Pain") }
-            composable(TabRoutes.CYCLE) { PlaceholderScreen("Cycle") }
-            composable(TabRoutes.ANALYTICS) { PlaceholderScreen("Analytics") }
-            composable(TabRoutes.BENCHMARKS) { PlaceholderScreen("Benchmarks") }
-            composable(TabRoutes.SETTINGS) { PlaceholderScreen("Settings") }
+            composable(TabRoutes.DASHBOARD) {
+                DashboardScreen(
+                    onNavigateToWorkouts = { navController.navigate(TabRoutes.WORKOUTS) },
+                    onNavigateToMaxes = { navController.navigate(TabRoutes.MAXES) },
+                    onNavigateToPain = { navController.navigate(TabRoutes.PAIN) },
+                    onNavigateToBenchmarks = { navController.navigate(TabRoutes.BENCHMARKS) },
+                    onNavigateToChallenges = { navController.navigate(TabRoutes.BENCHMARKS) },
+                    onNavigateToCycle = { navController.navigate(TabRoutes.CYCLE) },
+                    onNavigateToInsights = { navController.navigate(TabRoutes.INSIGHTS) },
+                    onNavigateToAIWorkout = { navController.navigate(TabRoutes.AI_WORKOUT) }
+                )
+            }
+            composable(TabRoutes.WORKOUTS) {
+                WorkoutsScreen(
+                    onStartWorkout = { navController.navigate(TabRoutes.ACTIVE_WORKOUT) },
+                    onWorkoutClick = { /* TODO: workout detail */ }
+                )
+            }
+            composable(TabRoutes.ACTIVE_WORKOUT) {
+                ActiveWorkoutScreen(
+                    onFinish = { navController.popBackStack() }
+                )
+            }
+            composable(TabRoutes.PROGRAMS) {
+                ProgramsScreen(
+                    onEnroll = { /* TODO: enroll in program */ }
+                )
+            }
+            composable(TabRoutes.MAXES) { MaxesScreen() }
+            composable(TabRoutes.PAIN) { PainScreen() }
+            composable(TabRoutes.CYCLE) { CycleScreen() }
+            composable(TabRoutes.ANALYTICS) { AnalyticsScreen() }
+            composable(TabRoutes.BENCHMARKS) { BenchmarksScreen() }
+            composable(TabRoutes.SETTINGS) {
+                SettingsScreen(
+                    onSignOut = { /* TODO: navigate to auth */ }
+                )
+            }
+            composable(TabRoutes.INSIGHTS) { InsightsScreen() }
+            composable(TabRoutes.AI_WORKOUT) {
+                // TODO: AI Workout generation screen
+                PlaceholderScreen("AI Workout")
+            }
         }
     }
 }
