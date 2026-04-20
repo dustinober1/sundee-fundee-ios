@@ -14,7 +14,7 @@ struct CycleInsightShareView: View {
 
     var body: some View {
         ZStack {
-            AppTheme.Background.cream
+            AppTheme.Background.brandCream
             phaseBand
             VStack(spacing: AppTheme.Spacing.lg) {
                 topBadge

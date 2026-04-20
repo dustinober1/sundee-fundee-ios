@@ -191,7 +191,7 @@ public struct AuthView: View {
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, AppTheme.Spacing.lg)
-                    .background(AppTheme.Text.primary)
+                    .background(AppTheme.Background.navy)
                     .cornerRadius(AppTheme.CornerRadius.large)
                 }
                 .buttonStyle(.plain)

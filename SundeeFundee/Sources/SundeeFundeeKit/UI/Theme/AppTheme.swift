@@ -1,7 +1,27 @@
 import SwiftUI
 #if canImport(UIKit)
 import UIKit
+#elseif canImport(AppKit)
+import AppKit
 #endif
+
+private struct AppThemeColorToken {
+    let red: Double
+    let green: Double
+    let blue: Double
+    let opacity: Double
+
+    init(red: Double, green: Double, blue: Double, opacity: Double = 1.0) {
+        self.red = red
+        self.green = green
+        self.blue = blue
+        self.opacity = opacity
+    }
+
+    var color: Color {
+        Color(red: red, green: green, blue: blue, opacity: opacity)
+    }
+}
 
 // MARK: - AppTheme
 //
@@ -21,14 +41,51 @@ import UIKit
 /// App theme container for Art Deco design tokens
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
 public enum AppTheme {
+    private static func adaptiveColor(
+        light: AppThemeColorToken,
+        dark: AppThemeColorToken
+    ) -> Color {
+        #if canImport(UIKit)
+        return Color(uiColor: UIColor { traitCollection in
+            let token = traitCollection.userInterfaceStyle == .dark ? dark : light
+            return UIColor(
+                red: token.red,
+                green: token.green,
+                blue: token.blue,
+                alpha: token.opacity
+            )
+        })
+        #elseif canImport(AppKit)
+        return Color(nsColor: NSColor(name: nil) { appearance in
+            let isDark = appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+            let token = isDark ? dark : light
+            return NSColor(
+                srgbRed: token.red,
+                green: token.green,
+                blue: token.blue,
+                alpha: token.opacity
+            )
+        })
+        #else
+        return light.color
+        #endif
+    }
+
     // MARK: - Colors
 
     /// Background colors
     public enum Background {
-        public static let cream = Color(red: 0.956, green: 0.941, blue: 0.874) // #f4f0df
+        public static let cream = AppTheme.adaptiveColor(
+            light: AppThemeColorToken(red: 0.956, green: 0.941, blue: 0.874),
+            dark: AppThemeColorToken(red: 0.055, green: 0.063, blue: 0.086)
+        )
+        public static let brandCream = Color(red: 0.956, green: 0.941, blue: 0.874) // #f4f0df
         public static let navy = Color(red: 0.051, green: 0.102, blue: 0.251) // #0d1a40
         public static let white = Color.white
-        public static let card = Color.white.opacity(0.8)
+        public static let card = AppTheme.adaptiveColor(
+            light: AppThemeColorToken(red: 1.0, green: 1.0, blue: 1.0, opacity: 0.8),
+            dark: AppThemeColorToken(red: 0.125, green: 0.137, blue: 0.180, opacity: 0.94)
+        )
     }
 
     /// Text colors
@@ -36,9 +93,15 @@ public enum AppTheme {
     /// for WCAG AA compliance (AUD-06). Minimum 4.5:1 for normal text, 3:1 for large text.
     public enum Text {
         /// Navy on cream: 13.7:1 -- PASSES AAA
-        public static let primary = Color(red: 0.051, green: 0.102, blue: 0.251) // #0d1a40
+        public static let primary = AppTheme.adaptiveColor(
+            light: AppThemeColorToken(red: 0.051, green: 0.102, blue: 0.251),
+            dark: AppThemeColorToken(red: 0.956, green: 0.941, blue: 0.874)
+        )
         /// Secondary blue on cream: 7.4:1 -- PASSES AAA
-        public static let secondary = Color(red: 0.251, green: 0.325, blue: 0.498) // #40537f
+        public static let secondary = AppTheme.adaptiveColor(
+            light: AppThemeColorToken(red: 0.251, green: 0.325, blue: 0.498),
+            dark: AppThemeColorToken(red: 0.684, green: 0.720, blue: 0.806)
+        )
         /// Cream on navy: 13.7:1 -- PASSES AAA (use on dark backgrounds only)
         public static let cream = Color(red: 0.956, green: 0.941, blue: 0.874) // #f4f0df
         /// Gold on cream: 4.6:1 -- PASSES AA (darkened from #d4a520 for WCAG AA compliance)

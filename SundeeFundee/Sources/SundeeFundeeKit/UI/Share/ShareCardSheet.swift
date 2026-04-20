@@ -58,7 +58,7 @@ public struct ShareCardSheet: View {
                 }
                 .padding()
             }
-            .background(AppTheme.Background.cream.ignoresSafeArea())
+            .background(AppTheme.Background.brandCream.ignoresSafeArea())
             .navigationTitle("Share")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

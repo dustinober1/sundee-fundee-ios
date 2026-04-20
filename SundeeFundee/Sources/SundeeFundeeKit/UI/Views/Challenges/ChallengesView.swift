@@ -89,7 +89,7 @@ public struct ChallengesView: View {
             } label: {
                 Text("Create Challenge")
                     .font(AppTheme.Typography.headlineMedium)
-                    .foregroundColor(AppTheme.Background.cream)
+                    .foregroundColor(AppTheme.Text.cream)
                     .padding(.horizontal, AppTheme.Spacing.xl)
                     .padding(.vertical, AppTheme.Spacing.sm)
                     .background(AppTheme.Accent.gold)
@@ -126,7 +126,7 @@ public struct ChallengesView: View {
             } label: {
                 Label("Retry", systemImage: "arrow.clockwise")
                     .font(AppTheme.Typography.headlineMedium)
-                    .foregroundColor(AppTheme.Background.cream)
+                    .foregroundColor(AppTheme.Text.cream)
                     .padding(.horizontal, AppTheme.Spacing.xl)
                     .padding(.vertical, AppTheme.Spacing.sm)
                     .background(AppTheme.Accent.gold)
