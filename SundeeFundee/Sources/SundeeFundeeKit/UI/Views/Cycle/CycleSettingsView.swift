@@ -16,6 +16,7 @@ struct CycleSettingsView: View {
     @State private var isEndingPeriod: Bool = false
     @State private var errorMessage: String?
     @State private var loadTrigger: Int = 0
+    @State private var editingPeriod: PeriodLogRecord?
 
     @EnvironmentObject var cyclePhaseCache: CyclePhaseCache
 
@@ -72,20 +73,30 @@ struct CycleSettingsView: View {
             // Active Period / Start Period
             if let active = activePeriod {
                 Section {
-                    HStack {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Period started")
-                                .font(AppTheme.Typography.bodyMedium)
-                                .foregroundColor(AppTheme.Text.primary)
-                            Text(formatDate(active.startDate))
-                                .font(AppTheme.Typography.bodySmall)
+                    Button {
+                        editingPeriod = active
+                    } label: {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Period started")
+                                    .font(AppTheme.Typography.bodyMedium)
+                                    .foregroundColor(AppTheme.Text.primary)
+                                Text(formatDate(active.startDate))
+                                    .font(AppTheme.Typography.bodySmall)
+                                    .foregroundColor(AppTheme.Text.secondary)
+                            }
+                            Spacer()
+                            Text("\u{1F988} Active")
+                                .font(AppTheme.Typography.labelMedium)
+                                .foregroundColor(.red)
+                            Image(systemName: "chevron.right")
+                                .font(.caption)
                                 .foregroundColor(AppTheme.Text.secondary)
                         }
-                        Spacer()
-                        Text("\u{1F988} Active")
-                            .font(AppTheme.Typography.labelMedium)
-                            .foregroundColor(.red)
+                        .contentShape(Rectangle())
                     }
+                    .buttonStyle(.borderless)
+                    .accessibilityHint("Edit start date")
 
                     Button {
                         Task { await endActivePeriod() }
@@ -176,31 +187,45 @@ struct CycleSettingsView: View {
             // Logged Periods (completed ones only)
             let completedPeriods = loggedPeriods.filter { !$0.isActive }
             if !completedPeriods.isEmpty {
-                Section("Past Periods") {
+                Section {
                     ForEach(completedPeriods) { period in
-                        HStack {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(formatDate(period.startDate))
-                                    .font(AppTheme.Typography.bodyMedium)
-                                    .foregroundColor(AppTheme.Text.primary)
-                                if let endDate = period.endDate {
-                                    Text("to \(formatDate(endDate))")
-                                        .font(AppTheme.Typography.bodySmall)
-                                        .foregroundColor(AppTheme.Text.secondary)
+                        Button {
+                            editingPeriod = period
+                        } label: {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(formatDate(period.startDate))
+                                        .font(AppTheme.Typography.bodyMedium)
+                                        .foregroundColor(AppTheme.Text.primary)
+                                    if let endDate = period.endDate {
+                                        Text("to \(formatDate(endDate))")
+                                            .font(AppTheme.Typography.bodySmall)
+                                            .foregroundColor(AppTheme.Text.secondary)
+                                    }
                                 }
+                                Spacer()
+                                if let endDate = period.endDate {
+                                    Text("\(daysBetween(period.startDate, endDate)) days")
+                                        .font(AppTheme.Typography.labelMedium)
+                                        .foregroundColor(AppTheme.Accent.gold)
+                                }
+                                Image(systemName: "chevron.right")
+                                    .font(.caption)
+                                    .foregroundColor(AppTheme.Text.secondary)
                             }
-                            Spacer()
-                            if let endDate = period.endDate {
-                                Text("\(daysBetween(period.startDate, endDate)) days")
-                                    .font(AppTheme.Typography.labelMedium)
-                                    .foregroundColor(AppTheme.Accent.gold)
-                            }
+                            .contentShape(Rectangle())
                         }
+                        .buttonStyle(.borderless)
+                        .accessibilityHint("Edit period dates")
                     }
                     .onDelete { offsets in
                         let ids = offsets.map { completedPeriods[$0].id }
                         Task { await deletePeriods(ids: ids) }
                     }
+                } header: {
+                    Text("Past Periods")
+                } footer: {
+                    Text("Tap a period to edit its dates. Swipe left to delete.")
                 }
             }
         }
@@ -221,6 +246,11 @@ struct CycleSettingsView: View {
             Button("OK") { errorMessage = nil }
         } message: {
             Text(errorMessage ?? "")
+        }
+        .sheet(item: $editingPeriod) { period in
+            EditPeriodSheet(period: period) { updated in
+                Task { await updatePeriod(updated) }
+            }
         }
     }
 
@@ -330,6 +360,33 @@ struct CycleSettingsView: View {
         isLogging = false
     }
 
+    private func updatePeriod(_ updated: PeriodLogRecord) async {
+        let startOfDay = Calendar.current.startOfDay(for: updated.startDate)
+        let endOfDay = updated.endDate.map { Calendar.current.startOfDay(for: $0) }
+        let normalized = PeriodLogRecord(id: updated.id, startDate: startOfDay, endDate: endOfDay)
+        do {
+            try await dataClient.save(normalized, recordType: "PeriodLogRecord")
+            if let idx = loggedPeriods.firstIndex(where: { $0.id == normalized.id }) {
+                loggedPeriods[idx] = normalized
+            }
+            loggedPeriods.sort { $0.startDate > $1.startDate }
+
+            // If this edit changed the most-recent period start, update CycleSettings so
+            // phase predictions recompute from the corrected date.
+            if let mostRecentStart = loggedPeriods.first?.startDate {
+                let settingsRecord = CycleSettingsRecord(
+                    averageCycleLengthDays: Int(cycleLength),
+                    lastPeriodStart: mostRecentStart
+                )
+                try? await dataClient.save(settingsRecord, recordType: "CycleSettings")
+            }
+
+            NotificationCenter.default.post(name: .cycleDataUpdated, object: nil)
+        } catch {
+            errorMessage = "Failed to update period: \(error.localizedDescription)"
+        }
+    }
+
     private func deletePeriods(ids: [String]) async {
         loggedPeriods.removeAll { ids.contains($0.id) }
         if loggedPeriods.first(where: { $0.isActive }) == nil {
@@ -357,5 +414,106 @@ struct CycleSettingsView: View {
     private func daysBetween(_ start: Date, _ end: Date) -> Int {
         let days = Calendar.current.dateComponents([.day], from: Calendar.current.startOfDay(for: start), to: Calendar.current.startOfDay(for: end)).day ?? 0
         return days + 1
+    }
+}
+
+// MARK: - EditPeriodSheet
+
+@available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
+private struct EditPeriodSheet: View {
+    let period: PeriodLogRecord
+    let onSave: (PeriodLogRecord) -> Void
+
+    @Environment(\.dismiss) private var dismiss
+
+    @State private var startDate: Date
+    @State private var hasEndDate: Bool
+    @State private var endDate: Date
+
+    init(period: PeriodLogRecord, onSave: @escaping (PeriodLogRecord) -> Void) {
+        self.period = period
+        self.onSave = onSave
+        _startDate = State(initialValue: period.startDate)
+        _hasEndDate = State(initialValue: period.endDate != nil)
+        _endDate = State(initialValue: period.endDate ?? period.startDate)
+    }
+
+    private var isValid: Bool {
+        !hasEndDate || endDate >= startDate
+    }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    DatePicker(
+                        "Start Date",
+                        selection: $startDate,
+                        in: ...Date(),
+                        displayedComponents: .date
+                    )
+                } footer: {
+                    Text("Correcting the start date will update your cycle predictions.")
+                }
+
+                Section {
+                    Toggle("Has End Date", isOn: $hasEndDate)
+                    if hasEndDate {
+                        DatePicker(
+                            "End Date",
+                            selection: $endDate,
+                            in: startDate...Date(),
+                            displayedComponents: .date
+                        )
+                    }
+                } footer: {
+                    if !hasEndDate {
+                        Text("Leave off if this period is still active.")
+                    } else if endDate < startDate {
+                        Text("End date must be on or after start date.")
+                            .foregroundColor(AppTheme.Semantic.error)
+                    }
+                }
+            }
+            .navigationTitle("Edit Period")
+            #if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
+            .toolbar {
+                #if os(iOS)
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") {
+                        let updated = PeriodLogRecord(
+                            id: period.id,
+                            startDate: startDate,
+                            endDate: hasEndDate ? endDate : nil
+                        )
+                        onSave(updated)
+                        dismiss()
+                    }
+                    .disabled(!isValid)
+                }
+                #else
+                ToolbarItem {
+                    Button("Cancel") { dismiss() }
+                }
+                ToolbarItem {
+                    Button("Save") {
+                        let updated = PeriodLogRecord(
+                            id: period.id,
+                            startDate: startDate,
+                            endDate: hasEndDate ? endDate : nil
+                        )
+                        onSave(updated)
+                        dismiss()
+                    }
+                    .disabled(!isValid)
+                }
+                #endif
+            }
+        }
     }
 }
