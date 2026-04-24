@@ -1,11 +1,7 @@
-What's New in 1.4:
+What's New in 1.5.1:
 
-- Home Screen & Lock Screen widgets for Cycle Phase and Recovery Score
-- Siri Shortcuts: "Start Workout," "Log Set," and quick recovery lookups
-- Pain and Cycle are now top-level tabs for faster access
-- New exercise catalog picker when setting your 1-rep max
-- Improved Sign in with Apple account deletion (proper token revocation)
-- Better offline resilience: CloudKit conflicts now merge cleanly
-- Numerous stability and performance fixes
+- Edit logged period dates — tap any period in Cycle Settings to correct its start/end date
+- Calendar predictions now update immediately when you fix a period's start date, so users with irregular cycles can keep the calendar accurate
+- Dark mode theme polish
 
 Thanks for training with Sundee Fundee!
