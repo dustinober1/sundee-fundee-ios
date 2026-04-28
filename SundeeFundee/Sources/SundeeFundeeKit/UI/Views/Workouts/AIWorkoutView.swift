@@ -142,6 +142,7 @@ struct AIWorkoutView: View {
                         VStack(spacing: AppTheme.Spacing.sm) {
                             equipmentOption(.fullGym, "Full Gym", "All equipment available")
                             equipmentOption(.homeDumbbells, "Home Dumbbells", "Dumbbells and bench")
+                            equipmentOption(.kettlebellOnly, "Kettlebell Only", "Single or pair of bells")
                             equipmentOption(.bodyweightOnly, "Bodyweight Only", "No equipment")
                         }
                     }
