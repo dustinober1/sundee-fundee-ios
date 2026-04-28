@@ -45,21 +45,22 @@ public final class DeterministicCoachService: CoachServiceProtocol, @unchecked S
                 id: ex.id, name: ex.name, sets: ex.sets, reps: ex.reps,
                 weightKg: ex.weightKg,
                 restMinutes: assignRestMinutes(bodyweight: ex.bodyweightOnly, reps: ex.reps),
-                notes: ex.notes, reasoning: ex.reasoning, bodyweightOnly: ex.bodyweightOnly
+                notes: ex.notes, reasoning: ex.reasoning, bodyweightOnly: ex.bodyweightOnly,
+                percentageOfMax: ex.percentageOfMax
             )
         }
 
         let summary = buildCoachingSummary(preferences: preferences, context: context)
         let tips = buildTips(context: context)
 
-        let workout = GeneratedWorkout(
+        let workout = repairGeneratedWorkout(GeneratedWorkout(
             id: UUID().uuidString,
             createdAt: Date(),
             isFavorite: false,
             coachingSummary: summary,
             exercises: final,
             questionnaire: preferences
-        )
+        ))
 
         return CoachWorkoutResponse(
             workout: workout,
@@ -132,6 +133,7 @@ public final class DeterministicCoachService: CoachServiceProtocol, @unchecked S
         case .fullGym: equipmentContext = .fullGym
         case .homeDumbbells: equipmentContext = .homeDumbbells
         case .bodyweightOnly: equipmentContext = .bodyweightOnly
+        case .kettlebellOnly: equipmentContext = .homeDumbbells
         case .outdoor: equipmentContext = .bodyweightOnly
         }
 
@@ -204,15 +206,11 @@ public final class DeterministicCoachService: CoachServiceProtocol, @unchecked S
         context: CoachContext
     ) -> [GeneratedExercise] {
         let targetCount = max(3, preferences.timeMinutes / 10)
-        var pool: [(name: String, bw: Bool)] = exercisePool(for: preferences.focus)
-
-        // Filter by equipment
-        if preferences.equipment == .bodyweightOnly {
-            pool = pool.filter { $0.bw }
-            if pool.isEmpty {
-                pool = [("Push-Up", true), ("Air Squat", true), ("Burpee", true), ("Plank Hold", true)]
-            }
-        }
+        var pool = workoutExercisePool(
+            focus: preferences.focus,
+            equipment: preferences.equipment,
+            energyLevel: preferences.energyLevel
+        )
 
         // Filter by injuries
         if !context.injuries.isEmpty {
@@ -225,7 +223,15 @@ public final class DeterministicCoachService: CoachServiceProtocol, @unchecked S
             }
         }
 
-        let selected = Array(pool.shuffled().prefix(targetCount))
+        if pool.isEmpty {
+            pool = workoutExercisePool(
+                focus: .core,
+                equipment: preferences.equipment == .outdoor ? .bodyweightOnly : preferences.equipment,
+                energyLevel: .low
+            )
+        }
+
+        let selected = selectBalancedExercises(from: pool, targetCount: targetCount)
         let setsPerExercise = preferences.energyLevel == .low ? 3 : 4
         let reps = preferences.focus == .conditioning ? "12-15" : "6-8"
 
@@ -236,36 +242,30 @@ public final class DeterministicCoachService: CoachServiceProtocol, @unchecked S
                 sets: setsPerExercise,
                 reps: reps,
                 reasoning: index == 0 ? "Primary movement for \(preferences.focus.rawValue.replacingOccurrences(of: "_", with: " "))" : nil,
-                bodyweightOnly: entry.bw
+                bodyweightOnly: entry.bodyweightOnly
             )
         }
     }
 
-    private func exercisePool(for focus: WorkoutFocus) -> [(name: String, bw: Bool)] {
-        switch focus {
-        case .upperBody, .push:
-            return [("Flat Barbell Bench Press", false), ("Strict Press", false),
-                    ("Dumbbell Incline Press", false), ("Dips (Weighted)", false),
-                    ("Close Grip Bench Press", false), ("Face Pull", false), ("Push-Up", true)]
-        case .pull:
-            return [("Barbell Row", false), ("Pull-Up", true), ("Lat Pulldown", false),
-                    ("Cable Row", false), ("Dumbbell Row", false),
-                    ("Bicep Curl (Barbell)", false), ("Face Pull", false)]
-        case .lowerBody:
-            return [("Back Squat", false), ("Romanian Deadlift (No Straps)", false),
-                    ("Leg Press", false), ("Hip Thrust", false),
-                    ("Leg Curl (Lying)", false), ("Leg Extension", false), ("Goblet Squat", false)]
-        case .fullBody:
-            return [("Back Squat", false), ("Flat Barbell Bench Press", false),
-                    ("Barbell Row", false), ("Strict Press", false),
-                    ("Romanian Deadlift (No Straps)", false), ("Pull-Up", true)]
-        case .core:
-            return [("Plank Hold", true), ("V-up", true), ("GHD Sit-up", true),
-                    ("Toes-to-Bar", true), ("Sit-Up", true), ("L-Sit Hold", true)]
-        case .conditioning:
-            return [("Burpee", true), ("Kettlebell Swing", false), ("Wall Ball", false),
-                    ("Box Jump", true), ("Thruster", false), ("Air Squat", true), ("Push-Up", true)]
+    private func selectBalancedExercises(
+        from pool: [WorkoutExerciseCandidate],
+        targetCount: Int
+    ) -> [WorkoutExerciseCandidate] {
+        var selected: [WorkoutExerciseCandidate] = []
+        var seenPatterns = Set<WorkoutMovementPattern>()
+
+        for candidate in pool.shuffled() where !seenPatterns.contains(candidate.pattern) {
+            selected.append(candidate)
+            seenPatterns.insert(candidate.pattern)
+            if selected.count == targetCount { return selected }
         }
+
+        for candidate in pool.shuffled() where !selected.contains(candidate) {
+            selected.append(candidate)
+            if selected.count == targetCount { return selected }
+        }
+
+        return selected
     }
 
     private func buildCoachingSummary(
