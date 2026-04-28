@@ -64,6 +64,17 @@ struct SharedSnapshotStoreTests {
         }
     }
 
+    @Test("Shark Week banner suppression round-trips through UserDefaults")
+    func sharkWeekBannerSuppressionRoundTrip() async throws {
+        try await withTestSuite {
+            SharedSnapshotStore.writeSharkWeekBannerSuppressed(true)
+            #expect(SharedSnapshotStore.readSharkWeekBannerSuppressed())
+
+            SharedSnapshotStore.writeSharkWeekBannerSuppressed(false)
+            #expect(!SharedSnapshotStore.readSharkWeekBannerSuppressed())
+        }
+    }
+
     @Test("readRecovery returns nil on empty suite")
     func emptyRecovery() async throws {
         try await withTestSuite {

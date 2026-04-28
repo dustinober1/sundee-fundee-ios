@@ -321,7 +321,8 @@ struct CycleSettingsView: View {
     private func endActivePeriod() async {
         guard let active = activePeriod else { return }
         isEndingPeriod = true
-        let endOfDay = Calendar.current.startOfDay(for: Date())
+        let endOfDay = Calendar.current.date(byAdding: .day, value: -1, to: Calendar.current.startOfDay(for: Date()))
+            ?? Calendar.current.startOfDay(for: Date())
         let updated = PeriodLogRecord(id: active.id, startDate: active.startDate, endDate: endOfDay)
         do {
             try await dataClient.save(updated, recordType: "PeriodLogRecord")

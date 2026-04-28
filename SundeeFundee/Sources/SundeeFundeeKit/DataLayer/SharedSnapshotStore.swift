@@ -45,6 +45,7 @@ public enum SharedSnapshotStore {
 
     private static let recoveryKey = "recoverySnapshot.v1"
     private static let cycleKey = "cycleSnapshot.v1"
+    private static let sharkWeekBannerSuppressedKey = "sharkWeekBannerSuppressed.v1"
 
     /// Overridable suite for tests. Defaults to the shared App Group.
     /// `nonisolated(unsafe)` because this is a test seam — production code
@@ -91,6 +92,17 @@ public enum SharedSnapshotStore {
     public static func clear() {
         defaults?.removeObject(forKey: recoveryKey)
         defaults?.removeObject(forKey: cycleKey)
+        defaults?.removeObject(forKey: sharkWeekBannerSuppressedKey)
+    }
+
+    // MARK: - Shark Week Banner
+
+    public static func writeSharkWeekBannerSuppressed(_ isSuppressed: Bool) {
+        defaults?.set(isSuppressed, forKey: sharkWeekBannerSuppressedKey)
+    }
+
+    public static func readSharkWeekBannerSuppressed() -> Bool {
+        defaults?.bool(forKey: sharkWeekBannerSuppressedKey) ?? false
     }
 
     // MARK: - Codec

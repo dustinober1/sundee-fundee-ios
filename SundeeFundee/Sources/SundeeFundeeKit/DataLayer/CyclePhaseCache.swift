@@ -21,6 +21,9 @@ public final class CyclePhaseCache: ObservableObject {
     @Published public private(set) var isSharkWeek: Bool = false
     @Published public private(set) var cycleDay: Int?
 
+    /// Explicit user override that hides the banner after ending a period.
+    private var isSharkWeekBannerSuppressed: Bool = SharedSnapshotStore.readSharkWeekBannerSuppressed()
+
     // MARK: - Dependencies
 
     private let healthClient: HealthClientProtocol
@@ -68,6 +71,8 @@ public final class CyclePhaseCache: ObservableObject {
 
         // Fast path: active (un-ended) manual period = menstrual phase
         if manualRecords.contains(where: { $0.isActive }) {
+            isSharkWeekBannerSuppressed = false
+            SharedSnapshotStore.writeSharkWeekBannerSuppressed(false)
             currentPhase = .menstrual
             confidence = 1.0
             isSharkWeek = true
@@ -112,6 +117,8 @@ public final class CyclePhaseCache: ObservableObject {
             confidence = nil
             isSharkWeek = false
             cycleDay = nil
+            isSharkWeekBannerSuppressed = false
+            SharedSnapshotStore.writeSharkWeekBannerSuppressed(false)
             lastRefreshed = Date()
             writeSnapshot()
             return
@@ -132,13 +139,19 @@ public final class CyclePhaseCache: ObservableObject {
                 periodLogCount: periodLogs.count,
                 lastPeriodStart: periodLogs.sorted(by: { $0.startDate > $1.startDate }).first?.startDate
             )
-            isSharkWeek = status.currentPhase == .menstrual
+            if status.currentPhase != .menstrual {
+                isSharkWeekBannerSuppressed = false
+                SharedSnapshotStore.writeSharkWeekBannerSuppressed(false)
+            }
+            isSharkWeek = status.currentPhase == .menstrual && !isSharkWeekBannerSuppressed
             cycleDay = status.cycleDay
         } else {
             currentPhase = nil
             confidence = nil
             isSharkWeek = false
             cycleDay = nil
+            isSharkWeekBannerSuppressed = false
+            SharedSnapshotStore.writeSharkWeekBannerSuppressed(false)
         }
 
         lastRefreshed = Date()
@@ -151,6 +164,8 @@ public final class CyclePhaseCache: ObservableObject {
     /// Call immediately after the user starts a period, before the async data
     /// store has been re-indexed.
     public func markPeriodStarted() {
+        isSharkWeekBannerSuppressed = false
+        SharedSnapshotStore.writeSharkWeekBannerSuppressed(false)
         currentPhase = .menstrual
         confidence = 1.0
         isSharkWeek = true
@@ -163,6 +178,8 @@ public final class CyclePhaseCache: ObservableObject {
     /// Optimistically clears shark week status without re-fetching.
     /// Call immediately after the user ends (or deletes) the active period.
     public func markPeriodEnded() {
+        isSharkWeekBannerSuppressed = true
+        SharedSnapshotStore.writeSharkWeekBannerSuppressed(true)
         isSharkWeek = false
         writeSnapshot()
         // Force the next refreshIfNeeded() to do a full fetch.
