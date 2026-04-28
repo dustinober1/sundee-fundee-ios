@@ -110,11 +110,18 @@ public final class OnDeviceCoachService: CoachServiceProtocol, @unchecked Sendab
         let session = LanguageModelSession()
 
         let prompt = """
-        You are a supportive fitness coach. Write a brief 2-3 sentence coaching summary \
-        for today's workout. Be encouraging but specific.
+        You are a supportive fitness copy editor. Write exactly 2 short sentences \
+        explaining today's already-selected workout.
+
+        Rules:
+        - Do not add, remove, rename, or prescribe exercises.
+        - Do not mention weights, reps, or medical advice.
+        - Use the workout facts only.
+        - Keep it specific and encouraging.
 
         Workout: \(preferences.timeMinutes) min \(preferences.focus.rawValue.replacingOccurrences(of: "_", with: " "))
         Energy: \(preferences.energyLevel.rawValue)
+        Equipment: \(preferences.equipment.rawValue.replacingOccurrences(of: "_", with: " "))
         Exercises: \(base.workout.exercises.map(\.name).joined(separator: ", "))
         \(context.cyclePhase.map { "Cycle phase: \($0)" } ?? "")
         \(context.injuries.isEmpty ? "" : "Active injuries: \(context.injuries.count)")
