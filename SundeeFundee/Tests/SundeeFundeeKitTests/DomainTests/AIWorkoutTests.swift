@@ -157,4 +157,99 @@ final class AIWorkoutTests: XCTestCase {
         let result = applyWeights(exercises: exercises, maxes: maxes, energyMult: 1.0, cycleMult: 1.0)
         XCTAssertNil(result[0].weightKg)
     }
+
+    // MARK: - Workout generation rules
+
+    func testKettlebellOnlyAllowsKettlebellMovements() {
+        XCTAssertTrue(isExerciseAllowed("Kettlebell Swing", for: .kettlebellOnly))
+        XCTAssertTrue(isExerciseAllowed("Goblet Squat", for: .kettlebellOnly))
+        XCTAssertFalse(isExerciseAllowed("Flat Barbell Bench Press", for: .kettlebellOnly))
+        XCTAssertFalse(isExerciseAllowed("Cable Row", for: .kettlebellOnly))
+    }
+
+    func testBodyweightOnlyRejectsLoadedMovements() {
+        XCTAssertTrue(isExerciseAllowed("Push-Up", for: .bodyweightOnly))
+        XCTAssertFalse(isExerciseAllowed("Kettlebell Swing", for: .bodyweightOnly))
+        XCTAssertFalse(isExerciseAllowed("Dumbbell Row", for: .bodyweightOnly))
+    }
+
+    func testValidateGeneratedWorkoutFlagsDisallowedEquipmentAndInvalidSets() {
+        let workout = GeneratedWorkout(
+            id: "bad",
+            createdAt: Date(),
+            isFavorite: false,
+            coachingSummary: "Bad workout",
+            exercises: [
+                makeExercise("Flat Barbell Bench Press", sets: 4),
+                makeExercise("Kettlebell Swing", sets: 9)
+            ],
+            questionnaire: QuestionnaireAnswers(
+                timeMinutes: 30,
+                focus: .fullBody,
+                energyLevel: .medium,
+                equipment: .kettlebellOnly
+            )
+        )
+
+        let issues = validateGeneratedWorkout(workout)
+        XCTAssertTrue(issues.contains(.disallowedEquipment(exerciseName: "Flat Barbell Bench Press", equipment: .kettlebellOnly)))
+        XCTAssertTrue(issues.contains(.invalidSets(exerciseName: "Kettlebell Swing", sets: 9)))
+    }
+
+    func testRepairGeneratedWorkoutReplacesInvalidWorkoutWithSafeKettlebellTemplate() {
+        let workout = GeneratedWorkout(
+            id: "repair",
+            createdAt: Date(),
+            isFavorite: false,
+            coachingSummary: "Needs repair",
+            exercises: [
+                makeExercise("Flat Barbell Bench Press", sets: 9),
+                makeExercise("Cable Row", sets: 9)
+            ],
+            questionnaire: QuestionnaireAnswers(
+                timeMinutes: 20,
+                focus: .fullBody,
+                energyLevel: .low,
+                equipment: .kettlebellOnly
+            )
+        )
+
+        let repaired = repairGeneratedWorkout(workout)
+
+        XCTAssertFalse(repaired.exercises.isEmpty)
+        XCTAssertTrue(repaired.exercises.allSatisfy { isExerciseAllowed($0.name, for: .kettlebellOnly) })
+        XCTAssertTrue(repaired.exercises.allSatisfy { $0.sets <= 3 })
+        XCTAssertLessThanOrEqual(totalEstimatedMinutes(repaired.exercises), 25)
+    }
+
+    func testKettlebellLowEnergyPoolAvoidsHighSkillBallisticMovements() {
+        let pool = workoutExercisePool(
+            focus: .conditioning,
+            equipment: .kettlebellOnly,
+            energyLevel: .low
+        ).map(\.name)
+
+        XCTAssertTrue(pool.contains("Kettlebell Swing"))
+        XCTAssertFalse(pool.contains("Kettlebell Snatch"))
+        XCTAssertFalse(pool.contains("Turkish Get-Up"))
+    }
+
+    func testDeterministicCoachGeneratesValidKettlebellWorkout() async throws {
+        let service = DeterministicCoachService()
+        let preferences = QuestionnaireAnswers(
+            timeMinutes: 30,
+            focus: .fullBody,
+            energyLevel: .medium,
+            equipment: .kettlebellOnly
+        )
+
+        let response = try await service.generateWorkout(
+            context: CoachContext(equipment: .kettlebellOnly),
+            preferences: preferences
+        )
+
+        XCTAssertFalse(response.workout.exercises.isEmpty)
+        XCTAssertTrue(response.workout.exercises.allSatisfy { isExerciseAllowed($0.name, for: .kettlebellOnly) })
+        XCTAssertTrue(validateGeneratedWorkout(response.workout).isEmpty)
+    }
 }
