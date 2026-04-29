@@ -134,10 +134,6 @@ final class ScheduleReshufflerTests: XCTestCase {
     }
 
     func testReshuffle_EndOfWeek_NoAvailableDays() {
-        let plan = [
-            makeSession(day: 1, name: "Monday"),
-            makeSession(day: 7, name: "Sunday"),
-        ]
         // Missed Monday, Sunday is already planned and full. Current day = 7.
         // Only day 7 remains but it already has a session and adding Monday's
         // 60-min session would still be under 120 min limit. So let's make them

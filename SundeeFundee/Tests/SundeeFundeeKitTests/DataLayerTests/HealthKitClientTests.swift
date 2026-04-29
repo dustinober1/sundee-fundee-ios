@@ -12,7 +12,7 @@ final class HealthKitClientTests: XCTestCase {
     var sut: HealthKitClient!
 
     override func setUp() async throws {
-        sut = await HealthKitClient()
+        sut = HealthKitClient()
     }
 
     override func tearDown() async throws {
@@ -22,26 +22,26 @@ final class HealthKitClientTests: XCTestCase {
     // MARK: - Availability Tests
 
     func testIsAvailable_ReturnsHealthDataAvailability() async {
-        let isAvailable = await sut.isAvailable
+        let isAvailable = sut.isAvailable
         // This should match HKHealthStore.isHealthDataAvailable()
         XCTAssertEqual(isAvailable, HKHealthStore.isHealthDataAvailable())
     }
 
     func testInit_CreatesClient() async {
-        let client = await HealthKitClient()
+        let client = HealthKitClient()
         XCTAssertNotNil(client)
     }
 
     func testInit_WithHealthStore_CreatesClient() async {
         let healthStore = HKHealthStore()
-        let client = await HealthKitClient(healthStore: healthStore)
+        let client = HealthKitClient(healthStore: healthStore)
         XCTAssertNotNil(client)
     }
 
     // MARK: - Standard Types Tests
 
     func testStandardReadTypes_ContainsExpectedTypes() async {
-        let readTypes = await HealthKitClient.standardReadTypes
+        let readTypes = HealthKitClient.standardReadTypes
 
         // Workout type should always be present
         XCTAssertTrue(readTypes.contains(HKObjectType.workoutType()))
@@ -65,7 +65,7 @@ final class HealthKitClientTests: XCTestCase {
     }
 
     func testStandardWriteTypes_ContainsWorkoutType() async {
-        let writeTypes = await HealthKitClient.standardWriteTypes
+        let writeTypes = HealthKitClient.standardWriteTypes
 
         XCTAssertTrue(writeTypes.contains(HKObjectType.workoutType()))
     }
@@ -136,7 +136,7 @@ final class HealthErrorTests: XCTestCase {
 extension HealthKitClientTests {
     /// This test will be skipped on simulators or devices without HealthKit.
     func testRequestAuthorization_WhenNotAvailable_ThrowsNotAvailable() async throws {
-        let isAvailable = await sut.isAvailable
+        let isAvailable = sut.isAvailable
 
         guard !isAvailable else {
             throw XCTSkip("HealthKit is available, skipping not available test")
@@ -159,7 +159,7 @@ extension HealthKitClientTests {
 
     /// Test fetching workouts when HealthKit is not available.
     func testFetchWorkouts_WhenNotAvailable_ThrowsNotAvailable() async throws {
-        let isAvailable = await sut.isAvailable
+        let isAvailable = sut.isAvailable
 
         guard !isAvailable else {
             throw XCTSkip("HealthKit is available, skipping not available test")
@@ -182,7 +182,7 @@ extension HealthKitClientTests {
 
     /// Test fetching menstrual cycles when HealthKit is not available.
     func testFetchMenstrualCycles_WhenNotAvailable_ThrowsNotAvailable() async throws {
-        let isAvailable = await sut.isAvailable
+        let isAvailable = sut.isAvailable
 
         guard !isAvailable else {
             throw XCTSkip("HealthKit is available, skipping not available test")
@@ -205,7 +205,7 @@ extension HealthKitClientTests {
 
     /// Test fetching active energy when HealthKit is not available.
     func testFetchActiveEnergy_WhenNotAvailable_ThrowsNotAvailable() async throws {
-        let isAvailable = await sut.isAvailable
+        let isAvailable = sut.isAvailable
 
         guard !isAvailable else {
             throw XCTSkip("HealthKit is available, skipping not available test")
@@ -229,7 +229,7 @@ extension HealthKitClientTests {
 
     /// Test fetching HRV when HealthKit is not available.
     func testFetchHeartRateVariability_WhenNotAvailable_ThrowsNotAvailable() async throws {
-        let isAvailable = await sut.isAvailable
+        let isAvailable = sut.isAvailable
 
         guard !isAvailable else {
             throw XCTSkip("HealthKit is available, skipping not available test")
@@ -253,7 +253,7 @@ extension HealthKitClientTests {
 
     /// Test fetching resting heart rate when HealthKit is not available.
     func testFetchRestingHeartRate_WhenNotAvailable_ThrowsNotAvailable() async throws {
-        let isAvailable = await sut.isAvailable
+        let isAvailable = sut.isAvailable
 
         guard !isAvailable else {
             throw XCTSkip("HealthKit is available, skipping not available test")
@@ -277,7 +277,7 @@ extension HealthKitClientTests {
 
     /// Test saving workout when HealthKit is not available.
     func testSaveWorkout_WhenNotAvailable_ThrowsNotAvailable() async throws {
-        let isAvailable = await sut.isAvailable
+        let isAvailable = sut.isAvailable
 
         guard !isAvailable else {
             throw XCTSkip("HealthKit is available, skipping not available test")
@@ -307,7 +307,7 @@ extension HealthKitClientTests {
 
 // MARK: - HealthError Equatable
 
-extension HealthError: Equatable {
+extension HealthError: @retroactive Equatable {
     public static func == (lhs: HealthError, rhs: HealthError) -> Bool {
         switch (lhs, rhs) {
         case (.notAvailable, .notAvailable):

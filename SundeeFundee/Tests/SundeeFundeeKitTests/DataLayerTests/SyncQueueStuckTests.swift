@@ -83,7 +83,7 @@ final class SyncQueueStuckTests: XCTestCase {
     func testMutationMovesToStuckAfterMaxRetries() async throws {
         let suiteName = "Test.SyncQueueStuck.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!
-        let store = await SyncQueueStore(userDefaults: defaults)
+        let store = SyncQueueStore(userDefaults: defaults)
         let client = FailingClient()
         let monitor = NetworkMonitor()
 
@@ -124,7 +124,7 @@ final class SyncQueueStuckTests: XCTestCase {
     func testSuccessfulMutationDoesNotAppearInStuck() async throws {
         let suiteName = "Test.SyncQueueStuck.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!
-        let store = await SyncQueueStore(userDefaults: defaults)
+        let store = SyncQueueStore(userDefaults: defaults)
         let client = FailingClient()
         let monitor = NetworkMonitor()
 
@@ -153,7 +153,7 @@ final class SyncQueueStuckTests: XCTestCase {
     @MainActor
     func testConnectivityFlushHonorsRetryBackoff() async throws {
         let defaults = UserDefaults(suiteName: "Test.SyncQueueBackoff.\(UUID().uuidString)")!
-        let store = await SyncQueueStore(userDefaults: defaults)
+        let store = SyncQueueStore(userDefaults: defaults)
         let client = FailingClient()
         let monitor = NetworkMonitor()
         let queue = SyncQueue(wrapping: client, store: store, monitor: monitor, maxRetryAttempts: 3)

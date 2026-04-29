@@ -14,7 +14,7 @@ struct FreeSubscriptionClientTests {
     @Test("currentSubscription returns non-nil premium active subscription")
     func testCurrentSubscription() async {
         let client = makeClient()
-        let sub = await client.currentSubscription
+        let sub = client.currentSubscription
 
         #expect(sub != nil)
         #expect(sub?.tier == .premium)

@@ -66,7 +66,7 @@ final class SyncQueueStoreTests: XCTestCase {
     @MainActor
     func testStartsEmpty() async {
         let defaults = UserDefaults(suiteName: "Test.SyncQueueStore.\(UUID().uuidString)")!
-        let store = await SyncQueueStore(userDefaults: defaults)
+        let store = SyncQueueStore(userDefaults: defaults)
         let count = await store.pendingCount
         XCTAssertEqual(count, 0)
         let mutations = await store.allMutations()
@@ -76,7 +76,7 @@ final class SyncQueueStoreTests: XCTestCase {
     @MainActor
     func testAppendIncreasesCount() async {
         let defaults = UserDefaults(suiteName: "Test.SyncQueueStore.\(UUID().uuidString)")!
-        let store = await SyncQueueStore(userDefaults: defaults)
+        let store = SyncQueueStore(userDefaults: defaults)
         let mutation = PendingMutation(
             recordType: "Workout",
             operation: .save,
@@ -95,7 +95,7 @@ final class SyncQueueStoreTests: XCTestCase {
     @MainActor
     func testAppendMultipleMutations() async {
         let defaults = UserDefaults(suiteName: "Test.SyncQueueStore.\(UUID().uuidString)")!
-        let store = await SyncQueueStore(userDefaults: defaults)
+        let store = SyncQueueStore(userDefaults: defaults)
 
         for i in 0..<5 {
             let mutation = PendingMutation(
@@ -116,7 +116,7 @@ final class SyncQueueStoreTests: XCTestCase {
     @MainActor
     func testRemoveById() async {
         let defaults = UserDefaults(suiteName: "Test.SyncQueueStore.\(UUID().uuidString)")!
-        let store = await SyncQueueStore(userDefaults: defaults)
+        let store = SyncQueueStore(userDefaults: defaults)
         let id1 = UUID()
         let id2 = UUID()
 
@@ -133,7 +133,7 @@ final class SyncQueueStoreTests: XCTestCase {
     @MainActor
     func testRemoveNonexistentIdIsNoop() async {
         let defaults = UserDefaults(suiteName: "Test.SyncQueueStore.\(UUID().uuidString)")!
-        let store = await SyncQueueStore(userDefaults: defaults)
+        let store = SyncQueueStore(userDefaults: defaults)
         await store.append(PendingMutation(recordType: "A", operation: .save, encodedData: Data()))
 
         await store.remove(ids: [UUID()])
@@ -145,7 +145,7 @@ final class SyncQueueStoreTests: XCTestCase {
     @MainActor
     func testRemoveAll() async {
         let defaults = UserDefaults(suiteName: "Test.SyncQueueStore.\(UUID().uuidString)")!
-        let store = await SyncQueueStore(userDefaults: defaults)
+        let store = SyncQueueStore(userDefaults: defaults)
         await store.append(PendingMutation(recordType: "A", operation: .save, encodedData: Data()))
         await store.append(PendingMutation(recordType: "B", operation: .save, encodedData: Data()))
 
@@ -167,12 +167,12 @@ final class SyncQueueStoreTests: XCTestCase {
             encodedData: try! JSONEncoder().encode("payload")
         )
 
-        let store1 = await SyncQueueStore(userDefaults: defaults)
+        let store1 = SyncQueueStore(userDefaults: defaults)
         await store1.append(mutation)
 
         // New instance reading from same UserDefaults
         let defaults2 = UserDefaults(suiteName: suiteName)!
-        let store2 = await SyncQueueStore(userDefaults: defaults2)
+        let store2 = SyncQueueStore(userDefaults: defaults2)
         let count = await store2.pendingCount
         XCTAssertEqual(count, 1)
 
@@ -186,13 +186,13 @@ final class SyncQueueStoreTests: XCTestCase {
         let suiteName = "Test.SyncQueueStore.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!
         let id = UUID()
-        let store1 = await SyncQueueStore(userDefaults: defaults)
+        let store1 = SyncQueueStore(userDefaults: defaults)
         await store1.append(PendingMutation(id: id, recordType: "A", operation: .save, encodedData: Data()))
         await store1.append(PendingMutation(recordType: "B", operation: .save, encodedData: Data()))
         await store1.remove(ids: [id])
 
         let defaults2 = UserDefaults(suiteName: suiteName)!
-        let store2 = await SyncQueueStore(userDefaults: defaults2)
+        let store2 = SyncQueueStore(userDefaults: defaults2)
         let mutations = await store2.allMutations()
         XCTAssertEqual(mutations.count, 1)
         XCTAssertEqual(mutations.first?.recordType, "B")
@@ -203,7 +203,7 @@ final class SyncQueueStoreTests: XCTestCase {
     @MainActor
     func testIncrementAttempts() async {
         let defaults = UserDefaults(suiteName: "Test.SyncQueueStore.\(UUID().uuidString)")!
-        let store = await SyncQueueStore(userDefaults: defaults)
+        let store = SyncQueueStore(userDefaults: defaults)
         let id1 = UUID()
         let id2 = UUID()
 
@@ -223,7 +223,7 @@ final class SyncQueueStoreTests: XCTestCase {
     @MainActor
     func testIncrementAttemptsMultipleTimes() async {
         let defaults = UserDefaults(suiteName: "Test.SyncQueueStore.\(UUID().uuidString)")!
-        let store = await SyncQueueStore(userDefaults: defaults)
+        let store = SyncQueueStore(userDefaults: defaults)
         let id = UUID()
         await store.append(PendingMutation(id: id, recordType: "A", operation: .save, encodedData: Data()))
 
@@ -244,7 +244,7 @@ final class SyncQueueStoreTests: XCTestCase {
         defaults.set(Data("not valid json".utf8), forKey: "sync_queue_pending_mutations")
 
         // Store should recover gracefully
-        let store = await SyncQueueStore(userDefaults: defaults)
+        let store = SyncQueueStore(userDefaults: defaults)
         let count = await store.pendingCount
         XCTAssertEqual(count, 0, "Should start empty after corrupted data recovery")
     }
@@ -253,7 +253,7 @@ final class SyncQueueStoreTests: XCTestCase {
     func testEmptyDataKey() async {
         let defaults = UserDefaults(suiteName: "Test.SyncQueueStore.\(UUID().uuidString)")!
         // No data at the key
-        let store = await SyncQueueStore(userDefaults: defaults)
+        let store = SyncQueueStore(userDefaults: defaults)
         let count = await store.pendingCount
         XCTAssertEqual(count, 0)
     }

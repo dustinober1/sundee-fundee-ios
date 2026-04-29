@@ -190,13 +190,14 @@ public struct ShareCardSheet: View {
     private var sourceTrigger: some View {
         switch photoSource {
         case .library:
+            let title = selfieImage == nil ? "Choose a photo" : "Change photo"
             PhotosPicker(
                 selection: $libraryPickerItem,
                 matching: .images,
                 photoLibrary: .shared()
             ) {
                 Label(
-                    selfieImage == nil ? "Choose a photo" : "Change photo",
+                    title,
                     systemImage: "photo.on.rectangle"
                 )
                 .frame(maxWidth: .infinity)
