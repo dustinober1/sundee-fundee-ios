@@ -119,6 +119,37 @@ DEFINE SCHEMA
         GRANT READ TO "_world"
     );
 
+    RECORD TYPE DailyCoachingRecommendation (
+        "___createTime"           TIMESTAMP,
+        "___createdBy"            REFERENCE,
+        "___etag"                 STRING,
+        "___modTime"              TIMESTAMP,
+        "___modifiedBy"           REFERENCE,
+        "___recordID"             REFERENCE QUERYABLE,
+        cycleConfidence           DOUBLE QUERYABLE SORTABLE,
+        cyclePhaseRaw             STRING QUERYABLE SEARCHABLE SORTABLE,
+        dateCreated               STRING QUERYABLE SEARCHABLE SORTABLE,
+        energyLevelRaw            STRING QUERYABLE SEARCHABLE SORTABLE,
+        equipmentRaw              STRING QUERYABLE SEARCHABLE SORTABLE,
+        id                        STRING,
+        painIntensity             INT64 QUERYABLE SORTABLE,
+        primaryActionRaw          STRING QUERYABLE SEARCHABLE SORTABLE,
+        primaryActionTitle        STRING,
+        reasonCodes               LIST<STRING>,
+        recommendationDate        STRING QUERYABLE SEARCHABLE SORTABLE,
+        recoveryRecommendationRaw STRING QUERYABLE SEARCHABLE SORTABLE,
+        recoveryScoreTotal        INT64 QUERYABLE SORTABLE,
+        statusRaw                 STRING QUERYABLE SEARCHABLE SORTABLE,
+        summary                   STRING,
+        timeMinutes               INT64 QUERYABLE SORTABLE,
+        title                     STRING,
+        trainingLoadTrendRaw      STRING QUERYABLE SEARCHABLE SORTABLE,
+        workoutFocusRaw           STRING QUERYABLE SEARCHABLE SORTABLE,
+        GRANT WRITE TO "_creator",
+        GRANT CREATE TO "_icloud",
+        GRANT READ TO "_world"
+    );
+
     RECORD TYPE CycleSettings (
         "___createTime"        TIMESTAMP,
         "___createdBy"         REFERENCE,

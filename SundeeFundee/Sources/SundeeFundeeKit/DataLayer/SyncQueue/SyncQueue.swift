@@ -75,7 +75,7 @@ public actor SyncQueue: @preconcurrency DataClientProtocol, @unchecked Sendable 
             for await connected in monitor.connectivityChanges {
                 guard let self else { return }
                 if connected {
-                    await self.flushQueue()
+                    await self.flushQueue(allowBackoff: true)
                 }
             }
         }
@@ -175,7 +175,7 @@ public actor SyncQueue: @preconcurrency DataClientProtocol, @unchecked Sendable 
     /// Manually trigger a flush of all pending mutations.
     /// Called automatically when connectivity returns.
     /// Can be called manually (e.g., on app foreground).
-    public func flushQueue() async {
+    public func flushQueue(allowBackoff: Bool = false) async {
         guard !isFlushing else { return }
         isFlushing = true
         defer { isFlushing = false }
@@ -186,12 +186,17 @@ public actor SyncQueue: @preconcurrency DataClientProtocol, @unchecked Sendable 
         var succeeded: Set<UUID> = []
         var failedToReplay: Set<UUID> = []
         var stuckOut: Set<UUID> = []
+        let now = Date()
 
         for mutation in mutations {
             // Mutations already at/over the retry budget are stuck —
             // move them aside so they don't clog the queue forever.
             if mutation.attempts >= maxRetryAttempts {
                 stuckOut.insert(mutation.id)
+                continue
+            }
+
+            if allowBackoff, shouldBackOff(mutation, now: now) {
                 continue
             }
 
@@ -214,11 +219,17 @@ public actor SyncQueue: @preconcurrency DataClientProtocol, @unchecked Sendable 
         // and move stuck mutations out of the active queue.
         await store.remove(ids: succeeded)
         if !failedToReplay.isEmpty {
-            await store.incrementAttempts(ids: failedToReplay)
+            await store.incrementAttempts(ids: failedToReplay, lastAttemptAt: now)
         }
         if !stuckOut.isEmpty {
             await store.moveToStuck(ids: stuckOut)
         }
+    }
+
+    private func shouldBackOff(_ mutation: PendingMutation, now: Date) -> Bool {
+        guard let lastAttemptAt = mutation.lastAttemptAt else { return false }
+        let delay = min(60.0 * pow(2.0, Double(max(0, mutation.attempts - 1))), 30.0 * 60.0)
+        return now.timeIntervalSince(lastAttemptAt) < delay
     }
 
     // MARK: - Private: Enqueue

@@ -227,6 +227,24 @@ public class AuthViewModel: ObservableObject {
             if userID == AuthViewModel.guestUserID {
                 isGuest = true
                 DataClientFactory.shared.client = LocalDataClient()
+                isAuthenticated = true
+                needsOnboarding = KeychainHelper.read(key: "onboarding_complete") == nil
+                return
+            }
+
+            do {
+                let credentialState = try await authClient.getCredentialState(forUserID: userID)
+                switch credentialState {
+                case .authorized:
+                    break
+                case .revoked, .notFound, .transferred:
+                    await clearSignedInSession()
+                    errorMessage = "Your Apple sign-in needs to be refreshed. Please sign in again."
+                    return
+                }
+            } catch {
+                // If the credential state check fails, keep the cached session.
+                authLogger.info("Credential state check failed during restore: \(error.localizedDescription)")
             }
 
             // If userName wasn't in Keychain, try fetching from CloudKit
@@ -240,6 +258,22 @@ public class AuthViewModel: ObservableObject {
             isAuthenticated = true
             needsOnboarding = KeychainHelper.read(key: "onboarding_complete") == nil
         }
+    }
+
+    private func clearSignedInSession() async {
+        _ = KeychainHelper.delete(key: KeychainHelper.userIDKey)
+        _ = KeychainHelper.delete(key: KeychainHelper.userEmailKey)
+        _ = KeychainHelper.delete(key: KeychainHelper.userNameKey)
+        _ = KeychainHelper.delete(key: "onboarding_complete")
+        DataClientFactory.shared.client = CloudKitClient(
+            containerIdentifier: "iCloud.com.sundeefundee.app"
+        )
+        isAuthenticated = false
+        isGuest = false
+        userID = nil
+        userEmail = nil
+        userName = nil
+        needsOnboarding = false
     }
 
     /// Fetches user's first name from CloudKit UserData record

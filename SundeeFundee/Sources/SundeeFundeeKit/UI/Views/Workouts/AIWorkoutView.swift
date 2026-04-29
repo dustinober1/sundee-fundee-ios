@@ -928,29 +928,10 @@ class AIWorkoutViewModel: ObservableObject {
 
     func buildWorkoutForSession() -> Workout? {
         guard let generated = generatedWorkout else { return nil }
-
-        return Workout(
-            date: Date(),
+        return buildWorkout(
+            from: generated,
             name: "\(focus.rawValue.replacingOccurrences(of: "_", with: " ").capitalized) — AI",
-            exercises: generated.exercises.map { ex in
-                let reps = Int(ex.reps.split(separator: "-").first ?? "8") ?? 8
-                return Exercise(
-                    id: UUID().uuidString,
-                    name: ex.name,
-                    category: isWeightliftingExercise(ex.name) ? .compound : .accessory,
-                    bodyweight: ex.bodyweightOnly ? 1.0 : 0.0,
-                    targetSets: (0..<ex.sets).map { _ in
-                        ExerciseSet(
-                            reps: reps,
-                            prescribedWeight: ex.weightKg ?? 0,
-                            prescribedPercentage: ex.percentageOfMax,
-                            type: .fixed
-                        )
-                    },
-                    restMinutes: ex.restMinutes ?? 1.5
-                )
-            },
-            notes: "AI Generated — \(generated.coachingSummary)"
+            notesPrefix: "AI Generated"
         )
     }
 

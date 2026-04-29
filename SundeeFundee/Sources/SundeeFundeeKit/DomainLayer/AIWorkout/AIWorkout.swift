@@ -123,6 +123,43 @@ public struct GeneratedWorkout: Codable, Sendable, Identifiable {
     public let questionnaire: QuestionnaireAnswers
 }
 
+// MARK: - Workout Builder
+
+public func buildWorkout(
+    from generated: GeneratedWorkout,
+    name: String? = nil,
+    notesPrefix: String? = nil
+) -> Workout {
+    Workout(
+        date: Date(),
+        name: name ?? generated.coachingSummary,
+        exercises: generated.exercises.map { exercise in
+            let reps = Int(exercise.reps.split(separator: "-").first ?? "8") ?? 8
+            return Exercise(
+                id: UUID().uuidString,
+                name: exercise.name,
+                category: isWeightliftingExercise(exercise.name) ? .compound : .accessory,
+                bodyweight: exercise.bodyweightOnly ? 1.0 : 0.0,
+                targetSets: (0..<exercise.sets).map { _ in
+                    ExerciseSet(
+                        reps: reps,
+                        prescribedWeight: exercise.weightKg ?? 0,
+                        prescribedPercentage: exercise.percentageOfMax,
+                        type: .fixed
+                    )
+                },
+                restMinutes: exercise.restMinutes ?? 1.5
+            )
+        },
+        notes: {
+            if let notesPrefix {
+                return "\(notesPrefix) - \(generated.coachingSummary)"
+            }
+            return generated.coachingSummary
+        }()
+    )
+}
+
 // MARK: - Workout Generation Rules
 
 /// Returns the approved exercise pool for the requested focus, equipment, and energy level.

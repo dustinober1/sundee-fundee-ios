@@ -37,13 +37,17 @@ public struct PendingMutation: Codable, Sendable, Identifiable, Equatable {
     /// How many times we've tried to flush this mutation.
     public var attempts: Int
 
+    /// The most recent time we attempted to replay this mutation.
+    public var lastAttemptAt: Date?
+
     public init(
         id: UUID = UUID(),
         recordType: String,
         operation: MutationOperation,
         encodedData: Data,
         enqueuedAt: Date = Date(),
-        attempts: Int = 0
+        attempts: Int = 0,
+        lastAttemptAt: Date? = nil
     ) {
         self.id = id
         self.recordType = recordType
@@ -51,6 +55,7 @@ public struct PendingMutation: Codable, Sendable, Identifiable, Equatable {
         self.encodedData = encodedData
         self.enqueuedAt = enqueuedAt
         self.attempts = attempts
+        self.lastAttemptAt = lastAttemptAt
     }
 }
 
@@ -138,10 +143,11 @@ public actor SyncQueueStore: Sendable {
     }
 
     /// Increments the attempt counter for mutations with the given IDs and persists.
-    public func incrementAttempts(ids: Set<UUID>) {
+    public func incrementAttempts(ids: Set<UUID>, lastAttemptAt: Date = Date()) {
         for index in mutations.indices {
             if ids.contains(mutations[index].id) {
                 mutations[index].attempts += 1
+                mutations[index].lastAttemptAt = lastAttemptAt
             }
         }
         persistToDisk()

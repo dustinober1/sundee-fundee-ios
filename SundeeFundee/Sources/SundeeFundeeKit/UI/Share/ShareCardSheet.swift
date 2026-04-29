@@ -122,6 +122,20 @@ public struct ShareCardSheet: View {
                 totalVolume: 0,
                 durationMinutes: 0
             )
+        case .coachSummary(let title, _, _, let bullets):
+            return ShareSummary(
+                title: title,
+                exerciseCount: bullets.count,
+                totalVolume: 0,
+                durationMinutes: 0
+            )
+        case .weeklyRecap(let title, _, _, let bullets):
+            return ShareSummary(
+                title: title,
+                exerciseCount: bullets.count,
+                totalVolume: 0,
+                durationMinutes: 0
+            )
         case .selfieOverlay(_, let summary):
             return summary
         }

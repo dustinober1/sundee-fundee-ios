@@ -49,6 +49,8 @@ public enum ShareCardVariant: Sendable {
     case completedWorkout(workout: Workout, personalRecords: Set<String>)
     case newPR(exerciseName: String, weight: Double, unit: String, previousBest: Double?)
     case cycleInsight(phase: CyclePhase, cycleDay: Int, insight: String)
+    case coachSummary(title: String, subtitle: String, badge: String, bullets: [String])
+    case weeklyRecap(title: String, subtitle: String, badge: String, bullets: [String])
     #if canImport(UIKit)
     case selfieOverlay(image: UIImage, summary: ShareSummary)
     #endif
@@ -62,6 +64,10 @@ public enum ShareCardVariant: Sendable {
             return "New PR — \(exercise) \(formatWeight(weight)) \(unit)"
         case .cycleInsight:
             return "Cycle-aware training"
+        case .coachSummary(let title, _, _, _):
+            return title
+        case .weeklyRecap(let title, _, _, _):
+            return title
         #if canImport(UIKit)
         case .selfieOverlay(_, let summary):
             return summary.title

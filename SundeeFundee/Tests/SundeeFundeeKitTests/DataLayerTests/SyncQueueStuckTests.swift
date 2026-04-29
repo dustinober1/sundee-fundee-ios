@@ -149,4 +149,24 @@ final class SyncQueueStuckTests: XCTestCase {
         let stuck = await queue.stuckMutations
         XCTAssertTrue(stuck.isEmpty, "Successful mutation must not appear in stuck list")
     }
+
+    @MainActor
+    func testConnectivityFlushHonorsRetryBackoff() async throws {
+        let defaults = UserDefaults(suiteName: "Test.SyncQueueBackoff.\(UUID().uuidString)")!
+        let store = await SyncQueueStore(userDefaults: defaults)
+        let client = FailingClient()
+        let monitor = NetworkMonitor()
+        let queue = SyncQueue(wrapping: client, store: store, monitor: monitor, maxRetryAttempts: 3)
+
+        try await queue.save([TestRecord(id: "r3", name: "third")], recordType: "TestRecord")
+        await client.setMode(.flush(NSError(domain: "flush", code: 43)))
+
+        await queue.flushQueue()
+        let firstReplayCount = await client.saveFromJSONCallCount
+        XCTAssertEqual(firstReplayCount, 1)
+
+        await queue.flushQueue(allowBackoff: true)
+        let backedOffReplayCount = await client.saveFromJSONCallCount
+        XCTAssertEqual(backedOffReplayCount, firstReplayCount)
+    }
 }

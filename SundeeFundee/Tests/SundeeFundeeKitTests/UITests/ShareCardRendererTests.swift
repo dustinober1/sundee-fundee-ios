@@ -74,6 +74,30 @@ struct ShareCardRendererTests {
         }
     }
 
+    @Test("Renders coaching and recap variants")
+    func rendersCoachSummaryVariants() async {
+        let coaching = await ShareCardRenderer.render(
+            .coachSummary(
+                title: "Build day",
+                subtitle: "Keep the session productive.",
+                badge: "Today",
+                bullets: ["Recovery score 82", "Follicular phase"]
+            ),
+            aspect: .story
+        )
+        let recap = await ShareCardRenderer.render(
+            .weeklyRecap(
+                title: "Weekly Recap",
+                subtitle: "4 workouts - 2 PRs",
+                badge: "This week",
+                bullets: ["Bench PR", "Squat PR", "Great consistency"]
+            ),
+            aspect: .square
+        )
+        #expect(coaching != nil)
+        #expect(recap != nil)
+    }
+
     @Test("Aspect point sizes follow 9:16 and 1:1")
     func aspectSizesMatchRatios() {
         let story = ShareCardAspect.story.size

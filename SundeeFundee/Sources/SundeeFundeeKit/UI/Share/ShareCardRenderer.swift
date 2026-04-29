@@ -58,6 +58,22 @@ public enum ShareCardRenderer {
                 aspect: aspect,
                 shareURL: ShareURL.link(for: shareContext)
             )
+        case .coachSummary(let title, let subtitle, let badge, let bullets):
+            CoachSummaryShareView(
+                title: title,
+                subtitle: subtitle,
+                badge: badge,
+                bullets: bullets,
+                aspect: aspect
+            )
+        case .weeklyRecap(let title, let subtitle, let badge, let bullets):
+            CoachSummaryShareView(
+                title: title,
+                subtitle: subtitle,
+                badge: badge,
+                bullets: bullets,
+                aspect: aspect
+            )
         case .selfieOverlay(let image, let summary):
             SelfieOverlayShareView(
                 image: image,

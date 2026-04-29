@@ -210,11 +210,14 @@ final class SyncQueueStoreTests: XCTestCase {
         await store.append(PendingMutation(id: id1, recordType: "A", operation: .save, encodedData: Data()))
         await store.append(PendingMutation(id: id2, recordType: "B", operation: .save, encodedData: Data()))
 
-        await store.incrementAttempts(ids: [id1])
+        let attemptDate = Date(timeIntervalSince1970: 1_700_000_000)
+        await store.incrementAttempts(ids: [id1], lastAttemptAt: attemptDate)
 
         let mutations = await store.allMutations()
         XCTAssertEqual(mutations.first { $0.id == id1 }?.attempts, 1)
+        XCTAssertEqual(mutations.first { $0.id == id1 }?.lastAttemptAt, attemptDate)
         XCTAssertEqual(mutations.first { $0.id == id2 }?.attempts, 0)
+        XCTAssertNil(mutations.first { $0.id == id2 }?.lastAttemptAt)
     }
 
     @MainActor
