@@ -65,6 +65,7 @@ struct ContentClientTests {
             sessionsPerWeek: 3,
             difficulty: "intermediate",
             phases: nil,
+            printablePDFURL: URL(string: "https://sundeefundee.com/workout-plans/test-program.pdf"),
             sortOrder: 0,
             source: .bundled
         )
@@ -76,6 +77,7 @@ struct ContentClientTests {
         #expect(program.sessionsPerWeek == 3)
         #expect(program.difficulty == "intermediate")
         #expect(program.phases == nil)
+        #expect(program.printablePDFURL?.host == "sundeefundee.com")
         #expect(program.sortOrder == 0)
         #expect(program.source == .bundled)
     }
@@ -145,6 +147,27 @@ struct BundledContentProviderTests {
     func testBundledProgramCount() {
         let bundled = BundledContentProvider.programs
         #expect(bundled.count == ProgramTemplate.allCases.count)
+        #expect(bundled.count == 4)
+    }
+
+    @Test("Bundled programs expose stable printable PDF URLs")
+    func testBundledProgramsHavePrintablePDFURLs() throws {
+        let bundled = BundledContentProvider.programs
+        let expectedIDs = Set([
+            "first-margarita",
+            "beginner-strength",
+            "dumbbell-strength",
+            "glutes-core-conditioning",
+        ])
+
+        #expect(Set(bundled.map(\.id)) == expectedIDs)
+        for program in bundled {
+            let url = try #require(program.printablePDFURL)
+            #expect(url.scheme == "https")
+            #expect(url.host == "sundeefundee.com")
+            #expect(url.path.hasPrefix("/workout-plans/"))
+            #expect(url.path.hasSuffix(".pdf"))
+        }
     }
 
     @Test("Bundled programs have correct sort order")

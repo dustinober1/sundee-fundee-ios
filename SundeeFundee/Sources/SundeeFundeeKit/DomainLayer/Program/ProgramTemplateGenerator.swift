@@ -4,13 +4,38 @@ import Foundation
 
 /// Available program templates
 public enum ProgramTemplate: String, Codable, Sendable, CaseIterable {
-    case firstMargarita
-    case strength
-    case hypertrophy
-    case fullBody
-    case linear
-    case dup
-    case block
+    case firstMargarita = "first-margarita"
+    case beginnerStrength = "beginner-strength"
+    case dumbbellStrength = "dumbbell-strength"
+    case glutesCoreConditioning = "glutes-core-conditioning"
+
+    public var stableID: String { rawValue }
+
+    public var displayName: String {
+        switch self {
+        case .firstMargarita: return "The First Margarita"
+        case .beginnerStrength: return "Beginner Strength"
+        case .dumbbellStrength: return "Dumbbell Strength"
+        case .glutesCoreConditioning: return "Glutes, Core & Conditioning"
+        }
+    }
+
+    public var printablePDFURLString: String {
+        switch self {
+        case .firstMargarita:
+            return "https://sundeefundee.com/workout-plans/the-first-margarita-strength-program.pdf"
+        case .beginnerStrength:
+            return "https://sundeefundee.com/workout-plans/4-week-beginner-strength-plan.pdf"
+        case .dumbbellStrength:
+            return "https://sundeefundee.com/workout-plans/6-week-dumbbell-strength-plan.pdf"
+        case .glutesCoreConditioning:
+            return "https://sundeefundee.com/workout-plans/8-week-glutes-core-conditioning-plan.pdf"
+        }
+    }
+
+    public var printablePDFURL: URL? {
+        URL(string: printablePDFURLString)
+    }
 }
 
 /// Default settings per template
@@ -22,12 +47,9 @@ public struct TemplateDefaults: Sendable {
 /// Template defaults
 public let templateDefaults: [ProgramTemplate: TemplateDefaults] = [
     .firstMargarita: TemplateDefaults(durationWeeks: 8, sessionsPerWeek: 3),
-    .strength:    TemplateDefaults(durationWeeks: 4, sessionsPerWeek: 3),
-    .hypertrophy: TemplateDefaults(durationWeeks: 6, sessionsPerWeek: 4),
-    .fullBody:    TemplateDefaults(durationWeeks: 4, sessionsPerWeek: 3),
-    .linear:      TemplateDefaults(durationWeeks: 6, sessionsPerWeek: 3),
-    .dup:         TemplateDefaults(durationWeeks: 4, sessionsPerWeek: 3),
-    .block:       TemplateDefaults(durationWeeks: 9, sessionsPerWeek: 3),
+    .beginnerStrength: TemplateDefaults(durationWeeks: 4, sessionsPerWeek: 4),
+    .dumbbellStrength: TemplateDefaults(durationWeeks: 6, sessionsPerWeek: 4),
+    .glutesCoreConditioning: TemplateDefaults(durationWeeks: 8, sessionsPerWeek: 4),
 ]
 
 // MARK: - Generated Program Types
@@ -74,6 +96,12 @@ public struct GeneratedProgram: Sendable {
     public let weeks: [GeneratedProgramWeek]
 }
 
+struct ProgramSessionSpec: Sendable {
+    let name: String
+    let focus: String
+    let exercises: [GeneratedProgramExercise]
+}
+
 // MARK: - Generate Program
 
 /// Generate a program from a template
@@ -83,261 +111,372 @@ public func generateProgram(
     durationWeeks: Int? = nil,
     sessionsPerWeek: Int? = nil
 ) -> GeneratedProgram {
-    // Hand-crafted programs bypass the generic generation path
-    if template == .firstMargarita {
+    switch template {
+    case .firstMargarita:
         return generateFirstMargaritaProgram()
+    case .beginnerStrength:
+        return generateBeginnerStrengthProgram()
+    case .dumbbellStrength:
+        return generateDumbbellStrengthProgram()
+    case .glutesCoreConditioning:
+        return generateGlutesCoreConditioningProgram()
+    }
+}
+
+// MARK: - Private Helpers
+
+func templateDisplayName(_ template: ProgramTemplate) -> String {
+    template.displayName
+}
+
+func makeExercise(
+    _ name: String,
+    sets: Int,
+    reps: ExerciseValue,
+    rest: Double = 1.5,
+    bodyweight: Bool = false
+) -> GeneratedProgramExercise {
+    GeneratedProgramExercise(
+        exercise: name,
+        sets: .fixed(value: sets),
+        reps: reps,
+        percent1RM: nil,
+        restMinutes: rest,
+        bodyweightOnly: bodyweight
+    )
+}
+
+func makeProgram(
+    template: ProgramTemplate,
+    category: String,
+    description: String,
+    difficulty: String,
+    weekNames: [String],
+    weeklyFocus: [String],
+    sessionsForWeek: (Int) -> [ProgramSessionSpec]
+) -> GeneratedProgram {
+    let weeks = weekNames.indices.map { index in
+        let week = index + 1
+        let sessions = sessionsForWeek(week).enumerated().map { dayIndex, spec in
+            GeneratedProgramSession(
+                sessionId: "w\(week)d\(dayIndex + 1)",
+                sessionName: "Day \(dayIndex + 1) - \(spec.name)",
+                sessionType: "strength",
+                focus: spec.focus,
+                exercises: spec.exercises
+            )
+        }
+        return GeneratedProgramWeek(week: week, phaseId: "week-\(week)", sessions: sessions)
     }
 
-    guard let defaults = templateDefaults[template] else {
-        return GeneratedProgram(
-            id: "template-\(template.rawValue)-\(Int(Date().timeIntervalSince1970 * 1000))",
+    let phases = zip(weekNames.indices, weekNames).map { index, name in
+        GeneratedProgramPhase(
+            id: "week-\(index + 1)",
             name: name,
-            category: "custom",
-            description: "\(name) program",
-            durationWeeks: durationWeeks ?? 4,
-            sessionsPerWeek: sessionsPerWeek ?? 3,
-            difficulty: "intermediate",
-            phases: [],
-            weeks: []
+            goal: weeklyFocus[index],
+            weekRange: [index + 1, index + 1]
         )
     }
-    let totalWeeks = durationWeeks ?? defaults.durationWeeks
-    let totalSessions = sessionsPerWeek ?? defaults.sessionsPerWeek
-
-    let phases: [GeneratedProgramPhase] = template == .block ? blockPhases(totalWeeks) : []
-
-    let weeks = (1...totalWeeks).map { weekNum in
-        let sessions = (1...totalSessions).map { dayNum in
-            buildSession(template: template, week: weekNum, day: dayNum, sessionsPerWeek: totalSessions, totalWeeks: totalWeeks)
-        }
-        let phaseId = template == .block ? blockPhaseId(weekNum, totalWeeks: totalWeeks) : nil
-        return GeneratedProgramWeek(week: weekNum, phaseId: phaseId, sessions: sessions)
-    }
-
-    let displayName = templateDisplayName(template)
 
     return GeneratedProgram(
-        id: "template-\(template.rawValue)-\(Int(Date().timeIntervalSince1970 * 1000))",
-        name: name,
-        category: "custom",
-        description: "\(displayName) program — \(totalWeeks) weeks, \(totalSessions)x/week",
-        durationWeeks: totalWeeks,
-        sessionsPerWeek: totalSessions,
-        difficulty: "intermediate",
+        id: template.stableID,
+        name: template.displayName,
+        category: category,
+        description: description,
+        durationWeeks: weekNames.count,
+        sessionsPerWeek: sessionsForWeek(1).count,
+        difficulty: difficulty,
         phases: phases,
         weeks: weeks
     )
 }
 
-// MARK: - Private Helpers
+func generateBeginnerStrengthProgram() -> GeneratedProgram {
+    let weeks = [
+        "Foundation",
+        "Pattern Practice",
+        "Build Confidence",
+        "Recovery Strength",
+    ]
+    let focuses = [
+        "Learn full-body strength patterns with conservative loading.",
+        "Repeat the main movement patterns with slightly more intent.",
+        "Add confidence through leg press, rows, and controlled circuits.",
+        "Taper the block so the final week stays printable and recoverable.",
+    ]
+    let sessions: [[ProgramSessionSpec]] = [
+        [
+            ProgramSessionSpec(name: "Full Body A", focus: "full body", exercises: [
+                makeExercise("Goblet Squat", sets: 3, reps: .range(low: 8, high: 10), rest: 1.5),
+                makeExercise("Incline Push-Up", sets: 3, reps: .range(low: 8, high: 10), rest: 1.5, bodyweight: true),
+                makeExercise("Seated Cable Row", sets: 3, reps: .range(low: 10, high: 12), rest: 1.5),
+                makeExercise("Dead Bug", sets: 3, reps: .text(value: "6/side"), rest: 1.0, bodyweight: true),
+                makeExercise("Farmer Carry", sets: 3, reps: .text(value: "40 sec"), rest: 1.0),
+            ]),
+            ProgramSessionSpec(name: "Hinge + Press", focus: "hinge", exercises: [
+                makeExercise("Dumbbell Romanian Deadlift", sets: 3, reps: .range(low: 8, high: 10), rest: 1.5),
+                makeExercise("Dumbbell Bench Press", sets: 3, reps: .range(low: 8, high: 10), rest: 1.5),
+                makeExercise("Lat Pulldown", sets: 3, reps: .range(low: 10, high: 12), rest: 1.5),
+                makeExercise("Glute Bridge", sets: 3, reps: .range(low: 10, high: 12), rest: 1.0, bodyweight: true),
+                makeExercise("Side Plank", sets: 3, reps: .text(value: "20 sec/side"), rest: 1.0, bodyweight: true),
+            ]),
+            ProgramSessionSpec(name: "Unilateral Foundation", focus: "unilateral", exercises: [
+                makeExercise("Box Step-Up", sets: 3, reps: .text(value: "8/side"), rest: 1.5),
+                makeExercise("Half-Kneeling Dumbbell Press", sets: 3, reps: .text(value: "8/side"), rest: 1.5),
+                makeExercise("Supported Dumbbell Row", sets: 3, reps: .text(value: "10/side"), rest: 1.5),
+                makeExercise("Bodyweight Reverse Lunge", sets: 2, reps: .text(value: "8/side"), rest: 1.0, bodyweight: true),
+                makeExercise("Pallof Press", sets: 3, reps: .text(value: "10/side"), rest: 1.0),
+            ]),
+            ProgramSessionSpec(name: "Technique Volume", focus: "technique", exercises: [
+                makeExercise("Bodyweight Squat", sets: 3, reps: .range(low: 10, high: 12), rest: 1.0, bodyweight: true),
+                makeExercise("Dumbbell Floor Press", sets: 3, reps: .range(low: 10, high: 12), rest: 1.5),
+                makeExercise("Cable Row", sets: 3, reps: .range(low: 10, high: 12), rest: 1.5),
+                makeExercise("Kettlebell Deadlift", sets: 3, reps: .range(low: 8, high: 10), rest: 1.5),
+                makeExercise("Incline Walk", sets: 1, reps: .text(value: "6 min"), rest: 0.5, bodyweight: true),
+            ]),
+        ],
+        [
+            ProgramSessionSpec(name: "Box Squat + Push", focus: "squat", exercises: [
+                makeExercise("Box Squat", sets: 3, reps: .range(low: 8, high: 10), rest: 1.5),
+                makeExercise("Push-Up", sets: 3, reps: .range(low: 6, high: 10), rest: 1.5, bodyweight: true),
+                makeExercise("Chest-Supported Row", sets: 3, reps: .range(low: 10, high: 12), rest: 1.5),
+                makeExercise("Step-Down", sets: 2, reps: .text(value: "8/side"), rest: 1.0, bodyweight: true),
+                makeExercise("Front Plank", sets: 3, reps: .text(value: "25 sec"), rest: 1.0, bodyweight: true),
+            ]),
+            ProgramSessionSpec(name: "Bridge + Pulldown", focus: "posterior chain", exercises: [
+                makeExercise("Hip Thrust", sets: 3, reps: .range(low: 8, high: 12), rest: 1.5),
+                makeExercise("Lat Pulldown", sets: 3, reps: .range(low: 8, high: 12), rest: 1.5),
+                makeExercise("Dumbbell Shoulder Press", sets: 3, reps: .range(low: 8, high: 10), rest: 1.5),
+                makeExercise("Hamstring Curl", sets: 3, reps: .range(low: 10, high: 12), rest: 1.0),
+                makeExercise("Dead Bug", sets: 3, reps: .text(value: "8/side"), rest: 1.0, bodyweight: true),
+            ]),
+            ProgramSessionSpec(name: "Split-Stance Strength", focus: "unilateral", exercises: [
+                makeExercise("Split Squat", sets: 3, reps: .text(value: "8/side"), rest: 1.5, bodyweight: true),
+                makeExercise("One-Arm Dumbbell Row", sets: 3, reps: .text(value: "10/side"), rest: 1.5),
+                makeExercise("Dumbbell Romanian Deadlift", sets: 3, reps: .range(low: 8, high: 10), rest: 1.5),
+                makeExercise("Incline Dumbbell Press", sets: 3, reps: .range(low: 8, high: 10), rest: 1.5),
+                makeExercise("Suitcase Carry", sets: 3, reps: .text(value: "30 sec/side"), rest: 1.0),
+            ]),
+            ProgramSessionSpec(name: "Carry + Conditioning", focus: "conditioning", exercises: [
+                makeExercise("Goblet Squat", sets: 3, reps: .range(low: 10, high: 12), rest: 1.0),
+                makeExercise("Cable Row", sets: 3, reps: .range(low: 10, high: 12), rest: 1.0),
+                makeExercise("Dumbbell Bench Press", sets: 3, reps: .range(low: 10, high: 12), rest: 1.0),
+                makeExercise("Farmer Carry", sets: 4, reps: .text(value: "30 sec"), rest: 1.0),
+                makeExercise("Bike or Walk", sets: 1, reps: .text(value: "8 min"), rest: 0.5, bodyweight: true),
+            ]),
+        ],
+        [
+            ProgramSessionSpec(name: "Leg Press + Row", focus: "full body", exercises: [
+                makeExercise("Leg Press", sets: 3, reps: .range(low: 8, high: 12), rest: 1.5),
+                makeExercise("Seated Cable Row", sets: 3, reps: .range(low: 8, high: 12), rest: 1.5),
+                makeExercise("Dumbbell Bench Press", sets: 3, reps: .range(low: 8, high: 10), rest: 1.5),
+                makeExercise("Glute Bridge", sets: 3, reps: .range(low: 12, high: 15), rest: 1.0, bodyweight: true),
+                makeExercise("Side Plank", sets: 3, reps: .text(value: "25 sec/side"), rest: 1.0, bodyweight: true),
+            ]),
+            ProgramSessionSpec(name: "RDL + Overhead", focus: "hinge", exercises: [
+                makeExercise("Dumbbell Romanian Deadlift", sets: 4, reps: .range(low: 8, high: 10), rest: 1.5),
+                makeExercise("Dumbbell Overhead Press", sets: 3, reps: .range(low: 8, high: 10), rest: 1.5),
+                makeExercise("Lat Pulldown", sets: 3, reps: .range(low: 8, high: 12), rest: 1.5),
+                makeExercise("Reverse Lunge", sets: 3, reps: .text(value: "8/side"), rest: 1.0),
+                makeExercise("Pallof Press", sets: 3, reps: .text(value: "10/side"), rest: 1.0),
+            ]),
+            ProgramSessionSpec(name: "Step-Up Progression", focus: "unilateral", exercises: [
+                makeExercise("Dumbbell Step-Up", sets: 3, reps: .text(value: "8/side"), rest: 1.5),
+                makeExercise("Incline Push-Up", sets: 3, reps: .range(low: 8, high: 12), rest: 1.0, bodyweight: true),
+                makeExercise("Supported Dumbbell Row", sets: 3, reps: .text(value: "10/side"), rest: 1.5),
+                makeExercise("Hamstring Curl", sets: 3, reps: .range(low: 10, high: 12), rest: 1.0),
+                makeExercise("Suitcase Carry", sets: 3, reps: .text(value: "35 sec/side"), rest: 1.0),
+            ]),
+            ProgramSessionSpec(name: "Volume Circuit", focus: "conditioning", exercises: [
+                makeExercise("Goblet Squat", sets: 3, reps: .range(low: 10, high: 12), rest: 1.0),
+                makeExercise("Dumbbell Floor Press", sets: 3, reps: .range(low: 10, high: 12), rest: 1.0),
+                makeExercise("Cable Row", sets: 3, reps: .range(low: 10, high: 12), rest: 1.0),
+                makeExercise("Kettlebell Deadlift", sets: 3, reps: .range(low: 10, high: 12), rest: 1.0),
+                makeExercise("Incline Walk", sets: 1, reps: .text(value: "10 min"), rest: 0.5, bodyweight: true),
+            ]),
+        ],
+        [
+            ProgramSessionSpec(name: "Easy Full Body A", focus: "deload", exercises: [
+                makeExercise("Goblet Squat", sets: 2, reps: .range(low: 8, high: 10), rest: 1.5),
+                makeExercise("Incline Push-Up", sets: 2, reps: .range(low: 8, high: 10), rest: 1.0, bodyweight: true),
+                makeExercise("Seated Cable Row", sets: 2, reps: .range(low: 10, high: 12), rest: 1.0),
+                makeExercise("Dead Bug", sets: 2, reps: .text(value: "6/side"), rest: 1.0, bodyweight: true),
+            ]),
+            ProgramSessionSpec(name: "Easy Hinge + Pull", focus: "deload", exercises: [
+                makeExercise("Dumbbell Romanian Deadlift", sets: 2, reps: .range(low: 8, high: 10), rest: 1.5),
+                makeExercise("Lat Pulldown", sets: 2, reps: .range(low: 10, high: 12), rest: 1.0),
+                makeExercise("Glute Bridge", sets: 2, reps: .range(low: 10, high: 12), rest: 1.0, bodyweight: true),
+                makeExercise("Side Plank", sets: 2, reps: .text(value: "20 sec/side"), rest: 1.0, bodyweight: true),
+            ]),
+            ProgramSessionSpec(name: "Easy Unilateral", focus: "deload", exercises: [
+                makeExercise("Box Step-Up", sets: 2, reps: .text(value: "8/side"), rest: 1.0),
+                makeExercise("Half-Kneeling Dumbbell Press", sets: 2, reps: .text(value: "8/side"), rest: 1.0),
+                makeExercise("Supported Dumbbell Row", sets: 2, reps: .text(value: "10/side"), rest: 1.0),
+                makeExercise("Pallof Press", sets: 2, reps: .text(value: "10/side"), rest: 1.0),
+            ]),
+            ProgramSessionSpec(name: "Recovery Strength", focus: "recovery", exercises: [
+                makeExercise("Bodyweight Squat", sets: 2, reps: .range(low: 8, high: 10), rest: 1.0, bodyweight: true),
+                makeExercise("Dumbbell Floor Press", sets: 2, reps: .range(low: 8, high: 10), rest: 1.0),
+                makeExercise("Cable Row", sets: 2, reps: .range(low: 10, high: 12), rest: 1.0),
+                makeExercise("Incline Walk", sets: 1, reps: .text(value: "8 min"), rest: 0.5, bodyweight: true),
+            ]),
+        ],
+    ]
 
-private func templateDisplayName(_ template: ProgramTemplate) -> String {
-    switch template {
-    case .firstMargarita: return "The First Margarita"
-    case .strength:    return "Strength"
-    case .hypertrophy: return "Hypertrophy"
-    case .fullBody:    return "Full Body"
-    case .linear:      return "Linear"
-    case .dup:         return "Daily Undulating"
-    case .block:       return "Block"
+    return makeProgram(
+        template: .beginnerStrength,
+        category: "Strength",
+        description: "A 4-week printable base plan for newer lifters, with four full-body sessions per week and no required maxes.",
+        difficulty: "Beginner",
+        weekNames: weeks,
+        weeklyFocus: focuses,
+        sessionsForWeek: { sessions[$0 - 1] }
+    )
+}
+
+func generateDumbbellStrengthProgram() -> GeneratedProgram {
+    let weekNames = [
+        "Base Volume",
+        "Add Reps",
+        "Add Sets",
+        "Density",
+        "Strength Push",
+        "Deload",
+    ]
+    let weeklyFocus = [
+        "Establish lower, upper, unilateral, and density days with dumbbells.",
+        "Add reps while keeping movement quality high.",
+        "Use one more working set on priority dumbbell lifts.",
+        "Keep the same movements and shorten rest where appropriate.",
+        "Push heavier dumbbell work without chasing maxes.",
+        "Reduce total volume so the next block starts fresh.",
+    ]
+
+    func reps(_ week: Int, heavy: Bool = false) -> ExerciseValue {
+        if week == 6 { return .range(low: 8, high: 10) }
+        if week >= 5 && heavy { return .range(low: 6, high: 8) }
+        if week >= 3 { return .range(low: 8, high: 12) }
+        return .range(low: 6, high: 10)
     }
-}
 
-private func buildSession(template: ProgramTemplate, week: Int, day: Int, sessionsPerWeek: Int, totalWeeks: Int) -> GeneratedProgramSession {
-    let focus = sessionFocus(template: template, day: day)
-    let sessionName = buildSessionName(template: template, day: day, focus: focus)
-    let exercises = sessionExercises(template: template, focus: focus, week: week, day: day, totalWeeks: totalWeeks)
-
-    return GeneratedProgramSession(sessionId: "w\(week)d\(day)", sessionName: sessionName, sessionType: "strength", focus: focus, exercises: exercises)
-}
-
-private func buildSessionName(template: ProgramTemplate, day: Int, focus: String) -> String {
-    if template == .dup {
-        let labels = ["Heavy", "Moderate", "Volume", "Heavy", "Moderate"]
-        let label = labels[(day - 1) % labels.count]
-        return "Day \(day) — \(label)"
+    func setCount(_ week: Int, base: Int) -> Int {
+        if week == 6 { return max(2, base - 1) }
+        if week >= 3 { return base + 1 }
+        return base
     }
-    return "Day \(day) — \(focus.prefix(1).uppercased() + focus.dropFirst()) Focus"
-}
 
-private func sessionFocus(template: ProgramTemplate, day: Int) -> String {
-    let idx = day - 1
-    switch template {
-    case .firstMargarita, .strength, .linear, .block:
-        let focuses = ["squat", "bench", "deadlift", "overhead press", "squat"]
-        return focuses[idx % focuses.count]
-    case .hypertrophy:
-        let focuses = ["upper", "lower", "push", "pull", "upper"]
-        return focuses[idx % focuses.count]
-    case .fullBody:
-        let focuses = ["full body a", "full body b", "full body c", "full body a", "full body b"]
-        return focuses[idx % focuses.count]
-    case .dup:
-        return "full body"
-    }
-}
-
-// Exercise tuple: (name, sets, reps, basePct1RM, restMinutes, bodyweightOnly)
-private typealias ExerciseTuple = (String, Int, Int, Double, Double, Bool)
-
-private func sessionExercises(template: ProgramTemplate, focus: String, week: Int, day: Int, totalWeeks: Int) -> [GeneratedProgramExercise] {
-    switch template {
-    case .firstMargarita:
-        return [] // Hand-crafted; generateProgram short-circuits before reaching here
-    case .strength, .hypertrophy, .fullBody:
-        let pool = exercisePool(template: template, focus: focus)
-        let progressionOffset = Double(week - 1) * 0.02
-        return pool.map { (name, sets, reps, basePct, rest, bw) in
-            GeneratedProgramExercise(
-                exercise: name,
-                sets: .fixed(value: sets),
-                reps: reps == 0 ? .text(value: "hold") : .fixed(value: reps),
-                percent1RM: bw ? nil : basePct + progressionOffset,
-                restMinutes: rest,
-                bodyweightOnly: bw
-            )
+    return makeProgram(
+        template: .dumbbellStrength,
+        category: "Strength",
+        description: "A 6-week printable dumbbell strength block with lower, upper, unilateral, and full-body density days.",
+        difficulty: "Intermediate",
+        weekNames: weekNames,
+        weeklyFocus: weeklyFocus,
+        sessionsForWeek: { week in
+            [
+                ProgramSessionSpec(name: "Lower Strength + Core", focus: "lower body", exercises: [
+                    makeExercise("Dumbbell Front Squat", sets: setCount(week, base: 4), reps: reps(week, heavy: true), rest: 1.75),
+                    makeExercise("Dumbbell Romanian Deadlift", sets: setCount(week, base: 3), reps: reps(week), rest: 1.5),
+                    makeExercise("Dead Bug Pullover", sets: 3, reps: .text(value: "8/side"), rest: 1.0),
+                    makeExercise("Side Plank", sets: 3, reps: .text(value: "25 sec/side"), rest: 1.0, bodyweight: true),
+                    makeExercise("Incline Walk", sets: 1, reps: .text(value: "\(week == 6 ? 6 : 8) min"), rest: 0.5, bodyweight: true),
+                ]),
+                ProgramSessionSpec(name: "Upper Push/Pull", focus: "upper body", exercises: [
+                    makeExercise("Dumbbell Bench Press", sets: setCount(week, base: 4), reps: reps(week, heavy: true), rest: 1.75),
+                    makeExercise("One-Arm Dumbbell Row", sets: setCount(week, base: 4), reps: .text(value: week >= 5 ? "8/side" : "8-12/side"), rest: 1.5),
+                    makeExercise("Dumbbell Shoulder Press", sets: 3, reps: reps(week), rest: 1.5),
+                    makeExercise("Rear Delt Fly", sets: 3, reps: .range(low: 12, high: 15), rest: 1.0),
+                    makeExercise("Farmer Carry", sets: 3, reps: .text(value: "40 sec"), rest: 1.0),
+                ]),
+                ProgramSessionSpec(name: "Lower Unilateral + Glutes", focus: "glutes", exercises: [
+                    makeExercise("Dumbbell Split Squat", sets: setCount(week, base: 3), reps: .text(value: week >= 5 ? "6-8/side" : "8-10/side"), rest: 1.5),
+                    makeExercise("Dumbbell Hip Thrust", sets: setCount(week, base: 3), reps: reps(week), rest: 1.5),
+                    makeExercise("Dumbbell Step-Up", sets: 3, reps: .text(value: "8/side"), rest: 1.25),
+                    makeExercise("Suitcase Carry", sets: 3, reps: .text(value: "35 sec/side"), rest: 1.0),
+                    makeExercise("Pallof Press", sets: 3, reps: .text(value: "10/side"), rest: 1.0),
+                ]),
+                ProgramSessionSpec(name: "Full-Body Density", focus: "conditioning", exercises: [
+                    makeExercise("Dumbbell Deadlift", sets: setCount(week, base: 3), reps: .range(low: 8, high: 12), rest: 1.0),
+                    makeExercise("Dumbbell Floor Press", sets: setCount(week, base: 3), reps: .range(low: 8, high: 12), rest: 1.0),
+                    makeExercise("Goblet Squat", sets: 3, reps: .range(low: 10, high: 12), rest: 1.0),
+                    makeExercise("Renegade Row", sets: 3, reps: .text(value: "6/side"), rest: 1.0),
+                    makeExercise("Bike or Walk", sets: 1, reps: .text(value: "\(week == 6 ? 8 : 10) min"), rest: 0.5, bodyweight: true),
+                ]),
+            ]
         }
-    case .linear:
-        return linearExercises(focus: focus, week: week, totalWeeks: totalWeeks)
-    case .dup:
-        return dupExercises(day: day, week: week)
-    case .block:
-        return blockExercises(focus: focus, week: week, totalWeeks: totalWeeks)
-    }
+    )
 }
 
-private func exercisePool(template: ProgramTemplate, focus: String) -> [ExerciseTuple] {
-    switch template {
-    case .strength: return strengthExercises(focus: focus)
-    case .hypertrophy: return hypertrophyExercises(focus: focus)
-    case .fullBody: return fullBodyExercises(focus: focus)
-    default: return []
-    }
-}
-
-private func strengthExercises(focus: String) -> [ExerciseTuple] {
-    switch focus {
-    case "squat":
-        return [("Back Squat", 4, 5, 0.78, 3.0, false), ("Front Squat", 3, 5, 0.68, 2.5, false), ("Leg Press", 3, 8, 0.0, 2.0, false), ("Walking Lunge", 3, 10, 0.0, 1.5, false), ("Calf Raise", 3, 12, 0.0, 1.0, false)]
-    case "bench":
-        return [("Bench Press", 4, 5, 0.78, 3.0, false), ("Incline Dumbbell Press", 3, 8, 0.0, 2.0, false), ("Barbell Row", 4, 5, 0.72, 2.5, false), ("Dumbbell Lateral Raise", 3, 12, 0.0, 1.0, false), ("Tricep Pushdown", 3, 10, 0.0, 1.0, false)]
-    case "deadlift":
-        return [("Deadlift", 4, 5, 0.78, 3.0, false), ("Romanian Deadlift", 3, 8, 0.65, 2.0, false), ("Pull-Up", 3, 8, 0.0, 2.0, true), ("Hip Thrust", 3, 10, 0.0, 1.5, false), ("Plank", 3, 0, 0.0, 1.0, true)]
-    default:
-        return [("Overhead Press", 4, 5, 0.72, 3.0, false), ("Push Press", 3, 5, 0.68, 2.5, false), ("Lateral Raise", 3, 12, 0.0, 1.0, false), ("Face Pull", 3, 15, 0.0, 1.0, false), ("Dip", 3, 8, 0.0, 1.5, true)]
-    }
-}
-
-private func hypertrophyExercises(focus: String) -> [ExerciseTuple] {
-    switch focus {
-    case "upper":
-        return [("Bench Press", 4, 10, 0.65, 2.0, false), ("Dumbbell Row", 4, 10, 0.0, 1.5, false), ("Overhead Press", 3, 10, 0.62, 1.5, false), ("Lat Pulldown", 3, 12, 0.0, 1.5, false), ("Bicep Curl", 3, 12, 0.0, 1.0, false), ("Tricep Extension", 3, 12, 0.0, 1.0, false)]
-    case "lower":
-        return [("Back Squat", 4, 10, 0.65, 2.0, false), ("Romanian Deadlift", 3, 10, 0.62, 2.0, false), ("Leg Press", 3, 12, 0.0, 1.5, false), ("Leg Curl", 3, 12, 0.0, 1.0, false), ("Calf Raise", 4, 15, 0.0, 1.0, false), ("Plank", 3, 0, 0.0, 1.0, true)]
-    case "push":
-        return [("Incline Bench Press", 4, 10, 0.62, 2.0, false), ("Dumbbell Fly", 3, 12, 0.0, 1.0, false), ("Overhead Press", 3, 10, 0.60, 1.5, false), ("Lateral Raise", 3, 15, 0.0, 1.0, false), ("Tricep Pushdown", 3, 12, 0.0, 1.0, false)]
-    default: // pull
-        return [("Barbell Row", 4, 10, 0.65, 2.0, false), ("Pull-Up", 3, 8, 0.0, 2.0, true), ("Face Pull", 3, 15, 0.0, 1.0, false), ("Hammer Curl", 3, 12, 0.0, 1.0, false), ("Shrug", 3, 12, 0.0, 1.0, false)]
-    }
-}
-
-private func fullBodyExercises(focus: String) -> [ExerciseTuple] {
-    switch focus {
-    case "full body a":
-        return [("Back Squat", 3, 8, 0.70, 2.5, false), ("Bench Press", 3, 8, 0.70, 2.0, false), ("Barbell Row", 3, 8, 0.68, 2.0, false), ("Overhead Press", 3, 10, 0.62, 1.5, false), ("Plank", 3, 0, 0.0, 1.0, true)]
-    case "full body b":
-        return [("Deadlift", 3, 6, 0.75, 3.0, false), ("Incline Dumbbell Press", 3, 10, 0.0, 1.5, false), ("Pull-Up", 3, 8, 0.0, 2.0, true), ("Walking Lunge", 3, 10, 0.0, 1.5, false), ("Bicep Curl", 3, 12, 0.0, 1.0, false)]
-    default: // full body c
-        return [("Front Squat", 3, 8, 0.65, 2.5, false), ("Dumbbell Bench Press", 3, 10, 0.0, 1.5, false), ("Seated Row", 3, 10, 0.0, 1.5, false), ("Hip Thrust", 3, 10, 0.0, 1.5, false), ("Lateral Raise", 3, 12, 0.0, 1.0, false)]
-    }
-}
-
-private func linearExercises(focus: String, week: Int, totalWeeks: Int) -> [GeneratedProgramExercise] {
-    let progress = Double(week - 1) / Double(max(totalWeeks - 1, 1))
-    let reps = Int(round(10 - progress * 7))
-    let pct = 0.60 + progress * 0.28
-    let sets = reps <= 3 ? 5 : 4
-    let rest = reps <= 5 ? 3.0 : 2.0
-
-    return linearPool(focus: focus).map { (name, bw) in
-        GeneratedProgramExercise(exercise: name, sets: .fixed(value: sets), reps: .fixed(value: reps),
-                                  percent1RM: bw ? nil : pct, restMinutes: rest, bodyweightOnly: bw)
-    }
-}
-
-private func linearPool(focus: String) -> [(String, Bool)] {
-    switch focus {
-    case "squat":    return [("Back Squat", false), ("Front Squat", false), ("Leg Press", false), ("Walking Lunge", false), ("Calf Raise", false)]
-    case "bench":    return [("Bench Press", false), ("Incline Dumbbell Press", false), ("Barbell Row", false), ("Lateral Raise", false), ("Tricep Pushdown", false)]
-    case "deadlift": return [("Deadlift", false), ("Romanian Deadlift", false), ("Pull-Up", true), ("Hip Thrust", false), ("Plank", true)]
-    default:         return [("Overhead Press", false), ("Push Press", false), ("Lateral Raise", false), ("Face Pull", false), ("Dip", true)]
-    }
-}
-
-private func dupExercises(day: Int, week: Int) -> [GeneratedProgramExercise] {
-    let weekOffset = Double(week - 1) * 0.02
-    let dayIndex = (day - 1) % 3
-
-    let reps: Int, basePct: Double, sets: Int, rest: Double
-    switch dayIndex {
-    case 0: reps = 3; basePct = 0.85; sets = 5; rest = 3.0
-    case 1: reps = 6; basePct = 0.72; sets = 4; rest = 2.0
-    default: reps = 12; basePct = 0.60; sets = 3; rest = 1.5
-    }
-
-    let exercises: [(String, Bool)] = [
-        ("Back Squat", false), ("Bench Press", false), ("Deadlift", false),
-        ("Overhead Press", false), ("Pull-Up", true),
+func generateGlutesCoreConditioningProgram() -> GeneratedProgram {
+    let weekNames = [
+        "Base",
+        "Build",
+        "Volume",
+        "Strength",
+        "Density",
+        "Peak",
+        "Consolidate",
+        "Deload",
+    ]
+    let weeklyFocus = [
+        "Set the glute, core, and conditioning rhythm.",
+        "Add small rep targets without rushing the finishers.",
+        "Use more total work on hip thrust and unilateral days.",
+        "Prioritize heavier glute strength while keeping core crisp.",
+        "Increase density with short, controlled conditioning blocks.",
+        "Push the strongest week before tapering.",
+        "Hold quality and reduce unnecessary fatigue.",
+        "Deload volume while keeping the movement pattern familiar.",
     ]
 
-    return exercises.map { (name, bw) in
-        GeneratedProgramExercise(exercise: name, sets: .fixed(value: sets), reps: .fixed(value: reps),
-                                  percent1RM: bw ? nil : basePct + weekOffset, restMinutes: rest, bodyweightOnly: bw)
-    }
-}
-
-private func blockPhaseId(_ week: Int, totalWeeks: Int) -> String {
-    let phaseLength = totalWeeks / 3
-    if week <= phaseLength { return "accumulation" }
-    if week <= phaseLength * 2 { return "intensification" }
-    return "peaking"
-}
-
-private func blockPhases(_ totalWeeks: Int) -> [GeneratedProgramPhase] {
-    let phaseLength = totalWeeks / 3
-    return [
-        GeneratedProgramPhase(id: "accumulation", name: "Accumulation", goal: "Build work capacity with high volume, moderate intensity", weekRange: [1, phaseLength]),
-        GeneratedProgramPhase(id: "intensification", name: "Intensification", goal: "Increase intensity, reduce volume", weekRange: [phaseLength + 1, phaseLength * 2]),
-        GeneratedProgramPhase(id: "peaking", name: "Peaking", goal: "Peak strength with low volume, max intensity", weekRange: [phaseLength * 2 + 1, totalWeeks]),
-    ]
-}
-
-private func blockExercises(focus: String, week: Int, totalWeeks: Int) -> [GeneratedProgramExercise] {
-    let phaseLength = totalWeeks / 3
-
-    let reps: Int, basePct: Double, sets: Int, rest: Double
-    if week <= phaseLength {
-        let weekInPhase = week - 1
-        reps = 10; basePct = 0.60 + Double(weekInPhase) * 0.02; sets = 4; rest = 1.5
-    } else if week <= phaseLength * 2 {
-        let weekInPhase = week - phaseLength - 1
-        reps = 5; basePct = 0.75 + Double(weekInPhase) * 0.02; sets = 4; rest = 2.5
-    } else {
-        let weekInPhase = week - phaseLength * 2 - 1
-        reps = 2; basePct = 0.85 + Double(weekInPhase) * 0.02; sets = 5; rest = 3.0
+    func sets(_ week: Int, base: Int) -> Int {
+        if week == 8 { return max(2, base - 1) }
+        if week >= 3 && week <= 6 { return base + 1 }
+        return base
     }
 
-    return blockPool(focus: focus).map { (name, bw) in
-        GeneratedProgramExercise(exercise: name, sets: .fixed(value: sets), reps: .fixed(value: reps),
-                                  percent1RM: bw ? nil : basePct, restMinutes: rest, bodyweightOnly: bw)
+    func finisherMinutes(_ week: Int) -> Int {
+        week == 8 ? 6 : min(12, 6 + week)
     }
-}
 
-private func blockPool(focus: String) -> [(String, Bool)] {
-    switch focus {
-    case "squat":    return [("Back Squat", false), ("Front Squat", false), ("Leg Press", false), ("Walking Lunge", false), ("Calf Raise", false)]
-    case "bench":    return [("Bench Press", false), ("Incline Dumbbell Press", false), ("Barbell Row", false), ("Lateral Raise", false), ("Tricep Pushdown", false)]
-    case "deadlift": return [("Deadlift", false), ("Romanian Deadlift", false), ("Pull-Up", true), ("Hip Thrust", false), ("Plank", true)]
-    default:         return [("Overhead Press", false), ("Push Press", false), ("Lateral Raise", false), ("Face Pull", false), ("Dip", true)]
-    }
+    return makeProgram(
+        template: .glutesCoreConditioning,
+        category: "Strength + Conditioning",
+        description: "An 8-week printable lower-body plan with glute strength, core training, short finishers, and a deload week.",
+        difficulty: "Intermediate",
+        weekNames: weekNames,
+        weeklyFocus: weeklyFocus,
+        sessionsForWeek: { week in
+            [
+                ProgramSessionSpec(name: "Glute Strength", focus: "glutes", exercises: [
+                    makeExercise("Barbell Hip Thrust", sets: sets(week, base: 4), reps: week >= 6 ? .range(low: 6, high: 8) : .range(low: 6, high: 10), rest: 2.0),
+                    makeExercise("Romanian Deadlift", sets: sets(week, base: 3), reps: .range(low: 8, high: 10), rest: 1.75),
+                    makeExercise("Cable Pull-Through", sets: 3, reps: .range(low: 10, high: 12), rest: 1.25),
+                    makeExercise("Abduction Machine", sets: 3, reps: .range(low: 12, high: 15), rest: 1.0),
+                    makeExercise("Dead Bug", sets: 3, reps: .text(value: "8/side"), rest: 1.0, bodyweight: true),
+                ]),
+                ProgramSessionSpec(name: "Upper Body + Core", focus: "upper body", exercises: [
+                    makeExercise("Dumbbell Bench Press", sets: 3, reps: .range(low: 8, high: 10), rest: 1.5),
+                    makeExercise("Lat Pulldown", sets: 3, reps: .range(low: 8, high: 12), rest: 1.5),
+                    makeExercise("Half-Kneeling Dumbbell Press", sets: 3, reps: .text(value: "8/side"), rest: 1.25),
+                    makeExercise("Cable Chop", sets: 3, reps: .text(value: "10/side"), rest: 1.0),
+                    makeExercise("Front Plank", sets: 3, reps: .text(value: "\(20 + week * 5) sec"), rest: 1.0, bodyweight: true),
+                ]),
+                ProgramSessionSpec(name: "Glute Volume + Unilateral", focus: "unilateral glutes", exercises: [
+                    makeExercise("Bulgarian Split Squat", sets: sets(week, base: 3), reps: .text(value: "8-10/side"), rest: 1.5),
+                    makeExercise("Single-Leg Romanian Deadlift", sets: 3, reps: .text(value: "8/side"), rest: 1.25),
+                    makeExercise("Dumbbell Step-Up", sets: 3, reps: .text(value: "10/side"), rest: 1.25),
+                    makeExercise("Glute Bridge March", sets: 3, reps: .text(value: "10/side"), rest: 1.0, bodyweight: true),
+                    makeExercise("Suitcase Carry", sets: 3, reps: .text(value: "35 sec/side"), rest: 1.0),
+                ]),
+                ProgramSessionSpec(name: "Full Body + Conditioning", focus: "conditioning", exercises: [
+                    makeExercise("Goblet Squat", sets: sets(week, base: 3), reps: .range(low: 10, high: 12), rest: 1.0),
+                    makeExercise("Kettlebell Deadlift", sets: 3, reps: .range(low: 10, high: 12), rest: 1.0),
+                    makeExercise("Push-Up", sets: 3, reps: .range(low: 8, high: 12), rest: 1.0, bodyweight: true),
+                    makeExercise("Cable Row", sets: 3, reps: .range(low: 10, high: 12), rest: 1.0),
+                    makeExercise("Bike, Sled, or Incline Walk", sets: 1, reps: .text(value: "\(finisherMinutes(week)) min"), rest: 0.5, bodyweight: true),
+                ]),
+            ]
+        }
+    )
 }

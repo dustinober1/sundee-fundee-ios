@@ -51,6 +51,7 @@ public struct ContentProgram: Codable, Sendable, Identifiable, Equatable {
     public let sessionsPerWeek: Int
     public let difficulty: String
     public let phases: String? // JSON string encoding of phases array
+    public let printablePDFURL: URL?
     public let sortOrder: Int
     public let source: ContentSource
 
@@ -63,6 +64,7 @@ public struct ContentProgram: Codable, Sendable, Identifiable, Equatable {
         sessionsPerWeek: Int,
         difficulty: String,
         phases: String? = nil,
+        printablePDFURL: URL? = nil,
         sortOrder: Int,
         source: ContentSource = .bundled
     ) {
@@ -74,6 +76,7 @@ public struct ContentProgram: Codable, Sendable, Identifiable, Equatable {
         self.sessionsPerWeek = sessionsPerWeek
         self.difficulty = difficulty
         self.phases = phases
+        self.printablePDFURL = printablePDFURL
         self.sortOrder = sortOrder
         self.source = source
     }
