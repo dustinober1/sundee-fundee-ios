@@ -12,6 +12,7 @@ struct NewPRShareView: View {
     let unit: String
     let previousBest: Double?
     let aspect: ShareCardAspect
+    let shareURL: URL
 
     var body: some View {
         ZStack {
@@ -41,6 +42,13 @@ struct NewPRShareView: View {
                     .padding(.bottom, AppTheme.Spacing.lg)
             }
             .padding(.horizontal, AppTheme.Spacing.xl)
+            #if canImport(UIKit)
+            if #available(iOS 18.0, *) {
+                QRBadge(url: shareURL, size: aspect.size.width * 0.10)
+                    .padding(AppTheme.Spacing.lg)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+            }
+            #endif
         }
         .frame(width: aspect.size.width, height: aspect.size.height)
     }

@@ -39,27 +39,25 @@ final class LiveWorkoutActivityStateTests: XCTestCase {
         XCTAssertNil(state.rest)
     }
 
-    func testContentState_WithRestingSnapshot_DerivesRestTimingFromSnapshotTimestamps() {
-        let snapshot = makeSnapshot(
-            status: .resting,
-            lastUpdatedAt: Date(timeIntervalSince1970: 1_100),
-            rest: ActiveWorkoutRestState(
-                startedAt: Date(timeIntervalSince1970: 1_040),
-                targetDurationSeconds: 120,
-                sourceExerciseID: "squat",
-                sourceExerciseName: "Back Squat",
-                sourceSetID: "squat-2",
-                sourceSetIndex: 1
-            )
-        )
+	    func testContentState_WithRestingSnapshot_DerivesRestTimingFromSnapshotTimestamps() {
+	        let snapshot = makeSnapshot(
+	            status: .resting,
+	            lastUpdatedAt: Date(timeIntervalSince1970: 1_100),
+	            rest: ActiveWorkoutState.Rest(
+	                sourceExerciseName: "Back Squat",
+	                sourceSetIndex: 1,
+	                targetDurationSeconds: 120,
+	                startedAt: Date(timeIntervalSince1970: 1_040)
+	            )
+	        )
 
-        let state = LiveWorkoutActivityAttributes.contentState(from: snapshot)
+	        let state = LiveWorkoutActivityAttributes.contentState(from: snapshot)
 
-        XCTAssertEqual(state.status, .resting)
-        XCTAssertEqual(state.rest?.sourceExerciseName, "Back Squat")
-        XCTAssertEqual(state.rest?.sourceSetIndex, 1)
-        XCTAssertEqual(state.rest?.targetDurationSeconds, 120)
-        XCTAssertEqual(state.rest?.elapsedSeconds, 60)
+	        XCTAssertEqual(state.status, LiveWorkoutActivityAttributes.Status.resting)
+	        XCTAssertEqual(state.rest?.sourceExerciseName, "Back Squat")
+	        XCTAssertEqual(state.rest?.sourceSetIndex, 1)
+	        XCTAssertEqual(state.rest?.targetDurationSeconds, 120)
+	        XCTAssertEqual(state.rest?.elapsedSeconds, 60)
         XCTAssertEqual(state.rest?.remainingSeconds, 60)
         XCTAssertEqual(state.current?.exerciseName, "Back Squat")
         XCTAssertEqual(state.nextUp?.exerciseName, "Walking Lunge")
@@ -70,9 +68,7 @@ final class LiveWorkoutActivityStateTests: XCTestCase {
             workoutID: "workout-finished",
             workoutName: "Finish Strong",
             status: .completed,
-            startedAt: Date(timeIntervalSince1970: 2_000),
             lastUpdatedAt: Date(timeIntervalSince1970: 2_620),
-            completedAt: Date(timeIntervalSince1970: 2_620),
             elapsedSeconds: 620,
             progress: ActiveWorkoutProgress(completedSets: 5, totalSets: 5, completedExercises: 2, totalExercises: 2),
             current: nil,
@@ -95,9 +91,7 @@ final class LiveWorkoutActivityStateTests: XCTestCase {
             workoutID: "workout-edge",
             workoutName: "Edge Cases",
             status: .active,
-            startedAt: Date(timeIntervalSince1970: 3_000),
             lastUpdatedAt: Date(timeIntervalSince1970: 3_010),
-            completedAt: nil,
             elapsedSeconds: -4,
             progress: ActiveWorkoutProgress(completedSets: 0, totalSets: 0, completedExercises: 0, totalExercises: 0),
             current: nil,
@@ -120,16 +114,12 @@ final class LiveWorkoutActivityStateTests: XCTestCase {
             workoutID: "workout-clamped",
             workoutName: "Clamped",
             status: .resting,
-            startedAt: Date(timeIntervalSince1970: 4_000),
             lastUpdatedAt: Date(timeIntervalSince1970: 4_500),
-            completedAt: nil,
             elapsedSeconds: 500,
             progress: ActiveWorkoutProgress(completedSets: 7, totalSets: 5, completedExercises: 3, totalExercises: 2),
-            current: ActiveWorkoutCurrentStep(
-                exerciseID: "bike",
+            current: ActiveWorkoutState.Current(
                 exerciseName: "Bike Erg",
                 exerciseIndex: 0,
-                setID: "bike-1",
                 setIndex: 0,
                 completedExerciseSets: 0,
                 totalExerciseSets: 1,
@@ -139,24 +129,20 @@ final class LiveWorkoutActivityStateTests: XCTestCase {
                 completedWeight: nil,
                 restSecondsAfterSet: -15
             ),
-            nextUp: ActiveWorkoutUpcomingStep(
-                exerciseID: "run",
-                exerciseName: "Run",
-                exerciseIndex: 1,
-                setID: "run-1",
-                setIndex: 0,
-                prescribedRepsText: "400m",
-                prescribedWeight: -10
-            ),
-            rest: ActiveWorkoutRestState(
-                startedAt: Date(timeIntervalSince1970: 4_100),
-                targetDurationSeconds: 60,
-                sourceExerciseID: "bike",
-                sourceExerciseName: "Bike Erg",
-                sourceSetID: "bike-1",
-                sourceSetIndex: 0
-            )
-        )
+	            nextUp: ActiveWorkoutState.NextUp(
+	                exerciseName: "Run",
+	                exerciseIndex: 1,
+	                setIndex: 0,
+	                prescribedRepsText: "400m",
+	                prescribedWeight: -10
+	            ),
+	            rest: ActiveWorkoutState.Rest(
+	                sourceExerciseName: "Bike Erg",
+	                sourceSetIndex: 0,
+	                targetDurationSeconds: 60,
+	                startedAt: Date(timeIntervalSince1970: 4_100)
+	            )
+	        )
 
         let state = LiveWorkoutActivityAttributes.contentState(from: snapshot)
 
@@ -172,23 +158,25 @@ final class LiveWorkoutActivityStateTests: XCTestCase {
     private func makeSnapshot(
         status: ActiveWorkoutStatus,
         lastUpdatedAt: Date = Date(timeIntervalSince1970: 1_000),
-        rest: ActiveWorkoutRestState? = nil
+        rest: ActiveWorkoutState.Rest? = nil
     ) -> ActiveWorkoutState {
-        ActiveWorkoutState(
-            workoutID: "workout-1",
-            workoutName: "Leg Day",
-            status: status,
-            startedAt: Date(timeIntervalSince1970: 400),
-            lastUpdatedAt: lastUpdatedAt,
-            completedAt: status == .completed ? lastUpdatedAt : nil,
-            elapsedSeconds: 600,
-            progress: ActiveWorkoutProgress(completedSets: 2, totalSets: 5, completedExercises: 0, totalExercises: 2),
-            current: ActiveWorkoutCurrentStep(
-                exerciseID: "squat",
-                exerciseName: "Back Squat",
-                exerciseIndex: 0,
-                setID: "squat-3",
-                setIndex: 2,
+	        ActiveWorkoutState(
+	            workoutID: "workout-1",
+	            workoutName: "Leg Day",
+	            status: status,
+	            lastUpdatedAt: lastUpdatedAt,
+	            elapsedSeconds: 600,
+	            progress: ActiveWorkoutProgress(
+	                completedSets: 2,
+	                totalSets: 5,
+	                remainingSets: 3,
+	                completedExercises: 0,
+	                totalExercises: 2
+	            ),
+	            current: ActiveWorkoutState.Current(
+	                exerciseName: "Back Squat",
+	                exerciseIndex: 0,
+	                setIndex: 2,
                 completedExerciseSets: 2,
                 totalExerciseSets: 4,
                 prescribedRepsText: "5",
@@ -197,11 +185,9 @@ final class LiveWorkoutActivityStateTests: XCTestCase {
                 completedWeight: nil,
                 restSecondsAfterSet: 180
             ),
-            nextUp: ActiveWorkoutUpcomingStep(
-                exerciseID: "lunge",
+            nextUp: ActiveWorkoutState.NextUp(
                 exerciseName: "Walking Lunge",
                 exerciseIndex: 1,
-                setID: "lunge-1",
                 setIndex: 0,
                 prescribedRepsText: "10 / leg",
                 prescribedWeight: 40

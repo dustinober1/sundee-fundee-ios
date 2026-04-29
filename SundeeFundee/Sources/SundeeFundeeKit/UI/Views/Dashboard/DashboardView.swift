@@ -16,6 +16,7 @@ public struct DashboardView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @EnvironmentObject var cyclePhaseCache: CyclePhaseCache
     @State private var showingAIWorkout = false
+    @State private var starterWorkout: Workout?
     #if canImport(UIKit)
     @State private var showingCycleShare = false
     #endif
@@ -42,14 +43,22 @@ public struct DashboardView: View {
                         statCards
                     }
 
+                    weeklyPlanCard
+
                     // Empty state for brand-new users (no data anywhere)
                     if viewModel.showsNewUserEmptyState {
                         EmptyStateView(
                             icon: "figure.strengthtraining.traditional",
                             title: "Welcome to Sundee Fundee",
-                            subtitle: "Log your first workout or one-rep max to unlock stats, benchmarks, and cycle-aware programming.",
-                            actionLabel: "Log a Max",
-                            action: { viewModel.navigateToLogMax = true }
+                            subtitle: "Start your first workout to unlock stats, benchmarks, and cycle-aware programming.",
+                            actionLabel: "Start First Workout",
+                            action: {
+                                Task {
+                                    starterWorkout = await viewModel.buildStarterWorkout()
+                                }
+                            },
+                            secondaryActionLabel: "Log a Max",
+                            secondaryAction: { viewModel.navigateToLogMax = true }
                         )
                     }
 
@@ -99,6 +108,11 @@ public struct DashboardView: View {
             }
             .sheet(isPresented: $showingAIWorkout) {
                 AIWorkoutView()
+            }
+            .sheet(item: $starterWorkout) { workout in
+                ActiveWorkoutView(
+                    viewModel: ActiveWorkoutSessionViewModel(workout: workout)
+                )
             }
             .navigationDestination(isPresented: $viewModel.navigateToLogMax) {
                 MaxesListView()
@@ -391,6 +405,62 @@ public struct DashboardView: View {
         }
     }
 
+    @ViewBuilder
+    private var weeklyPlanCard: some View {
+        if let progress = viewModel.weeklyPlanProgress {
+            ArtDecoCard {
+                VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
+                    HStack {
+                        VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                            Text("This Week")
+                                .font(AppTheme.Typography.headlineMedium)
+                                .foregroundColor(AppTheme.Text.primary)
+                            Text(progress.displayText)
+                                .font(AppTheme.Typography.bodyMedium)
+                                .foregroundColor(AppTheme.Text.secondary)
+                        }
+                        Spacer()
+                        if let streak = viewModel.weeklyStreak, streak.currentWeeklyStreak > 0 {
+                            Text("\(streak.currentWeeklyStreak) wk")
+                                .font(AppTheme.Typography.monoMedium)
+                                .foregroundColor(AppTheme.Accent.gold)
+                        }
+                    }
+
+                    if let weekday = progress.nextWorkoutWeekday {
+                        Text("Next: \(weekdayName(weekday))")
+                            .font(AppTheme.Typography.bodySmall)
+                            .foregroundColor(AppTheme.Text.secondary)
+                    }
+
+                    HStack {
+                        Button {
+                            Task { starterWorkout = await viewModel.buildStarterWorkout() }
+                        } label: {
+                            Label("Start Workout", systemImage: "figure.strengthtraining.traditional")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .artDecoButton(style: .primary)
+
+                        Button {
+                            Task { await viewModel.resetWeeklyPlan() }
+                        } label: {
+                            Label("Edit Plan", systemImage: "calendar")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .artDecoButton(style: .secondary)
+                    }
+                }
+            }
+        }
+    }
+
+    private func weekdayName(_ weekday: Int) -> String {
+        let symbols = Calendar.current.weekdaySymbols
+        guard (1...symbols.count).contains(weekday) else { return "Soon" }
+        return symbols[weekday - 1]
+    }
+
     private func quickActionContent(_ title: String, icon: String, isPrimary: Bool) -> some View {
         VStack(spacing: AppTheme.Spacing.xs) {
             Image(systemName: icon)
@@ -559,12 +629,15 @@ class DashboardViewModel: ObservableObject {
     @Published var insightsSummary: String?
     @Published var insightsActions: [String] = []
     @Published var activeChallengeData: (Challenge, ChallengeProgress)?
+    @Published var weeklyPlanProgress: WeeklyPlanProgress?
+    @Published var weeklyStreak: WeeklyStreak?
 
     // MARK: - Dependencies
 
     private let healthClient: HealthClientProtocol
     private let dataClient: DataClientProtocol
     private var hasRequestedHealthAuth = false
+    private var hasTrackedFirstWorkoutPrompt = false
 
     // MARK: - Initialization
 
@@ -611,6 +684,34 @@ class DashboardViewModel: ObservableObject {
         // Tier 2: Non-critical data loads after UI is visible
         await loadCoachingInsights()
         await loadActiveChallenge()
+        await loadWeeklyPlan()
+        await trackFirstWorkoutPromptIfNeeded()
+    }
+
+    func resetWeeklyPlan() async {
+        let service = WeeklyPlanService(dataClient: dataClient)
+        _ = try? await service.createOrUpdateCurrentPlan(
+            targetWorkoutCount: 3,
+            preferredWeekdays: [2, 4, 6]
+        )
+        await loadWeeklyPlan()
+    }
+
+    func buildStarterWorkout() async -> Workout {
+        let settings = await loadUserSettings()
+        let workout = StarterWorkoutBuilder.build(
+            context: StarterWorkoutContext(
+                experienceLevel: settings.experienceLevel,
+                primaryGoal: settings.primaryGoal,
+                weightUnit: settings.weightUnit,
+                cycleTrackingEnabled: settings.cycleTrackingEnabled
+            )
+        )
+        await GrowthAnalyticsService(dataClient: dataClient).track(
+            GrowthEventName.firstWorkoutStarted,
+            source: "dashboard"
+        )
+        return workout
     }
 
     /// Generates an AI workout based on cycle phase and energy
@@ -739,5 +840,48 @@ class DashboardViewModel: ObservableObject {
         } catch {
             dashLogger.error("📊 Challenge load failed: \(error.localizedDescription)")
         }
+    }
+
+    private func loadWeeklyPlan() async {
+        let workouts: [Workout] = (try? await dataClient.fetchAll(recordType: "Workout")) ?? []
+        let service = WeeklyPlanService(dataClient: dataClient)
+        var plan = await service.currentPlan()
+        if plan == nil {
+            plan = try? await service.createOrUpdateCurrentPlan(
+                targetWorkoutCount: 3,
+                preferredWeekdays: [2, 4, 6]
+            )
+        }
+        if let plan {
+            weeklyPlanProgress = await service.progress(plan: plan, workouts: workouts)
+            weeklyStreak = StreakService.calculate(workouts: workouts, targetPerWeek: plan.targetWorkoutCount)
+        }
+    }
+
+    private func trackFirstWorkoutPromptIfNeeded() async {
+        guard showsNewUserEmptyState, !hasTrackedFirstWorkoutPrompt else { return }
+        hasTrackedFirstWorkoutPrompt = true
+        await GrowthAnalyticsService(dataClient: dataClient).track(
+            GrowthEventName.firstWorkoutPromptSeen,
+            source: "dashboard"
+        )
+    }
+
+    private func loadUserSettings() async -> (
+        experienceLevel: ExperienceLevel,
+        primaryGoal: PrimaryGoal,
+        weightUnit: WeightUnit,
+        cycleTrackingEnabled: Bool
+    ) {
+        let records: [UserSettingsRecord] = (try? await dataClient.fetchAll(recordType: "UserSettings")) ?? []
+        guard let settings = records.first else {
+            return (.beginner, .strength, .lbs, false)
+        }
+        return (
+            ExperienceLevel(rawValue: settings.experienceLevel) ?? .beginner,
+            PrimaryGoal(rawValue: settings.primaryGoal) ?? .strength,
+            WeightUnit(rawValue: settings.weightUnit) ?? .lbs,
+            settings.cycleTrackingEnabled
+        )
     }
 }

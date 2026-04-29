@@ -12,6 +12,7 @@ import PhotosUI
 public struct ShareCardSheet: View {
     let variant: ShareCardVariant
     let defaultAspect: ShareCardAspect
+    let shareContext: ShareContext?
 
     @State private var aspect: ShareCardAspect
     @State private var renderedImage: UIImage?
@@ -40,10 +41,12 @@ public struct ShareCardSheet: View {
 
     public init(
         variant: ShareCardVariant,
-        defaultAspect: ShareCardAspect = .story
+        defaultAspect: ShareCardAspect = .story,
+        shareContext: ShareContext? = nil
     ) {
         self.variant = variant
         self.defaultAspect = defaultAspect
+        self.shareContext = shareContext
         _aspect = State(initialValue: defaultAspect)
     }
 
@@ -67,7 +70,18 @@ public struct ShareCardSheet: View {
                 }
             }
             .task(id: RenderKey(aspect: aspect, useSelfie: useSelfie, hasImage: selfieImage != nil)) {
-                renderedImage = await ShareCardRenderer.render(effectiveVariant, aspect: aspect)
+                renderedImage = await ShareCardRenderer.render(
+                    effectiveVariant,
+                    aspect: aspect,
+                    shareContext: shareContext
+                )
+            }
+            .task {
+                await GrowthAnalyticsService().track(
+                    GrowthEventName.shareSheetOpened,
+                    source: shareContext?.surface.rawValue,
+                    properties: shareContextProperties
+                )
             }
         }
     }
@@ -225,7 +239,7 @@ public struct ShareCardSheet: View {
                 ShareLink(
                     item: Image(uiImage: image),
                     subject: Text(variant.shareTitle),
-                    message: Text(ShareURL.shareCaption),
+                    message: Text(ShareURL.caption(for: shareContext)),
                     preview: SharePreview(variant.shareTitle, image: Image(uiImage: image))
                 ) {
                     Label("Share", systemImage: "square.and.arrow.up")
@@ -236,8 +250,9 @@ public struct ShareCardSheet: View {
                     TapGesture().onEnded {
                         HapticFeedback.success()
                         if useSelfie {
-                            UIPasteboard.general.string = ShareURL.appStore.absoluteString
+                            UIPasteboard.general.string = ShareURL.link(for: shareContext).absoluteString
                         }
+                        Task { await trackShareTapped() }
                     }
                 )
 
@@ -265,6 +280,40 @@ public struct ShareCardSheet: View {
             .artDecoButton(style: .accent)
             .disabled(true)
         }
+    }
+
+    private var shareContextProperties: [String: String] {
+        var properties: [String: String] = [:]
+        if let sourceID = shareContext?.sourceID {
+            properties["sourceID"] = sourceID
+        }
+        if let title = shareContext?.title {
+            properties["title"] = title
+        }
+        if let referralCode = shareContext?.referralCode {
+            properties["referralCode"] = referralCode
+        }
+        return properties
+    }
+
+    private func trackShareTapped() async {
+        let eventName: String
+        switch shareContext?.surface {
+        case .completedWorkout, .starterWorkout:
+            eventName = GrowthEventName.shareCompletedWorkoutTapped
+        case .personalRecord:
+            eventName = GrowthEventName.sharePRTapped
+        case .challenge:
+            eventName = GrowthEventName.shareChallengeTapped
+        case .cycleInsight, nil:
+            eventName = GrowthEventName.shareSheetOpened
+        }
+
+        await GrowthAnalyticsService().track(
+            eventName,
+            source: shareContext?.surface.rawValue,
+            properties: shareContextProperties
+        )
     }
 }
 #endif

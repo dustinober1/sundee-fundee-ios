@@ -43,6 +43,7 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
     private var elapsedTimerCancellable: AnyCancellable?
     private var restStartedAt: Date?
     private var restTargetDuration: TimeInterval = 0
+    private var acceptedSubstitutions: [String] = []
 #if canImport(ActivityKit) && os(iOS)
     private var liveActivityManager: LiveWorkoutActivityManager?
 #endif
@@ -164,6 +165,7 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
         guard currentExerciseIndex < workout.exercises.count else { return }
         var updated = workout
         var existing = updated.exercises[currentExerciseIndex]
+        let oldName = existing.name
         let resetSets = existing.targetSets.map { set in
             ExerciseSet(
                 id: UUID().uuidString,
@@ -184,6 +186,7 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
         )
         updated.exercises[currentExerciseIndex] = existing
         workout = updated
+        acceptedSubstitutions.append("\(oldName) -> \(newName)")
         currentSetIndex = 0
     }
 
@@ -269,6 +272,20 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
         } catch {
             // HealthKit save is non-critical
         }
+
+        await CoachMemoryService(dataClient: dataClient).recordWorkoutCompletion(
+            WorkoutCompletionMemory(
+                workoutID: workout.id,
+                exerciseNames: workout.exercises.map(\.name),
+                substitutionsAccepted: acceptedSubstitutions
+            )
+        )
+
+        await GrowthAnalyticsService(dataClient: dataClient).track(
+            GrowthEventName.firstWorkoutCompleted,
+            source: "active_workout",
+            properties: ["workoutID": workout.id]
+        )
 
         // End Live Activity
         let finalSnapshot = buildSnapshot(status: .completed)

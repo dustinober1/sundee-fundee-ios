@@ -63,6 +63,19 @@ public actor CoachMemoryService {
         await saveProfile(profile)
     }
 
+    public func recordWorkoutCompletion(_ memory: WorkoutCompletionMemory) async {
+        do {
+            try await dataClient.save(memory, recordType: "WorkoutCompletionMemory")
+        } catch {
+            // Coach memory save is best-effort — degrade silently
+        }
+
+        var profile = await getProfile()
+        profile.totalWorkoutsObserved += 1
+        profile.lastUpdated = Date()
+        await saveProfile(profile)
+    }
+
     /// Records a workout edit for preference learning.
     public func recordWorkoutEdit(_ edit: WorkoutEdit) async {
         do {

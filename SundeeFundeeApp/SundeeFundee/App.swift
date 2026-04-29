@@ -2,6 +2,9 @@ import CloudKit
 import SwiftUI
 import SundeeFundeeKit
 import os.log
+#if canImport(UserNotifications)
+import UserNotifications
+#endif
 
 private let appLogger = Logger(subsystem: "com.sundeefundee.app", category: "AppStartup")
 
@@ -9,6 +12,7 @@ private let appLogger = Logger(subsystem: "com.sundeefundee.app", category: "App
 struct SundeeFundeeMain: App {
     @StateObject private var authViewModel = AuthViewModel()
     @StateObject private var themeViewModel = ThemeViewModel()
+    @State private var starterWorkout: Workout?
 
     private static let isScreenshotMode = CommandLine.arguments.contains("--seed-screenshots")
 
@@ -18,6 +22,9 @@ struct SundeeFundeeMain: App {
                 if authViewModel.isAuthenticated {
                     if authViewModel.needsOnboarding {
                         OnboardingView {
+                            authViewModel.completeOnboarding()
+                        } onStartFirstWorkout: { workout in
+                            starterWorkout = workout
                             authViewModel.completeOnboarding()
                         }
                     } else {
@@ -33,6 +40,11 @@ struct SundeeFundeeMain: App {
             .artDecoBackground()
             .onAppear {
                 themeViewModel.applyTheme()
+                #if canImport(UserNotifications)
+                if #available(iOS 18.0, *) {
+                    UNUserNotificationCenter.current().delegate = WorkoutReminderNotificationDelegate.shared
+                }
+                #endif
                 // Force-load App Shortcuts provider so iOS discovers intents
                 // declared inside the SundeeFundeeKit package.
                 _ = SundeeFundeeShortcuts.self
@@ -72,6 +84,11 @@ struct SundeeFundeeMain: App {
                     authViewModel.isAuthenticated = true
                     authViewModel.needsOnboarding = false
                 }
+            }
+            .sheet(item: $starterWorkout) { workout in
+                ActiveWorkoutView(
+                    viewModel: ActiveWorkoutSessionViewModel(workout: workout)
+                )
             }
         }
     }

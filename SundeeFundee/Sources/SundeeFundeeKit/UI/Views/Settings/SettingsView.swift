@@ -78,6 +78,14 @@ public struct SettingsView: View {
                         Text("Endurance").tag(PrimaryGoal.endurance)
                         Text("Weight Loss").tag(PrimaryGoal.weightLoss)
                     }
+
+                    #if canImport(UserNotifications)
+                    NavigationLink {
+                        WorkoutRemindersSettingsView()
+                    } label: {
+                        Label("Workout Reminders", systemImage: "bell")
+                    }
+                    #endif
                 }
                 .onChange(of: viewModel.weightUnit) { _, _ in Task { await viewModel.saveSettings() } }
                 .onChange(of: viewModel.experienceLevel) { _, _ in Task { await viewModel.saveSettings() } }
@@ -213,13 +221,13 @@ public struct SettingsView: View {
 
 // MARK: - Enums
 
-enum ExperienceLevel: String, Codable, Sendable {
+public enum ExperienceLevel: String, Codable, Sendable {
     case beginner
     case intermediate
     case advanced
 }
 
-enum PrimaryGoal: String, Codable, Sendable {
+public enum PrimaryGoal: String, Codable, Sendable {
     case strength
     case hypertrophy
     case endurance
