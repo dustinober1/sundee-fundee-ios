@@ -10,7 +10,12 @@ import SwiftUI
 struct AIWorkoutView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel = AIWorkoutViewModel()
+    private let onClose: (() -> Void)?
     @State private var activeWorkoutSession: ActiveWorkoutSessionViewModel?
+
+    init(onClose: (() -> Void)? = nil) {
+        self.onClose = onClose
+    }
 
     var body: some View {
         NavigationStack {
@@ -34,7 +39,7 @@ struct AIWorkoutView: View {
             #endif
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    Button("Cancel") { close() }
                 }
             }
             #if os(iOS)
@@ -45,6 +50,14 @@ struct AIWorkoutView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .workoutCompleted)) { _ in
             activeWorkoutSession = nil
+            close()
+        }
+    }
+
+    private func close() {
+        if let onClose {
+            onClose()
+        } else {
             dismiss()
         }
     }
