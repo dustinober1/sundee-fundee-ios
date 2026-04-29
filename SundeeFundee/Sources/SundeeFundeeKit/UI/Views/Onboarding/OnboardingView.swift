@@ -9,9 +9,14 @@ import SwiftUI
 public struct OnboardingView: View {
     @StateObject private var viewModel = OnboardingViewModel()
     let onComplete: () -> Void
+    let onStartFirstWorkout: ((Workout) -> Void)?
 
-    public init(onComplete: @escaping () -> Void) {
+    public init(
+        onComplete: @escaping () -> Void,
+        onStartFirstWorkout: ((Workout) -> Void)? = nil
+    ) {
         self.onComplete = onComplete
+        self.onStartFirstWorkout = onStartFirstWorkout
     }
 
     public var body: some View {
@@ -36,6 +41,9 @@ public struct OnboardingView: View {
             navigationButtons
         }
         .artDecoBackground()
+        .task {
+            await viewModel.trackOnboardingStarted()
+        }
     }
 
     // MARK: - Progress Bar
@@ -294,14 +302,26 @@ public struct OnboardingView: View {
                 .artDecoButton(style: .primary)
                 .accessibilityLabel("Next step")
             } else {
-                Button("Get Started") {
-                    Task {
-                        await viewModel.completeOnboarding()
-                        onComplete()
+                VStack(alignment: .trailing, spacing: AppTheme.Spacing.sm) {
+                    Button("Start First Workout") {
+                        Task {
+                            await viewModel.completeOnboarding()
+                            let workout = viewModel.buildStarterWorkout()
+                            await viewModel.trackFirstWorkoutStarted()
+                            onStartFirstWorkout?(workout)
+                        }
                     }
+                    .artDecoButton(style: .accent)
+                    .accessibilityHint("Complete onboarding and start your first workout")
+
+                    Button("Not now - go to dashboard") {
+                        Task {
+                            await viewModel.completeOnboarding()
+                            onComplete()
+                        }
+                    }
+                    .artDecoButton(style: .ghost)
                 }
-                .artDecoButton(style: .accent)
-                .accessibilityHint("Complete onboarding and start using the app")
             }
         }
         .padding(AppTheme.Spacing.lg)
@@ -342,5 +362,35 @@ class OnboardingViewModel: ObservableObject {
         } catch {
             // Settings save is best-effort during onboarding; user can re-save in Settings
         }
+
+        await GrowthAnalyticsService(dataClient: dataClient).track(
+            GrowthEventName.onboardingCompleted,
+            source: "onboarding"
+        )
+    }
+
+    func buildStarterWorkout() -> Workout {
+        StarterWorkoutBuilder.build(
+            context: StarterWorkoutContext(
+                experienceLevel: experienceLevel,
+                primaryGoal: primaryGoal,
+                weightUnit: weightUnit,
+                cycleTrackingEnabled: cycleTrackingEnabled
+            )
+        )
+    }
+
+    func trackOnboardingStarted() async {
+        await GrowthAnalyticsService(dataClient: dataClient).track(
+            GrowthEventName.onboardingStarted,
+            source: "onboarding"
+        )
+    }
+
+    func trackFirstWorkoutStarted() async {
+        await GrowthAnalyticsService(dataClient: dataClient).track(
+            GrowthEventName.firstWorkoutStarted,
+            source: "onboarding"
+        )
     }
 }

@@ -10,16 +10,25 @@ struct CompletedWorkoutShareView: View {
     let workout: Workout
     let personalRecords: Set<String>
     let aspect: ShareCardAspect
+    let shareURL: URL
 
     var body: some View {
-        VStack(spacing: 0) {
-            headerSection
-            divider
-            statsRow
-            divider
-            exerciseList
-            Spacer(minLength: 0)
-            ShareFooter(palette: .onDark)
+        ZStack(alignment: .bottomTrailing) {
+            VStack(spacing: 0) {
+                headerSection
+                divider
+                statsRow
+                divider
+                exerciseList
+                Spacer(minLength: 0)
+                ShareFooter(palette: .onDark)
+            }
+            #if canImport(UIKit)
+            if #available(iOS 18.0, *) {
+                QRBadge(url: shareURL, size: aspect.size.width * 0.10)
+                    .padding(AppTheme.Spacing.lg)
+            }
+            #endif
         }
         .padding(.horizontal, horizontalPadding)
         .padding(.top, topPadding)

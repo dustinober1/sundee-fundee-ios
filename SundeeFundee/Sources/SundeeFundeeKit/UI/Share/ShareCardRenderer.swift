@@ -14,10 +14,11 @@ public enum ShareCardRenderer {
 
     public static func render(
         _ variant: ShareCardVariant,
-        aspect: ShareCardAspect
+        aspect: ShareCardAspect,
+        shareContext: ShareContext? = nil
     ) async -> UIImage? {
         await Task.detached(priority: .userInitiated) { @MainActor in
-            let renderer = ImageRenderer(content: content(for: variant, aspect: aspect))
+            let renderer = ImageRenderer(content: content(for: variant, aspect: aspect, shareContext: shareContext))
             renderer.scale = renderScale
             return renderer.uiImage
         }.value
@@ -29,14 +30,16 @@ public enum ShareCardRenderer {
     @MainActor
     public static func content(
         for variant: ShareCardVariant,
-        aspect: ShareCardAspect
+        aspect: ShareCardAspect,
+        shareContext: ShareContext? = nil
     ) -> some View {
         switch variant {
         case .completedWorkout(let workout, let prs):
             CompletedWorkoutShareView(
                 workout: workout,
                 personalRecords: prs,
-                aspect: aspect
+                aspect: aspect,
+                shareURL: ShareURL.link(for: shareContext)
             )
         case .newPR(let exercise, let weight, let unit, let previousBest):
             NewPRShareView(
@@ -44,14 +47,16 @@ public enum ShareCardRenderer {
                 weight: weight,
                 unit: unit,
                 previousBest: previousBest,
-                aspect: aspect
+                aspect: aspect,
+                shareURL: ShareURL.link(for: shareContext)
             )
         case .cycleInsight(let phase, let day, let insight):
             CycleInsightShareView(
                 phase: phase,
                 cycleDay: day,
                 insight: insight,
-                aspect: aspect
+                aspect: aspect,
+                shareURL: ShareURL.link(for: shareContext)
             )
         case .selfieOverlay(let image, let summary):
             SelfieOverlayShareView(

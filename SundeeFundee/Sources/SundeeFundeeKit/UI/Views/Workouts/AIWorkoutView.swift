@@ -10,7 +10,12 @@ import SwiftUI
 struct AIWorkoutView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel = AIWorkoutViewModel()
+    private let onClose: (() -> Void)?
     @State private var activeWorkoutSession: ActiveWorkoutSessionViewModel?
+
+    init(onClose: (() -> Void)? = nil) {
+        self.onClose = onClose
+    }
 
     var body: some View {
         NavigationStack {
@@ -34,7 +39,7 @@ struct AIWorkoutView: View {
             #endif
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    Button("Cancel") { close() }
                 }
             }
             #if os(iOS)
@@ -45,6 +50,14 @@ struct AIWorkoutView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .workoutCompleted)) { _ in
             activeWorkoutSession = nil
+            close()
+        }
+    }
+
+    private func close() {
+        if let onClose {
+            onClose()
+        } else {
             dismiss()
         }
     }
@@ -347,6 +360,10 @@ struct AIWorkoutView: View {
                         }
                     }
 
+                    if let rationale = viewModel.workoutRationale {
+                        rationaleCard(rationale)
+                    }
+
                     // Coaching Tips
                     if !viewModel.coachingTips.isEmpty {
                         ArtDecoCard {
@@ -373,6 +390,7 @@ struct AIWorkoutView: View {
                     VStack(spacing: AppTheme.Spacing.md) {
                         Button {
                             if let workout = viewModel.buildWorkoutForSession() {
+                                Task { await viewModel.trackWorkoutStarted() }
                                 activeWorkoutSession = ActiveWorkoutSessionViewModel(workout: workout)
                             }
                         } label: {
@@ -485,6 +503,32 @@ struct AIWorkoutView: View {
                             .font(AppTheme.Typography.bodySmall)
                             .foregroundColor(AppTheme.Accent.gold)
                     }
+                }
+            }
+        }
+    }
+
+    private func rationaleCard(_ rationale: WorkoutRationale) -> some View {
+        ArtDecoCard {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
+                Label("Why this workout?", systemImage: "questionmark.circle")
+                    .font(AppTheme.Typography.labelMedium)
+                    .foregroundColor(AppTheme.Accent.gold)
+
+                Text(rationale.headline)
+                    .font(AppTheme.Typography.headlineMedium)
+                    .foregroundColor(AppTheme.Text.primary)
+
+                ForEach(rationale.reasons.prefix(4), id: \.self) { reason in
+                    Text("• \(reason)")
+                        .font(AppTheme.Typography.bodySmall)
+                        .foregroundColor(AppTheme.Text.secondary)
+                }
+
+                ForEach(rationale.cautions.prefix(2), id: \.self) { caution in
+                    Text(caution)
+                        .font(AppTheme.Typography.bodySmall)
+                        .foregroundColor(AppTheme.Semantic.warning)
                 }
             }
         }
@@ -674,6 +718,7 @@ class AIWorkoutViewModel: ObservableObject {
     @Published var generatedWorkout: GeneratedWorkout?
     @Published var coachingTips: [String] = []
     @Published var swapState: ExerciseSwapState?
+    @Published var workoutRationale: WorkoutRationale?
 
     private let coachService: CoachServiceProtocol
     private let contextBuilder: CoachContextBuilder
@@ -716,13 +761,37 @@ class AIWorkoutViewModel: ObservableObject {
                 preferences: questionnaire
             )
 
-            generatedWorkout = response.workout
+            let adjustment = CycleAwareAdjustmentService.adjustment(
+                phase: context.cyclePhase,
+                energyLevel: energyLevel,
+                goal: context.primaryGoal,
+                equipment: equipment
+            )
+            generatedWorkout = CycleAwareAdjustmentService.apply(adjustment, to: response.workout)
+            workoutRationale = adjustment.rationale
             coachingTips = response.tips
             cyclePhase = context.cyclePhase
             state = .preview
+            await GrowthAnalyticsService(dataClient: dataClient).track(
+                GrowthEventName.aiWorkoutGenerated,
+                source: "ai_workout"
+            )
+            if context.cyclePhase != nil {
+                await GrowthAnalyticsService(dataClient: dataClient).track(
+                    GrowthEventName.cycleAwareAdjustmentShown,
+                    source: "ai_workout"
+                )
+            }
         } catch {
             state = .error("Could not generate workout. Please try again.")
         }
+    }
+
+    func trackWorkoutStarted() async {
+        await GrowthAnalyticsService(dataClient: dataClient).track(
+            GrowthEventName.aiWorkoutStarted,
+            source: "ai_workout"
+        )
     }
 
     func loadSubstitutions(for exerciseId: String) async {
@@ -743,10 +812,18 @@ class AIWorkoutViewModel: ObservableObject {
                 for: exercise.name,
                 context: context
             )
+            let painLogs: [DailyPainLog] = (try? await dataClient.fetchAll(recordType: "DailyPainLog")) ?? []
+            let painAware = PainAwareSubstitutionService.rank(
+                currentExercise: exercise.name,
+                recentPainLogs: painLogs,
+                injuries: context.injuries,
+                equipment: equipment,
+                limit: 3
+            ).map(\.substitution)
             swapState = ExerciseSwapState(
                 exerciseId: exerciseId,
                 exerciseName: exercise.name,
-                substitutions: response.substitutions,
+                substitutions: uniqueSubstitutions(painAware + response.substitutions),
                 explanation: response.explanation,
                 isLoading: false
             )
@@ -820,6 +897,28 @@ class AIWorkoutViewModel: ObservableObject {
             questionnaire: workout.questionnaire
         )
 
+        Task {
+            await memoryService.recordSubstitutionDecision(
+                AcceptedSubstitution(
+                    originalExercise: old.name,
+                    substituteExercise: substitution.exerciseName,
+                    accepted: true,
+                    reason: substitution.reason
+                )
+            )
+            if substitution.reason.lowercased().contains("pain") ||
+                substitution.reason.lowercased().contains("tightness") {
+                await GrowthAnalyticsService(dataClient: dataClient).track(
+                    GrowthEventName.painAwareSubstitutionUsed,
+                    source: "ai_workout",
+                    properties: [
+                        "from": old.name,
+                        "to": substitution.exerciseName
+                    ]
+                )
+            }
+        }
+
         swapState = nil
     }
 
@@ -853,6 +952,15 @@ class AIWorkoutViewModel: ObservableObject {
             },
             notes: "AI Generated — \(generated.coachingSummary)"
         )
+    }
+
+    private func uniqueSubstitutions(
+        _ substitutions: [SubstitutionRanker.RankedSubstitution]
+    ) -> [SubstitutionRanker.RankedSubstitution] {
+        var seen = Set<String>()
+        return substitutions.filter { substitution in
+            seen.insert(substitution.exerciseName).inserted
+        }
     }
 }
 

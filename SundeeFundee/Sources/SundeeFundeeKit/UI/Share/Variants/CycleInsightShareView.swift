@@ -11,6 +11,7 @@ struct CycleInsightShareView: View {
     let cycleDay: Int
     let insight: String
     let aspect: ShareCardAspect
+    let shareURL: URL
 
     var body: some View {
         ZStack {
@@ -42,6 +43,13 @@ struct CycleInsightShareView: View {
             }
             .padding(.horizontal, AppTheme.Spacing.lg)
             .padding(.top, AppTheme.Spacing.xxl)
+            #if canImport(UIKit)
+            if #available(iOS 18.0, *) {
+                QRBadge(url: shareURL, size: aspect.size.width * 0.10)
+                    .padding(AppTheme.Spacing.lg)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+            }
+            #endif
         }
         .frame(width: aspect.size.width, height: aspect.size.height)
     }

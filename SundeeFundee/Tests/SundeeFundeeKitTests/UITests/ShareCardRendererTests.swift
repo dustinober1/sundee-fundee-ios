@@ -6,7 +6,6 @@ import UIKit
 
 // MARK: - ShareCardRendererTests
 
-@available(iOS 18.0, *)
 @Suite("ShareCardRenderer")
 @MainActor
 struct ShareCardRendererTests {

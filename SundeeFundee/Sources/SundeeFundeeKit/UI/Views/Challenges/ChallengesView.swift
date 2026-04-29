@@ -6,6 +6,8 @@ import SwiftUI
 public struct ChallengesView: View {
     @StateObject private var viewModel = ChallengesViewModel()
     @State private var showingCreateChallenge = false
+    @State private var showingJoinChallenge = false
+    @State private var pendingTemplate: ChallengeShareTemplate?
 
     public init() {}
 
@@ -50,17 +52,36 @@ public struct ChallengesView: View {
         #endif
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                Button {
-                    showingCreateChallenge = true
-                } label: {
-                    Image(systemName: "plus")
+                HStack {
+                    Button {
+                        showingJoinChallenge = true
+                    } label: {
+                        Image(systemName: "person.badge.plus")
+                    }
+                    .tint(AppTheme.Accent.gold)
+                    .accessibilityLabel("Join challenge")
+
+                    Button {
+                        showingCreateChallenge = true
+                    } label: {
+                        Image(systemName: "plus")
+                    }
+                    .tint(AppTheme.Accent.gold)
+                    .accessibilityLabel("Create new challenge")
                 }
-                .tint(AppTheme.Accent.gold)
-                .accessibilityLabel("Create new challenge")
             }
         }
         .sheet(isPresented: $showingCreateChallenge) {
             CreateChallengeView(viewModel: viewModel)
+        }
+        .sheet(isPresented: $showingJoinChallenge) {
+            JoinChallengeView { template in
+                pendingTemplate = template
+                showingJoinChallenge = false
+            }
+        }
+        .sheet(item: $pendingTemplate) { template in
+            CreateChallengeView(viewModel: viewModel, template: template)
         }
         .task {
             await viewModel.loadChallenges()
@@ -223,6 +244,11 @@ public struct ChallengesView: View {
                 }
                 .padding(.top, AppTheme.Spacing.xs)
             }
+
+            if challenge.status == .active {
+                ChallengeInviteShareLink(challenge: challenge)
+                    .padding(.top, AppTheme.Spacing.xs)
+            }
         }
         .padding(AppTheme.Spacing.md)
         .background(AppTheme.Background.cream)
@@ -276,6 +302,107 @@ public struct ChallengesView: View {
         }
 
         return AppTheme.Background.white
+    }
+}
+
+@available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
+private struct ChallengeInviteShareLink: View {
+    let challenge: Challenge
+    @State private var shareText = "Preparing challenge invite..."
+
+    var body: some View {
+        ShareLink(item: shareText) {
+            Label("Challenge a Friend", systemImage: "square.and.arrow.up")
+                .font(AppTheme.Typography.labelMedium)
+                .frame(maxWidth: .infinity)
+        }
+        .artDecoButton(style: .secondary)
+        .simultaneousGesture(
+            TapGesture().onEnded {
+                HapticFeedback.success()
+                Task {
+                    await GrowthAnalyticsService().track(
+                        GrowthEventName.challengeInviteShared,
+                        source: "challenge_card",
+                        properties: ["challengeID": challenge.id]
+                    )
+                }
+            }
+        )
+        .task {
+            await prepareInvite()
+        }
+    }
+
+    private func prepareInvite() async {
+        let service = ChallengeInviteService()
+        let template = await service.template(from: challenge)
+        if let invite = try? await SocialChallengeService().createInvite(template: template, userID: nil) {
+            shareText = await service.inviteText(template: template, inviteToken: invite.inviteToken)
+        } else {
+            let fallbackToken = await service.makeInviteToken()
+            shareText = await service.inviteText(template: template, inviteToken: fallbackToken)
+        }
+    }
+}
+
+@available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
+private struct JoinChallengeView: View {
+    let onTemplateLoaded: (ChallengeShareTemplate) -> Void
+    @Environment(\.dismiss) private var dismiss
+    @State private var joinCode = ""
+    @State private var errorMessage: String?
+    @State private var isLoading = false
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    TextField("ABCDEFGH", text: $joinCode)
+                    if let errorMessage {
+                        Text(errorMessage)
+                            .font(AppTheme.Typography.bodySmall)
+                            .foregroundColor(AppTheme.Semantic.warning)
+                    }
+                } header: {
+                    Text("Join Code")
+                } footer: {
+                    Text("Paste the code your friend shared. You can review the challenge before creating it.")
+                }
+            }
+            .navigationTitle("Join Challenge")
+            #if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Continue") {
+                        Task { await loadTemplate() }
+                    }
+                    .disabled(joinCode.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isLoading)
+                }
+            }
+        }
+    }
+
+    private func loadTemplate() async {
+        isLoading = true
+        defer { isLoading = false }
+
+        let token = joinCode.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+        do {
+            if let invite = try await SocialChallengeService().fetchInvite(token: token) {
+                onTemplateLoaded(invite.template)
+                dismiss()
+            } else {
+                errorMessage = "No challenge found for that code."
+            }
+        } catch {
+            errorMessage = "Challenge invites are not available right now."
+        }
     }
 }
 

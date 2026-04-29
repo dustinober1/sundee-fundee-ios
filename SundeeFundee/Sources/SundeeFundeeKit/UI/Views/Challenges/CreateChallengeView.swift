@@ -5,6 +5,7 @@ import SwiftUI
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
 struct CreateChallengeView: View {
     @ObservedObject var viewModel: ChallengesViewModel
+    let template: ChallengeShareTemplate?
     @Environment(\.dismiss) private var dismiss
 
     enum ChallengeMode: String, CaseIterable {
@@ -20,6 +21,11 @@ struct CreateChallengeView: View {
     @State private var hasEndDate = false
     @State private var endDate = Calendar.current.date(byAdding: .month, value: 1, to: Date())!
     @State private var isCreating = false
+
+    init(viewModel: ChallengesViewModel, template: ChallengeShareTemplate? = nil) {
+        self.viewModel = viewModel
+        self.template = template
+    }
 
     var body: some View {
         NavigationStack {
@@ -57,6 +63,9 @@ struct CreateChallengeView: View {
                     }
                     .disabled(isCreating || !isValid)
                 }
+            }
+            .onAppear {
+                applyTemplateIfNeeded()
             }
         }
     }
@@ -170,5 +179,21 @@ struct CreateChallengeView: View {
         }
         isCreating = false
         dismiss()
+    }
+
+    private func applyTemplateIfNeeded() {
+        guard let template else { return }
+        switch template.challengeType {
+        case .lifetimeVolume:
+            mode = .lifetime
+        case .exerciseVolume:
+            mode = .exercise
+            exerciseName = template.exerciseName ?? ""
+            targetVolume = template.targetVolumeLbs.map { String(Int($0)) } ?? ""
+        case .custom:
+            mode = .custom
+            customTitle = template.title
+            targetVolume = template.targetVolumeLbs.map { String(Int($0)) } ?? ""
+        }
     }
 }

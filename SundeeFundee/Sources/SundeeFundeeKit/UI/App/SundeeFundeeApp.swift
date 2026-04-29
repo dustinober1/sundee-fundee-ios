@@ -118,6 +118,13 @@ public struct MainTabView: View {
         .onReceive(NotificationCenter.default.publisher(for: .startWorkoutFromIntent)) { _ in
             selectedTab = .workouts
         }
+        .onReceive(NotificationCenter.default.publisher(for: .workoutReminderOpened)) { notification in
+            if let route = notification.object as? String, route == "workouts" {
+                selectedTab = .workouts
+            } else {
+                selectedTab = .dashboard
+            }
+        }
         .onChange(of: cyclePhaseCache.isSharkWeek) { _, newValue in
             sharkWeekMonitor.isSharkWeek = newValue
         }
@@ -133,6 +140,7 @@ public struct MainTabView: View {
 public extension Notification.Name {
     static let aiWorkoutStarted = Notification.Name("aiWorkoutStarted")
     static let workoutCompleted = Notification.Name("workoutCompleted")
+    static let workoutReminderOpened = Notification.Name("workoutReminderOpened")
     static let cycleDataUpdated = Notification.Name("cycleDataUpdated")
 }
 

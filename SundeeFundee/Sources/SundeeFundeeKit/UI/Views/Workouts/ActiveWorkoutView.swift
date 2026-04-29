@@ -17,6 +17,7 @@ public struct ActiveWorkoutView: View {
     @State private var repsInput: String = ""
     @State private var showingSwapSheet = false
     @State private var showingSwapConfirm = false
+    @State private var showingWorkoutShare = false
     @State private var pendingSwap: SubstitutionRanker.RankedSubstitution?
     @FocusState private var isWeightFocused: Bool
     @FocusState private var isRepsFocused: Bool
@@ -57,7 +58,25 @@ public struct ActiveWorkoutView: View {
                     unit: pr.unit,
                     previousBest: pr.previousBest
                 ),
-                defaultAspect: .story
+                defaultAspect: .story,
+                shareContext: ShareContext(
+                    surface: .personalRecord,
+                    sourceID: pr.exerciseName,
+                    title: "\(pr.exerciseName) \(pr.weight) \(pr.unit)"
+                )
+            )
+        }
+        #endif
+        #if canImport(UIKit)
+        .sheet(isPresented: $showingWorkoutShare) {
+            ShareCardSheet(
+                variant: .completedWorkout(workout: viewModel.workout, personalRecords: []),
+                defaultAspect: .story,
+                shareContext: ShareContext(
+                    surface: .completedWorkout,
+                    sourceID: viewModel.workout.id,
+                    title: viewModel.workout.name
+                )
             )
         }
         #endif
@@ -486,6 +505,43 @@ public struct ActiveWorkoutView: View {
                     }
                     .padding(.horizontal, AppTheme.Spacing.lg)
                 }
+
+                // Share actions
+                Button {
+                    showingWorkoutShare = true
+                } label: {
+                    Label("Share Workout", systemImage: "square.and.arrow.up")
+                        .font(AppTheme.Typography.labelLarge)
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(ArtDecoButtonStyle(style: .accent))
+                .padding(.horizontal, AppTheme.Spacing.lg)
+
+                ShareLink(
+                    item: ShareURL.caption(for: ShareContext(
+                        surface: .challenge,
+                        sourceID: viewModel.workout.id,
+                        title: "I just finished \(viewModel.workout.name). Think you can match it?"
+                    ))
+                ) {
+                    Label("Challenge a Friend", systemImage: "flag.fill")
+                        .font(AppTheme.Typography.labelLarge)
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(ArtDecoButtonStyle(style: .secondary))
+                .simultaneousGesture(
+                    TapGesture().onEnded {
+                        HapticFeedback.success()
+                        Task {
+                            await GrowthAnalyticsService().track(
+                                GrowthEventName.challengeInviteShared,
+                                source: "workout_completion",
+                                properties: ["workoutID": viewModel.workout.id]
+                            )
+                        }
+                    }
+                )
+                .padding(.horizontal, AppTheme.Spacing.lg)
 
                 // Done button
                 Button {

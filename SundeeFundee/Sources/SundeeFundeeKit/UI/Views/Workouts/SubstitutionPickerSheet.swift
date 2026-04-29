@@ -136,9 +136,12 @@ public struct SubstitutionPickerSheet: View {
         defer { isLoading = false }
 
         let service = CoachServiceFactory.makeService()
+        let dataClient = DataClientFactory.shared.client
+        let injuries: [Injury] = (try? await dataClient.fetchAll(recordType: "Injury")) ?? []
+        let painLogs: [DailyPainLog] = (try? await dataClient.fetchAll(recordType: "DailyPainLog")) ?? []
         let context = CoachContext(
             tier: .premium,
-            injuries: [],
+            injuries: injuries,
             equipment: .fullGym
         )
 
@@ -147,7 +150,17 @@ public struct SubstitutionPickerSheet: View {
                 for: exerciseName,
                 context: context
             )
-            substitutions = response.substitutions
+            let painAware = PainAwareSubstitutionService.rank(
+                currentExercise: exerciseName,
+                recentPainLogs: painLogs,
+                injuries: injuries,
+                equipment: .fullGym,
+                limit: 3
+            ).map(\.substitution)
+            var seen = Set<String>()
+            substitutions = (painAware + response.substitutions).filter { sub in
+                seen.insert(sub.exerciseName).inserted
+            }
         } catch {
             errorMessage = error.localizedDescription
         }

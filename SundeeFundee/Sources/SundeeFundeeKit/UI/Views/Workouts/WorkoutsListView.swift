@@ -59,7 +59,9 @@ public struct WorkoutsListView: View {
                 Task { await viewModel.loadWorkouts() }
             }
             .sheet(isPresented: $viewModel.showingNewWorkout) {
-                NewWorkoutView()
+                NewWorkoutView {
+                    viewModel.showingNewWorkout = false
+                }
             }
             #if os(iOS)
             .fullScreenCover(item: $activeWorkoutSession) { session in
@@ -291,8 +293,15 @@ struct NewWorkoutView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel = NewWorkoutViewModel()
 
+    private let onClose: (() -> Void)?
     @State private var showingAIWorkout: Bool = false
+    @State private var isDismissingAIWorkout: Bool = false
+    @State private var pendingCloseAfterAIDismiss: Bool = false
     @State private var activeWorkoutSession: ActiveWorkoutSessionViewModel?
+
+    init(onClose: (() -> Void)? = nil) {
+        self.onClose = onClose
+    }
 
     var body: some View {
         NavigationStack {
@@ -300,6 +309,7 @@ struct NewWorkoutView: View {
                 VStack(spacing: AppTheme.Spacing.lg) {
                     // AI Generation Option
                     Button {
+                        pendingCloseAfterAIDismiss = false
                         showingAIWorkout = true
                     } label: {
                         ArtDecoCard {
@@ -422,7 +432,9 @@ struct NewWorkoutView: View {
             #endif
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    if !isDismissingAIWorkout {
+                        Button("Cancel") { close() }
+                    }
                 }
             }
             .sheet(isPresented: $viewModel.showingExercisePicker) {
@@ -430,8 +442,11 @@ struct NewWorkoutView: View {
                     viewModel.addExercises(selectedNames)
                 }
             }
-            .sheet(isPresented: $showingAIWorkout) {
-                AIWorkoutView()
+            .sheet(isPresented: $showingAIWorkout, onDismiss: handleAIWorkoutDismissed) {
+                AIWorkoutView {
+                    isDismissingAIWorkout = true
+                    showingAIWorkout = false
+                }
             }
             #if os(iOS)
             .fullScreenCover(item: $activeWorkoutSession) { session in
@@ -440,9 +455,31 @@ struct NewWorkoutView: View {
             #endif
             .onReceive(NotificationCenter.default.publisher(for: .workoutCompleted)) { _ in
                 activeWorkoutSession = nil
-                dismiss()
+                close()
             }
         }
+    }
+
+    private func close() {
+        if isDismissingAIWorkout {
+            pendingCloseAfterAIDismiss = true
+            return
+        }
+
+        if let onClose {
+            onClose()
+        } else {
+            dismiss()
+        }
+    }
+
+    private func handleAIWorkoutDismissed() {
+        isDismissingAIWorkout = false
+
+        guard pendingCloseAfterAIDismiss else { return }
+
+        pendingCloseAfterAIDismiss = false
+        close()
     }
 
     // MARK: - Empty State

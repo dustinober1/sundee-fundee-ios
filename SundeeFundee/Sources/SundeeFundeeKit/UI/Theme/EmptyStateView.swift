@@ -7,19 +7,25 @@ public struct EmptyStateView: View {
     let subtitle: String
     let actionLabel: String?
     let action: (() -> Void)?
+    let secondaryActionLabel: String?
+    let secondaryAction: (() -> Void)?
 
     public init(
         icon: String,
         title: String,
         subtitle: String,
         actionLabel: String? = nil,
-        action: (() -> Void)? = nil
+        action: (() -> Void)? = nil,
+        secondaryActionLabel: String? = nil,
+        secondaryAction: (() -> Void)? = nil
     ) {
         self.icon = icon
         self.title = title
         self.subtitle = subtitle
         self.actionLabel = actionLabel
         self.action = action
+        self.secondaryActionLabel = secondaryActionLabel
+        self.secondaryAction = secondaryAction
     }
 
     public var body: some View {
@@ -42,6 +48,11 @@ public struct EmptyStateView: View {
             if let actionLabel, let action {
                 Button(actionLabel, action: action)
                     .artDecoButton(style: .primary)
+            }
+
+            if let secondaryActionLabel, let secondaryAction {
+                Button(secondaryActionLabel, action: secondaryAction)
+                    .artDecoButton(style: .ghost)
             }
         }
         .padding(AppTheme.Spacing.xxl)
