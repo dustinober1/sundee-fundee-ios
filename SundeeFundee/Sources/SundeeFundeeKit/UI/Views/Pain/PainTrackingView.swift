@@ -87,6 +87,13 @@ public struct PainTrackingView: View {
     private var contentView: some View {
         ScrollView {
             VStack(spacing: AppTheme.Spacing.lg) {
+                ArtDecoCard {
+                    Text("Pain and injury tracking is for fitness adaptation only. It is not a substitute for professional medical advice. Consult a healthcare provider for diagnosis or treatment of any injury or pain.")
+                        .font(AppTheme.Typography.bodySmall)
+                        .foregroundColor(AppTheme.Text.secondary)
+                        .multilineTextAlignment(.center)
+                }
+
                 // Active Injuries
                 if !viewModel.activeInjuries.isEmpty {
                     activeInjuriesBanner

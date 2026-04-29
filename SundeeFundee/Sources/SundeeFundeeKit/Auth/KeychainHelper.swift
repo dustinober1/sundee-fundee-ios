@@ -75,4 +75,6 @@ extension KeychainHelper {
     public static let userIDKey = "apple_user_id"
     public static let userEmailKey = "apple_user_email"
     public static let userNameKey = "apple_user_name"
+    /// One-time authorization code from Sign in with Apple; used for token revocation on account deletion.
+    public static let appleAuthCodeKey = "apple_auth_code"
 }
