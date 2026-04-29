@@ -41,22 +41,10 @@ public struct BundledContentProvider: Sendable, ContentClientProtocol {
 
     // MARK: - Programs
 
-    /// Display names for program templates
-    private static let templateDisplayNames: [ProgramTemplate: String] = [
-        .firstMargarita: "The First Margarita",
-        .strength: "Strength Basics",
-        .hypertrophy: "Hypertrophy Phase",
-        .fullBody: "Full Body Split",
-        .linear: "Linear Progression",
-        .dup: "Daily Undulating Periodization",
-        .block: "Block Periodization"
-    ]
-
     /// All bundled programs generated from ProgramTemplate templates
     public static var programs: [ContentProgram] {
         ProgramTemplate.allCases.enumerated().map { index, template in
-            let displayName = templateDisplayNames[template] ?? template.rawValue.capitalized
-            let generated = generateProgram(template: template, name: displayName)
+            let generated = generateProgram(template: template, name: template.displayName)
 
             // Note: phases are not encoded to JSON since GeneratedProgramPhase is not Codable
             // The full program data can be regenerated using generateProgram() when needed
@@ -69,6 +57,7 @@ public struct BundledContentProvider: Sendable, ContentClientProtocol {
                 sessionsPerWeek: generated.sessionsPerWeek,
                 difficulty: generated.difficulty,
                 phases: nil,
+                printablePDFURL: template.printablePDFURL,
                 sortOrder: index,
                 source: .bundled
             )

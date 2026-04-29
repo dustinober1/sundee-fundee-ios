@@ -31,7 +31,7 @@ func generateFirstMargaritaProgram() -> GeneratedProgram {
     ]
 
     return GeneratedProgram(
-        id: "sundee-first-margarita",
+        id: ProgramTemplate.firstMargarita.stableID,
         name: "The First Margarita",
         category: "Strength",
         description: "Focused on developing raw strength in power lifts (Squat, Bench, Deadlift) and foundational Olympic lifts. Three phases: Accumulation, Intensification, and Deload & Testing.",

@@ -779,9 +779,13 @@ class DashboardViewModel: ObservableObject {
                 recordType: "EnrolledProgramRecord"
             ) as [EnrolledProgramRecord]
 
-            if let program = programs.first, program.isActive {
+            let currentProgramIds = Set(ProgramTemplate.allCases.map(\.stableID))
+            if let program = programs.first(where: { $0.isActive && currentProgramIds.contains($0.id) }) {
                 activeProgramName = program.name
                 nextWorkout = "Day \(programs.count + 1)" // Simplified
+            } else {
+                activeProgramName = nil
+                nextWorkout = nil
             }
         } catch {
             // CloudKit unavailable — leave program info at defaults

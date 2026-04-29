@@ -82,4 +82,23 @@ final class ProgramsListViewModelTests: XCTestCase {
         )
         XCTAssertEqual(enrolled.count, 2)
     }
+
+    func testLegacyGenericEnrollmentDoesNotAppearInCurrentCatalog() async throws {
+        let mockDataClient = MockCloudKitClient()
+        try await mockDataClient.save(
+            EnrolledProgramRecord(id: "template-strength", name: "Strength Basics", isActive: true),
+            recordType: "EnrolledProgramRecord"
+        )
+        let viewModel = await ProgramsListViewModel(
+            dataClient: mockDataClient,
+            contentClient: MockContentClient()
+        )
+
+        await viewModel.loadPrograms()
+        let programs = await viewModel.programs
+
+        XCTAssertEqual(programs.count, 4)
+        XCTAssertFalse(programs.contains { $0.id == "template-strength" })
+        XCTAssertTrue(programs.allSatisfy { !$0.isEnrolled })
+    }
 }

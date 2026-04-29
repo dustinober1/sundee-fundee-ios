@@ -164,6 +164,7 @@ struct ProgramListItem: Identifiable {
     let difficulty: String
     let isEnrolled: Bool
     let template: ProgramTemplate?
+    let printablePDFURL: URL?
 }
 
 // MARK: - ProgramDetailView
@@ -250,6 +251,21 @@ struct ProgramDetailView: View {
                 Text(program.description)
                     .font(AppTheme.Typography.bodyMedium)
                     .foregroundColor(AppTheme.Text.secondary)
+
+                if let printablePDFURL = program.printablePDFURL {
+                    VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
+                        Link(destination: printablePDFURL) {
+                            Label("Printable PDF", systemImage: "doc.richtext")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .artDecoButton(style: .secondary)
+                        .accessibilityHint("Open the printable base plan PDF")
+
+                        Text("This is the base printable plan. Sundee Fundee may adapt in-app workouts around cycle phase, recovery, pain, and injuries.")
+                            .font(AppTheme.Typography.bodySmall)
+                            .foregroundColor(AppTheme.Text.secondary)
+                    }
+                }
             }
         }
     }
@@ -719,14 +735,13 @@ class ProgramsListViewModel: ObservableObject {
     // can regenerate sessions without storing the full program in CloudKit.
     private static let nameToTemplate: [String: ProgramTemplate] = [
         "The First Margarita": .firstMargarita,
-        "Strength Basics": .strength,
-        "Hypertrophy Phase": .hypertrophy,
-        "Full Body Split": .fullBody,
-        "Full Body": .fullBody,
-        "Linear Progression": .linear,
-        "Daily Undulating Periodization": .dup,
-        "Daily Undulating": .dup,
-        "Block Periodization": .block,
+        "The First Margarita Strength Program": .firstMargarita,
+        "Beginner Strength": .beginnerStrength,
+        "4-Week Beginner Strength Plan": .beginnerStrength,
+        "Dumbbell Strength": .dumbbellStrength,
+        "6-Week Dumbbell Strength Plan": .dumbbellStrength,
+        "Glutes, Core & Conditioning": .glutesCoreConditioning,
+        "8-Week Glutes, Core & Conditioning Plan": .glutesCoreConditioning,
     ]
 
     init(
@@ -765,7 +780,8 @@ class ProgramsListViewModel: ObservableObject {
                     sessionsPerWeek: prog.sessionsPerWeek,
                     difficulty: prog.difficulty,
                     isEnrolled: enrolledIds.contains(prog.id),
-                    template: Self.nameToTemplate[prog.name]
+                    template: Self.nameToTemplate[prog.name],
+                    printablePDFURL: prog.printablePDFURL
                 )
             }
         } catch {
@@ -780,7 +796,8 @@ class ProgramsListViewModel: ObservableObject {
                     sessionsPerWeek: program.sessionsPerWeek,
                     difficulty: program.difficulty,
                     isEnrolled: enrolledIds.contains(program.id),
-                    template: template
+                    template: template,
+                    printablePDFURL: template.printablePDFURL
                 )
             }
         }
@@ -815,7 +832,8 @@ class ProgramsListViewModel: ObservableObject {
                     sessionsPerWeek: p.sessionsPerWeek,
                     difficulty: p.difficulty,
                     isEnrolled: true,
-                    template: p.template
+                    template: p.template,
+                    printablePDFURL: p.printablePDFURL
                 )
             }
         } catch {
@@ -824,14 +842,6 @@ class ProgramsListViewModel: ObservableObject {
     }
 
     private func templateDisplayName(_ template: ProgramTemplate) -> String {
-        switch template {
-        case .firstMargarita: return "The First Margarita"
-        case .strength:    return "Strength Basics"
-        case .hypertrophy: return "Hypertrophy Phase"
-        case .fullBody:    return "Full Body"
-        case .linear:      return "Linear Progression"
-        case .dup:         return "Daily Undulating"
-        case .block:       return "Block Periodization"
-        }
+        template.displayName
     }
 }
