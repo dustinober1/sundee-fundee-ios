@@ -887,7 +887,7 @@ class DashboardViewModel: ObservableObject {
         cycleTrackingEnabled: Bool
     ) {
         let records: [UserSettingsRecord] = (try? await dataClient.fetchAll(recordType: "UserSettings")) ?? []
-        guard let settings = records.first else {
+        guard let settings = records.last else {
             return (.beginner, .strength, .lbs, false)
         }
         return (
