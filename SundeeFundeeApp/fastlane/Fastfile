@@ -28,8 +28,17 @@ platform :ios do
       xcargs: "-allowProvisioningUpdates"
     )
     upload_to_app_store(
-      skip_metadata: true,
-      skip_screenshots: true,
+      metadata_path: "./fastlane/metadata",
+      screenshots_path: "./fastlane/screenshots",
+      skip_metadata: false,
+      skip_screenshots: false,
+      submit_for_review: true,
+      automatic_release: false,
+      force: true,
+      submission_information: {
+        export_compliance_uses_encryption: false,
+        add_id_info_uses_idfa: false
+      },
       precheck_include_in_app_purchases: false
     )
   end
