@@ -3,5 +3,6 @@ What's New in 1.6:
 - Printable programs now match the four v1.6 base plans on sundeefundee.com
 - Program sessions keep the printable plan structure while adapting in-app for cycle phase, recovery, pain, and injuries
 - Program details include direct Printable PDF links for training offline and logging later
+- Want a plan added in a future release? Email support@sundeefundee.com with the workout plan you would like to see.
 
 Thanks for training with Sundee Fundee!
