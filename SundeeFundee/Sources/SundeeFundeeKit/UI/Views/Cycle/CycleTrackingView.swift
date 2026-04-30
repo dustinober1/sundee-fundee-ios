@@ -17,8 +17,11 @@ public struct CycleTrackingView: View {
                 Section {
                     Toggle("Enable Cycle Tracking", isOn: $settings.cycleTrackingEnabled)
                         .padding(.vertical, AppTheme.Spacing.xs)
+                        .disabled(!settings.isLoaded)
                 } footer: {
-                    if !settings.cycleTrackingEnabled {
+                    if !settings.isLoaded {
+                        Text("Loading cycle settings…")
+                    } else if !settings.cycleTrackingEnabled {
                         Text("Turn on cycle tracking to see your phase, log periods, and let Sundee Fundee adapt training to your cycle.")
                     }
                 }
