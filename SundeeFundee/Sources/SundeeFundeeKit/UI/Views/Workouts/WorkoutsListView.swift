@@ -442,12 +442,21 @@ struct NewWorkoutView: View {
                     viewModel.addExercises(selectedNames)
                 }
             }
+            #if os(iOS)
+            .fullScreenCover(isPresented: $showingAIWorkout, onDismiss: handleAIWorkoutDismissed) {
+                AIWorkoutView {
+                    isDismissingAIWorkout = true
+                    showingAIWorkout = false
+                }
+            }
+            #else
             .sheet(isPresented: $showingAIWorkout, onDismiss: handleAIWorkoutDismissed) {
                 AIWorkoutView {
                     isDismissingAIWorkout = true
                     showingAIWorkout = false
                 }
             }
+            #endif
             #if os(iOS)
             .fullScreenCover(item: $activeWorkoutSession) { session in
                 ActiveWorkoutView(viewModel: session)
