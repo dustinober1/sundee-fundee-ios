@@ -1,7 +1,7 @@
-What's New in 1.5.1:
+What's New in 1.6:
 
-- Edit logged period dates — tap any period in Cycle Settings to correct its start/end date
-- Calendar predictions now update immediately when you fix a period's start date, so users with irregular cycles can keep the calendar accurate
-- Dark mode theme polish
+- Printable programs now match the four v1.6 base plans on sundeefundee.com
+- Program sessions keep the printable plan structure while adapting in-app for cycle phase, recovery, pain, and injuries
+- Program details include direct Printable PDF links for training offline and logging later
 
 Thanks for training with Sundee Fundee!
