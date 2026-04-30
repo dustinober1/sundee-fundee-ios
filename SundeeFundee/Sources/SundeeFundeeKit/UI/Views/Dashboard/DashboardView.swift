@@ -106,9 +106,15 @@ public struct DashboardView: View {
                     await viewModel.loadData(cyclePhaseCache: cyclePhaseCache)
                 }
             }
+            #if os(iOS)
+            .fullScreenCover(isPresented: $showingAIWorkout) {
+                AIWorkoutView()
+            }
+            #else
             .sheet(isPresented: $showingAIWorkout) {
                 AIWorkoutView()
             }
+            #endif
             .sheet(item: $starterWorkout) { workout in
                 ActiveWorkoutView(
                     viewModel: ActiveWorkoutSessionViewModel(workout: workout)
@@ -169,7 +175,7 @@ public struct DashboardView: View {
 
     @ViewBuilder
     private var cyclePhaseBanner: some View {
-        if let phase = cyclePhaseCache.currentPhase {
+        if viewModel.cycleTrackingEnabled, let phase = cyclePhaseCache.currentPhase {
             NavigationLink(destination: CycleCalendarView()) {
             ArtDecoCard {
                 HStack(spacing: AppTheme.Spacing.md) {
@@ -631,6 +637,7 @@ class DashboardViewModel: ObservableObject {
     @Published var activeChallengeData: (Challenge, ChallengeProgress)?
     @Published var weeklyPlanProgress: WeeklyPlanProgress?
     @Published var weeklyStreak: WeeklyStreak?
+    @Published var cycleTrackingEnabled: Bool = false
 
     // MARK: - Dependencies
 
@@ -662,6 +669,8 @@ class DashboardViewModel: ObservableObject {
     func loadData(cyclePhaseCache: CyclePhaseCache) async {
         isLoading = true
         errorMessage = nil
+        let settings = await loadUserSettings()
+        cycleTrackingEnabled = settings.cycleTrackingEnabled
 
         if !hasRequestedHealthAuth {
             hasRequestedHealthAuth = true
