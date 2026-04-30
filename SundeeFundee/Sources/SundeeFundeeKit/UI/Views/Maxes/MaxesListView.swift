@@ -224,8 +224,9 @@ struct OneRepMaxEntryView: View {
     @State private var weight: String = ""
     @State private var unit: WeightUnit = .lbs
     @State private var isSaving: Bool = false
+    @State private var errorMessage: String?
 
-    let onSave: (String, Double, WeightUnit) async -> Void
+    let onSave: (String, Double, WeightUnit) async -> Bool
 
     var body: some View {
         NavigationStack {
@@ -283,6 +284,14 @@ struct OneRepMaxEntryView: View {
                 }
                 #endif
             }
+            .alert("Could Not Save Max", isPresented: Binding(
+                get: { errorMessage != nil },
+                set: { if !$0 { errorMessage = nil } }
+            )) {
+                Button("OK") { errorMessage = nil }
+            } message: {
+                Text(errorMessage ?? "")
+            }
         }
     }
 
@@ -294,8 +303,13 @@ struct OneRepMaxEntryView: View {
         guard let weightValue = Double(weight) else { return }
         isSaving = true
         Task {
-            await onSave(exerciseName, weightValue, unit)
-            dismiss()
+            let didSave = await onSave(exerciseName, weightValue, unit)
+            isSaving = false
+            if didSave {
+                dismiss()
+            } else {
+                errorMessage = "We couldn't save this max. Check your iCloud connection and try again."
+            }
         }
     }
 }
@@ -319,7 +333,7 @@ class MaxesListViewModel: ObservableObject {
         self.dataClient = dataClient
     }
 
-    func saveMax(exerciseName: String, weight: Double, unit: WeightUnit) async {
+    func saveMax(exerciseName: String, weight: Double, unit: WeightUnit) async -> Bool {
         let record = OneRepMaxRecord(
             id: UUID().uuidString,
             exerciseName: exerciseName,
@@ -331,8 +345,10 @@ class MaxesListViewModel: ObservableObject {
         do {
             try await dataClient.save(record, recordType: "OneRepMaxRecord")
             await loadMaxes()
+            return true
         } catch {
-            errorMessage = "Failed to save max: \(error.localizedDescription)"
+            errorMessage = "We couldn't save that max to iCloud. Check your connection and try again."
+            return false
         }
     }
 

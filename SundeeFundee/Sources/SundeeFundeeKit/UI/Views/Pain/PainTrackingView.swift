@@ -400,27 +400,28 @@ struct PainLogFormView: View {
                             .foregroundColor(AppTheme.Semantic.error)
                     }
 
-                    // Save Button
-                    Button {
-                        Task {
-                            await viewModel.logPain()
-                            if viewModel.errorMessage == nil {
-                                onDismiss()
-                            }
-                        }
-                    } label: {
-                        HStack {
-                            Image(systemName: "checkmark.circle.fill")
-                            Text("Log Pain")
-                        }
-                        .frame(maxWidth: .infinity)
-                    }
-                    .artDecoButton(style: .accent)
-                    .disabled(viewModel.selectedBodyRegions.isEmpty || viewModel.isLoading)
+                    Spacer(minLength: AppTheme.Spacing.xxxl)
                 }
                 .padding(AppTheme.Spacing.lg)
             }
             .artDecoBackground()
+            .safeAreaInset(edge: .bottom) {
+                Button {
+                    savePain()
+                } label: {
+                    HStack {
+                        Image(systemName: "checkmark.circle.fill")
+                        Text("Log Pain")
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+                .artDecoButton(style: .accent)
+                .disabled(!canSavePain)
+                .padding(.horizontal, AppTheme.Spacing.lg)
+                .padding(.top, AppTheme.Spacing.sm)
+                .padding(.bottom, AppTheme.Spacing.md)
+                .background(AppTheme.Background.cream.opacity(0.95))
+            }
             .navigationTitle("Log Pain")
             #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
@@ -429,6 +430,25 @@ struct PainLogFormView: View {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { onDismiss() }
                 }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Log Pain") {
+                        savePain()
+                    }
+                    .disabled(!canSavePain)
+                }
+            }
+        }
+    }
+
+    private var canSavePain: Bool {
+        !viewModel.selectedBodyRegions.isEmpty && !viewModel.isLoading
+    }
+
+    private func savePain() {
+        Task {
+            await viewModel.logPain()
+            if viewModel.errorMessage == nil {
+                onDismiss()
             }
         }
     }
