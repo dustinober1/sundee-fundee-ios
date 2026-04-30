@@ -307,7 +307,7 @@ extension HealthKitClientTests {
 
 // MARK: - HealthError Equatable
 
-extension HealthError: @retroactive Equatable {
+extension HealthError: Equatable {
     public static func == (lhs: HealthError, rhs: HealthError) -> Bool {
         switch (lhs, rhs) {
         case (.notAvailable, .notAvailable):
