@@ -118,6 +118,18 @@ struct DataExportServiceTests {
         #expect(data.enrolledPrograms.count == 1)
     }
 
+    @Test("Category counts include cycle settings")
+    func testCategoryCountsIncludeCycleSettings() async throws {
+        let client = MockCloudKitClient()
+        try await seedAllTypes(client)
+
+        let service = DataExportService(dataClient: client)
+        let data = await service.exportAll()
+
+        #expect(data.categoryCounts["Cycle Phases"] == 1)
+        #expect(data.categoryCounts["Cycle Settings"] == 1)
+    }
+
     @Test("Export with empty data returns empty arrays and no crash")
     func testExportAllWithEmptyData() async {
         let client = MockCloudKitClient()
@@ -135,6 +147,7 @@ struct DataExportServiceTests {
         #expect(data.painLogs.isEmpty)
         #expect(data.celebrations.isEmpty)
         #expect(data.enrolledPrograms.isEmpty)
+        #expect(data.categoryCounts["Cycle Settings"] == 0)
     }
 
     @Test("Export tolerates partial failures — seeded types appear, unseeded are empty")

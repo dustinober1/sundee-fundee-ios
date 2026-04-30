@@ -99,6 +99,7 @@ public struct ExportedData: Codable, Sendable {
             "One Rep Maxes": oneRepMaxRecords.count,
             "Completed Workouts": completedWorkoutRecords.count,
             "Cycle Phases": cyclePhaseInfo.count,
+            "Cycle Settings": cycleSettings == nil ? 0 : 1,
             "Benchmarks": benchmarkResults.count,
             "Injuries": injuries.count,
             "Pain Logs": painLogs.count,

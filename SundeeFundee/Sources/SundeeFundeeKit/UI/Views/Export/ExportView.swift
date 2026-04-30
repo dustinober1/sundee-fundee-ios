@@ -124,6 +124,7 @@ private let categoryItems: [CategoryDisplayItem] = [
     CategoryDisplayItem(name: "One Rep Maxes", icon: "trophy"),
     CategoryDisplayItem(name: "Completed Workouts", icon: "checkmark.circle"),
     CategoryDisplayItem(name: "Cycle Phases", icon: "calendar"),
+    CategoryDisplayItem(name: "Cycle Settings", icon: "slider.horizontal.3"),
     CategoryDisplayItem(name: "Benchmarks", icon: "chart.bar"),
     CategoryDisplayItem(name: "Injuries", icon: "bandage"),
     CategoryDisplayItem(name: "Pain Logs", icon: "waveform.path.ecg"),
