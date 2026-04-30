@@ -49,15 +49,17 @@ public class PainTrackingViewModel: ObservableObject {
     }
 
     /// Save a new pain log entry
-    public func logPain() async {
+    public func logPain() async -> Bool {
+        errorMessage = nil
+
         guard !selectedBodyRegions.isEmpty else {
             errorMessage = "Please select at least one body region"
-            return
+            return false
         }
 
         guard (1...10).contains(painIntensity) else {
             errorMessage = "Pain intensity must be between 1 and 10"
-            return
+            return false
         }
 
         isLoading = true
@@ -83,11 +85,12 @@ public class PainTrackingViewModel: ObservableObject {
 
             // Reload logs
             await loadPainLogs()
+            return true
         } catch {
             errorMessage = "Failed to save pain log: \(error.localizedDescription)"
+            isLoading = false
+            return false
         }
-
-        isLoading = false
     }
 
     /// Delete a pain log
