@@ -276,6 +276,7 @@ struct UserSettingsRecord: Codable, Sendable {
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
 @MainActor
 class SettingsViewModel: ObservableObject {
+    @Published var isLoaded: Bool = false
     @Published var cycleTrackingEnabled: Bool = false
     @Published var weightUnit: WeightUnit = .lbs
     @Published var experienceLevel: ExperienceLevel = .intermediate
@@ -314,12 +315,14 @@ class SettingsViewModel: ObservableObject {
                 primaryGoal = PrimaryGoal(rawValue: settings.primaryGoal) ?? .strength
             }
             hasLoaded = true
+            isLoaded = true
         } catch {
             // Log the raw error for debugging
             let logger = Logger(subsystem: "com.sundeefundee.app", category: "Settings")
             logger.error("Failed to load settings: \(error)")
             errorMessage = "We couldn't load your settings. Check your connection and try again."
             hasLoaded = true
+            isLoaded = true
         }
     }
 
