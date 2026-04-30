@@ -1,4 +1,7 @@
 import SwiftUI
+#if os(iOS)
+import SafariServices
+#endif
 
 // MARK: - ProgramsListView
 //
@@ -172,9 +175,11 @@ struct ProgramListItem: Identifiable {
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
 struct ProgramDetailView: View {
     let program: ProgramListItem
+    @Environment(\.openURL) private var openURL
     @StateObject private var viewModel: ProgramDetailViewModel
     @State private var activeWorkout: Workout?
     @State private var resumeWorkoutId: String?
+    @State private var printablePDFURLToPresent: URL?
 
     init(program: ProgramListItem) {
         self.program = program
@@ -235,6 +240,17 @@ struct ProgramDetailView: View {
         } message: {
             Text(viewModel.errorMessage ?? "")
         }
+        #if os(iOS)
+        .sheet(isPresented: Binding(
+            get: { printablePDFURLToPresent != nil },
+            set: { if !$0 { printablePDFURLToPresent = nil } }
+        )) {
+            if let printablePDFURLToPresent {
+                SafariView(url: printablePDFURLToPresent)
+                    .ignoresSafeArea()
+            }
+        }
+        #endif
     }
 
     // MARK: - Program Header
@@ -254,7 +270,13 @@ struct ProgramDetailView: View {
 
                 if let printablePDFURL = program.printablePDFURL {
                     VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
-                        Link(destination: printablePDFURL) {
+                        Button {
+                            #if os(iOS)
+                            printablePDFURLToPresent = printablePDFURL
+                            #else
+                            openURL(printablePDFURL)
+                            #endif
+                        } label: {
                             Label("Printable PDF", systemImage: "doc.richtext")
                                 .frame(maxWidth: .infinity)
                         }
@@ -479,6 +501,19 @@ struct ProgramDetailView: View {
         }
     }
 }
+
+#if os(iOS)
+@available(iOS 18.0, *)
+private struct SafariView: UIViewControllerRepresentable {
+    let url: URL
+
+    func makeUIViewController(context: Context) -> SFSafariViewController {
+        SFSafariViewController(url: url)
+    }
+
+    func updateUIViewController(_ uiViewController: SFSafariViewController, context: Context) {}
+}
+#endif
 
 // MARK: - ProgramDetailViewModel
 
