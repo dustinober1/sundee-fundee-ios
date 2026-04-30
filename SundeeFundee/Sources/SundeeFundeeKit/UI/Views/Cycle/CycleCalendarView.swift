@@ -38,6 +38,7 @@ public struct CycleCalendarView: View {
         .navigationBarTitleDisplayMode(.large)
         #endif
         .task {
+            await viewModel.loadCalendarData()
             await viewModel.loadData()
         }
         .onReceive(NotificationCenter.default.publisher(for: .cycleDataUpdated)) { _ in
@@ -351,6 +352,8 @@ class CycleCalendarViewModel: ObservableObject {
     }
 
     func loadData() async {
+        await loadCalendarData()
+
         // Load cycle settings
         do {
             let records = try await dataClient.fetchAll(
