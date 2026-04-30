@@ -605,15 +605,21 @@ class ProgramDetailViewModel: ObservableObject {
         startingSessionId = session.sessionId
         defer { startingSessionId = nil }
 
-        // Load cycle phase and user maxes in parallel
-        async let cycleTask = loadCycleMultiplier()
+        // Load adaptive context and user maxes in parallel. The PDF remains the
+        // base plan; the in-app workout adapts before the active session opens.
+        async let adaptationContextTask = loadAdaptationContext()
         async let maxesTask = loadMaxes()
-        let (cycleMult, maxes) = await (cycleTask, maxesTask)
+        let (adaptationContext, maxes) = await (adaptationContextTask, maxesTask)
+        let adaptedExercises = ProgramSessionAdaptationService.adapt(
+            session.exercises,
+            context: adaptationContext
+        )
+        let cycleMult = aiCyclePhaseMultiplier(adaptationContext.cyclePhase)
 
         let workout = Workout(
             date: Date(),
             name: "\(programName) — \(session.sessionName)",
-            exercises: session.exercises.map { ex in
+            exercises: adaptedExercises.map { ex in
                 let setCount: Int
                 if case .fixed(let n) = ex.sets { setCount = n } else { setCount = 3 }
 
@@ -690,14 +696,23 @@ class ProgramDetailViewModel: ObservableObject {
 
     // MARK: - Cycle & Max Helpers
 
-    private func loadCycleMultiplier() async -> Double {
+    private func loadAdaptationContext() async -> ProgramSessionAdaptationContext {
+        async let cyclePhase = loadCyclePhase()
+        async let injuries = loadInjuries()
+        return await ProgramSessionAdaptationContext(
+            cyclePhase: cyclePhase,
+            injuries: injuries
+        )
+    }
+
+    private func loadCyclePhase() async -> CyclePhase? {
         // Fast path: active manual period = menstrual phase
         do {
             let manualRecords = try await dataClient.fetchAll(
                 recordType: "PeriodLogRecord"
             ) as [PeriodLogRecord]
             if manualRecords.contains(where: { $0.isActive }) {
-                return aiCyclePhaseMultiplier(.menstrual)
+                return .menstrual
             }
         } catch { /* continue */ }
 
@@ -728,7 +743,7 @@ class ProgramDetailViewModel: ObservableObject {
             }
         } catch { /* no manual logs */ }
 
-        guard !periodLogs.isEmpty else { return 1.0 }
+        guard !periodLogs.isEmpty else { return nil }
 
         var settings = CycleSettings()
         if let records = try? await dataClient.fetchAll(
@@ -738,9 +753,13 @@ class ProgramDetailViewModel: ObservableObject {
         }
 
         if let status = calculateCycleStatus(periodLogs: periodLogs, settings: settings) {
-            return aiCyclePhaseMultiplier(status.currentPhase)
+            return status.currentPhase
         }
-        return 1.0
+        return nil
+    }
+
+    private func loadInjuries() async -> [Injury] {
+        (try? await dataClient.fetchAll(recordType: "Injury") as [Injury]) ?? []
     }
 
     private func loadMaxes() async -> [OneRepMaxRecord] {
