@@ -417,6 +417,7 @@ struct PainLogFormView: View {
                 }
                 .artDecoButton(style: .accent)
                 .disabled(!canSavePain)
+                .opacity(canSavePain ? 1.0 : 0.45)
                 .padding(.horizontal, AppTheme.Spacing.lg)
                 .padding(.top, AppTheme.Spacing.sm)
                 .padding(.bottom, AppTheme.Spacing.md)
@@ -446,8 +447,8 @@ struct PainLogFormView: View {
 
     private func savePain() {
         Task {
-            await viewModel.logPain()
-            if viewModel.errorMessage == nil {
+            let didSave = await viewModel.logPain()
+            if didSave {
                 onDismiss()
             }
         }
