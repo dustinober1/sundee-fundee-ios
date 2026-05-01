@@ -1,0 +1,1138 @@
+# v1.7 Deterministic Coaching + On-Device AI Prompt Hardening Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use `superpowers:subagent-driven-development` for implementation batches and `superpowers:executing-plans` for task-by-task execution. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Make Sundee Fundee's V1.7 coaching feel smarter and safer by moving all training decisions into deterministic domain logic, using on-device AI only as a constrained copy editor, validating every model response, and falling back to deterministic copy whenever output is weak, unsafe, or off-spec.
+
+**Release theme:** Deterministic coaching, AI-polished explanations.
+
+**Architecture:** Four-layer coaching pipeline:
+
+1. **Deterministic Planner** chooses exercises, sets, reps, load targets, rest, substitutions, cycle adjustments, and weekly-plan changes.
+2. **Decision Explainer** converts those decisions into structured facts, reason codes, cautions, and allowed vocab.
+3. **AI Copy Editor** rewrites deterministic facts into short, friendly user-facing copy.
+4. **Validator + Fallback** rejects hallucinated or unsafe output and uses deterministic copy instead.
+
+**Tech Stack:** Swift 6 strict concurrency, SwiftUI, Foundation Models behind `#if canImport(FoundationModels)`, Swift Testing, existing `CoachServiceProtocol`, `DeterministicCoachService`, `OnDeviceCoachService`, `CycleAwareAdjustmentService`, and AI workout domain models.
+
+**Current code anchors:**
+
+- `SundeeFundee/Sources/SundeeFundeeKit/DomainLayer/Coach/CoachServiceProtocol.swift`
+- `SundeeFundee/Sources/SundeeFundeeKit/DomainLayer/Coach/DeterministicCoachService.swift`
+- `SundeeFundee/Sources/SundeeFundeeKit/DomainLayer/Coach/OnDeviceCoachService.swift`
+- `SundeeFundee/Sources/SundeeFundeeKit/DomainLayer/Coach/CycleAwareAdjustmentService.swift`
+- `SundeeFundee/Sources/SundeeFundeeKit/DomainLayer/AIWorkout/AIWorkout.swift`
+- `SundeeFundee/Sources/SundeeFundeeKit/UI/Views/Workouts/AIWorkoutView.swift`
+- `SundeeFundee/Tests/SundeeFundeeKitTests/DomainTests/AIWorkoutTests.swift`
+- `SundeeFundee/Tests/SundeeFundeeKitTests/DomainTests/CycleAwareAdjustmentServiceTests.swift`
+
+## Non-negotiable product rules
+
+- The model may generate user-facing copy only.
+- The model may not choose exercises, sets, reps, weights, percentages, rest, substitutions, cycle multipliers, recovery guidance, or weekly-plan changes.
+- The model may not mention medical advice, diagnosis, treatment, or claims that a movement is safe for an injury.
+- The model may not mention exercises that are not in the already-selected workout or substitution list.
+- The model may not mention weights, reps, percentages, or set counts unless the UI already displays those structured values separately.
+- Every model output must be validated before it reaches the user.
+- Every AI enhancement must have a deterministic fallback that is already acceptable to ship.
+
+## Conventions
+
+- **Working directory:** `/Users/dustinober/Projects/sundee-fundee`
+- **Branch:** `main`
+- **Commit style:** focused commits by batch. Prefer one file or tightly-coupled file group per commit.
+- **Fast tests:** `cd SundeeFundee && swift test`
+- **Focused test examples:**
+  - `cd SundeeFundee && swift test --filter CoachDecisionPacketTests`
+  - `cd SundeeFundee && swift test --filter CoachCopyValidatorTests`
+  - `cd SundeeFundee && swift test --filter OnDeviceCoachServiceTests`
+- **Build verification:** `cd SundeeFundeeApp && xcodebuild -project SundeeFundee.xcodeproj -scheme SundeeFundee -destination 'platform=iOS Simulator,name=iPhone 17 Pro' build`
+- **Do not submit to App Store** as part of this plan.
+
+---
+
+# Batch 0 — Baseline and safety checks
+
+### Task 0.1: Confirm current AI/coaching behavior
+
+**Files to read:**
+
+- `SundeeFundee/Sources/SundeeFundeeKit/DomainLayer/Coach/CoachServiceProtocol.swift`
+- `SundeeFundee/Sources/SundeeFundeeKit/DomainLayer/Coach/DeterministicCoachService.swift`
+- `SundeeFundee/Sources/SundeeFundeeKit/DomainLayer/Coach/OnDeviceCoachService.swift`
+- `SundeeFundee/Sources/SundeeFundeeKit/DomainLayer/AIWorkout/AIWorkout.swift`
+- `SundeeFundee/Sources/SundeeFundeeKit/UI/Views/Workouts/AIWorkoutView.swift`
+
+- [ ] Confirm `OnDeviceCoachService.generateWorkout(...)` delegates workout structure to `DeterministicCoachService` before AI copy enhancement.
+- [ ] Confirm `suggestSubstitutions(...)` remains deterministic.
+- [ ] Confirm `AIWorkoutViewModel.generateWorkout()` applies `CycleAwareAdjustmentService` after the coach response.
+- [ ] Confirm `repairGeneratedWorkout(...)` still protects generated workout structure.
+- [ ] Run baseline tests:
+
+```bash
+cd /Users/dustinober/Projects/sundee-fundee/SundeeFundee && swift test
+```
+
+Expected: existing tests pass before implementation begins.
+
+### Task 0.2: Add a short architecture note to the implementation branch
+
+**Files:**
+
+- Create: `SundeeFundee/Sources/SundeeFundeeKit/DomainLayer/Coach/README.md` if no coach-domain README exists.
+
+- [ ] Document the four-layer pipeline in 8-12 bullets.
+- [ ] State that Foundation Models are copy-only.
+- [ ] Include the fallback rule: deterministic copy is the source of truth.
+
+Commit:
+
+```text
+chore(coach): document deterministic planner and AI copy boundary
+```
+
+---
+
+# Batch 1 — Deterministic reason codes
+
+## Goal
+
+Create stable, testable reason codes so the app never asks the model to infer why a workout, substitution, or plan change was chosen.
+
+### Task 1.1: Add `CoachReasonCode`
+
+**Files:**
+
+- Create: `SundeeFundee/Sources/SundeeFundeeKit/DomainLayer/Coach/CoachReasonCode.swift`
+- Create: `SundeeFundee/Tests/SundeeFundeeKitTests/DomainTests/CoachReasonCodeTests.swift`
+
+- [ ] Add a `public enum CoachReasonCode: String, Codable, Sendable, CaseIterable`.
+- [ ] Include at least these cases:
+
+```swift
+public enum CoachReasonCode: String, Codable, Sendable, CaseIterable {
+    case lowEnergyReducedVolume
+    case mediumEnergyStandardPlan
+    case highEnergySlightIntensityBump
+
+    case menstrualLowerVolumeLongerRest
+    case follicularProgressionFocus
+    case ovulationControlledIntensity
+    case lutealModerateIntensityLongerRest
+    case noCyclePhaseEnergyBased
+
+    case activeInjuriesFilteredExercises
+    case equipmentLimitedExercisePool
+    case balancedMovementPatterns
+    case highSkillFilteredForLowEnergy
+
+    case plateauNeedsRepVariation
+    case volumePlateauNeedsVariation
+    case progressSlowdownWarning
+    case highWeeklyTrainingRecoveryReminder
+
+    case missedSessionReshuffled
+    case packedWeekVolumeWarning
+    case droppedSessionRecoveryProtected
+}
+```
+
+- [ ] Add deterministic display metadata:
+
+```swift
+public var defaultUserText: String { ... }
+public var shortLabel: String { ... }
+public var priority: Int { ... }
+public var isCaution: Bool { ... }
+```
+
+- [ ] Tests should verify:
+  - Every case has non-empty `defaultUserText`.
+  - Every case has a non-empty `shortLabel`.
+  - Caution-style cases return `isCaution == true`.
+  - Labels do not contain medical claims like `safe`, `treat`, `diagnose`, or `doctor`.
+
+Commit:
+
+```text
+feat(coach): add deterministic reason codes
+```
+
+### Task 1.2: Add reason-code mapping helpers
+
+**Files:**
+
+- Create: `SundeeFundee/Sources/SundeeFundeeKit/DomainLayer/Coach/CoachReasonCodeBuilder.swift`
+- Create: `SundeeFundee/Tests/SundeeFundeeKitTests/DomainTests/CoachReasonCodeBuilderTests.swift`
+
+- [ ] Add a builder that maps existing deterministic inputs to reason codes:
+
+```swift
+public enum CoachReasonCodeBuilder {
+    public static func codes(
+        context: CoachContext,
+        preferences: QuestionnaireAnswers,
+        adjustment: CycleAwareAdjustment? = nil
+    ) -> [CoachReasonCode]
+}
+```
+
+- [ ] Mapping rules:
+  - `.low` energy -> `.lowEnergyReducedVolume`
+  - `.medium` energy -> `.mediumEnergyStandardPlan`
+  - `.high` energy -> `.highEnergySlightIntensityBump`
+  - `.menstrual` -> `.menstrualLowerVolumeLongerRest`
+  - `.follicular` -> `.follicularProgressionFocus`
+  - `.ovulation` -> `.ovulationControlledIntensity`
+  - `.luteal` -> `.lutealModerateIntensityLongerRest`
+  - `nil` cycle phase -> `.noCyclePhaseEnergyBased`
+  - non-empty injuries -> `.activeInjuriesFilteredExercises`
+  - non-full-gym equipment -> `.equipmentLimitedExercisePool`
+  - non-empty `context.plateaus` -> `.plateauNeedsRepVariation`
+  - non-empty `context.volumePlateaus` -> `.volumePlateauNeedsVariation`
+  - non-empty `context.progressWarnings` -> `.progressSlowdownWarning`
+  - `context.workoutsThisWeek >= 5` -> `.highWeeklyTrainingRecoveryReminder`
+
+- [ ] Deduplicate codes while preserving priority order.
+- [ ] Tests should cover the mappings above.
+
+Commit:
+
+```text
+feat(coach): derive reason codes from deterministic context
+```
+
+---
+
+# Batch 2 — Decision packets
+
+## Goal
+
+Give the on-device model compact, structured facts instead of open-ended prose.
+
+### Task 2.1: Add `CoachDecisionPacket`
+
+**Files:**
+
+- Create: `SundeeFundee/Sources/SundeeFundeeKit/DomainLayer/Coach/CoachDecisionPacket.swift`
+- Create: `SundeeFundee/Tests/SundeeFundeeKitTests/DomainTests/CoachDecisionPacketTests.swift`
+
+- [ ] Add a `public struct CoachDecisionPacket: Codable, Sendable, Equatable`.
+- [ ] Include fields:
+
+```swift
+public struct CoachDecisionPacket: Codable, Sendable, Equatable {
+    public let promptVersion: String
+    public let durationMinutes: Int?
+    public let focus: WorkoutFocus?
+    public let energyLevel: EnergyLevel?
+    public let equipment: EquipmentAccess?
+    public let cyclePhase: CyclePhase?
+    public let workoutsThisWeek: Int
+    public let activeInjuryCount: Int
+    public let selectedExerciseNames: [String]
+    public let allowedExerciseNames: [String]
+    public let reasonCodes: [CoachReasonCode]
+    public let cautionCodes: [CoachReasonCode]
+    public let deterministicSummary: String
+    public let deterministicTips: [String]
+}
+```
+
+- [ ] Keep the packet lightweight and serializable.
+- [ ] Do not include raw pain descriptions, injury names, private health notes, or user-auth identity data.
+- [ ] Add `sanitizedForPrompt()` returning prompt-safe text.
+- [ ] Tests should verify no raw private fields appear in `sanitizedForPrompt()`.
+
+Commit:
+
+```text
+feat(coach): add structured decision packet for AI copy
+```
+
+### Task 2.2: Add `CoachDecisionPacketBuilder`
+
+**Files:**
+
+- Create: `SundeeFundee/Sources/SundeeFundeeKit/DomainLayer/Coach/CoachDecisionPacketBuilder.swift`
+- Create: `SundeeFundee/Tests/SundeeFundeeKitTests/DomainTests/CoachDecisionPacketBuilderTests.swift`
+
+- [ ] Build packets from existing outputs:
+
+```swift
+public enum CoachDecisionPacketBuilder {
+    public static func workoutPacket(
+        base: CoachWorkoutResponse,
+        context: CoachContext,
+        preferences: QuestionnaireAnswers,
+        promptVersion: String
+    ) -> CoachDecisionPacket
+
+    public static func insightsPacket(
+        base: CoachInsightsResponse,
+        context: CoachContext,
+        promptVersion: String
+    ) -> CoachDecisionPacket
+
+    public static func planPacket(
+        base: CoachPlanResponse,
+        context: CoachContext,
+        promptVersion: String
+    ) -> CoachDecisionPacket
+}
+```
+
+- [ ] `selectedExerciseNames` must come only from `base.workout.exercises.map(\.name)` for workout packets.
+- [ ] `allowedExerciseNames` should equal selected exercise names for workout-summary copy.
+- [ ] For insight and plan packets, `allowedExerciseNames` should be empty unless the copy explicitly needs lift names from deterministic plateau data.
+- [ ] Tests should verify workout packets do not add extra exercise names.
+
+Commit:
+
+```text
+feat(coach): build decision packets from deterministic responses
+```
+
+### Task 2.3: Extend `CoachWorkoutResponse` with optional metadata
+
+**Files:**
+
+- Modify: `SundeeFundee/Sources/SundeeFundeeKit/DomainLayer/Coach/CoachServiceProtocol.swift`
+- Update tests if needed.
+
+- [ ] Add optional metadata without breaking existing call sites:
+
+```swift
+public let decisionPacket: CoachDecisionPacket?
+public let copySource: CoachCopySource
+```
+
+- [ ] Add `CoachCopySource`:
+
+```swift
+public enum CoachCopySource: String, Codable, Sendable {
+    case deterministic
+    case onDeviceAIAccepted
+    case onDeviceAIRejectedFallback
+    case onDeviceAIUnavailableFallback
+}
+```
+
+- [ ] Preserve existing initializer behavior by giving defaults.
+- [ ] Apply the same optional metadata pattern to `CoachInsightsResponse` and `CoachPlanResponse` only if useful for analytics/UI. If that causes churn, defer those response changes to Batch 6.
+
+Commit:
+
+```text
+feat(coach): attach optional decision metadata to workout responses
+```
+
+---
+
+# Batch 3 — Prompt pack
+
+## Goal
+
+Centralize all on-device AI prompts, make them versioned, short, testable, and command-like.
+
+### Task 3.1: Add `CoachPromptPack`
+
+**Files:**
+
+- Create: `SundeeFundee/Sources/SundeeFundeeKit/DomainLayer/Coach/CoachPromptPack.swift`
+- Create: `SundeeFundee/Tests/SundeeFundeeKitTests/DomainTests/CoachPromptPackTests.swift`
+
+- [ ] Add prompt version constants:
+
+```swift
+public enum CoachPromptVersion: String, Codable, Sendable {
+    case workoutSummaryV17 = "workout_summary_v1_7"
+    case insightsSummaryV17 = "insights_summary_v1_7"
+    case planExplanationV17 = "plan_explanation_v1_7"
+}
+```
+
+- [ ] Add reusable instruction strings:
+
+```swift
+public enum CoachPromptPack {
+    public static let copyEditorInstructions = """
+    You are a concise fitness copy editor for Sundee Fundee.
+    You only rewrite deterministic coaching facts into friendly copy.
+    Never add exercises, weights, reps, percentages, medical advice, or new recommendations.
+    Return exactly the requested structure.
+    """
+}
+```
+
+- [ ] Add prompt builders:
+
+```swift
+public static func workoutSummaryPrompt(packet: CoachDecisionPacket) -> String
+public static func insightsSummaryPrompt(packet: CoachDecisionPacket) -> String
+public static func planExplanationPrompt(packet: CoachDecisionPacket) -> String
+```
+
+- [ ] Prompt shape should be compact:
+
+```text
+Task: Rewrite deterministic workout facts into exactly 2 short sentences.
+Hard rules:
+- Do not create exercises.
+- Do not mention weights, reps, percentages, or medical advice.
+- Do not mention injuries directly; say "movement constraints" if needed.
+- Use only supplied facts.
+- Max 220 characters.
+Facts:
+...
+Reason codes:
+...
+Allowed exercises:
+...
+```
+
+- [ ] Tests should verify:
+  - Prompts contain the prompt version.
+  - Prompts contain hard rules.
+  - Prompts include selected exercise names.
+  - Prompts do not include raw injury details.
+  - Prompts stay under a target length, e.g. 2,000 characters for workout summaries.
+
+Commit:
+
+```text
+feat(coach): add versioned prompt pack for on-device copy
+```
+
+### Task 3.2: Add deterministic copy templates
+
+**Files:**
+
+- Create: `SundeeFundee/Sources/SundeeFundeeKit/DomainLayer/Coach/CoachCopyTemplates.swift`
+- Create: `SundeeFundee/Tests/SundeeFundeeKitTests/DomainTests/CoachCopyTemplatesTests.swift`
+
+- [ ] Extract default deterministic copy from `DeterministicCoachService.buildCoachingSummary(...)` and `buildTips(...)` into a reusable template helper.
+- [ ] Keep the existing deterministic summary behavior unchanged at first.
+- [ ] Add helpers:
+
+```swift
+public enum CoachCopyTemplates {
+    public static func summary(from packet: CoachDecisionPacket) -> String
+    public static func tips(from packet: CoachDecisionPacket, limit: Int = 3) -> [String]
+    public static func fallbackCopy(from packet: CoachDecisionPacket) -> (summary: String, tips: [String])
+}
+```
+
+- [ ] Tests should verify templates are non-empty and do not mention medical claims.
+
+Commit:
+
+```text
+refactor(coach): centralize deterministic copy templates
+```
+
+---
+
+# Batch 4 — Foundation Models copy editor wrapper
+
+## Goal
+
+Keep Foundation Models implementation isolated, optional, typed where possible, and easy to fall back from.
+
+### Task 4.1: Add `OnDeviceCoachCopyEditor`
+
+**Files:**
+
+- Create: `SundeeFundee/Sources/SundeeFundeeKit/DomainLayer/Coach/OnDeviceCoachCopyEditor.swift`
+- Create: `SundeeFundee/Tests/SundeeFundeeKitTests/DomainTests/OnDeviceCoachCopyEditorTests.swift` if testable without Foundation Models; otherwise test protocol-level fake in Batch 6.
+
+- [ ] Add a protocol:
+
+```swift
+public protocol CoachCopyEditing: Sendable {
+    func rewriteWorkoutSummary(packet: CoachDecisionPacket) async throws -> CoachCopyCandidate
+    func rewriteInsightsSummary(packet: CoachDecisionPacket) async throws -> CoachCopyCandidate
+    func rewritePlanExplanation(packet: CoachDecisionPacket) async throws -> CoachCopyCandidate
+}
+```
+
+- [ ] Add candidate type:
+
+```swift
+public struct CoachCopyCandidate: Sendable, Equatable {
+    public let summary: String
+    public let tips: [String]
+    public let promptVersion: String
+    public let rawOutput: String?
+}
+```
+
+- [ ] Under `#if canImport(FoundationModels)`, create a real implementation using `LanguageModelSession(instructions:)`.
+- [ ] Under `#else`, create an implementation that throws `CoachCopyEditingError.unavailable` or returns deterministic copy depending on call-site preference.
+- [ ] Keep `@Generable` typed response structs inside `#if canImport(FoundationModels)` only.
+- [ ] If typed generation is not available or is unstable on the active SDK, keep the wrapper but use plain string generation plus strict validation.
+
+Commit:
+
+```text
+feat(coach): add isolated on-device copy editor wrapper
+```
+
+### Task 4.2: Add typed response shapes when supported
+
+**Files:**
+
+- Modify: `SundeeFundee/Sources/SundeeFundeeKit/DomainLayer/Coach/OnDeviceCoachCopyEditor.swift`
+
+- [ ] Add Foundation Models-only response structs:
+
+```swift
+#if canImport(FoundationModels)
+@Generable
+struct WorkoutCopyResponse {
+    @Guide(description: "Exactly two short sentences. No medical advice, weights, reps, percentages, or new exercises.")
+    var summary: String
+
+    @Guide(description: "Zero to three short tips based only on supplied facts.")
+    var tips: [String]
+}
+#endif
+```
+
+- [ ] Prefer typed generation for workout copy.
+- [ ] Fall back to plain string generation if typed generation fails.
+- [ ] Never bypass validation.
+
+Commit:
+
+```text
+feat(coach): use typed Foundation Models copy responses when available
+```
+
+---
+
+# Batch 5 — Copy validation and fallback
+
+## Goal
+
+Reject weak, hallucinated, unsafe, or off-format AI copy before it reaches the UI.
+
+### Task 5.1: Add `CoachCopyValidator`
+
+**Files:**
+
+- Create: `SundeeFundee/Sources/SundeeFundeeKit/DomainLayer/Coach/CoachCopyValidator.swift`
+- Create: `SundeeFundee/Tests/SundeeFundeeKitTests/DomainTests/CoachCopyValidatorTests.swift`
+
+- [ ] Add validation issues:
+
+```swift
+public enum CoachCopyValidationIssue: Equatable, Sendable {
+    case empty
+    case tooLong(max: Int)
+    case tooManySentences(max: Int)
+    case mentionsDisallowedExercise(String)
+    case mentionsWeightsRepsOrPercentages
+    case containsMedicalAdviceLanguage(String)
+    case containsRawInjuryLanguage
+    case containsUnsupportedRecommendation
+}
+```
+
+- [ ] Add validator:
+
+```swift
+public enum CoachCopyValidator {
+    public static func validateWorkoutSummary(
+        _ candidate: CoachCopyCandidate,
+        packet: CoachDecisionPacket
+    ) -> [CoachCopyValidationIssue]
+
+    public static func validateInsightsSummary(
+        _ candidate: CoachCopyCandidate,
+        packet: CoachDecisionPacket
+    ) -> [CoachCopyValidationIssue]
+
+    public static func validatePlanExplanation(
+        _ candidate: CoachCopyCandidate,
+        packet: CoachDecisionPacket
+    ) -> [CoachCopyValidationIssue]
+}
+```
+
+- [ ] Enforce workout summary rules:
+  - non-empty
+  - max 220 characters
+  - max 2 sentences
+  - no known exercise names outside `packet.allowedExerciseNames`
+  - no `lb`, `lbs`, `kg`, `%`, `rep`, `reps`, `set`, `sets`
+  - no `diagnose`, `treat`, `doctor`, `medical`, `safe for injury`, `ignore pain`, `push through pain`
+  - no raw phrases like `injury count`, `active injury`, or specific injury areas from user data
+
+- [ ] Add tests for every validation issue.
+
+Commit:
+
+```text
+feat(coach): validate on-device coaching copy before display
+```
+
+### Task 5.2: Add known-exercise guard support
+
+**Files:**
+
+- Modify: `SundeeFundee/Sources/SundeeFundeeKit/DomainLayer/AIWorkout/AIWorkout.swift`
+- Modify: `SundeeFundee/Sources/SundeeFundeeKit/DomainLayer/Coach/CoachCopyValidator.swift`
+- Add tests in `CoachCopyValidatorTests.swift`.
+
+- [ ] Expose a safe list of known generated exercise names for validation.
+- [ ] Do not expose private helper internals broadly if avoidable. Prefer a narrow helper:
+
+```swift
+public func knownWorkoutExerciseNames() -> Set<String>
+```
+
+- [ ] Validator rule:
+  - If candidate text contains a known exercise name that is not in `packet.allowedExerciseNames`, reject with `.mentionsDisallowedExercise(name)`.
+  - Do not reject generic words like `squat` unless they are exact known exercise names and not allowed.
+
+Commit:
+
+```text
+feat(coach): reject AI copy that invents exercise names
+```
+
+### Task 5.3: Add fallback result helper
+
+**Files:**
+
+- Create: `SundeeFundee/Sources/SundeeFundeeKit/DomainLayer/Coach/CoachCopyFallback.swift`
+- Tests in `CoachCopyValidatorTests.swift` or `CoachCopyFallbackTests.swift`.
+
+- [ ] Add:
+
+```swift
+public enum CoachCopyFallback {
+    public static func workoutResponse(
+        base: CoachWorkoutResponse,
+        packet: CoachDecisionPacket,
+        source: CoachCopySource
+    ) -> CoachWorkoutResponse
+}
+```
+
+- [ ] Fallback should preserve the deterministic workout exactly.
+- [ ] Fallback should use deterministic summary/tips.
+- [ ] Fallback should attach the packet and set `copySource` to the passed fallback source.
+
+Commit:
+
+```text
+feat(coach): add deterministic fallback copy helper
+```
+
+---
+
+# Batch 6 — Integrate into `OnDeviceCoachService`
+
+## Goal
+
+Replace the current open-ended AI enhancement methods with packet -> prompt -> typed copy -> validate -> accept/fallback.
+
+### Task 6.1: Rewrite workout summary enhancement
+
+**Files:**
+
+- Modify: `SundeeFundee/Sources/SundeeFundeeKit/DomainLayer/Coach/OnDeviceCoachService.swift`
+- Modify related tests.
+
+- [ ] Replace the current inline prompt in `enhanceCoachingSummary(...)` with:
+  1. deterministic base response
+  2. decision packet
+  3. copy-editor call
+  4. validator
+  5. accept or fallback
+
+Pseudo-flow:
+
+```swift
+let promptVersion = CoachPromptVersion.workoutSummaryV17.rawValue
+let packet = CoachDecisionPacketBuilder.workoutPacket(
+    base: base,
+    context: context,
+    preferences: preferences,
+    promptVersion: promptVersion
+)
+
+do {
+    let candidate = try await copyEditor.rewriteWorkoutSummary(packet: packet)
+    let issues = CoachCopyValidator.validateWorkoutSummary(candidate, packet: packet)
+    guard issues.isEmpty else {
+        return CoachCopyFallback.workoutResponse(
+            base: base,
+            packet: packet,
+            source: .onDeviceAIRejectedFallback
+        )
+    }
+    return base.replacingCopy(
+        summary: candidate.summary,
+        tips: candidate.tips.isEmpty ? base.tips : candidate.tips,
+        packet: packet,
+        source: .onDeviceAIAccepted
+    )
+} catch {
+    return CoachCopyFallback.workoutResponse(
+        base: base,
+        packet: packet,
+        source: .onDeviceAIUnavailableFallback
+    )
+}
+```
+
+- [ ] Add a `replacingCopy(...)` helper extension if needed to avoid initializer sprawl.
+- [ ] Ensure workout exercises are byte-for-byte preserved from `base.workout.exercises`.
+- [ ] Ensure no AI candidate changes `GeneratedWorkout.id`, `createdAt`, `isFavorite`, or `questionnaire`.
+
+Commit:
+
+```text
+refactor(coach): constrain on-device workout copy with packet validation
+```
+
+### Task 6.2: Rewrite insights summary enhancement
+
+**Files:**
+
+- Modify: `SundeeFundee/Sources/SundeeFundeeKit/DomainLayer/Coach/OnDeviceCoachService.swift`
+- Optional: extend `CoachInsightsResponse` metadata if useful.
+
+- [ ] Convert `generateInsightsSummary(...)` to use `CoachDecisionPacketBuilder.insightsPacket(...)`.
+- [ ] Validate insight copy:
+  - max 3 sentences
+  - no medical advice
+  - no new exercises unless present in deterministic plateau data
+  - no unsupported recommendations
+- [ ] Fallback to `base.summary` on validation failure.
+
+Commit:
+
+```text
+refactor(coach): constrain on-device insights copy with validation
+```
+
+### Task 6.3: Rewrite plan explanation enhancement
+
+**Files:**
+
+- Modify: `SundeeFundee/Sources/SundeeFundeeKit/DomainLayer/Coach/OnDeviceCoachService.swift`
+- Optional: extend `CoachPlanResponse` metadata if useful.
+
+- [ ] Convert `generatePlanExplanation(...)` to packet-based prompting.
+- [ ] Validate plan copy:
+  - max 2 sentences
+  - no new plan changes
+  - no medical advice
+  - must not conflict with `base.result.summary` or `base.volumeWarning`
+- [ ] Fallback to `base.explanation` on validation failure.
+
+Commit:
+
+```text
+refactor(coach): constrain on-device plan explanation copy
+```
+
+### Task 6.4: Add dependency injection for tests
+
+**Files:**
+
+- Modify: `OnDeviceCoachService.swift`
+- Create/update: `SundeeFundee/Tests/SundeeFundeeKitTests/DomainTests/OnDeviceCoachServiceTests.swift`
+
+- [ ] Let `OnDeviceCoachService` accept dependencies:
+
+```swift
+public init(
+    fallback: CoachServiceProtocol = DeterministicCoachService(),
+    copyEditor: CoachCopyEditing? = nil
+) { ... }
+```
+
+- [ ] For Foundation Models builds, default `copyEditor` to real on-device editor.
+- [ ] For non-Foundation Models builds, default to nil/unavailable fallback.
+- [ ] Add fake copy editors for tests:
+  - `AcceptingFakeCopyEditor`
+  - `HallucinatingExerciseFakeCopyEditor`
+  - `MedicalAdviceFakeCopyEditor`
+  - `ThrowingFakeCopyEditor`
+
+- [ ] Tests should verify:
+  - accepted copy updates only summary/tips
+  - hallucinated exercise falls back
+  - medical advice falls back
+  - thrown AI error falls back
+  - deterministic workout structure is unchanged in all cases
+
+Commit:
+
+```text
+test(coach): cover on-device copy accept and fallback paths
+```
+
+---
+
+# Batch 7 — Deterministic explainability UI
+
+## Goal
+
+Show users why the workout was chosen using reason codes, not AI guesses.
+
+### Task 7.1: Add reason-code rationale model
+
+**Files:**
+
+- Modify: `SundeeFundee/Sources/SundeeFundeeKit/DomainLayer/Coach/WorkoutRationale.swift` or create it if the model lives elsewhere.
+- Modify: `CycleAwareAdjustmentService.swift` only if needed.
+- Tests for rationale formatting.
+
+- [ ] Add a helper that turns reason codes into UI-friendly bullets:
+
+```swift
+public enum CoachRationaleBuilder {
+    public static func rationale(from packet: CoachDecisionPacket) -> WorkoutRationale
+}
+```
+
+- [ ] Prefer existing `WorkoutRationale` to avoid introducing a parallel UI model.
+- [ ] Limit reasons to top 4 and cautions to top 2.
+- [ ] Use deterministic `defaultUserText`, not model text.
+
+Commit:
+
+```text
+feat(coach): build workout rationale from deterministic reason codes
+```
+
+### Task 7.2: Wire rationale into AI workout preview
+
+**Files:**
+
+- Modify: `SundeeFundee/Sources/SundeeFundeeKit/UI/Views/Workouts/AIWorkoutView.swift`
+
+- [ ] In `AIWorkoutViewModel.generateWorkout()`, prefer `response.decisionPacket` if available.
+- [ ] Build `workoutRationale` from the packet.
+- [ ] Keep the existing `CycleAwareAdjustmentService.adjustment(...).rationale` as fallback.
+- [ ] UI card remains `Why this workout?`.
+- [ ] Do not show prompt version to users.
+
+Commit:
+
+```text
+feat(workouts): show deterministic reason-code rationale in AI preview
+```
+
+---
+
+# Batch 8 — Analytics, logging, and local kill switch
+
+## Goal
+
+Measure AI-copy quality without risking user-facing drift.
+
+### Task 8.1: Add AI copy events
+
+**Files:**
+
+- Modify: `SundeeFundee/Sources/SundeeFundeeKit/DomainLayer/Growth/GrowthEvent.swift`
+- Modify: `OnDeviceCoachService.swift` or add a small `CoachCopyTelemetry` helper.
+
+- [ ] Add events if the current growth event system supports them:
+
+```swift
+case onDeviceCopyAttempted
+case onDeviceCopyAccepted
+case onDeviceCopyRejected
+case onDeviceCopyFallbackUsed
+```
+
+- [ ] Track properties:
+  - `prompt_version`
+  - `flow` (`workout_summary`, `insights_summary`, `plan_explanation`)
+  - `copy_source`
+  - `validation_issue_count`
+  - `validation_issues` if safe and low-cardinality
+
+- [ ] Do not track raw model output.
+- [ ] Do not track prompt text.
+- [ ] Do not track raw health, injury, or pain details.
+
+Commit:
+
+```text
+feat(coach): track on-device copy validation outcomes
+```
+
+### Task 8.2: Add session-level AI copy fallback mode
+
+**Files:**
+
+- Create: `SundeeFundee/Sources/SundeeFundeeKit/DomainLayer/Coach/CoachAIConfiguration.swift`
+- Modify: `OnDeviceCoachService.swift`
+- Tests for fallback mode.
+
+- [ ] Add a small configuration object:
+
+```swift
+public actor CoachAIConfiguration {
+    public static let shared = CoachAIConfiguration()
+    private var consecutiveValidationFailures = 0
+    private var disabledUntilAppRestart = false
+
+    public func recordAcceptedCopy()
+    public func recordRejectedCopy()
+    public func shouldUseOnDeviceCopy() -> Bool
+}
+```
+
+- [ ] Disable on-device copy for the rest of the app session after 2 consecutive validation failures.
+- [ ] Reset failure count after accepted copy.
+- [ ] This is not persisted across launches for V1.7.
+
+Commit:
+
+```text
+feat(coach): disable on-device copy after repeated validation failures
+```
+
+### Task 8.3: Add logging for accepted/rejected copy
+
+**Files:**
+
+- Modify: `OnDeviceCoachService.swift`
+
+- [ ] Add `Logger(subsystem: "com.sundeefundee.app", category: "CoachAI")`.
+- [ ] Log prompt version, flow, accepted/fallback source, and validation issue types.
+- [ ] Do not log raw prompts, raw responses, injury details, or user identifiers.
+
+Commit:
+
+```text
+chore(coach): log safe on-device copy validation metadata
+```
+
+---
+
+# Batch 9 — Tests and regression suite
+
+## Goal
+
+Make the AI boundary testable without relying on exact model output.
+
+### Task 9.1: Add validator regression tests
+
+**Files:**
+
+- Modify: `SundeeFundee/Tests/SundeeFundeeKitTests/DomainTests/CoachCopyValidatorTests.swift`
+
+- [ ] Test accepted copy:
+  - 2 sentences
+  - under character limit
+  - no banned terms
+  - only selected exercises
+- [ ] Test rejected copy:
+  - mentions a non-selected known exercise
+  - mentions `135 lbs`
+  - mentions `70%`
+  - mentions `3 sets of 8 reps`
+  - says `safe for your injury`
+  - says `ignore pain`
+  - is 3+ sentences
+  - is empty
+
+Commit:
+
+```text
+test(coach): add copy validator regression cases
+```
+
+### Task 9.2: Add packet builder regression tests
+
+**Files:**
+
+- Modify: `CoachDecisionPacketBuilderTests.swift`
+
+- [ ] Low-energy menstrual workout includes:
+  - `.lowEnergyReducedVolume`
+  - `.menstrualLowerVolumeLongerRest`
+- [ ] Full-gym medium-energy workout does not include `.equipmentLimitedExercisePool`.
+- [ ] Home dumbbells workout includes `.equipmentLimitedExercisePool`.
+- [ ] Injury context includes `.activeInjuriesFilteredExercises` but does not include injury descriptions in prompt text.
+- [ ] Plateau context includes `.plateauNeedsRepVariation`.
+- [ ] High weekly training count includes `.highWeeklyTrainingRecoveryReminder`.
+
+Commit:
+
+```text
+test(coach): cover decision packet reason-code mapping
+```
+
+### Task 9.3: Add on-device service boundary tests with fakes
+
+**Files:**
+
+- Modify: `OnDeviceCoachServiceTests.swift`
+
+- [ ] Fake editor accepted summary -> `copySource == .onDeviceAIAccepted`.
+- [ ] Fake editor mentions a disallowed exercise -> fallback.
+- [ ] Fake editor mentions medical advice -> fallback.
+- [ ] Fake editor throws -> fallback.
+- [ ] In all cases, assert:
+
+```swift
+#expect(response.workout.exercises == base.workout.exercises)
+#expect(response.workout.questionnaire == base.workout.questionnaire)
+```
+
+Commit:
+
+```text
+test(coach): verify on-device AI never changes workout structure
+```
+
+### Task 9.4: Run full verification
+
+- [ ] Run:
+
+```bash
+cd /Users/dustinober/Projects/sundee-fundee/SundeeFundee && swift test
+```
+
+- [ ] Run app build:
+
+```bash
+cd /Users/dustinober/Projects/sundee-fundee/SundeeFundeeApp && xcodebuild -project SundeeFundee.xcodeproj -scheme SundeeFundee -destination 'platform=iOS Simulator,name=iPhone 17 Pro' build
+```
+
+- [ ] Manually verify:
+  - AI workout generation works with Foundation Models unavailable.
+  - AI workout generation works with Foundation Models available.
+  - AI summary is short and does not mention weights/reps/medical advice.
+  - `Why this workout?` rationale still appears.
+  - Regenerate still works.
+  - Swap exercise still uses deterministic substitutions.
+  - A failed AI copy path falls back without user-visible error.
+
+Commit:
+
+```text
+test(coach): verify deterministic AI hardening regression suite
+```
+
+---
+
+# Batch 10 — Optional V1.7 polish after the core safety layer
+
+## Goal
+
+Improve product feel once the deterministic/AI boundary is safe.
+
+### Task 10.1: Add user feedback on AI copy usefulness
+
+**Files:**
+
+- Modify: `AIWorkoutView.swift`
+- Modify: `GrowthEvent.swift`
+
+- [ ] Add subtle feedback controls on the `Why this workout?` or summary card:
+  - thumbs up
+  - thumbs down
+- [ ] Track only low-cardinality analytics:
+  - prompt version
+  - copy source
+  - feedback value
+- [ ] Do not store raw generated copy.
+
+Commit:
+
+```text
+feat(workouts): collect lightweight feedback on coaching copy
+```
+
+### Task 10.2: Add prompt preview debug screen for development builds
+
+**Files:**
+
+- Create: `SundeeFundee/Sources/SundeeFundeeKit/UI/Debug/CoachPromptDebugView.swift`
+- Guard behind `#if DEBUG`.
+
+- [ ] Show generated packet, prompt version, reason codes, validator result, and fallback source.
+- [ ] Do not ship debug screen in release builds.
+
+Commit:
+
+```text
+feat(debug): add coach prompt validation preview screen
+```
+
+---
+
+# Acceptance criteria
+
+V1.7 deterministic AI hardening is complete when all of the following are true:
+
+- [ ] `OnDeviceCoachService` no longer builds large inline free-form prompts directly inside enhancement methods.
+- [ ] All on-device AI prompts are versioned through `CoachPromptPack`.
+- [ ] Workout, insights, and plan copy use decision packets.
+- [ ] Workout structure is always produced by deterministic code.
+- [ ] Substitutions remain deterministic.
+- [ ] AI output is validated before display.
+- [ ] Rejected AI output falls back to deterministic copy without user-visible failure.
+- [ ] Model copy cannot add unselected exercise names.
+- [ ] Model copy cannot mention weights, reps, percentages, or set counts in workout summaries.
+- [ ] Model copy cannot mention medical advice or raw injury details.
+- [ ] Prompt version and validation outcomes are tracked without storing raw prompts or raw responses.
+- [ ] `Why this workout?` uses deterministic reason codes.
+- [ ] Full `swift test` passes.
+- [ ] iOS simulator build succeeds.
+
+# Risks and mitigations
+
+| Risk | Mitigation |
+|---|---|
+| Foundation Models typed generation syntax changes across SDKs | Keep typed structs inside `#if canImport(FoundationModels)` and provide plain-string fallback. |
+| Validator rejects too much good copy | Start strict for V1.7; fallback copy is acceptable. Track rejection rates. |
+| Prompt pack grows too large | Keep facts compact and reason-code based. Add prompt length tests. |
+| Exercise hallucination detection misses aliases | Use known exercise names first; add alias mapping later if needed. |
+| Public response-model changes break call sites | Add default initializer parameters and keep metadata optional. |
+| AI copy sounds too generic | Improve deterministic reason codes and templates before relaxing validator rules. |
+
+# Recommended commit order summary
+
+1. `chore(coach): document deterministic planner and AI copy boundary`
+2. `feat(coach): add deterministic reason codes`
+3. `feat(coach): derive reason codes from deterministic context`
+4. `feat(coach): add structured decision packet for AI copy`
+5. `feat(coach): build decision packets from deterministic responses`
+6. `feat(coach): attach optional decision metadata to workout responses`
+7. `feat(coach): add versioned prompt pack for on-device copy`
+8. `refactor(coach): centralize deterministic copy templates`
+9. `feat(coach): add isolated on-device copy editor wrapper`
+10. `feat(coach): use typed Foundation Models copy responses when available`
+11. `feat(coach): validate on-device coaching copy before display`
+12. `feat(coach): reject AI copy that invents exercise names`
+13. `feat(coach): add deterministic fallback copy helper`
+14. `refactor(coach): constrain on-device workout copy with packet validation`
+15. `refactor(coach): constrain on-device insights copy with validation`
+16. `refactor(coach): constrain on-device plan explanation copy`
+17. `test(coach): cover on-device copy accept and fallback paths`
+18. `feat(coach): build workout rationale from deterministic reason codes`
+19. `feat(workouts): show deterministic reason-code rationale in AI preview`
+20. `feat(coach): track on-device copy validation outcomes`
+21. `feat(coach): disable on-device copy after repeated validation failures`
+22. `chore(coach): log safe on-device copy validation metadata`
+23. `test(coach): add copy validator regression cases`
+24. `test(coach): cover decision packet reason-code mapping`
+25. `test(coach): verify on-device AI never changes workout structure`
+
+# Definition of done for App Store-ready V1.7 copy hardening
+
+The feature is App Store-ready when the app can generate workouts, insights, substitutions, and weekly-plan explanations with Foundation Models unavailable, available, and failing validation, while always preserving deterministic training decisions and never surfacing unsafe or invented copy.
