@@ -45,7 +45,13 @@ public enum ProgramSessionAdaptationService {
             )
         } ?? injuries
             .flatMap(InjuryAdaptationEngine.getRecommendedExercises)
-            .first ?? exercise.exercise
+            .first { candidate in
+                !InjuryAdaptationEngine.isContraindicated(
+                    exerciseName: candidate,
+                    exerciseCategory: nil,
+                    injuries: injuries
+                )
+            } ?? exercise.exercise
 
         return GeneratedProgramExercise(
             exercise: replacement,

@@ -3,7 +3,7 @@ import Foundation
 // MARK: - Types
 
 /// Workout focus area
-public enum WorkoutFocus: String, Codable, Sendable {
+public enum WorkoutFocus: String, Codable, Sendable, Equatable {
     case upperBody = "upper_body"
     case lowerBody = "lower_body"
     case fullBody = "full_body"
@@ -14,14 +14,14 @@ public enum WorkoutFocus: String, Codable, Sendable {
 }
 
 /// Energy level for workout generation
-public enum EnergyLevel: String, Codable, Sendable {
+public enum EnergyLevel: String, Codable, Sendable, Equatable {
     case low
     case medium
     case high
 }
 
 /// Equipment access level
-public enum EquipmentAccess: String, Codable, Sendable {
+public enum EquipmentAccess: String, Codable, Sendable, Equatable {
     case fullGym = "full_gym"
     case homeDumbbells = "home_dumbbells"
     case bodyweightOnly = "bodyweight_only"
@@ -30,7 +30,7 @@ public enum EquipmentAccess: String, Codable, Sendable {
 }
 
 /// Questionnaire answers for AI workout generation
-public struct QuestionnaireAnswers: Codable, Sendable {
+public struct QuestionnaireAnswers: Codable, Sendable, Equatable {
     public let timeMinutes: Int
     public let focus: WorkoutFocus
     public let energyLevel: EnergyLevel
@@ -85,7 +85,7 @@ public enum WorkoutGenerationIssue: Equatable, Sendable {
 }
 
 /// A generated exercise from AI
-public struct GeneratedExercise: Codable, Sendable, Identifiable {
+public struct GeneratedExercise: Codable, Sendable, Identifiable, Equatable {
     public let id: String
     public let name: String
     public let sets: Int
@@ -243,6 +243,10 @@ public func repairGeneratedWorkout(_ workout: GeneratedWorkout) -> GeneratedWork
         exercises: exercises,
         questionnaire: workout.questionnaire
     )
+}
+
+public func knownWorkoutExerciseNames() -> Set<String> {
+    Set(allWorkoutCandidates().map(\.name))
 }
 
 private func allowedExerciseNames(for equipment: EquipmentAccess) -> Set<String> {

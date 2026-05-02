@@ -40,4 +40,8 @@ public enum GrowthEventName {
     public static let aiWorkoutStarted = "ai_workout_started"
     public static let painAwareSubstitutionUsed = "pain_aware_substitution_used"
     public static let cycleAwareAdjustmentShown = "cycle_aware_adjustment_shown"
+    public static let onDeviceCopyAttempted = "on_device_copy_attempted"
+    public static let onDeviceCopyAccepted = "on_device_copy_accepted"
+    public static let onDeviceCopyRejected = "on_device_copy_rejected"
+    public static let onDeviceCopyFallbackUsed = "on_device_copy_fallback_used"
 }

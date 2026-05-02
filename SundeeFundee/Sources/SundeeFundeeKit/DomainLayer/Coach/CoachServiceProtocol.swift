@@ -39,6 +39,13 @@ public protocol CoachServiceProtocol: Sendable {
 
 // MARK: - Response Types
 
+public enum CoachCopySource: String, Codable, Sendable {
+    case deterministic
+    case onDeviceAIAccepted
+    case onDeviceAIRejectedFallback
+    case onDeviceAIUnavailableFallback
+}
+
 /// Response from workout generation.
 public struct CoachWorkoutResponse: Sendable {
     /// The generated workout.
@@ -50,10 +57,46 @@ public struct CoachWorkoutResponse: Sendable {
     /// Optional tips specific to the user's current state.
     public let tips: [String]
 
-    public init(workout: GeneratedWorkout, coachingSummary: String, tips: [String] = []) {
+    /// Sanitized facts used to create/validate copy.
+    public let decisionPacket: CoachDecisionPacket?
+
+    /// Where the visible copy came from.
+    public let copySource: CoachCopySource
+
+    public init(
+        workout: GeneratedWorkout,
+        coachingSummary: String,
+        tips: [String] = [],
+        decisionPacket: CoachDecisionPacket? = nil,
+        copySource: CoachCopySource = .deterministic
+    ) {
         self.workout = workout
         self.coachingSummary = coachingSummary
         self.tips = tips
+        self.decisionPacket = decisionPacket
+        self.copySource = copySource
+    }
+
+    public func replacingCopy(
+        summary: String,
+        tips: [String],
+        packet: CoachDecisionPacket?,
+        source: CoachCopySource
+    ) -> CoachWorkoutResponse {
+        CoachWorkoutResponse(
+            workout: GeneratedWorkout(
+                id: workout.id,
+                createdAt: workout.createdAt,
+                isFavorite: workout.isFavorite,
+                coachingSummary: summary,
+                exercises: workout.exercises,
+                questionnaire: workout.questionnaire
+            ),
+            coachingSummary: summary,
+            tips: tips,
+            decisionPacket: packet,
+            copySource: source
+        )
     }
 }
 

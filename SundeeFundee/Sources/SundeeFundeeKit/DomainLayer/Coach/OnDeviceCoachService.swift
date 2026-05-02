@@ -1,228 +1,49 @@
 import Foundation
+import OSLog
 
 // MARK: - OnDeviceCoachService
 
-/// Coach service that uses Apple Foundation Models for natural language
-/// generation while delegating structural decisions to deterministic logic.
-///
-/// Requires iOS 26+ and Apple Intelligence to be enabled on the device.
-/// When Foundation Models are unavailable at runtime, falls back to
-/// `DeterministicCoachService`.
-///
-/// Architecture:
-///   1. Deterministic services (PlateauDetector, WeeklyLoadAnalyzer, etc.)
-///      make the training decisions.
-///   2. This service feeds those decisions into the on-device language model
-///      to generate personalized explanations, coaching summaries, and tips.
-///   3. The model explains and packages decisions — it doesn't invent them.
-#if canImport(FoundationModels)
-import FoundationModels
-
-@available(iOS 26.0, macOS 26.0, *)
+/// Coach service that delegates all training decisions to deterministic logic and
+/// uses on-device AI only as a validated copy editor.
 public final class OnDeviceCoachService: CoachServiceProtocol, @unchecked Sendable {
-    private let fallback = DeterministicCoachService()
+    private let fallback: CoachServiceProtocol
+    private let copyEditor: CoachCopyEditing?
+    private let configuration: CoachAIConfiguration
+    private let logger = Logger(subsystem: "com.sundeefundee.app", category: "CoachAI")
 
-    public init() {}
-
-    // MARK: - Generate Workout
+    public init(
+        fallback: CoachServiceProtocol = DeterministicCoachService(),
+        copyEditor: CoachCopyEditing? = nil,
+        configuration: CoachAIConfiguration = .shared
+    ) {
+        self.fallback = fallback
+        self.configuration = configuration
+        if let copyEditor {
+            self.copyEditor = copyEditor
+        } else {
+            #if canImport(FoundationModels)
+            if #available(iOS 26.0, macOS 26.0, *) {
+                self.copyEditor = OnDeviceCoachCopyEditor()
+            } else {
+                self.copyEditor = nil
+            }
+            #else
+            self.copyEditor = nil
+            #endif
+        }
+    }
 
     public func generateWorkout(
         context: CoachContext,
         preferences: QuestionnaireAnswers
     ) async throws -> CoachWorkoutResponse {
-        // Get the deterministic workout first (exercises, weights, structure)
         let base = try await fallback.generateWorkout(context: context, preferences: preferences)
-
-        // Enhance the coaching summary with AI
-        let enhanced = try await enhanceCoachingSummary(
-            base: base,
-            context: context,
-            preferences: preferences
-        )
-
-        return CoachWorkoutResponse(
-            workout: enhanced.workout,
-            coachingSummary: enhanced.coachingSummary,
-            tips: enhanced.tips
-        )
+        return await enhanceWorkoutCopy(base: base, context: context, preferences: preferences)
     }
-
-    // MARK: - Get Insights
 
     public func getInsights(context: CoachContext) async throws -> CoachInsightsResponse {
         let base = try await fallback.getInsights(context: context)
-
-        // Use AI to generate a more personalized summary
-        let summary = await generateInsightsSummary(base: base, context: context)
-
-        return CoachInsightsResponse(
-            plateaus: base.plateaus,
-            trends: base.trends,
-            summary: summary ?? base.summary,
-            priorityActions: base.priorityActions
-        )
-    }
-
-    // MARK: - Suggest Substitutions
-
-    public func suggestSubstitutions(
-        for exercise: String,
-        context: CoachContext
-    ) async throws -> CoachSubstitutionResponse {
-        // Substitution ranking is purely deterministic
-        return try await fallback.suggestSubstitutions(for: exercise, context: context)
-    }
-
-    // MARK: - Adapt Weekly Plan
-
-    public func adaptWeeklyPlan(
-        plan: [ScheduleReshuffler.PlannedSession],
-        completedDays: Set<Int>,
-        missedDays: Set<Int>,
-        currentDay: Int,
-        context: CoachContext
-    ) async throws -> CoachPlanResponse {
-        let base = try await fallback.adaptWeeklyPlan(
-            plan: plan,
-            completedDays: completedDays,
-            missedDays: missedDays,
-            currentDay: currentDay,
-            context: context
-        )
-
-        // Use AI to make the explanation more conversational
-        let explanation = await generatePlanExplanation(base: base, context: context)
-
-        return CoachPlanResponse(
-            result: base.result,
-            explanation: explanation ?? base.explanation,
-            volumeWarning: base.volumeWarning
-        )
-    }
-
-    // MARK: - AI Enhancement Helpers
-
-    private func enhanceCoachingSummary(
-        base: CoachWorkoutResponse,
-        context: CoachContext,
-        preferences: QuestionnaireAnswers
-    ) async throws -> CoachWorkoutResponse {
-        let session = LanguageModelSession()
-
-        let prompt = """
-        You are a supportive fitness copy editor. Write exactly 2 short sentences \
-        explaining today's already-selected workout.
-
-        Rules:
-        - Do not add, remove, rename, or prescribe exercises.
-        - Do not mention weights, reps, or medical advice.
-        - Use the workout facts only.
-        - Keep it specific and encouraging.
-
-        Workout: \(preferences.timeMinutes) min \(preferences.focus.rawValue.replacingOccurrences(of: "_", with: " "))
-        Energy: \(preferences.energyLevel.rawValue)
-        Equipment: \(preferences.equipment.rawValue.replacingOccurrences(of: "_", with: " "))
-        Exercises: \(base.workout.exercises.map(\.name).joined(separator: ", "))
-        \(context.cyclePhase.map { "Cycle phase: \($0)" } ?? "")
-        \(context.injuries.isEmpty ? "" : "Active injuries: \(context.injuries.count)")
-        \(context.workoutsThisWeek > 0 ? "Workouts this week: \(context.workoutsThisWeek)" : "")
-        """
-
-        do {
-            let response = try await session.respond(to: prompt)
-            let enhanced = String(response.content)
-
-            return CoachWorkoutResponse(
-                workout: GeneratedWorkout(
-                    id: base.workout.id,
-                    createdAt: base.workout.createdAt,
-                    isFavorite: base.workout.isFavorite,
-                    coachingSummary: enhanced,
-                    exercises: base.workout.exercises,
-                    questionnaire: base.workout.questionnaire
-                ),
-                coachingSummary: enhanced,
-                tips: base.tips
-            )
-        } catch {
-            // Fall back to deterministic summary
-            return base
-        }
-    }
-
-    private func generateInsightsSummary(
-        base: CoachInsightsResponse,
-        context: CoachContext
-    ) async -> String? {
-        let session = LanguageModelSession()
-
-        var dataPoints: [String] = []
-        for p in base.plateaus.prefix(3) {
-            dataPoints.append("\(p.exerciseName) stalled at \(Int(p.currentWeight)) lbs for \(p.stallCount) attempts")
-        }
-        for t in base.trends {
-            dataPoints.append(t.message)
-        }
-
-        guard !dataPoints.isEmpty else { return nil }
-
-        let prompt = """
-        You are a fitness coach. Summarize these training insights in 2-3 friendly sentences. \
-        Focus on actionable advice, not just restating the data.
-
-        Data: \(dataPoints.joined(separator: ". "))
-        """
-
-        do {
-            let response = try await session.respond(to: prompt)
-            return String(response.content)
-        } catch {
-            return nil
-        }
-    }
-
-    private func generatePlanExplanation(
-        base: CoachPlanResponse,
-        context: CoachContext
-    ) async -> String? {
-        let session = LanguageModelSession()
-
-        let prompt = """
-        You are a fitness coach. Explain this schedule change in 1-2 friendly sentences.
-
-        Change: \(base.result.summary)
-        \(base.volumeWarning.map { "Volume concern: \($0)" } ?? "")
-        """
-
-        do {
-            let response = try await session.respond(to: prompt)
-            return String(response.content)
-        } catch {
-            return nil
-        }
-    }
-}
-
-#else
-
-// MARK: - Fallback when FoundationModels is not available
-
-/// When compiling without the FoundationModels framework (Xcode < 26 / iOS < 26 SDK),
-/// OnDeviceCoachService is a thin wrapper around DeterministicCoachService.
-public final class OnDeviceCoachService: CoachServiceProtocol, @unchecked Sendable {
-    private let fallback = DeterministicCoachService()
-
-    public init() {}
-
-    public func generateWorkout(
-        context: CoachContext,
-        preferences: QuestionnaireAnswers
-    ) async throws -> CoachWorkoutResponse {
-        try await fallback.generateWorkout(context: context, preferences: preferences)
-    }
-
-    public func getInsights(context: CoachContext) async throws -> CoachInsightsResponse {
-        try await fallback.getInsights(context: context)
+        return await enhanceInsightsCopy(base: base, context: context)
     }
 
     public func suggestSubstitutions(
@@ -239,14 +60,115 @@ public final class OnDeviceCoachService: CoachServiceProtocol, @unchecked Sendab
         currentDay: Int,
         context: CoachContext
     ) async throws -> CoachPlanResponse {
-        try await fallback.adaptWeeklyPlan(
+        let base = try await fallback.adaptWeeklyPlan(
             plan: plan,
             completedDays: completedDays,
             missedDays: missedDays,
             currentDay: currentDay,
             context: context
         )
+        return await enhancePlanCopy(base: base, context: context)
+    }
+
+    private func enhanceWorkoutCopy(
+        base: CoachWorkoutResponse,
+        context: CoachContext,
+        preferences: QuestionnaireAnswers
+    ) async -> CoachWorkoutResponse {
+        let packet = CoachDecisionPacketBuilder.workoutPacket(
+            base: base,
+            context: context,
+            preferences: preferences,
+            promptVersion: CoachPromptVersion.workoutSummaryV17.rawValue
+        )
+
+        guard await configuration.shouldUseOnDeviceCopy(), let copyEditor else {
+            log(flow: "workout_summary", packet: packet, source: .onDeviceAIUnavailableFallback, issues: [])
+            return CoachCopyFallback.workoutResponse(base: base, packet: packet, source: .onDeviceAIUnavailableFallback)
+        }
+
+        do {
+            let candidate = try await copyEditor.rewriteWorkoutSummary(packet: packet)
+            let issues = CoachCopyValidator.validateWorkoutSummary(candidate, packet: packet)
+            guard issues.isEmpty else {
+                await configuration.recordRejectedCopy()
+                log(flow: "workout_summary", packet: packet, source: .onDeviceAIRejectedFallback, issues: issues)
+                return CoachCopyFallback.workoutResponse(base: base, packet: packet, source: .onDeviceAIRejectedFallback)
+            }
+            await configuration.recordAcceptedCopy()
+            log(flow: "workout_summary", packet: packet, source: .onDeviceAIAccepted, issues: [])
+            return base.replacingCopy(
+                summary: candidate.summary,
+                tips: candidate.tips.isEmpty ? base.tips : candidate.tips,
+                packet: packet,
+                source: .onDeviceAIAccepted
+            )
+        } catch {
+            log(flow: "workout_summary", packet: packet, source: .onDeviceAIUnavailableFallback, issues: [])
+            return CoachCopyFallback.workoutResponse(base: base, packet: packet, source: .onDeviceAIUnavailableFallback)
+        }
+    }
+
+    private func enhanceInsightsCopy(base: CoachInsightsResponse, context: CoachContext) async -> CoachInsightsResponse {
+        let packet = CoachDecisionPacketBuilder.insightsPacket(
+            base: base,
+            context: context,
+            promptVersion: CoachPromptVersion.insightsSummaryV17.rawValue
+        )
+        guard await configuration.shouldUseOnDeviceCopy(), let copyEditor else { return base }
+        do {
+            let candidate = try await copyEditor.rewriteInsightsSummary(packet: packet)
+            let issues = CoachCopyValidator.validateInsightsSummary(candidate, packet: packet)
+            guard issues.isEmpty else {
+                await configuration.recordRejectedCopy()
+                log(flow: "insights_summary", packet: packet, source: .onDeviceAIRejectedFallback, issues: issues)
+                return base
+            }
+            await configuration.recordAcceptedCopy()
+            log(flow: "insights_summary", packet: packet, source: .onDeviceAIAccepted, issues: [])
+            return CoachInsightsResponse(
+                plateaus: base.plateaus,
+                trends: base.trends,
+                summary: candidate.summary,
+                priorityActions: candidate.tips.isEmpty ? base.priorityActions : candidate.tips
+            )
+        } catch {
+            log(flow: "insights_summary", packet: packet, source: .onDeviceAIUnavailableFallback, issues: [])
+            return base
+        }
+    }
+
+    private func enhancePlanCopy(base: CoachPlanResponse, context: CoachContext) async -> CoachPlanResponse {
+        let packet = CoachDecisionPacketBuilder.planPacket(
+            base: base,
+            context: context,
+            promptVersion: CoachPromptVersion.planExplanationV17.rawValue
+        )
+        guard await configuration.shouldUseOnDeviceCopy(), let copyEditor else { return base }
+        do {
+            let candidate = try await copyEditor.rewritePlanExplanation(packet: packet)
+            let issues = CoachCopyValidator.validatePlanExplanation(candidate, packet: packet)
+            guard issues.isEmpty else {
+                await configuration.recordRejectedCopy()
+                log(flow: "plan_explanation", packet: packet, source: .onDeviceAIRejectedFallback, issues: issues)
+                return base
+            }
+            await configuration.recordAcceptedCopy()
+            log(flow: "plan_explanation", packet: packet, source: .onDeviceAIAccepted, issues: [])
+            return CoachPlanResponse(result: base.result, explanation: candidate.summary, volumeWarning: base.volumeWarning)
+        } catch {
+            log(flow: "plan_explanation", packet: packet, source: .onDeviceAIUnavailableFallback, issues: [])
+            return base
+        }
+    }
+
+    private func log(
+        flow: String,
+        packet: CoachDecisionPacket,
+        source: CoachCopySource,
+        issues: [CoachCopyValidationIssue]
+    ) {
+        let issueTypes = issues.map { String(describing: $0) }.joined(separator: ",")
+        logger.info("coach_copy flow=\(flow, privacy: .public) prompt_version=\(packet.promptVersion, privacy: .public) source=\(source.rawValue, privacy: .public) validation_issue_count=\(issues.count, privacy: .public) validation_issues=\(issueTypes, privacy: .public)")
     }
 }
-
-#endif

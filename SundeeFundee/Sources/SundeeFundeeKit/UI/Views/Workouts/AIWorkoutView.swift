@@ -768,7 +768,11 @@ class AIWorkoutViewModel: ObservableObject {
                 equipment: equipment
             )
             generatedWorkout = CycleAwareAdjustmentService.apply(adjustment, to: response.workout)
-            workoutRationale = adjustment.rationale
+            if let packet = response.decisionPacket {
+                workoutRationale = CoachRationaleBuilder.rationale(from: packet)
+            } else {
+                workoutRationale = adjustment.rationale
+            }
             coachingTips = response.tips
             cyclePhase = context.cyclePhase
             state = .preview
