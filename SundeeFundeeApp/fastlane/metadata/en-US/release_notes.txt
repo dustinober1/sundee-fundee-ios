@@ -1,8 +1,7 @@
-What's New in 1.6:
+What's New in 1.6.1:
 
-- Printable programs now match the four v1.6 base plans on sundeefundee.com
-- Program sessions keep the printable plan structure while adapting in-app for cycle phase, recovery, pain, and injuries
-- Program details include direct Printable PDF links for training offline and logging later
-- Want a plan added in a future release? Email support@sundeefundee.com with the workout plan you would like to see.
+- Fixed period tracking for irregular cycles: ending a period now updates Shark Week and the cycle calendar from your actual logged end date.
+- Short periods move out of Shark Week right away after the logged end date; longer periods stay marked through the date you record.
+- Keeps the v1.6 coaching prompt and rules hardening for clearer, safer training guidance.
 
 Thanks for training with Sundee Fundee!
