@@ -87,6 +87,18 @@ final class CycleCalendarTests: XCTestCase {
         XCTAssertEqual(loggedDays.count, 5)
     }
 
+    func testCalendarData_DayAfterShortLoggedPeriodMovesOutOfMenstrualPhase() {
+        let logs = [PeriodLog(startDate: makeDate(2026, 3, 1), endDate: makeDate(2026, 3, 2))]
+        let data = getCycleCalendarData(periodLogs: logs, settings: defaultSettings, month: 3, year: 2026)
+
+        let dayAfterPeriod = data.first {
+            Calendar.current.component(.day, from: $0.date) == 3
+        }
+
+        XCTAssertEqual(dayAfterPeriod?.isPeriodLogged, false)
+        XCTAssertEqual(dayAfterPeriod?.phase, .follicular)
+    }
+
     // MARK: - Helpers
 
     private func makeDate(_ year: Int, _ month: Int, _ day: Int) -> Date {

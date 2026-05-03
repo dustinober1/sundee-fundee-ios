@@ -108,6 +108,32 @@ final class CycleCalculationsTests: XCTestCase {
         XCTAssertEqual(result!.cycleDay, 3)
     }
 
+    func testCycleStatus_DayAfterShortLoggedPeriod_UsesActualEndDate() {
+        let logs = [
+            PeriodLog(startDate: makeDate(2024, 1, 1), endDate: makeDate(2024, 1, 2)),
+        ]
+        let ref = makeDate(2024, 1, 3)
+
+        let result = calculateCycleStatus(periodLogs: logs, settings: defaultSettings, referenceDate: ref)
+
+        XCTAssertNotNil(result)
+        XCTAssertEqual(result!.currentPhase, .follicular)
+        XCTAssertEqual(result!.cycleDay, 3)
+    }
+
+    func testCycleStatus_LongLoggedPeriod_RemainsMenstrualThroughActualEndDate() {
+        let logs = [
+            PeriodLog(startDate: makeDate(2024, 1, 1), endDate: makeDate(2024, 1, 7)),
+        ]
+        let ref = makeDate(2024, 1, 7)
+
+        let result = calculateCycleStatus(periodLogs: logs, settings: defaultSettings, referenceDate: ref)
+
+        XCTAssertNotNil(result)
+        XCTAssertEqual(result!.currentPhase, .menstrual)
+        XCTAssertEqual(result!.cycleDay, 7)
+    }
+
     // MARK: - getPhaseRecommendation
 
     func testRecommendation_Menstrual() {

@@ -99,13 +99,20 @@ private func isWithin(_ target: Date, start: Date, end: Date) -> Bool {
 
 /// Calculate phase day boundaries for a given cycle settings
 public func getPhaseBoundaries(settings: CycleSettings) -> [CyclePhase: PhaseBoundary] {
-    let cycleLen = settings.averageCycleLengthDays
-    let periodLen = settings.averagePeriodLengthDays
+    getPhaseBoundaries(settings: settings, menstrualLengthOverride: nil)
+}
+
+private func getPhaseBoundaries(
+    settings: CycleSettings,
+    menstrualLengthOverride: Int?
+) -> [CyclePhase: PhaseBoundary] {
+    let cycleLen = max(1, settings.averageCycleLengthDays)
+    let periodLen = min(max(1, menstrualLengthOverride ?? settings.averagePeriodLengthDays), cycleLen)
     let lutealLen = settings.lutealPhaseLengthDays
 
     let ovDay = cycleLen - lutealLen
-    let ovStart = max(periodLen + 2, ovDay - 2)
-    let ovEnd = min(ovDay + 2, cycleLen - lutealLen + 2)
+    let ovStart = min(cycleLen, max(periodLen + 2, ovDay - 2))
+    let ovEnd = min(cycleLen, max(ovStart, ovDay + 2))
 
     return [
         .menstrual:  PhaseBoundary(start: 1, end: periodLen),
@@ -129,6 +136,7 @@ public func calculateCycleStatus(
     let sorted = periodLogs.sorted { startOfDay($0.startDate) > startOfDay($1.startDate) }
 
     var cycleStartDate: Date? = nil
+    var loggedMenstrualLength: Int? = nil
 
     for period in sorted {
         let pStart = startOfDay(period.startDate)
@@ -144,11 +152,17 @@ public func calculateCycleStatus(
 
         if isWithin(ref, start: pStart, end: pEnd) {
             cycleStartDate = pStart
+            if period.endDate != nil {
+                loggedMenstrualLength = daysBetween(from: pStart, to: pEnd) + 1
+            }
             break
         }
         let nextExpected = addDays(pStart, settings.averageCycleLengthDays)
         if ref > pEnd && ref < nextExpected {
             cycleStartDate = pStart
+            if period.endDate != nil {
+                loggedMenstrualLength = daysBetween(from: pStart, to: pEnd) + 1
+            }
             break
         }
     }
@@ -167,7 +181,7 @@ public func calculateCycleStatus(
     }
 
     let cycleDay = daysBetween(from: cycleStart, to: ref) + 1
-    let boundaries = getPhaseBoundaries(settings: settings)
+    let boundaries = getPhaseBoundaries(settings: settings, menstrualLengthOverride: loggedMenstrualLength)
 
     let phases: [CyclePhase] = [.menstrual, .follicular, .ovulation, .luteal]
     var currentPhase: CyclePhase = .follicular
