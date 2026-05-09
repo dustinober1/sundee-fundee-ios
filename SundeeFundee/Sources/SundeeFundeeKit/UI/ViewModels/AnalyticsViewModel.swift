@@ -6,8 +6,7 @@ import Foundation
 ///
 /// Fetches Workout, OneRepMaxRecord, and CyclePhaseInfo from the data client,
 /// transforms them through ChartDataAggregator, and publishes chart-ready
-/// data points. The cycle correlation chart is gated behind the
-/// `SubscriptionTier.hasAdvancedInsights` flag.
+/// data points. All analytics are available because Sundee Fundee is free.
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
 @MainActor
 public class AnalyticsViewModel: ObservableObject {
@@ -40,7 +39,7 @@ public class AnalyticsViewModel: ObservableObject {
     /// Workout frequency data points aggregated by week.
     @Published public var frequencyData: [FrequencyDataPoint] = []
 
-    /// Cycle-correlated performance data points (gated by subscription).
+    /// Cycle-correlated performance data points.
     @Published public var cycleData: [CyclePerformancePoint] = []
 
     /// Unique exercise names available for the exercise picker.
@@ -83,8 +82,7 @@ public class AnalyticsViewModel: ObservableObject {
 
     // MARK: - Public Methods
 
-    /// Fetches all data from persistence, checks subscription status,
-    /// and populates chart data via ChartDataAggregator.
+    /// Fetches all data from persistence and populates chart data via ChartDataAggregator.
     public func loadAnalytics() async {
         isLoading = true
         errorMessage = nil
