@@ -3,7 +3,7 @@ import os.log
 
 // MARK: - SettingsView
 //
-// App settings including profile, subscription, cycle tracking, and preferences.
+// App settings including profile, cycle tracking, and preferences.
 // Matches the web app's settings feature.
 
 private enum SettingsLinks {
