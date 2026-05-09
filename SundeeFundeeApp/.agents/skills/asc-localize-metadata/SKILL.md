@@ -261,4 +261,3 @@ asc localizations list --app "$APP_ID" --type app-info --app-info "$APP_INFO_ID"
 - `whatsNew` is only relevant for updates, not the first version.
 - Use `asc-id-resolver` skill if you only have app/version names instead of IDs.
 - Use `asc-metadata-sync` skill for non-translation metadata operations.
-- For subscription/IAP display name localization, use `asc-subscription-localization` skill instead.
