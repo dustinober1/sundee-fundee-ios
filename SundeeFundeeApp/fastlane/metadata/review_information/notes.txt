@@ -3,17 +3,14 @@ Sundee Fundee is a free health & fitness app for cycle-aware strength training.
 SIGNING IN:
 - Tap "Continue as Guest" on the sign-in screen to use the app without an Apple ID.
 - Alternatively, "Sign in with Apple" enables iCloud sync across devices.
-- Guest mode uses local storage — all features work without sign-in.
+- Guest mode uses local storage; all features work without sign-in.
 
 KEY FEATURES TO TEST:
-- Dashboard: View stats, suggested AI workouts, coaching insights, and shortcuts.
-- Workouts tab: Browse workouts and tap "Generate AI Workout" to create a personalized session.
+- Today tab: View stats, Coach Plan suggestions, coaching insights, and shortcuts.
+- Workouts tab: Browse workouts and tap "Build Coach Plan" to create a personalized session.
 - Programs tab: View structured training programs.
-- Maxes tab: Log and track one-rep max lifts (now with an exercise catalog picker).
-- Cycle tab (NEW in 1.4): Log periods and view cycle phase; top-level tab for faster access.
-- Pain tab (NEW in 1.4): Log injuries by body region; adaptations feed into workout recommendations.
-- Analytics tab: View training charts and progress.
-- Benchmarks tab: Test against standardized fitness benchmarks.
+- Cycle tab: Log periods, view cycle phase, and access pain and recovery tools.
+- Progress tab: Open maxes, benchmarks, analytics, challenges, and export.
 - Settings: Configure cycle tracking, weight units, experience level, and goals.
 
 NEW IN 1.4:
@@ -26,8 +23,8 @@ HEALTHKIT:
 The app requests HealthKit access for workout data and menstrual cycle tracking to adapt training recommendations. Granting permissions is optional — the app works without HealthKit.
 
 DATA & PRIVACY:
-- Export: Settings → Export My Data (exports all user data as JSON).
-- Privacy Policy: Settings → Privacy Policy link.
-- Account Deletion: Settings → Delete All Data & Account.
+- Export: Progress -> Export (exports all user data as JSON).
+- Privacy Policy: Settings -> Privacy Policy link.
+- Account Deletion: Settings -> Delete All Data & Account.
 
-All features are free. No in-app purchases or subscriptions.
+All features are free. There are no in-app purchases.
