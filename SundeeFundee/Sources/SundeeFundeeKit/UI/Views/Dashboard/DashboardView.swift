@@ -7,8 +7,7 @@ private let dashLogger = Logger(subsystem: "com.sundeefundee.app", category: "Da
 
 // MARK: - DashboardView
 //
-// Main dashboard showing cycle phase, stats, suggested workout, quick actions, and recent wins.
-// Matches the web app's dashboard feature parity.
+// Today screen showing cycle phase, stats, suggested workout, quick actions, and recent wins.
 
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
 public struct DashboardView: View {
@@ -74,7 +73,7 @@ public struct DashboardView: View {
                     // Suggested Workout
                     suggestedWorkoutCard
 
-                    // Coaching Insights (Pro)
+                    // Coaching Insights
                     coachingInsightsCard
 
                     // Quick Actions
@@ -87,10 +86,22 @@ public struct DashboardView: View {
                 }
                 .padding(AppTheme.Spacing.lg)
             }
-            .navigationTitle("Dashboard")
+            .navigationTitle("Today")
             #if os(iOS)
             .navigationBarTitleDisplayMode(.large)
             #endif
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    NavigationLink {
+                        SettingsView()
+                    } label: {
+                        Image(systemName: "gearshape")
+                            .accessibilityHidden(true)
+                    }
+                    .accessibilityLabel("Settings")
+                    .accessibilityHint("Open app settings")
+                }
+            }
             .task {
                 await viewModel.loadData(cyclePhaseCache: cyclePhaseCache)
             }
@@ -327,20 +338,20 @@ public struct DashboardView: View {
 
                 if viewModel.canGenerateAIWorkout {
                     VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
-                        Text("Generate AI Workout")
+                        Text("Coach Plan")
                             .font(AppTheme.Typography.bodyMedium)
                             .foregroundColor(AppTheme.Text.secondary)
 
-                        Text("Based on your cycle phase and energy level")
+                        Text("Built around your cycle phase and energy level")
                             .font(AppTheme.Typography.bodySmall)
                             .foregroundColor(AppTheme.Text.secondary.opacity(0.8))
 
-                        Button("Generate") {
+                        Button("Build Coach Plan") {
                             showingAIWorkout = true
                         }
                         .artDecoButton(style: .accent)
-                        .accessibilityLabel("Generate AI workout")
-                        .accessibilityHint("Creates a workout based on your cycle phase")
+                        .accessibilityLabel("Build Coach Plan")
+                        .accessibilityHint("Creates a workout plan based on your cycle phase")
                     }
                 } else {
                     VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
@@ -353,7 +364,7 @@ public struct DashboardView: View {
                                 .font(AppTheme.Typography.bodyMedium)
                                 .foregroundColor(AppTheme.Text.primary)
 
-                            NavigationLink("Start Workout", destination: Text("Workout Detail"))
+                            NavigationLink("Start This Workout", destination: Text("Workout Detail"))
                                 .artDecoButton(style: .primary)
                         } else {
                             Text("No workout scheduled")
@@ -362,8 +373,8 @@ public struct DashboardView: View {
                         }
                     }
                     .artDecoButton(style: .accent)
-                    .accessibilityLabel("Generate AI workout")
-                    .accessibilityHint("Creates a workout based on your cycle phase")
+                    .accessibilityLabel("Today's workout")
+                    .accessibilityHint("View today's scheduled workout")
                 }
             }
         }
@@ -443,7 +454,7 @@ public struct DashboardView: View {
                         Button {
                             Task { starterWorkout = await viewModel.buildStarterWorkout() }
                         } label: {
-                            Label("Start Workout", systemImage: "figure.strengthtraining.traditional")
+                            Label("Start This Workout", systemImage: "figure.strengthtraining.traditional")
                                 .frame(maxWidth: .infinity)
                         }
                         .artDecoButton(style: .primary)
@@ -733,7 +744,7 @@ class DashboardViewModel: ObservableObject {
         isGeneratingWorkout = false
 
         // In real implementation, this would call the AI service
-        // and navigate to the generated workout
+        // and navigate to the built workout
     }
 
     // MARK: - Private Methods
