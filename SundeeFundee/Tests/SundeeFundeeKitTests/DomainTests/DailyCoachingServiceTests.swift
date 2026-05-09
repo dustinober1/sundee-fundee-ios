@@ -19,7 +19,6 @@ final class DailyCoachingServiceTests: XCTestCase {
             cycleConfidence: cycleConfidence,
             experienceLevel: "intermediate",
             primaryGoal: "strength",
-            tier: .premium,
             maxes: [],
             injuries: [],
             workoutsThisWeek: workoutsThisWeek,
