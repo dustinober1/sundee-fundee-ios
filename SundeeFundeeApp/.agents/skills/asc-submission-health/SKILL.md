@@ -117,18 +117,6 @@ confirm App Privacy manually in App Store Connect:
 https://appstoreconnect.apple.com/apps/APP_ID/appPrivacy
 ```
 
-### 9. Digital goods readiness (IAPs / subscriptions)
-If the app sells subscriptions or in-app purchases, validate those separately before submit:
-
-```bash
-asc validate iap --app "APP_ID" --output table
-asc validate subscriptions --app "APP_ID" --output table
-```
-
-In current asc, `asc validate subscriptions` expands `MISSING_METADATA` into a per-subscription diagnostics matrix. Use it to identify missing review screenshots, promotional images, pricing or availability coverage gaps, offer readiness, and app/build evidence before retrying submit or first-review attach.
-
-Use `--output json --pretty` when you want exact territory gaps in machine-readable form.
-
 ## Submit
 
 ### Using Review Submissions API (Recommended)
@@ -200,7 +188,6 @@ asc apps info list --app "APP_ID"
 - `asc submit preflight` can return non-blocking advisories; review them before submitting.
 - App Privacy publish state is not verifiable via the public API.
 - Prefer `asc apps content-rights view/edit` over ad-hoc app JSON inspection.
-- `asc validate subscriptions` now provides much richer per-subscription diagnostics for `MISSING_METADATA` cases.
 - If you use ASC web-session flows, `asc web privacy pull|plan|apply|publish` is the CLI path for App Privacy.
 - If you avoid the experimental web-session commands, confirm App Privacy manually in App Store Connect.
 - Use `--output table` when you want human-readable status.
