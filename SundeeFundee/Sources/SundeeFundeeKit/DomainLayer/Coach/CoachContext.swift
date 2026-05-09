@@ -23,9 +23,6 @@ public struct CoachContext: Sendable {
     /// User's primary training goal.
     public let primaryGoal: String?
 
-    /// Current subscription tier (determines available features).
-    public let tier: SubscriptionTier
-
     // MARK: - Training State
 
     /// User's current 1RM records (most recent per exercise).
@@ -64,7 +61,6 @@ public struct CoachContext: Sendable {
         cycleConfidence: Double? = nil,
         experienceLevel: String? = nil,
         primaryGoal: String? = nil,
-        tier: SubscriptionTier = .free,
         maxes: [ExerciseMax] = [],
         injuries: [Injury] = [],
         workoutsThisWeek: Int = 0,
@@ -79,7 +75,6 @@ public struct CoachContext: Sendable {
         self.cycleConfidence = cycleConfidence
         self.experienceLevel = experienceLevel
         self.primaryGoal = primaryGoal
-        self.tier = tier
         self.maxes = maxes
         self.injuries = injuries
         self.workoutsThisWeek = workoutsThisWeek
@@ -97,7 +92,7 @@ public struct CoachContext: Sendable {
 /// Assembles a CoachContext from the data layer.
 ///
 /// Call `build()` to fetch data from HealthKit and CloudKit/Local storage,
-/// then assemble it into a compact context. Tier is always premium.
+/// then assemble it into a compact context.
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
 public actor CoachContextBuilder {
     private let healthClient: HealthClientProtocol
@@ -138,7 +133,6 @@ public actor CoachContextBuilder {
             cycleConfidence: cycle.confidence,
             experienceLevel: userSettings.experienceLevel,
             primaryGoal: userSettings.primaryGoal,
-            tier: .premium,
             maxes: maxResult.maxes,
             injuries: injuryResult,
             workoutsThisWeek: countThisWeek(workouts),
