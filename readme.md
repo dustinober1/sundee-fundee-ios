@@ -4,7 +4,7 @@ Cycle-aware strength training for iPhone.
 
 ## What It Does
 
-Sundee Fundee adapts strength training recommendations to menstrual cycle phases — optimizing intensity, volume, and recovery based on where you are in your cycle. Built natively for iOS with Apple Sign-In, CloudKit sync, and StoreKit 2 subscriptions.
+Sundee Fundee adapts strength training recommendations to menstrual cycle phases, energy, pain, and recovery context. Built natively for iOS with Apple Sign-In, CloudKit sync, and full local guest mode.
 
 ## Architecture
 
@@ -14,7 +14,7 @@ SundeeFundee/          Swift Package (SundeeFundeeKit)
 ├── DataLayer/         Protocol-based persistence (CloudKit, Local, Mock)
 ├── UI/                SwiftUI views + view models
 ├── Auth/              Apple Sign-In + Keychain
-└── Subscription/      StoreKit 2
+└── Models/            Shared Codable models
 
 SundeeFundeeApp/       Xcode project (app entry point)
 ```
@@ -47,17 +47,13 @@ swift test
 - **1RM Tracking** — Track and progress your one-rep maxes across lifts
 - **Benchmark Workouts** — AMRAP benchmarks with readiness scoring
 - **Program Enrollment** — Follow structured training programs
-- **AI Workout Generation** — AI-powered workout suggestions (Premium)
+- **Coach Plan** — Cycle-aware workout plans built from local training rules
 - **Guest Mode** — Full local functionality without CloudKit
 - **Art Deco Theme** — Cream, navy, and orange design language
 
-## Subscription Tiers
+## Product Model
 
-| Tier | Features |
-|------|----------|
-| **Free** | 5 lifts, 1 injury, 30-day history, limited AI |
-| **Sundee Plus** | Unlimited lifts/injuries/history, daily AI, custom benchmarks |
-| **Sundee Premium** | Full access, 10 AI/day, rehab sessions, AI coach, plateau detection |
+All features are free and unlocked. Signed-in users sync with CloudKit; guest users store data locally.
 
 ## Tech Stack
 
@@ -66,7 +62,6 @@ swift test
 | **UI** | SwiftUI, Swift 6 (strict concurrency) |
 | **Persistence** | CloudKit (signed-in), Local storage (guest) |
 | **Auth** | Apple Sign-In, Keychain session |
-| **Subscriptions** | StoreKit 2 |
 | **Health Data** | HealthKit |
 | **Package Manager** | Swift Package Manager |
 | **Project Generation** | XcodeGen (`project.yml`) |
