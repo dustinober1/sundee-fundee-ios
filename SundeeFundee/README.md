@@ -55,11 +55,10 @@ swift test
 
 - **Language**: Swift 6
 - **UI**: SwiftUI
-- **Data**: SwiftData + CloudKit
+- **Data**: CloudKit for signed-in users, local storage for guests
 - **Concurrency**: async/await with Actors
 - **Testing**: XCTest
 - **Auth**: Sign in with Apple
-- **Subscriptions**: StoreKit 2 + RevenueCat
 
 ## License
 
