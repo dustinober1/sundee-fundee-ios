@@ -24,10 +24,10 @@ public struct MainTabView: View {
         TabView(selection: $selectedTab) {
             DashboardView()
                 .tabItem {
-                    Label("Dashboard", systemImage: selectedTab == .dashboard ? "chart.bar.fill" : "chart.bar")
+                    Label("Today", systemImage: selectedTab == .today ? "sun.max.fill" : "sun.max")
                 }
-                .tag(Tab.dashboard)
-                .accessibilityHint("View your dashboard overview")
+                .tag(Tab.today)
+                .accessibilityHint("View today's training plan")
 
             WorkoutsListView()
                 .tabItem {
@@ -43,49 +43,19 @@ public struct MainTabView: View {
                 .tag(Tab.programs)
                 .accessibilityHint("Browse training programs")
 
-            MaxesListView()
-                .tabItem {
-                    Label("Maxes", systemImage: selectedTab == .maxes ? "scalemass.fill" : "scalemass")
-                }
-                .tag(Tab.maxes)
-                .accessibilityHint("View your one-rep max lifts")
-
-            NavigationStack {
-                PainTrackingView()
-            }
-            .tabItem {
-                Label("Pain", systemImage: "bandage")
-            }
-            .tag(Tab.painInjuries)
-            .accessibilityHint("Track pain and injuries")
-
             CycleTrackingView()
                 .tabItem {
-                    Label("Cycle", systemImage: "moon.circle")
+                    Label("Cycle", systemImage: selectedTab == .cycle ? "moon.circle.fill" : "moon.circle")
                 }
                 .tag(Tab.cycle)
-                .accessibilityHint("Track your menstrual cycle")
+                .accessibilityHint("Track cycle, pain, and recovery")
 
-            AnalyticsView()
+            ProgressHubView()
                 .tabItem {
-                    Label("Analytics", systemImage: selectedTab == .analytics ? "chart.xyaxis.line" : "chart.xyaxis.line")
+                    Label("Progress", systemImage: "chart.xyaxis.line")
                 }
-                .tag(Tab.analytics)
-                .accessibilityHint("View training analytics and charts")
-
-            BenchmarksListView()
-                .tabItem {
-                    Label("Benchmarks", systemImage: selectedTab == .benchmarks ? "trophy.fill" : "trophy")
-                }
-                .tag(Tab.benchmarks)
-                .accessibilityHint("View fitness benchmarks")
-
-            SettingsView()
-                .tabItem {
-                    Label("Settings", systemImage: selectedTab == .settings ? "gearshape.fill" : "gearshape")
-                }
-                .tag(Tab.settings)
-                .accessibilityHint("View app settings")
+                .tag(Tab.progress)
+                .accessibilityHint("View maxes, analytics, benchmarks, challenges, and data export")
         }
         .tint(AppTheme.Accent.gold)
         .overlay(alignment: .bottom) {
@@ -122,7 +92,7 @@ public struct MainTabView: View {
             if let route = notification.object as? String, route == "workouts" {
                 selectedTab = .workouts
             } else {
-                selectedTab = .dashboard
+                selectedTab = .today
             }
         }
         .onChange(of: cyclePhaseCache.isSharkWeek) { _, newValue in
@@ -130,7 +100,7 @@ public struct MainTabView: View {
         }
     }
 
-    @State private var selectedTab: Tab = .dashboard
+    @State private var selectedTab: Tab = .today
 }
 
 // MARK: - Tab Enum
@@ -145,15 +115,11 @@ public extension Notification.Name {
 }
 
 public enum Tab: String {
-    case dashboard
+    case today
     case workouts
     case programs
-    case maxes
-    case painInjuries
     case cycle
-    case analytics
-    case benchmarks
-    case settings
+    case progress
 }
 
 // MARK: - AuthView Placeholder
