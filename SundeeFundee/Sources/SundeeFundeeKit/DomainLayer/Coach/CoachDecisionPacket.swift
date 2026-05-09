@@ -7,6 +7,7 @@ public struct CoachDecisionPacket: Codable, Sendable, Equatable {
     public let energyLevel: EnergyLevel?
     public let equipment: EquipmentAccess?
     public let cyclePhase: CyclePhase?
+    public let cycleConfidence: Double?
     public let workoutsThisWeek: Int
     public let activeInjuryCount: Int
     public let selectedExerciseNames: [String]
@@ -23,6 +24,7 @@ public struct CoachDecisionPacket: Codable, Sendable, Equatable {
         energyLevel: EnergyLevel?,
         equipment: EquipmentAccess?,
         cyclePhase: CyclePhase?,
+        cycleConfidence: Double? = nil,
         workoutsThisWeek: Int,
         activeInjuryCount: Int,
         selectedExerciseNames: [String],
@@ -38,6 +40,7 @@ public struct CoachDecisionPacket: Codable, Sendable, Equatable {
         self.energyLevel = energyLevel
         self.equipment = equipment
         self.cyclePhase = cyclePhase
+        self.cycleConfidence = cycleConfidence
         self.workoutsThisWeek = workoutsThisWeek
         self.activeInjuryCount = activeInjuryCount
         self.selectedExerciseNames = selectedExerciseNames
@@ -56,6 +59,7 @@ public struct CoachDecisionPacket: Codable, Sendable, Equatable {
         if let energyLevel { lines.append("Energy: \(energyLevel.rawValue)") }
         if let equipment { lines.append("Equipment: \(equipment.rawValue)") }
         if let cyclePhase { lines.append("Cycle phase: \(cyclePhase.rawValue)") } else { lines.append("Cycle phase: unavailable") }
+        if let cycleConfidence { lines.append("Cycle confidence: \(Int(cycleConfidence * 100))%") } else { lines.append("Cycle confidence: unavailable") }
         lines.append("Workouts this week: \(workoutsThisWeek)")
         lines.append("Movement constraint count: \(activeInjuryCount)")
         lines.append("Selected exercises: \(selectedExerciseNames.joined(separator: ", "))")
