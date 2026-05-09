@@ -5,7 +5,7 @@ import SwiftUI
 /// Main analytics screen containing four chart sections with time range selection.
 ///
 /// Displays strength progression (line), training volume (bar), workout frequency (bar),
-/// and cycle-correlated performance (Pro-gated bar) — all driven by the AnalyticsViewModel.
+/// and cycle-correlated performance, all driven by the AnalyticsViewModel.
 /// Supports pull-to-refresh and time range switching with automatic re-aggregation.
 
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
