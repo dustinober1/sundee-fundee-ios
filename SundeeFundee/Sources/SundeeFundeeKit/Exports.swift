@@ -319,9 +319,9 @@
 // celebrationSubtitle(_:unit:) -> String
 // Get display subtitle for a celebration event
 
-// MARK: - AI Workout
+// MARK: - Coach Plan Workout
 
-// WorkoutFocus - Focus area for AI workout generation
+// WorkoutFocus - Focus area for Coach Plan workout building
 // - Cases: strength, hypertrophy, endurance, power, conditioning
 // - Conformance: String, Codable, Sendable
 
@@ -333,15 +333,15 @@
 // - Cases: full, limited, bodyweight
 // - Conformance: String, Codable, Sendable
 
-// QuestionnaireAnswers - AI workout generation parameters
+// QuestionnaireAnswers - Coach Plan workout parameters
 // - Properties: focus, energyLevel, equipmentAccess, targetDuration, injuries
 // - Conformance: Codable, Sendable
 
-// GeneratedExercise - An AI-generated exercise
+// GeneratedExercise - A coach-plan exercise
 // - Properties: id, name, sets, reps, prescribedWeight, restMinutes, notes, isBodyweight
 // - Conformance: Codable, Sendable, Identifiable
 
-// GeneratedWorkout - An AI-generated workout
+// GeneratedWorkout - A coach-plan workout
 // - Properties: id, name, exercises, notes, estimatedMinutes, focus
 // - Conformance: Codable, Sendable, Identifiable
 
@@ -353,7 +353,7 @@
 // Extract muscle groups targeted by exercises
 
 // aiDefaultPercentage(reps:) -> Double
-// Map rep string to percentage of 1RM for AI workouts
+// Map rep string to percentage of 1RM for coach-plan workouts
 
 // assignRestMinutes(bodyweight:reps:) -> Double
 // Assign rest time based on exercise type and rep range
@@ -497,37 +497,3 @@
 // AppleCredentialState - State of user's Apple credential
 // - Cases: authorized, revoked, notFound, transferred
 // - Conformance: Sendable, Equatable
-
-// MARK: - Subscription
-
-// SubscriptionTier - Available subscription tiers
-// - Cases: free, plus, premium
-// - Properties: maxLifts, maxInjuries, maxHistoryDays, dailyAIGenerations,
-//              hasCustomBenchmarks, hasPainTrends, hasRehabSessions, hasAICoachMemory, hasPlateauDetection
-// - Conformance: String, Sendable, Equatable, Codable, CaseIterable
-
-// SubscriptionStatus - Current status of a subscription
-// - Cases: active, pastDue, paused, cancelled, expired
-// - Property: hasAccess (Bool)
-// - Conformance: String, Sendable, Equatable, Codable
-
-// SubscriptionInfo - Complete subscription information
-// - Properties: tier, status, startDate, expiryDate, willRenew, entitlementId, originalTransactionId
-// - Computed: hasAccess, daysUntilExpiry
-// - Conformance: Sendable, Equatable, Codable
-
-// SubscriptionClientProtocol - Protocol for subscription management
-// - currentSubscription: SubscriptionInfo? { get async }
-// - getSubscriptionInfo() async throws -> SubscriptionInfo
-// - purchase(tier: SubscriptionTier) async throws -> SubscriptionInfo
-// - restorePurchases() async throws -> SubscriptionInfo
-// - presentManageSubscriptions() async throws
-// - isTierAvailable(_ tier:) async -> Bool
-// - getPrice(for tier:) async -> String?
-// Conformance: Sendable
-
-// FreeSubscriptionClient - Free-app subscription client (always premium)
-// - init() - Create client instance
-// - All methods return premium-tier SubscriptionInfo with active status
-// - Purchase and restore are silent no-ops
-// Conformance: SubscriptionClientProtocol
