@@ -40,7 +40,6 @@ SundeeFundee/ (Swift Package — SundeeFundeeKit)
     ├── DataLayer/     DataClientProtocol + CloudKit/Local/Mock impls
     ├── UI/            SwiftUI views, view models, theme
     ├── Auth/          Apple Sign-In + Keychain
-    ├── Subscription/  StoreKit 2 (currently all free)
     ├── Models/        shared Codable models
     ├── Activity/      live activity (workout rings)
     └── Screenshot/    screenshot seeding
@@ -70,7 +69,7 @@ SundeeFundee/ (Swift Package — SundeeFundeeKit)
 
 ## Monetization & App Store
 
-- App is **free with all features unlocked**. Do not add paywalls, purchase flows, or subscription gating.
+- App is **free with all features unlocked**. Do not add paywalls, purchase flows, or paid access gates.
 - **NEVER submit the app for App Store review unless explicitly told to.** Includes building-for-upload, uploading, submitting. Stop and ask first.
 
 ## Coding conventions
