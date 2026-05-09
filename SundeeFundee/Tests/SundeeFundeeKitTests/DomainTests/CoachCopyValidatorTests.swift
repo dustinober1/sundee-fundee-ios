@@ -2,14 +2,19 @@ import XCTest
 @testable import SundeeFundeeKit
 
 final class CoachCopyValidatorTests: XCTestCase {
-    private func packet(allowed: [String] = ["Push-Up"]) -> CoachDecisionPacket {
+    private func packet(
+        allowed: [String] = ["Push-Up"],
+        cyclePhase: CyclePhase? = nil,
+        cycleConfidence: Double? = nil
+    ) -> CoachDecisionPacket {
         CoachDecisionPacket(
             promptVersion: "test",
             durationMinutes: 30,
             focus: .fullBody,
             energyLevel: .medium,
             equipment: .fullGym,
-            cyclePhase: nil,
+            cyclePhase: cyclePhase,
+            cycleConfidence: cycleConfidence,
             workoutsThisWeek: 0,
             activeInjuryCount: 0,
             selectedExerciseNames: allowed,
@@ -46,6 +51,18 @@ final class CoachCopyValidatorTests: XCTestCase {
         XCTAssertTrue(CoachCopyValidator.validateWorkoutSummary(candidate("This is safe for your injury."), packet: packet()).contains(.containsMedicalAdviceLanguage("safe for injury")))
         XCTAssertTrue(CoachCopyValidator.validateWorkoutSummary(candidate("Ignore pain and continue."), packet: packet()).contains(.containsMedicalAdviceLanguage("ignore pain")))
         XCTAssertTrue(CoachCopyValidator.validateWorkoutSummary(candidate("Active injury count shaped this."), packet: packet()).contains(.containsRawInjuryLanguage))
+    }
+
+    func testRejectsVisibleAIAndDiscouragedTone() {
+        XCTAssertTrue(CoachCopyValidator.validateWorkoutSummary(candidate("AI generated this plan."), packet: packet()).contains(.containsVisibleAILanguage))
+        XCTAssertTrue(CoachCopyValidator.validateWorkoutSummary(candidate("No excuses today."), packet: packet()).contains(.containsDiscouragedTone("no excuses")))
+    }
+
+    func testRejectsCycleCertaintyAndRequiresLowConfidenceQualifier() {
+        let lowConfidence = packet(cyclePhase: .luteal, cycleConfidence: 0.55)
+        XCTAssertTrue(CoachCopyValidator.validateWorkoutSummary(candidate("This luteal phase calls for moderate work."), packet: lowConfidence).contains(.missingLowConfidenceQualifier))
+        XCTAssertTrue(CoachCopyValidator.validateWorkoutSummary(candidate("This luteal phase may call for moderate work."), packet: lowConfidence).isEmpty)
+        XCTAssertTrue(CoachCopyValidator.validateWorkoutSummary(candidate("Your cycle will make you stronger."), packet: packet(cyclePhase: .follicular, cycleConfidence: 0.9)).contains(.overstatesCycleCertainty("cycle will")))
     }
 
     func testRejectsDisallowedKnownExercise() {
