@@ -44,8 +44,6 @@
     "blitz-macos_app_store_setup_signing" : "allow",
     "blitz-macos_app_store_upload" : "allow",
     "blitz-macos_asc_confirm_created_app" : "allow",
-    "blitz-macos_asc_create_iap" : "allow",
-    "blitz-macos_asc_create_subscription" : "allow",
     "blitz-macos_asc_create_version" : "allow",
     "blitz-macos_asc_fill_form" : "allow",
     "blitz-macos_asc_open_submit_preview" : "allow",
