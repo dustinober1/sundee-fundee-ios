@@ -97,7 +97,7 @@ public struct WorkoutsListView: View {
                 .foregroundColor(AppTheme.Text.secondary)
                 .multilineTextAlignment(.center)
 
-            Button("Start Workout") {
+            Button("Start This Workout") {
                 viewModel.showingNewWorkout = true
             }
             .artDecoButton(style: .primary)
@@ -307,7 +307,7 @@ struct NewWorkoutView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: AppTheme.Spacing.lg) {
-                    // AI Generation Option
+                    // Coach Plan option
                     Button {
                         pendingCloseAfterAIDismiss = false
                         showingAIWorkout = true
@@ -320,7 +320,7 @@ struct NewWorkoutView: View {
                                     .accessibilityHidden(true)
 
                                 VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
-                                    Text("Generate AI Workout")
+                                    Text("Build Coach Plan")
                                         .font(AppTheme.Typography.headlineMedium)
                                         .foregroundColor(AppTheme.Text.primary)
 
@@ -405,7 +405,7 @@ struct NewWorkoutView: View {
                         }
                     }
 
-                    // Start Workout Button
+                    // Start workout button
                     Button {
                         Task {
                             if let workout = await viewModel.createWorkout() {
@@ -415,7 +415,7 @@ struct NewWorkoutView: View {
                     } label: {
                         HStack {
                             Image(systemName: "play.fill")
-                            Text("Start Workout")
+                            Text("Start This Workout")
                         }
                         .frame(maxWidth: .infinity)
                     }
