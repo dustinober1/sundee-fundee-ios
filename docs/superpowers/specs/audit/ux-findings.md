@@ -42,7 +42,7 @@ Most findings are **medium severity** and easily addressed in a targeted polish 
 | Benchmarks | No | — | — | **Missing empty state** when no benchmarks in category |
 | Settings | N/A | — | — | Settings always have content (no empty state needed) |
 | Challenges | **Yes** | ✓ | ✓ | "No Challenges Yet" + "Create Challenge" button |
-| Insights | **Yes** | ✓ | ✓ | Elegant "Pro feature" gating message |
+| Insights | **Yes** | ✓ | ✓ | Coaching insights empty state |
 | Pain Tracking | No | — | — | Has quick log button but no dedicated empty state |
 | Analytics | **Yes** | ✓ | ✓ | "No Data" state with explanation |
 | Cycle Tracking | No | — | — | Always shows calendar; no empty state |
