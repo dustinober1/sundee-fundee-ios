@@ -239,7 +239,6 @@ public class PainTrackingViewModel: ObservableObject {
 
         let coachService = CoachServiceFactory.makeService()
         let context = CoachContext(
-            tier: .premium,
             injuries: activeInjuries,
             equipment: .fullGym
         )
