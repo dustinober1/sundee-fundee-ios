@@ -29,6 +29,20 @@ public struct CycleTrackingView: View {
                     Task { await settings.saveSettings() }
                 }
 
+                Section("Pain & Recovery") {
+                    NavigationLink {
+                        PainTrackingView()
+                    } label: {
+                        Label("Pain Log", systemImage: "bandage")
+                    }
+
+                    NavigationLink {
+                        RecoveryOverviewView()
+                    } label: {
+                        Label("Recovery Score", systemImage: "heart.circle")
+                    }
+                }
+
                 if settings.cycleTrackingEnabled {
                     Section {
                         NavigationLink {
