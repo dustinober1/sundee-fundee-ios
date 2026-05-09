@@ -2,11 +2,10 @@ import Foundation
 
 // MARK: - ExportViewModel
 
-/// Manages export loading state, subscription gating, and JSON file generation
-/// for the data export feature.
+/// Manages export loading state and JSON file generation for the data export feature.
 ///
 /// Follows the same `@MainActor @ObservableObject` pattern as `AnalyticsViewModel`.
-/// The export feature is gated behind `SubscriptionTier.hasExportShare` (Pro only).
+/// The export feature is available to every user.
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
 @MainActor
 public class ExportViewModel: ObservableObject {
