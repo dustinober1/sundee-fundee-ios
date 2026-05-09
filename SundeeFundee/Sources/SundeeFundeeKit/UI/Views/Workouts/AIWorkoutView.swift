@@ -2,7 +2,7 @@ import SwiftUI
 
 // MARK: - AIWorkoutView
 //
-// Questionnaire-based AI workout generation flow.
+// Questionnaire-based Coach Plan flow.
 // Collects preferences, generates a workout using domain logic,
 // and presents it for review before starting.
 
@@ -33,7 +33,7 @@ struct AIWorkoutView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .animation(nil, value: viewModel.state)
-            .navigationTitle("AI Workout")
+            .navigationTitle("Coach Plan")
             #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
             #endif
@@ -74,7 +74,7 @@ struct AIWorkoutView: View {
                         .foregroundColor(AppTheme.Accent.gold)
                         .accessibilityHidden(true)
 
-                    Text("Generate Your Workout")
+                    Text("Build Coach Plan")
                         .font(AppTheme.Typography.displaySmall)
                         .foregroundColor(AppTheme.Text.primary)
 
@@ -161,13 +161,13 @@ struct AIWorkoutView: View {
                     }
                 }
 
-                // Generate Button
+                // Build Button
                 Button {
                     Task { await viewModel.generateWorkout() }
                 } label: {
                     HStack {
                         Image(systemName: "sparkles")
-                        Text("Generate Workout")
+                        Text("Build Coach Plan")
                     }
                     .frame(maxWidth: .infinity)
                     .contentShape(Rectangle())
@@ -298,7 +298,7 @@ struct AIWorkoutView: View {
                 .scaleEffect(1.5)
                 .tint(AppTheme.Accent.gold)
 
-            Text("Generating your workout...")
+            Text("Building your Coach Plan...")
                 .font(AppTheme.Typography.headlineMedium)
                 .foregroundColor(AppTheme.Text.primary)
 
@@ -324,7 +324,7 @@ struct AIWorkoutView: View {
                             HStack {
                                 Image(systemName: "sparkles")
                                     .foregroundColor(AppTheme.Accent.gold)
-                                Text("AI Workout")
+                                Text("Coach Plan")
                                     .font(AppTheme.Typography.headlineMedium)
                                     .foregroundColor(AppTheme.Text.primary)
                             }
@@ -402,20 +402,20 @@ struct AIWorkoutView: View {
                             .contentShape(Rectangle())
                         }
                         .buttonStyle(ArtDecoButtonStyle(style: .accent))
-                        .accessibilityHint("Begin the generated workout now")
+                        .accessibilityHint("Begin this Coach Plan now")
 
                         Button {
                             Task { await viewModel.generateWorkout() }
                         } label: {
                             HStack {
                                 Image(systemName: "arrow.clockwise")
-                                Text("Regenerate All")
+                                Text("Rebuild Plan")
                             }
                             .frame(maxWidth: .infinity)
                             .contentShape(Rectangle())
                         }
                         .buttonStyle(ArtDecoButtonStyle(style: .secondary))
-                        .accessibilityHint("Generate a different workout")
+                        .accessibilityHint("Build a different Coach Plan")
                     }
                 }
                 .padding(AppTheme.Spacing.lg)
@@ -934,8 +934,8 @@ class AIWorkoutViewModel: ObservableObject {
         guard let generated = generatedWorkout else { return nil }
         return buildWorkout(
             from: generated,
-            name: "\(focus.rawValue.replacingOccurrences(of: "_", with: " ").capitalized) — AI",
-            notesPrefix: "AI Generated"
+            name: "\(focus.rawValue.replacingOccurrences(of: "_", with: " ").capitalized) Coach Plan",
+            notesPrefix: "Coach Plan"
         )
     }
 
