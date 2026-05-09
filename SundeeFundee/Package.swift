@@ -11,7 +11,7 @@ let package = Package(
         .watchOS(.v11)
     ],
     products: [
-        // Core library with domain logic, data layer, auth, and subscription
+        // Core library with domain logic, data layer, auth, and UI
         .library(
             name: "SundeeFundeeKit",
             targets: ["SundeeFundeeKit"]
@@ -67,4 +67,4 @@ let package = Package(
 //   - AppCard.swift
 // - ViewModels/
 //   - AuthViewModel.swift
-//   - SubscriptionViewModel.swift
+//   - SettingsViewModel.swift
