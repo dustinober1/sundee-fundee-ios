@@ -4,7 +4,7 @@ import os.log
 // MARK: - InsightsView
 //
 // Training insights dashboard surfacing plateau alerts, load trends,
-// and weekly summaries from the coach service. Pro-gated.
+// and weekly summaries from the coach service.
 
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
 public struct InsightsView: View {
