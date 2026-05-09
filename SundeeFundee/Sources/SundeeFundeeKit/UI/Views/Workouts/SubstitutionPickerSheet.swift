@@ -140,7 +140,6 @@ public struct SubstitutionPickerSheet: View {
         let injuries: [Injury] = (try? await dataClient.fetchAll(recordType: "Injury")) ?? []
         let painLogs: [DailyPainLog] = (try? await dataClient.fetchAll(recordType: "DailyPainLog")) ?? []
         let context = CoachContext(
-            tier: .premium,
             injuries: injuries,
             equipment: .fullGym
         )
