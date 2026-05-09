@@ -9,7 +9,8 @@ final class CoachPromptPackTests: XCTestCase {
             focus: .fullBody,
             energyLevel: .medium,
             equipment: .fullGym,
-            cyclePhase: nil,
+            cyclePhase: .luteal,
+            cycleConfidence: 0.55,
             workoutsThisWeek: 1,
             activeInjuryCount: 1,
             selectedExerciseNames: ["Push-Up"],
@@ -23,6 +24,9 @@ final class CoachPromptPackTests: XCTestCase {
         XCTAssertTrue(prompt.contains(CoachPromptVersion.workoutSummaryV17.rawValue))
         XCTAssertTrue(prompt.contains("Hard rules"))
         XCTAssertTrue(prompt.contains("Push-Up"))
+        XCTAssertTrue(prompt.contains("Cycle confidence: 55%"))
+        XCTAssertTrue(prompt.contains("use \"may\" or \"can\""))
+        XCTAssertTrue(prompt.contains("Do not mention AI"))
         XCTAssertFalse(prompt.lowercased().contains("active injury"))
         XCTAssertLessThan(prompt.count, 2_000)
     }
