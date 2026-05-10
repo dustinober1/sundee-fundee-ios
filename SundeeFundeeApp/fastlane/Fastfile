@@ -15,9 +15,61 @@
 
 default_platform(:ios)
 
+require "snapshot/test_command_generator"
+
+# Xcode 26.4.1 reports Simulator runtimes with the patch version, while
+# fastlane 2.233.1's DeviceManager truncates them to 26.4. Use UDID
+# destinations so snapshot does not generate an unresolvable OS selector.
+module ::Snapshot
+  class TestCommandGenerator < TestCommandGeneratorBase
+    class << self
+      def destination(devices)
+        destinations = devices.map do |device_name|
+          device = find_device(device_name, Snapshot.config[:ios_version])
+          UI.user_error!("No simulator found named '#{device_name}'") if device.nil?
+
+          "-destination 'platform=iOS Simulator,id=#{device.udid}'"
+        end
+
+        [destinations.join(" ")]
+      end
+    end
+  end
+end
+
 platform :ios do
+  private_lane :capture_store_screenshots do
+    capture_ios_screenshots(
+      project: "SundeeFundee.xcodeproj",
+      scheme: "SundeeFundee",
+      devices: ["iPhone 17 Pro Max", "iPad Pro 13-inch (M5)"],
+      ios_version: "26.4.1",
+      languages: ["en-US"],
+      launch_arguments: ["--seed-screenshots"],
+      output_directory: "./fastlane/screenshots",
+      clear_previous_screenshots: true,
+      reinstall_app: true,
+      skip_open_summary: true,
+      override_status_bar: true,
+      configuration: "Debug",
+      clean: true,
+      skip_helper_version_check: true,
+      number_of_retries: 0,
+      concurrent_simulators: false,
+      only_testing: ["SundeeFundeeUITests/SundeeFundeeScreenshotTests/testAppStoreScreenshots"],
+      stop_after_first_error: true
+    )
+  end
+
+  desc "Capture fresh App Store screenshots"
+  lane :screenshots do
+    capture_store_screenshots
+  end
+
   desc "Push a new release build to the App Store"
   lane :release do
+    capture_store_screenshots
+
     build_app(
       scheme: "SundeeFundee",
       export_method: "app-store",
@@ -32,6 +84,7 @@ platform :ios do
       screenshots_path: "./fastlane/screenshots",
       skip_metadata: false,
       skip_screenshots: false,
+      overwrite_screenshots: true,
       submit_for_review: true,
       automatic_release: false,
       force: true,
