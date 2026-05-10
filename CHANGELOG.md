@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.6.2] - 2026-05-09
+
+### Changed
+
+- Refreshed the main navigation around Today, Workouts, Programs,
+  Cycle, and Progress.
+- Renamed product-facing generated workout copy to Coach Plan.
+- Updated App Store metadata and screenshots for clearer cycle-aware
+  strength training positioning.
+- `MARKETING_VERSION` bumped to 1.6.2, build 9.
+
 ## [1.6.1] - 2026-05-03
 
 ### Fixed
