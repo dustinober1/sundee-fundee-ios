@@ -26,6 +26,7 @@
 		3AA6B385D160CFBB6BA133D6 /* CoachReasonCodeBuilderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFAAAD181B808A8BA8F3788F /* CoachReasonCodeBuilderTests.swift */; };
 		4816568DA8775C15C2AA9044 /* SharedSnapshotLock.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9EEF29B29D71F8A31138E21 /* SharedSnapshotLock.swift */; };
 		4B5169087582F7BA2D5A4630 /* PlateauDetectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E30EF90CFB2413E86ECE2FB /* PlateauDetectorTests.swift */; };
+		4B8901E03DB97ACAC7B274BC /* ScreenshotHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5B817B6FAAEA7C9DB586504 /* ScreenshotHelper.swift */; };
 		52EEE14B04B4E8B2E0055D3F /* CoachDecisionPacketBuilderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B9A1B28D7FA7FE7A228000A /* CoachDecisionPacketBuilderTests.swift */; };
 		54CAF50B159E601338F2ECC5 /* WeightCalculatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61FF1D97D48E0B82FC8CDFDE /* WeightCalculatorTests.swift */; };
 		55A26C0023592648521056A9 /* UnitConverterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22F4CCCF5EE8AFAEF1A0C6E8 /* UnitConverterTests.swift */; };
@@ -50,6 +51,7 @@
 		94345D4D4B88907DAD891885 /* PlateCalculatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64EDF3080400F6A3986CF1B1 /* PlateCalculatorTests.swift */; };
 		94CFBC469A0F90AA98337938 /* WorkoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8F61D5CD8005B9566EF4AB6 /* WorkoutTests.swift */; };
 		9820C2EEDF75E08DE860CD53 /* CoachDecisionPacketTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A015253BACCBC71307E1EEE /* CoachDecisionPacketTests.swift */; };
+		99604490D3B7CCAEBECCC838 /* SundeeFundeeScreenshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDDE08C33FC401CAE6D77501 /* SundeeFundeeScreenshotTests.swift */; };
 		AA693CC5F6012DA8505E3E98 /* SundeeFundeeKit in Frameworks */ = {isa = PBXBuildFile; productRef = E5D818355C15FD611DF98B2C /* SundeeFundeeKit */; };
 		B737DBDB3636F0FB4EF66A5D /* AnalyticsViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C3926CE6DCAC67A87A4B36C /* AnalyticsViewModelTests.swift */; };
 		B8E51F2F94483401ADAF1D47 /* CycleCalculationsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12BADD433D2BA29F2F735F7D /* CycleCalculationsTests.swift */; };
@@ -88,6 +90,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		2CD22E40DD72CB773C5CFE4D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A23AA027FBDBC591792DA380 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 6A65F4B4731A18FE7E162E4E;
+			remoteInfo = SundeeFundee;
+		};
 		310C845A2DCACB62A22CD591 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = A23AA027FBDBC591792DA380 /* Project object */;
@@ -142,6 +151,7 @@
 		4268F719F0D7826B3758AD85 /* HealthKitClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitClientTests.swift; sourceTree = "<group>"; };
 		4B2991443BDB79F5CD52412D /* CoachCopyValidatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoachCopyValidatorTests.swift; sourceTree = "<group>"; };
 		4C8F296245192F3BE4092798 /* ProgramSessionAdaptationServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramSessionAdaptationServiceTests.swift; sourceTree = "<group>"; };
+		52E10E37A46A80DD6187B950 /* SundeeFundeeUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = SundeeFundeeUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		54A032584D64F402EA51F3B2 /* BodyLocationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyLocationTests.swift; sourceTree = "<group>"; };
 		576220334D8170D8EF77FE5E /* ChallengeEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChallengeEngineTests.swift; sourceTree = "<group>"; };
 		57BCA73D87A152BF2F3A81D1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -180,12 +190,14 @@
 		B2E36B64D22082283D1FFBC4 /* ShareURLTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareURLTests.swift; sourceTree = "<group>"; };
 		B2EFCAAFBAD8AD895A1F90EA /* ScheduleReshufflerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleReshufflerTests.swift; sourceTree = "<group>"; };
 		B4BB70A92319FA0F1C2AD710 /* CyclePhaseHelperTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CyclePhaseHelperTests.swift; sourceTree = "<group>"; };
+		B5B817B6FAAEA7C9DB586504 /* ScreenshotHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotHelper.swift; sourceTree = "<group>"; };
 		B8054532B3D4DB5B894D1BB7 /* ShareCardRendererTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareCardRendererTests.swift; sourceTree = "<group>"; };
 		BB92A3DAE95AF47B58B1DDC3 /* CycleAwareAdjustmentServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleAwareAdjustmentServiceTests.swift; sourceTree = "<group>"; };
 		C04EB47734F796FEEC9435AB /* AIWorkoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIWorkoutTests.swift; sourceTree = "<group>"; };
 		C99B9014B8F76C3124C8DA6A /* SundeeFundee.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = SundeeFundee.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C9FE2C96B12B8F5EF9D089ED /* SundeeFundee */ = {isa = PBXFileReference; lastKnownFileType = folder; name = SundeeFundee; path = ../SundeeFundee; sourceTree = SOURCE_ROOT; };
 		CB0D767209636FAA8494C1F6 /* CelebrationEventTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CelebrationEventTests.swift; sourceTree = "<group>"; };
+		CDDE08C33FC401CAE6D77501 /* SundeeFundeeScreenshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SundeeFundeeScreenshotTests.swift; sourceTree = "<group>"; };
 		CFAAAD181B808A8BA8F3788F /* CoachReasonCodeBuilderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoachReasonCodeBuilderTests.swift; sourceTree = "<group>"; };
 		D0DF3DE42D2DF780CB12B972 /* SharedSnapshotStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedSnapshotStoreTests.swift; sourceTree = "<group>"; };
 		D397DCE979CD70EEE7CD6F64 /* LiveWorkoutWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveWorkoutWidget.swift; sourceTree = "<group>"; };
@@ -237,6 +249,7 @@
 				F06D23E8ED1C14D186B84039 /* Packages */,
 				EFCC3CD8C63AC7C2ECE7472B /* sundee-fundee-ios */,
 				DEA45E21D11C2110AA682199 /* SundeeFundee */,
+				DC3E61B2D20C73271CDA9947 /* SundeeFundeeUITests */,
 				6F6564DAE083123652AFA48F /* SundeeFundeeWidgets */,
 				97B281320B0F062699145758 /* Products */,
 			);
@@ -366,6 +379,7 @@
 			children = (
 				C99B9014B8F76C3124C8DA6A /* SundeeFundee.app */,
 				09F2CCD701D6D0EA783701B0 /* SundeeFundeeTests.xctest */,
+				52E10E37A46A80DD6187B950 /* SundeeFundeeUITests.xctest */,
 				7C4C38D3026141D6EE494174 /* SundeeFundeeWidgetsExtension.appex */,
 			);
 			name = Products;
@@ -408,6 +422,15 @@
 				A9EEF29B29D71F8A31138E21 /* SharedSnapshotLock.swift */,
 			);
 			path = TestSupport;
+			sourceTree = "<group>";
+		};
+		DC3E61B2D20C73271CDA9947 /* SundeeFundeeUITests */ = {
+			isa = PBXGroup;
+			children = (
+				B5B817B6FAAEA7C9DB586504 /* ScreenshotHelper.swift */,
+				CDDE08C33FC401CAE6D77501 /* SundeeFundeeScreenshotTests.swift */,
+			);
+			path = SundeeFundeeUITests;
 			sourceTree = "<group>";
 		};
 		DEA45E21D11C2110AA682199 /* SundeeFundee */ = {
@@ -520,6 +543,24 @@
 			productReference = C99B9014B8F76C3124C8DA6A /* SundeeFundee.app */;
 			productType = "com.apple.product-type.application";
 		};
+		726DD0522DB779BA3F5C6A0C /* SundeeFundeeUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 88D6B7C7DD4B16697012E52F /* Build configuration list for PBXNativeTarget "SundeeFundeeUITests" */;
+			buildPhases = (
+				CB659CFAFF0BB0846146B4B8 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				634326730CB4C7630CB8799B /* PBXTargetDependency */,
+			);
+			name = SundeeFundeeUITests;
+			packageProductDependencies = (
+			);
+			productName = SundeeFundeeUITests;
+			productReference = 52E10E37A46A80DD6187B950 /* SundeeFundeeUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -537,6 +578,10 @@
 					};
 					6A65F4B4731A18FE7E162E4E = {
 						DevelopmentTeam = 87VVCMCW3F;
+					};
+					726DD0522DB779BA3F5C6A0C = {
+						DevelopmentTeam = 87VVCMCW3F;
+						TestTargetID = 6A65F4B4731A18FE7E162E4E;
 					};
 				};
 			};
@@ -559,6 +604,7 @@
 			targets = (
 				6A65F4B4731A18FE7E162E4E /* SundeeFundee */,
 				210638487B33D83A1059A242 /* SundeeFundeeTests */,
+				726DD0522DB779BA3F5C6A0C /* SundeeFundeeUITests */,
 				38E0473811F3273AE38A8631 /* SundeeFundeeWidgetsExtension */,
 			);
 		};
@@ -670,9 +716,23 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		CB659CFAFF0BB0846146B4B8 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4B8901E03DB97ACAC7B274BC /* ScreenshotHelper.swift in Sources */,
+				99604490D3B7CCAEBECCC838 /* SundeeFundeeScreenshotTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		634326730CB4C7630CB8799B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 6A65F4B4731A18FE7E162E4E /* SundeeFundee */;
+			targetProxy = 2CD22E40DD72CB773C5CFE4D /* PBXContainerItemProxy */;
+		};
 		7BEF99D262DDD2CBDB649C9E /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 38E0473811F3273AE38A8631 /* SundeeFundeeWidgetsExtension */;
@@ -721,7 +781,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 9;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 87VVCMCW3F;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -735,7 +795,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
-				MARKETING_VERSION = 1.6.1;
+				MARKETING_VERSION = 1.6.2;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -766,6 +826,23 @@
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
+		};
+		1D4C417D9F0281A0C23651D3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.sundeefundee.app.uitests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = SundeeFundee;
+			};
+			name = Debug;
 		};
 		60B93AE946F8181060D7B08E /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -840,6 +917,23 @@
 			};
 			name = Debug;
 		};
+		BABA4455A760EC6F48B0D323 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.sundeefundee.app.uitests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = SundeeFundee;
+			};
+			name = Release;
+		};
 		BABDF7F7ECA08BF270B2BB3F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -875,7 +969,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 9;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 87VVCMCW3F;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -895,7 +989,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
-				MARKETING_VERSION = 1.6.1;
+				MARKETING_VERSION = 1.6.2;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -951,6 +1045,15 @@
 			buildConfigurations = (
 				BABDF7F7ECA08BF270B2BB3F /* Debug */,
 				00785899C87890E23E6F59A0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		88D6B7C7DD4B16697012E52F /* Build configuration list for PBXNativeTarget "SundeeFundeeUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1D4C417D9F0281A0C23651D3 /* Debug */,
+				BABA4455A760EC6F48B0D323 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
