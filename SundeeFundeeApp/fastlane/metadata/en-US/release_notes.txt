@@ -1,7 +1,7 @@
-What's New in 1.6.1:
+What's New in 1.6.2:
 
-- Fixed period tracking for irregular cycles: ending a period now updates Shark Week and the cycle calendar from your actual logged end date.
-- Short periods move out of Shark Week right away after the logged end date; longer periods stay marked through the date you record.
-- Keeps the v1.6 coaching prompt and rules hardening for clearer, safer training guidance.
+- Refreshed the main navigation around Today, Workouts, Programs, Cycle, and Progress.
+- Renamed generated workouts to Coach Plans across the app.
+- Updated App Store listing copy and screenshots to better explain cycle-aware strength training.
 
 Thanks for training with Sundee Fundee!
