@@ -1,28 +1,22 @@
-Train smarter, not just harder. Sundee Fundee is the strength training app that adapts to your body's hormonal cycle, so every workout hits at the right intensity.
+Cycle-aware strength training for women who lift. Sundee Fundee helps you plan workouts around your menstrual cycle, recovery, pain, and energy so training feels clear and consistent.
 
-CYCLE-AWARE TRAINING
-Sync with Apple Health to automatically adjust your training recommendations based on your menstrual cycle phase. Whether you're in your follicular peak or luteal phase, Sundee Fundee tailors volume and intensity so you train with your body, not against it.
+BUILD A COACH PLAN
+Choose your time, focus, energy, and equipment. Sundee Fundee builds a Coach Plan with exercises, sets, reps, rest, and suggested substitutions, whether you train in a full gym, with dumbbells, with kettlebells, or at home.
 
-STRUCTURED PROGRAMS
-Follow proven strength programs with built-in progression. Programs are delivered fresh and updated regularly, so you always have a structured path forward.
+CYCLE AND PERIOD CONTEXT
+Track periods, view cycle phase estimates, and get workout guidance that may adjust volume, intensity, and exercise selection based on your logged menstrual cycle and available Health data. HealthKit permissions are optional, and the app still works without Apple Health access.
 
-AI WORKOUT BUILDER
-Generate personalized workouts powered by on-device AI. Tell it your goals, available equipment, and time — get a complete session designed for you.
+STRUCTURED STRENGTH PROGRAMS
+Follow strength programs with clear sessions and built-in progression. Use programs when you want structure, or build a one-off workout when you need flexibility.
 
-SMART INJURY MANAGEMENT
-Log injuries and let the app automatically modify exercises. Track pain trends over time and get phase-appropriate session recommendations to keep you moving safely.
+RECOVERY AND PAIN TOOLS
+Log pain, track recovery context, and use pain-aware exercise swaps to keep training practical. Sundee Fundee is a fitness tool, not a medical device, and it does not diagnose or treat injuries.
 
-ONE-REP MAX TRACKING
-Log and track your maxes across all major lifts. See your progress over time with clear, visual history.
+PROGRESS TRACKING
+Track one-rep maxes, barbell lifts, benchmarks, PRs, weekly workouts, training volume, and challenge progress. See what is improving without digging through spreadsheets or paper notes.
 
-BENCHMARK TESTING
-Test yourself against standardized benchmarks — from timed workouts to max-rep challenges. Track your scores and watch yourself improve.
-
-SYNC EVERYWHERE
-Sign in with Apple and your data syncs seamlessly across all your devices via iCloud. Your workouts, maxes, and progress are always with you.
-
-PRIVACY FIRST
-Your health data stays on your device and in your private iCloud account. We never sell your data or use advertising trackers. All AI processing happens on-device.
+PRIVATE BY DESIGN
+Continue as a guest for local storage, or sign in with Apple to sync your workouts, maxes, cycle logs, and progress with iCloud. There are no ads and all features are free.
 
 Privacy Policy: https://sundeefundee.com/privacy
 Terms of Use: https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
