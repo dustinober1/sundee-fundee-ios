@@ -12,8 +12,8 @@ settings:
     SWIFT_VERSION: "6.0"
     SWIFT_STRICT_CONCURRENCY: complete
     DEVELOPMENT_TEAM: "87VVCMCW3F"
-    MARKETING_VERSION: "1.6.1"
-    CURRENT_PROJECT_VERSION: 8
+    MARKETING_VERSION: "1.6.2"
+    CURRENT_PROJECT_VERSION: 9
     APP_GROUP_IDENTIFIER: group.com.sundeefundee.shared
 
 packages:
@@ -68,3 +68,16 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.sundeefundee.app.tests
         GENERATE_INFOPLIST_FILE: true
+
+  SundeeFundeeUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - SundeeFundeeUITests
+    dependencies:
+      - target: SundeeFundee
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.sundeefundee.app.uitests
+        GENERATE_INFOPLIST_FILE: true
+        TEST_TARGET_NAME: SundeeFundee
