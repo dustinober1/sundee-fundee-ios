@@ -1,1 +1,1 @@
-period,menstrual,lifting,training,fitness,gym,barbell,program,recovery,pain,maxes,benchmark,women
+period,menstrual,lifting,gym,barbell,trainer,fitness,planner,recovery,pain,benchmarks,bands,home
