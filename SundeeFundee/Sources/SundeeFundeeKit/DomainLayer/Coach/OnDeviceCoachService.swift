@@ -79,7 +79,7 @@ public final class OnDeviceCoachService: CoachServiceProtocol, @unchecked Sendab
             base: base,
             context: context,
             preferences: preferences,
-            promptVersion: CoachPromptVersion.workoutSummaryV17.rawValue
+            promptVersion: CoachPromptVersion.workoutSummaryV18.rawValue
         )
 
         guard await configuration.shouldUseOnDeviceCopy(), let copyEditor else {
@@ -99,7 +99,7 @@ public final class OnDeviceCoachService: CoachServiceProtocol, @unchecked Sendab
             log(flow: "workout_summary", packet: packet, source: .onDeviceAIAccepted, issues: [])
             return base.replacingCopy(
                 summary: candidate.summary,
-                tips: candidate.tips.isEmpty ? base.tips : candidate.tips,
+                tips: base.tips,
                 packet: packet,
                 source: .onDeviceAIAccepted
             )
@@ -113,7 +113,7 @@ public final class OnDeviceCoachService: CoachServiceProtocol, @unchecked Sendab
         let packet = CoachDecisionPacketBuilder.insightsPacket(
             base: base,
             context: context,
-            promptVersion: CoachPromptVersion.insightsSummaryV17.rawValue
+            promptVersion: CoachPromptVersion.insightsSummaryV18.rawValue
         )
         guard await configuration.shouldUseOnDeviceCopy(), let copyEditor else { return base }
         do {
@@ -130,7 +130,7 @@ public final class OnDeviceCoachService: CoachServiceProtocol, @unchecked Sendab
                 plateaus: base.plateaus,
                 trends: base.trends,
                 summary: candidate.summary,
-                priorityActions: candidate.tips.isEmpty ? base.priorityActions : candidate.tips
+                priorityActions: base.priorityActions
             )
         } catch {
             log(flow: "insights_summary", packet: packet, source: .onDeviceAIUnavailableFallback, issues: [])
@@ -142,7 +142,7 @@ public final class OnDeviceCoachService: CoachServiceProtocol, @unchecked Sendab
         let packet = CoachDecisionPacketBuilder.planPacket(
             base: base,
             context: context,
-            promptVersion: CoachPromptVersion.planExplanationV17.rawValue
+            promptVersion: CoachPromptVersion.planExplanationV18.rawValue
         )
         guard await configuration.shouldUseOnDeviceCopy(), let copyEditor else { return base }
         do {
