@@ -12,15 +12,15 @@ public struct BenchmarkCatalog {
             id: "sundee-vanessa",
             name: "Vanessa",
             category: BenchmarkCategory.sundeeFundee.rawValue,
-            workoutDescription: "Buy-in: 5 Triple Unders. 5 rounds for time: 5 Heavy Cleans (205/155 lb), 25 Double-Unders, 25 Toes-to-Bar. Cash-out: 5 Triple Unders.",
+            workoutDescription: "For time: 3-6-9-12-9-6-3 reps of Cleans (95/135 lb), Push Press (95/135 lb), and Burpees Over Bar; after each rung, complete 10 cal BikeERG.",
             scoringType: .time,
             isPredefined: true,
             sortOrder: 0,
             intensity: .five,
-            movementTags: ["Heavy Pull", "High Skill", "Gymnastics"],
-            equipment: ["barbell", "jump rope", "pull-up bar"],
-            timeDomain: "15-25 min",
-            coachNotes: "Scale cleans to 185/135 lb if heavy cleans aren't in your wheelhouse. Triple unders are the buy-in/cash-out — if you can't do them, sub 15 double-unders each. Focus on smooth transitions between cleans and the jump rope. Break toes-to-bar early (7-8s) to save grip for the cleans."
+            movementTags: ["Barbell Cycling", "Conditioning", "Burpees"],
+            equipment: ["barbell", "plates", "BikeERG"],
+            timeDomain: "12-20 min",
+            coachNotes: "Pace the early rungs so the 12-rep middle does not spike. Use quick singles or small touch-and-go sets on cleans, keep push press transitions tight, and settle into the BikeERG calories without sprinting the first rounds."
         ),
         BenchmarkDefinition(
             id: "sundee-eliz",
