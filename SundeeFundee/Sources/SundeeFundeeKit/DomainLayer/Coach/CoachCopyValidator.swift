@@ -13,6 +13,8 @@ public enum CoachCopyValidationIssue: Equatable, Sendable {
     case containsDiscouragedTone(String)
     case overstatesCycleCertainty(String)
     case missingLowConfidenceQualifier
+    case containsUnsafeExtraLines
+    case containsModelSuppliedTips
 }
 
 public enum CoachCopyValidator {
@@ -20,35 +22,38 @@ public enum CoachCopyValidator {
         _ candidate: CoachCopyCandidate,
         packet: CoachDecisionPacket
     ) -> [CoachCopyValidationIssue] {
-        validate(candidate.summary, packet: packet, maxCharacters: 220, maxSentences: 2, allowExerciseMentions: true)
+        validate(candidate, packet: packet, maxCharacters: 220, maxSentences: 2, allowExerciseMentions: true)
     }
 
     public static func validateInsightsSummary(
         _ candidate: CoachCopyCandidate,
         packet: CoachDecisionPacket
     ) -> [CoachCopyValidationIssue] {
-        validate(candidate.summary, packet: packet, maxCharacters: 420, maxSentences: 3, allowExerciseMentions: true)
+        validate(candidate, packet: packet, maxCharacters: 420, maxSentences: 3, allowExerciseMentions: true)
     }
 
     public static func validatePlanExplanation(
         _ candidate: CoachCopyCandidate,
         packet: CoachDecisionPacket
     ) -> [CoachCopyValidationIssue] {
-        validate(candidate.summary, packet: packet, maxCharacters: 320, maxSentences: 2, allowExerciseMentions: false)
+        validate(candidate, packet: packet, maxCharacters: 320, maxSentences: 2, allowExerciseMentions: false)
     }
 
     private static func validate(
-        _ text: String,
+        _ candidate: CoachCopyCandidate,
         packet: CoachDecisionPacket,
         maxCharacters: Int,
         maxSentences: Int,
         allowExerciseMentions: Bool
     ) -> [CoachCopyValidationIssue] {
+        let text = candidate.summary
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         var issues: [CoachCopyValidationIssue] = []
         if trimmed.isEmpty { issues.append(.empty) }
         if trimmed.count > maxCharacters { issues.append(.tooLong(max: maxCharacters)) }
         if sentenceCount(trimmed) > maxSentences { issues.append(.tooManySentences(max: maxSentences)) }
+        if containsUnsafeExtraLines(text) { issues.append(.containsUnsafeExtraLines) }
+        if !candidate.tips.isEmpty { issues.append(.containsModelSuppliedTips) }
         if mentionsWeightsRepsOrPercentages(trimmed) { issues.append(.mentionsWeightsRepsOrPercentages) }
         if containsRawInjuryLanguage(trimmed) { issues.append(.containsRawInjuryLanguage) }
         if let term = medicalLanguage(in: trimmed) { issues.append(.containsMedicalAdviceLanguage(term)) }
@@ -66,6 +71,10 @@ public enum CoachCopyValidator {
             }
         }
         return issues
+    }
+
+    private static func containsUnsafeExtraLines(_ text: String) -> Bool {
+        text.trimmingCharacters(in: .whitespacesAndNewlines).contains(where: { $0.isNewline })
     }
 
     private static func sentenceCount(_ text: String) -> Int {
@@ -110,7 +119,20 @@ public enum CoachCopyValidator {
 
     private static func discouragedTone(in text: String) -> String? {
         let lower = text.lowercased()
-        let banned = ["no excuses", "must push", "push harder", "earn it", "don't be lazy", "pain is weakness", "hurry", "urgent"]
+        let banned = [
+            "no excuses",
+            "must push",
+            "push harder",
+            "earn it",
+            "don't be lazy",
+            "pain is weakness",
+            "hurry",
+            "urgent",
+            "crush it",
+            "beast mode",
+            "destroy it",
+            "go all out"
+        ]
         return banned.first { lower.contains($0) }
     }
 
