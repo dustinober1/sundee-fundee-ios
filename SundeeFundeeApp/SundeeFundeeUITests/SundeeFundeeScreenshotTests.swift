@@ -15,12 +15,34 @@ final class SundeeFundeeScreenshotTests: XCTestCase {
         app.launch()
 
         XCTAssertTrue(waitForScreen(title: "Today", timeout: 20), "Missing Today screen")
-        snapshot("01_today")
 
-        capture(tab: "Workouts", title: "Workouts", name: "02_workouts")
-        capture(tab: "Programs", title: "Programs", name: "03_programs")
-        capture(tab: "Cycle", title: "Cycle", name: "04_cycle")
-        capture(tab: "Progress", title: "Progress", name: "05_progress")
+        captureCoachPlanBenefit()
+        capture(tab: "Cycle", title: "Cycle", name: "02_recovery_pain_energy")
+        capture(tab: "Progress", title: "Progress", name: "03_progress_lifting")
+        capture(tab: "Programs", title: "Programs", name: "04_programs")
+        capture(tab: "Workouts", title: "Workouts", name: "05_workouts")
+    }
+
+    private func captureCoachPlanBenefit() {
+        let button = app.buttons["Build Coach Plan"].firstMatch
+        XCTAssertTrue(button.waitForExistence(timeout: 10), "Missing Build Coach Plan entry point")
+        button.tap()
+
+        XCTAssertTrue(waitForScreen(title: "Coach Plan", timeout: 10), "Missing Coach Plan screen")
+
+        let resistanceBands = app.staticTexts["Resistance Bands"].firstMatch
+        let scrollView = app.scrollViews.firstMatch
+        for _ in 0..<6 where !resistanceBands.isHittable {
+            XCTAssertTrue(scrollView.waitForExistence(timeout: 2), "Missing Coach Plan scroll view")
+            scrollView.swipeUp()
+        }
+        XCTAssertTrue(resistanceBands.isHittable, "Missing visible Resistance Bands option")
+        snapshot("01_coach_plan")
+
+        let cancel = app.buttons["Cancel"].firstMatch
+        XCTAssertTrue(cancel.waitForExistence(timeout: 5), "Missing Coach Plan cancel button")
+        cancel.tap()
+        XCTAssertTrue(waitForScreen(title: "Today", timeout: 10), "Did not return to Today screen")
     }
 
     private func capture(tab: String, title: String, name: String) {
