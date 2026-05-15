@@ -56,6 +56,21 @@ final class CoachCopyValidatorTests: XCTestCase {
     func testRejectsVisibleAIAndDiscouragedTone() {
         XCTAssertTrue(CoachCopyValidator.validateWorkoutSummary(candidate("AI generated this plan."), packet: packet()).contains(.containsVisibleAILanguage))
         XCTAssertTrue(CoachCopyValidator.validateWorkoutSummary(candidate("No excuses today."), packet: packet()).contains(.containsDiscouragedTone("no excuses")))
+        XCTAssertTrue(CoachCopyValidator.validateWorkoutSummary(candidate("Crush it today."), packet: packet()).contains(.containsDiscouragedTone("crush it")))
+    }
+
+    func testRejectsUnsafeExtraLinesAndModelSuppliedTips() {
+        let extraLineIssues = CoachCopyValidator.validateWorkoutSummary(
+            candidate("A focused plan fits today.\nAdd a bonus finisher."),
+            packet: packet()
+        )
+        XCTAssertTrue(extraLineIssues.contains(.containsUnsafeExtraLines), "\(extraLineIssues)")
+
+        let modelTipIssues = CoachCopyValidator.validateWorkoutSummary(
+            CoachCopyCandidate(summary: "A focused plan fits today.", tips: ["Add extra reps."], promptVersion: "test"),
+            packet: packet()
+        )
+        XCTAssertTrue(modelTipIssues.contains(.containsModelSuppliedTips), "\(modelTipIssues)")
     }
 
     func testRejectsCycleCertaintyAndRequiresLowConfidenceQualifier() {
