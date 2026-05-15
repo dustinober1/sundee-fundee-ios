@@ -1,7 +1,7 @@
-Cycle-aware strength training for women who lift. Sundee Fundee helps you plan workouts around your menstrual cycle, recovery, pain, and energy so training feels clear and consistent.
+Strength training for women with a cycle-aware workout coach. Sundee Fundee helps you plan gym workouts, barbell lifts, resistance bands, recovery, and period tracking around your menstrual cycle, pain, and energy so training feels clear and consistent.
 
 BUILD A COACH PLAN
-Choose your time, focus, energy, and equipment. Sundee Fundee builds a Coach Plan with exercises, sets, reps, rest, and suggested substitutions, whether you train in a full gym, with dumbbells, with kettlebells, or at home.
+Choose your time, focus, energy, and equipment. Sundee Fundee builds a Coach Plan with exercises, sets, reps, rest, and suggested substitutions, whether you train in a full gym, with dumbbells, with kettlebells, with resistance bands, or at home.
 
 CYCLE AND PERIOD CONTEXT
 Track periods, view cycle phase estimates, and get workout guidance that may adjust volume, intensity, and exercise selection based on your logged menstrual cycle and available Health data. HealthKit permissions are optional, and the app still works without Apple Health access.
