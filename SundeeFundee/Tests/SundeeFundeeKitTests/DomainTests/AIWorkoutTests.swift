@@ -167,6 +167,15 @@ final class AIWorkoutTests: XCTestCase {
         XCTAssertFalse(isExerciseAllowed("Cable Row", for: .kettlebellOnly))
     }
 
+    func testResistanceBandsOnlyAllowsBandAndBodyweightMovements() {
+        XCTAssertTrue(isExerciseAllowed("Band Row", for: .resistanceBands))
+        XCTAssertTrue(isExerciseAllowed("Band Pull-Apart", for: .resistanceBands))
+        XCTAssertTrue(isExerciseAllowed("Push-Up", for: .resistanceBands))
+        XCTAssertFalse(isExerciseAllowed("Flat Barbell Bench Press", for: .resistanceBands))
+        XCTAssertFalse(isExerciseAllowed("Dumbbell Row", for: .resistanceBands))
+        XCTAssertFalse(isExerciseAllowed("Kettlebell Swing", for: .resistanceBands))
+    }
+
     func testBodyweightOnlyRejectsLoadedMovements() {
         XCTAssertTrue(isExerciseAllowed("Push-Up", for: .bodyweightOnly))
         XCTAssertFalse(isExerciseAllowed("Kettlebell Swing", for: .bodyweightOnly))
@@ -222,6 +231,32 @@ final class AIWorkoutTests: XCTestCase {
         XCTAssertLessThanOrEqual(totalEstimatedMinutes(repaired.exercises), 25)
     }
 
+    func testRepairGeneratedWorkoutReplacesInvalidWorkoutWithSafeResistanceBandTemplate() {
+        let workout = GeneratedWorkout(
+            id: "band-repair",
+            createdAt: Date(),
+            isFavorite: false,
+            coachingSummary: "Needs band repair",
+            exercises: [
+                makeExercise("Flat Barbell Bench Press", sets: 9),
+                makeExercise("Kettlebell Swing", sets: 9)
+            ],
+            questionnaire: QuestionnaireAnswers(
+                timeMinutes: 20,
+                focus: .fullBody,
+                energyLevel: .low,
+                equipment: .resistanceBands
+            )
+        )
+
+        let repaired = repairGeneratedWorkout(workout)
+
+        XCTAssertFalse(repaired.exercises.isEmpty)
+        XCTAssertTrue(repaired.exercises.allSatisfy { isExerciseAllowed($0.name, for: .resistanceBands) })
+        XCTAssertTrue(repaired.exercises.allSatisfy { $0.sets <= 3 })
+        XCTAssertLessThanOrEqual(totalEstimatedMinutes(repaired.exercises), 25)
+    }
+
     func testKettlebellLowEnergyPoolAvoidsHighSkillBallisticMovements() {
         let pool = workoutExercisePool(
             focus: .conditioning,
@@ -250,6 +285,25 @@ final class AIWorkoutTests: XCTestCase {
 
         XCTAssertFalse(response.workout.exercises.isEmpty)
         XCTAssertTrue(response.workout.exercises.allSatisfy { isExerciseAllowed($0.name, for: .kettlebellOnly) })
+        XCTAssertTrue(validateGeneratedWorkout(response.workout).isEmpty)
+    }
+
+    func testDeterministicCoachGeneratesValidResistanceBandWorkout() async throws {
+        let service = DeterministicCoachService()
+        let preferences = QuestionnaireAnswers(
+            timeMinutes: 30,
+            focus: .fullBody,
+            energyLevel: .medium,
+            equipment: .resistanceBands
+        )
+
+        let response = try await service.generateWorkout(
+            context: CoachContext(equipment: .resistanceBands),
+            preferences: preferences
+        )
+
+        XCTAssertFalse(response.workout.exercises.isEmpty)
+        XCTAssertTrue(response.workout.exercises.allSatisfy { isExerciseAllowed($0.name, for: .resistanceBands) })
         XCTAssertTrue(validateGeneratedWorkout(response.workout).isEmpty)
     }
 }
