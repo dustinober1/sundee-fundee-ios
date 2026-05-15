@@ -52,6 +52,20 @@ final class BenchmarkCatalogTests: XCTestCase {
         XCTAssertEqual(vanessa?.intensity, .five)
     }
 
+    func testVanessaUsesUpdatedBikeErgLadder() {
+        let vanessa = BenchmarkCatalog.benchmark(id: "sundee-vanessa")
+        XCTAssertNotNil(vanessa)
+        XCTAssertEqual(vanessa?.scoringType, .time)
+        XCTAssertEqual(
+            vanessa?.workoutDescription,
+            "For time: 3-6-9-12-9-6-3 reps of Cleans (95/135 lb), Push Press (95/135 lb), and Burpees Over Bar; after each rung, complete 10 cal BikeERG."
+        )
+        XCTAssertEqual(vanessa?.equipment, ["barbell", "plates", "BikeERG"])
+        XCTAssertTrue(vanessa?.movementTags?.contains("Barbell Cycling") ?? false)
+        XCTAssertTrue(vanessa?.movementTags?.contains("Conditioning") ?? false)
+        XCTAssertTrue(vanessa?.coachNotes?.contains("transitions") ?? false)
+    }
+
     // MARK: - benchmarks(in:)
 
     func testBenchmarksByCategory_ReturnsCorrectCount() {
