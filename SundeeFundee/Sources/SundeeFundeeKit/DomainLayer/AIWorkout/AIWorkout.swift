@@ -24,6 +24,7 @@ public enum EnergyLevel: String, Codable, Sendable, Equatable {
 public enum EquipmentAccess: String, Codable, Sendable, Equatable {
     case fullGym = "full_gym"
     case homeDumbbells = "home_dumbbells"
+    case resistanceBands = "resistance_bands"
     case bodyweightOnly = "bodyweight_only"
     case kettlebellOnly = "kettlebell_only"
     case outdoor
@@ -175,6 +176,8 @@ public func workoutExercisePool(
         pool = fullGymExercisePool(for: focus)
     case .homeDumbbells:
         pool = dumbbellExercisePool(for: focus)
+    case .resistanceBands:
+        pool = resistanceBandExercisePool(for: focus)
     case .bodyweightOnly, .outdoor:
         pool = bodyweightExercisePool(for: focus)
     case .kettlebellOnly:
@@ -255,6 +258,8 @@ private func allowedExerciseNames(for equipment: EquipmentAccess) -> Set<String>
         return Set(allWorkoutCandidates().map { normalizeExerciseName($0.name) })
     case .homeDumbbells:
         return Set(allDumbbellCandidates().map { normalizeExerciseName($0.name) })
+    case .resistanceBands:
+        return Set(allResistanceBandCandidates().map { normalizeExerciseName($0.name) })
     case .bodyweightOnly, .outdoor:
         return Set(allBodyweightCandidates().map { normalizeExerciseName($0.name) })
     case .kettlebellOnly:
@@ -407,6 +412,55 @@ private func dumbbellExercisePool(for focus: WorkoutFocus) -> [WorkoutExerciseCa
     }
 }
 
+private func resistanceBandExercisePool(for focus: WorkoutFocus) -> [WorkoutExerciseCandidate] {
+    switch focus {
+    case .upperBody, .push:
+        return [
+            .init(name: "Band Chest Press", bodyweightOnly: false, pattern: .push),
+            .init(name: "Band Overhead Press", bodyweightOnly: false, pattern: .push),
+            .init(name: "Band Triceps Pressdown", bodyweightOnly: false, pattern: .push),
+            .init(name: "Push-Up", bodyweightOnly: true, pattern: .push)
+        ]
+    case .pull:
+        return [
+            .init(name: "Band Row", bodyweightOnly: false, pattern: .pull),
+            .init(name: "Band Face Pull", bodyweightOnly: false, pattern: .pull),
+            .init(name: "Band Pull-Apart", bodyweightOnly: false, pattern: .pull),
+            .init(name: "Band Biceps Curl", bodyweightOnly: false, pattern: .pull)
+        ]
+    case .lowerBody:
+        return [
+            .init(name: "Band Squat", bodyweightOnly: false, pattern: .squat),
+            .init(name: "Band Good Morning", bodyweightOnly: false, pattern: .hinge),
+            .init(name: "Band Glute Bridge", bodyweightOnly: false, pattern: .hinge),
+            .init(name: "Reverse Lunge", bodyweightOnly: true, pattern: .squat)
+        ]
+    case .fullBody:
+        return [
+            .init(name: "Band Squat", bodyweightOnly: false, pattern: .squat),
+            .init(name: "Band Good Morning", bodyweightOnly: false, pattern: .hinge),
+            .init(name: "Band Chest Press", bodyweightOnly: false, pattern: .push),
+            .init(name: "Band Row", bodyweightOnly: false, pattern: .pull),
+            .init(name: "Band Pull-Apart", bodyweightOnly: false, pattern: .pull),
+            .init(name: "Plank Hold", bodyweightOnly: true, pattern: .core)
+        ]
+    case .core:
+        return [
+            .init(name: "Pallof Press", bodyweightOnly: false, pattern: .core),
+            .init(name: "Band Dead Bug", bodyweightOnly: false, pattern: .core),
+            .init(name: "Plank Hold", bodyweightOnly: true, pattern: .core),
+            .init(name: "Dead Bug", bodyweightOnly: true, pattern: .core)
+        ]
+    case .conditioning:
+        return [
+            .init(name: "Band Thruster", bodyweightOnly: false, pattern: .push),
+            .init(name: "Band Row", bodyweightOnly: false, pattern: .pull),
+            .init(name: "Burpee", bodyweightOnly: true, pattern: .conditioning),
+            .init(name: "Mountain Climber", bodyweightOnly: true, pattern: .core)
+        ]
+    }
+}
+
 private func bodyweightExercisePool(for focus: WorkoutFocus) -> [WorkoutExerciseCandidate] {
     switch focus {
     case .upperBody, .push:
@@ -506,6 +560,7 @@ private func kettlebellExercisePool(for focus: WorkoutFocus) -> [WorkoutExercise
 
 private func allWorkoutCandidates() -> [WorkoutExerciseCandidate] {
     allBodyweightCandidates() + allDumbbellCandidates() + allKettlebellCandidates() +
+        allResistanceBandCandidates() +
         WorkoutFocus.allRuleCases.flatMap { fullGymExercisePool(for: $0) }
 }
 
@@ -519,6 +574,10 @@ private func allDumbbellCandidates() -> [WorkoutExerciseCandidate] {
 
 private func allKettlebellCandidates() -> [WorkoutExerciseCandidate] {
     WorkoutFocus.allRuleCases.flatMap { kettlebellExercisePool(for: $0) }
+}
+
+private func allResistanceBandCandidates() -> [WorkoutExerciseCandidate] {
+    WorkoutFocus.allRuleCases.flatMap { resistanceBandExercisePool(for: $0) } + allBodyweightCandidates()
 }
 
 private extension WorkoutFocus {
