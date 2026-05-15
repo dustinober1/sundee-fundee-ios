@@ -91,7 +91,7 @@ public enum PainAwareSubstitutionService {
             return .fullGym
         case .homeDumbbells:
             return .homeDumbbells
-        case .bodyweightOnly, .outdoor:
+        case .bodyweightOnly, .resistanceBands, .outdoor:
             return .bodyweightOnly
         case .kettlebellOnly:
             return SubstitutionRanker.EquipmentContext(
