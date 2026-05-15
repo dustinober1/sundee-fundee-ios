@@ -1,3 +1,4 @@
+import StoreKit
 import SwiftUI
 
 // MARK: - SundeeFundeeApp
@@ -15,6 +16,7 @@ import SwiftUI
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
 public struct MainTabView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
+    @Environment(\.requestReview) private var requestReview
     @StateObject private var cyclePhaseCache = CyclePhaseCache()
     @StateObject private var sharkWeekMonitor = SharkWeekMonitor()
 
@@ -85,6 +87,9 @@ public struct MainTabView: View {
         .onReceive(NotificationCenter.default.publisher(for: .workoutCompleted)) { _ in
             selectedTab = .workouts
         }
+        .onReceive(NotificationCenter.default.publisher(for: .appReviewPromptRequested)) { _ in
+            requestReview()
+        }
         .onReceive(NotificationCenter.default.publisher(for: .startWorkoutFromIntent)) { _ in
             selectedTab = .workouts
         }
@@ -110,6 +115,7 @@ public struct MainTabView: View {
 public extension Notification.Name {
     static let aiWorkoutStarted = Notification.Name("aiWorkoutStarted")
     static let workoutCompleted = Notification.Name("workoutCompleted")
+    static let appReviewPromptRequested = Notification.Name("appReviewPromptRequested")
     static let workoutReminderOpened = Notification.Name("workoutReminderOpened")
     static let cycleDataUpdated = Notification.Name("cycleDataUpdated")
 }

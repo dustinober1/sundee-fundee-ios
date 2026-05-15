@@ -44,6 +44,8 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
     private var restStartedAt: Date?
     private var restTargetDuration: TimeInterval = 0
     private var acceptedSubstitutions: [String] = []
+    private var usedPainAwareSwap = false
+    private var personalRecordExerciseNames: Set<String> = []
 #if canImport(ActivityKit) && os(iOS)
     private var liveActivityManager: LiveWorkoutActivityManager?
 #endif
@@ -161,7 +163,7 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
     /// (reps / prescribed weight) but clears any logged progress on the current
     /// exercise — callers should confirm with the user before calling if any
     /// sets have already been completed on this exercise.
-    public func swapCurrentExercise(to newName: String) {
+    public func swapCurrentExercise(to newName: String, reason: String? = nil) {
         guard currentExerciseIndex < workout.exercises.count else { return }
         var updated = workout
         var existing = updated.exercises[currentExerciseIndex]
@@ -187,6 +189,9 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
         updated.exercises[currentExerciseIndex] = existing
         workout = updated
         acceptedSubstitutions.append("\(oldName) -> \(newName)")
+        if Self.isPainAwareSwapReason(reason) {
+            usedPainAwareSwap = true
+        }
         currentSetIndex = 0
     }
 
@@ -286,6 +291,8 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
             source: "active_workout",
             properties: ["workoutID": workout.id]
         )
+
+        await requestReviewIfEligible()
 
         // End Live Activity
         let finalSnapshot = buildSnapshot(status: .completed)
@@ -407,6 +414,7 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
                     unit: "lb",
                     previousBest: currentMax?.weight
                 )
+                personalRecordExerciseNames.insert(exerciseName)
                 HapticFeedback.success()
             }
         } catch {
@@ -422,6 +430,56 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
         } catch {
             errorMessage = "Failed to save progress: \(error.localizedDescription)"
         }
+    }
+
+    private func requestReviewIfEligible() async {
+        let completedWorkoutCount = await loadCompletedWorkoutCount()
+        var triggers: [(ReviewPromptTrigger, String)] = [
+            (.thirdWorkoutCompleted, "third-workout")
+        ]
+
+        if isCoachPlanWorkout {
+            triggers.append((.firstCoachPlanCompleted, "coach-plan:\(workout.id)"))
+        }
+
+        if usedPainAwareSwap {
+            triggers.append((.painAwareSwapWorkoutCompleted, "pain-aware-swap:\(workout.id)"))
+        }
+
+        for exerciseName in personalRecordExerciseNames.sorted() {
+            triggers.append((.personalRecordLogged, "pr:\(exerciseName.lowercased())"))
+        }
+
+        for trigger in triggers {
+            let didRequest = ReviewPromptCoordinator.recordSuccessfulAction(
+                trigger: trigger.0,
+                triggerID: trigger.1,
+                completedWorkoutCount: completedWorkoutCount
+            )
+            if didRequest { break }
+        }
+    }
+
+    private func loadCompletedWorkoutCount() async -> Int {
+        do {
+            let workouts: [Workout] = try await dataClient.fetchAll(recordType: "Workout")
+            return workouts.filter(\.isComplete).count
+        } catch {
+            return workout.isComplete ? 1 : 0
+        }
+    }
+
+    private var isCoachPlanWorkout: Bool {
+        workout.name.localizedCaseInsensitiveContains("Coach Plan") ||
+            (workout.notes?.localizedCaseInsensitiveContains("Coach Plan") ?? false)
+    }
+
+    private static func isPainAwareSwapReason(_ reason: String?) -> Bool {
+        guard let reason = reason?.lowercased() else { return false }
+        return reason.contains("pain") ||
+            reason.contains("tightness") ||
+            reason.contains("sore") ||
+            reason.contains("injury")
     }
 
     // MARK: - Private: Live Activity

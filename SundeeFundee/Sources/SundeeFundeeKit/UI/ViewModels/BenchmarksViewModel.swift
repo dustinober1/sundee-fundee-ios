@@ -238,7 +238,7 @@ public class BenchmarkDetailViewModel: ObservableObject {
         benchmarkId: String,
         score: Double,
         notes: String?
-    ) async {
+    ) async -> Bool {
         isLoading = true
 
         let result = BenchmarkResult(
@@ -259,11 +259,13 @@ public class BenchmarkDetailViewModel: ObservableObject {
 
             // Reload previous results
             await loadPreviousResults(benchmarkId: benchmarkId)
+            isLoading = false
+            return true
         } catch {
             errorMessage = "Failed to save result: \(error.localizedDescription)"
+            isLoading = false
+            return false
         }
-
-        isLoading = false
     }
 
     /// Delete a result

@@ -87,14 +87,14 @@ public struct ActiveWorkoutView: View {
                         pendingSwap = sub
                         showingSwapConfirm = true
                     } else {
-                        viewModel.swapCurrentExercise(to: sub.exerciseName)
+                        viewModel.swapCurrentExercise(to: sub.exerciseName, reason: sub.reason)
                     }
                 }
             }
         }
         .alert("Swap mid-exercise?", isPresented: $showingSwapConfirm, presenting: pendingSwap) { sub in
             Button("Swap & reset progress", role: .destructive) {
-                viewModel.swapCurrentExercise(to: sub.exerciseName)
+                viewModel.swapCurrentExercise(to: sub.exerciseName, reason: sub.reason)
                 pendingSwap = nil
             }
             Button("Cancel", role: .cancel) {

@@ -605,11 +605,17 @@ struct BenchmarkScoreEntryView: View {
 
     private func saveResult() async {
         let score = parseScore(scoreText)
-        await viewModel.saveResult(
+        let didSave = await viewModel.saveResult(
             benchmarkId: benchmark.id,
             score: score,
             notes: notes.isEmpty ? nil : notes
         )
+        if didSave {
+            ReviewPromptCoordinator.recordSuccessfulAction(
+                trigger: .benchmarkLogged,
+                triggerID: "benchmark:\(benchmark.id)"
+            )
+        }
         dismiss()
     }
 
