@@ -1,7 +1,7 @@
-What's New in 1.6.2:
+What's New:
 
-- Refreshed the main navigation around Today, Workouts, Programs, Cycle, and Progress.
-- Renamed generated workouts to Coach Plans across the app.
-- Updated App Store listing copy and screenshots to better explain cycle-aware strength training.
+- Added resistance-band Coach Plans for travel-friendly workouts.
+- Updated Vanessa with a new barbell, burpee, and BikeERG ladder.
+- Tightened cycle-aware coach copy and App Store discovery metadata.
 
 Thanks for training with Sundee Fundee!
