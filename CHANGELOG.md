@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.6.3] - 2026-05-15
+
+### Added
+
+- Added resistance-band Coach Plans for travel-friendly workouts.
+- Added happy-path App Store review prompts after meaningful training wins.
+- Added a discovery runbook for App Store search checks.
+
+### Changed
+
+- Updated Vanessa with a new barbell, burpee, and BikeERG ladder.
+- Tightened cycle-aware coach copy and App Store discovery metadata.
+- Refreshed App Store screenshots around Coach Plan, recovery context,
+  and lifting progress benefits.
+- `MARKETING_VERSION` bumped to 1.6.3, build 10.
+
 ## [1.6.2] - 2026-05-09
 
 ### Changed
