@@ -133,6 +133,7 @@ public final class DeterministicCoachService: CoachServiceProtocol, @unchecked S
         case .fullGym: equipmentContext = .fullGym
         case .homeDumbbells: equipmentContext = .homeDumbbells
         case .bodyweightOnly: equipmentContext = .bodyweightOnly
+        case .resistanceBands: equipmentContext = .bodyweightOnly
         case .kettlebellOnly: equipmentContext = .homeDumbbells
         case .outdoor: equipmentContext = .bodyweightOnly
         }
