@@ -7,7 +7,7 @@ final class OnDeviceCoachServiceTests: XCTestCase {
         let response = try await service.generateWorkout(context: CoachContext(), preferences: Self.preferences)
         XCTAssertEqual(response.copySource, .onDeviceAIAccepted)
         XCTAssertEqual(response.coachingSummary, "Friendly copy fits today. Movement stays focused.")
-        XCTAssertEqual(response.tips, ["Breathe smoothly."])
+        XCTAssertEqual(response.tips, ["Base tip."])
         XCTAssertEqual(response.workout.exercises, Self.baseWorkout.exercises)
         XCTAssertEqual(response.workout.questionnaire, Self.baseWorkout.questionnaire)
         XCTAssertEqual(response.workout.id, Self.baseWorkout.id)
@@ -34,6 +34,14 @@ final class OnDeviceCoachServiceTests: XCTestCase {
         let service = OnDeviceCoachService(fallback: FixedCoachService(), copyEditor: ThrowingFakeCopyEditor(), configuration: CoachAIConfiguration())
         let response = try await service.generateWorkout(context: CoachContext(), preferences: Self.preferences)
         XCTAssertEqual(response.copySource, .onDeviceAIUnavailableFallback)
+        XCTAssertEqual(response.workout.exercises, Self.baseWorkout.exercises)
+    }
+
+    func testModelSuppliedTipsAreRejectedForSummaryOnlyCopy() async throws {
+        let service = OnDeviceCoachService(fallback: FixedCoachService(), copyEditor: TipSupplyingFakeCopyEditor(), configuration: CoachAIConfiguration())
+        let response = try await service.generateWorkout(context: CoachContext(), preferences: Self.preferences)
+        XCTAssertEqual(response.copySource, .onDeviceAIRejectedFallback)
+        XCTAssertEqual(response.tips, ["Base tip."])
         XCTAssertEqual(response.workout.exercises, Self.baseWorkout.exercises)
     }
 
@@ -65,7 +73,7 @@ private struct FixedCoachService: CoachServiceProtocol {
 
 private struct AcceptingFakeCopyEditor: CoachCopyEditing {
     func rewriteWorkoutSummary(packet: CoachDecisionPacket) async throws -> CoachCopyCandidate {
-        CoachCopyCandidate(summary: "Friendly copy fits today. Movement stays focused.", tips: ["Breathe smoothly."], promptVersion: packet.promptVersion)
+        CoachCopyCandidate(summary: "Friendly copy fits today. Movement stays focused.", promptVersion: packet.promptVersion)
     }
     func rewriteInsightsSummary(packet: CoachDecisionPacket) async throws -> CoachCopyCandidate { CoachCopyCandidate(summary: "Insights look steady.", promptVersion: packet.promptVersion) }
     func rewritePlanExplanation(packet: CoachDecisionPacket) async throws -> CoachCopyCandidate { CoachCopyCandidate(summary: "Plan is adjusted.", promptVersion: packet.promptVersion) }
@@ -87,4 +95,12 @@ private struct ThrowingFakeCopyEditor: CoachCopyEditing {
     func rewriteWorkoutSummary(packet: CoachDecisionPacket) async throws -> CoachCopyCandidate { throw CoachCopyEditingError.unavailable }
     func rewriteInsightsSummary(packet: CoachDecisionPacket) async throws -> CoachCopyCandidate { throw CoachCopyEditingError.unavailable }
     func rewritePlanExplanation(packet: CoachDecisionPacket) async throws -> CoachCopyCandidate { throw CoachCopyEditingError.unavailable }
+}
+
+private struct TipSupplyingFakeCopyEditor: CoachCopyEditing {
+    func rewriteWorkoutSummary(packet: CoachDecisionPacket) async throws -> CoachCopyCandidate {
+        CoachCopyCandidate(summary: "Friendly copy fits today.", tips: ["Add extra reps."], promptVersion: packet.promptVersion)
+    }
+    func rewriteInsightsSummary(packet: CoachDecisionPacket) async throws -> CoachCopyCandidate { CoachCopyCandidate(summary: "Insights look steady.", promptVersion: packet.promptVersion) }
+    func rewritePlanExplanation(packet: CoachDecisionPacket) async throws -> CoachCopyCandidate { CoachCopyCandidate(summary: "Plan is adjusted.", promptVersion: packet.promptVersion) }
 }
