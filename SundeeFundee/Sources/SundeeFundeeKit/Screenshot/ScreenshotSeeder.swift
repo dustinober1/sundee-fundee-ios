@@ -193,8 +193,8 @@ public enum ScreenshotSeeder {
 
     private static func seedProgram(into client: LocalDataClient) async {
         let program = EnrolledProgramRecord(
-            id: "prog-1",
-            name: "Strength Basics",
+            id: "russian-squat-program",
+            name: "Russian Squat",
             isActive: true
         )
         try? await client.save([program], recordType: "EnrolledProgramRecord")

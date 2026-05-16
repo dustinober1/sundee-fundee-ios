@@ -147,7 +147,7 @@ struct BundledContentProviderTests {
     func testBundledProgramCount() {
         let bundled = BundledContentProvider.programs
         #expect(bundled.count == ProgramTemplate.allCases.count)
-        #expect(bundled.count == 4)
+        #expect(bundled.count == 5)
     }
 
     @Test("Bundled programs expose stable printable PDF URLs")
@@ -158,6 +158,7 @@ struct BundledContentProviderTests {
             "beginner-strength",
             "dumbbell-strength",
             "glutes-core-conditioning",
+            "russian-squat-program",
         ])
 
         #expect(Set(bundled.map(\.id)) == expectedIDs)

@@ -796,6 +796,8 @@ class ProgramsListViewModel: ObservableObject {
         "6-Week Dumbbell Strength Plan": .dumbbellStrength,
         "Glutes, Core & Conditioning": .glutesCoreConditioning,
         "8-Week Glutes, Core & Conditioning Plan": .glutesCoreConditioning,
+        "Russian Squat": .russianSquat,
+        "6-Week Russian Squat Program": .russianSquat,
     ]
 
     init(

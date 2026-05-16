@@ -9,6 +9,7 @@ final class ProgramTemplateGeneratorTests: XCTestCase {
             .beginnerStrength,
             .dumbbellStrength,
             .glutesCoreConditioning,
+            .russianSquat,
         ])
     }
 
@@ -17,6 +18,7 @@ final class ProgramTemplateGeneratorTests: XCTestCase {
         XCTAssertEqual(ProgramTemplate.beginnerStrength.stableID, "beginner-strength")
         XCTAssertEqual(ProgramTemplate.dumbbellStrength.stableID, "dumbbell-strength")
         XCTAssertEqual(ProgramTemplate.glutesCoreConditioning.stableID, "glutes-core-conditioning")
+        XCTAssertEqual(ProgramTemplate.russianSquat.stableID, "russian-squat-program")
     }
 
     func testAllTemplatesGenerateExpectedWeekAndSessionCounts() throws {
@@ -25,6 +27,7 @@ final class ProgramTemplateGeneratorTests: XCTestCase {
             .beginnerStrength: (4, 4),
             .dumbbellStrength: (6, 4),
             .glutesCoreConditioning: (8, 4),
+            .russianSquat: (6, 3),
         ]
 
         for template in ProgramTemplate.allCases {
@@ -61,5 +64,39 @@ final class ProgramTemplateGeneratorTests: XCTestCase {
 
         XCTAssertFalse(allExercises.isEmpty)
         XCTAssertTrue(allExercises.allSatisfy { $0.percent1RM == nil })
+    }
+
+    func testRussianSquatProgramMatchesPublishedSessionTable() throws {
+        let program = generateProgram(template: .russianSquat, name: ProgramTemplate.russianSquat.displayName)
+
+        XCTAssertEqual(program.name, "Russian Squat")
+        XCTAssertEqual(program.category, "Strength")
+        XCTAssertEqual(program.difficulty, "Advanced")
+        XCTAssertEqual(program.weeks.count, 6)
+
+        let expectedSessions: [(week: Int, percentages: [Double], sets: [Int], reps: [Int])] = [
+            (1, [0.80, 0.80, 0.80], [6, 6, 6], [2, 3, 2]),
+            (2, [0.80, 0.80, 0.80], [6, 6, 6], [4, 2, 5]),
+            (3, [0.80, 0.80, 0.80], [6, 6, 6], [2, 6, 2]),
+            (4, [0.85, 0.80, 0.90], [5, 6, 4], [5, 2, 4]),
+            (5, [0.80, 0.95, 0.80], [6, 3, 6], [2, 3, 2]),
+            (6, [1.00, 0.80, 1.05], [2, 6, 1], [2, 2, 1]),
+        ]
+
+        for expected in expectedSessions {
+            let week = try XCTUnwrap(program.weeks.first(where: { $0.week == expected.week }))
+            XCTAssertEqual(week.sessions.count, 3)
+
+            for (index, session) in week.sessions.enumerated() {
+                XCTAssertEqual(session.exercises.count, 1)
+                let squat = try XCTUnwrap(session.exercises.first)
+                let percent1RM = try XCTUnwrap(squat.percent1RM)
+                XCTAssertEqual(squat.exercise, "Back Squat")
+                XCTAssertEqual(percent1RM, expected.percentages[index], accuracy: 0.0001)
+                XCTAssertEqual(squat.sets, .fixed(value: expected.sets[index]))
+                XCTAssertEqual(squat.reps, .fixed(value: expected.reps[index]))
+                XCTAssertFalse(squat.bodyweightOnly)
+            }
+        }
     }
 }

@@ -23,6 +23,59 @@ final class SundeeFundeeScreenshotTests: XCTestCase {
         capture(tab: "Workouts", title: "Workouts", name: "05_workouts")
     }
 
+    func testRussianSquatProgramAndVanessaBenchmark() {
+        app.launchArguments += ["--seed-screenshots"]
+        setupSnapshot(app)
+        app.launch()
+
+        XCTAssertTrue(waitForScreen(title: "Today", timeout: 20), "Missing Today screen")
+
+        let programsButton = tabButton(named: "Programs")
+        XCTAssertTrue(programsButton.waitForExistence(timeout: 10), "Missing Programs tab")
+        programsButton.tap()
+        XCTAssertTrue(waitForScreen(title: "Programs", timeout: 10), "Missing Programs screen")
+
+        let russianSquat = app.staticTexts["Russian Squat"].firstMatch
+        XCTAssertTrue(scrollToElement(russianSquat, in: app.scrollViews.firstMatch), "Missing Russian Squat program")
+
+        let viewProgram = app.buttons["View Program"].firstMatch
+        XCTAssertTrue(viewProgram.waitForExistence(timeout: 5), "Missing View Program button")
+        viewProgram.tap()
+
+        XCTAssertTrue(waitForScreen(title: "Russian Squat", timeout: 10), "Missing Russian Squat detail screen")
+        XCTAssertTrue(app.buttons["Printable PDF"].firstMatch.waitForExistence(timeout: 5), "Missing printable PDF action")
+        XCTAssertTrue(app.staticTexts["Week 1"].firstMatch.waitForExistence(timeout: 5), "Missing Week 1 section")
+        XCTAssertTrue(app.staticTexts["Day 1 - Session 1"].firstMatch.waitForExistence(timeout: 5), "Missing first Russian Squat session")
+
+        let programsBackButton = app.navigationBars.buttons["Programs"].firstMatch
+        XCTAssertTrue(programsBackButton.waitForExistence(timeout: 5), "Missing back button to Programs")
+        programsBackButton.tap()
+        XCTAssertTrue(waitForScreen(title: "Programs", timeout: 10), "Did not return to Programs")
+
+        let todayButton = tabButton(named: "Today")
+        XCTAssertTrue(todayButton.waitForExistence(timeout: 10), "Missing Today tab")
+        todayButton.tap()
+        XCTAssertTrue(waitForScreen(title: "Today", timeout: 10), "Did not return to Today")
+
+        let benchmarksButton = app.buttons["Benchmarks"].firstMatch
+        XCTAssertTrue(scrollToElement(benchmarksButton, in: app.scrollViews.firstMatch), "Missing Benchmarks shortcut")
+        benchmarksButton.tap()
+        XCTAssertTrue(waitForScreen(title: "Benchmarks", timeout: 10), "Missing Benchmarks screen")
+
+        let vanessa = app.staticTexts["Vanessa"].firstMatch
+        XCTAssertTrue(scrollToElement(vanessa, in: app.scrollViews.firstMatch), "Missing Vanessa benchmark")
+        vanessa.tap()
+
+        XCTAssertTrue(waitForScreen(title: "Vanessa", timeout: 10), "Missing Vanessa benchmark detail")
+        let updatedWorkout = app.staticTexts.matching(
+            NSPredicate(format: "label CONTAINS %@", "3-6-9-12-9-6-3 reps")
+        ).firstMatch
+        XCTAssertTrue(scrollToElement(updatedWorkout, in: app.scrollViews.firstMatch), "Missing updated Vanessa workout description")
+        XCTAssertTrue(app.staticTexts.matching(
+            NSPredicate(format: "label CONTAINS %@", "10 cal BikeERG")
+        ).firstMatch.exists, "Missing BikeERG interval copy")
+    }
+
     private func captureCoachPlanBenefit() {
         let button = app.buttons["Build Coach Plan"].firstMatch
         XCTAssertTrue(button.waitForExistence(timeout: 10), "Missing Build Coach Plan entry point")
@@ -75,5 +128,24 @@ final class SundeeFundeeScreenshotTests: XCTestCase {
         }
 
         return false
+    }
+
+    private func scrollToElement(_ element: XCUIElement, in scrollView: XCUIElement, maxSwipes: Int = 8) -> Bool {
+        if element.waitForExistence(timeout: 5), element.isHittable {
+            return true
+        }
+
+        guard scrollView.waitForExistence(timeout: 5) else {
+            return element.exists
+        }
+
+        for _ in 0..<maxSwipes {
+            if element.exists && element.isHittable {
+                return true
+            }
+            scrollView.swipeUp()
+        }
+
+        return element.exists
     }
 }

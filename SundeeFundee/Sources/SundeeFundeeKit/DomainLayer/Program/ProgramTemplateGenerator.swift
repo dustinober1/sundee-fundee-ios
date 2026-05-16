@@ -8,6 +8,7 @@ public enum ProgramTemplate: String, Codable, Sendable, CaseIterable {
     case beginnerStrength = "beginner-strength"
     case dumbbellStrength = "dumbbell-strength"
     case glutesCoreConditioning = "glutes-core-conditioning"
+    case russianSquat = "russian-squat-program"
 
     public var stableID: String { rawValue }
 
@@ -17,6 +18,7 @@ public enum ProgramTemplate: String, Codable, Sendable, CaseIterable {
         case .beginnerStrength: return "Beginner Strength"
         case .dumbbellStrength: return "Dumbbell Strength"
         case .glutesCoreConditioning: return "Glutes, Core & Conditioning"
+        case .russianSquat: return "Russian Squat"
         }
     }
 
@@ -30,6 +32,8 @@ public enum ProgramTemplate: String, Codable, Sendable, CaseIterable {
             return "https://sundeefundee.com/workout-plans/6-week-dumbbell-strength-plan.pdf"
         case .glutesCoreConditioning:
             return "https://sundeefundee.com/workout-plans/8-week-glutes-core-conditioning-plan.pdf"
+        case .russianSquat:
+            return "https://sundeefundee.com/workout-plans/6-week-russian-squat-program.pdf"
         }
     }
 
@@ -50,6 +54,7 @@ public let templateDefaults: [ProgramTemplate: TemplateDefaults] = [
     .beginnerStrength: TemplateDefaults(durationWeeks: 4, sessionsPerWeek: 4),
     .dumbbellStrength: TemplateDefaults(durationWeeks: 6, sessionsPerWeek: 4),
     .glutesCoreConditioning: TemplateDefaults(durationWeeks: 8, sessionsPerWeek: 4),
+    .russianSquat: TemplateDefaults(durationWeeks: 6, sessionsPerWeek: 3),
 ]
 
 // MARK: - Generated Program Types
@@ -120,6 +125,8 @@ public func generateProgram(
         return generateDumbbellStrengthProgram()
     case .glutesCoreConditioning:
         return generateGlutesCoreConditioningProgram()
+    case .russianSquat:
+        return generateRussianSquatProgram()
     }
 }
 
@@ -478,5 +485,89 @@ func generateGlutesCoreConditioningProgram() -> GeneratedProgram {
                 ]),
             ]
         }
+    )
+}
+
+func generateRussianSquatProgram() -> GeneratedProgram {
+    let weekNames = [
+        "Base Volume",
+        "Volume Climb",
+        "Overreach",
+        "Intensity Shift",
+        "Peaking",
+        "Test Week",
+    ]
+    let weeklyFocus = [
+        "Establish three technically consistent squat days off a conservative training max.",
+        "Keep the 80 percent sessions clean while total reps climb.",
+        "Survive the highest volume week without turning easy days into grinders.",
+        "Shift from volume to heavier exposures while keeping bar speed honest.",
+        "Peak with two demanding heavy days buffered by a repeat 80 percent session.",
+        "Turn the final week into clean doubles and singles, not max-effort misses.",
+    ]
+    let weeklySessions: [[ProgramSessionSpec]] = [
+        [
+            russianSquatSessionSpec(sessionNumber: 1, focus: "technique", percent1RM: 0.80, sets: 6, reps: 2),
+            russianSquatSessionSpec(sessionNumber: 2, focus: "volume", percent1RM: 0.80, sets: 6, reps: 3),
+            russianSquatSessionSpec(sessionNumber: 3, focus: "technique", percent1RM: 0.80, sets: 6, reps: 2),
+        ],
+        [
+            russianSquatSessionSpec(sessionNumber: 4, focus: "volume", percent1RM: 0.80, sets: 6, reps: 4),
+            russianSquatSessionSpec(sessionNumber: 5, focus: "technique", percent1RM: 0.80, sets: 6, reps: 2),
+            russianSquatSessionSpec(sessionNumber: 6, focus: "volume", percent1RM: 0.80, sets: 6, reps: 5),
+        ],
+        [
+            russianSquatSessionSpec(sessionNumber: 7, focus: "technique", percent1RM: 0.80, sets: 6, reps: 2),
+            russianSquatSessionSpec(sessionNumber: 8, focus: "volume", percent1RM: 0.80, sets: 6, reps: 6),
+            russianSquatSessionSpec(sessionNumber: 9, focus: "technique", percent1RM: 0.80, sets: 6, reps: 2),
+        ],
+        [
+            russianSquatSessionSpec(sessionNumber: 10, focus: "heavy", percent1RM: 0.85, sets: 5, reps: 5),
+            russianSquatSessionSpec(sessionNumber: 11, focus: "technique", percent1RM: 0.80, sets: 6, reps: 2),
+            russianSquatSessionSpec(sessionNumber: 12, focus: "peak", percent1RM: 0.90, sets: 4, reps: 4),
+        ],
+        [
+            russianSquatSessionSpec(sessionNumber: 13, focus: "technique", percent1RM: 0.80, sets: 6, reps: 2),
+            russianSquatSessionSpec(sessionNumber: 14, focus: "peak", percent1RM: 0.95, sets: 3, reps: 3),
+            russianSquatSessionSpec(sessionNumber: 15, focus: "technique", percent1RM: 0.80, sets: 6, reps: 2),
+        ],
+        [
+            russianSquatSessionSpec(sessionNumber: 16, focus: "peak", percent1RM: 1.00, sets: 2, reps: 2),
+            russianSquatSessionSpec(sessionNumber: 17, focus: "technique", percent1RM: 0.80, sets: 6, reps: 2),
+            russianSquatSessionSpec(sessionNumber: 18, focus: "peak", percent1RM: 1.05, sets: 1, reps: 1),
+        ],
+    ]
+
+    return makeProgram(
+        template: .russianSquat,
+        category: "Strength",
+        description: "A 6-week squat peaking block with three back squat sessions per week built from the published Russian Squat table.",
+        difficulty: "Advanced",
+        weekNames: weekNames,
+        weeklyFocus: weeklyFocus,
+        sessionsForWeek: { weeklySessions[$0 - 1] }
+    )
+}
+
+private func russianSquatSessionSpec(
+    sessionNumber: Int,
+    focus: String,
+    percent1RM: Double,
+    sets: Int,
+    reps: Int
+) -> ProgramSessionSpec {
+    ProgramSessionSpec(
+        name: "Session \(sessionNumber)",
+        focus: focus,
+        exercises: [
+            GeneratedProgramExercise(
+                exercise: "Back Squat",
+                sets: .fixed(value: sets),
+                reps: .fixed(value: reps),
+                percent1RM: percent1RM,
+                restMinutes: 4.0,
+                bodyweightOnly: false
+            ),
+        ]
     )
 }
