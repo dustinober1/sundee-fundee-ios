@@ -1,5 +1,6 @@
 What's New:
 
+- Added the new Russian Squat program with printable plan support and in-app sessions.
 - Added resistance-band Coach Plans for travel-friendly workouts.
 - Updated Vanessa with a new barbell, burpee, and BikeERG ladder.
 - Tightened cycle-aware coach copy and App Store discovery metadata.
