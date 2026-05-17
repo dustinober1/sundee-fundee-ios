@@ -91,15 +91,12 @@ public enum PainAwareSubstitutionService {
             return .fullGym
         case .homeDumbbells:
             return .homeDumbbells
-        case .bodyweightOnly, .resistanceBands, .outdoor:
+        case .bodyweightOnly, .outdoor:
             return .bodyweightOnly
+        case .resistanceBands:
+            return .resistanceBands
         case .kettlebellOnly:
-            return SubstitutionRanker.EquipmentContext(
-                hasBarbell: false,
-                hasDumbbells: false,
-                hasPullUpBar: false,
-                hasMachines: false
-            )
+            return .kettlebellOnly
         }
     }
 }

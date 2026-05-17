@@ -45,6 +45,9 @@ public class AnalyticsViewModel: ObservableObject {
     /// Unique exercise names available for the exercise picker.
     @Published public var availableExercises: [String] = []
 
+    /// High-level progress summary shown before deeper charts.
+    @Published public var progressSnapshot: ProgressSnapshot?
+
     /// Whether data is currently being fetched.
     @Published public var isLoading: Bool = false
 
@@ -71,6 +74,9 @@ public class AnalyticsViewModel: ObservableObject {
 
     /// All cycle phase info records fetched from persistence (unfiltered).
     private var allCyclePhases: [CyclePhaseInfo] = []
+
+    /// All challenges fetched from persistence (unfiltered).
+    private var allChallenges: [Challenge] = []
 
     // MARK: - Initialization
 
@@ -100,11 +106,13 @@ public class AnalyticsViewModel: ObservableObject {
             )
 
             let (ormRecords, workouts, phases) = try await (ormFetch, workoutFetch, phaseFetch)
+            let challenges: [Challenge] = (try? await dataClient.fetchAll(recordType: "Challenge")) ?? []
 
             // Cache raw data
             allORMRecords = ormRecords
             allWorkouts = workouts
             allCyclePhases = phases
+            allChallenges = challenges
 
             // Populate available exercises
             availableExercises = ChartDataAggregator.exercises(from: ormRecords)
@@ -119,6 +127,7 @@ public class AnalyticsViewModel: ObservableObject {
             frequencyData = []
             cycleData = []
             availableExercises = []
+            progressSnapshot = nil
         }
 
         isLoading = false
@@ -167,6 +176,13 @@ public class AnalyticsViewModel: ObservableObject {
             from: allWorkouts,
             phases: allCyclePhases,
             timeRange: range
+        )
+
+        progressSnapshot = ProgressSnapshotService.build(
+            maxRecords: allORMRecords,
+            workouts: allWorkouts,
+            challenges: allChallenges,
+            cycleData: cycleData
         )
     }
 

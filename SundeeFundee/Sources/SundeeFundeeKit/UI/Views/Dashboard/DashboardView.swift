@@ -16,6 +16,9 @@ public struct DashboardView: View {
     @EnvironmentObject var cyclePhaseCache: CyclePhaseCache
     @State private var showingAIWorkout = false
     @State private var starterWorkout: Workout?
+    @State private var resumeWorkoutID: String?
+    @State private var showingRecoveryOverview = false
+    @State private var showingCycleTracking = false
     #if canImport(UIKit)
     @State private var showingCycleShare = false
     #endif
@@ -28,6 +31,10 @@ public struct DashboardView: View {
                 VStack(spacing: AppTheme.Spacing.lg) {
                     // Welcome Header
                     welcomeHeader
+
+                    if let todayAction = viewModel.todayAction {
+                        todayActionCard(todayAction)
+                    }
 
                     // Recovery Score hidden from Dashboard until the algorithm is reworked.
                     // Domain layer, widget, and intent remain available for future re-enable.
@@ -43,6 +50,14 @@ public struct DashboardView: View {
                     }
 
                     weeklyPlanCard
+
+                    if viewModel.shouldShowFirstWeekChecklist {
+                        firstWeekChecklistCard
+                    }
+
+                    if !viewModel.recoveryInputStatuses.isEmpty {
+                        recoveryInputChecklistCard
+                    }
 
                     // Empty state for brand-new users (no data anywhere)
                     if viewModel.showsNewUserEmptyState {
@@ -134,6 +149,23 @@ public struct DashboardView: View {
             .navigationDestination(isPresented: $viewModel.navigateToLogMax) {
                 MaxesListView()
             }
+            .navigationDestination(isPresented: Binding(
+                get: { resumeWorkoutID != nil },
+                set: { if !$0 { resumeWorkoutID = nil } }
+            )) {
+                if let resumeWorkoutID {
+                    WorkoutDetailView(workoutId: resumeWorkoutID)
+                }
+            }
+            .navigationDestination(isPresented: $showingRecoveryOverview) {
+                RecoveryOverviewView()
+            }
+            .navigationDestination(isPresented: $showingCycleTracking) {
+                CycleTrackingView()
+            }
+            .navigationDestination(isPresented: $viewModel.navigateToPainTracking) {
+                PainTrackingView()
+            }
             .alert("Error", isPresented: Binding(
                 get: { viewModel.errorMessage != nil },
                 set: { if !$0 { viewModel.errorMessage = nil } }
@@ -182,6 +214,100 @@ public struct DashboardView: View {
         Self.dateFormatter.string(from: Date())
     }
 
+    // MARK: - Today Action
+
+    private func todayActionCard(_ action: TodayAction) -> some View {
+        ArtDecoCard {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
+                HStack(alignment: .top, spacing: AppTheme.Spacing.md) {
+                    Image(systemName: action.systemImage)
+                        .font(.title3)
+                        .foregroundColor(AppTheme.Accent.orange)
+                        .accessibilityHidden(true)
+
+                    VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                        Text(action.title)
+                            .font(AppTheme.Typography.headlineMedium)
+                            .foregroundColor(AppTheme.Text.primary)
+
+                        Text(action.subtitle)
+                            .font(AppTheme.Typography.bodySmall)
+                            .foregroundColor(AppTheme.Text.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+
+                    Spacer()
+                }
+
+                Button {
+                    handleTodayAction(action)
+                } label: {
+                    Label(primaryActionLabel(for: action.kind), systemImage: action.systemImage)
+                        .frame(maxWidth: .infinity)
+                }
+                .artDecoButton(style: .accent)
+            }
+        }
+        .accessibilityElement(children: .contain)
+    }
+
+    private func primaryActionLabel(for kind: TodayActionKind) -> String {
+        switch kind {
+        case .resumeWorkout:
+            return "Resume Workout"
+        case .resumeProgramSession:
+            return "Resume Program"
+        case .startScheduledWorkout:
+            return "Start Workout"
+        case .completeFirstWeekChecklist(let checklistKind):
+            return checklistKind.actionTitle
+        case .logRecovery(let inputKind):
+            return inputKind.actionTitle
+        case .startFirstWorkout:
+            return "Start Workout"
+        }
+    }
+
+    private func handleTodayAction(_ action: TodayAction) {
+        switch action.kind {
+        case .resumeWorkout(let workoutID):
+            resumeWorkoutID = workoutID
+        case .resumeProgramSession, .startScheduledWorkout, .startFirstWorkout:
+            Task { starterWorkout = await viewModel.buildStarterWorkout() }
+        case .completeFirstWeekChecklist(let kind):
+            handleFirstWeekChecklistAction(kind)
+        case .logRecovery(let kind):
+            handleRecoveryInputAction(kind)
+        }
+    }
+
+    private func handleFirstWeekChecklistAction(_ kind: FirstWeekChecklistKind) {
+        switch kind {
+        case .firstWorkout:
+            Task { starterWorkout = await viewModel.buildStarterWorkout() }
+        case .logMax:
+            viewModel.navigateToLogMax = true
+        case .weeklySchedule:
+            Task { await viewModel.resetWeeklyPlan() }
+        }
+    }
+
+    private func handleRecoveryInputAction(_ kind: RecoveryInputKind) {
+        switch kind {
+        case .recentWorkout:
+            Task { starterWorkout = await viewModel.buildStarterWorkout() }
+        case .painLog:
+            showingRecoveryOverview = false
+            resumeWorkoutID = nil
+            // Pain tracking lives outside the recovery overview, so use the existing quick action.
+            viewModel.navigateToPainTracking = true
+        case .cyclePhase:
+            showingCycleTracking = true
+        case .sleep, .hrv:
+            showingRecoveryOverview = true
+        }
+    }
+
     // MARK: - Cycle Phase Banner
 
     @ViewBuilder
@@ -203,6 +329,13 @@ public struct DashboardView: View {
                         Text(cyclePhaseDescription(for: phase))
                             .font(AppTheme.Typography.bodySmall)
                             .foregroundColor(AppTheme.Text.secondary)
+
+                        if let confidence = cyclePhaseCache.confidence {
+                            Text(cycleConfidenceText(confidence))
+                                .font(AppTheme.Typography.bodySmall)
+                                .foregroundColor(AppTheme.Text.secondary.opacity(0.85))
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
                     }
 
                     Spacer()
@@ -264,7 +397,7 @@ public struct DashboardView: View {
 
     private func cyclePhaseColor(for phase: CyclePhase) -> Color {
         switch phase {
-        case .menstrual: return .red
+        case .menstrual: return AppTheme.Semantic.error
         case .follicular: return AppTheme.Accent.gold
         case .ovulation: return AppTheme.Accent.orange
         case .luteal: return AppTheme.Text.secondary
@@ -291,11 +424,21 @@ public struct DashboardView: View {
 
     private func confidenceColor(for confidence: Double) -> Color {
         if confidence >= 0.7 {
-            return .green
+            return AppTheme.Semantic.success
         } else if confidence >= 0.4 {
             return AppTheme.Accent.gold
         } else {
             return AppTheme.Accent.orange
+        }
+    }
+
+    private func cycleConfidenceText(_ confidence: Double) -> String {
+        if confidence >= 0.7 {
+            return "High confidence from recent cycle data."
+        } else if confidence >= 0.4 {
+            return "Medium confidence. Logging periods keeps this sharper."
+        } else {
+            return "Low confidence. Log period dates to improve phase guidance."
         }
     }
 
@@ -478,6 +621,83 @@ public struct DashboardView: View {
         return symbols[weekday - 1]
     }
 
+    private var firstWeekChecklistCard: some View {
+        ArtDecoCard {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
+                Text("First Week Checklist")
+                    .font(AppTheme.Typography.headlineMedium)
+                    .foregroundColor(AppTheme.Text.primary)
+
+                ForEach(viewModel.firstWeekChecklist) { item in
+                    Button {
+                        handleFirstWeekChecklistAction(item.kind)
+                    } label: {
+                        checklistRow(
+                            title: item.title,
+                            subtitle: item.isComplete ? "Done" : item.actionTitle,
+                            isComplete: item.isComplete
+                        )
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(item.isComplete)
+                }
+            }
+        }
+    }
+
+    private var recoveryInputChecklistCard: some View {
+        ArtDecoCard {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
+                Text("Recovery Inputs")
+                    .font(AppTheme.Typography.headlineMedium)
+                    .foregroundColor(AppTheme.Text.primary)
+
+                Text("Missing inputs explain how to improve your score without blocking today's workout.")
+                    .font(AppTheme.Typography.bodySmall)
+                    .foregroundColor(AppTheme.Text.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                ForEach(viewModel.recoveryInputStatuses) { item in
+                    Button {
+                        handleRecoveryInputAction(item.kind)
+                    } label: {
+                        checklistRow(
+                            title: item.title,
+                            subtitle: item.displayText,
+                            isComplete: item.isAvailable
+                        )
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(item.isAvailable)
+                }
+            }
+        }
+    }
+
+    private func checklistRow(title: String, subtitle: String, isComplete: Bool) -> some View {
+        HStack(alignment: .top, spacing: AppTheme.Spacing.sm) {
+            Image(systemName: isComplete ? "checkmark.circle.fill" : "circle")
+                .font(.headline)
+                .foregroundColor(isComplete ? AppTheme.Semantic.success : AppTheme.Accent.gold)
+                .accessibilityHidden(true)
+
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                Text(title)
+                    .font(AppTheme.Typography.bodyMedium)
+                    .foregroundColor(AppTheme.Text.primary)
+
+                Text(subtitle)
+                    .font(AppTheme.Typography.bodySmall)
+                    .foregroundColor(AppTheme.Text.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Spacer()
+        }
+        .padding(.vertical, AppTheme.Spacing.xs)
+        .accessibilityElement(children: .combine)
+    }
+
     private func quickActionContent(_ title: String, icon: String, isPrimary: Bool) -> some View {
         VStack(spacing: AppTheme.Spacing.xs) {
             Image(systemName: icon)
@@ -649,6 +869,10 @@ class DashboardViewModel: ObservableObject {
     @Published var weeklyPlanProgress: WeeklyPlanProgress?
     @Published var weeklyStreak: WeeklyStreak?
     @Published var cycleTrackingEnabled: Bool = false
+    @Published var todayAction: TodayAction?
+    @Published var firstWeekChecklist: [FirstWeekChecklistItem] = []
+    @Published var recoveryInputStatuses: [RecoveryInputStatus] = []
+    @Published var navigateToPainTracking: Bool = false
 
     // MARK: - Dependencies
 
@@ -705,6 +929,7 @@ class DashboardViewModel: ObservableObject {
         await loadCoachingInsights()
         await loadActiveChallenge()
         await loadWeeklyPlan()
+        await loadTodayGuidance(cyclePhaseCache: cyclePhaseCache)
         await trackFirstWorkoutPromptIfNeeded()
     }
 
@@ -715,6 +940,7 @@ class DashboardViewModel: ObservableObject {
             preferredWeekdays: [2, 4, 6]
         )
         await loadWeeklyPlan()
+        await loadTodayGuidance(cyclePhaseCache: nil)
     }
 
     func buildStarterWorkout() async -> Workout {
@@ -724,7 +950,8 @@ class DashboardViewModel: ObservableObject {
                 experienceLevel: settings.experienceLevel,
                 primaryGoal: settings.primaryGoal,
                 weightUnit: settings.weightUnit,
-                cycleTrackingEnabled: settings.cycleTrackingEnabled
+                cycleTrackingEnabled: settings.cycleTrackingEnabled,
+                defaultEquipment: settings.defaultEquipment
             )
         )
         await GrowthAnalyticsService(dataClient: dataClient).track(
@@ -882,6 +1109,67 @@ class DashboardViewModel: ObservableObject {
         }
     }
 
+    var shouldShowFirstWeekChecklist: Bool {
+        !firstWeekChecklist.isEmpty && firstWeekChecklist.contains { !$0.isComplete }
+    }
+
+    private func loadTodayGuidance(cyclePhaseCache: CyclePhaseCache?) async {
+        let calendar = Calendar.current
+        let now = Date()
+        let workouts: [Workout] = (try? await dataClient.fetchAll(
+            recordType: "Workout",
+            sortDescriptors: [NSSortDescriptor(key: "date", ascending: false)]
+        )) ?? []
+        let maxes: [OneRepMaxRecord] = (try? await dataClient.fetchAll(recordType: "OneRepMaxRecord")) ?? []
+        let hasWeeklyPlan = weeklyPlanProgress != nil
+        let checklist = TodayGuidanceService.firstWeekChecklist(
+            completedWorkoutCount: workouts.filter { $0.completedAt != nil }.count,
+            maxCount: maxes.count,
+            hasWeeklyPlan: hasWeeklyPlan
+        )
+
+        let recentCutoff = calendar.date(byAdding: .day, value: -7, to: now) ?? now
+        let hasRecentWorkout = workouts.contains { workout in
+            let date = workout.completedAt ?? workout.date
+            return date >= recentCutoff
+        }
+
+        let painLogs: [DailyPainLog] = (try? await dataClient.fetchAll(recordType: "DailyPainLog")) ?? []
+        let hasPainLogToday = painLogs.contains { calendar.isDate($0.date, inSameDayAs: now) }
+        let hasCyclePhase = cycleTrackingEnabled && cyclePhaseCache?.currentPhase != nil
+
+        async let hasSleep = hasRecentSleepData()
+        async let hasHRV = hasRecentHRVData()
+        let (sleepAvailable, hrvAvailable) = await (hasSleep, hasHRV)
+        let inputs = TodayGuidanceService.recoveryInputStatuses(
+            hasRecentWorkout: hasRecentWorkout,
+            hasPainLogToday: hasPainLogToday,
+            hasCyclePhase: hasCyclePhase,
+            hasSleep: sleepAvailable,
+            hasHRV: hrvAvailable
+        )
+
+        firstWeekChecklist = checklist
+        recoveryInputStatuses = inputs
+        todayAction = TodayGuidanceService.primaryAction(
+            workouts: workouts,
+            weeklyPlanProgress: weeklyPlanProgress,
+            firstWeekChecklist: checklist,
+            recoveryInputs: inputs,
+            now: now
+        )
+    }
+
+    private func hasRecentSleepData() async -> Bool {
+        guard healthClient.isAvailable else { return false }
+        return ((try? await healthClient.fetchRecentSleepAnalysis()) ?? []).isEmpty == false
+    }
+
+    private func hasRecentHRVData() async -> Bool {
+        guard healthClient.isAvailable else { return false }
+        return ((try? await healthClient.fetchWeeklyHeartRateVariability()) ?? []).isEmpty == false
+    }
+
     private func trackFirstWorkoutPromptIfNeeded() async {
         guard showsNewUserEmptyState, !hasTrackedFirstWorkoutPrompt else { return }
         hasTrackedFirstWorkoutPrompt = true
@@ -895,17 +1183,40 @@ class DashboardViewModel: ObservableObject {
         experienceLevel: ExperienceLevel,
         primaryGoal: PrimaryGoal,
         weightUnit: WeightUnit,
-        cycleTrackingEnabled: Bool
+        cycleTrackingEnabled: Bool,
+        defaultEquipment: EquipmentAccess
     ) {
         let records: [UserSettingsRecord] = (try? await dataClient.fetchAll(recordType: "UserSettings")) ?? []
         guard let settings = records.last else {
-            return (.beginner, .strength, .lbs, false)
+            return (.beginner, .strength, .lbs, false, .fullGym)
         }
         return (
             ExperienceLevel(rawValue: settings.experienceLevel) ?? .beginner,
             PrimaryGoal(rawValue: settings.primaryGoal) ?? .strength,
             WeightUnit(rawValue: settings.weightUnit) ?? .lbs,
-            settings.cycleTrackingEnabled
+            settings.cycleTrackingEnabled,
+            settings.defaultEquipment
         )
+    }
+}
+
+private extension FirstWeekChecklistKind {
+    var actionTitle: String {
+        switch self {
+        case .firstWorkout: return "Start first workout"
+        case .logMax: return "Log a max"
+        case .weeklySchedule: return "Set schedule"
+        }
+    }
+}
+
+private extension RecoveryInputKind {
+    var actionTitle: String {
+        switch self {
+        case .recentWorkout: return "Start workout"
+        case .painLog: return "Log pain"
+        case .cyclePhase: return "Update cycle"
+        case .sleep, .hrv: return "Review recovery"
+        }
     }
 }

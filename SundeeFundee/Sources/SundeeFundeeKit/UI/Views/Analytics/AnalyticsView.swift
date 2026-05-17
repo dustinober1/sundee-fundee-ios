@@ -29,6 +29,10 @@ public struct AnalyticsView: View {
                 } else if viewModel.hasNoData {
                     emptyState
                 } else {
+                    if let snapshot = viewModel.progressSnapshot {
+                        progressSnapshotCard(snapshot)
+                    }
+
                     // Charts
                     StrengthProgressionChart(
                         data: viewModel.strengthData,
@@ -144,6 +148,50 @@ public struct AnalyticsView: View {
                 }
                 .artDecoButton(style: .accent)
                 .accessibilityHint("Reload analytics data")
+            }
+        }
+    }
+
+    private func progressSnapshotCard(_ snapshot: ProgressSnapshot) -> some View {
+        ArtDecoCard {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
+                Text("Progress Snapshot")
+                    .font(AppTheme.Typography.headlineMedium)
+                    .foregroundColor(AppTheme.Text.primary)
+
+                LazyVGrid(columns: [
+                    GridItem(.flexible()),
+                    GridItem(.flexible())
+                ], spacing: AppTheme.Spacing.sm) {
+                    ForEach(snapshot.items) { item in
+                        VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                            Image(systemName: item.systemImage)
+                                .font(.headline)
+                                .foregroundColor(AppTheme.Accent.gold)
+                                .accessibilityHidden(true)
+
+                            Text(item.title)
+                                .font(AppTheme.Typography.labelMedium)
+                                .foregroundColor(AppTheme.Text.secondary)
+
+                            Text(item.value)
+                                .font(AppTheme.Typography.bodyMedium)
+                                .foregroundColor(AppTheme.Text.primary)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.8)
+
+                            Text(item.subtitle)
+                                .font(AppTheme.Typography.bodySmall)
+                                .foregroundColor(AppTheme.Text.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(AppTheme.Spacing.sm)
+                        .background(AppTheme.Background.cream.opacity(0.45))
+                        .cornerRadius(AppTheme.CornerRadius.small)
+                        .accessibilityElement(children: .combine)
+                    }
+                }
             }
         }
     }

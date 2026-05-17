@@ -153,11 +153,9 @@ struct AIWorkoutView: View {
                             .foregroundColor(AppTheme.Text.primary)
 
                         VStack(spacing: AppTheme.Spacing.sm) {
-                            equipmentOption(.fullGym, "Full Gym", "All equipment available")
-                            equipmentOption(.homeDumbbells, "Home Dumbbells", "Dumbbells and bench")
-                            equipmentOption(.resistanceBands, "Resistance Bands", "Travel-friendly band work")
-                            equipmentOption(.kettlebellOnly, "Kettlebell Only", "Single or pair of bells")
-                            equipmentOption(.bodyweightOnly, "Bodyweight Only", "No equipment")
+                            ForEach(EquipmentAccess.userSelectableDefaults, id: \.self) { equipment in
+                                equipmentOption(equipment, equipment.displayName, equipment.shortDescription)
+                            }
                         }
                     }
                 }
@@ -365,6 +363,12 @@ struct AIWorkoutView: View {
                         rationaleCard(rationale)
                     }
 
+                    if !viewModel.changeNotes.isEmpty {
+                        whyChangedCard(viewModel.changeNotes)
+                    }
+
+                    quickEditCard
+
                     // Coaching Tips
                     if !viewModel.coachingTips.isEmpty {
                         ArtDecoCard {
@@ -431,6 +435,47 @@ struct AIWorkoutView: View {
         }
     }
 
+    private var quickEditCard: some View {
+        ArtDecoCard {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
+                Label("Quick Edits", systemImage: "slider.horizontal.3")
+                    .font(AppTheme.Typography.labelMedium)
+                    .foregroundColor(AppTheme.Accent.gold)
+
+                HStack(spacing: AppTheme.Spacing.sm) {
+                    ForEach([20, 30, 45], id: \.self) { minutes in
+                        Button {
+                            viewModel.shortenWorkout(to: minutes)
+                        } label: {
+                            Text("\(minutes)m")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .artDecoButton(style: .secondary)
+                        .accessibilityLabel("Shorten to \(minutes) minutes")
+                    }
+                }
+
+                HStack(spacing: AppTheme.Spacing.sm) {
+                    Button {
+                        viewModel.reduceVolume()
+                    } label: {
+                        Label("Reduce Volume", systemImage: "minus.circle")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .artDecoButton(style: .secondary)
+
+                    Button {
+                        viewModel.restoreOriginalWorkout()
+                    } label: {
+                        Label("Restore", systemImage: "arrow.uturn.backward")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .artDecoButton(style: .ghost)
+                }
+            }
+        }
+    }
+
     private func generatedExerciseCard(_ exercise: GeneratedExercise) -> some View {
         ArtDecoCard {
             VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
@@ -460,6 +505,19 @@ struct AIWorkoutView: View {
                     }
                     .accessibilityLabel("Swap \(exercise.name)")
                     .accessibilityHint("Replace this exercise with an alternative")
+
+                    Button {
+                        viewModel.removeExercise(id: exercise.id)
+                    } label: {
+                        Image(systemName: "trash")
+                            .font(.footnote)
+                            .foregroundColor(AppTheme.Semantic.warning)
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(!viewModel.canRemoveExercise)
+                    .opacity(viewModel.canRemoveExercise ? 1 : 0.35)
+                    .accessibilityLabel("Remove \(exercise.name)")
+                    .accessibilityHint("Remove this exercise from the plan")
                 }
 
                 HStack(spacing: AppTheme.Spacing.lg) {
@@ -503,6 +561,36 @@ struct AIWorkoutView: View {
                         Text(reasoning)
                             .font(AppTheme.Typography.bodySmall)
                             .foregroundColor(AppTheme.Accent.gold)
+                    }
+                }
+            }
+        }
+    }
+
+    private func whyChangedCard(_ notes: [WorkoutChangeNote]) -> some View {
+        ArtDecoCard {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
+                Label("Why this changed", systemImage: "info.circle")
+                    .font(AppTheme.Typography.labelMedium)
+                    .foregroundColor(AppTheme.Accent.gold)
+
+                ForEach(notes) { note in
+                    HStack(alignment: .top, spacing: AppTheme.Spacing.sm) {
+                        Image(systemName: note.systemImage)
+                            .font(.headline)
+                            .foregroundColor(AppTheme.Accent.gold)
+                            .accessibilityHidden(true)
+
+                        VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                            Text(note.title)
+                                .font(AppTheme.Typography.bodyMedium)
+                                .foregroundColor(AppTheme.Text.primary)
+
+                            Text(note.message)
+                                .font(AppTheme.Typography.bodySmall)
+                                .foregroundColor(AppTheme.Text.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
                     }
                 }
             }
@@ -680,7 +768,7 @@ struct AIWorkoutView: View {
     private func phaseColor(_ phase: CyclePhase?) -> Color {
         guard let phase else { return AppTheme.Text.secondary }
         switch phase {
-        case .menstrual: return .red
+        case .menstrual: return AppTheme.Semantic.error
         case .follicular: return AppTheme.Accent.gold
         case .ovulation: return AppTheme.Accent.orange
         case .luteal: return AppTheme.Text.secondary
@@ -720,12 +808,15 @@ class AIWorkoutViewModel: ObservableObject {
     @Published var coachingTips: [String] = []
     @Published var swapState: ExerciseSwapState?
     @Published var workoutRationale: WorkoutRationale?
+    @Published var changeNotes: [WorkoutChangeNote] = []
 
     private let coachService: CoachServiceProtocol
     private let contextBuilder: CoachContextBuilder
     private let memoryService: CoachMemoryService
     private let dataClient: DataClientProtocol
     private var cachedContext: CoachContext?
+    private var editableDraft: EditableWorkoutDraft?
+    private var hasLoadedDefaultEquipment = false
 
     init(
         coachService: CoachServiceProtocol = CoachServiceFactory.makeService(),
@@ -740,8 +831,23 @@ class AIWorkoutViewModel: ObservableObject {
     }
 
     func loadContext() async {
+        if !hasLoadedDefaultEquipment {
+            equipment = await loadDefaultEquipment()
+            hasLoadedDefaultEquipment = true
+        }
         let context = await contextBuilder.build(equipment: equipment)
         cyclePhase = context.cyclePhase
+    }
+
+    private func loadDefaultEquipment() async -> EquipmentAccess {
+        do {
+            let records = try await dataClient.fetchAll(
+                recordType: "UserSettings"
+            ) as [UserSettingsRecord]
+            return records.last?.defaultEquipment ?? .fullGym
+        } catch {
+            return .fullGym
+        }
     }
 
     func generateWorkout() async {
@@ -768,12 +874,19 @@ class AIWorkoutViewModel: ObservableObject {
                 goal: context.primaryGoal,
                 equipment: equipment
             )
-            generatedWorkout = CycleAwareAdjustmentService.apply(adjustment, to: response.workout)
+            let adjustedWorkout = CycleAwareAdjustmentService.apply(adjustment, to: response.workout)
+            generatedWorkout = adjustedWorkout
+            editableDraft = EditableWorkoutDraft(workout: adjustedWorkout)
             if let packet = response.decisionPacket {
                 workoutRationale = CoachRationaleBuilder.rationale(from: packet)
             } else {
                 workoutRationale = adjustment.rationale
             }
+            changeNotes = WorkoutChangeExplanationService.notes(
+                context: context,
+                energyLevel: energyLevel,
+                equipment: equipment
+            )
             coachingTips = response.tips
             cyclePhase = context.cyclePhase
             state = .preview
@@ -790,6 +903,35 @@ class AIWorkoutViewModel: ObservableObject {
         } catch {
             state = .error("Could not generate workout. Please try again.")
         }
+    }
+
+    var canRemoveExercise: Bool {
+        (generatedWorkout?.exercises.count ?? 0) > 1
+    }
+
+    func shortenWorkout(to minutes: Int) {
+        mutateDraft { draft in
+            draft.shorten(to: minutes)
+        }
+    }
+
+    func reduceVolume() {
+        mutateDraft { draft in
+            draft.reduceVolume()
+        }
+    }
+
+    func removeExercise(id: String) {
+        mutateDraft { draft in
+            draft.removeExercise(id: id)
+        }
+    }
+
+    func restoreOriginalWorkout() {
+        guard var draft = editableDraft else { return }
+        draft.restoreOriginal()
+        editableDraft = draft
+        generatedWorkout = draft.workout
     }
 
     func trackWorkoutStarted() async {
@@ -869,15 +1011,16 @@ class AIWorkoutViewModel: ObservableObject {
             bodyweightOnly: isBodyweight
         )
 
-        var updatedExercises = workout.exercises
-        updatedExercises[index] = newExercise
-
         let eMult = energyMultiplier(energyLevel)
         let cMult = aiCyclePhaseMultiplier(cyclePhase)
         let context = cachedContext
         let maxes = context?.maxes ?? []
         let weighted = applyWeights(
-            exercises: updatedExercises,
+            exercises: {
+                var updatedExercises = workout.exercises
+                updatedExercises[index] = newExercise
+                return updatedExercises
+            }(),
             maxes: maxes,
             energyMult: eMult,
             cycleMult: cMult
@@ -893,14 +1036,22 @@ class AIWorkoutViewModel: ObservableObject {
             )
         }
 
-        generatedWorkout = GeneratedWorkout(
-            id: workout.id,
-            createdAt: workout.createdAt,
-            isFavorite: workout.isFavorite,
-            coachingSummary: workout.coachingSummary,
-            exercises: final,
-            questionnaire: workout.questionnaire
-        )
+        if var draft = editableDraft, final.indices.contains(index) {
+            let previousEditCount = draft.edits.count
+            _ = draft.swapExercise(id: old.id, replacement: final[index])
+            editableDraft = draft
+            generatedWorkout = draft.workout
+            recordDraftEdits(Array(draft.edits.dropFirst(previousEditCount)))
+        } else {
+            generatedWorkout = GeneratedWorkout(
+                id: workout.id,
+                createdAt: workout.createdAt,
+                isFavorite: workout.isFavorite,
+                coachingSummary: workout.coachingSummary,
+                exercises: final,
+                questionnaire: workout.questionnaire
+            )
+        }
 
         Task {
             await memoryService.recordSubstitutionDecision(
@@ -938,6 +1089,24 @@ class AIWorkoutViewModel: ObservableObject {
             name: "\(focus.rawValue.replacingOccurrences(of: "_", with: " ").capitalized) Coach Plan",
             notesPrefix: "Coach Plan"
         )
+    }
+
+    private func mutateDraft(_ mutation: (inout EditableWorkoutDraft) -> Bool) {
+        guard var draft = editableDraft else { return }
+        let previousEditCount = draft.edits.count
+        guard mutation(&draft) else { return }
+        editableDraft = draft
+        generatedWorkout = draft.workout
+        recordDraftEdits(Array(draft.edits.dropFirst(previousEditCount)))
+    }
+
+    private func recordDraftEdits(_ edits: [WorkoutEdit]) {
+        guard !edits.isEmpty else { return }
+        Task {
+            for edit in edits {
+                await memoryService.recordWorkoutEdit(edit)
+            }
+        }
     }
 
     private func uniqueSubstitutions(

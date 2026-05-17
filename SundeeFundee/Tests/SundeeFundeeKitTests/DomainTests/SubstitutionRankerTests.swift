@@ -66,6 +66,19 @@ final class SubstitutionRankerTests: XCTestCase {
         XCTAssertTrue(hasDumbbell, "Home dumbbells should include dumbbell alternatives")
     }
 
+    func testRank_ResistanceBands_ExcludesLoadedEquipmentAndIncludesBands() {
+        let results = SubstitutionRanker.rank(
+            substitutesFor: "Flat Barbell Bench Press",
+            equipment: .resistanceBands,
+            limit: 10
+        )
+        XCTAssertTrue(results.contains { $0.exerciseName.lowercased().contains("band") })
+        XCTAssertFalse(results.contains { $0.exerciseName.lowercased().contains("barbell") })
+        XCTAssertFalse(results.contains { $0.exerciseName.lowercased().contains("dumbbell") })
+        XCTAssertFalse(results.contains { $0.exerciseName.lowercased().contains("kettlebell") })
+        XCTAssertFalse(results.contains { $0.exerciseName.lowercased().contains("cable") })
+    }
+
     // MARK: - Injury Filtering
 
     func testRank_KneeInjury_FiltersContraindicatedExercises() {

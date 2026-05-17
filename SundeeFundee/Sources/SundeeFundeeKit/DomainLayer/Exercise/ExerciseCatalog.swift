@@ -1,5 +1,48 @@
 import Foundation
 
+// MARK: - Training Exercise Catalog
+
+public enum TrainingEquipmentTag: String, Codable, Sendable, CaseIterable, Equatable {
+    case barbell
+    case plates
+    case dumbbells
+    case kettlebell
+    case bands
+    case bodyweight
+    case machine
+    case cable
+    case cardio
+    case box
+}
+
+public struct TrainingExerciseDefinition: Sendable, Identifiable, Equatable {
+    public let id: String
+    public let categoryLabel: String
+    public let movementPattern: WorkoutMovementPattern
+    public let equipmentTags: [TrainingEquipmentTag]
+    public let bodyweightOnly: Bool
+    public let isMaxTrackable: Bool
+    public let defaultScoringType: ConditioningScoringType?
+
+    public init(
+        id: String,
+        categoryLabel: String,
+        movementPattern: WorkoutMovementPattern,
+        equipmentTags: [TrainingEquipmentTag],
+        bodyweightOnly: Bool = false,
+        isMaxTrackable: Bool = false,
+        defaultScoringType: ConditioningScoringType? = nil
+    ) {
+        self.id = id
+        self.categoryLabel = categoryLabel
+        self.movementPattern = movementPattern
+        self.equipmentTags = equipmentTags
+        self.bodyweightOnly = bodyweightOnly
+        self.isMaxTrackable = isMaxTrackable
+        self.defaultScoringType = defaultScoringType
+    }
+}
+
 // MARK: - Weightlifting Exercise Catalog
 
 /// Category of weightlifting exercise
@@ -87,6 +130,42 @@ public let weightliftingExercises: [WeightliftingEntry] = [
     WeightliftingEntry(id: "Muscle Clean",    category: .olympicWeightlifting),
 ]
 
+private let maxExerciseEquipment: [String: [TrainingEquipmentTag]] = [
+    "Goblet Squat": [.dumbbells],
+    "Dumbbell Bench Press": [.dumbbells],
+    "Dumbbell Incline Press": [.dumbbells],
+    "Dumbbell Overhead Press": [.dumbbells],
+    "Dumbbell Row": [.dumbbells],
+    "Bicep Curl (Dumbbell)": [.dumbbells],
+    "Hammer Curl": [.dumbbells],
+    "Dips (Weighted)": [.bodyweight],
+    "Pull-Up": [.bodyweight],
+    "Weighted Pull-Up": [.bodyweight],
+    "Lat Pulldown": [.machine],
+    "Cable Row": [.cable],
+    "Face Pull": [.cable],
+    "Leg Press": [.machine],
+    "Hack Squat": [.machine],
+    "Leg Extension": [.machine],
+    "Leg Curl (Lying)": [.machine],
+    "Leg Curl (Seated)": [.machine],
+    "Glute Ham Raise": [.bodyweight],
+    "Farmers Carry": [.dumbbells],
+    "Suitcase Carry": [.dumbbells],
+    "Yoke Walk": [.barbell],
+]
+
+private func movementPattern(for category: WeightliftingCategory) -> WorkoutMovementPattern {
+    switch category {
+    case .squat: return .squat
+    case .hipHinge: return .hinge
+    case .press: return .push
+    case .pull: return .pull
+    case .carry: return .carry
+    case .olympicWeightlifting: return .conditioning
+    }
+}
+
 private let weightliftingIDs: Set<String> = Set(weightliftingExercises.map(\.id))
 
 /// Check if an exercise ID is a weightlifting exercise
@@ -144,6 +223,87 @@ public let conditioningExercises: [ConditioningEntry] = [
     ConditioningEntry(id: "Plank Hold",      defaultScoringType: .time),
     ConditioningEntry(id: "L-Sit Hold",      defaultScoringType: .time),
 ]
+
+private func movementPattern(for conditioningID: String) -> WorkoutMovementPattern {
+    let lower = conditioningID.lowercased()
+    if lower.contains("squat") || lower.contains("lunge") || lower.contains("step-up") { return .squat }
+    if lower.contains("swing") { return .hinge }
+    if lower.contains("push") || lower.contains("thruster") || lower.contains("handstand") { return .push }
+    if lower.contains("pull") || lower.contains("row") || lower.contains("toes-to-bar") || lower.contains("muscle-up") { return .pull }
+    if lower.contains("sit-up") || lower.contains("v-up") || lower.contains("plank") || lower.contains("l-sit") { return .core }
+    return .conditioning
+}
+
+private func equipmentTags(for conditioningID: String) -> [TrainingEquipmentTag] {
+    let lower = conditioningID.lowercased()
+    if lower.contains("kettlebell") { return [.kettlebell] }
+    if lower.contains("row") || lower.contains("bike") || lower.contains("skierg") { return [.cardio] }
+    if lower.contains("box") { return [.box] }
+    if lower.contains("wall ball") { return [.machine] }
+    return [.bodyweight]
+}
+
+private let bandTrainingExercises: [TrainingExerciseDefinition] = [
+    .init(id: "Band Squat", categoryLabel: "Squat", movementPattern: .squat, equipmentTags: [.bands]),
+    .init(id: "Band Split Squat", categoryLabel: "Squat", movementPattern: .squat, equipmentTags: [.bands]),
+    .init(id: "Band Reverse Lunge", categoryLabel: "Squat", movementPattern: .squat, equipmentTags: [.bands]),
+    .init(id: "Band Lateral Walk", categoryLabel: "Squat", movementPattern: .squat, equipmentTags: [.bands]),
+    .init(id: "Band Monster Walk", categoryLabel: "Squat", movementPattern: .squat, equipmentTags: [.bands]),
+    .init(id: "Band Romanian Deadlift", categoryLabel: "Hip Hinge", movementPattern: .hinge, equipmentTags: [.bands]),
+    .init(id: "Band Good Morning", categoryLabel: "Hip Hinge", movementPattern: .hinge, equipmentTags: [.bands]),
+    .init(id: "Band Pull-Through", categoryLabel: "Hip Hinge", movementPattern: .hinge, equipmentTags: [.bands]),
+    .init(id: "Band Glute Bridge", categoryLabel: "Hip Hinge", movementPattern: .hinge, equipmentTags: [.bands]),
+    .init(id: "Band Hamstring Curl", categoryLabel: "Hip Hinge", movementPattern: .hinge, equipmentTags: [.bands]),
+    .init(id: "Band Chest Press", categoryLabel: "Press", movementPattern: .push, equipmentTags: [.bands]),
+    .init(id: "Band Push-Up", categoryLabel: "Press", movementPattern: .push, equipmentTags: [.bands]),
+    .init(id: "Band Overhead Press", categoryLabel: "Press", movementPattern: .push, equipmentTags: [.bands]),
+    .init(id: "Band Lateral Raise", categoryLabel: "Press", movementPattern: .push, equipmentTags: [.bands]),
+    .init(id: "Band Front Raise", categoryLabel: "Press", movementPattern: .push, equipmentTags: [.bands]),
+    .init(id: "Band Triceps Pressdown", categoryLabel: "Press", movementPattern: .push, equipmentTags: [.bands]),
+    .init(id: "Band Row", categoryLabel: "Pull", movementPattern: .pull, equipmentTags: [.bands]),
+    .init(id: "Band Lat Pulldown", categoryLabel: "Pull", movementPattern: .pull, equipmentTags: [.bands]),
+    .init(id: "Band Face Pull", categoryLabel: "Pull", movementPattern: .pull, equipmentTags: [.bands]),
+    .init(id: "Band Pull-Apart", categoryLabel: "Pull", movementPattern: .pull, equipmentTags: [.bands]),
+    .init(id: "Band Biceps Curl", categoryLabel: "Pull", movementPattern: .pull, equipmentTags: [.bands]),
+    .init(id: "Band Hammer Curl", categoryLabel: "Pull", movementPattern: .pull, equipmentTags: [.bands]),
+    .init(id: "Band Straight-Arm Pulldown", categoryLabel: "Pull", movementPattern: .pull, equipmentTags: [.bands]),
+    .init(id: "Pallof Press", categoryLabel: "Core", movementPattern: .core, equipmentTags: [.bands]),
+    .init(id: "Band Wood Chop", categoryLabel: "Core", movementPattern: .core, equipmentTags: [.bands]),
+    .init(id: "Band Dead Bug", categoryLabel: "Core", movementPattern: .core, equipmentTags: [.bands]),
+    .init(id: "Band Anti-Rotation Hold", categoryLabel: "Core", movementPattern: .core, equipmentTags: [.bands]),
+    .init(id: "Band Thruster", categoryLabel: "Conditioning", movementPattern: .push, equipmentTags: [.bands]),
+    .init(id: "Band Squat to Press", categoryLabel: "Conditioning", movementPattern: .push, equipmentTags: [.bands]),
+    .init(id: "Band High Pull", categoryLabel: "Conditioning", movementPattern: .pull, equipmentTags: [.bands]),
+]
+
+public let trainingExerciseCatalog: [TrainingExerciseDefinition] = {
+    let maxEntries = weightliftingExercises.map { entry in
+        TrainingExerciseDefinition(
+            id: entry.id,
+            categoryLabel: entry.category.rawValue,
+            movementPattern: movementPattern(for: entry.category),
+            equipmentTags: maxExerciseEquipment[entry.id] ?? [.barbell, .plates],
+            bodyweightOnly: maxExerciseEquipment[entry.id] == [.bodyweight],
+            isMaxTrackable: true,
+            defaultScoringType: nil
+        )
+    }
+    let conditioningEntries = conditioningExercises.map { entry in
+        TrainingExerciseDefinition(
+            id: entry.id,
+            categoryLabel: "Conditioning",
+            movementPattern: movementPattern(for: entry.id),
+            equipmentTags: equipmentTags(for: entry.id),
+            bodyweightOnly: equipmentTags(for: entry.id) == [.bodyweight],
+            isMaxTrackable: false,
+            defaultScoringType: entry.defaultScoringType
+        )
+    }
+    var seen = Set<String>()
+    return (maxEntries + conditioningEntries + bandTrainingExercises).filter { definition in
+        seen.insert(definition.id).inserted
+    }
+}()
 
 private let conditioningMap: [String: ConditioningScoringType] = {
     Dictionary(uniqueKeysWithValues: conditioningExercises.map { ($0.id, $0.defaultScoringType) })

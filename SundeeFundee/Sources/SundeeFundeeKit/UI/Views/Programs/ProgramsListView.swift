@@ -11,6 +11,8 @@ import SafariServices
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
 public struct ProgramsListView: View {
     @StateObject private var viewModel = ProgramsListViewModel()
+    @State private var showingRecommendationQuiz = false
+    @State private var showingAIWorkout = false
 
     public init() {}
 
@@ -32,6 +34,8 @@ public struct ProgramsListView: View {
                 } else {
                     ScrollView {
                         VStack(spacing: AppTheme.Spacing.md) {
+                            programRecommendationPrompt
+
                             ForEach(viewModel.programs) { program in
                                 ProgramRow(
                                     program: program,
@@ -58,6 +62,28 @@ public struct ProgramsListView: View {
             .refreshable {
                 await viewModel.loadPrograms()
             }
+            .sheet(isPresented: $showingRecommendationQuiz) {
+                ProgramRecommendationSheet(
+                    viewModel: viewModel,
+                    onStartCoachPlan: {
+                        showingRecommendationQuiz = false
+                        showingAIWorkout = true
+                    }
+                )
+            }
+            #if os(iOS)
+            .fullScreenCover(isPresented: $showingAIWorkout) {
+                AIWorkoutView {
+                    showingAIWorkout = false
+                }
+            }
+            #else
+            .sheet(isPresented: $showingAIWorkout) {
+                AIWorkoutView {
+                    showingAIWorkout = false
+                }
+            }
+            #endif
             .alert("Error", isPresented: Binding(
                 get: { viewModel.errorMessage != nil },
                 set: { if !$0 { viewModel.errorMessage = nil } }
@@ -66,6 +92,184 @@ public struct ProgramsListView: View {
             } message: {
                 Text(viewModel.errorMessage ?? "")
             }
+        }
+    }
+
+    private var programRecommendationPrompt: some View {
+        ArtDecoCard {
+            HStack(alignment: .top, spacing: AppTheme.Spacing.md) {
+                Image(systemName: "questionmark.circle")
+                    .font(.title3)
+                    .foregroundColor(AppTheme.Accent.orange)
+                    .accessibilityHidden(true)
+
+                VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                    Text("Help Me Choose")
+                        .font(AppTheme.Typography.headlineMedium)
+                        .foregroundColor(AppTheme.Text.primary)
+
+                    Text(viewModel.topRecommendation?.reason ?? "Answer four quick questions to match your goal, schedule, and equipment.")
+                        .font(AppTheme.Typography.bodySmall)
+                        .foregroundColor(AppTheme.Text.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
+                Spacer()
+
+                Button {
+                    viewModel.updateRecommendations()
+                    showingRecommendationQuiz = true
+                } label: {
+                    Image(systemName: "slider.horizontal.3")
+                        .font(.headline)
+                }
+                .buttonStyle(.plain)
+                .foregroundColor(AppTheme.Accent.gold)
+                .accessibilityLabel("Open program recommendation quiz")
+            }
+        }
+    }
+}
+
+// MARK: - ProgramRecommendationSheet
+
+@available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
+private struct ProgramRecommendationSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @ObservedObject var viewModel: ProgramsListViewModel
+    let onStartCoachPlan: () -> Void
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: AppTheme.Spacing.lg) {
+                    quizControls
+
+                    if let recommendation = viewModel.topRecommendation {
+                        recommendationCard(recommendation, isPrimary: true)
+                    }
+
+                    ForEach(viewModel.programRecommendations.dropFirst()) { recommendation in
+                        recommendationCard(recommendation, isPrimary: false)
+                    }
+                }
+                .padding(AppTheme.Spacing.lg)
+            }
+            .navigationTitle("Help Me Choose")
+            #if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Done") { dismiss() }
+                }
+            }
+            .onChange(of: viewModel.recommendationGoal) { _, _ in viewModel.updateRecommendations() }
+            .onChange(of: viewModel.recommendationExperience) { _, _ in viewModel.updateRecommendations() }
+            .onChange(of: viewModel.recommendationDaysPerWeek) { _, _ in viewModel.updateRecommendations() }
+            .onChange(of: viewModel.recommendationEquipment) { _, _ in viewModel.updateRecommendations() }
+        }
+    }
+
+    private var quizControls: some View {
+        ArtDecoCard {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
+                Picker("Goal", selection: $viewModel.recommendationGoal) {
+                    ForEach(PrimaryGoal.recommendationChoices, id: \.self) { goal in
+                        Text(goal.displayName).tag(goal)
+                    }
+                }
+
+                Picker("Experience", selection: $viewModel.recommendationExperience) {
+                    ForEach(ExperienceLevel.recommendationChoices, id: \.self) { level in
+                        Text(level.displayName).tag(level)
+                    }
+                }
+
+                Stepper(
+                    "Days per week: \(viewModel.recommendationDaysPerWeek)",
+                    value: $viewModel.recommendationDaysPerWeek,
+                    in: 1...6
+                )
+
+                Picker("Equipment", selection: $viewModel.recommendationEquipment) {
+                    ForEach(EquipmentAccess.userSelectableDefaults, id: \.self) { equipment in
+                        Text(equipment.displayName).tag(equipment)
+                    }
+                }
+            }
+        }
+    }
+
+    private func recommendationCard(_ recommendation: ProgramRecommendation, isPrimary: Bool) -> some View {
+        ArtDecoCard {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
+                HStack {
+                    VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                        Text(isPrimary ? "Best Match" : "Also Consider")
+                            .font(AppTheme.Typography.labelMedium)
+                            .foregroundColor(AppTheme.Accent.gold)
+
+                        Text(recommendation.title)
+                            .font(AppTheme.Typography.headlineMedium)
+                            .foregroundColor(AppTheme.Text.primary)
+                    }
+
+                    Spacer()
+
+                    Text("\(recommendation.score)")
+                        .font(AppTheme.Typography.monoMedium)
+                        .foregroundColor(AppTheme.Text.secondary)
+                        .accessibilityLabel("Match score \(recommendation.score)")
+                }
+
+                Text(recommendation.subtitle)
+                    .font(AppTheme.Typography.bodySmall)
+                    .foregroundColor(AppTheme.Text.secondary)
+
+                Text(recommendation.reason)
+                    .font(AppTheme.Typography.bodySmall)
+                    .foregroundColor(AppTheme.Text.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                Button {
+                    select(recommendation)
+                } label: {
+                    Label(actionTitle(for: recommendation.kind), systemImage: actionIcon(for: recommendation.kind))
+                        .frame(maxWidth: .infinity)
+                }
+                .artDecoButton(style: isPrimary ? .accent : .secondary)
+            }
+        }
+    }
+
+    private func select(_ recommendation: ProgramRecommendation) {
+        switch recommendation.kind {
+        case .program(let template):
+            Task {
+                await viewModel.enrollInProgram(template.stableID)
+                dismiss()
+            }
+        case .coachPlan:
+            onStartCoachPlan()
+        }
+    }
+
+    private func actionTitle(for kind: ProgramRecommendationKind) -> String {
+        switch kind {
+        case .program:
+            return "Enroll"
+        case .coachPlan:
+            return "Build Coach Plan"
+        }
+    }
+
+    private func actionIcon(for kind: ProgramRecommendationKind) -> String {
+        switch kind {
+        case .program:
+            return "checkmark.seal"
+        case .coachPlan:
+            return "sparkles"
         }
     }
 }
@@ -402,6 +606,28 @@ struct ProgramDetailView: View {
                     .accessibilityHint("Return to your in-progress workout")
                 }
 
+                VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                    Text("Quick start edits")
+                        .font(AppTheme.Typography.labelSmall)
+                        .foregroundColor(AppTheme.Text.secondary)
+
+                    HStack(spacing: AppTheme.Spacing.xs) {
+                        programQuickEditButton("20m", edit: .shorten(minutes: 20), session: session, week: week)
+                        programQuickEditButton("30m", edit: .shorten(minutes: 30), session: session, week: week)
+                        programQuickEditButton("45m", edit: .shorten(minutes: 45), session: session, week: week)
+                    }
+
+                    HStack(spacing: AppTheme.Spacing.xs) {
+                        programQuickEditButton("Less Volume", edit: .reduceVolume, session: session, week: week)
+                        programQuickEditButton("Skip Last", edit: .removeLastExercise, session: session, week: week)
+                    }
+
+                    HStack(spacing: AppTheme.Spacing.xs) {
+                        programQuickEditButton("Swap Last", edit: .swapLastExercise, session: session, week: week)
+                        programQuickEditButton("Original", edit: .restoreOriginal, session: session, week: week)
+                    }
+                }
+
                 Button {
                     Task {
                         let workout = await viewModel.startSession(session, week: week, programName: program.name)
@@ -427,6 +653,29 @@ struct ProgramDetailView: View {
                     : "Create a workout from this session and open it")
             }
         }
+    }
+
+    private func programQuickEditButton(
+        _ title: String,
+        edit: ProgramSessionQuickEdit,
+        session: GeneratedProgramSession,
+        week: Int
+    ) -> some View {
+        Button {
+            Task {
+                let workout = await viewModel.startSession(session, week: week, programName: program.name, quickEdit: edit)
+                if let workout {
+                    activeWorkout = workout
+                }
+            }
+        } label: {
+            Text(title)
+                .font(AppTheme.Typography.labelMedium)
+                .frame(maxWidth: .infinity)
+        }
+        .artDecoButton(style: .ghost)
+        .disabled(viewModel.startingSessionId != nil)
+        .accessibilityHint("Start this session with the \(title) edit applied")
     }
 
     private func sessionLoadBar(_ session: GeneratedProgramSession) -> some View {
@@ -515,6 +764,16 @@ private struct SafariView: UIViewControllerRepresentable {
 }
 #endif
 
+// MARK: - ProgramSessionQuickEdit
+
+enum ProgramSessionQuickEdit: Equatable {
+    case shorten(minutes: Int)
+    case reduceVolume
+    case removeLastExercise
+    case swapLastExercise
+    case restoreOriginal
+}
+
 // MARK: - ProgramDetailViewModel
 
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
@@ -601,7 +860,12 @@ class ProgramDetailViewModel: ObservableObject {
         return workoutId
     }
 
-    func startSession(_ session: GeneratedProgramSession, week: Int, programName: String) async -> Workout? {
+    func startSession(
+        _ session: GeneratedProgramSession,
+        week: Int,
+        programName: String,
+        quickEdit: ProgramSessionQuickEdit? = nil
+    ) async -> Workout? {
         startingSessionId = session.sessionId
         defer { startingSessionId = nil }
 
@@ -614,12 +878,16 @@ class ProgramDetailViewModel: ObservableObject {
             session.exercises,
             context: adaptationContext
         )
+        let edited = Self.applyQuickEdit(quickEdit, to: adaptedExercises)
+        for edit in edited.edits {
+            await CoachMemoryService(dataClient: dataClient).recordWorkoutEdit(edit)
+        }
         let cycleMult = aiCyclePhaseMultiplier(adaptationContext.cyclePhase)
 
         let workout = Workout(
             date: Date(),
             name: "\(programName) — \(session.sessionName)",
-            exercises: adaptedExercises.map { ex in
+            exercises: edited.exercises.map { ex in
                 let setCount: Int
                 if case .fixed(let n) = ex.sets { setCount = n } else { setCount = 3 }
 
@@ -695,6 +963,185 @@ class ProgramDetailViewModel: ObservableObject {
     }
 
     // MARK: - Cycle & Max Helpers
+
+    private static func applyQuickEdit(
+        _ edit: ProgramSessionQuickEdit?,
+        to exercises: [GeneratedProgramExercise]
+    ) -> (exercises: [GeneratedProgramExercise], edits: [WorkoutEdit]) {
+        guard let edit else { return (exercises, []) }
+
+        switch edit {
+        case .shorten(let minutes):
+            let targetCount: Int
+            switch minutes {
+            case ...20: targetCount = 3
+            case 21...30: targetCount = 4
+            case 31...45: targetCount = 5
+            default: targetCount = exercises.count
+            }
+            let kept = Array(exercises.prefix(max(1, targetCount)))
+            let removed = exercises.dropFirst(kept.count)
+            return (
+                kept,
+                removed.map { WorkoutEdit(editType: .removedExercise, exerciseName: $0.exercise) }
+            )
+        case .reduceVolume:
+            var edits: [WorkoutEdit] = []
+            let reduced = exercises.map { exercise in
+                let reducedSets = reduceSets(exercise.sets)
+                if reducedSets != exercise.sets {
+                    edits.append(WorkoutEdit(editType: .changedVolume, exerciseName: exercise.exercise))
+                }
+                return copyProgramExercise(exercise, sets: reducedSets)
+            }
+            return (reduced, edits)
+        case .removeLastExercise:
+            guard exercises.count > 1, let removed = exercises.last else { return (exercises, []) }
+            return (
+                Array(exercises.dropLast()),
+                [WorkoutEdit(editType: .removedExercise, exerciseName: removed.exercise)]
+            )
+        case .swapLastExercise:
+            guard let last = exercises.last,
+                  let replacement = replacementExercise(for: last, existingExercises: exercises) else {
+                return (exercises, [])
+            }
+            var swapped = exercises
+            swapped[swapped.count - 1] = replacement
+            return (
+                swapped,
+                [WorkoutEdit(
+                    editType: .swappedExercise,
+                    exerciseName: last.exercise,
+                    replacementExercise: replacement.exercise
+                )]
+            )
+        case .restoreOriginal:
+            return (exercises, [])
+        }
+    }
+
+    private static func reduceSets(_ sets: ExerciseValue) -> ExerciseValue {
+        switch sets {
+        case .fixed(let value):
+            return .fixed(value: max(1, value - 1))
+        case .range(let low, let high):
+            return .range(low: max(1, low - 1), high: max(1, high - 1))
+        case .amrap, .text:
+            return sets
+        }
+    }
+
+    private static func copyProgramExercise(
+        _ exercise: GeneratedProgramExercise,
+        sets: ExerciseValue
+    ) -> GeneratedProgramExercise {
+        GeneratedProgramExercise(
+            exercise: exercise.exercise,
+            sets: sets,
+            reps: exercise.reps,
+            percent1RM: exercise.percent1RM,
+            restMinutes: exercise.restMinutes,
+            bodyweightOnly: exercise.bodyweightOnly
+        )
+    }
+
+    private static func copyProgramExercise(
+        _ exercise: GeneratedProgramExercise,
+        exerciseName: String,
+        percent1RM: Double?,
+        bodyweightOnly: Bool
+    ) -> GeneratedProgramExercise {
+        GeneratedProgramExercise(
+            exercise: exerciseName,
+            sets: exercise.sets,
+            reps: exercise.reps,
+            percent1RM: percent1RM,
+            restMinutes: exercise.restMinutes,
+            bodyweightOnly: bodyweightOnly
+        )
+    }
+
+    private static func replacementExercise(
+        for exercise: GeneratedProgramExercise,
+        existingExercises: [GeneratedProgramExercise]
+    ) -> GeneratedProgramExercise? {
+        let existingNames = Set(existingExercises.map { $0.exercise.lowercased() })
+        let targetDefinition = trainingExerciseCatalog.first {
+            $0.id.compare(exercise.exercise, options: [.caseInsensitive]) == .orderedSame
+        }
+        let targetPattern = targetDefinition?.movementPattern ?? inferredMovementPattern(for: exercise.exercise)
+        let targetTags = Set(targetDefinition?.equipmentTags ?? [])
+        let targetCategory = targetDefinition?.categoryLabel.lowercased()
+
+        let candidates = trainingExerciseCatalog
+            .filter { candidate in
+                candidate.movementPattern == targetPattern
+                    && !existingNames.contains(candidate.id.lowercased())
+                    && !candidate.equipmentTags.contains(.cardio)
+            }
+            .sorted { lhs, rhs in
+                swapCandidateScore(
+                    lhs,
+                    targetTags: targetTags,
+                    targetCategory: targetCategory,
+                    targetBodyweightOnly: exercise.bodyweightOnly,
+                    targetIsMaxTrackable: targetDefinition?.isMaxTrackable ?? isWeightliftingExercise(exercise.exercise)
+                ) > swapCandidateScore(
+                    rhs,
+                    targetTags: targetTags,
+                    targetCategory: targetCategory,
+                    targetBodyweightOnly: exercise.bodyweightOnly,
+                    targetIsMaxTrackable: targetDefinition?.isMaxTrackable ?? isWeightliftingExercise(exercise.exercise)
+                )
+            }
+
+        guard let replacement = candidates.first else { return nil }
+        return copyProgramExercise(
+            exercise,
+            exerciseName: replacement.id,
+            percent1RM: replacement.isMaxTrackable ? exercise.percent1RM : nil,
+            bodyweightOnly: replacement.bodyweightOnly
+        )
+    }
+
+    private static func inferredMovementPattern(for exerciseName: String) -> WorkoutMovementPattern {
+        let lower = exerciseName.lowercased()
+        if lower.contains("squat") || lower.contains("lunge") || lower.contains("step-up") {
+            return .squat
+        }
+        if lower.contains("deadlift") || lower.contains("hinge") || lower.contains("good morning") || lower.contains("swing") {
+            return .hinge
+        }
+        if lower.contains("press") || lower.contains("push") || lower.contains("dip") {
+            return .push
+        }
+        if lower.contains("pull") || lower.contains("row") || lower.contains("curl") {
+            return .pull
+        }
+        if lower.contains("carry") || lower.contains("walk") {
+            return .carry
+        }
+        if lower.contains("plank") || lower.contains("bug") || lower.contains("sit-up") || lower.contains("v-up") {
+            return .core
+        }
+        return .conditioning
+    }
+
+    private static func swapCandidateScore(
+        _ candidate: TrainingExerciseDefinition,
+        targetTags: Set<TrainingEquipmentTag>,
+        targetCategory: String?,
+        targetBodyweightOnly: Bool,
+        targetIsMaxTrackable: Bool
+    ) -> Int {
+        var score = 0
+        if !targetTags.isDisjoint(with: candidate.equipmentTags) { score += 20 }
+        if candidate.categoryLabel.lowercased() == targetCategory { score += 10 }
+        if candidate.bodyweightOnly == targetBodyweightOnly { score += 5 }
+        if candidate.isMaxTrackable == targetIsMaxTrackable { score += 3 }
+        return score
+    }
 
     private func loadAdaptationContext() async -> ProgramSessionAdaptationContext {
         async let cyclePhase = loadCyclePhase()
@@ -777,10 +1224,16 @@ class ProgramsListViewModel: ObservableObject {
     @Published var errorMessage: String?
     /// Tracks which program is currently being enrolled so the row can show a spinner.
     @Published var enrollingProgramId: String? = nil
+    @Published var recommendationGoal: PrimaryGoal = .strength
+    @Published var recommendationExperience: ExperienceLevel = .intermediate
+    @Published var recommendationDaysPerWeek: Int = 3
+    @Published var recommendationEquipment: EquipmentAccess = .fullGym
+    @Published var programRecommendations: [ProgramRecommendation] = []
 
     /// Persists across CloudKit re-fetches so optimistically-enrolled programs
     /// stay visible even while CloudKit index lag hasn't caught up yet.
     private var knownEnrolledIds: Set<String> = []
+    private var hasLoadedRecommendationDefaults = false
 
     private let dataClient: DataClientProtocol
     private let contentClient: ContentClientProtocol
@@ -810,6 +1263,7 @@ class ProgramsListViewModel: ObservableObject {
 
     func loadPrograms() async {
         isLoading = true
+        await loadRecommendationDefaultsIfNeeded()
 
         var enrolledIds: Set<String> = []
         do {
@@ -861,6 +1315,19 @@ class ProgramsListViewModel: ObservableObject {
         isLoading = false
     }
 
+    var topRecommendation: ProgramRecommendation? {
+        programRecommendations.first
+    }
+
+    func updateRecommendations() {
+        programRecommendations = ProgramRecommendationService.recommend(
+            goal: recommendationGoal,
+            experience: recommendationExperience,
+            daysPerWeek: recommendationDaysPerWeek,
+            equipment: recommendationEquipment
+        )
+    }
+
     func enrollInProgram(_ programId: String) async {
         enrollingProgramId = programId
         defer { enrollingProgramId = nil }
@@ -899,5 +1366,46 @@ class ProgramsListViewModel: ObservableObject {
 
     private func templateDisplayName(_ template: ProgramTemplate) -> String {
         template.displayName
+    }
+
+    private func loadRecommendationDefaultsIfNeeded() async {
+        guard !hasLoadedRecommendationDefaults else {
+            updateRecommendations()
+            return
+        }
+        hasLoadedRecommendationDefaults = true
+
+        if let settings = (try? await dataClient.fetchAll(recordType: "UserSettings") as [UserSettingsRecord])?.last {
+            recommendationGoal = PrimaryGoal(rawValue: settings.primaryGoal) ?? .strength
+            recommendationExperience = ExperienceLevel(rawValue: settings.experienceLevel) ?? .intermediate
+            recommendationEquipment = settings.defaultEquipment
+        }
+
+        updateRecommendations()
+    }
+}
+
+private extension PrimaryGoal {
+    static let recommendationChoices: [PrimaryGoal] = [.strength, .hypertrophy, .endurance, .weightLoss]
+
+    var displayName: String {
+        switch self {
+        case .strength: return "Strength"
+        case .hypertrophy: return "Muscle"
+        case .endurance: return "Endurance"
+        case .weightLoss: return "Conditioning"
+        }
+    }
+}
+
+private extension ExperienceLevel {
+    static let recommendationChoices: [ExperienceLevel] = [.beginner, .intermediate, .advanced]
+
+    var displayName: String {
+        switch self {
+        case .beginner: return "Beginner"
+        case .intermediate: return "Intermediate"
+        case .advanced: return "Advanced"
+        }
     }
 }

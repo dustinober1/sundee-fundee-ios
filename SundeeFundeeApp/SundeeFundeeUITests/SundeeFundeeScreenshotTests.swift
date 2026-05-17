@@ -83,13 +83,13 @@ final class SundeeFundeeScreenshotTests: XCTestCase {
 
         XCTAssertTrue(waitForScreen(title: "Coach Plan", timeout: 10), "Missing Coach Plan screen")
 
-        let resistanceBands = app.staticTexts["Resistance Bands"].firstMatch
+        let resistanceBands = app.staticTexts["Bands Only"].firstMatch
         let scrollView = app.scrollViews.firstMatch
         for _ in 0..<6 where !resistanceBands.isHittable {
             XCTAssertTrue(scrollView.waitForExistence(timeout: 2), "Missing Coach Plan scroll view")
             scrollView.swipeUp()
         }
-        XCTAssertTrue(resistanceBands.isHittable, "Missing visible Resistance Bands option")
+        XCTAssertTrue(resistanceBands.isHittable, "Missing visible Bands Only option")
         snapshot("01_coach_plan")
 
         let cancel = app.buttons["Cancel"].firstMatch

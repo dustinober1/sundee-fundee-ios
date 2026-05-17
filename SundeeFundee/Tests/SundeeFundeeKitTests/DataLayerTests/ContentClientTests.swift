@@ -207,6 +207,15 @@ struct BundledContentProviderTests {
         #expect(conditioningIDs.isSubset(of: bundledIDs))
     }
 
+    @Test("Bundled exercises include band training catalog entries")
+    func testBundledExercisesIncludeBands() throws {
+        let bundled = BundledContentProvider.exercises
+        let bandRow = try #require(bundled.first { $0.id == "Band Row" })
+        #expect(bandRow.equipment == ["bands"])
+        #expect(bandRow.bodyweight == false)
+        #expect(bandRow.category == "Pull")
+    }
+
     @Test("Bundled exercises have unique IDs")
     func testBundledExerciseUniqueIDs() {
         let bundled = BundledContentProvider.exercises

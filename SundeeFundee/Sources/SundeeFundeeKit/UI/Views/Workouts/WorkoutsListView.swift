@@ -109,6 +109,31 @@ public struct WorkoutsListView: View {
 
     private var workoutList: some View {
         List {
+            if let resumeCandidate = viewModel.resumeCandidate {
+                Section {
+                    NavigationLink(destination: WorkoutDetailView(workoutId: resumeCandidate.id)) {
+                        HStack(spacing: AppTheme.Spacing.md) {
+                            Image(systemName: "arrow.forward.circle.fill")
+                                .font(.title3)
+                                .foregroundColor(AppTheme.Accent.orange)
+                                .accessibilityHidden(true)
+
+                            VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                                Text("Resume \(resumeCandidate.name)")
+                                    .font(AppTheme.Typography.headlineMedium)
+                                    .foregroundColor(AppTheme.Text.primary)
+
+                                Text("Incomplete workouts stay resumable for 24 hours.")
+                                    .font(AppTheme.Typography.bodySmall)
+                                    .foregroundColor(AppTheme.Text.secondary)
+                            }
+                        }
+                        .padding(.vertical, AppTheme.Spacing.xs)
+                    }
+                    .listRowBackground(AppTheme.Accent.goldLight.opacity(0.35))
+                }
+            }
+
             ForEach(viewModel.workouts) { workout in
                 NavigationLink(destination: WorkoutDetailView(workoutId: workout.id)) {
                     WorkoutRowContent(workout: workout)
@@ -737,6 +762,7 @@ class NewWorkoutViewModel: ObservableObject {
 class WorkoutsListViewModel: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var workouts: [WorkoutListItem] = []
+    @Published var resumeCandidate: WorkoutListItem?
     @Published var showingNewWorkout: Bool = false
     @Published var errorMessage: String?
 
@@ -755,6 +781,7 @@ class WorkoutsListViewModel: ObservableObject {
                 sortDescriptors: [NSSortDescriptor(key: "date", ascending: false)]
             )
 
+            let staleThreshold = Date().addingTimeInterval(-24 * 60 * 60)
             workouts = records.map { workout in
                 WorkoutListItem(
                     id: workout.id,
@@ -765,9 +792,9 @@ class WorkoutsListViewModel: ObservableObject {
                     isComplete: workout.isComplete
                 )
             }
+            resumeCandidate = workouts.first { !$0.isComplete && $0.date >= staleThreshold }
 
             // Auto-complete stale workouts in background (non-blocking)
-            let staleThreshold = Date().addingTimeInterval(-24 * 60 * 60)
             let staleWorkouts = records.filter { $0.completedAt == nil && $0.date < staleThreshold }
             if !staleWorkouts.isEmpty {
                 let client = dataClient

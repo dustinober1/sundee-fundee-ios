@@ -34,17 +34,24 @@ public enum SubstitutionRanker {
         public let hasBarbell: Bool
         /// Whether dumbbells are available.
         public let hasDumbbells: Bool
+        /// Whether kettlebells are available.
+        public let hasKettlebells: Bool
         /// Whether a pull-up bar is available.
         public let hasPullUpBar: Bool
         /// Whether machines/cables are available.
         public let hasMachines: Bool
+        /// Whether resistance bands are available.
+        public let hasBands: Bool
 
         public init(hasBarbell: Bool = true, hasDumbbells: Bool = true,
-                    hasPullUpBar: Bool = true, hasMachines: Bool = true) {
+                    hasKettlebells: Bool = true, hasPullUpBar: Bool = true, hasMachines: Bool = true,
+                    hasBands: Bool = true) {
             self.hasBarbell = hasBarbell
             self.hasDumbbells = hasDumbbells
+            self.hasKettlebells = hasKettlebells
             self.hasPullUpBar = hasPullUpBar
             self.hasMachines = hasMachines
+            self.hasBands = hasBands
         }
 
         /// Full gym — everything available.
@@ -53,14 +60,39 @@ public enum SubstitutionRanker {
         /// Home with dumbbells only.
         public static let homeDumbbells = EquipmentContext(
             hasBarbell: false, hasDumbbells: true,
-            hasPullUpBar: false, hasMachines: false
+            hasKettlebells: false,
+            hasPullUpBar: false, hasMachines: false,
+            hasBands: false
         )
 
         /// Bodyweight only.
         public static let bodyweightOnly = EquipmentContext(
             hasBarbell: false, hasDumbbells: false,
-            hasPullUpBar: false, hasMachines: false
+            hasKettlebells: false,
+            hasPullUpBar: false, hasMachines: false,
+            hasBands: false
         )
+
+        /// Resistance bands only.
+        public static let resistanceBands = EquipmentContext(
+            hasBarbell: false, hasDumbbells: false,
+            hasKettlebells: false,
+            hasPullUpBar: false, hasMachines: false,
+            hasBands: true
+        )
+
+        /// Kettlebell only.
+        public static let kettlebellOnly = EquipmentContext(
+            hasBarbell: false, hasDumbbells: false,
+            hasKettlebells: true,
+            hasPullUpBar: false, hasMachines: false,
+            hasBands: false
+        )
+    }
+
+    private struct SubstitutionCatalogEntry {
+        let id: String
+        let category: WeightliftingCategory
     }
 
     // MARK: - Muscle Activation Map
@@ -103,6 +135,12 @@ public enum SubstitutionRanker {
         "Dumbbell Overhead Press":     ["Front Delts", "Triceps", "Side Delts"],
         "Dips (Weighted)":             ["Chest", "Triceps", "Front Delts"],
         "Close Grip Bench Press":      ["Triceps", "Chest", "Front Delts"],
+        "Band Chest Press":            ["Chest", "Triceps", "Front Delts"],
+        "Band Push-Up":                ["Chest", "Triceps", "Front Delts"],
+        "Band Overhead Press":         ["Front Delts", "Triceps", "Side Delts"],
+        "Band Lateral Raise":          ["Side Delts"],
+        "Band Front Raise":            ["Front Delts"],
+        "Band Triceps Pressdown":      ["Triceps"],
         // Pull
         "Barbell Row":              ["Upper Back", "Lats", "Biceps", "Rear Delts"],
         "Pendlay Row":              ["Upper Back", "Lats", "Biceps"],
@@ -116,6 +154,31 @@ public enum SubstitutionRanker {
         "Bicep Curl (Dumbbell)":    ["Biceps"],
         "Hammer Curl":              ["Biceps", "Forearms"],
         "Upright Row":              ["Side Delts", "Traps", "Biceps"],
+        "Band Row":                 ["Upper Back", "Lats", "Biceps"],
+        "Band Lat Pulldown":        ["Lats", "Biceps", "Upper Back"],
+        "Band Face Pull":           ["Rear Delts", "Upper Back"],
+        "Band Pull-Apart":          ["Rear Delts", "Upper Back"],
+        "Band Biceps Curl":         ["Biceps"],
+        "Band Hammer Curl":         ["Biceps", "Forearms"],
+        "Band Straight-Arm Pulldown": ["Lats", "Upper Back"],
+        // Band lower body and core
+        "Band Squat":               ["Quads", "Glutes", "Core"],
+        "Band Split Squat":         ["Quads", "Glutes"],
+        "Band Reverse Lunge":       ["Quads", "Glutes"],
+        "Band Lateral Walk":        ["Glutes"],
+        "Band Monster Walk":        ["Glutes"],
+        "Band Romanian Deadlift":   ["Hamstrings", "Glutes", "Lower Back"],
+        "Band Good Morning":        ["Hamstrings", "Glutes", "Lower Back"],
+        "Band Pull-Through":        ["Hamstrings", "Glutes"],
+        "Band Glute Bridge":        ["Glutes", "Hamstrings"],
+        "Band Hamstring Curl":      ["Hamstrings"],
+        "Pallof Press":             ["Core"],
+        "Band Wood Chop":           ["Core"],
+        "Band Dead Bug":            ["Core"],
+        "Band Anti-Rotation Hold":  ["Core"],
+        "Band Thruster":            ["Quads", "Glutes", "Shoulders", "Triceps", "Core"],
+        "Band Squat to Press":      ["Quads", "Glutes", "Shoulders", "Triceps", "Core"],
+        "Band High Pull":           ["Upper Back", "Traps", "Biceps"],
         // Carry
         "Farmers Carry":     ["Grip", "Core", "Traps", "Shoulders"],
         "Suitcase Carry":    ["Core", "Grip", "Shoulders"],
@@ -153,12 +216,12 @@ public enum SubstitutionRanker {
         profile: CoachProfile? = nil,
         limit: Int = 5
     ) -> [RankedSubstitution] {
-        guard let targetEntry = weightliftingExercises.first(where: { $0.id == target }) else {
+        guard let targetEntry = substitutionCatalog.first(where: { $0.id == target }) else {
             return []
         }
         let targetCategory = targetEntry.category
 
-        let candidates = weightliftingExercises.filter {
+        let candidates = substitutionCatalog.filter {
             $0.id != target
         }
 
@@ -254,6 +317,30 @@ public enum SubstitutionRanker {
 
     // MARK: - Muscle Overlap
 
+    private static var substitutionCatalog: [SubstitutionCatalogEntry] {
+        var seen = Set<String>()
+        let maxEntries = weightliftingExercises.map {
+            SubstitutionCatalogEntry(id: $0.id, category: $0.category)
+        }
+        let trainingEntries = trainingExerciseCatalog.map {
+            SubstitutionCatalogEntry(
+                id: $0.id,
+                category: category(for: $0.movementPattern)
+            )
+        }
+        return (maxEntries + trainingEntries).filter { seen.insert($0.id).inserted }
+    }
+
+    private static func category(for pattern: WorkoutMovementPattern) -> WeightliftingCategory {
+        switch pattern {
+        case .squat: return .squat
+        case .hinge: return .hipHinge
+        case .push: return .press
+        case .pull: return .pull
+        case .carry, .core, .conditioning: return .carry
+        }
+    }
+
     /// Computes Jaccard similarity between the muscle groups of two exercises.
     /// Returns 0 if either exercise has no known muscle data.
     private static func muscleOverlapScore(_ a: String, _ b: String) -> Double {
@@ -304,11 +391,36 @@ public enum SubstitutionRanker {
     private static func matchesEquipment(_ exercise: String, equipment: EquipmentContext) -> Bool {
         let name = exercise.lowercased()
 
+        if let definition = trainingExerciseCatalog.first(where: { $0.id == exercise }) {
+            return definition.equipmentTags.allSatisfy { tag in
+                switch tag {
+                case .barbell, .plates:
+                    return equipment.hasBarbell
+                case .dumbbells:
+                    return equipment.hasDumbbells
+                case .kettlebell:
+                    return equipment.hasKettlebells
+                case .bands:
+                    return equipment.hasBands
+                case .machine, .cable, .cardio, .box:
+                    return equipment.hasMachines
+                case .bodyweight:
+                    return true
+                }
+            }
+        }
+
         if name.contains("barbell") || name.contains("bar ") {
             return equipment.hasBarbell
         }
         if name.contains("dumbbell") {
             return equipment.hasDumbbells
+        }
+        if name.contains("kettlebell") {
+            return equipment.hasKettlebells
+        }
+        if name.contains("band") || name.contains("pallof") {
+            return equipment.hasBands
         }
         if name.contains("pull-up") || name.contains("chin-up") || name.contains("muscle-up") {
             return equipment.hasPullUpBar

@@ -10,9 +10,8 @@ struct ExercisePickerView: View {
     @Environment(\.dismiss) private var dismiss
 
     @State private var searchText: String = ""
-    @State private var selectedCategory: WeightliftingCategory? = nil
+    @State private var selectedCategory: String? = nil
     @State private var selectedExercises: [String] = []
-    @State private var showConditioningSection: Bool = false
 
     let onSelect: ([String]) -> Void
 
@@ -24,18 +23,13 @@ struct ExercisePickerView: View {
 
                 // Exercise List
                 List {
-                    if !filteredWeightlifting.isEmpty {
-                        Section("Weightlifting") {
-                            ForEach(filteredWeightlifting, id: \.id) { entry in
-                                exerciseRow(entry.id)
-                            }
-                        }
-                    }
-
-                    if !filteredConditioning.isEmpty {
-                        Section("Conditioning") {
-                            ForEach(filteredConditioning, id: \.id) { entry in
-                                exerciseRow(entry.id)
+                    ForEach(groupedTrainingCategories, id: \.self) { category in
+                        let exercises = filteredTraining.filter { $0.categoryLabel == category }
+                        if !exercises.isEmpty {
+                            Section(category) {
+                                ForEach(exercises) { entry in
+                                    exerciseRow(entry.id)
+                                }
                             }
                         }
                     }
@@ -72,8 +66,8 @@ struct ExercisePickerView: View {
                     selectedCategory = nil
                 }
 
-                ForEach(WeightliftingCategory.allCases, id: \.self) { category in
-                    categoryChip(category.rawValue, isSelected: selectedCategory == category) {
+                ForEach(groupedTrainingCategories, id: \.self) { category in
+                    categoryChip(category, isSelected: selectedCategory == category) {
                         selectedCategory = category
                     }
                 }
@@ -132,11 +126,11 @@ struct ExercisePickerView: View {
 
     // MARK: - Filtered Data
 
-    private var filteredWeightlifting: [WeightliftingEntry] {
-        var results = weightliftingExercises
+    private var filteredTraining: [TrainingExerciseDefinition] {
+        var results = trainingExerciseCatalog
 
         if let category = selectedCategory {
-            results = results.filter { $0.category == category }
+            results = results.filter { $0.categoryLabel == category }
         }
 
         if !searchText.isEmpty {
@@ -147,14 +141,10 @@ struct ExercisePickerView: View {
         return results
     }
 
-    private var filteredConditioning: [ConditioningEntry] {
-        if selectedCategory != nil { return [] } // Only show conditioning in "All"
-
-        if !searchText.isEmpty {
-            let query = searchText.lowercased()
-            return conditioningExercises.filter { $0.id.lowercased().contains(query) }
-        }
-
-        return conditioningExercises
+    private var groupedTrainingCategories: [String] {
+        let preferred = ["Squat", "Hip Hinge", "Press", "Pull", "Carry", "Core", "Conditioning", "Olympic Weightlifting"]
+        let available = Set(trainingExerciseCatalog.map(\.categoryLabel))
+        return preferred.filter { available.contains($0) }
+            + available.subtracting(preferred).sorted()
     }
 }

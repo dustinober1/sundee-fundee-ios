@@ -274,6 +274,25 @@ public struct OnboardingView: View {
                         }
                     }
                 }
+
+                ArtDecoCard {
+                    VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
+                        Text("Default Equipment")
+                            .font(AppTheme.Typography.headlineMedium)
+                            .foregroundColor(AppTheme.Text.primary)
+
+                        Picker("Default Equipment", selection: $viewModel.defaultEquipment) {
+                            ForEach(EquipmentAccess.userSelectableDefaults, id: \.self) { equipment in
+                                Text(equipment.displayName).tag(equipment)
+                            }
+                        }
+                        .pickerStyle(.menu)
+
+                        Text(viewModel.defaultEquipment.shortDescription)
+                            .font(AppTheme.Typography.bodySmall)
+                            .foregroundColor(AppTheme.Text.secondary)
+                    }
+                }
             }
 
             Spacer()
@@ -338,6 +357,7 @@ class OnboardingViewModel: ObservableObject {
     @Published var primaryGoal: PrimaryGoal = .strength
     @Published var weightUnit: WeightUnit = .lbs
     @Published var cycleTrackingEnabled: Bool = false
+    @Published var defaultEquipment: EquipmentAccess = .fullGym
 
     private let dataClient: DataClientProtocol
 
@@ -355,7 +375,8 @@ class OnboardingViewModel: ObservableObject {
             cycleTrackingEnabled: cycleTrackingEnabled,
             weightUnit: weightUnit.rawValue,
             experienceLevel: experienceLevel.rawValue,
-            primaryGoal: primaryGoal.rawValue
+            primaryGoal: primaryGoal.rawValue,
+            defaultEquipment: defaultEquipment
         )
         do {
             try await dataClient.save(settings, recordType: "UserSettings")
@@ -375,7 +396,8 @@ class OnboardingViewModel: ObservableObject {
                 experienceLevel: experienceLevel,
                 primaryGoal: primaryGoal,
                 weightUnit: weightUnit,
-                cycleTrackingEnabled: cycleTrackingEnabled
+                cycleTrackingEnabled: cycleTrackingEnabled,
+                defaultEquipment: defaultEquipment
             )
         )
     }

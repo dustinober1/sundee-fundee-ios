@@ -79,6 +79,12 @@ public struct SettingsView: View {
                         Text("Weight Loss").tag(PrimaryGoal.weightLoss)
                     }
 
+                    Picker("Default Equipment", selection: $viewModel.defaultEquipment) {
+                        ForEach(EquipmentAccess.userSelectableDefaults, id: \.self) { equipment in
+                            Text(equipment.displayName).tag(equipment)
+                        }
+                    }
+
                     #if canImport(UserNotifications)
                     NavigationLink {
                         WorkoutRemindersSettingsView()
@@ -90,6 +96,7 @@ public struct SettingsView: View {
                 .onChange(of: viewModel.weightUnit) { _, _ in Task { await viewModel.saveSettings() } }
                 .onChange(of: viewModel.experienceLevel) { _, _ in Task { await viewModel.saveSettings() } }
                 .onChange(of: viewModel.primaryGoal) { _, _ in Task { await viewModel.saveSettings() } }
+                .onChange(of: viewModel.defaultEquipment) { _, _ in Task { await viewModel.saveSettings() } }
                 .onChange(of: viewModel.cycleTrackingEnabled) { _, _ in Task { await viewModel.saveSettings() } }
 
                 // Data & Privacy Section
@@ -242,18 +249,25 @@ struct UserSettingsRecord: Codable, Sendable {
     let weightUnit: String
     let experienceLevel: String
     let primaryGoal: String
+    let defaultEquipmentRaw: String
+
+    var defaultEquipment: EquipmentAccess {
+        EquipmentAccess(rawValue: defaultEquipmentRaw) ?? .fullGym
+    }
 
     init(
         cycleTrackingEnabled: Bool,
         weightUnit: String,
         experienceLevel: String,
-        primaryGoal: String
+        primaryGoal: String,
+        defaultEquipment: EquipmentAccess = .fullGym
     ) {
         self.id = "user_settings"
         self.cycleTrackingEnabled = cycleTrackingEnabled
         self.weightUnit = weightUnit
         self.experienceLevel = experienceLevel
         self.primaryGoal = primaryGoal
+        self.defaultEquipmentRaw = defaultEquipment.rawValue
     }
 
     // CloudKit stores Bool as Int64. JSONDecoder expects Bool.
@@ -268,6 +282,10 @@ struct UserSettingsRecord: Codable, Sendable {
         weightUnit = try container.decode(String.self, forKey: .weightUnit)
         experienceLevel = try container.decode(String.self, forKey: .experienceLevel)
         primaryGoal = try container.decode(String.self, forKey: .primaryGoal)
+        let rawEquipment = try container.decodeIfPresent(String.self, forKey: .defaultEquipmentRaw)
+            ?? EquipmentAccess.fullGym.rawValue
+        defaultEquipmentRaw = EquipmentAccess(rawValue: rawEquipment)?.rawValue
+            ?? EquipmentAccess.fullGym.rawValue
     }
 }
 
@@ -281,6 +299,7 @@ class SettingsViewModel: ObservableObject {
     @Published var weightUnit: WeightUnit = .lbs
     @Published var experienceLevel: ExperienceLevel = .intermediate
     @Published var primaryGoal: PrimaryGoal = .strength
+    @Published var defaultEquipment: EquipmentAccess = .fullGym
     @Published var isSaving: Bool = false
     @Published var errorMessage: String?
 
@@ -313,6 +332,7 @@ class SettingsViewModel: ObservableObject {
                 weightUnit = WeightUnit(rawValue: settings.weightUnit) ?? .lbs
                 experienceLevel = ExperienceLevel(rawValue: settings.experienceLevel) ?? .intermediate
                 primaryGoal = PrimaryGoal(rawValue: settings.primaryGoal) ?? .strength
+                defaultEquipment = settings.defaultEquipment
             }
             hasLoaded = true
             isLoaded = true
@@ -353,7 +373,8 @@ class SettingsViewModel: ObservableObject {
                 cycleTrackingEnabled: self.cycleTrackingEnabled,
                 weightUnit: self.weightUnit.rawValue,
                 experienceLevel: self.experienceLevel.rawValue,
-                primaryGoal: self.primaryGoal.rawValue
+                primaryGoal: self.primaryGoal.rawValue,
+                defaultEquipment: self.defaultEquipment
             )
 
             do {

@@ -26,6 +26,33 @@ struct RecoveryOverviewView: View {
                     .font(AppTheme.Typography.bodyMedium)
                     .foregroundColor(AppTheme.Text.secondary)
                     .fixedSize(horizontal: false, vertical: true)
+
+                if viewModel.score == nil && !viewModel.isLoading {
+                    ArtDecoCard {
+                        VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
+                            Text("Improve Today's Score")
+                                .font(AppTheme.Typography.headlineMedium)
+                                .foregroundColor(AppTheme.Text.primary)
+
+                            Text("Recovery works best after a recent workout, a pain check-in, cycle context, and available Apple Health sleep or HRV data.")
+                                .font(AppTheme.Typography.bodySmall)
+                                .foregroundColor(AppTheme.Text.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+
+                            NavigationLink(destination: PainTrackingView()) {
+                                Label("Log Pain or Soreness", systemImage: "bandage")
+                                    .frame(maxWidth: .infinity)
+                            }
+                            .artDecoButton(style: .secondary)
+
+                            NavigationLink(destination: CycleTrackingView()) {
+                                Label("Update Cycle", systemImage: "calendar.badge.plus")
+                                    .frame(maxWidth: .infinity)
+                            }
+                            .artDecoButton(style: .secondary)
+                        }
+                    }
+                }
             }
             .padding(AppTheme.Spacing.lg)
         }

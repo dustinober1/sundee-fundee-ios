@@ -66,34 +66,19 @@ public struct BundledContentProvider: Sendable, ContentClientProtocol {
 
     // MARK: - Exercises
 
-    /// All bundled exercises combining weightlifting and conditioning catalogs
+    /// All bundled exercises from the general training catalog.
     public static var exercises: [ContentExercise] {
-        let weightlifting = weightliftingExercises.enumerated().map { index, entry in
+        trainingExerciseCatalog.enumerated().map { index, entry in
             ContentExercise(
                 id: entry.id,
                 name: entry.id,
-                category: entry.category.rawValue,
-                bodyweight: false,
-                equipment: ["barbell"], // Most weightlifting exercises use barbells
-                movementTags: nil,
+                category: entry.categoryLabel,
+                bodyweight: entry.bodyweightOnly,
+                equipment: entry.equipmentTags.map(\.rawValue),
+                movementTags: [entry.movementPattern.rawValue],
                 sortOrder: index,
                 source: .bundled
             )
         }
-
-        let conditioning = conditioningExercises.enumerated().map { index, entry in
-            ContentExercise(
-                id: entry.id,
-                name: entry.id,
-                category: "Conditioning",
-                bodyweight: entry.defaultScoringType == .reps, // Rep-based exercises are often bodyweight
-                equipment: nil,
-                movementTags: nil,
-                sortOrder: weightlifting.count + index,
-                source: .bundled
-            )
-        }
-
-        return weightlifting + conditioning
     }
 }

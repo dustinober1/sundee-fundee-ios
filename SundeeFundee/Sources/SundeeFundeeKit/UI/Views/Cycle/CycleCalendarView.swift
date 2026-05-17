@@ -29,6 +29,8 @@ public struct CycleCalendarView: View {
                 // Current Phase Detail
                 if let status = viewModel.currentStatus {
                     phaseDetailCard(status)
+                } else {
+                    cycleEmptyState
                 }
             }
             .padding(AppTheme.Spacing.lg)
@@ -194,6 +196,32 @@ public struct CycleCalendarView: View {
         .accessibilityLabel("\(label) phase")
     }
 
+    private var cycleEmptyState: some View {
+        ArtDecoCard {
+            VStack(spacing: AppTheme.Spacing.md) {
+                Image(systemName: "calendar.badge.plus")
+                    .font(.title)
+                    .foregroundColor(AppTheme.Accent.gold)
+                    .accessibilityHidden(true)
+
+                Text("No Cycle Data Yet")
+                    .font(AppTheme.Typography.headlineMedium)
+                    .foregroundColor(AppTheme.Text.primary)
+
+                Text("Log your period to unlock phase estimates and cycle-aware workout adjustments.")
+                    .font(AppTheme.Typography.bodyMedium)
+                    .foregroundColor(AppTheme.Text.secondary)
+                    .multilineTextAlignment(.center)
+
+                NavigationLink(destination: CycleTrackingView()) {
+                    Label("Log Period", systemImage: "plus.circle.fill")
+                        .frame(maxWidth: .infinity)
+                }
+                .artDecoButton(style: .primary)
+            }
+        }
+    }
+
     // MARK: - Phase Detail Card
 
     private func phaseDetailCard(_ status: CycleStatusResult) -> some View {
@@ -223,6 +251,24 @@ public struct CycleCalendarView: View {
                 Text(rec.description)
                     .font(AppTheme.Typography.bodySmall)
                     .foregroundColor(AppTheme.Text.secondary)
+
+                HStack(alignment: .top, spacing: AppTheme.Spacing.sm) {
+                    Image(systemName: "gauge.with.dots.needle.33percent")
+                        .font(.headline)
+                        .foregroundColor(confidenceColor(viewModel.phaseConfidence))
+                        .accessibilityHidden(true)
+
+                    VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                        Text("Phase Confidence: \(confidenceLabel(viewModel.phaseConfidence))")
+                            .font(AppTheme.Typography.labelMedium)
+                            .foregroundColor(AppTheme.Text.primary)
+
+                        Text(confidenceHelpText(viewModel.phaseConfidence))
+                            .font(AppTheme.Typography.bodySmall)
+                            .foregroundColor(AppTheme.Text.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
 
                 Divider()
                     .background(AppTheme.Accent.gold.opacity(0.3))
@@ -271,7 +317,7 @@ public struct CycleCalendarView: View {
 
     private func phaseColor(_ phase: CyclePhase) -> Color {
         switch phase {
-        case .menstrual: return .red
+        case .menstrual: return AppTheme.Semantic.error
         case .follicular: return AppTheme.Accent.gold
         case .ovulation: return AppTheme.Accent.orange
         case .luteal: return AppTheme.Text.secondary
@@ -295,6 +341,28 @@ public struct CycleCalendarView: View {
         case .luteal: return "Luteal"
         }
     }
+
+    private func confidenceLabel(_ confidence: Double) -> String {
+        if confidence >= 0.7 { return "High" }
+        if confidence >= 0.4 { return "Medium" }
+        return "Low"
+    }
+
+    private func confidenceHelpText(_ confidence: Double) -> String {
+        if confidence >= 0.7 {
+            return "Recent period data is keeping the calendar aligned."
+        }
+        if confidence >= 0.4 {
+            return "Log your next period to keep predicted phases useful."
+        }
+        return "Period logging improves this estimate and makes cycle-aware workout changes more trustworthy."
+    }
+
+    private func confidenceColor(_ confidence: Double) -> Color {
+        if confidence >= 0.7 { return AppTheme.Semantic.success }
+        if confidence >= 0.4 { return AppTheme.Accent.gold }
+        return AppTheme.Accent.orange
+    }
 }
 
 // MARK: - CycleCalendarViewModel
@@ -307,6 +375,7 @@ class CycleCalendarViewModel: ObservableObject {
     @Published var currentMonth: Int
     @Published var currentYear: Int
     @Published var firstDayOffset: Int = 0
+    @Published var phaseConfidence: Double = 0
 
     private var periodLogs: [PeriodLog] = []
     private var settings: CycleSettings = CycleSettings()
@@ -410,6 +479,7 @@ class CycleCalendarViewModel: ObservableObject {
 
         // Calculate current status
         if hasActivePeriod, let activePeriodLog = periodLogs.first(where: { $0.endDate == nil }) {
+            phaseConfidence = 1.0
             // Active period: force menstrual status
             let cycleDay = Calendar.current.dateComponents(
                 [.day],
@@ -431,6 +501,7 @@ class CycleCalendarViewModel: ObservableObject {
                 periodLogs: periodLogs,
                 settings: settings
             )
+            phaseConfidence = Self.estimateConfidence(from: periodLogs)
         }
 
         await loadCalendarData()
@@ -449,5 +520,13 @@ class CycleCalendarViewModel: ObservableObject {
         if let firstOfMonth = cal.date(from: DateComponents(year: currentYear, month: currentMonth, day: 1)) {
             firstDayOffset = cal.component(.weekday, from: firstOfMonth) - 1 // Sunday = 0
         }
+    }
+
+    private static func estimateConfidence(from logs: [PeriodLog]) -> Double {
+        guard let latestStart = logs.map(\.startDate).max() else { return 0 }
+        let daysSinceLatest = Date().timeIntervalSince(latestStart) / (60 * 60 * 24)
+        if daysSinceLatest <= 45 { return 0.8 }
+        if daysSinceLatest <= 90 { return 0.55 }
+        return 0.25
     }
 }

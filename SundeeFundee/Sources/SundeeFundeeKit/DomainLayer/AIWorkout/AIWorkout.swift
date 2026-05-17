@@ -11,6 +11,10 @@ public enum WorkoutFocus: String, Codable, Sendable, Equatable {
     case pull
     case core
     case conditioning
+
+    public static let allCasesForTesting: [WorkoutFocus] = [
+        .upperBody, .lowerBody, .fullBody, .push, .pull, .core, .conditioning
+    ]
 }
 
 /// Energy level for workout generation
@@ -21,13 +25,39 @@ public enum EnergyLevel: String, Codable, Sendable, Equatable {
 }
 
 /// Equipment access level
-public enum EquipmentAccess: String, Codable, Sendable, Equatable {
+public enum EquipmentAccess: String, Codable, Sendable, Equatable, Hashable {
     case fullGym = "full_gym"
     case homeDumbbells = "home_dumbbells"
     case resistanceBands = "resistance_bands"
     case bodyweightOnly = "bodyweight_only"
     case kettlebellOnly = "kettlebell_only"
     case outdoor
+
+    public var displayName: String {
+        switch self {
+        case .fullGym: return "Full Gym"
+        case .homeDumbbells: return "Dumbbells"
+        case .resistanceBands: return "Bands Only"
+        case .bodyweightOnly: return "Bodyweight Only"
+        case .kettlebellOnly: return "Kettlebell Only"
+        case .outdoor: return "Outdoor"
+        }
+    }
+
+    public var shortDescription: String {
+        switch self {
+        case .fullGym: return "Barbells, machines, dumbbells, bands"
+        case .homeDumbbells: return "Dumbbells and bench"
+        case .resistanceBands: return "Resistance-band training"
+        case .bodyweightOnly: return "No equipment"
+        case .kettlebellOnly: return "Single or pair of bells"
+        case .outdoor: return "Outdoor and bodyweight work"
+        }
+    }
+
+    public static let userSelectableDefaults: [EquipmentAccess] = [
+        .fullGym, .homeDumbbells, .resistanceBands, .kettlebellOnly, .bodyweightOnly
+    ]
 }
 
 /// Questionnaire answers for AI workout generation
@@ -417,43 +447,63 @@ private func resistanceBandExercisePool(for focus: WorkoutFocus) -> [WorkoutExer
     case .upperBody, .push:
         return [
             .init(name: "Band Chest Press", bodyweightOnly: false, pattern: .push),
+            .init(name: "Band Push-Up", bodyweightOnly: false, pattern: .push),
             .init(name: "Band Overhead Press", bodyweightOnly: false, pattern: .push),
+            .init(name: "Band Lateral Raise", bodyweightOnly: false, pattern: .push),
+            .init(name: "Band Front Raise", bodyweightOnly: false, pattern: .push),
             .init(name: "Band Triceps Pressdown", bodyweightOnly: false, pattern: .push),
             .init(name: "Push-Up", bodyweightOnly: true, pattern: .push)
         ]
     case .pull:
         return [
             .init(name: "Band Row", bodyweightOnly: false, pattern: .pull),
+            .init(name: "Band Lat Pulldown", bodyweightOnly: false, pattern: .pull),
             .init(name: "Band Face Pull", bodyweightOnly: false, pattern: .pull),
             .init(name: "Band Pull-Apart", bodyweightOnly: false, pattern: .pull),
-            .init(name: "Band Biceps Curl", bodyweightOnly: false, pattern: .pull)
+            .init(name: "Band Biceps Curl", bodyweightOnly: false, pattern: .pull),
+            .init(name: "Band Hammer Curl", bodyweightOnly: false, pattern: .pull),
+            .init(name: "Band Straight-Arm Pulldown", bodyweightOnly: false, pattern: .pull)
         ]
     case .lowerBody:
         return [
             .init(name: "Band Squat", bodyweightOnly: false, pattern: .squat),
+            .init(name: "Band Split Squat", bodyweightOnly: false, pattern: .squat),
+            .init(name: "Band Reverse Lunge", bodyweightOnly: false, pattern: .squat),
+            .init(name: "Band Lateral Walk", bodyweightOnly: false, pattern: .squat),
+            .init(name: "Band Monster Walk", bodyweightOnly: false, pattern: .squat),
+            .init(name: "Band Romanian Deadlift", bodyweightOnly: false, pattern: .hinge),
             .init(name: "Band Good Morning", bodyweightOnly: false, pattern: .hinge),
+            .init(name: "Band Pull-Through", bodyweightOnly: false, pattern: .hinge),
             .init(name: "Band Glute Bridge", bodyweightOnly: false, pattern: .hinge),
+            .init(name: "Band Hamstring Curl", bodyweightOnly: false, pattern: .hinge),
             .init(name: "Reverse Lunge", bodyweightOnly: true, pattern: .squat)
         ]
     case .fullBody:
         return [
             .init(name: "Band Squat", bodyweightOnly: false, pattern: .squat),
+            .init(name: "Band Romanian Deadlift", bodyweightOnly: false, pattern: .hinge),
             .init(name: "Band Good Morning", bodyweightOnly: false, pattern: .hinge),
             .init(name: "Band Chest Press", bodyweightOnly: false, pattern: .push),
+            .init(name: "Band Overhead Press", bodyweightOnly: false, pattern: .push),
             .init(name: "Band Row", bodyweightOnly: false, pattern: .pull),
             .init(name: "Band Pull-Apart", bodyweightOnly: false, pattern: .pull),
+            .init(name: "Pallof Press", bodyweightOnly: false, pattern: .core),
             .init(name: "Plank Hold", bodyweightOnly: true, pattern: .core)
         ]
     case .core:
         return [
             .init(name: "Pallof Press", bodyweightOnly: false, pattern: .core),
+            .init(name: "Band Wood Chop", bodyweightOnly: false, pattern: .core),
             .init(name: "Band Dead Bug", bodyweightOnly: false, pattern: .core),
+            .init(name: "Band Anti-Rotation Hold", bodyweightOnly: false, pattern: .core),
             .init(name: "Plank Hold", bodyweightOnly: true, pattern: .core),
             .init(name: "Dead Bug", bodyweightOnly: true, pattern: .core)
         ]
     case .conditioning:
         return [
             .init(name: "Band Thruster", bodyweightOnly: false, pattern: .push),
+            .init(name: "Band Squat to Press", bodyweightOnly: false, pattern: .push),
+            .init(name: "Band High Pull", bodyweightOnly: false, pattern: .pull),
             .init(name: "Band Row", bodyweightOnly: false, pattern: .pull),
             .init(name: "Burpee", bodyweightOnly: true, pattern: .conditioning),
             .init(name: "Mountain Climber", bodyweightOnly: true, pattern: .core)

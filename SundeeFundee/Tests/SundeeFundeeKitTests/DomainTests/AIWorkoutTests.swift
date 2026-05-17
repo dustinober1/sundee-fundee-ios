@@ -170,10 +170,24 @@ final class AIWorkoutTests: XCTestCase {
     func testResistanceBandsOnlyAllowsBandAndBodyweightMovements() {
         XCTAssertTrue(isExerciseAllowed("Band Row", for: .resistanceBands))
         XCTAssertTrue(isExerciseAllowed("Band Pull-Apart", for: .resistanceBands))
+        XCTAssertTrue(isExerciseAllowed("Band Squat to Press", for: .resistanceBands))
+        XCTAssertTrue(isExerciseAllowed("Pallof Press", for: .resistanceBands))
         XCTAssertTrue(isExerciseAllowed("Push-Up", for: .resistanceBands))
         XCTAssertFalse(isExerciseAllowed("Flat Barbell Bench Press", for: .resistanceBands))
         XCTAssertFalse(isExerciseAllowed("Dumbbell Row", for: .resistanceBands))
         XCTAssertFalse(isExerciseAllowed("Kettlebell Swing", for: .resistanceBands))
+    }
+
+    func testResistanceBandPoolsCoverEveryFocusWithAtLeastThreeExercises() {
+        for focus in WorkoutFocus.allCasesForTesting {
+            let pool = workoutExercisePool(
+                focus: focus,
+                equipment: .resistanceBands,
+                energyLevel: .medium
+            )
+            XCTAssertGreaterThanOrEqual(pool.count, 3, "\(focus) should have enough band-safe options")
+            XCTAssertTrue(pool.allSatisfy { isExerciseAllowed($0.name, for: .resistanceBands) })
+        }
     }
 
     func testBodyweightOnlyRejectsLoadedMovements() {

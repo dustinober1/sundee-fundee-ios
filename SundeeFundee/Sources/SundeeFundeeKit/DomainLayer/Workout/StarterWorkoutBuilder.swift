@@ -5,17 +5,20 @@ public struct StarterWorkoutContext: Sendable, Equatable {
     public let primaryGoal: PrimaryGoal
     public let weightUnit: WeightUnit
     public let cycleTrackingEnabled: Bool
+    public let defaultEquipment: EquipmentAccess
 
     public init(
         experienceLevel: ExperienceLevel,
         primaryGoal: PrimaryGoal,
         weightUnit: WeightUnit,
-        cycleTrackingEnabled: Bool
+        cycleTrackingEnabled: Bool,
+        defaultEquipment: EquipmentAccess = .fullGym
     ) {
         self.experienceLevel = experienceLevel
         self.primaryGoal = primaryGoal
         self.weightUnit = weightUnit
         self.cycleTrackingEnabled = cycleTrackingEnabled
+        self.defaultEquipment = defaultEquipment
     }
 }
 
@@ -33,6 +36,35 @@ public enum StarterWorkoutBuilder {
     }
 
     private static func prescriptions(for context: StarterWorkoutContext) -> [Prescription] {
+        switch context.defaultEquipment {
+        case .resistanceBands:
+            return [
+                .init("Band Squat", .accessory, false, 3, 12, 0, 1.0),
+                .init("Band Chest Press", .accessory, false, 3, 10, 0, 1.0),
+                .init("Band Row", .accessory, false, 3, 12, 0, 1.0),
+                .init("Band Glute Bridge", .accessory, false, 3, 12, 0, 1.0),
+                .init("Pallof Press", .accessory, false, 2, 10, 0, 0.75)
+            ]
+        case .bodyweightOnly, .outdoor:
+            return [
+                .init("Air Squat", .compound, true, 3, 12, 0, 1.0),
+                .init("Push-Up", .accessory, true, 3, 8, 0, 1.0),
+                .init("Glute Bridge", .accessory, true, 3, 12, 0, 1.0),
+                .init("Prone W Raise", .accessory, true, 3, 10, 0, 1.0),
+                .init("Plank", .accessory, true, 2, 30, 0, 0.75)
+            ]
+        case .kettlebellOnly:
+            return [
+                .init("Goblet Squat", .compound, false, 3, 8, 0, 1.5),
+                .init("Kettlebell Deadlift", .compound, false, 3, 10, 0, 1.5),
+                .init("Kettlebell Strict Press", .accessory, false, 3, 8, 0, 1.5),
+                .init("Kettlebell Row", .accessory, false, 3, 10, 0, 1.0),
+                .init("Suitcase Carry", .accessory, false, 2, 30, 0, 1.0)
+            ]
+        case .fullGym, .homeDumbbells:
+            break
+        }
+
         switch context.primaryGoal {
         case .weightLoss, .endurance:
             return [

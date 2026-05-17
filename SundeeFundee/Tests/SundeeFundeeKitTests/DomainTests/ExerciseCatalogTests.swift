@@ -57,6 +57,29 @@ final class ExerciseCatalogTests: XCTestCase {
         XCTAssertFalse(isWeightliftingExercise("Bicep Curl"))
     }
 
+    func testBandExercisesAreAvailableForTrainingButNotMaxTracking() {
+        let bandRows = trainingExerciseCatalog.filter { $0.id == "Band Row" }
+        XCTAssertEqual(bandRows.count, 1)
+        XCTAssertEqual(bandRows.first?.equipmentTags, [.bands])
+        XCTAssertEqual(bandRows.first?.isMaxTrackable, false)
+        XCTAssertFalse(isWeightliftingExercise("Band Row"))
+    }
+
+    func testTrainingCatalogIncludesRequestedBandLibrary() {
+        let bandIDs = Set(trainingExerciseCatalog.filter { $0.equipmentTags.contains(.bands) }.map(\.id))
+        let expected: Set<String> = [
+            "Band Squat", "Band Split Squat", "Band Reverse Lunge", "Band Lateral Walk",
+            "Band Monster Walk", "Band Romanian Deadlift", "Band Good Morning", "Band Pull-Through",
+            "Band Glute Bridge", "Band Hamstring Curl", "Band Chest Press", "Band Push-Up",
+            "Band Overhead Press", "Band Lateral Raise", "Band Front Raise", "Band Triceps Pressdown",
+            "Band Row", "Band Lat Pulldown", "Band Face Pull", "Band Pull-Apart",
+            "Band Biceps Curl", "Band Hammer Curl", "Band Straight-Arm Pulldown",
+            "Pallof Press", "Band Wood Chop", "Band Dead Bug", "Band Anti-Rotation Hold",
+            "Band Thruster", "Band Squat to Press", "Band High Pull"
+        ]
+        XCTAssertTrue(expected.isSubset(of: bandIDs), "Missing: \(expected.subtracting(bandIDs).sorted())")
+    }
+
     func testIsWeightlifting_EmptyString() {
         XCTAssertFalse(isWeightliftingExercise(""))
     }

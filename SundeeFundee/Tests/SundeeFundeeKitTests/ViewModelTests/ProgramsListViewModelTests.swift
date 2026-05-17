@@ -97,7 +97,7 @@ final class ProgramsListViewModelTests: XCTestCase {
         await viewModel.loadPrograms()
         let programs = await viewModel.programs
 
-        XCTAssertEqual(programs.count, 4)
+        XCTAssertEqual(programs.count, ProgramTemplate.allCases.count)
         XCTAssertFalse(programs.contains { $0.id == "template-strength" })
         XCTAssertTrue(programs.allSatisfy { !$0.isEnrolled })
     }
