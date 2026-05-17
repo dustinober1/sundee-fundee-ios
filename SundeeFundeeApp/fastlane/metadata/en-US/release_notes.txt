@@ -1,8 +1,8 @@
 What's New:
 
-- Added the new Russian Squat program with printable plan support and in-app sessions.
-- Added resistance-band Coach Plans for travel-friendly workouts.
-- Updated Vanessa with a new barbell, burpee, and BikeERG ladder.
-- Tightened cycle-aware coach copy and App Store discovery metadata.
+- Added Bands Only as a default equipment option across onboarding, Settings, Coach Plans, and workout substitutions.
+- Added a larger band exercise catalog for travel-friendly and home workouts.
+- Added Today guidance with resume prompts, first-week checklist items, and recovery input reminders.
+- Added clearer program recommendations, progress snapshots, cycle confidence guidance, and workout quick edits.
 
 Thanks for training with Sundee Fundee!

@@ -4,6 +4,28 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.6.5] - 2026-05-17
+
+### Added
+
+- Added Bands Only as a saved equipment default in onboarding and Settings.
+- Added a broader band exercise catalog for Coach Plans, manual workout search,
+  substitutions, and bundled content.
+- Added Today guidance with resume prompts, first-week checklist items, and
+  recovery input reminders.
+- Added a Program "Help Me Choose" quiz, progress snapshot cards, cycle
+  confidence guidance, and deterministic workout-change explanations.
+
+### Changed
+
+- Coach Plans and program sessions now support pre-start quick edits for
+  shorter sessions, lower volume, swaps, removals, and restoring the original.
+- Bands-only workout pools and substitutions now exclude barbell, dumbbell,
+  kettlebell, cable, machine, and pull-up-bar requirements.
+- Band exercises remain available for training but are excluded from one-rep
+  max tracking and plateau detection.
+- `MARKETING_VERSION` bumped to 1.6.5, build 12.
+
 ## [1.6.3] - 2026-05-15
 
 ### Added
