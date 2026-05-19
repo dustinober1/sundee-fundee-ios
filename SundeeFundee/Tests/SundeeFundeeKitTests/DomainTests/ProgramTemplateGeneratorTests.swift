@@ -10,6 +10,7 @@ final class ProgramTemplateGeneratorTests: XCTestCase {
             .dumbbellStrength,
             .glutesCoreConditioning,
             .russianSquat,
+            .hundredPushUps,
         ])
     }
 
@@ -19,6 +20,7 @@ final class ProgramTemplateGeneratorTests: XCTestCase {
         XCTAssertEqual(ProgramTemplate.dumbbellStrength.stableID, "dumbbell-strength")
         XCTAssertEqual(ProgramTemplate.glutesCoreConditioning.stableID, "glutes-core-conditioning")
         XCTAssertEqual(ProgramTemplate.russianSquat.stableID, "russian-squat-program")
+        XCTAssertEqual(ProgramTemplate.hundredPushUps.stableID, "100-push-ups")
     }
 
     func testAllTemplatesGenerateExpectedWeekAndSessionCounts() throws {
@@ -28,6 +30,7 @@ final class ProgramTemplateGeneratorTests: XCTestCase {
             .dumbbellStrength: (6, 4),
             .glutesCoreConditioning: (8, 4),
             .russianSquat: (6, 3),
+            .hundredPushUps: (8, 3),
         ]
 
         for template in ProgramTemplate.allCases {
@@ -98,5 +101,38 @@ final class ProgramTemplateGeneratorTests: XCTestCase {
                 XCTAssertFalse(squat.bodyweightOnly)
             }
         }
+    }
+
+    func testHundredPushUpsProgramBuildsToFinalMaxTest() throws {
+        let program = generateProgram(template: .hundredPushUps, name: ProgramTemplate.hundredPushUps.displayName)
+
+        XCTAssertEqual(program.name, "100 Push-Ups")
+        XCTAssertEqual(program.category, "Bodyweight")
+        XCTAssertEqual(program.difficulty, "Intermediate")
+        XCTAssertEqual(program.durationWeeks, 8)
+        XCTAssertEqual(program.sessionsPerWeek, 3)
+
+        let firstWeek = try XCTUnwrap(program.weeks.first)
+        let finalWeek = try XCTUnwrap(program.weeks.last)
+        XCTAssertEqual(firstWeek.sessions.first?.sessionName, "Day 1 - Baseline Volume")
+        XCTAssertEqual(finalWeek.sessions.last?.sessionName, "Day 3 - 100 Push-Up Test")
+
+        let allExercises = program.weeks.flatMap(\.sessions).flatMap(\.exercises)
+        XCTAssertFalse(allExercises.isEmpty)
+        XCTAssertTrue(allExercises.allSatisfy(\.bodyweightOnly))
+        XCTAssertTrue(allExercises.allSatisfy { $0.percent1RM == nil })
+
+        let weeklyPushUpVolume = program.weeks.map { week in
+            week.sessions.flatMap(\.exercises).reduce(0) { total, exercise in
+                guard exercise.exercise == "Push-Up" else { return total }
+                guard case .fixed(let sets) = exercise.sets else { return total }
+                guard case .fixed(let reps) = exercise.reps else { return total }
+                return total + sets * reps
+            }
+        }
+
+        XCTAssertGreaterThan(weeklyPushUpVolume[3], weeklyPushUpVolume[0])
+        XCTAssertGreaterThan(weeklyPushUpVolume[6], weeklyPushUpVolume[3])
+        XCTAssertEqual(finalWeek.sessions.last?.exercises.first?.reps, .amrap)
     }
 }

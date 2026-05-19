@@ -113,8 +113,12 @@ public enum ProgramRecommendationService {
         var score = 50
 
         switch (template, equipment) {
+        case (.hundredPushUps, .bodyweightOnly):
+            score += 46
         case (.dumbbellStrength, .homeDumbbells):
             score += 45
+        case (.hundredPushUps, .fullGym), (.hundredPushUps, .homeDumbbells):
+            score += 10
         case (.beginnerStrength, .fullGym):
             score += 22
         case (.glutesCoreConditioning, .fullGym), (.firstMargarita, .fullGym):
@@ -132,6 +136,8 @@ public enum ProgramRecommendationService {
         switch (template, goal) {
         case (.beginnerStrength, .strength), (.dumbbellStrength, .strength), (.russianSquat, .strength):
             score += 14
+        case (.hundredPushUps, .endurance):
+            score += 22
         case (.glutesCoreConditioning, .hypertrophy), (.glutesCoreConditioning, .endurance), (.glutesCoreConditioning, .weightLoss):
             score += 14
         case (.firstMargarita, .strength), (.firstMargarita, .hypertrophy):
@@ -145,6 +151,10 @@ public enum ProgramRecommendationService {
             score += 22
         case (.dumbbellStrength, .beginner):
             score += 6
+        case (.hundredPushUps, .intermediate):
+            score += 18
+        case (.hundredPushUps, .beginner):
+            score += 4
         case (.russianSquat, .advanced):
             score += 22
         case (.russianSquat, .beginner):
@@ -171,6 +181,12 @@ public enum ProgramRecommendationService {
     ) -> String {
         if template == .dumbbellStrength && equipment == .homeDumbbells {
             return "Best match for dumbbell access, strength work, and a \(clampedDays(daysPerWeek))-day week."
+        }
+        if template == .hundredPushUps && equipment == .bodyweightOnly {
+            return "Best match for bodyweight access, upper-body endurance, and a \(clampedDays(daysPerWeek))-day week."
+        }
+        if template == .hundredPushUps {
+            return "Good fit for building push-up volume without max testing or gym equipment."
         }
         if template == .beginnerStrength && experience == .beginner {
             return "Best match for building the main patterns without advanced loading."

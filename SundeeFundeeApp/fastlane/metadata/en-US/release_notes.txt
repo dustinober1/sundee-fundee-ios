@@ -2,6 +2,7 @@ What's New:
 
 - Added Bands Only as a default equipment option across onboarding, Settings, Coach Plans, and workout substitutions.
 - Added a larger band exercise catalog for travel-friendly and home workouts.
+- Added an 8-week 100 Push-Ups bodyweight program with a final max-rep test.
 - Added Today guidance with resume prompts, first-week checklist items, and recovery input reminders.
 - Added clearer program recommendations, progress snapshots, cycle confidence guidance, and workout quick edits.
 

@@ -11,6 +11,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Added Bands Only as a saved equipment default in onboarding and Settings.
 - Added a broader band exercise catalog for Coach Plans, manual workout search,
   substitutions, and bundled content.
+- Added the 8-week 100 Push-Ups bodyweight program with progressive volume,
+  shoulder balance, and a final max-rep test.
 - Added Today guidance with resume prompts, first-week checklist items, and
   recovery input reminders.
 - Added a Program "Help Me Choose" quiz, progress snapshot cards, cycle

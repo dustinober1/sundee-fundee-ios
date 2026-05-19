@@ -9,6 +9,7 @@ public enum ProgramTemplate: String, Codable, Sendable, CaseIterable {
     case dumbbellStrength = "dumbbell-strength"
     case glutesCoreConditioning = "glutes-core-conditioning"
     case russianSquat = "russian-squat-program"
+    case hundredPushUps = "100-push-ups"
 
     public var stableID: String { rawValue }
 
@@ -19,6 +20,7 @@ public enum ProgramTemplate: String, Codable, Sendable, CaseIterable {
         case .dumbbellStrength: return "Dumbbell Strength"
         case .glutesCoreConditioning: return "Glutes, Core & Conditioning"
         case .russianSquat: return "Russian Squat"
+        case .hundredPushUps: return "100 Push-Ups"
         }
     }
 
@@ -34,6 +36,8 @@ public enum ProgramTemplate: String, Codable, Sendable, CaseIterable {
             return "https://sundeefundee.com/workout-plans/8-week-glutes-core-conditioning-plan.pdf"
         case .russianSquat:
             return "https://sundeefundee.com/workout-plans/6-week-russian-squat-program.pdf"
+        case .hundredPushUps:
+            return "https://sundeefundee.com/workout-plans/8-week-100-push-ups-program.pdf"
         }
     }
 
@@ -55,6 +59,7 @@ public let templateDefaults: [ProgramTemplate: TemplateDefaults] = [
     .dumbbellStrength: TemplateDefaults(durationWeeks: 6, sessionsPerWeek: 4),
     .glutesCoreConditioning: TemplateDefaults(durationWeeks: 8, sessionsPerWeek: 4),
     .russianSquat: TemplateDefaults(durationWeeks: 6, sessionsPerWeek: 3),
+    .hundredPushUps: TemplateDefaults(durationWeeks: 8, sessionsPerWeek: 3),
 ]
 
 // MARK: - Generated Program Types
@@ -127,6 +132,8 @@ public func generateProgram(
         return generateGlutesCoreConditioningProgram()
     case .russianSquat:
         return generateRussianSquatProgram()
+    case .hundredPushUps:
+        return generateHundredPushUpsProgram()
     }
 }
 
@@ -483,6 +490,105 @@ func generateGlutesCoreConditioningProgram() -> GeneratedProgram {
                     makeExercise("Cable Row", sets: 3, reps: .range(low: 10, high: 12), rest: 1.0),
                     makeExercise("Bike, Sled, or Incline Walk", sets: 1, reps: .text(value: "\(finisherMinutes(week)) min"), rest: 0.5, bodyweight: true),
                 ]),
+            ]
+        }
+    )
+}
+
+func generateHundredPushUpsProgram() -> GeneratedProgram {
+    let weekNames = [
+        "Baseline",
+        "Groove",
+        "Volume Build",
+        "Capacity",
+        "Density",
+        "Endurance",
+        "Peak Volume",
+        "Taper and Test",
+    ]
+    let weeklyFocus = [
+        "Set repeatable push-up volume and keep every set clean.",
+        "Add small reps while balancing pulling and trunk work.",
+        "Build total weekly push-up volume without grinding.",
+        "Turn volume into longer repeat sets.",
+        "Use denser work to make larger sets feel repeatable.",
+        "Practice high-quality fatigue management before peaking.",
+        "Reach the largest training week before the test taper.",
+        "Reduce fatigue and finish with one clean max-rep test.",
+    ]
+
+    let weeklyPushUpSets: [[(sets: Int, reps: Int)]] = [
+        [(5, 5), (4, 4), (6, 4)],
+        [(5, 7), (4, 6), (6, 6)],
+        [(6, 8), (5, 7), (7, 7)],
+        [(7, 10), (5, 8), (8, 8)],
+        [(8, 11), (5, 10), (8, 10)],
+        [(8, 13), (6, 11), (9, 11)],
+        [(9, 15), (6, 12), (10, 12)],
+        [(5, 8), (3, 6), (1, 0)],
+    ]
+
+    func pushUpExercise(week: Int, day: Int) -> GeneratedProgramExercise {
+        let prescription = weeklyPushUpSets[week - 1][day - 1]
+        if week == 8 && day == 3 {
+            return makeExercise("Push-Up", sets: 1, reps: .amrap, rest: 3.0, bodyweight: true)
+        }
+        return makeExercise(
+            "Push-Up",
+            sets: prescription.sets,
+            reps: .fixed(value: prescription.reps),
+            rest: day == 2 ? 2.0 : 1.5,
+            bodyweight: true
+        )
+    }
+
+    func volumeSession(week: Int) -> ProgramSessionSpec {
+        ProgramSessionSpec(name: week == 1 ? "Baseline Volume" : "Volume Ladders", focus: "push-up volume", exercises: [
+            pushUpExercise(week: week, day: 1),
+            makeExercise("Prone W Raise", sets: 4, reps: .range(low: 10, high: 15), rest: 1.0, bodyweight: true),
+            makeExercise("Scap Push-Up", sets: 3, reps: .range(low: 8, high: 12), rest: 1.0, bodyweight: true),
+            makeExercise("Dead Bug", sets: 3, reps: .text(value: "8/side"), rest: 1.0, bodyweight: true),
+        ])
+    }
+
+    func strengthSession(week: Int) -> ProgramSessionSpec {
+        let accessoryReps = week >= 5 ? "12-15" : "10-12"
+        return ProgramSessionSpec(name: "Tempo Strength", focus: "push-up strength", exercises: [
+            pushUpExercise(week: week, day: 2),
+            makeExercise("Tempo Push-Up", sets: 3, reps: .text(value: "3 sec down"), rest: 1.5, bodyweight: true),
+            makeExercise("Reverse Snow Angel", sets: 3, reps: .text(value: accessoryReps), rest: 1.0, bodyweight: true),
+            makeExercise("Front Plank", sets: 3, reps: .text(value: "\(min(50, 20 + week * 5)) sec"), rest: 1.0, bodyweight: true),
+        ])
+    }
+
+    func densitySession(week: Int) -> ProgramSessionSpec {
+        if week == 8 {
+            return ProgramSessionSpec(name: "100 Push-Up Test", focus: "max test", exercises: [
+                pushUpExercise(week: week, day: 3),
+                makeExercise("Prone W Raise", sets: 3, reps: .range(low: 10, high: 12), rest: 1.0, bodyweight: true),
+                makeExercise("Dead Bug", sets: 2, reps: .text(value: "6/side"), rest: 1.0, bodyweight: true),
+            ])
+        }
+        return ProgramSessionSpec(name: "Density Sets", focus: "push-up endurance", exercises: [
+            pushUpExercise(week: week, day: 3),
+            makeExercise("Close-Grip Push-Up", sets: 3, reps: .range(low: max(4, week + 4), high: week + 7), rest: 1.25, bodyweight: true),
+            makeExercise("Superman Pull", sets: 3, reps: .range(low: 12, high: 15), rest: 1.0, bodyweight: true),
+            makeExercise("Side Plank", sets: 3, reps: .text(value: "\(min(45, 20 + week * 3)) sec/side"), rest: 1.0, bodyweight: true),
+        ])
+    }
+
+    return makeProgram(
+        template: .hundredPushUps,
+        category: "Bodyweight",
+        description: "An 8-week bodyweight plan that builds toward a 100-push-up max set with progressive volume, shoulder balance, and a final test.",
+        difficulty: "Intermediate",
+        weekNames: weekNames,
+        weeklyFocus: weeklyFocus,
+        sessionsForWeek: { week in
+            [
+                volumeSession(week: week),
+                strengthSession(week: week),
+                densitySession(week: week),
             ]
         }
     )

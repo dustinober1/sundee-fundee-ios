@@ -35,4 +35,15 @@ final class ProgramRecommendationServiceTests: XCTestCase {
 
         XCTAssertEqual(recommendations.first?.kind, .program(.beginnerStrength))
     }
+
+    func testBodyweightEnduranceRecommendsHundredPushUpsProgram() {
+        let recommendations = ProgramRecommendationService.recommend(
+            goal: .endurance,
+            experience: .intermediate,
+            daysPerWeek: 3,
+            equipment: .bodyweightOnly
+        )
+
+        XCTAssertEqual(recommendations.first?.kind, .program(.hundredPushUps))
+    }
 }
