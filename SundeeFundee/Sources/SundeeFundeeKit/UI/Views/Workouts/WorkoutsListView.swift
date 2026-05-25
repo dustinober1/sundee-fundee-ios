@@ -134,17 +134,19 @@ public struct WorkoutsListView: View {
                 }
             }
 
-            ForEach(viewModel.workouts) { workout in
-                NavigationLink(destination: WorkoutDetailView(workoutId: workout.id)) {
-                    WorkoutRowContent(workout: workout)
+            ForEach(viewModel.workouts) { item in
+                NavigationLink {
+                    destinationView(for: item)
+                } label: {
+                    WorkoutRowContent(workout: item)
                 }
                 .listRowBackground(Color.clear)
                 .listRowSeparator(.hidden)
                 .swipeActions(edge: .leading) {
-                    if workout.isComplete {
+                    if item.isRedoable, case let .workout(workoutId) = item.source {
                         Button {
                             Task {
-                                if let session = await viewModel.redoWorkout(id: workout.id) {
+                                if let session = await viewModel.redoWorkout(id: workoutId) {
                                     activeWorkoutSession = session
                                 }
                             }
@@ -154,15 +156,32 @@ public struct WorkoutsListView: View {
                         .tint(AppTheme.Accent.orange)
                     }
                 }
+                .deleteDisabled(item.source.isBenchmark)
             }
             .onDelete { indexSet in
-                for index in indexSet {
-                    let workout = viewModel.workouts[index]
-                    Task { await viewModel.deleteWorkout(id: workout.id) }
+                let itemsToDelete: [WorkoutListItem] = indexSet.compactMap { index in
+                    viewModel.workouts.indices.contains(index) ? viewModel.workouts[index] : nil
+                }
+
+                Task {
+                    for item in itemsToDelete {
+                        guard case let .workout(workoutId) = item.source else { continue }
+                        await viewModel.deleteWorkout(id: workoutId)
+                    }
                 }
             }
         }
         .listStyle(.plain)
+    }
+
+    @ViewBuilder
+    private func destinationView(for item: WorkoutListItem) -> some View {
+        switch item.source {
+        case .workout(let workoutId):
+            WorkoutDetailView(workoutId: workoutId)
+        case .benchmark(_, let benchmarkId, _):
+            BenchmarkDetailView(benchmarkId: benchmarkId)
+        }
     }
 }
 
@@ -263,6 +282,13 @@ struct WorkoutRowContent: View {
                 .font(AppTheme.Typography.bodySmall)
                 .foregroundColor(AppTheme.Text.secondary)
 
+            if case let .benchmark(_, _, scoreText) = workout.source {
+                Label(scoreText, systemImage: "trophy.fill")
+                    .font(AppTheme.Typography.bodySmall)
+                    .foregroundColor(AppTheme.Accent.gold)
+                    .accessibilityLabel("Benchmark score \(scoreText)")
+            }
+
             if let duration = workout.duration {
                 HStack(spacing: AppTheme.Spacing.xs) {
                     Image(systemName: "clock")
@@ -302,6 +328,22 @@ struct WorkoutRowContent: View {
 // MARK: - WorkoutListItem
 
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
+enum WorkoutHistorySource: Equatable, Sendable {
+    case workout(workoutId: String)
+    case benchmark(resultId: String, benchmarkId: String, scoreText: String)
+
+    var isWorkout: Bool {
+        if case .workout = self { return true }
+        return false
+    }
+
+    var isBenchmark: Bool {
+        if case .benchmark = self { return true }
+        return false
+    }
+}
+
+@available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
 struct WorkoutListItem: Identifiable {
     let id: String
     let name: String
@@ -309,6 +351,8 @@ struct WorkoutListItem: Identifiable {
     let duration: Int?
     let exercises: [String]
     let isComplete: Bool
+    let source: WorkoutHistorySource
+    let isRedoable: Bool
 }
 
 // MARK: - NewWorkoutView
@@ -776,26 +820,67 @@ class WorkoutsListViewModel: ObservableObject {
         isLoading = true
 
         do {
-            let records: [Workout] = try await dataClient.fetchAll(
+            async let workoutsTask: [Workout] = dataClient.fetchAll(
                 recordType: "Workout",
                 sortDescriptors: [NSSortDescriptor(key: "date", ascending: false)]
             )
+            async let benchmarkResultsTask: [BenchmarkResult] = dataClient.fetchAll(
+                recordType: "BenchmarkResult",
+                sortDescriptors: [NSSortDescriptor(key: "date", ascending: false)]
+            )
+
+            let (workoutRecords, benchmarkResults) = try await (workoutsTask, benchmarkResultsTask)
 
             let staleThreshold = Date().addingTimeInterval(-24 * 60 * 60)
-            workouts = records.map { workout in
+            let workoutItems = workoutRecords.map { workout in
                 WorkoutListItem(
                     id: workout.id,
                     name: workout.name,
                     date: workout.date,
                     duration: workout.duration > 0 ? workout.duration : nil,
                     exercises: workout.exercises.map(\.name),
-                    isComplete: workout.isComplete
+                    isComplete: workout.isComplete,
+                    source: .workout(workoutId: workout.id),
+                    isRedoable: workout.isComplete
                 )
             }
-            resumeCandidate = workouts.first { !$0.isComplete && $0.date >= staleThreshold }
+
+            let benchmarkItems = benchmarkResults.map { result in
+                let benchmark = BenchmarkCatalog.benchmark(id: result.benchmarkId)
+
+                let scoreText: String
+                if let benchmark {
+                    scoreText = BenchmarkScoreFormatter.string(for: result.score, scoringType: benchmark.scoringType)
+                } else {
+                    scoreText = "\(Int(result.score))"
+                }
+
+                let duration: Int?
+                if let benchmark, benchmark.scoringType == .time, result.score.isFinite, result.score >= 0 {
+                    duration = Int((result.score / 60.0).rounded(.up))
+                } else {
+                    duration = nil
+                }
+
+                return WorkoutListItem(
+                    id: "benchmark-\(result.id)",
+                    name: "\(result.benchmarkName) Benchmark",
+                    date: result.date,
+                    duration: duration,
+                    exercises: [],
+                    isComplete: true,
+                    source: .benchmark(resultId: result.id, benchmarkId: result.benchmarkId, scoreText: scoreText),
+                    isRedoable: false
+                )
+            }
+
+            workouts = (workoutItems + benchmarkItems)
+                .sorted { $0.date > $1.date }
+
+            resumeCandidate = workoutItems.first { !$0.isComplete && $0.date >= staleThreshold }
 
             // Auto-complete stale workouts in background (non-blocking)
-            let staleWorkouts = records.filter { $0.completedAt == nil && $0.date < staleThreshold }
+            let staleWorkouts = workoutRecords.filter { $0.completedAt == nil && $0.date < staleThreshold }
             if !staleWorkouts.isEmpty {
                 let client = dataClient
                 Task.detached {

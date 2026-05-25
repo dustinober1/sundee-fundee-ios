@@ -84,26 +84,7 @@ public class BenchmarksListViewModel: ObservableObject {
 
     /// Format score for display
     public func formatScore(benchmark: ContentBenchmark, score: Double) -> String {
-        switch benchmark.scoringType {
-        case "time":
-            let minutes = Int(score) / 60
-            let seconds = Int(score) % 60
-            return String(format: "%d:%02d", minutes, seconds)
-        case "roundsAndReps":
-            let rounds = Int(score) / 10000
-            let reps = Int(score) % 10000
-            return "\(rounds) rounds + \(reps) reps"
-        case "load":
-            return "\(Int(score)) lb"
-        case "reps":
-            return "\(Int(score)) reps"
-        case "calories":
-            return "\(Int(score)) cal"
-        case "distance":
-            return "\(Int(score)) m"
-        default:
-            return "\(Int(score))"
-        }
+        BenchmarkScoreFormatter.string(for: score, scoringTypeRaw: benchmark.scoringType)
     }
 
     // MARK: - Private Methods
@@ -257,6 +238,8 @@ public class BenchmarkDetailViewModel: ObservableObject {
                 recordType: "BenchmarkResult"
             )
 
+            NotificationCenter.default.post(name: .workoutCompleted, object: nil)
+
             // Reload previous results
             await loadPreviousResults(benchmarkId: benchmarkId)
             isLoading = false
@@ -281,26 +264,8 @@ public class BenchmarkDetailViewModel: ObservableObject {
 
     /// Format score for display
     public func formatScore(score: Double) -> String {
-        guard let benchmark = benchmark else { return "\(score)" }
-
-        switch benchmark.scoringType {
-        case .time:
-            let minutes = Int(score) / 60
-            let seconds = Int(score) % 60
-            return String(format: "%d:%02d", minutes, seconds)
-        case .roundsAndReps:
-            let rounds = Int(score) / 10000
-            let reps = Int(score) % 10000
-            return "\(rounds) rounds + \(reps) reps"
-        case .load:
-            return "\(Int(score)) lb"
-        case .reps:
-            return "\(Int(score)) reps"
-        case .calories:
-            return "\(Int(score)) cal"
-        case .distance:
-            return "\(Int(score)) m"
-        }
+        guard let benchmark = benchmark else { return "\(Int(score))" }
+        return BenchmarkScoreFormatter.string(for: score, scoringType: benchmark.scoringType)
     }
 
     // MARK: - Private Methods
