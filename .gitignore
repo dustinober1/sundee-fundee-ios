@@ -17,6 +17,7 @@ build/
 
 # iOS Build Artifacts
 *.ipa
+*.xcarchive/
 *.dSYM.zip
 
 # macOS
