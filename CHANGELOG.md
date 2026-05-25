@@ -20,6 +20,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- Benchmark results now appear in workout history immediately after logging,
+  with score context and navigation back to the benchmark detail screen.
 - Coach Plans and program sessions now support pre-start quick edits for
   shorter sessions, lower volume, swaps, removals, and restoring the original.
 - Bands-only workout pools and substitutions now exclude barbell, dumbbell,
