@@ -361,6 +361,10 @@ public struct ActiveWorkoutView: View {
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
 
+                    if let cue = ExerciseTechniqueLibrary.cue(for: exercise.name) {
+                        techniqueDisclosure(cue)
+                    }
+
                     if let set = viewModel.currentSet {
                         Text("Set \(viewModel.currentSetIndex + 1) of \(exercise.targetSets.count)")
                             .font(AppTheme.Typography.bodySmall)
@@ -409,6 +413,62 @@ public struct ActiveWorkoutView: View {
         .onChange(of: viewModel.currentSetIndex) { _, _ in resetWeightInput() }
         .onChange(of: viewModel.currentExerciseIndex) { _, _ in resetWeightInput() }
         .onAppear { resetWeightInput() }
+    }
+
+    private func techniqueDisclosure(_ cue: ExerciseTechniqueCue) -> some View {
+        DisclosureGroup {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
+                techniqueCueList(title: "Setup", items: cue.setupCues)
+                techniqueCueList(title: "Watch for", items: cue.commonMistakes)
+
+                if let regression = cue.regression {
+                    VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                        Text("Scale")
+                            .font(AppTheme.Typography.labelMedium)
+                            .foregroundColor(AppTheme.Text.secondary)
+
+                        Text(regression)
+                            .font(AppTheme.Typography.bodySmall)
+                            .foregroundColor(AppTheme.Text.primary)
+                    }
+                }
+            }
+            .padding(.top, AppTheme.Spacing.sm)
+        } label: {
+            Label("Form", systemImage: "figure.strengthtraining.traditional")
+                .font(AppTheme.Typography.labelLarge)
+                .foregroundColor(AppTheme.Text.primary)
+        }
+        .tint(AppTheme.Accent.gold)
+        .padding(AppTheme.Spacing.md)
+        .background(AppTheme.Background.cream.opacity(0.45))
+        .cornerRadius(AppTheme.CornerRadius.medium)
+        .overlay(
+            RoundedRectangle(cornerRadius: AppTheme.CornerRadius.medium)
+                .stroke(AppTheme.Accent.gold.opacity(0.25), lineWidth: 1)
+        )
+    }
+
+    private func techniqueCueList(title: String, items: [String]) -> some View {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+            Text(title)
+                .font(AppTheme.Typography.labelMedium)
+                .foregroundColor(AppTheme.Text.secondary)
+
+            ForEach(items, id: \.self) { item in
+                HStack(alignment: .top, spacing: AppTheme.Spacing.sm) {
+                    Image(systemName: "circle.fill")
+                        .font(AppTheme.Typography.labelMedium)
+                        .foregroundColor(AppTheme.Accent.gold)
+                        .padding(.top, AppTheme.Spacing.xs)
+
+                    Text(item)
+                        .font(AppTheme.Typography.bodySmall)
+                        .foregroundColor(AppTheme.Text.primary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+        }
     }
 
     private func repsInputSection(prescribedReps: Int) -> some View {
