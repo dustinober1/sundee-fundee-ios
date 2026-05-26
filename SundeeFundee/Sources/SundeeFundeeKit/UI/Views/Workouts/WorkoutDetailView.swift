@@ -48,6 +48,24 @@ public struct WorkoutDetailView: View {
         #endif
         .toolbar {
             if let workout = viewModel.workout {
+                ToolbarItem(placement: .primaryAction) {
+                    Menu {
+                        ForEach(EquipmentAccess.userSelectableDefaults, id: \.self) { equipment in
+                            Button {
+                                Task { await viewModel.convertWorkout(to: equipment) }
+                            } label: {
+                                Label(
+                                    equipment.displayName,
+                                    systemImage: equipment == viewModel.preferredEquipment ? "checkmark" : "wrench.and.screwdriver"
+                                )
+                            }
+                        }
+                    } label: {
+                        Image(systemName: "wrench.and.screwdriver")
+                    }
+                    .accessibilityLabel("Convert equipment")
+                }
+
                 if workout.isComplete {
                     ToolbarItem(placement: .primaryAction) {
                         HStack(spacing: AppTheme.Spacing.sm) {
@@ -114,6 +132,14 @@ public struct WorkoutDetailView: View {
             VStack(spacing: AppTheme.Spacing.lg) {
                 // Summary Header
                 summaryCard(workout)
+
+                if let conversionSummary = viewModel.conversionSummary {
+                    ArtDecoCard {
+                        Text(conversionSummary)
+                            .font(AppTheme.Typography.bodySmall)
+                            .foregroundColor(AppTheme.Text.secondary)
+                    }
+                }
 
                 // Notes
                 if let notes = workout.notes, !notes.isEmpty {
@@ -502,6 +528,8 @@ class WorkoutDetailViewModel: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
     @Published var personalRecords: Set<String> = []
+    @Published var preferredEquipment: EquipmentAccess = .fullGym
+    @Published var conversionSummary: String?
 
     private let workoutId: String
     private let dataClient: DataClientProtocol
@@ -529,6 +557,7 @@ class WorkoutDetailViewModel: ObservableObject {
     func loadWorkout() async {
         // Skip fetch if the workout was injected directly (already have it).
         guard workout == nil else {
+            await loadPreferredEquipment()
             if let workout, workout.isComplete {
                 await detectPersonalRecords()
             }
@@ -540,6 +569,7 @@ class WorkoutDetailViewModel: ObservableObject {
                 recordType: "Workout"
             ) as [Workout]
             workout = workouts.first { $0.id == workoutId }
+            await loadPreferredEquipment()
             if let workout, workout.isComplete {
                 await detectPersonalRecords()
             }
@@ -696,6 +726,24 @@ class WorkoutDetailViewModel: ObservableObject {
         return ActiveWorkoutSessionViewModel(workout: newWorkout)
     }
 
+    func convertWorkout(to equipment: EquipmentAccess) async {
+        guard let workout else { return }
+        let converted = EquipmentConversionService.convert(workout: workout, to: equipment)
+        self.workout = converted.workout
+        preferredEquipment = equipment
+        if converted.changes.isEmpty {
+            conversionSummary = "No exercise changes were needed."
+        } else {
+            conversionSummary = "Converted \(converted.changes.count) exercise\(converted.changes.count == 1 ? "" : "s")."
+        }
+
+        do {
+            try await dataClient.save(converted.workout, recordType: "Workout")
+        } catch {
+            errorMessage = "Couldn't save converted workout."
+        }
+    }
+
     // MARK: - PR Detection
 
     func detectPersonalRecords() async {
@@ -723,5 +771,10 @@ class WorkoutDetailViewModel: ObservableObject {
             // Non-critical — PR highlights are best-effort
             personalRecords = []
         }
+    }
+
+    private func loadPreferredEquipment() async {
+        let settings: [UserSettingsRecord] = (try? await dataClient.fetchAll(recordType: "UserSettings")) ?? []
+        preferredEquipment = settings.last?.defaultEquipment ?? .fullGym
     }
 }
