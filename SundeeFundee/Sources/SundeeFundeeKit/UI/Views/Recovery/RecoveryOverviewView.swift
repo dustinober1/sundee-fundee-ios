@@ -27,6 +27,44 @@ struct RecoveryOverviewView: View {
                     .foregroundColor(AppTheme.Text.secondary)
                     .fixedSize(horizontal: false, vertical: true)
 
+                if !viewModel.topExplanations.isEmpty {
+                    ArtDecoCard {
+                        VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
+                            Text("Top Recovery Factors")
+                                .font(AppTheme.Typography.headlineMedium)
+                                .foregroundColor(AppTheme.Text.primary)
+
+                            ForEach(viewModel.topExplanations.prefix(3)) { explanation in
+                                HStack(alignment: .top, spacing: AppTheme.Spacing.xs) {
+                                    Circle()
+                                        .fill(AppTheme.Accent.gold.opacity(0.6))
+                                        .frame(width: 5, height: 5)
+                                        .padding(.top, 5)
+                                        .accessibilityHidden(true)
+                                    Text(explanation.text)
+                                        .font(AppTheme.Typography.bodySmall)
+                                        .foregroundColor(AppTheme.Text.secondary)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if let deload = viewModel.deloadRecommendation, deload.isRecommended {
+                    ArtDecoCard {
+                        VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
+                            Text("Active Recovery Suggested")
+                                .font(AppTheme.Typography.headlineMedium)
+                                .foregroundColor(AppTheme.Text.primary)
+                            Text(deload.reason)
+                                .font(AppTheme.Typography.bodySmall)
+                                .foregroundColor(AppTheme.Text.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                }
+
                 if viewModel.score == nil && !viewModel.isLoading {
                     ArtDecoCard {
                         VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
