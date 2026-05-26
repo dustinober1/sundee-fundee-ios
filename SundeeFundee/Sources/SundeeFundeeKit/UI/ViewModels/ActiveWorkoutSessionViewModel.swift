@@ -31,6 +31,7 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
     @Published public private(set) var restGuidanceReason: String?
     @Published public private(set) var hasLoggedSetEffort: Bool = false
     @Published public private(set) var isCompletingSet: Bool = false
+    @Published public private(set) var adaptationDecisionRecord: WorkoutAdaptationDecisionRecord?
 
     // MARK: - PR Share Prompt
 
@@ -120,10 +121,12 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
 
     public init(
         workout: Workout,
+        adaptationDecisionRecord: WorkoutAdaptationDecisionRecord? = nil,
         dataClient: DataClientProtocol = DataClientFactory.shared.client,
         healthClient: HealthClientProtocol = HealthClientFactory.shared.client
     ) {
         self.workout = workout
+        self.adaptationDecisionRecord = adaptationDecisionRecord
         self.id = workout.id
         self.dataClient = dataClient
         self.healthClient = healthClient
@@ -184,6 +187,31 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
     public func skipStartingWeightCalibration() {
         showStartingWeightCalibrationSheet = false
         hasAppliedStartingCalibration = true
+    }
+
+    public func undoAdaptationChanges() async -> WorkoutUndoResult {
+        guard let adaptationDecisionRecord else {
+            return .blocked(reason: "There are no saved changes to undo for this workout.")
+        }
+
+        let result = WorkoutAdaptationDecisionService.undo(
+            record: adaptationDecisionRecord,
+            currentWorkout: workout
+        )
+
+        switch result {
+        case .restored(let restored):
+            workout = restored
+            self.adaptationDecisionRecord = nil
+            currentExerciseIndex = 0
+            currentSetIndex = 0
+            pendingWarmupBlock = nil
+            await saveProgress()
+        case .blocked:
+            break
+        }
+
+        return result
     }
 
     public func applyWarmup() async {
