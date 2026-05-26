@@ -25,6 +25,7 @@ public struct ShareCardSheet: View {
     @State private var libraryPickerItem: PhotosPickerItem?
     @State private var showCameraSheet = false
     @State private var showPermissionAlert = false
+    @State private var privacyOptions: SharePrivacyOptions = .privateDefault
 
     @Environment(\.dismiss) private var dismiss
 
@@ -56,6 +57,7 @@ public struct ShareCardSheet: View {
                 VStack(spacing: AppTheme.Spacing.lg) {
                     previewArea
                     photoControls
+                    privacyControls
                     aspectPicker
                     shareButton
                 }
@@ -69,11 +71,20 @@ public struct ShareCardSheet: View {
                     Button("Close") { dismiss() }
                 }
             }
-            .task(id: RenderKey(aspect: aspect, useSelfie: useSelfie, hasImage: selfieImage != nil)) {
+            .task(id: RenderKey(
+                aspect: aspect,
+                useSelfie: useSelfie,
+                hasImage: selfieImage != nil,
+                showCycleContext: privacyOptions.showCycleContext,
+                showRecoveryScore: privacyOptions.showRecoveryScore,
+                showPainContext: privacyOptions.showPainContext,
+                showExactDate: privacyOptions.showExactDate
+            )) {
                 renderedImage = await ShareCardRenderer.render(
                     effectiveVariant,
                     aspect: aspect,
-                    shareContext: shareContext
+                    shareContext: shareContext,
+                    privacyOptions: privacyOptions
                 )
             }
             .task {
@@ -92,6 +103,10 @@ public struct ShareCardSheet: View {
         let aspect: ShareCardAspect
         let useSelfie: Bool
         let hasImage: Bool
+        let showCycleContext: Bool
+        let showRecoveryScore: Bool
+        let showPainContext: Bool
+        let showExactDate: Bool
     }
 
     // MARK: - Effective variant
@@ -243,6 +258,19 @@ public struct ShareCardSheet: View {
             }
         }
         .pickerStyle(.segmented)
+    }
+
+    private var privacyControls: some View {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+            Text("Privacy")
+                .font(AppTheme.Typography.labelMedium)
+                .foregroundColor(AppTheme.Text.secondary)
+
+            Toggle("Show cycle context", isOn: $privacyOptions.showCycleContext)
+            Toggle("Show recovery score", isOn: $privacyOptions.showRecoveryScore)
+            Toggle("Show pain context", isOn: $privacyOptions.showPainContext)
+            Toggle("Show exact date", isOn: $privacyOptions.showExactDate)
+        }
     }
 
     // MARK: Share
