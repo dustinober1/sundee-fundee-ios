@@ -87,4 +87,53 @@ final class ProgramSessionAdaptationServiceTests: XCTestCase {
         XCTAssertEqual(adapted.first?.exercise, "Back Squat")
         XCTAssertEqual(adapted.first?.percent1RM, 0.75)
     }
+
+    func testLowRecoveryReducesVolumeOrLoad() {
+        let exercise = GeneratedProgramExercise(
+            exercise: "Back Squat",
+            sets: .fixed(value: 4),
+            reps: .fixed(value: 8),
+            percent1RM: 0.70,
+            restMinutes: 2.0,
+            bodyweightOnly: false
+        )
+
+        let adapted = ProgramSessionAdaptationService.adapt(
+            [exercise],
+            context: ProgramSessionAdaptationContext(recoveryScore: 35)
+        )
+
+        guard let result = adapted.first else {
+            return XCTFail("Expected adapted exercise")
+        }
+        XCTAssertNotEqual(result.sets, exercise.sets)
+        XCTAssertTrue((result.percent1RM ?? 0) < (exercise.percent1RM ?? 0))
+    }
+
+    func testEquipmentMismatchConvertsExerciseAndProducesSummaryReasonCode() {
+        let exercise = GeneratedProgramExercise(
+            exercise: "Flat Barbell Bench Press",
+            sets: .fixed(value: 3),
+            reps: .fixed(value: 8),
+            percent1RM: 0.65,
+            restMinutes: 2.0,
+            bodyweightOnly: false
+        )
+
+        let result = ProgramSessionAdaptationService.adaptWithSummary(
+            [exercise],
+            context: ProgramSessionAdaptationContext(
+                recoveryScore: 50,
+                painIntensity: 6,
+                equipment: .homeDumbbells
+            )
+        )
+
+        guard let adapted = result.exercises.first else {
+            return XCTFail("Expected adapted exercise")
+        }
+        XCTAssertNotEqual(adapted.exercise, exercise.exercise)
+        XCTAssertTrue(result.summary.changes.contains { $0.reasonCode == .equipmentConversion })
+        XCTAssertTrue(result.summary.changes.contains { $0.reasonCode == .recoveryAdjustment || $0.reasonCode == .painAdjustment })
+    }
 }
