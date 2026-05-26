@@ -16,6 +16,15 @@ public actor EquipmentProfileService {
         }
     }
 
+    public func hasPersistedProfiles() async -> Bool {
+        do {
+            let stored = try await fetchStoredProfiles()
+            return !stored.isEmpty
+        } catch {
+            return false
+        }
+    }
+
     public func saveProfile(_ profile: EquipmentProfile) async throws {
         var stored = try await fetchStoredProfiles()
         let normalizedProfile = normalized(profile)
@@ -47,10 +56,14 @@ public actor EquipmentProfileService {
             }
         }
 
-        for duplicate in matchingProfiles where duplicate.id != profileToSave.id {
-            try await dataClient.delete(recordType: Self.recordType, id: duplicate.id)
-        }
         try await dataClient.save(normalizedSortedProfiles(stored), recordType: Self.recordType)
+
+        let duplicateIDs = matchingProfiles
+            .filter { $0.id != profileToSave.id }
+            .map(\.id)
+        for duplicateID in duplicateIDs {
+            try? await dataClient.delete(recordType: Self.recordType, id: duplicateID)
+        }
     }
 
     public func setDefault(profileID: String) async throws {

@@ -1,5 +1,42 @@
 import SwiftUI
 
+struct AIWorkoutEquipmentDefaultSelection: Equatable, Sendable {
+    let equipment: EquipmentAccess
+    let selectedProfileID: String?
+}
+
+enum AIWorkoutEquipmentDefaultResolver {
+    static func resolve(
+        profiles: [EquipmentProfile],
+        hasPersistedProfiles: Bool,
+        legacyDefaultEquipment: EquipmentAccess?
+    ) -> AIWorkoutEquipmentDefaultSelection {
+        if hasPersistedProfiles {
+            return selection(from: profiles, fallbackEquipment: legacyDefaultEquipment ?? .fullGym)
+        }
+
+        if let legacyDefaultEquipment {
+            return AIWorkoutEquipmentDefaultSelection(
+                equipment: legacyDefaultEquipment,
+                selectedProfileID: profiles.first { $0.equipment == legacyDefaultEquipment }?.id
+            )
+        }
+
+        return selection(from: profiles, fallbackEquipment: .fullGym)
+    }
+
+    private static func selection(
+        from profiles: [EquipmentProfile],
+        fallbackEquipment: EquipmentAccess
+    ) -> AIWorkoutEquipmentDefaultSelection {
+        let profile = profiles.first(where: \.isDefault) ?? profiles.first
+        return AIWorkoutEquipmentDefaultSelection(
+            equipment: profile?.equipment ?? fallbackEquipment,
+            selectedProfileID: profile?.id
+        )
+    }
+}
+
 // MARK: - AIWorkoutView
 //
 // Questionnaire-based Coach Plan flow.
@@ -894,9 +931,26 @@ class AIWorkoutViewModel: ObservableObject {
     }
 
     private func loadDefaultEquipment() async -> EquipmentAccess {
-        let profile = await equipmentProfileService.defaultProfile()
-        selectedEquipmentProfileID = profile.id
-        return profile.equipment
+        let hasPersistedProfiles = await equipmentProfileService.hasPersistedProfiles()
+        let legacyDefaultEquipment = hasPersistedProfiles ? nil : await loadLegacyDefaultEquipment()
+        let selection = AIWorkoutEquipmentDefaultResolver.resolve(
+            profiles: equipmentProfiles,
+            hasPersistedProfiles: hasPersistedProfiles,
+            legacyDefaultEquipment: legacyDefaultEquipment
+        )
+        selectedEquipmentProfileID = selection.selectedProfileID
+        return selection.equipment
+    }
+
+    private func loadLegacyDefaultEquipment() async -> EquipmentAccess? {
+        do {
+            let records = try await dataClient.fetchAll(
+                recordType: "UserSettings"
+            ) as [UserSettingsRecord]
+            return records.last?.defaultEquipment
+        } catch {
+            return nil
+        }
     }
 
     func selectEquipmentProfile(_ profile: EquipmentProfile) {
