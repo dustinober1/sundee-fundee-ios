@@ -47,6 +47,14 @@ struct DataExportServiceTests {
         )
         try await client.save([phase], recordType: "CyclePhaseInfo")
 
+        let recovery = RecoveryScoreRecord(
+            scoreDate: ISO8601DateFormatter().string(from: Date()),
+            totalScore: 61,
+            presentInputCount: 5,
+            recommendationRaw: TrainingRecommendation.moderate.rawValue
+        )
+        try await client.save([recovery], recordType: "RecoveryScore")
+
         let settings = CycleSettingsRecord(
             averageCycleLengthDays: 28,
             lastPeriodStart: Date()
@@ -94,6 +102,13 @@ struct DataExportServiceTests {
             isActive: true
         )
         try await client.save([program], recordType: "EnrolledProgramRecord")
+
+        let weeklyPlan = WeeklyTrainingPlan(
+            weekStartDate: Date(),
+            targetWorkoutCount: 3,
+            preferredWeekdays: [2, 4, 6]
+        )
+        try await client.save([weeklyPlan], recordType: "WeeklyTrainingPlan")
     }
 
     // MARK: - Tests
@@ -110,12 +125,14 @@ struct DataExportServiceTests {
         #expect(data.oneRepMaxRecords.count == 1)
         #expect(data.completedWorkoutRecords.count == 1)
         #expect(data.cyclePhaseInfo.count == 1)
+        #expect(data.recoveryScoreRecords.count == 1)
         #expect(data.cycleSettings != nil)
         #expect(data.benchmarkResults.count == 1)
         #expect(data.injuries.count == 1)
         #expect(data.painLogs.count == 1)
         #expect(data.celebrations.count == 1)
         #expect(data.enrolledPrograms.count == 1)
+        #expect(data.weeklyTrainingPlans.count == 1)
     }
 
     @Test("Category counts include cycle settings")
@@ -127,7 +144,9 @@ struct DataExportServiceTests {
         let data = await service.exportAll()
 
         #expect(data.categoryCounts["Cycle Phases"] == 1)
+        #expect(data.categoryCounts["Recovery Scores"] == 1)
         #expect(data.categoryCounts["Cycle Settings"] == 1)
+        #expect(data.categoryCounts["Weekly Plans"] == 1)
     }
 
     @Test("Export with empty data returns empty arrays and no crash")
@@ -141,12 +160,14 @@ struct DataExportServiceTests {
         #expect(data.oneRepMaxRecords.isEmpty)
         #expect(data.completedWorkoutRecords.isEmpty)
         #expect(data.cyclePhaseInfo.isEmpty)
+        #expect(data.recoveryScoreRecords.isEmpty)
         #expect(data.cycleSettings == nil)
         #expect(data.benchmarkResults.isEmpty)
         #expect(data.injuries.isEmpty)
         #expect(data.painLogs.isEmpty)
         #expect(data.celebrations.isEmpty)
         #expect(data.enrolledPrograms.isEmpty)
+        #expect(data.weeklyTrainingPlans.isEmpty)
         #expect(data.categoryCounts["Cycle Settings"] == 0)
     }
 
@@ -179,10 +200,12 @@ struct DataExportServiceTests {
         #expect(data.oneRepMaxRecords.isEmpty)
         #expect(data.completedWorkoutRecords.isEmpty)
         #expect(data.cyclePhaseInfo.isEmpty)
+        #expect(data.recoveryScoreRecords.isEmpty)
         #expect(data.benchmarkResults.isEmpty)
         #expect(data.painLogs.isEmpty)
         #expect(data.celebrations.isEmpty)
         #expect(data.enrolledPrograms.isEmpty)
+        #expect(data.weeklyTrainingPlans.isEmpty)
         #expect(data.cycleSettings == nil)
     }
 
@@ -215,11 +238,13 @@ struct DataExportServiceTests {
             "celebrations",
             "completedWorkoutRecords",
             "cyclePhaseInfo",
+            "recoveryScoreRecords",
             "enrolledPrograms",
             "exportDate",
             "injuries",
             "oneRepMaxRecords",
             "painLogs",
+            "weeklyTrainingPlans",
             "workouts",
         ]
         #expect(alwaysPresentKeys.isSubset(of: parsed.keys))
