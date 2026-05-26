@@ -382,6 +382,7 @@ struct ProgramDetailView: View {
     @Environment(\.openURL) private var openURL
     @StateObject private var viewModel: ProgramDetailViewModel
     @State private var activeWorkout: Workout?
+    @State private var activeWorkoutSession: ActiveWorkoutSessionViewModel?
     @State private var resumeWorkoutId: String?
     @State private var printablePDFURLToPresent: URL?
 
@@ -431,11 +432,20 @@ struct ProgramDetailView: View {
                 WorkoutDetailView(workoutId: id)
             }
         }
+        #if os(iOS)
+        .fullScreenCover(item: $activeWorkoutSession) { session in
+            ActiveWorkoutView(viewModel: session)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .workoutCompleted)) { _ in
+            activeWorkoutSession = nil
+        }
+        #endif
         .onAppear {
             viewModel.generateSessions()
         }
         .task {
             await viewModel.loadSessionProgress()
+            await viewModel.loadAdaptationPreviews()
         }
         .onReceive(NotificationCenter.default.publisher(for: .workoutCompleted)) { _ in
             Task { await viewModel.loadSessionProgress() }
@@ -641,6 +651,10 @@ struct ProgramDetailView: View {
                     .accessibilityHint("Return to your in-progress workout")
                 }
 
+                if let summary = viewModel.adaptationPreview(for: session.sessionId), !summary.changes.isEmpty {
+                    whatChangedRow(summary)
+                }
+
                 VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
                     Text("Quick start edits")
                         .font(AppTheme.Typography.labelSmall)
@@ -667,7 +681,10 @@ struct ProgramDetailView: View {
                     Task {
                         let workout = await viewModel.startSession(session, week: week, programName: program.name)
                         if let workout {
-                            activeWorkout = workout
+                            activeWorkoutSession = ActiveWorkoutSessionViewModel(
+                                workout: workout,
+                                adaptationDecisionRecord: viewModel.latestAdaptationDecisionRecord
+                            )
                         }
                     }
                 } label: {
@@ -700,7 +717,10 @@ struct ProgramDetailView: View {
             Task {
                 let workout = await viewModel.startSession(session, week: week, programName: program.name, quickEdit: edit)
                 if let workout {
-                    activeWorkout = workout
+                    activeWorkoutSession = ActiveWorkoutSessionViewModel(
+                        workout: workout,
+                        adaptationDecisionRecord: viewModel.latestAdaptationDecisionRecord
+                    )
                 }
             }
         } label: {
@@ -711,6 +731,30 @@ struct ProgramDetailView: View {
         .artDecoButton(style: .ghost)
         .disabled(viewModel.startingSessionId != nil)
         .accessibilityHint("Start this session with the \(title) edit applied")
+    }
+
+    private func whatChangedRow(_ summary: ProgramAdaptationSummary) -> some View {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+            Label("What changed", systemImage: "sparkles")
+                .font(AppTheme.Typography.labelMedium)
+                .foregroundColor(AppTheme.Text.primary)
+
+            Text(summary.headline)
+                .font(AppTheme.Typography.bodySmall)
+                .foregroundColor(AppTheme.Text.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            if let change = summary.changes.first {
+                Text(change.detail)
+                    .font(AppTheme.Typography.bodySmall)
+                    .foregroundColor(AppTheme.Text.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .padding(AppTheme.Spacing.sm)
+        .background(AppTheme.Background.cream.opacity(0.45))
+        .cornerRadius(AppTheme.CornerRadius.small)
+        .accessibilityElement(children: .combine)
     }
 
     private func sessionLoadBar(_ session: GeneratedProgramSession) -> some View {
@@ -820,6 +864,8 @@ class ProgramDetailViewModel: ObservableObject {
     @Published var completedSessionIds: Set<String> = []
     @Published var inProgressSessionIds: Set<String> = []
     @Published var latestAdaptationSummary: ProgramAdaptationSummary?
+    @Published var latestAdaptationDecisionRecord: WorkoutAdaptationDecisionRecord?
+    private var adaptationPreviewBySessionId: [String: ProgramAdaptationSummary] = [:]
     private var sessionWorkoutMap: [String: String] = [:]
 
     private let program: ProgramListItem
@@ -896,6 +942,28 @@ class ProgramDetailViewModel: ObservableObject {
         return workoutId
     }
 
+    func adaptationPreview(for sessionId: String) -> ProgramAdaptationSummary? {
+        adaptationPreviewBySessionId[sessionId]
+    }
+
+    func loadAdaptationPreviews() async {
+        guard let generatedProgram else { return }
+        let context = await loadAdaptationContext()
+        var previews: [String: ProgramAdaptationSummary] = [:]
+
+        for week in generatedProgram.weeks {
+            for session in week.sessions {
+                let result = ProgramSessionAdaptationService.adaptWithSummary(
+                    session.exercises,
+                    context: context
+                )
+                previews[session.sessionId] = result.summary
+            }
+        }
+
+        adaptationPreviewBySessionId = previews
+    }
+
     func startSession(
         _ session: GeneratedProgramSession,
         week: Int,
@@ -903,6 +971,7 @@ class ProgramDetailViewModel: ObservableObject {
         quickEdit: ProgramSessionQuickEdit? = nil
     ) async -> Workout? {
         startingSessionId = session.sessionId
+        latestAdaptationDecisionRecord = nil
         defer { startingSessionId = nil }
 
         // Load adaptive context and user maxes in parallel. The PDF remains the
@@ -920,64 +989,35 @@ class ProgramDetailViewModel: ObservableObject {
             await CoachMemoryService(dataClient: dataClient).recordWorkoutEdit(edit)
         }
         let cycleMult = aiCyclePhaseMultiplier(adaptationContext.cyclePhase)
-
-        let workout = Workout(
-            date: Date(),
-            name: "\(programName) — \(session.sessionName)",
-            exercises: edited.exercises.map { ex in
-                let setCount: Int
-                if case .fixed(let n) = ex.sets { setCount = n } else { setCount = 3 }
-
-                let repCount: Int
-                let setType: ExerciseType
-                switch ex.reps {
-                case .fixed(let n):
-                    repCount = n
-                    setType = .fixed
-                case .amrap:
-                    repCount = 0
-                    setType = .amrap
-                case .range(let lo, let hi):
-                    repCount = lo
-                    setType = .range(min: lo, max: hi)
-                case .text(let t):
-                    repCount = 0
-                    setType = .text(t)
-                }
-
-                // Calculate prescribed weight from user's max + cycle adjustment
-                var prescribedWeight: Double = 0
-                if !ex.bodyweightOnly, ex.percent1RM != nil,
-                   let userMax = maxes.first(where: { $0.exerciseName.lowercased() == ex.exercise.lowercased() }) {
-                    prescribedWeight = calculatePrescribedWeight(
-                        max: userMax.weight,
-                        reps: repCount > 0 ? repCount : 5,
-                        cycleMultiplier: cycleMult
-                    )
-                }
-
-                let targetSets = (0..<setCount).map { _ in
-                    ExerciseSet(
-                        reps: repCount,
-                        prescribedWeight: prescribedWeight,
-                        prescribedPercentage: ex.percent1RM,
-                        type: setType
-                    )
-                }
-
-                return Exercise(
-                    id: UUID().uuidString,
-                    name: ex.exercise,
-                    category: ex.bodyweightOnly ? .accessory : (isWeightliftingExercise(ex.exercise) ? .compound : .accessory),
-                    bodyweight: ex.bodyweightOnly ? 1.0 : 0.0,
-                    targetSets: targetSets,
-                    restMinutes: ex.restMinutes
-                )
-            }
+        let workoutID = UUID().uuidString
+        let workoutName = "\(programName) — \(session.sessionName)"
+        let workoutDate = Date()
+        let originalWorkout = Self.makeWorkout(
+            id: workoutID,
+            date: workoutDate,
+            name: workoutName,
+            exercises: session.exercises,
+            maxes: maxes,
+            cycleMultiplier: 1.0
+        )
+        let workout = Self.makeWorkout(
+            id: workoutID,
+            date: workoutDate,
+            name: workoutName,
+            exercises: edited.exercises,
+            maxes: maxes,
+            cycleMultiplier: cycleMult
         )
 
         do {
             try await dataClient.save(workout, recordType: "Workout")
+            latestAdaptationDecisionRecord = try? await WorkoutAdaptationDecisionService.record(
+                originalWorkout: originalWorkout,
+                adaptedWorkout: workout,
+                summary: adaptationResult.summary,
+                context: adaptationContext,
+                dataClient: dataClient
+            )
 
             // Save session record to track progress through the program.
             // Non-critical — workout is already saved; session record is for progress display.
@@ -1000,6 +1040,70 @@ class ProgramDetailViewModel: ObservableObject {
     }
 
     // MARK: - Cycle & Max Helpers
+
+    private static func makeWorkout(
+        id: String,
+        date: Date,
+        name: String,
+        exercises: [GeneratedProgramExercise],
+        maxes: [OneRepMaxRecord],
+        cycleMultiplier: Double
+    ) -> Workout {
+        Workout(
+            id: id,
+            date: date,
+            name: name,
+            exercises: exercises.map { ex in
+                let setCount: Int
+                if case .fixed(let n) = ex.sets { setCount = n } else { setCount = 3 }
+
+                let repCount: Int
+                let setType: ExerciseType
+                switch ex.reps {
+                case .fixed(let n):
+                    repCount = n
+                    setType = .fixed
+                case .amrap:
+                    repCount = 0
+                    setType = .amrap
+                case .range(let lo, let hi):
+                    repCount = lo
+                    setType = .range(min: lo, max: hi)
+                case .text(let t):
+                    repCount = 0
+                    setType = .text(t)
+                }
+
+                var prescribedWeight: Double = 0
+                if !ex.bodyweightOnly, ex.percent1RM != nil,
+                   let userMax = maxes.first(where: { $0.exerciseName.lowercased() == ex.exercise.lowercased() }) {
+                    prescribedWeight = calculatePrescribedWeight(
+                        max: userMax.weight,
+                        reps: repCount > 0 ? repCount : 5,
+                        cycleMultiplier: cycleMultiplier
+                    )
+                }
+
+                let targetSets = (0..<setCount).map { _ in
+                    ExerciseSet(
+                        reps: repCount,
+                        prescribedWeight: prescribedWeight,
+                        prescribedPercentage: ex.percent1RM,
+                        type: setType
+                    )
+                }
+
+                return Exercise(
+                    id: UUID().uuidString,
+                    name: ex.exercise,
+                    category: ex.bodyweightOnly ? .accessory : (isWeightliftingExercise(ex.exercise) ? .compound : .accessory),
+                    bodyweight: ex.bodyweightOnly ? 1.0 : 0.0,
+                    targetSets: targetSets,
+                    restMinutes: ex.restMinutes
+                )
+            }
+        )
+    }
 
     private static func applyQuickEdit(
         _ edit: ProgramSessionQuickEdit?,
@@ -1187,14 +1291,24 @@ class ProgramDetailViewModel: ObservableObject {
         async let recoveryRecords = loadRecoveryScoreHistory()
         async let painLogs = loadPainLogs()
         async let equipment = loadDefaultEquipment()
+        async let recentEffortRPE = loadRecentEffortRPE()
 
-        let (resolvedPhase, resolvedConfidence, resolvedInjuries, resolvedRecovery, resolvedPain, resolvedEquipment) = await (
+        let (
+            resolvedPhase,
+            resolvedConfidence,
+            resolvedInjuries,
+            resolvedRecovery,
+            resolvedPain,
+            resolvedEquipment,
+            resolvedEffortRPE
+        ) = await (
             cyclePhase,
             cycleConfidence,
             injuries,
             recoveryRecords,
             painLogs,
-            equipment
+            equipment,
+            recentEffortRPE
         )
 
         let latestRecoveryScore = resolvedRecovery.max(by: { $0.scoreDate < $1.scoreDate })?.totalScore
@@ -1214,7 +1328,8 @@ class ProgramDetailViewModel: ObservableObject {
             painIntensity: painIntensity,
             equipment: resolvedEquipment,
             cycleConfidence: resolvedConfidence,
-            deloadRecommended: deload
+            deloadRecommended: deload,
+            recentEffortRPE: resolvedEffortRPE
         )
     }
 
@@ -1295,6 +1410,11 @@ class ProgramDetailViewModel: ObservableObject {
     private func loadDefaultEquipment() async -> EquipmentAccess {
         let records: [UserSettingsRecord] = (try? await dataClient.fetchAll(recordType: "UserSettings")) ?? []
         return records.last?.defaultEquipment ?? .fullGym
+    }
+
+    private func loadRecentEffortRPE() async -> Int? {
+        let records: [WorkoutEffortLog] = (try? await dataClient.fetchAll(recordType: "WorkoutEffortLog")) ?? []
+        return records.sorted(by: { $0.dateCreated > $1.dateCreated }).first?.rpe
     }
 
     private func loadMaxes() async -> [OneRepMaxRecord] {
