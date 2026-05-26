@@ -31,6 +31,33 @@ final class ActiveWorkoutSessionViewModelTests: XCTestCase {
         await viewModel.abandonWorkout()
     }
 
+    func testBeginSessionFallsBackToLatestRecoveryScoreWhenTodayIsMissing() async throws {
+        let dataClient = MockCloudKitClient()
+        try await dataClient.save(
+            RecoveryScoreRecord(
+                scoreDate: dayString(daysAgo: 2),
+                totalScore: 32,
+                presentInputCount: 5,
+                cyclePhaseRaw: CyclePhase.luteal.rawValue,
+                recommendationRaw: TrainingRecommendation.restDay.rawValue
+            ),
+            recordType: "RecoveryScore"
+        )
+        let viewModel = ActiveWorkoutSessionViewModel(
+            workout: squatWorkout(),
+            dataClient: dataClient,
+            healthClient: MockHealthKitClient()
+        )
+
+        viewModel.beginSession()
+        let block = try await waitForWarmupBlock(in: viewModel)
+
+        XCTAssertLessThanOrEqual(block.estimatedMinutes, 5)
+        XCTAssertTrue(block.reasons.contains(where: { $0.localizedCaseInsensitiveContains("low recovery") }))
+
+        await viewModel.abandonWorkout()
+    }
+
     private func waitForWarmupBlock(
         in viewModel: ActiveWorkoutSessionViewModel,
         timeoutNanoseconds: UInt64 = 1_000_000_000
@@ -48,6 +75,11 @@ final class ActiveWorkoutSessionViewModelTests: XCTestCase {
 
     private func todayString() -> String {
         ISO8601DateFormatter().string(from: Calendar.current.startOfDay(for: Date()))
+    }
+
+    private func dayString(daysAgo: Int) -> String {
+        let date = Calendar.current.date(byAdding: .day, value: -daysAgo, to: Date()) ?? Date()
+        return ISO8601DateFormatter().string(from: Calendar.current.startOfDay(for: date))
     }
 
     private func squatWorkout() -> Workout {
