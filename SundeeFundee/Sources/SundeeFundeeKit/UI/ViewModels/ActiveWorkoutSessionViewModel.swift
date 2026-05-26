@@ -29,6 +29,7 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
     @Published public var showStartingWeightCalibrationSheet: Bool = false
     @Published public private(set) var pendingWarmupBlock: WarmupBlock?
     @Published public private(set) var restGuidanceReason: String?
+    @Published public private(set) var hasLoggedSetEffort: Bool = false
 
     // MARK: - PR Share Prompt
 
@@ -196,7 +197,12 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
         await saveProgress()
     }
 
-    public func completeSet(actualReps: Int, completedWeight: Double) async {
+    public func completeSet(
+        actualReps: Int,
+        completedWeight: Double,
+        setRPE: Int? = nil,
+        sessionRPEForFinish: Int? = nil
+    ) async {
         guard currentExerciseIndex < workout.exercises.count,
               currentSetIndex < workout.exercises[currentExerciseIndex].targetSets.count else { return }
         let completedSetIndex = currentSetIndex
@@ -207,6 +213,7 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
         workout.exercises[currentExerciseIndex].targetSets[currentSetIndex].completedWeight = completedWeight
         let completedExercise = workout.exercises[currentExerciseIndex]
         let completedSet = workout.exercises[currentExerciseIndex].targetSets[currentSetIndex]
+        let clampedSetRPE = setRPE.map { min(10, max(1, $0)) }
         HapticFeedback.light()
 
         // 2. Check for PR using Epley formula
@@ -214,11 +221,19 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
         await checkAndRecordPR(exerciseName: exerciseName, reps: actualReps, weight: completedWeight)
 
         // 3. Save progress
+        if let clampedSetRPE {
+            await saveEffortLog(
+                exerciseName: completedExercise.name,
+                setID: completedSet.id,
+                rpe: clampedSetRPE
+            )
+            hasLoggedSetEffort = true
+        }
         await saveProgress()
 
         // 4. Check if workout is done
         if isLastSetOfWorkout {
-            await finishWorkout()
+            await finishWorkout(sessionRPE: sessionRPEForFinish)
             return
         }
 
@@ -228,7 +243,7 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
             context: RestGuidanceContext(
                 exercise: completedExercise,
                 completedSet: completedSet,
-                lastRPE: nil,
+                lastRPE: clampedSetRPE,
                 recoveryScoreTotal: recoveryContext?.totalScore
             )
         )
@@ -313,7 +328,7 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
         return ex.targetSets.contains(where: \.isComplete)
     }
 
-    public func finishWorkout() async {
+    public func finishWorkout(sessionRPE: Int? = nil) async {
         isFinishing = true
 
         for i in workout.exercises.indices {
@@ -333,6 +348,14 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
 
         workout.completedAt = Date()
         workout.duration = max(1, Int(elapsedSeconds / 60))
+
+        if !hasLoggedSetEffort, let sessionRPE {
+            await saveEffortLog(
+                exerciseName: nil,
+                setID: nil,
+                rpe: sessionRPE
+            )
+        }
 
         // Save to CloudKit
         do {
@@ -677,6 +700,25 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
             try await dataClient.save(workout, recordType: "Workout")
         } catch {
             errorMessage = "Failed to save progress: \(error.localizedDescription)"
+        }
+    }
+
+    private func saveEffortLog(
+        exerciseName: String?,
+        setID: String?,
+        rpe: Int
+    ) async {
+        let log = WorkoutEffortLog(
+            workoutID: workout.id,
+            exerciseName: exerciseName,
+            setID: setID,
+            rpe: rpe
+        )
+
+        do {
+            try await dataClient.save(log, recordType: "WorkoutEffortLog")
+        } catch {
+            errorMessage = "Effort couldn't sync right now. Workout saved normally."
         }
     }
 
