@@ -71,6 +71,7 @@ final class ActiveWorkoutSessionViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.currentSetIndex, 1)
         XCTAssertEqual(snapshot.rest?.sourceExerciseName, "Back Squat")
         XCTAssertEqual(snapshot.rest?.sourceSetIndex, 0)
+        XCTAssertEqual(snapshot.nextUp?.setIndex, 1)
 
         viewModel.skipRest()
     }
@@ -128,6 +129,7 @@ final class ActiveWorkoutSessionViewModelTests: XCTestCase {
                     category: .compound,
                     bodyweight: 0,
                     targetSets: [
+                        ExerciseSet(reps: 5, prescribedWeight: 135, type: .fixed),
                         ExerciseSet(reps: 5, prescribedWeight: 135, type: .fixed),
                         ExerciseSet(reps: 5, prescribedWeight: 135, type: .fixed)
                     ],
