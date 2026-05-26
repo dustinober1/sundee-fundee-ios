@@ -173,6 +173,26 @@ final class PreferenceLearnerTests: XCTestCase {
         XCTAssertLessThan(profile.preferredSessionMinutes, 45)
     }
 
+    func testLearn_RepeatedHighRPE_IsIdempotentForSameLogs() {
+        let effortLogs = [
+            WorkoutEffortLog(workoutID: "w1", exerciseName: "Back Squat", setID: "s1", rpe: 9),
+            WorkoutEffortLog(workoutID: "w1", exerciseName: "Back Squat", setID: "s2", rpe: 10),
+            WorkoutEffortLog(workoutID: "w2", exerciseName: nil, setID: nil, rpe: 9),
+        ]
+        let firstPass = PreferenceLearner.learn(
+            existingProfile: CoachProfile(preferredSessionMinutes: 45),
+            workouts: [],
+            effortLogs: effortLogs
+        )
+        let secondPass = PreferenceLearner.learn(
+            existingProfile: firstPass,
+            workouts: [],
+            effortLogs: effortLogs
+        )
+
+        XCTAssertEqual(secondPass.preferredSessionMinutes, firstPass.preferredSessionMinutes)
+    }
+
     func testLearn_RepeatedLowRPE_AllowsNormalProgression() {
         let profile = PreferenceLearner.learn(
             existingProfile: CoachProfile(preferredSessionMinutes: 45),
