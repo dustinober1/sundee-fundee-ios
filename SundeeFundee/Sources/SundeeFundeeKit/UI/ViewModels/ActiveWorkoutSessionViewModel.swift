@@ -30,6 +30,7 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
     @Published public private(set) var pendingWarmupBlock: WarmupBlock?
     @Published public private(set) var restGuidanceReason: String?
     @Published public private(set) var hasLoggedSetEffort: Bool = false
+    @Published public private(set) var isCompletingSet: Bool = false
 
     // MARK: - PR Share Prompt
 
@@ -203,8 +204,12 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
         setRPE: Int? = nil,
         sessionRPEForFinish: Int? = nil
     ) async {
+        guard !isCompletingSet else { return }
         guard currentExerciseIndex < workout.exercises.count,
               currentSetIndex < workout.exercises[currentExerciseIndex].targetSets.count else { return }
+        isCompletingSet = true
+        defer { isCompletingSet = false }
+
         let completedSetIndex = currentSetIndex
 
         // 1. Mark set complete
