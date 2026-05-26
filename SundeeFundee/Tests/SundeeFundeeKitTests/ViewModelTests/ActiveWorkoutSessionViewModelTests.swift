@@ -58,6 +58,23 @@ final class ActiveWorkoutSessionViewModelTests: XCTestCase {
         await viewModel.abandonWorkout()
     }
 
+    func testRestSnapshotKeepsCompletedSetAsRestSourceAfterAdvancing() async throws {
+        let viewModel = ActiveWorkoutSessionViewModel(
+            workout: multiSetWorkout(),
+            dataClient: MockCloudKitClient(),
+            healthClient: MockHealthKitClient()
+        )
+
+        await viewModel.completeSet(actualReps: 5, completedWeight: 135)
+
+        let snapshot = viewModel.activitySnapshotForTesting()
+        XCTAssertEqual(viewModel.currentSetIndex, 1)
+        XCTAssertEqual(snapshot.rest?.sourceExerciseName, "Back Squat")
+        XCTAssertEqual(snapshot.rest?.sourceSetIndex, 0)
+
+        viewModel.skipRest()
+    }
+
     private func waitForWarmupBlock(
         in viewModel: ActiveWorkoutSessionViewModel,
         timeoutNanoseconds: UInt64 = 1_000_000_000
@@ -95,6 +112,26 @@ final class ActiveWorkoutSessionViewModelTests: XCTestCase {
                     targetSets: [
                         ExerciseSet(reps: 5, prescribedWeight: 135, type: .fixed)
                     ]
+                )
+            ]
+        )
+    }
+
+    private func multiSetWorkout() -> Workout {
+        Workout(
+            date: Date(),
+            name: "Squat Day",
+            exercises: [
+                Exercise(
+                    id: "back-squat",
+                    name: "Back Squat",
+                    category: .compound,
+                    bodyweight: 0,
+                    targetSets: [
+                        ExerciseSet(reps: 5, prescribedWeight: 135, type: .fixed),
+                        ExerciseSet(reps: 5, prescribedWeight: 135, type: .fixed)
+                    ],
+                    restMinutes: 2
                 )
             ]
         )
