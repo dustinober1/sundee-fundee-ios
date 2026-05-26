@@ -212,6 +212,11 @@ public struct ActiveWorkoutView: View {
                         .padding(.horizontal, AppTheme.Spacing.lg)
                 }
 
+                if viewModel.canStartWarmup, let warmupBlock = viewModel.pendingWarmupBlock {
+                    warmupStartCard(warmupBlock)
+                        .padding(.horizontal, AppTheme.Spacing.lg)
+                }
+
                 // Current Exercise Card
                 currentExerciseCard
                     .padding(.horizontal, AppTheme.Spacing.lg)
@@ -327,6 +332,45 @@ public struct ActiveWorkoutView: View {
                         .font(AppTheme.Typography.bodySmall)
                         .foregroundColor(AppTheme.Text.secondary)
                 }
+            }
+        }
+    }
+
+    private func warmupStartCard(_ block: WarmupBlock) -> some View {
+        ArtDecoCard {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
+                HStack(alignment: .top, spacing: AppTheme.Spacing.sm) {
+                    Image(systemName: "figure.flexibility")
+                        .font(.title3)
+                        .foregroundColor(AppTheme.Accent.gold)
+
+                    VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                        Text(block.title)
+                            .font(AppTheme.Typography.headlineSmall)
+                            .foregroundColor(AppTheme.Text.primary)
+
+                        Text("\(block.estimatedMinutes) min · \(block.exercises.count) moves")
+                            .font(AppTheme.Typography.labelSmall)
+                            .foregroundColor(AppTheme.Text.secondary)
+
+                        if let reason = block.reasons.first {
+                            Text(reason)
+                                .font(AppTheme.Typography.bodySmall)
+                                .foregroundColor(AppTheme.Text.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                }
+
+                Button {
+                    Task {
+                        await viewModel.applyWarmup()
+                    }
+                } label: {
+                    Label("Start Warmup", systemImage: "play.fill")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(ArtDecoButtonStyle(style: .secondary))
             }
         }
     }
