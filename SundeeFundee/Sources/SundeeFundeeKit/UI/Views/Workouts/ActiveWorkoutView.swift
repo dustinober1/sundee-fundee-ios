@@ -19,6 +19,7 @@ public struct ActiveWorkoutView: View {
     @State private var showingSwapConfirm = false
     @State private var showingWorkoutShare = false
     @State private var pendingSwap: SubstitutionRanker.RankedSubstitution?
+    @State private var showingEquipmentConversionPicker = false
     @FocusState private var isWeightFocused: Bool
     @FocusState private var isRepsFocused: Bool
 
@@ -103,6 +104,30 @@ public struct ActiveWorkoutView: View {
         } message: { _ in
             Text("You've already logged sets on this exercise. Swapping will clear that progress.")
         }
+        .sheet(isPresented: $viewModel.showStartingWeightCalibrationSheet) {
+            StartingWeightCalibrationSheet(
+                suggestions: viewModel.startingWeightSuggestions,
+                onApplyAll: {
+                    Task {
+                        await viewModel.applyStartingWeightSuggestions()
+                    }
+                },
+                onSkip: {
+                    viewModel.skipStartingWeightCalibration()
+                }
+            )
+        }
+        .confirmationDialog("Convert Equipment", isPresented: $showingEquipmentConversionPicker) {
+            ForEach(EquipmentAccess.userSelectableDefaults, id: \.self) { equipment in
+                Button(equipment.displayName) {
+                    Task {
+                        await viewModel.convertWorkout(to: equipment)
+                    }
+                }
+            }
+        } message: {
+            Text("Update this workout to match your available equipment.")
+        }
     }
 
     // MARK: - Active Workout View
@@ -118,6 +143,11 @@ public struct ActiveWorkoutView: View {
                 // Progress Section
                 progressSection
                     .padding(.horizontal, AppTheme.Spacing.lg)
+
+                if !viewModel.lastEquipmentConversionChanges.isEmpty {
+                    conversionSummaryCard
+                        .padding(.horizontal, AppTheme.Spacing.lg)
+                }
 
                 // Rest Timer (conditional)
                 if viewModel.isResting {
@@ -170,6 +200,18 @@ public struct ActiveWorkoutView: View {
             Text(elapsedTimeText)
                 .font(AppTheme.Typography.monoLarge)
                 .foregroundColor(AppTheme.Text.orange)
+
+            Menu {
+                Button {
+                    showingEquipmentConversionPicker = true
+                } label: {
+                    Label("Convert Equipment", systemImage: "wrench.and.screwdriver")
+                }
+            } label: {
+                Image(systemName: "ellipsis.circle")
+                    .foregroundColor(AppTheme.Text.secondary)
+            }
+            .accessibilityLabel("Workout options")
         }
     }
 
@@ -207,6 +249,22 @@ public struct ActiveWorkoutView: View {
             }
             .font(AppTheme.Typography.labelSmall)
             .foregroundColor(AppTheme.Text.secondary)
+        }
+    }
+
+    private var conversionSummaryCard: some View {
+        ArtDecoCard {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                Text("Equipment Conversion Applied")
+                    .font(AppTheme.Typography.headlineSmall)
+                    .foregroundColor(AppTheme.Text.primary)
+
+                ForEach(viewModel.lastEquipmentConversionChanges.prefix(2)) { change in
+                    Text("\(change.fromExercise) -> \(change.toExercise)")
+                        .font(AppTheme.Typography.bodySmall)
+                        .foregroundColor(AppTheme.Text.secondary)
+                }
+            }
         }
     }
 
