@@ -33,6 +33,10 @@ public struct AnalyticsView: View {
                         progressSnapshotCard(snapshot)
                     }
 
+                    if !viewModel.cycleInsights.isEmpty {
+                        cycleInsightsCard(viewModel.cycleInsights)
+                    }
+
                     // Charts
                     StrengthProgressionChart(
                         data: viewModel.strengthData,
@@ -190,6 +194,31 @@ public struct AnalyticsView: View {
                         .background(AppTheme.Background.cream.opacity(0.45))
                         .cornerRadius(AppTheme.CornerRadius.small)
                         .accessibilityElement(children: .combine)
+                    }
+                }
+            }
+        }
+    }
+
+    private func cycleInsightsCard(_ insights: [CycleAwareProgressInsight]) -> some View {
+        ArtDecoCard {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
+                Text("Cycle-Aware Insights")
+                    .font(AppTheme.Typography.headlineMedium)
+                    .foregroundColor(AppTheme.Text.primary)
+
+                ForEach(insights.prefix(3)) { insight in
+                    VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                        Text(insight.title)
+                            .font(AppTheme.Typography.labelMedium)
+                            .foregroundColor(AppTheme.Accent.gold)
+                        Text(insight.value)
+                            .font(AppTheme.Typography.bodyMedium)
+                            .foregroundColor(AppTheme.Text.primary)
+                        Text(insight.subtitle)
+                            .font(AppTheme.Typography.bodySmall)
+                            .foregroundColor(AppTheme.Text.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                 }
             }
