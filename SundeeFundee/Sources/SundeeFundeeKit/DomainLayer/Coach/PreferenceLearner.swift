@@ -242,7 +242,7 @@ public enum PreferenceLearner {
         let lowEffortCount = recentLogs.filter { $0.rpe <= 5 }.count
 
         if highEffortCount >= 3 {
-            profile.preferredSessionMinutes = max(20, profile.preferredSessionMinutes - 10)
+            profile.preferredSessionMinutes = min(profile.preferredSessionMinutes, 35)
         } else if lowEffortCount >= 3 && profile.preferredSessionMinutes < 45 {
             profile.preferredSessionMinutes = 45
         }
