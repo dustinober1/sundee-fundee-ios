@@ -8,7 +8,12 @@ public struct WorkoutRemindersSettingsView: View {
     @State private var permissionGranted = false
     @State private var pendingCount = 0
     @State private var errorMessage: String?
+    @State private var weeklyTarget = 3
+    @State private var selectedWeekdays: Set<Int> = [2, 4, 6]
+    @State private var cycleAwarePlanningEnabled = false
+    @State private var recoveryAwarePlanningEnabled = false
     private let service = ReminderService()
+    private let weeklyPlanService = WeeklyPlanService()
 
     public init() {}
 
@@ -42,6 +47,30 @@ public struct WorkoutRemindersSettingsView: View {
                         .foregroundColor(AppTheme.Semantic.warning)
                 }
             }
+
+            Section("Weekly Plan Preferences") {
+                Stepper("Target workouts: \(weeklyTarget)", value: $weeklyTarget, in: 1...6)
+
+                ForEach(weekdayOptions, id: \.weekday) { option in
+                    Toggle(option.label, isOn: Binding(
+                        get: { selectedWeekdays.contains(option.weekday) },
+                        set: { isSelected in
+                            if isSelected {
+                                selectedWeekdays.insert(option.weekday)
+                            } else {
+                                selectedWeekdays.remove(option.weekday)
+                            }
+                        }
+                    ))
+                }
+
+                Toggle("Use cycle-aware planning", isOn: $cycleAwarePlanningEnabled)
+                Toggle("Use recovery-aware planning", isOn: $recoveryAwarePlanningEnabled)
+
+                Button("Save Weekly Plan Preferences") {
+                    Task { await saveWeeklyPlanPreferences() }
+                }
+            }
         }
         .navigationTitle("Workout Reminders")
         #if os(iOS)
@@ -50,6 +79,7 @@ public struct WorkoutRemindersSettingsView: View {
         .task {
             settings = await service.loadSettings()
             await refreshPendingCount()
+            await loadWeeklyPlanPreferences()
         }
     }
 
@@ -89,6 +119,52 @@ public struct WorkoutRemindersSettingsView: View {
 
     private func refreshPendingCount() async {
         pendingCount = await service.pendingReminderCount()
+    }
+
+    private func loadWeeklyPlanPreferences() async {
+        guard let plan = await weeklyPlanService.currentPlan() else { return }
+        weeklyTarget = plan.targetWorkoutCount
+        selectedWeekdays = Set(plan.preferredWeekdays)
+        cycleAwarePlanningEnabled = plan.cycleAwarePlanningEnabled ?? false
+        recoveryAwarePlanningEnabled = plan.recoveryAwarePlanningEnabled ?? false
+    }
+
+    private func saveWeeklyPlanPreferences() async {
+        let weekdays = Array(selectedWeekdays).sorted()
+        guard !weekdays.isEmpty else {
+            errorMessage = "Select at least one preferred training day."
+            return
+        }
+
+        var timeAvailability: [String: Int] = [:]
+        for weekday in weekdays {
+            timeAvailability[String(weekday)] = 45
+        }
+
+        do {
+            _ = try await weeklyPlanService.createOrUpdateCurrentPlan(
+                targetWorkoutCount: weeklyTarget,
+                preferredWeekdays: weekdays,
+                timeAvailableMinutesByWeekdayRaw: timeAvailability,
+                cycleAwarePlanningEnabled: cycleAwarePlanningEnabled,
+                recoveryAwarePlanningEnabled: recoveryAwarePlanningEnabled
+            )
+            errorMessage = nil
+        } catch {
+            errorMessage = "Could not save weekly planning preferences."
+        }
+    }
+
+    private var weekdayOptions: [(weekday: Int, label: String)] {
+        [
+            (2, "Monday"),
+            (3, "Tuesday"),
+            (4, "Wednesday"),
+            (5, "Thursday"),
+            (6, "Friday"),
+            (7, "Saturday"),
+            (1, "Sunday"),
+        ]
     }
 }
 #endif
