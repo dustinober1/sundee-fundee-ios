@@ -76,6 +76,25 @@ final class ActiveWorkoutSessionViewModelTests: XCTestCase {
         viewModel.skipRest()
     }
 
+    func testConcurrentCompleteSetOnlyLogsAndAdvancesOnce() async throws {
+        let dataClient = MockCloudKitClient()
+        let viewModel = ActiveWorkoutSessionViewModel(
+            workout: multiSetWorkout(),
+            dataClient: dataClient,
+            healthClient: MockHealthKitClient()
+        )
+
+        async let first: Void = viewModel.completeSet(actualReps: 5, completedWeight: 135, setRPE: 9)
+        async let second: Void = viewModel.completeSet(actualReps: 5, completedWeight: 135, setRPE: 9)
+        _ = await (first, second)
+
+        XCTAssertEqual(dataClient.recordCount(for: "WorkoutEffortLog"), 1)
+        XCTAssertEqual(viewModel.completedSets, 1)
+        XCTAssertEqual(viewModel.currentSetIndex, 1)
+
+        viewModel.skipRest()
+    }
+
     private func waitForWarmupBlock(
         in viewModel: ActiveWorkoutSessionViewModel,
         timeoutNanoseconds: UInt64 = 1_000_000_000
