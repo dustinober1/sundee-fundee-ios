@@ -19,6 +19,18 @@ final class PainAwareSubstitutionServiceTests: XCTestCase {
         )
 
         XCTAssertFalse(substitutions.isEmpty)
-        XCTAssertTrue(substitutions.first?.reason.lowercased().contains("pain") == true)
+        XCTAssertTrue(substitutions.first?.reason.lowercased().contains("knee") == true)
+    }
+
+    func testNoPainLogsPreserveGenericRankingReason() {
+        let substitutions = PainAwareSubstitutionService.rank(
+            currentExercise: "Back Squat",
+            recentPainLogs: [],
+            injuries: [],
+            equipment: .fullGym
+        )
+
+        XCTAssertFalse(substitutions.isEmpty)
+        XCTAssertFalse(substitutions.first?.reason.lowercased().contains("logged recently") == true)
     }
 }
