@@ -8,6 +8,7 @@ public struct ProgramSessionAdaptationContext: Sendable {
     public let equipment: EquipmentAccess?
     public let cycleConfidence: Double?
     public let deloadRecommended: Bool
+    public let recentEffortRPE: Int?
 
     public init(
         cyclePhase: CyclePhase? = nil,
@@ -16,7 +17,8 @@ public struct ProgramSessionAdaptationContext: Sendable {
         painIntensity: Int? = nil,
         equipment: EquipmentAccess? = nil,
         cycleConfidence: Double? = nil,
-        deloadRecommended: Bool = false
+        deloadRecommended: Bool = false,
+        recentEffortRPE: Int? = nil
     ) {
         self.cyclePhase = cyclePhase
         self.injuries = injuries
@@ -25,6 +27,7 @@ public struct ProgramSessionAdaptationContext: Sendable {
         self.equipment = equipment
         self.cycleConfidence = cycleConfidence
         self.deloadRecommended = deloadRecommended
+        self.recentEffortRPE = recentEffortRPE
     }
 }
 
