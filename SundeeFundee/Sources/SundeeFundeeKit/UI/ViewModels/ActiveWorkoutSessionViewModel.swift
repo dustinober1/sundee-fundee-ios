@@ -49,6 +49,8 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
     private var elapsedTimerCancellable: AnyCancellable?
     private var restStartedAt: Date?
     private var restTargetDuration: TimeInterval = 0
+    private var restSourceExerciseName: String?
+    private var restSourceSetIndex: Int?
     private var acceptedSubstitutions: [String] = []
     private var usedPainAwareSwap = false
     private var personalRecordExerciseNames: Set<String> = []
@@ -197,6 +199,7 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
     public func completeSet(actualReps: Int, completedWeight: Double) async {
         guard currentExerciseIndex < workout.exercises.count,
               currentSetIndex < workout.exercises[currentExerciseIndex].targetSets.count else { return }
+        let completedSetIndex = currentSetIndex
 
         // 1. Mark set complete
         workout.exercises[currentExerciseIndex].targetSets[currentSetIndex].isComplete = true
@@ -235,7 +238,12 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
 
         // 7. Start rest timer if applicable
         if completedExercise.restMinutes > 0 {
-            startRestTimer(duration: TimeInterval(restGuidance.seconds), reason: restGuidance.reason)
+            startRestTimer(
+                duration: TimeInterval(restGuidance.seconds),
+                reason: restGuidance.reason,
+                sourceExerciseName: completedExercise.name,
+                sourceSetIndex: completedSetIndex
+            )
         }
 
         // 8. Update Live Activity
@@ -560,10 +568,17 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
             }
     }
 
-    private func startRestTimer(duration: TimeInterval, reason: String?) {
+    private func startRestTimer(
+        duration: TimeInterval,
+        reason: String?,
+        sourceExerciseName: String,
+        sourceSetIndex: Int
+    ) {
         restTimeRemaining = duration
         restTargetDuration = duration
         restGuidanceReason = reason
+        restSourceExerciseName = sourceExerciseName
+        restSourceSetIndex = sourceSetIndex
         restStartedAt = Date()
         isResting = true
 
@@ -578,6 +593,8 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
                     self.restTimeRemaining = 0
                     self.isResting = false
                     self.restGuidanceReason = nil
+                    self.restSourceExerciseName = nil
+                    self.restSourceSetIndex = nil
                     self.restTimerCancellable?.cancel()
                     self.restTimerCancellable = nil
                     self.restStartedAt = nil
@@ -598,6 +615,8 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
         restTimeRemaining = 0
         isResting = false
         restGuidanceReason = nil
+        restSourceExerciseName = nil
+        restSourceSetIndex = nil
         restStartedAt = nil
     }
 
@@ -721,6 +740,10 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
 #endif
     }
 
+    func activitySnapshotForTesting() -> ActiveWorkoutState {
+        buildSnapshot(status: isResting ? .resting : .active)
+    }
+
     private func buildSnapshot(status: ActiveWorkoutStatus) -> ActiveWorkoutState {
         let totalSetsCount = totalSets
         let completedSetsCount = completedSets
@@ -780,10 +803,13 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
 
         // Build rest
         let rest: ActiveWorkoutState.Rest?
-        if isResting, let restStart = restStartedAt {
+        if isResting,
+           let restStart = restStartedAt,
+           let restSourceExerciseName,
+           let restSourceSetIndex {
             rest = ActiveWorkoutState.Rest(
-                sourceExerciseName: workout.exercises[currentExerciseIndex].name,
-                sourceSetIndex: currentSetIndex,
+                sourceExerciseName: restSourceExerciseName,
+                sourceSetIndex: restSourceSetIndex,
                 targetDurationSeconds: restTargetDuration,
                 startedAt: restStart
             )
