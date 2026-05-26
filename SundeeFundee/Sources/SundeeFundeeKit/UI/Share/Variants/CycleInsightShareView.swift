@@ -12,6 +12,7 @@ struct CycleInsightShareView: View {
     let insight: String
     let aspect: ShareCardAspect
     let shareURL: URL
+    let privacyOptions: SharePrivacyOptions
 
     var body: some View {
         ZStack {
@@ -26,12 +27,12 @@ struct CycleInsightShareView: View {
                     .multilineTextAlignment(.center)
                     .lineLimit(2)
                     .padding(.horizontal, AppTheme.Spacing.xl)
-                Text("Day \(cycleDay)")
+                Text(dayText)
                     .font(AppTheme.Typography.headlineMedium)
                     .foregroundColor(AppTheme.Text.secondary)
                     .tracking(2)
                 divider
-                Text(insight)
+                Text(displayInsight)
                     .font(AppTheme.Typography.bodyLarge)
                     .foregroundColor(AppTheme.Text.primary)
                     .multilineTextAlignment(.center)
@@ -62,7 +63,7 @@ struct CycleInsightShareView: View {
     }
 
     private var topBadge: some View {
-        Text(phase.rawValue.uppercased())
+        Text(topBadgeText)
             .font(AppTheme.Typography.labelLarge)
             .tracking(4)
             .foregroundColor(AppTheme.Text.primary)
@@ -90,11 +91,27 @@ struct CycleInsightShareView: View {
     }
 
     private var phaseHeading: String {
+        guard privacyOptions.showCycleContext else { return "Cycle-Aware Training" }
         switch phase {
         case .menstrual:  return "Honor Your Rhythm"
         case .follicular: return "Build & Rise"
         case .ovulation:  return "Peak Power"
         case .luteal:     return "Steady Strength"
         }
+    }
+
+    private var topBadgeText: String {
+        privacyOptions.showCycleContext ? phase.rawValue.uppercased() : "PERSONAL INSIGHT"
+    }
+
+    private var dayText: String {
+        privacyOptions.showCycleContext ? "Day \(cycleDay)" : "Private by default"
+    }
+
+    private var displayInsight: String {
+        if privacyOptions.showCycleContext {
+            return privacyOptions.redactSensitiveText(insight)
+        }
+        return "Celebrate your consistency without sharing sensitive cycle details."
     }
 }
