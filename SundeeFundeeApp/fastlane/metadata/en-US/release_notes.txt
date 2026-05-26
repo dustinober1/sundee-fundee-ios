@@ -1,10 +1,11 @@
 What's New:
 
-- Added Bands Only as a default equipment option across onboarding, Settings, Coach Plans, and workout substitutions.
-- Added a larger band exercise catalog for travel-friendly and home workouts.
-- Added an 8-week 100 Push-Ups bodyweight program with a final max-rep test.
-- Added Today guidance with resume prompts, first-week checklist items, and recovery input reminders.
-- Added clearer program recommendations, progress snapshots, cycle confidence guidance, and workout quick edits.
-- Benchmark results now appear in workout history after logging, with score context and quick access back to the benchmark detail screen.
+- New Today Training Decision card with daily go / modify / recover guidance based on cycle phase, recovery, and pain.
+- New deload detection plus one-tap active-recovery programming when your trend suggests backing off.
+- Program sessions now include adaptation summaries so you can see exactly what changed and why.
+- New equipment conversion tools and starting-weight calibration for faster, safer first sets.
+- New cycle confidence and cycle-aware progress insights to explain context behind your trends.
+- New share privacy controls to hide cycle context, recovery, pain context, and exact dates.
+- New Data Trust Center and expanded data export coverage for recovery scores and weekly plans.
 
 Thanks for training with Sundee Fundee!
