@@ -19,13 +19,15 @@ public enum PreferenceLearner {
     ///   - edits: Recorded workout edits.
     ///   - substitutions: Substitution accept/reject decisions.
     ///   - questionnaires: Past questionnaire answers.
+    ///   - effortLogs: Optional RPE logs from completed sets or sessions.
     /// - Returns: An updated CoachProfile reflecting learned preferences.
     public static func learn(
         existingProfile: CoachProfile,
         workouts: [CompletedWorkoutRecord],
         edits: [WorkoutEdit] = [],
         substitutions: [AcceptedSubstitution] = [],
-        questionnaires: [QuestionnaireAnswers] = []
+        questionnaires: [QuestionnaireAnswers] = [],
+        effortLogs: [WorkoutEffortLog] = []
     ) -> CoachProfile {
         var profile = existingProfile
 
@@ -61,6 +63,8 @@ public enum PreferenceLearner {
         if !questionnaires.isEmpty {
             profile.energyDistribution = buildEnergyDistribution(from: questionnaires)
         }
+
+        applyEffortTolerance(from: effortLogs, to: &profile)
 
         profile.totalWorkoutsObserved = workouts.count
         profile.lastUpdated = Date()
@@ -223,5 +227,24 @@ public enum PreferenceLearner {
             }
         }
         return dist
+    }
+
+    private static func applyEffortTolerance(
+        from effortLogs: [WorkoutEffortLog],
+        to profile: inout CoachProfile
+    ) {
+        guard effortLogs.count >= 3 else { return }
+
+        let recentLogs = effortLogs
+            .sorted { $0.dateCreated > $1.dateCreated }
+            .prefix(6)
+        let highEffortCount = recentLogs.filter { $0.rpe >= 9 }.count
+        let lowEffortCount = recentLogs.filter { $0.rpe <= 5 }.count
+
+        if highEffortCount >= 3 {
+            profile.preferredSessionMinutes = max(20, profile.preferredSessionMinutes - 10)
+        } else if lowEffortCount >= 3 && profile.preferredSessionMinutes < 45 {
+            profile.preferredSessionMinutes = 45
+        }
     }
 }
