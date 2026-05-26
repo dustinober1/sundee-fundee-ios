@@ -15,10 +15,16 @@ public enum ShareCardRenderer {
     public static func render(
         _ variant: ShareCardVariant,
         aspect: ShareCardAspect,
-        shareContext: ShareContext? = nil
+        shareContext: ShareContext? = nil,
+        privacyOptions: SharePrivacyOptions = .privateDefault
     ) async -> UIImage? {
         await Task.detached(priority: .userInitiated) { @MainActor in
-            let renderer = ImageRenderer(content: content(for: variant, aspect: aspect, shareContext: shareContext))
+            let renderer = ImageRenderer(content: content(
+                for: variant,
+                aspect: aspect,
+                shareContext: shareContext,
+                privacyOptions: privacyOptions
+            ))
             renderer.scale = renderScale
             return renderer.uiImage
         }.value
@@ -31,7 +37,8 @@ public enum ShareCardRenderer {
     public static func content(
         for variant: ShareCardVariant,
         aspect: ShareCardAspect,
-        shareContext: ShareContext? = nil
+        shareContext: ShareContext? = nil,
+        privacyOptions: SharePrivacyOptions = .privateDefault
     ) -> some View {
         switch variant {
         case .completedWorkout(let workout, let prs):
@@ -39,7 +46,8 @@ public enum ShareCardRenderer {
                 workout: workout,
                 personalRecords: prs,
                 aspect: aspect,
-                shareURL: ShareURL.link(for: shareContext)
+                shareURL: ShareURL.link(for: shareContext),
+                privacyOptions: privacyOptions
             )
         case .newPR(let exercise, let weight, let unit, let previousBest):
             NewPRShareView(
@@ -56,7 +64,8 @@ public enum ShareCardRenderer {
                 cycleDay: day,
                 insight: insight,
                 aspect: aspect,
-                shareURL: ShareURL.link(for: shareContext)
+                shareURL: ShareURL.link(for: shareContext),
+                privacyOptions: privacyOptions
             )
         case .coachSummary(let title, let subtitle, let badge, let bullets):
             CoachSummaryShareView(
@@ -64,7 +73,8 @@ public enum ShareCardRenderer {
                 subtitle: subtitle,
                 badge: badge,
                 bullets: bullets,
-                aspect: aspect
+                aspect: aspect,
+                privacyOptions: privacyOptions
             )
         case .weeklyRecap(let title, let subtitle, let badge, let bullets):
             CoachSummaryShareView(
@@ -72,7 +82,8 @@ public enum ShareCardRenderer {
                 subtitle: subtitle,
                 badge: badge,
                 bullets: bullets,
-                aspect: aspect
+                aspect: aspect,
+                privacyOptions: privacyOptions
             )
         case .selfieOverlay(let image, let summary):
             SelfieOverlayShareView(
