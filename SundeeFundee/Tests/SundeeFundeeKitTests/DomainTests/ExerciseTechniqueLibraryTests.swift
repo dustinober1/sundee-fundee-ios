@@ -46,6 +46,21 @@ final class ExerciseTechniqueLibraryTests: XCTestCase {
         }
     }
 
+    func testShippedExerciseNameAliasesResolveToCanonicalCues() {
+        let aliases = [
+            ("Bench Press", "Flat Barbell Bench Press"),
+            ("Romanian Deadlift", "Romanian Deadlift (No Straps)")
+        ]
+
+        for (alias, canonicalName) in aliases {
+            let aliasCue = ExerciseTechniqueLibrary.cue(for: alias)
+            let canonicalCue = ExerciseTechniqueLibrary.cue(for: canonicalName)
+
+            XCTAssertNotNil(aliasCue, "Missing technique cue alias for \(alias)")
+            XCTAssertEqual(aliasCue, canonicalCue)
+        }
+    }
+
     func testUnknownExerciseReturnsNil() {
         XCTAssertNil(ExerciseTechniqueLibrary.cue(for: "Mystery Lift"))
     }
