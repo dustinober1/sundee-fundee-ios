@@ -90,6 +90,19 @@ final class RestGuidanceServiceTests: XCTestCase {
         XCTAssertTrue(completed.reason.localizedCaseInsensitiveContains("conditioning"))
     }
 
+    func testWeightedRowUsesStrengthRestInsteadOfConditioningRest() {
+        let guidance = RestGuidanceService.guidance(
+            context: context(
+                exercise: exercise(name: "Barbell Row", category: .accessory, reps: 8, restMinutes: 2.0),
+                completedSet: set(reps: 8, actualReps: 8, weight: 155)
+            )
+        )
+
+        XCTAssertGreaterThan(guidance.seconds, 75)
+        XCTAssertFalse(guidance.reason.localizedCaseInsensitiveContains("conditioning"))
+        XCTAssertTrue(guidance.reason.localizedCaseInsensitiveContains("accessory"))
+    }
+
     private func context(
         exercise: Exercise,
         completedSet: ExerciseSet,
