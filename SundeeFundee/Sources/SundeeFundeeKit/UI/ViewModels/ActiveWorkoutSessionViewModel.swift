@@ -777,7 +777,15 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
 
         // Build nextUp
         let nextUp: ActiveWorkoutState.NextUp?
-        if hasNextSet {
+        if isResting, let exercise = currentExercise, let set = currentSet {
+            nextUp = ActiveWorkoutState.NextUp(
+                exerciseName: exercise.name,
+                exerciseIndex: currentExerciseIndex,
+                setIndex: currentSetIndex,
+                prescribedRepsText: "\(set.reps)",
+                prescribedWeight: set.prescribedWeight
+            )
+        } else if hasNextSet {
             let exercise = workout.exercises[currentExerciseIndex]
             let nextSet = exercise.targetSets[currentSetIndex + 1]
             nextUp = ActiveWorkoutState.NextUp(
