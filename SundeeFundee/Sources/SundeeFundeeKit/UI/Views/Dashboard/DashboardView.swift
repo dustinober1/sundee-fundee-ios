@@ -32,6 +32,10 @@ public struct DashboardView: View {
                     // Welcome Header
                     welcomeHeader
 
+                    if let decision = viewModel.todayTrainingDecision {
+                        todayTrainingDecisionCard(decision)
+                    }
+
                     if let todayAction = viewModel.todayAction {
                         todayActionCard(todayAction)
                     }
@@ -212,6 +216,103 @@ public struct DashboardView: View {
 
     private var todayDate: String {
         Self.dateFormatter.string(from: Date())
+    }
+
+    // MARK: - Today Training Decision
+
+    private func todayTrainingDecisionCard(_ decision: TodayTrainingDecision) -> some View {
+        ArtDecoCard {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
+                HStack(alignment: .top, spacing: AppTheme.Spacing.md) {
+                    Image(systemName: decision.systemImage)
+                        .font(.title3)
+                        .foregroundColor(AppTheme.Accent.gold)
+                        .accessibilityHidden(true)
+
+                    VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                        Text(decision.title)
+                            .font(AppTheme.Typography.headlineMedium)
+                            .foregroundColor(AppTheme.Text.primary)
+
+                        Text(decision.subtitle)
+                            .font(AppTheme.Typography.bodySmall)
+                            .foregroundColor(AppTheme.Text.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+
+                    Spacer()
+                }
+
+                if !decision.reasons.isEmpty {
+                    VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                        ForEach(Array(decision.reasons.prefix(3).enumerated()), id: \.offset) { _, reason in
+                            HStack(alignment: .top, spacing: AppTheme.Spacing.xs) {
+                                Circle()
+                                    .fill(AppTheme.Accent.gold.opacity(0.6))
+                                    .frame(width: 5, height: 5)
+                                    .padding(.top, 5)
+                                    .accessibilityHidden(true)
+                                Text(reason)
+                                    .font(AppTheme.Typography.bodySmall)
+                                    .foregroundColor(AppTheme.Text.secondary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                        }
+                    }
+                }
+
+                if !viewModel.recoveryExplanations.isEmpty {
+                    VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                        ForEach(viewModel.recoveryExplanations.prefix(2)) { explanation in
+                            Text(explanation.text)
+                                .font(AppTheme.Typography.bodySmall)
+                                .foregroundColor(AppTheme.Text.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                }
+
+                Button {
+                    handleTodayTrainingDecision(decision)
+                } label: {
+                    Label(decision.primaryActionTitle, systemImage: decision.systemImage)
+                        .frame(maxWidth: .infinity)
+                }
+                .artDecoButton(style: .accent)
+
+                if let deload = viewModel.deloadRecommendation, deload.isRecommended {
+                    Button {
+                        Task {
+                            starterWorkout = await viewModel.buildActiveRecoveryWorkout(
+                                cyclePhase: cyclePhaseCache.currentPhase
+                            )
+                        }
+                    } label: {
+                        Label("Take an Active Recovery Day", systemImage: "figure.cooldown")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .artDecoButton(style: .secondary)
+
+                    Text(deload.reason)
+                        .font(AppTheme.Typography.bodySmall)
+                        .foregroundColor(AppTheme.Text.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+        }
+    }
+
+    private func handleTodayTrainingDecision(_ decision: TodayTrainingDecision) {
+        switch decision.kind {
+        case .train, .modify:
+            Task { starterWorkout = await viewModel.buildStarterWorkout() }
+        case .recover:
+            Task {
+                starterWorkout = await viewModel.buildActiveRecoveryWorkout(
+                    cyclePhase: cyclePhaseCache.currentPhase
+                )
+            }
+        }
     }
 
     // MARK: - Today Action
@@ -433,13 +534,7 @@ public struct DashboardView: View {
     }
 
     private func cycleConfidenceText(_ confidence: Double) -> String {
-        if confidence >= 0.7 {
-            return "High confidence from recent cycle data."
-        } else if confidence >= 0.4 {
-            return "Medium confidence. Logging periods keeps this sharper."
-        } else {
-            return "Low confidence. Log period dates to improve phase guidance."
-        }
+        CycleConfidenceExplainer.explain(confidence: confidence).description
     }
 
     // MARK: - Stat Cards
@@ -873,6 +968,9 @@ class DashboardViewModel: ObservableObject {
     @Published var firstWeekChecklist: [FirstWeekChecklistItem] = []
     @Published var recoveryInputStatuses: [RecoveryInputStatus] = []
     @Published var navigateToPainTracking: Bool = false
+    @Published var todayTrainingDecision: TodayTrainingDecision?
+    @Published var recoveryExplanations: [RecoveryExplanation] = []
+    @Published var deloadRecommendation: DeloadRecommendation?
 
     // MARK: - Dependencies
 
@@ -928,7 +1026,7 @@ class DashboardViewModel: ObservableObject {
         // Tier 2: Non-critical data loads after UI is visible
         await loadCoachingInsights()
         await loadActiveChallenge()
-        await loadWeeklyPlan()
+        await loadWeeklyPlan(cyclePhase: cyclePhaseCache.currentPhase)
         await loadTodayGuidance(cyclePhaseCache: cyclePhaseCache)
         await trackFirstWorkoutPromptIfNeeded()
     }
@@ -959,6 +1057,14 @@ class DashboardViewModel: ObservableObject {
             source: "dashboard"
         )
         return workout
+    }
+
+    func buildActiveRecoveryWorkout(cyclePhase: CyclePhase?) async -> Workout {
+        let settings = await loadUserSettings()
+        return ActiveRecoveryWorkoutBuilder.build(
+            equipment: settings.defaultEquipment,
+            cyclePhase: cyclePhase
+        )
     }
 
     /// Generates an AI workout based on cycle phase and energy
@@ -1093,7 +1199,10 @@ class DashboardViewModel: ObservableObject {
         }
     }
 
-    private func loadWeeklyPlan() async {
+    private func loadWeeklyPlan(
+        cyclePhase: CyclePhase? = nil,
+        recoveryScore: Int? = nil
+    ) async {
         let workouts: [Workout] = (try? await dataClient.fetchAll(recordType: "Workout")) ?? []
         let service = WeeklyPlanService(dataClient: dataClient)
         var plan = await service.currentPlan()
@@ -1104,7 +1213,12 @@ class DashboardViewModel: ObservableObject {
             )
         }
         if let plan {
-            weeklyPlanProgress = await service.progress(plan: plan, workouts: workouts)
+            weeklyPlanProgress = await service.progress(
+                plan: plan,
+                workouts: workouts,
+                cyclePhase: cyclePhase,
+                recoveryScore: recoveryScore
+            )
             weeklyStreak = StreakService.calculate(workouts: workouts, targetPerWeek: plan.targetWorkoutCount)
         }
     }
@@ -1121,6 +1235,7 @@ class DashboardViewModel: ObservableObject {
             sortDescriptors: [NSSortDescriptor(key: "date", ascending: false)]
         )) ?? []
         let maxes: [OneRepMaxRecord] = (try? await dataClient.fetchAll(recordType: "OneRepMaxRecord")) ?? []
+        let recoveryRecords: [RecoveryScoreRecord] = (try? await dataClient.fetchAll(recordType: "RecoveryScore")) ?? []
         let hasWeeklyPlan = weeklyPlanProgress != nil
         let checklist = TodayGuidanceService.firstWeekChecklist(
             completedWorkoutCount: workouts.filter { $0.completedAt != nil }.count,
@@ -1137,6 +1252,11 @@ class DashboardViewModel: ObservableObject {
         let painLogs: [DailyPainLog] = (try? await dataClient.fetchAll(recordType: "DailyPainLog")) ?? []
         let hasPainLogToday = painLogs.contains { calendar.isDate($0.date, inSameDayAs: now) }
         let hasCyclePhase = cycleTrackingEnabled && cyclePhaseCache?.currentPhase != nil
+        let painIntensityToday = painLogs
+            .filter { calendar.isDate($0.date, inSameDayAs: now) }
+            .map(\.intensity)
+            .max()
+        let latestRecovery = latestRecoveryScore(from: recoveryRecords)
 
         async let hasSleep = hasRecentSleepData()
         async let hasHRV = hasRecentHRVData()
@@ -1149,14 +1269,69 @@ class DashboardViewModel: ObservableObject {
             hasHRV: hrvAvailable
         )
 
+        let deload = DeloadDetectionService.recommendation(
+            recentScores: recoveryRecords,
+            recentPainLogs: painLogs
+        )
+        let decision = TodayTrainingDecisionService.decision(
+            recoveryScore: latestRecovery,
+            cyclePhase: cyclePhaseCache?.currentPhase,
+            cycleConfidence: cyclePhaseCache?.confidence,
+            painIntensity: painIntensityToday,
+            energyLevel: nil,
+            weeklyPlanProgress: weeklyPlanProgress,
+            deloadRecommended: deload.isRecommended
+        )
+
         firstWeekChecklist = checklist
         recoveryInputStatuses = inputs
+        deloadRecommendation = deload
+        todayTrainingDecision = decision
+        recoveryExplanations = RecoveryExplanationService.topExplanations(from: latestRecovery)
         todayAction = TodayGuidanceService.primaryAction(
             workouts: workouts,
             weeklyPlanProgress: weeklyPlanProgress,
             firstWeekChecklist: checklist,
             recoveryInputs: inputs,
             now: now
+        )
+    }
+
+    private func latestRecoveryScore(from records: [RecoveryScoreRecord]) -> RecoveryScore? {
+        guard let latest = records.max(by: { $0.scoreDate < $1.scoreDate }) else { return nil }
+
+        var subScores: [RecoveryInput: Int] = [:]
+        if let hrv = latest.hrvSubScore { subScores[.hrv] = hrv }
+        if let sleep = latest.sleepSubScore { subScores[.sleep] = sleep }
+        if let load = latest.loadSubScore { subScores[.trainingLoad] = load }
+        if let cycle = latest.cyclePhaseSubScore { subScores[.cyclePhase] = cycle }
+        if let pain = latest.painSubScore { subScores[.pain] = pain }
+
+        var explanations: [RecoveryInput: String] = [:]
+        if let value = latest.hrvSubScore {
+            explanations[.hrv] = "HRV signal is \(value)/100 today."
+        }
+        if let value = latest.sleepSubScore {
+            explanations[.sleep] = "Sleep signal is \(value)/100."
+        }
+        if let value = latest.loadSubScore {
+            explanations[.trainingLoad] = "Recent training load signal is \(value)/100."
+        }
+        if let value = latest.cyclePhaseSubScore {
+            explanations[.cyclePhase] = "Cycle context signal is \(value)/100."
+        }
+        if let value = latest.painSubScore {
+            explanations[.pain] = "Pain context signal is \(value)/100."
+        }
+
+        let recommendation = TrainingRecommendation(rawValue: latest.recommendationRaw) ?? .moderate
+        return RecoveryScore(
+            total: latest.totalScore,
+            recommendation: recommendation,
+            subScores: subScores,
+            presentInputCount: latest.presentInputCount,
+            totalInputCount: RecoveryInput.allCases.count,
+            explanations: explanations
         )
     }
 
