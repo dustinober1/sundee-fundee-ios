@@ -40,6 +40,57 @@ public struct ShareSummary: Sendable, Equatable {
     }
 }
 
+public struct SharePrivacyOptions: Sendable, Equatable {
+    public var showCycleContext: Bool
+    public var showRecoveryScore: Bool
+    public var showPainContext: Bool
+    public var showExactDate: Bool
+
+    public init(
+        showCycleContext: Bool = false,
+        showRecoveryScore: Bool = false,
+        showPainContext: Bool = false,
+        showExactDate: Bool = false
+    ) {
+        self.showCycleContext = showCycleContext
+        self.showRecoveryScore = showRecoveryScore
+        self.showPainContext = showPainContext
+        self.showExactDate = showExactDate
+    }
+
+    public static let privateDefault = SharePrivacyOptions()
+
+    public func redactedDateText(for date: Date) -> String {
+        guard showExactDate else { return "Recent Session" }
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .none
+        return formatter.string(from: date)
+    }
+
+    public func redactSensitiveText(_ text: String) -> String {
+        var redacted = text
+        if !showCycleContext {
+            redacted = redacted.replacingOccurrences(of: "cycle", with: "readiness", options: [.caseInsensitive])
+            redacted = redacted.replacingOccurrences(of: "phase", with: "timing", options: [.caseInsensitive])
+            redacted = redacted.replacingOccurrences(of: "day ", with: "", options: [.caseInsensitive])
+        }
+        if !showRecoveryScore {
+            redacted = redacted.replacingOccurrences(of: "recovery", with: "readiness", options: [.caseInsensitive])
+            redacted = redacted.replacingOccurrences(
+                of: "score",
+                with: "signal",
+                options: [.caseInsensitive]
+            )
+        }
+        if !showPainContext {
+            redacted = redacted.replacingOccurrences(of: "pain", with: "comfort", options: [.caseInsensitive])
+            redacted = redacted.replacingOccurrences(of: "sore", with: "tight", options: [.caseInsensitive])
+        }
+        return redacted
+    }
+}
+
 // MARK: - ShareCardVariant
 //
 // The data payload driving which card is rendered. Views are matched by
