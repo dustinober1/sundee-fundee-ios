@@ -8,6 +8,11 @@ public struct ExerciseTechniqueCue: Sendable, Equatable {
 }
 
 public enum ExerciseTechniqueLibrary {
+    private static let aliases: [String: String] = [
+        "Bench Press": "Flat Barbell Bench Press",
+        "Romanian Deadlift": "Romanian Deadlift (No Straps)"
+    ]
+
     private static let cues: [String: ExerciseTechniqueCue] = [
         "Back Squat": ExerciseTechniqueCue(
             exerciseName: "Back Squat",
@@ -116,6 +121,6 @@ public enum ExerciseTechniqueLibrary {
     ]
 
     public static func cue(for exerciseName: String) -> ExerciseTechniqueCue? {
-        cues[exerciseName]
+        cues[exerciseName] ?? aliases[exerciseName].flatMap { cues[$0] }
     }
 }
