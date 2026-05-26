@@ -38,4 +38,67 @@ final class QuickWorkoutBuilderTests: XCTestCase {
         XCTAssertFalse(names.localizedCaseInsensitiveContains("Max"))
         XCTAssertTrue(result.reasons.contains(where: { $0.localizedCaseInsensitiveContains("recovery") }))
     }
+
+    func testKneePainAvoidsBodyweightSquatAndLungePatterns() {
+        let result = QuickWorkoutBuilder.build(
+            request: QuickWorkoutRequest(
+                timeMinutes: 20,
+                focus: .lowerBody,
+                energyLevel: .medium,
+                equipment: .bodyweightOnly,
+                todayDecisionKind: .modify,
+                recoveryScoreTotal: 62,
+                painLogs: [
+                    DailyPainLog(
+                        id: "knee-pain",
+                        locationIds: "knee_left",
+                        intensity: 7,
+                        painType: .acute,
+                        date: Date()
+                    )
+                ]
+            )
+        )
+
+        let names = result.workout.exercises.map(\.name).joined(separator: " ")
+        XCTAssertFalse(names.localizedCaseInsensitiveContains("Squat"))
+        XCTAssertFalse(names.localizedCaseInsensitiveContains("Lunge"))
+        XCTAssertTrue(result.reasons.contains(where: { $0.localizedCaseInsensitiveContains("pain") }))
+    }
+
+    func testVeryShortRequestTrimsToSingleExerciseWhenItFits() {
+        let result = QuickWorkoutBuilder.build(
+            request: QuickWorkoutRequest(
+                timeMinutes: 3,
+                focus: .core,
+                energyLevel: .low,
+                equipment: .bodyweightOnly,
+                todayDecisionKind: .modify,
+                recoveryScoreTotal: 58,
+                painLogs: []
+            )
+        )
+
+        XCTAssertEqual(result.workout.exercises.count, 1)
+        XCTAssertLessThanOrEqual(result.estimatedMinutes, 3)
+        XCTAssertFalse(result.reasons.contains(where: { $0.localizedCaseInsensitiveContains("exceeds") }))
+    }
+
+    func testTinyRequestReportsActualMinimumEstimateWhenItCannotFit() {
+        let result = QuickWorkoutBuilder.build(
+            request: QuickWorkoutRequest(
+                timeMinutes: 1,
+                focus: .core,
+                energyLevel: .low,
+                equipment: .bodyweightOnly,
+                todayDecisionKind: .modify,
+                recoveryScoreTotal: 58,
+                painLogs: []
+            )
+        )
+
+        XCTAssertEqual(result.workout.exercises.count, 1)
+        XCTAssertGreaterThan(result.estimatedMinutes, 1)
+        XCTAssertTrue(result.reasons.contains(where: { $0.localizedCaseInsensitiveContains("exceeds") }))
+    }
 }

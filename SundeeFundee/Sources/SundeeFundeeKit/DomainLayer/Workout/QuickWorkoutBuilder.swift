@@ -71,11 +71,16 @@ public enum QuickWorkoutBuilder {
         }
         trimToFit(plans: &plans, timeLimit: timeLimit)
 
-        let estimatedMinutes = min(estimateMinutes(plans), timeLimit)
+        let estimatedMinutes = estimateMinutes(plans)
+        let painAvoidanceApplied = painFilterIsActive(request.painLogs)
+            && !plans.isEmpty
+            && plans.allSatisfy { isAllowedForPain($0.candidate, painLogs: request.painLogs) }
         let reasons = buildReasons(
             request: request,
             timeLimit: timeLimit,
-            lowRecovery: lowRecovery
+            estimatedMinutes: estimatedMinutes,
+            lowRecovery: lowRecovery,
+            painAvoidanceApplied: painAvoidanceApplied
         )
         let exercises = plans.map(makeExercise)
 
@@ -85,7 +90,7 @@ public enum QuickWorkoutBuilder {
                 name: "Best Next \(timeLimit) Minutes",
                 exercises: exercises,
                 notes: reasons.joined(separator: " "),
-                duration: timeLimit
+                duration: max(timeLimit, estimatedMinutes)
             ),
             estimatedMinutes: estimatedMinutes,
             reasons: reasons
@@ -93,6 +98,7 @@ public enum QuickWorkoutBuilder {
     }
 
     private static func targetExerciseCount(timeMinutes: Int, lowRecovery: Bool) -> Int {
+        if timeMinutes <= 4 { return 1 }
         if timeMinutes <= 14 { return 2 }
         if lowRecovery { return 2 }
         if timeMinutes >= 25 { return 4 }
@@ -132,10 +138,22 @@ public enum QuickWorkoutBuilder {
             energyLevel: request.energyLevel
         )
         let lowStressPool = lowRecovery ? pool.filter { !isHighStress($0.name) } : pool
-        let painFilteredPool = filterForPain(lowStressPool, painLogs: request.painLogs)
-        let preferred = painFilteredPool.count >= min(2, targetCount)
-            ? painFilteredPool
-            : (lowStressPool.count >= min(2, targetCount) ? lowStressPool : pool)
+        let preferred: [WorkoutExerciseCandidate]
+        if painFilterIsActive(request.painLogs) {
+            let painFilteredPool = filterForPain(lowStressPool, painLogs: request.painLogs)
+            let neutralFallbackPool = filterForPain(
+                neutralFallbackCandidates(
+                    equipment: request.equipment,
+                    energyLevel: request.energyLevel
+                ),
+                painLogs: request.painLogs
+            )
+
+            let painSafePool = orderedUniqueCandidates(painFilteredPool + neutralFallbackPool)
+            preferred = painSafePool.isEmpty ? lowStressPool : painSafePool
+        } else {
+            preferred = lowStressPool
+        }
 
         let uniquePatternSelection = preferred.reduce(into: (selected: [WorkoutExerciseCandidate](), used: Set<String>())) { result, candidate in
             guard result.selected.count < targetCount else { return }
@@ -154,6 +172,39 @@ public enum QuickWorkoutBuilder {
         }
 
         return Array(selected.prefix(max(2, min(4, selected.count))))
+    }
+
+    private static func neutralFallbackCandidates(
+        equipment: EquipmentAccess,
+        energyLevel: EnergyLevel
+    ) -> [WorkoutExerciseCandidate] {
+        workoutExercisePool(
+            focus: .core,
+            equipment: equipment,
+            energyLevel: energyLevel
+        )
+    }
+
+    private static func orderedUniqueCandidates(
+        _ candidates: [WorkoutExerciseCandidate]
+    ) -> [WorkoutExerciseCandidate] {
+        candidates.reduce(into: [WorkoutExerciseCandidate]()) { result, candidate in
+            guard !result.contains(candidate) else { return }
+            result.append(candidate)
+        }
+    }
+
+    private static func painFilterIsActive(_ painLogs: [DailyPainLog]) -> Bool {
+        painLogs.contains { log in
+            log.intensity >= 4 && !log.bodyRegions.isEmpty
+        }
+    }
+
+    private static func isAllowedForPain(
+        _ candidate: WorkoutExerciseCandidate,
+        painLogs: [DailyPainLog]
+    ) -> Bool {
+        filterForPain([candidate], painLogs: painLogs).isEmpty == false
     }
 
     private static func filterForPain(
@@ -215,12 +266,16 @@ public enum QuickWorkoutBuilder {
         while estimateMinutes(plans) > timeLimit {
             if let index = plans.lastIndex(where: { $0.sets > 1 }) {
                 plans[index].sets -= 1
-            } else if plans.count > 2 {
+            } else if plans.count > minimumExerciseCount(timeLimit: timeLimit) {
                 plans.removeLast()
             } else {
                 return
             }
         }
+    }
+
+    private static func minimumExerciseCount(timeLimit: Int) -> Int {
+        timeLimit <= 4 ? 1 : 2
     }
 
     private static func estimateMinutes(_ plans: [QuickExercisePlan]) -> Int {
@@ -272,12 +327,18 @@ public enum QuickWorkoutBuilder {
     private static func buildReasons(
         request: QuickWorkoutRequest,
         timeLimit: Int,
-        lowRecovery: Bool
+        estimatedMinutes: Int,
+        lowRecovery: Bool,
+        painAvoidanceApplied: Bool
     ) -> [String] {
         var reasons = [
             "Built to fit a \(timeLimit)-minute window.",
             "Uses \(request.equipment.displayName.lowercased()) movements."
         ]
+
+        if estimatedMinutes > timeLimit {
+            reasons.append("Minimum viable workout is about \(estimatedMinutes) minutes, which exceeds the request.")
+        }
 
         if lowRecovery {
             if let recoveryScoreTotal = request.recoveryScoreTotal {
@@ -291,7 +352,7 @@ public enum QuickWorkoutBuilder {
             reasons.append("Today calls for a modified session, so volume stays focused.")
         }
 
-        if request.painLogs.contains(where: { $0.intensity >= 4 }) {
+        if painAvoidanceApplied {
             reasons.append("Pain log context avoided higher-irritation movement patterns.")
         }
 
