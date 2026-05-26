@@ -34,6 +34,8 @@ public final class RecoveryScoreViewModel: ObservableObject {
     @Published public private(set) var historicalScores: [RecoveryScoreRecord] = []
     @Published public private(set) var phaseBands: [(startDate: Date, endDate: Date, phase: CyclePhase)] = []
     @Published public private(set) var isGuest: Bool = false
+    @Published public private(set) var topExplanations: [RecoveryExplanation] = []
+    @Published public private(set) var deloadRecommendation: DeloadRecommendation?
 
     // MARK: - Dependencies
 
@@ -64,6 +66,9 @@ public final class RecoveryScoreViewModel: ObservableObject {
         self.isGuest = isGuest
         guard !isGuest else {
             recoveryLogger.info("Guest user -- skipping recovery score")
+            self.score = nil
+            self.topExplanations = RecoveryExplanationService.topExplanations(from: nil)
+            self.deloadRecommendation = nil
             return
         }
 
@@ -134,6 +139,7 @@ public final class RecoveryScoreViewModel: ObservableObject {
             painIntensity: painIntensity
         )
         self.score = RecoveryScoreCalculator.calculate(inputs: inputs)
+        self.topExplanations = RecoveryExplanationService.topExplanations(from: self.score)
 
         if let score = self.score {
             recoveryLogger.info("Recovery score: \(score.total) (\(score.recommendation.rawValue)) with \(score.presentInputCount)/5 inputs")
@@ -149,6 +155,17 @@ public final class RecoveryScoreViewModel: ObservableObject {
                 )
             )
             WidgetCenter.shared.reloadTimelines(ofKind: "RecoveryScoreWidget")
+        }
+
+        do {
+            let history: [RecoveryScoreRecord] = try await dataClient.fetchAll(recordType: "RecoveryScore")
+            let painLogs: [DailyPainLog] = try await dataClient.fetchAll(recordType: "DailyPainLog")
+            deloadRecommendation = DeloadDetectionService.recommendation(
+                recentScores: history,
+                recentPainLogs: painLogs
+            )
+        } catch {
+            deloadRecommendation = nil
         }
 
         isLoading = false
