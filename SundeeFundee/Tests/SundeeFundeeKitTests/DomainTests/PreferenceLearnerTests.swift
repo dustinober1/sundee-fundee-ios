@@ -157,6 +157,36 @@ final class PreferenceLearnerTests: XCTestCase {
         XCTAssertGreaterThan(profile.avgWorkoutsPerWeek, 0)
     }
 
+    // MARK: - Learn: Effort Tolerance
+
+    func testLearn_RepeatedHighRPE_ReducesFutureVolumeProxy() {
+        let profile = PreferenceLearner.learn(
+            existingProfile: CoachProfile(preferredSessionMinutes: 45),
+            workouts: [],
+            effortLogs: [
+                WorkoutEffortLog(workoutID: "w1", exerciseName: "Back Squat", setID: "s1", rpe: 9),
+                WorkoutEffortLog(workoutID: "w1", exerciseName: "Back Squat", setID: "s2", rpe: 10),
+                WorkoutEffortLog(workoutID: "w2", exerciseName: nil, setID: nil, rpe: 9),
+            ]
+        )
+
+        XCTAssertLessThan(profile.preferredSessionMinutes, 45)
+    }
+
+    func testLearn_RepeatedLowRPE_AllowsNormalProgression() {
+        let profile = PreferenceLearner.learn(
+            existingProfile: CoachProfile(preferredSessionMinutes: 45),
+            workouts: [],
+            effortLogs: [
+                WorkoutEffortLog(workoutID: "w1", exerciseName: "Back Squat", setID: "s1", rpe: 4),
+                WorkoutEffortLog(workoutID: "w1", exerciseName: "Back Squat", setID: "s2", rpe: 5),
+                WorkoutEffortLog(workoutID: "w2", exerciseName: nil, setID: nil, rpe: 5),
+            ]
+        )
+
+        XCTAssertEqual(profile.preferredSessionMinutes, 45)
+    }
+
     // MARK: - Weekly Summary
 
     func testGenerateWeeklySummary_WithWorkouts() {
