@@ -768,8 +768,15 @@ public struct ActiveWorkoutView: View {
                 .frame(maxWidth: .infinity)
         }
         .buttonStyle(ArtDecoButtonStyle(style: .accent))
-        .disabled(viewModel.isResting || viewModel.isComplete || viewModel.isFinishing)
-        .opacity((viewModel.isResting || viewModel.isComplete || viewModel.isFinishing) ? 0.6 : 1.0)
+        .disabled(isCompleteSetButtonDisabled)
+        .opacity(isCompleteSetButtonDisabled ? 0.6 : 1.0)
+    }
+
+    private var isCompleteSetButtonDisabled: Bool {
+        viewModel.isResting ||
+            viewModel.isComplete ||
+            viewModel.isFinishing ||
+            viewModel.isCompletingSet
     }
 
     private func completePendingSet(sessionRPE: Int?) {
