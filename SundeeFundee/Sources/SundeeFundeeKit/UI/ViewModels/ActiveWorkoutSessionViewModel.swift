@@ -23,6 +23,10 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
     @Published public var celebrationEvents: [CelebrationEvent] = []
     @Published public var errorMessage: String?
     @Published public var pendingPRShare: PendingPRShare?
+    @Published public private(set) var defaultEquipment: EquipmentAccess = .fullGym
+    @Published public private(set) var lastEquipmentConversionChanges: [EquipmentConversionChange] = []
+    @Published public private(set) var startingWeightSuggestions: [StartingWeightSuggestion] = []
+    @Published public var showStartingWeightCalibrationSheet: Bool = false
 
     // MARK: - PR Share Prompt
 
@@ -46,6 +50,8 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
     private var acceptedSubstitutions: [String] = []
     private var usedPainAwareSwap = false
     private var personalRecordExerciseNames: Set<String> = []
+    private var hasEvaluatedStartingCalibration = false
+    private var hasAppliedStartingCalibration = false
 #if canImport(ActivityKit) && os(iOS)
     private var liveActivityManager: LiveWorkoutActivityManager?
 #endif
@@ -117,6 +123,51 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
 #endif
         startElapsedTimer()
         updateLiveActivity()
+        Task {
+            await bootstrapSessionPreferences()
+        }
+    }
+
+    public func convertWorkout(to equipment: EquipmentAccess) async {
+        let converted = EquipmentConversionService.convert(workout: workout, to: equipment)
+        workout = converted.workout
+        defaultEquipment = equipment
+        lastEquipmentConversionChanges = converted.changes
+        await saveProgress()
+    }
+
+    public func applyStartingWeightSuggestions() async {
+        guard !hasAppliedStartingCalibration else {
+            showStartingWeightCalibrationSheet = false
+            return
+        }
+        guard !startingWeightSuggestions.isEmpty else {
+            showStartingWeightCalibrationSheet = false
+            return
+        }
+
+        var updated = workout
+        for exerciseIndex in updated.exercises.indices {
+            let exerciseName = updated.exercises[exerciseIndex].name
+            guard let suggestion = startingWeightSuggestions.first(where: {
+                $0.exerciseName.compare(exerciseName, options: [.caseInsensitive]) == .orderedSame
+            }),
+            let suggestedWeight = suggestion.suggestedWeight else { continue }
+
+            for setIndex in updated.exercises[exerciseIndex].targetSets.indices {
+                updated.exercises[exerciseIndex].targetSets[setIndex].prescribedWeight = suggestedWeight
+            }
+        }
+
+        workout = updated
+        hasAppliedStartingCalibration = true
+        showStartingWeightCalibrationSheet = false
+        await saveProgress()
+    }
+
+    public func skipStartingWeightCalibration() {
+        showStartingWeightCalibrationSheet = false
+        hasAppliedStartingCalibration = true
     }
 
     public func completeSet(actualReps: Int, completedWeight: Double) async {
@@ -318,6 +369,61 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
 
         stopRestTimer()
         elapsedTimerCancellable?.cancel()
+    }
+
+    private func bootstrapSessionPreferences() async {
+        guard !hasEvaluatedStartingCalibration else { return }
+        hasEvaluatedStartingCalibration = true
+
+        let settings = await loadUserSettings()
+        defaultEquipment = settings.defaultEquipment
+        await evaluateStartingWeightCalibration(using: settings)
+    }
+
+    private func evaluateStartingWeightCalibration(using settings: WorkoutCalibrationSettings) async {
+        let loadedExercises = workout.exercises.filter { exercise in
+            exercise.bodyweight == 0 && isWeightliftingExercise(exercise.name)
+        }
+        guard !loadedExercises.isEmpty else { return }
+
+        let maxRecords: [OneRepMaxRecord] = (try? await dataClient.fetchAll(recordType: "OneRepMaxRecord")) ?? []
+        let recentThreshold = Calendar.current.date(byAdding: .day, value: -120, to: Date()) ?? Date.distantPast
+        let hasRecentMaxForWorkout = maxRecords.contains { record in
+            loadedExercises.contains(where: {
+                $0.name.compare(record.exerciseName, options: [.caseInsensitive]) == .orderedSame
+            }) && record.date >= recentThreshold
+        }
+        guard !hasRecentMaxForWorkout else { return }
+
+        let suggestions = StartingWeightCalibrationService.suggestions(
+            for: workout,
+            maxRecords: maxRecords,
+            experienceLevel: settings.experienceLevel,
+            recoveryScore: nil,
+            unit: settings.weightUnit
+        )
+        let weightedSuggestions = suggestions.filter { $0.suggestedWeight != nil }
+        guard !weightedSuggestions.isEmpty else { return }
+
+        startingWeightSuggestions = weightedSuggestions
+        showStartingWeightCalibrationSheet = true
+    }
+
+    private func loadUserSettings() async -> WorkoutCalibrationSettings {
+        let records: [UserSettingsRecord] = (try? await dataClient.fetchAll(recordType: "UserSettings")) ?? []
+        guard let settings = records.last else {
+            return WorkoutCalibrationSettings(
+                experienceLevel: .beginner,
+                weightUnit: .lbs,
+                defaultEquipment: .fullGym
+            )
+        }
+
+        return WorkoutCalibrationSettings(
+            experienceLevel: ExperienceLevel(rawValue: settings.experienceLevel) ?? .beginner,
+            weightUnit: WeightUnit(rawValue: settings.weightUnit) ?? .lbs,
+            defaultEquipment: settings.defaultEquipment
+        )
     }
 
     // MARK: - Private: Timers
@@ -574,4 +680,10 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
             rest: rest
         )
     }
+}
+
+private struct WorkoutCalibrationSettings {
+    let experienceLevel: ExperienceLevel
+    let weightUnit: WeightUnit
+    let defaultEquipment: EquipmentAccess
 }
