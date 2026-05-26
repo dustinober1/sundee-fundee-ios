@@ -390,3 +390,24 @@ DEFINE SCHEMA
         GRANT CREATE TO "_icloud",
         GRANT READ TO "_world"
     );
+
+    RECORD TYPE WeeklyTrainingPlan (
+        "___createTime"                  TIMESTAMP,
+        "___createdBy"                   REFERENCE,
+        "___etag"                        STRING,
+        "___modTime"                     TIMESTAMP,
+        "___modifiedBy"                  REFERENCE,
+        "___recordID"                    REFERENCE QUERYABLE,
+        completedWorkoutIDs              LIST<STRING>,
+        cycleAwarePlanningEnabled        INT64 QUERYABLE SORTABLE,
+        dateCreated                      STRING QUERYABLE SEARCHABLE SORTABLE,
+        dateUpdated                      STRING QUERYABLE SEARCHABLE SORTABLE,
+        preferredWeekdays                LIST<INT64>,
+        recoveryAwarePlanningEnabled     INT64 QUERYABLE SORTABLE,
+        targetWorkoutCount               INT64 QUERYABLE SORTABLE,
+        timeAvailableMinutesByWeekdayRaw STRING,
+        weekStartDate                    STRING QUERYABLE SEARCHABLE SORTABLE,
+        GRANT WRITE TO "_creator",
+        GRANT CREATE TO "_icloud",
+        GRANT READ TO "_world"
+    );
