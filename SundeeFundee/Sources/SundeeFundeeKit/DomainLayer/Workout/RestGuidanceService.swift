@@ -133,7 +133,7 @@ public enum RestGuidanceService {
     ) -> Bool {
         let name = exercise.name.lowercased()
         let conditioningTerms = [
-            "bike", "row", "erg", "run", "sprint", "interval", "conditioning",
+            "bike", "rower", "rowing", "row erg", "erg", "run", "sprint", "interval", "conditioning",
             "metcon", "emom", "amrap", "burpee", "jump rope"
         ]
 
