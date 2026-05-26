@@ -195,9 +195,7 @@ public enum QuickWorkoutBuilder {
     }
 
     private static func painFilterIsActive(_ painLogs: [DailyPainLog]) -> Bool {
-        painLogs.contains { log in
-            log.intensity >= 4 && !log.bodyRegions.isEmpty
-        }
+        !activePainKeywordRules(from: painLogs).isEmpty
     }
 
     private static func isAllowedForPain(
@@ -211,20 +209,26 @@ public enum QuickWorkoutBuilder {
         _ candidates: [WorkoutExerciseCandidate],
         painLogs: [DailyPainLog]
     ) -> [WorkoutExerciseCandidate] {
-        let activeRegions = Set(
+        let rules = activePainKeywordRules(from: painLogs)
+        guard !rules.isEmpty else { return candidates }
+
+        return candidates.filter { candidate in
+            let normalizedName = candidate.name.lowercased()
+            return rules.allSatisfy { keywords in
+                keywords.allSatisfy { !normalizedName.contains($0) }
+            }
+        }
+    }
+
+    private static func activePainKeywordRules(from painLogs: [DailyPainLog]) -> [[String]] {
+        Set(
             painLogs
                 .filter { $0.intensity >= 4 }
                 .flatMap(\.bodyRegions)
                 .map(\.engineKey)
         )
-        guard !activeRegions.isEmpty else { return candidates }
-
-        return candidates.filter { candidate in
-            let normalizedName = candidate.name.lowercased()
-            return activeRegions.allSatisfy { region in
-                painKeywords(for: region).allSatisfy { !normalizedName.contains($0) }
-            }
-        }
+        .map(painKeywords)
+        .filter { !$0.isEmpty }
     }
 
     private static func painKeywords(for region: String) -> [String] {
@@ -331,14 +335,16 @@ public enum QuickWorkoutBuilder {
         lowRecovery: Bool,
         painAvoidanceApplied: Bool
     ) -> [String] {
-        var reasons = [
-            "Built to fit a \(timeLimit)-minute window.",
-            "Uses \(request.equipment.displayName.lowercased()) movements."
-        ]
+        var reasons = [String]()
 
         if estimatedMinutes > timeLimit {
+            reasons.append("Requested a \(timeLimit)-minute window.")
             reasons.append("Minimum viable workout is about \(estimatedMinutes) minutes, which exceeds the request.")
+        } else {
+            reasons.append("Built to fit a \(timeLimit)-minute window.")
         }
+
+        reasons.append("Uses \(request.equipment.displayName.lowercased()) movements.")
 
         if lowRecovery {
             if let recoveryScoreTotal = request.recoveryScoreTotal {

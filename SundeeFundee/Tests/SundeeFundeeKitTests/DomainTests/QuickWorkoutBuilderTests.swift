@@ -66,6 +66,30 @@ final class QuickWorkoutBuilderTests: XCTestCase {
         XCTAssertTrue(result.reasons.contains(where: { $0.localizedCaseInsensitiveContains("pain") }))
     }
 
+    func testUnsupportedPainRegionDoesNotClaimPainAvoidance() {
+        let result = QuickWorkoutBuilder.build(
+            request: QuickWorkoutRequest(
+                timeMinutes: 20,
+                focus: .fullBody,
+                energyLevel: .medium,
+                equipment: .homeDumbbells,
+                todayDecisionKind: .modify,
+                recoveryScoreTotal: 62,
+                painLogs: [
+                    DailyPainLog(
+                        id: "head-pain",
+                        locationIds: "head",
+                        intensity: 7,
+                        painType: .acute,
+                        date: Date()
+                    )
+                ]
+            )
+        )
+
+        XCTAssertFalse(result.reasons.contains(where: { $0.localizedCaseInsensitiveContains("pain") }))
+    }
+
     func testVeryShortRequestTrimsToSingleExerciseWhenItFits() {
         let result = QuickWorkoutBuilder.build(
             request: QuickWorkoutRequest(
@@ -100,5 +124,6 @@ final class QuickWorkoutBuilderTests: XCTestCase {
         XCTAssertEqual(result.workout.exercises.count, 1)
         XCTAssertGreaterThan(result.estimatedMinutes, 1)
         XCTAssertTrue(result.reasons.contains(where: { $0.localizedCaseInsensitiveContains("exceeds") }))
+        XCTAssertFalse(result.reasons.contains(where: { $0.localizedCaseInsensitiveContains("built to fit") }))
     }
 }
