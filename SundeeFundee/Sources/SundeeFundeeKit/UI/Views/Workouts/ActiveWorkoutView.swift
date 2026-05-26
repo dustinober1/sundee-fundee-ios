@@ -26,9 +26,18 @@ public struct ActiveWorkoutView: View {
     @State private var pendingStationTakenExercise: StationTakenExerciseSnapshot?
     @State private var stationTakenSwaps: [SubstitutionRanker.RankedSubstitution] = []
     @State private var showingEquipmentConversionPicker = false
+    @State private var selectedSetRPE: Int?
+    @State private var pendingCompletionInput: CompletionInput?
+    @State private var showingSessionEffortDialog = false
     @State private var equipmentProfiles: [EquipmentProfile] = []
     @FocusState private var isWeightFocused: Bool
     @FocusState private var isRepsFocused: Bool
+
+    private struct CompletionInput {
+        let reps: Int
+        let weight: Double
+        let setRPE: Int?
+    }
 
     public init(viewModel: ActiveWorkoutSessionViewModel) {
         self.viewModel = viewModel
@@ -178,6 +187,18 @@ public struct ActiveWorkoutView: View {
             Button("Cancel", role: .cancel) { }
         } message: {
             Text("Which station is unavailable?")
+        }
+        .confirmationDialog("How did the workout feel?", isPresented: $showingSessionEffortDialog) {
+            ForEach(6...10, id: \.self) { rpe in
+                Button("RPE \(rpe)") {
+                    completePendingSet(sessionRPE: rpe)
+                }
+            }
+            Button("Skip", role: .cancel) {
+                completePendingSet(sessionRPE: nil)
+            }
+        } message: {
+            Text("Quick effort check before finishing.")
         }
         .onChange(of: viewModel.currentExerciseIndex) { _, _ in
             if let exercise = stationTakenExercise,
@@ -446,6 +467,9 @@ public struct ActiveWorkoutView: View {
                             weightInputSection(prescribedWeight: set.prescribedWeight)
                                 .padding(.top, AppTheme.Spacing.xs)
                         }
+
+                        effortPicker
+                            .padding(.top, AppTheme.Spacing.xs)
                     }
                 } else {
                     Text("No current exercise")
@@ -457,6 +481,38 @@ public struct ActiveWorkoutView: View {
         .onChange(of: viewModel.currentSetIndex) { _, _ in resetWeightInput() }
         .onChange(of: viewModel.currentExerciseIndex) { _, _ in resetWeightInput() }
         .onAppear { resetWeightInput() }
+    }
+
+    private var effortPicker: some View {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+            Text("Effort")
+                .font(AppTheme.Typography.labelMedium)
+                .foregroundColor(AppTheme.Text.secondary)
+
+            HStack(spacing: AppTheme.Spacing.xs) {
+                effortButton(title: "Skip", value: nil)
+                ForEach(6...10, id: \.self) { rpe in
+                    effortButton(title: "\(rpe)", value: rpe)
+                }
+            }
+        }
+    }
+
+    private func effortButton(title: String, value: Int?) -> some View {
+        let isSelected = selectedSetRPE == value
+        return Button {
+            selectedSetRPE = value
+        } label: {
+            Text(title)
+                .font(AppTheme.Typography.labelSmall)
+                .foregroundColor(isSelected ? AppTheme.Text.cream : AppTheme.Text.primary)
+                .frame(maxWidth: .infinity)
+                .frame(height: 34)
+                .background(isSelected ? AppTheme.Accent.orange : AppTheme.Background.cream.opacity(0.55))
+                .cornerRadius(AppTheme.CornerRadius.small)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(value.map { "RPE \($0)" } ?? "Skip effort")
     }
 
     private func techniqueDisclosure(_ cue: ExerciseTechniqueCue) -> some View {
@@ -585,6 +641,7 @@ public struct ActiveWorkoutView: View {
             weightInput = ""
             repsInput = ""
         }
+        selectedSetRPE = nil
         isWeightFocused = false
         isRepsFocused = false
     }
@@ -691,11 +748,19 @@ public struct ActiveWorkoutView: View {
             guard let set = viewModel.currentSet else { return }
             let enteredReps = Int(repsInput) ?? set.reps
             let enteredWeight = Double(weightInput) ?? set.prescribedWeight
-            Task {
-                await viewModel.completeSet(
-                    actualReps: enteredReps,
-                    completedWeight: enteredWeight
-                )
+            let input = CompletionInput(
+                reps: enteredReps,
+                weight: enteredWeight,
+                setRPE: selectedSetRPE
+            )
+
+            if viewModel.isLastSetOfWorkout,
+               !viewModel.hasLoggedSetEffort,
+               selectedSetRPE == nil {
+                pendingCompletionInput = input
+                showingSessionEffortDialog = true
+            } else {
+                completeSet(input, sessionRPE: nil)
             }
         } label: {
             Text("Complete Set")
@@ -705,6 +770,23 @@ public struct ActiveWorkoutView: View {
         .buttonStyle(ArtDecoButtonStyle(style: .accent))
         .disabled(viewModel.isResting || viewModel.isComplete || viewModel.isFinishing)
         .opacity((viewModel.isResting || viewModel.isComplete || viewModel.isFinishing) ? 0.6 : 1.0)
+    }
+
+    private func completePendingSet(sessionRPE: Int?) {
+        guard let input = pendingCompletionInput else { return }
+        pendingCompletionInput = nil
+        completeSet(input, sessionRPE: sessionRPE)
+    }
+
+    private func completeSet(_ input: CompletionInput, sessionRPE: Int?) {
+        Task {
+            await viewModel.completeSet(
+                actualReps: input.reps,
+                completedWeight: input.weight,
+                setRPE: input.setRPE,
+                sessionRPEForFinish: sessionRPE
+            )
+        }
     }
 
     private var stationTakenSwapSheet: some View {
