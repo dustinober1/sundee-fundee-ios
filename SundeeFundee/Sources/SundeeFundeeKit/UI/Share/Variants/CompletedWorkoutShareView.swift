@@ -11,6 +11,7 @@ struct CompletedWorkoutShareView: View {
     let personalRecords: Set<String>
     let aspect: ShareCardAspect
     let shareURL: URL
+    let privacyOptions: SharePrivacyOptions
 
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
@@ -133,10 +134,7 @@ struct CompletedWorkoutShareView: View {
     // MARK: Computed
 
     private var formattedDate: String {
-        let f = DateFormatter()
-        f.dateStyle = .medium
-        f.timeStyle = .none
-        return f.string(from: workout.date)
+        privacyOptions.redactedDateText(for: workout.date)
     }
 
     private var totalSetCount: Int {
