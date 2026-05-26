@@ -22,6 +22,8 @@ public struct ActiveWorkoutView: View {
     @State private var showingStationTakenPicker = false
     @State private var showingStationTakenSwapSheet = false
     @State private var selectedBlockedStation: BlockedStationKind?
+    @State private var stationTakenExercise: StationTakenExerciseSnapshot?
+    @State private var pendingStationTakenExercise: StationTakenExerciseSnapshot?
     @State private var stationTakenSwaps: [SubstitutionRanker.RankedSubstitution] = []
     @State private var showingEquipmentConversionPicker = false
     @State private var equipmentProfiles: [EquipmentProfile] = []
@@ -101,10 +103,23 @@ public struct ActiveWorkoutView: View {
         }
         .alert("Swap mid-exercise?", isPresented: $showingSwapConfirm, presenting: pendingSwap) { sub in
             Button("Swap & reset progress", role: .destructive) {
+                let wasStationTakenSwap = pendingStationTakenExercise != nil
+                if let stationTakenExercise = pendingStationTakenExercise,
+                   !currentExerciseMatches(stationTakenExercise) {
+                    resetStationTakenState()
+                    pendingSwap = nil
+                    return
+                }
                 viewModel.swapCurrentExercise(to: sub.exerciseName, reason: sub.reason)
+                if wasStationTakenSwap {
+                    resetStationTakenState()
+                } else {
+                    pendingStationTakenExercise = nil
+                }
                 pendingSwap = nil
             }
             Button("Cancel", role: .cancel) {
+                pendingStationTakenExercise = nil
                 pendingSwap = nil
             }
         } message: { _ in
@@ -145,9 +160,17 @@ public struct ActiveWorkoutView: View {
         .confirmationDialog("Station taken", isPresented: $showingStationTakenPicker) {
             ForEach(BlockedStationKind.allCases, id: \.self) { station in
                 Button(station.displayName) {
+                    guard let exercise = currentStationTakenExerciseSnapshot() else {
+                        resetStationTakenState()
+                        return
+                    }
                     selectedBlockedStation = station
+                    stationTakenExercise = exercise
                     Task {
-                        await loadStationTakenSwaps(blockedStation: station)
+                        await loadStationTakenSwaps(
+                            blockedStation: station,
+                            exercise: exercise
+                        )
                     }
                 }
             }
@@ -155,6 +178,12 @@ public struct ActiveWorkoutView: View {
             Button("Cancel", role: .cancel) { }
         } message: {
             Text("Which station is unavailable?")
+        }
+        .onChange(of: viewModel.currentExerciseIndex) { _, _ in
+            if let exercise = stationTakenExercise,
+               !currentExerciseMatches(exercise) {
+                resetStationTakenState()
+            }
         }
     }
 
@@ -596,8 +625,7 @@ public struct ActiveWorkoutView: View {
         List {
             ForEach(stationTakenSwaps.prefix(5), id: \.exerciseName) { sub in
                 Button {
-                    showingStationTakenSwapSheet = false
-                    selectSubstitution(sub)
+                    selectStationTakenSubstitution(sub)
                 } label: {
                     stationTakenRow(sub)
                 }
@@ -658,23 +686,81 @@ public struct ActiveWorkoutView: View {
     }
 
     @MainActor
-    private func loadStationTakenSwaps(blockedStation: BlockedStationKind) async {
+    private func loadStationTakenSwaps(
+        blockedStation: BlockedStationKind,
+        exercise: StationTakenExerciseSnapshot
+    ) async {
         let dataClient = DataClientFactory.shared.client
         let painLogs: [DailyPainLog] = (try? await dataClient.fetchAll(recordType: "DailyPainLog")) ?? []
-        stationTakenSwaps = viewModel.stationTakenSwaps(
-            blockedStation: blockedStation,
-            painLogs: painLogs
+
+        guard currentExerciseMatches(exercise) else {
+            resetStationTakenState()
+            return
+        }
+
+        stationTakenSwaps = StationTakenSwapService.rankedSwaps(
+            request: StationTakenSwapRequest(
+                exerciseName: exercise.name,
+                blockedStation: blockedStation,
+                equipment: exercise.equipment,
+                painLogs: painLogs
+            )
         )
         showingStationTakenSwapSheet = true
     }
 
     private func selectSubstitution(_ sub: SubstitutionRanker.RankedSubstitution) {
+        pendingStationTakenExercise = nil
         if viewModel.currentExerciseHasProgress {
             pendingSwap = sub
             showingSwapConfirm = true
         } else {
             viewModel.swapCurrentExercise(to: sub.exerciseName, reason: sub.reason)
         }
+    }
+
+    private func selectStationTakenSubstitution(_ sub: SubstitutionRanker.RankedSubstitution) {
+        guard let exercise = stationTakenExercise,
+              currentExerciseMatches(exercise) else {
+            resetStationTakenState()
+            return
+        }
+
+        showingStationTakenSwapSheet = false
+        if viewModel.currentExerciseHasProgress {
+            pendingStationTakenExercise = exercise
+            pendingSwap = sub
+            showingSwapConfirm = true
+        } else {
+            viewModel.swapCurrentExercise(to: sub.exerciseName, reason: sub.reason)
+            resetStationTakenState()
+        }
+    }
+
+    private func currentStationTakenExerciseSnapshot() -> StationTakenExerciseSnapshot? {
+        guard let exercise = viewModel.currentExercise else { return nil }
+        return StationTakenExerciseSnapshot(
+            index: viewModel.currentExerciseIndex,
+            id: exercise.id,
+            name: exercise.name,
+            equipment: viewModel.defaultEquipment
+        )
+    }
+
+    private func currentExerciseMatches(_ exercise: StationTakenExerciseSnapshot) -> Bool {
+        guard viewModel.currentExerciseIndex == exercise.index,
+              let current = viewModel.currentExercise else {
+            return false
+        }
+        return current.id == exercise.id && current.name == exercise.name
+    }
+
+    private func resetStationTakenState() {
+        showingStationTakenSwapSheet = false
+        selectedBlockedStation = nil
+        stationTakenExercise = nil
+        pendingStationTakenExercise = nil
+        stationTakenSwaps = []
     }
 
     // MARK: - Completion View
@@ -802,4 +888,12 @@ private extension Array {
     subscript(safe index: Int) -> Element? {
         indices.contains(index) ? self[index] : nil
     }
+}
+
+@available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
+private struct StationTakenExerciseSnapshot: Sendable, Equatable {
+    let index: Int
+    let id: String
+    let name: String
+    let equipment: EquipmentAccess
 }
