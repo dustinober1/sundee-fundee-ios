@@ -102,6 +102,12 @@ public struct SettingsView: View {
                 // Data & Privacy Section
                 Section("Data & Privacy") {
                     NavigationLink {
+                        DataTrustCenterView()
+                    } label: {
+                        Label("Data Trust Center", systemImage: "shield.checkered")
+                    }
+
+                    NavigationLink {
                         ExportView()
                     } label: {
                         Label("Export My Data", systemImage: "square.and.arrow.up")
