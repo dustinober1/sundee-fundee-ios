@@ -15,12 +15,16 @@ final class SundeeFundeeScreenshotTests: XCTestCase {
         app.launch()
 
         XCTAssertTrue(waitForScreen(title: "Today", timeout: 20), "Missing Today screen")
+        snapshot("01_today_decision")
 
         captureCoachPlanBenefit()
+        captureProgramAdaptationSurface()
+        captureDataTrustCenter()
         capture(tab: "Cycle", title: "Cycle", name: "02_recovery_pain_energy")
         capture(tab: "Progress", title: "Progress", name: "03_progress_lifting")
         capture(tab: "Programs", title: "Programs", name: "04_programs")
         capture(tab: "Workouts", title: "Workouts", name: "05_workouts")
+        captureEquipmentConversionAndSwapSurface()
     }
 
     func testRussianSquatProgramAndVanessaBenchmark() {
@@ -96,6 +100,107 @@ final class SundeeFundeeScreenshotTests: XCTestCase {
         XCTAssertTrue(cancel.waitForExistence(timeout: 5), "Missing Coach Plan cancel button")
         cancel.tap()
         XCTAssertTrue(waitForScreen(title: "Today", timeout: 10), "Did not return to Today screen")
+    }
+
+    private func captureProgramAdaptationSurface() {
+        let programsButton = tabButton(named: "Programs")
+        guard programsButton.waitForExistence(timeout: 10) else { return }
+        programsButton.tap()
+        guard waitForScreen(title: "Programs", timeout: 10) else { return }
+
+        let viewProgram = app.buttons["View Program"].firstMatch
+        if viewProgram.waitForExistence(timeout: 5) {
+            viewProgram.tap()
+            if waitForScreen(title: "Russian Squat", timeout: 10) || app.staticTexts["Week 1"].firstMatch.waitForExistence(timeout: 5) {
+                snapshot("06_program_adaptation")
+            }
+        }
+    }
+
+    private func captureDataTrustCenter() {
+        let todayButton = tabButton(named: "Today")
+        guard todayButton.waitForExistence(timeout: 10) else { return }
+        todayButton.tap()
+        guard waitForScreen(title: "Today", timeout: 10) else { return }
+
+        let settingsButton = app.buttons["Settings"].firstMatch
+        guard settingsButton.waitForExistence(timeout: 5) else { return }
+        settingsButton.tap()
+        guard waitForScreen(title: "Settings", timeout: 10) else { return }
+
+        let trustCenter = app.staticTexts["Data Trust Center"].firstMatch
+        if scrollToElement(trustCenter, in: app.tables.firstMatch), trustCenter.isHittable {
+            trustCenter.tap()
+            if waitForScreen(title: "Data Trust Center", timeout: 10) {
+                snapshot("07_data_trust_center")
+            }
+        }
+    }
+
+    private func captureEquipmentConversionAndSwapSurface() {
+        let programsButton = tabButton(named: "Programs")
+        guard programsButton.waitForExistence(timeout: 10) else { return }
+        programsButton.tap()
+        guard waitForScreen(title: "Programs", timeout: 10) else { return }
+
+        let viewProgram = app.buttons["View Program"].firstMatch
+        guard viewProgram.waitForExistence(timeout: 5) else { return }
+        viewProgram.tap()
+        guard waitForScreen(title: "Russian Squat", timeout: 10) || app.staticTexts["Week 1"].firstMatch.waitForExistence(timeout: 5) else {
+            return
+        }
+
+        let startSession = app.buttons["Start Session"].firstMatch
+        guard startSession.waitForExistence(timeout: 5) else { return }
+        startSession.tap()
+
+        let workoutOptions = app.buttons["Workout options"].firstMatch
+        guard workoutOptions.waitForExistence(timeout: 10) else { return }
+
+        workoutOptions.tap()
+        let convertEquipment = app.buttons["Convert Equipment"].firstMatch
+        if convertEquipment.waitForExistence(timeout: 5) {
+            convertEquipment.tap()
+            let bandsOnly = app.buttons["Bands Only"].firstMatch
+            if bandsOnly.waitForExistence(timeout: 5) {
+                bandsOnly.tap()
+                if app.staticTexts["Equipment Conversion Applied"].firstMatch.waitForExistence(timeout: 5) {
+                    snapshot("08_equipment_conversion")
+                }
+            }
+        }
+
+        let exerciseOptions = app.buttons["Exercise options"].firstMatch
+        if exerciseOptions.waitForExistence(timeout: 5) {
+            exerciseOptions.tap()
+            let swapExercise = app.buttons["Swap exercise"].firstMatch
+            if swapExercise.waitForExistence(timeout: 5) {
+                swapExercise.tap()
+                if app.staticTexts["Swap Exercise"].firstMatch.waitForExistence(timeout: 5) ||
+                    app.buttons["Cancel"].firstMatch.waitForExistence(timeout: 5) {
+                    snapshot("09_pain_swap_surface")
+                }
+            }
+        }
+
+        let cancel = app.buttons["Cancel"].firstMatch
+        if cancel.waitForExistence(timeout: 2) {
+            cancel.tap()
+        }
+
+        let close = app.buttons["Close"].firstMatch
+        if close.waitForExistence(timeout: 3) {
+            close.tap()
+            let abandon = app.buttons["Abandon"].firstMatch
+            if abandon.waitForExistence(timeout: 3) {
+                abandon.tap()
+            } else {
+                let keepGoing = app.buttons["Keep Going"].firstMatch
+                if keepGoing.waitForExistence(timeout: 3) {
+                    keepGoing.tap()
+                }
+            }
+        }
     }
 
     private func capture(tab: String, title: String, name: String) {
