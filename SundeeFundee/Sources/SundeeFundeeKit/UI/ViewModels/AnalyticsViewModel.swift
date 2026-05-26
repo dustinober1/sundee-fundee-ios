@@ -47,6 +47,7 @@ public class AnalyticsViewModel: ObservableObject {
 
     /// High-level progress summary shown before deeper charts.
     @Published public var progressSnapshot: ProgressSnapshot?
+    @Published public var cycleInsights: [CycleAwareProgressInsight] = []
 
     /// Whether data is currently being fetched.
     @Published public var isLoading: Bool = false
@@ -128,6 +129,7 @@ public class AnalyticsViewModel: ObservableObject {
             cycleData = []
             availableExercises = []
             progressSnapshot = nil
+            cycleInsights = []
         }
 
         isLoading = false
@@ -183,6 +185,11 @@ public class AnalyticsViewModel: ObservableObject {
             workouts: allWorkouts,
             challenges: allChallenges,
             cycleData: cycleData
+        )
+        cycleInsights = CycleAwareProgressInsightService.build(
+            cycleData: cycleData,
+            workouts: allWorkouts,
+            maxRecords: allORMRecords
         )
     }
 
