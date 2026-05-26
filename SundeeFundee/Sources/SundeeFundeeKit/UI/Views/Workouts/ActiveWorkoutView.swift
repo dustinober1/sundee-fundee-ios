@@ -19,6 +19,10 @@ public struct ActiveWorkoutView: View {
     @State private var showingSwapConfirm = false
     @State private var showingWorkoutShare = false
     @State private var pendingSwap: SubstitutionRanker.RankedSubstitution?
+    @State private var showingStationTakenPicker = false
+    @State private var showingStationTakenSwapSheet = false
+    @State private var selectedBlockedStation: BlockedStationKind?
+    @State private var stationTakenSwaps: [SubstitutionRanker.RankedSubstitution] = []
     @State private var showingEquipmentConversionPicker = false
     @State private var equipmentProfiles: [EquipmentProfile] = []
     @FocusState private var isWeightFocused: Bool
@@ -88,14 +92,12 @@ public struct ActiveWorkoutView: View {
         .sheet(isPresented: $showingSwapSheet) {
             if let exercise = viewModel.currentExercise {
                 SubstitutionPickerSheet(exerciseName: exercise.name) { sub in
-                    if viewModel.currentExerciseHasProgress {
-                        pendingSwap = sub
-                        showingSwapConfirm = true
-                    } else {
-                        viewModel.swapCurrentExercise(to: sub.exerciseName, reason: sub.reason)
-                    }
+                    selectSubstitution(sub)
                 }
             }
+        }
+        .sheet(isPresented: $showingStationTakenSwapSheet) {
+            stationTakenSwapSheet
         }
         .alert("Swap mid-exercise?", isPresented: $showingSwapConfirm, presenting: pendingSwap) { sub in
             Button("Swap & reset progress", role: .destructive) {
@@ -139,6 +141,20 @@ public struct ActiveWorkoutView: View {
             }
         } message: {
             Text("Update this workout to match your available equipment.")
+        }
+        .confirmationDialog("Station taken", isPresented: $showingStationTakenPicker) {
+            ForEach(BlockedStationKind.allCases, id: \.self) { station in
+                Button(station.displayName) {
+                    selectedBlockedStation = station
+                    Task {
+                        await loadStationTakenSwaps(blockedStation: station)
+                    }
+                }
+            }
+
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("Which station is unavailable?")
         }
     }
 
@@ -302,6 +318,11 @@ public struct ActiveWorkoutView: View {
                                 showingSwapSheet = true
                             } label: {
                                 Label("Swap exercise", systemImage: "arrow.triangle.swap")
+                            }
+                            Button {
+                                showingStationTakenPicker = true
+                            } label: {
+                                Label("Station taken", systemImage: "exclamationmark.triangle")
                             }
                         } label: {
                             Image(systemName: "ellipsis.circle")
@@ -539,6 +560,121 @@ public struct ActiveWorkoutView: View {
         .buttonStyle(ArtDecoButtonStyle(style: .accent))
         .disabled(viewModel.isResting || viewModel.isComplete || viewModel.isFinishing)
         .opacity((viewModel.isResting || viewModel.isComplete || viewModel.isFinishing) ? 0.6 : 1.0)
+    }
+
+    private var stationTakenSwapSheet: some View {
+        NavigationStack {
+            Group {
+                if stationTakenSwaps.isEmpty {
+                    stationTakenEmptyState
+                } else {
+                    stationTakenList
+                }
+            }
+            .navigationTitle(stationTakenTitle)
+            #if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        showingStationTakenSwapSheet = false
+                    }
+                }
+            }
+        }
+    }
+
+    private var stationTakenTitle: String {
+        if let station = selectedBlockedStation {
+            return "\(station.displayName) taken"
+        }
+        return "Station taken"
+    }
+
+    private var stationTakenList: some View {
+        List {
+            ForEach(stationTakenSwaps.prefix(5), id: \.exerciseName) { sub in
+                Button {
+                    showingStationTakenSwapSheet = false
+                    selectSubstitution(sub)
+                } label: {
+                    stationTakenRow(sub)
+                }
+                .buttonStyle(.plain)
+                .listRowBackground(Color.clear)
+            }
+        }
+        .listStyle(.plain)
+    }
+
+    private var stationTakenEmptyState: some View {
+        VStack(spacing: AppTheme.Spacing.md) {
+            Image(systemName: "figure.strengthtraining.traditional")
+                .font(.title)
+                .foregroundColor(AppTheme.Text.secondary)
+            Text("No station-safe swaps found")
+                .font(AppTheme.Typography.headlineMedium)
+                .foregroundColor(AppTheme.Text.primary)
+            Text("Try the regular swap list or choose a different equipment setup.")
+                .font(AppTheme.Typography.bodyMedium)
+                .foregroundColor(AppTheme.Text.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, AppTheme.Spacing.lg)
+        }
+        .padding(AppTheme.Spacing.xxl)
+    }
+
+    private func stationTakenRow(_ sub: SubstitutionRanker.RankedSubstitution) -> some View {
+        HStack(spacing: AppTheme.Spacing.md) {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                Text(sub.exerciseName)
+                    .font(AppTheme.Typography.headlineMedium)
+                    .foregroundColor(AppTheme.Text.primary)
+                Text(sub.reason)
+                    .font(AppTheme.Typography.bodySmall)
+                    .foregroundColor(AppTheme.Text.secondary)
+                    .lineLimit(2)
+            }
+
+            Spacer()
+            swapScoreDots(for: sub.score)
+        }
+        .padding(.vertical, AppTheme.Spacing.xs)
+        .contentShape(Rectangle())
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(sub.exerciseName), \(Int(sub.score * 5)) out of 5")
+    }
+
+    private func swapScoreDots(for score: Double) -> some View {
+        let filled = Int((score * 5).rounded())
+        return HStack(spacing: 3) {
+            ForEach(0..<5, id: \.self) { idx in
+                Circle()
+                    .fill(idx < filled ? AppTheme.Accent.gold : AppTheme.Accent.gold.opacity(0.2))
+                    .frame(width: 6, height: 6)
+            }
+        }
+    }
+
+    @MainActor
+    private func loadStationTakenSwaps(blockedStation: BlockedStationKind) async {
+        let dataClient = DataClientFactory.shared.client
+        let painLogs: [DailyPainLog] = (try? await dataClient.fetchAll(recordType: "DailyPainLog")) ?? []
+        stationTakenSwaps = viewModel.stationTakenSwaps(
+            blockedStation: blockedStation,
+            painLogs: painLogs
+        )
+        showingStationTakenSwapSheet = true
+    }
+
+    private func selectSubstitution(_ sub: SubstitutionRanker.RankedSubstitution) {
+        if viewModel.currentExerciseHasProgress {
+            pendingSwap = sub
+            showingSwapConfirm = true
+        } else {
+            viewModel.swapCurrentExercise(to: sub.exerciseName, reason: sub.reason)
+        }
     }
 
     // MARK: - Completion View

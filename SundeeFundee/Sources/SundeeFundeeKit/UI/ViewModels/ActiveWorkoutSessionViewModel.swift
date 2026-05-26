@@ -246,6 +246,21 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
         currentSetIndex = 0
     }
 
+    public func stationTakenSwaps(
+        blockedStation: BlockedStationKind,
+        painLogs: [DailyPainLog]
+    ) -> [SubstitutionRanker.RankedSubstitution] {
+        guard let exercise = currentExercise else { return [] }
+        return StationTakenSwapService.rankedSwaps(
+            request: StationTakenSwapRequest(
+                exerciseName: exercise.name,
+                blockedStation: blockedStation,
+                equipment: defaultEquipment,
+                painLogs: painLogs
+            )
+        )
+    }
+
     /// True when at least one set of the current exercise has been logged —
     /// UI uses this to prompt the user before swapping mid-exercise.
     public var currentExerciseHasProgress: Bool {
