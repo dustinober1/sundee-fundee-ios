@@ -27,6 +27,7 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
     @Published public private(set) var lastEquipmentConversionChanges: [EquipmentConversionChange] = []
     @Published public private(set) var startingWeightSuggestions: [StartingWeightSuggestion] = []
     @Published public var showStartingWeightCalibrationSheet: Bool = false
+    @Published public private(set) var pendingWarmupBlock: WarmupBlock?
 
     // MARK: - PR Share Prompt
 
@@ -101,6 +102,14 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
         return nil
     }
 
+    public var canStartWarmup: Bool {
+        pendingWarmupBlock != nil
+            && currentExerciseIndex == 0
+            && currentSetIndex == 0
+            && completedSets == 0
+            && !workout.exercises.contains(where: { $0.category == .warmup })
+    }
+
     // MARK: - Initialization
 
     public init(
@@ -125,6 +134,7 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
         updateLiveActivity()
         Task {
             await bootstrapSessionPreferences()
+            await prepareWarmupIfNeeded()
         }
     }
 
@@ -168,6 +178,18 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
     public func skipStartingWeightCalibration() {
         showStartingWeightCalibrationSheet = false
         hasAppliedStartingCalibration = true
+    }
+
+    public func applyWarmup() async {
+        guard canStartWarmup, let pendingWarmupBlock else { return }
+
+        var updated = workout
+        updated.exercises.insert(contentsOf: pendingWarmupBlock.exercises, at: 0)
+        workout = updated
+        currentExerciseIndex = 0
+        currentSetIndex = 0
+        self.pendingWarmupBlock = nil
+        await saveProgress()
     }
 
     public func completeSet(actualReps: Int, completedWeight: Double) async {
@@ -422,6 +444,37 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
 
         startingWeightSuggestions = weightedSuggestions
         showStartingWeightCalibrationSheet = true
+    }
+
+    private func prepareWarmupIfNeeded() async {
+        guard completedSets == 0,
+              currentExerciseIndex == 0,
+              !workout.exercises.contains(where: { $0.category == .warmup }) else {
+            pendingWarmupBlock = nil
+            return
+        }
+
+        let painLogs = await loadPainLogsForWarmup()
+        guard completedSets == 0,
+              currentExerciseIndex == 0,
+              !workout.exercises.contains(where: { $0.category == .warmup }) else {
+            pendingWarmupBlock = nil
+            return
+        }
+
+        pendingWarmupBlock = WarmupBuilder.build(
+            request: WarmupRequest(
+                workout: workout,
+                recoveryScoreTotal: nil,
+                cyclePhase: nil,
+                painLogs: painLogs,
+                maxMinutes: 6
+            )
+        )
+    }
+
+    private func loadPainLogsForWarmup() async -> [DailyPainLog] {
+        (try? await dataClient.fetchAll(recordType: "DailyPainLog")) ?? []
     }
 
     private func loadUserSettings() async -> WorkoutCalibrationSettings {
