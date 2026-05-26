@@ -628,6 +628,14 @@ public struct ActiveWorkoutView: View {
                     .foregroundColor(AppTheme.Accent.gold)
             }
 
+            if let reason = viewModel.restGuidanceReason {
+                Text(reason)
+                    .font(AppTheme.Typography.bodySmall)
+                    .foregroundColor(AppTheme.Text.cream.opacity(0.85))
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
             // Skip Rest button
             Button {
                 viewModel.skipRest()
