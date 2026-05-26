@@ -124,10 +124,12 @@ private let categoryItems: [CategoryDisplayItem] = [
     CategoryDisplayItem(name: "One Rep Maxes", icon: "trophy"),
     CategoryDisplayItem(name: "Completed Workouts", icon: "checkmark.circle"),
     CategoryDisplayItem(name: "Cycle Phases", icon: "calendar"),
+    CategoryDisplayItem(name: "Recovery Scores", icon: "heart.text.square"),
     CategoryDisplayItem(name: "Cycle Settings", icon: "slider.horizontal.3"),
     CategoryDisplayItem(name: "Benchmarks", icon: "chart.bar"),
     CategoryDisplayItem(name: "Injuries", icon: "bandage"),
     CategoryDisplayItem(name: "Pain Logs", icon: "waveform.path.ecg"),
     CategoryDisplayItem(name: "Celebrations", icon: "party.popper"),
     CategoryDisplayItem(name: "Programs", icon: "list.clipboard"),
+    CategoryDisplayItem(name: "Weekly Plans", icon: "calendar.badge.clock"),
 ]
