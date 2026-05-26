@@ -29,6 +29,7 @@ public struct ActiveWorkoutView: View {
     @State private var selectedSetRPE: Int?
     @State private var pendingCompletionInput: CompletionInput?
     @State private var showingSessionEffortDialog = false
+    @State private var undoBlockedReason: String?
     @State private var equipmentProfiles: [EquipmentProfile] = []
     @FocusState private var isWeightFocused: Bool
     @FocusState private var isRepsFocused: Bool
@@ -62,6 +63,14 @@ public struct ActiveWorkoutView: View {
             }
         } message: {
             Text("Your progress will be saved. Are you sure you want to stop this workout?")
+        }
+        .alert("Couldn't undo changes", isPresented: Binding(
+            get: { undoBlockedReason != nil },
+            set: { if !$0 { undoBlockedReason = nil } }
+        )) {
+            Button("OK") { undoBlockedReason = nil }
+        } message: {
+            Text(undoBlockedReason ?? "")
         }
         .onAppear {
             viewModel.beginSession()
@@ -222,6 +231,11 @@ public struct ActiveWorkoutView: View {
                 progressSection
                     .padding(.horizontal, AppTheme.Spacing.lg)
 
+                if let decision = viewModel.adaptationDecisionRecord, viewModel.completedSets == 0 {
+                    adaptationDecisionCard(decision)
+                        .padding(.horizontal, AppTheme.Spacing.lg)
+                }
+
                 if !viewModel.lastEquipmentConversionChanges.isEmpty {
                     conversionSummaryCard
                         .padding(.horizontal, AppTheme.Spacing.lg)
@@ -338,6 +352,47 @@ public struct ActiveWorkoutView: View {
             }
             .font(AppTheme.Typography.labelSmall)
             .foregroundColor(AppTheme.Text.secondary)
+        }
+    }
+
+    private func adaptationDecisionCard(_ decision: WorkoutAdaptationDecisionRecord) -> some View {
+        ArtDecoCard {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
+                HStack(alignment: .top, spacing: AppTheme.Spacing.sm) {
+                    Image(systemName: "sparkles")
+                        .font(.title3)
+                        .foregroundColor(AppTheme.Accent.gold)
+                        .accessibilityHidden(true)
+
+                    VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                        Text("What changed")
+                            .font(AppTheme.Typography.headlineSmall)
+                            .foregroundColor(AppTheme.Text.primary)
+
+                        ForEach(decision.reasonText.prefix(4), id: \.self) { reason in
+                            Text(reason)
+                                .font(AppTheme.Typography.bodySmall)
+                                .foregroundColor(AppTheme.Text.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                }
+
+                if !viewModel.currentExerciseHasProgress && viewModel.completedSets == 0 {
+                    Button {
+                        Task {
+                            let result = await viewModel.undoAdaptationChanges()
+                            if case .blocked(let reason) = result {
+                                undoBlockedReason = reason
+                            }
+                        }
+                    } label: {
+                        Label("Undo changes", systemImage: "arrow.uturn.backward")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(ArtDecoButtonStyle(style: .secondary))
+                }
+            }
         }
     }
 
