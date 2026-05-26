@@ -8,6 +8,7 @@ import SwiftUI
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
 public struct CycleTrackingView: View {
     @StateObject private var settings = SettingsViewModel()
+    @EnvironmentObject private var cyclePhaseCache: CyclePhaseCache
 
     public init() {}
 
@@ -44,6 +45,29 @@ public struct CycleTrackingView: View {
                 }
 
                 if settings.cycleTrackingEnabled {
+                    let explanation = CycleConfidenceExplainer.explain(confidence: cyclePhaseCache.confidence)
+                    Section("Phase Confidence") {
+                        HStack {
+                            Text(explanation.label)
+                                .font(AppTheme.Typography.headlineMedium)
+                                .foregroundColor(AppTheme.Text.primary)
+                            Spacer()
+                            if let confidence = cyclePhaseCache.confidence {
+                                Text("\(Int((confidence * 100).rounded()))%")
+                                    .font(AppTheme.Typography.monoMedium)
+                                    .foregroundColor(AppTheme.Text.secondary)
+                            }
+                        }
+
+                        Text(explanation.description)
+                            .font(AppTheme.Typography.bodySmall)
+                            .foregroundColor(AppTheme.Text.secondary)
+
+                        Text(explanation.actionTitle)
+                            .font(AppTheme.Typography.labelMedium)
+                            .foregroundColor(AppTheme.Accent.gold)
+                    }
+
                     Section {
                         NavigationLink {
                             CycleCalendarView()
@@ -63,6 +87,9 @@ public struct CycleTrackingView: View {
             #if os(iOS)
             .navigationBarTitleDisplayMode(.large)
             #endif
+            .task {
+                await cyclePhaseCache.refreshIfNeeded()
+            }
         }
     }
 }
