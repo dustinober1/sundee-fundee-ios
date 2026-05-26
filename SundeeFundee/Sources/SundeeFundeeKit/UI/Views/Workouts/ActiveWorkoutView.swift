@@ -665,6 +665,10 @@ public struct ActiveWorkoutView: View {
     private var nextSetText: String? {
         guard let exercise = viewModel.currentExercise else { return nil }
 
+        if viewModel.isResting, let set = viewModel.currentSet {
+            return "Next: Set \(viewModel.currentSetIndex + 1) · \(set.reps) reps"
+        }
+
         if viewModel.hasNextSet {
             let nextSetIndex = viewModel.currentSetIndex + 1
             if let nextSet = exercise.targetSets[safe: nextSetIndex] {
