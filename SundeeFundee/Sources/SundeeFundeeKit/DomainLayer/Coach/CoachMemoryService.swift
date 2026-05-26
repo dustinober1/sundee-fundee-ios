@@ -152,12 +152,16 @@ public actor CoachMemoryService {
             let subs = try await dataClient.fetchAll(
                 recordType: "AcceptedSubstitution"
             ) as [AcceptedSubstitution]
+            let effortLogs = (try? await dataClient.fetchAll(
+                recordType: "WorkoutEffortLog"
+            ) as [WorkoutEffortLog]) ?? []
 
             let updated = PreferenceLearner.learn(
                 existingProfile: profile,
                 workouts: workouts,
                 edits: edits,
-                substitutions: subs
+                substitutions: subs,
+                effortLogs: effortLogs
             )
 
             await saveProfile(updated)
