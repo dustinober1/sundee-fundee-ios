@@ -9,6 +9,7 @@ struct CoachSummaryShareView: View {
     let badge: String
     let bullets: [String]
     let aspect: ShareCardAspect
+    let privacyOptions: SharePrivacyOptions
 
     var body: some View {
         VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
@@ -25,7 +26,7 @@ struct CoachSummaryShareView: View {
                 .foregroundColor(AppTheme.Text.cream)
                 .lineLimit(3)
 
-            Text(subtitle)
+            Text(privacyOptions.redactSensitiveText(subtitle))
                 .font(AppTheme.Typography.bodyMedium)
                 .foregroundColor(AppTheme.Text.cream.opacity(0.9))
                 .lineLimit(4)
@@ -38,7 +39,7 @@ struct CoachSummaryShareView: View {
                                 .fill(AppTheme.Accent.gold)
                                 .frame(width: 6, height: 6)
                                 .padding(.top, 7)
-                            Text(bullet)
+                            Text(privacyOptions.redactSensitiveText(bullet))
                                 .font(AppTheme.Typography.bodySmall)
                                 .foregroundColor(AppTheme.Text.cream.opacity(0.9))
                                 .fixedSize(horizontal: false, vertical: true)
