@@ -28,6 +28,7 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
     @Published public private(set) var startingWeightSuggestions: [StartingWeightSuggestion] = []
     @Published public var showStartingWeightCalibrationSheet: Bool = false
     @Published public private(set) var pendingWarmupBlock: WarmupBlock?
+    @Published public private(set) var restGuidanceReason: String?
 
     // MARK: - PR Share Prompt
 
@@ -53,6 +54,7 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
     private var personalRecordExerciseNames: Set<String> = []
     private var hasEvaluatedStartingCalibration = false
     private var hasAppliedStartingCalibration = false
+    private var activeRecoveryContext: ActiveWarmupReadinessContext?
 #if canImport(ActivityKit) && os(iOS)
     private var liveActivityManager: LiveWorkoutActivityManager?
 #endif
@@ -200,6 +202,8 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
         workout.exercises[currentExerciseIndex].targetSets[currentSetIndex].isComplete = true
         workout.exercises[currentExerciseIndex].targetSets[currentSetIndex].actualReps = actualReps
         workout.exercises[currentExerciseIndex].targetSets[currentSetIndex].completedWeight = completedWeight
+        let completedExercise = workout.exercises[currentExerciseIndex]
+        let completedSet = workout.exercises[currentExerciseIndex].targetSets[currentSetIndex]
         HapticFeedback.light()
 
         // 2. Check for PR using Epley formula
@@ -215,15 +219,26 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
             return
         }
 
-        // 5. Advance to next set
+        // 5. Build rest guidance before advancing, so it reflects the set just completed
+        let recoveryContext = await currentRecoveryContext()
+        let restGuidance = RestGuidanceService.guidance(
+            context: RestGuidanceContext(
+                exercise: completedExercise,
+                completedSet: completedSet,
+                lastRPE: nil,
+                recoveryScoreTotal: recoveryContext?.totalScore
+            )
+        )
+
+        // 6. Advance to next set
         advanceToNextSet()
 
-        // 6. Start rest timer if applicable
-        if let exercise = currentExercise, exercise.restMinutes > 0 {
-            startRestTimer(duration: exercise.restMinutes * 60)
+        // 7. Start rest timer if applicable
+        if completedExercise.restMinutes > 0 {
+            startRestTimer(duration: TimeInterval(restGuidance.seconds), reason: restGuidance.reason)
         }
 
-        // 7. Update Live Activity
+        // 8. Update Live Activity
         updateLiveActivity()
     }
 
@@ -457,6 +472,7 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
         async let painLogs = loadPainLogsForWarmup()
         async let recoveryContext = loadRecoveryContextForWarmup()
         let context = await recoveryContext
+        activeRecoveryContext = context
         guard completedSets == 0,
               currentExerciseIndex == 0,
               !workout.exercises.contains(where: { $0.category == .warmup }) else {
@@ -473,6 +489,16 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
                 maxMinutes: 6
             )
         )
+    }
+
+    private func currentRecoveryContext() async -> ActiveWarmupReadinessContext? {
+        if let activeRecoveryContext {
+            return activeRecoveryContext
+        }
+
+        let context = await loadRecoveryContextForWarmup()
+        activeRecoveryContext = context
+        return context
     }
 
     private func loadPainLogsForWarmup() async -> [DailyPainLog] {
@@ -534,9 +560,10 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
             }
     }
 
-    private func startRestTimer(duration: TimeInterval) {
+    private func startRestTimer(duration: TimeInterval, reason: String?) {
         restTimeRemaining = duration
         restTargetDuration = duration
+        restGuidanceReason = reason
         restStartedAt = Date()
         isResting = true
 
@@ -550,6 +577,7 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
                 if remaining <= 0 {
                     self.restTimeRemaining = 0
                     self.isResting = false
+                    self.restGuidanceReason = nil
                     self.restTimerCancellable?.cancel()
                     self.restTimerCancellable = nil
                     self.restStartedAt = nil
@@ -569,6 +597,7 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
         restTimerCancellable = nil
         restTimeRemaining = 0
         isResting = false
+        restGuidanceReason = nil
         restStartedAt = nil
     }
 
