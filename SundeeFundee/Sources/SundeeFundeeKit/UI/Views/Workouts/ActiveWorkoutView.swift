@@ -20,6 +20,7 @@ public struct ActiveWorkoutView: View {
     @State private var showingWorkoutShare = false
     @State private var pendingSwap: SubstitutionRanker.RankedSubstitution?
     @State private var showingEquipmentConversionPicker = false
+    @State private var equipmentProfiles: [EquipmentProfile] = []
     @FocusState private var isWeightFocused: Bool
     @FocusState private var isRepsFocused: Bool
 
@@ -49,6 +50,9 @@ public struct ActiveWorkoutView: View {
         }
         .onAppear {
             viewModel.beginSession()
+            Task {
+                await loadEquipmentProfiles()
+            }
         }
         #if canImport(UIKit)
         .sheet(item: $viewModel.pendingPRShare) { pr in
@@ -118,6 +122,14 @@ public struct ActiveWorkoutView: View {
             )
         }
         .confirmationDialog("Convert Equipment", isPresented: $showingEquipmentConversionPicker) {
+            ForEach(equipmentProfiles) { profile in
+                Button("\(profile.name) - \(profile.equipment.displayName)") {
+                    Task {
+                        await viewModel.convertWorkout(to: profile.equipment)
+                    }
+                }
+            }
+
             ForEach(EquipmentAccess.userSelectableDefaults, id: \.self) { equipment in
                 Button(equipment.displayName) {
                     Task {
@@ -219,6 +231,12 @@ public struct ActiveWorkoutView: View {
         let minutes = Int(viewModel.elapsedSeconds) / 60
         let seconds = Int(viewModel.elapsedSeconds) % 60
         return String(format: "%d:%02d", minutes, seconds)
+    }
+
+    @MainActor
+    private func loadEquipmentProfiles() async {
+        let service = EquipmentProfileService(dataClient: DataClientFactory.shared.client)
+        equipmentProfiles = await service.loadProfiles()
     }
 
     // MARK: - Progress Section

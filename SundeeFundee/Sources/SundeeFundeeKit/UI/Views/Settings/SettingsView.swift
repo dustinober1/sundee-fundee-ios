@@ -99,6 +99,40 @@ public struct SettingsView: View {
                 .onChange(of: viewModel.defaultEquipment) { _, _ in Task { await viewModel.saveSettings() } }
                 .onChange(of: viewModel.cycleTrackingEnabled) { _, _ in Task { await viewModel.saveSettings() } }
 
+                Section("Equipment Profiles") {
+                    ForEach(viewModel.equipmentProfiles) { profile in
+                        Button {
+                            Task {
+                                await viewModel.setDefaultEquipmentProfile(profile)
+                            }
+                        } label: {
+                            HStack(spacing: AppTheme.Spacing.sm) {
+                                Image(systemName: profile.isDefault ? "checkmark.circle.fill" : "circle")
+                                    .foregroundColor(profile.isDefault ? AppTheme.Accent.gold : AppTheme.Text.secondary.opacity(0.35))
+                                    .accessibilityHidden(true)
+
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(profile.name)
+                                        .font(AppTheme.Typography.bodyMedium)
+                                        .foregroundColor(AppTheme.Text.primary)
+                                    Text(profile.equipment.displayName)
+                                        .font(AppTheme.Typography.bodySmall)
+                                        .foregroundColor(AppTheme.Text.secondary)
+                                }
+
+                                Spacer()
+                            }
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(
+                            profile.isDefault
+                                ? "\(profile.name), \(profile.equipment.displayName), default equipment profile"
+                                : "\(profile.name), \(profile.equipment.displayName)"
+                        )
+                    }
+                }
+
                 // Data & Privacy Section
                 Section("Data & Privacy") {
                     NavigationLink {
@@ -306,10 +340,12 @@ class SettingsViewModel: ObservableObject {
     @Published var experienceLevel: ExperienceLevel = .intermediate
     @Published var primaryGoal: PrimaryGoal = .strength
     @Published var defaultEquipment: EquipmentAccess = .fullGym
+    @Published var equipmentProfiles: [EquipmentProfile] = []
     @Published var isSaving: Bool = false
     @Published var errorMessage: String?
 
     private let dataClient: DataClientProtocol
+    private let equipmentProfileService: EquipmentProfileService
     private var hasLoaded = false
 
     /// Holds the in-flight save task, if any. New writes cancel the pending one
@@ -321,8 +357,10 @@ class SettingsViewModel: ObservableObject {
         dataClient: DataClientProtocol = DataClientFactory.shared.client
     ) {
         self.dataClient = dataClient
+        self.equipmentProfileService = EquipmentProfileService(dataClient: dataClient)
         Task {
             await loadSettings()
+            await loadEquipmentProfiles()
         }
     }
 
@@ -349,6 +387,23 @@ class SettingsViewModel: ObservableObject {
             errorMessage = "We couldn't load your settings. Check your connection and try again."
             hasLoaded = true
             isLoaded = true
+        }
+    }
+
+    func loadEquipmentProfiles() async {
+        equipmentProfiles = await equipmentProfileService.loadProfiles()
+    }
+
+    func setDefaultEquipmentProfile(_ profile: EquipmentProfile) async {
+        do {
+            try await equipmentProfileService.setDefault(profileID: profile.id)
+            equipmentProfiles = await equipmentProfileService.loadProfiles()
+            defaultEquipment = profile.equipment
+            await saveSettings()
+        } catch {
+            let logger = Logger(subsystem: "com.sundeefundee.app", category: "Settings")
+            logger.error("Failed to update equipment profile: \(error)")
+            errorMessage = "We couldn't update your equipment profile. Check your connection and try again."
         }
     }
 

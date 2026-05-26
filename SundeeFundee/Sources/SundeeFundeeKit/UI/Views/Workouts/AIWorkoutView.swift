@@ -153,6 +153,10 @@ struct AIWorkoutView: View {
                             .foregroundColor(AppTheme.Text.primary)
 
                         VStack(spacing: AppTheme.Spacing.sm) {
+                            ForEach(viewModel.equipmentProfiles) { profile in
+                                equipmentProfileOption(profile)
+                            }
+
                             ForEach(EquipmentAccess.userSelectableDefaults, id: \.self) { equipment in
                                 equipmentOption(equipment, equipment.displayName, equipment.shortDescription)
                             }
@@ -260,9 +264,44 @@ struct AIWorkoutView: View {
         .accessibilityHint("Select \(title) energy level")
     }
 
+    private func equipmentProfileOption(_ profile: EquipmentProfile) -> some View {
+        Button {
+            viewModel.selectEquipmentProfile(profile)
+        } label: {
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(profile.name)
+                        .font(AppTheme.Typography.bodyMedium)
+                    Text(profile.isDefault ? "Default - \(profile.equipment.displayName)" : profile.equipment.displayName)
+                        .font(AppTheme.Typography.bodySmall)
+                        .foregroundColor(AppTheme.Text.secondary)
+                }
+
+                Spacer()
+
+                Image(systemName: viewModel.selectedEquipmentProfileID == profile.id ? "checkmark.circle.fill" : "circle")
+                    .foregroundColor(
+                        viewModel.selectedEquipmentProfileID == profile.id
+                            ? AppTheme.Accent.gold
+                            : AppTheme.Text.secondary.opacity(0.3)
+                    )
+            }
+            .padding(AppTheme.Spacing.md)
+            .foregroundColor(AppTheme.Text.primary)
+            .background(
+                viewModel.selectedEquipmentProfileID == profile.id
+                    ? AppTheme.Accent.goldLight
+                    : AppTheme.Background.cream.opacity(0.3)
+            )
+            .cornerRadius(AppTheme.CornerRadius.small)
+        }
+        .buttonStyle(.plain)
+        .accessibilityHint("Select \(profile.name) equipment profile")
+    }
+
     private func equipmentOption(_ equipment: EquipmentAccess, _ title: String, _ subtitle: String) -> some View {
         Button {
-            viewModel.equipment = equipment
+            viewModel.selectRawEquipment(equipment)
         } label: {
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
@@ -275,12 +314,20 @@ struct AIWorkoutView: View {
 
                 Spacer()
 
-                Image(systemName: viewModel.equipment == equipment ? "checkmark.circle.fill" : "circle")
-                    .foregroundColor(viewModel.equipment == equipment ? AppTheme.Accent.gold : AppTheme.Text.secondary.opacity(0.3))
+                Image(systemName: viewModel.isRawEquipmentSelected(equipment) ? "checkmark.circle.fill" : "circle")
+                    .foregroundColor(
+                        viewModel.isRawEquipmentSelected(equipment)
+                            ? AppTheme.Accent.gold
+                            : AppTheme.Text.secondary.opacity(0.3)
+                    )
             }
             .padding(AppTheme.Spacing.md)
             .foregroundColor(AppTheme.Text.primary)
-            .background(viewModel.equipment == equipment ? AppTheme.Accent.goldLight : AppTheme.Background.cream.opacity(0.3))
+            .background(
+                viewModel.isRawEquipmentSelected(equipment)
+                    ? AppTheme.Accent.goldLight
+                    : AppTheme.Background.cream.opacity(0.3)
+            )
             .cornerRadius(AppTheme.CornerRadius.small)
         }
         .buttonStyle(.plain)
@@ -803,6 +850,8 @@ class AIWorkoutViewModel: ObservableObject {
     @Published var focus: WorkoutFocus = .fullBody
     @Published var energyLevel: EnergyLevel = .medium
     @Published var equipment: EquipmentAccess = .fullGym
+    @Published var selectedEquipmentProfileID: String?
+    @Published var equipmentProfiles: [EquipmentProfile] = []
     @Published var cyclePhase: CyclePhase?
     @Published var generatedWorkout: GeneratedWorkout?
     @Published var coachingTips: [String] = []
@@ -814,6 +863,7 @@ class AIWorkoutViewModel: ObservableObject {
     private let contextBuilder: CoachContextBuilder
     private let memoryService: CoachMemoryService
     private let dataClient: DataClientProtocol
+    private let equipmentProfileService: EquipmentProfileService
     private var cachedContext: CoachContext?
     private var editableDraft: EditableWorkoutDraft?
     private var hasLoadedDefaultEquipment = false
@@ -828,9 +878,13 @@ class AIWorkoutViewModel: ObservableObject {
         self.contextBuilder = contextBuilder
         self.memoryService = memoryService
         self.dataClient = dataClient
+        self.equipmentProfileService = EquipmentProfileService(dataClient: dataClient)
     }
 
     func loadContext() async {
+        if equipmentProfiles.isEmpty {
+            equipmentProfiles = await equipmentProfileService.loadProfiles()
+        }
         if !hasLoadedDefaultEquipment {
             equipment = await loadDefaultEquipment()
             hasLoadedDefaultEquipment = true
@@ -840,14 +894,23 @@ class AIWorkoutViewModel: ObservableObject {
     }
 
     private func loadDefaultEquipment() async -> EquipmentAccess {
-        do {
-            let records = try await dataClient.fetchAll(
-                recordType: "UserSettings"
-            ) as [UserSettingsRecord]
-            return records.last?.defaultEquipment ?? .fullGym
-        } catch {
-            return .fullGym
-        }
+        let profile = await equipmentProfileService.defaultProfile()
+        selectedEquipmentProfileID = profile.id
+        return profile.equipment
+    }
+
+    func selectEquipmentProfile(_ profile: EquipmentProfile) {
+        selectedEquipmentProfileID = profile.id
+        equipment = profile.equipment
+    }
+
+    func selectRawEquipment(_ equipment: EquipmentAccess) {
+        selectedEquipmentProfileID = nil
+        self.equipment = equipment
+    }
+
+    func isRawEquipmentSelected(_ equipment: EquipmentAccess) -> Bool {
+        selectedEquipmentProfileID == nil && self.equipment == equipment
     }
 
     func generateWorkout() async {
