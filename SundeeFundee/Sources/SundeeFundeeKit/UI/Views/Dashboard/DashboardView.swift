@@ -280,6 +280,16 @@ public struct DashboardView: View {
                 }
                 .artDecoButton(style: .accent)
 
+                Button {
+                    Task {
+                        starterWorkout = await viewModel.buildQuickWorkout()
+                    }
+                } label: {
+                    Label("Best next 20 min", systemImage: "timer")
+                        .frame(maxWidth: .infinity)
+                }
+                .artDecoButton(style: .secondary)
+
                 if let deload = viewModel.deloadRecommendation, deload.isRecommended {
                     Button {
                         Task {
@@ -1067,6 +1077,27 @@ class DashboardViewModel: ObservableObject {
         )
     }
 
+    func buildQuickWorkout() async -> Workout {
+        let settings = await loadUserSettings()
+        let recoveryRecords: [RecoveryScoreRecord] = (try? await dataClient.fetchAll(recordType: "RecoveryScore")) ?? []
+        let painLogs: [DailyPainLog] = (try? await dataClient.fetchAll(recordType: "DailyPainLog")) ?? []
+        let latestRecovery = latestRecoveryScore(from: recoveryRecords)
+        let recentCutoff = Calendar.current.date(byAdding: .day, value: -7, to: Date()) ?? Date()
+        let recentPainLogs = painLogs.filter { $0.date >= recentCutoff }
+
+        let request = QuickWorkoutRequest(
+            timeMinutes: 20,
+            focus: .fullBody,
+            energyLevel: energyLevel(from: latestRecovery?.total),
+            equipment: settings.defaultEquipment,
+            todayDecisionKind: todayTrainingDecision?.kind ?? .modify,
+            recoveryScoreTotal: latestRecovery?.total,
+            painLogs: recentPainLogs
+        )
+
+        return QuickWorkoutBuilder.build(request: request).workout
+    }
+
     /// Generates an AI workout based on cycle phase and energy
     func generateAIWorkout() async {
         isGeneratingWorkout = true
@@ -1333,6 +1364,13 @@ class DashboardViewModel: ObservableObject {
             totalInputCount: RecoveryInput.allCases.count,
             explanations: explanations
         )
+    }
+
+    private func energyLevel(from recoveryScoreTotal: Int?) -> EnergyLevel {
+        guard let recoveryScoreTotal else { return .medium }
+        if recoveryScoreTotal <= 45 { return .low }
+        if recoveryScoreTotal >= 75 { return .high }
+        return .medium
     }
 
     private func hasRecentSleepData() async -> Bool {
