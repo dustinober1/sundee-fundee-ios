@@ -395,6 +395,10 @@ struct ProgramDetailView: View {
             VStack(spacing: AppTheme.Spacing.lg) {
                 programHeaderCard
 
+                if let summary = viewModel.latestAdaptationSummary, !summary.changes.isEmpty {
+                    adaptationSummaryCard(summary)
+                }
+
                 if let generated = viewModel.generatedProgram {
                     ForEach(generated.weeks, id: \.week) { week in
                         weekSection(week, phases: generated.phases)
@@ -509,6 +513,37 @@ struct ProgramDetailView: View {
         .padding(.vertical, AppTheme.Spacing.sm)
         .background(AppTheme.Background.cream.opacity(0.5))
         .cornerRadius(AppTheme.CornerRadius.small)
+    }
+
+    private func adaptationSummaryCard(_ summary: ProgramAdaptationSummary) -> some View {
+        ArtDecoCard {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
+                Text("Session Adaptation")
+                    .font(AppTheme.Typography.headlineMedium)
+                    .foregroundColor(AppTheme.Text.primary)
+
+                Text(summary.headline)
+                    .font(AppTheme.Typography.bodySmall)
+                    .foregroundColor(AppTheme.Text.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                ForEach(summary.changes.prefix(3)) { change in
+                    HStack(alignment: .top, spacing: AppTheme.Spacing.xs) {
+                        Circle()
+                            .fill(AppTheme.Accent.gold.opacity(0.7))
+                            .frame(width: 5, height: 5)
+                            .padding(.top, 5)
+                            .accessibilityHidden(true)
+                        Text(change.detail)
+                            .font(AppTheme.Typography.bodySmall)
+                            .foregroundColor(AppTheme.Text.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+            }
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Latest adaptation summary")
     }
 
     // MARK: - Week Section
@@ -784,6 +819,7 @@ class ProgramDetailViewModel: ObservableObject {
     @Published var startingSessionId: String?
     @Published var completedSessionIds: Set<String> = []
     @Published var inProgressSessionIds: Set<String> = []
+    @Published var latestAdaptationSummary: ProgramAdaptationSummary?
     private var sessionWorkoutMap: [String: String] = [:]
 
     private let program: ProgramListItem
@@ -874,11 +910,12 @@ class ProgramDetailViewModel: ObservableObject {
         async let adaptationContextTask = loadAdaptationContext()
         async let maxesTask = loadMaxes()
         let (adaptationContext, maxes) = await (adaptationContextTask, maxesTask)
-        let adaptedExercises = ProgramSessionAdaptationService.adapt(
+        let adaptationResult = ProgramSessionAdaptationService.adaptWithSummary(
             session.exercises,
             context: adaptationContext
         )
-        let edited = Self.applyQuickEdit(quickEdit, to: adaptedExercises)
+        latestAdaptationSummary = adaptationResult.summary
+        let edited = Self.applyQuickEdit(quickEdit, to: adaptationResult.exercises)
         for edit in edited.edits {
             await CoachMemoryService(dataClient: dataClient).recordWorkoutEdit(edit)
         }
@@ -1145,10 +1182,39 @@ class ProgramDetailViewModel: ObservableObject {
 
     private func loadAdaptationContext() async -> ProgramSessionAdaptationContext {
         async let cyclePhase = loadCyclePhase()
+        async let cycleConfidence = loadCycleConfidence()
         async let injuries = loadInjuries()
-        return await ProgramSessionAdaptationContext(
-            cyclePhase: cyclePhase,
-            injuries: injuries
+        async let recoveryRecords = loadRecoveryScoreHistory()
+        async let painLogs = loadPainLogs()
+        async let equipment = loadDefaultEquipment()
+
+        let (resolvedPhase, resolvedConfidence, resolvedInjuries, resolvedRecovery, resolvedPain, resolvedEquipment) = await (
+            cyclePhase,
+            cycleConfidence,
+            injuries,
+            recoveryRecords,
+            painLogs,
+            equipment
+        )
+
+        let latestRecoveryScore = resolvedRecovery.max(by: { $0.scoreDate < $1.scoreDate })?.totalScore
+        let painIntensity = resolvedPain
+            .sorted(by: { $0.date > $1.date })
+            .first?
+            .intensity
+        let deload = DeloadDetectionService.recommendation(
+            recentScores: resolvedRecovery,
+            recentPainLogs: resolvedPain
+        ).isRecommended
+
+        return ProgramSessionAdaptationContext(
+            cyclePhase: resolvedPhase,
+            injuries: resolvedInjuries,
+            recoveryScore: latestRecoveryScore,
+            painIntensity: painIntensity,
+            equipment: resolvedEquipment,
+            cycleConfidence: resolvedConfidence,
+            deloadRecommended: deload
         )
     }
 
@@ -1207,6 +1273,28 @@ class ProgramDetailViewModel: ObservableObject {
 
     private func loadInjuries() async -> [Injury] {
         (try? await dataClient.fetchAll(recordType: "Injury") as [Injury]) ?? []
+    }
+
+    private func loadCycleConfidence() async -> Double? {
+        let logs: [PeriodLog] = (try? await dataClient.fetchAll(recordType: "PeriodLogRecord")) ?? []
+        guard !logs.isEmpty else { return nil }
+        return CyclePhaseHelper.calculateConfidence(
+            periodLogCount: logs.count,
+            lastPeriodStart: logs.sorted(by: { $0.startDate > $1.startDate }).first?.startDate
+        )
+    }
+
+    private func loadRecoveryScoreHistory() async -> [RecoveryScoreRecord] {
+        (try? await dataClient.fetchAll(recordType: "RecoveryScore") as [RecoveryScoreRecord]) ?? []
+    }
+
+    private func loadPainLogs() async -> [DailyPainLog] {
+        (try? await dataClient.fetchAll(recordType: "DailyPainLog") as [DailyPainLog]) ?? []
+    }
+
+    private func loadDefaultEquipment() async -> EquipmentAccess {
+        let records: [UserSettingsRecord] = (try? await dataClient.fetchAll(recordType: "UserSettings")) ?? []
+        return records.last?.defaultEquipment ?? .fullGym
     }
 
     private func loadMaxes() async -> [OneRepMaxRecord] {
