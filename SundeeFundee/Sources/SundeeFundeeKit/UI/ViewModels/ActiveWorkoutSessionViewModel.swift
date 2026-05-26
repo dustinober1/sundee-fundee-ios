@@ -482,10 +482,19 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
     private func loadRecoveryContextForWarmup() async -> ActiveWarmupReadinessContext? {
         let records: [RecoveryScoreRecord] = (try? await dataClient.fetchAll(recordType: "RecoveryScore")) ?? []
         let dayString = ISO8601DateFormatter().string(from: Calendar.current.startOfDay(for: Date()))
-        guard let record = records
+        let todaysRecord = records
             .filter({ $0.scoreDate == dayString })
             .sorted(by: { $0.dateCreated > $1.dateCreated })
             .first
+        let latestRecord = records
+            .sorted {
+                if $0.scoreDate == $1.scoreDate {
+                    return $0.dateCreated > $1.dateCreated
+                }
+                return $0.scoreDate > $1.scoreDate
+            }
+            .first
+        guard let record = todaysRecord ?? latestRecord
         else { return nil }
 
         return ActiveWarmupReadinessContext(
