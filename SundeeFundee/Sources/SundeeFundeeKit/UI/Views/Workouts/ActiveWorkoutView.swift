@@ -12,6 +12,8 @@ import UIKit
 public struct ActiveWorkoutView: View {
     @ObservedObject var viewModel: ActiveWorkoutSessionViewModel
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var authViewModel: AuthViewModel
+    @ObservedObject private var syncDiagnostics = SyncQueueDiagnosticsService.shared
     @State private var showAbandonAlert = false
     @State private var weightInput: String = ""
     @State private var repsInput: String = ""
@@ -1046,6 +1048,9 @@ public struct ActiveWorkoutView: View {
                     .font(AppTheme.Typography.headlineMedium)
                     .foregroundColor(AppTheme.Text.secondary)
 
+                // Sync status indicator (only non-synced states)
+                completionSyncIndicator
+
                 // Stats row
                 HStack(spacing: AppTheme.Spacing.lg) {
                     statBox(value: "\(viewModel.completedSets)", label: "Sets")
@@ -1116,6 +1121,49 @@ public struct ActiveWorkoutView: View {
                 Spacer()
                     .frame(height: AppTheme.Spacing.xxl)
             }
+        }
+    }
+
+    // MARK: - Completion Sync Indicator
+
+    private var completionSyncStatus: SyncStatus {
+        SyncStatusService.status(
+            isGuest: authViewModel.isGuest,
+            pendingMutationCount: syncDiagnostics.pendingCount,
+            stuckMutationCount: syncDiagnostics.stuckCount
+        )
+    }
+
+    private var completionSyncIndicator: some View {
+        let status = completionSyncStatus
+        // Only show when there's something actionable (hide happy-path synced)
+        if status.kind == .synced {
+            EmptyView()
+        } else {
+            HStack(spacing: AppTheme.Spacing.xs) {
+                Image(systemName: status.systemImage)
+                    .font(AppTheme.Typography.labelMedium)
+                    .foregroundColor(syncStatusColor(for: status.kind))
+
+                Text(status.title)
+                    .font(AppTheme.Typography.labelSmall)
+                    .foregroundColor(AppTheme.Text.secondary)
+            }
+            .padding(.horizontal, AppTheme.Spacing.md)
+            .padding(.vertical, AppTheme.Spacing.xs)
+            .background(
+                Capsule()
+                    .fill(AppTheme.Background.navy.opacity(0.08))
+            )
+        }
+    }
+
+    private func syncStatusColor(for kind: SyncStatusKind) -> Color {
+        switch kind {
+        case .localOnly: return AppTheme.Accent.gold
+        case .synced: return AppTheme.Recovery.green
+        case .queued: return AppTheme.Accent.orange
+        case .needsAttention: return AppTheme.Semantic.warning
         }
     }
 
