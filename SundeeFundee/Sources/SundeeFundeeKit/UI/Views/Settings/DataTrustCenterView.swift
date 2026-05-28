@@ -6,11 +6,14 @@ public struct DataTrustCenterView: View {
     @State private var isLoading = false
     @State private var showDeleteConfirm = false
     @EnvironmentObject private var authViewModel: AuthViewModel
+    @ObservedObject private var diagnostics = SyncQueueDiagnosticsService.shared
 
     public init() {}
 
     public var body: some View {
         List {
+            syncStatusSection
+
             Section("Storage") {
                 if isLoading && summary == nil {
                     ProgressView("Loading data inventory…")
@@ -81,6 +84,54 @@ public struct DataTrustCenterView: View {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("This permanently deletes your account and app data.")
+        }
+    }
+
+    // MARK: - Sync Status Section
+
+    private var currentSyncStatus: SyncStatus {
+        SyncStatusService.status(
+            isGuest: authViewModel.isGuest,
+            pendingMutationCount: diagnostics.pendingCount,
+            stuckMutationCount: diagnostics.stuckCount
+        )
+    }
+
+    private var syncStatusSection: some View {
+        let status = currentSyncStatus
+        // Show all statuses except "synced" silently (synced is the happy path)
+        if status.kind == .synced {
+            EmptyView()
+        } else {
+            Section("Sync Status") {
+                HStack(spacing: AppTheme.Spacing.md) {
+                    Image(systemName: status.systemImage)
+                        .font(.title3)
+                        .foregroundColor(syncStatusColor(for: status.kind))
+                        .accessibilityHidden(true)
+
+                    VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                        Text(status.title)
+                            .font(AppTheme.Typography.headlineSmall)
+                            .foregroundColor(AppTheme.Text.primary)
+
+                        Text(status.message)
+                            .font(AppTheme.Typography.bodySmall)
+                            .foregroundColor(AppTheme.Text.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+                .padding(.vertical, AppTheme.Spacing.xs)
+            }
+        }
+    }
+
+    private func syncStatusColor(for kind: SyncStatusKind) -> Color {
+        switch kind {
+        case .localOnly: return AppTheme.Accent.gold
+        case .synced: return AppTheme.Recovery.green
+        case .queued: return AppTheme.Accent.orange
+        case .needsAttention: return AppTheme.Semantic.warning
         }
     }
 
