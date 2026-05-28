@@ -25,7 +25,7 @@ public struct ShareCardSheet: View {
     @State private var libraryPickerItem: PhotosPickerItem?
     @State private var showCameraSheet = false
     @State private var showPermissionAlert = false
-    @State private var privacyOptions: SharePrivacyOptions = .privateDefault
+    @State private var privacyOptions: SharePrivacyOptions = SharePrivacyOptions.savedPreset
 
     @Environment(\.dismiss) private var dismiss
 
@@ -270,6 +270,13 @@ public struct ShareCardSheet: View {
             Toggle("Show recovery score", isOn: $privacyOptions.showRecoveryScore)
             Toggle("Show pain context", isOn: $privacyOptions.showPainContext)
             Toggle("Show exact date", isOn: $privacyOptions.showExactDate)
+
+            Button("Save as default") {
+                SharePrivacyOptions.savedPreset = privacyOptions
+                HapticFeedback.light()
+            }
+            .font(AppTheme.Typography.labelMedium)
+            .foregroundColor(AppTheme.Accent.gold)
         }
     }
 
