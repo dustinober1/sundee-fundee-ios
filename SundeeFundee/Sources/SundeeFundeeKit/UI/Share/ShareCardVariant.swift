@@ -40,7 +40,7 @@ public struct ShareSummary: Sendable, Equatable {
     }
 }
 
-public struct SharePrivacyOptions: Sendable, Equatable {
+public struct SharePrivacyOptions: Sendable, Equatable, Codable {
     public var showCycleContext: Bool
     public var showRecoveryScore: Bool
     public var showPainContext: Bool
@@ -88,6 +88,28 @@ public struct SharePrivacyOptions: Sendable, Equatable {
             redacted = redacted.replacingOccurrences(of: "sore", with: "tight", options: [.caseInsensitive])
         }
         return redacted
+    }
+
+    // MARK: - Preset Persistence
+
+    private static let presetKey = "com.sundeefundee.sharePrivacyPreset"
+
+    public static var savedPreset: SharePrivacyOptions {
+        get {
+            guard let data = UserDefaults.standard.data(forKey: presetKey) else {
+                return .privateDefault
+            }
+            guard let decoded = try? JSONDecoder().decode(
+                SharePrivacyOptions.self, from: data
+            ) else {
+                return .privateDefault
+            }
+            return decoded
+        }
+        set {
+            guard let data = try? JSONEncoder().encode(newValue) else { return }
+            UserDefaults.standard.set(data, forKey: presetKey)
+        }
     }
 }
 
