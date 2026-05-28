@@ -85,6 +85,12 @@ public enum ShareCardRenderer {
                 aspect: aspect,
                 privacyOptions: privacyOptions
             )
+        case .buddyCheckIn(let summary, let displayName):
+            BuddyCheckInShareView(
+                summary: summary,
+                displayName: displayName,
+                aspect: aspect
+            )
         case .selfieOverlay(let image, let summary):
             SelfieOverlayShareView(
                 image: image,
