@@ -411,3 +411,119 @@ DEFINE SCHEMA
         GRANT CREATE TO "_icloud",
         GRANT READ TO "_world"
     );
+
+    RECORD TYPE EquipmentProfile (
+        "___createTime"   TIMESTAMP,
+        "___createdBy"    REFERENCE,
+        "___etag"         STRING,
+        "___modTime"      TIMESTAMP,
+        "___modifiedBy"   REFERENCE,
+        "___recordID"     REFERENCE QUERYABLE,
+        dateCreated       STRING QUERYABLE SEARCHABLE SORTABLE,
+        dateUpdated       STRING QUERYABLE SEARCHABLE SORTABLE,
+        equipmentRaw      STRING QUERYABLE SEARCHABLE SORTABLE,
+        id                STRING,
+        isDefault         INT64 QUERYABLE SORTABLE,
+        name              STRING QUERYABLE SEARCHABLE SORTABLE,
+        sortOrder         INT64 QUERYABLE SORTABLE,
+        GRANT WRITE TO "_creator",
+        GRANT CREATE TO "_icloud",
+        GRANT READ TO "_world"
+    );
+
+    RECORD TYPE WorkoutEffortLog (
+        "___createTime" TIMESTAMP,
+        "___createdBy"  REFERENCE,
+        "___etag"       STRING,
+        "___modTime"    TIMESTAMP,
+        "___modifiedBy" REFERENCE,
+        "___recordID"   REFERENCE QUERYABLE,
+        dateCreated     STRING QUERYABLE SEARCHABLE SORTABLE,
+        exerciseName    STRING QUERYABLE SEARCHABLE SORTABLE,
+        id              STRING,
+        note            STRING,
+        rpe             INT64 QUERYABLE SORTABLE,
+        setID           STRING,
+        workoutID       STRING QUERYABLE SEARCHABLE SORTABLE,
+        GRANT WRITE TO "_creator",
+        GRANT CREATE TO "_icloud",
+        GRANT READ TO "_world"
+    );
+
+    RECORD TYPE WorkoutAdaptationDecisionRecord (
+        "___createTime"       TIMESTAMP,
+        "___createdBy"        REFERENCE,
+        "___etag"             STRING,
+        "___modTime"          TIMESTAMP,
+        "___modifiedBy"       REFERENCE,
+        "___recordID"         REFERENCE QUERYABLE,
+        adaptedWorkoutJSON    STRING,
+        dateCreated           STRING QUERYABLE SEARCHABLE SORTABLE,
+        id                    STRING,
+        originalWorkoutJSON   STRING,
+        reasonIDs             LIST<STRING>,
+        reasonText            LIST<STRING>,
+        workoutID             STRING QUERYABLE SEARCHABLE SORTABLE,
+        GRANT WRITE TO "_creator",
+        GRANT CREATE TO "_icloud",
+        GRANT READ TO "_world"
+    );
+
+    RECORD TYPE SymptomCheckInRecord (
+        "___createTime" TIMESTAMP,
+        "___createdBy"  REFERENCE,
+        "___etag"       STRING,
+        "___modTime"    TIMESTAMP,
+        "___modifiedBy" REFERENCE,
+        "___recordID"   REFERENCE QUERYABLE,
+        cramps          INT64 QUERYABLE SORTABLE,
+        dateCreated     STRING QUERYABLE SEARCHABLE SORTABLE,
+        energy          INT64 QUERYABLE SORTABLE,
+        fatigue         INT64 QUERYABLE SORTABLE,
+        id              STRING,
+        notes           STRING,
+        soreness        INT64 QUERYABLE SORTABLE,
+        symptomDate     STRING QUERYABLE SEARCHABLE SORTABLE,
+        GRANT WRITE TO "_creator",
+        GRANT CREATE TO "_icloud",
+        GRANT READ TO "_world"
+    );
+
+    RECORD TYPE ReturnToLiftingRampRecord (
+        "___createTime"      TIMESTAMP,
+        "___createdBy"       REFERENCE,
+        "___etag"            STRING,
+        "___modTime"         TIMESTAMP,
+        "___modifiedBy"      REFERENCE,
+        "___recordID"        REFERENCE QUERYABLE,
+        currentWeek          INT64 QUERYABLE SORTABLE,
+        dateCreated          STRING QUERYABLE SEARCHABLE SORTABLE,
+        dateUpdated          STRING QUERYABLE SEARCHABLE SORTABLE,
+        id                   STRING,
+        locationIds          STRING QUERYABLE SEARCHABLE SORTABLE,
+        maxLoadPercent       DOUBLE,
+        maxWorkingSets       INT64 QUERYABLE SORTABLE,
+        movementPatternRaw   STRING QUERYABLE SEARCHABLE SORTABLE,
+        GRANT WRITE TO "_creator",
+        GRANT CREATE TO "_icloud",
+        GRANT READ TO "_world"
+    );
+
+    RECORD TYPE BuddyCheckInRecord (
+        "___createTime" TIMESTAMP,
+        "___createdBy"  REFERENCE,
+        "___etag"       STRING,
+        "___modTime"    TIMESTAMP,
+        "___modifiedBy" REFERENCE,
+        "___recordID"   REFERENCE QUERYABLE,
+        checkInDate     STRING QUERYABLE SEARCHABLE SORTABLE,
+        dateCreated     STRING QUERYABLE SEARCHABLE SORTABLE,
+        displayName     STRING QUERYABLE SEARCHABLE SORTABLE,
+        id              STRING,
+        message         STRING,
+        statusRaw       STRING QUERYABLE SEARCHABLE SORTABLE,
+        threadID        STRING QUERYABLE SEARCHABLE SORTABLE,
+        GRANT WRITE TO "_creator",
+        GRANT CREATE TO "_icloud",
+        GRANT READ TO "_world"
+    );
