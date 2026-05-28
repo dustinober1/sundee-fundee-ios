@@ -68,18 +68,19 @@ public enum ReturnToLiftingRampService {
         }
 
         // Step 2: Compute from pain logs (moderate+ intensity only)
+        // Ramp records already applied in Step 1; skip patterns with active ramps.
+        let rampedPatterns = Set(activeRamps.compactMap { $0.movementPattern })
         let significantPainLogs = painLogs.filter { $0.intensity >= 4 }
         for log in significantPainLogs {
             let regions = log.bodyRegions
             for region in regions {
                 guard let patterns = regionPatternMap[region.engineKey] else { continue }
                 for pattern in patterns {
+                    guard !rampedPatterns.contains(pattern) else { continue }
                     let computed = recommendationForPain(
                         intensity: log.intensity,
                         pattern: pattern
                     )
-                    // Only override if we don't have an existing ramp record
-                    // (ramp records take priority) OR if computed is more conservative
                     if let existing = recommendations[pattern] {
                         // Keep the more conservative of the two
                         if computed.maxLoadPercent < existing.maxLoadPercent {
