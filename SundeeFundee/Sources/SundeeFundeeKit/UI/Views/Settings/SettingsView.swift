@@ -141,6 +141,14 @@ public struct SettingsView: View {
                         Label("Data Trust Center", systemImage: "shield.checkered")
                     }
 
+                    #if canImport(UIKit)
+                    NavigationLink {
+                        SharePrivacyDefaultsView()
+                    } label: {
+                        Label("Share Privacy Defaults", systemImage: "hand.raised")
+                    }
+                    #endif
+
                     NavigationLink {
                         ExportView()
                     } label: {
