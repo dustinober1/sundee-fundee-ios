@@ -35,6 +35,12 @@ public struct ProgressHubView: View {
                     } label: {
                         Label("Challenges", systemImage: "flag")
                     }
+
+                    NavigationLink {
+                        BuddyCheckInHistoryView()
+                    } label: {
+                        Label("Buddy Check-Ins", systemImage: "person.2.checkmark")
+                    }
                 }
 
                 Section("Data") {
