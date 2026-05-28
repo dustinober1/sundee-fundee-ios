@@ -67,12 +67,14 @@ final class MissedWorkoutRecoveryServiceTests: XCTestCase {
     // MARK: - Conditioning Dropped Before Compound When Capacity Is Tight
 
     func testRecoveryPlan_ConditioningDroppedBeforeCompound_WhenCapacityTight() {
-        // Only day 7 remains with a 90-min session already there. Max minutes per day = 120.
-        // Missed: a 60-min compound + a 30-min conditioning. Only one fits.
+        // Only day 7 remains with a 50-min session already there. Max sessions per day = 2.
+        // Day 7 already has 1 session, so only 1 slot remains.
+        // Missed: a 60-min compound + a 30-min conditioning. Compound is placed first
+        // (higher priority) and fills the last slot. Conditioning is dropped.
         let plan = [
             makeSession(day: 1, name: "Heavy Deadlift", focus: "Lower", minutes: 60, priority: .compound),
             makeSession(day: 2, name: "LISS Cardio", focus: "Conditioning", minutes: 30, priority: .conditioning),
-            makeSession(day: 7, name: "Sunday Mobility", focus: "Recovery", minutes: 90, priority: .accessory),
+            makeSession(day: 7, name: "Sunday Mobility", focus: "Recovery", minutes: 50, priority: .accessory),
         ]
         let result = MissedWorkoutRecoveryService.recoveryPlan(
             weeklyPlan: plan,
