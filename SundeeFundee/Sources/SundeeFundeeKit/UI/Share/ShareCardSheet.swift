@@ -151,6 +151,20 @@ public struct ShareCardSheet: View {
                 totalVolume: 0,
                 durationMinutes: 0
             )
+        case .buddyCheckIn(_, let displayName):
+            return ShareSummary(
+                title: "Buddy Check-In — \(displayName)",
+                exerciseCount: 0,
+                totalVolume: 0,
+                durationMinutes: 0
+            )
+        case .monthlyReview(let review):
+            return ShareSummary(
+                title: review.monthTitle,
+                exerciseCount: review.workoutCount,
+                totalVolume: 0,
+                durationMinutes: 0
+            )
         case .selfieOverlay(_, let summary):
             return summary
         }
