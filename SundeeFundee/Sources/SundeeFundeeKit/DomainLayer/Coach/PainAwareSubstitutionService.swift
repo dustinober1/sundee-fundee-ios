@@ -118,6 +118,50 @@ public enum PainAwareSubstitutionService {
         return .conditioning
     }
 
+    /// Apply return-to-lifting ramp caps to ranked substitution candidates.
+    ///
+    /// For each candidate whose movement pattern has an active ramp cap,
+    /// reduces the score to reflect the lower load/sets recommendation and
+    /// appends ramp context to the reason. Does not change the ranking order.
+    public static func applyRampCaps(
+        candidates: [PainAwareSubstitutionCandidate],
+        painLogs: [DailyPainLog],
+        injuries: [Injury],
+        activeRamps: [ReturnToLiftingRampRecord]
+    ) -> [PainAwareSubstitutionCandidate] {
+        let rampRecs = ReturnToLiftingRampService.recommendations(
+            painLogs: painLogs,
+            injuries: injuries,
+            activeRamps: activeRamps
+        )
+
+        guard !rampRecs.isEmpty else { return candidates }
+
+        let rampByPattern = Dictionary(uniqueKeysWithValues: rampRecs.map { ($0.movementPattern, $0) })
+
+        return candidates.map { candidate in
+            let pattern = movementPattern(for: candidate.substitution.exerciseName)
+            guard let ramp = rampByPattern[pattern] else { return candidate }
+
+            // Reduce confidence proportional to load cap (e.g. 50% load -> half confidence)
+            let adjustedConfidence = candidate.confidence * ramp.maxLoadPercent
+            let rampNote = " Ramp suggests max \(Int(round(ramp.maxLoadPercent * 100)))% load, \(ramp.maxWorkingSets) sets."
+
+            let adjustedSub = SubstitutionRanker.RankedSubstitution(
+                exerciseName: candidate.substitution.exerciseName,
+                category: candidate.substitution.category,
+                score: adjustedConfidence,
+                reason: candidate.substitution.reason + rampNote
+            )
+
+            return PainAwareSubstitutionCandidate(
+                substitution: adjustedSub,
+                reason: adjustedSub.reason,
+                confidence: adjustedConfidence
+            )
+        }
+    }
+
     private static func equipmentContext(for equipment: EquipmentAccess) -> SubstitutionRanker.EquipmentContext {
         switch equipment {
         case .fullGym:
