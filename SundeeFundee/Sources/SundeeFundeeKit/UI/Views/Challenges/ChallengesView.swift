@@ -7,6 +7,7 @@ public struct ChallengesView: View {
     @StateObject private var viewModel = ChallengesViewModel()
     @State private var showingCreateChallenge = false
     @State private var showingJoinChallenge = false
+    @State private var showingBuddyCheckIn = false
     @State private var pendingTemplate: ChallengeShareTemplate?
 
     public init() {}
@@ -54,6 +55,14 @@ public struct ChallengesView: View {
             ToolbarItem(placement: .primaryAction) {
                 HStack {
                     Button {
+                        showingBuddyCheckIn = true
+                    } label: {
+                        Image(systemName: "person.2.checkmark")
+                    }
+                    .tint(AppTheme.Accent.gold)
+                    .accessibilityLabel("Check in with buddy")
+
+                    Button {
                         showingJoinChallenge = true
                     } label: {
                         Image(systemName: "person.badge.plus")
@@ -73,6 +82,9 @@ public struct ChallengesView: View {
         }
         .sheet(isPresented: $showingCreateChallenge) {
             CreateChallengeView(viewModel: viewModel)
+        }
+        .sheet(isPresented: $showingBuddyCheckIn) {
+            BuddyCheckInSheet()
         }
         .sheet(isPresented: $showingJoinChallenge) {
             JoinChallengeView { template in
@@ -402,6 +414,97 @@ private struct JoinChallengeView: View {
             }
         } catch {
             errorMessage = "Challenge invites are not available right now."
+        }
+    }
+}
+
+// MARK: - BuddyCheckInSheet
+
+@available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
+private struct BuddyCheckInSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @State private var displayName = ""
+    @State private var message = ""
+    @State private var status: BuddyCheckInStatus = .completed
+    @State private var isSaving = false
+    @State private var errorMessage: String?
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    TextField("Your name", text: $displayName)
+                } header: {
+                    Text("Display Name")
+                }
+
+                Section {
+                    Picker("Status", selection: $status) {
+                        Text("Completed").tag(BuddyCheckInStatus.completed)
+                        Text("Planned").tag(BuddyCheckInStatus.planned)
+                        Text("Skipped").tag(BuddyCheckInStatus.skipped)
+                    }
+                    .pickerStyle(.segmented)
+                } header: {
+                    Text("Check-In Status")
+                }
+
+                Section {
+                    TextField("How did it go? (optional)", text: $message, axis: .vertical)
+                        .lineLimit(3...6)
+                } header: {
+                    Text("Message")
+                }
+
+                if let errorMessage {
+                    Section {
+                        Text(errorMessage)
+                            .font(AppTheme.Typography.bodySmall)
+                            .foregroundColor(AppTheme.Semantic.warning)
+                    }
+                }
+            }
+            .navigationTitle("Buddy Check-In")
+            #if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") {
+                        Task { await saveCheckIn() }
+                    }
+                    .disabled(displayName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isSaving)
+                }
+            }
+        }
+    }
+
+    private func saveCheckIn() async {
+        isSaving = true
+        defer { isSaving = false }
+
+        let service = BuddyCheckInService(dataClient: DataClientFactory.shared.client)
+        let record = BuddyCheckInRecord(
+            id: UUID().uuidString,
+            threadID: "buddy-\(displayName.trimmingCharacters(in: .whitespacesAndNewlines).lowercased())",
+            displayName: displayName.trimmingCharacters(in: .whitespacesAndNewlines),
+            statusRaw: status.rawValue,
+            message: message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                ? nil : message.trimmingCharacters(in: .whitespacesAndNewlines),
+            checkInDate: Date(),
+            dateCreated: Date()
+        )
+
+        do {
+            try await service.save(record)
+            HapticFeedback.success()
+            dismiss()
+        } catch {
+            HapticFeedback.warning()
+            errorMessage = "Could not save check-in. Please try again."
         }
     }
 }
