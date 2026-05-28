@@ -7,5 +7,18 @@ What's New:
 - New cycle confidence and cycle-aware progress insights to explain context behind your trends.
 - New share privacy controls to hide cycle context, recovery, pain context, and exact dates.
 - New Data Trust Center and expanded data export coverage for recovery scores and weekly plans.
+- New "Best next 20 min" quick workout that adapts to your time, energy, and equipment.
+- Saved equipment profiles for Home, Gym, and Travel so workouts convert instantly.
+- "Station taken" swap finds the best substitute when a rack, bench, or machine is busy.
+- Exercise technique cues with setup tips and common mistakes for core lifts.
+- Contextual warmup builder based on your first lift, pain, recovery, and cycle phase.
+- Smart rest timer suggestions that adjust by exercise type, effort, and recovery.
+- RPE and effort logging so the app learns your real tolerance over time.
+- Symptom pattern tracking to spot correlations between cramps, fatigue, and training.
+- Return-to-lifting ramp that stages your load and volume after pain resolves.
+- Missed workout reshuffling keeps your week on track when life gets in the way.
+- Clear local vs synced status so you always know your data is safe.
+- Buddy check-ins for lightweight accountability without sharing private health context.
+- Monthly review with wins, patterns, and next-month suggestions.
 
 Thanks for training with Sundee Fundee!
