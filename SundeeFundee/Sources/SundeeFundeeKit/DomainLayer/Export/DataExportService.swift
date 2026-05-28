@@ -42,6 +42,12 @@ public struct DataExportService: Sendable {
         async let celebrationsResult: [CelebrationEventRecord] = safeFetch(recordType: "CelebrationEventRecord")
         async let programsResult: [EnrolledProgramRecord] = safeFetch(recordType: "EnrolledProgramRecord")
         async let weeklyPlansResult: [WeeklyTrainingPlan] = safeFetch(recordType: "WeeklyTrainingPlan")
+        async let equipmentProfilesResult: [EquipmentProfile] = safeFetch(recordType: "EquipmentProfile")
+        async let effortLogsResult: [WorkoutEffortLog] = safeFetch(recordType: "WorkoutEffortLog")
+        async let adaptationDecisionsResult: [WorkoutAdaptationDecisionRecord] = safeFetch(recordType: "WorkoutAdaptationDecisionRecord")
+        async let symptomCheckInsResult: [SymptomCheckInRecord] = safeFetch(recordType: "SymptomCheckInRecord")
+        async let rampRecordsResult: [ReturnToLiftingRampRecord] = safeFetch(recordType: "ReturnToLiftingRampRecord")
+        async let buddyCheckInsResult: [BuddyCheckInRecord] = safeFetch(recordType: "BuddyCheckInRecord")
 
         // Await all results simultaneously.
         let (
@@ -56,7 +62,13 @@ public struct DataExportService: Sendable {
             painLogs,
             celebrations,
             enrolledPrograms,
-            weeklyPlans
+            weeklyPlans,
+            equipmentProfiles,
+            effortLogs,
+            adaptationDecisions,
+            symptomCheckIns,
+            rampRecords,
+            buddyCheckIns
         ) = await (
             workoutsResult,
             ormResult,
@@ -69,7 +81,13 @@ public struct DataExportService: Sendable {
             painLogsResult,
             celebrationsResult,
             programsResult,
-            weeklyPlansResult
+            weeklyPlansResult,
+            equipmentProfilesResult,
+            effortLogsResult,
+            adaptationDecisionsResult,
+            symptomCheckInsResult,
+            rampRecordsResult,
+            buddyCheckInsResult
         )
 
         return ExportedData(
@@ -84,7 +102,13 @@ public struct DataExportService: Sendable {
             celebrations: celebrations,
             enrolledPrograms: enrolledPrograms,
             weeklyTrainingPlans: weeklyPlans,
-            cycleSettings: cycleSettingsRecords.first
+            cycleSettings: cycleSettingsRecords.first,
+            equipmentProfiles: equipmentProfiles,
+            workoutEffortLogs: effortLogs,
+            adaptationDecisionRecords: adaptationDecisions,
+            symptomCheckInRecords: symptomCheckIns,
+            returnToLiftingRampRecords: rampRecords,
+            buddyCheckInRecords: buddyCheckIns
         )
     }
 
