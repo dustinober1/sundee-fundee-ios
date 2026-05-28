@@ -65,6 +65,33 @@ struct RecoveryOverviewView: View {
                     }
                 }
 
+                if !viewModel.recentPainLogs.isEmpty {
+                    ArtDecoCard {
+                        VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
+                            HStack {
+                                Image(systemName: "figure.walk")
+                                    .foregroundColor(AppTheme.Accent.orange)
+                                    .accessibilityHidden(true)
+
+                                Text("Return to Lifting")
+                                    .font(AppTheme.Typography.headlineMedium)
+                                    .foregroundColor(AppTheme.Text.primary)
+                            }
+
+                            Text("Active pain was logged recently. Follow your ramp plan to ease back into full training loads.")
+                                .font(AppTheme.Typography.bodySmall)
+                                .foregroundColor(AppTheme.Text.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+
+                            NavigationLink(destination: PainTrackingView()) {
+                                Label("View Pain & Ramp Details", systemImage: "arrow.right.circle")
+                                    .frame(maxWidth: .infinity)
+                            }
+                            .artDecoButton(style: .secondary)
+                        }
+                    }
+                }
+
                 if viewModel.score == nil && !viewModel.isLoading {
                     ArtDecoCard {
                         VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {

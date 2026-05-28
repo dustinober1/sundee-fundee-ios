@@ -36,6 +36,7 @@ public final class RecoveryScoreViewModel: ObservableObject {
     @Published public private(set) var isGuest: Bool = false
     @Published public private(set) var topExplanations: [RecoveryExplanation] = []
     @Published public private(set) var deloadRecommendation: DeloadRecommendation?
+    @Published public private(set) var recentPainLogs: [DailyPainLog] = []
 
     // MARK: - Dependencies
 
@@ -160,6 +161,7 @@ public final class RecoveryScoreViewModel: ObservableObject {
         do {
             let history: [RecoveryScoreRecord] = try await dataClient.fetchAll(recordType: "RecoveryScore")
             let painLogs: [DailyPainLog] = try await dataClient.fetchAll(recordType: "DailyPainLog")
+            recentPainLogs = painLogs.sorted { $0.date > $1.date }
             deloadRecommendation = DeloadDetectionService.recommendation(
                 recentScores: history,
                 recentPainLogs: painLogs
