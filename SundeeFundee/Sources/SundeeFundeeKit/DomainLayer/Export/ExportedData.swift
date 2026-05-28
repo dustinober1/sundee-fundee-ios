@@ -56,6 +56,24 @@ public struct ExportedData: Codable, Sendable {
     /// User's cycle tracking settings (at most one record).
     public var cycleSettings: CycleSettingsRecord?
 
+    /// Saved equipment profiles.
+    public var equipmentProfiles: [EquipmentProfile]
+
+    /// RPE and session-feel records.
+    public var workoutEffortLogs: [WorkoutEffortLog]
+
+    /// Adaptation decision records with original/modified workout snapshots.
+    public var adaptationDecisionRecords: [WorkoutAdaptationDecisionRecord]
+
+    /// Symptom check-in records.
+    public var symptomCheckInRecords: [SymptomCheckInRecord]
+
+    /// Return-to-lifting ramp records.
+    public var returnToLiftingRampRecords: [ReturnToLiftingRampRecord]
+
+    /// Buddy check-in records.
+    public var buddyCheckInRecords: [BuddyCheckInRecord]
+
     // MARK: - Initialization
 
     public init(
@@ -72,7 +90,13 @@ public struct ExportedData: Codable, Sendable {
         celebrations: [CelebrationEventRecord] = [],
         enrolledPrograms: [EnrolledProgramRecord] = [],
         weeklyTrainingPlans: [WeeklyTrainingPlan] = [],
-        cycleSettings: CycleSettingsRecord? = nil
+        cycleSettings: CycleSettingsRecord? = nil,
+        equipmentProfiles: [EquipmentProfile] = [],
+        workoutEffortLogs: [WorkoutEffortLog] = [],
+        adaptationDecisionRecords: [WorkoutAdaptationDecisionRecord] = [],
+        symptomCheckInRecords: [SymptomCheckInRecord] = [],
+        returnToLiftingRampRecords: [ReturnToLiftingRampRecord] = [],
+        buddyCheckInRecords: [BuddyCheckInRecord] = []
     ) {
         self.exportDate = exportDate
         self.appVersion = appVersion
@@ -88,6 +112,12 @@ public struct ExportedData: Codable, Sendable {
         self.enrolledPrograms = enrolledPrograms
         self.weeklyTrainingPlans = weeklyTrainingPlans
         self.cycleSettings = cycleSettings
+        self.equipmentProfiles = equipmentProfiles
+        self.workoutEffortLogs = workoutEffortLogs
+        self.adaptationDecisionRecords = adaptationDecisionRecords
+        self.symptomCheckInRecords = symptomCheckInRecords
+        self.returnToLiftingRampRecords = returnToLiftingRampRecords
+        self.buddyCheckInRecords = buddyCheckInRecords
     }
 
     // MARK: - Factory
@@ -117,6 +147,12 @@ public struct ExportedData: Codable, Sendable {
             "Celebrations": celebrations.count,
             "Programs": enrolledPrograms.count,
             "Weekly Plans": weeklyTrainingPlans.count,
+            "Equipment Profiles": equipmentProfiles.count,
+            "Effort Logs": workoutEffortLogs.count,
+            "Adaptation Decisions": adaptationDecisionRecords.count,
+            "Symptom Check-Ins": symptomCheckInRecords.count,
+            "Return-to-Lifting Ramps": returnToLiftingRampRecords.count,
+            "Buddy Check-Ins": buddyCheckInRecords.count,
         ]
     }
 }
