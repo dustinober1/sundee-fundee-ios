@@ -124,6 +124,7 @@ public enum ShareCardVariant: Sendable {
     case cycleInsight(phase: CyclePhase, cycleDay: Int, insight: String)
     case coachSummary(title: String, subtitle: String, badge: String, bullets: [String])
     case weeklyRecap(title: String, subtitle: String, badge: String, bullets: [String])
+    case buddyCheckIn(summary: BuddyCheckInSummary, displayName: String)
     #if canImport(UIKit)
     case selfieOverlay(image: UIImage, summary: ShareSummary)
     #endif
@@ -141,6 +142,8 @@ public enum ShareCardVariant: Sendable {
             return title
         case .weeklyRecap(let title, _, _, _):
             return title
+        case .buddyCheckIn(_, let displayName):
+            return "Buddy Check-In — \(displayName)"
         #if canImport(UIKit)
         case .selfieOverlay(_, let summary):
             return summary.title
