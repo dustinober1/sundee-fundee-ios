@@ -25,6 +25,12 @@ public struct ProgressHubView: View {
 
                 Section("Review") {
                     NavigationLink {
+                        MonthlyReviewDetailView()
+                    } label: {
+                        Label("This Month", systemImage: "calendar.badge.clock")
+                    }
+
+                    NavigationLink {
                         AnalyticsView()
                     } label: {
                         Label("Analytics", systemImage: "chart.xyaxis.line")

@@ -55,6 +55,10 @@ public struct DashboardView: View {
 
                     weeklyPlanCard
 
+                    if let recoveryPlan = viewModel.missedWorkoutRecoveryPlan {
+                        missedWorkoutRecoveryCard(recoveryPlan)
+                    }
+
                     if viewModel.shouldShowFirstWeekChecklist {
                         firstWeekChecklistCard
                     }
@@ -726,6 +730,52 @@ public struct DashboardView: View {
         return symbols[weekday - 1]
     }
 
+    // MARK: - Missed Workout Recovery Card
+
+    private func missedWorkoutRecoveryCard(_ plan: MissedWorkoutRecoveryPlan) -> some View {
+        ArtDecoCard {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
+                HStack(spacing: AppTheme.Spacing.md) {
+                    Image(systemName: "arrow.triangle.2.circlepath")
+                        .font(.title3)
+                        .foregroundColor(AppTheme.Accent.orange)
+                        .accessibilityHidden(true)
+
+                    VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                        Text("You missed workouts this week")
+                            .font(AppTheme.Typography.headlineMedium)
+                            .foregroundColor(AppTheme.Text.primary)
+
+                        Text(plan.userSummary)
+                            .font(AppTheme.Typography.bodySmall)
+                            .foregroundColor(AppTheme.Text.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+
+                    Spacer()
+                }
+
+                HStack {
+                    Button {
+                        Task { await viewModel.applyMissedWorkoutRecovery() }
+                    } label: {
+                        Label(plan.actionTitle, systemImage: "arrow.triangle.2.circlepath")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .artDecoButton(style: .accent)
+
+                    Button {
+                        viewModel.missedWorkoutRecoveryPlan = nil
+                    } label: {
+                        Label("Keep Original", systemImage: "xmark")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .artDecoButton(style: .secondary)
+                }
+            }
+        }
+    }
+
     private var firstWeekChecklistCard: some View {
         ArtDecoCard {
             VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
@@ -981,6 +1031,7 @@ class DashboardViewModel: ObservableObject {
     @Published var todayTrainingDecision: TodayTrainingDecision?
     @Published var recoveryExplanations: [RecoveryExplanation] = []
     @Published var deloadRecommendation: DeloadRecommendation?
+    @Published var missedWorkoutRecoveryPlan: MissedWorkoutRecoveryPlan?
 
     // MARK: - Dependencies
 
@@ -1047,6 +1098,12 @@ class DashboardViewModel: ObservableObject {
             targetWorkoutCount: 3,
             preferredWeekdays: [2, 4, 6]
         )
+        await loadWeeklyPlan()
+        await loadTodayGuidance(cyclePhaseCache: nil)
+    }
+
+    func applyMissedWorkoutRecovery() async {
+        missedWorkoutRecoveryPlan = nil
         await loadWeeklyPlan()
         await loadTodayGuidance(cyclePhaseCache: nil)
     }
@@ -1251,6 +1308,42 @@ class DashboardViewModel: ObservableObject {
                 recoveryScore: recoveryScore
             )
             weeklyStreak = StreakService.calculate(workouts: workouts, targetPerWeek: plan.targetWorkoutCount)
+
+            // Compute missed-workout recovery plan
+            let calendar = Calendar.current
+            let now = Date()
+            let currentDay = calendar.component(.weekday, from: now)
+            // Convert to Monday=1 convention used by ScheduleReshuffler
+            let reshufflerDay = ((currentDay + 5) % 7) + 1
+
+            let weekStart = calendar.dateInterval(of: .weekOfYear, for: now)?.start ?? calendar.startOfDay(for: now)
+            let completedWorkoutDays = Set(
+                workouts
+                    .filter { $0.completedAt != nil && $0.completedAt! >= weekStart }
+                    .compactMap { calendar.component(.weekday, from: $0.completedAt!) }
+                    .map { (($0 + 5) % 7) + 1 }
+            )
+
+            let missedDays = Set(plan.preferredWeekdays.filter { day in
+                day < reshufflerDay && !completedWorkoutDays.contains(day)
+            })
+
+            let plannedSessions = plan.preferredWeekdays.map { day in
+                ScheduleReshuffler.PlannedSession(
+                    dayOfWeek: day,
+                    sessionName: "Workout",
+                    focus: "Strength",
+                    estimatedMinutes: 45,
+                    priority: .compound
+                )
+            }
+
+            missedWorkoutRecoveryPlan = MissedWorkoutRecoveryService.recoveryPlan(
+                weeklyPlan: plannedSessions,
+                completedDays: completedWorkoutDays,
+                missedDays: missedDays,
+                currentDay: reshufflerDay
+            )
         }
     }
 
