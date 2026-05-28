@@ -16,6 +16,7 @@ public class PainTrackingViewModel: ObservableObject {
     @Published var selectedPainType: PainType = .soreness
     @Published var notes: String = ""
     @Published var substitutionSuggestions: [CoachSubstitutionResponse] = []
+    @Published var rampRecommendations: [ReturnToLiftingRampRecommendation] = []
 
     // MARK: - Dependencies
 
@@ -41,6 +42,7 @@ public class PainTrackingViewModel: ObservableObject {
             ) as [DailyPainLog]
 
             painLogs = records.sorted { $0.date > $1.date }
+            updateRampRecommendations()
         } catch {
             errorMessage = "Failed to load pain logs: \(error.localizedDescription)"
         }
@@ -268,5 +270,16 @@ public class PainTrackingViewModel: ObservableObject {
         }
 
         substitutionSuggestions = suggestions
+    }
+
+    // MARK: - Return-to-Lifting Ramp
+
+    /// Compute ramp recommendations from current pain logs and injuries.
+    private func updateRampRecommendations() {
+        rampRecommendations = ReturnToLiftingRampService.recommendations(
+            painLogs: painLogs,
+            injuries: injuries,
+            activeRamps: []
+        )
     }
 }

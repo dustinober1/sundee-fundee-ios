@@ -136,6 +136,11 @@ public struct PainTrackingView: View {
                     substitutionSection
                 }
 
+                // Return-to-Lifting Ramp
+                if !viewModel.rampRecommendations.isEmpty {
+                    rampSection
+                }
+
                 // Recent Pain Logs
                 if !viewModel.painLogs.isEmpty {
                     VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
@@ -230,6 +235,59 @@ public struct PainTrackingView: View {
                                     .lineLimit(1)
                             }
                         }
+                    }
+                }
+            }
+        }
+    }
+
+    // MARK: - Return-to-Lifting Ramp
+
+    private var rampSection: some View {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
+            HStack {
+                Image(systemName: "figure.walk")
+                    .foregroundColor(AppTheme.Accent.orange)
+
+                Text("Return to Lifting")
+                    .font(AppTheme.Typography.headlineMedium)
+                    .foregroundColor(AppTheme.Text.primary)
+            }
+
+            Text("Recommended load and set caps to ease back into your training.")
+                .font(AppTheme.Typography.bodySmall)
+                .foregroundColor(AppTheme.Text.secondary)
+
+            ForEach(viewModel.rampRecommendations, id: \.movementPattern) { rec in
+                ArtDecoCard {
+                    VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
+                        HStack {
+                            Text(rec.movementPattern.rawValue.capitalized)
+                                .font(AppTheme.Typography.labelMedium)
+                                .foregroundColor(AppTheme.Accent.orange)
+
+                            Spacer()
+
+                            Text("\(Int(round(rec.maxLoadPercent * 100)))% load")
+                                .font(AppTheme.Typography.monoLarge)
+                                .foregroundColor(AppTheme.Text.primary)
+                        }
+
+                        HStack(spacing: AppTheme.Spacing.md) {
+                            Label(
+                                "\(rec.maxWorkingSets) working sets max",
+                                systemImage: "list.number"
+                            )
+                            .font(AppTheme.Typography.bodySmall)
+                            .foregroundColor(AppTheme.Text.secondary)
+
+                            Spacer()
+                        }
+
+                        Text(rec.reason)
+                            .font(AppTheme.Typography.bodySmall)
+                            .foregroundColor(AppTheme.Text.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                 }
             }
