@@ -109,6 +109,65 @@ struct DataExportServiceTests {
             preferredWeekdays: [2, 4, 6]
         )
         try await client.save([weeklyPlan], recordType: "WeeklyTrainingPlan")
+
+        let equipmentProfile = EquipmentProfile(
+            id: "ep1",
+            name: "Gym",
+            equipmentRaw: EquipmentAccess.fullGym.rawValue,
+            isDefault: true,
+            sortOrder: 0,
+            dateCreated: Date(),
+            dateUpdated: Date()
+        )
+        try await client.save([equipmentProfile], recordType: "EquipmentProfile")
+
+        let effortLog = WorkoutEffortLog(
+            workoutID: "w1",
+            exerciseName: "Back Squat",
+            setID: "s1",
+            rpe: 8,
+            note: nil
+        )
+        try await client.save([effortLog], recordType: "WorkoutEffortLog")
+
+        let adaptation = WorkoutAdaptationDecisionRecord(
+            workoutID: "w1",
+            originalWorkoutJSON: "{}",
+            adaptedWorkoutJSON: "{}",
+            reasonIDs: ["recovery"],
+            reasonText: ["Low recovery"]
+        )
+        try await client.save([adaptation], recordType: "WorkoutAdaptationDecisionRecord")
+
+        let symptom = SymptomCheckInRecord(
+            symptomDate: Date(),
+            cramps: 3,
+            fatigue: 5,
+            soreness: 2,
+            energy: 7,
+            notes: nil
+        )
+        try await client.save([symptom], recordType: "SymptomCheckInRecord")
+
+        let rampRecord = ReturnToLiftingRampRecord(
+            locationIds: "knee",
+            movementPatternRaw: "squat",
+            currentWeek: 1,
+            maxLoadPercent: 0.5,
+            maxWorkingSets: 3
+        )
+        try await client.save([rampRecord], recordType: "ReturnToLiftingRampRecord")
+
+        let buddyCheckIn = BuddyCheckInRecord(
+            id: "bci1",
+            threadID: "thread1",
+            displayName: "Alex",
+            statusRaw: "completed",
+            message: "Great session!",
+            checkInDate: Date(),
+            dateCreated: Date()
+        )
+        try await client.save([buddyCheckIn], recordType: "BuddyCheckInRecord")
     }
 
     // MARK: - Tests
@@ -133,6 +192,12 @@ struct DataExportServiceTests {
         #expect(data.celebrations.count == 1)
         #expect(data.enrolledPrograms.count == 1)
         #expect(data.weeklyTrainingPlans.count == 1)
+        #expect(data.equipmentProfiles.count == 1)
+        #expect(data.workoutEffortLogs.count == 1)
+        #expect(data.adaptationDecisionRecords.count == 1)
+        #expect(data.symptomCheckInRecords.count == 1)
+        #expect(data.returnToLiftingRampRecords.count == 1)
+        #expect(data.buddyCheckInRecords.count == 1)
     }
 
     @Test("Category counts include cycle settings")
@@ -147,6 +212,12 @@ struct DataExportServiceTests {
         #expect(data.categoryCounts["Recovery Scores"] == 1)
         #expect(data.categoryCounts["Cycle Settings"] == 1)
         #expect(data.categoryCounts["Weekly Plans"] == 1)
+        #expect(data.categoryCounts["Equipment Profiles"] == 1)
+        #expect(data.categoryCounts["Effort Logs"] == 1)
+        #expect(data.categoryCounts["Adaptation Decisions"] == 1)
+        #expect(data.categoryCounts["Symptom Check-Ins"] == 1)
+        #expect(data.categoryCounts["Return-to-Lifting Ramps"] == 1)
+        #expect(data.categoryCounts["Buddy Check-Ins"] == 1)
     }
 
     @Test("Export with empty data returns empty arrays and no crash")
@@ -168,6 +239,12 @@ struct DataExportServiceTests {
         #expect(data.celebrations.isEmpty)
         #expect(data.enrolledPrograms.isEmpty)
         #expect(data.weeklyTrainingPlans.isEmpty)
+        #expect(data.equipmentProfiles.isEmpty)
+        #expect(data.workoutEffortLogs.isEmpty)
+        #expect(data.adaptationDecisionRecords.isEmpty)
+        #expect(data.symptomCheckInRecords.isEmpty)
+        #expect(data.returnToLiftingRampRecords.isEmpty)
+        #expect(data.buddyCheckInRecords.isEmpty)
         #expect(data.categoryCounts["Cycle Settings"] == 0)
     }
 
@@ -206,6 +283,12 @@ struct DataExportServiceTests {
         #expect(data.celebrations.isEmpty)
         #expect(data.enrolledPrograms.isEmpty)
         #expect(data.weeklyTrainingPlans.isEmpty)
+        #expect(data.equipmentProfiles.isEmpty)
+        #expect(data.workoutEffortLogs.isEmpty)
+        #expect(data.adaptationDecisionRecords.isEmpty)
+        #expect(data.symptomCheckInRecords.isEmpty)
+        #expect(data.returnToLiftingRampRecords.isEmpty)
+        #expect(data.buddyCheckInRecords.isEmpty)
         #expect(data.cycleSettings == nil)
     }
 
@@ -246,6 +329,12 @@ struct DataExportServiceTests {
             "painLogs",
             "weeklyTrainingPlans",
             "workouts",
+            "equipmentProfiles",
+            "workoutEffortLogs",
+            "adaptationDecisionRecords",
+            "symptomCheckInRecords",
+            "returnToLiftingRampRecords",
+            "buddyCheckInRecords",
         ]
         #expect(alwaysPresentKeys.isSubset(of: parsed.keys))
     }
