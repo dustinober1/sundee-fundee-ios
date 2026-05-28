@@ -91,6 +91,16 @@ public enum ShareCardRenderer {
                 displayName: displayName,
                 aspect: aspect
             )
+        case .monthlyReview(let review):
+            let allBullets = review.topWins + review.patterns
+            CoachSummaryShareView(
+                title: review.monthTitle,
+                subtitle: "\(review.workoutCount) workouts, \(review.personalRecordCount) high-effort sessions",
+                badge: "Monthly Review",
+                bullets: allBullets,
+                aspect: aspect,
+                privacyOptions: privacyOptions
+            )
         case .selfieOverlay(let image, let summary):
             SelfieOverlayShareView(
                 image: image,
