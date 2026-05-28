@@ -92,6 +92,36 @@ struct RecoveryOverviewView: View {
                     }
                 }
 
+                if !viewModel.trendInsights.isEmpty {
+                    ArtDecoCard {
+                        VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
+                            Text("Symptom & Training Trends")
+                                .font(AppTheme.Typography.headlineMedium)
+                                .foregroundColor(AppTheme.Text.primary)
+
+                            ForEach(viewModel.trendInsights, id: \.title) { insight in
+                                VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                                    HStack(spacing: AppTheme.Spacing.xs) {
+                                        Circle()
+                                            .fill(AppTheme.Accent.gold.opacity(0.6))
+                                            .frame(width: 5, height: 5)
+                                            .padding(.top, 5)
+                                            .accessibilityHidden(true)
+                                        Text(insight.title)
+                                            .font(AppTheme.Typography.labelMedium)
+                                            .foregroundColor(AppTheme.Text.primary)
+                                    }
+
+                                    Text(insight.message)
+                                        .font(AppTheme.Typography.bodySmall)
+                                        .foregroundColor(AppTheme.Text.secondary)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                }
+                            }
+                        }
+                    }
+                }
+
                 if viewModel.score == nil && !viewModel.isLoading {
                     ArtDecoCard {
                         VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {

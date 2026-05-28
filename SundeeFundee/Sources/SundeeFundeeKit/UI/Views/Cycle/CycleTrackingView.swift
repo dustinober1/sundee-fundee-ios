@@ -38,6 +38,12 @@ public struct CycleTrackingView: View {
                     }
 
                     NavigationLink {
+                        SymptomCheckInView()
+                    } label: {
+                        Label("Symptom Check-In", systemImage: "waveform.path.ecg")
+                    }
+
+                    NavigationLink {
                         RecoveryOverviewView()
                     } label: {
                         Label("Recovery Score", systemImage: "heart.circle")

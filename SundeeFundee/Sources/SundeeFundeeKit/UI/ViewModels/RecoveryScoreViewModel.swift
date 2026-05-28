@@ -37,6 +37,7 @@ public final class RecoveryScoreViewModel: ObservableObject {
     @Published public private(set) var topExplanations: [RecoveryExplanation] = []
     @Published public private(set) var deloadRecommendation: DeloadRecommendation?
     @Published public private(set) var recentPainLogs: [DailyPainLog] = []
+    @Published public private(set) var trendInsights: [SymptomTrainingInsight] = []
 
     // MARK: - Dependencies
 
@@ -165,6 +166,15 @@ public final class RecoveryScoreViewModel: ObservableObject {
             deloadRecommendation = DeloadDetectionService.recommendation(
                 recentScores: history,
                 recentPainLogs: painLogs
+            )
+
+            // Symptom-training trend insights
+            let symptoms: [SymptomCheckInRecord] = try await dataClient.fetchAll(recordType: "SymptomCheckInRecord")
+            let workouts: [Workout] = try await dataClient.fetchAll(recordType: "Workout")
+            trendInsights = SymptomTrainingTrendService.insights(
+                symptoms: symptoms,
+                workouts: workouts,
+                cyclePhase: cyclePhase
             )
         } catch {
             deloadRecommendation = nil
