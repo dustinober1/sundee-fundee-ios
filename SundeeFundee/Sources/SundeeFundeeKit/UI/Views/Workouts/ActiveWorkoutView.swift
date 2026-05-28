@@ -1134,6 +1134,7 @@ public struct ActiveWorkoutView: View {
         )
     }
 
+    @ViewBuilder
     private var completionSyncIndicator: some View {
         let status = completionSyncStatus
         // Only show when there's something actionable (hide happy-path synced)

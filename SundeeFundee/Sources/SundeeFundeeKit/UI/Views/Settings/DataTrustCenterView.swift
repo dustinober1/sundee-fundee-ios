@@ -97,6 +97,7 @@ public struct DataTrustCenterView: View {
         )
     }
 
+    @ViewBuilder
     private var syncStatusSection: some View {
         let status = currentSyncStatus
         // Show all statuses except "synced" silently (synced is the happy path)
