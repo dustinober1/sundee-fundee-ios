@@ -222,3 +222,4 @@ final class MonthlyReviewServiceTests: XCTestCase {
         XCTAssertTrue(hasGoalSuggestion, "Expected goal-oriented suggestions with rich data, got: \(review.nextMonthSuggestions)")
     }
 }
+#endif
