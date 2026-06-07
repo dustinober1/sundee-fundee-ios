@@ -75,6 +75,26 @@ final class WorkoutAdaptationDecisionServiceTests: XCTestCase {
         )
     }
 
+    func testUndoFailsWhenDecisionRecordBelongsToDifferentWorkout() throws {
+        let original = makeWorkout(name: "Base", reps: 8)
+        let adapted = makeWorkout(id: "workout-1", name: "Adapted", reps: 6)
+        let otherWorkout = makeWorkout(id: "workout-2", name: "Other", reps: 6)
+        let record = try WorkoutAdaptationDecisionService.makeRecord(
+            originalWorkout: original,
+            adaptedWorkout: adapted,
+            summary: ProgramAdaptationSummary(headline: "Adapted", changes: []),
+            context: ProgramSessionAdaptationContext(),
+            dateCreated: Date(timeIntervalSince1970: 100)
+        )
+
+        let result = WorkoutAdaptationDecisionService.undo(record: record, currentWorkout: otherWorkout)
+
+        XCTAssertEqual(
+            result,
+            .blocked(reason: "These changes belong to a different workout, so they can't be undone here.")
+        )
+    }
+
     func testDecisionReasonsIncludeCycleRecoveryPainEquipmentAndEffortWhenPresent() throws {
         let original = makeWorkout(name: "Base", reps: 8)
         let adapted = makeWorkout(id: original.id, name: "Adapted", reps: 6)
@@ -124,6 +144,25 @@ final class WorkoutAdaptationDecisionServiceTests: XCTestCase {
         XCTAssertTrue(record.reasonText.contains("Pain check-in 7/10 reduced today's strain."))
         XCTAssertTrue(record.reasonText.contains("Equipment matched to Home Dumbbells."))
         XCTAssertTrue(record.reasonText.contains("Recent effort RPE 9 kept today's work in check."))
+    }
+
+    func testDecisionReasonsStayEmptyWhenSummaryHasNoChanges() throws {
+        let record = try WorkoutAdaptationDecisionService.makeRecord(
+            originalWorkout: makeWorkout(name: "Base", reps: 8),
+            adaptedWorkout: makeWorkout(name: "Adapted", reps: 8),
+            summary: ProgramAdaptationSummary(headline: "Unchanged", changes: []),
+            context: ProgramSessionAdaptationContext(
+                cyclePhase: .menstrual,
+                recoveryScore: 40,
+                painIntensity: 5,
+                equipment: .fullGym,
+                recentEffortRPE: 8
+            ),
+            dateCreated: Date(timeIntervalSince1970: 100)
+        )
+
+        XCTAssertEqual(record.reasonIDs, [])
+        XCTAssertEqual(record.reasonText, [])
     }
 
     private func makeWorkout(
