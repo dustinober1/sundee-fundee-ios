@@ -679,11 +679,15 @@ struct ProgramDetailView: View {
 
                 Button {
                     Task {
-                        let workout = await viewModel.startSession(session, week: week, programName: program.name)
-                        if let workout {
+                        let launchResult = await viewModel.startSession(
+                            session,
+                            week: week,
+                            programName: program.name
+                        )
+                        if let launchResult {
                             activeWorkoutSession = ActiveWorkoutSessionViewModel(
-                                workout: workout,
-                                adaptationDecisionRecord: viewModel.latestAdaptationDecisionRecord
+                                workout: launchResult.workout,
+                                adaptationDecisionRecord: launchResult.adaptationDecisionRecord
                             )
                         }
                     }
@@ -715,11 +719,16 @@ struct ProgramDetailView: View {
     ) -> some View {
         Button {
             Task {
-                let workout = await viewModel.startSession(session, week: week, programName: program.name, quickEdit: edit)
-                if let workout {
+                let launchResult = await viewModel.startSession(
+                    session,
+                    week: week,
+                    programName: program.name,
+                    quickEdit: edit
+                )
+                if let launchResult {
                     activeWorkoutSession = ActiveWorkoutSessionViewModel(
-                        workout: workout,
-                        adaptationDecisionRecord: viewModel.latestAdaptationDecisionRecord
+                        workout: launchResult.workout,
+                        adaptationDecisionRecord: launchResult.adaptationDecisionRecord
                     )
                 }
             }
@@ -853,6 +862,11 @@ enum ProgramSessionQuickEdit: Equatable {
     case restoreOriginal
 }
 
+struct ProgramSessionLaunchResult {
+    let workout: Workout
+    let adaptationDecisionRecord: WorkoutAdaptationDecisionRecord?
+}
+
 // MARK: - ProgramDetailViewModel
 
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
@@ -864,7 +878,6 @@ class ProgramDetailViewModel: ObservableObject {
     @Published var completedSessionIds: Set<String> = []
     @Published var inProgressSessionIds: Set<String> = []
     @Published var latestAdaptationSummary: ProgramAdaptationSummary?
-    @Published var latestAdaptationDecisionRecord: WorkoutAdaptationDecisionRecord?
     private var adaptationPreviewBySessionId: [String: ProgramAdaptationSummary] = [:]
     private var sessionWorkoutMap: [String: String] = [:]
 
@@ -969,9 +982,9 @@ class ProgramDetailViewModel: ObservableObject {
         week: Int,
         programName: String,
         quickEdit: ProgramSessionQuickEdit? = nil
-    ) async -> Workout? {
+    ) async -> ProgramSessionLaunchResult? {
+        guard startingSessionId == nil else { return nil }
         startingSessionId = session.sessionId
-        latestAdaptationDecisionRecord = nil
         defer { startingSessionId = nil }
 
         // Load adaptive context and user maxes in parallel. The PDF remains the
@@ -984,6 +997,7 @@ class ProgramDetailViewModel: ObservableObject {
             context: adaptationContext
         )
         latestAdaptationSummary = adaptationResult.summary
+        let originalEdited = Self.applyQuickEdit(quickEdit, to: session.exercises)
         let edited = Self.applyQuickEdit(quickEdit, to: adaptationResult.exercises)
         for edit in edited.edits {
             await CoachMemoryService(dataClient: dataClient).recordWorkoutEdit(edit)
@@ -996,7 +1010,7 @@ class ProgramDetailViewModel: ObservableObject {
             id: workoutID,
             date: workoutDate,
             name: workoutName,
-            exercises: session.exercises,
+            exercises: originalEdited.exercises,
             maxes: maxes,
             cycleMultiplier: 1.0
         )
@@ -1011,13 +1025,21 @@ class ProgramDetailViewModel: ObservableObject {
 
         do {
             try await dataClient.save(workout, recordType: "Workout")
-            latestAdaptationDecisionRecord = try? await WorkoutAdaptationDecisionService.record(
-                originalWorkout: originalWorkout,
-                adaptedWorkout: workout,
-                summary: adaptationResult.summary,
-                context: adaptationContext,
-                dataClient: dataClient
+            let quickEditReasons = Self.quickEditReasons(
+                edits: edited.edits,
+                quickEdit: quickEdit
             )
+            let shouldCreateDecisionRecord = !adaptationResult.summary.changes.isEmpty || !quickEditReasons.isEmpty
+            let adaptationDecisionRecord = shouldCreateDecisionRecord
+                ? try? await WorkoutAdaptationDecisionService.record(
+                    originalWorkout: originalWorkout,
+                    adaptedWorkout: workout,
+                    summary: adaptationResult.summary,
+                    context: adaptationContext,
+                    additionalReasons: quickEditReasons,
+                    dataClient: dataClient
+                )
+                : nil
 
             // Save session record to track progress through the program.
             // Non-critical — workout is already saved; session record is for progress display.
@@ -1032,9 +1054,12 @@ class ProgramDetailViewModel: ObservableObject {
             inProgressSessionIds.insert(session.sessionId)
             sessionWorkoutMap[session.sessionId] = workout.id
 
-            return workout
+            return ProgramSessionLaunchResult(
+                workout: workout,
+                adaptationDecisionRecord: adaptationDecisionRecord
+            )
         } catch {
-            errorMessage = "Failed to start session: \(error.localizedDescription)"
+            errorMessage = "Couldn't start this session right now. Please try again."
             return nil
         }
     }
@@ -1159,6 +1184,26 @@ class ProgramDetailViewModel: ObservableObject {
             )
         case .restoreOriginal:
             return (exercises, [])
+        }
+    }
+
+    private static func quickEditReasons(
+        edits: [WorkoutEdit],
+        quickEdit: ProgramSessionQuickEdit?
+    ) -> [(id: String, text: String)] {
+        guard !edits.isEmpty else { return [] }
+
+        switch quickEdit {
+        case .shorten(let minutes):
+            return [("quick_edit", "Session was shortened to fit \(minutes) minutes.")]
+        case .reduceVolume:
+            return [("quick_edit", "Session volume was reduced before adaptation.")]
+        case .removeLastExercise:
+            return [("quick_edit", "The last exercise was removed before adaptation.")]
+        case .swapLastExercise:
+            return [("quick_edit", "The last exercise was swapped before adaptation.")]
+        case .restoreOriginal, .none:
+            return []
         }
     }
 
