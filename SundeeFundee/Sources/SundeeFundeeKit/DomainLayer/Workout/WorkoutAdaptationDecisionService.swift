@@ -11,6 +11,7 @@ public enum WorkoutAdaptationDecisionService {
         adaptedWorkout: Workout,
         summary: ProgramAdaptationSummary,
         context: ProgramSessionAdaptationContext,
+        additionalReasons: [(id: String, text: String)] = [],
         dateCreated: Date = Date()
     ) throws -> WorkoutAdaptationDecisionRecord {
         let encoder = JSONEncoder()
@@ -18,7 +19,11 @@ public enum WorkoutAdaptationDecisionService {
 
         let originalData = try encoder.encode(originalWorkout)
         let adaptedData = try encoder.encode(adaptedWorkout)
-        let reasons = reasonDetails(summary: summary, context: context)
+        let reasons = reasonDetails(
+            summary: summary,
+            context: context,
+            additionalReasons: additionalReasons
+        )
 
         return WorkoutAdaptationDecisionRecord(
             workoutID: adaptedWorkout.id,
@@ -36,6 +41,7 @@ public enum WorkoutAdaptationDecisionService {
         adaptedWorkout: Workout,
         summary: ProgramAdaptationSummary,
         context: ProgramSessionAdaptationContext,
+        additionalReasons: [(id: String, text: String)] = [],
         dataClient: DataClientProtocol,
         dateCreated: Date = Date()
     ) async throws -> WorkoutAdaptationDecisionRecord {
@@ -44,6 +50,7 @@ public enum WorkoutAdaptationDecisionService {
             adaptedWorkout: adaptedWorkout,
             summary: summary,
             context: context,
+            additionalReasons: additionalReasons,
             dateCreated: dateCreated
         )
         try await dataClient.save(record, recordType: "WorkoutAdaptationDecisionRecord")
@@ -54,6 +61,10 @@ public enum WorkoutAdaptationDecisionService {
         record: WorkoutAdaptationDecisionRecord,
         currentWorkout: Workout
     ) -> WorkoutUndoResult {
+        guard record.workoutID == currentWorkout.id else {
+            return .blocked(reason: "These changes belong to a different workout, so they can't be undone here.")
+        }
+
         guard !hasLoggedProgress(currentWorkout) else {
             return .blocked(reason: "Changes can only be undone before you log a set.")
         }
@@ -80,37 +91,48 @@ public enum WorkoutAdaptationDecisionService {
 
     private static func reasonDetails(
         summary: ProgramAdaptationSummary,
-        context: ProgramSessionAdaptationContext
+        context: ProgramSessionAdaptationContext,
+        additionalReasons: [(id: String, text: String)]
     ) -> [(id: String, text: String)] {
+        let changedCodes = Set(summary.changes.map(\.reasonCode))
         var details: [(id: String, text: String)] = []
 
-        if let phase = context.cyclePhase {
+        if changedCodes.contains(.cycleAdjustment), let phase = context.cyclePhase {
             details.append(("cycle", "Cycle phase: \(phase.rawValue)."))
-        } else if summary.changes.contains(where: { $0.reasonCode == .cycleAdjustment }) {
+        } else if changedCodes.contains(.cycleAdjustment) {
             details.append(("cycle", "Cycle phase adjusted today's load, reps, or rest."))
         }
 
-        if let score = context.recoveryScore {
+        if (changedCodes.contains(.recoveryAdjustment) || changedCodes.contains(.deloadAdjustment)),
+           let score = context.recoveryScore {
             details.append(("recovery", "Recovery score \(score)/100 reduced today's load."))
-        } else if summary.changes.contains(where: { $0.reasonCode == .recoveryAdjustment || $0.reasonCode == .deloadAdjustment }) {
+        } else if changedCodes.contains(.recoveryAdjustment) || changedCodes.contains(.deloadAdjustment) {
             details.append(("recovery", "Recovery context adjusted today's volume and intensity."))
         }
 
-        if let pain = context.painIntensity {
+        if (changedCodes.contains(.painAdjustment) || changedCodes.contains(.injurySwap)),
+           let pain = context.painIntensity {
             details.append(("pain", "Pain check-in \(pain)/10 reduced today's strain."))
-        } else if summary.changes.contains(where: { $0.reasonCode == .painAdjustment || $0.reasonCode == .injurySwap }) {
+        } else if changedCodes.contains(.painAdjustment) || changedCodes.contains(.injurySwap) {
             details.append(("pain", "Pain or injury context adjusted today's exercise choices."))
         }
 
-        if let equipment = context.equipment {
+        if changedCodes.contains(.equipmentConversion), let equipment = context.equipment {
             details.append(("equipment", "Equipment matched to \(equipmentDecisionName(equipment))."))
-        } else if summary.changes.contains(where: { $0.reasonCode == .equipmentConversion }) {
+        } else if changedCodes.contains(.equipmentConversion) {
             details.append(("equipment", "Exercises were converted for your available equipment."))
         }
 
-        if let recentEffortRPE = context.recentEffortRPE {
+        if !changedCodes.isEmpty,
+           let recentEffortRPE = context.recentEffortRPE,
+           (changedCodes.contains(.recoveryAdjustment)
+                || changedCodes.contains(.deloadAdjustment)
+                || changedCodes.contains(.painAdjustment)
+                || changedCodes.contains(.cycleAdjustment)) {
             details.append(("effort", "Recent effort RPE \(recentEffortRPE) kept today's work in check."))
         }
+
+        details.append(contentsOf: additionalReasons)
 
         if details.isEmpty, !summary.changes.isEmpty {
             details.append(("adaptation", summary.headline))
