@@ -101,4 +101,131 @@ final class ProgramsListViewModelTests: XCTestCase {
         XCTAssertFalse(programs.contains { $0.id == "template-strength" })
         XCTAssertTrue(programs.allSatisfy { !$0.isEnrolled })
     }
+
+    func testStartSessionReturnsNilWhenAnotherLaunchIsAlreadyInFlight() async {
+        let viewModel = await makeProgramDetailViewModel()
+        await viewModel.generateSessions()
+        guard let session = await viewModel.generatedProgram?.weeks.first?.sessions.first else {
+            return XCTFail("Expected generated session")
+        }
+
+        await MainActor.run {
+            viewModel.startingSessionId = "already-starting"
+        }
+
+        let result = await viewModel.startSession(
+            session,
+            week: 1,
+            programName: "Starter",
+            quickEdit: nil
+        )
+
+        XCTAssertNil(result)
+    }
+
+    func testStartSessionSkipsDecisionRecordWhenNothingChanged() async throws {
+        let viewModel = await makeProgramDetailViewModel()
+        await viewModel.generateSessions()
+        guard let session = await viewModel.generatedProgram?.weeks.first?.sessions.first else {
+            return XCTFail("Expected generated session")
+        }
+
+        let result = await viewModel.startSession(
+            session,
+            week: 1,
+            programName: "Starter",
+            quickEdit: nil
+        )
+
+        XCTAssertNotNil(result?.workout)
+        XCTAssertNil(result?.adaptationDecisionRecord)
+    }
+
+    func testUndoRestoresShortenedQuickEditBaseline() async throws {
+        let viewModel = await makeProgramDetailViewModel()
+        await viewModel.generateSessions()
+        guard let session = await viewModel.generatedProgram?.weeks.first?.sessions.first else {
+            return XCTFail("Expected generated session")
+        }
+
+        let result = await viewModel.startSession(
+            session,
+            week: 1,
+            programName: "Starter",
+            quickEdit: .shorten(minutes: 20)
+        )
+        guard let launchResult = result,
+              let decisionRecord = launchResult.adaptationDecisionRecord else {
+            return XCTFail("Expected quick-edit decision record")
+        }
+
+        let undoResult = WorkoutAdaptationDecisionService.undo(
+            record: decisionRecord,
+            currentWorkout: launchResult.workout
+        )
+
+        guard case .restored(let restoredWorkout) = undoResult else {
+            return XCTFail("Expected restored workout")
+        }
+
+        XCTAssertEqual(restoredWorkout.exercises.count, 3)
+        XCTAssertEqual(restoredWorkout.exercises.map(\.name), launchResult.workout.exercises.map(\.name))
+        XCTAssertEqual(
+            restoredWorkout.exercises.map { $0.targetSets.count },
+            launchResult.workout.exercises.map { $0.targetSets.count }
+        )
+    }
+
+    func testUndoRestoresReducedVolumeQuickEditBaseline() async throws {
+        let viewModel = await makeProgramDetailViewModel()
+        await viewModel.generateSessions()
+        guard let session = await viewModel.generatedProgram?.weeks.first?.sessions.first else {
+            return XCTFail("Expected generated session")
+        }
+
+        let result = await viewModel.startSession(
+            session,
+            week: 1,
+            programName: "Starter",
+            quickEdit: .reduceVolume
+        )
+        guard let launchResult = result,
+              let decisionRecord = launchResult.adaptationDecisionRecord else {
+            return XCTFail("Expected quick-edit decision record")
+        }
+
+        let undoResult = WorkoutAdaptationDecisionService.undo(
+            record: decisionRecord,
+            currentWorkout: launchResult.workout
+        )
+
+        guard case .restored(let restoredWorkout) = undoResult else {
+            return XCTFail("Expected restored workout")
+        }
+
+        XCTAssertEqual(restoredWorkout.exercises.map(\.name), launchResult.workout.exercises.map(\.name))
+        XCTAssertEqual(
+            restoredWorkout.exercises.map { $0.targetSets.count },
+            launchResult.workout.exercises.map { $0.targetSets.count }
+        )
+    }
+
+    private func makeProgramDetailViewModel() async -> ProgramDetailViewModel {
+        await ProgramDetailViewModel(
+            program: ProgramListItem(
+                id: "starter-program",
+                name: "Starter Program",
+                category: "Strength",
+                description: "Test",
+                durationWeeks: 4,
+                sessionsPerWeek: 3,
+                difficulty: "Beginner",
+                isEnrolled: true,
+                template: .beginnerStrength,
+                printablePDFURL: nil
+            ),
+            dataClient: MockCloudKitClient(),
+            healthClient: MockHealthKitClient()
+        )
+    }
 }
