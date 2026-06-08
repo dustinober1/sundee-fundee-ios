@@ -20,10 +20,21 @@ public struct WorkoutRemindersSettingsView: View {
     public var body: some View {
         Form {
             Section {
-                Toggle("Enable reminders", isOn: $settings.isEnabled)
-                    .onChange(of: settings.isEnabled) { _, _ in
-                        Task { await saveAndReconcile() }
+                Button {
+                    settings.isEnabled.toggle()
+                    Task { await saveAndReconcile() }
+                } label: {
+                    HStack {
+                        Text(settings.isEnabled ? "Disable reminders" : "Enable reminders")
+                            .foregroundColor(AppTheme.Text.primary)
+                        Spacer()
+                        Text(settings.isEnabled ? "On" : "Off")
+                            .font(AppTheme.Typography.bodySmall)
+                            .foregroundColor(AppTheme.Text.secondary)
                     }
+                    .contentShape(Rectangle())
+                }
+                .accessibilityLabel(settings.isEnabled ? "Disable reminders" : "Enable reminders")
 
                 DatePicker(
                     "Reminder time",

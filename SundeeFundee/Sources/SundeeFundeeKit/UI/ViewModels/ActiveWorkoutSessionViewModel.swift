@@ -693,6 +693,7 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
 
     private func checkAndRecordPR(exerciseName: String, reps: Int, weight: Double) async {
         guard let estimated = estimatedOneRepMax(weight: weight, reps: reps) else { return }
+        guard !personalRecordExerciseNames.contains(exerciseName) else { return }
 
         do {
             let records: [OneRepMaxRecord] = try await dataClient.fetchAll(
@@ -712,17 +713,19 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
                 )
                 try await dataClient.save(newRecord, recordType: "OneRepMaxRecord")
                 celebrationEvents.append(.newPersonalRecord(exerciseName: exerciseName, weightKg: estimated / 2.20462))
-                pendingPRShare = PendingPRShare(
-                    exerciseName: exerciseName,
-                    weight: estimated,
-                    unit: "lb",
-                    previousBest: currentMax?.weight
-                )
+                if currentMax != nil, MinimalSurfacePolicy.shouldPromptShare(for: .personalRecord) {
+                    pendingPRShare = PendingPRShare(
+                        exerciseName: exerciseName,
+                        weight: estimated,
+                        unit: "lb",
+                        previousBest: currentMax?.weight
+                    )
+                }
                 personalRecordExerciseNames.insert(exerciseName)
                 HapticFeedback.success()
             }
         } catch {
-            errorMessage = "Could not check PR: \(error.localizedDescription)"
+            errorMessage = "We couldn't update your personal record history. Your set is still saved."
         }
     }
 
@@ -732,7 +735,7 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
         do {
             try await dataClient.save(workout, recordType: "Workout")
         } catch {
-            errorMessage = "Failed to save progress: \(error.localizedDescription)"
+            errorMessage = "We couldn't save workout progress right now. Keep going and try again in a moment."
         }
     }
 

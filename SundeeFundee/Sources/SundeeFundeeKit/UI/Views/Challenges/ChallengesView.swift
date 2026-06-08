@@ -52,31 +52,17 @@ public struct ChallengesView: View {
         .navigationBarTitleDisplayMode(.large)
         #endif
         .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                HStack {
-                    Button {
-                        showingBuddyCheckIn = true
-                    } label: {
-                        Image(systemName: "person.2.checkmark")
-                    }
-                    .tint(AppTheme.Accent.gold)
-                    .accessibilityLabel("Check in with buddy")
+            ToolbarItemGroup(placement: .primaryAction) {
+                challengeToolbarButton(systemName: "person.2.checkmark", accessibilityLabel: "Check in with buddy") {
+                    showingBuddyCheckIn = true
+                }
 
-                    Button {
-                        showingJoinChallenge = true
-                    } label: {
-                        Image(systemName: "person.badge.plus")
-                    }
-                    .tint(AppTheme.Accent.gold)
-                    .accessibilityLabel("Join challenge")
+                challengeToolbarButton(systemName: "person.badge.plus", accessibilityLabel: "Join challenge") {
+                    showingJoinChallenge = true
+                }
 
-                    Button {
-                        showingCreateChallenge = true
-                    } label: {
-                        Image(systemName: "plus")
-                    }
-                    .tint(AppTheme.Accent.gold)
-                    .accessibilityLabel("Create new challenge")
+                challengeToolbarButton(systemName: "plus", accessibilityLabel: "Create new challenge") {
+                    showingCreateChallenge = true
                 }
             }
         }
@@ -167,6 +153,21 @@ public struct ChallengesView: View {
             }
         }
         .padding(.vertical, AppTheme.Spacing.xxl)
+    }
+
+    private func challengeToolbarButton(
+        systemName: String,
+        accessibilityLabel: String,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            Image(systemName: systemName)
+                .font(.title3)
+                .frame(width: 44, height: 44)
+                .contentShape(Rectangle())
+        }
+        .tint(AppTheme.Accent.gold)
+        .accessibilityLabel(accessibilityLabel)
     }
 
     // MARK: - Section Header

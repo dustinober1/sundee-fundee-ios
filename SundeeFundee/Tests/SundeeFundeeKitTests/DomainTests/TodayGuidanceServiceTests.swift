@@ -22,6 +22,7 @@ final class TodayGuidanceServiceTests: XCTestCase {
 
         XCTAssertEqual(action.kind, .resumeWorkout(workoutID: "resume-1"))
         XCTAssertEqual(action.title, "Resume Upper Body")
+        XCTAssertEqual(action.subtitle, "Pick up where you left off and finish this session.")
     }
 
     func testTodayActionIgnoresStaleIncompleteWorkout() {

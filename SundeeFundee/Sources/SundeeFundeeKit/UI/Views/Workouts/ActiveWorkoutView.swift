@@ -20,6 +20,7 @@ public struct ActiveWorkoutView: View {
     @State private var showingSwapSheet = false
     @State private var showingSwapConfirm = false
     @State private var showingWorkoutShare = false
+    @State private var showingWorkoutDetails = false
     @State private var pendingSwap: SubstitutionRanker.RankedSubstitution?
     @State private var showingStationTakenPicker = false
     @State private var showingStationTakenSwapSheet = false
@@ -233,24 +234,26 @@ public struct ActiveWorkoutView: View {
                 progressSection
                     .padding(.horizontal, AppTheme.Spacing.lg)
 
-                if let decision = viewModel.adaptationDecisionRecord, viewModel.completedSets == 0 {
-                    adaptationDecisionCard(decision)
-                        .padding(.horizontal, AppTheme.Spacing.lg)
-                }
+                if showingWorkoutDetails {
+                    if let decision = viewModel.adaptationDecisionRecord, viewModel.completedSets == 0 {
+                        adaptationDecisionCard(decision)
+                            .padding(.horizontal, AppTheme.Spacing.lg)
+                    }
 
-                if !viewModel.lastEquipmentConversionChanges.isEmpty {
-                    conversionSummaryCard
-                        .padding(.horizontal, AppTheme.Spacing.lg)
+                    if !viewModel.lastEquipmentConversionChanges.isEmpty {
+                        conversionSummaryCard
+                            .padding(.horizontal, AppTheme.Spacing.lg)
+                    }
+
+                    if viewModel.canStartWarmup, let warmupBlock = viewModel.pendingWarmupBlock {
+                        warmupStartCard(warmupBlock)
+                            .padding(.horizontal, AppTheme.Spacing.lg)
+                    }
                 }
 
                 // Rest Timer (conditional)
                 if viewModel.isResting {
                     restTimerCard
-                        .padding(.horizontal, AppTheme.Spacing.lg)
-                }
-
-                if viewModel.canStartWarmup, let warmupBlock = viewModel.pendingWarmupBlock {
-                    warmupStartCard(warmupBlock)
                         .padding(.horizontal, AppTheme.Spacing.lg)
                 }
 
@@ -302,9 +305,27 @@ public struct ActiveWorkoutView: View {
 
             Menu {
                 Button {
+                    showingWorkoutDetails.toggle()
+                } label: {
+                    Label(showingWorkoutDetails ? "Hide details" : "Show details", systemImage: "info.circle")
+                }
+
+                Button {
                     showingEquipmentConversionPicker = true
                 } label: {
                     Label("Convert Equipment", systemImage: "wrench.and.screwdriver")
+                }
+
+                Button {
+                    showingSwapSheet = true
+                } label: {
+                    Label("Swap Exercise", systemImage: "arrow.triangle.swap")
+                }
+
+                Button {
+                    showingStationTakenPicker = true
+                } label: {
+                    Label("Station Taken", systemImage: "exclamationmark.triangle")
                 }
             } label: {
                 Image(systemName: "ellipsis.circle")
@@ -464,22 +485,6 @@ public struct ActiveWorkoutView: View {
                             .font(AppTheme.Typography.headlineLarge)
                             .foregroundColor(AppTheme.Text.primary)
                         Spacer()
-                        Menu {
-                            Button {
-                                showingSwapSheet = true
-                            } label: {
-                                Label("Swap exercise", systemImage: "arrow.triangle.swap")
-                            }
-                            Button {
-                                showingStationTakenPicker = true
-                            } label: {
-                                Label("Station taken", systemImage: "exclamationmark.triangle")
-                            }
-                        } label: {
-                            Image(systemName: "ellipsis.circle")
-                                .foregroundColor(AppTheme.Text.secondary)
-                        }
-                        .accessibilityLabel("Exercise options")
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -525,8 +530,19 @@ public struct ActiveWorkoutView: View {
                                 .padding(.top, AppTheme.Spacing.xs)
                         }
 
-                        effortPicker
-                            .padding(.top, AppTheme.Spacing.xs)
+                        DisclosureGroup {
+                            effortPicker
+                                .padding(.top, AppTheme.Spacing.xs)
+                        } label: {
+                            Label(
+                                selectedSetRPE.map { "Effort: RPE \($0)" } ?? "Add effort",
+                                systemImage: "gauge.with.dots.needle.33percent"
+                            )
+                            .font(AppTheme.Typography.labelLarge)
+                            .foregroundColor(AppTheme.Text.primary)
+                        }
+                        .tint(AppTheme.Accent.gold)
+                        .padding(.top, AppTheme.Spacing.xs)
                     }
                 } else {
                     Text("No current exercise")

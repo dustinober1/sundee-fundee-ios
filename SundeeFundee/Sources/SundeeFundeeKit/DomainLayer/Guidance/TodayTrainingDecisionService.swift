@@ -12,7 +12,7 @@ public enum TodayTrainingDecisionService {
     ) -> TodayTrainingDecision {
         var reasons: [String] = []
         let scoreValue = recoveryScore?.total
-        let phaseName = cyclePhase.map(phaseLabel) ?? "unknown phase"
+        let phaseName = cyclePhase.map(phaseLabel)
 
         if let scoreValue {
             reasons.append("Recovery score is \(scoreValue)/100.")
@@ -75,10 +75,16 @@ public enum TodayTrainingDecisionService {
         let moderatePain = (painIntensity ?? 0) >= 4
 
         if moderateScore || lowEnergy || lowConfidenceCycle || moderatePain {
+            let subtitle: String
+            if let phaseName {
+                subtitle = "A lighter or shorter version of your \(phaseName) session is recommended today."
+            } else {
+                subtitle = "A lighter or shorter session is recommended today."
+            }
             return TodayTrainingDecision(
                 kind: .modify,
                 title: "Train with modifications",
-                subtitle: "A lighter or shorter version of your \(phaseName) session is recommended today.",
+                subtitle: subtitle,
                 reasons: reasons + ["Adjusting volume or exercise selection keeps momentum without overreaching."],
                 primaryActionTitle: "Build Modified Session",
                 systemImage: "slider.horizontal.3"

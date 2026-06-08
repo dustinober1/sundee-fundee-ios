@@ -9,6 +9,7 @@ import SwiftUI
 public struct CycleTrackingView: View {
     @StateObject private var settings = SettingsViewModel()
     @EnvironmentObject private var cyclePhaseCache: CyclePhaseCache
+    @State private var showingQuickCheckIn = false
 
     public init() {}
 
@@ -31,6 +32,12 @@ public struct CycleTrackingView: View {
                 }
 
                 Section("Pain & Recovery") {
+                    Button {
+                        showingQuickCheckIn = true
+                    } label: {
+                        Label("Quick Check-In", systemImage: "waveform.path.ecg")
+                    }
+
                     NavigationLink {
                         PainTrackingView()
                     } label: {
@@ -95,6 +102,9 @@ public struct CycleTrackingView: View {
             #endif
             .task {
                 await cyclePhaseCache.refreshIfNeeded()
+            }
+            .sheet(isPresented: $showingQuickCheckIn) {
+                QuickCheckInView()
             }
         }
     }

@@ -257,7 +257,9 @@ final class BuddyCheckInServiceTests: XCTestCase {
     // MARK: - Codable Round-Trip
 
     func testCheckInRecordCodableRoundTrip() throws {
-        let now = Date()
+        // The repo's persistence stack uses `.iso8601`, which normalizes dates
+        // to whole-second precision during JSON round-trips.
+        let now = Date(timeIntervalSince1970: floor(Date().timeIntervalSince1970))
         let record = BuddyCheckInRecord(
             id: "codec-1",
             threadID: "thread-codec",

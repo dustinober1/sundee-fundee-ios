@@ -59,6 +59,21 @@ public class ExportViewModel: ObservableObject {
         isExporting = false
     }
 
+    /// Prefills category counts for the export screen without generating a share file.
+    public func loadCategoryCountsIfNeeded() async {
+        guard categoryCounts.isEmpty, !isExporting else { return }
+
+        isExporting = true
+        errorMessage = nil
+
+        do {
+            let data = await service.exportAll()
+            categoryCounts = data.categoryCounts
+        }
+
+        isExporting = false
+    }
+
     /// Encodes the current `exportedData` to JSON and writes it to a temporary file.
     ///
     /// - Returns: The file URL of the written JSON, or `nil` if no data is available

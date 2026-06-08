@@ -9,6 +9,9 @@ import UniformTypeIdentifiers
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
 public struct ExportView: View {
     @StateObject private var viewModel = ExportViewModel()
+    #if canImport(UIKit)
+    @State private var shareFileURL: ShareFileURL?
+    #endif
 
     public init() {}
 
@@ -16,9 +19,6 @@ public struct ExportView: View {
         List {
             dataCategoriesSection
             exportSection
-            if viewModel.exportedData != nil {
-                shareSection
-            }
             if let error = viewModel.errorMessage {
                 errorSection(error)
             }
@@ -27,6 +27,14 @@ public struct ExportView: View {
         #if os(iOS)
         .navigationBarTitleDisplayMode(.large)
         #endif
+        #if canImport(UIKit)
+        .sheet(item: $shareFileURL) { item in
+            SystemShareSheet(activityItems: [item.url])
+        }
+        #endif
+        .task {
+            await viewModel.loadCategoryCountsIfNeeded()
+        }
     }
 
     // MARK: - Data Categories Section
@@ -57,7 +65,16 @@ public struct ExportView: View {
     private var exportSection: some View {
         Section {
             Button {
-                Task { await viewModel.loadExportData() }
+                Task {
+                    await viewModel.loadExportData()
+                    #if canImport(UIKit)
+                    if let fileURL = viewModel.generateJSONFile() {
+                        await MainActor.run {
+                            shareFileURL = ShareFileURL(url: fileURL)
+                        }
+                    }
+                    #endif
+                }
             } label: {
                 HStack {
                     Spacer()
@@ -76,26 +93,6 @@ public struct ExportView: View {
         }
     }
 
-    // MARK: - Share Section
-
-    private var shareSection: some View {
-        Section {
-            if let fileURL = viewModel.generateJSONFile() {
-                ShareLink(
-                    item: fileURL,
-                    preview: SharePreview(
-                        "SundeeFundee-Export.json",
-                        image: Image(systemName: "doc.fill")
-                    )
-                ) {
-                    Label("Share Export File", systemImage: "square.and.arrow.up")
-                        .foregroundColor(AppTheme.Accent.gold)
-                }
-                .accessibilityLabel("Share exported data file")
-            }
-        }
-    }
-
     // MARK: - Error Section
 
     private func errorSection(_ message: String) -> some View {
@@ -110,6 +107,13 @@ public struct ExportView: View {
         }
     }
 }
+
+#if canImport(UIKit)
+private struct ShareFileURL: Identifiable {
+    let id = UUID()
+    let url: URL
+}
+#endif
 
 // MARK: - Category Display Items
 

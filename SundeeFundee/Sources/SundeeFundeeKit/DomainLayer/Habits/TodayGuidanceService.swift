@@ -122,7 +122,7 @@ public enum TodayGuidanceService {
             return TodayAction(
                 kind: .resumeWorkout(workoutID: workout.id),
                 title: "Resume \(workout.name)",
-                subtitle: "Pick up where you left off before this session is cleaned up.",
+                subtitle: "Pick up where you left off and finish this session.",
                 systemImage: "arrow.forward.circle.fill"
             )
         }

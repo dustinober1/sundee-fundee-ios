@@ -95,6 +95,54 @@ final class ActiveWorkoutSessionViewModelTests: XCTestCase {
         viewModel.skipRest()
     }
 
+    func testFirstRecordedMaxDoesNotTriggerPRSharePrompt() async throws {
+        let dataClient = MockCloudKitClient()
+        let viewModel = ActiveWorkoutSessionViewModel(
+            workout: squatWorkout(),
+            dataClient: dataClient,
+            healthClient: MockHealthKitClient()
+        )
+
+        await viewModel.completeSet(actualReps: 5, completedWeight: 135)
+        let maxRecords: [OneRepMaxRecord] = try await dataClient.fetchAll(recordType: "OneRepMaxRecord")
+
+        XCTAssertNil(viewModel.pendingPRShare)
+        XCTAssertTrue(maxRecords.contains(where: { $0.exerciseName == "Back Squat" }))
+        XCTAssertTrue(
+            viewModel.celebrationEvents.contains { event in
+                if case .newPersonalRecord(let exerciseName, _) = event {
+                    return exerciseName == "Back Squat"
+                }
+                return false
+            }
+        )
+    }
+
+    func testExistingMaxCanTriggerPRSharePrompt() async throws {
+        let dataClient = MockCloudKitClient()
+        try await dataClient.save(
+            OneRepMaxRecord(
+                id: UUID().uuidString,
+                exerciseName: "Back Squat",
+                weight: 120,
+                unit: .lbs,
+                date: Date().addingTimeInterval(-86_400)
+            ),
+            recordType: "OneRepMaxRecord"
+        )
+        let viewModel = ActiveWorkoutSessionViewModel(
+            workout: squatWorkout(),
+            dataClient: dataClient,
+            healthClient: MockHealthKitClient()
+        )
+
+        await viewModel.completeSet(actualReps: 5, completedWeight: 135)
+
+        XCTAssertEqual(viewModel.pendingPRShare?.exerciseName, "Back Squat")
+        XCTAssertEqual(viewModel.pendingPRShare?.previousBest, 120)
+        XCTAssertEqual(dataClient.recordCount(for: "OneRepMaxRecord"), 2)
+    }
+
     private func waitForWarmupBlock(
         in viewModel: ActiveWorkoutSessionViewModel,
         timeoutNanoseconds: UInt64 = 1_000_000_000

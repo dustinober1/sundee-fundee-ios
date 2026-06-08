@@ -26,6 +26,7 @@ public struct ShareCardSheet: View {
     @State private var showCameraSheet = false
     @State private var showPermissionAlert = false
     @State private var privacyOptions: SharePrivacyOptions = SharePrivacyOptions.savedPreset
+    @State private var showingShareOptions = false
 
     @Environment(\.dismiss) private var dismiss
 
@@ -56,9 +57,19 @@ public struct ShareCardSheet: View {
             ScrollView {
                 VStack(spacing: AppTheme.Spacing.lg) {
                     previewArea
-                    photoControls
-                    privacyControls
-                    aspectPicker
+                    DisclosureGroup(isExpanded: $showingShareOptions) {
+                        VStack(spacing: AppTheme.Spacing.md) {
+                            photoControls
+                            privacyControls
+                            aspectPicker
+                        }
+                        .padding(.top, AppTheme.Spacing.sm)
+                    } label: {
+                        Label("Share Options", systemImage: "slider.horizontal.3")
+                            .font(AppTheme.Typography.labelLarge)
+                            .foregroundColor(AppTheme.Text.primary)
+                    }
+                    .tint(AppTheme.Accent.gold)
                     shareButton
                 }
                 .padding()

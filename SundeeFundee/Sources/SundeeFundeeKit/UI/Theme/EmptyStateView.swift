@@ -57,7 +57,6 @@ public struct EmptyStateView: View {
         }
         .padding(AppTheme.Spacing.xxl)
         .frame(maxWidth: .infinity)
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(title). \(subtitle)")
+        .accessibilityElement(children: .contain)
     }
 }

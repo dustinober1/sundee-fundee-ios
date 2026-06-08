@@ -1525,7 +1525,7 @@ class ProgramsListViewModel: ObservableObject {
             ) as [EnrolledProgramRecord]
             enrolledIds = Set(enrolled.filter(\.isActive).map(\.id))
         } catch {
-            errorMessage = "Failed to load programs: \(error.localizedDescription)"
+            errorMessage = "We couldn't load programs. Pull to refresh or try again in a moment."
         }
         // Merge with locally-known enrolled IDs so CloudKit index lag doesn't
         // wipe enrollment state on every tab switch.
@@ -1613,7 +1613,7 @@ class ProgramsListViewModel: ObservableObject {
                 )
             }
         } catch {
-            errorMessage = "Failed to enroll: \(error.localizedDescription)"
+            errorMessage = "We couldn't enroll you in that program. Check your connection and try again."
         }
     }
 

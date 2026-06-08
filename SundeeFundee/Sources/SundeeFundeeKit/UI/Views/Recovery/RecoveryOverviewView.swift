@@ -7,6 +7,7 @@ struct RecoveryOverviewView: View {
     @StateObject private var viewModel = RecoveryScoreViewModel()
     @EnvironmentObject var authViewModel: AuthViewModel
     @EnvironmentObject var cyclePhaseCache: CyclePhaseCache
+    @State private var showingQuickCheckIn = false
 
     var body: some View {
         ScrollView {
@@ -26,6 +27,14 @@ struct RecoveryOverviewView: View {
                     .font(AppTheme.Typography.bodyMedium)
                     .foregroundColor(AppTheme.Text.secondary)
                     .fixedSize(horizontal: false, vertical: true)
+
+                Button {
+                    showingQuickCheckIn = true
+                } label: {
+                    Label("Quick Check-In", systemImage: "waveform.path.ecg")
+                        .frame(maxWidth: .infinity)
+                }
+                .artDecoButton(style: .secondary)
 
                 if !viewModel.topExplanations.isEmpty {
                     ArtDecoCard {
@@ -160,6 +169,9 @@ struct RecoveryOverviewView: View {
                 cyclePhase: cyclePhaseCache.currentPhase,
                 isGuest: authViewModel.isGuest
             )
+        }
+        .sheet(isPresented: $showingQuickCheckIn) {
+            QuickCheckInView()
         }
     }
 }

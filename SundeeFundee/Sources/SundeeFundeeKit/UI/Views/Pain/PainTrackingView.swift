@@ -507,7 +507,9 @@ struct PainLogFormView: View {
         Task {
             let didSave = await viewModel.logPain()
             if didSave {
-                onDismiss()
+                await MainActor.run {
+                    onDismiss()
+                }
             }
         }
     }
