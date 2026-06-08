@@ -42,7 +42,7 @@ platform :ios do
     capture_ios_screenshots(
       project: "SundeeFundee.xcodeproj",
       scheme: "SundeeFundee",
-      devices: ["iPhone 17 Pro Max", "iPad Pro 13-inch (M5)"],
+      devices: ["iPhone 17 Pro"],
       ios_version: "26.4.1",
       languages: ["en-US"],
       launch_arguments: ["--seed-screenshots"],
