@@ -31,19 +31,12 @@ public struct MainTabView: View {
                 .tag(Tab.today)
                 .accessibilityHint("View today's training plan")
 
-            WorkoutsListView()
+            TrainHubView()
                 .tabItem {
-                    Label("Workouts", systemImage: "figure.strengthtraining.traditional")
+                    Label("Train", systemImage: "figure.strengthtraining.traditional")
                 }
-                .tag(Tab.workouts)
-                .accessibilityHint("View and manage your workouts")
-
-            ProgramsListView()
-                .tabItem {
-                    Label("Programs", systemImage: selectedTab == .programs ? "list.bullet.rectangle.fill" : "list.bullet.rectangle")
-                }
-                .tag(Tab.programs)
-                .accessibilityHint("Browse training programs")
+                .tag(Tab.train)
+                .accessibilityHint("Start workouts, view history, and browse programs")
 
             CycleTrackingView()
                 .tabItem {
@@ -85,17 +78,17 @@ public struct MainTabView: View {
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .workoutCompleted)) { _ in
-            selectedTab = .workouts
+            selectedTab = .train
         }
         .onReceive(NotificationCenter.default.publisher(for: .appReviewPromptRequested)) { _ in
             requestReview()
         }
         .onReceive(NotificationCenter.default.publisher(for: .startWorkoutFromIntent)) { _ in
-            selectedTab = .workouts
+            selectedTab = .train
         }
         .onReceive(NotificationCenter.default.publisher(for: .workoutReminderOpened)) { notification in
             if let route = notification.object as? String, route == "workouts" {
-                selectedTab = .workouts
+                selectedTab = .train
             } else {
                 selectedTab = .today
             }
@@ -122,8 +115,7 @@ public extension Notification.Name {
 
 public enum Tab: String {
     case today
-    case workouts
-    case programs
+    case train
     case cycle
     case progress
 }

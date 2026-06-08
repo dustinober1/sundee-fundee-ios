@@ -19,6 +19,9 @@ public struct DashboardView: View {
     @State private var resumeWorkoutID: String?
     @State private var showingRecoveryOverview = false
     @State private var showingCycleTracking = false
+    @State private var showingTodayWhy = false
+    @State private var showingMoreToday = false
+    @State private var showingQuickCheckIn = false
     #if canImport(UIKit)
     @State private var showingCycleShare = false
     #endif
@@ -29,45 +32,22 @@ public struct DashboardView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: AppTheme.Spacing.lg) {
-                    // Welcome Header
                     welcomeHeader
-
-                    if let decision = viewModel.todayTrainingDecision {
-                        todayTrainingDecisionCard(decision)
-                    }
 
                     if let todayAction = viewModel.todayAction {
                         todayActionCard(todayAction)
+                    } else if let decision = viewModel.todayTrainingDecision {
+                        todayTrainingDecisionCard(decision)
                     }
 
-                    // Recovery Score hidden from Dashboard until the algorithm is reworked.
-                    // Domain layer, widget, and intent remain available for future re-enable.
-
-                    // Cycle Phase Banner (if enabled)
                     cyclePhaseBanner
 
-                    // Stat Cards
                     if viewModel.isInitialLoad {
                         SkeletonStatRow()
                     } else {
-                        statCards
+                        compactTodaySnapshot
                     }
 
-                    weeklyPlanCard
-
-                    if let recoveryPlan = viewModel.missedWorkoutRecoveryPlan {
-                        missedWorkoutRecoveryCard(recoveryPlan)
-                    }
-
-                    if viewModel.shouldShowFirstWeekChecklist {
-                        firstWeekChecklistCard
-                    }
-
-                    if !viewModel.recoveryInputStatuses.isEmpty {
-                        recoveryInputChecklistCard
-                    }
-
-                    // Empty state for brand-new users (no data anywhere)
                     if viewModel.showsNewUserEmptyState {
                         EmptyStateView(
                             icon: "figure.strengthtraining.traditional",
@@ -82,29 +62,22 @@ public struct DashboardView: View {
                             secondaryActionLabel: "Log a Max",
                             secondaryAction: { viewModel.navigateToLogMax = true }
                         )
-                    }
+                    } else {
+                        Button {
+                            showingTodayWhy = true
+                        } label: {
+                            Label("Why Today?", systemImage: "questionmark.circle")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .artDecoButton(style: .secondary)
 
-                    // Challenge Progress Widget
-                    if let challengeData = viewModel.activeChallengeData {
-                        challengeProgressCard(challengeData)
-                    }
-
-                    // Divider
-                    Divider()
-                        .background(AppTheme.Accent.gold.opacity(0.3))
-
-                    // Suggested Workout
-                    suggestedWorkoutCard
-
-                    // Coaching Insights
-                    coachingInsightsCard
-
-                    // Quick Actions
-                    quickActionsCard
-
-                    // Recent Wins
-                    if !viewModel.recentWins.isEmpty {
-                        recentWinsCard
+                        Button {
+                            showingMoreToday = true
+                        } label: {
+                            Label("More Today", systemImage: "ellipsis.circle")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .artDecoButton(style: .ghost)
                     }
                 }
                 .padding(AppTheme.Spacing.lg)
@@ -153,6 +126,39 @@ public struct DashboardView: View {
                 ActiveWorkoutView(
                     viewModel: ActiveWorkoutSessionViewModel(workout: workout)
                 )
+            }
+            .sheet(isPresented: $showingTodayWhy) {
+                TodayWhySheet(
+                    decision: viewModel.todayTrainingDecision,
+                    recoveryExplanations: viewModel.recoveryExplanations,
+                    deloadRecommendation: viewModel.deloadRecommendation,
+                    cyclePhase: cyclePhaseCache.currentPhase,
+                    cycleConfidence: cyclePhaseCache.confidence
+                )
+            }
+            .sheet(isPresented: $showingMoreToday) {
+                TodayMoreSheet(
+                    sections: viewModel.todaySecondarySectionInput,
+                    viewModel: viewModel,
+                    onStartWorkout: {
+                        Task { starterWorkout = await viewModel.buildStarterWorkout() }
+                    },
+                    onStartQuickWorkout: {
+                        Task { starterWorkout = await viewModel.buildQuickWorkout() }
+                    },
+                    onOpenCoachPlan: {
+                        showingAIWorkout = true
+                    },
+                    onOpenQuickCheckIn: {
+                        showingQuickCheckIn = true
+                    },
+                    onLogRecoveryInput: handleRecoveryInputAction,
+                    onOpenLogMax: { viewModel.navigateToLogMax = true },
+                    onOpenPainLog: { viewModel.navigateToPainTracking = true }
+                )
+            }
+            .sheet(isPresented: $showingQuickCheckIn) {
+                QuickCheckInView()
             }
             .navigationDestination(isPresented: $viewModel.navigateToLogMax) {
                 MaxesListView()
@@ -247,35 +253,6 @@ public struct DashboardView: View {
                     Spacer()
                 }
 
-                if !decision.reasons.isEmpty {
-                    VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
-                        ForEach(Array(decision.reasons.prefix(3).enumerated()), id: \.offset) { _, reason in
-                            HStack(alignment: .top, spacing: AppTheme.Spacing.xs) {
-                                Circle()
-                                    .fill(AppTheme.Accent.gold.opacity(0.6))
-                                    .frame(width: 5, height: 5)
-                                    .padding(.top, 5)
-                                    .accessibilityHidden(true)
-                                Text(reason)
-                                    .font(AppTheme.Typography.bodySmall)
-                                    .foregroundColor(AppTheme.Text.secondary)
-                                    .fixedSize(horizontal: false, vertical: true)
-                            }
-                        }
-                    }
-                }
-
-                if !viewModel.recoveryExplanations.isEmpty {
-                    VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
-                        ForEach(viewModel.recoveryExplanations.prefix(2)) { explanation in
-                            Text(explanation.text)
-                                .font(AppTheme.Typography.bodySmall)
-                                .foregroundColor(AppTheme.Text.secondary)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
-                    }
-                }
-
                 Button {
                     handleTodayTrainingDecision(decision)
                 } label: {
@@ -283,35 +260,6 @@ public struct DashboardView: View {
                         .frame(maxWidth: .infinity)
                 }
                 .artDecoButton(style: .accent)
-
-                Button {
-                    Task {
-                        starterWorkout = await viewModel.buildQuickWorkout()
-                    }
-                } label: {
-                    Label("Best next 20 min", systemImage: "timer")
-                        .frame(maxWidth: .infinity)
-                }
-                .artDecoButton(style: .secondary)
-
-                if let deload = viewModel.deloadRecommendation, deload.isRecommended {
-                    Button {
-                        Task {
-                            starterWorkout = await viewModel.buildActiveRecoveryWorkout(
-                                cyclePhase: cyclePhaseCache.currentPhase
-                            )
-                        }
-                    } label: {
-                        Label("Take an Active Recovery Day", systemImage: "figure.cooldown")
-                            .frame(maxWidth: .infinity)
-                    }
-                    .artDecoButton(style: .secondary)
-
-                    Text(deload.reason)
-                        .font(AppTheme.Typography.bodySmall)
-                        .foregroundColor(AppTheme.Text.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
             }
         }
     }
@@ -552,6 +500,67 @@ public struct DashboardView: View {
     }
 
     // MARK: - Stat Cards
+
+    private var compactTodaySnapshot: some View {
+        VStack(spacing: AppTheme.Spacing.md) {
+            HStack(spacing: AppTheme.Spacing.md) {
+                StatCard(
+                    value: "\(viewModel.workoutsThisWeek)",
+                    label: "This Week"
+                )
+                .accessibilityLabel("Workouts this week")
+                .accessibilityValue("\(viewModel.workoutsThisWeek)")
+
+                StatCard(
+                    value: "\(viewModel.prsThisMonth)",
+                    label: "PRs"
+                )
+                .accessibilityLabel("Personal records this month")
+                .accessibilityValue("\(viewModel.prsThisMonth)")
+
+                StatCard(
+                    value: viewModel.activeProgramName ?? "Open",
+                    label: "Plan"
+                )
+                .accessibilityLabel("Active program")
+                .accessibilityValue(viewModel.activeProgramName ?? "open")
+            }
+            .accessibilityElement(children: .contain)
+
+            if let todayAction = viewModel.todayAction {
+                actionPill(title: todayAction.title, subtitle: todayAction.subtitle, icon: todayAction.systemImage)
+            } else if let decision = viewModel.todayTrainingDecision {
+                actionPill(title: decision.title, subtitle: decision.subtitle, icon: decision.systemImage)
+            }
+        }
+    }
+
+    private func actionPill(title: String, subtitle: String, icon: String) -> some View {
+        HStack(spacing: AppTheme.Spacing.sm) {
+            Image(systemName: icon)
+                .foregroundColor(AppTheme.Accent.gold)
+                .accessibilityHidden(true)
+
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                Text(title)
+                    .font(AppTheme.Typography.labelLarge)
+                    .foregroundColor(AppTheme.Text.primary)
+                Text(subtitle)
+                    .font(AppTheme.Typography.bodySmall)
+                    .foregroundColor(AppTheme.Text.secondary)
+                    .lineLimit(2)
+            }
+
+            Spacer()
+        }
+        .padding(AppTheme.Spacing.md)
+        .background(AppTheme.Background.cream.opacity(0.45))
+        .cornerRadius(AppTheme.CornerRadius.medium)
+        .overlay(
+            RoundedRectangle(cornerRadius: AppTheme.CornerRadius.medium)
+                .stroke(AppTheme.Accent.gold.opacity(0.18), lineWidth: 1)
+        )
+    }
 
     private var statCards: some View {
         HStack(spacing: AppTheme.Spacing.md) {
@@ -1052,10 +1061,21 @@ class DashboardViewModel: ObservableObject {
 
     var showsNewUserEmptyState: Bool {
         !isInitialLoad
-            && workoutsThisWeek == 0
-            && prsThisMonth == 0
-            && activeProgramName == nil
-            && recentWins.isEmpty
+            && todayAction?.kind == .startFirstWorkout
+    }
+
+    var todaySecondarySectionInput: [TodaySecondarySection] {
+        MinimalSurfacePolicy.todaySecondarySections(
+            input: TodaySecondarySectionInput(
+                hasWeeklyPlan: weeklyPlanProgress != nil,
+                hasMissedWorkoutPlan: missedWorkoutRecoveryPlan != nil,
+                hasFirstWeekChecklist: shouldShowFirstWeekChecklist,
+                hasRecoveryInputGaps: !recoveryInputStatuses.isEmpty,
+                hasActiveChallenge: activeChallengeData != nil,
+                hasCoachInsights: insightsSummary != nil || !insightsActions.isEmpty,
+                hasRecentWins: !recentWins.isEmpty
+            )
+        )
     }
 
     // MARK: - Public Methods

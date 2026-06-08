@@ -32,47 +32,13 @@ public struct SettingsView: View {
     public var body: some View {
         NavigationStack {
             List {
-                // Profile Section
-                Section {
-                    if let userName = authViewModel.userName {
-                        HStack {
-                            Image(systemName: "person.circle.fill")
-                                .font(.system(.title))
-                                .foregroundColor(AppTheme.Accent.gold)
-                                .accessibilityHidden(true)
-
-                            VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
-                                Text(userName)
-                                    .font(AppTheme.Typography.headlineMedium)
-                                    .foregroundColor(AppTheme.Text.primary)
-
-                                if let email = authViewModel.userEmail {
-                                    Text(email)
-                                        .font(AppTheme.Typography.bodySmall)
-                                        .foregroundColor(AppTheme.Text.secondary)
-                                }
-                            }
-
-                            Spacer()
-                        }
-                        .padding(.vertical, AppTheme.Spacing.xs)
-                    }
-                }
-
-                // Preferences Section
-                Section("Preferences") {
+                Section("Training") {
                     Picker("Weight Unit", selection: $viewModel.weightUnit) {
                         Text("Pounds (lbs)").tag(WeightUnit.lbs)
                         Text("Kilograms (kg)").tag(WeightUnit.kg)
                     }
 
-                    Picker("Experience Level", selection: $viewModel.experienceLevel) {
-                        Text("Beginner").tag(ExperienceLevel.beginner)
-                        Text("Intermediate").tag(ExperienceLevel.intermediate)
-                        Text("Advanced").tag(ExperienceLevel.advanced)
-                    }
-
-                    Picker("Primary Goal", selection: $viewModel.primaryGoal) {
+                    Picker("Goal", selection: $viewModel.primaryGoal) {
                         Text("Strength").tag(PrimaryGoal.strength)
                         Text("Hypertrophy").tag(PrimaryGoal.hypertrophy)
                         Text("Endurance").tag(PrimaryGoal.endurance)
@@ -85,56 +51,27 @@ public struct SettingsView: View {
                         }
                     }
 
+                    if let selectedProfile = viewModel.selectedEquipmentProfile {
+                        LabeledContent("Saved Profile") {
+                            Text(selectedProfile.name)
+                                .foregroundColor(AppTheme.Text.secondary)
+                        }
+                    }
+
                     #if canImport(UserNotifications)
                     NavigationLink {
                         WorkoutRemindersSettingsView()
                     } label: {
-                        Label("Workout Reminders", systemImage: "bell")
+                        Label("Reminders", systemImage: "bell")
                     }
                     #endif
                 }
                 .onChange(of: viewModel.weightUnit) { _, _ in Task { await viewModel.saveSettings() } }
-                .onChange(of: viewModel.experienceLevel) { _, _ in Task { await viewModel.saveSettings() } }
                 .onChange(of: viewModel.primaryGoal) { _, _ in Task { await viewModel.saveSettings() } }
                 .onChange(of: viewModel.defaultEquipment) { _, _ in Task { await viewModel.saveSettings() } }
                 .onChange(of: viewModel.cycleTrackingEnabled) { _, _ in Task { await viewModel.saveSettings() } }
 
-                Section("Equipment Profiles") {
-                    ForEach(viewModel.equipmentProfiles) { profile in
-                        Button {
-                            Task {
-                                await viewModel.setDefaultEquipmentProfile(profile)
-                            }
-                        } label: {
-                            HStack(spacing: AppTheme.Spacing.sm) {
-                                Image(systemName: profile.isDefault ? "checkmark.circle.fill" : "circle")
-                                    .foregroundColor(profile.isDefault ? AppTheme.Accent.gold : AppTheme.Text.secondary.opacity(0.35))
-                                    .accessibilityHidden(true)
-
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text(profile.name)
-                                        .font(AppTheme.Typography.bodyMedium)
-                                        .foregroundColor(AppTheme.Text.primary)
-                                    Text(profile.equipment.displayName)
-                                        .font(AppTheme.Typography.bodySmall)
-                                        .foregroundColor(AppTheme.Text.secondary)
-                                }
-
-                                Spacer()
-                            }
-                            .contentShape(Rectangle())
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel(
-                            profile.isDefault
-                                ? "\(profile.name), \(profile.equipment.displayName), default equipment profile"
-                                : "\(profile.name), \(profile.equipment.displayName)"
-                        )
-                    }
-                }
-
-                // Data & Privacy Section
-                Section("Data & Privacy") {
+                Section("Privacy") {
                     NavigationLink {
                         DataTrustCenterView()
                     } label: {
@@ -145,7 +82,7 @@ public struct SettingsView: View {
                     NavigationLink {
                         SharePrivacyDefaultsView()
                     } label: {
-                        Label("Share Privacy Defaults", systemImage: "hand.raised")
+                        Label("Share Defaults", systemImage: "hand.raised")
                     }
                     #endif
 
@@ -174,63 +111,46 @@ public struct SettingsView: View {
                     }
                 }
 
-                // About Section
-                Section("About") {
+                Section("Account") {
+                    if let userName = authViewModel.userName {
+                        HStack {
+                            Image(systemName: "person.circle.fill")
+                                .font(.system(.title))
+                                .foregroundColor(AppTheme.Accent.gold)
+                                .accessibilityHidden(true)
+
+                            VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                                Text(userName)
+                                    .font(AppTheme.Typography.headlineMedium)
+                                    .foregroundColor(AppTheme.Text.primary)
+
+                                if let email = authViewModel.userEmail {
+                                    Text(email)
+                                        .font(AppTheme.Typography.bodySmall)
+                                        .foregroundColor(AppTheme.Text.secondary)
+                                }
+                            }
+
+                            Spacer()
+                        }
+                        .padding(.vertical, AppTheme.Spacing.xs)
+                    }
+
                     Text("Sundee Fundee is a fitness tool, not a medical device. It is not a substitute for professional medical advice, diagnosis, or treatment. Consult your doctor before starting any exercise program.")
                         .font(AppTheme.Typography.bodySmall)
                         .foregroundColor(AppTheme.Text.secondary)
                         .padding(.vertical, AppTheme.Spacing.xs)
 
-                    HStack {
-                        Text("Version")
-                        Spacer()
+                    LabeledContent("Version") {
                         Text(appVersionString)
                             .font(AppTheme.Typography.bodySmall)
                             .foregroundColor(AppTheme.Text.secondary)
                     }
 
-                    Link(destination: SettingsLinks.homepage) {
-                        HStack {
-                            Text("Website")
-                            Spacer()
-                            Image(systemName: "link")
-                                .font(.caption2)
-                                .foregroundColor(AppTheme.Accent.gold)
-                                .accessibilityHidden(true)
-                        }
-                        .accessibilityElement(children: .combine)
-                        .accessibilityLabel("Website, opens in browser")
-                    }
+                    Link("Website", destination: SettingsLinks.homepage)
+                    Link("Privacy Policy", destination: SettingsLinks.privacy)
+                    Link("Terms of Service", destination: SettingsLinks.terms)
 
-                    Link(destination: SettingsLinks.privacy) {
-                        HStack {
-                            Text("Privacy Policy")
-                            Spacer()
-                            Image(systemName: "link")
-                                .font(.caption2)
-                                .foregroundColor(AppTheme.Accent.gold)
-                                .accessibilityHidden(true)
-                        }
-                        .accessibilityElement(children: .combine)
-                        .accessibilityLabel("Privacy Policy, opens in browser")
-                    }
-
-                    Link(destination: SettingsLinks.terms) {
-                        HStack {
-                            Text("Terms of Service")
-                            Spacer()
-                            Image(systemName: "link")
-                                .font(.caption2)
-                                .foregroundColor(AppTheme.Accent.gold)
-                                .accessibilityHidden(true)
-                        }
-                        .accessibilityElement(children: .combine)
-                        .accessibilityLabel("Terms of Service, opens in browser")
-                    }
-                }
-
-                // Account Actions Section
-                Section {
                     Button("Sign Out") {
                         authViewModel.signOut()
                     }
@@ -360,6 +280,10 @@ class SettingsViewModel: ObservableObject {
     /// so only the latest state is committed. Prevents CloudKit "client oplock"
     /// conflicts from rapid toggles across multiple `.onChange` handlers.
     private var saveTask: Task<Void, Never>?
+
+    var selectedEquipmentProfile: EquipmentProfile? {
+        equipmentProfiles.first(where: { $0.isDefault || $0.equipment == defaultEquipment })
+    }
 
     init(
         dataClient: DataClientProtocol = DataClientFactory.shared.client

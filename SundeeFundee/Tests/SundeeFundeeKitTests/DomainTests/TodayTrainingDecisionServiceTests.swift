@@ -68,6 +68,22 @@ final class TodayTrainingDecisionServiceTests: XCTestCase {
         XCTAssertEqual(decision.kind, .modify)
     }
 
+    func testMissingCyclePhaseUsesNeutralModifyCopy() {
+        let decision = TodayTrainingDecisionService.decision(
+            recoveryScore: nil,
+            cyclePhase: nil,
+            cycleConfidence: nil,
+            painIntensity: 4,
+            energyLevel: .medium,
+            weeklyPlanProgress: nil,
+            deloadRecommended: false
+        )
+
+        XCTAssertEqual(decision.kind, .modify)
+        XCTAssertEqual(decision.subtitle, "A lighter or shorter session is recommended today.")
+        XCTAssertFalse(decision.subtitle.localizedCaseInsensitiveContains("unknown phase"))
+    }
+
     private func makeScore(total: Int) -> RecoveryScore {
         RecoveryScore(
             total: total,

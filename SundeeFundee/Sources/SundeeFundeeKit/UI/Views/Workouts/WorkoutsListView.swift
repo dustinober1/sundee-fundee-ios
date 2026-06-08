@@ -891,7 +891,7 @@ class WorkoutsListViewModel: ObservableObject {
                 }
             }
         } catch {
-            errorMessage = "Failed to load workouts: \(error.localizedDescription)"
+            errorMessage = "We couldn't load your workout history. Pull to refresh or try again in a moment."
         }
 
         isLoading = false
@@ -902,7 +902,7 @@ class WorkoutsListViewModel: ObservableObject {
             try await dataClient.delete(recordType: "Workout", id: id)
             workouts.removeAll { $0.id == id }
         } catch {
-            errorMessage = "Failed to delete workout: \(error.localizedDescription)"
+            errorMessage = "We couldn't delete that workout. Check your connection and try again."
         }
     }
 
@@ -942,7 +942,7 @@ class WorkoutsListViewModel: ObservableObject {
             try await dataClient.save(newWorkout, recordType: "Workout")
             return ActiveWorkoutSessionViewModel(workout: newWorkout)
         } catch {
-            errorMessage = "Failed to redo workout: \(error.localizedDescription)"
+            errorMessage = "We couldn't restart that workout. Open it again and try once more."
             return nil
         }
     }
