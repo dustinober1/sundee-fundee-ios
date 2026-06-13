@@ -257,6 +257,13 @@ final class SundeeFundeeScreenshotTests: XCTestCase {
             scrollView.swipeUp()
         }
 
+        for _ in 0..<maxSwipes {
+            if element.exists && element.isHittable {
+                return true
+            }
+            scrollView.swipeDown()
+        }
+
         return element.exists
     }
 }
