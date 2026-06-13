@@ -13,11 +13,12 @@ KEY FEATURES TO TEST:
 - Progress tab: Open maxes, benchmarks, analytics, challenges, and export.
 - Settings: Configure cycle tracking, weight units, experience level, and goals.
 
-NEW IN 1.4:
-- Home Screen & Lock Screen widgets (Cycle Phase + Recovery Score placeholder).
-- Siri Shortcuts: "Start Workout," "Log Set," recovery queries (App Intents).
-- Exercise catalog dropdown in 1RM entry.
-- Improved account deletion: proper Sign in with Apple token revocation.
+NEW IN THIS RELEASE:
+- Today tab: daily train / modify / recover decision, quick workouts, recovery explanations, deload guidance, and missed-workout reshuffling.
+- Train tab: Coach Plan, Build Your Own, workout history, programs, equipment conversion, warmups, technique cues, station-taken swaps, and smart rest guidance.
+- Cycle tab: cycle confidence, symptom check-ins, pain tracking, and recovery context.
+- Progress tab: Monthly Review, analytics, maxes, benchmarks, challenges, buddy check-ins, and export.
+- Settings: Data Trust Center, share privacy defaults, reminders, What's New, account management, and optional developer support.
 
 HEALTHKIT:
 The app requests HealthKit access for workout data and menstrual cycle tracking to adapt training recommendations. Granting permissions is optional — the app works without HealthKit.
@@ -27,4 +28,8 @@ DATA & PRIVACY:
 - Privacy Policy: Settings -> Privacy Policy link.
 - Account Deletion: Settings -> Delete All Data & Account.
 
-All features are free. There are no in-app purchases.
+IN-APP PURCHASE:
+- The app has one optional consumable in-app purchase in Settings -> Support: "Support the Developer" for $1.99.
+- It is a repeatable tip for ongoing development.
+- It is not required for features, content, access, badges, account status, or app behavior.
+- All training features remain free for guest and signed-in users.

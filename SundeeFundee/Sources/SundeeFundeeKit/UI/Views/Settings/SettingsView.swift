@@ -143,6 +143,12 @@ public struct SettingsView: View {
                         .foregroundColor(AppTheme.Text.secondary)
                         .padding(.vertical, AppTheme.Spacing.xs)
 
+                    NavigationLink {
+                        WhatsNewView()
+                    } label: {
+                        Label("What's New", systemImage: "sparkles")
+                    }
+
                     LabeledContent("Version") {
                         Text(appVersionString)
                             .font(AppTheme.Typography.bodySmall)
