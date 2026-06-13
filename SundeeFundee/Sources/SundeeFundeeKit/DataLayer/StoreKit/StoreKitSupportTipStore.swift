@@ -1,4 +1,3 @@
-import Combine
 import StoreKit
 import os.log
 
@@ -102,6 +101,9 @@ public final class SupportTipTransactionListener: ObservableObject {
     public func start() {
         guard updatesTask == nil else { return }
         updatesTask = Task { [store] in
+            for await verificationResult in Transaction.unfinished {
+                await store.handleTransactionUpdate(verificationResult)
+            }
             for await verificationResult in Transaction.updates {
                 await store.handleTransactionUpdate(verificationResult)
             }
