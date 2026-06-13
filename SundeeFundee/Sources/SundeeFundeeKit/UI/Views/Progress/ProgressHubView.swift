@@ -16,7 +16,7 @@ public struct ProgressHubView: View {
                     NavigationLink {
                         MonthlyReviewDetailView()
                     } label: {
-                        Label("This Month", systemImage: "calendar.badge.clock")
+                        Label("Monthly Review", systemImage: "calendar.badge.clock")
                     }
                 }
 
@@ -81,7 +81,7 @@ public struct ProgressHubView: View {
                         NavigationLink {
                             ExportView()
                         } label: {
-                            Label("Export", systemImage: "square.and.arrow.up")
+                            Label("Export My Data", systemImage: "square.and.arrow.up")
                         }
                     }
                 }

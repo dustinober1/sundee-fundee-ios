@@ -4,6 +4,7 @@ import SwiftUI
 public struct TrainHubView: View {
     @State private var showingNewWorkout = false
     @State private var showingAIWorkout = false
+    @State private var quickWorkout: Workout?
 
     public init() {}
 
@@ -11,6 +12,22 @@ public struct TrainHubView: View {
         NavigationStack {
             List {
                 Section("Start") {
+                    Button {
+                        quickWorkout = QuickWorkoutBuilder.build(
+                            request: QuickWorkoutRequest(
+                                timeMinutes: 20,
+                                focus: .fullBody,
+                                energyLevel: .medium,
+                                equipment: .fullGym,
+                                todayDecisionKind: .modify,
+                                recoveryScoreTotal: nil,
+                                painLogs: []
+                            )
+                        ).workout
+                    } label: {
+                        Label("Best Next 20 Min", systemImage: "timer")
+                    }
+
                     Button {
                         showingAIWorkout = true
                     } label: {
@@ -36,6 +53,16 @@ public struct TrainHubView: View {
                     } label: {
                         Label("Programs", systemImage: "list.bullet.rectangle")
                     }
+
+                    VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                        Text("During a workout")
+                            .font(AppTheme.Typography.labelMedium)
+                            .foregroundColor(AppTheme.Text.primary)
+                        Text("Use workout options for equipment conversion, station swaps, warmups, technique cues, and rest guidance.")
+                            .font(AppTheme.Typography.bodySmall)
+                            .foregroundColor(AppTheme.Text.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                 }
             }
             .navigationTitle("Train")
@@ -46,6 +73,11 @@ public struct TrainHubView: View {
                 NewWorkoutView {
                     showingNewWorkout = false
                 }
+            }
+            .fullScreenCover(item: $quickWorkout) { workout in
+                ActiveWorkoutView(
+                    viewModel: ActiveWorkoutSessionViewModel(workout: workout)
+                )
             }
             #if os(iOS)
             .fullScreenCover(isPresented: $showingAIWorkout) {
