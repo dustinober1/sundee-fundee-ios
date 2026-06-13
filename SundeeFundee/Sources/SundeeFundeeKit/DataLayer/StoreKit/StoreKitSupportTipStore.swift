@@ -1,5 +1,4 @@
 import Combine
-import Foundation
 import StoreKit
 import os.log
 
@@ -79,7 +78,7 @@ public actor StoreKitSupportTipStore: SupportTipStoreProtocol {
         switch verificationResult {
         case .verified(let transaction):
             guard transaction.productID == SupportTipProduct.id else {
-                await transaction.finish()
+                // Leave unrelated StoreKit transactions for their owning feature to process and finish.
                 return .failed
             }
             await transaction.finish()
