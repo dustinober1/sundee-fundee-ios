@@ -12,6 +12,7 @@ private let appLogger = Logger(subsystem: "com.sundeefundee.app", category: "App
 struct SundeeFundeeMain: App {
     @StateObject private var authViewModel = AuthViewModel()
     @StateObject private var themeViewModel = ThemeViewModel()
+    @StateObject private var supportTipTransactionListener = SupportTipTransactionListener()
     @State private var starterWorkout: Workout?
 
     private static let isScreenshotMode = CommandLine.arguments.contains("--seed-screenshots")
@@ -75,6 +76,7 @@ struct SundeeFundeeMain: App {
                 }
             }
             .task {
+                supportTipTransactionListener.start()
                 if Self.isScreenshotMode {
                     await ScreenshotSeeder.seed()
                     // Restore auth state after seeding

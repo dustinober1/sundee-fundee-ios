@@ -85,14 +85,3 @@ public final class SupportTipViewModel: ObservableObject {
         }
     }
 }
-
-@available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
-private struct StoreKitSupportTipStore: SupportTipStoreProtocol {
-    func loadSupportTip() async throws -> SupportTipOffer {
-        throw SupportTipStoreError.productUnavailable
-    }
-
-    func purchaseSupportTip() async -> SupportTipPurchaseOutcome {
-        .unavailable
-    }
-}
