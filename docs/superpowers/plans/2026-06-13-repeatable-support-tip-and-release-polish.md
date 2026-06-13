@@ -4,7 +4,7 @@
 
 **Goal:** Add a repeatable $1.99 optional Support the Developer tip in Settings and finish the next-release polish items that make the large v2 feature set easier to find, safer to review, and cleaner in App Store submission.
 
-**Architecture:** Keep purchase logic behind a small StoreKit boundary so Settings UI and unit tests do not depend directly on `Product`. The purchase is a consumable in-app purchase, because the user approved repeatable support tips, and it must not unlock features or change app behavior. Release polish stays additive: expose existing capabilities more clearly, tighten loading/error/accessibility states, add widget freshness copy, update release metadata, and verify the complete App Review path without submitting.
+**Architecture:** Keep purchase logic behind a small StoreKit boundary so Settings UI and unit tests do not depend directly on `Product`. The purchase is a consumable in-app purchase, because the user approved repeatable support tips, and it must not change feature access or app behavior. Release polish stays additive: expose existing capabilities more clearly, tighten loading/error/accessibility states, add widget freshness copy, update release metadata, and verify the complete App Review path without submitting.
 
 **Tech Stack:** Swift 6 strict concurrency, SwiftUI, StoreKit 2, XCTest, Xcode StoreKit configuration, XcodeGen, Fastlane metadata, iOS 18+.
 
@@ -31,12 +31,12 @@ Use these exact App Store Connect values:
 | Product ID | `com.sundeefundee.app.support.tip199` |
 | Reference name | `Support the Developer Tip 1.99` |
 | Display name | `Support the Developer` |
-| Description | `An optional tip to support ongoing Sundee Fundee development. It does not unlock features.` |
+| Description | `An optional tip to support ongoing Sundee Fundee development. It is not required for any feature.` |
 | Price | `$1.99` |
 | Placement | `Settings -> Support` only |
 | Restore purchases | Not shown for this item |
 
-Do not use charity, fundraiser, or medical-benefit language. Use `support` or `tip`, not `donate`, in the app UI and App Review notes.
+Do not use charity, fundraiser, or medical-benefit language. Use `support` or `tip` language in the app UI and App Review notes.
 
 ## File Structure
 
@@ -101,8 +101,10 @@ final class SupportTipProductTests: XCTestCase {
         XCTAssertEqual(SupportTipProduct.id, "com.sundeefundee.app.support.tip199")
         XCTAssertEqual(SupportTipProduct.referenceName, "Support the Developer Tip 1.99")
         XCTAssertEqual(SupportTipProduct.displayName, "Support the Developer")
-        XCTAssertFalse(SupportTipProduct.description.localizedCaseInsensitiveContains("donation"))
-        XCTAssertFalse(SupportTipProduct.description.localizedCaseInsensitiveContains("unlock"))
+        XCTAssertEqual(
+            SupportTipProduct.description,
+            "An optional tip to support ongoing Sundee Fundee development. It is not required for any feature."
+        )
         XCTAssertTrue(SupportTipProduct.description.localizedCaseInsensitiveContains("optional"))
     }
 
@@ -145,7 +147,7 @@ public enum SupportTipProduct {
     public static let id = "com.sundeefundee.app.support.tip199"
     public static let referenceName = "Support the Developer Tip 1.99"
     public static let displayName = "Support the Developer"
-    public static let description = "An optional tip to support ongoing Sundee Fundee development. It does not unlock features."
+    public static let description = "An optional tip to support ongoing Sundee Fundee development. It is not required for any feature."
 }
 
 public struct SupportTipOffer: Sendable, Equatable {
@@ -707,7 +709,7 @@ public struct SupportDeveloperSection: View {
                 }
             }
             .disabled(viewModel.isPurchaseDisabled)
-            .accessibilityHint("Sends an optional repeatable tip. It does not unlock features.")
+            .accessibilityHint("Sends an optional repeatable tip. It is not required for any feature.")
 
             if let message = viewModel.message {
                 Text(message)
@@ -782,7 +784,7 @@ Type: Consumable
 Reference Name: Support the Developer Tip 1.99
 Product ID: com.sundeefundee.app.support.tip199
 Display Name: Support the Developer
-Description: An optional tip to support ongoing Sundee Fundee development. It does not unlock features.
+Description: An optional tip to support ongoing Sundee Fundee development. It is not required for any feature.
 Price: USD 1.99
 Family Sharing: Disabled
 ```
@@ -828,7 +830,7 @@ Reference name: Support the Developer Tip 1.99
 Product ID: com.sundeefundee.app.support.tip199
 Price: USD 1.99
 Display name: Support the Developer
-Description: An optional tip to support ongoing Sundee Fundee development. It does not unlock features.
+Description: An optional tip to support ongoing Sundee Fundee development. It is not required for any feature.
 Review screenshot: Settings screen showing the Support section and Send $1.99 Tip button
 ```
 
@@ -853,7 +855,7 @@ Expected:
 - StoreKit purchase sheet appears.
 - Completing the purchase shows `Thank you for supporting Sundee Fundee.`
 - Tapping again starts a second purchase.
-- No features unlock after either purchase.
+- Feature access stays unchanged after either purchase.
 
 - [ ] **Step 5: Commit**
 
@@ -892,7 +894,7 @@ final class ReleaseNotesContentTests: XCTestCase {
         XCTAssertTrue(text.contains("Data Trust Center"))
         XCTAssertTrue(text.contains("Monthly Review"))
         XCTAssertFalse(text.contains("NEW IN 1.4"))
-        XCTAssertFalse(text.localizedCaseInsensitiveContains("donation"))
+        XCTAssertFalse(text.localizedCaseInsensitiveContains("fundraiser"))
     }
 }
 ```
@@ -963,7 +965,7 @@ public enum ReleaseNotesContent {
             ReleaseNoteItem(
                 id: "support",
                 title: "Optional support",
-                body: "Support the Developer is now available in Settings as a repeatable $1.99 tip. It does not unlock features."
+                body: "Support the Developer is now available in Settings as a repeatable $1.99 tip. It is not required for any feature."
             )
         ]
     )
@@ -1031,7 +1033,7 @@ What's New:
 - Better in-gym tools: Best Next 20 Min, equipment conversion, warmups, station swaps, technique cues, and smarter rest guidance.
 - More context for progress: Monthly Review, cycle-aware trends, symptom patterns, buddy check-ins, and return-to-lifting ramps.
 - Privacy and trust polish: Data Trust Center, share privacy defaults, sync status, expanded export, and clearer account deletion.
-- Optional Support the Developer tip in Settings. It is repeatable, costs $1.99, and unlocks no features.
+- Optional Support the Developer tip in Settings. It is repeatable, costs $1.99, and does not change feature access.
 
 All core features remain free.
 ```
@@ -1053,7 +1055,7 @@ NEW IN THIS RELEASE:
 IN-APP PURCHASE:
 - The app has one optional consumable in-app purchase in Settings -> Support: "Support the Developer" for $1.99.
 - It is a repeatable tip for ongoing development.
-- It does not unlock features, content, access, badges, account status, or app behavior.
+- It is not required for features, content, access, badges, account status, or app behavior.
 - All training features remain free for guest and signed-in users.
 ```
 
@@ -1434,7 +1436,7 @@ Expected:
 Run:
 
 ```bash
-rg -n "There are no in-app purchases|NEW IN 1.4|donation|Donate" SundeeFundeeApp/fastlane SundeeFundee/Sources/SundeeFundeeKit
+rg -n "There are no in-app purchases|NEW IN 1.4|charity|fundraiser" SundeeFundeeApp/fastlane SundeeFundee/Sources/SundeeFundeeKit
 ```
 
 Expected: no matches.
@@ -1466,8 +1468,8 @@ Do not run `bundle exec fastlane release`, `asc review submit`, upload, or submi
 ## Self-Review Checklist
 
 - The support tip is repeatable because it is a consumable in-app purchase.
-- The support tip is Settings-only and does not unlock app features.
-- The UI uses support/tip language, not donation/fundraiser language.
+- The support tip is Settings-only and does not change feature access.
+- The UI uses support/tip language, not charity/fundraiser language.
 - App Review notes disclose the in-app purchase and explain that all features remain free.
 - Release notes no longer claim there are no in-app purchases.
 - Existing v2 features are surfaced without rebuilding existing domain services.
