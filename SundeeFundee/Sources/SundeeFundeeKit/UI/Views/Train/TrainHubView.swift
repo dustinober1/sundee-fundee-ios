@@ -74,11 +74,19 @@ public struct TrainHubView: View {
                     showingNewWorkout = false
                 }
             }
+            #if os(iOS)
             .fullScreenCover(item: $quickWorkout) { workout in
                 ActiveWorkoutView(
                     viewModel: ActiveWorkoutSessionViewModel(workout: workout)
                 )
             }
+            #else
+            .sheet(item: $quickWorkout) { workout in
+                ActiveWorkoutView(
+                    viewModel: ActiveWorkoutSessionViewModel(workout: workout)
+                )
+            }
+            #endif
             #if os(iOS)
             .fullScreenCover(isPresented: $showingAIWorkout) {
                 AIWorkoutView {
