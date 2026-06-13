@@ -83,3 +83,23 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.sundeefundee.app.uitests
         GENERATE_INFOPLIST_FILE: true
         TEST_TARGET_NAME: SundeeFundee
+
+schemes:
+  SundeeFundee:
+    build:
+      targets:
+        SundeeFundee: all
+        SundeeFundeeTests: [test]
+        SundeeFundeeUITests: [test]
+    run:
+      config: Debug
+      storeKitConfiguration: StoreKit/SundeeFundee.storekit
+    test:
+      config: Debug
+      gatherCoverageData: true
+      storeKitConfiguration: StoreKit/SundeeFundee.storekit
+      targets:
+        - name: SundeeFundeeTests
+        - name: SundeeFundeeUITests
+    archive:
+      config: Release

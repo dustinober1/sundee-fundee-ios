@@ -22,8 +22,8 @@ final class SundeeFundeeScreenshotTests: XCTestCase {
         captureDataTrustCenter()
         capture(tab: "Cycle", title: "Cycle", name: "02_recovery_pain_energy")
         capture(tab: "Progress", title: "Progress", name: "03_progress_lifting")
-        capture(tab: "Programs", title: "Programs", name: "04_programs")
-        capture(tab: "Workouts", title: "Workouts", name: "05_workouts")
+        captureProgramsHub()
+        captureWorkoutHistory()
         captureEquipmentConversionAndSwapSurface()
     }
 
@@ -34,10 +34,8 @@ final class SundeeFundeeScreenshotTests: XCTestCase {
 
         XCTAssertTrue(waitForScreen(title: "Today", timeout: 20), "Missing Today screen")
 
-        let programsButton = tabButton(named: "Programs")
-        XCTAssertTrue(programsButton.waitForExistence(timeout: 10), "Missing Programs tab")
-        programsButton.tap()
-        XCTAssertTrue(waitForScreen(title: "Programs", timeout: 10), "Missing Programs screen")
+        let programsRow = openProgramsFromTrain()
+        XCTAssertTrue(programsRow, "Missing Programs screen")
 
         let russianSquat = app.staticTexts["Russian Squat"].firstMatch
         XCTAssertTrue(scrollToElement(russianSquat, in: app.scrollViews.firstMatch), "Missing Russian Squat program")
@@ -81,8 +79,16 @@ final class SundeeFundeeScreenshotTests: XCTestCase {
     }
 
     private func captureCoachPlanBenefit() {
+        let trainButton = tabButton(named: "Train")
+        XCTAssertTrue(trainButton.waitForExistence(timeout: 10), "Missing Train tab")
+        trainButton.tap()
+        XCTAssertTrue(waitForScreen(title: "Train", timeout: 10), "Missing Train screen")
+
         let button = app.buttons["Build Coach Plan"].firstMatch
-        XCTAssertTrue(button.waitForExistence(timeout: 10), "Missing Build Coach Plan entry point")
+        XCTAssertTrue(
+            scrollToElement(button, in: app.tables.firstMatch),
+            "Missing Build Coach Plan entry point"
+        )
         button.tap()
 
         XCTAssertTrue(waitForScreen(title: "Coach Plan", timeout: 10), "Missing Coach Plan screen")
@@ -99,14 +105,16 @@ final class SundeeFundeeScreenshotTests: XCTestCase {
         let cancel = app.buttons["Cancel"].firstMatch
         XCTAssertTrue(cancel.waitForExistence(timeout: 5), "Missing Coach Plan cancel button")
         cancel.tap()
+        XCTAssertTrue(waitForScreen(title: "Train", timeout: 10), "Did not return to Train screen")
+
+        let todayButton = tabButton(named: "Today")
+        XCTAssertTrue(todayButton.waitForExistence(timeout: 10), "Missing Today tab")
+        todayButton.tap()
         XCTAssertTrue(waitForScreen(title: "Today", timeout: 10), "Did not return to Today screen")
     }
 
     private func captureProgramAdaptationSurface() {
-        let programsButton = tabButton(named: "Programs")
-        guard programsButton.waitForExistence(timeout: 10) else { return }
-        programsButton.tap()
-        guard waitForScreen(title: "Programs", timeout: 10) else { return }
+        guard openProgramsFromTrain() else { return }
 
         let viewProgram = app.buttons["View Program"].firstMatch
         if viewProgram.waitForExistence(timeout: 5) {
@@ -115,6 +123,8 @@ final class SundeeFundeeScreenshotTests: XCTestCase {
                 snapshot("06_program_adaptation")
             }
         }
+
+        _ = returnToTrainRoot()
     }
 
     private func captureDataTrustCenter() {
@@ -144,10 +154,7 @@ final class SundeeFundeeScreenshotTests: XCTestCase {
     }
 
     private func captureEquipmentConversionAndSwapSurface() {
-        let programsButton = tabButton(named: "Programs")
-        guard programsButton.waitForExistence(timeout: 10) else { return }
-        programsButton.tap()
-        guard waitForScreen(title: "Programs", timeout: 10) else { return }
+        guard openProgramsFromTrain() else { return }
 
         let viewProgram = app.buttons["View Program"].firstMatch
         guard viewProgram.waitForExistence(timeout: 5) else { return }
@@ -216,6 +223,57 @@ final class SundeeFundeeScreenshotTests: XCTestCase {
 
         XCTAssertTrue(waitForScreen(title: title, timeout: 10), "Missing \(title) screen")
         snapshot(name)
+    }
+
+    private func captureProgramsHub() {
+        XCTAssertTrue(openProgramsFromTrain(), "Missing Programs screen")
+        snapshot("04_programs")
+        _ = returnToTrainRoot()
+    }
+
+    private func captureWorkoutHistory() {
+        XCTAssertTrue(returnToTrainRoot(), "Missing Train screen")
+
+        let workoutHistory = app.staticTexts["Workout History"].firstMatch
+        XCTAssertTrue(
+            scrollToElement(workoutHistory, in: app.tables.firstMatch),
+            "Missing Workout History row"
+        )
+        workoutHistory.tap()
+        XCTAssertTrue(waitForScreen(title: "Workouts", timeout: 10), "Missing Workouts screen")
+        snapshot("05_workouts")
+    }
+
+    private func openProgramsFromTrain() -> Bool {
+        guard returnToTrainRoot() else { return false }
+
+        let programsRow = app.staticTexts["Programs"].firstMatch
+        guard scrollToElement(programsRow, in: app.tables.firstMatch) else { return false }
+        programsRow.tap()
+        return waitForScreen(title: "Programs", timeout: 10)
+    }
+
+    private func returnToTrainRoot() -> Bool {
+        let trainButton = tabButton(named: "Train")
+        guard trainButton.waitForExistence(timeout: 10) else { return false }
+        trainButton.tap()
+
+        if waitForScreen(title: "Train", timeout: 5) {
+            return true
+        }
+
+        let backTargets = ["Programs", "Train"]
+        for title in backTargets {
+            let backButton = app.navigationBars.buttons[title].firstMatch
+            if backButton.waitForExistence(timeout: 2) {
+                backButton.tap()
+                if waitForScreen(title: "Train", timeout: 5) {
+                    return true
+                }
+            }
+        }
+
+        return waitForScreen(title: "Train", timeout: 5)
     }
 
     private func tabButton(named name: String) -> XCUIElement {
