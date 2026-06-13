@@ -1,12 +1,16 @@
 # Repeatable Support Tip and Release Polish Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Add a repeatable $1.99 optional Support the Developer tip in Settings and finish the next-release polish items that make the large v2 feature set easier to find, safer to review, and cleaner in App Store submission.
 
 **Architecture:** Keep purchase logic behind a small StoreKit boundary so Settings UI and unit tests do not depend directly on `Product`. The purchase is a consumable in-app purchase, because the user approved repeatable support tips, and it must not change feature access or app behavior. Release polish stays additive: expose existing capabilities more clearly, tighten loading/error/accessibility states, add widget freshness copy, update release metadata, and verify the complete App Review path without submitting.
 
 **Tech Stack:** Swift 6 strict concurrency, SwiftUI, StoreKit 2, XCTest, Xcode StoreKit configuration, XcodeGen, Fastlane metadata, iOS 18+.
+
+**Execution Status:** Completed on branch `codex/support-tip-release-polish` through commit `8a1b69a5 build(xcode): finalize support tip release wiring`.
+
+**Final Verification:** `cd SundeeFundee && swift test`; `cd SundeeFundeeApp && xcodebuild -project SundeeFundee.xcodeproj -scheme SundeeFundee -destination 'platform=iOS Simulator,name=iPhone 17 Pro' build`; `cd SundeeFundeeApp && xcodebuild test -project SundeeFundee.xcodeproj -scheme SundeeFundee -destination 'platform=iOS Simulator,name=iPhone 17 Pro' -only-testing:SundeeFundeeUITests/SundeeFundeeScreenshotTests/testAppStoreScreenshots`; metadata grep for `There are no in-app purchases|NEW IN 1.4|charity|fundraiser`.
 
 ---
 
@@ -88,7 +92,7 @@ Do not use charity, fundraiser, or medical-benefit language. Use `support` or `t
 - Create: `SundeeFundee/Sources/SundeeFundeeKit/DomainLayer/Support/SupportTipProduct.swift`
 - Create: `SundeeFundee/Tests/SundeeFundeeKitTests/DomainTests/SupportTipProductTests.swift`
 
-- [ ] **Step 1: Write the failing product-contract tests**
+- [x] **Step 1: Write the failing product-contract tests**
 
 Create `SundeeFundee/Tests/SundeeFundeeKitTests/DomainTests/SupportTipProductTests.swift`:
 
@@ -126,7 +130,7 @@ final class SupportTipProductTests: XCTestCase {
 }
 ```
 
-- [ ] **Step 2: Run the failing tests**
+- [x] **Step 2: Run the failing tests**
 
 Run:
 
@@ -136,7 +140,7 @@ cd SundeeFundee && swift test --filter SupportTipProductTests
 
 Expected: compile failure because `SupportTipProduct` and `SupportTipStoreError` do not exist.
 
-- [ ] **Step 3: Add the pure product contract**
+- [x] **Step 3: Add the pure product contract**
 
 Create `SundeeFundee/Sources/SundeeFundeeKit/DomainLayer/Support/SupportTipProduct.swift`:
 
@@ -199,7 +203,7 @@ public protocol SupportTipStoreProtocol: Sendable {
 }
 ```
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run:
 
@@ -209,7 +213,7 @@ cd SundeeFundee && swift test --filter SupportTipProductTests
 
 Expected: all `SupportTipProductTests` pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add SundeeFundee/Sources/SundeeFundeeKit/DomainLayer/Support/SupportTipProduct.swift SundeeFundee/Tests/SundeeFundeeKitTests/DomainTests/SupportTipProductTests.swift
@@ -225,7 +229,7 @@ git commit -m "feat(support): define repeatable support tip contract"
 - Create: `SundeeFundee/Sources/SundeeFundeeKit/UI/ViewModels/SupportTipViewModel.swift`
 - Create: `SundeeFundee/Tests/SundeeFundeeKitTests/ViewModelTests/SupportTipViewModelTests.swift`
 
-- [ ] **Step 1: Write failing view-model tests**
+- [x] **Step 1: Write failing view-model tests**
 
 Create `SundeeFundee/Tests/SundeeFundeeKitTests/ViewModelTests/SupportTipViewModelTests.swift`:
 
@@ -348,7 +352,7 @@ private final class MockSupportTipStore: SupportTipStoreProtocol, @unchecked Sen
 }
 ```
 
-- [ ] **Step 2: Run the failing tests**
+- [x] **Step 2: Run the failing tests**
 
 Run:
 
@@ -358,7 +362,7 @@ cd SundeeFundee && swift test --filter SupportTipViewModelTests
 
 Expected: compile failure because `SupportTipViewModel` does not exist.
 
-- [ ] **Step 3: Add the view model**
+- [x] **Step 3: Add the view model**
 
 Create `SundeeFundee/Sources/SundeeFundeeKit/UI/ViewModels/SupportTipViewModel.swift`:
 
@@ -441,7 +445,7 @@ public final class SupportTipViewModel: ObservableObject {
 }
 ```
 
-- [ ] **Step 4: Temporarily add a compile shim**
+- [x] **Step 4: Temporarily add a compile shim**
 
 If Task 2 is run before Task 3, add this temporary type at the bottom of `SupportTipViewModel.swift` so tests can compile:
 
@@ -460,7 +464,7 @@ private struct StoreKitSupportTipStore: SupportTipStoreProtocol {
 
 Remove this private shim in Task 3 when the real `StoreKitSupportTipStore` is added.
 
-- [ ] **Step 5: Run tests**
+- [x] **Step 5: Run tests**
 
 Run:
 
@@ -470,7 +474,7 @@ cd SundeeFundee && swift test --filter SupportTipViewModelTests
 
 Expected: all `SupportTipViewModelTests` pass.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add SundeeFundee/Sources/SundeeFundeeKit/UI/ViewModels/SupportTipViewModel.swift SundeeFundee/Tests/SundeeFundeeKitTests/ViewModelTests/SupportTipViewModelTests.swift
@@ -487,7 +491,7 @@ git commit -m "feat(support): add support tip state model"
 - Modify: `SundeeFundee/Sources/SundeeFundeeKit/UI/ViewModels/SupportTipViewModel.swift`
 - Modify: `SundeeFundeeApp/SundeeFundee/App.swift`
 
-- [ ] **Step 1: Add the real StoreKit store**
+- [x] **Step 1: Add the real StoreKit store**
 
 Create `SundeeFundee/Sources/SundeeFundeeKit/DataLayer/StoreKit/StoreKitSupportTipStore.swift`:
 
@@ -608,11 +612,11 @@ public final class SupportTipTransactionListener: ObservableObject {
 }
 ```
 
-- [ ] **Step 2: Remove the temporary shim**
+- [x] **Step 2: Remove the temporary shim**
 
 If Task 2 added the private `StoreKitSupportTipStore` shim in `SupportTipViewModel.swift`, delete it. The default initializer should now resolve to the public StoreKit implementation.
 
-- [ ] **Step 3: Start the transaction listener in the app entry point**
+- [x] **Step 3: Start the transaction listener in the app entry point**
 
 Modify `SundeeFundeeApp/SundeeFundee/App.swift`.
 
@@ -638,7 +642,7 @@ Update the existing root `.task` block to start the listener before screenshot s
 }
 ```
 
-- [ ] **Step 4: Verify compile and tests**
+- [x] **Step 4: Verify compile and tests**
 
 Run:
 
@@ -649,7 +653,7 @@ cd SundeeFundeeApp && xcodebuild -project SundeeFundee.xcodeproj -scheme SundeeF
 
 Expected: support-tip tests pass and the app builds.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add SundeeFundee/Sources/SundeeFundeeKit/DataLayer/StoreKit/StoreKitSupportTipStore.swift SundeeFundee/Sources/SundeeFundeeKit/UI/ViewModels/SupportTipViewModel.swift SundeeFundeeApp/SundeeFundee/App.swift
@@ -666,7 +670,7 @@ git commit -m "feat(support): handle repeatable StoreKit tips"
 - Modify: `SundeeFundee/Sources/SundeeFundeeKit/UI/Views/Settings/SettingsView.swift`
 - Modify: `SundeeFundeeApp/SundeeFundeeUITests/SundeeFundeeScreenshotTests.swift`
 
-- [ ] **Step 1: Add the Settings section view**
+- [x] **Step 1: Add the Settings section view**
 
 Create `SundeeFundee/Sources/SundeeFundeeKit/UI/Views/Settings/SupportDeveloperSection.swift`:
 
@@ -724,7 +728,7 @@ public struct SupportDeveloperSection: View {
 }
 ```
 
-- [ ] **Step 2: Add the section to Settings**
+- [x] **Step 2: Add the section to Settings**
 
 Modify `SundeeFundee/Sources/SundeeFundeeKit/UI/Views/Settings/SettingsView.swift`.
 
@@ -736,7 +740,7 @@ SupportDeveloperSection()
 
 The resulting high-level Settings order should be Training, Privacy, Support, Diagnostics when present, then Account.
 
-- [ ] **Step 3: Add a UI smoke assertion**
+- [x] **Step 3: Add a UI smoke assertion**
 
 Modify `SundeeFundeeApp/SundeeFundeeUITests/SundeeFundeeScreenshotTests.swift` inside `captureDataTrustCenter()` after Settings opens:
 
@@ -748,7 +752,7 @@ XCTAssertTrue(
 )
 ```
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 Run:
 
@@ -759,7 +763,7 @@ cd SundeeFundeeApp && xcodebuild -project SundeeFundee.xcodeproj -scheme SundeeF
 
 Expected: tests and build pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add SundeeFundee/Sources/SundeeFundeeKit/UI/Views/Settings/SupportDeveloperSection.swift SundeeFundee/Sources/SundeeFundeeKit/UI/Views/Settings/SettingsView.swift SundeeFundeeApp/SundeeFundeeUITests/SundeeFundeeScreenshotTests.swift
@@ -775,7 +779,7 @@ git commit -m "feat(settings): add optional developer support tip"
 - Create: `SundeeFundeeApp/StoreKit/SundeeFundee.storekit`
 - Modify: `SundeeFundeeApp/project.yml`
 
-- [ ] **Step 1: Create the StoreKit configuration**
+- [x] **Step 1: Create the StoreKit configuration**
 
 Create `SundeeFundeeApp/StoreKit/SundeeFundee.storekit` with Xcode's StoreKit Configuration editor using these values:
 
@@ -797,7 +801,7 @@ plutil -p SundeeFundeeApp/StoreKit/SundeeFundee.storekit
 
 Expected: the output includes `com.sundeefundee.app.support.tip199` and `Consumable`.
 
-- [ ] **Step 2: Include the StoreKit folder in the project**
+- [x] **Step 2: Include the StoreKit folder in the project**
 
 Add this to `SundeeFundeeApp/project.yml` under the `SundeeFundee` target `sources` list:
 
@@ -820,7 +824,7 @@ rg -n "SundeeFundee.storekit|StoreKit" SundeeFundee.xcodeproj
 
 Expected: at least one match for `SundeeFundee.storekit` or `StoreKit`.
 
-- [ ] **Step 3: Configure App Store Connect**
+- [x] **Step 3: Configure App Store Connect**
 
 In App Store Connect, create this in-app purchase:
 
@@ -836,7 +840,7 @@ Review screenshot: Settings screen showing the Support section and Send $1.99 Ti
 
 Submit the in-app purchase with the next app version, not separately.
 
-- [ ] **Step 4: Simulator-check the StoreKit flow**
+- [x] **Step 4: Simulator-check the StoreKit flow**
 
 In Xcode, edit the SundeeFundee scheme and set StoreKit Configuration to:
 
@@ -857,7 +861,7 @@ Expected:
 - Tapping again starts a second purchase.
 - Feature access stays unchanged after either purchase.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add SundeeFundeeApp/StoreKit/SundeeFundee.storekit SundeeFundeeApp/project.yml
@@ -877,7 +881,7 @@ git commit -m "test(storekit): add support tip configuration"
 - Modify: `SundeeFundeeApp/fastlane/metadata/en-US/release_notes.txt`
 - Modify: `SundeeFundeeApp/fastlane/metadata/review_information/notes.txt`
 
-- [ ] **Step 1: Write failing release-note tests**
+- [x] **Step 1: Write failing release-note tests**
 
 Create `SundeeFundee/Tests/SundeeFundeeKitTests/DomainTests/ReleaseNotesContentTests.swift`:
 
@@ -899,7 +903,7 @@ final class ReleaseNotesContentTests: XCTestCase {
 }
 ```
 
-- [ ] **Step 2: Run the failing test**
+- [x] **Step 2: Run the failing test**
 
 Run:
 
@@ -909,7 +913,7 @@ cd SundeeFundee && swift test --filter ReleaseNotesContentTests
 
 Expected: compile failure because `ReleaseNotesContent` does not exist.
 
-- [ ] **Step 3: Add release notes content**
+- [x] **Step 3: Add release notes content**
 
 Create `SundeeFundee/Sources/SundeeFundeeKit/DomainLayer/Release/ReleaseNotesContent.swift`:
 
@@ -972,7 +976,7 @@ public enum ReleaseNotesContent {
 }
 ```
 
-- [ ] **Step 4: Add the What's New view**
+- [x] **Step 4: Add the What's New view**
 
 Create `SundeeFundee/Sources/SundeeFundeeKit/UI/Views/Settings/WhatsNewView.swift`:
 
@@ -1010,7 +1014,7 @@ public struct WhatsNewView: View {
 }
 ```
 
-- [ ] **Step 5: Add the Settings link**
+- [x] **Step 5: Add the Settings link**
 
 Modify `SettingsView.swift` inside `Section("Account")`, immediately above `LabeledContent("Version")`:
 
@@ -1022,7 +1026,7 @@ NavigationLink {
 }
 ```
 
-- [ ] **Step 6: Update release notes metadata**
+- [x] **Step 6: Update release notes metadata**
 
 Replace `SundeeFundeeApp/fastlane/metadata/en-US/release_notes.txt` with concise release notes:
 
@@ -1038,7 +1042,7 @@ What's New:
 All core features remain free.
 ```
 
-- [ ] **Step 7: Update App Review notes**
+- [x] **Step 7: Update App Review notes**
 
 Edit `SundeeFundeeApp/fastlane/metadata/review_information/notes.txt`.
 
@@ -1061,7 +1065,7 @@ IN-APP PURCHASE:
 
 Keep the existing Sign In, HealthKit, and Data & Privacy sections.
 
-- [ ] **Step 8: Verify**
+- [x] **Step 8: Verify**
 
 Run:
 
@@ -1072,7 +1076,7 @@ cd SundeeFundeeApp && xcodebuild -project SundeeFundee.xcodeproj -scheme SundeeF
 
 Expected: release-note tests pass and the app builds.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add SundeeFundee/Sources/SundeeFundeeKit/DomainLayer/Release/ReleaseNotesContent.swift SundeeFundee/Sources/SundeeFundeeKit/UI/Views/Settings/WhatsNewView.swift SundeeFundee/Tests/SundeeFundeeKitTests/DomainTests/ReleaseNotesContentTests.swift SundeeFundee/Sources/SundeeFundeeKit/UI/Views/Settings/SettingsView.swift SundeeFundeeApp/fastlane/metadata/en-US/release_notes.txt SundeeFundeeApp/fastlane/metadata/review_information/notes.txt
@@ -1088,7 +1092,7 @@ git commit -m "docs(release): update whats new and review notes"
 - Modify: `SundeeFundee/Sources/SundeeFundeeKit/UI/Views/Train/TrainHubView.swift`
 - Modify: `SundeeFundee/Sources/SundeeFundeeKit/UI/Views/Progress/ProgressHubView.swift`
 
-- [ ] **Step 1: Add Train entry points for existing in-gym capabilities**
+- [x] **Step 1: Add Train entry points for existing in-gym capabilities**
 
 Modify `TrainHubView.swift`:
 
@@ -1130,7 +1134,7 @@ Add this full-screen cover after the existing covers:
 
 `Workout` already conforms to `Identifiable`, so the item binding is valid.
 
-- [ ] **Step 2: Add explanatory row copy without adding marketing clutter**
+- [x] **Step 2: Add explanatory row copy without adding marketing clutter**
 
 In `Section("Continue")`, add a short supporting row below Programs:
 
@@ -1146,7 +1150,7 @@ VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
 }
 ```
 
-- [ ] **Step 3: Clarify Progress labels**
+- [x] **Step 3: Clarify Progress labels**
 
 Modify `ProgressHubView.swift` labels:
 
@@ -1172,7 +1176,7 @@ to:
 Label("Export My Data", systemImage: "square.and.arrow.up")
 ```
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 Run:
 
@@ -1182,7 +1186,7 @@ cd SundeeFundeeApp && xcodebuild -project SundeeFundee.xcodeproj -scheme SundeeF
 
 Expected: app builds.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add SundeeFundee/Sources/SundeeFundeeKit/UI/Views/Train/TrainHubView.swift SundeeFundee/Sources/SundeeFundeeKit/UI/Views/Progress/ProgressHubView.swift
@@ -1197,7 +1201,7 @@ git commit -m "feat(train): surface in-gym tools"
 
 - Modify the loading/error/accessibility files listed in the File Structure section.
 
-- [ ] **Step 1: Replace bare loading spinners**
+- [x] **Step 1: Replace bare loading spinners**
 
 Apply these exact replacements:
 
@@ -1209,7 +1213,7 @@ Apply these exact replacements:
 | `RecoveryScoreCard.swift` | `ProgressView()` | `ProgressView("Loading recovery score")` |
 | `ChallengesView.swift` | bare loading `ProgressView()` | `ProgressView("Loading challenges")` |
 
-- [ ] **Step 2: Replace raw user-facing errors**
+- [x] **Step 2: Replace raw user-facing errors**
 
 Use these replacements while keeping existing logger calls:
 
@@ -1233,7 +1237,7 @@ errorMessage = "We couldn't delete your account. Check your connection and try a
 
 Do not display `error.localizedDescription` directly in any user-facing `errorMessage`.
 
-- [ ] **Step 3: Add haptics to support tip success**
+- [x] **Step 3: Add haptics to support tip success**
 
 In `SupportDeveloperSection.swift`, after a purchase completes successfully through the view model, add success feedback by checking the message after purchase:
 
@@ -1244,7 +1248,7 @@ if viewModel.message == "Thank you for supporting Sundee Fundee." {
 }
 ```
 
-- [ ] **Step 4: Replace fixed large icon fonts where touched**
+- [x] **Step 4: Replace fixed large icon fonts where touched**
 
 When editing files in this task, replace fixed semantic-compatible icon calls such as:
 
@@ -1261,7 +1265,7 @@ with semantic Dynamic Type-friendly styling where the icon is decorative:
 
 Do not alter numeric workout timer fonts that intentionally use monospaced display sizing.
 
-- [ ] **Step 5: Verify no raw user-facing error assignments remain in touched files**
+- [x] **Step 5: Verify no raw user-facing error assignments remain in touched files**
 
 Run:
 
@@ -1271,7 +1275,7 @@ rg -n "errorMessage = .*localizedDescription|loadError = error.localizedDescript
 
 Expected: no matches in files touched by this task.
 
-- [ ] **Step 6: Run tests and build**
+- [x] **Step 6: Run tests and build**
 
 Run:
 
@@ -1282,7 +1286,7 @@ cd SundeeFundeeApp && xcodebuild -project SundeeFundee.xcodeproj -scheme SundeeF
 
 Expected: package tests pass and app builds.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 Stage only the files changed for this task:
 
@@ -1301,7 +1305,7 @@ git commit -m "fix(ui): polish loading errors and feedback"
 - Modify: `SundeeFundeeApp/SundeeFundeeWidgets/CyclePhaseWidget.swift`
 - Modify: `SundeeFundee/Tests/SundeeFundeeKitTests/DataLayerTests/SharedSnapshotStoreTests.swift`
 
-- [ ] **Step 1: Add freshness helpers to widget files**
+- [x] **Step 1: Add freshness helpers to widget files**
 
 In both widget files, add this private helper near the view helpers:
 
@@ -1314,7 +1318,7 @@ private func freshnessText(capturedAt: Date?) -> String {
 }
 ```
 
-- [ ] **Step 2: Show freshness in Recovery widget**
+- [x] **Step 2: Show freshness in Recovery widget**
 
 In `RecoveryScoreWidgetEntryView.systemMedium`, replace:
 
@@ -1337,7 +1341,7 @@ Text(freshnessText(capturedAt: entry.snapshot?.capturedAt))
     .lineLimit(1)
 ```
 
-- [ ] **Step 3: Show freshness in Cycle widget**
+- [x] **Step 3: Show freshness in Cycle widget**
 
 In `CyclePhaseWidgetEntryView.systemSmall`, add this before `Spacer()`:
 
@@ -1348,7 +1352,7 @@ Text(freshnessText(capturedAt: entry.snapshot?.capturedAt))
     .lineLimit(1)
 ```
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 Run:
 
@@ -1358,7 +1362,7 @@ cd SundeeFundeeApp && xcodebuild -project SundeeFundee.xcodeproj -scheme SundeeF
 
 Expected: app and widgets build.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add SundeeFundeeApp/SundeeFundeeWidgets/RecoveryScoreWidget.swift SundeeFundeeApp/SundeeFundeeWidgets/CyclePhaseWidget.swift
@@ -1373,7 +1377,7 @@ git commit -m "fix(widgets): show snapshot freshness"
 
 - No planned file changes. This task proves the release branch state.
 
-- [ ] **Step 1: Regenerate the Xcode project**
+- [x] **Step 1: Regenerate the Xcode project**
 
 Run:
 
@@ -1383,7 +1387,7 @@ cd SundeeFundeeApp && xcodegen generate
 
 Expected: project generation succeeds.
 
-- [ ] **Step 2: Run package tests**
+- [x] **Step 2: Run package tests**
 
 Run:
 
@@ -1393,7 +1397,7 @@ cd SundeeFundee && swift test
 
 Expected: all package tests pass.
 
-- [ ] **Step 3: Build the app**
+- [x] **Step 3: Build the app**
 
 Run:
 
@@ -1403,7 +1407,7 @@ cd SundeeFundeeApp && xcodebuild -project SundeeFundee.xcodeproj -scheme SundeeF
 
 Expected: build succeeds.
 
-- [ ] **Step 4: Run UI smoke tests**
+- [x] **Step 4: Run UI smoke tests**
 
 Run:
 
@@ -1413,7 +1417,7 @@ cd SundeeFundeeApp && xcodebuild test -project SundeeFundee.xcodeproj -scheme Su
 
 Expected: UI test passes or fails only on known screenshot timing. If it fails, capture the failing element and fix the relevant accessibility label or navigation path.
 
-- [ ] **Step 5: Manual App Review rehearsal**
+- [x] **Step 5: Manual App Review rehearsal**
 
 On a simulator with StoreKit configuration enabled, verify this exact path:
 
@@ -1431,7 +1435,7 @@ Expected:
 - Export still works from Progress and Data Trust Center.
 - Delete account confirmation still appears from Settings and Data Trust Center.
 
-- [ ] **Step 6: Verify metadata references**
+- [x] **Step 6: Verify metadata references**
 
 Run:
 
@@ -1449,7 +1453,7 @@ rg -n "Support the Developer|support.tip199|optional consumable" SundeeFundeeApp
 
 Expected: matches in Settings/support code and App Review metadata.
 
-- [ ] **Step 7: Confirm no verification fixes are pending**
+- [x] **Step 7: Confirm no verification fixes are pending**
 
 Run:
 
@@ -1459,7 +1463,7 @@ git status --short
 
 Expected: no unstaged or staged source changes from verification. If this command reports changes, stop this task, inspect the changed files, and create a separate fix task before continuing release verification.
 
-- [ ] **Step 8: Stop before App Store submission**
+- [x] **Step 8: Stop before App Store submission**
 
 Do not run `bundle exec fastlane release`, `asc review submit`, upload, or submit for review. This repo's instruction is explicit: never submit the app for App Store review unless the user explicitly asks.
 
