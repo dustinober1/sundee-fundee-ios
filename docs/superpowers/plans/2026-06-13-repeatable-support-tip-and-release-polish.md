@@ -113,7 +113,11 @@ final class SupportTipProductTests: XCTestCase {
         )
         XCTAssertEqual(
             SupportTipStoreError.unverifiedTransaction.userMessage,
-            "The purchase could not be verified. You were not charged by Sundee Fundee."
+            "The purchase could not be verified. Check your App Store purchase history or try again later."
+        )
+        XCTAssertEqual(
+            SupportTipStoreError.unexpectedProductType.userMessage,
+            "Support tips are unavailable right now. Please try again later."
         )
         XCTAssertFalse(SupportTipStoreError.storeKitFailure.userMessage.contains("localizedDescription"))
     }
@@ -178,9 +182,9 @@ public enum SupportTipStoreError: Error, Sendable, Equatable {
         case .productUnavailable:
             return "Support tips are unavailable right now. Please try again later."
         case .unexpectedProductType:
-            return "Support tips are not configured correctly yet."
+            return "Support tips are unavailable right now. Please try again later."
         case .unverifiedTransaction:
-            return "The purchase could not be verified. You were not charged by Sundee Fundee."
+            return "The purchase could not be verified. Check your App Store purchase history or try again later."
         case .storeKitFailure:
             return "The App Store could not complete the request. Please try again."
         }

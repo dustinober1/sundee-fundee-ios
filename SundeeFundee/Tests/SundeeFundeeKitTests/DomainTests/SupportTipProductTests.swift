@@ -18,7 +18,11 @@ final class SupportTipProductTests: XCTestCase {
         )
         XCTAssertEqual(
             SupportTipStoreError.unverifiedTransaction.userMessage,
-            "The purchase could not be verified. You were not charged by Sundee Fundee."
+            "The purchase could not be verified. Check your App Store purchase history or try again later."
+        )
+        XCTAssertEqual(
+            SupportTipStoreError.unexpectedProductType.userMessage,
+            "Support tips are unavailable right now. Please try again later."
         )
         XCTAssertFalse(SupportTipStoreError.storeKitFailure.userMessage.contains("localizedDescription"))
     }
