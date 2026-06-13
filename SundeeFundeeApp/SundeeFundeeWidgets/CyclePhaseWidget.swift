@@ -65,6 +65,10 @@ struct CyclePhaseWidgetEntryView: View {
                     .font(.footnote)
                     .foregroundStyle(.primary)
             }
+            Text(freshnessText(capturedAt: entry.snapshot?.capturedAt))
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
@@ -108,6 +112,13 @@ struct CyclePhaseWidgetEntryView: View {
     private var phaseColor: Color {
         if entry.snapshot?.isSharkWeek == true { return AppTheme.Semantic.error }
         return AppTheme.Accent.gold
+    }
+
+    private func freshnessText(capturedAt: Date?) -> String {
+        guard let capturedAt else { return "Open app to update" }
+        let hours = Calendar.current.dateComponents([.hour], from: capturedAt, to: Date()).hour ?? 0
+        if hours >= 24 { return "Open app to refresh" }
+        return "Updated \(capturedAt.formatted(.relative(presentation: .numeric)))"
     }
 }
 

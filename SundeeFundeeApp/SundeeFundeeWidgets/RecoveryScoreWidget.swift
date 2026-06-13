@@ -69,6 +69,10 @@ struct RecoveryScoreWidgetEntryView: View {
             Text(verdictText)
                 .font(.footnote.weight(.semibold))
                 .foregroundStyle(.primary)
+            Text(freshnessText(capturedAt: entry.snapshot?.capturedAt))
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
         .padding()
@@ -92,7 +96,7 @@ struct RecoveryScoreWidgetEntryView: View {
                     Text("\(snapshot.presentInputCount)/5 signals")
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                    Text(snapshot.capturedAt, style: .relative)
+                    Text(freshnessText(capturedAt: snapshot.capturedAt))
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                 }
@@ -147,6 +151,13 @@ struct RecoveryScoreWidgetEntryView: View {
         case "restDay": return AppTheme.Semantic.error
         default: return AppTheme.Text.primary
         }
+    }
+
+    private func freshnessText(capturedAt: Date?) -> String {
+        guard let capturedAt else { return "Open app to update" }
+        let hours = Calendar.current.dateComponents([.hour], from: capturedAt, to: Date()).hour ?? 0
+        if hours >= 24 { return "Open app to refresh" }
+        return "Updated \(capturedAt.formatted(.relative(presentation: .numeric)))"
     }
 }
 
