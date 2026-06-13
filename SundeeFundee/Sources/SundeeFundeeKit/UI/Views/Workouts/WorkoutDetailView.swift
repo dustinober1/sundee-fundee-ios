@@ -574,7 +574,7 @@ class WorkoutDetailViewModel: ObservableObject {
                 await detectPersonalRecords()
             }
         } catch {
-            errorMessage = "Failed to load workout: \(error.localizedDescription)"
+            errorMessage = "We couldn't load that workout. Check your connection and try again."
         }
         isLoading = false
     }
@@ -595,7 +595,7 @@ class WorkoutDetailViewModel: ObservableObject {
         do {
             try await dataClient.save(workout, recordType: "Workout")
         } catch {
-            errorMessage = "Failed to save: \(error.localizedDescription)"
+            errorMessage = "We couldn't save your workout. Check your connection and try again."
         }
     }
 
@@ -623,7 +623,7 @@ class WorkoutDetailViewModel: ObservableObject {
         do {
             try await dataClient.save(workout, recordType: "Workout")
         } catch {
-            errorMessage = "Failed to save: \(error.localizedDescription)"
+            errorMessage = "We couldn't update that workout. Check your connection and try again."
         }
     }
 
@@ -661,7 +661,7 @@ class WorkoutDetailViewModel: ObservableObject {
                 NotificationCenter.default.post(name: .workoutCompleted, object: nil)
             }
         } catch {
-            errorMessage = "Failed to complete workout: \(error.localizedDescription)"
+            errorMessage = "We couldn't complete that workout. Check your connection and try again."
         }
     }
 
@@ -684,7 +684,7 @@ class WorkoutDetailViewModel: ObservableObject {
         do {
             try await dataClient.save(workout, recordType: "Workout")
         } catch {
-            errorMessage = "Failed to save: \(error.localizedDescription)"
+            errorMessage = "We couldn't update that workout. Check your connection and try again."
         }
     }
 

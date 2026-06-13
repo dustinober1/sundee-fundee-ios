@@ -36,7 +36,7 @@ final class MonthlyReviewViewModel {
                 symptomLogs: symptomLogs
             )
         } catch {
-            errorMessage = "Could not load monthly review. Please try again."
+            errorMessage = "We couldn't load your monthly review. Check your connection and try again."
         }
 
         isLoading = false
@@ -60,7 +60,7 @@ public struct MonthlyReviewDetailView: View {
         ScrollView {
             VStack(spacing: AppTheme.Spacing.lg) {
                 if viewModel.isLoading {
-                    ProgressView()
+                    ProgressView("Loading monthly review")
                         .padding(.top, AppTheme.Spacing.xxxl)
                 } else if let error = viewModel.errorMessage {
                     errorView(message: error)

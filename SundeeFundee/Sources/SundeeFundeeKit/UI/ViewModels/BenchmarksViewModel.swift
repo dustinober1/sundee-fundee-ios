@@ -135,7 +135,7 @@ public class BenchmarksListViewModel: ObservableObject {
 
             userResults = grouped
         } catch {
-            errorMessage = "Failed to load benchmark results: \(error.localizedDescription)"
+            errorMessage = "We couldn't load benchmark results. Check your connection and try again."
         }
     }
 
@@ -245,7 +245,7 @@ public class BenchmarkDetailViewModel: ObservableObject {
             isLoading = false
             return true
         } catch {
-            errorMessage = "Failed to save result: \(error.localizedDescription)"
+            errorMessage = "We couldn't save your benchmark result. Check your connection and try again."
             isLoading = false
             return false
         }
@@ -320,7 +320,7 @@ public class BenchmarkDetailViewModel: ObservableObject {
                 .filter { $0.benchmarkId == benchmarkId }
                 .sorted { $0.date > $1.date }
         } catch {
-            errorMessage = "Failed to load results: \(error.localizedDescription)"
+            errorMessage = "We couldn't load benchmark results. Check your connection and try again."
         }
     }
 

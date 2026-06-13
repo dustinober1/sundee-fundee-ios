@@ -121,7 +121,7 @@ public class AnalyticsViewModel: ObservableObject {
             // Reaggregate with current time range
             reaggregate()
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = "We couldn't load analytics. Check your connection and try again."
             // Clear chart data on error — graceful degradation
             strengthData = []
             volumeData = []

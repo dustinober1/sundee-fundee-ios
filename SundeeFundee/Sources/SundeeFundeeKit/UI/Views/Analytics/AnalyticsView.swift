@@ -114,14 +114,9 @@ public struct AnalyticsView: View {
 
     private var loadingState: some View {
         VStack(spacing: AppTheme.Spacing.lg) {
-            ProgressView()
+            ProgressView("Loading analytics")
                 .progressViewStyle(.circular)
                 .tint(AppTheme.Accent.gold)
-                .accessibilityLabel("Loading analytics data")
-
-            Text("Loading analytics…")
-                .font(AppTheme.Typography.bodyMedium)
-                .foregroundColor(AppTheme.Text.secondary)
         }
         .frame(maxWidth: .infinity, minHeight: 300)
     }

@@ -44,7 +44,7 @@ public class PainTrackingViewModel: ObservableObject {
             painLogs = records.sorted { $0.date > $1.date }
             updateRampRecommendations()
         } catch {
-            errorMessage = "Failed to load pain logs: \(error.localizedDescription)"
+            errorMessage = "We couldn't load pain logs. Check your connection and try again."
         }
 
         isLoading = false
@@ -89,7 +89,7 @@ public class PainTrackingViewModel: ObservableObject {
             await loadPainLogs()
             return true
         } catch {
-            errorMessage = "Failed to save pain log: \(error.localizedDescription)"
+            errorMessage = "We couldn't save your pain log. Check your connection and try again."
             isLoading = false
             return false
         }
@@ -127,7 +127,7 @@ public class PainTrackingViewModel: ObservableObject {
 
             injuries = records.sorted { $0.phaseUpdated > $1.phaseUpdated }
         } catch {
-            errorMessage = "Failed to load injuries: \(error.localizedDescription)"
+            errorMessage = "We couldn't load injuries. Check your connection and try again."
         }
 
         isLoading = false
@@ -157,7 +157,7 @@ public class PainTrackingViewModel: ObservableObject {
             try await dataClient.save([injury], recordType: "Injury")
             await loadInjuries()
         } catch {
-            errorMessage = "Failed to save injury: \(error.localizedDescription)"
+            errorMessage = "We couldn't save your injury. Check your connection and try again."
         }
 
         isLoading = false

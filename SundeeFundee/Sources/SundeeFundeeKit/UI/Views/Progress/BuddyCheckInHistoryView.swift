@@ -14,17 +14,15 @@ public struct BuddyCheckInHistoryView: View {
         Group {
             if isLoading {
                 VStack(spacing: AppTheme.Spacing.md) {
-                    ProgressView()
-                    Text("Loading check-ins...")
-                        .font(AppTheme.Typography.bodySmall)
-                        .foregroundColor(AppTheme.Text.secondary)
+                    ProgressView("Loading buddy check-ins")
                 }
                 .frame(maxWidth: .infinity, minHeight: 200)
             } else if let loadError {
                 VStack(spacing: AppTheme.Spacing.md) {
                     Image(systemName: "exclamationmark.triangle")
-                        .font(.system(.largeTitle))
+                        .font(.largeTitle)
                         .foregroundColor(AppTheme.Accent.orange)
+                        .accessibilityHidden(true)
                     Text(loadError)
                         .font(AppTheme.Typography.bodyMedium)
                         .foregroundColor(AppTheme.Text.secondary)
@@ -40,8 +38,9 @@ public struct BuddyCheckInHistoryView: View {
             } else if checkIns.isEmpty {
                 VStack(spacing: AppTheme.Spacing.md) {
                     Image(systemName: "person.2.checkmark")
-                        .font(.system(.largeTitle))
+                        .font(.largeTitle)
                         .foregroundColor(AppTheme.Accent.gold)
+                        .accessibilityHidden(true)
                     Text("No Check-Ins Yet")
                         .font(AppTheme.Typography.headlineLarge)
                         .foregroundColor(AppTheme.Text.primary)
@@ -129,7 +128,7 @@ public struct BuddyCheckInHistoryView: View {
             )
             checkIns = records.sorted { $0.dateCreated > $1.dateCreated }
         } catch {
-            loadError = "Could not load check-ins. Please try again."
+            loadError = "We couldn't load buddy check-ins. Check your connection and try again."
         }
     }
 }

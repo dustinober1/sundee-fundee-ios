@@ -91,7 +91,7 @@ public class ExportViewModel: ObservableObject {
             try jsonData.write(to: fileURL, options: .atomic)
             return fileURL
         } catch {
-            errorMessage = "Failed to generate export file: \(error.localizedDescription)"
+            errorMessage = "We couldn't generate your export file. Please try again."
             return nil
         }
     }

@@ -161,7 +161,7 @@ public struct SubstitutionPickerSheet: View {
                 seen.insert(sub.exerciseName).inserted
             }
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = "We couldn't find alternatives. Please try again."
         }
     }
 }

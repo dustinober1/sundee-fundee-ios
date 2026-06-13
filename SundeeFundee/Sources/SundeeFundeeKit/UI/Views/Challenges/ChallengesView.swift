@@ -17,10 +17,7 @@ public struct ChallengesView: View {
             VStack(spacing: AppTheme.Spacing.lg) {
                 if viewModel.isLoading {
                     VStack(spacing: AppTheme.Spacing.md) {
-                        ProgressView()
-                        Text("Loading challenges…")
-                            .font(AppTheme.Typography.bodySmall)
-                            .foregroundColor(AppTheme.Text.secondary)
+                        ProgressView("Loading challenges")
                     }
                     .frame(maxWidth: .infinity, minHeight: 200)
                 } else if let error = viewModel.loadError {
@@ -539,7 +536,7 @@ class ChallengesViewModel: ObservableObject {
             completedChallenges = all.filter { $0.status == .completed || $0.status == .expired }
                 .sorted { $0.dateCreated > $1.dateCreated }
         } catch {
-            loadError = error.localizedDescription
+            loadError = "We couldn't load challenges. Check your connection and try again."
         }
         isLoading = false
     }

@@ -60,7 +60,7 @@ struct CycleSettingsView: View {
                     HStack {
                         Spacer()
                         if isSaving {
-                            ProgressView()
+                            ProgressView("Saving cycle settings")
                         } else {
                             Text("Save Cycle Length")
                         }
@@ -104,7 +104,7 @@ struct CycleSettingsView: View {
                         HStack {
                             Spacer()
                             if isEndingPeriod {
-                                ProgressView()
+                                ProgressView("Ending period")
                             } else {
                                 HStack(spacing: AppTheme.Spacing.sm) {
                                     Image(systemName: "checkmark.circle.fill")
@@ -130,7 +130,7 @@ struct CycleSettingsView: View {
                         HStack {
                             Spacer()
                             if isLogging {
-                                ProgressView()
+                                ProgressView("Starting period")
                             } else {
                                 HStack(spacing: AppTheme.Spacing.sm) {
                                     Image(systemName: "drop.fill")
@@ -161,7 +161,7 @@ struct CycleSettingsView: View {
                             HStack {
                                 Spacer()
                                 if isLogging {
-                                    ProgressView()
+                                    ProgressView("Saving period log")
                                 } else {
                                     HStack(spacing: AppTheme.Spacing.sm) {
                                         Image(systemName: "plus.circle.fill")
@@ -290,7 +290,7 @@ struct CycleSettingsView: View {
             try await dataClient.save(record, recordType: "CycleSettings")
             NotificationCenter.default.post(name: .cycleDataUpdated, object: nil)
         } catch {
-            errorMessage = "Failed to save: \(error.localizedDescription)"
+            errorMessage = "We couldn't save your cycle settings. Check your connection and try again."
         }
         isSaving = false
     }
@@ -313,7 +313,7 @@ struct CycleSettingsView: View {
             NotificationCenter.default.post(name: .cycleDataUpdated, object: nil)
             periodStartDate = Date()
         } catch {
-            errorMessage = "Failed to start period: \(error.localizedDescription)"
+            errorMessage = "We couldn't start your period log. Check your connection and try again."
         }
         isLogging = false
     }
@@ -332,7 +332,7 @@ struct CycleSettingsView: View {
             cyclePhaseCache.markPeriodEnded()
             NotificationCenter.default.post(name: .cycleDataUpdated, object: nil)
         } catch {
-            errorMessage = "Failed to end period: \(error.localizedDescription)"
+            errorMessage = "We couldn't end your period log. Check your connection and try again."
         }
         isEndingPeriod = false
     }
@@ -356,7 +356,7 @@ struct CycleSettingsView: View {
             periodStartDate = Date()
             periodEndDate = Date()
         } catch {
-            errorMessage = "Failed to log period: \(error.localizedDescription)"
+            errorMessage = "We couldn't save your period log. Check your connection and try again."
         }
         isLogging = false
     }
@@ -384,7 +384,7 @@ struct CycleSettingsView: View {
 
             NotificationCenter.default.post(name: .cycleDataUpdated, object: nil)
         } catch {
-            errorMessage = "Failed to update period: \(error.localizedDescription)"
+            errorMessage = "We couldn't update your period log. Check your connection and try again."
         }
     }
 

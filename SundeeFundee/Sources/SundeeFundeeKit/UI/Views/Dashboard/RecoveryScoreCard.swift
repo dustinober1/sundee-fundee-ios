@@ -101,7 +101,7 @@ struct RecoveryScoreCard: View {
         ArtDecoCard {
             VStack(spacing: AppTheme.Spacing.md) {
                 Image(systemName: "heart.circle")
-                    .font(.system(.largeTitle))
+                    .font(.largeTitle)
                     .foregroundColor(AppTheme.Accent.gold)
                     .accessibilityHidden(true)
 
@@ -120,7 +120,7 @@ struct RecoveryScoreCard: View {
     private var loadingState: some View {
         ArtDecoCard {
             VStack {
-                ProgressView()
+                ProgressView("Loading recovery score")
                     .frame(width: 200, height: 200)
                 Text("Recovery Score")
                     .font(AppTheme.Typography.headlineSmall)

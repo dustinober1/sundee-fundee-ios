@@ -394,7 +394,7 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
         do {
             try await dataClient.save(workout, recordType: "Workout")
         } catch {
-            errorMessage = "Failed to save workout: \(error.localizedDescription)"
+            errorMessage = "We couldn't save your workout. Check your connection and try again."
         }
 
         // Update challenge volume

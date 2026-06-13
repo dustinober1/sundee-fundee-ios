@@ -25,6 +25,9 @@ public struct SupportDeveloperSection: View {
             Button {
                 Task {
                     await viewModel.purchase()
+                    if viewModel.message == "Thank you for supporting Sundee Fundee." {
+                        HapticFeedback.success()
+                    }
                 }
             } label: {
                 HStack {

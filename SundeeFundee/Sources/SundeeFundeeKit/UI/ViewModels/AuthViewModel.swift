@@ -129,7 +129,7 @@ public class AuthViewModel: ObservableObject {
             self.isAuthenticated = true
             self.needsOnboarding = KeychainHelper.read(key: "onboarding_complete") == nil
         } catch {
-            self.errorMessage = "Sign in failed: \(error.localizedDescription)"
+            self.errorMessage = "Sign in failed. Please try again."
         }
 
         isLoading = false
@@ -187,7 +187,7 @@ public class AuthViewModel: ObservableObject {
             // 3. Reset state and clear credentials
             await resetState()
         } catch {
-            self.errorMessage = "Failed to delete account: \(error.localizedDescription)"
+            self.errorMessage = "We couldn't delete your account. Check your connection and try again."
         }
 
         isLoading = false
