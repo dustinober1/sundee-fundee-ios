@@ -34,7 +34,7 @@ public final class SupportTipViewModel: ObservableObject {
     }
 
     public func loadOffer() async {
-        guard state != .loading else { return }
+        guard state != .loading, state != .purchasing else { return }
         state = .loading
         message = nil
 
@@ -51,6 +51,13 @@ public final class SupportTipViewModel: ObservableObject {
     }
 
     public func purchase() async {
+        guard state != .loading, state != .purchasing else { return }
+        guard offer != nil else {
+            state = .failed
+            message = SupportTipStoreError.productUnavailable.userMessage
+            return
+        }
+
         state = .purchasing
         message = nil
 
