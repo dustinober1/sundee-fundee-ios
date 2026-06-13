@@ -93,6 +93,8 @@ public struct SettingsView: View {
                     }
                 }
 
+                SupportDeveloperSection()
+
                 // Diagnostics Section — only visible when there's something to surface
                 if diagnostics.decodeFailureCount > 0 {
                     Section("Diagnostics") {

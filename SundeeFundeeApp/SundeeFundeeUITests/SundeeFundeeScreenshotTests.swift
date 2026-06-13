@@ -128,6 +128,12 @@ final class SundeeFundeeScreenshotTests: XCTestCase {
         settingsButton.tap()
         guard waitForScreen(title: "Settings", timeout: 10) else { return }
 
+        let supportDeveloper = app.staticTexts["Support the Developer"].firstMatch
+        XCTAssertTrue(
+            scrollToElement(supportDeveloper, in: app.tables.firstMatch),
+            "Missing Support the Developer row in Settings"
+        )
+
         let trustCenter = app.staticTexts["Data Trust Center"].firstMatch
         if scrollToElement(trustCenter, in: app.tables.firstMatch), trustCenter.isHittable {
             trustCenter.tap()
