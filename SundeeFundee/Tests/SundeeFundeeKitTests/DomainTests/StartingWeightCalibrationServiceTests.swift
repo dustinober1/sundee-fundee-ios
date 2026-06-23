@@ -8,7 +8,6 @@ final class StartingWeightCalibrationServiceTests: XCTestCase {
             for: exercise,
             maxRecords: [OneRepMaxRecord(id: "1", exerciseName: "Back Squat", weight: 200, unit: .lbs, date: Date())],
             experienceLevel: .intermediate,
-            recoveryScore: nil,
             unit: .lbs
         )
 
@@ -22,33 +21,30 @@ final class StartingWeightCalibrationServiceTests: XCTestCase {
             for: exercise,
             maxRecords: [],
             experienceLevel: .beginner,
-            recoveryScore: nil,
             unit: .lbs
         )
 
         XCTAssertEqual(suggestion.suggestedWeight, 45)
     }
 
-    func testLowRecoveryReducesSuggestedLoad() {
+    func testExperienceLevelAdjustsSuggestedLoad() {
         let exercise = weightedExercise(name: "Back Squat", reps: 5)
-        let highRecoverySuggestion = StartingWeightCalibrationService.suggestion(
+        let beginnerSuggestion = StartingWeightCalibrationService.suggestion(
             for: exercise,
             maxRecords: [OneRepMaxRecord(id: "1", exerciseName: "Back Squat", weight: 200, unit: .lbs, date: Date())],
-            experienceLevel: .advanced,
-            recoveryScore: makeRecovery(total: 80),
+            experienceLevel: .beginner,
             unit: .lbs
         )
-        let lowRecoverySuggestion = StartingWeightCalibrationService.suggestion(
+        let advancedSuggestion = StartingWeightCalibrationService.suggestion(
             for: exercise,
             maxRecords: [OneRepMaxRecord(id: "1", exerciseName: "Back Squat", weight: 200, unit: .lbs, date: Date())],
             experienceLevel: .advanced,
-            recoveryScore: makeRecovery(total: 35),
             unit: .lbs
         )
 
-        XCTAssertNotNil(highRecoverySuggestion.suggestedWeight)
-        XCTAssertNotNil(lowRecoverySuggestion.suggestedWeight)
-        XCTAssertTrue((lowRecoverySuggestion.suggestedWeight ?? 0) < (highRecoverySuggestion.suggestedWeight ?? 0))
+        XCTAssertNotNil(beginnerSuggestion.suggestedWeight)
+        XCTAssertNotNil(advancedSuggestion.suggestedWeight)
+        XCTAssertTrue((beginnerSuggestion.suggestedWeight ?? 0) < (advancedSuggestion.suggestedWeight ?? 0))
     }
 
     func testBodyweightExerciseReturnsGuidanceInsteadOfWeight() {
@@ -63,8 +59,7 @@ final class StartingWeightCalibrationServiceTests: XCTestCase {
         let suggestion = StartingWeightCalibrationService.suggestion(
             for: exercise,
             maxRecords: [],
-            experienceLevel: .beginner,
-            recoveryScore: nil
+            experienceLevel: .beginner
         )
 
         XCTAssertNil(suggestion.suggestedWeight)
@@ -78,17 +73,6 @@ final class StartingWeightCalibrationServiceTests: XCTestCase {
             category: .compound,
             bodyweight: 0,
             targetSets: [ExerciseSet(reps: reps, prescribedWeight: 0, type: .fixed)]
-        )
-    }
-
-    private func makeRecovery(total: Int) -> RecoveryScore {
-        RecoveryScore(
-            total: total,
-            recommendation: total >= 70 ? .pushDay : (total >= 40 ? .moderate : .restDay),
-            subScores: [.sleep: total],
-            presentInputCount: 1,
-            totalInputCount: 5,
-            explanations: [.sleep: "Sleep"]
         )
     }
 }

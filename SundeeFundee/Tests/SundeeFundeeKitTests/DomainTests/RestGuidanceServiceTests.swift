@@ -49,26 +49,24 @@ final class RestGuidanceServiceTests: XCTestCase {
         XCTAssertTrue(missedReps.reason.localizedCaseInsensitiveContains("missed"))
     }
 
-    func testLowRecoveryAddsRestButCapsAtFiveMinutes() {
-        let normalRecovery = RestGuidanceService.guidance(
+    func testHardMissedSetAddsRestButCapsAtFiveMinutes() {
+        let baseline = RestGuidanceService.guidance(
             context: context(
                 exercise: exercise(name: "Back Squat", category: .compound, reps: 3, restMinutes: 4.5),
-                completedSet: set(reps: 3, actualReps: 3),
-                recoveryScoreTotal: 80
+                completedSet: set(reps: 3, actualReps: 3)
             )
         )
-        let lowRecovery = RestGuidanceService.guidance(
+        let hardMissedSet = RestGuidanceService.guidance(
             context: context(
                 exercise: exercise(name: "Back Squat", category: .compound, reps: 3, restMinutes: 4.5),
                 completedSet: set(reps: 3, actualReps: 2),
-                lastRPE: 9,
-                recoveryScoreTotal: 30
+                lastRPE: 9
             )
         )
 
-        XCTAssertGreaterThan(lowRecovery.seconds, normalRecovery.seconds)
-        XCTAssertEqual(lowRecovery.seconds, 300)
-        XCTAssertTrue(lowRecovery.reason.localizedCaseInsensitiveContains("recovery"))
+        XCTAssertGreaterThan(hardMissedSet.seconds, baseline.seconds)
+        XCTAssertEqual(hardMissedSet.seconds, 300)
+        XCTAssertTrue(hardMissedSet.reason.localizedCaseInsensitiveContains("hard"))
     }
 
     func testConditioningWorkKeepsRestShortUnlessRepsWereMissed() {
@@ -106,14 +104,12 @@ final class RestGuidanceServiceTests: XCTestCase {
     private func context(
         exercise: Exercise,
         completedSet: ExerciseSet,
-        lastRPE: Int? = nil,
-        recoveryScoreTotal: Int? = nil
+        lastRPE: Int? = nil
     ) -> RestGuidanceContext {
         RestGuidanceContext(
             exercise: exercise,
             completedSet: completedSet,
-            lastRPE: lastRPE,
-            recoveryScoreTotal: recoveryScoreTotal
+            lastRPE: lastRPE
         )
     }
 

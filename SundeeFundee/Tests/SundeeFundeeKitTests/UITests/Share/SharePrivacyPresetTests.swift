@@ -23,7 +23,6 @@ final class SharePrivacyPresetTests: XCTestCase {
     func testPrivateDefaultHasAllFieldsFalse() {
         let options = SharePrivacyOptions.privateDefault
         XCTAssertFalse(options.showCycleContext)
-        XCTAssertFalse(options.showRecoveryScore)
         XCTAssertFalse(options.showPainContext)
         XCTAssertFalse(options.showExactDate)
     }
@@ -33,7 +32,6 @@ final class SharePrivacyPresetTests: XCTestCase {
     func testSavedPresetReturnsSavedValues() {
         let preset = SharePrivacyOptions(
             showCycleContext: true,
-            showRecoveryScore: true,
             showPainContext: false,
             showExactDate: true
         )
@@ -42,7 +40,6 @@ final class SharePrivacyPresetTests: XCTestCase {
         let loaded = SharePrivacyOptions.savedPreset
         XCTAssertEqual(loaded, preset)
         XCTAssertTrue(loaded.showCycleContext)
-        XCTAssertTrue(loaded.showRecoveryScore)
         XCTAssertFalse(loaded.showPainContext)
         XCTAssertTrue(loaded.showExactDate)
     }
@@ -57,7 +54,6 @@ final class SharePrivacyPresetTests: XCTestCase {
     func testSavingCycleContextDoesNotImplyPainContext() {
         let preset = SharePrivacyOptions(
             showCycleContext: true,
-            showRecoveryScore: false,
             showPainContext: false,
             showExactDate: false
         )
@@ -73,7 +69,6 @@ final class SharePrivacyPresetTests: XCTestCase {
     func testRoundTripEncodeDecode() throws {
         let original = SharePrivacyOptions(
             showCycleContext: true,
-            showRecoveryScore: false,
             showPainContext: true,
             showExactDate: false
         )
@@ -86,7 +81,6 @@ final class SharePrivacyPresetTests: XCTestCase {
 
         XCTAssertEqual(decoded, original)
         XCTAssertTrue(decoded.showCycleContext)
-        XCTAssertFalse(decoded.showRecoveryScore)
         XCTAssertTrue(decoded.showPainContext)
         XCTAssertFalse(decoded.showExactDate)
     }
@@ -94,7 +88,6 @@ final class SharePrivacyPresetTests: XCTestCase {
     func testRoundTripEncodeDecodeAllTrue() throws {
         let original = SharePrivacyOptions(
             showCycleContext: true,
-            showRecoveryScore: true,
             showPainContext: true,
             showExactDate: true
         )
@@ -108,7 +101,6 @@ final class SharePrivacyPresetTests: XCTestCase {
     func testRoundTripEncodeDecodeAllFalse() throws {
         let original = SharePrivacyOptions(
             showCycleContext: false,
-            showRecoveryScore: false,
             showPainContext: false,
             showExactDate: false
         )

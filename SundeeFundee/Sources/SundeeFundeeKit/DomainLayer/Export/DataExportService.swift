@@ -34,7 +34,6 @@ public struct DataExportService: Sendable {
         async let ormResult: [OneRepMaxRecord] = safeFetch(recordType: "OneRepMaxRecord")
         async let completedResult: [CompletedWorkoutRecord] = safeFetch(recordType: "CompletedWorkoutRecord")
         async let cyclePhasesResult: [CyclePhaseInfo] = safeFetch(recordType: "CyclePhaseInfo")
-        async let recoveryScoresResult: [RecoveryScoreRecord] = safeFetch(recordType: "RecoveryScore")
         async let cycleSettingsResult: [CycleSettingsRecord] = safeFetch(recordType: "CycleSettings")
         async let benchmarksResult: [BenchmarkResult] = safeFetch(recordType: "BenchmarkResult")
         async let injuriesResult: [Injury] = safeFetch(recordType: "Injury")
@@ -55,7 +54,6 @@ public struct DataExportService: Sendable {
             ormRecords,
             completedWorkouts,
             cyclePhases,
-            recoveryScores,
             cycleSettingsRecords,
             benchmarkResults,
             injuries,
@@ -74,7 +72,6 @@ public struct DataExportService: Sendable {
             ormResult,
             completedResult,
             cyclePhasesResult,
-            recoveryScoresResult,
             cycleSettingsResult,
             benchmarksResult,
             injuriesResult,
@@ -95,7 +92,6 @@ public struct DataExportService: Sendable {
             oneRepMaxRecords: ormRecords,
             completedWorkoutRecords: completedWorkouts,
             cyclePhaseInfo: cyclePhases,
-            recoveryScoreRecords: recoveryScores,
             benchmarkResults: benchmarkResults,
             injuries: injuries,
             painLogs: painLogs,

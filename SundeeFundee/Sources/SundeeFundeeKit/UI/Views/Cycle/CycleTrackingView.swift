@@ -31,7 +31,7 @@ public struct CycleTrackingView: View {
                     Task { await settings.saveSettings() }
                 }
 
-                Section("Pain & Recovery") {
+                Section("Check-Ins") {
                     Button {
                         showingQuickCheckIn = true
                     } label: {
@@ -50,11 +50,6 @@ public struct CycleTrackingView: View {
                         Label("Symptom Check-In", systemImage: "waveform.path.ecg")
                     }
 
-                    NavigationLink {
-                        RecoveryOverviewView()
-                    } label: {
-                        Label("Recovery Score", systemImage: "heart.circle")
-                    }
                 }
 
                 if settings.cycleTrackingEnabled {

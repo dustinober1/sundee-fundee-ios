@@ -11,7 +11,6 @@ public struct SharePrivacyDefaultsView: View {
         Form {
             Section {
                 Toggle("Show cycle context", isOn: $privacyOptions.showCycleContext)
-                Toggle("Show recovery score", isOn: $privacyOptions.showRecoveryScore)
                 Toggle("Show pain context", isOn: $privacyOptions.showPainContext)
                 Toggle("Show exact date", isOn: $privacyOptions.showExactDate)
             } header: {

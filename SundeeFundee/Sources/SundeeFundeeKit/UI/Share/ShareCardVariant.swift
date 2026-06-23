@@ -42,18 +42,15 @@ public struct ShareSummary: Sendable, Equatable {
 
 public struct SharePrivacyOptions: Sendable, Equatable, Codable {
     public var showCycleContext: Bool
-    public var showRecoveryScore: Bool
     public var showPainContext: Bool
     public var showExactDate: Bool
 
     public init(
         showCycleContext: Bool = false,
-        showRecoveryScore: Bool = false,
         showPainContext: Bool = false,
         showExactDate: Bool = false
     ) {
         self.showCycleContext = showCycleContext
-        self.showRecoveryScore = showRecoveryScore
         self.showPainContext = showPainContext
         self.showExactDate = showExactDate
     }
@@ -74,14 +71,6 @@ public struct SharePrivacyOptions: Sendable, Equatable, Codable {
             redacted = redacted.replacingOccurrences(of: "cycle", with: "readiness", options: [.caseInsensitive])
             redacted = redacted.replacingOccurrences(of: "phase", with: "timing", options: [.caseInsensitive])
             redacted = redacted.replacingOccurrences(of: "day ", with: "", options: [.caseInsensitive])
-        }
-        if !showRecoveryScore {
-            redacted = redacted.replacingOccurrences(of: "recovery", with: "readiness", options: [.caseInsensitive])
-            redacted = redacted.replacingOccurrences(
-                of: "score",
-                with: "signal",
-                options: [.caseInsensitive]
-            )
         }
         if !showPainContext {
             redacted = redacted.replacingOccurrences(of: "pain", with: "comfort", options: [.caseInsensitive])

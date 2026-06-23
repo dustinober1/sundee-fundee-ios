@@ -6,23 +6,7 @@ private let snapshotLogger = Logger(subsystem: "com.sundeefundee.app", category:
 // MARK: - SharedSnapshotStore
 //
 // App Group-backed store shared between the main app and the widget extension.
-// The widget imports SundeeFundeeKit and reads via readRecovery / readCycle;
-// the main app writes after recomputing Recovery Score or cycle phase.
-
-/// Snapshot of today's Recovery Score, readable from the widget extension.
-public struct RecoverySnapshot: Codable, Sendable, Equatable {
-    public let total: Int
-    public let recommendationRaw: String
-    public let capturedAt: Date
-    public let presentInputCount: Int
-
-    public init(total: Int, recommendationRaw: String, capturedAt: Date, presentInputCount: Int) {
-        self.total = total
-        self.recommendationRaw = recommendationRaw
-        self.capturedAt = capturedAt
-        self.presentInputCount = presentInputCount
-    }
-}
+// The widget imports SundeeFundeeKit and reads cycle state written by the main app.
 
 /// Snapshot of current cycle phase, readable from the widget extension.
 public struct CyclePhaseSnapshot: Codable, Sendable, Equatable {
@@ -43,32 +27,14 @@ public enum SharedSnapshotStore {
 
     public static let suiteName = "group.com.sundeefundee.shared"
 
-    private static let recoveryKey = "recoverySnapshot.v1"
     private static let cycleKey = "cycleSnapshot.v1"
     private static let sharkWeekBannerSuppressedKey = "sharkWeekBannerSuppressed.v1"
 
     /// Overridable suite for tests. Defaults to the shared App Group.
     /// `nonisolated(unsafe)` because this is a test seam — production code
     /// only reads/writes through the enum's static methods from the main actor
-    /// (RecoveryScoreViewModel, CyclePhaseCache, widget timeline provider).
+    /// (CyclePhaseCache, widget timeline provider).
     nonisolated(unsafe) public static var defaults: UserDefaults? = UserDefaults(suiteName: suiteName)
-
-    // MARK: - Recovery
-
-    public static func writeRecovery(_ snapshot: RecoverySnapshot) {
-        guard let defaults else { return }
-        do {
-            let data = try encoder().encode(snapshot)
-            defaults.set(data, forKey: recoveryKey)
-        } catch {
-            snapshotLogger.error("writeRecovery failed: \(error.localizedDescription)")
-        }
-    }
-
-    public static func readRecovery() -> RecoverySnapshot? {
-        guard let defaults, let data = defaults.data(forKey: recoveryKey) else { return nil }
-        return try? decoder().decode(RecoverySnapshot.self, from: data)
-    }
 
     // MARK: - Cycle
 
@@ -90,7 +56,6 @@ public enum SharedSnapshotStore {
     // MARK: - Test helpers
 
     public static func clear() {
-        defaults?.removeObject(forKey: recoveryKey)
         defaults?.removeObject(forKey: cycleKey)
         defaults?.removeObject(forKey: sharkWeekBannerSuppressedKey)
     }

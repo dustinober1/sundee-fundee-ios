@@ -50,7 +50,6 @@ public struct DataInventoryService: Sendable {
         async let maxes: [OneRepMaxRecord] = safeFetch(recordType: "OneRepMaxRecord")
         async let cycleLogs: [PeriodLogRecord] = safeFetch(recordType: "PeriodLogRecord")
         async let painLogs: [DailyPainLog] = safeFetch(recordType: "DailyPainLog")
-        async let recoveryScores: [RecoveryScoreRecord] = safeFetch(recordType: "RecoveryScore")
         async let benchmarks: [BenchmarkResult] = safeFetch(recordType: "BenchmarkResult")
         async let weeklyPlans: [WeeklyTrainingPlan] = safeFetch(recordType: "WeeklyTrainingPlan")
         async let settings: [UserSettingsRecord] = safeFetch(recordType: "UserSettings")
@@ -102,15 +101,6 @@ public struct DataInventoryService: Sendable {
                 canDelete: true
             ),
             DataInventoryItem(
-                id: "recovery",
-                title: "Recovery Scores",
-                count: recoveryScores.count,
-                storage: "iCloud (CloudKit) and widget snapshot storage",
-                notes: "Derived from available sleep, HRV, cycle, pain, and load data.",
-                canExport: true,
-                canDelete: true
-            ),
-            DataInventoryItem(
                 id: "planning",
                 title: "Weekly Plans",
                 count: weeklyPlans.count,
@@ -124,7 +114,7 @@ public struct DataInventoryService: Sendable {
                 title: "HealthKit Read Access",
                 count: nil,
                 storage: "Apple Health (read-only unless explicitly saved)",
-                notes: "Sleep and HRV are optional reads used for readiness scoring.",
+                notes: "Optional read access can help import workouts and cycle context.",
                 canExport: false,
                 canDelete: false
             ),

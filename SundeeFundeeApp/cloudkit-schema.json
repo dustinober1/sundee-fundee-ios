@@ -137,8 +137,6 @@ DEFINE SCHEMA
         primaryActionTitle        STRING,
         reasonCodes               LIST<STRING>,
         recommendationDate        STRING QUERYABLE SEARCHABLE SORTABLE,
-        recoveryRecommendationRaw STRING QUERYABLE SEARCHABLE SORTABLE,
-        recoveryScoreTotal        INT64 QUERYABLE SORTABLE,
         statusRaw                 STRING QUERYABLE SEARCHABLE SORTABLE,
         summary                   STRING,
         timeMinutes               INT64 QUERYABLE SORTABLE,
@@ -368,29 +366,6 @@ DEFINE SCHEMA
         GRANT READ TO "_world"
     );
 
-    RECORD TYPE RecoveryScore (
-        "___createTime"        TIMESTAMP,
-        "___createdBy"         REFERENCE,
-        "___etag"              STRING,
-        "___modTime"           TIMESTAMP,
-        "___modifiedBy"        REFERENCE,
-        "___recordID"          REFERENCE QUERYABLE,
-        cyclePhaseRaw          STRING QUERYABLE SORTABLE,
-        cyclePhaseSubScore     INT64 QUERYABLE SORTABLE,
-        dateCreated            STRING QUERYABLE SORTABLE,
-        hrvSubScore            INT64 QUERYABLE SORTABLE,
-        loadSubScore           INT64 QUERYABLE SORTABLE,
-        painSubScore           INT64 QUERYABLE SORTABLE,
-        presentInputCount      INT64 QUERYABLE SORTABLE,
-        recommendationRaw      STRING QUERYABLE SORTABLE,
-        scoreDate              STRING QUERYABLE SEARCHABLE SORTABLE,
-        sleepSubScore          INT64 QUERYABLE SORTABLE,
-        totalScore             INT64 QUERYABLE SORTABLE,
-        GRANT WRITE TO "_creator",
-        GRANT CREATE TO "_icloud",
-        GRANT READ TO "_world"
-    );
-
     RECORD TYPE WeeklyTrainingPlan (
         "___createTime"                  TIMESTAMP,
         "___createdBy"                   REFERENCE,
@@ -403,7 +378,6 @@ DEFINE SCHEMA
         dateCreated                      STRING QUERYABLE SEARCHABLE SORTABLE,
         dateUpdated                      STRING QUERYABLE SEARCHABLE SORTABLE,
         preferredWeekdays                LIST<INT64>,
-        recoveryAwarePlanningEnabled     INT64 QUERYABLE SORTABLE,
         targetWorkoutCount               INT64 QUERYABLE SORTABLE,
         timeAvailableMinutesByWeekdayRaw STRING,
         weekStartDate                    STRING QUERYABLE SEARCHABLE SORTABLE,

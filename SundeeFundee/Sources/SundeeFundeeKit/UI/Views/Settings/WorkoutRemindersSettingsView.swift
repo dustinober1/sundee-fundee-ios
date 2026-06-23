@@ -11,7 +11,6 @@ public struct WorkoutRemindersSettingsView: View {
     @State private var weeklyTarget = 3
     @State private var selectedWeekdays: Set<Int> = [2, 4, 6]
     @State private var cycleAwarePlanningEnabled = false
-    @State private var recoveryAwarePlanningEnabled = false
     private let service = ReminderService()
     private let weeklyPlanService = WeeklyPlanService()
 
@@ -76,7 +75,6 @@ public struct WorkoutRemindersSettingsView: View {
                 }
 
                 Toggle("Use cycle-aware planning", isOn: $cycleAwarePlanningEnabled)
-                Toggle("Use recovery-aware planning", isOn: $recoveryAwarePlanningEnabled)
 
                 Button("Save Weekly Plan Preferences") {
                     Task { await saveWeeklyPlanPreferences() }
@@ -137,7 +135,6 @@ public struct WorkoutRemindersSettingsView: View {
         weeklyTarget = plan.targetWorkoutCount
         selectedWeekdays = Set(plan.preferredWeekdays)
         cycleAwarePlanningEnabled = plan.cycleAwarePlanningEnabled ?? false
-        recoveryAwarePlanningEnabled = plan.recoveryAwarePlanningEnabled ?? false
     }
 
     private func saveWeeklyPlanPreferences() async {
@@ -157,8 +154,7 @@ public struct WorkoutRemindersSettingsView: View {
                 targetWorkoutCount: weeklyTarget,
                 preferredWeekdays: weekdays,
                 timeAvailableMinutesByWeekdayRaw: timeAvailability,
-                cycleAwarePlanningEnabled: cycleAwarePlanningEnabled,
-                recoveryAwarePlanningEnabled: recoveryAwarePlanningEnabled
+                cycleAwarePlanningEnabled: cycleAwarePlanningEnabled
             )
             errorMessage = nil
         } catch {

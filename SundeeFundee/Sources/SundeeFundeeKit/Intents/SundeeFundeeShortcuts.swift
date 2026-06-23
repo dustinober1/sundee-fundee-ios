@@ -27,15 +27,5 @@ public struct SundeeFundeeShortcuts: AppShortcutsProvider {
             shortTitle: "Start workout",
             systemImageName: "figure.strengthtraining.traditional"
         )
-
-        AppShortcut(
-            intent: GetRecoveryScoreIntent(),
-            phrases: [
-                "What's my recovery score in \(.applicationName)",
-                "Recovery score in \(.applicationName)"
-            ],
-            shortTitle: "Recovery score",
-            systemImageName: "heart.text.square"
-        )
     }
 }

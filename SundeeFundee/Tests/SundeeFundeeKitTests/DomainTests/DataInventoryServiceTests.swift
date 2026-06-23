@@ -15,7 +15,6 @@ final class DataInventoryServiceTests: XCTestCase {
         XCTAssertTrue(titles.contains("Benchmarks"))
         XCTAssertTrue(titles.contains("Cycle Logs"))
         XCTAssertTrue(titles.contains("Pain Logs"))
-        XCTAssertTrue(titles.contains("Recovery Scores"))
         XCTAssertTrue(titles.contains("HealthKit Read Access"))
         XCTAssertTrue(titles.contains("Account Profile"))
     }
@@ -32,7 +31,6 @@ final class DataInventoryServiceTests: XCTestCase {
         XCTAssertEqual(summary.items.first(where: { $0.id == "benchmarks" })?.count, 1)
         XCTAssertEqual(summary.items.first(where: { $0.id == "cycle" })?.count, 1)
         XCTAssertEqual(summary.items.first(where: { $0.id == "pain" })?.count, 1)
-        XCTAssertEqual(summary.items.first(where: { $0.id == "recovery" })?.count, 1)
     }
 
     private func seedRecords(_ client: MockCloudKitClient) async throws {
@@ -61,15 +59,6 @@ final class DataInventoryServiceTests: XCTestCase {
         try await client.save(
             DailyPainLog(id: "p1", locationIds: "knee_left", intensity: 4, painType: .aching, date: Date()),
             recordType: "DailyPainLog"
-        )
-        try await client.save(
-            RecoveryScoreRecord(
-                scoreDate: ISO8601DateFormatter().string(from: Date()),
-                totalScore: 62,
-                presentInputCount: 5,
-                recommendationRaw: TrainingRecommendation.moderate.rawValue
-            ),
-            recordType: "RecoveryScore"
         )
         try await client.save(
             WeeklyTrainingPlan(

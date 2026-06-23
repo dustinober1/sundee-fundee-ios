@@ -6,7 +6,7 @@ import Foundation
 ///
 /// Only `planned`, `completed`, and `skipped` are valid statuses.
 /// This type deliberately excludes any health-related data (cycle phase,
-/// recovery score, pain intensity, HealthKit identifiers, or workout details).
+/// pain intensity, HealthKit identifiers, or workout details).
 public enum BuddyCheckInStatus: String, Codable, Sendable, Equatable {
     case planned
     case completed

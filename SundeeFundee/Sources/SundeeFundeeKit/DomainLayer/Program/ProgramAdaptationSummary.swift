@@ -6,7 +6,6 @@ public enum ProgramAdaptationReasonCode: String, Codable, Sendable, Equatable {
     case painAdjustment
     case equipmentConversion
     case deloadAdjustment
-    case recoveryAdjustment
 }
 
 public struct ProgramAdaptationChange: Sendable, Equatable, Identifiable {

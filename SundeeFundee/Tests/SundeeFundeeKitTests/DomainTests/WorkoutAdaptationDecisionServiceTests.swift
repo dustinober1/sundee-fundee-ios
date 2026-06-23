@@ -10,9 +10,9 @@ final class WorkoutAdaptationDecisionServiceTests: XCTestCase {
             headline: "Session adapted to your current readiness and pain context.",
             changes: [
                 ProgramAdaptationChange(
-                    reasonCode: .recoveryAdjustment,
+                    reasonCode: .deloadAdjustment,
                     exerciseName: "Back Squat",
-                    detail: "Recovery context reduced volume and intensity."
+                    detail: "Deload recommendation reduced volume and intensity."
                 )
             ]
         )
@@ -21,7 +21,7 @@ final class WorkoutAdaptationDecisionServiceTests: XCTestCase {
             originalWorkout: original,
             adaptedWorkout: adapted,
             summary: summary,
-            context: ProgramSessionAdaptationContext(recoveryScore: 38),
+            context: ProgramSessionAdaptationContext(deloadRecommended: true),
             dataClient: dataClient,
             dateCreated: Date(timeIntervalSince1970: 100)
         )
@@ -95,7 +95,7 @@ final class WorkoutAdaptationDecisionServiceTests: XCTestCase {
         )
     }
 
-    func testDecisionReasonsIncludeCycleRecoveryPainEquipmentAndEffortWhenPresent() throws {
+    func testDecisionReasonsIncludeCycleDeloadPainEquipmentAndEffortWhenPresent() throws {
         let original = makeWorkout(name: "Base", reps: 8)
         let adapted = makeWorkout(id: original.id, name: "Adapted", reps: 6)
         let summary = ProgramAdaptationSummary(
@@ -107,9 +107,9 @@ final class WorkoutAdaptationDecisionServiceTests: XCTestCase {
                     detail: "Cycle phase adjusted load, reps, or rest."
                 ),
                 ProgramAdaptationChange(
-                    reasonCode: .recoveryAdjustment,
+                    reasonCode: .deloadAdjustment,
                     exerciseName: "Back Squat",
-                    detail: "Recovery context reduced volume and intensity."
+                    detail: "Deload recommendation reduced volume and intensity."
                 ),
                 ProgramAdaptationChange(
                     reasonCode: .painAdjustment,
@@ -130,17 +130,17 @@ final class WorkoutAdaptationDecisionServiceTests: XCTestCase {
             summary: summary,
             context: ProgramSessionAdaptationContext(
                 cyclePhase: .menstrual,
-                recoveryScore: 34,
                 painIntensity: 7,
                 equipment: .homeDumbbells,
+                deloadRecommended: true,
                 recentEffortRPE: 9
             ),
             dateCreated: Date(timeIntervalSince1970: 100)
         )
 
-        XCTAssertEqual(record.reasonIDs, ["cycle", "recovery", "pain", "equipment", "effort"])
+        XCTAssertEqual(record.reasonIDs, ["cycle", "deload", "pain", "equipment", "effort"])
         XCTAssertTrue(record.reasonText.contains("Cycle phase: menstrual."))
-        XCTAssertTrue(record.reasonText.contains("Recovery score 34/100 reduced today's load."))
+        XCTAssertTrue(record.reasonText.contains("Deload context adjusted today's volume and intensity."))
         XCTAssertTrue(record.reasonText.contains("Pain check-in 7/10 reduced today's strain."))
         XCTAssertTrue(record.reasonText.contains("Equipment matched to Home Dumbbells."))
         XCTAssertTrue(record.reasonText.contains("Recent effort RPE 9 kept today's work in check."))
@@ -153,7 +153,6 @@ final class WorkoutAdaptationDecisionServiceTests: XCTestCase {
             summary: ProgramAdaptationSummary(headline: "Unchanged", changes: []),
             context: ProgramSessionAdaptationContext(
                 cyclePhase: .menstrual,
-                recoveryScore: 40,
                 painIntensity: 5,
                 equipment: .fullGym,
                 recentEffortRPE: 8

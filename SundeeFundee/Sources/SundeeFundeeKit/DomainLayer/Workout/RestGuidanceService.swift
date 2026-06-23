@@ -4,18 +4,15 @@ public struct RestGuidanceContext: Sendable, Equatable {
     public let exercise: Exercise
     public let completedSet: ExerciseSet
     public let lastRPE: Int?
-    public let recoveryScoreTotal: Int?
 
     public init(
         exercise: Exercise,
         completedSet: ExerciseSet,
-        lastRPE: Int?,
-        recoveryScoreTotal: Int?
+        lastRPE: Int?
     ) {
         self.exercise = exercise
         self.completedSet = completedSet
         self.lastRPE = lastRPE
-        self.recoveryScoreTotal = recoveryScoreTotal
     }
 }
 
@@ -58,11 +55,6 @@ public enum RestGuidanceService {
         if missedReps {
             seconds += isConditioning ? 45 : 60
             reasons.append("you missed reps")
-        }
-
-        if let recoveryScore = context.recoveryScoreTotal, recoveryScore < 45 {
-            seconds += 45
-            reasons.append("recovery is running low")
         }
 
         seconds = min(seconds, 300)

@@ -5,7 +5,6 @@ public enum TodayActionKind: Equatable, Sendable {
     case resumeProgramSession
     case startScheduledWorkout
     case completeFirstWeekChecklist(FirstWeekChecklistKind)
-    case logRecovery(RecoveryInputKind)
     case startFirstWorkout
 }
 
@@ -61,53 +60,6 @@ public struct FirstWeekChecklistItem: Equatable, Identifiable, Sendable {
     }
 }
 
-public enum RecoveryInputKind: Equatable, Sendable {
-    case recentWorkout
-    case painLog
-    case cyclePhase
-    case sleep
-    case hrv
-}
-
-public struct RecoveryInputStatus: Equatable, Identifiable, Sendable {
-    public let kind: RecoveryInputKind
-    public let title: String
-    public let availableText: String
-    public let missingText: String
-    public let actionTitle: String
-    public let isAvailable: Bool
-
-    public var id: String {
-        switch kind {
-        case .recentWorkout: return "recent-workout"
-        case .painLog: return "pain-log"
-        case .cyclePhase: return "cycle-phase"
-        case .sleep: return "sleep"
-        case .hrv: return "hrv"
-        }
-    }
-
-    public var displayText: String {
-        isAvailable ? availableText : missingText
-    }
-
-    public init(
-        kind: RecoveryInputKind,
-        title: String,
-        availableText: String,
-        missingText: String,
-        actionTitle: String,
-        isAvailable: Bool
-    ) {
-        self.kind = kind
-        self.title = title
-        self.availableText = availableText
-        self.missingText = missingText
-        self.actionTitle = actionTitle
-        self.isAvailable = isAvailable
-    }
-}
-
 public enum TodayGuidanceService {
     private static let recentWorkoutWindow: TimeInterval = 24 * 60 * 60
 
@@ -115,7 +67,6 @@ public enum TodayGuidanceService {
         workouts: [Workout],
         weeklyPlanProgress: WeeklyPlanProgress?,
         firstWeekChecklist: [FirstWeekChecklistItem],
-        recoveryInputs: [RecoveryInputStatus],
         now: Date = Date()
     ) -> TodayAction {
         if let workout = mostRecentIncompleteWorkout(in: workouts, now: now) {
@@ -144,15 +95,6 @@ public enum TodayGuidanceService {
                 title: incomplete.actionTitle,
                 subtitle: incomplete.title,
                 systemImage: "checklist"
-            )
-        }
-
-        if let missingInput = recoveryInputs.first(where: { !$0.isAvailable }) {
-            return TodayAction(
-                kind: .logRecovery(missingInput.kind),
-                title: missingInput.actionTitle,
-                subtitle: missingInput.missingText,
-                systemImage: "heart.text.square"
             )
         }
 
@@ -187,57 +129,6 @@ public enum TodayGuidanceService {
                 title: "Set your weekly schedule",
                 actionTitle: "Set schedule",
                 isComplete: hasWeeklyPlan
-            )
-        ]
-    }
-
-    public static func recoveryInputStatuses(
-        hasRecentWorkout: Bool,
-        hasPainLogToday: Bool,
-        hasCyclePhase: Bool,
-        hasSleep: Bool,
-        hasHRV: Bool
-    ) -> [RecoveryInputStatus] {
-        [
-            RecoveryInputStatus(
-                kind: .recentWorkout,
-                title: "Recent workout",
-                availableText: "Recent training is included.",
-                missingText: "Complete or log a workout so recovery has training context.",
-                actionTitle: "Start workout",
-                isAvailable: hasRecentWorkout
-            ),
-            RecoveryInputStatus(
-                kind: .painLog,
-                title: "Pain log",
-                availableText: "Today's pain check is included.",
-                missingText: "Log pain or soreness to improve today's recommendation.",
-                actionTitle: "Log pain",
-                isAvailable: hasPainLogToday
-            ),
-            RecoveryInputStatus(
-                kind: .cyclePhase,
-                title: "Cycle phase",
-                availableText: "Cycle phase is included.",
-                missingText: "Enable cycle tracking or log your period to improve phase confidence.",
-                actionTitle: "Update cycle",
-                isAvailable: hasCyclePhase
-            ),
-            RecoveryInputStatus(
-                kind: .sleep,
-                title: "Sleep",
-                availableText: "Sleep is included.",
-                missingText: "Connect or refresh sleep data for a clearer readiness signal.",
-                actionTitle: "Review recovery",
-                isAvailable: hasSleep
-            ),
-            RecoveryInputStatus(
-                kind: .hrv,
-                title: "HRV",
-                availableText: "HRV is included.",
-                missingText: "Connect or refresh HRV data to strengthen the recovery score.",
-                actionTitle: "Review recovery",
-                isAvailable: hasHRV
             )
         ]
     }

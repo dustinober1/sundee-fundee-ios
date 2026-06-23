@@ -20,7 +20,6 @@ public struct TrainHubView: View {
                                 energyLevel: .medium,
                                 equipment: .fullGym,
                                 todayDecisionKind: .modify,
-                                recoveryScoreTotal: nil,
                                 painLogs: []
                             )
                         ).workout

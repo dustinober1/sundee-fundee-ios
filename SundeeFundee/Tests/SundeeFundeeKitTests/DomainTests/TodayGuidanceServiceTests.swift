@@ -16,8 +16,7 @@ final class TodayGuidanceServiceTests: XCTestCase {
         let action = TodayGuidanceService.primaryAction(
             workouts: [workout],
             weeklyPlanProgress: progress,
-            firstWeekChecklist: [],
-            recoveryInputs: []
+            firstWeekChecklist: []
         )
 
         XCTAssertEqual(action.kind, .resumeWorkout(workoutID: "resume-1"))
@@ -39,8 +38,7 @@ final class TodayGuidanceServiceTests: XCTestCase {
         let action = TodayGuidanceService.primaryAction(
             workouts: [workout],
             weeklyPlanProgress: progress,
-            firstWeekChecklist: [],
-            recoveryInputs: []
+            firstWeekChecklist: []
         )
 
         XCTAssertEqual(action.kind, .startScheduledWorkout)
@@ -58,17 +56,4 @@ final class TodayGuidanceServiceTests: XCTestCase {
         XCTAssertEqual(items.first(where: { !$0.isComplete })?.kind, .logMax)
     }
 
-    func testRecoveryChecklistMarksMissingInputsWithActions() {
-        let items = TodayGuidanceService.recoveryInputStatuses(
-            hasRecentWorkout: true,
-            hasPainLogToday: false,
-            hasCyclePhase: false,
-            hasSleep: true,
-            hasHRV: false
-        )
-
-        XCTAssertEqual(items.filter(\.isAvailable).map(\.kind), [.recentWorkout, .sleep])
-        XCTAssertEqual(items.filter { !$0.isAvailable }.map(\.kind), [.painLog, .cyclePhase, .hrv])
-        XCTAssertTrue(items.first { $0.kind == .painLog }?.actionTitle == "Log pain")
-    }
 }

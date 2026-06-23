@@ -25,7 +25,6 @@ public actor WeeklyPlanService {
         preferredWeekdays: [Int],
         timeAvailableMinutesByWeekdayRaw: [String: Int]? = nil,
         cycleAwarePlanningEnabled: Bool? = nil,
-        recoveryAwarePlanningEnabled: Bool? = nil,
         now: Date = Date()
     ) async throws -> WeeklyTrainingPlan {
         let weekStart = startOfWeek(containing: now)
@@ -42,9 +41,6 @@ public actor WeeklyPlanService {
         if let cycleAwarePlanningEnabled {
             plan.cycleAwarePlanningEnabled = cycleAwarePlanningEnabled
         }
-        if let recoveryAwarePlanningEnabled {
-            plan.recoveryAwarePlanningEnabled = recoveryAwarePlanningEnabled
-        }
         plan.dateUpdated = now
         try await dataClient.save(plan, recordType: Self.recordType)
         return plan
@@ -54,7 +50,6 @@ public actor WeeklyPlanService {
         plan: WeeklyTrainingPlan,
         workouts: [Workout],
         cyclePhase: CyclePhase? = nil,
-        recoveryScore: Int? = nil,
         now: Date = Date()
     ) -> WeeklyPlanProgress {
         let weekStart = startOfWeek(containing: now)
@@ -66,7 +61,6 @@ public actor WeeklyPlanService {
             plan: plan,
             completedCount: completed.count,
             cyclePhase: cyclePhase,
-            recoveryScore: recoveryScore,
             now: now
         )
         return WeeklyPlanProgress(
@@ -92,15 +86,13 @@ public actor WeeklyPlanService {
         plan: WeeklyTrainingPlan,
         completedCount: Int,
         cyclePhase: CyclePhase?,
-        recoveryScore: Int?,
         now: Date
     ) -> Int? {
         guard completedCount < plan.targetWorkoutCount else { return nil }
 
         let prioritized = prioritizedWeekdays(
             plan: plan,
-            cyclePhase: cyclePhase,
-            recoveryScore: recoveryScore
+            cyclePhase: cyclePhase
         )
         guard !prioritized.isEmpty else { return nil }
 
@@ -110,8 +102,7 @@ public actor WeeklyPlanService {
 
     private func prioritizedWeekdays(
         plan: WeeklyTrainingPlan,
-        cyclePhase: CyclePhase?,
-        recoveryScore: Int?
+        cyclePhase: CyclePhase?
     ) -> [Int] {
         var weekdays = Array(Set(plan.preferredWeekdays)).sorted()
 
@@ -128,13 +119,6 @@ public actor WeeklyPlanService {
         }
 
         if (plan.cycleAwarePlanningEnabled ?? false), cyclePhase == .menstrual, weekdays.count > 1 {
-            weekdays = Array(weekdays.dropFirst())
-        }
-
-        if (plan.recoveryAwarePlanningEnabled ?? false),
-           let recoveryScore,
-           recoveryScore < 40,
-           weekdays.count > 1 {
             weekdays = Array(weekdays.dropFirst())
         }
 

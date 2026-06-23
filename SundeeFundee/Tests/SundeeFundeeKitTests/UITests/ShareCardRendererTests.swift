@@ -81,7 +81,7 @@ struct ShareCardRendererTests {
                 title: "Build day",
                 subtitle: "Keep the session productive.",
                 badge: "Today",
-                bullets: ["Recovery score 82", "Follicular phase"]
+                bullets: ["Pain check-in clear", "Follicular phase"]
             ),
             aspect: .story
         )

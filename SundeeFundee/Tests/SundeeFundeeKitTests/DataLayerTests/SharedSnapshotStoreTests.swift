@@ -34,22 +34,6 @@ struct SharedSnapshotStoreTests {
         }
     }
 
-    @Test("Recovery snapshot round-trips through UserDefaults")
-    func recoveryRoundTrip() async throws {
-        await withTestSuite {
-            let captured = Date(timeIntervalSince1970: 1_700_000_000)
-            let snapshot = RecoverySnapshot(
-                total: 72,
-                recommendationRaw: "pushDay",
-                capturedAt: captured,
-                presentInputCount: 4
-            )
-            SharedSnapshotStore.writeRecovery(snapshot)
-            let read = SharedSnapshotStore.readRecovery()
-            #expect(read == snapshot)
-        }
-    }
-
     @Test("Cycle snapshot round-trips through UserDefaults")
     func cycleRoundTrip() async throws {
         await withTestSuite {
@@ -75,25 +59,20 @@ struct SharedSnapshotStoreTests {
         }
     }
 
-    @Test("readRecovery returns nil on empty suite")
-    func emptyRecovery() async throws {
+    @Test("readCycle returns nil on empty suite")
+    func emptyCycle() async throws {
         await withTestSuite {
-            #expect(SharedSnapshotStore.readRecovery() == nil)
             #expect(SharedSnapshotStore.readCycle() == nil)
         }
     }
 
-    @Test("clear() wipes both snapshots")
+    @Test("clear() wipes cycle snapshot")
     func clearWipes() async throws {
         await withTestSuite {
-            SharedSnapshotStore.writeRecovery(
-                RecoverySnapshot(total: 50, recommendationRaw: "moderate", capturedAt: Date(), presentInputCount: 3)
-            )
             SharedSnapshotStore.writeCycle(
                 CyclePhaseSnapshot(phaseRaw: "luteal", cycleDay: 22, capturedAt: Date(), isSharkWeek: false)
             )
             SharedSnapshotStore.clear()
-            #expect(SharedSnapshotStore.readRecovery() == nil)
             #expect(SharedSnapshotStore.readCycle() == nil)
         }
     }

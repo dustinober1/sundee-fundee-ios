@@ -59,7 +59,6 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
     private var personalRecordExerciseNames: Set<String> = []
     private var hasEvaluatedStartingCalibration = false
     private var hasAppliedStartingCalibration = false
-    private var activeRecoveryContext: ActiveWarmupReadinessContext?
 #if canImport(ActivityKit) && os(iOS)
     private var liveActivityManager: LiveWorkoutActivityManager?
 #endif
@@ -271,13 +270,11 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
         }
 
         // 5. Build rest guidance before advancing, so it reflects the set just completed
-        let recoveryContext = await currentRecoveryContext()
         let restGuidance = RestGuidanceService.guidance(
             context: RestGuidanceContext(
                 exercise: completedExercise,
                 completedSet: completedSet,
-                lastRPE: clampedSetRPE,
-                recoveryScoreTotal: recoveryContext?.totalScore
+                lastRPE: clampedSetRPE
             )
         )
 
@@ -515,7 +512,6 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
             for: workout,
             maxRecords: maxRecords,
             experienceLevel: settings.experienceLevel,
-            recoveryScore: nil,
             unit: settings.weightUnit
         )
         let weightedSuggestions = suggestions.filter { $0.suggestedWeight != nil }
@@ -533,10 +529,7 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
             return
         }
 
-        async let painLogs = loadPainLogsForWarmup()
-        async let recoveryContext = loadRecoveryContextForWarmup()
-        let context = await recoveryContext
-        activeRecoveryContext = context
+        let painLogs = await loadPainLogsForWarmup()
         guard completedSets == 0,
               currentExerciseIndex == 0,
               !workout.exercises.contains(where: { $0.category == .warmup }) else {
@@ -547,50 +540,15 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
         pendingWarmupBlock = WarmupBuilder.build(
             request: WarmupRequest(
                 workout: workout,
-                recoveryScoreTotal: context?.totalScore,
-                cyclePhase: context?.cyclePhase,
-                painLogs: await painLogs,
+                cyclePhase: nil,
+                painLogs: painLogs,
                 maxMinutes: 6
             )
         )
     }
 
-    private func currentRecoveryContext() async -> ActiveWarmupReadinessContext? {
-        if let activeRecoveryContext {
-            return activeRecoveryContext
-        }
-
-        let context = await loadRecoveryContextForWarmup()
-        activeRecoveryContext = context
-        return context
-    }
-
     private func loadPainLogsForWarmup() async -> [DailyPainLog] {
         (try? await dataClient.fetchAll(recordType: "DailyPainLog")) ?? []
-    }
-
-    private func loadRecoveryContextForWarmup() async -> ActiveWarmupReadinessContext? {
-        let records: [RecoveryScoreRecord] = (try? await dataClient.fetchAll(recordType: "RecoveryScore")) ?? []
-        let dayString = ISO8601DateFormatter().string(from: Calendar.current.startOfDay(for: Date()))
-        let todaysRecord = records
-            .filter({ $0.scoreDate == dayString })
-            .sorted(by: { $0.dateCreated > $1.dateCreated })
-            .first
-        let latestRecord = records
-            .sorted {
-                if $0.scoreDate == $1.scoreDate {
-                    return $0.dateCreated > $1.dateCreated
-                }
-                return $0.scoreDate > $1.scoreDate
-            }
-            .first
-        guard let record = todaysRecord ?? latestRecord
-        else { return nil }
-
-        return ActiveWarmupReadinessContext(
-            totalScore: record.totalScore,
-            cyclePhase: record.cyclePhaseRaw.flatMap(CyclePhase.init(rawValue:))
-        )
     }
 
     private func loadUserSettings() async -> WorkoutCalibrationSettings {
@@ -921,9 +879,4 @@ private struct WorkoutCalibrationSettings {
     let experienceLevel: ExperienceLevel
     let weightUnit: WeightUnit
     let defaultEquipment: EquipmentAccess
-}
-
-private struct ActiveWarmupReadinessContext {
-    let totalScore: Int
-    let cyclePhase: CyclePhase?
 }

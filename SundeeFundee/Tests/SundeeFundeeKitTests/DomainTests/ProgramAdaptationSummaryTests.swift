@@ -18,7 +18,7 @@ final class ProgramAdaptationSummaryTests: XCTestCase {
             headline: "Session adapted to readiness.",
             changes: [
                 ProgramAdaptationChange(
-                    reasonCode: .recoveryAdjustment,
+                    reasonCode: .deloadAdjustment,
                     exerciseName: "Back Squat",
                     detail: "Reduced loading."
                 )

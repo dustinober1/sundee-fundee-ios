@@ -2,20 +2,17 @@ import Foundation
 
 public struct WarmupRequest: Sendable, Equatable {
     public let workout: Workout
-    public let recoveryScoreTotal: Int?
     public let cyclePhase: CyclePhase?
     public let painLogs: [DailyPainLog]
     public let maxMinutes: Int
 
     public init(
         workout: Workout,
-        recoveryScoreTotal: Int?,
         cyclePhase: CyclePhase?,
         painLogs: [DailyPainLog],
         maxMinutes: Int
     ) {
         self.workout = workout
-        self.recoveryScoreTotal = recoveryScoreTotal
         self.cyclePhase = cyclePhase
         self.painLogs = painLogs
         self.maxMinutes = maxMinutes
@@ -23,7 +20,6 @@ public struct WarmupRequest: Sendable, Equatable {
 
     public static func == (lhs: WarmupRequest, rhs: WarmupRequest) -> Bool {
         lhs.workout == rhs.workout
-            && lhs.recoveryScoreTotal == rhs.recoveryScoreTotal
             && lhs.cyclePhase == rhs.cyclePhase
             && lhs.painLogs.warmupComparableValue == rhs.painLogs.warmupComparableValue
             && lhs.maxMinutes == rhs.maxMinutes
@@ -59,7 +55,8 @@ public enum WarmupBuilder {
             return nil
         }
 
-        let lowRecovery = (request.recoveryScoreTotal ?? 100) <= 45
+        let highPain = request.painLogs.contains { $0.intensity >= 6 }
+        let lowRecovery = highPain || request.cyclePhase == .menstrual || request.cyclePhase == .luteal
         let kneePain = hasActivePain(in: "knee", painLogs: request.painLogs)
         let movement = movementPattern(for: firstWorkingExercise)
         let minuteCap = lowRecovery ? min(request.maxMinutes, 5) : request.maxMinutes
@@ -184,7 +181,7 @@ public enum WarmupBuilder {
     ) -> [String] {
         var reasons = ["Matches your first \(movement.reasonText) movement."]
         if lowRecovery {
-            reasons.append("Low recovery keeps this easy.")
+            reasons.append("Today context keeps this easy.")
         }
         if kneePain {
             reasons.append("Knee pain logged, so jump-heavy prep is skipped.")

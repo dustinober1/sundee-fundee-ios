@@ -11,7 +11,6 @@ public enum TodaySecondarySection: String, Sendable, Equatable, CaseIterable {
     case weeklyPlan
     case missedWorkoutPlan
     case firstWeekChecklist
-    case recoveryInputs
     case activeChallenge
     case coachInsights
     case recentWins
@@ -21,7 +20,6 @@ public struct TodaySecondarySectionInput: Sendable, Equatable {
     public let hasWeeklyPlan: Bool
     public let hasMissedWorkoutPlan: Bool
     public let hasFirstWeekChecklist: Bool
-    public let hasRecoveryInputGaps: Bool
     public let hasActiveChallenge: Bool
     public let hasCoachInsights: Bool
     public let hasRecentWins: Bool
@@ -30,7 +28,6 @@ public struct TodaySecondarySectionInput: Sendable, Equatable {
         hasWeeklyPlan: Bool,
         hasMissedWorkoutPlan: Bool,
         hasFirstWeekChecklist: Bool,
-        hasRecoveryInputGaps: Bool,
         hasActiveChallenge: Bool,
         hasCoachInsights: Bool,
         hasRecentWins: Bool
@@ -38,7 +35,6 @@ public struct TodaySecondarySectionInput: Sendable, Equatable {
         self.hasWeeklyPlan = hasWeeklyPlan
         self.hasMissedWorkoutPlan = hasMissedWorkoutPlan
         self.hasFirstWeekChecklist = hasFirstWeekChecklist
-        self.hasRecoveryInputGaps = hasRecoveryInputGaps
         self.hasActiveChallenge = hasActiveChallenge
         self.hasCoachInsights = hasCoachInsights
         self.hasRecentWins = hasRecentWins
@@ -99,7 +95,6 @@ public enum MinimalSurfacePolicy {
         if input.hasWeeklyPlan { sections.append(.weeklyPlan) }
         if input.hasMissedWorkoutPlan { sections.append(.missedWorkoutPlan) }
         if input.hasFirstWeekChecklist { sections.append(.firstWeekChecklist) }
-        if input.hasRecoveryInputGaps { sections.append(.recoveryInputs) }
         if input.hasActiveChallenge { sections.append(.activeChallenge) }
         if input.hasCoachInsights { sections.append(.coachInsights) }
         if input.hasRecentWins { sections.append(.recentWins) }

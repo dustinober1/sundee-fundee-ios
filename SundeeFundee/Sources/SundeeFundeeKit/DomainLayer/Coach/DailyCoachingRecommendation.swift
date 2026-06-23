@@ -13,8 +13,6 @@ public struct DailyCoachingRecommendation: Codable, Sendable, Identifiable, Equa
     public let primaryActionRaw: String
     public let primaryActionTitle: String
     public let reasonCodes: [String]
-    public let recoveryScoreTotal: Int?
-    public let recoveryRecommendationRaw: String?
     public let cyclePhaseRaw: String?
     public let cycleConfidence: Double?
     public let trainingLoadTrendRaw: String?
@@ -34,8 +32,6 @@ public struct DailyCoachingRecommendation: Codable, Sendable, Identifiable, Equa
         primaryActionRaw: String,
         primaryActionTitle: String,
         reasonCodes: [String],
-        recoveryScoreTotal: Int? = nil,
-        recoveryRecommendationRaw: String? = nil,
         cyclePhaseRaw: String? = nil,
         cycleConfidence: Double? = nil,
         trainingLoadTrendRaw: String? = nil,
@@ -54,8 +50,6 @@ public struct DailyCoachingRecommendation: Codable, Sendable, Identifiable, Equa
         self.primaryActionRaw = primaryActionRaw
         self.primaryActionTitle = primaryActionTitle
         self.reasonCodes = reasonCodes
-        self.recoveryScoreTotal = recoveryScoreTotal
-        self.recoveryRecommendationRaw = recoveryRecommendationRaw
         self.cyclePhaseRaw = cyclePhaseRaw
         self.cycleConfidence = cycleConfidence
         self.trainingLoadTrendRaw = trainingLoadTrendRaw

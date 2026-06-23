@@ -134,23 +134,21 @@ public enum AppTheme {
         public static let info = Color.blue
     }
 
-    // MARK: - Recovery Score Colors
+    // MARK: - Readiness Colors
 
-    /// Recovery score zone colors for ring arc and input bars.
+    /// Readiness zone colors reused across cycle, pain, and adaptation surfaces.
     /// Green and yellow are new tokens; red zone reuses Accent.orange.
     public enum Recovery {
-        /// Green zone (70-100): recovery is strong, push day.
         /// #38B249 — green on cream: 3.7:1 (AA large text).
         public static let green = Color(red: 0.22, green: 0.70, blue: 0.29)
 
-        /// Yellow zone (40-69): moderate recovery, take it easy.
         /// #EBC12E — decorative only (arc fill), never used as text color.
         public static let yellow = Color(red: 0.92, green: 0.76, blue: 0.18)
 
-        /// Red zone reuses AppTheme.Accent.orange (#f27319).
+        /// Alert zone reuses AppTheme.Accent.orange (#f27319).
     }
 
-    /// Returns the recovery zone color for a given 0-100 score.
+    /// Returns a readiness zone color for a given 0-100 value.
     public static func recoveryColor(for score: Int) -> Color {
         switch score {
         case 70...100: return Recovery.green

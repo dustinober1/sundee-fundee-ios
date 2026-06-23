@@ -38,7 +38,7 @@ final class BuddyCheckInServiceTests: XCTestCase {
 
     func testCheckInRecordNeverStoresHealthData() {
         // Verify BuddyCheckInRecord has no properties for:
-        // cycle phase, recovery score, pain intensity, HealthKit IDs, or exact workout details.
+        // cycle phase, pain intensity, HealthKit IDs, or exact workout details.
         // This test ensures the record type remains minimal.
         let record = BuddyCheckInRecord(
             id: "test-3",

@@ -15,7 +15,6 @@ final class MinimalSurfacePolicyTests: XCTestCase {
                 hasWeeklyPlan: false,
                 hasMissedWorkoutPlan: false,
                 hasFirstWeekChecklist: false,
-                hasRecoveryInputGaps: false,
                 hasActiveChallenge: false,
                 hasCoachInsights: false,
                 hasRecentWins: false
@@ -31,14 +30,13 @@ final class MinimalSurfacePolicyTests: XCTestCase {
                 hasWeeklyPlan: true,
                 hasMissedWorkoutPlan: true,
                 hasFirstWeekChecklist: false,
-                hasRecoveryInputGaps: true,
                 hasActiveChallenge: false,
                 hasCoachInsights: true,
                 hasRecentWins: false
             )
         )
 
-        XCTAssertEqual(sections, [.weeklyPlan, .missedWorkoutPlan, .recoveryInputs, .coachInsights])
+        XCTAssertEqual(sections, [.weeklyPlan, .missedWorkoutPlan, .coachInsights])
     }
 
     func testProgressDestinationVisibilityHidesInactiveFeatures() {

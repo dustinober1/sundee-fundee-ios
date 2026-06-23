@@ -35,22 +35,6 @@ final class DailyCoachingServiceTests: XCTestCase {
         let dataClient = MockCloudKitClient()
         let day = makeDayString()
 
-        try await dataClient.save(
-            RecoveryScoreRecord(
-                scoreDate: day,
-                totalScore: 62,
-                hrvSubScore: 60,
-                sleepSubScore: 70,
-                loadSubScore: 55,
-                cyclePhaseSubScore: 60,
-                painSubScore: 65,
-                presentInputCount: 5,
-                cyclePhaseRaw: CyclePhase.luteal.rawValue,
-                recommendationRaw: TrainingRecommendation.moderate.rawValue
-            ),
-            recordType: "RecoveryScore"
-        )
-
         let service = DailyCoachingService(
             dataClient: dataClient,
             contextBuilder: CoachContextBuilder(
@@ -128,9 +112,7 @@ final class DailyCoachingServiceTests: XCTestCase {
             summary: "Keep the session productive.",
             primaryActionRaw: DailyCoachingPrimaryAction.startAdjustedWorkout.rawValue,
             primaryActionTitle: "Start build workout",
-            reasonCodes: ["Recovery score 82"],
-            recoveryScoreTotal: 82,
-            recoveryRecommendationRaw: TrainingRecommendation.pushDay.rawValue,
+            reasonCodes: ["Follicular phase"],
             cyclePhaseRaw: CyclePhase.follicular.rawValue,
             cycleConfidence: 0.9,
             trainingLoadTrendRaw: WeeklyLoadAnalyzer.TrendType.consistent.rawValue,

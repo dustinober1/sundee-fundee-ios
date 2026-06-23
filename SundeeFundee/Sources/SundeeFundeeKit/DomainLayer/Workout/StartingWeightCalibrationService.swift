@@ -35,7 +35,6 @@ public enum StartingWeightCalibrationService {
         for workout: Workout,
         maxRecords: [OneRepMaxRecord],
         experienceLevel: ExperienceLevel,
-        recoveryScore: RecoveryScore?,
         unit: WeightUnit = .lbs
     ) -> [StartingWeightSuggestion] {
         workout.exercises.map {
@@ -43,7 +42,6 @@ public enum StartingWeightCalibrationService {
                 for: $0,
                 maxRecords: maxRecords,
                 experienceLevel: experienceLevel,
-                recoveryScore: recoveryScore,
                 unit: unit
             )
         }
@@ -53,7 +51,6 @@ public enum StartingWeightCalibrationService {
         for exercise: Exercise,
         maxRecords: [OneRepMaxRecord],
         experienceLevel: ExperienceLevel,
-        recoveryScore: RecoveryScore?,
         unit: WeightUnit = .lbs
     ) -> StartingWeightSuggestion {
         if exercise.bodyweight > 0 || isBodyweightExercise(exercise.name) {
@@ -88,10 +85,9 @@ public enum StartingWeightCalibrationService {
             reason = "No max found. Starting with a conservative entry weight."
         }
 
-        let adjusted = adjustForRecovery(base: base, recoveryScore: recoveryScore)
         return StartingWeightSuggestion(
             exerciseName: exercise.name,
-            suggestedWeight: roundToNearestFive(adjusted),
+            suggestedWeight: roundToNearestFive(base),
             unit: unit,
             confidence: baseConfidence,
             reason: reason,
@@ -123,17 +119,6 @@ public enum StartingWeightCalibrationService {
         case .advanced:
             return base
         }
-    }
-
-    private static func adjustForRecovery(base: Double, recoveryScore: RecoveryScore?) -> Double {
-        guard let score = recoveryScore?.total else { return base }
-        if score < 40 {
-            return base * 0.80
-        }
-        if score < 70 {
-            return base * 0.92
-        }
-        return base
     }
 
     private static func defaultStarterWeight(for experienceLevel: ExperienceLevel) -> Double {

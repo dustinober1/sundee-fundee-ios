@@ -103,7 +103,7 @@ public struct CompletedWorkoutRecord: Codable, Sendable {
     }
 
     // Backwards-compatible decoding: "Workout" CloudKit records are also decoded
-    // as CompletedWorkoutRecord (see RecoveryScoreViewModel). Those records lack
+    // as CompletedWorkoutRecord by analytics and dashboard flows. Those records lack
     // `exerciseNames`/`isComplete` but carry `exercises` and `completedAt`.
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)

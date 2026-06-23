@@ -17,8 +17,6 @@ public struct DashboardView: View {
     @State private var showingAIWorkout = false
     @State private var starterWorkout: Workout?
     @State private var resumeWorkoutID: String?
-    @State private var showingRecoveryOverview = false
-    @State private var showingCycleTracking = false
     @State private var showingTodayWhy = false
     @State private var showingMoreToday = false
     @State private var showingQuickCheckIn = false
@@ -130,7 +128,6 @@ public struct DashboardView: View {
             .sheet(isPresented: $showingTodayWhy) {
                 TodayWhySheet(
                     decision: viewModel.todayTrainingDecision,
-                    recoveryExplanations: viewModel.recoveryExplanations,
                     deloadRecommendation: viewModel.deloadRecommendation,
                     cyclePhase: cyclePhaseCache.currentPhase,
                     cycleConfidence: cyclePhaseCache.confidence
@@ -152,7 +149,6 @@ public struct DashboardView: View {
                     onOpenQuickCheckIn: {
                         showingQuickCheckIn = true
                     },
-                    onLogRecoveryInput: handleRecoveryInputAction,
                     onOpenLogMax: { viewModel.navigateToLogMax = true },
                     onOpenPainLog: { viewModel.navigateToPainTracking = true }
                 )
@@ -170,12 +166,6 @@ public struct DashboardView: View {
                 if let resumeWorkoutID {
                     WorkoutDetailView(workoutId: resumeWorkoutID)
                 }
-            }
-            .navigationDestination(isPresented: $showingRecoveryOverview) {
-                RecoveryOverviewView()
-            }
-            .navigationDestination(isPresented: $showingCycleTracking) {
-                CycleTrackingView()
             }
             .navigationDestination(isPresented: $viewModel.navigateToPainTracking) {
                 PainTrackingView()
@@ -324,8 +314,6 @@ public struct DashboardView: View {
             return "Start Workout"
         case .completeFirstWeekChecklist(let checklistKind):
             return checklistKind.actionTitle
-        case .logRecovery(let inputKind):
-            return inputKind.actionTitle
         case .startFirstWorkout:
             return "Start Workout"
         }
@@ -339,8 +327,6 @@ public struct DashboardView: View {
             Task { starterWorkout = await viewModel.buildStarterWorkout() }
         case .completeFirstWeekChecklist(let kind):
             handleFirstWeekChecklistAction(kind)
-        case .logRecovery(let kind):
-            handleRecoveryInputAction(kind)
         }
     }
 
@@ -352,22 +338,6 @@ public struct DashboardView: View {
             viewModel.navigateToLogMax = true
         case .weeklySchedule:
             Task { await viewModel.resetWeeklyPlan() }
-        }
-    }
-
-    private func handleRecoveryInputAction(_ kind: RecoveryInputKind) {
-        switch kind {
-        case .recentWorkout:
-            Task { starterWorkout = await viewModel.buildStarterWorkout() }
-        case .painLog:
-            showingRecoveryOverview = false
-            resumeWorkoutID = nil
-            // Pain tracking lives outside the recovery overview, so use the existing quick action.
-            viewModel.navigateToPainTracking = true
-        case .cyclePhase:
-            showingCycleTracking = true
-        case .sleep, .hrv:
-            showingRecoveryOverview = true
         }
     }
 
@@ -809,35 +779,6 @@ public struct DashboardView: View {
         }
     }
 
-    private var recoveryInputChecklistCard: some View {
-        ArtDecoCard {
-            VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
-                Text("Recovery Inputs")
-                    .font(AppTheme.Typography.headlineMedium)
-                    .foregroundColor(AppTheme.Text.primary)
-
-                Text("Missing inputs explain how to improve your score without blocking today's workout.")
-                    .font(AppTheme.Typography.bodySmall)
-                    .foregroundColor(AppTheme.Text.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-
-                ForEach(viewModel.recoveryInputStatuses) { item in
-                    Button {
-                        handleRecoveryInputAction(item.kind)
-                    } label: {
-                        checklistRow(
-                            title: item.title,
-                            subtitle: item.displayText,
-                            isComplete: item.isAvailable
-                        )
-                    }
-                    .buttonStyle(.plain)
-                    .disabled(item.isAvailable)
-                }
-            }
-        }
-    }
-
     private func checklistRow(title: String, subtitle: String, isComplete: Bool) -> some View {
         HStack(alignment: .top, spacing: AppTheme.Spacing.sm) {
             Image(systemName: isComplete ? "checkmark.circle.fill" : "circle")
@@ -1035,10 +976,8 @@ class DashboardViewModel: ObservableObject {
     @Published var cycleTrackingEnabled: Bool = false
     @Published var todayAction: TodayAction?
     @Published var firstWeekChecklist: [FirstWeekChecklistItem] = []
-    @Published var recoveryInputStatuses: [RecoveryInputStatus] = []
     @Published var navigateToPainTracking: Bool = false
     @Published var todayTrainingDecision: TodayTrainingDecision?
-    @Published var recoveryExplanations: [RecoveryExplanation] = []
     @Published var deloadRecommendation: DeloadRecommendation?
     @Published var missedWorkoutRecoveryPlan: MissedWorkoutRecoveryPlan?
 
@@ -1070,7 +1009,6 @@ class DashboardViewModel: ObservableObject {
                 hasWeeklyPlan: weeklyPlanProgress != nil,
                 hasMissedWorkoutPlan: missedWorkoutRecoveryPlan != nil,
                 hasFirstWeekChecklist: shouldShowFirstWeekChecklist,
-                hasRecoveryInputGaps: !recoveryInputStatuses.isEmpty,
                 hasActiveChallenge: activeChallengeData != nil,
                 hasCoachInsights: insightsSummary != nil || !insightsActions.isEmpty,
                 hasRecentWins: !recentWins.isEmpty
@@ -1156,19 +1094,16 @@ class DashboardViewModel: ObservableObject {
 
     func buildQuickWorkout() async -> Workout {
         let settings = await loadUserSettings()
-        let recoveryRecords: [RecoveryScoreRecord] = (try? await dataClient.fetchAll(recordType: "RecoveryScore")) ?? []
         let painLogs: [DailyPainLog] = (try? await dataClient.fetchAll(recordType: "DailyPainLog")) ?? []
-        let latestRecovery = latestRecoveryScore(from: recoveryRecords)
         let recentCutoff = Calendar.current.date(byAdding: .day, value: -7, to: Date()) ?? Date()
         let recentPainLogs = painLogs.filter { $0.date >= recentCutoff }
 
         let request = QuickWorkoutRequest(
             timeMinutes: 20,
             focus: .fullBody,
-            energyLevel: energyLevel(from: latestRecovery?.total),
+            energyLevel: .medium,
             equipment: settings.defaultEquipment,
             todayDecisionKind: todayTrainingDecision?.kind ?? .modify,
-            recoveryScoreTotal: latestRecovery?.total,
             painLogs: recentPainLogs
         )
 
@@ -1308,8 +1243,7 @@ class DashboardViewModel: ObservableObject {
     }
 
     private func loadWeeklyPlan(
-        cyclePhase: CyclePhase? = nil,
-        recoveryScore: Int? = nil
+        cyclePhase: CyclePhase? = nil
     ) async {
         let workouts: [Workout] = (try? await dataClient.fetchAll(recordType: "Workout")) ?? []
         let service = WeeklyPlanService(dataClient: dataClient)
@@ -1324,8 +1258,7 @@ class DashboardViewModel: ObservableObject {
             weeklyPlanProgress = await service.progress(
                 plan: plan,
                 workouts: workouts,
-                cyclePhase: cyclePhase,
-                recoveryScore: recoveryScore
+                cyclePhase: cyclePhase
             )
             weeklyStreak = StreakService.calculate(workouts: workouts, targetPerWeek: plan.targetWorkoutCount)
 
@@ -1379,7 +1312,6 @@ class DashboardViewModel: ObservableObject {
             sortDescriptors: [NSSortDescriptor(key: "date", ascending: false)]
         )) ?? []
         let maxes: [OneRepMaxRecord] = (try? await dataClient.fetchAll(recordType: "OneRepMaxRecord")) ?? []
-        let recoveryRecords: [RecoveryScoreRecord] = (try? await dataClient.fetchAll(recordType: "RecoveryScore")) ?? []
         let hasWeeklyPlan = weeklyPlanProgress != nil
         let checklist = TodayGuidanceService.firstWeekChecklist(
             completedWorkoutCount: workouts.filter { $0.completedAt != nil }.count,
@@ -1387,38 +1319,16 @@ class DashboardViewModel: ObservableObject {
             hasWeeklyPlan: hasWeeklyPlan
         )
 
-        let recentCutoff = calendar.date(byAdding: .day, value: -7, to: now) ?? now
-        let hasRecentWorkout = workouts.contains { workout in
-            let date = workout.completedAt ?? workout.date
-            return date >= recentCutoff
-        }
-
         let painLogs: [DailyPainLog] = (try? await dataClient.fetchAll(recordType: "DailyPainLog")) ?? []
-        let hasPainLogToday = painLogs.contains { calendar.isDate($0.date, inSameDayAs: now) }
-        let hasCyclePhase = cycleTrackingEnabled && cyclePhaseCache?.currentPhase != nil
         let painIntensityToday = painLogs
             .filter { calendar.isDate($0.date, inSameDayAs: now) }
             .map(\.intensity)
             .max()
-        let latestRecovery = latestRecoveryScore(from: recoveryRecords)
-
-        async let hasSleep = hasRecentSleepData()
-        async let hasHRV = hasRecentHRVData()
-        let (sleepAvailable, hrvAvailable) = await (hasSleep, hasHRV)
-        let inputs = TodayGuidanceService.recoveryInputStatuses(
-            hasRecentWorkout: hasRecentWorkout,
-            hasPainLogToday: hasPainLogToday,
-            hasCyclePhase: hasCyclePhase,
-            hasSleep: sleepAvailable,
-            hasHRV: hrvAvailable
-        )
 
         let deload = DeloadDetectionService.recommendation(
-            recentScores: recoveryRecords,
             recentPainLogs: painLogs
         )
         let decision = TodayTrainingDecisionService.decision(
-            recoveryScore: latestRecovery,
             cyclePhase: cyclePhaseCache?.currentPhase,
             cycleConfidence: cyclePhaseCache?.confidence,
             painIntensity: painIntensityToday,
@@ -1428,72 +1338,14 @@ class DashboardViewModel: ObservableObject {
         )
 
         firstWeekChecklist = checklist
-        recoveryInputStatuses = inputs
         deloadRecommendation = deload
         todayTrainingDecision = decision
-        recoveryExplanations = RecoveryExplanationService.topExplanations(from: latestRecovery)
         todayAction = TodayGuidanceService.primaryAction(
             workouts: workouts,
             weeklyPlanProgress: weeklyPlanProgress,
             firstWeekChecklist: checklist,
-            recoveryInputs: inputs,
             now: now
         )
-    }
-
-    private func latestRecoveryScore(from records: [RecoveryScoreRecord]) -> RecoveryScore? {
-        guard let latest = records.max(by: { $0.scoreDate < $1.scoreDate }) else { return nil }
-
-        var subScores: [RecoveryInput: Int] = [:]
-        if let hrv = latest.hrvSubScore { subScores[.hrv] = hrv }
-        if let sleep = latest.sleepSubScore { subScores[.sleep] = sleep }
-        if let load = latest.loadSubScore { subScores[.trainingLoad] = load }
-        if let cycle = latest.cyclePhaseSubScore { subScores[.cyclePhase] = cycle }
-        if let pain = latest.painSubScore { subScores[.pain] = pain }
-
-        var explanations: [RecoveryInput: String] = [:]
-        if let value = latest.hrvSubScore {
-            explanations[.hrv] = "HRV signal is \(value)/100 today."
-        }
-        if let value = latest.sleepSubScore {
-            explanations[.sleep] = "Sleep signal is \(value)/100."
-        }
-        if let value = latest.loadSubScore {
-            explanations[.trainingLoad] = "Recent training load signal is \(value)/100."
-        }
-        if let value = latest.cyclePhaseSubScore {
-            explanations[.cyclePhase] = "Cycle context signal is \(value)/100."
-        }
-        if let value = latest.painSubScore {
-            explanations[.pain] = "Pain context signal is \(value)/100."
-        }
-
-        let recommendation = TrainingRecommendation(rawValue: latest.recommendationRaw) ?? .moderate
-        return RecoveryScore(
-            total: latest.totalScore,
-            recommendation: recommendation,
-            subScores: subScores,
-            presentInputCount: latest.presentInputCount,
-            totalInputCount: RecoveryInput.allCases.count,
-            explanations: explanations
-        )
-    }
-
-    private func energyLevel(from recoveryScoreTotal: Int?) -> EnergyLevel {
-        guard let recoveryScoreTotal else { return .medium }
-        if recoveryScoreTotal <= 45 { return .low }
-        if recoveryScoreTotal >= 75 { return .high }
-        return .medium
-    }
-
-    private func hasRecentSleepData() async -> Bool {
-        guard healthClient.isAvailable else { return false }
-        return ((try? await healthClient.fetchRecentSleepAnalysis()) ?? []).isEmpty == false
-    }
-
-    private func hasRecentHRVData() async -> Bool {
-        guard healthClient.isAvailable else { return false }
-        return ((try? await healthClient.fetchWeeklyHeartRateVariability()) ?? []).isEmpty == false
     }
 
     private func trackFirstWorkoutPromptIfNeeded() async {
@@ -1532,17 +1384,6 @@ private extension FirstWeekChecklistKind {
         case .firstWorkout: return "Start first workout"
         case .logMax: return "Log a max"
         case .weeklySchedule: return "Set schedule"
-        }
-    }
-}
-
-private extension RecoveryInputKind {
-    var actionTitle: String {
-        switch self {
-        case .recentWorkout: return "Start workout"
-        case .painLog: return "Log pain"
-        case .cyclePhase: return "Update cycle"
-        case .sleep, .hrv: return "Review recovery"
         }
     }
 }

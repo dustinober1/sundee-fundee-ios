@@ -88,7 +88,7 @@ final class ProgramSessionAdaptationServiceTests: XCTestCase {
         XCTAssertEqual(adapted.first?.percent1RM, 0.75)
     }
 
-    func testLowRecoveryReducesVolumeOrLoad() {
+    func testDeloadReducesVolumeOrLoad() {
         let exercise = GeneratedProgramExercise(
             exercise: "Back Squat",
             sets: .fixed(value: 4),
@@ -100,7 +100,7 @@ final class ProgramSessionAdaptationServiceTests: XCTestCase {
 
         let adapted = ProgramSessionAdaptationService.adapt(
             [exercise],
-            context: ProgramSessionAdaptationContext(recoveryScore: 35)
+            context: ProgramSessionAdaptationContext(deloadRecommended: true)
         )
 
         guard let result = adapted.first else {
@@ -123,7 +123,6 @@ final class ProgramSessionAdaptationServiceTests: XCTestCase {
         let result = ProgramSessionAdaptationService.adaptWithSummary(
             [exercise],
             context: ProgramSessionAdaptationContext(
-                recoveryScore: 50,
                 painIntensity: 6,
                 equipment: .homeDumbbells
             )
@@ -134,6 +133,6 @@ final class ProgramSessionAdaptationServiceTests: XCTestCase {
         }
         XCTAssertNotEqual(adapted.exercise, exercise.exercise)
         XCTAssertTrue(result.summary.changes.contains { $0.reasonCode == .equipmentConversion })
-        XCTAssertTrue(result.summary.changes.contains { $0.reasonCode == .recoveryAdjustment || $0.reasonCode == .painAdjustment })
+        XCTAssertTrue(result.summary.changes.contains { $0.reasonCode == .painAdjustment })
     }
 }

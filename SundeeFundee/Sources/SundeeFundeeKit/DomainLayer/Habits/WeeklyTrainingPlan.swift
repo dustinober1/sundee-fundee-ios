@@ -8,7 +8,6 @@ public struct WeeklyTrainingPlan: Codable, Sendable, Identifiable, Equatable {
     /// CloudKit-safe map of weekday number (as String) -> available minutes.
     public var timeAvailableMinutesByWeekdayRaw: [String: Int]?
     public var cycleAwarePlanningEnabled: Bool?
-    public var recoveryAwarePlanningEnabled: Bool?
     public var completedWorkoutIDs: [String]
     public var dateCreated: Date
     public var dateUpdated: Date
@@ -20,7 +19,6 @@ public struct WeeklyTrainingPlan: Codable, Sendable, Identifiable, Equatable {
         preferredWeekdays: [Int],
         timeAvailableMinutesByWeekdayRaw: [String: Int]? = nil,
         cycleAwarePlanningEnabled: Bool? = nil,
-        recoveryAwarePlanningEnabled: Bool? = nil,
         completedWorkoutIDs: [String] = [],
         dateCreated: Date = Date(),
         dateUpdated: Date = Date()
@@ -31,7 +29,6 @@ public struct WeeklyTrainingPlan: Codable, Sendable, Identifiable, Equatable {
         self.preferredWeekdays = preferredWeekdays
         self.timeAvailableMinutesByWeekdayRaw = timeAvailableMinutesByWeekdayRaw
         self.cycleAwarePlanningEnabled = cycleAwarePlanningEnabled
-        self.recoveryAwarePlanningEnabled = recoveryAwarePlanningEnabled
         self.completedWorkoutIDs = completedWorkoutIDs
         self.dateCreated = dateCreated
         self.dateUpdated = dateUpdated

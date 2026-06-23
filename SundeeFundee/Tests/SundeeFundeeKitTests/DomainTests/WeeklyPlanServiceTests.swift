@@ -45,7 +45,6 @@ final class WeeklyPlanServiceTests: XCTestCase {
             plan: plan,
             workouts: [],
             cyclePhase: .menstrual,
-            recoveryScore: 70,
             now: now
         )
 
@@ -91,30 +90,6 @@ final class WeeklyPlanServiceTests: XCTestCase {
 
         let progress = await service.progress(plan: plan, workouts: [completedWorkout], now: now)
         XCTAssertNil(progress.nextWorkoutWeekday)
-    }
-
-    func testRecoveryAwarePlanningSkipsEarliestDayWhenVeryLowRecovery() async throws {
-        let client = MockCloudKitClient()
-        let calendar = Calendar(identifier: .gregorian)
-        let service = WeeklyPlanService(dataClient: client, calendar: calendar)
-        let now = date(2026, 5, 18) // Monday
-
-        let plan = try await service.createOrUpdateCurrentPlan(
-            targetWorkoutCount: 3,
-            preferredWeekdays: [2, 4, 6],
-            recoveryAwarePlanningEnabled: true,
-            now: now
-        )
-
-        let progress = await service.progress(
-            plan: plan,
-            workouts: [],
-            cyclePhase: nil,
-            recoveryScore: 35,
-            now: now
-        )
-
-        XCTAssertEqual(progress.nextWorkoutWeekday, 4)
     }
 
     private func date(_ year: Int, _ month: Int, _ day: Int) -> Date {

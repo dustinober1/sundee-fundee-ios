@@ -2,7 +2,6 @@ import Foundation
 
 public enum TodayTrainingDecisionService {
     public static func decision(
-        recoveryScore: RecoveryScore?,
         cyclePhase: CyclePhase?,
         cycleConfidence: Double?,
         painIntensity: Int?,
@@ -11,14 +10,7 @@ public enum TodayTrainingDecisionService {
         deloadRecommended: Bool
     ) -> TodayTrainingDecision {
         var reasons: [String] = []
-        let scoreValue = recoveryScore?.total
         let phaseName = cyclePhase.map(phaseLabel)
-
-        if let scoreValue {
-            reasons.append("Recovery score is \(scoreValue)/100.")
-        } else {
-            reasons.append("Recovery score is missing, so guidance uses available context.")
-        }
 
         if let painIntensity {
             reasons.append("Pain check-in is \(painIntensity)/10.")
@@ -40,8 +32,8 @@ public enum TodayTrainingDecisionService {
             return TodayTrainingDecision(
                 kind: .recover,
                 title: "Take an active recovery day",
-                subtitle: "Recent load and recovery trends suggest a deload is the better move today.",
-                reasons: reasons + ["Deload is recommended from recent fatigue signals."],
+                subtitle: "Recent training context suggests a lighter day is the better move today.",
+                reasons: reasons + ["A deload is recommended from available fatigue signals."],
                 primaryActionTitle: "Start Active Recovery",
                 systemImage: "figure.cooldown"
             )
@@ -58,23 +50,11 @@ public enum TodayTrainingDecisionService {
             )
         }
 
-        if let scoreValue, scoreValue < 40 {
-            return TodayTrainingDecision(
-                kind: .recover,
-                title: "Recover today",
-                subtitle: "Your readiness is low. Choose recovery work to protect tomorrow's performance.",
-                reasons: reasons + ["Low recovery score indicates high fatigue risk."],
-                primaryActionTitle: "Start Active Recovery",
-                systemImage: "bed.double.fill"
-            )
-        }
-
         let lowConfidenceCycle = (cycleConfidence ?? 1.0) < 0.35
-        let moderateScore = (scoreValue ?? 55) < 70
         let lowEnergy = energyLevel == .low
         let moderatePain = (painIntensity ?? 0) >= 4
 
-        if moderateScore || lowEnergy || lowConfidenceCycle || moderatePain {
+        if lowEnergy || lowConfidenceCycle || moderatePain {
             let subtitle: String
             if let phaseName {
                 subtitle = "A lighter or shorter version of your \(phaseName) session is recommended today."

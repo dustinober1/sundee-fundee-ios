@@ -2,8 +2,7 @@ import Foundation
 
 // MARK: - DailyCoachingService
 
-/// Builds a single daily recommendation from the coach context, recovery
-/// score, and recent training signals.
+/// Builds a single daily recommendation from coach context and recent training signals.
 public actor DailyCoachingService {
     private let dataClient: DataClientProtocol
     private let contextBuilder: CoachContextBuilder
@@ -35,13 +34,11 @@ public actor DailyCoachingService {
         isGuest: Bool
     ) async -> DailyCoachingRecommendation {
         let today = Self.dayString(for: Date())
-        let recoveryScore = await loadLatestRecoveryScore(for: today)
         let painIntensity = await loadTodayPainIntensity()
         let recommendation = Self.makeRecommendation(
             dateString: today,
             context: context,
             insights: insights,
-            recoveryScore: recoveryScore,
             painIntensity: painIntensity
         )
 
@@ -55,8 +52,6 @@ public actor DailyCoachingService {
                 primaryActionRaw: recommendation.primaryActionRaw,
                 primaryActionTitle: recommendation.primaryActionTitle,
                 reasonCodes: recommendation.reasonCodes,
-                recoveryScoreTotal: recommendation.recoveryScoreTotal,
-                recoveryRecommendationRaw: recommendation.recoveryRecommendationRaw,
                 cyclePhaseRaw: recommendation.cyclePhaseRaw,
                 cycleConfidence: recommendation.cycleConfidence,
                 trainingLoadTrendRaw: recommendation.trainingLoadTrendRaw,
@@ -108,20 +103,6 @@ public actor DailyCoachingService {
         }
     }
 
-    private func loadLatestRecoveryScore(for dayString: String) async -> RecoveryScore? {
-        do {
-            let records: [RecoveryScoreRecord] = try await dataClient.fetchAll(recordType: "RecoveryScore")
-            guard let record = records
-                .filter({ $0.scoreDate == dayString })
-                .sorted(by: { $0.dateCreated > $1.dateCreated })
-                .first
-            else { return nil }
-            return Self.mapRecoveryScore(record)
-        } catch {
-            return nil
-        }
-    }
-
     private func loadTodayPainIntensity() async -> Int? {
         do {
             let logs: [DailyPainLog] = try await dataClient.fetchAll(recordType: "DailyPainLog")
@@ -139,34 +120,12 @@ public actor DailyCoachingService {
         ISO8601DateFormatter().string(from: Calendar.current.startOfDay(for: date))
     }
 
-    private static func mapRecoveryScore(_ record: RecoveryScoreRecord) -> RecoveryScore {
-        let subScores: [RecoveryInput: Int] = [
-            .hrv: record.hrvSubScore,
-            .sleep: record.sleepSubScore,
-            .trainingLoad: record.loadSubScore,
-            .cyclePhase: record.cyclePhaseSubScore,
-            .pain: record.painSubScore
-        ].compactMapValues { $0 }
-
-        let recommendation = TrainingRecommendation(rawValue: record.recommendationRaw) ?? .moderate
-        return RecoveryScore(
-            total: record.totalScore,
-            recommendation: recommendation,
-            subScores: subScores,
-            presentInputCount: record.presentInputCount,
-            totalInputCount: 5,
-            explanations: [:]
-        )
-    }
-
     private static func makeRecommendation(
         dateString: String,
         context: CoachContext,
         insights: CoachInsightsResponse,
-        recoveryScore: RecoveryScore?,
         painIntensity: Int?
     ) -> DailyCoachingRecommendation {
-        let total = recoveryScore?.total
         let cyclePhase = context.cyclePhase
         let cycleConfidence = context.cycleConfidence
         let loadTrend = insights.trends.first?.type.rawValue
@@ -174,15 +133,15 @@ public actor DailyCoachingService {
         let overreaching = insights.trends.contains(where: { $0.type == .overreaching })
 
         let status: DailyCoachingStatus
-        if let pain = painIntensity, pain >= 8 || (total ?? 100) <= 35 {
+        if let pain = painIntensity, pain >= 8 {
             status = .rest
-        } else if let pain = painIntensity, pain >= 6 || (total ?? 100) <= 45 {
+        } else if let pain = painIntensity, pain >= 6 {
             status = .activeRecovery
-        } else if overreaching || (hasPlateau && (total ?? 100) <= 70) {
+        } else if overreaching || hasPlateau {
             status = .deload
-        } else if (total ?? 0) >= 80 && (cyclePhase == .follicular || cyclePhase == .ovulation) {
+        } else if cyclePhase == .follicular || cyclePhase == .ovulation {
             status = .push
-        } else if (total ?? 0) >= 65 {
+        } else if cyclePhase != nil {
             status = .build
         } else {
             status = .maintain
@@ -190,7 +149,6 @@ public actor DailyCoachingService {
 
         let values = recommendationValues(
             for: status,
-            total: total,
             cyclePhase: cyclePhase,
             painIntensity: painIntensity,
             insights: insights
@@ -204,8 +162,6 @@ public actor DailyCoachingService {
             primaryActionRaw: values.action.rawValue,
             primaryActionTitle: values.actionTitle,
             reasonCodes: values.reasons,
-            recoveryScoreTotal: recoveryScore?.total,
-            recoveryRecommendationRaw: recoveryScore.map { $0.recommendation.rawValue },
             cyclePhaseRaw: cyclePhase?.rawValue,
             cycleConfidence: cycleConfidence,
             trainingLoadTrendRaw: loadTrend,
@@ -219,7 +175,6 @@ public actor DailyCoachingService {
 
     private static func recommendationValues(
         for status: DailyCoachingStatus,
-        total: Int?,
         cyclePhase: CyclePhase?,
         painIntensity: Int?,
         insights: CoachInsightsResponse
@@ -235,7 +190,6 @@ public actor DailyCoachingService {
         reasons: [String]
     ) {
         let reasons = buildReasons(
-            total: total,
             cyclePhase: cyclePhase,
             painIntensity: painIntensity,
             insights: insights
@@ -281,7 +235,7 @@ public actor DailyCoachingService {
         case .push:
             return (
                 "Push day",
-                "Your recovery looks strong enough to go after quality work and heavier loading.",
+                "Your available training signals support quality work and heavier loading.",
                 .startAdjustedWorkout,
                 "Start push workout",
                 .fullBody,
@@ -318,15 +272,11 @@ public actor DailyCoachingService {
     }
 
     private static func buildReasons(
-        total: Int?,
         cyclePhase: CyclePhase?,
         painIntensity: Int?,
         insights: CoachInsightsResponse
     ) -> [String] {
         var reasons: [String] = []
-        if let total {
-            reasons.append("Recovery score \(total)")
-        }
         if let phase = cyclePhase {
             reasons.append("\(phase.rawValue.capitalized) phase")
         }
@@ -340,7 +290,7 @@ public actor DailyCoachingService {
             reasons.append("Overreaching trend")
         }
         if reasons.isEmpty {
-            reasons.append("Balanced recovery signals")
+            reasons.append("No major blockers detected")
         }
         return reasons
     }

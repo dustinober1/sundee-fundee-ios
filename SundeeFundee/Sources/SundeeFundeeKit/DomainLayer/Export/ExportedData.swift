@@ -32,9 +32,6 @@ public struct ExportedData: Codable, Sendable {
     /// Menstrual cycle phase information.
     public var cyclePhaseInfo: [CyclePhaseInfo]
 
-    /// Daily recovery score history.
-    public var recoveryScoreRecords: [RecoveryScoreRecord]
-
     /// Benchmark attempt results.
     public var benchmarkResults: [BenchmarkResult]
 
@@ -83,7 +80,6 @@ public struct ExportedData: Codable, Sendable {
         oneRepMaxRecords: [OneRepMaxRecord] = [],
         completedWorkoutRecords: [CompletedWorkoutRecord] = [],
         cyclePhaseInfo: [CyclePhaseInfo] = [],
-        recoveryScoreRecords: [RecoveryScoreRecord] = [],
         benchmarkResults: [BenchmarkResult] = [],
         injuries: [Injury] = [],
         painLogs: [DailyPainLog] = [],
@@ -104,7 +100,6 @@ public struct ExportedData: Codable, Sendable {
         self.oneRepMaxRecords = oneRepMaxRecords
         self.completedWorkoutRecords = completedWorkoutRecords
         self.cyclePhaseInfo = cyclePhaseInfo
-        self.recoveryScoreRecords = recoveryScoreRecords
         self.benchmarkResults = benchmarkResults
         self.injuries = injuries
         self.painLogs = painLogs
@@ -139,7 +134,6 @@ public struct ExportedData: Codable, Sendable {
             "One Rep Maxes": oneRepMaxRecords.count,
             "Completed Workouts": completedWorkoutRecords.count,
             "Cycle Phases": cyclePhaseInfo.count,
-            "Recovery Scores": recoveryScoreRecords.count,
             "Cycle Settings": cycleSettings == nil ? 0 : 1,
             "Benchmarks": benchmarkResults.count,
             "Injuries": injuries.count,

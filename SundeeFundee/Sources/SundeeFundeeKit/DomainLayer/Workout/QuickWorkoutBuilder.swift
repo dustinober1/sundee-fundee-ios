@@ -6,7 +6,6 @@ public struct QuickWorkoutRequest: Sendable, Equatable {
     public let energyLevel: EnergyLevel
     public let equipment: EquipmentAccess
     public let todayDecisionKind: TodayTrainingDecisionKind
-    public let recoveryScoreTotal: Int?
     public let painLogs: [DailyPainLog]
 
     public init(
@@ -15,7 +14,6 @@ public struct QuickWorkoutRequest: Sendable, Equatable {
         energyLevel: EnergyLevel,
         equipment: EquipmentAccess,
         todayDecisionKind: TodayTrainingDecisionKind,
-        recoveryScoreTotal: Int?,
         painLogs: [DailyPainLog]
     ) {
         self.timeMinutes = timeMinutes
@@ -23,7 +21,6 @@ public struct QuickWorkoutRequest: Sendable, Equatable {
         self.energyLevel = energyLevel
         self.equipment = equipment
         self.todayDecisionKind = todayDecisionKind
-        self.recoveryScoreTotal = recoveryScoreTotal
         self.painLogs = painLogs
     }
 
@@ -33,7 +30,6 @@ public struct QuickWorkoutRequest: Sendable, Equatable {
             && lhs.energyLevel == rhs.energyLevel
             && lhs.equipment == rhs.equipment
             && lhs.todayDecisionKind == rhs.todayDecisionKind
-            && lhs.recoveryScoreTotal == rhs.recoveryScoreTotal
             && lhs.painLogs.quickWorkoutComparableValue == rhs.painLogs.quickWorkoutComparableValue
     }
 }
@@ -55,7 +51,6 @@ public enum QuickWorkoutBuilder {
         let timeLimit = max(1, request.timeMinutes)
         let lowRecovery = request.todayDecisionKind == .recover
             || request.energyLevel == .low
-            || (request.recoveryScoreTotal ?? 100) <= 45
             || request.painLogs.contains { $0.intensity >= 6 }
         let targetCount = targetExerciseCount(timeMinutes: timeLimit, lowRecovery: lowRecovery)
         let workingSets = initialWorkingSets(timeMinutes: timeLimit, energyLevel: request.energyLevel, lowRecovery: lowRecovery)
@@ -347,11 +342,7 @@ public enum QuickWorkoutBuilder {
         reasons.append("Uses \(request.equipment.displayName.lowercased()) movements.")
 
         if lowRecovery {
-            if let recoveryScoreTotal = request.recoveryScoreTotal {
-                reasons.append("Recovery score \(recoveryScoreTotal)/100 kept the work submaximal.")
-            } else {
-                reasons.append("Recovery context kept the work submaximal.")
-            }
+            reasons.append("Today context kept the work submaximal.")
         }
 
         if request.todayDecisionKind == .modify {

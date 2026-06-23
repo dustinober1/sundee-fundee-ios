@@ -1333,7 +1333,6 @@ class ProgramDetailViewModel: ObservableObject {
         async let cyclePhase = loadCyclePhase()
         async let cycleConfidence = loadCycleConfidence()
         async let injuries = loadInjuries()
-        async let recoveryRecords = loadRecoveryScoreHistory()
         async let painLogs = loadPainLogs()
         async let equipment = loadDefaultEquipment()
         async let recentEffortRPE = loadRecentEffortRPE()
@@ -1342,7 +1341,6 @@ class ProgramDetailViewModel: ObservableObject {
             resolvedPhase,
             resolvedConfidence,
             resolvedInjuries,
-            resolvedRecovery,
             resolvedPain,
             resolvedEquipment,
             resolvedEffortRPE
@@ -1350,26 +1348,22 @@ class ProgramDetailViewModel: ObservableObject {
             cyclePhase,
             cycleConfidence,
             injuries,
-            recoveryRecords,
             painLogs,
             equipment,
             recentEffortRPE
         )
 
-        let latestRecoveryScore = resolvedRecovery.max(by: { $0.scoreDate < $1.scoreDate })?.totalScore
         let painIntensity = resolvedPain
             .sorted(by: { $0.date > $1.date })
             .first?
             .intensity
         let deload = DeloadDetectionService.recommendation(
-            recentScores: resolvedRecovery,
             recentPainLogs: resolvedPain
         ).isRecommended
 
         return ProgramSessionAdaptationContext(
             cyclePhase: resolvedPhase,
             injuries: resolvedInjuries,
-            recoveryScore: latestRecoveryScore,
             painIntensity: painIntensity,
             equipment: resolvedEquipment,
             cycleConfidence: resolvedConfidence,
@@ -1442,10 +1436,6 @@ class ProgramDetailViewModel: ObservableObject {
             periodLogCount: logs.count,
             lastPeriodStart: logs.sorted(by: { $0.startDate > $1.startDate }).first?.startDate
         )
-    }
-
-    private func loadRecoveryScoreHistory() async -> [RecoveryScoreRecord] {
-        (try? await dataClient.fetchAll(recordType: "RecoveryScore") as [RecoveryScoreRecord]) ?? []
     }
 
     private func loadPainLogs() async -> [DailyPainLog] {

@@ -10,7 +10,6 @@ final class QuickWorkoutBuilderTests: XCTestCase {
                 energyLevel: .medium,
                 equipment: .homeDumbbells,
                 todayDecisionKind: .modify,
-                recoveryScoreTotal: 55,
                 painLogs: []
             )
         )
@@ -20,7 +19,7 @@ final class QuickWorkoutBuilderTests: XCTestCase {
         XCTAssertFalse(result.workout.exercises.isEmpty)
     }
 
-    func testLowRecoveryAvoidsMaxEffortBarbellWork() {
+    func testRecoverDecisionAvoidsMaxEffortBarbellWork() {
         let result = QuickWorkoutBuilder.build(
             request: QuickWorkoutRequest(
                 timeMinutes: 20,
@@ -28,7 +27,6 @@ final class QuickWorkoutBuilderTests: XCTestCase {
                 energyLevel: .low,
                 equipment: .fullGym,
                 todayDecisionKind: .recover,
-                recoveryScoreTotal: 32,
                 painLogs: []
             )
         )
@@ -36,7 +34,7 @@ final class QuickWorkoutBuilderTests: XCTestCase {
         let names = result.workout.exercises.map(\.name).joined(separator: " ")
         XCTAssertFalse(names.localizedCaseInsensitiveContains("1RM"))
         XCTAssertFalse(names.localizedCaseInsensitiveContains("Max"))
-        XCTAssertTrue(result.reasons.contains(where: { $0.localizedCaseInsensitiveContains("recovery") }))
+        XCTAssertTrue(result.reasons.contains(where: { $0.localizedCaseInsensitiveContains("today context") }))
     }
 
     func testKneePainAvoidsBodyweightSquatAndLungePatterns() {
@@ -47,7 +45,6 @@ final class QuickWorkoutBuilderTests: XCTestCase {
                 energyLevel: .medium,
                 equipment: .bodyweightOnly,
                 todayDecisionKind: .modify,
-                recoveryScoreTotal: 62,
                 painLogs: [
                     DailyPainLog(
                         id: "knee-pain",
@@ -74,7 +71,6 @@ final class QuickWorkoutBuilderTests: XCTestCase {
                 energyLevel: .medium,
                 equipment: .homeDumbbells,
                 todayDecisionKind: .modify,
-                recoveryScoreTotal: 62,
                 painLogs: [
                     DailyPainLog(
                         id: "head-pain",
@@ -98,7 +94,6 @@ final class QuickWorkoutBuilderTests: XCTestCase {
                 energyLevel: .low,
                 equipment: .bodyweightOnly,
                 todayDecisionKind: .modify,
-                recoveryScoreTotal: 58,
                 painLogs: []
             )
         )
@@ -116,7 +111,6 @@ final class QuickWorkoutBuilderTests: XCTestCase {
                 energyLevel: .low,
                 equipment: .bodyweightOnly,
                 todayDecisionKind: .modify,
-                recoveryScoreTotal: 58,
                 painLogs: []
             )
         )

@@ -48,19 +48,6 @@ final class MonthlyReviewServiceTests: XCTestCase {
         )
     }
 
-    private func makeRecoveryScore(
-        on date: Date,
-        total: Int
-    ) -> RecoveryScoreRecord {
-        let iso = ISO8601DateFormatter().string(from: date)
-        return RecoveryScoreRecord(
-            scoreDate: iso,
-            totalScore: total,
-            presentInputCount: 5,
-            recommendationRaw: TrainingRecommendation.moderate.rawValue
-        )
-    }
-
     private func makePainLog(on date: Date, intensity: Int) -> DailyPainLog {
         DailyPainLog(
             id: UUID().uuidString,
@@ -91,7 +78,6 @@ final class MonthlyReviewServiceTests: XCTestCase {
         let review = MonthlyReviewService.build(
             month: jan2026,
             workouts: workouts,
-            recoveryScores: [],
             painLogs: [],
             effortLogs: effortLogs,
             symptomLogs: nil
@@ -106,7 +92,7 @@ final class MonthlyReviewServiceTests: XCTestCase {
         XCTAssertTrue(hasStrengthWin, "Expected a strength/personal record win, got: \(review.topWins)")
     }
 
-    func testMissingRecoveryDataProducesConnectMoreDataSuggestion() {
+    func testMissingSymptomDataProducesConnectMoreDataSuggestion() {
         let feb2026 = makeDate(year: 2026, month: 2, day: 10)
 
         let workouts = [
@@ -114,20 +100,19 @@ final class MonthlyReviewServiceTests: XCTestCase {
             makeWorkout(on: makeDate(year: 2026, month: 2, day: 7)),
         ]
 
-        // No recovery scores, no symptom logs — should produce a "connect more data" suggestion
+        // No symptom logs — should produce a "connect more data" suggestion
         let review = MonthlyReviewService.build(
             month: feb2026,
             workouts: workouts,
-            recoveryScores: [],
             painLogs: [],
             effortLogs: [],
             symptomLogs: nil
         )
 
         let hasDataSuggestion = review.nextMonthSuggestions.contains { suggestion in
-            suggestion.lowercased().contains("recovery") || suggestion.lowercased().contains("symptom")
+            suggestion.lowercased().contains("symptom")
         }
-        XCTAssertTrue(hasDataSuggestion, "Expected a suggestion to connect more data (recovery or symptoms), got: \(review.nextMonthSuggestions)")
+        XCTAssertTrue(hasDataSuggestion, "Expected a suggestion to connect more symptom data, got: \(review.nextMonthSuggestions)")
     }
 
     func testMonthTitleFormatsCorrectly() {
@@ -136,7 +121,6 @@ final class MonthlyReviewServiceTests: XCTestCase {
         let review = MonthlyReviewService.build(
             month: march2026,
             workouts: [],
-            recoveryScores: [],
             painLogs: [],
             effortLogs: [],
             symptomLogs: nil
@@ -156,7 +140,6 @@ final class MonthlyReviewServiceTests: XCTestCase {
         let review = MonthlyReviewService.build(
             month: april2026,
             workouts: workouts,
-            recoveryScores: [],
             painLogs: [],
             effortLogs: [],
             symptomLogs: nil
@@ -181,7 +164,6 @@ final class MonthlyReviewServiceTests: XCTestCase {
         let review = MonthlyReviewService.build(
             month: jan2026,
             workouts: workouts,
-            recoveryScores: [],
             painLogs: [],
             effortLogs: [],
             symptomLogs: nil
@@ -197,10 +179,6 @@ final class MonthlyReviewServiceTests: XCTestCase {
             makeWorkout(on: makeDate(year: 2026, month: 5, day: day * 2))
         }
 
-        let recoveryScores = (1...10).map { day -> RecoveryScoreRecord in
-            makeRecoveryScore(on: makeDate(year: 2026, month: 5, day: day * 2), total: 70)
-        }
-
         let painLogs = (1...5).map { day -> DailyPainLog in
             makePainLog(on: makeDate(year: 2026, month: 5, day: day * 4), intensity: 3)
         }
@@ -212,7 +190,6 @@ final class MonthlyReviewServiceTests: XCTestCase {
         let review = MonthlyReviewService.build(
             month: may2026,
             workouts: workouts,
-            recoveryScores: recoveryScores,
             painLogs: painLogs,
             effortLogs: effortLogs,
             symptomLogs: nil

@@ -5,7 +5,6 @@ struct TodayWhySheet: View {
     @Environment(\.dismiss) private var dismiss
 
     let decision: TodayTrainingDecision?
-    let recoveryExplanations: [RecoveryExplanation]
     let deloadRecommendation: DeloadRecommendation?
     let cyclePhase: CyclePhase?
     let cycleConfidence: Double?
@@ -18,14 +17,6 @@ struct TodayWhySheet: View {
                         Text(decision.subtitle)
                         ForEach(decision.reasons.prefix(3), id: \.self) { reason in
                             Text(reason)
-                        }
-                    }
-                }
-
-                if !recoveryExplanations.isEmpty {
-                    Section("Recovery") {
-                        ForEach(recoveryExplanations.prefix(3)) { explanation in
-                            Text(explanation.text)
                         }
                     }
                 }

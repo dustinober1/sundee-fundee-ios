@@ -103,11 +103,8 @@ public enum WorkoutAdaptationDecisionService {
             details.append(("cycle", "Cycle phase adjusted today's load, reps, or rest."))
         }
 
-        if (changedCodes.contains(.recoveryAdjustment) || changedCodes.contains(.deloadAdjustment)),
-           let score = context.recoveryScore {
-            details.append(("recovery", "Recovery score \(score)/100 reduced today's load."))
-        } else if changedCodes.contains(.recoveryAdjustment) || changedCodes.contains(.deloadAdjustment) {
-            details.append(("recovery", "Recovery context adjusted today's volume and intensity."))
+        if changedCodes.contains(.deloadAdjustment) {
+            details.append(("deload", "Deload context adjusted today's volume and intensity."))
         }
 
         if (changedCodes.contains(.painAdjustment) || changedCodes.contains(.injurySwap)),
@@ -125,8 +122,7 @@ public enum WorkoutAdaptationDecisionService {
 
         if !changedCodes.isEmpty,
            let recentEffortRPE = context.recentEffortRPE,
-           (changedCodes.contains(.recoveryAdjustment)
-                || changedCodes.contains(.deloadAdjustment)
+            (changedCodes.contains(.deloadAdjustment)
                 || changedCodes.contains(.painAdjustment)
                 || changedCodes.contains(.cycleAdjustment)) {
             details.append(("effort", "Recent effort RPE \(recentEffortRPE) kept today's work in check."))

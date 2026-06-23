@@ -87,7 +87,6 @@ public struct ShareCardSheet: View {
                 useSelfie: useSelfie,
                 hasImage: selfieImage != nil,
                 showCycleContext: privacyOptions.showCycleContext,
-                showRecoveryScore: privacyOptions.showRecoveryScore,
                 showPainContext: privacyOptions.showPainContext,
                 showExactDate: privacyOptions.showExactDate
             )) {
@@ -115,7 +114,6 @@ public struct ShareCardSheet: View {
         let useSelfie: Bool
         let hasImage: Bool
         let showCycleContext: Bool
-        let showRecoveryScore: Bool
         let showPainContext: Bool
         let showExactDate: Bool
     }
@@ -292,7 +290,6 @@ public struct ShareCardSheet: View {
                 .foregroundColor(AppTheme.Text.secondary)
 
             Toggle("Show cycle context", isOn: $privacyOptions.showCycleContext)
-            Toggle("Show recovery score", isOn: $privacyOptions.showRecoveryScore)
             Toggle("Show pain context", isOn: $privacyOptions.showPainContext)
             Toggle("Show exact date", isOn: $privacyOptions.showExactDate)
 

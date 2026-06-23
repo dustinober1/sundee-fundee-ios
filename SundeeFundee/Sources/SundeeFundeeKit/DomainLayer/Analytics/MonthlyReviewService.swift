@@ -38,7 +38,6 @@ public enum MonthlyReviewService {
     public static func build(
         month: Date,
         workouts: [Workout],
-        recoveryScores: [RecoveryScoreRecord],
         painLogs: [DailyPainLog],
         effortLogs: [WorkoutEffortLog],
         symptomLogs: [SymptomCheckInRecord]? = nil,
@@ -71,9 +70,6 @@ public enum MonthlyReviewService {
             log.dateCreated >= start && log.dateCreated < end
         }
 
-        // Filter recovery scores to the month
-        let monthRecoveryScores = filterRecoveryScores(recoveryScores, from: start, to: end)
-
         // Filter pain logs to the month
         let monthPainLogs = painLogs.filter { $0.date >= start && $0.date < end }
 
@@ -91,8 +87,7 @@ public enum MonthlyReviewService {
         let topWins = buildTopWins(
             workoutCount: workoutCount,
             prCount: prCount,
-            effortLogs: monthEffortLogs,
-            recoveryScores: monthRecoveryScores
+            effortLogs: monthEffortLogs
         )
 
         let patterns = buildPatterns(
@@ -102,7 +97,6 @@ public enum MonthlyReviewService {
         )
 
         let nextMonthSuggestions = buildSuggestions(
-            hasRecoveryData: !monthRecoveryScores.isEmpty,
             hasSymptomData: !monthSymptomLogs.isEmpty,
             hasPainData: !monthPainLogs.isEmpty,
             workoutCount: workoutCount,
@@ -128,18 +122,6 @@ public enum MonthlyReviewService {
         return formatter.string(from: date)
     }
 
-    private static func filterRecoveryScores(
-        _ scores: [RecoveryScoreRecord],
-        from start: Date,
-        to end: Date
-    ) -> [RecoveryScoreRecord] {
-        let isoFormatter = ISO8601DateFormatter()
-        return scores.filter { score in
-            guard let scoreDate = isoFormatter.date(from: score.scoreDate) else { return false }
-            return scoreDate >= start && scoreDate < end
-        }
-    }
-
     private static func countPersonalRecords(from effortLogs: [WorkoutEffortLog]) -> Int {
         // High-RPE sessions (>= 8) serve as a proxy for personal-record-level effort
         effortLogs.filter { $0.rpe >= 8 }.count
@@ -148,8 +130,7 @@ public enum MonthlyReviewService {
     private static func buildTopWins(
         workoutCount: Int,
         prCount: Int,
-        effortLogs: [WorkoutEffortLog],
-        recoveryScores: [RecoveryScoreRecord]
+        effortLogs: [WorkoutEffortLog]
     ) -> [String] {
         var wins: [String] = []
 
@@ -167,14 +148,6 @@ public enum MonthlyReviewService {
         // Personal record / high-effort win
         if prCount > 0 {
             wins.append("\(prCount) high-effort session\(prCount == 1 ? "" : "s")")
-        }
-
-        // Recovery score win
-        if !recoveryScores.isEmpty {
-            let avgScore = recoveryScores.reduce(0) { $0 + $1.totalScore } / recoveryScores.count
-            if avgScore >= 60 {
-                wins.append("Average recovery score of \(avgScore)")
-            }
         }
 
         return Array(wins.prefix(3))
@@ -235,7 +208,6 @@ public enum MonthlyReviewService {
     }
 
     private static func buildSuggestions(
-        hasRecoveryData: Bool,
         hasSymptomData: Bool,
         hasPainData: Bool,
         workoutCount: Int,
@@ -251,9 +223,6 @@ public enum MonthlyReviewService {
         }
 
         // Data-gap suggestions (NOT empty — always actionable)
-        if !hasRecoveryData {
-            suggestions.append("Log recovery scores for clearer insights next month")
-        }
         if !hasSymptomData {
             suggestions.append("Track symptoms to see how they relate to training patterns")
         }
@@ -262,7 +231,7 @@ public enum MonthlyReviewService {
         }
 
         // Goal suggestions when data is rich
-        if hasRecoveryData && hasSymptomData && workoutCount >= 4 {
+        if hasSymptomData && hasPainData && workoutCount >= 4 {
             suggestions.append("Try to match this month's consistency")
         }
 

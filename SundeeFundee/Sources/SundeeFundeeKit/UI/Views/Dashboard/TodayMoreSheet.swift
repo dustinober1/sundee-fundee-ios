@@ -10,7 +10,6 @@ struct TodayMoreSheet: View {
     let onStartQuickWorkout: () -> Void
     let onOpenCoachPlan: () -> Void
     let onOpenQuickCheckIn: () -> Void
-    let onLogRecoveryInput: (RecoveryInputKind) -> Void
     let onOpenLogMax: () -> Void
     let onOpenPainLog: () -> Void
 
@@ -72,13 +71,6 @@ struct TodayMoreSheet: View {
             Section("First Week") {
                 ForEach(viewModel.firstWeekChecklist) { item in
                     Text(item.isComplete ? "\(item.title): Done" : "\(item.title): \(item.actionTitle)")
-                }
-            }
-        case .recoveryInputs:
-            Section("Recovery Inputs") {
-                ForEach(viewModel.recoveryInputStatuses) { item in
-                    Button(item.title) { onLogRecoveryInput(item.kind) }
-                        .disabled(item.isAvailable)
                 }
             }
         case .activeChallenge:

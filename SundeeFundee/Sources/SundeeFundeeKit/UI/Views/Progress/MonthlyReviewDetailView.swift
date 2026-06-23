@@ -22,7 +22,6 @@ final class MonthlyReviewViewModel {
 
         do {
             let workouts: [Workout] = try await dataClient.fetchAll(recordType: "Workout")
-            let recoveryScores: [RecoveryScoreRecord] = (try? await dataClient.fetchAll(recordType: "RecoveryScore")) ?? []
             let painLogs: [DailyPainLog] = (try? await dataClient.fetchAll(recordType: "DailyPainLog")) ?? []
             let effortLogs: [WorkoutEffortLog] = (try? await dataClient.fetchAll(recordType: "WorkoutEffortLog")) ?? []
             let symptomLogs: [SymptomCheckInRecord] = (try? await dataClient.fetchAll(recordType: "SymptomCheckInRecord")) ?? []
@@ -30,7 +29,6 @@ final class MonthlyReviewViewModel {
             review = MonthlyReviewService.build(
                 month: month,
                 workouts: workouts,
-                recoveryScores: recoveryScores,
                 painLogs: painLogs,
                 effortLogs: effortLogs,
                 symptomLogs: symptomLogs

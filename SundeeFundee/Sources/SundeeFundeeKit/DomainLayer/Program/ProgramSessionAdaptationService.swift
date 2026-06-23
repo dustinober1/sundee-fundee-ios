@@ -3,7 +3,6 @@ import Foundation
 public struct ProgramSessionAdaptationContext: Sendable {
     public let cyclePhase: CyclePhase?
     public let injuries: [Injury]
-    public let recoveryScore: Int?
     public let painIntensity: Int?
     public let equipment: EquipmentAccess?
     public let cycleConfidence: Double?
@@ -13,7 +12,6 @@ public struct ProgramSessionAdaptationContext: Sendable {
     public init(
         cyclePhase: CyclePhase? = nil,
         injuries: [Injury] = [],
-        recoveryScore: Int? = nil,
         painIntensity: Int? = nil,
         equipment: EquipmentAccess? = nil,
         cycleConfidence: Double? = nil,
@@ -22,7 +20,6 @@ public struct ProgramSessionAdaptationContext: Sendable {
     ) {
         self.cyclePhase = cyclePhase
         self.injuries = injuries
-        self.recoveryScore = recoveryScore
         self.painIntensity = painIntensity
         self.equipment = equipment
         self.cycleConfidence = cycleConfidence
@@ -90,14 +87,11 @@ public enum ProgramSessionAdaptationService {
 
             let readinessAdjusted = applyReadinessAdjustments(exercise, context: context)
             if !isSameExercise(exercise, readinessAdjusted) {
-                let reason: ProgramAdaptationReasonCode = context.deloadRecommended ? .deloadAdjustment : .recoveryAdjustment
                 changes.append(
                     ProgramAdaptationChange(
-                        reasonCode: reason,
+                        reasonCode: .deloadAdjustment,
                         exerciseName: readinessAdjusted.exercise,
-                        detail: context.deloadRecommended
-                            ? "Deload recommendation reduced volume and intensity."
-                            : "Recovery context reduced volume and intensity."
+                        detail: "Deload recommendation reduced volume and intensity."
                     )
                 )
             }
@@ -125,7 +119,7 @@ public enum ProgramSessionAdaptationService {
             headline = "Session matches your base program."
         } else if context.deloadRecommended {
             headline = "Session adapted for active recovery and fatigue management."
-        } else if context.recoveryScore != nil || context.painIntensity != nil {
+        } else if context.painIntensity != nil {
             headline = "Session adapted to your current readiness and pain context."
         } else {
             headline = "Session adapted around cycle phase, injuries, and equipment."
@@ -206,29 +200,6 @@ public enum ProgramSessionAdaptationService {
                 reps: scaleReps(exercise.reps, multiplier: 0.85),
                 percent1RM: exercise.percent1RM.map { $0 * 0.80 },
                 restMinutes: exercise.restMinutes * 1.20,
-                bodyweightOnly: exercise.bodyweightOnly
-            )
-        }
-
-        guard let recoveryScore = context.recoveryScore else { return exercise }
-        if recoveryScore < 40 {
-            return GeneratedProgramExercise(
-                exercise: exercise.exercise,
-                sets: scaleSets(exercise.sets, multiplier: 0.80),
-                reps: scaleReps(exercise.reps, multiplier: 0.90),
-                percent1RM: exercise.percent1RM.map { $0 * 0.85 },
-                restMinutes: exercise.restMinutes * 1.15,
-                bodyweightOnly: exercise.bodyweightOnly
-            )
-        }
-
-        if recoveryScore < 70 {
-            return GeneratedProgramExercise(
-                exercise: exercise.exercise,
-                sets: scaleSets(exercise.sets, multiplier: 0.92),
-                reps: exercise.reps,
-                percent1RM: exercise.percent1RM.map { $0 * 0.95 },
-                restMinutes: exercise.restMinutes * 1.08,
                 bodyweightOnly: exercise.bodyweightOnly
             )
         }

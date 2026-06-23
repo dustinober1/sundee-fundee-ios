@@ -3,17 +3,17 @@ import XCTest
 
 @MainActor
 final class ActiveWorkoutSessionViewModelTests: XCTestCase {
-    func testBeginSessionUsesTodaysRecoveryScoreForWarmupContext() async throws {
+    func testBeginSessionUsesPainLogForWarmupContext() async throws {
         let dataClient = MockCloudKitClient()
         try await dataClient.save(
-            RecoveryScoreRecord(
-                scoreDate: todayString(),
-                totalScore: 32,
-                presentInputCount: 5,
-                cyclePhaseRaw: CyclePhase.luteal.rawValue,
-                recommendationRaw: TrainingRecommendation.restDay.rawValue
+            DailyPainLog(
+                id: UUID().uuidString,
+                locationIds: "knee_left",
+                intensity: 6,
+                painType: .aching,
+                date: Date()
             ),
-            recordType: "RecoveryScore"
+            recordType: "DailyPainLog"
         )
         let viewModel = ActiveWorkoutSessionViewModel(
             workout: squatWorkout(),
@@ -24,36 +24,7 @@ final class ActiveWorkoutSessionViewModelTests: XCTestCase {
         viewModel.beginSession()
         let block = try await waitForWarmupBlock(in: viewModel)
 
-        XCTAssertLessThanOrEqual(block.estimatedMinutes, 5)
-        XCTAssertTrue(block.reasons.contains(where: { $0.localizedCaseInsensitiveContains("low recovery") }))
-        XCTAssertTrue(block.reasons.contains(where: { $0.localizedCaseInsensitiveContains("cycle context") }))
-
-        await viewModel.abandonWorkout()
-    }
-
-    func testBeginSessionFallsBackToLatestRecoveryScoreWhenTodayIsMissing() async throws {
-        let dataClient = MockCloudKitClient()
-        try await dataClient.save(
-            RecoveryScoreRecord(
-                scoreDate: dayString(daysAgo: 2),
-                totalScore: 32,
-                presentInputCount: 5,
-                cyclePhaseRaw: CyclePhase.luteal.rawValue,
-                recommendationRaw: TrainingRecommendation.restDay.rawValue
-            ),
-            recordType: "RecoveryScore"
-        )
-        let viewModel = ActiveWorkoutSessionViewModel(
-            workout: squatWorkout(),
-            dataClient: dataClient,
-            healthClient: MockHealthKitClient()
-        )
-
-        viewModel.beginSession()
-        let block = try await waitForWarmupBlock(in: viewModel)
-
-        XCTAssertLessThanOrEqual(block.estimatedMinutes, 5)
-        XCTAssertTrue(block.reasons.contains(where: { $0.localizedCaseInsensitiveContains("low recovery") }))
+        XCTAssertTrue(block.reasons.contains(where: { $0.localizedCaseInsensitiveContains("knee pain") }))
 
         await viewModel.abandonWorkout()
     }
@@ -156,15 +127,6 @@ final class ActiveWorkoutSessionViewModelTests: XCTestCase {
         }
         XCTFail("Expected pending warmup block")
         throw TestError.timeout
-    }
-
-    private func todayString() -> String {
-        ISO8601DateFormatter().string(from: Calendar.current.startOfDay(for: Date()))
-    }
-
-    private func dayString(daysAgo: Int) -> String {
-        let date = Calendar.current.date(byAdding: .day, value: -daysAgo, to: Date()) ?? Date()
-        return ISO8601DateFormatter().string(from: Calendar.current.startOfDay(for: date))
     }
 
     private func squatWorkout() -> Workout {
