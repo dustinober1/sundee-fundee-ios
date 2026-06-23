@@ -19,6 +19,9 @@ build/
 *.ipa
 *.xcarchive/
 *.dSYM.zip
+SundeeFundeeApp/.asc/artifacts/
+SundeeFundeeApp/.asc/reports/
+SundeeFundeeApp/.asc/upload-screenshots/
 
 # macOS
 .DS_Store
