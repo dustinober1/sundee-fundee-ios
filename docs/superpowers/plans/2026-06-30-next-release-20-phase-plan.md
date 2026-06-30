@@ -27,6 +27,19 @@
 - Per `AGENTS.md`, delegate routine git staging/commits to a Haiku subagent when that tool/model is available. Tell it exact files, exact commit message, current branch, and: never `git add .` or `git add -A`, never amend, never force-push, stop on unexpected state.
 - Do not upload, submit, or build for App Store review unless the user explicitly asks.
 
+## Status Vocabulary
+
+Use these exact matrix statuses throughout this plan:
+
+- `not started`
+- `partial`
+- `implemented-needs-verification`
+- `implemented-needs-manual-qa`
+- `done`
+- `blocked`
+
+Use `not started` and `partial` while work is still ahead. Use `implemented-needs-verification` when the code is in place and only review/QA remains. Use `implemented-needs-manual-qa` when code is in place, automated checks passed, and only simulator/manual validation remains. Use `done` only after the item is fully verified. Use `blocked` only for a real external blocker.
+
 ## Verification Commands
 
 Run focused tests after each task, then broader verification at phase gates.
@@ -89,7 +102,7 @@ Create `docs/superpowers/plans/2026-06-30-next-release-20-matrix.md`:
 | # | Recommendation | Status | Evidence | Phase | Verification |
 |---:|---|---|---|---:|---|
 | 1 | Make dark mode the headline fix | not started | `AppTheme.Semantic` still uses raw `Color.green/orange/red/blue`; button destructive state uses raw red | 1 | Dark/light screenshots and `AppThemeColorTests` |
-| 2 | Add formal contrast and accessibility audit gate | not started | No release gate doc/script exists for dark mode, high contrast, Dynamic Type, VoiceOver, tap targets | 1 | `docs/release/dark-mode-accessibility-gate.md` checked off |
+| 2 | Add formal contrast and accessibility audit gate | not started | No release gate doc/script exists for dark mode, high contrast, Dynamic Type, VoiceOver, tap targets | 1 | Gate doc created in Phase 1 and checked off |
 | 3 | Finish loading, error, and empty-state polish | partial | Benchmarks and Pain now have labels/empty states; remaining unlabeled button spinners exist in share/export/support/programs/AI surfaces | 1 | `scripts/audit-release-polish.sh` plus UI review |
 | 4 | Add haptics to important moments | implemented-needs-verification | Haptics exist in active workout, PR/workout completion, challenges, share, settings, symptom check-in | 1 | Grep and simulator smoke test |
 | 5 | Take easy performance wins | implemented-needs-verification | Benchmark fetches and share renderer already async; verify program/session paths | 1 | `swift test` and targeted code review |
@@ -107,7 +120,7 @@ Create `docs/superpowers/plans/2026-06-30-next-release-20-matrix.md`:
 | 17 | Polish widgets with freshness and deep links | partial | Freshness text exists; no `widgetURL` or app route handler | 4 | `DeepLinkRouterTests` and widget smoke |
 | 18 | Clean up stale developer docs | not started | `SundeeFundee/README.md` and `Package.swift` comments are stale | 5 | Doc diff review |
 | 19 | Small code-health cleanup pass | partial | Some old findings already fixed; verify `MaxRow`, `setsCount`, and lint | 5 | `rg` checks and SwiftLint |
-| 20 | Create final release gate | not started | No single runbook/script covers full risk list | 5 | `docs/release/next-release-gate.md` |
+| 20 | Create final release gate | not started | No single runbook/script covers full risk list | 5 | Gate doc created in Phase 5 and checked off |
 ```
 
 - [ ] **Step 2: Commit**
@@ -2516,7 +2529,7 @@ docs(release): add next release gate
 
 - [ ] **Step 1: Update every row**
 
-Every row status must be one of:
+Convert every row to a terminal status:
 
 ```text
 done
@@ -2524,7 +2537,7 @@ implemented-needs-manual-qa
 blocked
 ```
 
-Use `blocked` only for real external blockers such as missing CloudKit schema deployment or missing simulator capability.
+Use `done` when the item is fully verified. Use `implemented-needs-manual-qa` when code is complete and only manual simulator verification remains. Use `blocked` only for real external blockers such as missing CloudKit schema deployment or missing simulator capability. If any row is still `not started`, `partial`, or `implemented-needs-verification`, keep working that phase until it reaches one of the terminal statuses above.
 
 - [ ] **Step 2: Run final status check**
 
@@ -2554,16 +2567,8 @@ Run:
 ./scripts/next-release-gate.sh
 ```
 
-Then run the dark-mode/accessibility manual gate from:
+Then run the dark-mode/accessibility manual gate from the gate doc created in Phase 1.
 
-```text
-docs/release/dark-mode-accessibility-gate.md
-```
-
-Then run the support-tip review gate from:
-
-```text
-docs/release/support-tip-review-gate.md
-```
+Then run the support-tip review gate from the gate doc created in Phase 5.
 
 No App Store upload or submission is part of this plan.
