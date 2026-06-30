@@ -30,6 +30,31 @@ struct AppThemeColorTests {
         #expect(light != dark)
         #expect(luminance(dark) < luminance(light))
     }
+
+    @Test("Semantic colors adapt between light and dark appearances")
+    func semanticColorsAdaptToDarkAppearance() {
+        let semanticColors: [(String, Color)] = [
+            ("success", AppTheme.Semantic.success),
+            ("warning", AppTheme.Semantic.warning),
+            ("error", AppTheme.Semantic.error),
+            ("info", AppTheme.Semantic.info)
+        ]
+
+        for (name, color) in semanticColors {
+            let light = resolvedRGBA(color, appearance: .aqua)
+            let dark = resolvedRGBA(color, appearance: .darkAqua)
+
+            #expect(light != dark, "\(name) should resolve differently in dark appearance")
+        }
+    }
+
+    @Test("Subtle shadow opacity is stronger in dark appearance")
+    func subtleShadowStrengthensInDarkAppearance() {
+        let light = resolvedRGBA(AppTheme.Shadow.subtle, appearance: .aqua)
+        let dark = resolvedRGBA(AppTheme.Shadow.subtle, appearance: .darkAqua)
+
+        #expect(dark.3 > light.3)
+    }
 }
 
 private func resolvedRGBA(_ color: Color, appearance: NSAppearance.Name) -> (Double, Double, Double, Double) {

@@ -128,10 +128,31 @@ public enum AppTheme {
 
     /// Semantic colors
     public enum Semantic {
-        public static let success = Color.green
-        public static let warning = Color.orange
-        public static let error = Color.red
-        public static let info = Color.blue
+        public static let success = AppTheme.adaptiveColor(
+            light: AppThemeColorToken(red: 0.22, green: 0.70, blue: 0.29),
+            dark: AppThemeColorToken(red: 0.49, green: 0.84, blue: 0.56)
+        )
+        public static let warning = AppTheme.adaptiveColor(
+            light: AppThemeColorToken(red: 0.76, green: 0.50, blue: 0.11),
+            dark: AppThemeColorToken(red: 0.95, green: 0.74, blue: 0.31)
+        )
+        public static let error = AppTheme.adaptiveColor(
+            light: AppThemeColorToken(red: 0.72, green: 0.19, blue: 0.21),
+            dark: AppThemeColorToken(red: 0.96, green: 0.45, blue: 0.48)
+        )
+        public static let info = AppTheme.adaptiveColor(
+            light: AppThemeColorToken(red: 0.13, green: 0.39, blue: 0.70),
+            dark: AppThemeColorToken(red: 0.46, green: 0.72, blue: 0.95)
+        )
+    }
+
+    // MARK: - Shadow Colors
+
+    public enum Shadow {
+        public static let subtle = AppTheme.adaptiveColor(
+            light: AppThemeColorToken(red: 0, green: 0, blue: 0, opacity: 0.05),
+            dark: AppThemeColorToken(red: 0, green: 0, blue: 0, opacity: 0.18)
+        )
     }
 
     // MARK: - Readiness Colors
@@ -275,7 +296,7 @@ extension View {
         self
             .background(AppTheme.Background.card)
             .cornerRadius(AppTheme.CornerRadius.medium)
-            .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
+            .shadow(color: AppTheme.Shadow.subtle, radius: 2, x: 0, y: 1)
     }
 
     /// Prevents text clipping at large Dynamic Type sizes by allowing
@@ -339,7 +360,7 @@ public struct ArtDecoButtonStyle: SwiftUI.ButtonStyle {
         case .ghost:
             return .clear
         case .destructive:
-            return isPressed ? Color.red.opacity(0.8) : Color.red
+            return isPressed ? AppTheme.Semantic.error.opacity(0.8) : AppTheme.Semantic.error
         }
     }
 
@@ -383,7 +404,7 @@ public struct ArtDecoCard<Content: View>: View {
             .padding(padding)
             .background(AppTheme.Background.card)
             .cornerRadius(AppTheme.CornerRadius.medium)
-            .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
+            .shadow(color: AppTheme.Shadow.subtle, radius: 2, x: 0, y: 1)
     }
 }
 
@@ -418,7 +439,7 @@ public struct StatCard: View {
         .padding(AppTheme.Spacing.lg)
         .background(AppTheme.Background.card)
         .cornerRadius(AppTheme.CornerRadius.medium)
-        .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
+        .shadow(color: AppTheme.Shadow.subtle, radius: 2, x: 0, y: 1)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(value) \(label)")
     }
