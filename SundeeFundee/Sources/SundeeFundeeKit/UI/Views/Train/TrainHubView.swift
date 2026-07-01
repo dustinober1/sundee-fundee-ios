@@ -2,6 +2,7 @@ import SwiftUI
 
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
 public struct TrainHubView: View {
+    @StateObject private var bestNextViewModel = BestNextWorkoutViewModel()
     @State private var showingNewWorkout = false
     @State private var showingAIWorkout = false
     @State private var quickWorkout: Workout?
@@ -13,19 +14,18 @@ public struct TrainHubView: View {
             List {
                 Section("Start") {
                     Button {
-                        quickWorkout = QuickWorkoutBuilder.build(
-                            request: QuickWorkoutRequest(
-                                timeMinutes: 20,
-                                focus: .fullBody,
-                                energyLevel: .medium,
-                                equipment: .fullGym,
-                                todayDecisionKind: .modify,
-                                painLogs: []
-                            )
-                        ).workout
+                        Task {
+                            if let result = await bestNextViewModel.buildWorkout() {
+                                quickWorkout = result.workout
+                            }
+                        }
                     } label: {
-                        Label("Best Next 20 Min", systemImage: "timer")
+                        Label(
+                            bestNextViewModel.isBuilding ? "Building Best Next 20" : "Best Next 20 Min",
+                            systemImage: "timer"
+                        )
                     }
+                    .disabled(bestNextViewModel.isBuilding)
 
                     Button {
                         showingAIWorkout = true
