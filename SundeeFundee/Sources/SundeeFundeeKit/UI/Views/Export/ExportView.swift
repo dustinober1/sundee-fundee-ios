@@ -81,6 +81,7 @@ public struct ExportView: View {
                     if viewModel.isExporting {
                         ProgressView()
                             .padding(.trailing, AppTheme.Spacing.sm)
+                            .accessibilityLabel("Exporting data")
                     }
                     Text(viewModel.isExporting ? "Exporting..." : "Export My Data")
                         .font(AppTheme.Typography.labelLarge)

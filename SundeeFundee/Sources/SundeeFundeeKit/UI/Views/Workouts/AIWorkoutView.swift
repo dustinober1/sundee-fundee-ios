@@ -377,11 +377,12 @@ struct AIWorkoutView: View {
         VStack(spacing: AppTheme.Spacing.xl) {
             Spacer()
 
-            ProgressView()
+            ProgressView("Building your Coach Plan…")
                 .scaleEffect(1.5)
                 .tint(AppTheme.Accent.gold)
+                .accessibilityLabel("Building your Coach Plan")
 
-            Text("Building your Coach Plan...")
+            Text("Building your Coach Plan…")
                 .font(AppTheme.Typography.headlineMedium)
                 .foregroundColor(AppTheme.Text.primary)
 
@@ -719,6 +720,7 @@ struct AIWorkoutView: View {
                                 Spacer().frame(height: 40)
                                 ProgressView()
                                     .tint(AppTheme.Accent.gold)
+                                    .accessibilityLabel("Finding alternatives")
                                 Text("Finding alternatives...")
                                     .font(AppTheme.Typography.bodyMedium)
                                     .foregroundColor(AppTheme.Text.secondary)

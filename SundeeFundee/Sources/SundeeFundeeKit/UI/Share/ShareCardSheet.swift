@@ -191,8 +191,9 @@ public struct ShareCardSheet: View {
                     .shadow(color: .black.opacity(0.12), radius: 8, x: 0, y: 4)
                     .transition(.opacity)
             } else {
-                ProgressView()
+                ProgressView("Rendering share card preview…")
                     .frame(height: 320)
+                    .accessibilityLabel("Rendering share card preview")
             }
         }
         .frame(maxWidth: .infinity)

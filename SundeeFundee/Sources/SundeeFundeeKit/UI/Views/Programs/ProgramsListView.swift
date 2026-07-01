@@ -344,6 +344,7 @@ struct ProgramRow: View {
                             ProgressView()
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, AppTheme.Spacing.sm)
+                                .accessibilityLabel("Enrolling in program")
                         } else {
                             Text("Enroll")
                         }
@@ -696,6 +697,7 @@ struct ProgramDetailView: View {
                         ProgressView()
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, AppTheme.Spacing.sm)
+                            .accessibilityLabel("Starting session")
                     } else {
                         Label(isCompleted ? "Start Again" : "Start Session",
                               systemImage: isCompleted ? "arrow.clockwise" : "play.fill")

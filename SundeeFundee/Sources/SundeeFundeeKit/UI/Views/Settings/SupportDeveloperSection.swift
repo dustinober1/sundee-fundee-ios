@@ -35,6 +35,7 @@ public struct SupportDeveloperSection: View {
                     Spacer()
                     if viewModel.state == .purchasing {
                         ProgressView()
+                            .accessibilityLabel("Sending support tip")
                     }
                 }
             }
