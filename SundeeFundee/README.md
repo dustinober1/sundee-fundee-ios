@@ -1,65 +1,84 @@
-# Sundee Fundee - Native Apple App
+# Sundee Fundee Kit
 
-Cycle-aware strength training, now native on Apple platforms.
+Shared Swift package for the Sundee Fundee iOS app: cycle-aware strength training, recovery guidance, progress tracking, sharing, widgets, and App Intents.
 
-## Project Structure
+## Repository Shape
 
+```text
+SundeeFundee/                  # Swift package: SundeeFundeeKit
+├── Sources/SundeeFundeeKit/
+│   ├── DomainLayer/           # Pure training, cycle, recovery, privacy, growth, and support logic
+│   ├── DataLayer/             # DataClientProtocol plus CloudKit, local, mock, diagnostics, sync, StoreKit
+│   ├── UI/                    # SwiftUI views, view models, app shell helpers, theme, share UI
+│   ├── Auth/                  # Apple Sign-In and Keychain helpers
+│   ├── Models/                # Shared Codable models and CloudKit record types
+│   ├── Activity/              # Live Activity support
+│   ├── Intents/               # App Intents and App Shortcuts
+│   └── Screenshot/            # Screenshot seed data
+├── Tests/SundeeFundeeKitTests/
+└── Package.swift
+
+SundeeFundeeApp/               # Xcode app project
+├── SundeeFundee/              # @main app target, assets, plist, entitlements
+├── SundeeFundeeWidgets/       # Widget extension
+├── StoreKit/                  # Local StoreKit configuration
+└── fastlane/                  # Release metadata and screenshot automation
 ```
-SundeeFundee/
-├── Sources/SundeeFundeeKit/    # Domain models and calculations
-│   ├── Models/                 # Exercise, Workout, etc.
-│   ├── Calculations/           # Weight, Plate, Unit converters
-│   └── Exports.swift           # Public API surface
-├── Tests/SundeeFundeeKitTests/ # Test suite
-└── Package.swift               # Swift Package definition
-```
 
-## Building
+The app target imports `SundeeFundeeKit`; most product code lives in the package so it can be tested with SwiftPM.
 
-### Prerequisites
-- Xcode 16+
-- Swift 6.0
-- macOS 15+ (Sequoia)
+## Requirements
 
-### Build
+- Xcode 17 or newer
+- Swift 6
+- iOS 18 or newer
+- macOS 15 or newer
+
+The project uses Apple frameworks only. Do not add external package dependencies.
+
+## Common Commands
+
+Run package tests:
+
 ```bash
-swift build
-```
-
-### Run Tests
-```bash
+cd SundeeFundee
 swift test
 ```
 
-### Verify Coverage
+Run a focused package test:
+
 ```bash
-./scripts/verify-coverage.sh
+cd SundeeFundee
+swift test --filter SundeeFundeeKitTests.CyclePhaseHelperTests/testPhaseCalculation
 ```
 
-## Development Status
+Build the app and widget extension:
 
-### Phase 1: Foundation ✅ (CURRENT)
-- [x] Swift Package structure
-- [x] SundeeFundeeKit shared framework
-- [x] Core domain models (Workout, Exercise, Set)
-- [x] Calculation modules (Weight, Plate, Unit converters)
-- [x] XCTest infrastructure with 100% coverage
+```bash
+cd SundeeFundeeApp
+xcodebuild -project SundeeFundee.xcodeproj -scheme SundeeFundee -destination 'platform=iOS Simulator,name=iPhone 17 Pro' build
+```
 
-### Phase 2: Data Layer (NEXT)
-- [ ] CloudKit schema and actors
-- [ ] SwiftData models
-- [ ] HealthKit client
-- [ ] Sign in with Apple
+Regenerate the Xcode project after editing `project.yml`:
 
-## Tech Stack
+```bash
+cd SundeeFundeeApp
+xcodegen generate
+```
 
-- **Language**: Swift 6
-- **UI**: SwiftUI
-- **Data**: CloudKit for signed-in users, local storage for guests
-- **Concurrency**: async/await with Actors
-- **Testing**: XCTest
-- **Auth**: Sign in with Apple
+## Architecture Notes
 
-## License
+- `DataClientFactory.shared.client` selects CloudKit for signed-in users and local storage for guest mode.
+- `CloudKitClient` is an actor; SwiftUI view models are `@MainActor`.
+- Domain services should stay deterministic and framework-light.
+- UI must use `AppTheme.*` tokens and handle HealthKit denial gracefully.
+- CloudKit record dates are encoded as ISO8601 strings, and new record types need a queryable `recordName` index before production use.
 
-Copyright © 2026 Sundee Fundee. All rights reserved.
+## Release Status
+
+The current release plan and item matrix live in:
+
+- `docs/superpowers/plans/2026-06-30-next-release-20-phase-plan.md`
+- `docs/superpowers/plans/2026-06-30-next-release-20-matrix.md`
+
+Copyright (c) 2026 Sundee Fundee. All rights reserved.

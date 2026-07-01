@@ -19,6 +19,6 @@
 | 15 | Surface privacy/data-control messaging | implemented-needs-manual-qa | Onboarding explains guest/local, Apple/iCloud sync, and optional Health; Data Trust Center shows guest vs signed-in storage copy; Health denial copy is non-blocking | 3 | UI text smoke and data trust screenshot |
 | 16 | Keep support tip App Review-safe | implemented-needs-verification | StoreKit/product/tests exist | 5 | StoreKit path rehearsal |
 | 17 | Polish widgets with freshness and deep links | implemented-needs-manual-qa | Freshness text remains; `sundeefundee://` router, app URL handler, registered scheme, and Cycle widget tap URL are implemented; focused tests pass and app builds | 4 | `DeepLinkRouterTests` and widget smoke |
-| 18 | Clean up stale developer docs | not started | `SundeeFundee/README.md` and `Package.swift` comments are stale | 5 | Doc diff review |
+| 18 | Clean up stale developer docs | implemented-needs-manual-qa | `SundeeFundee/README.md` now reflects the current app/package split, and stale `Package.swift` scaffolding comments are removed; stale phrase scan is clean and manifest dump succeeds | 5 | Doc diff review |
 | 19 | Small code-health cleanup pass | partial | Some old findings already fixed; verify `MaxRow`, `setsCount`, and lint | 5 | `rg` checks and SwiftLint |
 | 20 | Create final release gate | not started | No single runbook/script covers full risk list | 5 | `docs/release/next-release-gate.md` |
