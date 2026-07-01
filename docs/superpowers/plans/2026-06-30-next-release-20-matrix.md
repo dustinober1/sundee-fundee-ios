@@ -16,7 +16,7 @@
 | 12 | Close loop after workouts with quick check-in | implemented-needs-manual-qa | Optional post-workout check-in record, view model, and completion sheet are implemented; it captures session RPE, soreness, pain, and right-for-today feedback after completion | 2 | `WorkoutCompletionCheckInViewModelTests` and active workout completion smoke |
 | 13 | Improve Progress feature discoverability | not started | `ProgressHubView` hides destinations when empty except export/monthly review | 4 | `ProgressGuidanceServiceTests` |
 | 14 | Make onboarding progressive | implemented-needs-manual-qa | `ProgressivePromptPolicy` gates Health, cycle, photo sharing, and reminder prompts; onboarding, Cycle, and share surfaces now use point-of-use copy | 3 | `ProgressivePromptPolicyTests` and onboarding/cycle/share smoke |
-| 15 | Surface privacy/data-control messaging | partial | Data Trust Center exists; onboarding/settings copy can be clearer | 3 | UI text smoke and data trust screenshot |
+| 15 | Surface privacy/data-control messaging | implemented-needs-manual-qa | Onboarding explains guest/local, Apple/iCloud sync, and optional Health; Data Trust Center shows guest vs signed-in storage copy; Health denial copy is non-blocking | 3 | UI text smoke and data trust screenshot |
 | 16 | Keep support tip App Review-safe | implemented-needs-verification | StoreKit/product/tests exist | 5 | StoreKit path rehearsal |
 | 17 | Polish widgets with freshness and deep links | partial | Freshness text exists; no `widgetURL` or app route handler | 4 | `DeepLinkRouterTests` and widget smoke |
 | 18 | Clean up stale developer docs | not started | `SundeeFundee/README.md` and `Package.swift` comments are stale | 5 | Doc diff review |

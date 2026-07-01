@@ -13,6 +13,14 @@ public struct DataTrustCenterView: View {
 
     public var body: some View {
         List {
+            Section("Privacy") {
+                Text(authViewModel.isGuest
+                    ? "You are using guest mode. Workout, cycle, pain, and progress data stays on this device unless you sign in."
+                    : "You are signed in with Apple. Sundee Fundee syncs app data with your private iCloud container.")
+                    .font(AppTheme.Typography.bodySmall)
+                    .foregroundColor(AppTheme.Text.secondary)
+            }
+
             syncStatusSection
             activationSection
 

@@ -14,8 +14,8 @@ public enum HealthError: Error, LocalizedError {
         switch self {
         case .notAvailable:
             return "HealthKit is not available on this device."
-        case .authorizationDenied(let feature):
-            return "Authorization denied for \(feature). Please enable in Settings > Privacy & Security > Health."
+        case .authorizationDenied:
+            return "Health access is optional. Sundee Fundee will keep using your logged workouts and check-ins."
         case .noData(let type):
             return "No \(type) data available."
         case .queryFailed(let underlying):
@@ -31,7 +31,7 @@ public enum HealthError: Error, LocalizedError {
         case .notAvailable:
             return "HealthKit requires an iPhone or Apple Watch."
         case .authorizationDenied:
-            return "Open Settings and grant access to health data."
+            return "You can enable Health access later in Settings > Privacy & Security > Health."
         case .noData:
             return "Start tracking health data to see your history."
         case .queryFailed:

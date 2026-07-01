@@ -79,6 +79,12 @@ public struct OnboardingView: View {
                 .foregroundColor(AppTheme.Text.secondary)
                 .multilineTextAlignment(.center)
 
+            Text("Guest mode stays local. Sign in with Apple uses iCloud sync. Health access is optional, and the app still works if you decline.")
+                .font(AppTheme.Typography.bodySmall)
+                .foregroundColor(AppTheme.Text.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, AppTheme.Spacing.xl)
+
             Spacer()
 
             Text("Sundee Fundee is a fitness tool, not a medical device. It is not a substitute for professional medical advice, diagnosis, or treatment. Consult your doctor before starting any exercise program.")
