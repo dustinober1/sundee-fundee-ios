@@ -9,9 +9,37 @@ struct TodayWhySheet: View {
     let cyclePhase: CyclePhase?
     let cycleConfidence: Double?
 
+    private var trustBadges: [WorkoutTrustBadge] {
+        WorkoutTrustBadgeBuilder.badges(
+            reasons: decision?.reasons ?? [],
+            cyclePhase: cyclePhase,
+            cycleConfidence: cycleConfidence,
+            deloadRecommended: deloadRecommendation?.isRecommended == true
+        )
+    }
+
     var body: some View {
         NavigationStack {
             List {
+                if !trustBadges.isEmpty {
+                    Section("Why this workout") {
+                        ForEach(trustBadges) { badge in
+                            Label {
+                                VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                                    Text(badge.title)
+                                        .font(AppTheme.Typography.headlineSmall)
+                                    Text(badge.detail)
+                                        .font(AppTheme.Typography.bodySmall)
+                                        .foregroundColor(AppTheme.Text.secondary)
+                                }
+                            } icon: {
+                                Image(systemName: badge.systemImage)
+                                    .foregroundColor(AppTheme.Accent.gold)
+                            }
+                        }
+                    }
+                }
+
                 if let decision {
                     Section("Today") {
                         Text(decision.subtitle)

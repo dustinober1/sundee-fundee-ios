@@ -446,6 +446,9 @@ struct AIWorkoutView: View {
 
                     if let rationale = viewModel.workoutRationale {
                         rationaleCard(rationale)
+                        if !coachPlanTrustBadges.isEmpty {
+                            coachPlanTrustBadgeRow
+                        }
                     }
 
                     feedbackRow
@@ -681,6 +684,35 @@ struct AIWorkoutView: View {
             .accessibilityLabel("Coach Plan was not useful")
         }
         .padding(.horizontal, AppTheme.Spacing.sm)
+    }
+
+    private var coachPlanTrustBadges: [WorkoutTrustBadge] {
+        guard let rationale = viewModel.workoutRationale else { return [] }
+        return WorkoutTrustBadgeBuilder.badges(
+            reasons: [rationale.headline] + rationale.reasons + rationale.cautions,
+            cyclePhase: viewModel.cyclePhase,
+            cycleConfidence: nil,
+            deloadRecommended: rationale.cautions.contains {
+                $0.localizedCaseInsensitiveContains("recovery")
+            }
+        )
+    }
+
+    private var coachPlanTrustBadgeRow: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: AppTheme.Spacing.sm) {
+                ForEach(coachPlanTrustBadges) { badge in
+                    Label(badge.title, systemImage: badge.systemImage)
+                        .font(AppTheme.Typography.labelMedium)
+                        .foregroundColor(AppTheme.Text.primary)
+                        .padding(.horizontal, AppTheme.Spacing.sm)
+                        .padding(.vertical, AppTheme.Spacing.xs)
+                        .background(AppTheme.Accent.goldLight)
+                        .cornerRadius(AppTheme.CornerRadius.small)
+                        .accessibilityLabel("\(badge.title), \(badge.detail)")
+                }
+            }
+        }
     }
 
     private func whyChangedCard(_ notes: [WorkoutChangeNote]) -> some View {

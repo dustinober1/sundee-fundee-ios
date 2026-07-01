@@ -10,7 +10,7 @@
 | 6 | Smooth share-card rendering | implemented-needs-manual-qa | `ShareCardRenderer.render` uses detached `ImageRenderer` work and the app builds; UIKit-gated share renderer tests exist but are not wired into current test schemes | 1 | Share preview smoke test |
 | 7 | Build activation funnel | not started | Growth events exist; no funnel service/surface | 3 | `ActivationFunnelServiceTests` |
 | 8 | Add Coach Plan copy feedback | implemented-needs-manual-qa | Metadata-only `CoachPlanFeedback` record/service and Coach Plan preview thumbs feedback UI are implemented; service and view-model tests pass | 2 | `CoachPlanFeedbackServiceTests` |
-| 9 | Make "Why this workout?" bigger trust feature | partial | Reason codes/rationale exist; `TodayWhySheet` is plain text | 2 | `WorkoutTrustBadgeBuilderTests` and UI smoke |
+| 9 | Make "Why this workout?" bigger trust feature | implemented-needs-manual-qa | `WorkoutTrustBadgeBuilder` adds energy/equipment/recovery/cycle badges; Today why sheet and Coach Plan preview render trust badges | 2 | `WorkoutTrustBadgeBuilderTests` and UI smoke |
 | 10 | Make Best Next 20 Min context-aware | not started | `TrainHubView` hardcodes full-body, medium energy, full gym, no pain logs | 2 | `BestNextWorkoutRequestBuilderTests` |
 | 11 | Let Coach Plan quick edits become learned preferences | partial | `EditableWorkoutDraft` and `PreferenceLearner` exist; no today preference persistence | 2 | `TodayWorkoutPreferenceServiceTests` |
 | 12 | Close loop after workouts with quick check-in | partial | Set RPE exists; no completion check-in record/sheet | 2 | `WorkoutCompletionCheckInViewModelTests` |
