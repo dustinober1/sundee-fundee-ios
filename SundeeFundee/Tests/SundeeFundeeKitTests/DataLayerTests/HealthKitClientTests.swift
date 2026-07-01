@@ -89,13 +89,19 @@ final class HealthErrorTests: XCTestCase {
     func testAuthorizationDenied_Description() {
         let error = HealthError.authorizationDenied(feature: "heart rate")
 
-        XCTAssertEqual(error.errorDescription, "Authorization denied for heart rate. Please enable in Settings > Privacy & Security > Health.")
+        XCTAssertEqual(
+            error.errorDescription,
+            "Health access is optional. Sundee Fundee will keep using your logged workouts and check-ins."
+        )
     }
 
     func testAuthorizationDenied_RecoverySuggestion() {
         let error = HealthError.authorizationDenied(feature: "workouts")
 
-        XCTAssertEqual(error.recoverySuggestion, "Open Settings and grant access to health data.")
+        XCTAssertEqual(
+            error.recoverySuggestion,
+            "You can enable Health access later in Settings > Privacy & Security > Health."
+        )
     }
 
     func testNoData_Description() {
