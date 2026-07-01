@@ -3,6 +3,7 @@ import SwiftUI
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
 public struct DataTrustCenterView: View {
     @State private var summary: DataInventorySummary?
+    @State private var activationSnapshot: ActivationFunnelSnapshot?
     @State private var isLoading = false
     @State private var showDeleteConfirm = false
     @EnvironmentObject private var authViewModel: AuthViewModel
@@ -13,6 +14,7 @@ public struct DataTrustCenterView: View {
     public var body: some View {
         List {
             syncStatusSection
+            activationSection
 
             Section("Storage") {
                 if isLoading && summary == nil {
@@ -136,10 +138,32 @@ public struct DataTrustCenterView: View {
         }
     }
 
+    @ViewBuilder
+    private var activationSection: some View {
+        if let activationSnapshot {
+            Section("Activation") {
+                activationRow("Onboarding started", isComplete: activationSnapshot.onboardingStarted)
+                activationRow("Onboarding completed", isComplete: activationSnapshot.onboardingCompleted)
+                activationRow("First workout started", isComplete: activationSnapshot.firstWorkoutStarted)
+                activationRow("First workout completed", isComplete: activationSnapshot.firstWorkoutCompleted)
+                activationRow("Second session within 7 days", isComplete: activationSnapshot.secondSessionWithinSevenDays)
+            }
+        }
+    }
+
+    private func activationRow(_ title: String, isComplete: Bool) -> some View {
+        Label(title, systemImage: isComplete ? "checkmark.circle.fill" : "circle")
+            .font(AppTheme.Typography.bodyMedium)
+            .foregroundColor(isComplete ? AppTheme.Semantic.success : AppTheme.Text.secondary)
+    }
+
     private func loadInventory() async {
         isLoading = true
         let service = DataInventoryService()
         summary = await service.loadInventory()
+        let client = DataClientFactory.shared.client
+        let events: [GrowthEvent] = (try? await client.fetchAll(recordType: "GrowthEvent")) ?? []
+        activationSnapshot = ActivationFunnelService.snapshot(from: events)
         isLoading = false
     }
 }
