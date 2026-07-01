@@ -87,6 +87,10 @@ struct SundeeFundeeMain: App {
                     authViewModel.needsOnboarding = false
                 }
             }
+            .onOpenURL { url in
+                guard let route = DeepLinkRouter.route(for: url) else { return }
+                NotificationCenter.default.post(name: .deepLinkRouteOpened, object: route)
+            }
             .sheet(item: $starterWorkout) { workout in
                 ActiveWorkoutView(
                     viewModel: ActiveWorkoutSessionViewModel(workout: workout)

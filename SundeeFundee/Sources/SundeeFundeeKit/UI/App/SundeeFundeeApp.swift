@@ -93,6 +93,15 @@ public struct MainTabView: View {
                 selectedTab = .today
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .deepLinkRouteOpened)) { notification in
+            guard let route = notification.object as? DeepLinkRoute else { return }
+            switch route {
+            case .cycle:
+                selectedTab = .cycle
+            case .todayCheckIn:
+                selectedTab = .today
+            }
+        }
         .onChange(of: cyclePhaseCache.isSharkWeek) { _, newValue in
             sharkWeekMonitor.isSharkWeek = newValue
         }
@@ -111,6 +120,7 @@ public extension Notification.Name {
     static let appReviewPromptRequested = Notification.Name("appReviewPromptRequested")
     static let workoutReminderOpened = Notification.Name("workoutReminderOpened")
     static let cycleDataUpdated = Notification.Name("cycleDataUpdated")
+    static let deepLinkRouteOpened = Notification.Name("deepLinkRouteOpened")
 }
 
 public enum Tab: String {

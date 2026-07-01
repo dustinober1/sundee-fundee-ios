@@ -74,6 +74,7 @@ struct CyclePhaseWidgetEntryView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
         .padding()
         .containerBackground(for: .widget) { AppTheme.Background.cream }
+        .widgetURL(DeepLinkRouter.url(for: .cycle))
     }
 
     private var accessoryCircular: some View {
@@ -86,6 +87,7 @@ struct CyclePhaseWidgetEntryView: View {
             }
         }
         .containerBackground(for: .widget) { Color.clear }
+        .widgetURL(DeepLinkRouter.url(for: .cycle))
     }
 
     private var phaseTitle: String {
