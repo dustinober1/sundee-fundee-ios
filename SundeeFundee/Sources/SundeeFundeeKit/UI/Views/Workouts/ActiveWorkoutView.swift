@@ -32,6 +32,7 @@ public struct ActiveWorkoutView: View {
     @State private var selectedSetRPE: Int?
     @State private var pendingCompletionInput: CompletionInput?
     @State private var showingSessionEffortDialog = false
+    @State private var showingCompletionCheckIn = false
     @State private var undoBlockedReason: String?
     @State private var equipmentProfiles: [EquipmentProfile] = []
     @FocusState private var isWeightFocused: Bool
@@ -211,6 +212,18 @@ public struct ActiveWorkoutView: View {
             }
         } message: {
             Text("Quick effort check before finishing.")
+        }
+        .sheet(isPresented: $showingCompletionCheckIn) {
+            WorkoutCompletionCheckInSheet(
+                viewModel: WorkoutCompletionCheckInViewModel(workoutID: viewModel.workout.id)
+            ) {
+                showingCompletionCheckIn = false
+            }
+        }
+        .onChange(of: viewModel.isComplete) { _, isComplete in
+            if isComplete {
+                showingCompletionCheckIn = true
+            }
         }
         .onChange(of: viewModel.currentExerciseIndex) { _, _ in
             if let exercise = stationTakenExercise,
