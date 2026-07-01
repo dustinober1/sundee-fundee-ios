@@ -298,8 +298,8 @@ public enum WeeklyLoadAnalyzer {
 
 // MARK: - Array Extension
 
-private extension Array where Element == Int {
-    func variance() -> Double {
+extension Array where Element == Int {
+    fileprivate func variance() -> Double {
         guard count > 1 else { return 0 }
         let mean = Double(reduce(0, +)) / Double(count)
         let sumSquares = reduce(0.0) { $0 + pow(Double($1) - mean, 2) }

@@ -363,8 +363,8 @@ private struct QuickExercisePlan: Sendable, Equatable {
     var restMinutes: Double
 }
 
-private extension Array where Element == DailyPainLog {
-    var quickWorkoutComparableValue: [String] {
+extension Array where Element == DailyPainLog {
+    fileprivate var quickWorkoutComparableValue: [String] {
         map { log in
             [
                 log.id,

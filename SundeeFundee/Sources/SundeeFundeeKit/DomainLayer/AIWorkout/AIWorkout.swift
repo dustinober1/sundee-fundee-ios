@@ -630,8 +630,8 @@ private func allResistanceBandCandidates() -> [WorkoutExerciseCandidate] {
     WorkoutFocus.allRuleCases.flatMap { resistanceBandExercisePool(for: $0) } + allBodyweightCandidates()
 }
 
-private extension WorkoutFocus {
-    static let allRuleCases: [WorkoutFocus] = [
+extension WorkoutFocus {
+    fileprivate static let allRuleCases: [WorkoutFocus] = [
         .upperBody, .lowerBody, .fullBody, .push, .pull, .core, .conditioning
     ]
 }

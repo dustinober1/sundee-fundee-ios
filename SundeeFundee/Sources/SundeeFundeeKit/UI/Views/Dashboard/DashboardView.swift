@@ -1357,29 +1357,37 @@ class DashboardViewModel: ObservableObject {
         )
     }
 
-    private func loadUserSettings() async -> (
-        experienceLevel: ExperienceLevel,
-        primaryGoal: PrimaryGoal,
-        weightUnit: WeightUnit,
-        cycleTrackingEnabled: Bool,
-        defaultEquipment: EquipmentAccess
-    ) {
+    private func loadUserSettings() async -> DashboardUserSettings {
         let records: [UserSettingsRecord] = (try? await dataClient.fetchAll(recordType: "UserSettings")) ?? []
         guard let settings = records.last else {
-            return (.beginner, .strength, .lbs, false, .fullGym)
+            return DashboardUserSettings(
+                experienceLevel: .beginner,
+                primaryGoal: .strength,
+                weightUnit: .lbs,
+                cycleTrackingEnabled: false,
+                defaultEquipment: .fullGym
+            )
         }
-        return (
-            ExperienceLevel(rawValue: settings.experienceLevel) ?? .beginner,
-            PrimaryGoal(rawValue: settings.primaryGoal) ?? .strength,
-            WeightUnit(rawValue: settings.weightUnit) ?? .lbs,
-            settings.cycleTrackingEnabled,
-            settings.defaultEquipment
+        return DashboardUserSettings(
+            experienceLevel: ExperienceLevel(rawValue: settings.experienceLevel) ?? .beginner,
+            primaryGoal: PrimaryGoal(rawValue: settings.primaryGoal) ?? .strength,
+            weightUnit: WeightUnit(rawValue: settings.weightUnit) ?? .lbs,
+            cycleTrackingEnabled: settings.cycleTrackingEnabled,
+            defaultEquipment: settings.defaultEquipment
         )
     }
 }
 
-private extension FirstWeekChecklistKind {
-    var actionTitle: String {
+private struct DashboardUserSettings: Sendable {
+    let experienceLevel: ExperienceLevel
+    let primaryGoal: PrimaryGoal
+    let weightUnit: WeightUnit
+    let cycleTrackingEnabled: Bool
+    let defaultEquipment: EquipmentAccess
+}
+
+extension FirstWeekChecklistKind {
+    fileprivate var actionTitle: String {
         switch self {
         case .firstWorkout: return "Start first workout"
         case .logMax: return "Log a max"

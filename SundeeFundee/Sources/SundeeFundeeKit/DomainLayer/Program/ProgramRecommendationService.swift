@@ -111,65 +111,74 @@ public enum ProgramRecommendationService {
         equipment: EquipmentAccess
     ) -> Int {
         var score = 50
-
-        switch (template, equipment) {
-        case (.hundredPushUps, .bodyweightOnly):
-            score += 46
-        case (.dumbbellStrength, .homeDumbbells):
-            score += 45
-        case (.hundredPushUps, .fullGym), (.hundredPushUps, .homeDumbbells):
-            score += 10
-        case (.beginnerStrength, .fullGym):
-            score += 22
-        case (.glutesCoreConditioning, .fullGym), (.firstMargarita, .fullGym):
-            score += 14
-        case (.russianSquat, .fullGym):
-            score += 8
-        case (.russianSquat, _):
-            score -= 32
-        case (.firstMargarita, _):
-            score -= equipment == .bodyweightOnly ? 24 : 4
-        default:
-            score -= equipment == .kettlebellOnly || equipment == .bodyweightOnly ? 14 : 0
-        }
-
-        switch (template, goal) {
-        case (.beginnerStrength, .strength), (.dumbbellStrength, .strength), (.russianSquat, .strength):
-            score += 14
-        case (.hundredPushUps, .endurance):
-            score += 22
-        case (.glutesCoreConditioning, .hypertrophy), (.glutesCoreConditioning, .endurance), (.glutesCoreConditioning, .weightLoss):
-            score += 14
-        case (.firstMargarita, .strength), (.firstMargarita, .hypertrophy):
-            score += 8
-        default:
-            break
-        }
-
-        switch (template, experience) {
-        case (.beginnerStrength, .beginner):
-            score += 22
-        case (.dumbbellStrength, .beginner):
-            score += 6
-        case (.hundredPushUps, .intermediate):
-            score += 18
-        case (.hundredPushUps, .beginner):
-            score += 4
-        case (.russianSquat, .advanced):
-            score += 22
-        case (.russianSquat, .beginner):
-            score -= 35
-        case (.firstMargarita, .intermediate), (.firstMargarita, .advanced):
-            score += 8
-        default:
-            break
-        }
+        score += equipmentScore(template: template, equipment: equipment)
+        score += goalScore(template: template, goal: goal)
+        score += experienceScore(template: template, experience: experience)
 
         if let defaults = templateDefaults[template] {
             score -= abs(defaults.sessionsPerWeek - clampedDays(daysPerWeek)) * 4
         }
 
         return score
+    }
+
+    private static func equipmentScore(template: ProgramTemplate, equipment: EquipmentAccess) -> Int {
+        switch (template, equipment) {
+        case (.hundredPushUps, .bodyweightOnly):
+            return 46
+        case (.dumbbellStrength, .homeDumbbells):
+            return 45
+        case (.hundredPushUps, .fullGym), (.hundredPushUps, .homeDumbbells):
+            return 10
+        case (.beginnerStrength, .fullGym):
+            return 22
+        case (.glutesCoreConditioning, .fullGym), (.firstMargarita, .fullGym):
+            return 14
+        case (.russianSquat, .fullGym):
+            return 8
+        case (.russianSquat, _):
+            return -32
+        case (.firstMargarita, _):
+            return equipment == .bodyweightOnly ? -24 : -4
+        default:
+            return equipment == .kettlebellOnly || equipment == .bodyweightOnly ? -14 : 0
+        }
+    }
+
+    private static func goalScore(template: ProgramTemplate, goal: PrimaryGoal) -> Int {
+        switch (template, goal) {
+        case (.beginnerStrength, .strength), (.dumbbellStrength, .strength), (.russianSquat, .strength):
+            return 14
+        case (.hundredPushUps, .endurance):
+            return 22
+        case (.glutesCoreConditioning, .hypertrophy), (.glutesCoreConditioning, .endurance), (.glutesCoreConditioning, .weightLoss):
+            return 14
+        case (.firstMargarita, .strength), (.firstMargarita, .hypertrophy):
+            return 8
+        default:
+            return 0
+        }
+    }
+
+    private static func experienceScore(template: ProgramTemplate, experience: ExperienceLevel) -> Int {
+        switch (template, experience) {
+        case (.beginnerStrength, .beginner):
+            return 22
+        case (.dumbbellStrength, .beginner):
+            return 6
+        case (.hundredPushUps, .intermediate):
+            return 18
+        case (.hundredPushUps, .beginner):
+            return 4
+        case (.russianSquat, .advanced):
+            return 22
+        case (.russianSquat, .beginner):
+            return -35
+        case (.firstMargarita, .intermediate), (.firstMargarita, .advanced):
+            return 8
+        default:
+            return 0
+        }
     }
 
     private static func reason(

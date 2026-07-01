@@ -22,6 +22,6 @@ public struct StartWorkoutIntent: AppIntent {
     }
 }
 
-public extension Notification.Name {
-    static let startWorkoutFromIntent = Notification.Name("startWorkoutFromIntent")
+extension Notification.Name {
+    public static let startWorkoutFromIntent = Notification.Name("startWorkoutFromIntent")
 }

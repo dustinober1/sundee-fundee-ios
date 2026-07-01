@@ -1630,10 +1630,10 @@ class ProgramsListViewModel: ObservableObject {
     }
 }
 
-private extension PrimaryGoal {
-    static let recommendationChoices: [PrimaryGoal] = [.strength, .hypertrophy, .endurance, .weightLoss]
+extension PrimaryGoal {
+    fileprivate static let recommendationChoices: [PrimaryGoal] = [.strength, .hypertrophy, .endurance, .weightLoss]
 
-    var displayName: String {
+    fileprivate var displayName: String {
         switch self {
         case .strength: return "Strength"
         case .hypertrophy: return "Muscle"
@@ -1643,10 +1643,10 @@ private extension PrimaryGoal {
     }
 }
 
-private extension ExperienceLevel {
-    static let recommendationChoices: [ExperienceLevel] = [.beginner, .intermediate, .advanced]
+extension ExperienceLevel {
+    fileprivate static let recommendationChoices: [ExperienceLevel] = [.beginner, .intermediate, .advanced]
 
-    var displayName: String {
+    fileprivate var displayName: String {
         switch self {
         case .beginner: return "Beginner"
         case .intermediate: return "Intermediate"

@@ -558,10 +558,13 @@ struct BenchmarkScoreEntryView: View {
                         .foregroundColor(AppTheme.Text.secondary)
 
                     TextField("ss", text: Binding(
-                        get: { scoreText.components(separatedBy: ":").count > 1 ? scoreText.components(separatedBy: ":")[1] : "" },
+                        get: {
+                            let parts = scoreText.components(separatedBy: ":")
+                            return parts.indices.contains(1) ? parts[1] : ""
+                        },
                         set: { newValue in
                             let parts = scoreText.components(separatedBy: ":")
-                            let minutes = parts.count > 0 ? parts[0] : "0"
+                            let minutes = parts.isEmpty ? "0" : parts[0]
                             scoreText = "\(minutes):\(newValue)"
                         }
                     ))
@@ -576,7 +579,10 @@ struct BenchmarkScoreEntryView: View {
 
                 HStack {
                     TextField("Rounds", text: Binding(
-                        get: { scoreText.components(separatedBy: " + ").count > 0 ? scoreText.components(separatedBy: " + ")[0] : "" },
+                        get: {
+                            let parts = scoreText.components(separatedBy: " + ")
+                            return parts.isEmpty ? "" : parts[0]
+                        },
                         set: { newValue in
                             let parts = scoreText.components(separatedBy: " + ")
                             let reps = parts.count > 1 ? parts[1] : ""
@@ -591,7 +597,7 @@ struct BenchmarkScoreEntryView: View {
                         get: { scoreText.components(separatedBy: " + ").count > 1 ? scoreText.components(separatedBy: " + ")[1] : "" },
                         set: { newValue in
                             let parts = scoreText.components(separatedBy: " + ")
-                            let rounds = parts.count > 0 ? parts[0] : ""
+                            let rounds = parts.isEmpty ? "" : parts[0]
                             scoreText = "\(rounds) + \(newValue)"
                         }
                     ))

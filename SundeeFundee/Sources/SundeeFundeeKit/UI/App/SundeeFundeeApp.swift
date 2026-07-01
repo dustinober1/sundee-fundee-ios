@@ -114,13 +114,13 @@ public struct MainTabView: View {
 
 // MARK: - Notifications
 
-public extension Notification.Name {
-    static let aiWorkoutStarted = Notification.Name("aiWorkoutStarted")
-    static let workoutCompleted = Notification.Name("workoutCompleted")
-    static let appReviewPromptRequested = Notification.Name("appReviewPromptRequested")
-    static let workoutReminderOpened = Notification.Name("workoutReminderOpened")
-    static let cycleDataUpdated = Notification.Name("cycleDataUpdated")
-    static let deepLinkRouteOpened = Notification.Name("deepLinkRouteOpened")
+extension Notification.Name {
+    public static let aiWorkoutStarted = Notification.Name("aiWorkoutStarted")
+    public static let workoutCompleted = Notification.Name("workoutCompleted")
+    public static let appReviewPromptRequested = Notification.Name("appReviewPromptRequested")
+    public static let workoutReminderOpened = Notification.Name("workoutReminderOpened")
+    public static let cycleDataUpdated = Notification.Name("cycleDataUpdated")
+    public static let deepLinkRouteOpened = Notification.Name("deepLinkRouteOpened")
 }
 
 public enum Tab: String {

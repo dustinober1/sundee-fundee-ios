@@ -33,6 +33,21 @@ public enum SleepDeduplicator {
         }
     }
 
+    /// Raw sleep sample fields before conversion to a domain sleep interval.
+    public struct SleepSampleValue: Sendable, Equatable {
+        public let start: Date
+        public let end: Date
+        public let value: Int
+        public let sourceName: String
+
+        public init(start: Date, end: Date, value: Int, sourceName: String) {
+            self.start = start
+            self.end = end
+            self.value = value
+            self.sourceName = sourceName
+        }
+    }
+
     /// The device or app that recorded the sleep sample.
     public enum SleepSource: String, Sendable, Equatable {
         case watch
@@ -188,10 +203,10 @@ public enum SleepDeduplicator {
     /// Source name is matched case-insensitively: containing "watch" maps to `.watch`,
     /// otherwise `.phone`.
     ///
-    /// - Parameter values: Array of tuples with (start, end, value, sourceName).
+    /// - Parameter values: Array of raw sleep sample values.
     /// - Returns: Array of SleepInterval instances, filtering out unknown sleep stages.
     public static func convertSamples(
-        values: [(start: Date, end: Date, value: Int, sourceName: String)]
+        values: [SleepSampleValue]
     ) -> [SleepInterval] {
         values.compactMap { sample in
             guard let stage = SleepStage(rawValue: sample.value) else { return nil }

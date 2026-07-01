@@ -140,8 +140,8 @@ public struct CompletedWorkoutRecord: Codable, Sendable {
     }
 }
 
-public extension Workout {
-    var completedWorkoutRecord: CompletedWorkoutRecord? {
+extension Workout {
+    public var completedWorkoutRecord: CompletedWorkoutRecord? {
         guard isComplete else { return nil }
 
         return CompletedWorkoutRecord(

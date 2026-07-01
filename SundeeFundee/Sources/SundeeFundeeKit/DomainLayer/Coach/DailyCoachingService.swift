@@ -178,17 +178,7 @@ public actor DailyCoachingService {
         cyclePhase: CyclePhase?,
         painIntensity: Int?,
         insights: CoachInsightsResponse
-    ) -> (
-        title: String,
-        summary: String,
-        action: DailyCoachingPrimaryAction,
-        actionTitle: String,
-        focus: WorkoutFocus,
-        energy: EnergyLevel,
-        equipment: EquipmentAccess,
-        timeMinutes: Int,
-        reasons: [String]
-    ) {
+    ) -> DailyCoachingRecommendationValues {
         let reasons = buildReasons(
             cyclePhase: cyclePhase,
             painIntensity: painIntensity,
@@ -197,76 +187,76 @@ public actor DailyCoachingService {
 
         switch status {
         case .rest:
-            return (
-                "Rest day",
-                "Skip loading work today and keep the next session for tomorrow if recovery rebounds.",
-                .rest,
-                "Rest today",
-                .fullBody,
-                .low,
-                .outdoor,
-                20,
-                reasons
+            return DailyCoachingRecommendationValues(
+                title: "Rest day",
+                summary: "Skip loading work today and keep the next session for tomorrow if recovery rebounds.",
+                action: .rest,
+                actionTitle: "Rest today",
+                focus: .fullBody,
+                energy: .low,
+                equipment: .outdoor,
+                timeMinutes: 20,
+                reasons: reasons
             )
         case .activeRecovery:
-            return (
-                "Active recovery",
-                "Keep moving, but keep the work light so you can recover and come back ready.",
-                .takeActiveRecovery,
-                "Start recovery session",
-                .conditioning,
-                .low,
-                .bodyweightOnly,
-                25,
-                reasons
+            return DailyCoachingRecommendationValues(
+                title: "Active recovery",
+                summary: "Keep moving, but keep the work light so you can recover and come back ready.",
+                action: .takeActiveRecovery,
+                actionTitle: "Start recovery session",
+                focus: .conditioning,
+                energy: .low,
+                equipment: .bodyweightOnly,
+                timeMinutes: 25,
+                reasons: reasons
             )
         case .deload:
-            return (
-                "Deload today",
-                "Trim the load and volume so you can recover without losing momentum.",
-                .startAdjustedWorkout,
-                "Start deload workout",
-                .fullBody,
-                .low,
-                .fullGym,
-                40,
-                reasons
+            return DailyCoachingRecommendationValues(
+                title: "Deload today",
+                summary: "Trim the load and volume so you can recover without losing momentum.",
+                action: .startAdjustedWorkout,
+                actionTitle: "Start deload workout",
+                focus: .fullBody,
+                energy: .low,
+                equipment: .fullGym,
+                timeMinutes: 40,
+                reasons: reasons
             )
         case .push:
-            return (
-                "Push day",
-                "Your available training signals support quality work and heavier loading.",
-                .startAdjustedWorkout,
-                "Start push workout",
-                .fullBody,
-                .high,
-                .fullGym,
-                55,
-                reasons
+            return DailyCoachingRecommendationValues(
+                title: "Push day",
+                summary: "Your available training signals support quality work and heavier loading.",
+                action: .startAdjustedWorkout,
+                actionTitle: "Start push workout",
+                focus: .fullBody,
+                energy: .high,
+                equipment: .fullGym,
+                timeMinutes: 55,
+                reasons: reasons
             )
         case .build:
-            return (
-                "Build day",
-                "Keep the session productive and build from the work you've already put in.",
-                .startAdjustedWorkout,
-                "Start build workout",
-                .fullBody,
-                .medium,
-                .fullGym,
-                45,
-                reasons
+            return DailyCoachingRecommendationValues(
+                title: "Build day",
+                summary: "Keep the session productive and build from the work you've already put in.",
+                action: .startAdjustedWorkout,
+                actionTitle: "Start build workout",
+                focus: .fullBody,
+                energy: .medium,
+                equipment: .fullGym,
+                timeMinutes: 45,
+                reasons: reasons
             )
         case .maintain:
-            return (
-                "Maintain today",
-                "Stay consistent with a moderate session and leave some room in the tank.",
-                .startAdjustedWorkout,
-                "Start workout",
-                .fullBody,
-                .medium,
-                .fullGym,
-                45,
-                reasons
+            return DailyCoachingRecommendationValues(
+                title: "Maintain today",
+                summary: "Stay consistent with a moderate session and leave some room in the tank.",
+                action: .startAdjustedWorkout,
+                actionTitle: "Start workout",
+                focus: .fullBody,
+                energy: .medium,
+                equipment: .fullGym,
+                timeMinutes: 45,
+                reasons: reasons
             )
         }
     }
@@ -294,4 +284,16 @@ public actor DailyCoachingService {
         }
         return reasons
     }
+}
+
+private struct DailyCoachingRecommendationValues: Sendable {
+    let title: String
+    let summary: String
+    let action: DailyCoachingPrimaryAction
+    let actionTitle: String
+    let focus: WorkoutFocus
+    let energy: EnergyLevel
+    let equipment: EquipmentAccess
+    let timeMinutes: Int
+    let reasons: [String]
 }

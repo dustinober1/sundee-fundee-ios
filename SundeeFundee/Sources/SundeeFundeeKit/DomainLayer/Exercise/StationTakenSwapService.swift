@@ -254,8 +254,8 @@ private struct StationTakenCandidate: Sendable, Equatable {
     let stationIndependent: Bool
 }
 
-private extension Array where Element == DailyPainLog {
-    var stationTakenComparableValue: [String] {
+extension Array where Element == DailyPainLog {
+    fileprivate var stationTakenComparableValue: [String] {
         map { log in
             [
                 log.id,

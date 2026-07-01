@@ -222,8 +222,8 @@ private enum WarmupMovementPattern {
     }
 }
 
-private extension Array where Element == DailyPainLog {
-    var warmupComparableValue: [String] {
+extension Array where Element == DailyPainLog {
+    fileprivate var warmupComparableValue: [String] {
         map { log in
             [
                 log.id,
