@@ -5,6 +5,16 @@ import SwiftUI
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
 public struct ProgressHubView: View {
     @State private var destinations: [ProgressDestination] = [.export]
+    @State private var destinationInput = ProgressDestinationInput(
+        hasMaxes: false,
+        hasBenchmarks: false,
+        hasChallenges: false,
+        hasBuddyCheckIns: false,
+        hasMonthlyReview: false,
+        hasAnalytics: false,
+        alwaysShowExport: true
+    )
+    @State private var completedWorkoutCount = 0
     @State private var isLoading = true
 
     public init() {}
@@ -23,6 +33,29 @@ public struct ProgressHubView: View {
                 if isLoading {
                     Section {
                         ProgressView("Loading progress...")
+                    }
+                }
+
+                let guidance = ProgressGuidanceService.guidance(
+                    input: destinationInput,
+                    completedWorkoutCount: completedWorkoutCount
+                )
+                if !isLoading && !guidance.isEmpty {
+                    Section("Start tracking") {
+                        ForEach(guidance) { item in
+                            Label {
+                                VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                                    Text(item.title)
+                                        .font(AppTheme.Typography.headlineSmall)
+                                    Text(item.subtitle)
+                                        .font(AppTheme.Typography.bodySmall)
+                                        .foregroundColor(AppTheme.Text.secondary)
+                                }
+                            } icon: {
+                                Image(systemName: item.systemImage)
+                                    .foregroundColor(AppTheme.Accent.gold)
+                            }
+                        }
                     }
                 }
 
@@ -115,17 +148,19 @@ public struct ProgressHubView: View {
         let challenges = (try? await challengesTask) ?? []
         let checkIns = (try? await checkInsTask) ?? []
         let workouts = (try? await workoutsTask) ?? []
+        completedWorkoutCount = workouts.filter(\.isComplete).count
 
+        destinationInput = ProgressDestinationInput(
+            hasMaxes: !maxes.isEmpty,
+            hasBenchmarks: !benchmarks.isEmpty,
+            hasChallenges: !challenges.isEmpty,
+            hasBuddyCheckIns: !checkIns.isEmpty,
+            hasMonthlyReview: !workouts.isEmpty,
+            hasAnalytics: completedWorkoutCount >= 2,
+            alwaysShowExport: true
+        )
         destinations = MinimalSurfacePolicy.progressDestinations(
-            input: ProgressDestinationInput(
-                hasMaxes: !maxes.isEmpty,
-                hasBenchmarks: !benchmarks.isEmpty,
-                hasChallenges: !challenges.isEmpty,
-                hasBuddyCheckIns: !checkIns.isEmpty,
-                hasMonthlyReview: !workouts.isEmpty,
-                hasAnalytics: workouts.count >= 2,
-                alwaysShowExport: true
-            )
+            input: destinationInput
         )
         isLoading = false
     }
