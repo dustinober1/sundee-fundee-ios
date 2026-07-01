@@ -968,6 +968,7 @@ class AIWorkoutViewModel: ObservableObject {
     private let dataClient: DataClientProtocol
     private let equipmentProfileService: EquipmentProfileService
     private let feedbackService: CoachPlanFeedbackService
+    private let todayPreferenceService: TodayWorkoutPreferenceService
     private var cachedContext: CoachContext?
     private var editableDraft: EditableWorkoutDraft?
     private var hasLoadedDefaultEquipment = false
@@ -984,6 +985,7 @@ class AIWorkoutViewModel: ObservableObject {
         self.dataClient = dataClient
         self.equipmentProfileService = EquipmentProfileService(dataClient: dataClient)
         self.feedbackService = CoachPlanFeedbackService(dataClient: dataClient)
+        self.todayPreferenceService = TodayWorkoutPreferenceService(dataClient: dataClient)
     }
 
     func loadContext() async {
@@ -1098,12 +1100,14 @@ class AIWorkoutViewModel: ObservableObject {
         mutateDraft { draft in
             draft.shorten(to: minutes)
         }
+        Task { try? await todayPreferenceService.saveDurationPreference(minutes: minutes) }
     }
 
     func reduceVolume() {
         mutateDraft { draft in
             draft.reduceVolume()
         }
+        Task { try? await todayPreferenceService.saveReducedVolume() }
     }
 
     func removeExercise(id: String) {
