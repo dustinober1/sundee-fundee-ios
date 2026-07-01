@@ -448,6 +448,8 @@ struct AIWorkoutView: View {
                         rationaleCard(rationale)
                     }
 
+                    feedbackRow
+
                     if !viewModel.changeNotes.isEmpty {
                         whyChangedCard(viewModel.changeNotes)
                     }
@@ -650,6 +652,35 @@ struct AIWorkoutView: View {
                 }
             }
         }
+    }
+
+    private var feedbackRow: some View {
+        HStack(spacing: AppTheme.Spacing.md) {
+            Text("Was this useful?")
+                .font(AppTheme.Typography.labelMedium)
+                .foregroundColor(AppTheme.Text.secondary)
+
+            Spacer()
+
+            Button {
+                Task { await viewModel.submitFeedback(.helpful) }
+            } label: {
+                Image(systemName: viewModel.submittedFeedback == .helpful ? "hand.thumbsup.fill" : "hand.thumbsup")
+                    .font(.title3)
+                    .foregroundColor(AppTheme.Accent.gold)
+            }
+            .accessibilityLabel("Coach Plan was useful")
+
+            Button {
+                Task { await viewModel.submitFeedback(.notHelpful) }
+            } label: {
+                Image(systemName: viewModel.submittedFeedback == .notHelpful ? "hand.thumbsdown.fill" : "hand.thumbsdown")
+                    .font(.title3)
+                    .foregroundColor(AppTheme.Text.secondary)
+            }
+            .accessibilityLabel("Coach Plan was not useful")
+        }
+        .padding(.horizontal, AppTheme.Spacing.sm)
     }
 
     private func whyChangedCard(_ notes: [WorkoutChangeNote]) -> some View {
@@ -897,12 +928,14 @@ class AIWorkoutViewModel: ObservableObject {
     @Published var swapState: ExerciseSwapState?
     @Published var workoutRationale: WorkoutRationale?
     @Published var changeNotes: [WorkoutChangeNote] = []
+    @Published var submittedFeedback: CoachPlanFeedbackRating?
 
     private let coachService: CoachServiceProtocol
     private let contextBuilder: CoachContextBuilder
     private let memoryService: CoachMemoryService
     private let dataClient: DataClientProtocol
     private let equipmentProfileService: EquipmentProfileService
+    private let feedbackService: CoachPlanFeedbackService
     private var cachedContext: CoachContext?
     private var editableDraft: EditableWorkoutDraft?
     private var hasLoadedDefaultEquipment = false
@@ -918,6 +951,7 @@ class AIWorkoutViewModel: ObservableObject {
         self.memoryService = memoryService
         self.dataClient = dataClient
         self.equipmentProfileService = EquipmentProfileService(dataClient: dataClient)
+        self.feedbackService = CoachPlanFeedbackService(dataClient: dataClient)
     }
 
     func loadContext() async {
@@ -1057,6 +1091,28 @@ class AIWorkoutViewModel: ObservableObject {
         await GrowthAnalyticsService(dataClient: dataClient).track(
             GrowthEventName.aiWorkoutStarted,
             source: "ai_workout"
+        )
+    }
+
+    func submitFeedback(_ rating: CoachPlanFeedbackRating) async {
+        submittedFeedback = rating
+        let reasonCodes = workoutRationale.map { rationale in
+            [rationale.headline] + rationale.reasons + rationale.cautions
+        } ?? []
+
+        try? await feedbackService.submit(
+            rating: rating,
+            surface: "coach_plan_preview",
+            workoutID: generatedWorkout?.id,
+            copySource: "coach_plan_copy",
+            promptVersion: "v1",
+            reasonCodes: reasonCodes
+        )
+        await GrowthAnalyticsService(dataClient: dataClient).track(
+            rating == .helpful
+                ? GrowthEventName.coachPlanFeedbackHelpful
+                : GrowthEventName.coachPlanFeedbackNotHelpful,
+            source: "coach_plan"
         )
     }
 

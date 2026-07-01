@@ -9,7 +9,7 @@
 | 5 | Take easy performance wins | done | Verified benchmark fetches use `async let`; share renderer uses detached rendering; app builds on iPhone 17 Pro simulator | 1 | `swift test` and targeted code review |
 | 6 | Smooth share-card rendering | implemented-needs-manual-qa | `ShareCardRenderer.render` uses detached `ImageRenderer` work and the app builds; UIKit-gated share renderer tests exist but are not wired into current test schemes | 1 | Share preview smoke test |
 | 7 | Build activation funnel | not started | Growth events exist; no funnel service/surface | 3 | `ActivationFunnelServiceTests` |
-| 8 | Add Coach Plan copy feedback | not started | No feedback record/service/UI | 2 | `CoachPlanFeedbackServiceTests` |
+| 8 | Add Coach Plan copy feedback | implemented-needs-manual-qa | Metadata-only `CoachPlanFeedback` record/service and Coach Plan preview thumbs feedback UI are implemented; service and view-model tests pass | 2 | `CoachPlanFeedbackServiceTests` |
 | 9 | Make "Why this workout?" bigger trust feature | partial | Reason codes/rationale exist; `TodayWhySheet` is plain text | 2 | `WorkoutTrustBadgeBuilderTests` and UI smoke |
 | 10 | Make Best Next 20 Min context-aware | not started | `TrainHubView` hardcodes full-body, medium energy, full gym, no pain logs | 2 | `BestNextWorkoutRequestBuilderTests` |
 | 11 | Let Coach Plan quick edits become learned preferences | partial | `EditableWorkoutDraft` and `PreferenceLearner` exist; no today preference persistence | 2 | `TodayWorkoutPreferenceServiceTests` |

@@ -44,4 +44,6 @@ public enum GrowthEventName {
     public static let onDeviceCopyAccepted = "on_device_copy_accepted"
     public static let onDeviceCopyRejected = "on_device_copy_rejected"
     public static let onDeviceCopyFallbackUsed = "on_device_copy_fallback_used"
+    public static let coachPlanFeedbackHelpful = "coach_plan_feedback_helpful"
+    public static let coachPlanFeedbackNotHelpful = "coach_plan_feedback_not_helpful"
 }
