@@ -2,12 +2,12 @@
 
 | # | Recommendation | Status | Evidence | Phase | Verification |
 |---:|---|---|---|---:|---|
-| 1 | Make dark mode the headline fix | not started | `AppTheme.Semantic` still uses raw `Color.green/orange/red/blue`; button destructive state uses raw red | 1 | Dark/light screenshots and `AppThemeColorTests` |
+| 1 | Make dark mode the headline fix | done | Adaptive semantic colors, destructive button colors, and shadow token are implemented; `AppThemeColorTests` passes 5 tests | 1 | Dark/light screenshots and `AppThemeColorTests` |
 | 2 | Add formal contrast and accessibility audit gate | implemented-needs-manual-qa | `docs/release/dark-mode-accessibility-gate.md` now covers dark mode, high contrast, Dynamic Type, VoiceOver, tap targets, core flows, widgets, and evidence capture | 1 | `docs/release/dark-mode-accessibility-gate.md` checked off |
 | 3 | Finish loading, error, and empty-state polish | implemented-needs-verification | Benchmarks and Pain now have labels/empty states; share/export/support/program enroll/start/AI substitution spinners now have labels/accessibility labels | 1 | `scripts/audit-release-polish.sh` plus UI review |
-| 4 | Add haptics to important moments | implemented-needs-verification | Haptics exist in active workout, PR/workout completion, challenges, share, settings, symptom check-in | 1 | Grep and simulator smoke test |
-| 5 | Take easy performance wins | implemented-needs-verification | Benchmark fetches and share renderer already async; verify program/session paths | 1 | `swift test` and targeted code review |
-| 6 | Smooth share-card rendering | implemented-needs-verification | `ShareCardRenderer.render` uses detached task with main-actor rendering | 1 | Share preview smoke test |
+| 4 | Add haptics to important moments | done | Verified `HapticFeedback` call sites in active workout, PR/workout completion, challenges, share, settings, and symptom check-in; `ActiveWorkoutSessionViewModelTests` passes 5 tests | 1 | Grep and simulator smoke test |
+| 5 | Take easy performance wins | done | Verified benchmark fetches use `async let`; share renderer uses detached rendering; app builds on iPhone 17 Pro simulator | 1 | `swift test` and targeted code review |
+| 6 | Smooth share-card rendering | implemented-needs-manual-qa | `ShareCardRenderer.render` uses detached `ImageRenderer` work and the app builds; UIKit-gated share renderer tests exist but are not wired into current test schemes | 1 | Share preview smoke test |
 | 7 | Build activation funnel | not started | Growth events exist; no funnel service/surface | 3 | `ActivationFunnelServiceTests` |
 | 8 | Add Coach Plan copy feedback | not started | No feedback record/service/UI | 2 | `CoachPlanFeedbackServiceTests` |
 | 9 | Make "Why this workout?" bigger trust feature | partial | Reason codes/rationale exist; `TodayWhySheet` is plain text | 2 | `WorkoutTrustBadgeBuilderTests` and UI smoke |
