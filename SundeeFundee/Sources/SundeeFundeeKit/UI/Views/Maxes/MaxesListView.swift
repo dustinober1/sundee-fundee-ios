@@ -392,7 +392,7 @@ class MaxesListViewModel: ObservableObject {
                 )
             }
         } catch {
-            errorMessage = "Failed to load maxes: \(error.localizedDescription)"
+            errorMessage = "We could not load your maxes. Pull to refresh or try again in a moment."
         }
 
         isLoading = false
@@ -403,7 +403,7 @@ class MaxesListViewModel: ObservableObject {
             try await dataClient.delete(recordType: "OneRepMaxRecord", id: id)
             maxes.removeAll { $0.id == id }
         } catch {
-            errorMessage = "Failed to delete max: \(error.localizedDescription)"
+            errorMessage = "We could not delete that max. Check your connection and try again."
         }
     }
 }
