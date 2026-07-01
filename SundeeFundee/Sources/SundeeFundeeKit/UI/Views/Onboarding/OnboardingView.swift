@@ -170,6 +170,17 @@ public struct OnboardingView: View {
                             .foregroundColor(AppTheme.Text.secondary)
                     }
                 }
+
+                Text("You can connect Health, cycle setup, reminders, and photo sharing when they become useful.")
+                    .font(AppTheme.Typography.bodySmall)
+                    .foregroundColor(AppTheme.Text.secondary)
+                    .multilineTextAlignment(.center)
+
+                progressivePromptRow(
+                    title: "Connect Health when ready",
+                    message: "Health access is optional. Sundee Fundee keeps working from your logged workouts and check-ins.",
+                    systemImage: "heart.text.square"
+                )
             }
 
             Spacer()
@@ -202,6 +213,21 @@ public struct OnboardingView: View {
             .cornerRadius(AppTheme.CornerRadius.medium)
         }
         .buttonStyle(.plain)
+    }
+
+    private func progressivePromptRow(title: String, message: String, systemImage: String) -> some View {
+        Label {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                Text(title)
+                    .font(AppTheme.Typography.headlineSmall)
+                Text(message)
+                    .font(AppTheme.Typography.bodySmall)
+                    .foregroundColor(AppTheme.Text.secondary)
+            }
+        } icon: {
+            Image(systemName: systemImage)
+                .foregroundColor(AppTheme.Accent.gold)
+        }
     }
 
     private var navigationButtons: some View {

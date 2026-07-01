@@ -31,6 +31,16 @@ public struct CycleTrackingView: View {
                     Task { await settings.saveSettings() }
                 }
 
+                if shouldShowCyclePrompt {
+                    Section("When Ready") {
+                        progressivePromptRow(
+                            title: "Set up cycle context",
+                            message: "Add cycle details when you want training adjustments to use phase estimates.",
+                            systemImage: "moon.circle"
+                        )
+                    }
+                }
+
                 Section("Check-Ins") {
                     Button {
                         showingQuickCheckIn = true
@@ -101,6 +111,32 @@ public struct CycleTrackingView: View {
             .sheet(isPresented: $showingQuickCheckIn) {
                 QuickCheckInView()
             }
+        }
+    }
+
+    private var shouldShowCyclePrompt: Bool {
+        ProgressivePromptPolicy.nextPrompt(
+            context: ProgressivePromptContext(
+                completedWorkoutCount: 0,
+                openedCycle: true,
+                isAboutToSharePhoto: false,
+                declinedPromptIDs: []
+            )
+        ) == .cycleSetup && !settings.cycleTrackingEnabled
+    }
+
+    private func progressivePromptRow(title: String, message: String, systemImage: String) -> some View {
+        Label {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                Text(title)
+                    .font(AppTheme.Typography.headlineSmall)
+                Text(message)
+                    .font(AppTheme.Typography.bodySmall)
+                    .foregroundColor(AppTheme.Text.secondary)
+            }
+        } icon: {
+            Image(systemName: systemImage)
+                .foregroundColor(AppTheme.Accent.gold)
         }
     }
 }

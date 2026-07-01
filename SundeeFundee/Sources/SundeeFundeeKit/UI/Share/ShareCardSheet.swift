@@ -210,6 +210,14 @@ public struct ShareCardSheet: View {
                     if !newValue { selfieImage = nil }
                 }
             if useSelfie {
+                if shouldShowPhotoPrompt {
+                    progressivePromptRow(
+                        title: "Photo sharing uses your permission",
+                        message: "Choose a photo only when you want it on a share card.",
+                        systemImage: "photo"
+                    )
+                }
+
                 Picker("Source", selection: $photoSource) {
                     ForEach(availablePhotoSources) { src in
                         Text(src.label).tag(src)
@@ -219,6 +227,17 @@ public struct ShareCardSheet: View {
                 sourceTrigger
             }
         }
+    }
+
+    private var shouldShowPhotoPrompt: Bool {
+        ProgressivePromptPolicy.nextPrompt(
+            context: ProgressivePromptContext(
+                completedWorkoutCount: 0,
+                openedCycle: false,
+                isAboutToSharePhoto: useSelfie,
+                declinedPromptIDs: []
+            )
+        ) == .photoSharing
     }
 
     private var availablePhotoSources: [PhotoSource] {
@@ -300,6 +319,21 @@ public struct ShareCardSheet: View {
             }
             .font(AppTheme.Typography.labelMedium)
             .foregroundColor(AppTheme.Accent.gold)
+        }
+    }
+
+    private func progressivePromptRow(title: String, message: String, systemImage: String) -> some View {
+        Label {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                Text(title)
+                    .font(AppTheme.Typography.headlineSmall)
+                Text(message)
+                    .font(AppTheme.Typography.bodySmall)
+                    .foregroundColor(AppTheme.Text.secondary)
+            }
+        } icon: {
+            Image(systemName: systemImage)
+                .foregroundColor(AppTheme.Accent.gold)
         }
     }
 
