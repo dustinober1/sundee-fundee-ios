@@ -31,12 +31,12 @@ Prerequisite: `swiftlint` must be installed and available on `PATH`.
 
 ## CloudKit Deployment
 
-- [ ] `scripts/next-release-gate.sh` confirms `TodayWorkoutPreference` and its queryable `___recordID` exist in the checked-in schema
-- [ ] Save/provide a CloudKit management token with `CLOUDKIT_MANAGEMENT_TOKEN` or `xcrun cktool save-token`
-- [ ] `scripts/cloudkit-schema-deploy.sh development validate`
-- [ ] `scripts/cloudkit-schema-deploy.sh development import`
-- [ ] Confirm `TodayWorkoutPreference` has a queryable `recordName` / `___recordID` index in Development
-- [ ] In CloudKit Dashboard, deploy Development schema changes to Production
+- [x] `scripts/next-release-gate.sh` confirms `TodayWorkoutPreference` and its queryable `___recordID` exist in the checked-in schema
+- [x] Save/provide a CloudKit management token with `CLOUDKIT_MANAGEMENT_TOKEN` or `xcrun cktool save-token`
+- [x] `scripts/cloudkit-schema-deploy.sh development validate`
+- [x] `scripts/cloudkit-schema-deploy.sh development import`
+- [x] Confirm `TodayWorkoutPreference` has a queryable `recordName` / `___recordID` index in Development
+- [x] In CloudKit Dashboard, deploy Development schema changes to Production
 
 The helper exports the live target schema first, appends only missing record types from `SundeeFundeeApp/cloudkit-schema.json`, and then validates/imports the merged schema. This avoids deleting record types that are already active in CloudKit.
 
