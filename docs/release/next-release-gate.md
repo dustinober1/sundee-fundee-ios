@@ -10,6 +10,7 @@ Prerequisite: `swiftlint` must be installed and available on `PATH`.
 - [ ] `cd SundeeFundeeApp && xcodebuild -project SundeeFundee.xcodeproj -scheme SundeeFundee -destination 'platform=iOS Simulator,name=iPhone 17 Pro' build`
 - [ ] `swiftlint --config .swiftlint.yml`
 - [ ] `cd SundeeFundee && swift test --filter SupportTip`
+- [ ] `cd SundeeFundeeApp && xcodebuild -project SundeeFundee.xcodeproj -scheme SundeeFundee -destination 'platform=iOS Simulator,name=iPhone 17 Pro' -quiet test -only-testing:SundeeFundeeTests/StoreKitSupportTipStoreIntegrationTests`
 - [ ] `cd SundeeFundee && swift test --filter DeepLinkRouterTests`
 - [ ] `cd SundeeFundee && swift test --filter BestNextWorkoutRequestBuilderTests`
 - [ ] `cd SundeeFundee && swift test --filter CoachPlanFeedbackServiceTests`
