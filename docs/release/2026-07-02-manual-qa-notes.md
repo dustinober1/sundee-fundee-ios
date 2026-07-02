@@ -24,4 +24,4 @@ Device: iPhone 17 Pro Simulator, iOS 26.5.
 
 ## Still Needs External Or Device-Specific Rehearsal
 
-- CloudKit dashboard: checked-in schema includes `TodayWorkoutPreference` with queryable `___recordID`; validate/import it with `scripts/cloudkit-schema-deploy.sh` or the direct `cktool` commands in `next-release-gate.md`, then deploy to Production before relying on signed-in persistence.
+- CloudKit dashboard: Development schema includes `TodayWorkoutPreference` with queryable `___recordID`; deploy Development schema changes to Production in CloudKit Dashboard before relying on signed-in persistence.
