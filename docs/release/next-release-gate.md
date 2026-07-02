@@ -36,28 +36,9 @@ Prerequisite: `swiftlint` must be installed and available on `PATH`.
 - [ ] `scripts/cloudkit-schema-deploy.sh development validate`
 - [ ] `scripts/cloudkit-schema-deploy.sh development import`
 - [ ] Confirm `TodayWorkoutPreference` has a queryable `recordName` / `___recordID` index in Development
-- [ ] `CONFIRM_PRODUCTION_CLOUDKIT_IMPORT=YES scripts/cloudkit-schema-deploy.sh production import`
+- [ ] In CloudKit Dashboard, deploy Development schema changes to Production
 
-Direct `cktool` validate command:
-
-```bash
-xcrun cktool validate-schema \
-  --team-id 87VVCMCW3F \
-  --container-id iCloud.com.sundeefundee.app \
-  --environment development \
-  --file SundeeFundeeApp/cloudkit-schema.json
-```
-
-Direct `cktool` Development import command:
-
-```bash
-xcrun cktool import-schema \
-  --team-id 87VVCMCW3F \
-  --container-id iCloud.com.sundeefundee.app \
-  --environment development \
-  --validate \
-  --file SundeeFundeeApp/cloudkit-schema.json
-```
+The helper exports the live target schema first, appends only missing record types from `SundeeFundeeApp/cloudkit-schema.json`, and then validates/imports the merged schema. This avoids deleting record types that are already active in CloudKit.
 
 ## App Review Safety
 
