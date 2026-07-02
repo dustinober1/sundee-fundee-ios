@@ -1,5 +1,5 @@
-import XCTest
 @testable import SundeeFundeeKit
+import XCTest
 
 final class DeepLinkRouterTests: XCTestCase {
     func testParsesCycleRoute() {
@@ -12,6 +12,20 @@ final class DeepLinkRouterTests: XCTestCase {
         let route = DeepLinkRouter.route(for: URL(string: "sundeefundee://today/check-in")!)
 
         XCTAssertEqual(route, .todayCheckIn)
+    }
+
+    func testCheckInRouteTargetsTodayAndOpensCheckIn() {
+        let route = DeepLinkRouter.route(for: URL(string: "sundeefundee://today/check-in")!)
+
+        XCTAssertEqual(route?.targetTab, .today)
+        XCTAssertTrue(route?.opensQuickCheckIn == true)
+    }
+
+    func testCycleRouteTargetsCycleWithoutOpeningCheckIn() {
+        let route = DeepLinkRouter.route(for: URL(string: "sundeefundee://cycle")!)
+
+        XCTAssertEqual(route?.targetTab, .cycle)
+        XCTAssertFalse(route?.opensQuickCheckIn == true)
     }
 
     func testRejectsWrongScheme() {

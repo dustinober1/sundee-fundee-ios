@@ -20,6 +20,7 @@ public struct DashboardView: View {
     @State private var showingTodayWhy = false
     @State private var showingMoreToday = false
     @State private var showingQuickCheckIn = false
+    @State private var navigationResetID = UUID()
     #if canImport(UIKit)
     @State private var showingCycleShare = false
     #endif
@@ -178,6 +179,19 @@ public struct DashboardView: View {
             } message: {
                 Text(viewModel.errorMessage ?? "")
             }
+        }
+        .id(navigationResetID)
+        .onReceive(NotificationCenter.default.publisher(for: .deepLinkRouteOpened)) { notification in
+            guard let route = notification.object as? DeepLinkRoute, route.opensQuickCheckIn else { return }
+            showingAIWorkout = false
+            starterWorkout = nil
+            resumeWorkoutID = nil
+            showingTodayWhy = false
+            showingMoreToday = false
+            viewModel.navigateToLogMax = false
+            viewModel.navigateToPainTracking = false
+            navigationResetID = UUID()
+            showingQuickCheckIn = true
         }
     }
 

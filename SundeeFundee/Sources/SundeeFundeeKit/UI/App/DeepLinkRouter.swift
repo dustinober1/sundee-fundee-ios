@@ -3,6 +3,24 @@ import Foundation
 public enum DeepLinkRoute: String, Sendable, Equatable {
     case cycle
     case todayCheckIn
+
+    public var targetTab: Tab {
+        switch self {
+        case .cycle:
+            return .cycle
+        case .todayCheckIn:
+            return .today
+        }
+    }
+
+    public var opensQuickCheckIn: Bool {
+        switch self {
+        case .cycle:
+            return false
+        case .todayCheckIn:
+            return true
+        }
+    }
 }
 
 public enum DeepLinkRouter {

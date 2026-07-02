@@ -95,12 +95,7 @@ public struct MainTabView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .deepLinkRouteOpened)) { notification in
             guard let route = notification.object as? DeepLinkRoute else { return }
-            switch route {
-            case .cycle:
-                selectedTab = .cycle
-            case .todayCheckIn:
-                selectedTab = .today
-            }
+            selectedTab = route.targetTab
         }
         .onChange(of: cyclePhaseCache.isSharkWeek) { _, newValue in
             sharkWeekMonitor.isSharkWeek = newValue
