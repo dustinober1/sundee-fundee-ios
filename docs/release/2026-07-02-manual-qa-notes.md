@@ -20,8 +20,8 @@ Device: iPhone 17 Pro Simulator, iOS 26.5.
 - The small Cycle widget was added from the Home screen app-icon menu. It rendered a readable `No data` state with freshness text and the Sundee Fundee label. Tapping it routed into the app's Cycle tab.
 - Dark appearance was applied with the Quick Check-In sheet open. Text, sliders, switches, and cards remained legible.
 - Accessibility Large text with Increase Contrast enabled was applied. Train, Today root, completed workout detail, and Cycle remained readable with primary controls visible.
+- Runtime accessibility snapshots verified Today, Why Today, Train, active workout, Cycle, Progress, Settings, What's New, and Data Trust Center. The active workout options control and Cycle enable row were fixed so VoiceOver sees named, single-purpose controls.
 
 ## Still Needs External Or Device-Specific Rehearsal
 
 - CloudKit dashboard: add/deploy the `TodayWorkoutPreference` record type with a queryable `recordName` index before relying on signed-in persistence.
-- Accessibility gate: complete the full checklist in `dark-mode-accessibility-gate.md`, especially VoiceOver traversal and any remaining screen-specific screenshots.
