@@ -17,9 +17,7 @@ public struct CycleTrackingView: View {
         NavigationStack {
             List {
                 Section {
-                    Toggle("Enable Cycle Tracking", isOn: $settings.cycleTrackingEnabled)
-                        .padding(.vertical, AppTheme.Spacing.xs)
-                        .disabled(!settings.isLoaded)
+                    cycleTrackingToggleRow
                 } footer: {
                     if !settings.isLoaded {
                         Text("Loading cycle settings…")
@@ -123,6 +121,47 @@ public struct CycleTrackingView: View {
                 declinedPromptIDs: []
             )
         ) == .cycleSetup && !settings.cycleTrackingEnabled
+    }
+
+    private var cycleTrackingToggleRow: some View {
+        Button {
+            guard settings.isLoaded else { return }
+            settings.cycleTrackingEnabled.toggle()
+        } label: {
+            HStack {
+                Text("Enable Cycle Tracking")
+                    .foregroundColor(AppTheme.Text.primary)
+                Spacer()
+                switchIndicator(isOn: settings.cycleTrackingEnabled)
+            }
+            .padding(.vertical, AppTheme.Spacing.xs)
+        }
+        .buttonStyle(.plain)
+        .disabled(!settings.isLoaded)
+        .accessibilityLabel("Enable Cycle Tracking")
+        .accessibilityValue(settings.cycleTrackingEnabled ? "On" : "Off")
+        .accessibilityHint(cycleTrackingToggleHint)
+    }
+
+    private var cycleTrackingToggleHint: String {
+        if !settings.isLoaded {
+            return "Cycle settings are loading."
+        }
+        return settings.cycleTrackingEnabled
+            ? "Double tap to turn cycle tracking off."
+            : "Double tap to turn cycle tracking on."
+    }
+
+    private func switchIndicator(isOn: Bool) -> some View {
+        ZStack(alignment: isOn ? .trailing : .leading) {
+            Capsule()
+                .fill(isOn ? AppTheme.Semantic.success : AppTheme.Text.secondary.opacity(0.35))
+            Circle()
+                .fill(AppTheme.Background.cream)
+                .padding(2)
+        }
+        .frame(width: 50, height: 30)
+        .accessibilityHidden(true)
     }
 
     private func progressivePromptRow(title: String, message: String, systemImage: String) -> some View {
