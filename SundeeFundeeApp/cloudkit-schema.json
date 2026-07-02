@@ -463,6 +463,24 @@ DEFINE SCHEMA
         GRANT READ TO "_world"
     );
 
+    RECORD TYPE TodayWorkoutPreference (
+        "___createTime"            TIMESTAMP,
+        "___createdBy"             REFERENCE,
+        "___etag"                  STRING,
+        "___modTime"               TIMESTAMP,
+        "___modifiedBy"            REFERENCE,
+        "___recordID"              REFERENCE QUERYABLE,
+        dateCreated                STRING QUERYABLE SEARCHABLE SORTABLE,
+        dateKey                    STRING QUERYABLE SEARCHABLE SORTABLE,
+        id                         STRING,
+        preferredMinutes           INT64 QUERYABLE SORTABLE,
+        reduceVolumeSelected       INT64 QUERYABLE SORTABLE,
+        removedExerciseNamesJSON   STRING,
+        GRANT WRITE TO "_creator",
+        GRANT CREATE TO "_icloud",
+        GRANT READ TO "_world"
+    );
+
     RECORD TYPE ReturnToLiftingRampRecord (
         "___createTime"      TIMESTAMP,
         "___createdBy"       REFERENCE,
