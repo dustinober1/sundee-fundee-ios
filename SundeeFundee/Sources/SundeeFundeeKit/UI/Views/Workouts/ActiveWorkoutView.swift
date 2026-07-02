@@ -21,6 +21,7 @@ public struct ActiveWorkoutView: View {
     @State private var showingSwapConfirm = false
     @State private var showingWorkoutShare = false
     @State private var showingWorkoutDetails = false
+    @State private var showingWorkoutOptionsDialog = false
     @State private var pendingSwap: SubstitutionRanker.RankedSubstitution?
     @State private var showingStationTakenPicker = false
     @State private var showingStationTakenSwapSheet = false
@@ -179,6 +180,27 @@ public struct ActiveWorkoutView: View {
         } message: {
             Text("Update this workout to match your available equipment.")
         }
+        .confirmationDialog("Workout Options", isPresented: $showingWorkoutOptionsDialog) {
+            Button(showingWorkoutDetails ? "Hide details" : "Show details") {
+                showingWorkoutDetails.toggle()
+            }
+
+            Button("Convert Equipment") {
+                showingEquipmentConversionPicker = true
+            }
+
+            Button("Swap Exercise") {
+                showingSwapSheet = true
+            }
+
+            Button("Station Taken") {
+                showingStationTakenPicker = true
+            }
+
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("Choose an adjustment for this workout.")
+        }
         .confirmationDialog("Station taken", isPresented: $showingStationTakenPicker) {
             ForEach(BlockedStationKind.allCases, id: \.self) { station in
                 Button(station.displayName) {
@@ -316,30 +338,8 @@ public struct ActiveWorkoutView: View {
                 .font(AppTheme.Typography.monoLarge)
                 .foregroundColor(AppTheme.Text.orange)
 
-            Menu {
-                Button {
-                    showingWorkoutDetails.toggle()
-                } label: {
-                    Label(showingWorkoutDetails ? "Hide details" : "Show details", systemImage: "info.circle")
-                }
-
-                Button {
-                    showingEquipmentConversionPicker = true
-                } label: {
-                    Label("Convert Equipment", systemImage: "wrench.and.screwdriver")
-                }
-
-                Button {
-                    showingSwapSheet = true
-                } label: {
-                    Label("Swap Exercise", systemImage: "arrow.triangle.swap")
-                }
-
-                Button {
-                    showingStationTakenPicker = true
-                } label: {
-                    Label("Station Taken", systemImage: "exclamationmark.triangle")
-                }
+            Button {
+                showingWorkoutOptionsDialog = true
             } label: {
                 Image(systemName: "ellipsis.circle")
                     .foregroundColor(AppTheme.Text.secondary)
