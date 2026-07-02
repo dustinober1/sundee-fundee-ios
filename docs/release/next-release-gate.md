@@ -29,6 +29,12 @@ Prerequisite: `swiftlint` must be installed and available on `PATH`.
 - [ ] Progress empty state shows `Start tracking` guidance before data exists
 - [ ] Optional post-workout check-in can be submitted or skipped
 
+## CloudKit Deployment
+
+- [ ] Import/deploy `SundeeFundeeApp/cloudkit-schema.json` so `TodayWorkoutPreference` exists in CloudKit Dashboard
+- [ ] Confirm `TodayWorkoutPreference` has a queryable `recordName` / `___recordID` index in Development
+- [ ] Deploy the CloudKit schema changes to Production before release
+
 ## App Review Safety
 
 - [ ] No paywalls
