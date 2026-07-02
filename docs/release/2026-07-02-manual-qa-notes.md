@@ -22,6 +22,6 @@ Device: iPhone 17 Pro Simulator, iOS 26.5.
 - Accessibility Large text with Increase Contrast enabled was applied. Train, Today root, completed workout detail, and Cycle remained readable with primary controls visible.
 - Runtime accessibility snapshots verified Today, Why Today, Train, active workout, Cycle, Progress, Settings, What's New, and Data Trust Center. The active workout options control and Cycle enable row were fixed so VoiceOver sees named, single-purpose controls.
 
-## Still Needs External Or Device-Specific Rehearsal
+## External Or Device-Specific Rehearsal
 
-- CloudKit dashboard: Development schema includes `TodayWorkoutPreference` with queryable `___recordID`; deploy Development schema changes to Production in CloudKit Dashboard before relying on signed-in persistence.
+- CloudKit dashboard: Development and Production schemas include `TodayWorkoutPreference` with queryable `___recordID`, verified by Production schema export.
