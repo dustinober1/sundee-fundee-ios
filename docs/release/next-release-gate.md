@@ -32,11 +32,13 @@ Prerequisite: `swiftlint` must be installed and available on `PATH`.
 ## CloudKit Deployment
 
 - [ ] `scripts/next-release-gate.sh` confirms `TodayWorkoutPreference` and its queryable `___recordID` exist in the checked-in schema
-- [ ] Import/deploy `SundeeFundeeApp/cloudkit-schema.json` so `TodayWorkoutPreference` exists in CloudKit Dashboard
+- [ ] Save/provide a CloudKit management token with `CLOUDKIT_MANAGEMENT_TOKEN` or `xcrun cktool save-token`
+- [ ] `scripts/cloudkit-schema-deploy.sh development validate`
+- [ ] `scripts/cloudkit-schema-deploy.sh development import`
 - [ ] Confirm `TodayWorkoutPreference` has a queryable `recordName` / `___recordID` index in Development
-- [ ] Deploy the CloudKit schema changes to Production before release
+- [ ] `CONFIRM_PRODUCTION_CLOUDKIT_IMPORT=YES scripts/cloudkit-schema-deploy.sh production import`
 
-Validate before import:
+Direct `cktool` validate command:
 
 ```bash
 xcrun cktool validate-schema \
@@ -46,7 +48,7 @@ xcrun cktool validate-schema \
   --file SundeeFundeeApp/cloudkit-schema.json
 ```
 
-Import to Development:
+Direct `cktool` Development import command:
 
 ```bash
 xcrun cktool import-schema \
