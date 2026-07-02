@@ -28,6 +28,7 @@ swift test --filter CoachPlanFeedbackServiceTests
 
 cd "$ROOT/SundeeFundeeApp"
 xcodebuild -project SundeeFundee.xcodeproj -scheme SundeeFundee -destination 'platform=iOS Simulator,name=iPhone 17 Pro' build
+xcodebuild -project SundeeFundee.xcodeproj -scheme SundeeFundee -destination 'platform=iOS Simulator,name=iPhone 17 Pro' -quiet test -only-testing:SundeeFundeeTests/StoreKitSupportTipStoreIntegrationTests
 
 cd "$ROOT"
 swiftlint --config .swiftlint.yml
