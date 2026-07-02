@@ -9,6 +9,7 @@ Device: iPhone 17 Pro Simulator, iOS 26.5.
 - Train hub opened Best Next 20 Min. The workout showed a generated session, conservative starting-weight guidance, set controls, and a clean return to Train.
 - Progress showed the new Start tracking guidance before training history exists: analytics unlock, first max, and benchmark prompts.
 - Settings showed Support the Developer as optional, all features free. In this simulator setup StoreKit was unavailable, and the tip button was disabled with retry copy.
+- The StoreKit support-tip rehearsal passed in the iOS simulator test harness with `SundeeFundee.storekit`: the real product loaded at `$1.99` and a purchase completed. Package tests covered pending, cancelled, unavailable, unverified, and repeat-purchase states.
 - Data Trust Center showed guest/local storage copy, sync status, activation funnel events, and storage categories.
 - Cycle showed point-of-use setup copy and kept Quick Check-In, Pain Log, and Symptom Check-In available after Health denial.
 - Coach Plan questionnaire showed duration, focus, energy, and equipment controls. Preview showed Why this workout, an Energy trust badge, thumbs feedback, and quick edits. Tapping thumbs-up filled the icon; Reduce Volume changed the plan from 4 sets to 3 sets.
@@ -23,5 +24,4 @@ Device: iPhone 17 Pro Simulator, iOS 26.5.
 ## Still Needs External Or Device-Specific Rehearsal
 
 - CloudKit dashboard: add/deploy the `TodayWorkoutPreference` record type with a queryable `recordName` index before relying on signed-in persistence.
-- StoreKit: run the optional support tip purchase/cancel/unavailable paths with the StoreKit configuration attached to the app scheme.
 - Accessibility gate: complete the full checklist in `dark-mode-accessibility-gate.md`, especially VoiceOver traversal and any remaining screen-specific screenshots.
