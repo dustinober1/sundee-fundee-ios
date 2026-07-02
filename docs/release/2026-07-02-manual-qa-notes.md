@@ -16,11 +16,12 @@ Device: iPhone 17 Pro Simulator, iOS 26.5.
 - Share Workout from the completion screen rendered a workout share card with title, stats, exercises, Sundee Fundee footer, QR badge, Share Options, Share, and Copy to Photos controls.
 - `sundeefundee://cycle` opened the app and landed on Cycle.
 - `sundeefundee://today/check-in` was retested from a pushed Data Trust Center screen after the fix and landed directly on Quick Check-In.
+- The small Cycle widget was added from the Home screen app-icon menu. It rendered a readable `No data` state with freshness text and the Sundee Fundee label. Tapping it routed into the app's Cycle tab.
 - Dark appearance was applied with the Quick Check-In sheet open. Text, sliders, switches, and cards remained legible.
+- Accessibility Large text with Increase Contrast enabled was applied. Train, Today root, completed workout detail, and Cycle remained readable with primary controls visible.
 
 ## Still Needs External Or Device-Specific Rehearsal
 
 - CloudKit dashboard: add/deploy the `TodayWorkoutPreference` record type with a queryable `recordName` index before relying on signed-in persistence.
 - StoreKit: run the optional support tip purchase/cancel/unavailable paths with the StoreKit configuration attached to the app scheme.
-- Widgets: place the Cycle widget on the Simulator home screen and verify stale/no-data/freshness states visually. Direct deep links are verified.
-- Accessibility gate: complete the full checklist in `dark-mode-accessibility-gate.md`, especially Accessibility Large Dynamic Type, VoiceOver traversal, increased contrast, and widget screenshots.
+- Accessibility gate: complete the full checklist in `dark-mode-accessibility-gate.md`, especially VoiceOver traversal and any remaining screen-specific screenshots.
