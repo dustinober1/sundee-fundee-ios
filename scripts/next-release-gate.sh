@@ -2,6 +2,17 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+SCHEMA="$ROOT/SundeeFundeeApp/cloudkit-schema.json"
+
+if ! grep -q 'RECORD TYPE TodayWorkoutPreference' "$SCHEMA"; then
+    echo "CloudKit schema is missing TodayWorkoutPreference."
+    exit 1
+fi
+
+if ! awk '/RECORD TYPE TodayWorkoutPreference/,/\);/' "$SCHEMA" | grep -q '"___recordID"[[:space:]]*REFERENCE QUERYABLE'; then
+    echo "CloudKit schema is missing queryable ___recordID for TodayWorkoutPreference."
+    exit 1
+fi
 
 if ! command -v swiftlint >/dev/null 2>&1; then
     echo "swiftlint is not installed. Install SwiftLint, then rerun this gate."
