@@ -1,0 +1,82 @@
+<style>
+  .architecture-grid { display: grid; gap: 1rem; }
+  .signal-grid, .consumer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; }
+  .architecture-node { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 10px; padding: 0.9rem; }
+  .architecture-node strong { display: block; margin-bottom: 0.2rem; }
+  .architecture-node span { color: var(--text-secondary); font-size: 0.82rem; }
+  .architecture-core { background: var(--selected-bg); border: 2px solid var(--selected-border); border-radius: 14px; padding: 1.15rem; }
+  .core-flow { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; align-items: center; gap: 0.6rem; }
+  .core-step { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 10px; padding: 0.9rem; min-height: 100%; }
+  .core-step strong { display: block; margin-bottom: 0.25rem; }
+  .core-step span { color: var(--text-secondary); font-size: 0.82rem; }
+  .flow-arrow { color: var(--accent); font-size: 1.3rem; font-weight: 600; text-align: center; }
+  .flow-down { color: var(--accent); text-align: center; font-size: 1.3rem; line-height: 1; }
+  .boundary-note { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; color: var(--text-secondary); font-size: 0.8rem; }
+  .boundary-note span { background: var(--bg-tertiary); border-radius: 999px; padding: 0.25rem 0.65rem; }
+  @media (max-width: 760px) {
+    .core-flow { grid-template-columns: 1fr; }
+    .flow-arrow { transform: rotate(90deg); }
+  }
+</style>
+
+<h2>Sundee Fundee 2.0 — Unified Training Intelligence</h2>
+<p class="subtitle">One explainable decision packet keeps Today, workouts, programs, and progress aligned.</p>
+
+<div class="architecture-grid">
+  <div class="section">
+    <div class="label">1 · Signals</div>
+    <div class="signal-grid">
+      <div class="architecture-node"><strong>HealthKit</strong><span>Sleep, HRV, resting heart rate, with graceful missing-data handling</span></div>
+      <div class="architecture-node"><strong>Daily check-in</strong><span>Energy, soreness, stress, pain, and perceived readiness</span></div>
+      <div class="architecture-node"><strong>Cycle context</strong><span>Phase, confidence, symptoms, and user-controlled tracking</span></div>
+      <div class="architecture-node"><strong>Training history</strong><span>Recent load, effort, completion feedback, plateaus, and missed sessions</span></div>
+      <div class="architecture-node"><strong>Training constraints</strong><span>Active program, goals, available time, equipment, and learned preferences</span></div>
+    </div>
+  </div>
+
+  <div class="flow-down">↓</div>
+
+  <div class="architecture-core">
+    <div class="label">2 · Deterministic intelligence core</div>
+    <div class="core-flow">
+      <div class="core-step"><strong>Daily Training Context</strong><span>Normalizes signals, records provenance, and measures completeness against personal baselines.</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="core-step"><strong>Bounded Decision Engine</strong><span>Combines readiness, cycle, pain, load, and program rules. Safety limits remain deterministic.</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="core-step"><strong>Training Decision Packet</strong><span>Readiness state + 0–100 detail score + confidence + reasons + session changes + undo data.</span></div>
+    </div>
+    <div class="boundary-note" style="margin-top: 1rem;">
+      <span>Pure domain services</span>
+      <span>Local or CloudKit persistence</span>
+      <span>No HealthKit requirement</span>
+      <span>AI may explain, never decide</span>
+    </div>
+  </div>
+
+  <div class="flow-down">↓</div>
+
+  <div class="section">
+    <div class="label">3 · Coordinated experiences</div>
+    <div class="consumer-grid">
+      <div class="architecture-node"><strong>Today</strong><span>Headline readiness state, confidence, key drivers, and best next action</span></div>
+      <div class="architecture-node"><strong>Workout</strong><span>Automatic bounded changes to dose, exercise choice, rest, and active recovery</span></div>
+      <div class="architecture-node"><strong>Program</strong><span>Preserve long-term progression, reshuffle missed work, schedule deloads, and support undo</span></div>
+      <div class="architecture-node"><strong>Progress</strong><span>Readiness-to-performance trends, monthly reviews, adherence, and actionable insights</span></div>
+      <div class="architecture-node"><strong>Social</strong><span>Privacy-safe milestones and buddy check-ins without exposing health or cycle inputs</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="label">Architecture checkpoint</div>
+  <div class="options">
+    <div class="option" data-choice="architecture-approved" onclick="toggleSelect(this)">
+      <div class="letter">✓</div>
+      <div class="content"><h3>Looks right</h3><p>Use this shared core and move on to the user experience design.</p></div>
+    </div>
+    <div class="option" data-choice="architecture-revise" onclick="toggleSelect(this)">
+      <div class="letter">↺</div>
+      <div class="content"><h3>Needs changes</h3><p>I’ll describe what should move, split, or be added in the terminal.</p></div>
+    </div>
+  </div>
+</div>

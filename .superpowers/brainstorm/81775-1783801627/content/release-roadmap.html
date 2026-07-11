@@ -1,0 +1,74 @@
+<style>
+  .roadmap { display: grid; gap: 0.8rem; }
+  .phase { display: grid; grid-template-columns: 100px 1fr 150px; gap: 1rem; align-items: stretch; }
+  .weeks { background: var(--accent); color: white; border-radius: 10px; display: grid; place-items: center; text-align: center; padding: 0.75rem; font-weight: 600; }
+  .phase-body { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 10px; padding: 0.8rem 1rem; }
+  .phase-body h3 { margin-bottom: 0.2rem; }
+  .phase-body p { color: var(--text-secondary); font-size: 0.83rem; }
+  .phase-gate { background: var(--bg-tertiary); border-radius: 10px; padding: 0.75rem; display: grid; align-content: center; }
+  .phase-gate strong { font-size: 0.78rem; }
+  .phase-gate span { color: var(--text-secondary); font-size: 0.75rem; }
+  .measure-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.8rem; margin-top: 1rem; }
+  .measure { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 10px; padding: 0.9rem; }
+  .measure strong { display: block; margin-bottom: 0.3rem; }
+  .measure p { color: var(--text-secondary); font-size: 0.8rem; }
+  @media (max-width: 700px) {
+    .phase { grid-template-columns: 76px 1fr; }
+    .phase-gate { grid-column: 2; }
+    .measure-grid { grid-template-columns: 1fr; }
+  }
+</style>
+
+<h2>2.0 Delivery Roadmap</h2>
+<p class="subtitle">A 14-week platform release, built as independently verifiable vertical slices.</p>
+
+<div class="roadmap">
+  <div class="phase">
+    <div class="weeks">Weeks<br>1–2</div>
+    <div class="phase-body"><h3>Foundation and shadow assessment</h3><p>Daily context, personal-baseline contracts, readiness assessment, confidence, reason codes, records, cache, and scoring fixtures. Run against test data before it changes workouts.</p></div>
+    <div class="phase-gate"><strong>Gate</strong><span>Invariants and scenario suite pass; no user-visible adaptation yet.</span></div>
+  </div>
+  <div class="phase">
+    <div class="weeks">Weeks<br>3–5</div>
+    <div class="phase-body"><h3>Daily readiness experience</h3><p>Today state and score, detailed breakdown, maximum-signal check-in, HealthKit integration, missing-data UX, local cache, history, and refreshed readiness widget.</p></div>
+    <div class="phase-gate"><strong>Gate</strong><span>Guest, denied, sparse, offline, and high-confidence flows verified.</span></div>
+  </div>
+  <div class="phase">
+    <div class="weeks">Weeks<br>6–9</div>
+    <div class="phase-body"><h3>Bounded adaptive training</h3><p>Decision packets, program-aware session changes, deload and active-recovery policies, adaptation preview, explanations, original-session restore, and completion feedback.</p></div>
+    <div class="phase-gate"><strong>Gate</strong><span>Every adaptation stays in bounds, has reasons, and is reversible.</span></div>
+  </div>
+  <div class="phase">
+    <div class="weeks">Weeks<br>10–12</div>
+    <div class="phase-body"><h3>Program, progress, and social intelligence</h3><p>Missed-session reshuffling, planned vs reactive deloads, readiness-to-performance insights, monthly review upgrades, milestones, and privacy-safe sharing.</p></div>
+    <div class="phase-gate"><strong>Gate</strong><span>Long-term program intent remains intact across daily changes.</span></div>
+  </div>
+  <div class="phase">
+    <div class="weeks">Weeks<br>13–14</div>
+    <div class="phase-body"><h3>Reliability and release hardening</h3><p>Focused SyncQueue activation, CloudKit deployment, accessibility, performance, model-version migration, privacy audit, simulator journeys, release notes, and rollback plan.</p></div>
+    <div class="phase-gate"><strong>Gate</strong><span>Full release gate passes; upload or submission still requires explicit approval.</span></div>
+  </div>
+</div>
+
+<div class="section" style="margin-top: 1.5rem;">
+  <div class="label">Success measures</div>
+  <div class="measure-grid">
+    <div class="measure"><strong>Better decisions</strong><p>At least 75% of completed adapted sessions are rated “right for today,” with zero known out-of-bounds adaptations.</p></div>
+    <div class="measure"><strong>Better retention</strong><p>Target a 10% relative lift in second-week workout completion and four-week returning trainers versus the 1.7 baseline.</p></div>
+    <div class="measure"><strong>Stronger value</strong><p>At least 70% positive usefulness feedback for readiness explanations and Coach Plans, while maintaining or improving store sentiment.</p></div>
+  </div>
+</div>
+
+<div class="section" style="margin-top: 1.5rem;">
+  <div class="label">Roadmap checkpoint</div>
+  <div class="options">
+    <div class="option" data-choice="roadmap-approved" onclick="toggleSelect(this)">
+      <div class="letter">✓</div>
+      <div class="content"><h3>Approve the 2.0 design</h3><p>Use this roadmap and write the complete design specification.</p></div>
+    </div>
+    <div class="option" data-choice="roadmap-revise" onclick="toggleSelect(this)">
+      <div class="letter">↺</div>
+      <div class="content"><h3>Revise the roadmap</h3><p>I’ll describe the timing, gates, or outcome changes in the terminal.</p></div>
+    </div>
+  </div>
+</div>

@@ -44,22 +44,25 @@ platform :ios do
     key_path = ENV["ASC_PRIVATE_KEY_PATH"]
     key_content = ENV["ASC_PRIVATE_KEY"]
 
-    return nil if key_id.to_s.empty? || issuer_id.to_s.empty? || (key_path.to_s.empty? && key_content.to_s.empty?)
-
-    options = {
-      key_id: key_id,
-      issuer_id: issuer_id,
-      duration: 1200,
-      in_house: false
-    }
-
-    if key_path.to_s.empty?
-      options[:key_content] = key_content
+    if key_id.to_s.empty? || issuer_id.to_s.empty? || (key_path.to_s.empty? && key_content.to_s.empty?)
+      nil
     else
-      options[:key_filepath] = key_path
-    end
 
-    app_store_connect_api_key(**options)
+      options = {
+        key_id: key_id,
+        issuer_id: issuer_id,
+        duration: 1200,
+        in_house: false
+      }
+
+      if key_path.to_s.empty?
+        options[:key_content] = key_content
+      else
+        options[:key_filepath] = key_path
+      end
+
+      app_store_connect_api_key(**options)
+    end
   end
 
   private_lane :capture_store_screenshots do

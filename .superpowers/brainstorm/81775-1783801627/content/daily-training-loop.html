@@ -1,0 +1,115 @@
+<style>
+  .journey { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.8rem; align-items: stretch; }
+  .journey-step { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; }
+  .journey-number { background: var(--bg-tertiary); color: var(--text-secondary); padding: 0.45rem 0.75rem; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; }
+  .phone-content { padding: 1rem; display: grid; gap: 0.7rem; flex: 1; }
+  .hero-state { text-align: center; padding: 0.7rem 0; }
+  .hero-state strong { display: block; font-size: 1.35rem; }
+  .hero-state span { color: var(--text-secondary); font-size: 0.8rem; }
+  .score-ring { width: 64px; height: 64px; margin: 0 auto 0.4rem; border-radius: 50%; border: 7px solid var(--accent); display: grid; place-items: center; font-size: 1.2rem; font-weight: 600; }
+  .mini-section { border-top: 1px solid var(--border); padding-top: 0.65rem; }
+  .mini-section strong { display: block; font-size: 0.84rem; margin-bottom: 0.25rem; }
+  .mini-row { display: flex; justify-content: space-between; gap: 0.5rem; color: var(--text-secondary); font-size: 0.78rem; padding: 0.15rem 0; }
+  .change { background: var(--selected-bg); border-radius: 8px; padding: 0.55rem; font-size: 0.78rem; }
+  .change strong { display: block; color: var(--text-primary); }
+  .soft-button { background: var(--accent); color: white; text-align: center; border-radius: 7px; padding: 0.5rem; font-size: 0.8rem; }
+  .secondary-button { border: 1px solid var(--border); text-align: center; border-radius: 7px; padding: 0.45rem; font-size: 0.78rem; color: var(--text-secondary); }
+  .loop-note { margin-top: 1rem; background: var(--bg-secondary); border-left: 4px solid var(--accent); padding: 0.85rem 1rem; color: var(--text-secondary); font-size: 0.85rem; }
+  @media (max-width: 900px) { .journey { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 560px) { .journey { grid-template-columns: 1fr; } }
+</style>
+
+<h2>The 2.0 Daily Training Loop</h2>
+<p class="subtitle">The detailed score is available, but the product always leads with a clear state and a useful next action.</p>
+
+<div class="journey">
+  <div class="journey-step">
+    <div class="journey-number">1 · Morning</div>
+    <div class="phone-content">
+      <div class="hero-state">
+        <div class="score-ring">72</div>
+        <strong>Maintain</strong>
+        <span>High confidence · 7 of 8 signals</span>
+      </div>
+      <div class="mini-section">
+        <strong>What matters today</strong>
+        <div class="mini-row"><span>Sleep vs baseline</span><span>Good</span></div>
+        <div class="mini-row"><span>Lower-body soreness</span><span>Elevated</span></div>
+        <div class="mini-row"><span>Recent training load</span><span>High</span></div>
+      </div>
+      <div class="soft-button">Review Today’s Plan</div>
+    </div>
+  </div>
+
+  <div class="journey-step">
+    <div class="journey-number">2 · Explain</div>
+    <div class="phone-content">
+      <div>
+        <h3>Why Maintain?</h3>
+        <p style="color: var(--text-secondary); font-size: 0.8rem;">You can train, but today is better for productive work than a maximal effort.</p>
+      </div>
+      <div class="mini-section">
+        <strong>Positive drivers</strong>
+        <div class="mini-row"><span>7h 42m sleep</span><span>Above baseline</span></div>
+        <div class="mini-row"><span>Resting heart rate</span><span>Normal range</span></div>
+      </div>
+      <div class="mini-section">
+        <strong>Caution drivers</strong>
+        <div class="mini-row"><span>Soreness</span><span>6 / 10</span></div>
+        <div class="mini-row"><span>Weekly leg volume</span><span>+18%</span></div>
+        <div class="mini-row"><span>Cycle context</span><span>Luteal</span></div>
+      </div>
+      <div class="secondary-button">View Full Breakdown</div>
+    </div>
+  </div>
+
+  <div class="journey-step">
+    <div class="journey-number">3 · Adapt</div>
+    <div class="phone-content">
+      <div>
+        <h3>Lower Strength · Day 3</h3>
+        <p style="color: var(--text-secondary); font-size: 0.8rem;">Program structure preserved · 42 minutes</p>
+      </div>
+      <div class="change"><strong>Volume reduced 20%</strong>Three working sets instead of four.</div>
+      <div class="change"><strong>Top set capped</strong>Target intensity changed from 80% to 72%.</div>
+      <div class="change"><strong>Fatigue-safe substitution</strong>Romanian deadlift changed to supported hamstring curl.</div>
+      <div class="mini-row"><span>Reason</span><span>Soreness + weekly load</span></div>
+      <div class="soft-button">Start Adapted Workout</div>
+      <div class="secondary-button">Keep Original</div>
+    </div>
+  </div>
+
+  <div class="journey-step">
+    <div class="journey-number">4 · Learn</div>
+    <div class="phone-content">
+      <div>
+        <h3>How did that dose feel?</h3>
+        <p style="color: var(--text-secondary); font-size: 0.8rem;">Optional and designed to take under 15 seconds.</p>
+      </div>
+      <div class="mini-section">
+        <div class="mini-row"><span>Session effort</span><span>7 / 10</span></div>
+        <div class="mini-row"><span>Pain during workout</span><span>No</span></div>
+        <div class="mini-row"><span>Right for today?</span><span>Yes</span></div>
+      </div>
+      <div class="change"><strong>What 2.0 learns</strong>Tomorrow’s context reflects actual tolerance. Repeated edits may become preferences; one-off changes do not.</div>
+      <div class="soft-button">Save Check-In</div>
+      <div class="secondary-button">Skip</div>
+    </div>
+  </div>
+</div>
+
+<div class="loop-note"><strong style="color: var(--text-primary);">Trust contract:</strong> missing data lowers confidence rather than silently lowering readiness; adaptations stay within deterministic safety limits; every change is explained and reversible.</div>
+
+<div class="section" style="margin-top: 1.5rem;">
+  <div class="label">Experience checkpoint</div>
+  <div class="options">
+    <div class="option" data-choice="daily-loop-approved" onclick="toggleSelect(this)">
+      <div class="letter">✓</div>
+      <div class="content"><h3>Looks right</h3><p>Use this as the primary 2.0 loop.</p></div>
+    </div>
+    <div class="option" data-choice="daily-loop-revise" onclick="toggleSelect(this)">
+      <div class="letter">↺</div>
+      <div class="content"><h3>Needs changes</h3><p>I’ll describe what should be added, removed, or reordered.</p></div>
+    </div>
+  </div>
+</div>
