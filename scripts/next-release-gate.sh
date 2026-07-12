@@ -14,6 +14,16 @@ if ! awk '/RECORD TYPE TodayWorkoutPreference/,/\);/' "$SCHEMA" | grep -q '"___r
     exit 1
 fi
 
+if ! grep -q 'RECORD TYPE DailyReadinessRecord' "$SCHEMA"; then
+    echo "CloudKit schema is missing DailyReadinessRecord."
+    exit 1
+fi
+
+if ! awk '/RECORD TYPE DailyReadinessRecord/,/\);/' "$SCHEMA" | grep -q '"___recordID"[[:space:]]*REFERENCE QUERYABLE'; then
+    echo "CloudKit schema is missing queryable ___recordID for DailyReadinessRecord."
+    exit 1
+fi
+
 if ! command -v swiftlint >/dev/null 2>&1; then
     echo "swiftlint is not installed. Install SwiftLint, then rerun this gate."
     exit 127
