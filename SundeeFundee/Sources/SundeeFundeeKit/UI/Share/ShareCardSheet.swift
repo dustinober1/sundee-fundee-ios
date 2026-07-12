@@ -70,6 +70,7 @@ public struct ShareCardSheet: View {
                             .foregroundColor(AppTheme.Text.primary)
                     }
                     .tint(AppTheme.Accent.gold)
+                    privacySummary
                     shareButton
                 }
                 .padding()
@@ -171,6 +172,13 @@ public struct ShareCardSheet: View {
             return ShareSummary(
                 title: review.monthTitle,
                 exerciseCount: review.workoutCount,
+                totalVolume: 0,
+                durationMinutes: 0
+            )
+        case .readiness(let summary), .deload(let summary):
+            return ShareSummary(
+                title: summary.title,
+                exerciseCount: 0,
                 totalVolume: 0,
                 durationMinutes: 0
             )
@@ -322,6 +330,22 @@ public struct ShareCardSheet: View {
         }
     }
 
+    /// Plain-language disclosure shown immediately before the system share
+    /// control. It makes the safe boundary clear without exposing any source
+    /// assessment details.
+    private var privacySummary: some View {
+        Label {
+            Text("Only this card's title and optional outcome summary are shared. Health data, cycle context, pain, and private notes stay on your device.")
+                .font(AppTheme.Typography.bodySmall)
+                .foregroundColor(AppTheme.Text.secondary)
+        } icon: {
+            Image(systemName: "lock.shield")
+                .foregroundColor(AppTheme.Accent.gold)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Privacy summary. Only this card's title and optional outcome summary are shared. Health data, cycle context, pain, and private notes stay on your device.")
+    }
+
     private func progressivePromptRow(title: String, message: String, systemImage: String) -> some View {
         Label {
             VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
@@ -394,13 +418,22 @@ public struct ShareCardSheet: View {
         if let sourceID = shareContext?.sourceID {
             properties["sourceID"] = sourceID
         }
-        if let title = shareContext?.title {
+        // Sanitized variants must never persist caller-provided context title or
+        // referral text, which may contain raw assessment details.
+        if !isSanitizedVariant, let title = shareContext?.title {
             properties["title"] = title
         }
-        if let referralCode = shareContext?.referralCode {
+        if !isSanitizedVariant, let referralCode = shareContext?.referralCode {
             properties["referralCode"] = referralCode
         }
         return properties
+    }
+
+    private var isSanitizedVariant: Bool {
+        switch variant {
+        case .readiness, .deload: return true
+        default: return false
+        }
     }
 
     private func trackShareTapped() async {

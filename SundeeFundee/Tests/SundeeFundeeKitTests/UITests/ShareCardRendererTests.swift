@@ -98,6 +98,29 @@ struct ShareCardRendererTests {
         #expect(recap != nil)
     }
 
+    @Test("Renders sanitized readiness and deload variants for both aspects")
+    func rendersSanitizedVariants() async throws {
+        let readiness = try ShareSanitizedSummary(
+            title: "Ready to train",
+            subtitle: "A steady day for your next session.",
+            metricLabel: "Training outlook",
+            metricValue: "Build",
+            modelVersion: "2.0"
+        )
+        let deload = try ShareSanitizedSummary(
+            title: "Recovery session complete",
+            subtitle: nil,
+            metricLabel: "Session focus",
+            metricValue: "Move well",
+            modelVersion: "2.0"
+        )
+
+        for aspect in ShareCardAspect.allCases {
+            #expect(await ShareCardRenderer.render(.readiness(summary: readiness), aspect: aspect) != nil)
+            #expect(await ShareCardRenderer.render(.deload(summary: deload), aspect: aspect) != nil)
+        }
+    }
+
     @Test("Aspect point sizes follow 9:16 and 1:1")
     func aspectSizesMatchRatios() {
         let story = ShareCardAspect.story.size

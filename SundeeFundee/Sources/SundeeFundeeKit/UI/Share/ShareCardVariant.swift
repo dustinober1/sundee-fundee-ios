@@ -115,6 +115,11 @@ public enum ShareCardVariant: Sendable {
     case weeklyRecap(title: String, subtitle: String, badge: String, bullets: [String])
     case buddyCheckIn(summary: BuddyCheckInSummary, displayName: String)
     case monthlyReview(review: MonthlyReview)
+    /// Privacy-safe 2.0 outcome cards. These cases intentionally accept only
+    /// `ShareSanitizedSummary`; raw readiness, HealthKit, cycle, pain, and note
+    /// data cannot reach the renderer or share sheet.
+    case readiness(summary: ShareSanitizedSummary)
+    case deload(summary: ShareSanitizedSummary)
     #if canImport(UIKit)
     case selfieOverlay(image: UIImage, summary: ShareSummary)
     #endif
@@ -136,11 +141,22 @@ public enum ShareCardVariant: Sendable {
             return "Buddy Check-In — \(displayName)"
         case .monthlyReview(let review):
             return "Monthly Review — \(review.monthTitle)"
+        case .readiness(let summary), .deload(let summary):
+            return summary.title
         #if canImport(UIKit)
         case .selfieOverlay(_, let summary):
             return summary.title
         #endif
         }
+    }
+
+    /// Descriptive aliases for call sites that prefer the share-oriented name.
+    public static func readinessShare(summary: ShareSanitizedSummary) -> ShareCardVariant {
+        .readiness(summary: summary)
+    }
+
+    public static func deloadShare(summary: ShareSanitizedSummary) -> ShareCardVariant {
+        .deload(summary: summary)
     }
 
     private func formatWeight(_ w: Double) -> String {
