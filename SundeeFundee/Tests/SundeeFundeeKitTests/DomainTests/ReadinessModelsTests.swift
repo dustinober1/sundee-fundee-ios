@@ -31,6 +31,6 @@ final class ReadinessModelsTests: XCTestCase {
         )
 
         XCTAssertEqual(context.cyclePhase, .luteal)
-        XCTAssertFalse(ReadinessSignalID.allCases.contains(.cyclePhase))
+        XCTAssertFalse(ReadinessSignalID.allCases.contains { $0.rawValue == "cyclePhase" })
     }
 }

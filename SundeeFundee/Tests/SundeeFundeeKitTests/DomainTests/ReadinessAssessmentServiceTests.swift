@@ -43,6 +43,33 @@ final class ReadinessAssessmentServiceTests: XCTestCase {
         XCTAssertTrue(result.cautionReasons.contains(.stillLearning))
     }
 
+    func testTrainingSignalsAreIgnoredBeforeFourCompletedWorkouts() throws {
+        let context = makeContext(
+            subjective: SubjectiveReadinessSnapshot(energy: 9),
+            training: TrainingReadinessSnapshot(weeklyLoadRatio: 1, averageSessionRPE: 5, rightForTodayRate: 1, completedWorkoutsInLast28Days: 3)
+        )
+        let result = try XCTUnwrap(ReadinessAssessmentService.assess(context))
+        XCTAssertFalse(result.subScores.keys.contains(.training))
+        XCTAssertFalse(result.availableSignals.contains(.trainingLoad))
+        XCTAssertEqual(result.confidence, .low)
+    }
+
+    func testMatureTrainingHistoryContributesTrainingSignalsAndAllowsHighConfidence() throws {
+        let context = makeContext(
+            physiological: PhysiologicalReadinessSnapshot(
+                sleepHours: metric(currentValue: 8, baselineCount: 14, baselineValue: 8),
+                hrvMilliseconds: metric(currentValue: 60, baselineCount: 14, baselineValue: 60),
+                restingHeartRateBPM: metric(currentValue: 60, baselineCount: 14, baselineValue: 60)
+            ),
+            subjective: SubjectiveReadinessSnapshot(energy: 9, fatigue: 1, soreness: 1, stress: 1, perceivedReadiness: 9),
+            training: TrainingReadinessSnapshot(weeklyLoadRatio: 1, averageSessionRPE: 5, rightForTodayRate: 1, completedWorkoutsInLast28Days: 4)
+        )
+        let result = try XCTUnwrap(ReadinessAssessmentService.assess(context))
+        XCTAssertTrue(result.subScores.keys.contains(.training))
+        XCTAssertTrue(result.availableSignals.contains(.trainingLoad))
+        XCTAssertEqual(result.confidence, .high)
+    }
+
     func testStaleSignalsIncludePainAndPhysiologicalMetrics() throws {
         let staleDate = assessmentDate.addingTimeInterval(-(48 * 60 * 60 + 1))
         let context = makeContext(
@@ -63,7 +90,7 @@ final class ReadinessAssessmentServiceTests: XCTestCase {
                 hrvMilliseconds: metric(currentValue: 60, baselineCount: 14, baselineValue: 80)
             ),
             subjective: SubjectiveReadinessSnapshot(energy: 9, fatigue: 8),
-            training: TrainingReadinessSnapshot(weeklyLoadRatio: 1),
+            training: TrainingReadinessSnapshot(weeklyLoadRatio: 1, completedWorkoutsInLast28Days: 4),
             pain: PainReadinessSnapshot(intensity: 8, painType: .sharp, locationIDs: ["knee"], observedAt: assessmentDate)
         )
         let result = try XCTUnwrap(ReadinessAssessmentService.assess(context))

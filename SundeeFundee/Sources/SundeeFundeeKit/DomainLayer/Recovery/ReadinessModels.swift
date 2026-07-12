@@ -31,13 +31,6 @@ public enum ReadinessScoreGroup: String, Codable, Sendable, Equatable, Hashable,
 public enum ReadinessSignalID: String, Codable, Sendable, Equatable, Hashable, CaseIterable {
     case sleep, hrv, restingHeartRate, energy, fatigue, stress, soreness, perceivedReadiness
     case trainingLoad, sessionRPE, rightForToday, cramps, pain
-    // Retained as a compatibility symbol for context-only cycle metadata; it is not a score signal.
-    case cyclePhase
-
-    public static var allCases: [Self] {
-        [.sleep, .hrv, .restingHeartRate, .energy, .fatigue, .stress, .soreness, .perceivedReadiness,
-         .trainingLoad, .sessionRPE, .rightForToday, .cramps, .pain]
-    }
 }
 
 public enum ReadinessReasonCode: String, Codable, Sendable, Equatable, Hashable, CaseIterable {

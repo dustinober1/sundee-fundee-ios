@@ -46,6 +46,7 @@ public enum ReadinessAssessmentService {
     }
 
     private static func trainingScore(_ value: TrainingReadinessSnapshot) -> Int? {
+        guard value.completedWorkoutsInLast28Days >= 4 else { return nil }
         var scores: [Int] = []
         if let ratio = value.weeklyLoadRatio { scores.append(ReadinessBaselineNormalizer.clamp(ratio <= 1 ? 80 : ratio < 1.5 ? Int((80 - (ratio - 1) * 100).rounded()) : 20)) }
         if let rpe = value.averageSessionRPE { scores.append(ReadinessBaselineNormalizer.clamp(Int((100 - max(0, rpe - 5) * 15).rounded()))) }
@@ -58,8 +59,8 @@ public enum ReadinessAssessmentService {
     }
 }
 
-private extension ReadinessAssessmentService {
-    static func confidence(for context: DailyTrainingContext) -> ReadinessConfidence {
+extension ReadinessAssessmentService {
+    private static func confidence(for context: DailyTrainingContext) -> ReadinessConfidence {
         // HRV and resting heart rate are only score-contributing once their
         // personal baselines have learned enough observations.  Keep them out
         // of coverage while learning, even though their presence still keeps
@@ -74,13 +75,16 @@ private extension ReadinessAssessmentService {
         let symptomsCount = [context.subjective.cramps, context.pain?.intensity].compactMap { $0 }.count
         let coverage = 0.30 * Double(physiologicalCount) / 3 + 0.30 * Double(subjectiveCount) / 5 + 0.25 * Double(trainingCount) / 3 + 0.15 * Double(symptomsCount) / 2
         let learning = [context.physiological.sleepHours, context.physiological.hrvMilliseconds, context.physiological.restingHeartRateBPM].compactMap { $0 }.contains { $0.baselineValues.count < ReadinessBaselineNormalizer.minimumPersonalObservations }
-        if coverage >= 0.75 && physiologicalCount > 0 && subjectiveCount > 0 && !learning { return .high }
+        if coverage >= 0.75 && physiologicalCount > 0 && subjectiveCount > 0 && !learning {
+            return context.training.completedWorkoutsInLast28Days >= 4 ? .high : .medium
+        }
         if coverage >= 0.45 && physiologicalCount > 0 && subjectiveCount > 0 { return .medium }
         return .low
     }
 
-    static func signalAvailability(_ context: DailyTrainingContext) -> (available: [ReadinessSignalID], missing: [ReadinessSignalID], stale: [ReadinessSignalID]) {
-        let pairs: [(ReadinessSignalID, Bool)] = [(.sleep, context.physiological.sleepHours != nil), (.hrv, context.physiological.hrvMilliseconds != nil), (.restingHeartRate, context.physiological.restingHeartRateBPM != nil), (.energy, context.subjective.energy != nil), (.fatigue, context.subjective.fatigue != nil), (.stress, context.subjective.stress != nil), (.soreness, context.subjective.soreness != nil), (.perceivedReadiness, context.subjective.perceivedReadiness != nil), (.trainingLoad, context.training.weeklyLoadRatio != nil), (.sessionRPE, context.training.averageSessionRPE != nil), (.rightForToday, context.training.rightForTodayRate != nil), (.cramps, context.subjective.cramps != nil), (.pain, context.pain != nil)]
+    private static func signalAvailability(_ context: DailyTrainingContext) -> (available: [ReadinessSignalID], missing: [ReadinessSignalID], stale: [ReadinessSignalID]) {
+        let trainingHistoryMature = context.training.completedWorkoutsInLast28Days >= 4
+        let pairs: [(ReadinessSignalID, Bool)] = [(.sleep, context.physiological.sleepHours != nil), (.hrv, context.physiological.hrvMilliseconds != nil), (.restingHeartRate, context.physiological.restingHeartRateBPM != nil), (.energy, context.subjective.energy != nil), (.fatigue, context.subjective.fatigue != nil), (.stress, context.subjective.stress != nil), (.soreness, context.subjective.soreness != nil), (.perceivedReadiness, context.subjective.perceivedReadiness != nil), (.trainingLoad, trainingHistoryMature && context.training.weeklyLoadRatio != nil), (.sessionRPE, trainingHistoryMature && context.training.averageSessionRPE != nil), (.rightForToday, trainingHistoryMature && context.training.rightForTodayRate != nil), (.cramps, context.subjective.cramps != nil), (.pain, context.pain != nil)]
         let available = pairs.filter { $0.1 }.map { $0.0 }, missing = pairs.filter { !$0.1 }.map { $0.0 }
         let stale = (physiologicalSignals(context) + painSignals(context))
             .filter { context.assessmentDate.timeIntervalSince($0.1) > 48 * 60 * 60 }
@@ -88,22 +92,26 @@ private extension ReadinessAssessmentService {
         return (available.sorted { $0.rawValue < $1.rawValue }, missing.sorted { $0.rawValue < $1.rawValue }, stale.sorted { $0.rawValue < $1.rawValue })
     }
 
-    static func physiologicalSignals(_ context: DailyTrainingContext) -> [(ReadinessSignalID, Date)] {
+    private static func physiologicalSignals(_ context: DailyTrainingContext) -> [(ReadinessSignalID, Date)] {
         [(.sleep, context.physiological.sleepHours?.observedAt), (.hrv, context.physiological.hrvMilliseconds?.observedAt), (.restingHeartRate, context.physiological.restingHeartRateBPM?.observedAt)].compactMap { id, date in date.map { (id, $0) } }
     }
 
-    static func painSignals(_ context: DailyTrainingContext) -> [(ReadinessSignalID, Date)] {
+    private static func painSignals(_ context: DailyTrainingContext) -> [(ReadinessSignalID, Date)] {
         context.pain.map { [(.pain, $0.observedAt)] } ?? []
     }
 
-    static func reasonCodes(_ context: DailyTrainingContext) -> (positive: [ReadinessReasonCode], caution: [ReadinessReasonCode]) {
+    private static func reasonCodes(_ context: DailyTrainingContext) -> (positive: [ReadinessReasonCode], caution: [ReadinessReasonCode]) {
         var positive: [ReadinessReasonCode] = [], caution: [ReadinessReasonCode] = []
         if let sleep = context.physiological.sleepHours { let score = ReadinessBaselineNormalizer.sleepScore(hours: sleep.currentValue, history: sleep.baselineValues); if score >= 75 { positive.append(.goodSleep) }; if score < 60 { caution.append(.sleepBelowBaseline) } }
         if let hrv = context.physiological.hrvMilliseconds, let score = ReadinessBaselineNormalizer.personalScore(hrv, direction: .higherIsBetter) { if score >= 75 { positive.append(.hrvAtOrAboveBaseline) }; if score < 60 { caution.append(.hrvBelowBaseline) } }
         if let rhr = context.physiological.restingHeartRateBPM, let score = ReadinessBaselineNormalizer.personalScore(rhr, direction: .lowerIsBetter) { if score >= 75 { positive.append(.restingHeartRateNormal) }; if score < 60 { caution.append(.restingHeartRateElevated) } }
         if let energy = context.subjective.energy, energy <= 3 { caution.append(.lowEnergy) }; if let energy = context.subjective.energy, energy >= 7 { positive.append(.highEnergy) }
         if let fatigue = context.subjective.fatigue, fatigue >= 7 { caution.append(.highFatigue) }; if let stress = context.subjective.stress, stress >= 7 { caution.append(.highStress) }; if let soreness = context.subjective.soreness, soreness >= 7 { caution.append(.highSoreness) }
-        if let ratio = context.training.weeklyLoadRatio, (0.8...1.2).contains(ratio) { positive.append(.balancedTrainingLoad) }; if let ratio = context.training.weeklyLoadRatio, ratio >= 1.3 { caution.append(.highTrainingLoad) }; if let pain = context.pain, pain.intensity >= 7 { caution.append(.highPain) }
+        if context.training.completedWorkoutsInLast28Days >= 4 {
+            if let ratio = context.training.weeklyLoadRatio, (0.8...1.2).contains(ratio) { positive.append(.balancedTrainingLoad) }
+            if let ratio = context.training.weeklyLoadRatio, ratio >= 1.3 { caution.append(.highTrainingLoad) }
+        }
+        if let pain = context.pain, pain.intensity >= 7 { caution.append(.highPain) }
         if !signalAvailability(context).missing.isEmpty { caution.append(.missingSignals) }; if confidence(for: context) != .high { caution.append(.stillLearning) }
         return (Array(Set(positive)).sorted { $0.rawValue < $1.rawValue }, Array(Set(caution)).sorted { $0.rawValue < $1.rawValue })
     }
