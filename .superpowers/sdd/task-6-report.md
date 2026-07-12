@@ -7,11 +7,11 @@
 - Preserved stable `readiness-YYYY-MM-DD` local-day IDs, ISO-8601 string dates, optional integer score fields, and no boolean persistence fields.
 - Added `schemaVersion INT64 QUERYABLE SORTABLE` to the existing `DailyReadinessRecord` CloudKit schema. The existing queryable `___recordID` remains present; no schema import/deploy was performed.
 - Extended `next-release-gate.sh` to guard the version field and existing queryable record ID.
-- Added regression tests covering legacy/versioned decoding, unknown fields, same-day local replacement, date/boolean CloudKit safety, local fallback behavior, and service persistence/failure caching.
+- Added regression tests covering legacy/versioned decoding (including rejection of unsupported future schema versions as `DataError.invalidData`), unknown fields, same-day local replacement, date/boolean CloudKit safety, local fallback behavior, and service persistence/failure caching.
 
 ## Verification
 
-- `cd SundeeFundee && swift test --filter DailyReadinessRecordTests` — passed (5 tests).
+- `cd SundeeFundee && swift test --filter DailyReadinessRecordTests` — passed (6 tests, including `testDecodingFutureSchemaVersionThrowsInvalidDataError`).
 - `cd SundeeFundee && swift test --filter DailyReadinessServiceTests` — passed (3 tests).
 - `cd SundeeFundee && swift test` — passed (814 XCTest tests; Swift Testing suites passed).
 - `bash -n scripts/next-release-gate.sh` — passed.
