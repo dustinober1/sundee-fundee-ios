@@ -10,6 +10,22 @@ public struct ShareSanitizedSummary: Codable, Sendable, Equatable {
     public let modelVersion: String
 
     public enum ValidationError: Error, Sendable, Equatable { case emptyTitle, emptyModelVersion, unsafeContent }
+
+    /// Builds the privacy-safe readiness card payload from the persisted snapshot.
+    /// Only the derived state and score cross the share boundary; no source signals
+    /// (HealthKit, cycle, pain, or notes) are included.
+    public init(readinessSnapshot: DailyReadinessSnapshot) throws {
+        let state = readinessSnapshot.stateRaw
+            .replacingOccurrences(of: "_", with: " ")
+            .capitalized
+        try self.init(
+            title: "Today's readiness",
+            subtitle: state,
+            metricLabel: "Readiness",
+            metricValue: "\(readinessSnapshot.totalScore) / 100",
+            modelVersion: readinessSnapshot.modelVersion
+        )
+    }
     public init(title: String, subtitle: String?, metricLabel: String?, metricValue: String?, modelVersion: String) throws {
         guard !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
               !modelVersion.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {

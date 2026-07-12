@@ -2,6 +2,22 @@ import XCTest
 @testable import SundeeFundeeKit
 
 final class ShareSanitizedSummaryTests: XCTestCase {
+    func testReadinessSnapshotBuildsSanitizedSummaryFromActualValues() throws {
+        let snapshot = DailyReadinessSnapshot(
+            stateRaw: "recover",
+            totalScore: 42,
+            confidenceRaw: "medium",
+            modelVersion: "readiness-v1",
+            assessmentDate: Date(timeIntervalSince1970: 1_700_000_000),
+            capturedAt: Date(timeIntervalSince1970: 1_700_000_100)
+        )
+        let summary = try ShareSanitizedSummary(readinessSnapshot: snapshot)
+        XCTAssertEqual(summary.title, "Today's readiness")
+        XCTAssertEqual(summary.subtitle, "Recover")
+        XCTAssertEqual(summary.metricValue, "42 / 100")
+        XCTAssertEqual(summary.modelVersion, "readiness-v1")
+    }
+
     func testSummaryRoundTripsAndContainsOnlyDisplayMetadata() throws {
         let summary = try ShareSanitizedSummary(title: "Workout complete", subtitle: "Upper body", metricLabel: "Volume", metricValue: "12,400 kg", modelVersion: "2.0")
         XCTAssertEqual(try JSONDecoder().decode(ShareSanitizedSummary.self, from: JSONEncoder().encode(summary)), summary)

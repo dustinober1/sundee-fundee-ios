@@ -1,6 +1,18 @@
 import SwiftUI
 import os.log
 
+private enum ReadinessRoute: Identifiable {
+    case details
+    case share(summary: ShareSanitizedSummary)
+
+    var id: String {
+        switch self {
+        case .details: return "details"
+        case .share: return "share"
+        }
+    }
+}
+
 private let dashLogger = Logger(subsystem: "com.sundeefundee.app", category: "Dashboard")
 
 // MARK: - DashboardView
@@ -21,10 +33,7 @@ public struct DashboardView: View {
     @State private var showingTodayWhy = false
     @State private var showingMoreToday = false
     @State private var showingQuickCheckIn = false
-    @State private var showingReadinessDetails = false
-    #if canImport(UIKit)
-    @State private var showingReadinessShare = false
-    #endif
+    @State private var readinessRoute: ReadinessRoute?
     @State private var navigationResetID = UUID()
     #if canImport(UIKit)
     @State private var showingCycleShare = false
@@ -174,39 +183,37 @@ public struct DashboardView: View {
             .sheet(isPresented: $showingQuickCheckIn) {
                 QuickCheckInView()
             }
-            .sheet(isPresented: $showingReadinessDetails) {
-                if let readiness = readinessViewModel.snapshot {
+            .sheet(item: $readinessRoute) { route in
+                switch route {
+                case .details:
                     ReadinessDetailsSheet(
-                        snapshot: readiness,
+                        snapshot: readinessViewModel.snapshot,
+                        state: readinessViewModel.state,
                         guidance: readinessViewModel.guidance,
                         isStale: readinessViewModel.isStale,
                         onRetry: { Task { await readinessViewModel.retry() } },
+                        canRetry: readinessViewModel.canRetry,
                         onStartWorkout: {
-                            showingReadinessDetails = false
-                            Task { starterWorkout = await viewModel.buildStarterWorkout() }
+                            readinessRoute = nil
+                            Task {
+                                try? await Task.sleep(for: .milliseconds(300))
+                                starterWorkout = await viewModel.buildStarterWorkout()
+                            }
                         },
                         onShare: {
-                            showingReadinessDetails = false
-                            #if canImport(UIKit)
-                            showingReadinessShare = true
-                            #endif
+                            guard let snapshot = SharedSnapshotStore.readReadiness(),
+                                  let summary = try? ShareSanitizedSummary(readinessSnapshot: snapshot) else { return }
+                            readinessRoute = .share(summary: summary)
                         }
                     )
+                case .share(let summary):
+                    #if canImport(UIKit)
+                    ShareCardSheet(variant: .readiness(summary: summary), defaultAspect: .story)
+                    #else
+                    Text("Sharing is unavailable on this device.")
+                    #endif
                 }
             }
-            #if canImport(UIKit)
-            .sheet(isPresented: $showingReadinessShare) {
-                ShareCardSheet(
-                    variant: .coachSummary(
-                        title: "Today's training guidance",
-                        subtitle: "A focused session shaped around today's signals.",
-                        badge: "Sundee Fundee",
-                        bullets: ["Listen to your body", "Adjust effort as needed"]
-                    ),
-                    defaultAspect: .story
-                )
-            }
-            #endif
             .navigationDestination(isPresented: $viewModel.navigateToLogMax) {
                 MaxesListView()
             }
@@ -263,7 +270,7 @@ public struct DashboardView: View {
         case .content:
             if let readiness = readinessViewModel.snapshot {
                 ReadinessCardView(snapshot: readiness, guidance: readinessViewModel.guidance, isStale: readinessViewModel.isStale) {
-                    showingReadinessDetails = true
+                    readinessRoute = .details
                 }
             }
         case .empty:
