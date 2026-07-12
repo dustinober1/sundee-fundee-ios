@@ -59,7 +59,7 @@ public actor GrowthAnalyticsService {
         "onboarding", "active_workout", "notification", "workout_reminders", "dashboard",
         "train", "workout_completion", "challenge_card", "ai_workout", "coach_plan", "test",
         ShareSurface.completedWorkout.rawValue, ShareSurface.personalRecord.rawValue,
-        ShareSurface.cycleInsight.rawValue, ShareSurface.challenge.rawValue,
+        ShareSurface.challenge.rawValue,
         ShareSurface.starterWorkout.rawValue
     ]
 
