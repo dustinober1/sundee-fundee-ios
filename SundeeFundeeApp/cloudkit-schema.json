@@ -481,6 +481,37 @@ DEFINE SCHEMA
         GRANT READ TO "_world"
     );
 
+    RECORD TYPE DailyReadinessRecord (
+        "___createTime"       TIMESTAMP,
+        "___createdBy"        REFERENCE,
+        "___etag"             STRING,
+        "___modTime"          TIMESTAMP,
+        "___modifiedBy"       REFERENCE,
+        "___recordID"         REFERENCE QUERYABLE,
+        assessmentDate        STRING QUERYABLE SORTABLE,
+        availableSignalIDs    LIST<STRING>,
+        cautionReasonIDs      LIST<STRING>,
+        confidenceRaw         STRING QUERYABLE SORTABLE,
+        dateCreated           STRING QUERYABLE SORTABLE,
+        dateUpdated           STRING QUERYABLE SORTABLE,
+        dayKey                STRING QUERYABLE SORTABLE,
+        id                    STRING,
+        missingSignalIDs      LIST<STRING>,
+        modelVersion          STRING QUERYABLE SORTABLE,
+        physiologicalScore    INT64,
+        positiveReasonIDs     LIST<STRING>,
+        staleSignalIDs        LIST<STRING>,
+        stateRaw              STRING QUERYABLE SORTABLE,
+        subjectiveScore       INT64,
+        symptomsPainScore     INT64,
+        timeZoneIdentifier    STRING,
+        totalScore            INT64 QUERYABLE SORTABLE,
+        trainingScore         INT64,
+        GRANT WRITE TO "_creator",
+        GRANT CREATE TO "_icloud",
+        GRANT READ TO "_world"
+    );
+
     RECORD TYPE ReturnToLiftingRampRecord (
         "___createTime"      TIMESTAMP,
         "___createdBy"       REFERENCE,

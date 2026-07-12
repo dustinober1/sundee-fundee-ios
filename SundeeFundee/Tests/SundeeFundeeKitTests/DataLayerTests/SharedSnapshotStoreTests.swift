@@ -76,4 +76,22 @@ struct SharedSnapshotStoreTests {
             #expect(SharedSnapshotStore.readCycle() == nil)
         }
     }
+
+    @Test("Readiness snapshot round-trips through UserDefaults")
+    func readinessRoundTrip() async throws {
+        await withTestSuite {
+            let snapshot = DailyReadinessSnapshot(stateRaw: "maintain", totalScore: 72, confidenceRaw: "medium", modelVersion: "readiness-v1", assessmentDate: Date(timeIntervalSince1970: 1_700_000_000), capturedAt: Date(timeIntervalSince1970: 1_700_000_100))
+            SharedSnapshotStore.writeReadiness(snapshot)
+            #expect(SharedSnapshotStore.readReadiness() == snapshot)
+        }
+    }
+
+    @Test("clear removes readiness snapshot")
+    func clearRemovesReadiness() async throws {
+        await withTestSuite {
+            SharedSnapshotStore.writeReadiness(DailyReadinessSnapshot(stateRaw: "maintain", totalScore: 72, confidenceRaw: "medium", modelVersion: "readiness-v1", assessmentDate: Date(), capturedAt: Date()))
+            SharedSnapshotStore.clear()
+            #expect(SharedSnapshotStore.readReadiness() == nil)
+        }
+    }
 }
