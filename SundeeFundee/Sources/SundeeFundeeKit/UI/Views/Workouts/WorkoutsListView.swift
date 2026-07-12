@@ -9,6 +9,8 @@ import SwiftUI
 public struct WorkoutsListView: View {
     @StateObject private var viewModel = WorkoutsListViewModel()
     @State private var activeWorkoutSession: ActiveWorkoutSessionViewModel?
+    @StateObject private var bestNextViewModel = BestNextWorkoutViewModel()
+    @EnvironmentObject private var authViewModel: AuthViewModel
 
     public init() {}
 
@@ -22,6 +24,9 @@ public struct WorkoutsListView: View {
                 } else {
                     workoutList
                 }
+            }
+            .safeAreaInset(edge: .top, spacing: 0) {
+                bestNextEntry
             }
             .navigationTitle("Workouts")
             #if os(iOS)
@@ -77,6 +82,36 @@ public struct WorkoutsListView: View {
                 Text(viewModel.errorMessage ?? "")
             }
         }
+    }
+
+    /// Read-only guidance at the history screen's start-workout entry. The
+    /// generated session is still launched through the typed adjustment model;
+    /// completed history is never changed.
+    private var bestNextEntry: some View {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+            Text("Start a guided 20-minute session")
+                .font(AppTheme.Typography.labelMedium)
+                .foregroundColor(AppTheme.Text.primary)
+            Text("Best Next adapts effort when recovery calls for a lighter or active-recovery workout. You can always use your standard session.")
+                .font(AppTheme.Typography.bodySmall)
+                .foregroundColor(AppTheme.Text.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            Button {
+                Task {
+                    bestNextViewModel.updateGuestState(authViewModel.isGuest)
+                    if let result = await bestNextViewModel.buildWorkout() {
+                        activeWorkoutSession = ActiveWorkoutSessionViewModel(workout: result.workout)
+                    }
+                }
+            } label: {
+                Label("Best Next 20 Min", systemImage: "timer")
+            }
+            .disabled(bestNextViewModel.isBuilding)
+            .accessibilityHint("Starts a read-only guided workout and applies any recovery adjustment")
+        }
+        .padding(.horizontal, AppTheme.Spacing.lg)
+        .padding(.vertical, AppTheme.Spacing.sm)
+        .background(AppTheme.Background.cream)
     }
 
     // MARK: - Empty State

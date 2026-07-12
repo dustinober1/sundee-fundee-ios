@@ -8,11 +8,20 @@ public final class BestNextWorkoutViewModel: ObservableObject {
     @Published public private(set) var adjustment: BestNextWorkoutRequestBuilder.Adjustment = .init(decision: nil, explanation: "Using your standard session.", isStandardSession: true)
 
     private let dataClient: DataClientProtocol
-    private let isGuest: Bool
+    private var isGuest: Bool
 
     public init(dataClient: DataClientProtocol = DataClientFactory.shared.client, isGuest: Bool = false) {
         self.dataClient = dataClient
         self.isGuest = isGuest
+    }
+
+    /// Keeps workout-entry policy aligned with the live authentication session.
+    /// Guest mode must never consult persisted readiness or deload history.
+    public func updateGuestState(_ isGuest: Bool) {
+        self.isGuest = isGuest
+        if isGuest {
+            adjustment = BestNextWorkoutRequestBuilder.adjustment(for: nil)
+        }
     }
 
     public func buildWorkout(useStandardSession: Bool = false) async -> QuickWorkoutResult? {

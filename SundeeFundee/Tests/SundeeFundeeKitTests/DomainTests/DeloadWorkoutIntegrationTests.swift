@@ -34,4 +34,14 @@ final class DeloadWorkoutIntegrationTests: XCTestCase {
         _ = await missing.buildWorkout()
         XCTAssertNil(missing.adjustment.decision)
     }
+
+    @MainActor
+    func testGuestAuthStateUpdateClearsPersistedDeloadAdjustment() async {
+        let viewModel = BestNextWorkoutViewModel(dataClient: MockCloudKitClient())
+        viewModel.updateGuestState(true)
+        _ = await viewModel.buildWorkout()
+
+        XCTAssertTrue(viewModel.adjustment.isStandardSession)
+        XCTAssertNil(viewModel.adjustment.decision)
+    }
 }
