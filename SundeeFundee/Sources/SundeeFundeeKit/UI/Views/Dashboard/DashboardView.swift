@@ -12,6 +12,7 @@ private let dashLogger = Logger(subsystem: "com.sundeefundee.app", category: "Da
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
 public struct DashboardView: View {
     @StateObject private var viewModel = DashboardViewModel()
+    @StateObject private var readinessViewModel = DailyReadinessViewModel()
     @EnvironmentObject var authViewModel: AuthViewModel
     @EnvironmentObject var cyclePhaseCache: CyclePhaseCache
     @State private var showingAIWorkout = false
@@ -20,6 +21,7 @@ public struct DashboardView: View {
     @State private var showingTodayWhy = false
     @State private var showingMoreToday = false
     @State private var showingQuickCheckIn = false
+    @State private var showingReadinessDetails = false
     @State private var navigationResetID = UUID()
     #if canImport(UIKit)
     @State private var showingCycleShare = false
@@ -40,6 +42,12 @@ public struct DashboardView: View {
                     }
 
                     cyclePhaseBanner
+
+                    if readinessViewModel.state == .content, let readiness = readinessViewModel.snapshot {
+                        ReadinessCardView(snapshot: readiness, guidance: readinessViewModel.guidance, isStale: readinessViewModel.isStale) {
+                            showingReadinessDetails = true
+                        }
+                    }
 
                     if viewModel.isInitialLoad {
                         SkeletonStatRow()
@@ -99,9 +107,13 @@ public struct DashboardView: View {
             }
             .task {
                 await viewModel.loadData(cyclePhaseCache: cyclePhaseCache)
+                readinessViewModel.updateGuestState(authViewModel.isGuest)
+                await readinessViewModel.load()
             }
             .refreshable {
                 await viewModel.loadData(cyclePhaseCache: cyclePhaseCache)
+                readinessViewModel.updateGuestState(authViewModel.isGuest)
+                await readinessViewModel.load()
             }
             .onReceive(NotificationCenter.default.publisher(for: .workoutCompleted)) { _ in
                 Task { await viewModel.loadData(cyclePhaseCache: cyclePhaseCache) }
@@ -156,6 +168,13 @@ public struct DashboardView: View {
             }
             .sheet(isPresented: $showingQuickCheckIn) {
                 QuickCheckInView()
+            }
+            .sheet(isPresented: $showingReadinessDetails) {
+                if let readiness = readinessViewModel.snapshot {
+                    ReadinessDetailsSheet(snapshot: readiness, guidance: readinessViewModel.guidance, isStale: readinessViewModel.isStale) {
+                        Task { await readinessViewModel.retry() }
+                    }
+                }
             }
             .navigationDestination(isPresented: $viewModel.navigateToLogMax) {
                 MaxesListView()
