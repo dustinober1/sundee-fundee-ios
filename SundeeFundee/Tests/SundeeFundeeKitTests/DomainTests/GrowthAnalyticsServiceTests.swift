@@ -40,4 +40,36 @@ final class GrowthAnalyticsServiceTests: XCTestCase {
         XCTAssertFalse(properties.contains("pain_intensity"))
         XCTAssertFalse(properties.contains("private_note"))
     }
+
+    func testTrackRejectsUnknownEventName() async {
+        let client = MockCloudKitClient()
+        let service = GrowthAnalyticsService(dataClient: client)
+
+        await service.track("custom_event", source: "dashboard", properties: ["surface": "dashboard"])
+
+        XCTAssertEqual(client.recordCount(for: "GrowthEvent"), 0)
+    }
+
+    func testTrackDropsArbitraryTitleAndPrivateTextStructurally() async throws {
+        let client = MockCloudKitClient()
+        let service = GrowthAnalyticsService(dataClient: client)
+
+        await service.track(
+            GrowthEventName.shareSheetOpened,
+            source: "dashboard",
+            properties: [
+                "title": "My private journal entry about a diagnosis",
+                "from": "Generated text with health details",
+                "surface": "dashboard",
+                "workoutID": "workout-123"
+            ]
+        )
+
+        let events: [GrowthEvent] = try await client.fetchAll(recordType: "GrowthEvent")
+        let properties = try XCTUnwrap(events.first?.propertiesJSON)
+        XCTAssertFalse(properties.contains("title"))
+        XCTAssertFalse(properties.contains("from"))
+        XCTAssertTrue(properties.contains("surface"))
+        XCTAssertTrue(properties.contains("workoutID"))
+    }
 }

@@ -9,7 +9,7 @@ The integrated readiness, deload, analytics, dashboard, and share surfaces were 
 ## Privacy findings and remediation
 
 - Share cards accept `ShareSanitizedSummary` for readiness/deload outcomes. Its validating initializer and decoder reject HealthKit, cycle, menstrual, pain, symptom, sleep/HRV, private-note, prompt, and generated-copy terms. Sanitized variants omit caller context from links and share analytics.
-- `GrowthAnalyticsService` now applies a metadata firewall: unsafe source strings and properties are dropped before `GrowthEvent` encoding. Safe presentation metadata remains available for funnel analysis; event names remain controlled constants.
+- `GrowthAnalyticsService` now applies a structural metadata firewall: only the allowlisted `GrowthEventName` values are persisted; unknown names are rejected. Sources and property keys are allowlisted, and each retained key has a constrained semantic value grammar (surface/route/enums, booleans, or opaque identifier tokens). Arbitrary titles, private notes, health/cycle/pain text, prompts, generated copy, and free-form exercise names are never encoded. Safe presentation metadata remains available for funnel analysis.
 - `DailyReadinessRecord` persists derived scores, state, confidence, and signal/reason identifiers only. It does not persist HealthKit samples, cycle dates, pain locations, or private notes. Raw HealthKit samples remain inside the readiness provider; manual logs remain behind the data client.
 - Guest mode uses local storage and the readiness view model skips HealthKit copy. HealthKit unavailable/denied, CloudKit failure, stale snapshots, and no-assessment states have actionable or empty-state UI paths covered by tests.
 
