@@ -19,6 +19,18 @@ public struct DeloadDecision: Codable, Sendable, Equatable {
         self.mode = mode; self.volumeMultiplier = volumeMultiplier; self.intensityMultiplier = intensityMultiplier
         self.reasonCodes = reasonCodes; self.confidence = confidence
     }
+
+    private enum CodingKeys: String, CodingKey { case mode, volumeMultiplier, intensityMultiplier, reasonCodes, confidence }
+    public init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        try self.init(
+            mode: values.decode(DeloadMode.self, forKey: .mode),
+            volumeMultiplier: values.decode(Double.self, forKey: .volumeMultiplier),
+            intensityMultiplier: values.decode(Double.self, forKey: .intensityMultiplier),
+            reasonCodes: values.decode([DeloadReasonCode].self, forKey: .reasonCodes),
+            confidence: values.decode(ReadinessConfidence.self, forKey: .confidence)
+        )
+    }
 }
 
 /// Deterministic contract for turning today's readiness evidence into programming mode.

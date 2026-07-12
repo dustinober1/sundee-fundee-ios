@@ -7,6 +7,8 @@ final class DeloadDecisionTests: XCTestCase {
         XCTAssertEqual(decision.volumeMultiplier, 0.7)
         XCTAssertEqual(try JSONDecoder().decode(DeloadDecision.self, from: JSONEncoder().encode(decision)), decision)
         XCTAssertNil(try? DeloadDecision(mode: .normal, volumeMultiplier: 1.1, intensityMultiplier: 1, reasonCodes: [], confidence: .low))
+        XCTAssertNil(try? DeloadDecision(mode: .normal, volumeMultiplier: .nan, intensityMultiplier: 1, reasonCodes: [], confidence: .low))
+        XCTAssertNil(try? DeloadDecision(mode: .normal, volumeMultiplier: 1, intensityMultiplier: .infinity, reasonCodes: [], confidence: .low))
     }
 
     func testDeterministicModes() {
@@ -17,5 +19,11 @@ final class DeloadDecisionTests: XCTestCase {
         XCTAssertEqual(reduced.mode, .reduced)
         let active = DeloadDecisionService.evaluate(assessment: assessment, trainingLoad: .elevated, painSeverity: 8, history: .none)
         XCTAssertEqual(active.mode, .activeRecovery)
+        XCTAssertTrue(active.reasonCodes.contains(.highPain))
+    }
+
+    func testDecodingEnforcesMultiplierInvariants() throws {
+        let data = #"{"mode":"normal","volumeMultiplier":2,"intensityMultiplier":1,"reasonCodes":[],"confidence":"high"}"#.data(using: .utf8)!
+        XCTAssertThrowsError(try JSONDecoder().decode(DeloadDecision.self, from: data))
     }
 }
