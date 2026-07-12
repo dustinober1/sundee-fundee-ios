@@ -22,11 +22,13 @@ NEW IN THIS RELEASE:
 
 HEALTHKIT:
 The app requests HealthKit access for workout data and menstrual cycle tracking to adapt training recommendations. Granting permissions is optional — the app works without HealthKit.
+To test denial, choose “Don’t Allow” in the HealthKit prompt; continue as guest and verify Today, Train, Cycle, and Progress remain usable with an unavailable-data explanation.
 
 DATA & PRIVACY:
 - Export: Progress -> Export (exports all user data as JSON).
 - Privacy Policy: Settings -> Privacy Policy link.
 - Account Deletion: Settings -> Delete All Data & Account.
+- Share cancellation: open any share card from Progress or Today, choose Share, then dismiss the system share sheet; no data is changed and the app returns to the prior screen.
 
 IN-APP PURCHASE:
 - The app has one optional consumable in-app purchase in Settings -> Support: "Support the Developer" for $1.99.
