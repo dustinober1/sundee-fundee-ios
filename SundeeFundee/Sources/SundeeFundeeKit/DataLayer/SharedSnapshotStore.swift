@@ -23,12 +23,31 @@ public struct CyclePhaseSnapshot: Codable, Sendable, Equatable {
     }
 }
 
+public struct DailyReadinessSnapshot: Codable, Sendable, Equatable {
+    public let stateRaw: String
+    public let totalScore: Int
+    public let confidenceRaw: String
+    public let modelVersion: String
+    public let assessmentDate: Date
+    public let capturedAt: Date
+
+    public init(stateRaw: String, totalScore: Int, confidenceRaw: String, modelVersion: String, assessmentDate: Date, capturedAt: Date) {
+        self.stateRaw = stateRaw
+        self.totalScore = totalScore
+        self.confidenceRaw = confidenceRaw
+        self.modelVersion = modelVersion
+        self.assessmentDate = assessmentDate
+        self.capturedAt = capturedAt
+    }
+}
+
 public enum SharedSnapshotStore {
 
     public static let suiteName = "group.com.sundeefundee.shared"
 
     private static let cycleKey = "cycleSnapshot.v1"
     private static let sharkWeekBannerSuppressedKey = "sharkWeekBannerSuppressed.v1"
+    private static let readinessKey = "dailyReadinessSnapshot.v1"
 
     /// Overridable suite for tests. Defaults to the shared App Group.
     /// `nonisolated(unsafe)` because this is a test seam — production code
@@ -53,11 +72,23 @@ public enum SharedSnapshotStore {
         return try? decoder().decode(CyclePhaseSnapshot.self, from: data)
     }
 
+    public static func writeReadiness(_ snapshot: DailyReadinessSnapshot) {
+        guard let defaults else { return }
+        do { defaults.set(try encoder().encode(snapshot), forKey: readinessKey) }
+        catch { snapshotLogger.error("writeReadiness failed: \(error.localizedDescription)") }
+    }
+
+    public static func readReadiness() -> DailyReadinessSnapshot? {
+        guard let defaults, let data = defaults.data(forKey: readinessKey) else { return nil }
+        return try? decoder().decode(DailyReadinessSnapshot.self, from: data)
+    }
+
     // MARK: - Test helpers
 
     public static func clear() {
         defaults?.removeObject(forKey: cycleKey)
         defaults?.removeObject(forKey: sharkWeekBannerSuppressedKey)
+        defaults?.removeObject(forKey: readinessKey)
     }
 
     // MARK: - Shark Week Banner
