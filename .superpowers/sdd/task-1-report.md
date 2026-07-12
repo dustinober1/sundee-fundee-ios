@@ -24,4 +24,4 @@ The evaluator is intentionally a minimal deterministic contract; production thre
 
 ## Review-fix verification
 
-- `swift test --filter 'ShareSanitizedSummaryTests|DeloadDecisionTests'` — passed (7 tests, 0 failures).
+- `swift test --filter 'ShareSanitizedSummaryTests|DeloadDecisionTests'` — passed (8 tests, 0 failures).
