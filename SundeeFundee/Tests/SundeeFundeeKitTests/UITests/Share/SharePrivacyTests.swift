@@ -39,4 +39,27 @@ final class SharePrivacyTests: XCTestCase {
         XCTAssertTrue(redacted.localizedCaseInsensitiveContains("pain"))
         XCTAssertNotEqual(options.redactedDateText(for: Date(timeIntervalSince1970: 1_700_000_000)), "Recent Session")
     }
+
+    func testSanitizedShareSheetOpenedDoesNotUseCallerSource() throws {
+        let context = ShareContext(
+            surface: .completedWorkout,
+            sourceID: "workout-123",
+            title: "Private workout",
+            referralCode: "secret-code"
+        )
+        let summary = try ShareSanitizedSummary(
+            title: "Ready to train",
+            subtitle: "Keep building momentum",
+            metricLabel: nil,
+            metricValue: nil,
+            modelVersion: "v2"
+        )
+
+        XCTAssertNil(
+            ShareCardVariant.readiness(summary: summary).shareSheetOpenedSource(shareContext: context)
+        )
+        XCTAssertNil(
+            ShareCardVariant.deload(summary: summary).shareSheetOpenedSource(shareContext: context)
+        )
+    }
 }

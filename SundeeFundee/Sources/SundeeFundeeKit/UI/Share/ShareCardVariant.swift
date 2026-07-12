@@ -163,4 +163,14 @@ public enum ShareCardVariant: Sendable {
         if w == floor(w) { return "\(Int(w))" }
         return String(format: "%.1f", w)
     }
+
+    /// Analytics attribution is omitted for privacy-safe variants.
+    func shareSheetOpenedSource(shareContext: ShareContext?) -> String? {
+        switch self {
+        case .readiness, .deload:
+            return nil
+        default:
+            return shareContext?.surface.rawValue
+        }
+    }
 }

@@ -101,7 +101,7 @@ public struct ShareCardSheet: View {
             .task {
                 await GrowthAnalyticsService().track(
                     GrowthEventName.shareSheetOpened,
-                    source: shareContext?.surface.rawValue,
+                    source: variant.shareSheetOpenedSource(shareContext: shareContext),
                     properties: shareContextProperties
                 )
             }
@@ -438,6 +438,10 @@ public struct ShareCardSheet: View {
     }
 
     private var isSanitizedVariant: Bool {
+        Self.isSanitizedVariant(variant)
+    }
+
+    private static func isSanitizedVariant(_ variant: ShareCardVariant) -> Bool {
         switch variant {
         case .readiness, .deload: return true
         default: return false
