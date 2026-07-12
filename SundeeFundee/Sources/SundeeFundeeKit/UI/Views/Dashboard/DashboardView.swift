@@ -43,11 +43,7 @@ public struct DashboardView: View {
 
                     cyclePhaseBanner
 
-                    if readinessViewModel.state == .content, let readiness = readinessViewModel.snapshot {
-                        ReadinessCardView(snapshot: readiness, guidance: readinessViewModel.guidance, isStale: readinessViewModel.isStale) {
-                            showingReadinessDetails = true
-                        }
-                    }
+                    readinessContent
 
                     if viewModel.isInitialLoad {
                         SkeletonStatRow()
@@ -107,22 +103,28 @@ public struct DashboardView: View {
             }
             .task {
                 await viewModel.loadData(cyclePhaseCache: cyclePhaseCache)
-                readinessViewModel.updateGuestState(authViewModel.isGuest)
-                await readinessViewModel.load()
+                await refreshReadiness()
             }
             .refreshable {
                 await viewModel.loadData(cyclePhaseCache: cyclePhaseCache)
-                readinessViewModel.updateGuestState(authViewModel.isGuest)
-                await readinessViewModel.load()
+                await refreshReadiness()
             }
             .onReceive(NotificationCenter.default.publisher(for: .workoutCompleted)) { _ in
-                Task { await viewModel.loadData(cyclePhaseCache: cyclePhaseCache) }
+                Task {
+                    await viewModel.loadData(cyclePhaseCache: cyclePhaseCache)
+                    await refreshReadiness()
+                }
             }
             .onReceive(NotificationCenter.default.publisher(for: .cycleDataUpdated)) { _ in
                 Task {
                     await cyclePhaseCache.refresh()
                     await viewModel.loadData(cyclePhaseCache: cyclePhaseCache)
+                    await refreshReadiness()
                 }
+            }
+            .onChange(of: authViewModel.isGuest) { _, isGuest in
+                readinessViewModel.updateGuestState(isGuest)
+                Task { await readinessViewModel.load() }
             }
             #if os(iOS)
             .fullScreenCover(isPresented: $showingAIWorkout) {
@@ -212,6 +214,55 @@ public struct DashboardView: View {
             navigationResetID = UUID()
             showingQuickCheckIn = true
         }
+    }
+
+    @ViewBuilder
+    private var readinessContent: some View {
+        switch readinessViewModel.state {
+        case .loading:
+            ArtDecoCard {
+                HStack(spacing: AppTheme.Spacing.md) {
+                    ProgressView().tint(AppTheme.Accent.orange)
+                    Text("Calculating today's readiness…")
+                        .font(AppTheme.Typography.bodyMedium)
+                        .foregroundStyle(AppTheme.Text.secondary)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("Calculating today's readiness")
+        case .content:
+            if let readiness = readinessViewModel.snapshot {
+                ReadinessCardView(snapshot: readiness, guidance: readinessViewModel.guidance, isStale: readinessViewModel.isStale) {
+                    showingReadinessDetails = true
+                }
+            }
+        case .empty:
+            readinessMessage(title: "Readiness needs a little more data", message: readinessViewModel.guidance, action: nil)
+        case .error:
+            readinessMessage(title: "Readiness is unavailable", message: readinessViewModel.guidance, action: readinessViewModel.canRetry ? { Task { await readinessViewModel.retry() } } : nil)
+        }
+    }
+
+    private func readinessMessage(title: String, message: String, action: (() -> Void)?) -> some View {
+        ArtDecoCard {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
+                Label(title, systemImage: "gauge.with.dots.needle.67percent")
+                    .font(AppTheme.Typography.headlineMedium)
+                Text(message)
+                    .font(AppTheme.Typography.bodyMedium)
+                    .foregroundStyle(AppTheme.Text.secondary)
+                if let action {
+                    Button("Try again", action: { HapticFeedback.medium(); action() })
+                        .artDecoButton(style: .accent)
+                }
+            }
+        }
+    }
+
+    private func refreshReadiness() async {
+        readinessViewModel.updateGuestState(authViewModel.isGuest)
+        await readinessViewModel.load()
     }
 
     // MARK: - Welcome Header

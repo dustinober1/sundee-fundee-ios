@@ -20,7 +20,7 @@ public struct DailyReadinessUISnapshot: Sendable, Equatable {
     public let positiveReasons: [ReadinessReasonCode]
     public let cautionReasons: [ReadinessReasonCode]
 
-    init(assessment: ReadinessAssessment) {
+    public init(assessment: ReadinessAssessment) {
         state = assessment.state; totalScore = assessment.totalScore; confidence = assessment.confidence
         assessmentDate = assessment.assessmentDate; positiveReasons = assessment.positiveReasons; cautionReasons = assessment.cautionReasons
     }
@@ -54,7 +54,7 @@ public final class DailyReadinessViewModel: ObservableObject {
         self.cyclePhase = cyclePhase; self.cycleConfidence = cycleConfidence; self.isGuest = isGuest
     }
 
-    init(loader: any DailyReadinessLoading, calendar: Calendar = .current, cyclePhase: CyclePhase? = nil, cycleConfidence: Double? = nil, isGuest: Bool = false) {
+    public init(loader: any DailyReadinessLoading, calendar: Calendar = .current, cyclePhase: CyclePhase? = nil, cycleConfidence: Double? = nil, isGuest: Bool = false) {
         self.loader = loader; self.calendar = calendar; self.cyclePhase = cyclePhase; self.cycleConfidence = cycleConfidence; self.isGuest = isGuest
     }
 

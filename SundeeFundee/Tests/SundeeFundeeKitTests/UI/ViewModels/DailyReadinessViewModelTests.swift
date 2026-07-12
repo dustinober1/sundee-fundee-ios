@@ -48,6 +48,15 @@ final class DailyReadinessViewModelTests: XCTestCase {
         XCTAssertTrue(vm.guidance.contains("device"))
     }
 
+    func testGuestStateChangeIsPublishedAndUsedOnNextLoad() async {
+        let assessment = makeAssessment(score: 70, confidence: .medium)
+        let vm = DailyReadinessViewModel(loader: StubReadinessLoader(result: DailyReadinessResult(assessment: assessment, persistence: .saved)))
+        vm.updateGuestState(true)
+        await vm.load()
+        XCTAssertTrue(vm.isGuest)
+        XCTAssertTrue(vm.guidance.contains("device"))
+    }
+
     private func makeAssessment(score: Int, confidence: ReadinessConfidence, date: Date = Date()) -> ReadinessAssessment {
         ReadinessAssessment(assessmentDate: date, state: ReadinessState.from(score: score), totalScore: score, confidence: confidence, subScores: [:], availableSignals: [], missingSignals: [], staleSignals: [], positiveReasons: [], cautionReasons: [], modelVersion: "test")
     }
