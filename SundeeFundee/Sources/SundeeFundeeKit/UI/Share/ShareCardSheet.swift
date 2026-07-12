@@ -128,6 +128,13 @@ public struct ShareCardSheet: View {
         return variant
     }
 
+    /// Sanitized cards never carry the caller's context into native sharing,
+    /// clipboard links, or analytics. Their card content is already limited to
+    /// `ShareSanitizedSummary`.
+    private var externalShareContext: ShareContext? {
+        isSanitizedVariant ? nil : shareContext
+    }
+
     private func summaryFromVariant(_ variant: ShareCardVariant) -> ShareSummary {
         switch variant {
         case .completedWorkout(let workout, _):
@@ -370,7 +377,7 @@ public struct ShareCardSheet: View {
                 ShareLink(
                     item: Image(uiImage: image),
                     subject: Text(variant.shareTitle),
-                    message: Text(ShareURL.caption(for: shareContext)),
+                    message: Text(isSanitizedVariant ? ShareURL.sanitizedCaption : ShareURL.caption(for: externalShareContext)),
                     preview: SharePreview(variant.shareTitle, image: Image(uiImage: image))
                 ) {
                     Label("Share", systemImage: "square.and.arrow.up")
@@ -381,7 +388,7 @@ public struct ShareCardSheet: View {
                     TapGesture().onEnded {
                         HapticFeedback.success()
                         if useSelfie {
-                            UIPasteboard.general.string = ShareURL.link(for: shareContext).absoluteString
+                            UIPasteboard.general.string = (isSanitizedVariant ? ShareURL.sanitizedLink : ShareURL.link(for: externalShareContext)).absoluteString
                         }
                         Task { await trackShareTapped() }
                     }
@@ -414,6 +421,7 @@ public struct ShareCardSheet: View {
     }
 
     private var shareContextProperties: [String: String] {
+        guard !isSanitizedVariant else { return [:] }
         var properties: [String: String] = [:]
         if let sourceID = shareContext?.sourceID {
             properties["sourceID"] = sourceID
@@ -451,7 +459,7 @@ public struct ShareCardSheet: View {
 
         await GrowthAnalyticsService().track(
             eventName,
-            source: shareContext?.surface.rawValue,
+            source: isSanitizedVariant ? nil : shareContext?.surface.rawValue,
             properties: shareContextProperties
         )
     }
