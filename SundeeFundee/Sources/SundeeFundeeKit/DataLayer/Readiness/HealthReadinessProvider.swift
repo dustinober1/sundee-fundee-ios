@@ -31,25 +31,27 @@ public actor HealthReadinessProvider: HealthReadinessProviding {
         )
 
         return PhysiologicalReadinessSnapshot(
-            sleepHours: sleepSnapshot(sleepSamples, calendar: calendar),
+            sleepHours: sleepSnapshot(sleepSamples, assessmentDate: assessmentDate, calendar: calendar),
             hrvMilliseconds: quantitySnapshot(
                 hrvSamples,
-                unit: .secondUnit(with: .milli),
-                calendar: calendar
+                assessmentDate: assessmentDate,
+                unit: .secondUnit(with: .milli), calendar: calendar
             ),
             restingHeartRateBPM: quantitySnapshot(
                 restingHeartRateSamples,
-                unit: .count().unitDivided(by: .minute()),
-                calendar: calendar
+                assessmentDate: assessmentDate,
+                unit: .count().unitDivided(by: .minute()), calendar: calendar
             )
         )
     }
 
     private func quantitySnapshot(
         _ samples: [HKQuantitySample],
+        assessmentDate: Date,
         unit: HKUnit,
         calendar: Calendar
     ) -> ReadinessMetricSnapshot? {
+        let assessmentDay = calendar.startOfDay(for: assessmentDate)
         let daily = Dictionary(grouping: samples) { calendar.startOfDay(for: $0.endDate) }
             .compactMap { day, values -> (Date, Double)? in
                 guard let value = ReadinessBaselineNormalizer.median(
@@ -57,28 +59,30 @@ public actor HealthReadinessProvider: HealthReadinessProviding {
                 ), value > 0 else { return nil }
                 return (day, value)
             }
+            .filter { $0.0 <= assessmentDay }
             .sorted { $0.0 > $1.0 }
 
-        guard let current = daily.first else { return nil }
+        guard let current = daily.first(where: { $0.0 == assessmentDay }) else { return nil }
         return ReadinessMetricSnapshot(
             currentValue: current.1,
-            baselineValues: Array(daily.dropFirst().prefix(28).map(\.1)),
+            baselineValues: Array(daily.filter { $0.0 < assessmentDay }.prefix(28).map(\.1)),
             observedAt: current.0
         )
     }
 
     private func sleepSnapshot(
         _ samples: [HKCategorySample],
+        assessmentDate: Date,
         calendar: Calendar
     ) -> ReadinessMetricSnapshot? {
-        let daily = Dictionary(grouping: samples) { calendar.startOfDay(for: $0.endDate) }
+        let assessmentDay = calendar.startOfDay(for: assessmentDate)
+        let splitSamples = samples.flatMap { splitSleepSample($0, calendar: calendar) }
+        let daily = Dictionary(grouping: splitSamples) { calendar.startOfDay(for: $0.start) }
             .compactMap { day, values -> (Date, Double)? in
                 let rawSamples = values.map {
                     SleepDeduplicator.SleepSampleValue(
-                        start: $0.startDate,
-                        end: $0.endDate,
-                        value: $0.value,
-                        sourceName: $0.sourceRevision.source.name
+                        start: $0.start, end: $0.end,
+                        value: $0.value, sourceName: $0.sourceName
                     )
                 }
                 let intervals = SleepDeduplicator.convertSamples(values: rawSamples)
@@ -86,13 +90,34 @@ public actor HealthReadinessProvider: HealthReadinessProviding {
                 guard hours > 0 else { return nil }
                 return (day, hours)
             }
+            .filter { $0.0 <= assessmentDay }
             .sorted { $0.0 > $1.0 }
 
-        guard let current = daily.first else { return nil }
+        guard let current = daily.first(where: { $0.0 == assessmentDay }) else { return nil }
         return ReadinessMetricSnapshot(
             currentValue: current.1,
-            baselineValues: Array(daily.dropFirst().prefix(28).map(\.1)),
+            baselineValues: Array(daily.filter { $0.0 < assessmentDay }.prefix(28).map(\.1)),
             observedAt: current.0
         )
+    }
+
+    private func splitSleepSample(
+        _ sample: HKCategorySample,
+        calendar: Calendar
+    ) -> [SleepDeduplicator.SleepSampleValue] {
+        guard sample.endDate > sample.startDate else { return [] }
+        var result: [SleepDeduplicator.SleepSampleValue] = []
+        var cursor = sample.startDate
+        while cursor < sample.endDate {
+            let dayStart = calendar.startOfDay(for: cursor)
+            guard let nextDay = calendar.date(byAdding: .day, value: 1, to: dayStart) else { break }
+            let segmentEnd = min(nextDay, sample.endDate)
+            result.append(SleepDeduplicator.SleepSampleValue(
+                start: cursor, end: segmentEnd, value: sample.value,
+                sourceName: sample.sourceRevision.source.name
+            ))
+            cursor = segmentEnd
+        }
+        return result
     }
 }
