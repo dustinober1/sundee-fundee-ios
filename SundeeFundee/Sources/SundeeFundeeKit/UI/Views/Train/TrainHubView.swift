@@ -27,6 +27,26 @@ public struct TrainHubView: View {
                     }
                     .disabled(bestNextViewModel.isBuilding)
 
+                    if bestNextViewModel.adjustment.decision?.mode != .normal,
+                       bestNextViewModel.adjustment.decision != nil {
+                        VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                            Text(bestNextViewModel.adjustment.explanation)
+                                .font(AppTheme.Typography.bodySmall)
+                                .foregroundColor(AppTheme.Text.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                            Button("Use Standard Session") {
+                                Task {
+                                    if let result = await bestNextViewModel.buildWorkout(useStandardSession: true) {
+                                        quickWorkout = result.workout
+                                    }
+                                }
+                            }
+                            .font(AppTheme.Typography.labelMedium)
+                            .foregroundColor(AppTheme.Accent.orange)
+                        }
+                        .padding(.vertical, AppTheme.Spacing.xs)
+                    }
+
                     Button {
                         showingAIWorkout = true
                     } label: {
