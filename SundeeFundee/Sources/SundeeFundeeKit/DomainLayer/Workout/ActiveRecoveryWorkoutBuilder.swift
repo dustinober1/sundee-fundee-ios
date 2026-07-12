@@ -1,6 +1,15 @@
 import Foundation
 
+/// A lightweight draft is currently represented by the immutable Workout value.
+public typealias WorkoutDraft = Workout
+
 public enum ActiveRecoveryWorkoutBuilder {
+    /// Builds an independent recovery draft from an existing workout context.
+    /// The source workout is never mutated or persisted.
+    public static func build(from workout: Workout, equipment: EquipmentAccess) -> WorkoutDraft {
+        build(equipment: equipment, cyclePhase: nil, date: workout.date, name: "Active Recovery Session")
+    }
+
     public static func build(
         equipment: EquipmentAccess,
         cyclePhase: CyclePhase?,

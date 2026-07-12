@@ -33,4 +33,16 @@ final class ActiveRecoveryWorkoutBuilderTests: XCTestCase {
         XCTAssertTrue(names.contains(where: { $0.contains("walking") || $0.contains("cat-cow") || $0.contains("bird dog") }))
         XCTAssertFalse(names.contains(where: { $0.contains("swing") }))
     }
+
+    func testBuildFromSourceReturnsIndependentSafeDraft() {
+        let source = Workout(date: Date(timeIntervalSince1970: 123), name: "Planned Session", exercises: [])
+        let draft = ActiveRecoveryWorkoutBuilder.build(from: source, equipment: .bodyweightOnly)
+
+        XCTAssertEqual(draft.date, source.date)
+        XCTAssertNotEqual(draft.name, source.name)
+        XCTAssertFalse(draft.exercises.isEmpty)
+        XCTAssertTrue(draft.exercises.allSatisfy { exercise in
+            exercise.targetSets.allSatisfy { $0.prescribedWeight == 0 }
+        })
+    }
 }
