@@ -26,7 +26,8 @@ public struct ShareSanitizedSummary: Codable, Sendable, Equatable {
         let prohibited = [
             "healthkit", "health kit", "cycle", "menstrual", "ovulation", "fertility", "period",
             "pain", "sore", "cramp", "symptom", "private note", "private-note", "prompt",
-            "generated text", "generated-text", "ai-generated", "model output"
+            "generated text", "generated-text", "ai-generated", "model output", "sleep", "hrv",
+            "heart rate", "recovery score", "readiness score"
         ]
         guard prohibited.allSatisfy({ !normalized.contains($0) }) else { return false }
         return !value.unicodeScalars.contains { CharacterSet.controlCharacters.contains($0) }
