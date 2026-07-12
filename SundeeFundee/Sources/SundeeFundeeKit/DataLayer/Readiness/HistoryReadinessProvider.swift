@@ -36,9 +36,12 @@ public actor HistoryReadinessProvider: HistoryReadinessProviding {
         async let checkIns: [WorkoutCompletionCheckInRecord] = fetch("WorkoutCompletionCheckIn")
 
         let values = await (symptoms, painLogs, completedRecords, fullWorkouts, checkIns)
+        // Only completed records contribute to training history. Keep the
+        // legacy fallback all-or-nothing: use legacy Workout values only when
+        // no CompletedWorkoutRecord values were fetched at all.
         let workouts = values.2.isEmpty
-            ? values.3.compactMap(\.completedWorkoutRecord)
-            : values.2
+            ? values.3.compactMap(\.completedWorkoutRecord).filter(\.isComplete)
+            : values.2.filter(\.isComplete)
 
         let sameDaySymptoms = values.0
             .filter { calendar.isDate($0.symptomDate, inSameDayAs: assessmentDate) }

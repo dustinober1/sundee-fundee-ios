@@ -70,6 +70,52 @@ final class HistoryReadinessProviderTests: XCTestCase {
         XCTAssertNil(result.pain)
     }
 
+    func testIncompleteCompletedWorkoutRecordsDoNotAffectLoadRatioOrCount() async throws {
+        let client = MockCloudKitClient()
+        let calendar = utcCalendar()
+        let workouts = [
+            CompletedWorkoutRecord(id: "current", name: "Current", date: calendar.date(byAdding: .day, value: -1, to: now)!, duration: 30, exerciseNames: [], isComplete: true),
+            CompletedWorkoutRecord(id: "prior", name: "Prior", date: calendar.date(byAdding: .day, value: -8, to: now)!, duration: 30, exerciseNames: [], isComplete: true),
+            CompletedWorkoutRecord(id: "incomplete-current", name: "Draft", date: calendar.date(byAdding: .day, value: -2, to: now)!, duration: 30, exerciseNames: [], isComplete: false),
+            CompletedWorkoutRecord(id: "incomplete-prior", name: "Draft", date: calendar.date(byAdding: .day, value: -10, to: now)!, duration: 30, exerciseNames: [], isComplete: false)
+        ]
+        try await client.save(workouts, recordType: "CompletedWorkoutRecord")
+
+        let result = await HistoryReadinessProvider(dataClient: client).load(
+            assessmentDate: now, calendar: calendar
+        )
+
+        XCTAssertEqual(try XCTUnwrap(result.training.weeklyLoadRatio), 3, accuracy: 0.001)
+        XCTAssertEqual(result.training.completedWorkoutsInLast28Days, 2)
+    }
+
+    func testLegacyWorkoutRecordsAreUsedWhenCompletedRecordsAreEmpty() async throws {
+        let client = MockCloudKitClient()
+        let calendar = utcCalendar()
+        let currentDate = calendar.date(byAdding: .day, value: -1, to: now)!
+        let priorDate = calendar.date(byAdding: .day, value: -8, to: now)!
+        let completedCurrent = Workout(
+            id: "legacy-current", date: currentDate,
+            name: "Legacy", exercises: [], completedAt: currentDate
+        )
+        let completedPrior = Workout(
+            id: "legacy-prior", date: priorDate,
+            name: "Legacy", exercises: [], completedAt: priorDate
+        )
+        let incomplete = Workout(
+            id: "legacy-incomplete", date: calendar.date(byAdding: .day, value: -2, to: now)!,
+            name: "Legacy", exercises: [], completedAt: nil
+        )
+        try await client.save([completedCurrent, completedPrior, incomplete], recordType: "Workout")
+
+        let result = await HistoryReadinessProvider(dataClient: client).load(
+            assessmentDate: now, calendar: calendar
+        )
+
+        XCTAssertEqual(try XCTUnwrap(result.training.weeklyLoadRatio), 3, accuracy: 0.001)
+        XCTAssertEqual(result.training.completedWorkoutsInLast28Days, 2)
+    }
+
     private func utcCalendar() -> Calendar {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = .gmt
