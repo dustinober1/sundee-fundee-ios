@@ -94,7 +94,7 @@ public struct DailyTrainingContext: Sendable, Equatable {
     public init(assessmentDate: Date, timeZoneIdentifier: String, physiological: PhysiologicalReadinessSnapshot, subjective: SubjectiveReadinessSnapshot, training: TrainingReadinessSnapshot, pain: PainReadinessSnapshot?, cyclePhase: CyclePhase?, cycleConfidence: Double?) { self.assessmentDate = assessmentDate; self.timeZoneIdentifier = timeZoneIdentifier; self.physiological = physiological; self.subjective = subjective; self.training = training; self.pain = pain; self.cyclePhase = cyclePhase; self.cycleConfidence = cycleConfidence }
 }
 
-public struct ReadinessAssessment: Sendable, Equatable {
+public struct ReadinessAssessment: Codable, Sendable, Equatable {
     public let assessmentDate: Date
     public let state: ReadinessState
     public let totalScore: Int
