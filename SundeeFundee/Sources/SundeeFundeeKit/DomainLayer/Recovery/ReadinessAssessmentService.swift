@@ -60,7 +60,15 @@ public enum ReadinessAssessmentService {
 
 private extension ReadinessAssessmentService {
     static func confidence(for context: DailyTrainingContext) -> ReadinessConfidence {
-        let physiologicalCount = [context.physiological.sleepHours, context.physiological.hrvMilliseconds, context.physiological.restingHeartRateBPM].compactMap { $0 }.count
+        // HRV and resting heart rate are only score-contributing once their
+        // personal baselines have learned enough observations.  Keep them out
+        // of coverage while learning, even though their presence still keeps
+        // the confidence from being considered fully mature below.
+        let physiologicalCount = [
+            context.physiological.sleepHours.map { _ in true },
+            context.physiological.hrvMilliseconds.map { $0.baselineValues.count >= ReadinessBaselineNormalizer.minimumPersonalObservations },
+            context.physiological.restingHeartRateBPM.map { $0.baselineValues.count >= ReadinessBaselineNormalizer.minimumPersonalObservations }
+        ].compactMap { $0 }.filter { $0 }.count
         let subjectiveCount = [context.subjective.energy, context.subjective.fatigue, context.subjective.soreness, context.subjective.stress, context.subjective.perceivedReadiness].compactMap { $0 }.count
         let trainingCount = [context.training.weeklyLoadRatio, context.training.averageSessionRPE, context.training.rightForTodayRate].compactMap { $0 }.count
         let symptomsCount = [context.subjective.cramps, context.pain?.intensity].compactMap { $0 }.count
@@ -74,12 +82,18 @@ private extension ReadinessAssessmentService {
     static func signalAvailability(_ context: DailyTrainingContext) -> (available: [ReadinessSignalID], missing: [ReadinessSignalID], stale: [ReadinessSignalID]) {
         let pairs: [(ReadinessSignalID, Bool)] = [(.sleep, context.physiological.sleepHours != nil), (.hrv, context.physiological.hrvMilliseconds != nil), (.restingHeartRate, context.physiological.restingHeartRateBPM != nil), (.energy, context.subjective.energy != nil), (.fatigue, context.subjective.fatigue != nil), (.stress, context.subjective.stress != nil), (.soreness, context.subjective.soreness != nil), (.perceivedReadiness, context.subjective.perceivedReadiness != nil), (.trainingLoad, context.training.weeklyLoadRatio != nil), (.sessionRPE, context.training.averageSessionRPE != nil), (.rightForToday, context.training.rightForTodayRate != nil), (.cramps, context.subjective.cramps != nil), (.pain, context.pain != nil)]
         let available = pairs.filter { $0.1 }.map { $0.0 }, missing = pairs.filter { !$0.1 }.map { $0.0 }
-        let stale = physiologicalSignals(context).filter { context.assessmentDate.timeIntervalSince($0.1) > 48 * 60 * 60 }.map { $0.0 }
+        let stale = (physiologicalSignals(context) + painSignals(context))
+            .filter { context.assessmentDate.timeIntervalSince($0.1) > 48 * 60 * 60 }
+            .map { $0.0 }
         return (available.sorted { $0.rawValue < $1.rawValue }, missing.sorted { $0.rawValue < $1.rawValue }, stale.sorted { $0.rawValue < $1.rawValue })
     }
 
     static func physiologicalSignals(_ context: DailyTrainingContext) -> [(ReadinessSignalID, Date)] {
         [(.sleep, context.physiological.sleepHours?.observedAt), (.hrv, context.physiological.hrvMilliseconds?.observedAt), (.restingHeartRate, context.physiological.restingHeartRateBPM?.observedAt)].compactMap { id, date in date.map { (id, $0) } }
+    }
+
+    static func painSignals(_ context: DailyTrainingContext) -> [(ReadinessSignalID, Date)] {
+        context.pain.map { [(.pain, $0.observedAt)] } ?? []
     }
 
     static func reasonCodes(_ context: DailyTrainingContext) -> (positive: [ReadinessReasonCode], caution: [ReadinessReasonCode]) {
