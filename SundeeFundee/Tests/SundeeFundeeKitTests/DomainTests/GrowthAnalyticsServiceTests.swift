@@ -41,6 +41,22 @@ final class GrowthAnalyticsServiceTests: XCTestCase {
         XCTAssertFalse(properties.contains("private_note"))
     }
 
+    func testTrackDropsCycleInsightSourceAndSurfaceMetadata() async throws {
+        let client = MockCloudKitClient()
+        let service = GrowthAnalyticsService(dataClient: client)
+
+        await service.track(
+            GrowthEventName.shareSheetOpened,
+            source: ShareSurface.cycleInsight.rawValue,
+            properties: ["surface": ShareSurface.cycleInsight.rawValue]
+        )
+
+        let events: [GrowthEvent] = try await client.fetchAll(recordType: "GrowthEvent")
+        let event = try XCTUnwrap(events.first)
+        XCTAssertNil(event.source)
+        XCTAssertNil(event.propertiesJSON)
+    }
+
     func testTrackRejectsUnknownEventName() async {
         let client = MockCloudKitClient()
         let service = GrowthAnalyticsService(dataClient: client)
