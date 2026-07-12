@@ -63,6 +63,8 @@ public struct DashboardView: View {
                         compactTodaySnapshot
                     }
 
+                    quickActionsCard
+
                     if viewModel.showsNewUserEmptyState {
                         EmptyStateView(
                             icon: "figure.strengthtraining.traditional",

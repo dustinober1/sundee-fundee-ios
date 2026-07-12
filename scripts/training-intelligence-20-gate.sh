@@ -13,8 +13,12 @@ fail() { printf 'Gate failed: %s\n' "$1" >&2; exit 1; }
 step 'Release-action safety assertions'
 [[ "${TRAINING_INTELLIGENCE_GATE_ALLOW_STORE_ACTIONS:-0}" != 1 ]] \
   || fail 'store actions are disabled; never set TRAINING_INTELLIGENCE_GATE_ALLOW_STORE_ACTIONS=1'
-if rg -n 'xcodebuild[[:space:]].*\barchive\b|fastlane[[:space:]]+(release|deliver)|deliver[[:space:]]+submit' \
-    "$ROOT/scripts/next-release-gate.sh" "$APP/fastlane/Fastfile" >/dev/null; then
+RELEASE_FILES=("$ROOT/scripts/next-release-gate.sh")
+# Fastfile's explicitly named :release lane is the documented store-action definition;
+# this validation scans every other release/Fastlane script for accidental invocation.
+while IFS= read -r file; do RELEASE_FILES+=("$file"); done < <(find "$APP/fastlane" -type f \( -name '*.rb' -o -name '*.sh' \) ! -name 'Fastfile' -print)
+if rg -n 'xcodebuild[[:space:]].*\barchive\b|fastlane[[:space:]]+(release|deliver)|deliver[[:space:]]+submit|upload_to_app_store|submit_for_review|pilot\(|deliver\(|altool|notarytool' \
+    "${RELEASE_FILES[@]}" | rg -v ':[[:space:]]*#' >/dev/null; then
     fail 'archive/upload/submission command found in release scripts'
 fi
 echo 'No archive, upload, deliver, or submit action is permitted by this gate.'
@@ -66,9 +70,16 @@ cd "$PACKAGE"
 swift test
 
 step 'Training Intelligence targeted tests'
-swift test --filter Readiness
-swift test --filter Deload
-swift test --filter Share
+run_targeted() {
+    local filter="$1" output test_count
+    output="$(swift test --filter "$filter" 2>&1)" || { printf '%s\n' "$output"; return 1; }
+    printf '%s\n' "$output"
+    test_count="$(printf '%s\n' "$output" | rg -ci '(^|[[:space:]])started\.?$|Test Case .* started' || true)"
+    (( test_count > 0 )) || fail "targeted filter '$filter' ran zero tests"
+}
+run_targeted Readiness
+run_targeted Deload
+run_targeted Share
 
 step 'Simulator build and UI smoke tests'
 cd "$APP"
@@ -80,6 +91,18 @@ step 'SwiftLint'
 cd "$ROOT"
 command -v swiftlint >/dev/null 2>&1 || fail 'swiftlint is not installed'
 swiftlint --config .swiftlint.yml
+
+step 'Git status cleanliness'
+status="$(git -C "$ROOT" status --short)"
+if [[ -n "$status" ]]; then
+    while IFS= read -r line; do
+        [[ "$line" =~ ^\?\?[[:space:]]+(SundeeFundee/\.build/|SundeeFundeeApp/DerivedData/|.*\.xcresult$) ]] \
+            || fail "unexpected working-tree change: $line"
+    done <<< "$status"
+    echo 'Only documented generated test artifacts are present.'
+else
+    echo 'Git status is clean.'
+fi
 
 echo
 echo 'Training Intelligence 2.0 release gate passed.'

@@ -30,7 +30,16 @@ public enum DeloadDecisionService {
         case .activeRecovery: (0.4, 0.6)
         }
         // The initializer enforces the bounded invariant; this policy only uses constants in range.
-        return try! DeloadDecision(mode: mode, volumeMultiplier: multipliers.0, intensityMultiplier: multipliers.1, reasonCodes: reasons, confidence: readiness.confidence)
+        guard let decision = try? DeloadDecision(
+            mode: mode,
+            volumeMultiplier: multipliers.0,
+            intensityMultiplier: multipliers.1,
+            reasonCodes: reasons,
+            confidence: readiness.confidence
+        ) else {
+            preconditionFailure("Deload policy produced invalid multipliers")
+        }
+        return decision
     }
 
     /// Compatibility spelling used by earlier callers.

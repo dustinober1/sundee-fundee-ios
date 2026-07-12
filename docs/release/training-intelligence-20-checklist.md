@@ -16,4 +16,4 @@ Run `scripts/training-intelligence-20-gate.sh` from this checkout before release
 
 Do not run `fastlane release`, `fastlane deliver`, `xcodebuild archive`, or any upload/submission command as part of this gate. The script fails if a store-action command is present in release scripts and refuses the opt-in environment variable `TRAINING_INTELLIGENCE_GATE_ALLOW_STORE_ACTIONS=1`.
 
-After a successful run, verify `git status --short` is clean (apart from intentionally generated local test artifacts) and record the command output in `.superpowers/sdd/task-10-report.md`. App Store submission remains a separate, explicitly authorized operation.
+The gate requires each targeted filter to execute at least one test and scans all executable release/Fastlane scripts for archive, upload, or submission actions (descriptive documentation is not scanned). After a successful run, `git status --short` must be clean; only documented generated artifacts (`SundeeFundee/.build/`, `SundeeFundeeApp/DerivedData/`, or `.xcresult` bundles) are allowed. Record command output in `.superpowers/sdd/task-10-report.md`. App Store submission remains a separate, explicitly authorized operation.
