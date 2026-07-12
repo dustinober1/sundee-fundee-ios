@@ -13,15 +13,32 @@ fail() { printf 'Gate failed: %s\n' "$1" >&2; exit 1; }
 step 'Release-action safety assertions'
 [[ "${TRAINING_INTELLIGENCE_GATE_ALLOW_STORE_ACTIONS:-0}" != 1 ]] \
   || fail 'store actions are disabled; never set TRAINING_INTELLIGENCE_GATE_ALLOW_STORE_ACTIONS=1'
-RELEASE_FILES=("$ROOT/scripts/next-release-gate.sh")
-# Fastfile's explicitly named :release lane is the documented store-action definition;
-# this validation scans every other release/Fastlane script for accidental invocation.
-while IFS= read -r file; do RELEASE_FILES+=("$file"); done < <(find "$APP/fastlane" -type f \( -name '*.rb' -o -name '*.sh' \) ! -name 'Fastfile' -print)
-if rg -n 'xcodebuild[[:space:]].*\barchive\b|fastlane[[:space:]]+(release|deliver)|deliver[[:space:]]+submit|upload_to_app_store|submit_for_review|pilot\(|deliver\(|altool|notarytool' \
+FASTFILE="$APP/fastlane/Fastfile"
+[[ -f "$FASTFILE" ]] || fail "missing Fastfile: $FASTFILE"
+rg -q 'lane[[:space:]]+:release' "$FASTFILE" \
+  || fail 'Fastfile is missing the documented :release lane declaration'
+rg -q 'upload_to_app_store' "$FASTFILE" \
+  || fail 'Fastfile :release lane no longer declares upload_to_app_store; review its store-action policy'
+rg -q 'submit_for_review:[[:space:]]*true' "$FASTFILE" \
+  || fail 'Fastfile :release lane no longer declares submit_for_review: true; review its store-action policy'
+echo 'Fastfile :release lane contains upload/submit definitions; this validation gate never invokes that lane.'
+
+# Scan executable release scripts and CI workflows for direct store actions. The
+# Fastfile is intentionally excluded here because its :release lane is the
+# documented definition checked above, not an invocation performed by this gate.
+RELEASE_FILES=()
+while IFS= read -r file; do RELEASE_FILES+=("$file"); done < <(
+    find "$ROOT/scripts" "$APP/fastlane" "$ROOT/.github" -type f \
+      \( -name '*.sh' -o -name '*.rb' -o -path '*/.github/workflows/*' \) \
+      ! -path "$ROOT/scripts/training-intelligence-20-gate.sh" \
+      ! -path "$FASTFILE" -print 2>/dev/null
+)
+if ((${#RELEASE_FILES[@]} > 0)) && rg -n \
+    '(^|[;&|[:space:]])(bundle[[:space:]]+exec[[:space:]]+)?fastlane[[:space:]]+(release|deliver)\b|xcodebuild[[:space:]].*\barchive\b|deliver[[:space:]]+submit\b|upload_to_app_store|submit_for_review|pilot\(|deliver\(|altool|notarytool' \
     "${RELEASE_FILES[@]}" | rg -v ':[[:space:]]*#' >/dev/null; then
-    fail 'archive/upload/submission command found in release scripts'
+    fail 'archive/upload/submission command found in release scripts or CI workflows'
 fi
-echo 'No archive, upload, deliver, or submit action is permitted by this gate.'
+echo 'No archive, upload, deliver, or submit invocation is permitted by this gate.'
 
 step 'CloudKit schema guards'
 [[ -s "$SCHEMA" ]] || fail "missing schema: $SCHEMA"
@@ -74,8 +91,12 @@ run_targeted() {
     local filter="$1" output test_count
     output="$(swift test --filter "$filter" 2>&1)" || { printf '%s\n' "$output"; return 1; }
     printf '%s\n' "$output"
-    test_count="$(printf '%s\n' "$output" | rg -ci '(^|[[:space:]])started\.?$|Test Case .* started' || true)"
-    (( test_count > 0 )) || fail "targeted filter '$filter' ran zero tests"
+    test_count="$(printf '%s\n' "$output" | sed -nE 's/.*Executed ([0-9]+) tests?.*/\1/p' | tail -1)"
+    if [[ -z "$test_count" ]]; then
+        test_count="$(printf '%s\n' "$output" | rg -c 'Test Case .* started' || true)"
+    fi
+    [[ "$test_count" =~ ^[0-9]+$ ]] && (( test_count > 0 )) \
+      || fail "targeted filter '$filter' ran zero tests"
 }
 run_targeted Readiness
 run_targeted Deload
