@@ -6,9 +6,23 @@ public struct ReadinessDetailsSheet: View {
     let guidance: String
     let isStale: Bool
     let onRetry: (() -> Void)?
+    let onStartWorkout: (() -> Void)?
+    let onShare: (() -> Void)?
 
-    public init(snapshot: DailyReadinessUISnapshot, guidance: String, isStale: Bool = false, onRetry: (() -> Void)? = nil) {
-        self.snapshot = snapshot; self.guidance = guidance; self.isStale = isStale; self.onRetry = onRetry
+    public init(
+        snapshot: DailyReadinessUISnapshot,
+        guidance: String,
+        isStale: Bool = false,
+        onRetry: (() -> Void)? = nil,
+        onStartWorkout: (() -> Void)? = nil,
+        onShare: (() -> Void)? = nil
+    ) {
+        self.snapshot = snapshot
+        self.guidance = guidance
+        self.isStale = isStale
+        self.onRetry = onRetry
+        self.onStartWorkout = onStartWorkout
+        self.onShare = onShare
     }
 
     public var body: some View {
@@ -24,6 +38,27 @@ public struct ReadinessDetailsSheet: View {
                     if !snapshot.positiveReasons.isEmpty { reasonSection(title: "What's helping", reasons: snapshot.positiveReasons, icon: "arrow.up.right") }
                     if !snapshot.cautionReasons.isEmpty { reasonSection(title: "What to consider", reasons: snapshot.cautionReasons, icon: "exclamationmark.triangle") }
                     if let onRetry { Button("Refresh readiness", action: { HapticFeedback.medium(); onRetry() }).artDecoButton(style: .accent) }
+                    if let onStartWorkout {
+                        Button {
+                            HapticFeedback.success()
+                            onStartWorkout()
+                        } label: {
+                            Label("Start today's workout", systemImage: "figure.strengthtraining.traditional")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .artDecoButton(style: .primary)
+                        .accessibilityHint("Build a workout using today's readiness guidance")
+                    }
+                    if let onShare {
+                        Button {
+                            HapticFeedback.success()
+                            onShare()
+                        } label: {
+                            Label("Share readiness", systemImage: "square.and.arrow.up")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .artDecoButton(style: .secondary)
+                    }
                 }.padding(AppTheme.Spacing.lg)
             }
             .navigationTitle("Readiness details")

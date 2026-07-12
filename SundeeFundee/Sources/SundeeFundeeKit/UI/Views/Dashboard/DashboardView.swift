@@ -22,6 +22,9 @@ public struct DashboardView: View {
     @State private var showingMoreToday = false
     @State private var showingQuickCheckIn = false
     @State private var showingReadinessDetails = false
+    #if canImport(UIKit)
+    @State private var showingReadinessShare = false
+    #endif
     @State private var navigationResetID = UUID()
     #if canImport(UIKit)
     @State private var showingCycleShare = false
@@ -173,11 +176,37 @@ public struct DashboardView: View {
             }
             .sheet(isPresented: $showingReadinessDetails) {
                 if let readiness = readinessViewModel.snapshot {
-                    ReadinessDetailsSheet(snapshot: readiness, guidance: readinessViewModel.guidance, isStale: readinessViewModel.isStale) {
-                        Task { await readinessViewModel.retry() }
-                    }
+                    ReadinessDetailsSheet(
+                        snapshot: readiness,
+                        guidance: readinessViewModel.guidance,
+                        isStale: readinessViewModel.isStale,
+                        onRetry: { Task { await readinessViewModel.retry() } },
+                        onStartWorkout: {
+                            showingReadinessDetails = false
+                            Task { starterWorkout = await viewModel.buildStarterWorkout() }
+                        },
+                        onShare: {
+                            showingReadinessDetails = false
+                            #if canImport(UIKit)
+                            showingReadinessShare = true
+                            #endif
+                        }
+                    )
                 }
             }
+            #if canImport(UIKit)
+            .sheet(isPresented: $showingReadinessShare) {
+                ShareCardSheet(
+                    variant: .coachSummary(
+                        title: "Today's training guidance",
+                        subtitle: "A focused session shaped around today's signals.",
+                        badge: "Sundee Fundee",
+                        bullets: ["Listen to your body", "Adjust effort as needed"]
+                    ),
+                    defaultAspect: .story
+                )
+            }
+            #endif
             .navigationDestination(isPresented: $viewModel.navigateToLogMax) {
                 MaxesListView()
             }
