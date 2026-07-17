@@ -70,6 +70,7 @@ public struct ShareCardSheet: View {
                             .foregroundColor(AppTheme.Text.primary)
                     }
                     .tint(AppTheme.Accent.gold)
+                    privacySummary
                     shareButton
                 }
                 .padding()
@@ -100,7 +101,7 @@ public struct ShareCardSheet: View {
             .task {
                 await GrowthAnalyticsService().track(
                     GrowthEventName.shareSheetOpened,
-                    source: shareContext?.surface.rawValue,
+                    source: variant.shareSheetOpenedSource(shareContext: shareContext),
                     properties: shareContextProperties
                 )
             }
@@ -125,6 +126,13 @@ public struct ShareCardSheet: View {
             return .selfieOverlay(image: selfie, summary: summaryFromVariant(variant))
         }
         return variant
+    }
+
+    /// Sanitized cards never carry the caller's context into native sharing,
+    /// clipboard links, or analytics. Their card content is already limited to
+    /// `ShareSanitizedSummary`.
+    private var externalShareContext: ShareContext? {
+        isSanitizedVariant ? nil : shareContext
     }
 
     private func summaryFromVariant(_ variant: ShareCardVariant) -> ShareSummary {
@@ -171,6 +179,13 @@ public struct ShareCardSheet: View {
             return ShareSummary(
                 title: review.monthTitle,
                 exerciseCount: review.workoutCount,
+                totalVolume: 0,
+                durationMinutes: 0
+            )
+        case .readiness(let summary), .deload(let summary):
+            return ShareSummary(
+                title: summary.title,
+                exerciseCount: 0,
                 totalVolume: 0,
                 durationMinutes: 0
             )
@@ -322,6 +337,22 @@ public struct ShareCardSheet: View {
         }
     }
 
+    /// Plain-language disclosure shown immediately before the system share
+    /// control. It makes the safe boundary clear without exposing any source
+    /// assessment details.
+    private var privacySummary: some View {
+        Label {
+            Text(privacyOptions.shareDisclosureText)
+                .font(AppTheme.Typography.bodySmall)
+                .foregroundColor(AppTheme.Text.secondary)
+        } icon: {
+            Image(systemName: "lock.shield")
+                .foregroundColor(AppTheme.Accent.gold)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(privacyOptions.shareDisclosureText)
+    }
+
     private func progressivePromptRow(title: String, message: String, systemImage: String) -> some View {
         Label {
             VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
@@ -346,7 +377,7 @@ public struct ShareCardSheet: View {
                 ShareLink(
                     item: Image(uiImage: image),
                     subject: Text(variant.shareTitle),
-                    message: Text(ShareURL.caption(for: shareContext)),
+                    message: Text(isSanitizedVariant ? ShareURL.sanitizedCaption : ShareURL.caption(for: externalShareContext)),
                     preview: SharePreview(variant.shareTitle, image: Image(uiImage: image))
                 ) {
                     Label("Share", systemImage: "square.and.arrow.up")
@@ -357,7 +388,7 @@ public struct ShareCardSheet: View {
                     TapGesture().onEnded {
                         HapticFeedback.success()
                         if useSelfie {
-                            UIPasteboard.general.string = ShareURL.link(for: shareContext).absoluteString
+                            UIPasteboard.general.string = (isSanitizedVariant ? ShareURL.sanitizedLink : ShareURL.link(for: externalShareContext)).absoluteString
                         }
                         Task { await trackShareTapped() }
                     }
@@ -390,17 +421,31 @@ public struct ShareCardSheet: View {
     }
 
     private var shareContextProperties: [String: String] {
+        guard !isSanitizedVariant else { return [:] }
         var properties: [String: String] = [:]
         if let sourceID = shareContext?.sourceID {
             properties["sourceID"] = sourceID
         }
-        if let title = shareContext?.title {
+        // Sanitized variants must never persist caller-provided context title or
+        // referral text, which may contain raw assessment details.
+        if !isSanitizedVariant, let title = shareContext?.title {
             properties["title"] = title
         }
-        if let referralCode = shareContext?.referralCode {
+        if !isSanitizedVariant, let referralCode = shareContext?.referralCode {
             properties["referralCode"] = referralCode
         }
         return properties
+    }
+
+    private var isSanitizedVariant: Bool {
+        Self.isSanitizedVariant(variant)
+    }
+
+    private static func isSanitizedVariant(_ variant: ShareCardVariant) -> Bool {
+        switch variant {
+        case .readiness, .deload: return true
+        default: return false
+        }
     }
 
     private func trackShareTapped() async {
@@ -418,7 +463,7 @@ public struct ShareCardSheet: View {
 
         await GrowthAnalyticsService().track(
             eventName,
-            source: shareContext?.surface.rawValue,
+            source: isSanitizedVariant ? nil : shareContext?.surface.rawValue,
             properties: shareContextProperties
         )
     }

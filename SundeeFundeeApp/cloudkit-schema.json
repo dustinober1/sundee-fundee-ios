@@ -501,6 +501,7 @@ DEFINE SCHEMA
         physiologicalScore    INT64,
         positiveReasonIDs     LIST<STRING>,
         staleSignalIDs        LIST<STRING>,
+        schemaVersion         INT64 QUERYABLE SORTABLE,
         stateRaw              STRING QUERYABLE SORTABLE,
         subjectiveScore       INT64,
         symptomsPainScore     INT64,

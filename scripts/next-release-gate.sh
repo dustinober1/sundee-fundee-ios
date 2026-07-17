@@ -24,6 +24,11 @@ if ! awk '/RECORD TYPE DailyReadinessRecord/,/\);/' "$SCHEMA" | grep -q '"___rec
     exit 1
 fi
 
+if ! awk '/RECORD TYPE DailyReadinessRecord/,/\);/' "$SCHEMA" | grep -q 'schemaVersion[[:space:]]\+INT64'; then
+    echo "CloudKit schema is missing schemaVersion for DailyReadinessRecord."
+    exit 1
+fi
+
 if ! command -v swiftlint >/dev/null 2>&1; then
     echo "swiftlint is not installed. Install SwiftLint, then rerun this gate."
     exit 127

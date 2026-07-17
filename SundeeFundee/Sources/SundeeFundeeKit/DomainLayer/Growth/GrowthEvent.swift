@@ -23,6 +23,8 @@ public struct GrowthEvent: Codable, Sendable, Identifiable, Equatable {
 }
 
 public enum GrowthEventName {
+    public static let postWorkoutCheckInCompleted = "post_workout_check_in_completed"
+    public static let bestNextWorkoutGenerated = "best_next_20_generated"
     public static let onboardingStarted = "onboarding_started"
     public static let onboardingCompleted = "onboarding_completed"
     public static let firstWorkoutPromptSeen = "first_workout_prompt_seen"

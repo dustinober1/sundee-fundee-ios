@@ -8,6 +8,7 @@ struct TodayWhySheet: View {
     let deloadRecommendation: DeloadRecommendation?
     let cyclePhase: CyclePhase?
     let cycleConfidence: Double?
+    @State private var deloadShareSummary: ShareSanitizedSummary?
 
     private var trustBadges: [WorkoutTrustBadge] {
         WorkoutTrustBadgeBuilder.badges(
@@ -61,6 +62,14 @@ struct TodayWhySheet: View {
                 if let deloadRecommendation, deloadRecommendation.isRecommended {
                     Section("Deload") {
                         Text(deloadRecommendation.reason)
+                        #if canImport(UIKit)
+                        Button {
+                            deloadShareSummary = try? ShareSanitizedSummary(deloadRecommendation: deloadRecommendation)
+                        } label: {
+                            Label("Share deload guidance", systemImage: "square.and.arrow.up")
+                        }
+                        .accessibilityHint("Shares a privacy-safe summary without health or cycle details")
+                        #endif
                     }
                 }
             }
@@ -73,8 +82,23 @@ struct TodayWhySheet: View {
                     Button("Close") { dismiss() }
                 }
             }
+            #if canImport(UIKit)
+            .sheet(item: Binding(
+                get: { deloadShareSummary.map { DeloadShareRoute(summary: $0) } },
+                set: { deloadShareSummary = $0?.summary }
+            )) { route in
+                ShareCardSheet(variant: .deload(summary: route.summary), defaultAspect: .story)
+            }
+            #endif
         }
     }
+
+    #if canImport(UIKit)
+    private struct DeloadShareRoute: Identifiable {
+        let summary: ShareSanitizedSummary
+        var id: String { summary.modelVersion + summary.title }
+    }
+    #endif
 
     private func cyclePhaseLabel(_ phase: CyclePhase) -> String {
         switch phase {

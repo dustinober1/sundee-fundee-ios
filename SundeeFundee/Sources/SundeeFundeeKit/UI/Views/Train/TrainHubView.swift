@@ -3,6 +3,7 @@ import SwiftUI
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
 public struct TrainHubView: View {
     @StateObject private var bestNextViewModel = BestNextWorkoutViewModel()
+    @EnvironmentObject private var authViewModel: AuthViewModel
     @State private var showingNewWorkout = false
     @State private var showingAIWorkout = false
     @State private var quickWorkout: Workout?
@@ -26,6 +27,26 @@ public struct TrainHubView: View {
                         )
                     }
                     .disabled(bestNextViewModel.isBuilding)
+
+                    if bestNextViewModel.adjustment.decision?.mode != .normal,
+                       bestNextViewModel.adjustment.decision != nil {
+                        VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                            Text(bestNextViewModel.adjustment.explanation)
+                                .font(AppTheme.Typography.bodySmall)
+                                .foregroundColor(AppTheme.Text.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                            Button("Use Standard Session") {
+                                Task {
+                                    if let result = await bestNextViewModel.buildWorkout(useStandardSession: true) {
+                                        quickWorkout = result.workout
+                                    }
+                                }
+                            }
+                            .font(AppTheme.Typography.labelMedium)
+                            .foregroundColor(AppTheme.Accent.orange)
+                        }
+                        .padding(.vertical, AppTheme.Spacing.xs)
+                    }
 
                     Button {
                         showingAIWorkout = true
@@ -63,6 +84,12 @@ public struct TrainHubView: View {
                             .fixedSize(horizontal: false, vertical: true)
                     }
                 }
+            }
+            .task {
+                bestNextViewModel.updateGuestState(authViewModel.isGuest)
+            }
+            .onChange(of: authViewModel.isGuest) { _, isGuest in
+                bestNextViewModel.updateGuestState(isGuest)
             }
             .navigationTitle("Train")
             #if os(iOS)

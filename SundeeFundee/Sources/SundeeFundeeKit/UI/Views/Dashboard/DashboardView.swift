@@ -1,6 +1,18 @@
 import SwiftUI
 import os.log
 
+private enum ReadinessRoute: Identifiable {
+    case details
+    case share(summary: ShareSanitizedSummary)
+
+    var id: String {
+        switch self {
+        case .details: return "details"
+        case .share: return "share"
+        }
+    }
+}
+
 private let dashLogger = Logger(subsystem: "com.sundeefundee.app", category: "Dashboard")
 
 // MARK: - DashboardView
@@ -12,6 +24,7 @@ private let dashLogger = Logger(subsystem: "com.sundeefundee.app", category: "Da
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
 public struct DashboardView: View {
     @StateObject private var viewModel = DashboardViewModel()
+    @StateObject private var readinessViewModel = DailyReadinessViewModel()
     @EnvironmentObject var authViewModel: AuthViewModel
     @EnvironmentObject var cyclePhaseCache: CyclePhaseCache
     @State private var showingAIWorkout = false
@@ -20,6 +33,7 @@ public struct DashboardView: View {
     @State private var showingTodayWhy = false
     @State private var showingMoreToday = false
     @State private var showingQuickCheckIn = false
+    @State private var readinessRoute: ReadinessRoute?
     @State private var navigationResetID = UUID()
     #if canImport(UIKit)
     @State private var showingCycleShare = false
@@ -41,11 +55,15 @@ public struct DashboardView: View {
 
                     cyclePhaseBanner
 
+                    readinessContent
+
                     if viewModel.isInitialLoad {
                         SkeletonStatRow()
                     } else {
                         compactTodaySnapshot
                     }
+
+                    quickActionsCard
 
                     if viewModel.showsNewUserEmptyState {
                         EmptyStateView(
@@ -99,18 +117,28 @@ public struct DashboardView: View {
             }
             .task {
                 await viewModel.loadData(cyclePhaseCache: cyclePhaseCache)
+                await refreshReadiness()
             }
             .refreshable {
                 await viewModel.loadData(cyclePhaseCache: cyclePhaseCache)
+                await refreshReadiness()
             }
             .onReceive(NotificationCenter.default.publisher(for: .workoutCompleted)) { _ in
-                Task { await viewModel.loadData(cyclePhaseCache: cyclePhaseCache) }
+                Task {
+                    await viewModel.loadData(cyclePhaseCache: cyclePhaseCache)
+                    await refreshReadiness()
+                }
             }
             .onReceive(NotificationCenter.default.publisher(for: .cycleDataUpdated)) { _ in
                 Task {
                     await cyclePhaseCache.refresh()
                     await viewModel.loadData(cyclePhaseCache: cyclePhaseCache)
+                    await refreshReadiness()
                 }
+            }
+            .onChange(of: authViewModel.isGuest) { _, isGuest in
+                readinessViewModel.updateGuestState(isGuest)
+                Task { await readinessViewModel.load() }
             }
             #if os(iOS)
             .fullScreenCover(isPresented: $showingAIWorkout) {
@@ -157,6 +185,37 @@ public struct DashboardView: View {
             .sheet(isPresented: $showingQuickCheckIn) {
                 QuickCheckInView()
             }
+            .sheet(item: $readinessRoute) { route in
+                switch route {
+                case .details:
+                    ReadinessDetailsSheet(
+                        snapshot: readinessViewModel.snapshot,
+                        state: readinessViewModel.state,
+                        guidance: readinessViewModel.guidance,
+                        isStale: readinessViewModel.isStale,
+                        onRetry: { Task { await readinessViewModel.retry() } },
+                        canRetry: readinessViewModel.canRetry,
+                        onStartWorkout: {
+                            readinessRoute = nil
+                            Task {
+                                try? await Task.sleep(for: .milliseconds(300))
+                                starterWorkout = await viewModel.buildStarterWorkout()
+                            }
+                        },
+                        onShare: {
+                            guard let snapshot = SharedSnapshotStore.readReadiness(),
+                                  let summary = try? ShareSanitizedSummary(readinessSnapshot: snapshot) else { return }
+                            readinessRoute = .share(summary: summary)
+                        }
+                    )
+                case .share(let summary):
+                    #if canImport(UIKit)
+                    ShareCardSheet(variant: .readiness(summary: summary), defaultAspect: .story)
+                    #else
+                    Text("Sharing is unavailable on this device.")
+                    #endif
+                }
+            }
             .navigationDestination(isPresented: $viewModel.navigateToLogMax) {
                 MaxesListView()
             }
@@ -193,6 +252,55 @@ public struct DashboardView: View {
             navigationResetID = UUID()
             showingQuickCheckIn = true
         }
+    }
+
+    @ViewBuilder
+    private var readinessContent: some View {
+        switch readinessViewModel.state {
+        case .loading:
+            ArtDecoCard {
+                HStack(spacing: AppTheme.Spacing.md) {
+                    ProgressView().tint(AppTheme.Accent.orange)
+                    Text("Calculating today's readiness…")
+                        .font(AppTheme.Typography.bodyMedium)
+                        .foregroundStyle(AppTheme.Text.secondary)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("Calculating today's readiness")
+        case .content:
+            if let readiness = readinessViewModel.snapshot {
+                ReadinessCardView(snapshot: readiness, guidance: readinessViewModel.guidance, isStale: readinessViewModel.isStale) {
+                    readinessRoute = .details
+                }
+            }
+        case .empty:
+            readinessMessage(title: "Readiness needs a little more data", message: readinessViewModel.guidance, action: nil)
+        case .error:
+            readinessMessage(title: "Readiness is unavailable", message: readinessViewModel.guidance, action: readinessViewModel.canRetry ? { Task { await readinessViewModel.retry() } } : nil)
+        }
+    }
+
+    private func readinessMessage(title: String, message: String, action: (() -> Void)?) -> some View {
+        ArtDecoCard {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
+                Label(title, systemImage: "gauge.with.dots.needle.67percent")
+                    .font(AppTheme.Typography.headlineMedium)
+                Text(message)
+                    .font(AppTheme.Typography.bodyMedium)
+                    .foregroundStyle(AppTheme.Text.secondary)
+                if let action {
+                    Button("Try again", action: { HapticFeedback.medium(); action() })
+                        .artDecoButton(style: .accent)
+                }
+            }
+        }
+    }
+
+    private func refreshReadiness() async {
+        readinessViewModel.updateGuestState(authViewModel.isGuest)
+        await readinessViewModel.load()
     }
 
     // MARK: - Welcome Header

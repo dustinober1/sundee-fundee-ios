@@ -12,4 +12,17 @@ final class ShareURLTests: XCTestCase {
         XCTAssertTrue(ShareURL.shareCaption.contains(ShareURL.appStore.absoluteString))
         XCTAssertTrue(ShareURL.shareCaption.contains("Sundee Fundee"))
     }
+
+    func testSanitizedPayloadNeverContainsCallerContext() {
+        let rawTitle = "PRIVATE readiness title"
+        let rawReferral = "SECRET-REFERRAL"
+        let rawSourceID = "private-source-id"
+
+        XCTAssertFalse(ShareURL.sanitizedCaption.contains(rawTitle))
+        XCTAssertFalse(ShareURL.sanitizedCaption.contains(rawReferral))
+        XCTAssertFalse(ShareURL.sanitizedCaption.contains(rawSourceID))
+        XCTAssertFalse(ShareURL.sanitizedLink.absoluteString.contains(rawTitle))
+        XCTAssertFalse(ShareURL.sanitizedLink.absoluteString.contains(rawReferral))
+        XCTAssertFalse(ShareURL.sanitizedLink.absoluteString.contains(rawSourceID))
+    }
 }

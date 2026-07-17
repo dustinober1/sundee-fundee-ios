@@ -78,6 +78,34 @@ final class SundeeFundeeScreenshotTests: XCTestCase {
         ).firstMatch.exists, "Missing BikeERG interval copy")
     }
 
+    func testWorkoutHistoryExposesStandardSessionOverride() {
+        app.launchArguments += ["--seed-screenshots"]
+        setupSnapshot(app)
+        app.launch()
+
+        XCTAssertTrue(waitForScreen(title: "Today", timeout: 20), "Missing Today screen")
+        XCTAssertTrue(returnToTrainRoot(), "Missing Train screen")
+
+        let workoutHistory = app.staticTexts["Workout History"].firstMatch
+        XCTAssertTrue(
+            scrollToElement(workoutHistory, in: app.tables.firstMatch),
+            "Missing Workout History row"
+        )
+        workoutHistory.tap()
+
+        XCTAssertTrue(waitForScreen(title: "Workouts", timeout: 10), "Missing Workouts screen")
+        let standardSession = app.buttons["Use Standard Session"].firstMatch
+        XCTAssertTrue(
+            standardSession.waitForExistence(timeout: 5),
+            "Workout History must expose a standard-session override"
+        )
+        standardSession.tap()
+        XCTAssertTrue(
+            app.staticTexts["Best Next 20 Minutes"].firstMatch.waitForExistence(timeout: 10),
+            "Standard-session override did not launch a workout"
+        )
+    }
+
     private func captureCoachPlanBenefit() {
         let trainButton = tabButton(named: "Train")
         XCTAssertTrue(trainButton.waitForExistence(timeout: 10), "Missing Train tab")

@@ -57,6 +57,31 @@ public struct SharePrivacyOptions: Sendable, Equatable, Codable {
 
     public static let privateDefault = SharePrivacyOptions()
 
+    /// Plain-language summary of what the selected share card includes and
+    /// which sensitive details remain private.
+    public var shareDisclosureText: String {
+        let selectedDetails = [
+            showCycleContext ? "cycle context" : nil,
+            showPainContext ? "pain context" : nil,
+            showExactDate ? "an exact date" : nil,
+        ].compactMap { $0 }
+        let previewBoundary = "When you use Share, this card preview and a Sundee Fundee caption with an app link are shared."
+
+        guard !selectedDetails.isEmpty else {
+            return "\(previewBoundary) Health data and private notes not shown here stay on your device."
+        }
+
+        let includedDetails = Self.formattedList(
+            selectedDetails,
+            capitalizingFirst: true
+        )
+        let remainingHealthData = showCycleContext || showPainContext
+            ? "Other health data"
+            : "Health data"
+
+        return "\(previewBoundary) \(includedDetails) may be included when available. \(remainingHealthData) and private notes not shown here stay on your device."
+    }
+
     public func redactedDateText(for date: Date) -> String {
         guard showExactDate else { return "Recent Session" }
         let formatter = DateFormatter()
@@ -77,6 +102,26 @@ public struct SharePrivacyOptions: Sendable, Equatable, Codable {
             redacted = redacted.replacingOccurrences(of: "sore", with: "tight", options: [.caseInsensitive])
         }
         return redacted
+    }
+
+    private static func formattedList(
+        _ items: [String],
+        capitalizingFirst: Bool = false
+    ) -> String {
+        guard let first = items.first, let last = items.last else { return "" }
+        let initial = capitalizingFirst
+            ? first.prefix(1).uppercased() + first.dropFirst()
+            : first
+        let normalized = [initial] + items.dropFirst()
+
+        switch normalized.count {
+        case 1:
+            return normalized[0]
+        case 2:
+            return "\(normalized[0]) and \(normalized[1])"
+        default:
+            return "\(normalized.dropLast().joined(separator: ", ")), and \(last)"
+        }
     }
 
     // MARK: - Preset Persistence
@@ -115,6 +160,11 @@ public enum ShareCardVariant: Sendable {
     case weeklyRecap(title: String, subtitle: String, badge: String, bullets: [String])
     case buddyCheckIn(summary: BuddyCheckInSummary, displayName: String)
     case monthlyReview(review: MonthlyReview)
+    /// Privacy-safe 2.0 outcome cards. These cases intentionally accept only
+    /// `ShareSanitizedSummary`; raw readiness, HealthKit, cycle, pain, and note
+    /// data cannot reach the renderer or share sheet.
+    case readiness(summary: ShareSanitizedSummary)
+    case deload(summary: ShareSanitizedSummary)
     #if canImport(UIKit)
     case selfieOverlay(image: UIImage, summary: ShareSummary)
     #endif
@@ -136,6 +186,8 @@ public enum ShareCardVariant: Sendable {
             return "Buddy Check-In — \(displayName)"
         case .monthlyReview(let review):
             return "Monthly Review — \(review.monthTitle)"
+        case .readiness(let summary), .deload(let summary):
+            return summary.title
         #if canImport(UIKit)
         case .selfieOverlay(_, let summary):
             return summary.title
@@ -143,8 +195,27 @@ public enum ShareCardVariant: Sendable {
         }
     }
 
+    /// Descriptive aliases for call sites that prefer the share-oriented name.
+    public static func readinessShare(summary: ShareSanitizedSummary) -> ShareCardVariant {
+        .readiness(summary: summary)
+    }
+
+    public static func deloadShare(summary: ShareSanitizedSummary) -> ShareCardVariant {
+        .deload(summary: summary)
+    }
+
     private func formatWeight(_ w: Double) -> String {
         if w == floor(w) { return "\(Int(w))" }
         return String(format: "%.1f", w)
+    }
+
+    /// Analytics attribution is omitted for privacy-safe variants.
+    func shareSheetOpenedSource(shareContext: ShareContext?) -> String? {
+        switch self {
+        case .readiness, .deload:
+            return nil
+        default:
+            return shareContext?.surface.rawValue
+        }
     }
 }

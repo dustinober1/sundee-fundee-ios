@@ -21,6 +21,49 @@ final class DailyReadinessRecordTests: XCTestCase {
         XCTAssertEqual(try decoded.assessment(), makeAssessment())
     }
 
+    func testDecodingLegacyPayloadDefaultsSchemaVersionAndIgnoresUnknownFields() throws {
+        let record = DailyReadinessRecord(assessment: makeAssessment(), timeZone: .gmt)
+        var payload = try JSONSerialization.jsonObject(with: JSONEncoder().encode(record)) as! [String: Any]
+        payload.removeValue(forKey: "schemaVersion")
+        payload["futureField"] = "ignored"
+        let data = try JSONSerialization.data(withJSONObject: payload)
+
+        let decoded = try JSONDecoder().decode(DailyReadinessRecord.self, from: data)
+
+        XCTAssertEqual(decoded.schemaVersion, DailyReadinessRecord.currentSchemaVersion)
+        XCTAssertEqual(decoded.id, record.id)
+    }
+
+    func testDecodingFutureSchemaVersionThrowsInvalidDataError() throws {
+        let record = DailyReadinessRecord(assessment: makeAssessment(), timeZone: .gmt)
+        var payload = try JSONSerialization.jsonObject(with: JSONEncoder().encode(record)) as! [String: Any]
+        let futureVersion = DailyReadinessRecord.currentSchemaVersion + 1
+        payload["schemaVersion"] = futureVersion
+        let data = try JSONSerialization.data(withJSONObject: payload)
+
+        XCTAssertThrowsError(try JSONDecoder().decode(DailyReadinessRecord.self, from: data)) { error in
+            guard case let DataError.invalidData(description) = error else {
+                return XCTFail("Expected DataError.invalidData, got \(error)")
+            }
+            XCTAssertEqual(
+                description,
+                "DailyReadinessRecord schema version \(futureVersion) is newer than supported version \(DailyReadinessRecord.currentSchemaVersion)"
+            )
+        }
+    }
+
+    func testDatesEncodeAsStringsAndRecordContainsNoBooleanFields() throws {
+        let record = DailyReadinessRecord(assessment: makeAssessment(), timeZone: .gmt)
+        let object = try JSONSerialization.jsonObject(with: JSONEncoder().encode(record)) as! [String: Any]
+
+        XCTAssertTrue(object["assessmentDate"] is String)
+        XCTAssertTrue(object["dateCreated"] is String)
+        XCTAssertTrue(object["dateUpdated"] is String)
+        let json = String(data: try JSONEncoder().encode(record), encoding: .utf8)!
+        XCTAssertFalse(json.contains(":true"))
+        XCTAssertFalse(json.contains(":false"))
+    }
+
     @MainActor
     func testLocalClientReplacesTheSameLocalDay() async throws {
         let suiteName = "ReadinessRecordTests.\(UUID().uuidString)"

@@ -101,6 +101,10 @@ public enum ShareCardRenderer {
                 aspect: aspect,
                 privacyOptions: privacyOptions
             )
+        case .readiness(let summary):
+            ReadinessShareView(summary: summary, aspect: aspect, privacyOptions: privacyOptions)
+        case .deload(let summary):
+            DeloadShareView(summary: summary, aspect: aspect, privacyOptions: privacyOptions)
         case .selfieOverlay(let image, let summary):
             SelfieOverlayShareView(
                 image: image,

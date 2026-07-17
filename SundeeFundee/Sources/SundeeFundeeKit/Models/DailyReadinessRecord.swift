@@ -3,7 +3,9 @@ import Foundation
 /// CloudKit-safe, versioned persistence representation of a daily readiness assessment.
 public struct DailyReadinessRecord: Codable, Sendable, Identifiable, Equatable {
     public static let recordType = "DailyReadinessRecord"
+    public static let currentSchemaVersion = 1
 
+    public let schemaVersion: Int
     public let id: String
     public let dayKey: String
     public let timeZoneIdentifier: String
@@ -30,6 +32,7 @@ public struct DailyReadinessRecord: Codable, Sendable, Identifiable, Equatable {
         createdAt: Date = Date(),
         updatedAt: Date = Date()
     ) {
+        self.schemaVersion = Self.currentSchemaVersion
         let dayKey = Self.dayKey(for: assessment.assessmentDate, timeZone: timeZone)
         let formatter = ISO8601DateFormatter()
         self.id = "readiness-\(dayKey)"
@@ -51,6 +54,41 @@ public struct DailyReadinessRecord: Codable, Sendable, Identifiable, Equatable {
         self.staleSignalIDs = assessment.staleSignals.map(\.rawValue)
         self.positiveReasonIDs = assessment.positiveReasons.map(\.rawValue)
         self.cautionReasonIDs = assessment.cautionReasons.map(\.rawValue)
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case schemaVersion, id, dayKey, timeZoneIdentifier, assessmentDate, dateCreated, dateUpdated
+        case stateRaw, totalScore, confidenceRaw, modelVersion
+        case physiologicalScore, subjectiveScore, trainingScore, symptomsPainScore
+        case availableSignalIDs, missingSignalIDs, staleSignalIDs, positiveReasonIDs, cautionReasonIDs
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let version = try container.decodeIfPresent(Int.self, forKey: .schemaVersion) ?? 1
+        guard version <= Self.currentSchemaVersion else {
+            throw DataError.invalidData(description: "DailyReadinessRecord schema version \(version) is newer than supported version \(Self.currentSchemaVersion)")
+        }
+        schemaVersion = version
+        id = try container.decode(String.self, forKey: .id)
+        dayKey = try container.decode(String.self, forKey: .dayKey)
+        timeZoneIdentifier = try container.decode(String.self, forKey: .timeZoneIdentifier)
+        assessmentDate = try container.decode(String.self, forKey: .assessmentDate)
+        dateCreated = try container.decode(String.self, forKey: .dateCreated)
+        dateUpdated = try container.decode(String.self, forKey: .dateUpdated)
+        stateRaw = try container.decode(String.self, forKey: .stateRaw)
+        totalScore = try container.decode(Int.self, forKey: .totalScore)
+        confidenceRaw = try container.decode(String.self, forKey: .confidenceRaw)
+        modelVersion = try container.decode(String.self, forKey: .modelVersion)
+        physiologicalScore = try container.decodeIfPresent(Int.self, forKey: .physiologicalScore)
+        subjectiveScore = try container.decodeIfPresent(Int.self, forKey: .subjectiveScore)
+        trainingScore = try container.decodeIfPresent(Int.self, forKey: .trainingScore)
+        symptomsPainScore = try container.decodeIfPresent(Int.self, forKey: .symptomsPainScore)
+        availableSignalIDs = try container.decode([String].self, forKey: .availableSignalIDs)
+        missingSignalIDs = try container.decode([String].self, forKey: .missingSignalIDs)
+        staleSignalIDs = try container.decode([String].self, forKey: .staleSignalIDs)
+        positiveReasonIDs = try container.decode([String].self, forKey: .positiveReasonIDs)
+        cautionReasonIDs = try container.decode([String].self, forKey: .cautionReasonIDs)
     }
 
     public func assessment() throws -> ReadinessAssessment {
