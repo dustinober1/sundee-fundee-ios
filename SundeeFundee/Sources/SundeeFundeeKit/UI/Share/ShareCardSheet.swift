@@ -342,7 +342,7 @@ public struct ShareCardSheet: View {
     /// assessment details.
     private var privacySummary: some View {
         Label {
-            Text("Only this card's title and optional outcome summary are shared. Health data, cycle context, pain, and private notes stay on your device.")
+            Text(privacyOptions.shareDisclosureText)
                 .font(AppTheme.Typography.bodySmall)
                 .foregroundColor(AppTheme.Text.secondary)
         } icon: {
@@ -350,7 +350,7 @@ public struct ShareCardSheet: View {
                 .foregroundColor(AppTheme.Accent.gold)
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("Privacy summary. Only this card's title and optional outcome summary are shared. Health data, cycle context, pain, and private notes stay on your device.")
+        .accessibilityLabel(privacyOptions.shareDisclosureText)
     }
 
     private func progressivePromptRow(title: String, message: String, systemImage: String) -> some View {
