@@ -2,10 +2,17 @@
 
 ## Metadata gate
 
-- Marketing version is `2.0.0`; build remains `14` by authorization policy (do not increment in this task).
-- Store listing metadata is English (US). Name, subtitle, promotional text, keywords, description, and release notes are within App Store character limits; URLs are HTTPS and point to the privacy, support, and marketing pages.
-- Claims are limited to shipped surfaces: cycle-aware strength guidance, recovery/pain context, Coach Plan, programs, progress, export, guest storage, iCloud sync, and optional HealthKit access. The app is a fitness tool and does not diagnose or treat injuries.
+- The local candidate is version `2.0.0`, build `14`; confirm the build number is unused in App Store Connect and increment it if necessary before upload.
+- Local English (US) Fastlane metadata passes the repository checks. Verify the live App Store Connect metadata, privacy answers, URLs, in-app purchase state, and review notes before submission.
+- Claims are limited to surfaces implemented in the candidate build: cycle-aware strength guidance, recovery/pain context, Coach Plan, programs, progress, export, guest storage, iCloud sync, and optional HealthKit access. The app is a fitness tool and does not diagnose or treat injuries.
 - All training features are free. The optional Support the Developer tip does not gate access or behavior.
+
+## External deployment steps not yet completed
+
+- Validate the new `DailyReadinessRecord` schema and indexes in the CloudKit Development environment, then separately authorize and deploy them to Production.
+- Confirm the candidate build number is available and validate signing, capabilities, agreements, tax/banking status, and the optional tip product in App Store Connect.
+- Archive and upload only after explicit authorization, then complete the manual TestFlight paths below on a physical device.
+- Submit for App Review only after a separate explicit authorization.
 
 ## Manual review paths
 
