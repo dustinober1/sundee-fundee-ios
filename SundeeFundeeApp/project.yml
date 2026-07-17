@@ -13,7 +13,7 @@ settings:
     SWIFT_STRICT_CONCURRENCY: complete
     DEVELOPMENT_TEAM: "87VVCMCW3F"
     MARKETING_VERSION: "2.0.0"
-    CURRENT_PROJECT_VERSION: 14
+    CURRENT_PROJECT_VERSION: 15
     APP_GROUP_IDENTIFIER: group.com.sundeefundee.shared
 
 packages:
