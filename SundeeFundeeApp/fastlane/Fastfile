@@ -69,8 +69,8 @@ platform :ios do
     capture_ios_screenshots(
       project: "SundeeFundee.xcodeproj",
       scheme: "SundeeFundee",
-      devices: ["iPhone 17 Pro"],
-      ios_version: "26.4.1",
+      devices: ["iPhone 17 Pro", "iPad Pro 13-inch (M5)"],
+      ios_version: "26.5",
       languages: ["en-US"],
       launch_arguments: ["--seed-screenshots"],
       output_directory: "./fastlane/screenshots",
