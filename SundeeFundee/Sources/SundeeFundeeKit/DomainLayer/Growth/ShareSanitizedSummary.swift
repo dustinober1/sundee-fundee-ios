@@ -26,6 +26,20 @@ public struct ShareSanitizedSummary: Codable, Sendable, Equatable {
             modelVersion: readinessSnapshot.modelVersion
         )
     }
+
+    /// Builds the deload outcome card without exposing the underlying pain,
+    /// sleep, cycle, or readiness signals that produced the recommendation.
+    public init(deloadRecommendation: DeloadRecommendation, modelVersion: String = "deload-2.0") throws {
+        try self.init(
+            title: deloadRecommendation.isRecommended ? "Active recovery recommended" : "Training on track",
+            subtitle: deloadRecommendation.isRecommended
+                ? "A lighter session may help you recover"
+                : "No deload needed today",
+            metricLabel: deloadRecommendation.isRecommended ? "Recommended days" : nil,
+            metricValue: deloadRecommendation.isRecommended ? "\(deloadRecommendation.recommendedDays)" : nil,
+            modelVersion: modelVersion
+        )
+    }
     public init(title: String, subtitle: String?, metricLabel: String?, metricValue: String?, modelVersion: String) throws {
         guard !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
               !modelVersion.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
