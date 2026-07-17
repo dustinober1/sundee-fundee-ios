@@ -57,3 +57,4 @@ tmp/
 .gsd-id
 node_modules/*
 .codex/config.toml
+.superpowers/sdd/*-report.md
