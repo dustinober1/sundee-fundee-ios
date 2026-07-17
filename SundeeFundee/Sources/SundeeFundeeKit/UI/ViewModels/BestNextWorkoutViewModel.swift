@@ -66,12 +66,26 @@ public final class BestNextWorkoutViewModel: ObservableObject {
     private func loadDeloadDecision(painLogs: [DailyPainLog]) async -> DeloadDecision? {
         guard !isGuest else { return nil }
         let records: [DailyReadinessRecord] = (try? await fetch("DailyReadinessRecord")) ?? []
-        guard let readinessRecord = records.sorted(by: { $0.assessmentDate > $1.assessmentDate }).first,
-              let readiness = try? readinessRecord.assessment() else { return nil }
+        // A persisted assessment is only actionable for the calendar day it was
+        // captured. Never carry yesterday's low score into today's workout.
+        guard let readinessRecord = records
+            .compactMap({ record -> (DailyReadinessRecord, ReadinessAssessment)? in
+                guard let assessment = try? record.assessment() else { return nil }
+                var calendar = Calendar(identifier: .gregorian)
+                calendar.timeZone = TimeZone(identifier: record.timeZoneIdentifier) ?? .current
+                guard calendar.isDate(assessment.assessmentDate, inSameDayAs: Date()) else { return nil }
+                return (record, assessment)
+            })
+            .sorted(by: { $0.1.assessmentDate > $1.1.assessmentDate })
+            .first else { return nil }
+        let readiness = readinessRecord.1
 
         let workouts: [Workout] = (try? await fetch("Workout")) ?? []
         let cutoff = Date().addingTimeInterval(-7 * 24 * 60 * 60)
-        let recent = workouts.filter { $0.date >= cutoff }
+        let recent = workouts.filter { workout in
+            guard let completedAt = workout.completedAt else { return false }
+            return completedAt >= cutoff
+        }
         let load: RecentTrainingLoadEvidence = recent.count >= 6 ? .excessive : (recent.count >= 4 ? .elevated : .balanced)
         let history: DeloadHistory = recent.contains { $0.name.localizedCaseInsensitiveContains("deload") } ? .recent : .none
         let pain = painLogs.map(\.intensity).max() ?? 0
