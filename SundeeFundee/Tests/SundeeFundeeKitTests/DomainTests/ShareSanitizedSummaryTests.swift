@@ -18,6 +18,14 @@ final class ShareSanitizedSummaryTests: XCTestCase {
         XCTAssertEqual(summary.modelVersion, "readiness-v1")
     }
 
+    func testDeloadRecommendationBuildsPrivacySafeSummary() throws {
+        let recommendation = DeloadRecommendation(isRecommended: true, reason: "Pain is high", recommendedDays: 2)
+        let summary = try ShareSanitizedSummary(deloadRecommendation: recommendation)
+        XCTAssertEqual(summary.title, "Active recovery recommended")
+        XCTAssertEqual(summary.metricValue, "2")
+        XCTAssertFalse(summary.subtitle?.contains("pain") == true)
+    }
+
     func testSummaryRoundTripsAndContainsOnlyDisplayMetadata() throws {
         let summary = try ShareSanitizedSummary(title: "Workout complete", subtitle: "Upper body", metricLabel: "Volume", metricValue: "12,400 kg", modelVersion: "2.0")
         XCTAssertEqual(try JSONDecoder().decode(ShareSanitizedSummary.self, from: JSONEncoder().encode(summary)), summary)
