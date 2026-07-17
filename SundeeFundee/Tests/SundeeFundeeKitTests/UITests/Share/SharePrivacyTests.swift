@@ -5,7 +5,7 @@ final class SharePrivacyTests: XCTestCase {
     func testPrivateDefaultDisclosureKeepsSensitiveOptionsOnDevice() {
         XCTAssertEqual(
             SharePrivacyOptions.privateDefault.shareDisclosureText,
-            "Only information shown in this preview is shared. Health data and private notes not shown here stay on your device."
+            "When you use Share, this card preview and a Sundee Fundee caption with an app link are shared. Health data and private notes not shown here stay on your device."
         )
     }
 
@@ -14,7 +14,7 @@ final class SharePrivacyTests: XCTestCase {
 
         XCTAssertEqual(
             options.shareDisclosureText,
-            "Only information shown in this preview is shared. Cycle context may be included when available. Other health data and private notes not shown here stay on your device."
+            "When you use Share, this card preview and a Sundee Fundee caption with an app link are shared. Cycle context may be included when available. Other health data and private notes not shown here stay on your device."
         )
     }
 
@@ -23,7 +23,7 @@ final class SharePrivacyTests: XCTestCase {
 
         XCTAssertEqual(
             options.shareDisclosureText,
-            "Only information shown in this preview is shared. Pain context may be included when available. Other health data and private notes not shown here stay on your device."
+            "When you use Share, this card preview and a Sundee Fundee caption with an app link are shared. Pain context may be included when available. Other health data and private notes not shown here stay on your device."
         )
     }
 
@@ -35,7 +35,7 @@ final class SharePrivacyTests: XCTestCase {
 
         XCTAssertEqual(
             options.shareDisclosureText,
-            "Only information shown in this preview is shared. Cycle context and pain context may be included when available. Other health data and private notes not shown here stay on your device."
+            "When you use Share, this card preview and a Sundee Fundee caption with an app link are shared. Cycle context and pain context may be included when available. Other health data and private notes not shown here stay on your device."
         )
     }
 
@@ -44,7 +44,7 @@ final class SharePrivacyTests: XCTestCase {
 
         XCTAssertEqual(
             options.shareDisclosureText,
-            "Only information shown in this preview is shared. An exact date may be included when available. Health data and private notes not shown here stay on your device."
+            "When you use Share, this card preview and a Sundee Fundee caption with an app link are shared. An exact date may be included when available. Health data and private notes not shown here stay on your device."
         )
     }
 
