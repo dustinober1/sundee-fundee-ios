@@ -52,7 +52,9 @@ disabled_rules:
 
 # Excluded paths (third-party, generated code)
 excluded:
+  - .worktrees/
   - .build/
+  - SundeeFundee/.build/
   - DerivedData/
   - .swiftpm/
   - Package.resolved
