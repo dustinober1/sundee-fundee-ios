@@ -91,4 +91,36 @@ final class DeloadWorkoutIntegrationTests: XCTestCase {
         XCTAssertEqual(viewModel.adjustment.decision?.mode, .normal)
         XCTAssertFalse(viewModel.adjustment.decision?.reasonCodes.contains(.highTrainingLoad) == true)
     }
+
+    @MainActor
+    func testStandardSessionOverrideSuppressesPersistedActiveRecoveryDecision() async throws {
+        let client = MockCloudKitClient()
+        try await client.save(
+            DailyReadinessRecord(assessment: assessment(.rest), timeZone: .current),
+            recordType: DailyReadinessRecord.recordType
+        )
+        try await client.save(
+            SymptomCheckInRecord(
+                symptomDate: Date(),
+                cramps: 0,
+                fatigue: 0,
+                soreness: 0,
+                energy: 9
+            ),
+            recordType: "SymptomCheckInRecord"
+        )
+        let viewModel = BestNextWorkoutViewModel(dataClient: client)
+
+        let adaptiveResult = await viewModel.buildWorkout()
+
+        XCTAssertEqual(viewModel.adjustment.decision?.mode, .activeRecovery)
+        XCTAssertFalse(viewModel.adjustment.isStandardSession)
+        XCTAssertTrue(adaptiveResult?.reasons.contains("Today context kept the work submaximal.") == true)
+
+        let standardResult = await viewModel.buildWorkout(useStandardSession: true)
+
+        XCTAssertNil(viewModel.adjustment.decision)
+        XCTAssertTrue(viewModel.adjustment.isStandardSession)
+        XCTAssertFalse(standardResult?.reasons.contains("Today context kept the work submaximal.") == true)
+    }
 }
