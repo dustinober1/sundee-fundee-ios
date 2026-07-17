@@ -65,7 +65,7 @@ public struct SharePrivacyOptions: Sendable, Equatable, Codable {
             showPainContext ? "pain context" : nil,
             showExactDate ? "an exact date" : nil,
         ].compactMap { $0 }
-        let previewBoundary = "Only information shown in this preview is shared."
+        let previewBoundary = "When you use Share, this card preview and a Sundee Fundee caption with an app link are shared."
 
         guard !selectedDetails.isEmpty else {
             return "\(previewBoundary) Health data and private notes not shown here stay on your device."
