@@ -97,21 +97,36 @@ public struct WorkoutsListView: View {
                 .foregroundColor(AppTheme.Text.secondary)
                 .fixedSize(horizontal: false, vertical: true)
             Button {
-                Task {
-                    bestNextViewModel.updateGuestState(authViewModel.isGuest)
-                    if let result = await bestNextViewModel.buildWorkout() {
-                        activeWorkoutSession = ActiveWorkoutSessionViewModel(workout: result.workout)
-                    }
-                }
+                startQuickWorkout()
             } label: {
                 Label("Best Next 20 Min", systemImage: "timer")
             }
             .disabled(bestNextViewModel.isBuilding)
             .accessibilityHint("Starts a read-only guided workout and applies any recovery adjustment")
+
+            Button {
+                startQuickWorkout(useStandardSession: true)
+            } label: {
+                Label("Use Standard Session", systemImage: "figure.strengthtraining.traditional")
+            }
+            .font(AppTheme.Typography.labelMedium)
+            .foregroundColor(AppTheme.Accent.orange)
+            .disabled(bestNextViewModel.isBuilding)
+            .accessibilityLabel("Use Standard Session")
+            .accessibilityHint("Starts a 20-minute workout without recovery adjustments")
         }
         .padding(.horizontal, AppTheme.Spacing.lg)
         .padding(.vertical, AppTheme.Spacing.sm)
         .background(AppTheme.Background.cream)
+    }
+
+    private func startQuickWorkout(useStandardSession: Bool = false) {
+        Task {
+            bestNextViewModel.updateGuestState(authViewModel.isGuest)
+            if let result = await bestNextViewModel.buildWorkout(useStandardSession: useStandardSession) {
+                activeWorkoutSession = ActiveWorkoutSessionViewModel(workout: result.workout)
+            }
+        }
     }
 
     // MARK: - Empty State
