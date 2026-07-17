@@ -44,4 +44,51 @@ final class DeloadWorkoutIntegrationTests: XCTestCase {
         XCTAssertTrue(viewModel.adjustment.isStandardSession)
         XCTAssertNil(viewModel.adjustment.decision)
     }
+
+    @MainActor
+    func testStaleReadinessAssessmentDoesNotTriggerDeload() async throws {
+        let yesterday = Calendar.current.date(byAdding: .day, value: -1, to: Date())!
+        let staleAssessment = ReadinessAssessment(
+            assessmentDate: yesterday, state: .recover, totalScore: 20,
+            confidence: .high, subScores: [:], availableSignals: [],
+            missingSignals: [], staleSignals: [], positiveReasons: [],
+            cautionReasons: [], modelVersion: "2.0"
+        )
+        let client = MockCloudKitClient()
+        try await client.save(
+            DailyReadinessRecord(assessment: staleAssessment, timeZone: .current),
+            recordType: DailyReadinessRecord.recordType
+        )
+
+        let viewModel = BestNextWorkoutViewModel(dataClient: client)
+        _ = await viewModel.buildWorkout()
+
+        XCTAssertNil(viewModel.adjustment.decision)
+        XCTAssertTrue(viewModel.adjustment.isStandardSession)
+    }
+
+    @MainActor
+    func testIncompleteWorkoutsDoNotIncreaseRecentTrainingLoad() async throws {
+        let client = MockCloudKitClient()
+        try await client.save(
+            DailyReadinessRecord(assessment: assessment(.ready), timeZone: .current),
+            recordType: DailyReadinessRecord.recordType
+        )
+        for index in 0..<4 {
+            let plannedWorkout = Workout(
+                id: "planned-\(index)",
+                date: Date().addingTimeInterval(Double(index) * -3_600),
+                name: "Planned workout \(index)",
+                exercises: [],
+                completedAt: nil
+            )
+            try await client.save(plannedWorkout, recordType: "Workout")
+        }
+
+        let viewModel = BestNextWorkoutViewModel(dataClient: client)
+        _ = await viewModel.buildWorkout()
+
+        XCTAssertEqual(viewModel.adjustment.decision?.mode, .normal)
+        XCTAssertFalse(viewModel.adjustment.decision?.reasonCodes.contains(.highTrainingLoad) == true)
+    }
 }
