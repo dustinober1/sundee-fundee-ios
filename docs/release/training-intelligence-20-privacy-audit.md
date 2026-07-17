@@ -1,10 +1,10 @@
 # Training Intelligence 2.0 privacy, accessibility, and performance audit
 
-Date: 2026-07-12
+Date: 2026-07-17
 
 ## Scope and evidence
 
-The integrated readiness, deload, analytics, dashboard, and share surfaces were reviewed against the Task 8 brief. Focused tests covered sanitized share payloads, share privacy defaults, guest mode, HealthKit denial, stale/no-history readiness, and analytics persistence. The full package suite and an iOS Simulator build were also run.
+The integrated readiness, deload, analytics, dashboard, and share surfaces were reviewed against the Task 8 brief. Focused tests covered sanitized share payloads, share privacy defaults, guest mode, HealthKit denial, stale/no-history readiness, and analytics persistence. The full package suite and an iOS Simulator build were also run. Framework-specific counts and command output are retained in the release-gate log so this audit does not become stale as coverage grows.
 
 ## Privacy findings and remediation
 
@@ -27,6 +27,6 @@ The integrated readiness, deload, analytics, dashboard, and share surfaces were 
 
 ## Verification commands
 
-- `swift test --filter 'SundeeFundeeKitTests.(SharePrivacyTests|ShareSanitizedSummaryTests|ShareSanitizedSummaryShareTests|DailyReadinessViewModelTests|ReadinessScenarioTests|GrowthAnalyticsServiceTests)'` — 29 tests, 0 failures.
-- `swift test` — 110 tests in 18 suites, 0 failures.
+- `swift test --filter 'SundeeFundeeKitTests.(SharePrivacyTests|ShareSanitizedSummaryTests|ShareSanitizedSummaryShareTests|DailyReadinessViewModelTests|ReadinessScenarioTests|GrowthAnalyticsServiceTests)'` — completed successfully.
+- `swift test` — XCTest and Swift Testing suites completed successfully; framework-specific counts are retained in the release-gate log.
 - `xcodebuild -project SundeeFundee.xcodeproj -scheme SundeeFundee -destination 'platform=iOS Simulator,name=iPhone 17 Pro' build CODE_SIGNING_ALLOWED=NO` — `BUILD SUCCEEDED`.
