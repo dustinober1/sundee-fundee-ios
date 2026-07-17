@@ -15,6 +15,17 @@ final class SundeeFundeeScreenshotTests: XCTestCase {
         app.launch()
 
         XCTAssertTrue(waitForScreen(title: "Today", timeout: 20), "Missing Today screen")
+        let dailyReadiness = app.buttons.matching(
+            NSPredicate(format: "label BEGINSWITH %@", "Daily readiness,")
+        ).firstMatch
+        XCTAssertTrue(
+            dailyReadiness.waitForExistence(timeout: 20),
+            "Daily readiness must finish loading before capture"
+        )
+        XCTAssertFalse(
+            app.staticTexts["Calculating today's readiness…"].exists,
+            "Readiness loading state must be gone before capture"
+        )
         snapshot("01_today_decision")
 
         captureCoachPlanBenefit()
@@ -128,7 +139,7 @@ final class SundeeFundeeScreenshotTests: XCTestCase {
             scrollView.swipeUp()
         }
         XCTAssertTrue(resistanceBands.isHittable, "Missing visible Bands Only option")
-        snapshot("01_coach_plan")
+        snapshot("08_coach_plan")
 
         let cancel = app.buttons["Cancel"].firstMatch
         XCTAssertTrue(cancel.waitForExistence(timeout: 5), "Missing Coach Plan cancel button")
