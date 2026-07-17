@@ -7,7 +7,7 @@ Run `scripts/training-intelligence-20-gate.sh` from this checkout before release
 - Full `swift test` suite in `SundeeFundee`.
 - Focused readiness, deload, and share test filters.
 - iPhone 17 Pro simulator build and `SundeeFundeeScreenshotTests` smoke tests.
-- CloudKit `DailyReadinessRecord` and `TodayWorkoutPreference` record/index guards.
+- Local CloudKit schema-definition guards for `DailyReadinessRecord` and `TodayWorkoutPreference` records/indexes. These checks do not import or deploy a schema to Development or Production.
 - Privacy-safe source scan for credentials, insecure URLs, and raw sensitive share fields.
 - English (US) metadata presence and screenshot dimensions: iPhone 17 Pro `1206×2622`, iPad Pro 13-inch `2064×2752`.
 - SwiftLint using the repository configuration.
