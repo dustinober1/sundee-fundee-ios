@@ -2,6 +2,52 @@ import XCTest
 @testable import SundeeFundeeKit
 
 final class SharePrivacyTests: XCTestCase {
+    func testPrivateDefaultDisclosureKeepsSensitiveOptionsOnDevice() {
+        XCTAssertEqual(
+            SharePrivacyOptions.privateDefault.shareDisclosureText,
+            "Only information shown in this preview is shared. Health data and private notes not shown here stay on your device."
+        )
+    }
+
+    func testCycleEnabledDisclosureSaysCycleContextMayBeIncluded() {
+        let options = SharePrivacyOptions(showCycleContext: true)
+
+        XCTAssertEqual(
+            options.shareDisclosureText,
+            "Only information shown in this preview is shared. Cycle context may be included when available. Other health data and private notes not shown here stay on your device."
+        )
+    }
+
+    func testPainEnabledDisclosureSaysPainContextMayBeIncluded() {
+        let options = SharePrivacyOptions(showPainContext: true)
+
+        XCTAssertEqual(
+            options.shareDisclosureText,
+            "Only information shown in this preview is shared. Pain context may be included when available. Other health data and private notes not shown here stay on your device."
+        )
+    }
+
+    func testCycleAndPainEnabledDisclosureSaysBothContextsMayBeIncluded() {
+        let options = SharePrivacyOptions(
+            showCycleContext: true,
+            showPainContext: true
+        )
+
+        XCTAssertEqual(
+            options.shareDisclosureText,
+            "Only information shown in this preview is shared. Cycle context and pain context may be included when available. Other health data and private notes not shown here stay on your device."
+        )
+    }
+
+    func testExactDateEnabledDisclosureSaysExactDateMayBeIncluded() {
+        let options = SharePrivacyOptions(showExactDate: true)
+
+        XCTAssertEqual(
+            options.shareDisclosureText,
+            "Only information shown in this preview is shared. An exact date may be included when available. Health data and private notes not shown here stay on your device."
+        )
+    }
+
     func testDefaultPrivacyOptionsArePrivate() {
         let options = SharePrivacyOptions.privateDefault
         XCTAssertFalse(options.showCycleContext)
