@@ -195,6 +195,36 @@ struct TodayEngagementViewModelTests {
         #expect(await secondService.lastPromotion?.1 == .ready)
     }
 
+    @Test func accountSwitchDiscardsLateResultsAndClearsStateWhenNewLoadFails() async {
+        let firstService = BlockingLoadPresenceService(ownerID: "account-a")
+        let secondService = FailingPresenceService(ownerID: "account-b")
+        let provider = MutablePresenceServiceProvider(service: firstService)
+        let sessionProvider = MutablePresenceSessionProvider(
+            token: PresenceSessionToken(ownerID: "account-a", generation: 1)
+        )
+        let viewModel = TodayEngagementViewModel(
+            serviceProvider: provider.current,
+            sessionTokenProvider: sessionProvider.current
+        )
+
+        let firstLoad = Task { await viewModel.load() }
+        await firstService.waitUntilLoadStarts()
+
+        provider.set(secondService)
+        sessionProvider.set(
+            PresenceSessionToken(ownerID: "account-b", generation: 2)
+        )
+        await viewModel.load()
+        await firstService.releaseLoad()
+        await firstLoad.value
+
+        #expect(await firstService.recordOpenCallCount == 1)
+        #expect(await secondService.recordOpenCallCount == 1)
+        #expect(viewModel.today == nil)
+        #expect(viewModel.summary == nil)
+        #expect(viewModel.message == "Daily momentum is taking a moment to update. Your training plan is ready.")
+    }
+
     @Test func ignoresASecondSelectionWhileTheFirstIsSaving() async throws {
         let service = BlockingPresenceService()
         let viewModel = TodayEngagementViewModel(service: service)
@@ -245,6 +275,23 @@ private final class MutablePresenceServiceProvider: @unchecked Sendable {
 
     func set(_ service: any DailyPresenceServicing) {
         lock.withLock { self.service = service }
+    }
+}
+
+private final class MutablePresenceSessionProvider: @unchecked Sendable {
+    private let lock = NSLock()
+    private var token: PresenceSessionToken
+
+    init(token: PresenceSessionToken) {
+        self.token = token
+    }
+
+    func current() -> PresenceSessionToken {
+        lock.withLock { token }
+    }
+
+    func set(_ token: PresenceSessionToken) {
+        lock.withLock { self.token = token }
     }
 }
 
@@ -424,6 +471,8 @@ private final class LockedDateSequence: @unchecked Sendable {
 }
 
 private actor BlockingLoadPresenceService: DailyPresenceServicing {
+    let ownerID: String
+    private(set) var recordOpenCallCount = 0
     private(set) var promotionCallCount = 0
     private(set) var lastPromotion:
         (DailyParticipationLevel, DailyPresenceStatus?, DailyPresenceActionEvidence?)?
@@ -431,7 +480,12 @@ private actor BlockingLoadPresenceService: DailyPresenceServicing {
     private var startWaiters: [CheckedContinuation<Void, Never>] = []
     private var loadWaiters: [CheckedContinuation<Void, Never>] = []
 
+    init(ownerID: String = "injected-presence-owner") {
+        self.ownerID = ownerID
+    }
+
     func recordOpen(at date: Date, calendar: Calendar) async throws -> DailyPresenceRecord {
+        recordOpenCallCount += 1
         didStartLoad = true
         startWaiters.forEach { $0.resume() }
         startWaiters.removeAll()
@@ -487,5 +541,40 @@ private actor BlockingLoadPresenceService: DailyPresenceServicing {
             participationLevel: participationLevel,
             status: status
         )
+    }
+}
+
+private actor FailingPresenceService: DailyPresenceServicing {
+    private enum TestFailure: Error {
+        case unavailable
+    }
+
+    let ownerID: String
+    private(set) var recordOpenCallCount = 0
+
+    init(ownerID: String) {
+        self.ownerID = ownerID
+    }
+
+    func recordOpen(at date: Date, calendar: Calendar) async throws -> DailyPresenceRecord {
+        recordOpenCallCount += 1
+        throw TestFailure.unavailable
+    }
+
+    func promoteToday(
+        to participationLevel: DailyParticipationLevel,
+        status: DailyPresenceStatus?,
+        action: DailyPresenceActionEvidence?,
+        at date: Date,
+        calendar: Calendar
+    ) async throws -> DailyPresenceRecord {
+        throw TestFailure.unavailable
+    }
+
+    func loadSummary(
+        referenceDate: Date,
+        calendar: Calendar
+    ) async throws -> ConsistencyMomentumSummary {
+        throw TestFailure.unavailable
     }
 }
