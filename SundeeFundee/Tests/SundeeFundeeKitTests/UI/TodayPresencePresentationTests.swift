@@ -16,6 +16,17 @@ struct TodayPresencePresentationTests {
         })
     }
 
+    @Test func openCopyOnlyClaimsSuccessAfterPresencePersists() {
+        #expect(
+            TodayPresenceCopy.openState(hasPresence: true)
+                == "Opening Today already counted as showing up"
+        )
+        #expect(
+            TodayPresenceCopy.openState(hasPresence: false)
+                == "Open Today to count today as showing up"
+        )
+    }
+
     @Test func achievementCopyIsConciseAndNonPunitive() {
         let forbidden = ["lost", "failed", "reset", "broke", "missed"]
 
