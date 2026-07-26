@@ -25,6 +25,7 @@ private let dashLogger = Logger(subsystem: "com.sundeefundee.app", category: "Da
 public struct DashboardView: View {
     @StateObject private var viewModel = DashboardViewModel()
     @StateObject private var readinessViewModel = DailyReadinessViewModel()
+    @StateObject private var engagementViewModel = TodayEngagementViewModel()
     @EnvironmentObject var authViewModel: AuthViewModel
     @EnvironmentObject var cyclePhaseCache: CyclePhaseCache
     @State private var showingAIWorkout = false
@@ -46,6 +47,14 @@ public struct DashboardView: View {
             ScrollView {
                 VStack(spacing: AppTheme.Spacing.lg) {
                     welcomeHeader
+
+                    TodayPresenceCard(
+                        today: engagementViewModel.today,
+                        summary: engagementViewModel.summary,
+                        message: engagementViewModel.message
+                    ) { status in
+                        Task { await engagementViewModel.select(status) }
+                    }
 
                     if let todayAction = viewModel.todayAction {
                         todayActionCard(todayAction)
@@ -116,8 +125,10 @@ public struct DashboardView: View {
                 }
             }
             .task {
+                async let engagementLoad: Void = engagementViewModel.load()
                 await viewModel.loadData(cyclePhaseCache: cyclePhaseCache)
                 await refreshReadiness()
+                _ = await engagementLoad
             }
             .refreshable {
                 await viewModel.loadData(cyclePhaseCache: cyclePhaseCache)
