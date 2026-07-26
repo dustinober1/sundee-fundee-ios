@@ -21,7 +21,7 @@ struct DailyPresencePrivacyTests {
         let approved = Set([
             "id", "dayKey", "timeZoneIdentifier", "firstOpenDate",
             "mostRecentOpenDate", "participationLevelRaw", "statusRaw",
-            "dateCreated", "dateUpdated", "modelVersion"
+            "actionEvidenceRaw", "dateCreated", "dateUpdated", "modelVersion"
         ])
         #expect(Set(object.keys) == approved)
         #expect(object.keys.allSatisfy { key in
