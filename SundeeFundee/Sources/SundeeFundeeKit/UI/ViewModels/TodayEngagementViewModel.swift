@@ -76,12 +76,27 @@ public final class TodayEngagementViewModel: ObservableObject {
     }
 
     public func select(_ status: DailyPresenceStatus) async {
+        let level: DailyParticipationLevel =
+            status == .resting || status == .trained ? .acted : .checkedIn
+        await promote(level: level, status: status)
+    }
+
+    public func recordCheckIn() async {
+        await promote(level: .checkedIn, status: nil)
+    }
+
+    public func recordAction(_ status: DailyPresenceStatus?) async {
+        await promote(level: .acted, status: status)
+    }
+
+    private func promote(
+        level: DailyParticipationLevel,
+        status: DailyPresenceStatus?
+    ) async {
         guard !isLoading else { return }
         isLoading = true
 
         let service = serviceProvider()
-        let level: DailyParticipationLevel =
-            status == .resting || status == .trained ? .acted : .checkedIn
 
         do {
             today = try await service.promoteToday(
