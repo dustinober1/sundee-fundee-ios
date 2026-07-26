@@ -49,11 +49,18 @@ private actor PresenceCacheCoordinator {
 
 private enum PresenceCacheFile {
     static func read(from fileURL: URL) throws -> PresenceCacheEnvelope {
-        guard FileManager.default.fileExists(atPath: fileURL.path) else {
+        let data: Data
+        do {
+            data = try Data(contentsOf: fileURL)
+        } catch {
+            let nsError = error as NSError
+            guard nsError.domain == NSCocoaErrorDomain,
+                  nsError.code == NSFileReadNoSuchFileError else {
+                throw error
+            }
             return PresenceCacheEnvelope()
         }
 
-        let data = try Data(contentsOf: fileURL)
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
         return try decoder.decode(PresenceCacheEnvelope.self, from: data)
