@@ -60,6 +60,62 @@ struct ConsistencyMomentumServiceTests {
         #expect(result.supportiveHeadline == "Welcome back")
     }
 
+    @Test func todayAfterASevenDayGapPrioritizesWelcomeBack() {
+        let result = ConsistencyMomentumService().summarize(
+            records: [
+                record("2026-07-13", level: .acted),
+                record("2026-07-20", level: .showedUp),
+            ],
+            referenceDate: date("2026-07-20"),
+            calendar: calendar
+        )
+
+        #expect(result.daysPresentThisWeek == 1)
+        #expect(result.supportiveHeadline == "Welcome back")
+    }
+
+    @Test func datelineRecordStaysInItsStoredLocalDayAndWeek() {
+        let record = DailyPresenceRecord(
+            dayKey: "2026-07-20",
+            timeZoneIdentifier: "Pacific/Kiritimati",
+            firstOpenDate: ISO8601DateFormatter().date(from: "2026-07-19T10:30:00Z")!,
+            participationLevel: .acted,
+            actionEvidence: [.recovered]
+        )
+
+        let result = ConsistencyMomentumService().summarize(
+            records: [record],
+            referenceDate: date("2026-07-20"),
+            calendar: calendar
+        )
+
+        #expect(result.daysPresentThisWeek == 1)
+        #expect(result.actionDaysThisWeek == 1)
+    }
+
+    @Test func daylightSavingTransitionKeepsDistinctStoredDays() {
+        let records = [
+            DailyPresenceRecord(
+                dayKey: "2026-03-08",
+                timeZoneIdentifier: "America/New_York",
+                firstOpenDate: ISO8601DateFormatter().date(from: "2026-03-08T06:30:00Z")!
+            ),
+            DailyPresenceRecord(
+                dayKey: "2026-03-09",
+                timeZoneIdentifier: "America/New_York",
+                firstOpenDate: ISO8601DateFormatter().date(from: "2026-03-09T04:30:00Z")!
+            ),
+        ]
+
+        let result = ConsistencyMomentumService().summarize(
+            records: records,
+            referenceDate: ISO8601DateFormatter().date(from: "2026-03-09T16:00:00Z")!,
+            calendar: calendar
+        )
+
+        #expect(result.rollingWeeks.map(\.daysPresent).reduce(0, +) == 2)
+    }
+
     @Test func summaryRederivesAchievementsFromPresenceHistory() {
         let result = ConsistencyMomentumService().summarize(
             records: [
