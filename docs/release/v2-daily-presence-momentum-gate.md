@@ -107,6 +107,13 @@ and evidence links below.
 - [ ] SwiftLint exits successfully.
 - [ ] The app builds for the iPhone 17 Pro simulator.
 - [ ] `git diff --check` exits successfully with no output.
+- [ ] The project `cloudkit-validate` skill, or a documented equivalent
+      fallback when that skill is unavailable, passes against the candidate
+      `DailyPresenceRecord.swift` model and checked-in
+      `SundeeFundeeApp/cloudkit-schema.json`. Retained evidence confirms exact
+      fields and types, ISO8601 dates stored as CloudKit `STRING` values,
+      reserved-name avoidance, no sensitive health, cycle, pain, HRV, or
+      readiness fields, and a queryable record ID.
 - [ ] Every manual check above is complete with retained evidence.
 - [ ] Offline writes survive relaunch and reconcile without duplicates.
 - [ ] CloudKit Development and Production indexes are verified.
