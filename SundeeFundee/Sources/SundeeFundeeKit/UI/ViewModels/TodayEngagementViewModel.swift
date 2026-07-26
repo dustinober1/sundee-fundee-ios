@@ -24,6 +24,8 @@ public final class TodayEngagementViewModel: ObservableObject {
     private let serviceProvider: @Sendable () -> any DailyPresenceServicing
     private let calendar: Calendar
     private let now: @Sendable () -> Date
+    private let achievementHaptic: @MainActor @Sendable () -> Void
+    private var announcedAchievements: Set<ConsistencyAchievement> = []
     private var needsReload = false
     private var isRefreshing = false
     private var pendingAction: PendingAction?
@@ -51,16 +53,21 @@ public final class TodayEngagementViewModel: ObservableObject {
         }
         self.calendar = calendar
         self.now = now
+        achievementHaptic = { HapticFeedback.success() }
     }
 
     init(
         serviceProvider: @escaping @Sendable () -> any DailyPresenceServicing,
         calendar: Calendar = .current,
-        now: @escaping @Sendable () -> Date = { Date() }
+        now: @escaping @Sendable () -> Date = { Date() },
+        achievementHaptic: @escaping @MainActor @Sendable () -> Void = {
+            HapticFeedback.success()
+        }
     ) {
         self.serviceProvider = serviceProvider
         self.calendar = calendar
         self.now = now
+        self.achievementHaptic = achievementHaptic
     }
 
     public func load() async {
@@ -74,7 +81,9 @@ public final class TodayEngagementViewModel: ObservableObject {
         do {
             let service = serviceProvider()
             today = try await service.recordOpen(at: now(), calendar: calendar)
-            summary = try await service.loadSummary(referenceDate: now(), calendar: calendar)
+            updateSummary(
+                try await service.loadSummary(referenceDate: now(), calendar: calendar)
+            )
             message = nil
         } catch {
             message = "Your daily momentum could not be updated. Your training plan is still available."
@@ -126,12 +135,17 @@ public final class TodayEngagementViewModel: ObservableObject {
                 at: now(),
                 calendar: calendar
             )
-            HapticFeedback.light()
 
             do {
-                summary = try await service.loadSummary(referenceDate: now(), calendar: calendar)
+                let announcedAchievement = updateSummary(
+                    try await service.loadSummary(referenceDate: now(), calendar: calendar)
+                )
+                if !announcedAchievement {
+                    HapticFeedback.light()
+                }
                 message = nil
             } catch {
+                HapticFeedback.light()
                 message = "Your check-in was saved, but momentum couldn’t refresh yet."
             }
         } catch {
@@ -154,6 +168,18 @@ public final class TodayEngagementViewModel: ObservableObject {
         guard needsReload else { return }
         needsReload = false
         await load()
+    }
+
+    @discardableResult
+    private func updateSummary(_ updatedSummary: ConsistencyMomentumSummary) -> Bool {
+        summary = updatedSummary
+
+        let newlyAnnounced = updatedSummary.achievements.subtracting(announcedAchievements)
+        guard !newlyAnnounced.isEmpty else { return false }
+
+        announcedAchievements.formUnion(newlyAnnounced)
+        achievementHaptic()
+        return true
     }
 
     private func enqueueAction(
