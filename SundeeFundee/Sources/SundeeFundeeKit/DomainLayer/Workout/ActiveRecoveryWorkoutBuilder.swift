@@ -40,7 +40,8 @@ public enum ActiveRecoveryWorkoutBuilder {
         return Workout(
             date: date,
             name: name,
-            exercises: exercises
+            exercises: exercises,
+            kind: .activeRecovery
         )
     }
 
