@@ -12,13 +12,22 @@ public final class WorkoutReminderNotificationDelegate: NSObject, UNUserNotifica
         _ center: UNUserNotificationCenter,
         didReceive response: UNNotificationResponse
     ) async {
-        let route = ReminderService.route(from: response.notification.request.content.userInfo)
+        let route = Self.appRoute(from: response.notification.request.content.userInfo)
         NotificationCenter.default.post(name: .workoutReminderOpened, object: route.rawValue)
         await GrowthAnalyticsService().track(
             GrowthEventName.reminderOpened,
             source: "notification",
             properties: ["route": route.rawValue]
         )
+    }
+
+    static func appRoute(from userInfo: [AnyHashable: Any]) -> ReminderService.ReminderRoute {
+        switch ReminderService.route(from: userInfo) {
+        case .workouts:
+            return .workouts
+        case .dashboard, .today:
+            return .today
+        }
     }
 }
 #endif
