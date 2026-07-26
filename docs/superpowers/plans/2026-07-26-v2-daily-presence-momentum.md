@@ -1119,7 +1119,7 @@ Rules:
 - `recoveryChoice`: a record has `.acted` and `.resting`.
 - Subtract `previouslyEarned` before returning.
 
-Keep achievement persistence as a JSON set beside the presence cache. Do not create a CloudKit record type in Phase 1; achievements can be re-derived from presence history after migration.
+Do not persist achievements in Phase 1. Re-derive them from presence history whenever momentum loads, and keep an in-memory `Set<ConsistencyAchievement>` in `TodayEngagementViewModel` only to prevent repeated haptics during the current process. Do not create a CloudKit achievement record type.
 
 - [ ] **Step 4: Present achievements without blocking Today**
 
@@ -1176,9 +1176,18 @@ public var dailyPlanMinute: Int
 ```swift
 @Test func oldSettingsDefaultDailyPlanReminderOff() throws {
     let oldJSON = """
-    {"id":"workout-reminders","enabled":false,"hour":8,"minute":0,"weekdays":[]}
+    {
+      "id":"workout_reminder_settings",
+      "isEnabled":false,
+      "preferredWeekdays":[2,4,6],
+      "hour":9,
+      "minute":0,
+      "dateUpdated":"2026-07-26T12:00:00Z"
+    }
     """
-    let settings = try JSONDecoder().decode(WorkoutReminderSettings.self, from: Data(oldJSON.utf8))
+    let decoder = JSONDecoder()
+    decoder.dateDecodingStrategy = .iso8601
+    let settings = try decoder.decode(WorkoutReminderSettings.self, from: Data(oldJSON.utf8))
     #expect(settings.dailyPlanEnabled == false)
     #expect(settings.dailyPlanHour == 8)
     #expect(settings.dailyPlanMinute == 0)
