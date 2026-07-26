@@ -22,9 +22,21 @@ and evidence links below.
 - [ ] Complete onboarding and reach Today in guest mode.
 - [ ] Sign in with a dedicated iCloud test account for CloudKit checks.
 - [ ] Confirm `DailyPresenceRecord` exists in CloudKit Development and
-      Production with a queryable `recordName` / `___recordID` index.
+      Production with a queryable `recordName` / `___recordID` index,
+      `actionEvidenceRaw` as `LIST<STRING>`, `modelVersion` as `INT64`, and all
+      four application dates as ISO8601 `STRING` values.
+- [ ] Confirm `WorkoutReminderSettings` exists in CloudKit Development and
+      Production with a queryable `recordName` / `___recordID` index and these
+      exact fields: `isEnabled` and `dailyPlanEnabled` as `INT64`,
+      `preferredWeekdays` as `LIST<INT64>`, reminder hour/minute fields as
+      `INT64`, and `dateUpdated` as an ISO8601 `STRING`.
+- [ ] Confirm the existing `Workout` type contains `kind` as `STRING`, and a
+      saved active-recovery workout round-trips as `activeRecovery`.
 - [ ] Confirm the candidate contains no raw health, cycle, pain, HRV, or
       readiness fields in `DailyPresenceRecord`.
+- [ ] Confirm `WorkoutReminderSettings` contains only reminder preference
+      fields and no health, cycle, pain, HRV, readiness, or private check-in
+      content.
 
 ## Presence and Participation
 
@@ -44,7 +56,12 @@ and evidence links below.
 - [ ] **Resting and Trained are intentional actions.** Select each and verify
       participation is promoted to `acted`.
 - [ ] **Workout completion promotes Trained.** Complete a workout, return to
-      Today, and verify status `trained` with participation `acted`.
+      Today, and verify status `trained`, durable action evidence `trained`,
+      and participation `acted`.
+- [ ] **Active-recovery completion promotes recovery exactly once.** Complete
+      an active-recovery workout, return to Today, and verify status `resting`,
+      durable action evidence `recovered`, participation `acted`, and no
+      duplicate `trained` promotion.
 - [ ] **Rich check-in does not claim a workout.** Complete a rich check-in
       without finishing a workout and verify participation `checkedIn` and no
       implicit `trained` status.
@@ -100,6 +117,9 @@ and evidence links below.
 | Light and dark appearance | Not run | |
 | CloudKit Development index | Not verified | |
 | CloudKit Production index | Not verified | |
+| Workout reminder Development schema | Not verified | |
+| Workout reminder Production schema | Not verified | |
+| Workout kind Development/Production schema | Not verified | |
 
 ## Release Decision
 
@@ -109,11 +129,13 @@ and evidence links below.
 - [ ] `git diff --check` exits successfully with no output.
 - [ ] The project `cloudkit-validate` skill, or a documented equivalent
       fallback when that skill is unavailable, passes against the candidate
-      `DailyPresenceRecord.swift` model and checked-in
-      `SundeeFundeeApp/cloudkit-schema.json`. Retained evidence confirms exact
-      fields and types, ISO8601 dates stored as CloudKit `STRING` values,
-      reserved-name avoidance, no sensitive health, cycle, pain, HRV, or
-      readiness fields, and a queryable record ID.
+      `DailyPresenceRecord.swift` and `WorkoutReminderSettings` models plus
+      checked-in `SundeeFundeeApp/cloudkit-schema.json`. Retained evidence
+      confirms exact fields and types, ISO8601 dates stored as CloudKit
+      `STRING` values, reserved-name avoidance, no sensitive health, cycle,
+      pain, HRV, or readiness fields, a queryable record ID, and `Workout.kind`
+      as `STRING`. The checked-in fallback is
+      `scripts/next-release-gate.sh --schema-only`.
 - [ ] Every manual check above is complete with retained evidence.
 - [ ] Offline writes survive relaunch and reconcile without duplicates.
 - [ ] CloudKit Development and Production indexes are verified.
