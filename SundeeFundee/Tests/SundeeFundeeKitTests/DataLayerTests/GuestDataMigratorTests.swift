@@ -179,6 +179,106 @@ struct GuestDataMigratorTests {
         #expect(destination.recordCount(for: "Workout") == 0)
         #expect(destination.recordCount(for: "UserSettings") == 0)
     }
+
+    @Test("migrate merges guest presence into the signed-in account before clearing it")
+    func testMigrateTransfersPresenceByOwner() async throws {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+
+        let source = MockCloudKitClient()
+        let destination = MockCloudKitClient()
+        let guestStore = PresenceLocalStore(
+            ownerID: "guest_local",
+            baseDirectoryURL: directory
+        )
+        let accountStore = PresenceLocalStore(
+            ownerID: "account-a",
+            baseDirectoryURL: directory
+        )
+        let date = Date(timeIntervalSince1970: 1_753_528_400)
+        let guestRecord = DailyPresenceRecord(
+            dayKey: "2025-07-23",
+            timeZoneIdentifier: "America/New_York",
+            firstOpenDate: date,
+            participationLevel: .acted,
+            status: .trained,
+            actionEvidence: [.trained]
+        )
+        let remoteRecord = DailyPresenceRecord(
+            dayKey: "2025-07-23",
+            timeZoneIdentifier: "America/Los_Angeles",
+            firstOpenDate: date.addingTimeInterval(-60),
+            participationLevel: .acted,
+            status: .resting,
+            actionEvidence: [.recovered]
+        )
+        _ = try await guestStore.save(
+            guestRecord,
+            ownerID: "guest_local"
+        )
+        try await destination.save(remoteRecord, recordType: DailyPresenceService.recordType)
+
+        let migrator = GuestDataMigrator(
+            source: source,
+            destination: destination,
+            sourcePresenceStore: guestStore,
+            sourcePresenceOwnerID: "guest_local",
+            destinationPresenceStore: accountStore,
+            destinationPresenceOwnerID: "account-a"
+        )
+        let result = try await migrator.migrate()
+
+        let remote: [DailyPresenceRecord] = try await destination.fetchAll(
+            recordType: DailyPresenceService.recordType
+        )
+        let migrated = try #require(remote.first)
+        #expect(
+            migrated.actionEvidence
+                == Set([DailyPresenceActionEvidence.trained, .recovered])
+        )
+        #expect(result.presencesMigrated == 1)
+        #expect(result.totalCount == 1)
+        #expect(
+            try await guestStore.load(ownerID: "guest_local").isEmpty
+        )
+        #expect(try await accountStore.load(ownerID: "account-a") == [migrated])
+        #expect(try await accountStore.pending(ownerID: "account-a").isEmpty)
+    }
+
+    @Test("failed presence upload keeps the guest presence cache intact")
+    func testPresenceMigrationFailureKeepsGuestCache() async throws {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+
+        let source = MockCloudKitClient()
+        let destination = FailingSaveClient()
+        let guestStore = PresenceLocalStore(
+            ownerID: "guest_local",
+            baseDirectoryURL: directory
+        )
+        let record = DailyPresenceRecord(
+            dayKey: "2025-07-23",
+            timeZoneIdentifier: "America/New_York",
+            firstOpenDate: Date(timeIntervalSince1970: 1_753_528_400)
+        )
+        _ = try await guestStore.save(record, ownerID: "guest_local")
+        let migrator = GuestDataMigrator(
+            source: source,
+            destination: destination,
+            sourcePresenceStore: guestStore,
+            sourcePresenceOwnerID: "guest_local"
+        )
+
+        await #expect(throws: (any Error).self) {
+            _ = try await migrator.migrate()
+        }
+
+        #expect(
+            try await guestStore.load(ownerID: "guest_local") == [record]
+        )
+    }
 }
 
 // MARK: - FailingSaveClient
