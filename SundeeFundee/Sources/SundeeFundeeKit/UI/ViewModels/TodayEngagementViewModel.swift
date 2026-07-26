@@ -30,6 +30,11 @@ public extension DailyPresenceServicing {
 
 extension DailyPresenceService: DailyPresenceServicing {}
 
+struct PresenceSessionToken: Sendable, Equatable {
+    let ownerID: String
+    let generation: UInt64
+}
+
 public protocol AchievementAnnouncementStoring: Sendable {
     func claimNew(
         _ achievements: Set<ConsistencyAchievement>,
@@ -63,7 +68,8 @@ public final class TodayEngagementViewModel: ObservableObject {
     @Published public private(set) var isLoading = false
     @Published public private(set) var message: String?
 
-    private let serviceProvider: @Sendable () -> any DailyPresenceServicing
+    private let operationContextProvider: @Sendable () -> OperationContext
+    private let sessionTokenProvider: (@Sendable () -> PresenceSessionToken)?
     private let calendar: Calendar
     private let now: @Sendable () -> Date
     private let achievementHaptic: @MainActor @Sendable () -> Void
@@ -73,12 +79,24 @@ public final class TodayEngagementViewModel: ObservableObject {
     private var needsReload = false
     private var needsSyncRetry = false
     private var pendingAction: PendingAction?
+    private var presentedSessionToken: PresenceSessionToken?
+
+    private struct OperationContext: Sendable {
+        let service: any DailyPresenceServicing
+        let sessionToken: PresenceSessionToken?
+    }
+
+    private struct ResolvedOperationContext: Sendable {
+        let service: any DailyPresenceServicing
+        let sessionToken: PresenceSessionToken
+    }
 
     private struct PendingAction {
         let level: DailyParticipationLevel
         let status: DailyPresenceStatus?
         let evidence: DailyPresenceActionEvidence?
         let operationDate: Date
+        let sessionToken: PresenceSessionToken
     }
 
     public init(
@@ -87,15 +105,31 @@ public final class TodayEngagementViewModel: ObservableObject {
         now: @escaping @Sendable () -> Date = { Date() }
     ) {
         if let service {
-            serviceProvider = { service }
+            operationContextProvider = {
+                OperationContext(service: service, sessionToken: nil)
+            }
+            sessionTokenProvider = nil
             networkMonitor = nil
         } else {
-            serviceProvider = {
+            operationContextProvider = {
                 let session = DataClientFactory.shared.session
-                return DailyPresenceService(
+                return OperationContext(
+                    service: DailyPresenceService(
+                        ownerID: session.ownerID,
+                        localStore: PresenceLocalStore(ownerID: session.ownerID),
+                        dataClient: session.client
+                    ),
+                    sessionToken: PresenceSessionToken(
+                        ownerID: session.ownerID,
+                        generation: session.generation
+                    )
+                )
+            }
+            sessionTokenProvider = {
+                let session = DataClientFactory.shared.session
+                return PresenceSessionToken(
                     ownerID: session.ownerID,
-                    localStore: PresenceLocalStore(ownerID: session.ownerID),
-                    dataClient: session.client
+                    generation: session.generation
                 )
             }
             networkMonitor = NetworkMonitor()
@@ -116,9 +150,16 @@ public final class TodayEngagementViewModel: ObservableObject {
         },
         achievementStore: any AchievementAnnouncementStoring =
             AccountAchievementAnnouncementStore.shared,
-        networkMonitor: NetworkMonitor? = nil
+        networkMonitor: NetworkMonitor? = nil,
+        sessionTokenProvider: (@Sendable () -> PresenceSessionToken)? = nil
     ) {
-        self.serviceProvider = serviceProvider
+        operationContextProvider = {
+            OperationContext(
+                service: serviceProvider(),
+                sessionToken: sessionTokenProvider?()
+            )
+        }
+        self.sessionTokenProvider = sessionTokenProvider
         self.calendar = calendar
         self.now = now
         self.achievementHaptic = achievementHaptic
@@ -132,6 +173,8 @@ public final class TodayEngagementViewModel: ObservableObject {
     }
 
     public func load() async {
+        let context = await makeOperationContext()
+        prepareForOperation(in: context.sessionToken)
         guard !isLoading else {
             needsReload = true
             return
@@ -140,19 +183,42 @@ public final class TodayEngagementViewModel: ObservableObject {
         let operationDate = now()
 
         do {
-            let service = serviceProvider()
-            let operationOwnerID = await service.ownerID
-            today = try await service.recordOpen(at: operationDate, calendar: calendar)
-            _ = await updateSummary(
-                try await service.loadSummary(
-                    referenceDate: operationDate,
-                    calendar: calendar
-                ),
-                ownerID: operationOwnerID
+            let loadedToday = try await context.service.recordOpen(
+                at: operationDate,
+                calendar: calendar
             )
-            syncState = await service.currentSyncState()
+            guard await isCurrent(context.sessionToken) else {
+                await completeOperation()
+                return
+            }
+            today = loadedToday
+
+            let loadedSummary = try await context.service.loadSummary(
+                referenceDate: operationDate,
+                calendar: calendar
+            )
+            guard await isCurrent(context.sessionToken) else {
+                await completeOperation()
+                return
+            }
+            _ = await updateSummary(
+                loadedSummary,
+                ownerID: context.sessionToken.ownerID,
+                sessionToken: context.sessionToken
+            )
+
+            let updatedSyncState = await context.service.currentSyncState()
+            guard await isCurrent(context.sessionToken) else {
+                await completeOperation()
+                return
+            }
+            syncState = updatedSyncState
             message = nil
         } catch {
+            guard await isCurrent(context.sessionToken) else {
+                await completeOperation()
+                return
+            }
             message = "Daily momentum is taking a moment to update. Your training plan is ready."
         }
 
@@ -200,12 +266,17 @@ public final class TodayEngagementViewModel: ObservableObject {
     }
 
     public func retrySync() async {
+        let context = await makeOperationContext()
+        prepareForOperation(in: context.sessionToken)
         guard !isLoading else {
             needsSyncRetry = true
             return
         }
         isLoading = true
-        syncState = await serviceProvider().syncPending()
+        let updatedSyncState = await context.service.syncPending()
+        if await isCurrent(context.sessionToken) {
+            syncState = updatedSyncState
+        }
         await completeOperation()
     }
 
@@ -215,12 +286,15 @@ public final class TodayEngagementViewModel: ObservableObject {
         evidence: DailyPresenceActionEvidence?,
         operationDate: Date
     ) async {
+        let context = await makeOperationContext()
+        prepareForOperation(in: context.sessionToken)
         guard !isLoading else {
             enqueueAction(
                 level: level,
                 status: status,
                 evidence: evidence,
-                operationDate: operationDate
+                operationDate: operationDate,
+                sessionToken: context.sessionToken
             )
             return
         }
@@ -228,7 +302,8 @@ public final class TodayEngagementViewModel: ObservableObject {
             level: level,
             status: status,
             evidence: evidence,
-            operationDate: operationDate
+            operationDate: operationDate,
+            context: context
         )
     }
 
@@ -236,41 +311,69 @@ public final class TodayEngagementViewModel: ObservableObject {
         level: DailyParticipationLevel,
         status: DailyPresenceStatus?,
         evidence: DailyPresenceActionEvidence?,
-        operationDate: Date
+        operationDate: Date,
+        context suppliedContext: ResolvedOperationContext? = nil
     ) async {
         guard !isLoading else { return }
+        let context = if let suppliedContext {
+            suppliedContext
+        } else {
+            await makeOperationContext()
+        }
+        prepareForOperation(in: context.sessionToken)
         isLoading = true
 
-        let service = serviceProvider()
-        let operationOwnerID = await service.ownerID
-
         do {
-            today = try await service.promoteToday(
+            let promotedToday = try await context.service.promoteToday(
                 to: level,
                 status: status,
                 action: evidence,
                 at: operationDate,
                 calendar: calendar
             )
+            guard await isCurrent(context.sessionToken) else {
+                await completeOperation()
+                return
+            }
+            today = promotedToday
 
             do {
+                let loadedSummary = try await context.service.loadSummary(
+                    referenceDate: operationDate,
+                    calendar: calendar
+                )
+                guard await isCurrent(context.sessionToken) else {
+                    await completeOperation()
+                    return
+                }
                 let announcedAchievement = await updateSummary(
-                    try await service.loadSummary(
-                        referenceDate: operationDate,
-                        calendar: calendar
-                    ),
-                    ownerID: operationOwnerID
+                    loadedSummary,
+                    ownerID: context.sessionToken.ownerID,
+                    sessionToken: context.sessionToken
                 )
                 if !announcedAchievement {
                     HapticFeedback.light()
                 }
                 message = nil
             } catch {
+                guard await isCurrent(context.sessionToken) else {
+                    await completeOperation()
+                    return
+                }
                 HapticFeedback.light()
                 message = "Your check-in is saved. Momentum will refresh when it can."
             }
-            syncState = await service.currentSyncState()
+            let updatedSyncState = await context.service.currentSyncState()
+            guard await isCurrent(context.sessionToken) else {
+                await completeOperation()
+                return
+            }
+            syncState = updatedSyncState
         } catch {
+            guard await isCurrent(context.sessionToken) else {
+                await completeOperation()
+                return
+            }
             message = "That check-in did not save. Please try again."
             HapticFeedback.warning()
         }
@@ -283,13 +386,15 @@ public final class TodayEngagementViewModel: ObservableObject {
 
         if let pendingAction {
             self.pendingAction = nil
-            await promote(
-                level: pendingAction.level,
-                status: pendingAction.status,
-                evidence: pendingAction.evidence,
-                operationDate: pendingAction.operationDate
-            )
-            return
+            if await isCurrent(pendingAction.sessionToken) {
+                await promote(
+                    level: pendingAction.level,
+                    status: pendingAction.status,
+                    evidence: pendingAction.evidence,
+                    operationDate: pendingAction.operationDate
+                )
+                return
+            }
         }
 
         if needsReload {
@@ -306,14 +411,15 @@ public final class TodayEngagementViewModel: ObservableObject {
     @discardableResult
     private func updateSummary(
         _ updatedSummary: ConsistencyMomentumSummary,
-        ownerID: String
+        ownerID: String,
+        sessionToken: PresenceSessionToken
     ) async -> Bool {
-        summary = updatedSummary
-
         let newlyAnnounced = await achievementStore.claimNew(
             updatedSummary.achievements,
             ownerID: ownerID
         )
+        guard await isCurrent(sessionToken) else { return false }
+        summary = updatedSummary
         guard !newlyAnnounced.isEmpty else { return false }
 
         achievementHaptic()
@@ -324,14 +430,16 @@ public final class TodayEngagementViewModel: ObservableObject {
         level: DailyParticipationLevel,
         status: DailyPresenceStatus?,
         evidence: DailyPresenceActionEvidence?,
-        operationDate: Date
+        operationDate: Date,
+        sessionToken: PresenceSessionToken
     ) {
-        guard let pendingAction else {
+        guard let pendingAction, pendingAction.sessionToken == sessionToken else {
             self.pendingAction = PendingAction(
                 level: level,
                 status: status,
                 evidence: evidence,
-                operationDate: operationDate
+                operationDate: operationDate,
+                sessionToken: sessionToken
             )
             return
         }
@@ -343,8 +451,38 @@ public final class TodayEngagementViewModel: ObservableObject {
             level: mergedLevel,
             status: prefersNew ? status ?? pendingAction.status : pendingAction.status,
             evidence: mergedEvidence,
-            operationDate: min(operationDate, pendingAction.operationDate)
+            operationDate: min(operationDate, pendingAction.operationDate),
+            sessionToken: sessionToken
         )
+    }
+
+    private func makeOperationContext() async -> ResolvedOperationContext {
+        let provided = operationContextProvider()
+        let ownerID = await provided.service.ownerID
+        return ResolvedOperationContext(
+            service: provided.service,
+            sessionToken: provided.sessionToken
+                ?? PresenceSessionToken(ownerID: ownerID, generation: 0)
+        )
+    }
+
+    private func isCurrent(_ operationToken: PresenceSessionToken) async -> Bool {
+        if let sessionTokenProvider {
+            return sessionTokenProvider() == operationToken
+        }
+        return await operationContextProvider().service.ownerID == operationToken.ownerID
+    }
+
+    private func prepareForOperation(in sessionToken: PresenceSessionToken) {
+        guard presentedSessionToken != sessionToken else { return }
+        presentedSessionToken = sessionToken
+        today = nil
+        summary = nil
+        syncState = .synced
+        message = nil
+        if pendingAction?.sessionToken != sessionToken {
+            pendingAction = nil
+        }
     }
 
     private func startConnectivityRetry() {
