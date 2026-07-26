@@ -861,9 +861,14 @@ class WorkoutsListViewModel: ObservableObject {
     @Published var errorMessage: String?
 
     private let dataClient: DataClientProtocol
+    private let healthClient: HealthClientProtocol
 
-    init(dataClient: DataClientProtocol = DataClientFactory.shared.client) {
+    init(
+        dataClient: DataClientProtocol = DataClientFactory.shared.client,
+        healthClient: HealthClientProtocol = HealthClientFactory.shared.client
+    ) {
         self.dataClient = dataClient
+        self.healthClient = healthClient
     }
 
     func loadWorkouts() async {
@@ -986,11 +991,16 @@ class WorkoutsListViewModel: ObservableObject {
                         restMinutes: exercise.restMinutes
                     )
                 },
-                notes: original.notes
+                notes: original.notes,
+                kind: original.kind
             )
 
             try await dataClient.save(newWorkout, recordType: "Workout")
-            return ActiveWorkoutSessionViewModel(workout: newWorkout)
+            return ActiveWorkoutSessionViewModel(
+                workout: newWorkout,
+                dataClient: dataClient,
+                healthClient: healthClient
+            )
         } catch {
             errorMessage = "We couldn't restart that workout. Open it again and try once more."
             return nil
