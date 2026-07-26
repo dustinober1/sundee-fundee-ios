@@ -266,6 +266,31 @@ struct ReminderServiceTests {
         #expect(snapshot.scheduled == previous)
     }
 
+    @Test("Rollback is versioned after the applied CloudKit revision")
+    func rollbackWinsCloudKitConflictResolution() async {
+        let previous = WorkoutReminderSettings(
+            isEnabled: false,
+            hour: 9,
+            dateUpdated: Date(timeIntervalSince1970: 1)
+        )
+        let updated = WorkoutReminderSettings(
+            isEnabled: false,
+            hour: 10,
+            dateUpdated: Date(timeIntervalSince1970: 2)
+        )
+        let boundary = ConflictResolvingReminderSettingsBoundary(initial: previous)
+        let coordinator = ReminderSettingsUpdateCoordinator(boundary: boundary)
+
+        let result = await coordinator.apply(updated: updated, previous: previous)
+        let snapshot = await boundary.snapshot()
+
+        #expect(result.state == .restored)
+        #expect(result.settings.hour == previous.hour)
+        #expect(result.settings.dateUpdated > updated.dateUpdated)
+        #expect(snapshot.persisted == result.settings)
+        #expect(snapshot.scheduled == result.settings)
+    }
+
     @Test("A failed rollback reloads authoritative persisted settings")
     func rollbackFailureReloadsAuthoritativeState() async {
         let previous = WorkoutReminderSettings(
@@ -577,6 +602,45 @@ private actor InMemoryReminderSettingsBoundary: ReminderSettingsUpdateBoundary {
 
 private enum ReminderSettingsBoundaryTestError: Error {
     case injectedFailure
+}
+
+private actor ConflictResolvingReminderSettingsBoundary: ReminderSettingsUpdateBoundary {
+    struct Snapshot: Sendable {
+        let persisted: WorkoutReminderSettings
+        let scheduled: WorkoutReminderSettings
+    }
+
+    private var persisted: WorkoutReminderSettings
+    private var scheduled: WorkoutReminderSettings
+    private var reconcileCount = 0
+
+    init(initial: WorkoutReminderSettings) {
+        persisted = initial
+        scheduled = initial
+    }
+
+    func saveSettings(_ settings: WorkoutReminderSettings) async throws {
+        persisted = CloudKitClient.resolveWorkoutReminderSettingsConflict(
+            clientRecord: settings,
+            serverRecord: persisted
+        )
+    }
+
+    func loadPersistedSettings() async throws -> WorkoutReminderSettings {
+        persisted
+    }
+
+    func reconcileSchedule(settings: WorkoutReminderSettings) async throws {
+        reconcileCount += 1
+        if reconcileCount == 1 {
+            throw ReminderSettingsBoundaryTestError.injectedFailure
+        }
+        scheduled = settings
+    }
+
+    func snapshot() -> Snapshot {
+        Snapshot(persisted: persisted, scheduled: scheduled)
+    }
 }
 
 private actor ServerWinningReminderSettingsBoundary: ReminderSettingsUpdateBoundary {
