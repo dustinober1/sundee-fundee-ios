@@ -44,7 +44,9 @@ This is plan 1 of 4:
 
 **Interfaces:**
 - Produces: `DailyPresenceStatus`, `DailyParticipationLevel`, and `DailyPresenceRecord`.
-- Record identifier format: `presence-<yyyy-MM-dd>-<sanitized-time-zone>`.
+- Canonical record identifier format: `presence-<yyyy-MM-dd>`. The originating
+  time-zone identifier remains record metadata, while legacy time-zone-suffixed
+  identifiers are merged and retired during reconciliation.
 - Later tasks rely on `DailyPresenceRecord.makeID(dayKey:timeZoneIdentifier:)` and `promoting(to:status:at:)`.
 
 - [ ] **Step 1: Write failing enum, identifier, promotion, and Codable tests**
@@ -61,7 +63,7 @@ struct DailyPresenceRecordTests {
             DailyPresenceRecord.makeID(
                 dayKey: "2026-07-26",
                 timeZoneIdentifier: "America/New_York"
-            ) == "presence-2026-07-26-America-New_York"
+            ) == "presence-2026-07-26"
         )
     }
 
@@ -187,10 +189,11 @@ public struct DailyPresenceRecord: Codable, Sendable, Identifiable, Equatable {
     }
 
     public static func makeID(dayKey: String, timeZoneIdentifier: String) -> String {
-        let safeZone = timeZoneIdentifier.map {
+        _ = timeZoneIdentifier
+        let safeDay = dayKey.map {
             $0.isLetter || $0.isNumber || $0 == "-" || $0 == "_" ? String($0) : "-"
         }.joined()
-        return "presence-\(dayKey)-\(safeZone)"
+        return "presence-\(safeDay)"
     }
 
     public func promoting(
