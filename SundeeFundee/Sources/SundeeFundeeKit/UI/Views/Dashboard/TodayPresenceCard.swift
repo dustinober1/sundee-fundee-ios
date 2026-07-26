@@ -10,8 +10,10 @@ public struct TodayPresenceCard: View {
     private let today: DailyPresenceRecord?
     private let summary: ConsistencyMomentumSummary?
     private let message: String?
+    private let syncState: PresenceSyncState
     private let isUpdating: Bool
     private let onSelect: (DailyPresenceStatus) -> Void
+    private let onRetrySync: () -> Void
 
     @State private var momentumRoute: MomentumRoute?
 
@@ -19,14 +21,18 @@ public struct TodayPresenceCard: View {
         today: DailyPresenceRecord?,
         summary: ConsistencyMomentumSummary?,
         message: String? = nil,
+        syncState: PresenceSyncState = .synced,
         isUpdating: Bool = false,
-        onSelect: @escaping (DailyPresenceStatus) -> Void
+        onSelect: @escaping (DailyPresenceStatus) -> Void,
+        onRetrySync: @escaping () -> Void = {}
     ) {
         self.today = today
         self.summary = summary
         self.message = message
+        self.syncState = syncState
         self.isUpdating = isUpdating
         self.onSelect = onSelect
+        self.onRetrySync = onRetrySync
     }
 
     public var body: some View {
@@ -58,6 +64,23 @@ public struct TodayPresenceCard: View {
                         .accessibilityLabel("Momentum update: \(message)")
                 }
 
+                if syncState.status != .synced {
+                    HStack(alignment: .firstTextBaseline, spacing: AppTheme.Spacing.sm) {
+                        Text(syncMessage)
+                            .font(AppTheme.Typography.bodySmall)
+                            .foregroundStyle(AppTheme.Text.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+
+                        Spacer(minLength: AppTheme.Spacing.sm)
+
+                        Button("Retry", action: onRetrySync)
+                            .font(AppTheme.Typography.labelSmall)
+                            .foregroundStyle(AppTheme.Accent.orange)
+                            .disabled(isUpdating || syncState.status == .retrying)
+                    }
+                    .accessibilityElement(children: .combine)
+                }
+
                 if let summary {
                     Button {
                         momentumRoute = MomentumRoute(summary: summary)
@@ -72,6 +95,21 @@ public struct TodayPresenceCard: View {
         }
         .sheet(item: $momentumRoute) { route in
             ConsistencyMomentumView(summary: route.summary)
+        }
+    }
+
+    private var syncMessage: String {
+        switch syncState.status {
+        case .synced:
+            ""
+        case .pending:
+            syncState.pendingCount == 1
+                ? "1 momentum update is safely waiting to sync."
+                : "\(syncState.pendingCount) momentum updates are safely waiting to sync."
+        case .retrying:
+            "Refreshing your private momentum…"
+        case .actionRequired:
+            "Momentum is saved here. Check iCloud access, then try again."
         }
     }
 
