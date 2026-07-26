@@ -116,6 +116,8 @@ extension Notification.Name {
     public static let workoutReminderOpened = Notification.Name("workoutReminderOpened")
     public static let cycleDataUpdated = Notification.Name("cycleDataUpdated")
     public static let deepLinkRouteOpened = Notification.Name("deepLinkRouteOpened")
+    public static let dailyCheckInCompleted = Notification.Name("dailyCheckInCompleted")
+    public static let intentionalRecoveryCompleted = Notification.Name("intentionalRecoveryCompleted")
 }
 
 public enum Tab: String {
