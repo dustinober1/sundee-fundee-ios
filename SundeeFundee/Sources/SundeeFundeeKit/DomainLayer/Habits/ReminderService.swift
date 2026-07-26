@@ -138,6 +138,21 @@ actor ReminderSettingsUpdateCoordinator {
                 settings: authoritativeUpdate
             )
         } catch {
+            guard authoritativeUpdate == versionedUpdate else {
+                do {
+                    let authoritative = try await boundary.loadPersistedSettings()
+                    return ReminderSettingsUpdateResult(
+                        state: .rollbackFailed,
+                        settings: authoritative
+                    )
+                } catch {
+                    return ReminderSettingsUpdateResult(
+                        state: .reloadFailed,
+                        settings: authoritativeUpdate
+                    )
+                }
+            }
+
             do {
                 let rollback = causallyVersioned(previous, after: authoritativeUpdate)
                 let authoritativePrevious =
