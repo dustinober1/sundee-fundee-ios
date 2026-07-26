@@ -89,4 +89,26 @@ struct WorkoutsListViewModelTests {
         #expect(vm.workouts.count == 1)
         #expect(vm.resumeCandidate == nil)
     }
+
+    @Test("redo preserves active-recovery completion provenance")
+    @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
+    func redoPreservesActiveRecoveryKind() async throws {
+        let mock = MockCloudKitClient()
+        let recovery = Workout(
+            id: "recovery",
+            date: Date(timeIntervalSince1970: 1),
+            name: "Active recovery",
+            exercises: [],
+            kind: .activeRecovery
+        )
+        try await mock.save(recovery, recordType: "Workout")
+
+        let viewModel = WorkoutsListViewModel(
+            dataClient: mock,
+            healthClient: MockHealthKitClient()
+        )
+        let session = await viewModel.redoWorkout(id: recovery.id)
+
+        #expect(session?.workout.kind == .activeRecovery)
+    }
 }
