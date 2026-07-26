@@ -139,9 +139,16 @@ public struct DashboardView: View {
             }
             .onReceive(NotificationCenter.default.publisher(for: .workoutCompleted)) { _ in
                 Task {
+                    await engagementViewModel.recordAction(.trained)
                     await viewModel.loadData(cyclePhaseCache: cyclePhaseCache)
                     await refreshReadiness()
                 }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .dailyCheckInCompleted)) { _ in
+                Task { await engagementViewModel.recordCheckIn() }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .intentionalRecoveryCompleted)) { _ in
+                Task { await engagementViewModel.recordAction(.resting) }
             }
             .onReceive(NotificationCenter.default.publisher(for: .cycleDataUpdated)) { _ in
                 Task {
