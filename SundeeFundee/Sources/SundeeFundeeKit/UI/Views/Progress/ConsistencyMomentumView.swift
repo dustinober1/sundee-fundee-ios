@@ -37,6 +37,10 @@ public struct ConsistencyMomentumView: View {
                         }
                     }
 
+                    if !summary.achievements.isEmpty {
+                        achievementsSection
+                    }
+
                     Text("Every week can look different. Opening Today, checking in, resting, and training all support your momentum.")
                         .font(AppTheme.Typography.bodyMedium)
                         .foregroundStyle(AppTheme.Text.secondary)
@@ -94,6 +98,48 @@ public struct ConsistencyMomentumView: View {
         .accessibilityLabel("Four-week presence chart")
     }
 
+    private var achievementsSection: some View {
+        ArtDecoCard {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
+                Label {
+                    Text("Achievements")
+                        .font(AppTheme.Typography.headlineMedium)
+                        .foregroundStyle(AppTheme.Text.primary)
+                } icon: {
+                    Image(systemName: "trophy.fill")
+                        .font(.title3)
+                        .foregroundStyle(AppTheme.Accent.gold)
+                }
+
+                ForEach(earnedAchievements, id: \.self) { achievement in
+                    HStack(alignment: .top, spacing: AppTheme.Spacing.md) {
+                        Image(systemName: achievement.systemImage)
+                            .font(.title3)
+                            .foregroundStyle(AppTheme.Accent.gold)
+                            .frame(width: AppTheme.Spacing.xl)
+                            .accessibilityHidden(true)
+
+                        VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                            Text(achievement.title)
+                                .font(AppTheme.Typography.bodyMedium)
+                                .foregroundStyle(AppTheme.Text.primary)
+
+                            Text(achievement.supportiveDescription)
+                                .font(AppTheme.Typography.bodySmall)
+                                .foregroundStyle(AppTheme.Text.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                    .accessibilityElement(children: .combine)
+                }
+            }
+        }
+    }
+
+    private var earnedAchievements: [ConsistencyAchievement] {
+        ConsistencyAchievement.allCases.filter(summary.achievements.contains)
+    }
+
     private func total(value: Int, label: String, systemImage: String) -> some View {
         VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
             Image(systemName: systemImage)
@@ -128,5 +174,38 @@ public struct ConsistencyMomentumView: View {
 
     private func accessibleWeekLabel(for date: Date) -> String {
         date.formatted(.dateTime.month(.wide).day().year())
+    }
+}
+
+extension ConsistencyAchievement {
+    var title: String {
+        switch self {
+        case .firstConsistentWeek: "A steady week"
+        case .welcomeBack: "Welcome back"
+        case .plannedWorkoutCompleted: "Workout complete"
+        case .recoveryChoice: "Recovery supported"
+        }
+    }
+
+    var supportiveDescription: String {
+        switch self {
+        case .firstConsistentWeek:
+            "You showed up on three days in one week."
+        case .welcomeBack:
+            "You returned after time away. That counts."
+        case .plannedWorkoutCompleted:
+            "You followed through on a planned workout."
+        case .recoveryChoice:
+            "You made space for intentional recovery."
+        }
+    }
+
+    var systemImage: String {
+        switch self {
+        case .firstConsistentWeek: "calendar.badge.checkmark"
+        case .welcomeBack: "heart.circle.fill"
+        case .plannedWorkoutCompleted: "checkmark.seal.fill"
+        case .recoveryChoice: "leaf.circle.fill"
+        }
     }
 }
