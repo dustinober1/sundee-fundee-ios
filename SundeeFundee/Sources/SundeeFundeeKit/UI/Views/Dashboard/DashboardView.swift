@@ -23,6 +23,7 @@ private let dashLogger = Logger(subsystem: "com.sundeefundee.app", category: "Da
 
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
 public struct DashboardView: View {
+    @Environment(\.scenePhase) private var scenePhase
     @StateObject private var viewModel = DashboardViewModel()
     @StateObject private var readinessViewModel = DailyReadinessViewModel()
     @StateObject private var engagementViewModel = TodayEngagementViewModel()
@@ -52,9 +53,12 @@ public struct DashboardView: View {
                         today: engagementViewModel.today,
                         summary: engagementViewModel.summary,
                         message: engagementViewModel.message,
+                        syncState: engagementViewModel.syncState,
                         isUpdating: engagementViewModel.isLoading
                     ) { status in
                         Task { await engagementViewModel.select(status) }
+                    } onRetrySync: {
+                        Task { await engagementViewModel.retrySync() }
                     }
 
                     if let todayAction = viewModel.todayAction {
@@ -137,9 +141,15 @@ public struct DashboardView: View {
                 await refreshReadiness()
                 _ = await engagementLoad
             }
-            .onReceive(NotificationCenter.default.publisher(for: .workoutCompleted)) { _ in
+            .onReceive(NotificationCenter.default.publisher(for: .workoutCompleted)) { notification in
+                guard let event = WorkoutCompletionEvent.from(notification: notification),
+                      event.kind == .standard else { return }
                 Task {
-                    await engagementViewModel.recordAction(.trained)
+                    await engagementViewModel.recordAction(
+                        event.presenceStatus,
+                        evidence: event.presenceEvidence,
+                        at: event.operationDate
+                    )
                     await viewModel.loadData(cyclePhaseCache: cyclePhaseCache)
                     await refreshReadiness()
                 }
@@ -147,8 +157,16 @@ public struct DashboardView: View {
             .onReceive(NotificationCenter.default.publisher(for: .dailyCheckInCompleted)) { _ in
                 Task { await engagementViewModel.recordCheckIn() }
             }
-            .onReceive(NotificationCenter.default.publisher(for: .intentionalRecoveryCompleted)) { _ in
-                Task { await engagementViewModel.recordAction(.resting) }
+            .onReceive(NotificationCenter.default.publisher(for: .intentionalRecoveryCompleted)) { notification in
+                guard let event = WorkoutCompletionEvent.from(notification: notification),
+                      event.kind == .activeRecovery else { return }
+                Task {
+                    await engagementViewModel.recordAction(
+                        event.presenceStatus,
+                        evidence: event.presenceEvidence,
+                        at: event.operationDate
+                    )
+                }
             }
             .onReceive(NotificationCenter.default.publisher(for: .cycleDataUpdated)) { _ in
                 Task {
@@ -164,6 +182,10 @@ public struct DashboardView: View {
                     await readinessViewModel.load()
                     _ = await engagementLoad
                 }
+            }
+            .onChange(of: scenePhase) { _, phase in
+                guard phase == .active else { return }
+                Task { await engagementViewModel.retrySync() }
             }
             #if os(iOS)
             .fullScreenCover(isPresented: $showingAIWorkout) {
