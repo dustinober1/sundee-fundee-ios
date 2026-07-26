@@ -200,6 +200,163 @@ struct DailyPresenceServiceTests {
         #expect(try await store.pending().isEmpty)
         #expect(await client.savedIDs() == [second.id, first.id])
     }
+
+    @Test func accountNamespacesAreIsolatedAndClearOnlyTheSelectedAccount() async throws {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+
+        let firstStore = PresenceLocalStore(ownerID: "account-a", baseDirectoryURL: directory)
+        let secondStore = PresenceLocalStore(ownerID: "account-b", baseDirectoryURL: directory)
+        let firstRecord = makeRecord(dayKey: "2025-07-24")
+        let secondRecord = makeRecord(dayKey: "2025-07-25")
+
+        _ = try await firstStore.save(firstRecord, ownerID: "account-a")
+        _ = try await secondStore.save(secondRecord, ownerID: "account-b")
+
+        #expect(try await firstStore.load(ownerID: "account-a") == [firstRecord])
+        #expect(try await secondStore.load(ownerID: "account-b") == [secondRecord])
+
+        try await firstStore.clear(ownerID: "account-a")
+
+        #expect(try await firstStore.load(ownerID: "account-a").isEmpty)
+        #expect(try await secondStore.load(ownerID: "account-b") == [secondRecord])
+    }
+
+    @Test func ownershipMismatchNeverUploadsAnotherAccountsPendingRecord() async throws {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        let fileURL = directory.appendingPathComponent("daily-presence.json")
+        defer { try? FileManager.default.removeItem(at: directory) }
+
+        let store = PresenceLocalStore(fileURL: fileURL, ownerID: "account-a")
+        _ = try await store.save(makeRecord(dayKey: "2025-07-24"), ownerID: "account-a")
+        let client = StatefulPresenceDataClient(failingIDs: [])
+        let service = DailyPresenceService(
+            ownerID: "account-b",
+            localStore: store,
+            dataClient: client
+        )
+
+        let state = await service.syncPending()
+
+        #expect(state.status == .actionRequired)
+        #expect(await client.savedIDs().isEmpty)
+        #expect(try await store.pending(ownerID: "account-a").count == 1)
+    }
+
+    @Test func emptyCacheHydratesRemoteHistoryBeforeBuildingSummary() async throws {
+        let store = MemoryPresenceStore(ownerID: "account-a")
+        let remote = makeRecord(dayKey: "2025-07-24").promoting(
+            to: .acted,
+            status: .trained,
+            action: .trained,
+            at: Date(timeIntervalSince1970: 1_753_528_460)
+        )
+        let client = RemotePresenceDataClient(records: [remote])
+        let service = DailyPresenceService(
+            ownerID: "account-a",
+            localStore: store,
+            dataClient: client
+        )
+
+        let summary = try await service.loadSummary(
+            referenceDate: Date(timeIntervalSince1970: 1_753_528_460),
+            calendar: calendar
+        )
+
+        #expect(summary.actionDaysThisWeek == 1)
+        #expect(await store.load(ownerID: "account-a").first?.actionEvidence == [.trained])
+        #expect(await store.pending(ownerID: "account-a").isEmpty)
+    }
+
+    @Test func secondDeviceOpenCannotDowngradeFirstDevicesTraining() async throws {
+        let client = RemotePresenceDataClient()
+        let firstStore = MemoryPresenceStore(ownerID: "account-a")
+        let secondStore = MemoryPresenceStore(ownerID: "account-a")
+        let firstService = DailyPresenceService(
+            ownerID: "account-a",
+            localStore: firstStore,
+            dataClient: client
+        )
+        let secondService = DailyPresenceService(
+            ownerID: "account-a",
+            localStore: secondStore,
+            dataClient: client
+        )
+        let date = Date(timeIntervalSince1970: 1_753_528_400)
+
+        _ = try await firstService.promoteToday(
+            to: .acted,
+            status: .trained,
+            action: .trained,
+            at: date,
+            calendar: calendar
+        )
+        _ = try await secondService.recordOpen(
+            at: date.addingTimeInterval(60),
+            calendar: calendar
+        )
+
+        let remote = try #require(await client.records().first)
+        #expect(remote.participationLevel == .acted)
+        #expect(remote.actionEvidence == [.trained])
+        #expect(await secondStore.load(ownerID: "account-a").count == 1)
+        #expect(await secondStore.load(ownerID: "account-a").first?.actionEvidence == [.trained])
+    }
+
+    @Test func olderUploadCannotAcknowledgeANewerLocalMutation() async throws {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        let fileURL = directory.appendingPathComponent("daily-presence.json")
+        defer { try? FileManager.default.removeItem(at: directory) }
+
+        let store = PresenceLocalStore(fileURL: fileURL, ownerID: "account-a")
+        let original = makeRecord(dayKey: "2025-07-24")
+        _ = try await store.save(original, ownerID: "account-a")
+        let client = BlockingPresenceSaveDataClient()
+        let service = DailyPresenceService(
+            ownerID: "account-a",
+            localStore: store,
+            dataClient: client
+        )
+
+        let sync = Task { await service.syncPending() }
+        await client.waitUntilSaveStarts()
+        let newer = original.promoting(
+            to: .acted,
+            status: .trained,
+            action: .trained,
+            at: original.dateUpdated.addingTimeInterval(60)
+        )
+        _ = try await store.save(newer, ownerID: "account-a")
+        await client.releaseSave()
+        _ = await sync.value
+
+        let pending = try await store.pending(ownerID: "account-a")
+        #expect(pending.count == 1)
+        #expect(pending.first?.record.actionEvidence == [.trained])
+    }
+
+    @Test func recordOpenThenSummaryShowsWelcomeBackAfterGap() async throws {
+        let store = MemoryPresenceStore(ownerID: "account-a")
+        let service = DailyPresenceService(
+            ownerID: "account-a",
+            localStore: store,
+            dataClient: nil
+        )
+        let earlier = Date(timeIntervalSince1970: 1_752_948_000)
+        _ = try await service.recordOpen(at: earlier, calendar: calendar)
+        let returnDate = earlier.addingTimeInterval(7 * 24 * 60 * 60)
+
+        _ = try await service.recordOpen(at: returnDate, calendar: calendar)
+        let summary = try await service.loadSummary(
+            referenceDate: returnDate,
+            calendar: calendar
+        )
+
+        #expect(summary.supportiveHeadline == "Welcome back")
+    }
 }
 
 private func makeRecord(dayKey: String) -> DailyPresenceRecord {
