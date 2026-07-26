@@ -65,6 +65,37 @@ struct ReminderServiceTests {
         #expect(settings.dailyPlanEnabled)
     }
 
+    @Test("Reminder settings encode only approved preference fields")
+    func reminderSettingsEncodedFieldsArePrivacySafe() throws {
+        let settings = WorkoutReminderSettings(
+            isEnabled: true,
+            preferredWeekdays: [2, 4, 6],
+            hour: 9,
+            minute: 15,
+            dailyPlanEnabled: true,
+            dailyPlanHour: 7,
+            dailyPlanMinute: 30,
+            dateUpdated: Date(timeIntervalSince1970: 1_753_528_400)
+        )
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        let object = try #require(
+            JSONSerialization.jsonObject(with: encoder.encode(settings)) as? [String: Any]
+        )
+
+        let approved: Set<String> = [
+            "id", "isEnabled", "preferredWeekdays", "hour", "minute",
+            "dailyPlanEnabled", "dailyPlanHour", "dailyPlanMinute", "dateUpdated",
+        ]
+        #expect(Set(object.keys) == approved)
+        #expect(object["dateUpdated"] is String)
+        #expect(object.keys.allSatisfy { key in
+            !["cycle", "pain", "health", "hrv", "readiness", "checkin"].contains { term in
+                key.localizedCaseInsensitiveContains(term)
+            }
+        })
+    }
+
     @Test("Missing required reminder flag throws a Bool type mismatch")
     func missingRequiredReminderFlagThrows() {
         expectBoolTypeMismatch(
@@ -175,7 +206,7 @@ struct ReminderServiceTests {
     }
 
     @Test(
-        "Authorization is needed only when a reminder is enabled",
+        "Authorization is confirmed for every enabled reminder revision",
         arguments: [
             (
                 WorkoutReminderSettings(),
@@ -185,12 +216,12 @@ struct ReminderServiceTests {
             (
                 WorkoutReminderSettings(isEnabled: true),
                 WorkoutReminderSettings(isEnabled: true, hour: 10),
-                false
+                true
             ),
             (
                 WorkoutReminderSettings(dailyPlanEnabled: true),
                 WorkoutReminderSettings(dailyPlanEnabled: true, dailyPlanHour: 9),
-                false
+                true
             ),
             (
                 WorkoutReminderSettings(isEnabled: true, dailyPlanEnabled: true),
@@ -261,6 +292,149 @@ struct ReminderServiceTests {
         #expect(result.settings == updated)
         #expect(result.errorMessage?.localizedCaseInsensitiveContains("out of sync") == true)
         #expect(result.errorMessage?.localizedCaseInsensitiveContains("try again") == true)
+    }
+
+    @Test("The first queued update uses persisted settings as its rollback base")
+    func firstUpdateLoadsAuthoritativePreviousSettings() async {
+        let staleViewState = WorkoutReminderSettings(
+            isEnabled: false,
+            hour: 8,
+            dateUpdated: Date(timeIntervalSince1970: 1)
+        )
+        let persisted = WorkoutReminderSettings(
+            isEnabled: false,
+            hour: 9,
+            dateUpdated: Date(timeIntervalSince1970: 2)
+        )
+        let updated = WorkoutReminderSettings(
+            isEnabled: false,
+            hour: 10,
+            dateUpdated: Date(timeIntervalSince1970: 3)
+        )
+        let boundary = InMemoryReminderSettingsBoundary(
+            persisted: persisted,
+            scheduled: persisted,
+            failingSaveAttempts: [1]
+        )
+        let coordinator = ReminderSettingsUpdateCoordinator(boundary: boundary)
+
+        let result = await coordinator.apply(updated: updated, previous: staleViewState)
+
+        #expect(result.state == .saveFailed)
+        #expect(result.settings == persisted)
+    }
+
+    @Test("Overlapping updates do not interleave persistence transactions")
+    func overlappingUpdatesAreSerialized() async {
+        let original = WorkoutReminderSettings(
+            isEnabled: true,
+            hour: 9,
+            dateUpdated: Date(timeIntervalSince1970: 1)
+        )
+        let firstUpdate = WorkoutReminderSettings(
+            isEnabled: true,
+            hour: 10,
+            dateUpdated: Date(timeIntervalSince1970: 2)
+        )
+        let secondUpdate = WorkoutReminderSettings(
+            isEnabled: true,
+            hour: 11,
+            dateUpdated: Date(timeIntervalSince1970: 3)
+        )
+        let boundary = SlowReminderSettingsBoundary(initial: original)
+        let coordinator = ReminderSettingsUpdateCoordinator(boundary: boundary)
+
+        async let firstResult = coordinator.apply(updated: firstUpdate, previous: original)
+        while !(await boundary.hasStartedSave()) {
+            await Task.yield()
+        }
+        async let secondResult = coordinator.apply(updated: secondUpdate, previous: firstUpdate)
+        _ = await (firstResult, secondResult)
+
+        let snapshot = await boundary.snapshot()
+
+        #expect(snapshot.maximumConcurrentSaves == 1)
+        #expect(snapshot.persisted == secondUpdate)
+        #expect(snapshot.scheduled == secondUpdate)
+    }
+
+    @Test("A failed older update cannot roll back a queued newer update")
+    func failedOlderUpdateDoesNotOverwriteQueuedNewerUpdate() async {
+        let original = WorkoutReminderSettings(
+            isEnabled: true,
+            hour: 9,
+            dateUpdated: Date(timeIntervalSince1970: 1)
+        )
+        let firstUpdate = WorkoutReminderSettings(
+            isEnabled: true,
+            hour: 10,
+            dateUpdated: Date(timeIntervalSince1970: 2)
+        )
+        let secondUpdate = WorkoutReminderSettings(
+            isEnabled: true,
+            hour: 11,
+            dateUpdated: Date(timeIntervalSince1970: 3)
+        )
+        let boundary = SlowReminderSettingsBoundary(
+            initial: original,
+            failingFirstReconcile: true
+        )
+        let coordinator = ReminderSettingsUpdateCoordinator(boundary: boundary)
+
+        async let firstResult = coordinator.apply(updated: firstUpdate, previous: original)
+        while !(await boundary.hasStartedSave()) {
+            await Task.yield()
+        }
+        async let secondResult = coordinator.apply(updated: secondUpdate, previous: firstUpdate)
+        let results = await (firstResult, secondResult)
+        let snapshot = await boundary.snapshot()
+
+        #expect(results.0.state == .restored)
+        #expect(results.1.state == .applied)
+        #expect(snapshot.persisted == secondUpdate)
+        #expect(snapshot.scheduled == secondUpdate)
+    }
+
+    @Test("Queued enabled revisions cannot bypass denied authorization")
+    func queuedEnabledRevisionsRequireAuthorization() async {
+        let original = WorkoutReminderSettings(
+            isEnabled: false,
+            hour: 9,
+            dateUpdated: Date(timeIntervalSince1970: 1)
+        )
+        let enabled = WorkoutReminderSettings(
+            isEnabled: true,
+            hour: 9,
+            dateUpdated: Date(timeIntervalSince1970: 2)
+        )
+        let adjustedWhileAuthorizationIsPending = WorkoutReminderSettings(
+            isEnabled: true,
+            hour: 10,
+            dateUpdated: Date(timeIntervalSince1970: 3)
+        )
+        let boundary = SuspendedAuthorizationBoundary(initial: original)
+        let coordinator = ReminderSettingsUpdateCoordinator(boundary: boundary)
+
+        async let firstResult = coordinator.apply(updated: enabled, previous: original)
+        while !(await boundary.hasStartedAuthorization()) {
+            await Task.yield()
+        }
+        async let secondResult = coordinator.apply(
+            updated: adjustedWhileAuthorizationIsPending,
+            previous: enabled
+        )
+        await boundary.denyFirstAuthorization()
+
+        let results = await (firstResult, secondResult)
+        let snapshot = await boundary.snapshot()
+
+        #expect(results.0.state == .authorizationDenied)
+        #expect(results.1.state == .authorizationDenied)
+        #expect(results.1.settings == original)
+        #expect(snapshot.authorizationCalls == 2)
+        #expect(snapshot.saveCalls == 0)
+        #expect(snapshot.persisted == original)
+        #expect(snapshot.scheduled == original)
     }
 
     private var reminderSettingsDecoder: JSONDecoder {
@@ -336,5 +510,123 @@ private actor InMemoryReminderSettingsBoundary: ReminderSettingsUpdateBoundary {
 
 private enum ReminderSettingsBoundaryTestError: Error {
     case injectedFailure
+}
+
+private actor SlowReminderSettingsBoundary: ReminderSettingsUpdateBoundary {
+    struct Snapshot: Sendable {
+        let persisted: WorkoutReminderSettings
+        let scheduled: WorkoutReminderSettings
+        let maximumConcurrentSaves: Int
+    }
+
+    private var persisted: WorkoutReminderSettings
+    private var scheduled: WorkoutReminderSettings
+    private var saveCount = 0
+    private var activeSaves = 0
+    private var maximumConcurrentSaves = 0
+    private let failingFirstReconcile: Bool
+    private var reconcileCount = 0
+
+    init(initial: WorkoutReminderSettings, failingFirstReconcile: Bool = false) {
+        persisted = initial
+        scheduled = initial
+        self.failingFirstReconcile = failingFirstReconcile
+    }
+
+    func saveSettings(_ settings: WorkoutReminderSettings) async throws {
+        saveCount += 1
+        activeSaves += 1
+        maximumConcurrentSaves = max(maximumConcurrentSaves, activeSaves)
+
+        if saveCount == 1 {
+            try? await Task.sleep(nanoseconds: 100_000_000)
+        }
+
+        persisted = settings
+        activeSaves -= 1
+    }
+
+    func loadPersistedSettings() async throws -> WorkoutReminderSettings {
+        persisted
+    }
+
+    func reconcileSchedule(settings: WorkoutReminderSettings) async throws {
+        reconcileCount += 1
+        guard !(failingFirstReconcile && reconcileCount == 1) else {
+            throw ReminderSettingsBoundaryTestError.injectedFailure
+        }
+        scheduled = settings
+    }
+
+    func snapshot() -> Snapshot {
+        Snapshot(
+            persisted: persisted,
+            scheduled: scheduled,
+            maximumConcurrentSaves: maximumConcurrentSaves
+        )
+    }
+
+    func hasStartedSave() -> Bool {
+        saveCount > 0
+    }
+}
+
+private actor SuspendedAuthorizationBoundary: ReminderSettingsUpdateBoundary {
+    struct Snapshot: Sendable {
+        let authorizationCalls: Int
+        let saveCalls: Int
+        let persisted: WorkoutReminderSettings
+        let scheduled: WorkoutReminderSettings
+    }
+
+    private var persisted: WorkoutReminderSettings
+    private var scheduled: WorkoutReminderSettings
+    private var authorizationCalls = 0
+    private var saveCalls = 0
+    private var firstAuthorizationContinuation: CheckedContinuation<Bool, Never>?
+
+    init(initial: WorkoutReminderSettings) {
+        persisted = initial
+        scheduled = initial
+    }
+
+    func requestAuthorization() async throws -> Bool {
+        authorizationCalls += 1
+        guard authorizationCalls == 1 else { return false }
+        return await withCheckedContinuation { continuation in
+            firstAuthorizationContinuation = continuation
+        }
+    }
+
+    func saveSettings(_ settings: WorkoutReminderSettings) async throws {
+        saveCalls += 1
+        persisted = settings
+    }
+
+    func loadPersistedSettings() async throws -> WorkoutReminderSettings {
+        persisted
+    }
+
+    func reconcileSchedule(settings: WorkoutReminderSettings) async throws {
+        scheduled = settings
+    }
+
+    func hasStartedAuthorization() -> Bool {
+        authorizationCalls > 0
+    }
+
+    func denyFirstAuthorization() {
+        firstAuthorizationContinuation?.resume(returning: false)
+        firstAuthorizationContinuation = nil
+    }
+
+    func snapshot() -> Snapshot {
+        Snapshot(
+            authorizationCalls: authorizationCalls,
+            saveCalls: saveCalls,
+            persisted: persisted,
+            scheduled: scheduled
+        )
+    }
 }
 #endif
