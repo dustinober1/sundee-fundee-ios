@@ -1266,14 +1266,16 @@ class DashboardViewModel: ObservableObject {
         let painLogs: [DailyPainLog] = (try? await dataClient.fetchAll(recordType: "DailyPainLog")) ?? []
         let recentCutoff = Calendar.current.date(byAdding: .day, value: -7, to: Date()) ?? Date()
         let recentPainLogs = painLogs.filter { $0.date >= recentCutoff }
+        let decisionKind = todayTrainingDecision?.kind ?? .modify
 
         let request = QuickWorkoutRequest(
             timeMinutes: 20,
             focus: .fullBody,
             energyLevel: .medium,
             equipment: settings.defaultEquipment,
-            todayDecisionKind: todayTrainingDecision?.kind ?? .modify,
-            painLogs: recentPainLogs
+            todayDecisionKind: decisionKind,
+            painLogs: recentPainLogs,
+            workoutKind: decisionKind == .recover ? .activeRecovery : .standard
         )
 
         return QuickWorkoutBuilder.build(request: request).workout
