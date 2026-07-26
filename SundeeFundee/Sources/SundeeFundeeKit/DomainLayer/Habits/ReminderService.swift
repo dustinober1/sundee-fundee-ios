@@ -139,8 +139,9 @@ actor ReminderSettingsUpdateCoordinator {
             )
         } catch {
             do {
+                let rollback = causallyVersioned(previous, after: authoritativeUpdate)
                 let authoritativePrevious =
-                    try await boundary.saveAndLoadAuthoritativeSettings(previous)
+                    try await boundary.saveAndLoadAuthoritativeSettings(rollback)
                 try await boundary.reconcileSchedule(settings: authoritativePrevious)
                 return ReminderSettingsUpdateResult(
                     state: .restored,
