@@ -48,6 +48,7 @@ private enum AuthLifecycleError: Error {
     case pendingMigrationCouldNotBeSaved
     case authenticatedSessionCouldNotBeSaved
     case pendingMigrationCouldNotBeCleared
+    case pendingAccountDidNotMatch
 }
 
 typealias GuestMigrationOperation = @Sendable (
@@ -87,6 +88,7 @@ public class AuthViewModel: ObservableObject {
     private let destinationClientFactory: @Sendable () -> any DataClientProtocol
     private let localClientFactory: @Sendable () -> any DataClientProtocol
     private let guestMigration: GuestMigrationOperation
+    private let presenceCleanup: @Sendable (String) async throws -> Void
 
     // MARK: - Initialization
 
@@ -104,6 +106,7 @@ public class AuthViewModel: ObservableObject {
             },
             localClientFactory: { LocalDataClient() },
             guestMigration: Self.defaultGuestMigration,
+            presenceCleanup: Self.defaultPresenceCleanup,
             restoreSessionOnInit: true
         )
     }
@@ -115,6 +118,7 @@ public class AuthViewModel: ObservableObject {
         destinationClientFactory: @escaping @Sendable () -> any DataClientProtocol,
         localClientFactory: @escaping @Sendable () -> any DataClientProtocol,
         guestMigration: @escaping GuestMigrationOperation,
+        presenceCleanup: @escaping @Sendable (String) async throws -> Void,
         restoreSessionOnInit: Bool
     ) {
         self.authClient = authClient
@@ -123,6 +127,7 @@ public class AuthViewModel: ObservableObject {
         self.destinationClientFactory = destinationClientFactory
         self.localClientFactory = localClientFactory
         self.guestMigration = guestMigration
+        self.presenceCleanup = presenceCleanup
 
         if restoreSessionOnInit {
             Task { [weak self] in
@@ -260,32 +265,30 @@ public class AuthViewModel: ObservableObject {
     public func deleteAccount() async {
         isLoading = true
         errorMessage = nil
+        defer { isLoading = false }
 
         do {
-            let session = sessionManager.session
-            let deletingOwnerID = userID ?? session.ownerID
+            if let pendingMigration = loadPendingGuestMigration() {
+                try await deletePendingGuestConversion(pendingMigration)
+            } else {
+                let session = sessionManager.session
+                let deletingOwnerID = userID ?? session.ownerID
 
-            // 1. Delete all data from CloudKit or Local storage
-            try await session.client.deleteAllData()
-            try await PresenceLocalStore(ownerID: deletingOwnerID).clear(
-                ownerID: deletingOwnerID
-            )
+                try await session.client.deleteAllData()
+                try await presenceCleanup(deletingOwnerID)
 
-            // 2. Revoke Apple ID token if not a guest
-            if !isGuest {
-                // Re-authenticate to get a fresh authorization code for revocation
-                let result = try await authClient.signIn(scopes: [])
-                try await authClient.revokeToken(authorizationCode: result.authorizationCode)
+                if !isGuest {
+                    let result = try await authClient.signIn(scopes: [])
+                    try await authClient.revokeToken(
+                        authorizationCode: result.authorizationCode
+                    )
+                }
             }
 
-            // 3. Reset state and clear credentials
-            _ = sessionStore.delete(key: Self.pendingGuestMigrationKey)
             await resetState()
         } catch {
             self.errorMessage = "We couldn't delete your account. Check your connection and try again."
         }
-
-        isLoading = false
     }
 
     // MARK: - Private Methods
@@ -443,6 +446,32 @@ public class AuthViewModel: ObservableObject {
             keepGuestSession(source: source, ownerID: marker.sourceOwnerID)
             errorMessage = "We still couldn't copy your guest data. "
                 + "It's safe on this device, and we'll try again next time."
+        }
+    }
+
+    private func deletePendingGuestConversion(
+        _ marker: PendingGuestMigration
+    ) async throws {
+        let activeSession = sessionManager.session
+        try await activeSession.client.deleteAllData()
+        try await presenceCleanup(activeSession.ownerID)
+
+        let pendingDestination = destinationClientFactory()
+        try await pendingDestination.deleteAllData()
+        try await presenceCleanup(marker.destinationUserID)
+
+        let result = try await authClient.signIn(scopes: [])
+        guard result.userID == marker.destinationUserID else {
+            throw AuthLifecycleError.pendingAccountDidNotMatch
+        }
+        try await authClient.revokeToken(
+            authorizationCode: result.authorizationCode
+        )
+
+        guard sessionStore.delete(
+            key: Self.pendingGuestMigrationKey
+        ) else {
+            throw AuthLifecycleError.pendingMigrationCouldNotBeCleared
         }
     }
 
@@ -645,6 +674,12 @@ public class AuthViewModel: ObservableObject {
             destinationPresenceStore: destinationPresenceStore,
             destinationPresenceOwnerID: destinationOwnerID
         ).migrate()
+    }
+
+    private nonisolated static func defaultPresenceCleanup(
+        ownerID: String
+    ) async throws {
+        try await PresenceLocalStore(ownerID: ownerID).clear(ownerID: ownerID)
     }
 
     private nonisolated static func migrateLegacyPresenceIfNeeded(
