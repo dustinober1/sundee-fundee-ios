@@ -47,7 +47,7 @@ public struct ConsistencyMomentumService: Sendable {
         let hasEarlierPresence = weeks.dropLast().contains { $0.daysPresent > 0 }
         let headline = current.daysPresent > 0
             ? "\(current.daysPresent) \(current.daysPresent == 1 ? "day" : "days") present this week"
-            : (hasEarlierPresence ? "Welcome back" : "Start by showing up today")
+            : (hasEarlierPresence ? ConsistencyMomentumCopy.welcomeBack : "Start by showing up today")
 
         return ConsistencyMomentumSummary(
             daysPresentThisWeek: current.daysPresent,
