@@ -60,6 +60,43 @@ struct TodayEngagementViewModelTests {
         #expect(hapticCounter.count == 2)
     }
 
+    @Test func sessionChangeDuringAchievementClaimPreservesFutureAnnouncement() async {
+        let service = PresenceServiceSpy(
+            ownerID: "account-a",
+            achievements: [.firstConsistentWeek]
+        )
+        let sessionProvider = MutablePresenceSessionProvider(
+            token: PresenceSessionToken(ownerID: "account-a", generation: 1)
+        )
+        let achievementStore = SuspendingAchievementAnnouncementStore()
+        let hapticCounter = AchievementHapticCounter()
+        let viewModel = TodayEngagementViewModel(
+            serviceProvider: { service },
+            achievementHaptic: hapticCounter.trigger,
+            achievementStore: achievementStore,
+            sessionTokenProvider: sessionProvider.current
+        )
+
+        let staleLoad = Task { await viewModel.load() }
+        await achievementStore.waitUntilClaimStarts()
+        sessionProvider.set(
+            PresenceSessionToken(ownerID: "account-a", generation: 2)
+        )
+        await achievementStore.releaseClaim()
+        await staleLoad.value
+
+        #expect(await achievementStore.claimed(ownerID: "account-a").isEmpty)
+        #expect(hapticCounter.count == 0)
+
+        await viewModel.load()
+
+        #expect(
+            await achievementStore.claimed(ownerID: "account-a")
+                == Set([ConsistencyAchievement.firstConsistentWeek])
+        )
+        #expect(hapticCounter.count == 1)
+    }
+
     @Test func selectingRestingPromotesToAction() async {
         let service = PresenceServiceSpy()
         let viewModel = TodayEngagementViewModel(service: service)
@@ -379,6 +416,57 @@ private final class AchievementHapticCounter {
 
     func trigger() {
         count += 1
+    }
+}
+
+private actor SuspendingAchievementAnnouncementStore: AchievementAnnouncementStoring {
+    private var announcedByOwner: [String: Set<ConsistencyAchievement>] = [:]
+    private var shouldSuspend = true
+    private var didStartClaim = false
+    private var startWaiters: [CheckedContinuation<Void, Never>] = []
+    private var claimWaiters: [CheckedContinuation<Void, Never>] = []
+
+    func claimNew(
+        _ achievements: Set<ConsistencyAchievement>,
+        ownerID: String
+    ) async -> Set<ConsistencyAchievement> {
+        didStartClaim = true
+        startWaiters.forEach { $0.resume() }
+        startWaiters.removeAll()
+        if shouldSuspend {
+            shouldSuspend = false
+            await withCheckedContinuation { continuation in
+                claimWaiters.append(continuation)
+            }
+        }
+
+        let existing = announcedByOwner[ownerID, default: []]
+        let new = achievements.subtracting(existing)
+        announcedByOwner[ownerID] = existing.union(new)
+        return new
+    }
+
+    func release(
+        _ achievements: Set<ConsistencyAchievement>,
+        ownerID: String
+    ) {
+        announcedByOwner[ownerID, default: []].subtract(achievements)
+    }
+
+    func waitUntilClaimStarts() async {
+        guard !didStartClaim else { return }
+        await withCheckedContinuation { continuation in
+            startWaiters.append(continuation)
+        }
+    }
+
+    func releaseClaim() {
+        claimWaiters.forEach { $0.resume() }
+        claimWaiters.removeAll()
+    }
+
+    func claimed(ownerID: String) -> Set<ConsistencyAchievement> {
+        announcedByOwner[ownerID, default: []]
     }
 }
 
