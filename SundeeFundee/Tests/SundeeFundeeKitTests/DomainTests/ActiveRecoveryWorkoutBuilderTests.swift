@@ -2,6 +2,16 @@ import XCTest
 @testable import SundeeFundeeKit
 
 final class ActiveRecoveryWorkoutBuilderTests: XCTestCase {
+    func testBuiltWorkoutIsMarkedAsActiveRecovery() {
+        let workout = ActiveRecoveryWorkoutBuilder.build(
+            equipment: .bodyweightOnly,
+            cyclePhase: nil,
+            date: Date(timeIntervalSince1970: 123)
+        )
+
+        XCTAssertEqual(workout.kind, .activeRecovery)
+    }
+
     func testBuilderCreatesThreeToFiveExercises() {
         let workout = ActiveRecoveryWorkoutBuilder.build(
             equipment: .fullGym,
