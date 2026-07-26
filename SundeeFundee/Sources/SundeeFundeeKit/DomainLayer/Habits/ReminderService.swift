@@ -3,13 +3,20 @@ import Foundation
 import UserNotifications
 
 protocol ReminderSettingsUpdateBoundary: Sendable {
+    func requestAuthorization() async throws -> Bool
     func saveSettings(_ settings: WorkoutReminderSettings) async throws
     func loadPersistedSettings() async throws -> WorkoutReminderSettings
     func reconcileSchedule(settings: WorkoutReminderSettings) async throws
 }
 
+extension ReminderSettingsUpdateBoundary {
+    func requestAuthorization() async throws -> Bool { true }
+}
+
 enum ReminderSettingsUpdateState: Sendable, Equatable {
     case applied
+    case authorizationDenied
+    case authorizationFailed
     case saveFailed
     case restored
     case rollbackFailed
@@ -24,6 +31,10 @@ struct ReminderSettingsUpdateResult: Sendable, Equatable {
         switch state {
         case .applied:
             return nil
+        case .authorizationDenied:
+            return "Notifications are off. Your previous reminder settings are unchanged. Enable notifications in Settings, then try again."
+        case .authorizationFailed:
+            return "Could not check notification access. Your previous reminder settings are unchanged. Please try again."
         case .saveFailed:
             return "Could not save reminders. Your previous settings and schedule are unchanged. Please try again."
         case .restored:
@@ -38,6 +49,7 @@ struct ReminderSettingsUpdateResult: Sendable, Equatable {
 
 actor ReminderSettingsUpdateCoordinator {
     private let boundary: any ReminderSettingsUpdateBoundary
+    private var queuedApply: (id: UUID, task: Task<ReminderSettingsUpdateResult, Never>)?
 
     init(boundary: any ReminderSettingsUpdateBoundary) {
         self.boundary = boundary
@@ -47,6 +59,60 @@ actor ReminderSettingsUpdateCoordinator {
         updated: WorkoutReminderSettings,
         previous: WorkoutReminderSettings
     ) async -> ReminderSettingsUpdateResult {
+        let predecessor = queuedApply?.task
+        let operationID = UUID()
+        let boundary = self.boundary
+        let operation = Task.detached { [boundary, predecessor] in
+            let predecessorResult = await predecessor?.value
+            let effectivePrevious: WorkoutReminderSettings
+            if let predecessorResult {
+                effectivePrevious = predecessorResult.settings
+            } else {
+                do {
+                    effectivePrevious = try await boundary.loadPersistedSettings()
+                } catch {
+                    return ReminderSettingsUpdateResult(
+                        state: .reloadFailed,
+                        settings: previous
+                    )
+                }
+            }
+            return await Self.performApply(
+                boundary: boundary,
+                updated: updated,
+                previous: effectivePrevious
+            )
+        }
+        queuedApply = (operationID, operation)
+
+        let result = await operation.value
+        if queuedApply?.id == operationID {
+            queuedApply = nil
+        }
+        return result
+    }
+
+    private nonisolated static func performApply(
+        boundary: any ReminderSettingsUpdateBoundary,
+        updated: WorkoutReminderSettings,
+        previous: WorkoutReminderSettings
+    ) async -> ReminderSettingsUpdateResult {
+        if ReminderService.requiresAuthorization(from: previous, to: updated) {
+            do {
+                guard try await boundary.requestAuthorization() else {
+                    return ReminderSettingsUpdateResult(
+                        state: .authorizationDenied,
+                        settings: previous
+                    )
+                }
+            } catch {
+                return ReminderSettingsUpdateResult(
+                    state: .authorizationFailed,
+                    settings: previous
+                )
+            }
+        }
+
         do {
             try await boundary.saveSettings(updated)
         } catch {
@@ -191,8 +257,8 @@ public actor ReminderService {
         from previous: WorkoutReminderSettings,
         to updated: WorkoutReminderSettings
     ) -> Bool {
-        (!previous.isEnabled && updated.isEnabled)
-            || (!previous.dailyPlanEnabled && updated.dailyPlanEnabled)
+        _ = previous
+        return updated.isEnabled || updated.dailyPlanEnabled
     }
 
     static func dailyPlanRequest(settings: WorkoutReminderSettings) -> UNNotificationRequest {
