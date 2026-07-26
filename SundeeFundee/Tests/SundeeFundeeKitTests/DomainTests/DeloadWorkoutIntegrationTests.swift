@@ -20,6 +20,8 @@ final class DeloadWorkoutIntegrationTests: XCTestCase {
         let activeRequest = BestNextWorkoutRequestBuilder.build(defaultEquipment: .fullGym, latestEnergy: .high, painLogs: [], todayDecisionKind: .modify, deloadDecision: active)
         XCTAssertEqual(reducedRequest.energyLevel, .medium)
         XCTAssertEqual(activeRequest.energyLevel, .low)
+        XCTAssertEqual(reducedRequest.workoutKind, .standard)
+        XCTAssertEqual(activeRequest.workoutKind, .activeRecovery)
         XCTAssertTrue(BestNextWorkoutRequestBuilder.adjustment(for: active).explanation.contains("Active recovery"))
     }
 
@@ -115,12 +117,14 @@ final class DeloadWorkoutIntegrationTests: XCTestCase {
 
         XCTAssertEqual(viewModel.adjustment.decision?.mode, .activeRecovery)
         XCTAssertFalse(viewModel.adjustment.isStandardSession)
+        XCTAssertEqual(adaptiveResult?.workout.kind, .activeRecovery)
         XCTAssertTrue(adaptiveResult?.reasons.contains("Today context kept the work submaximal.") == true)
 
         let standardResult = await viewModel.buildWorkout(useStandardSession: true)
 
         XCTAssertNil(viewModel.adjustment.decision)
         XCTAssertTrue(viewModel.adjustment.isStandardSession)
+        XCTAssertEqual(standardResult?.workout.kind, .standard)
         XCTAssertFalse(standardResult?.reasons.contains("Today context kept the work submaximal.") == true)
     }
 }
