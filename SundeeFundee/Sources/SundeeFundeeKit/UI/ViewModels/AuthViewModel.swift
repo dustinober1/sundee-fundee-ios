@@ -23,7 +23,7 @@ public class AuthViewModel: ObservableObject {
     @Published public var needsOnboarding: Bool = false
     @Published public var isGuest: Bool = false
 
-    public static let guestUserID = "guest_local"
+    public nonisolated static let guestUserID = "guest_local"
 
     // MARK: - Dependencies
 
@@ -58,10 +58,14 @@ public class AuthViewModel: ObservableObject {
         // Capture the pre-sign-in data client as the migration source. For a
         // guest this is LocalDataClient (set by continueAsGuest). We capture
         // BEFORE any factory swap so we read from the correct store.
-        let migrationSource: any DataClientProtocol = DataClientFactory.shared.client
+        let migrationSession = DataClientFactory.shared.session
+        let migrationSource: any DataClientProtocol = migrationSession.client
 
         do {
             let result = try await authClient.signIn(scopes: [.fullName, .email])
+            let destination: any DataClientProtocol = CloudKitClient(
+                containerIdentifier: "iCloud.com.sundeefundee.app"
+            )
 
             // Store user info
             self.userID = result.userID
@@ -86,7 +90,10 @@ public class AuthViewModel: ObservableObject {
                 self.userName = stored
             } else {
                 // Final fallback: fetch from CloudKit (saved during first-ever sign-in)
-                let cloudName = await fetchUserNameFromCloudKit(userID: result.userID)
+                let cloudName = await fetchUserNameFromCloudKit(
+                    userID: result.userID,
+                    using: destination
+                )
                 self.userName = cloudName
             }
 
@@ -100,7 +107,7 @@ public class AuthViewModel: ObservableObject {
             }
 
             // Save user to CloudKit
-            try await saveUserToCloudKit(result)
+            try await saveUserToCloudKit(result, using: destination)
 
             // If this user was previously a guest, copy their local-only data
             // to CloudKit before any ViewModel starts reading from the new
@@ -108,22 +115,40 @@ public class AuthViewModel: ObservableObject {
             // on error we log, surface a message, and leave the local data
             // (and the LocalDataClient factory) in place for a later retry.
             if wasGuest {
-                let destination: any DataClientProtocol = CloudKitClient(
-                    containerIdentifier: "iCloud.com.sundeefundee.app"
-                )
-                let migrator = GuestDataMigrator(source: migrationSource, destination: destination)
+                let sourcePresenceStore = PresenceLocalStore(ownerID: Self.guestUserID)
+                let destinationPresenceStore = PresenceLocalStore(ownerID: result.userID)
                 do {
-                    let result = try await migrator.migrate()
-                    authLogger.info("✅ Migrated \(result.totalCount) guest records to CloudKit")
+                    try await migrateLegacyPresenceIfNeeded(to: sourcePresenceStore)
+                    let migrator = GuestDataMigrator(
+                        source: migrationSource,
+                        destination: destination,
+                        sourcePresenceStore: sourcePresenceStore,
+                        sourcePresenceOwnerID: Self.guestUserID,
+                        destinationPresenceStore: destinationPresenceStore,
+                        destinationPresenceOwnerID: result.userID
+                    )
+                    let migrationResult = try await migrator.migrate()
+                    authLogger.info(
+                        "✅ Migrated \(migrationResult.totalCount) guest records to CloudKit"
+                    )
                     // Only swap to CloudKit after a successful migration. On
                     // failure we keep LocalDataClient so the guest's data is
                     // still readable during the retry.
-                    DataClientFactory.shared.client = destination
+                    DataClientFactory.shared.activate(
+                        client: destination,
+                        ownerID: result.userID
+                    )
                     self.isGuest = false
                 } catch {
                     authLogger.error("❌ Guest migration failed: \(error.localizedDescription)")
                     self.errorMessage = "You're signed in. We couldn't copy your guest data yet — it's still on this device. Try again later from Settings."
                 }
+            } else {
+                DataClientFactory.shared.activate(
+                    client: destination,
+                    ownerID: result.userID
+                )
+                self.isGuest = false
             }
 
             self.isAuthenticated = true
@@ -138,7 +163,14 @@ public class AuthViewModel: ObservableObject {
     /// Signs in as a guest (local-only, no CloudKit, no Apple auth)
     public func continueAsGuest() {
         // Switch to local storage before any ViewModels initialize
-        DataClientFactory.shared.client = LocalDataClient()
+        DataClientFactory.shared.activate(
+            client: LocalDataClient(),
+            ownerID: Self.guestUserID
+        )
+        Task {
+            let store = PresenceLocalStore(ownerID: Self.guestUserID)
+            try? await migrateLegacyPresenceIfNeeded(to: store)
+        }
 
         isGuest = true
         userID = AuthViewModel.guestUserID
@@ -174,8 +206,14 @@ public class AuthViewModel: ObservableObject {
         errorMessage = nil
 
         do {
+            let session = DataClientFactory.shared.session
+            let deletingOwnerID = userID ?? session.ownerID
+
             // 1. Delete all data from CloudKit or Local storage
-            try await dataClient.deleteAllData()
+            try await session.client.deleteAllData()
+            try await PresenceLocalStore(ownerID: deletingOwnerID).clear(
+                ownerID: deletingOwnerID
+            )
 
             // 2. Revoke Apple ID token if not a guest
             if !isGuest {
@@ -205,8 +243,11 @@ public class AuthViewModel: ObservableObject {
 
         await MainActor.run {
             // Reset to CloudKit for the next sign-in
-            DataClientFactory.shared.client = CloudKitClient(
-                containerIdentifier: "iCloud.com.sundeefundee.app"
+            DataClientFactory.shared.activate(
+                client: CloudKitClient(
+                    containerIdentifier: "iCloud.com.sundeefundee.app"
+                ),
+                ownerID: "signed-out"
             )
             isAuthenticated = false
             isGuest = false
@@ -226,7 +267,12 @@ public class AuthViewModel: ObservableObject {
             // Restore guest state and local data client if this was a guest session
             if userID == AuthViewModel.guestUserID {
                 isGuest = true
-                DataClientFactory.shared.client = LocalDataClient()
+                DataClientFactory.shared.activate(
+                    client: LocalDataClient(),
+                    ownerID: Self.guestUserID
+                )
+                let store = PresenceLocalStore(ownerID: Self.guestUserID)
+                try? await migrateLegacyPresenceIfNeeded(to: store)
                 isAuthenticated = true
                 needsOnboarding = KeychainHelper.read(key: "onboarding_complete") == nil
                 return
@@ -248,8 +294,13 @@ public class AuthViewModel: ObservableObject {
             }
 
             // If userName wasn't in Keychain, try fetching from CloudKit
+            let restoredClient = DataClientFactory.shared.session.client
+            DataClientFactory.shared.activate(client: restoredClient, ownerID: userID)
             if userName == nil || userName?.isEmpty == true {
-                if let cloudName = await fetchUserNameFromCloudKit(userID: userID) {
+                if let cloudName = await fetchUserNameFromCloudKit(
+                    userID: userID,
+                    using: restoredClient
+                ) {
                     self.userName = cloudName
                     _ = KeychainHelper.save(key: KeychainHelper.userNameKey, value: cloudName)
                 }
@@ -265,8 +316,11 @@ public class AuthViewModel: ObservableObject {
         _ = KeychainHelper.delete(key: KeychainHelper.userEmailKey)
         _ = KeychainHelper.delete(key: KeychainHelper.userNameKey)
         _ = KeychainHelper.delete(key: "onboarding_complete")
-        DataClientFactory.shared.client = CloudKitClient(
-            containerIdentifier: "iCloud.com.sundeefundee.app"
+        DataClientFactory.shared.activate(
+            client: CloudKitClient(
+                containerIdentifier: "iCloud.com.sundeefundee.app"
+            ),
+            ownerID: "signed-out"
         )
         isAuthenticated = false
         isGuest = false
@@ -277,9 +331,12 @@ public class AuthViewModel: ObservableObject {
     }
 
     /// Fetches user's first name from CloudKit UserData record
-    private func fetchUserNameFromCloudKit(userID: String) async -> String? {
+    private func fetchUserNameFromCloudKit(
+        userID: String,
+        using client: any DataClientProtocol
+    ) async -> String? {
         do {
-            let results: [UserData] = try await dataClient.fetch(
+            let results: [UserData] = try await client.fetch(
                 recordType: "UserData",
                 predicate: NSPredicate(format: "userID == %@", userID),
                 sortDescriptors: nil
@@ -294,7 +351,10 @@ public class AuthViewModel: ObservableObject {
     }
 
     /// Saves user info to CloudKit after successful authentication
-    private func saveUserToCloudKit(_ result: AppleAuthResult) async throws {
+    private func saveUserToCloudKit(
+        _ result: AppleAuthResult,
+        using client: any DataClientProtocol
+    ) async throws {
         let userData = UserData(
             userID: result.userID,
             email: result.email ?? "",
@@ -303,7 +363,20 @@ public class AuthViewModel: ObservableObject {
             createdAt: Date()
         )
 
-        try await dataClient.save(userData, recordType: "UserData")
+        try await client.save(userData, recordType: "UserData")
+    }
+
+    private func migrateLegacyPresenceIfNeeded(
+        to store: PresenceLocalStore
+    ) async throws {
+        let legacyURL = FileManager.default
+            .urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent("SundeeFundee", isDirectory: true)
+            .appendingPathComponent("daily-presence.json")
+        try await store.migrateLegacyCache(
+            from: legacyURL,
+            ownerID: Self.guestUserID
+        )
     }
 
     /// Fetches stored user ID from Keychain
