@@ -21,6 +21,7 @@ public struct GuestMigrationResult: Sendable, Equatable {
     public let enrolledProgramsMigrated: Int
     public let settingsMigrated: Int
     public let celebrationsMigrated: Int
+    public let presencesMigrated: Int
 
     public init(
         workoutsMigrated: Int = 0,
@@ -30,7 +31,8 @@ public struct GuestMigrationResult: Sendable, Equatable {
         benchmarkResultsMigrated: Int = 0,
         enrolledProgramsMigrated: Int = 0,
         settingsMigrated: Int = 0,
-        celebrationsMigrated: Int = 0
+        celebrationsMigrated: Int = 0,
+        presencesMigrated: Int = 0
     ) {
         self.workoutsMigrated = workoutsMigrated
         self.challengesMigrated = challengesMigrated
@@ -40,12 +42,14 @@ public struct GuestMigrationResult: Sendable, Equatable {
         self.enrolledProgramsMigrated = enrolledProgramsMigrated
         self.settingsMigrated = settingsMigrated
         self.celebrationsMigrated = celebrationsMigrated
+        self.presencesMigrated = presencesMigrated
     }
 
     public var totalCount: Int {
         workoutsMigrated + challengesMigrated + injuriesMigrated
             + oneRepMaxesMigrated + benchmarkResultsMigrated
             + enrolledProgramsMigrated + settingsMigrated + celebrationsMigrated
+            + presencesMigrated
     }
 }
 
@@ -65,10 +69,25 @@ public struct GuestMigrationResult: Sendable, Equatable {
 public struct GuestDataMigrator: Sendable {
     private let source: any DataClientProtocol
     private let destination: any DataClientProtocol
+    private let sourcePresenceStore: (any PresenceLocalStoring)?
+    private let sourcePresenceOwnerID: String?
+    private let destinationPresenceStore: (any PresenceLocalStoring)?
+    private let destinationPresenceOwnerID: String?
 
-    public init(source: any DataClientProtocol, destination: any DataClientProtocol) {
+    public init(
+        source: any DataClientProtocol,
+        destination: any DataClientProtocol,
+        sourcePresenceStore: (any PresenceLocalStoring)? = nil,
+        sourcePresenceOwnerID: String? = nil,
+        destinationPresenceStore: (any PresenceLocalStoring)? = nil,
+        destinationPresenceOwnerID: String? = nil
+    ) {
         self.source = source
         self.destination = destination
+        self.sourcePresenceStore = sourcePresenceStore
+        self.sourcePresenceOwnerID = sourcePresenceOwnerID
+        self.destinationPresenceStore = destinationPresenceStore
+        self.destinationPresenceOwnerID = destinationPresenceOwnerID
     }
 
     /// Performs the migration. See type docs for semantics.
@@ -87,6 +106,8 @@ public struct GuestDataMigrator: Sendable {
         let enrolledPrograms: [EnrolledProgramRecord] = try await source.fetchAll(recordType: "EnrolledProgram")
         let userSettings: [UserSettingsRecord] = try await source.fetchAll(recordType: "UserSettings")
         let celebrations: [CelebrationEventRecord] = try await source.fetchAll(recordType: "CelebrationEventRecord")
+        let guestPresences = try await loadSourcePresences()
+        let mergedPresences = try await mergeWithDestinationPresences(guestPresences)
 
         // Phase 2 — save to destination. If any save throws, we throw
         // without clearing source so the user can retry later.
@@ -98,9 +119,28 @@ public struct GuestDataMigrator: Sendable {
         try await saveIfNonEmpty(enrolledPrograms, recordType: "EnrolledProgram")
         try await saveIfNonEmpty(userSettings, recordType: "UserSettings")
         try await saveIfNonEmpty(celebrations, recordType: "CelebrationEventRecord")
+        if !guestPresences.isEmpty {
+            try await saveIfNonEmpty(
+                mergedPresences,
+                recordType: DailyPresenceService.recordType
+            )
+        }
+
+        if !guestPresences.isEmpty,
+           let destinationPresenceStore,
+           let destinationPresenceOwnerID {
+            try await destinationPresenceStore.importRecords(
+                mergedPresences,
+                ownerID: destinationPresenceOwnerID,
+                markPending: false
+            )
+        }
 
         // Phase 3 — clear source. Only reached if every save above succeeded.
         try await source.deleteAllData()
+        if let sourcePresenceStore, let sourcePresenceOwnerID {
+            try await sourcePresenceStore.clear(ownerID: sourcePresenceOwnerID)
+        }
 
         let result = GuestMigrationResult(
             workoutsMigrated: workouts.count,
@@ -110,7 +150,8 @@ public struct GuestDataMigrator: Sendable {
             benchmarkResultsMigrated: benchmarkResults.count,
             enrolledProgramsMigrated: enrolledPrograms.count,
             settingsMigrated: userSettings.count,
-            celebrationsMigrated: celebrations.count
+            celebrationsMigrated: celebrations.count,
+            presencesMigrated: Set(guestPresences.map(\.dayKey)).count
         )
 
         migrationLogger.info("✅ Guest migration copied \(result.totalCount) records")
@@ -123,5 +164,40 @@ public struct GuestDataMigrator: Sendable {
         where T: Encodable & Sendable {
         guard !records.isEmpty else { return }
         try await destination.save(records, recordType: recordType)
+    }
+
+    private func loadSourcePresences() async throws -> [DailyPresenceRecord] {
+        guard let sourcePresenceStore else { return [] }
+        guard let sourcePresenceOwnerID else {
+            throw DataError.invalidData(
+                description: "Guest presence migration is missing its source owner."
+            )
+        }
+        return try await sourcePresenceStore.load(ownerID: sourcePresenceOwnerID)
+    }
+
+    private func mergeWithDestinationPresences(
+        _ guestPresences: [DailyPresenceRecord]
+    ) async throws -> [DailyPresenceRecord] {
+        guard !guestPresences.isEmpty else { return [] }
+        let remote: [DailyPresenceRecord] = try await destination.fetchAll(
+            recordType: DailyPresenceService.recordType
+        )
+        var mergedByDay: [String: DailyPresenceRecord] = [:]
+
+        for record in remote + guestPresences {
+            if let existing = mergedByDay[record.dayKey] {
+                mergedByDay[record.dayKey] = existing.merging(with: record)
+            } else {
+                mergedByDay[record.dayKey] = record
+            }
+        }
+
+        return mergedByDay.values.sorted {
+            if $0.dayKey != $1.dayKey {
+                return $0.dayKey < $1.dayKey
+            }
+            return $0.id < $1.id
+        }
     }
 }
