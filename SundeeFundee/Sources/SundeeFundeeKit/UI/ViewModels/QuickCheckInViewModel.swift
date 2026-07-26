@@ -60,6 +60,8 @@ final class QuickCheckInViewModel: ObservableObject {
                 try await dataClient.save(periodRecord, recordType: "PeriodLogRecord")
                 NotificationCenter.default.post(name: .cycleDataUpdated, object: nil)
             }
+
+            NotificationCenter.default.post(name: .dailyCheckInCompleted, object: nil)
         } catch {
             errorMessage = "We couldn't save your check-in. Check your connection and try again."
         }
