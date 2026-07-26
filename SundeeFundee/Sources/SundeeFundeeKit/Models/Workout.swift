@@ -1,5 +1,38 @@
 import Foundation
 
+public enum WorkoutKind: String, Codable, Sendable, Equatable {
+    case standard
+    case activeRecovery
+}
+
+public struct WorkoutCompletionEvent: Sendable, Equatable {
+    public let workoutID: String
+    public let kind: WorkoutKind
+    public let operationDate: Date
+
+    public init(workoutID: String, kind: WorkoutKind, operationDate: Date) {
+        self.workoutID = workoutID
+        self.kind = kind
+        self.operationDate = operationDate
+    }
+
+    public init(workout: Workout, operationDate: Date) {
+        self.init(workoutID: workout.id, kind: workout.kind, operationDate: operationDate)
+    }
+
+    public var presenceStatus: DailyPresenceStatus {
+        kind == .activeRecovery ? .resting : .trained
+    }
+
+    public var presenceEvidence: DailyPresenceActionEvidence {
+        kind == .activeRecovery ? .recovered : .trained
+    }
+
+    public static func from(notification: Notification) -> Self? {
+        notification.object as? Self
+    }
+}
+
 public struct Workout: Equatable, Codable, Identifiable, Sendable {
     public let id: String
     public var date: Date
@@ -8,6 +41,7 @@ public struct Workout: Equatable, Codable, Identifiable, Sendable {
     public var notes: String?
     public var duration: Int  // minutes
     public var completedAt: Date?
+    public var kind: WorkoutKind
 
     public init(
         id: String = UUID().uuidString,
@@ -16,7 +50,8 @@ public struct Workout: Equatable, Codable, Identifiable, Sendable {
         exercises: [Exercise],
         notes: String? = nil,
         duration: Int = 0,
-        completedAt: Date? = nil
+        completedAt: Date? = nil,
+        kind: WorkoutKind = .standard
     ) {
         self.id = id
         self.date = date
@@ -25,6 +60,7 @@ public struct Workout: Equatable, Codable, Identifiable, Sendable {
         self.notes = notes
         self.duration = duration
         self.completedAt = completedAt
+        self.kind = kind
     }
 
     // MARK: - Backwards-compatible decoding
@@ -34,7 +70,7 @@ public struct Workout: Equatable, Codable, Identifiable, Sendable {
     // to an empty array so the record is still usable for volume/stats.
 
     private enum CodingKeys: String, CodingKey {
-        case id, date, name, exercises, notes, duration, completedAt
+        case id, date, name, exercises, notes, duration, completedAt, kind
     }
 
     public init(from decoder: Decoder) throws {
@@ -46,6 +82,7 @@ public struct Workout: Equatable, Codable, Identifiable, Sendable {
         notes = try container.decodeIfPresent(String.self, forKey: .notes)
         duration = (try? container.decode(Int.self, forKey: .duration)) ?? 0
         completedAt = try container.decodeIfPresent(Date.self, forKey: .completedAt)
+        kind = (try? container.decode(WorkoutKind.self, forKey: .kind)) ?? .standard
     }
 
     public var totalVolume: Double {
