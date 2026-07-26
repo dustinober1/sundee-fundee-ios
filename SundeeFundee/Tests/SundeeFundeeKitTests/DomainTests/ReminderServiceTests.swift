@@ -46,7 +46,7 @@ struct ReminderServiceTests {
         let cloudKitJSON = """
         {
           "id":"workout_reminder_settings",
-          "isEnabled":1,
+          "isEnabled":9223372036854775807,
           "preferredWeekdays":[2,4,6],
           "hour":9,
           "minute":0,
@@ -63,6 +63,76 @@ struct ReminderServiceTests {
 
         #expect(settings.isEnabled)
         #expect(settings.dailyPlanEnabled)
+    }
+
+    @Test("Missing required reminder flag throws a Bool type mismatch")
+    func missingRequiredReminderFlagThrows() {
+        expectBoolTypeMismatch(
+            """
+            {
+              "id":"workout_reminder_settings",
+              "preferredWeekdays":[2,4,6],
+              "hour":9,
+              "minute":0,
+              "dateUpdated":"2026-07-26T12:00:00Z"
+            }
+            """
+        )
+    }
+
+    @Test("Malformed required reminder flag throws a Bool type mismatch")
+    func malformedRequiredReminderFlagThrows() {
+        expectBoolTypeMismatch(
+            """
+            {
+              "id":"workout_reminder_settings",
+              "isEnabled":"yes",
+              "preferredWeekdays":[2,4,6],
+              "hour":9,
+              "minute":0,
+              "dateUpdated":"2026-07-26T12:00:00Z"
+            }
+            """
+        )
+    }
+
+    @Test("Malformed optional daily plan flag throws a Bool type mismatch")
+    func malformedOptionalDailyPlanFlagThrows() {
+        expectBoolTypeMismatch(
+            """
+            {
+              "id":"workout_reminder_settings",
+              "isEnabled":false,
+              "preferredWeekdays":[2,4,6],
+              "hour":9,
+              "minute":0,
+              "dailyPlanEnabled":"yes",
+              "dateUpdated":"2026-07-26T12:00:00Z"
+            }
+            """
+        )
+    }
+
+    @Test("Null optional daily plan flag defaults off")
+    func nullOptionalDailyPlanFlagDefaultsOff() throws {
+        let json = """
+        {
+          "id":"workout_reminder_settings",
+          "isEnabled":false,
+          "preferredWeekdays":[2,4,6],
+          "hour":9,
+          "minute":0,
+          "dailyPlanEnabled":null,
+          "dateUpdated":"2026-07-26T12:00:00Z"
+        }
+        """
+
+        let settings = try reminderSettingsDecoder.decode(
+            WorkoutReminderSettings.self,
+            from: Data(json.utf8)
+        )
+
+        #expect(settings.dailyPlanEnabled == false)
     }
 
     @Test("Daily plan copy contains no sensitive terms")
@@ -136,5 +206,135 @@ struct ReminderServiceTests {
     ) {
         #expect(ReminderService.requiresAuthorization(from: previous, to: updated) == expected)
     }
+
+    @Test("A reconcile failure restores prior persisted settings and schedule")
+    func reconcileFailureRestoresPriorState() async {
+        let previous = WorkoutReminderSettings(
+            isEnabled: true,
+            hour: 9,
+            dateUpdated: Date(timeIntervalSince1970: 1)
+        )
+        let updated = WorkoutReminderSettings(
+            dailyPlanEnabled: true,
+            dailyPlanHour: 8,
+            dateUpdated: Date(timeIntervalSince1970: 2)
+        )
+        let boundary = InMemoryReminderSettingsBoundary(
+            persisted: previous,
+            scheduled: previous,
+            failingReconcileAttempts: [1]
+        )
+        let coordinator = ReminderSettingsUpdateCoordinator(boundary: boundary)
+
+        let result = await coordinator.apply(updated: updated, previous: previous)
+        let snapshot = await boundary.snapshot()
+
+        #expect(result.state == .restored)
+        #expect(result.settings == previous)
+        #expect(snapshot.persisted == previous)
+        #expect(snapshot.scheduled == previous)
+    }
+
+    @Test("A failed rollback reloads authoritative persisted settings")
+    func rollbackFailureReloadsAuthoritativeState() async {
+        let previous = WorkoutReminderSettings(
+            isEnabled: true,
+            hour: 9,
+            dateUpdated: Date(timeIntervalSince1970: 1)
+        )
+        let updated = WorkoutReminderSettings(
+            dailyPlanEnabled: true,
+            dailyPlanHour: 8,
+            dateUpdated: Date(timeIntervalSince1970: 2)
+        )
+        let boundary = InMemoryReminderSettingsBoundary(
+            persisted: previous,
+            scheduled: previous,
+            failingSaveAttempts: [2],
+            failingReconcileAttempts: [1]
+        )
+        let coordinator = ReminderSettingsUpdateCoordinator(boundary: boundary)
+
+        let result = await coordinator.apply(updated: updated, previous: previous)
+
+        #expect(result.state == .rollbackFailed)
+        #expect(result.settings == updated)
+        #expect(result.errorMessage?.localizedCaseInsensitiveContains("out of sync") == true)
+        #expect(result.errorMessage?.localizedCaseInsensitiveContains("try again") == true)
+    }
+
+    private var reminderSettingsDecoder: JSONDecoder {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        return decoder
+    }
+
+    private func expectBoolTypeMismatch(_ json: String) {
+        do {
+            _ = try reminderSettingsDecoder.decode(
+                WorkoutReminderSettings.self,
+                from: Data(json.utf8)
+            )
+            Issue.record("Expected decoding to reject the Bool field")
+        } catch DecodingError.typeMismatch(let type, _) {
+            #expect(String(reflecting: type) == "Swift.Bool")
+        } catch {
+            Issue.record("Expected DecodingError.typeMismatch, got \(error)")
+        }
+    }
+}
+
+private actor InMemoryReminderSettingsBoundary: ReminderSettingsUpdateBoundary {
+    struct Snapshot: Sendable {
+        let persisted: WorkoutReminderSettings
+        let scheduled: WorkoutReminderSettings
+    }
+
+    private var persisted: WorkoutReminderSettings
+    private var scheduled: WorkoutReminderSettings
+    private let failingSaveAttempts: Set<Int>
+    private let failingReconcileAttempts: Set<Int>
+    private var saveAttempt = 0
+    private var reconcileAttempt = 0
+
+    init(
+        persisted: WorkoutReminderSettings,
+        scheduled: WorkoutReminderSettings,
+        failingSaveAttempts: Set<Int> = [],
+        failingReconcileAttempts: Set<Int> = []
+    ) {
+        self.persisted = persisted
+        self.scheduled = scheduled
+        self.failingSaveAttempts = failingSaveAttempts
+        self.failingReconcileAttempts = failingReconcileAttempts
+    }
+
+    func saveSettings(_ settings: WorkoutReminderSettings) async throws {
+        saveAttempt += 1
+        guard !failingSaveAttempts.contains(saveAttempt) else {
+            throw ReminderSettingsBoundaryTestError.injectedFailure
+        }
+        persisted = settings
+    }
+
+    func loadPersistedSettings() async throws -> WorkoutReminderSettings {
+        persisted
+    }
+
+    func reconcileSchedule(settings: WorkoutReminderSettings) async throws {
+        reconcileAttempt += 1
+        guard !failingReconcileAttempts.contains(reconcileAttempt) else {
+            throw ReminderSettingsBoundaryTestError.injectedFailure
+        }
+        scheduled = settings
+    }
+
+    func snapshot() -> Snapshot {
+        Snapshot(persisted: persisted, scheduled: scheduled)
+    }
+}
+
+private enum ReminderSettingsBoundaryTestError: Error {
+    case injectedFailure
 }
 #endif
