@@ -35,6 +35,11 @@ protocol AuthDataSessionManaging: Sendable {
 
 extension DataClientFactory: AuthDataSessionManaging {}
 
+private enum PendingGuestMigrationPhase: String, Codable, Sendable {
+    case migrating
+    case deleting
+}
+
 private struct PendingGuestMigration: Codable, Sendable {
     let sourceOwnerID: String
     let destinationUserID: String
@@ -42,6 +47,66 @@ private struct PendingGuestMigration: Codable, Sendable {
     let givenName: String?
     let familyName: String?
     let dateCreated: Date
+    let phase: PendingGuestMigrationPhase
+
+    init(
+        sourceOwnerID: String,
+        destinationUserID: String,
+        email: String?,
+        givenName: String?,
+        familyName: String?,
+        dateCreated: Date,
+        phase: PendingGuestMigrationPhase = .migrating
+    ) {
+        self.sourceOwnerID = sourceOwnerID
+        self.destinationUserID = destinationUserID
+        self.email = email
+        self.givenName = givenName
+        self.familyName = familyName
+        self.dateCreated = dateCreated
+        self.phase = phase
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case sourceOwnerID
+        case destinationUserID
+        case email
+        case givenName
+        case familyName
+        case dateCreated
+        case phase
+    }
+
+    init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        sourceOwnerID = try container.decode(String.self, forKey: .sourceOwnerID)
+        destinationUserID = try container.decode(
+            String.self,
+            forKey: .destinationUserID
+        )
+        email = try container.decodeIfPresent(String.self, forKey: .email)
+        givenName = try container.decodeIfPresent(String.self, forKey: .givenName)
+        familyName = try container.decodeIfPresent(String.self, forKey: .familyName)
+        dateCreated = try container.decode(Date.self, forKey: .dateCreated)
+        phase = try container.decodeIfPresent(
+            PendingGuestMigrationPhase.self,
+            forKey: .phase
+        ) ?? .migrating
+    }
+
+    func transitioning(
+        to phase: PendingGuestMigrationPhase
+    ) -> PendingGuestMigration {
+        PendingGuestMigration(
+            sourceOwnerID: sourceOwnerID,
+            destinationUserID: destinationUserID,
+            email: email,
+            givenName: givenName,
+            familyName: familyName,
+            dateCreated: dateCreated,
+            phase: phase
+        )
+    }
 }
 
 private enum AuthLifecycleError: Error {
@@ -143,6 +208,12 @@ public class AuthViewModel: ObservableObject {
         isLoading = true
         errorMessage = nil
         defer { isLoading = false }
+
+        if loadPendingGuestMigration()?.phase == .deleting {
+            errorMessage = "Account deletion is waiting to finish. "
+                + "Retry Delete Account from Settings."
+            return
+        }
 
         let wasGuest = isGuest
         let migrationSession = sessionManager.session
@@ -324,7 +395,17 @@ public class AuthViewModel: ObservableObject {
     /// has finished migrating.
     func restoreSession() async {
         if let pendingMigration = loadPendingGuestMigration() {
-            await resumePendingGuestMigration(pendingMigration)
+            switch pendingMigration.phase {
+            case .migrating:
+                await resumePendingGuestMigration(pendingMigration)
+            case .deleting:
+                keepGuestSession(
+                    source: localClientFactory(),
+                    ownerID: pendingMigration.sourceOwnerID
+                )
+                errorMessage = "Account deletion is waiting to finish. "
+                    + "Retry Delete Account from Settings."
+            }
             return
         }
 
@@ -452,18 +533,22 @@ public class AuthViewModel: ObservableObject {
     private func deletePendingGuestConversion(
         _ marker: PendingGuestMigration
     ) async throws {
+        let deletingMarker = marker.transitioning(to: .deleting)
+        try savePendingGuestMigration(deletingMarker)
+
+        let result = try await authClient.signIn(scopes: [])
+        guard result.userID == deletingMarker.destinationUserID else {
+            throw AuthLifecycleError.pendingAccountDidNotMatch
+        }
+
         let activeSession = sessionManager.session
         try await activeSession.client.deleteAllData()
         try await presenceCleanup(activeSession.ownerID)
 
         let pendingDestination = destinationClientFactory()
         try await pendingDestination.deleteAllData()
-        try await presenceCleanup(marker.destinationUserID)
+        try await presenceCleanup(deletingMarker.destinationUserID)
 
-        let result = try await authClient.signIn(scopes: [])
-        guard result.userID == marker.destinationUserID else {
-            throw AuthLifecycleError.pendingAccountDidNotMatch
-        }
         try await authClient.revokeToken(
             authorizationCode: result.authorizationCode
         )
