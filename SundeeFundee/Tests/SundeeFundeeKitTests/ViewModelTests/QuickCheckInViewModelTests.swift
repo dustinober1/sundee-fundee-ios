@@ -1,3 +1,4 @@
+import CloudKit
 import XCTest
 @testable import SundeeFundeeKit
 
@@ -42,5 +43,54 @@ final class QuickCheckInViewModelTests: XCTestCase {
         XCTAssertEqual(dataClient.recordCount(for: "SymptomCheckInRecord"), 1)
         XCTAssertEqual(dataClient.recordCount(for: "DailyPainLog"), 1)
         XCTAssertEqual(dataClient.recordCount(for: "PeriodLogRecord"), 1)
+    }
+
+    func testPartialSaveDoesNotPublishDailyCompletion() async {
+        let dataClient = PartialFailingCheckInDataClient()
+        let viewModel = QuickCheckInViewModel(dataClient: dataClient)
+        let completionExpectation = expectation(
+            forNotification: .dailyCheckInCompleted,
+            object: nil
+        )
+        completionExpectation.isInverted = true
+        viewModel.hasPain = true
+        viewModel.painIntensity = 6
+
+        await viewModel.save()
+
+        await fulfillment(of: [completionExpectation], timeout: 0.1)
+        let savedRecordTypes = await dataClient.savedRecordTypes()
+        XCTAssertNotNil(viewModel.errorMessage)
+        XCTAssertEqual(savedRecordTypes, ["SymptomCheckInRecord"])
+    }
+}
+
+private actor PartialFailingCheckInDataClient: DataClientProtocol {
+    private var savedTypes: [String] = []
+
+    func fetch<T>(
+        recordType: String,
+        predicate: NSPredicate,
+        sortDescriptors: [NSSortDescriptor]?
+    ) async throws -> [T] where T: Decodable & Sendable {
+        []
+    }
+
+    func save<T>(
+        _ records: [T],
+        recordType: String
+    ) async throws where T: Encodable & Sendable {
+        guard recordType != "DailyPainLog" else {
+            throw DataError.networkError(underlying: nil)
+        }
+        savedTypes.append(recordType)
+    }
+
+    func delete(recordIDs: [CKRecord.ID], recordType: String) async throws {}
+
+    func deleteAllData() async throws {}
+
+    func savedRecordTypes() -> [String] {
+        savedTypes
     }
 }
