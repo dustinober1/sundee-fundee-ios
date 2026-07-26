@@ -11,6 +11,13 @@ protocol ReminderSettingsUpdateBoundary: Sendable {
 
 extension ReminderSettingsUpdateBoundary {
     func requestAuthorization() async throws -> Bool { true }
+
+    func saveAndLoadAuthoritativeSettings(
+        _ settings: WorkoutReminderSettings
+    ) async throws -> WorkoutReminderSettings {
+        try await saveSettings(settings)
+        return try await loadPersistedSettings()
+    }
 }
 
 enum ReminderSettingsUpdateState: Sendable, Equatable {
@@ -97,7 +104,9 @@ actor ReminderSettingsUpdateCoordinator {
         updated: WorkoutReminderSettings,
         previous: WorkoutReminderSettings
     ) async -> ReminderSettingsUpdateResult {
-        if ReminderService.requiresAuthorization(from: previous, to: updated) {
+        let versionedUpdate = causallyVersioned(updated, after: previous)
+
+        if ReminderService.requiresAuthorization(from: previous, to: versionedUpdate) {
             do {
                 guard try await boundary.requestAuthorization() else {
                     return ReminderSettingsUpdateResult(
@@ -113,20 +122,30 @@ actor ReminderSettingsUpdateCoordinator {
             }
         }
 
+        let authoritativeUpdate: WorkoutReminderSettings
         do {
-            try await boundary.saveSettings(updated)
+            authoritativeUpdate = try await boundary.saveAndLoadAuthoritativeSettings(
+                versionedUpdate
+            )
         } catch {
             return ReminderSettingsUpdateResult(state: .saveFailed, settings: previous)
         }
 
         do {
-            try await boundary.reconcileSchedule(settings: updated)
-            return ReminderSettingsUpdateResult(state: .applied, settings: updated)
+            try await boundary.reconcileSchedule(settings: authoritativeUpdate)
+            return ReminderSettingsUpdateResult(
+                state: .applied,
+                settings: authoritativeUpdate
+            )
         } catch {
             do {
-                try await boundary.saveSettings(previous)
-                try await boundary.reconcileSchedule(settings: previous)
-                return ReminderSettingsUpdateResult(state: .restored, settings: previous)
+                let authoritativePrevious =
+                    try await boundary.saveAndLoadAuthoritativeSettings(previous)
+                try await boundary.reconcileSchedule(settings: authoritativePrevious)
+                return ReminderSettingsUpdateResult(
+                    state: .restored,
+                    settings: authoritativePrevious
+                )
             } catch {
                 do {
                     let authoritative = try await boundary.loadPersistedSettings()
@@ -135,10 +154,25 @@ actor ReminderSettingsUpdateCoordinator {
                         settings: authoritative
                     )
                 } catch {
-                    return ReminderSettingsUpdateResult(state: .reloadFailed, settings: updated)
+                    return ReminderSettingsUpdateResult(
+                        state: .reloadFailed,
+                        settings: authoritativeUpdate
+                    )
                 }
             }
         }
+    }
+
+    private nonisolated static func causallyVersioned(
+        _ updated: WorkoutReminderSettings,
+        after previous: WorkoutReminderSettings
+    ) -> WorkoutReminderSettings {
+        var result = updated
+        result.dateUpdated = max(
+            updated.dateUpdated,
+            previous.dateUpdated.addingTimeInterval(1)
+        )
+        return result
     }
 }
 
