@@ -90,9 +90,14 @@ public final class TodayEngagementViewModel: ObservableObject {
                 at: now(),
                 calendar: calendar
             )
-            summary = try await service.loadSummary(referenceDate: now(), calendar: calendar)
-            message = nil
             HapticFeedback.light()
+
+            do {
+                summary = try await service.loadSummary(referenceDate: now(), calendar: calendar)
+                message = nil
+            } catch {
+                message = "Your check-in was saved, but momentum couldn’t refresh yet."
+            }
         } catch {
             message = "That check-in did not save. Please try again."
             HapticFeedback.warning()
