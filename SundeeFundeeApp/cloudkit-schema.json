@@ -148,6 +148,28 @@ DEFINE SCHEMA
         GRANT READ TO "_world"
     );
 
+    RECORD TYPE DailyPresenceRecord (
+        "___createTime"         TIMESTAMP,
+        "___createdBy"          REFERENCE,
+        "___etag"               STRING,
+        "___modTime"            TIMESTAMP,
+        "___modifiedBy"         REFERENCE,
+        "___recordID"           REFERENCE QUERYABLE,
+        dateCreated             STRING,
+        dateUpdated             STRING,
+        dayKey                  STRING,
+        firstOpenDate           STRING,
+        id                      STRING,
+        modelVersion            INT64,
+        mostRecentOpenDate      STRING,
+        participationLevelRaw   STRING,
+        statusRaw               STRING,
+        timeZoneIdentifier      STRING,
+        GRANT WRITE TO "_creator",
+        GRANT CREATE TO "_icloud",
+        GRANT READ TO "_world"
+    );
+
     RECORD TYPE CycleSettings (
         "___createTime"        TIMESTAMP,
         "___createdBy"         REFERENCE,
