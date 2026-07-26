@@ -188,7 +188,7 @@ public struct DailyPresenceRecord: Codable, Sendable, Identifiable, Equatable {
 
     public static func makeID(dayKey: String, timeZoneIdentifier: String) -> String {
         let safeZone = timeZoneIdentifier.map {
-            $0.isLetter || $0.isNumber || $0 == "-" ? String($0) : "_"
+            $0.isLetter || $0.isNumber || $0 == "-" || $0 == "_" ? String($0) : "-"
         }.joined()
         return "presence-\(dayKey)-\(safeZone)"
     }
