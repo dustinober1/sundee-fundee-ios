@@ -66,6 +66,22 @@ struct TodayEngagementViewModelTests {
         #expect(await service.promotionCallCount == 1)
         #expect(viewModel.today?.status == .ready)
     }
+
+    @Test func defersReloadUntilAnInFlightSelectionFinishes() async {
+        let service = BlockingPresenceService()
+        let viewModel = TodayEngagementViewModel(service: service)
+
+        let selection = Task { await viewModel.select(.ready) }
+        await service.waitUntilPromotionStarts()
+        await viewModel.load()
+
+        #expect(await service.recordOpenCallCount == 0)
+
+        await service.releasePromotions()
+        await selection.value
+
+        #expect(await service.recordOpenCallCount == 1)
+    }
 }
 
 private final class MutablePresenceServiceProvider: @unchecked Sendable {
@@ -130,13 +146,15 @@ private actor PresenceServiceSpy: DailyPresenceServicing {
 }
 
 private actor BlockingPresenceService: DailyPresenceServicing {
+    private(set) var recordOpenCallCount = 0
     private(set) var promotionCallCount = 0
     private var didStartPromotion = false
     private var startWaiters: [CheckedContinuation<Void, Never>] = []
     private var promotionWaiters: [CheckedContinuation<Void, Never>] = []
 
     func recordOpen(at date: Date, calendar: Calendar) async throws -> DailyPresenceRecord {
-        record(status: nil, date: date)
+        recordOpenCallCount += 1
+        return record(status: nil, date: date)
     }
 
     func promoteToday(
