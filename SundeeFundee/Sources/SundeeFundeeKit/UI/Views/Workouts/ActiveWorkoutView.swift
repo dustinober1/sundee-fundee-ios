@@ -1137,7 +1137,14 @@ public struct ActiveWorkoutView: View {
 
                 // Done button
                 Button {
-                    NotificationCenter.default.post(name: .workoutCompleted, object: nil)
+                    let event = WorkoutCompletionEvent(
+                        workout: viewModel.workout,
+                        operationDate: viewModel.workout.completedAt ?? viewModel.workout.date
+                    )
+                    NotificationCenter.default.post(name: .workoutCompleted, object: event)
+                    if event.kind == .activeRecovery {
+                        NotificationCenter.default.post(name: .intentionalRecoveryCompleted, object: event)
+                    }
                     dismiss()
                 } label: {
                     Text("Done")
