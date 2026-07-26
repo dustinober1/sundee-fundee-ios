@@ -51,7 +51,8 @@ public struct DashboardView: View {
                     TodayPresenceCard(
                         today: engagementViewModel.today,
                         summary: engagementViewModel.summary,
-                        message: engagementViewModel.message
+                        message: engagementViewModel.message,
+                        isUpdating: engagementViewModel.isLoading
                     ) { status in
                         Task { await engagementViewModel.select(status) }
                     }
@@ -131,8 +132,10 @@ public struct DashboardView: View {
                 _ = await engagementLoad
             }
             .refreshable {
+                async let engagementLoad: Void = engagementViewModel.load()
                 await viewModel.loadData(cyclePhaseCache: cyclePhaseCache)
                 await refreshReadiness()
+                _ = await engagementLoad
             }
             .onReceive(NotificationCenter.default.publisher(for: .workoutCompleted)) { _ in
                 Task {
@@ -149,7 +152,11 @@ public struct DashboardView: View {
             }
             .onChange(of: authViewModel.isGuest) { _, isGuest in
                 readinessViewModel.updateGuestState(isGuest)
-                Task { await readinessViewModel.load() }
+                Task {
+                    async let engagementLoad: Void = engagementViewModel.load()
+                    await readinessViewModel.load()
+                    _ = await engagementLoad
+                }
             }
             #if os(iOS)
             .fullScreenCover(isPresented: $showingAIWorkout) {
