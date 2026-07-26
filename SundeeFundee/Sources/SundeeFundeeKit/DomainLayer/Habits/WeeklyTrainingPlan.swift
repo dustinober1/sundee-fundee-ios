@@ -61,6 +61,9 @@ public struct WorkoutReminderSettings: Codable, Sendable, Identifiable, Equatabl
     public var preferredWeekdays: [Int]
     public var hour: Int
     public var minute: Int
+    public var dailyPlanEnabled: Bool
+    public var dailyPlanHour: Int
+    public var dailyPlanMinute: Int
     public var dateUpdated: Date
 
     public init(
@@ -69,13 +72,70 @@ public struct WorkoutReminderSettings: Codable, Sendable, Identifiable, Equatabl
         preferredWeekdays: [Int] = [2, 4, 6],
         hour: Int = 9,
         minute: Int = 0,
+        dailyPlanEnabled: Bool = false,
+        dailyPlanHour: Int = 8,
+        dailyPlanMinute: Int = 0,
         dateUpdated: Date = Date()
     ) {
         self.id = id
         self.isEnabled = isEnabled
         self.preferredWeekdays = preferredWeekdays
-        self.hour = hour
-        self.minute = minute
+        self.hour = Self.validatedHour(hour)
+        self.minute = Self.validatedMinute(minute)
+        self.dailyPlanEnabled = dailyPlanEnabled
+        self.dailyPlanHour = Self.validatedHour(dailyPlanHour)
+        self.dailyPlanMinute = Self.validatedMinute(dailyPlanMinute)
         self.dateUpdated = dateUpdated
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id
+        case isEnabled
+        case preferredWeekdays
+        case hour
+        case minute
+        case dailyPlanEnabled
+        case dailyPlanHour
+        case dailyPlanMinute
+        case dateUpdated
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        isEnabled = Self.decodeBool(from: container, forKey: .isEnabled)
+        preferredWeekdays = try container.decode([Int].self, forKey: .preferredWeekdays)
+        hour = Self.validatedHour(try container.decode(Int.self, forKey: .hour))
+        minute = Self.validatedMinute(try container.decode(Int.self, forKey: .minute))
+        dailyPlanEnabled = Self.decodeBool(from: container, forKey: .dailyPlanEnabled, default: false)
+        dailyPlanHour = Self.validatedHour(
+            try container.decodeIfPresent(Int.self, forKey: .dailyPlanHour) ?? 8
+        )
+        dailyPlanMinute = Self.validatedMinute(
+            try container.decodeIfPresent(Int.self, forKey: .dailyPlanMinute) ?? 0
+        )
+        dateUpdated = try container.decode(Date.self, forKey: .dateUpdated)
+    }
+
+    private static func decodeBool(
+        from container: KeyedDecodingContainer<CodingKeys>,
+        forKey key: CodingKeys,
+        default defaultValue: Bool? = nil
+    ) -> Bool {
+        if let value = try? container.decode(Bool.self, forKey: key) {
+            return value
+        }
+        if let value = try? container.decode(Int.self, forKey: key) {
+            return value != 0
+        }
+        return defaultValue ?? false
+    }
+
+    private static func validatedHour(_ hour: Int) -> Int {
+        min(max(hour, 0), 23)
+    }
+
+    private static func validatedMinute(_ minute: Int) -> Int {
+        min(max(minute, 0), 59)
     }
 }
