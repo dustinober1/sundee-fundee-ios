@@ -195,9 +195,13 @@ struct TodayEngagementViewModelTests {
         #expect(await secondService.lastPromotion?.1 == .ready)
     }
 
-    @Test func accountSwitchDiscardsLateResultsAndClearsStateWhenNewLoadFails() async {
+    @Test(
+        "Session changes discard late results and clear state when the new load fails",
+        arguments: ["account-b", "account-a"]
+    )
+    func sessionChangeDiscardsLateResults(nextOwnerID: String) async {
         let firstService = BlockingLoadPresenceService(ownerID: "account-a")
-        let secondService = FailingPresenceService(ownerID: "account-b")
+        let secondService = FailingPresenceService(ownerID: nextOwnerID)
         let provider = MutablePresenceServiceProvider(service: firstService)
         let sessionProvider = MutablePresenceSessionProvider(
             token: PresenceSessionToken(ownerID: "account-a", generation: 1)
@@ -212,7 +216,7 @@ struct TodayEngagementViewModelTests {
 
         provider.set(secondService)
         sessionProvider.set(
-            PresenceSessionToken(ownerID: "account-b", generation: 2)
+            PresenceSessionToken(ownerID: nextOwnerID, generation: 2)
         )
         await viewModel.load()
         await firstService.releaseLoad()
