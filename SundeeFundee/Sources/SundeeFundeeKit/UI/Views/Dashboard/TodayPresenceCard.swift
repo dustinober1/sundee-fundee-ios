@@ -10,6 +10,7 @@ public struct TodayPresenceCard: View {
     private let today: DailyPresenceRecord?
     private let summary: ConsistencyMomentumSummary?
     private let message: String?
+    private let isUpdating: Bool
     private let onSelect: (DailyPresenceStatus) -> Void
 
     @State private var momentumRoute: MomentumRoute?
@@ -18,11 +19,13 @@ public struct TodayPresenceCard: View {
         today: DailyPresenceRecord?,
         summary: ConsistencyMomentumSummary?,
         message: String? = nil,
+        isUpdating: Bool = false,
         onSelect: @escaping (DailyPresenceStatus) -> Void
     ) {
         self.today = today
         self.summary = summary
         self.message = message
+        self.isUpdating = isUpdating
         self.onSelect = onSelect
     }
 
@@ -86,7 +89,7 @@ public struct TodayPresenceCard: View {
                 Text(status.displayName)
                     .font(.body)
             }
-            .foregroundStyle(isSelected ? AppTheme.Text.white : AppTheme.Text.secondary)
+            .foregroundStyle(isSelected ? AppTheme.Background.navy : AppTheme.Text.secondary)
             .padding(.horizontal, AppTheme.Spacing.md)
             .padding(.vertical, AppTheme.Spacing.sm)
             .background(
@@ -102,6 +105,7 @@ public struct TodayPresenceCard: View {
             )
         }
         .buttonStyle(.plain)
+        .disabled(isUpdating)
         .accessibilityLabel("\(status.displayName) check-in")
         .accessibilityValue(isSelected ? "Selected" : "Not selected")
         .accessibilityHint("Updates today's private status")
