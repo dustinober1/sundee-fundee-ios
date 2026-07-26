@@ -7,6 +7,7 @@ public struct QuickWorkoutRequest: Sendable, Equatable {
     public let equipment: EquipmentAccess
     public let todayDecisionKind: TodayTrainingDecisionKind
     public let painLogs: [DailyPainLog]
+    public let workoutKind: WorkoutKind
 
     public init(
         timeMinutes: Int,
@@ -14,7 +15,8 @@ public struct QuickWorkoutRequest: Sendable, Equatable {
         energyLevel: EnergyLevel,
         equipment: EquipmentAccess,
         todayDecisionKind: TodayTrainingDecisionKind,
-        painLogs: [DailyPainLog]
+        painLogs: [DailyPainLog],
+        workoutKind: WorkoutKind = .standard
     ) {
         self.timeMinutes = timeMinutes
         self.focus = focus
@@ -22,6 +24,7 @@ public struct QuickWorkoutRequest: Sendable, Equatable {
         self.equipment = equipment
         self.todayDecisionKind = todayDecisionKind
         self.painLogs = painLogs
+        self.workoutKind = workoutKind
     }
 
     public static func == (lhs: QuickWorkoutRequest, rhs: QuickWorkoutRequest) -> Bool {
@@ -31,6 +34,7 @@ public struct QuickWorkoutRequest: Sendable, Equatable {
             && lhs.equipment == rhs.equipment
             && lhs.todayDecisionKind == rhs.todayDecisionKind
             && lhs.painLogs.quickWorkoutComparableValue == rhs.painLogs.quickWorkoutComparableValue
+            && lhs.workoutKind == rhs.workoutKind
     }
 }
 
@@ -85,7 +89,8 @@ public enum QuickWorkoutBuilder {
                 name: "Best Next \(timeLimit) Minutes",
                 exercises: exercises,
                 notes: reasons.joined(separator: " "),
-                duration: max(timeLimit, estimatedMinutes)
+                duration: max(timeLimit, estimatedMinutes),
+                kind: request.workoutKind
             ),
             estimatedMinutes: estimatedMinutes,
             reasons: reasons
