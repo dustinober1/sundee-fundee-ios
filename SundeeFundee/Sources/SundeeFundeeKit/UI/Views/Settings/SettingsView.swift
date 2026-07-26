@@ -159,11 +159,26 @@ public struct SettingsView: View {
                     Link("Privacy Policy", destination: SettingsLinks.privacy)
                     Link("Terms of Service", destination: SettingsLinks.terms)
 
-                    Button("Sign Out") {
-                        authViewModel.signOut()
+                    if authViewModel.isGuest {
+                        Button {
+                            Task {
+                                await authViewModel.signInWithApple()
+                            }
+                        } label: {
+                            Label("Sign in with Apple", systemImage: "apple.logo")
+                        }
+                        .disabled(authViewModel.isLoading)
+                        .foregroundColor(AppTheme.Text.primary)
+                        .accessibilityHint(
+                            "Sign in and copy your guest workouts to your Apple account"
+                        )
+                    } else {
+                        Button("Sign Out") {
+                            authViewModel.signOut()
+                        }
+                        .foregroundColor(AppTheme.Text.primary)
+                        .accessibilityHint("Sign out of your account")
                     }
-                    .foregroundColor(AppTheme.Text.primary)
-                    .accessibilityHint("Sign out of your account")
 
                     Button("Delete All Data & Account") {
                         showingDeleteConfirmation = true
@@ -191,12 +206,27 @@ public struct SettingsView: View {
                 Text("This will permanently delete all your workouts, benchmarks, and settings. This action cannot be undone.")
             }
             .alert("Error", isPresented: Binding(
-                get: { viewModel.errorMessage != nil },
-                set: { if !$0 { viewModel.errorMessage = nil } }
+                get: {
+                    authViewModel.errorMessage != nil
+                        || viewModel.errorMessage != nil
+                },
+                set: {
+                    if !$0 {
+                        authViewModel.errorMessage = nil
+                        viewModel.errorMessage = nil
+                    }
+                }
             )) {
-                Button("OK") { viewModel.errorMessage = nil }
+                Button("OK") {
+                    authViewModel.errorMessage = nil
+                    viewModel.errorMessage = nil
+                }
             } message: {
-                Text(viewModel.errorMessage ?? "")
+                Text(
+                    authViewModel.errorMessage
+                        ?? viewModel.errorMessage
+                        ?? ""
+                )
             }
         }
     }
