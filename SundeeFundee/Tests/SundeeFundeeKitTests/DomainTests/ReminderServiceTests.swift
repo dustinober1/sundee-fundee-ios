@@ -294,6 +294,38 @@ struct ReminderServiceTests {
         #expect(snapshot.scheduled == result.settings)
     }
 
+    @Test("Reconcile failure never rolls back a concurrent server winner")
+    func reconcileFailurePreservesConcurrentServerWinner() async {
+        let previous = WorkoutReminderSettings(
+            isEnabled: false,
+            hour: 9,
+            dateUpdated: Date(timeIntervalSince1970: 1)
+        )
+        let updated = WorkoutReminderSettings(
+            isEnabled: false,
+            hour: 10,
+            dateUpdated: Date(timeIntervalSince1970: 2)
+        )
+        let serverWinner = WorkoutReminderSettings(
+            isEnabled: true,
+            hour: 11,
+            dateUpdated: Date(timeIntervalSince1970: 10)
+        )
+        let boundary = ConcurrentServerWinnerReminderBoundary(
+            previous: previous,
+            serverWinner: serverWinner
+        )
+        let coordinator = ReminderSettingsUpdateCoordinator(boundary: boundary)
+
+        let result = await coordinator.apply(updated: updated, previous: previous)
+        let snapshot = await boundary.snapshot()
+
+        #expect(result.state == .rollbackFailed)
+        #expect(result.settings == serverWinner)
+        #expect(snapshot.persisted == serverWinner)
+        #expect(snapshot.saveCallCount == 1)
+    }
+
     @Test("A failed rollback reloads authoritative persisted settings")
     func rollbackFailureReloadsAuthoritativeState() async {
         let previous = WorkoutReminderSettings(
@@ -647,6 +679,57 @@ private actor ConflictResolvingReminderSettingsBoundary: ReminderSettingsUpdateB
 
     func snapshot() -> Snapshot {
         Snapshot(persisted: persisted, scheduled: scheduled)
+    }
+}
+
+private actor ConcurrentServerWinnerReminderBoundary: ReminderSettingsUpdateBoundary {
+    struct Snapshot: Sendable {
+        let persisted: WorkoutReminderSettings
+        let saveCallCount: Int
+    }
+
+    private var persisted: WorkoutReminderSettings
+    private let serverWinner: WorkoutReminderSettings
+    private var saveCallCount = 0
+    private var reconcileCallCount = 0
+
+    init(
+        previous: WorkoutReminderSettings,
+        serverWinner: WorkoutReminderSettings
+    ) {
+        persisted = previous
+        self.serverWinner = serverWinner
+    }
+
+    func saveSettings(_ settings: WorkoutReminderSettings) async throws {
+        saveCallCount += 1
+        if saveCallCount == 1 {
+            persisted = serverWinner
+        } else {
+            persisted = CloudKitClient.resolveWorkoutReminderSettingsConflict(
+                clientRecord: settings,
+                serverRecord: persisted
+            )
+        }
+    }
+
+    func loadPersistedSettings() async throws -> WorkoutReminderSettings {
+        persisted
+    }
+
+    func reconcileSchedule(settings: WorkoutReminderSettings) async throws {
+        _ = settings
+        reconcileCallCount += 1
+        guard reconcileCallCount > 1 else {
+            throw ReminderSettingsBoundaryTestError.injectedFailure
+        }
+    }
+
+    func snapshot() -> Snapshot {
+        Snapshot(
+            persisted: persisted,
+            saveCallCount: saveCallCount
+        )
     }
 }
 
