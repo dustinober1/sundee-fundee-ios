@@ -53,6 +53,26 @@ struct TodayEngagementViewModelTests {
         #expect(await service.lastPromotion?.1 == nil)
     }
 
+    @Test func coalescesActionsReceivedDuringLoadWithoutDowngradingWorkoutCompletion() async {
+        let service = BlockingLoadPresenceService()
+        let viewModel = TodayEngagementViewModel(service: service)
+
+        let load = Task { await viewModel.load() }
+        await service.waitUntilLoadStarts()
+
+        await viewModel.recordAction(.trained)
+        await viewModel.recordCheckIn()
+
+        #expect(await service.promotionCallCount == 0)
+
+        await service.releaseLoad()
+        await load.value
+
+        #expect(await service.promotionCallCount == 1)
+        #expect(await service.lastPromotion?.0 == .acted)
+        #expect(await service.lastPromotion?.1 == .trained)
+    }
+
     @Test func reportsPartialSuccessWhenMomentumRefreshFails() async {
         let service = PresenceServiceSpy(summaryShouldFail: true)
         let viewModel = TodayEngagementViewModel(service: service)
@@ -244,6 +264,71 @@ private actor BlockingPresenceService: DailyPresenceServicing {
             timeZoneIdentifier: "America/New_York",
             firstOpenDate: date,
             participationLevel: .checkedIn,
+            status: status
+        )
+    }
+}
+
+private actor BlockingLoadPresenceService: DailyPresenceServicing {
+    private(set) var promotionCallCount = 0
+    private(set) var lastPromotion: (DailyParticipationLevel, DailyPresenceStatus?)?
+    private var didStartLoad = false
+    private var startWaiters: [CheckedContinuation<Void, Never>] = []
+    private var loadWaiters: [CheckedContinuation<Void, Never>] = []
+
+    func recordOpen(at date: Date, calendar: Calendar) async throws -> DailyPresenceRecord {
+        didStartLoad = true
+        startWaiters.forEach { $0.resume() }
+        startWaiters.removeAll()
+        await withCheckedContinuation { continuation in
+            loadWaiters.append(continuation)
+        }
+        return record(participationLevel: .showedUp, status: nil, date: date)
+    }
+
+    func promoteToday(
+        to participationLevel: DailyParticipationLevel,
+        status: DailyPresenceStatus?,
+        at date: Date,
+        calendar: Calendar
+    ) async throws -> DailyPresenceRecord {
+        promotionCallCount += 1
+        lastPromotion = (participationLevel, status)
+        return record(participationLevel: participationLevel, status: status, date: date)
+    }
+
+    func loadSummary(referenceDate: Date, calendar: Calendar) async throws -> ConsistencyMomentumSummary {
+        ConsistencyMomentumSummary(
+            daysPresentThisWeek: 1,
+            checkInsThisWeek: 1,
+            actionDaysThisWeek: 0,
+            rollingWeeks: [],
+            supportiveHeadline: "1 day present this week"
+        )
+    }
+
+    func waitUntilLoadStarts() async {
+        guard !didStartLoad else { return }
+        await withCheckedContinuation { continuation in
+            startWaiters.append(continuation)
+        }
+    }
+
+    func releaseLoad() {
+        loadWaiters.forEach { $0.resume() }
+        loadWaiters.removeAll()
+    }
+
+    private func record(
+        participationLevel: DailyParticipationLevel,
+        status: DailyPresenceStatus?,
+        date: Date
+    ) -> DailyPresenceRecord {
+        DailyPresenceRecord(
+            dayKey: "2025-07-23",
+            timeZoneIdentifier: "America/New_York",
+            firstOpenDate: date,
+            participationLevel: participationLevel,
             status: status
         )
     }
