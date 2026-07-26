@@ -175,8 +175,8 @@ public struct DashboardView: View {
                     await refreshReadiness()
                 }
             }
-            .onChange(of: authViewModel.isGuest) { _, isGuest in
-                readinessViewModel.updateGuestState(isGuest)
+            .onChange(of: authViewModel.userID) { _, _ in
+                readinessViewModel.updateGuestState(authViewModel.isGuest)
                 Task {
                     async let engagementLoad: Void = engagementViewModel.load()
                     await readinessViewModel.load()
