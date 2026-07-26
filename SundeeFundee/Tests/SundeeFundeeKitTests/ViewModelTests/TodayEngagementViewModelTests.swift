@@ -21,6 +21,24 @@ struct TodayEngagementViewModelTests {
         #expect(await service.recordOpenCallCount == 1)
     }
 
+    @Test func newlyDerivedAchievementsTriggerOneSuccessHapticPerProcess() async {
+        let service = PresenceServiceSpy(achievements: [.firstConsistentWeek, .recoveryChoice])
+        let hapticCounter = AchievementHapticCounter()
+        let viewModel = TodayEngagementViewModel(
+            serviceProvider: { service },
+            achievementHaptic: hapticCounter.trigger
+        )
+
+        await viewModel.load()
+        await viewModel.load()
+
+        #expect(
+            viewModel.summary?.achievements
+                == Set([ConsistencyAchievement.firstConsistentWeek, .recoveryChoice])
+        )
+        #expect(hapticCounter.count == 1)
+    }
+
     @Test func selectingRestingPromotesToAction() async {
         let service = PresenceServiceSpy()
         let viewModel = TodayEngagementViewModel(service: service)
@@ -159,9 +177,14 @@ private actor PresenceServiceSpy: DailyPresenceServicing {
     private(set) var recordOpenCallCount = 0
     private(set) var lastPromotion: (DailyParticipationLevel, DailyPresenceStatus?)?
     private let summaryShouldFail: Bool
+    private let achievements: Set<ConsistencyAchievement>
 
-    init(summaryShouldFail: Bool = false) {
+    init(
+        summaryShouldFail: Bool = false,
+        achievements: Set<ConsistencyAchievement> = []
+    ) {
         self.summaryShouldFail = summaryShouldFail
+        self.achievements = achievements
     }
 
     func recordOpen(at date: Date, calendar: Calendar) async throws -> DailyPresenceRecord {
@@ -188,7 +211,8 @@ private actor PresenceServiceSpy: DailyPresenceServicing {
             checkInsThisWeek: 0,
             actionDaysThisWeek: 0,
             rollingWeeks: [],
-            supportiveHeadline: "1 day present this week"
+            supportiveHeadline: "1 day present this week",
+            achievements: achievements
         )
     }
 
@@ -204,6 +228,15 @@ private actor PresenceServiceSpy: DailyPresenceServicing {
             participationLevel: participationLevel,
             status: status
         )
+    }
+}
+
+@MainActor
+private final class AchievementHapticCounter {
+    private(set) var count = 0
+
+    func trigger() {
+        count += 1
     }
 }
 
