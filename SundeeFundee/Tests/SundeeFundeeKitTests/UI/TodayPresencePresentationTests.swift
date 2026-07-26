@@ -15,4 +15,17 @@ struct TodayPresencePresentationTests {
             !ConsistencyMomentumCopy.welcomeBack.lowercased().contains($0)
         })
     }
+
+    @Test func achievementCopyIsConciseAndNonPunitive() {
+        let forbidden = ["lost", "failed", "reset", "broke", "missed"]
+
+        for achievement in ConsistencyAchievement.allCases {
+            #expect(!achievement.title.isEmpty)
+            #expect(!achievement.supportiveDescription.isEmpty)
+            #expect(!achievement.systemImage.isEmpty)
+            #expect(forbidden.allSatisfy {
+                !achievement.supportiveDescription.lowercased().contains($0)
+            })
+        }
+    }
 }
