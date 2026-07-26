@@ -97,6 +97,36 @@ struct TodayEngagementViewModelTests {
         #expect(hapticCounter.count == 1)
     }
 
+    @Test func cancellingAStaleClaimDoesNotReleaseANewerClaim() async {
+        let achievements = Set([ConsistencyAchievement.firstConsistentWeek])
+        let store = AccountAchievementAnnouncementStore()
+
+        let staleClaim = await store.claimNew(
+            achievements,
+            ownerID: "account-a"
+        )
+        let currentClaim = await store.claimNew(
+            achievements,
+            ownerID: "account-a"
+        )
+        let currentAnnouncement = await store.commit(
+            currentClaim,
+            ifCurrent: { true }
+        )
+        await store.release(staleClaim)
+        let laterClaim = await store.claimNew(
+            achievements,
+            ownerID: "account-a"
+        )
+        let laterAnnouncement = await store.commit(
+            laterClaim,
+            ifCurrent: { true }
+        )
+
+        #expect(currentAnnouncement == achievements)
+        #expect(laterAnnouncement?.isEmpty == true)
+    }
+
     @Test func selectingRestingPromotesToAction() async {
         let service = PresenceServiceSpy()
         let viewModel = TodayEngagementViewModel(service: service)
@@ -421,6 +451,7 @@ private final class AchievementHapticCounter {
 
 private actor SuspendingAchievementAnnouncementStore: AchievementAnnouncementStoring {
     private var announcedByOwner: [String: Set<ConsistencyAchievement>] = [:]
+    private var pendingClaims: [UUID: AchievementAnnouncementClaim] = [:]
     private var shouldSuspend = true
     private var didStartClaim = false
     private var startWaiters: [CheckedContinuation<Void, Never>] = []
@@ -429,7 +460,7 @@ private actor SuspendingAchievementAnnouncementStore: AchievementAnnouncementSto
     func claimNew(
         _ achievements: Set<ConsistencyAchievement>,
         ownerID: String
-    ) async -> Set<ConsistencyAchievement> {
+    ) async -> AchievementAnnouncementClaim {
         didStartClaim = true
         startWaiters.forEach { $0.resume() }
         startWaiters.removeAll()
@@ -441,16 +472,30 @@ private actor SuspendingAchievementAnnouncementStore: AchievementAnnouncementSto
         }
 
         let existing = announcedByOwner[ownerID, default: []]
-        let new = achievements.subtracting(existing)
-        announcedByOwner[ownerID] = existing.union(new)
+        let claim = AchievementAnnouncementClaim(
+            ownerID: ownerID,
+            achievements: achievements.subtracting(existing)
+        )
+        pendingClaims[claim.id] = claim
+        return claim
+    }
+
+    func commit(
+        _ claim: AchievementAnnouncementClaim,
+        ifCurrent: @escaping @Sendable () -> Bool
+    ) -> Set<ConsistencyAchievement>? {
+        guard pendingClaims.removeValue(forKey: claim.id) == claim,
+              ifCurrent() else {
+            return nil
+        }
+        let existing = announcedByOwner[claim.ownerID, default: []]
+        let new = claim.achievements.subtracting(existing)
+        announcedByOwner[claim.ownerID] = existing.union(new)
         return new
     }
 
-    func release(
-        _ achievements: Set<ConsistencyAchievement>,
-        ownerID: String
-    ) {
-        announcedByOwner[ownerID, default: []].subtract(achievements)
+    func release(_ claim: AchievementAnnouncementClaim) {
+        pendingClaims.removeValue(forKey: claim.id)
     }
 
     func waitUntilClaimStarts() async {
