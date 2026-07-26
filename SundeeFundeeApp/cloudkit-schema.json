@@ -155,6 +155,7 @@ DEFINE SCHEMA
         "___modTime"            TIMESTAMP,
         "___modifiedBy"         REFERENCE,
         "___recordID"           REFERENCE QUERYABLE,
+        actionEvidenceRaw       LIST<STRING>,
         dateCreated             STRING,
         dateUpdated             STRING,
         dayKey                  STRING,
@@ -381,8 +382,30 @@ DEFINE SCHEMA
         date            STRING QUERYABLE SEARCHABLE SORTABLE,
         duration        INT64 QUERYABLE SORTABLE,
         exercises       LIST<STRING>,
+        kind            STRING,
         name            STRING QUERYABLE SEARCHABLE SORTABLE,
         notes           STRING QUERYABLE SEARCHABLE SORTABLE,
+        GRANT WRITE TO "_creator",
+        GRANT CREATE TO "_icloud",
+        GRANT READ TO "_world"
+    );
+
+    RECORD TYPE WorkoutReminderSettings (
+        "___createTime"     TIMESTAMP,
+        "___createdBy"      REFERENCE,
+        "___etag"           STRING,
+        "___modTime"        TIMESTAMP,
+        "___modifiedBy"     REFERENCE,
+        "___recordID"       REFERENCE QUERYABLE,
+        dailyPlanEnabled     INT64,
+        dailyPlanHour        INT64,
+        dailyPlanMinute      INT64,
+        dateUpdated          STRING,
+        hour                 INT64,
+        id                   STRING,
+        isEnabled            INT64,
+        minute               INT64,
+        preferredWeekdays    LIST<INT64>,
         GRANT WRITE TO "_creator",
         GRANT CREATE TO "_icloud",
         GRANT READ TO "_world"
