@@ -71,10 +71,13 @@ public struct ConsistencyMomentumView: View {
                             RoundedRectangle(cornerRadius: AppTheme.CornerRadius.small)
                                 .fill(AppTheme.Accent.gold)
                                 .frame(
-                                    height: max(
-                                        AppTheme.Spacing.xs,
-                                        geometry.size.height * min(Double(week.daysPresent) / 7.0, 1)
-                                    )
+                                    height: week.daysPresent == 0
+                                        ? 0
+                                        : max(
+                                            AppTheme.Spacing.xs,
+                                            geometry.size.height
+                                                * min(Double(week.daysPresent) / 7.0, 1)
+                                        )
                                 )
                         }
                     }
