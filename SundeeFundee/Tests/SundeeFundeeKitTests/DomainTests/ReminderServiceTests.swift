@@ -259,11 +259,14 @@ struct ReminderServiceTests {
 
         let result = await coordinator.apply(updated: updated, previous: previous)
         let snapshot = await boundary.snapshot()
+        var expected = previous
+        expected.dateUpdated = result.settings.dateUpdated
 
         #expect(result.state == .restored)
-        #expect(result.settings == previous)
-        #expect(snapshot.persisted == previous)
-        #expect(snapshot.scheduled == previous)
+        #expect(result.settings == expected)
+        #expect(result.settings.dateUpdated > updated.dateUpdated)
+        #expect(snapshot.persisted == result.settings)
+        #expect(snapshot.scheduled == result.settings)
     }
 
     @Test("Rollback is versioned after the applied CloudKit revision")
@@ -413,11 +416,15 @@ struct ReminderServiceTests {
         async let secondResult = coordinator.apply(updated: secondUpdate, previous: firstUpdate)
         let results = await (firstResult, secondResult)
         let snapshot = await boundary.snapshot()
+        var expected = secondUpdate
+        expected.dateUpdated = results.1.settings.dateUpdated
 
         #expect(results.0.state == .restored)
         #expect(results.1.state == .applied)
-        #expect(snapshot.persisted == secondUpdate)
-        #expect(snapshot.scheduled == secondUpdate)
+        #expect(results.1.settings == expected)
+        #expect(results.1.settings.dateUpdated > results.0.settings.dateUpdated)
+        #expect(snapshot.persisted == results.1.settings)
+        #expect(snapshot.scheduled == results.1.settings)
     }
 
     @Test("Queued enabled revisions cannot bypass denied authorization")
