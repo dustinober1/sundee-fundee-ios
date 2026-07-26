@@ -13,10 +13,33 @@ public struct ConsistencyMomentumSummary: Sendable, Equatable {
     public let actionDaysThisWeek: Int
     public let rollingWeeks: [WeeklyPresenceSummary]
     public let supportiveHeadline: String
+    public let achievements: Set<ConsistencyAchievement>
+
+    public init(
+        daysPresentThisWeek: Int,
+        checkInsThisWeek: Int,
+        actionDaysThisWeek: Int,
+        rollingWeeks: [WeeklyPresenceSummary],
+        supportiveHeadline: String,
+        achievements: Set<ConsistencyAchievement> = []
+    ) {
+        self.daysPresentThisWeek = daysPresentThisWeek
+        self.checkInsThisWeek = checkInsThisWeek
+        self.actionDaysThisWeek = actionDaysThisWeek
+        self.rollingWeeks = rollingWeeks
+        self.supportiveHeadline = supportiveHeadline
+        self.achievements = achievements
+    }
 }
 
 public struct ConsistencyMomentumService: Sendable {
-    public init() {}
+    private let achievementService: ConsistencyAchievementService
+
+    public init(
+        achievementService: ConsistencyAchievementService = ConsistencyAchievementService()
+    ) {
+        self.achievementService = achievementService
+    }
 
     public func summarize(
         records: [DailyPresenceRecord],
@@ -54,7 +77,13 @@ public struct ConsistencyMomentumService: Sendable {
             checkInsThisWeek: current.checkInDays,
             actionDaysThisWeek: current.actionDays,
             rollingWeeks: weeks,
-            supportiveHeadline: headline
+            supportiveHeadline: headline,
+            achievements: achievementService.newlyEarned(
+                records: records,
+                previouslyEarned: [],
+                referenceDate: referenceDate,
+                calendar: calendar
+            )
         )
     }
 }
