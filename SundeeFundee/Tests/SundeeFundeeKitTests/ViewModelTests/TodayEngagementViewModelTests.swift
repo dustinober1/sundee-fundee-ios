@@ -31,6 +31,11 @@ struct TodayEngagementViewModelTests {
 
         await viewModel.load()
         await viewModel.load()
+        let recreatedViewModel = TodayEngagementViewModel(
+            serviceProvider: { service },
+            achievementHaptic: hapticCounter.trigger
+        )
+        await recreatedViewModel.load()
 
         #expect(
             viewModel.summary?.achievements
