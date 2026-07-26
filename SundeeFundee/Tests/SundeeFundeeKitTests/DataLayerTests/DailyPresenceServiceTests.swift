@@ -165,7 +165,13 @@ struct DailyPresenceServiceTests {
         }
 
         #expect(saveFailed)
-        #expect(try await store.load().isEmpty)
+        var loadFailed = false
+        do {
+            _ = try await store.load()
+        } catch {
+            loadFailed = true
+        }
+        #expect(loadFailed)
     }
 
     @Test func syncRetriesFailuresAndContinuesWithLaterRecords() async throws {
