@@ -1,5 +1,13 @@
 import SwiftUI
 
+enum TodayPresenceCopy {
+    static func openState(hasPresence: Bool) -> String {
+        hasPresence
+            ? "Opening Today already counted as showing up"
+            : "Open Today to count today as showing up"
+    }
+}
+
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
 public struct TodayPresenceCard: View {
     private struct MomentumRoute: Identifiable {
@@ -43,7 +51,7 @@ public struct TodayPresenceCard: View {
                         .font(AppTheme.Typography.headlineMedium)
                         .foregroundStyle(AppTheme.Text.primary)
 
-                    Text("Opening Today already counted as showing up")
+                    Text(TodayPresenceCopy.openState(hasPresence: today != nil))
                         .font(.body)
                         .foregroundStyle(AppTheme.Text.secondary)
                 }
