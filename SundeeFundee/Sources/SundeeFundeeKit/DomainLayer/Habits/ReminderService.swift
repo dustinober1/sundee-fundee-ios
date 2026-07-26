@@ -2,6 +2,80 @@
 import Foundation
 import UserNotifications
 
+protocol ReminderSettingsUpdateBoundary: Sendable {
+    func saveSettings(_ settings: WorkoutReminderSettings) async throws
+    func loadPersistedSettings() async throws -> WorkoutReminderSettings
+    func reconcileSchedule(settings: WorkoutReminderSettings) async throws
+}
+
+enum ReminderSettingsUpdateState: Sendable, Equatable {
+    case applied
+    case saveFailed
+    case restored
+    case rollbackFailed
+    case reloadFailed
+}
+
+struct ReminderSettingsUpdateResult: Sendable, Equatable {
+    let state: ReminderSettingsUpdateState
+    let settings: WorkoutReminderSettings
+
+    var errorMessage: String? {
+        switch state {
+        case .applied:
+            return nil
+        case .saveFailed:
+            return "Could not save reminders. Your previous settings and schedule are unchanged. Please try again."
+        case .restored:
+            return "Could not update reminders. Your previous settings and schedule were restored. Please try again."
+        case .rollbackFailed:
+            return "Reminder settings were reloaded, but notifications may be out of sync. Review your reminder settings and try again."
+        case .reloadFailed:
+            return "Reminder settings could not be verified and notifications may be out of sync. Reopen this screen and try again."
+        }
+    }
+}
+
+actor ReminderSettingsUpdateCoordinator {
+    private let boundary: any ReminderSettingsUpdateBoundary
+
+    init(boundary: any ReminderSettingsUpdateBoundary) {
+        self.boundary = boundary
+    }
+
+    func apply(
+        updated: WorkoutReminderSettings,
+        previous: WorkoutReminderSettings
+    ) async -> ReminderSettingsUpdateResult {
+        do {
+            try await boundary.saveSettings(updated)
+        } catch {
+            return ReminderSettingsUpdateResult(state: .saveFailed, settings: previous)
+        }
+
+        do {
+            try await boundary.reconcileSchedule(settings: updated)
+            return ReminderSettingsUpdateResult(state: .applied, settings: updated)
+        } catch {
+            do {
+                try await boundary.saveSettings(previous)
+                try await boundary.reconcileSchedule(settings: previous)
+                return ReminderSettingsUpdateResult(state: .restored, settings: previous)
+            } catch {
+                do {
+                    let authoritative = try await boundary.loadPersistedSettings()
+                    return ReminderSettingsUpdateResult(
+                        state: .rollbackFailed,
+                        settings: authoritative
+                    )
+                } catch {
+                    return ReminderSettingsUpdateResult(state: .reloadFailed, settings: updated)
+                }
+            }
+        }
+    }
+}
+
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
 public actor ReminderService {
     public enum ReminderRoute: String, Sendable {
@@ -46,7 +120,13 @@ public actor ReminderService {
     }
 
     public func loadSettings() async -> WorkoutReminderSettings {
-        let records: [WorkoutReminderSettings] = (try? await dataClient.fetchAll(recordType: Self.recordType)) ?? []
+        (try? await loadPersistedSettings()) ?? WorkoutReminderSettings()
+    }
+
+    public func loadPersistedSettings() async throws -> WorkoutReminderSettings {
+        let records: [WorkoutReminderSettings] = try await dataClient.fetchAll(
+            recordType: Self.recordType
+        )
         return records.first ?? WorkoutReminderSettings()
     }
 
@@ -144,4 +224,7 @@ public actor ReminderService {
         "sundee.reminder.\(type.rawValue).\(weekday)"
     }
 }
+
+@available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
+extension ReminderService: ReminderSettingsUpdateBoundary {}
 #endif
