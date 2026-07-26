@@ -105,6 +105,79 @@ final class DataErrorTests: XCTestCase {
     }
 }
 
+final class CloudKitConflictResolutionTests: XCTestCase {
+    func testDailyPresenceConflictPreservesActionsFromBothDevices() {
+        let firstOpen = Date(timeIntervalSince1970: 1)
+        let client = DailyPresenceRecord(
+            dayKey: "2026-07-26",
+            timeZoneIdentifier: "America/New_York",
+            firstOpenDate: firstOpen,
+            participationLevel: .acted,
+            status: .trained,
+            actionEvidence: [.trained],
+            dateUpdated: Date(timeIntervalSince1970: 3)
+        )
+        let server = DailyPresenceRecord(
+            dayKey: "2026-07-26",
+            timeZoneIdentifier: "America/New_York",
+            firstOpenDate: firstOpen,
+            participationLevel: .acted,
+            status: .resting,
+            actionEvidence: [.recovered],
+            dateUpdated: Date(timeIntervalSince1970: 2)
+        )
+
+        let resolved = CloudKitClient.resolveDailyPresenceConflict(
+            clientRecord: client,
+            serverRecord: server
+        )
+
+        XCTAssertEqual(resolved.actionEvidence, [.trained, .recovered])
+        XCTAssertEqual(resolved.status, .trained)
+    }
+
+    func testReminderConflictKeepsTheNewerRevision() {
+        let olderClient = WorkoutReminderSettings(
+            isEnabled: true,
+            hour: 8,
+            dateUpdated: Date(timeIntervalSince1970: 1)
+        )
+        let newerServer = WorkoutReminderSettings(
+            isEnabled: true,
+            hour: 10,
+            dateUpdated: Date(timeIntervalSince1970: 2)
+        )
+
+        let resolved = CloudKitClient.resolveWorkoutReminderSettingsConflict(
+            clientRecord: olderClient,
+            serverRecord: newerServer
+        )
+
+        XCTAssertEqual(resolved, newerServer)
+    }
+
+    func testReminderConflictUsesTheServerForEqualRevisions() {
+        let revision = Date(timeIntervalSince1970: 2)
+        let client = WorkoutReminderSettings(
+            isEnabled: true,
+            hour: 8,
+            dateUpdated: revision
+        )
+        let server = WorkoutReminderSettings(
+            isEnabled: true,
+            hour: 10,
+            dateUpdated: revision
+        )
+
+        let resolved = CloudKitClient.resolveWorkoutReminderSettingsConflict(
+            clientRecord: client,
+            serverRecord: server
+        )
+
+        XCTAssertEqual(resolved, server)
+    }
+}
+
 // MARK: - MockCloudKitClient Upsert Tests
 
 final class MockCloudKitClientUpsertTests: XCTestCase {
