@@ -126,6 +126,70 @@ struct AuthViewModelTests {
         #expect(!restoredViewModel.isGuest)
     }
 
+    @Test("legacy pending marker without a phase still resumes migration")
+    func legacyPendingMarkerResumesMigration() async throws {
+        let sessionStore = TestAuthSessionStore()
+        let source = MockCloudKitClient()
+        let destination = LifecycleDestinationClient(
+            failWorkoutSaves: true,
+            markerProbe: {
+                sessionStore.read(key: AuthViewModel.pendingGuestMigrationKey) != nil
+            }
+        )
+        let firstSessionManager = TestAuthDataSessionManager(
+            ownerID: "signed-out",
+            client: MockCloudKitClient()
+        )
+        let authClient = TestAppleAuthClient(result: makeAuthResult())
+        try await source.save(makeWorkout(), recordType: "Workout")
+        let firstViewModel = makeViewModel(
+            authClient: authClient,
+            sessionStore: sessionStore,
+            sessionManager: firstSessionManager,
+            source: source,
+            destination: destination
+        )
+        firstViewModel.continueAsGuest()
+        await firstViewModel.signInWithApple()
+
+        let encoded = try #require(
+            sessionStore.read(key: AuthViewModel.pendingGuestMigrationKey)
+        )
+        let data = try #require(encoded.data(using: .utf8))
+        var legacyJSON = try #require(
+            JSONSerialization.jsonObject(with: data) as? [String: Any]
+        )
+        legacyJSON.removeValue(forKey: "phase")
+        let legacyData = try JSONSerialization.data(withJSONObject: legacyJSON)
+        let legacyEncoded = try #require(
+            String(data: legacyData, encoding: .utf8)
+        )
+        _ = sessionStore.save(
+            key: AuthViewModel.pendingGuestMigrationKey,
+            value: legacyEncoded
+        )
+
+        destination.failWorkoutSaves = false
+        let restoredSessionManager = TestAuthDataSessionManager(
+            ownerID: "signed-out",
+            client: MockCloudKitClient()
+        )
+        let restoredViewModel = makeViewModel(
+            authClient: authClient,
+            sessionStore: sessionStore,
+            sessionManager: restoredSessionManager,
+            source: source,
+            destination: destination
+        )
+
+        await restoredViewModel.restoreSession()
+
+        #expect(destination.recordCount(for: "Workout") == 1)
+        #expect(restoredSessionManager.session.ownerID == "account-a")
+        #expect(!restoredViewModel.isGuest)
+        #expect(sessionStore.read(key: AuthViewModel.pendingGuestMigrationKey) == nil)
+    }
+
     @Test("deleting a pending conversion clears guest and Apple data before removing its marker")
     func pendingConversionDeletionCleansBothAccounts() async throws {
         let presenceDirectory = FileManager.default.temporaryDirectory
@@ -236,8 +300,29 @@ struct AuthViewModelTests {
         #expect(destination.recordCount(for: "UserData") == 1)
         #expect(revokeCount == 0)
         #expect(sessionStore.read(key: AuthViewModel.pendingGuestMigrationKey) != nil)
+        #expect(pendingPhase(in: sessionStore) == "deleting")
         #expect(viewModel.isAuthenticated)
         #expect(viewModel.errorMessage != nil)
+
+        let restoredSessionManager = TestAuthDataSessionManager(
+            ownerID: "signed-out",
+            client: MockCloudKitClient()
+        )
+        let restoredViewModel = makeViewModel(
+            authClient: authClient,
+            sessionStore: sessionStore,
+            sessionManager: restoredSessionManager,
+            source: source,
+            destination: destination
+        )
+
+        await restoredViewModel.restoreSession()
+
+        #expect(destination.recordCount(for: "UserData") == 1)
+        #expect(restoredSessionManager.session.ownerID == AuthViewModel.guestUserID)
+        #expect(restoredViewModel.isGuest)
+        #expect(restoredViewModel.errorMessage != nil)
+        #expect(sessionStore.read(key: AuthViewModel.pendingGuestMigrationKey) != nil)
     }
 
     @Test("pending marker survives Apple revocation failure")
@@ -279,6 +364,104 @@ struct AuthViewModelTests {
         #expect(viewModel.errorMessage != nil)
     }
 
+    @Test(
+        "pending deletion authorization failure leaves every store untouched",
+        arguments: [
+            PendingDeletionAuthorizationFailure.wrongUser,
+            .cancelled,
+        ]
+    )
+    func pendingDeletionAuthorizationFailureIsNonDestructive(
+        _ failure: PendingDeletionAuthorizationFailure
+    ) async throws {
+        let presenceDirectory = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: presenceDirectory) }
+
+        let sessionStore = TestAuthSessionStore()
+        let source = MockCloudKitClient()
+        let destination = LifecycleDestinationClient(
+            failWorkoutSaves: true,
+            markerProbe: {
+                sessionStore.read(key: AuthViewModel.pendingGuestMigrationKey) != nil
+            }
+        )
+        let sessionManager = TestAuthDataSessionManager(
+            ownerID: "signed-out",
+            client: MockCloudKitClient()
+        )
+        let authClient: TestAppleAuthClient
+        switch failure {
+        case .wrongUser:
+            authClient = TestAppleAuthClient(
+                result: makeAuthResult(),
+                reauthenticationResult: makeAuthResult(userID: "account-b")
+            )
+        case .cancelled:
+            authClient = TestAppleAuthClient(
+                result: makeAuthResult(),
+                reauthenticationError: .cancelled
+            )
+        }
+        let guestPresenceStore = PresenceLocalStore(
+            ownerID: AuthViewModel.guestUserID,
+            baseDirectoryURL: presenceDirectory
+        )
+        let destinationPresenceStore = PresenceLocalStore(
+            ownerID: "account-a",
+            baseDirectoryURL: presenceDirectory
+        )
+        let presence = DailyPresenceRecord(
+            dayKey: "2026-07-26",
+            timeZoneIdentifier: "America/New_York",
+            firstOpenDate: Date(timeIntervalSince1970: 1_753_528_400)
+        )
+        _ = try await guestPresenceStore.save(
+            presence,
+            ownerID: AuthViewModel.guestUserID
+        )
+        _ = try await destinationPresenceStore.save(
+            presence,
+            ownerID: "account-a"
+        )
+        try await source.save(makeWorkout(), recordType: "Workout")
+        let viewModel = makeViewModel(
+            authClient: authClient,
+            sessionStore: sessionStore,
+            sessionManager: sessionManager,
+            source: source,
+            destination: destination,
+            presenceCleanup: { ownerID in
+                try await PresenceLocalStore(
+                    ownerID: ownerID,
+                    baseDirectoryURL: presenceDirectory
+                ).clear(ownerID: ownerID)
+            }
+        )
+        viewModel.continueAsGuest()
+        await viewModel.signInWithApple()
+        #expect(destination.recordCount(for: "UserData") == 1)
+
+        await viewModel.deleteAccount()
+
+        let revokeCount = await authClient.revokeCount
+        #expect(source.recordCount(for: "Workout") == 1)
+        #expect(destination.recordCount(for: "UserData") == 1)
+        #expect(
+            try await guestPresenceStore.load(
+                ownerID: AuthViewModel.guestUserID
+            ) == [presence]
+        )
+        #expect(
+            try await destinationPresenceStore.load(ownerID: "account-a")
+                == [presence]
+        )
+        #expect(revokeCount == 0)
+        #expect(pendingPhase(in: sessionStore) == "deleting")
+        #expect(viewModel.isAuthenticated)
+        #expect(viewModel.errorMessage != nil)
+    }
+
     private func makeViewModel(
         authClient: TestAppleAuthClient,
         sessionStore: TestAuthSessionStore,
@@ -304,12 +487,12 @@ struct AuthViewModelTests {
         )
     }
 
-    private func makeAuthResult() -> AppleAuthResult {
+    private func makeAuthResult(userID: String = "account-a") -> AppleAuthResult {
         var name = PersonNameComponents()
         name.givenName = "Avery"
         name.familyName = "Athlete"
         return AppleAuthResult(
-            userID: "account-a",
+            userID: userID,
             email: "avery@example.com",
             fullName: name,
             identityToken: nil,
@@ -327,6 +510,24 @@ struct AuthViewModelTests {
             duration: 30
         )
     }
+
+    private func pendingPhase(
+        in sessionStore: TestAuthSessionStore
+    ) -> String? {
+        guard let encoded = sessionStore.read(
+            key: AuthViewModel.pendingGuestMigrationKey
+        ), let data = encoded.data(using: .utf8),
+        let json = try? JSONSerialization.jsonObject(with: data)
+            as? [String: Any] else {
+            return nil
+        }
+        return json["phase"] as? String
+    }
+}
+
+enum PendingDeletionAuthorizationFailure: Sendable {
+    case wrongUser
+    case cancelled
 }
 
 private final class TestAuthSessionStore: AuthSessionStoring, @unchecked Sendable {
@@ -385,19 +586,35 @@ private final class TestAuthDataSessionManager: AuthDataSessionManaging, @unchec
 private actor TestAppleAuthClient: AppleAuthClientProtocol {
     private let result: AppleAuthResult
     private let failRevocation: Bool
+    private let reauthenticationResult: AppleAuthResult?
+    private let reauthenticationError: AuthError?
     private(set) var signOutCount = 0
     private(set) var revokeCount = 0
+    private(set) var signInCount = 0
 
     init(
         result: AppleAuthResult,
-        failRevocation: Bool = false
+        failRevocation: Bool = false,
+        reauthenticationResult: AppleAuthResult? = nil,
+        reauthenticationError: AuthError? = nil
     ) {
         self.result = result
         self.failRevocation = failRevocation
+        self.reauthenticationResult = reauthenticationResult
+        self.reauthenticationError = reauthenticationError
     }
 
     func signIn(scopes: AppleAuthScope) async throws -> AppleAuthResult {
-        result
+        signInCount += 1
+        if scopes.isEmpty {
+            if let reauthenticationError {
+                throw reauthenticationError
+            }
+            if let reauthenticationResult {
+                return reauthenticationResult
+            }
+        }
+        return result
     }
 
     func getCredentialState(forUserID userID: String) async throws -> AppleCredentialState {
