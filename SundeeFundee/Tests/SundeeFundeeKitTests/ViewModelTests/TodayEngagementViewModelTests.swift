@@ -21,27 +21,43 @@ struct TodayEngagementViewModelTests {
         #expect(await service.recordOpenCallCount == 1)
     }
 
-    @Test func newlyDerivedAchievementsTriggerOneSuccessHapticPerProcess() async {
-        let service = PresenceServiceSpy(achievements: [.firstConsistentWeek, .recoveryChoice])
+    @Test func newlyDerivedAchievementsTriggerOncePerAccount() async {
+        let firstService = PresenceServiceSpy(
+            ownerID: "account-a",
+            achievements: [.firstConsistentWeek, .recoveryChoice]
+        )
+        let secondService = PresenceServiceSpy(
+            ownerID: "account-b",
+            achievements: [.firstConsistentWeek, .recoveryChoice]
+        )
         let hapticCounter = AchievementHapticCounter()
+        let achievementStore = AccountAchievementAnnouncementStore()
         let viewModel = TodayEngagementViewModel(
-            serviceProvider: { service },
-            achievementHaptic: hapticCounter.trigger
+            serviceProvider: { firstService },
+            achievementHaptic: hapticCounter.trigger,
+            achievementStore: achievementStore
         )
 
         await viewModel.load()
         await viewModel.load()
         let recreatedViewModel = TodayEngagementViewModel(
-            serviceProvider: { service },
-            achievementHaptic: hapticCounter.trigger
+            serviceProvider: { firstService },
+            achievementHaptic: hapticCounter.trigger,
+            achievementStore: achievementStore
         )
         await recreatedViewModel.load()
+        let otherAccountViewModel = TodayEngagementViewModel(
+            serviceProvider: { secondService },
+            achievementHaptic: hapticCounter.trigger,
+            achievementStore: achievementStore
+        )
+        await otherAccountViewModel.load()
 
         #expect(
             viewModel.summary?.achievements
                 == Set([ConsistencyAchievement.firstConsistentWeek, .recoveryChoice])
         )
-        #expect(hapticCounter.count == 1)
+        #expect(hapticCounter.count == 2)
     }
 
     @Test func selectingRestingPromotesToAction() async {
@@ -54,6 +70,7 @@ struct TodayEngagementViewModelTests {
         #expect(viewModel.today?.status == .resting)
         #expect(await service.lastPromotion?.0 == .acted)
         #expect(await service.lastPromotion?.1 == .resting)
+        #expect(await service.lastPromotion?.2 == .rested)
     }
 
     @Test func workoutCompletionPromotesTrainedAction() async {
@@ -64,6 +81,23 @@ struct TodayEngagementViewModelTests {
 
         #expect(await service.lastPromotion?.0 == .acted)
         #expect(await service.lastPromotion?.1 == .trained)
+        #expect(await service.lastPromotion?.2 == .trained)
+    }
+
+    @Test func recoveryCompletionPreservesTrustedEvidenceAndOperationDate() async {
+        let service = PresenceServiceSpy()
+        let viewModel = TodayEngagementViewModel(service: service)
+        let completionDate = Date(timeIntervalSince1970: 1_753_528_123)
+
+        await viewModel.recordAction(
+            .resting,
+            evidence: .recovered,
+            at: completionDate
+        )
+
+        #expect(await service.lastPromotion?.1 == .resting)
+        #expect(await service.lastPromotion?.2 == .recovered)
+        #expect(await service.lastPromotion?.3 == completionDate)
     }
 
     @Test func richCheckInDoesNotPretendWorkoutWasCompleted() async {
@@ -74,6 +108,7 @@ struct TodayEngagementViewModelTests {
 
         #expect(await service.lastPromotion?.0 == .checkedIn)
         #expect(await service.lastPromotion?.1 == nil)
+        #expect(await service.lastPromotion?.2 == nil)
     }
 
     @Test func coalescesActionsReceivedDuringLoadWithoutDowngradingWorkoutCompletion() async {
@@ -94,6 +129,45 @@ struct TodayEngagementViewModelTests {
         #expect(await service.promotionCallCount == 1)
         #expect(await service.lastPromotion?.0 == .acted)
         #expect(await service.lastPromotion?.1 == .trained)
+        #expect(await service.lastPromotion?.2 == .trained)
+    }
+
+    @Test func completionReceivedDuringStatusSaveIsQueuedAndPersisted() async {
+        let service = BlockingPresenceService()
+        let viewModel = TodayEngagementViewModel(service: service)
+        let completionDate = Date(timeIntervalSince1970: 1_753_528_123)
+
+        let selection = Task { await viewModel.select(.ready) }
+        await service.waitUntilPromotionStarts()
+        await viewModel.recordAction(
+            .trained,
+            evidence: .trained,
+            at: completionDate
+        )
+
+        await service.releasePromotions()
+        await selection.value
+
+        #expect(await service.promotionCallCount == 2)
+        #expect(await service.lastPromotionEvidence == .trained)
+        #expect(await service.lastPromotionDate == completionDate)
+    }
+
+    @Test func oneOperationCapturesNowExactlyOnce() async {
+        let service = PresenceServiceSpy()
+        let clock = LockedDateSequence([
+            Date(timeIntervalSince1970: 1_753_528_123),
+            Date(timeIntervalSince1970: 1_753_999_999)
+        ])
+        let viewModel = TodayEngagementViewModel(
+            service: service,
+            now: clock.next
+        )
+
+        await viewModel.select(.ready)
+
+        #expect(clock.callCount == 1)
+        #expect(await service.lastPromotion?.3 == Date(timeIntervalSince1970: 1_753_528_123))
     }
 
     @Test func reportsPartialSuccessWhenMomentumRefreshFails() async {
@@ -103,7 +177,7 @@ struct TodayEngagementViewModelTests {
         await viewModel.select(.ready)
 
         #expect(viewModel.today?.status == .ready)
-        #expect(viewModel.message == "Your check-in was saved, but momentum couldn’t refresh yet.")
+        #expect(viewModel.message == "Your check-in is saved. Momentum will refresh when it can.")
     }
 
     @Test func resolvesTheCurrentServiceForEachOperation() async {
@@ -180,14 +254,18 @@ private actor PresenceServiceSpy: DailyPresenceServicing {
     }
 
     private(set) var recordOpenCallCount = 0
-    private(set) var lastPromotion: (DailyParticipationLevel, DailyPresenceStatus?)?
+    private(set) var lastPromotion:
+        (DailyParticipationLevel, DailyPresenceStatus?, DailyPresenceActionEvidence?, Date)?
+    let ownerID: String
     private let summaryShouldFail: Bool
     private let achievements: Set<ConsistencyAchievement>
 
     init(
+        ownerID: String = "test-account",
         summaryShouldFail: Bool = false,
         achievements: Set<ConsistencyAchievement> = []
     ) {
+        self.ownerID = ownerID
         self.summaryShouldFail = summaryShouldFail
         self.achievements = achievements
     }
@@ -200,11 +278,17 @@ private actor PresenceServiceSpy: DailyPresenceServicing {
     func promoteToday(
         to participationLevel: DailyParticipationLevel,
         status: DailyPresenceStatus?,
+        action: DailyPresenceActionEvidence?,
         at date: Date,
         calendar: Calendar
     ) async throws -> DailyPresenceRecord {
-        lastPromotion = (participationLevel, status)
-        return record(participationLevel: participationLevel, status: status, date: date)
+        lastPromotion = (participationLevel, status, action, date)
+        return record(
+            participationLevel: participationLevel,
+            status: status,
+            action: action,
+            date: date
+        )
     }
 
     func loadSummary(referenceDate: Date, calendar: Calendar) async throws -> ConsistencyMomentumSummary {
@@ -224,6 +308,7 @@ private actor PresenceServiceSpy: DailyPresenceServicing {
     private func record(
         participationLevel: DailyParticipationLevel,
         status: DailyPresenceStatus?,
+        action: DailyPresenceActionEvidence? = nil,
         date: Date
     ) -> DailyPresenceRecord {
         DailyPresenceRecord(
@@ -231,7 +316,8 @@ private actor PresenceServiceSpy: DailyPresenceServicing {
             timeZoneIdentifier: "America/New_York",
             firstOpenDate: date,
             participationLevel: participationLevel,
-            status: status
+            status: status,
+            actionEvidence: action.map { Set([$0]) } ?? []
         )
     }
 }
@@ -248,7 +334,10 @@ private final class AchievementHapticCounter {
 private actor BlockingPresenceService: DailyPresenceServicing {
     private(set) var recordOpenCallCount = 0
     private(set) var promotionCallCount = 0
+    private(set) var lastPromotionEvidence: DailyPresenceActionEvidence?
+    private(set) var lastPromotionDate: Date?
     private var didStartPromotion = false
+    private var shouldBlockPromotion = true
     private var startWaiters: [CheckedContinuation<Void, Never>] = []
     private var promotionWaiters: [CheckedContinuation<Void, Never>] = []
 
@@ -260,16 +349,22 @@ private actor BlockingPresenceService: DailyPresenceServicing {
     func promoteToday(
         to participationLevel: DailyParticipationLevel,
         status: DailyPresenceStatus?,
+        action: DailyPresenceActionEvidence?,
         at date: Date,
         calendar: Calendar
     ) async throws -> DailyPresenceRecord {
         promotionCallCount += 1
+        lastPromotionEvidence = action
+        lastPromotionDate = date
         didStartPromotion = true
         startWaiters.forEach { $0.resume() }
         startWaiters.removeAll()
 
-        await withCheckedContinuation { continuation in
-            promotionWaiters.append(continuation)
+        if shouldBlockPromotion {
+            shouldBlockPromotion = false
+            await withCheckedContinuation { continuation in
+                promotionWaiters.append(continuation)
+            }
         }
         return record(status: status, date: date)
     }
@@ -307,9 +402,31 @@ private actor BlockingPresenceService: DailyPresenceServicing {
     }
 }
 
+private final class LockedDateSequence: @unchecked Sendable {
+    private let lock = NSLock()
+    private var values: [Date]
+    private var calls = 0
+
+    init(_ values: [Date]) {
+        self.values = values
+    }
+
+    var callCount: Int {
+        lock.withLock { calls }
+    }
+
+    func next() -> Date {
+        lock.withLock {
+            calls += 1
+            return values.isEmpty ? Date(timeIntervalSince1970: 0) : values.removeFirst()
+        }
+    }
+}
+
 private actor BlockingLoadPresenceService: DailyPresenceServicing {
     private(set) var promotionCallCount = 0
-    private(set) var lastPromotion: (DailyParticipationLevel, DailyPresenceStatus?)?
+    private(set) var lastPromotion:
+        (DailyParticipationLevel, DailyPresenceStatus?, DailyPresenceActionEvidence?)?
     private var didStartLoad = false
     private var startWaiters: [CheckedContinuation<Void, Never>] = []
     private var loadWaiters: [CheckedContinuation<Void, Never>] = []
@@ -327,11 +444,12 @@ private actor BlockingLoadPresenceService: DailyPresenceServicing {
     func promoteToday(
         to participationLevel: DailyParticipationLevel,
         status: DailyPresenceStatus?,
+        action: DailyPresenceActionEvidence?,
         at date: Date,
         calendar: Calendar
     ) async throws -> DailyPresenceRecord {
         promotionCallCount += 1
-        lastPromotion = (participationLevel, status)
+        lastPromotion = (participationLevel, status, action)
         return record(participationLevel: participationLevel, status: status, date: date)
     }
 
