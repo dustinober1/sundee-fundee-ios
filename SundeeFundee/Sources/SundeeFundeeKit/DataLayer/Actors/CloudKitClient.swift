@@ -27,6 +27,20 @@ private let ckLogger = Logger(subsystem: "com.sundeefundee.app", category: "Clou
 /// try await client.save([workout], recordType: "Workout")
 /// ```
 public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
+    static func resolveDailyPresenceConflict(
+        clientRecord: DailyPresenceRecord,
+        serverRecord: DailyPresenceRecord
+    ) -> DailyPresenceRecord {
+        serverRecord.merging(with: clientRecord)
+    }
+
+    static func resolveWorkoutReminderSettingsConflict(
+        clientRecord: WorkoutReminderSettings,
+        serverRecord: WorkoutReminderSettings
+    ) -> WorkoutReminderSettings {
+        clientRecord.dateUpdated > serverRecord.dateUpdated ? clientRecord : serverRecord
+    }
+
     // MARK: - Properties
 
     /// The CloudKit container.
@@ -163,21 +177,19 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
     private func mergeWithServerRecords(
         newRecords: [CKRecord],
         serverRecords: [CKRecord.ID: CKRecord],
-        nilKeys: [CKRecord.ID: Set<String>]
+        nilKeys: [CKRecord.ID: Set<String>],
+        recordType: String
     ) -> [CKRecord] {
         newRecords.map { newRecord in
             guard let serverCopy = serverRecords[newRecord.recordID] else {
                 return newRecord
             }
-            for key in newRecord.allKeys() {
-                serverCopy[key] = newRecord[key]
-            }
-            if let keysToNil = nilKeys[newRecord.recordID] {
-                for key in keysToNil {
-                    serverCopy[key] = nil
-                }
-            }
-            return serverCopy
+            return mergeRecord(
+                newRecord,
+                onto: serverCopy,
+                nilKeys: nilKeys[newRecord.recordID] ?? [],
+                recordType: recordType
+            )
         }
     }
 
@@ -256,7 +268,8 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
                 let merged = mergeWithServerRecords(
                     newRecords: ckRecords,
                     serverRecords: serverCopies,
-                    nilKeys: nilKeyMap
+                    nilKeys: nilKeyMap,
+                    recordType: recordType
                 )
                 try await retryModifyRecords(merged, recordType: recordType)
                 ckLogger.info("✅ SAVE \(recordType): server-merge retry success")
@@ -266,7 +279,14 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
             if duplicateDetected {
                 ckLogger.info("🔄 SAVE \(recordType): duplicate detected, merging")
                 let existingRecords = await fetchExistingRecords(ckRecords.map(\.recordID))
-                let merged = ckRecords.map { mergeWithExisting($0, existing: existingRecords, nilKeys: nilKeyMap) }
+                let merged = ckRecords.map {
+                    mergeWithExisting(
+                        $0,
+                        existing: existingRecords,
+                        nilKeys: nilKeyMap,
+                        recordType: recordType
+                    )
+                }
                 try await retryModifyRecords(merged, recordType: recordType)
                 ckLogger.info("✅ SAVE \(recordType): merge success")
                 return
@@ -292,7 +312,8 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
                     let merged = mergeWithServerRecords(
                         newRecords: ckRecords,
                         serverRecords: serverCopies,
-                        nilKeys: nilKeyMap
+                        nilKeys: nilKeyMap,
+                        recordType: recordType
                     )
                     try await retryModifyRecords(merged, recordType: recordType)
                     ckLogger.info("✅ SAVE \(recordType): server-merge retry success")
@@ -319,7 +340,8 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
                 let merged = mergeWithServerRecords(
                     newRecords: ckRecords,
                     serverRecords: serverCopies,
-                    nilKeys: nilKeyMap
+                    nilKeys: nilKeyMap,
+                    recordType: recordType
                 )
                 try await retryModifyRecords(merged, recordType: recordType)
                 ckLogger.info("✅ SAVE \(recordType): server-merge retry success")
@@ -331,7 +353,14 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
             }
             ckLogger.info("🔄 SAVE \(recordType): duplicate detected, merging")
             let existingRecords = await fetchExistingRecords(ckRecords.map(\.recordID))
-            let merged = ckRecords.map { mergeWithExisting($0, existing: existingRecords, nilKeys: nilKeyMap) }
+            let merged = ckRecords.map {
+                mergeWithExisting(
+                    $0,
+                    existing: existingRecords,
+                    nilKeys: nilKeyMap,
+                    recordType: recordType
+                )
+            }
             try await retryModifyRecords(merged, recordType: recordType)
             ckLogger.info("✅ SAVE \(recordType): merge success")
         }
@@ -432,7 +461,8 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
                 let merged = mergeWithServerRecords(
                     newRecords: ckRecords,
                     serverRecords: serverCopies,
-                    nilKeys: emptyNilKeys
+                    nilKeys: emptyNilKeys,
+                    recordType: recordType
                 )
                 try await retryModifyRecords(merged, recordType: recordType)
                 ckLogger.info("✅ SAVE-JSON \(recordType): server-merge retry success")
@@ -441,7 +471,14 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
 
             if duplicateDetected {
                 let existingRecords = await fetchExistingRecords(ckRecords.map(\.recordID))
-                let merged = ckRecords.map { mergeWithExisting($0, existing: existingRecords, nilKeys: emptyNilKeys) }
+                let merged = ckRecords.map {
+                    mergeWithExisting(
+                        $0,
+                        existing: existingRecords,
+                        nilKeys: emptyNilKeys,
+                        recordType: recordType
+                    )
+                }
                 try await retryModifyRecords(merged, recordType: recordType)
                 return
             }
@@ -455,7 +492,8 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
                     let merged = mergeWithServerRecords(
                         newRecords: ckRecords,
                         serverRecords: serverCopies,
-                        nilKeys: emptyNilKeys
+                        nilKeys: emptyNilKeys,
+                        recordType: recordType
                     )
                     try await retryModifyRecords(merged, recordType: recordType)
                     ckLogger.info("✅ SAVE-JSON \(recordType): server-merge retry success")
@@ -470,7 +508,8 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
                 let merged = mergeWithServerRecords(
                     newRecords: ckRecords,
                     serverRecords: serverCopies,
-                    nilKeys: emptyNilKeys
+                    nilKeys: emptyNilKeys,
+                    recordType: recordType
                 )
                 try await retryModifyRecords(merged, recordType: recordType)
                 ckLogger.info("✅ SAVE-JSON \(recordType): server-merge retry success")
@@ -480,7 +519,14 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
                 throw mapCKError(error, recordID: nil)
             }
             let existingRecords = await fetchExistingRecords(ckRecords.map(\.recordID))
-            let merged = ckRecords.map { mergeWithExisting($0, existing: existingRecords, nilKeys: emptyNilKeys) }
+            let merged = ckRecords.map {
+                mergeWithExisting(
+                    $0,
+                    existing: existingRecords,
+                    nilKeys: emptyNilKeys,
+                    recordType: recordType
+                )
+            }
             try await retryModifyRecords(merged, recordType: recordType)
         }
     }
@@ -512,20 +558,98 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
     /// new record onto the existing record (preserving the server change tag).
     /// Also clears any fields that were nil in the source model.
     /// Otherwise returns the new record unchanged for a fresh insert.
-    private func mergeWithExisting(_ newRecord: CKRecord, existing: [CKRecord.ID: CKRecord], nilKeys: [CKRecord.ID: Set<String>]) -> CKRecord {
+    private func mergeWithExisting(
+        _ newRecord: CKRecord,
+        existing: [CKRecord.ID: CKRecord],
+        nilKeys: [CKRecord.ID: Set<String>],
+        recordType: String
+    ) -> CKRecord {
         guard let existingRecord = existing[newRecord.recordID] else {
             return newRecord
         }
-        for key in newRecord.allKeys() {
-            existingRecord[key] = newRecord[key]
-        }
-        // Clear fields that were nil in the new record
-        if let keysToNil = nilKeys[newRecord.recordID] {
-            for key in keysToNil {
-                existingRecord[key] = nil
+        return mergeRecord(
+            newRecord,
+            onto: existingRecord,
+            nilKeys: nilKeys[newRecord.recordID] ?? [],
+            recordType: recordType
+        )
+    }
+
+    private func mergeRecord(
+        _ newRecord: CKRecord,
+        onto serverRecord: CKRecord,
+        nilKeys: Set<String>,
+        recordType: String
+    ) -> CKRecord {
+        if recordType == DailyPresenceService.recordType,
+           let clientPresence: DailyPresenceRecord = try? decodeFromCKRecord(newRecord),
+           let serverPresence: DailyPresenceRecord = try? decodeFromCKRecord(serverRecord) {
+            let mergedPresence = Self.resolveDailyPresenceConflict(
+                clientRecord: clientPresence,
+                serverRecord: serverPresence
+            )
+            if let mergedRecord = encodeMergedModel(
+                mergedPresence,
+                clientRecord: newRecord,
+                serverRecord: serverRecord,
+                recordType: recordType,
+                nilKeys: nilKeys
+            ) {
+                return mergedRecord
             }
         }
-        return existingRecord
+
+        if recordType == "WorkoutReminderSettings",
+           let clientSettings: WorkoutReminderSettings = try? decodeFromCKRecord(newRecord),
+           let serverSettings: WorkoutReminderSettings = try? decodeFromCKRecord(serverRecord) {
+            let mergedSettings = Self.resolveWorkoutReminderSettingsConflict(
+                clientRecord: clientSettings,
+                serverRecord: serverSettings
+            )
+            if let mergedRecord = encodeMergedModel(
+                mergedSettings,
+                clientRecord: newRecord,
+                serverRecord: serverRecord,
+                recordType: recordType,
+                nilKeys: nilKeys
+            ) {
+                return mergedRecord
+            }
+        }
+
+        for key in newRecord.allKeys() {
+            serverRecord[key] = newRecord[key]
+        }
+        for key in nilKeys {
+            serverRecord[key] = nil
+        }
+        return serverRecord
+    }
+
+    private func encodeMergedModel<T: Encodable>(
+        _ model: T,
+        clientRecord: CKRecord,
+        serverRecord: CKRecord,
+        recordType: String,
+        nilKeys: Set<String>
+    ) -> CKRecord? {
+        var mergedNilKeyMap: [CKRecord.ID: Set<String>] = [:]
+        guard let encoded = try? encodeToCKRecord(
+            model,
+            recordType: recordType,
+            nilKeyMap: &mergedNilKeyMap
+        ) else {
+            return nil
+        }
+
+        let modelKeys = Set(serverRecord.allKeys())
+            .union(clientRecord.allKeys())
+            .union(nilKeys)
+            .union(mergedNilKeyMap[encoded.recordID] ?? [])
+        for key in modelKeys {
+            serverRecord[key] = encoded[key]
+        }
+        return serverRecord
     }
 
     /// Performs the actual fetch with pagination support.
