@@ -5,9 +5,9 @@ import UserNotifications
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
 public struct WorkoutRemindersSettingsView: View {
     @State private var settings = WorkoutReminderSettings()
-    @State private var permissionGranted = false
     @State private var pendingCount = 0
     @State private var errorMessage: String?
+    @State private var reminderUpdateRevision = 0
     @State private var weeklyTarget = 3
     @State private var selectedWeekdays: Set<Int> = [2, 4, 6]
     @State private var cycleAwarePlanningEnabled = false
@@ -27,7 +27,7 @@ public struct WorkoutRemindersSettingsView: View {
                 Button {
                     let previousSettings = settings
                     settings.isEnabled.toggle()
-                    Task { await saveAndReconcile(previousSettings: previousSettings) }
+                    enqueueReminderUpdate(previousSettings: previousSettings)
                 } label: {
                     HStack {
                         Text(settings.isEnabled ? "Disable reminders" : "Enable reminders")
@@ -54,7 +54,7 @@ public struct WorkoutRemindersSettingsView: View {
             } header: {
                 Text("Workout Reminders")
             } footer: {
-                Text("Permission is requested only when you enable reminders.")
+                Text("Notification access is checked before enabled reminders are saved.")
             }
 
             Section {
@@ -107,7 +107,10 @@ public struct WorkoutRemindersSettingsView: View {
         .navigationBarTitleDisplayMode(.inline)
         #endif
         .task {
-            settings = await service.loadSettings()
+            let loadRevision = reminderUpdateRevision
+            let loadedSettings = await service.loadSettings()
+            guard loadRevision == reminderUpdateRevision else { return }
+            settings = loadedSettings
             await refreshPendingCount()
             await loadWeeklyPlanPreferences()
         }
@@ -124,7 +127,7 @@ public struct WorkoutRemindersSettingsView: View {
             let components = Calendar.current.dateComponents([.hour, .minute], from: date)
             settings.hour = components.hour ?? 9
             settings.minute = components.minute ?? 0
-            Task { await saveAndReconcile(previousSettings: previousSettings) }
+            enqueueReminderUpdate(previousSettings: previousSettings)
         }
     }
 
@@ -134,7 +137,7 @@ public struct WorkoutRemindersSettingsView: View {
         } set: { isEnabled in
             let previousSettings = settings
             settings.dailyPlanEnabled = isEnabled
-            Task { await saveAndReconcile(previousSettings: previousSettings) }
+            enqueueReminderUpdate(previousSettings: previousSettings)
         }
     }
 
@@ -149,51 +152,47 @@ public struct WorkoutRemindersSettingsView: View {
             let components = Calendar.current.dateComponents([.hour, .minute], from: date)
             settings.dailyPlanHour = components.hour ?? 8
             settings.dailyPlanMinute = components.minute ?? 0
-            Task { await saveAndReconcile(previousSettings: previousSettings) }
+            enqueueReminderUpdate(previousSettings: previousSettings)
         }
     }
 
-    private func saveAndReconcile(previousSettings: WorkoutReminderSettings) async {
-        errorMessage = nil
-        let requiresAuthorization = ReminderService.requiresAuthorization(
-            from: previousSettings,
-            to: settings
-        )
-        if requiresAuthorization {
-            do {
-                permissionGranted = try await service.requestAuthorization()
-            } catch {
-                restoreEnabledSettings(from: previousSettings)
-                errorMessage = "Could not check notification access. Please try again."
-                return
-            }
-            guard permissionGranted else {
-                let enabledDailyPlan = !previousSettings.dailyPlanEnabled && settings.dailyPlanEnabled
-                restoreEnabledSettings(from: previousSettings)
-                errorMessage = enabledDailyPlan
-                    ? "Notifications are off. You can still use your daily plan, or enable reminders in Settings."
-                    : "Notifications are disabled. Enable them in Settings to schedule workout reminders."
-                return
-            }
+    private func enqueueReminderUpdate(previousSettings: WorkoutReminderSettings) {
+        let updatedSettings = settings
+        reminderUpdateRevision += 1
+        let revision = reminderUpdateRevision
+        Task {
+            await saveAndReconcile(
+                updatedSettings: updatedSettings,
+                previousSettings: previousSettings,
+                revision: revision
+            )
         }
+    }
 
-        settings.dateUpdated = Date()
+    private func saveAndReconcile(
+        updatedSettings: WorkoutReminderSettings,
+        previousSettings: WorkoutReminderSettings,
+        revision: Int
+    ) async {
+        if revision == reminderUpdateRevision {
+            errorMessage = nil
+        }
+        var settingsToSave = updatedSettings
+        settingsToSave.dateUpdated = Date()
         let result = await updateCoordinator.apply(
-            updated: settings,
+            updated: settingsToSave,
             previous: previousSettings
         )
+        guard revision == reminderUpdateRevision else { return }
         settings = result.settings
         errorMessage = result.errorMessage
-        await refreshPendingCount()
+        await refreshPendingCount(revision: revision)
     }
 
-    private func restoreEnabledSettings(from previousSettings: WorkoutReminderSettings) {
-        settings.isEnabled = previousSettings.isEnabled
-        settings.dailyPlanEnabled = previousSettings.dailyPlanEnabled
-    }
-
-    private func refreshPendingCount() async {
-        pendingCount = await service.pendingReminderCount()
+    private func refreshPendingCount(revision: Int? = nil) async {
+        let count = await service.pendingReminderCount()
+        guard revision == nil || revision == reminderUpdateRevision else { return }
+        pendingCount = count
     }
 
     private func loadWeeklyPlanPreferences() async {
