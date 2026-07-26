@@ -171,6 +171,58 @@ struct ConsistencyAchievementServiceTests {
 
         #expect(earned == [.recoveryChoice])
     }
+
+    @Test func activeRecoveryEvidenceSurvivesALaterStatusSelection() {
+        let firstOpen = makeDate("2026-07-20")
+        let recovered = DailyPresenceRecord(
+            dayKey: "2026-07-20",
+            timeZoneIdentifier: "Pacific/Kiritimati",
+            firstOpenDate: firstOpen,
+            participationLevel: .acted,
+            actionEvidence: [.recovered]
+        )
+        let laterCheckIn = recovered.promoting(
+            to: .checkedIn,
+            status: .sore,
+            at: firstOpen.addingTimeInterval(60)
+        )
+
+        let earned = ConsistencyAchievementService().newlyEarned(
+            records: [laterCheckIn],
+            previouslyEarned: [],
+            referenceDate: firstOpen,
+            calendar: makeCalendar()
+        )
+
+        #expect(earned == [.recoveryChoice])
+        #expect(!earned.contains(.plannedWorkoutCompleted))
+    }
+
+    @Test func datelineTravelUsesStoredNominalDaysForWelcomeBackGap() {
+        let records = [
+            DailyPresenceRecord(
+                dayKey: "2026-01-01",
+                timeZoneIdentifier: "Pacific/Kiritimati",
+                firstOpenDate: ISO8601DateFormatter().date(from: "2025-12-31T10:30:00Z")!
+            ),
+            DailyPresenceRecord(
+                dayKey: "2026-01-08",
+                timeZoneIdentifier: "Pacific/Pago_Pago",
+                firstOpenDate: ISO8601DateFormatter().date(from: "2026-01-08T11:30:00Z")!,
+                participationLevel: .checkedIn,
+                status: .ready
+            ),
+        ]
+
+        let earned = ConsistencyAchievementService().newlyEarned(
+            records: records,
+            previouslyEarned: [],
+            referenceDate: ISO8601DateFormatter().date(from: "2026-01-08T16:00:00Z")!,
+            calendar: makeCalendar()
+        )
+
+        #expect(earned.contains(.welcomeBack))
+    }
 }
 
 private func makePresenceRecords(
