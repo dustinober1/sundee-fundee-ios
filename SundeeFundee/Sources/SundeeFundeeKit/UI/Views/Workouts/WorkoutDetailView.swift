@@ -533,13 +533,16 @@ class WorkoutDetailViewModel: ObservableObject {
 
     private let workoutId: String
     private let dataClient: DataClientProtocol
+    private let healthClient: HealthClientProtocol
 
     init(
         workoutId: String,
-        dataClient: DataClientProtocol = DataClientFactory.shared.client
+        dataClient: DataClientProtocol = DataClientFactory.shared.client,
+        healthClient: HealthClientProtocol = HealthClientFactory.shared.client
     ) {
         self.workoutId = workoutId
         self.dataClient = dataClient
+        self.healthClient = healthClient
     }
 
     /// Initialise with a pre-loaded workout to skip the CloudKit fetch.
@@ -547,11 +550,13 @@ class WorkoutDetailViewModel: ObservableObject {
     /// so CloudKit index lag can't produce a "not found" result.
     init(
         workout: Workout,
-        dataClient: DataClientProtocol = DataClientFactory.shared.client
+        dataClient: DataClientProtocol = DataClientFactory.shared.client,
+        healthClient: HealthClientProtocol = HealthClientFactory.shared.client
     ) {
         self.workoutId = workout.id
         self.workout = workout
         self.dataClient = dataClient
+        self.healthClient = healthClient
     }
 
     func loadWorkout() async {
@@ -658,7 +663,14 @@ class WorkoutDetailViewModel: ObservableObject {
 
             // Notify other views to refresh
             await MainActor.run {
-                NotificationCenter.default.post(name: .workoutCompleted, object: nil)
+                let event = WorkoutCompletionEvent(
+                    workout: workout,
+                    operationDate: workout.completedAt ?? workout.date
+                )
+                NotificationCenter.default.post(name: .workoutCompleted, object: event)
+                if event.kind == .activeRecovery {
+                    NotificationCenter.default.post(name: .intentionalRecoveryCompleted, object: event)
+                }
             }
         } catch {
             errorMessage = "We couldn't complete that workout. Check your connection and try again."
@@ -714,7 +726,8 @@ class WorkoutDetailViewModel: ObservableObject {
                     restMinutes: exercise.restMinutes
                 )
             },
-            notes: original.notes
+            notes: original.notes,
+            kind: original.kind
         )
 
         do {
@@ -723,7 +736,11 @@ class WorkoutDetailViewModel: ObservableObject {
             // Non-critical — continue to active session
         }
 
-        return ActiveWorkoutSessionViewModel(workout: newWorkout)
+        return ActiveWorkoutSessionViewModel(
+            workout: newWorkout,
+            dataClient: dataClient,
+            healthClient: healthClient
+        )
     }
 
     func convertWorkout(to equipment: EquipmentAccess) async {
