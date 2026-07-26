@@ -40,6 +40,10 @@ public protocol AchievementAnnouncementStoring: Sendable {
         _ achievements: Set<ConsistencyAchievement>,
         ownerID: String
     ) async -> Set<ConsistencyAchievement>
+    func release(
+        _ achievements: Set<ConsistencyAchievement>,
+        ownerID: String
+    ) async
 }
 
 public actor AccountAchievementAnnouncementStore: AchievementAnnouncementStoring {
@@ -57,6 +61,13 @@ public actor AccountAchievementAnnouncementStore: AchievementAnnouncementStoring
         let new = achievements.subtracting(existing)
         announcedByOwner[ownerID] = existing.union(new)
         return new
+    }
+
+    public func release(
+        _ achievements: Set<ConsistencyAchievement>,
+        ownerID: String
+    ) {
+        announcedByOwner[ownerID, default: []].subtract(achievements)
     }
 }
 
@@ -97,6 +108,11 @@ public final class TodayEngagementViewModel: ObservableObject {
         let evidence: DailyPresenceActionEvidence?
         let operationDate: Date
         let sessionToken: PresenceSessionToken
+    }
+
+    private enum SummaryUpdateResult {
+        case stale
+        case updated(announcedAchievement: Bool)
     }
 
     public init(
@@ -201,11 +217,15 @@ public final class TodayEngagementViewModel: ObservableObject {
                 await completeOperation()
                 return
             }
-            _ = await updateSummary(
+            let updateResult = await updateSummary(
                 loadedSummary,
                 ownerID: context.sessionToken.ownerID,
                 sessionToken: context.sessionToken
             )
+            guard case .updated = updateResult else {
+                await completeOperation()
+                return
+            }
 
             let updatedSyncState = await context.service.currentSyncState()
             guard await isCurrent(context.sessionToken) else {
@@ -346,11 +366,15 @@ public final class TodayEngagementViewModel: ObservableObject {
                     await completeOperation()
                     return
                 }
-                let announcedAchievement = await updateSummary(
+                let updateResult = await updateSummary(
                     loadedSummary,
                     ownerID: context.sessionToken.ownerID,
                     sessionToken: context.sessionToken
                 )
+                guard case .updated(let announcedAchievement) = updateResult else {
+                    await completeOperation()
+                    return
+                }
                 if !announcedAchievement {
                     HapticFeedback.light()
                 }
@@ -413,17 +437,23 @@ public final class TodayEngagementViewModel: ObservableObject {
         _ updatedSummary: ConsistencyMomentumSummary,
         ownerID: String,
         sessionToken: PresenceSessionToken
-    ) async -> Bool {
+    ) async -> SummaryUpdateResult {
+        guard await isCurrent(sessionToken) else { return .stale }
         let newlyAnnounced = await achievementStore.claimNew(
             updatedSummary.achievements,
             ownerID: ownerID
         )
-        guard await isCurrent(sessionToken) else { return false }
+        guard await isCurrent(sessionToken) else {
+            await achievementStore.release(newlyAnnounced, ownerID: ownerID)
+            return .stale
+        }
         summary = updatedSummary
-        guard !newlyAnnounced.isEmpty else { return false }
+        guard !newlyAnnounced.isEmpty else {
+            return .updated(announcedAchievement: false)
+        }
 
         achievementHaptic()
-        return true
+        return .updated(announcedAchievement: true)
     }
 
     private func enqueueAction(
