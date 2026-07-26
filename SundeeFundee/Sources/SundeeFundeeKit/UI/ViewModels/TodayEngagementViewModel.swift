@@ -25,7 +25,7 @@ public final class TodayEngagementViewModel: ObservableObject {
     private let calendar: Calendar
     private let now: @Sendable () -> Date
     private let achievementHaptic: @MainActor @Sendable () -> Void
-    private var announcedAchievements: Set<ConsistencyAchievement> = []
+    private static var announcedAchievements: Set<ConsistencyAchievement> = []
     private var needsReload = false
     private var isRefreshing = false
     private var pendingAction: PendingAction?
@@ -174,10 +174,10 @@ public final class TodayEngagementViewModel: ObservableObject {
     private func updateSummary(_ updatedSummary: ConsistencyMomentumSummary) -> Bool {
         summary = updatedSummary
 
-        let newlyAnnounced = updatedSummary.achievements.subtracting(announcedAchievements)
+        let newlyAnnounced = updatedSummary.achievements.subtracting(Self.announcedAchievements)
         guard !newlyAnnounced.isEmpty else { return false }
 
-        announcedAchievements.formUnion(newlyAnnounced)
+        Self.announcedAchievements.formUnion(newlyAnnounced)
         achievementHaptic()
         return true
     }
