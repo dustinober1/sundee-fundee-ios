@@ -33,6 +33,16 @@ struct TodayEngagementViewModelTests {
         #expect(await service.lastPromotion?.1 == .resting)
     }
 
+    @Test func reportsPartialSuccessWhenMomentumRefreshFails() async {
+        let service = PresenceServiceSpy(summaryShouldFail: true)
+        let viewModel = TodayEngagementViewModel(service: service)
+
+        await viewModel.select(.ready)
+
+        #expect(viewModel.today?.status == .ready)
+        #expect(viewModel.message == "Your check-in was saved, but momentum couldn’t refresh yet.")
+    }
+
     @Test func resolvesTheCurrentServiceForEachOperation() async {
         let firstService = PresenceServiceSpy()
         let secondService = PresenceServiceSpy()
@@ -102,8 +112,17 @@ private final class MutablePresenceServiceProvider: @unchecked Sendable {
 }
 
 private actor PresenceServiceSpy: DailyPresenceServicing {
+    private enum TestError: Error {
+        case summaryUnavailable
+    }
+
     private(set) var recordOpenCallCount = 0
     private(set) var lastPromotion: (DailyParticipationLevel, DailyPresenceStatus?)?
+    private let summaryShouldFail: Bool
+
+    init(summaryShouldFail: Bool = false) {
+        self.summaryShouldFail = summaryShouldFail
+    }
 
     func recordOpen(at date: Date, calendar: Calendar) async throws -> DailyPresenceRecord {
         recordOpenCallCount += 1
@@ -121,7 +140,10 @@ private actor PresenceServiceSpy: DailyPresenceServicing {
     }
 
     func loadSummary(referenceDate: Date, calendar: Calendar) async throws -> ConsistencyMomentumSummary {
-        ConsistencyMomentumSummary(
+        if summaryShouldFail {
+            throw TestError.summaryUnavailable
+        }
+        return ConsistencyMomentumSummary(
             daysPresentThisWeek: 1,
             checkInsThisWeek: 0,
             actionDaysThisWeek: 0,
