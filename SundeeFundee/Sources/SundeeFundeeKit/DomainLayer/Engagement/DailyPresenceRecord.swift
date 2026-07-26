@@ -8,6 +8,32 @@ public enum DailyPresenceStatus: String, Codable, Sendable, CaseIterable, Equata
     case trained
 }
 
+public extension DailyPresenceStatus {
+    var displayName: String {
+        switch self {
+        case .ready: "Ready"
+        case .tired: "Tired"
+        case .sore: "Sore"
+        case .resting: "Resting"
+        case .trained: "Trained"
+        }
+    }
+
+    var systemImage: String {
+        switch self {
+        case .ready: "bolt"
+        case .tired: "moon.zzz"
+        case .sore: "figure.cooldown"
+        case .resting: "leaf"
+        case .trained: "checkmark.circle"
+        }
+    }
+}
+
+public enum ConsistencyMomentumCopy {
+    public static let welcomeBack = "Welcome back"
+}
+
 public enum DailyParticipationLevel: String, Codable, Sendable, CaseIterable, Comparable, Equatable {
     case showedUp
     case checkedIn
