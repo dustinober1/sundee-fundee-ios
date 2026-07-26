@@ -103,11 +103,14 @@ public struct WorkoutReminderSettings: Codable, Sendable, Identifiable, Equatabl
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(String.self, forKey: .id)
-        isEnabled = Self.decodeBool(from: container, forKey: .isEnabled)
+        isEnabled = try Self.decodeBool(from: container, forKey: .isEnabled)
         preferredWeekdays = try container.decode([Int].self, forKey: .preferredWeekdays)
         hour = Self.validatedHour(try container.decode(Int.self, forKey: .hour))
         minute = Self.validatedMinute(try container.decode(Int.self, forKey: .minute))
-        dailyPlanEnabled = Self.decodeBool(from: container, forKey: .dailyPlanEnabled, default: false)
+        dailyPlanEnabled = try Self.decodeBoolIfPresent(
+            from: container,
+            forKey: .dailyPlanEnabled
+        ) ?? false
         dailyPlanHour = Self.validatedHour(
             try container.decodeIfPresent(Int.self, forKey: .dailyPlanHour) ?? 8
         )
@@ -119,16 +122,48 @@ public struct WorkoutReminderSettings: Codable, Sendable, Identifiable, Equatabl
 
     private static func decodeBool(
         from container: KeyedDecodingContainer<CodingKeys>,
-        forKey key: CodingKeys,
-        default defaultValue: Bool? = nil
-    ) -> Bool {
+        forKey key: CodingKeys
+    ) throws -> Bool {
+        guard container.contains(key), try !container.decodeNil(forKey: key) else {
+            throw boolTypeMismatch(in: container, forKey: key)
+        }
+        return try decodePresentBool(from: container, forKey: key)
+    }
+
+    private static func decodeBoolIfPresent(
+        from container: KeyedDecodingContainer<CodingKeys>,
+        forKey key: CodingKeys
+    ) throws -> Bool? {
+        guard container.contains(key), try !container.decodeNil(forKey: key) else {
+            return nil
+        }
+        return try decodePresentBool(from: container, forKey: key)
+    }
+
+    private static func decodePresentBool(
+        from container: KeyedDecodingContainer<CodingKeys>,
+        forKey key: CodingKeys
+    ) throws -> Bool {
         if let value = try? container.decode(Bool.self, forKey: key) {
             return value
         }
-        if let value = try? container.decode(Int.self, forKey: key) {
+        if let value = try? container.decode(Int64.self, forKey: key) {
             return value != 0
         }
-        return defaultValue ?? false
+        throw boolTypeMismatch(in: container, forKey: key)
+    }
+
+    private static func boolTypeMismatch(
+        in container: KeyedDecodingContainer<CodingKeys>,
+        forKey key: CodingKeys
+    ) -> DecodingError {
+        DecodingError.typeMismatch(
+            Bool.self,
+            DecodingError.Context(
+                codingPath: container.codingPath + [key],
+                debugDescription: "Expected a Bool or integer-backed Bool for \(key.stringValue)."
+            )
+        )
     }
 
     private static func validatedHour(_ hour: Int) -> Int {
