@@ -23,6 +23,11 @@ public enum BestNextWorkoutRequestBuilder {
     ) -> QuickWorkoutRequest {
         let highPain = painLogs.contains { $0.intensity >= 6 }
         let decision: TodayTrainingDecisionKind = highPain ? .recover : todayDecisionKind
+        let workoutKind: WorkoutKind =
+            decision == .recover
+                || (!useStandardSession && deloadDecision?.mode == .activeRecovery)
+                ? .activeRecovery
+                : .standard
         let energy: EnergyLevel
         if highPain || (!useStandardSession && deloadDecision?.mode == .activeRecovery) {
             energy = .low
@@ -38,7 +43,8 @@ public enum BestNextWorkoutRequestBuilder {
             energyLevel: energy,
             equipment: defaultEquipment,
             todayDecisionKind: decision,
-            painLogs: painLogs
+            painLogs: painLogs,
+            workoutKind: workoutKind
         )
     }
 
