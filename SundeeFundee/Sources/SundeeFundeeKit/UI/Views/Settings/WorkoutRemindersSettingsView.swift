@@ -11,10 +11,15 @@ public struct WorkoutRemindersSettingsView: View {
     @State private var weeklyTarget = 3
     @State private var selectedWeekdays: Set<Int> = [2, 4, 6]
     @State private var cycleAwarePlanningEnabled = false
-    private let service = ReminderService()
+    private let service: ReminderService
+    private let updateCoordinator: ReminderSettingsUpdateCoordinator
     private let weeklyPlanService = WeeklyPlanService()
 
-    public init() {}
+    public init() {
+        let service = ReminderService()
+        self.service = service
+        self.updateCoordinator = ReminderSettingsUpdateCoordinator(boundary: service)
+    }
 
     public var body: some View {
         Form {
@@ -154,28 +159,32 @@ public struct WorkoutRemindersSettingsView: View {
             from: previousSettings,
             to: settings
         )
-        do {
-            if requiresAuthorization {
+        if requiresAuthorization {
+            do {
                 permissionGranted = try await service.requestAuthorization()
-                guard permissionGranted else {
-                    let enabledDailyPlan = !previousSettings.dailyPlanEnabled && settings.dailyPlanEnabled
-                    restoreEnabledSettings(from: previousSettings)
-                    errorMessage = enabledDailyPlan
-                        ? "Notifications are off. You can still use your daily plan, or enable reminders in Settings."
-                        : "Notifications are disabled. Enable them in Settings to schedule workout reminders."
-                    return
-                }
-            }
-            settings.dateUpdated = Date()
-            try await service.saveSettings(settings)
-            try await service.reconcileSchedule(settings: settings)
-            await refreshPendingCount()
-        } catch {
-            if requiresAuthorization {
+            } catch {
                 restoreEnabledSettings(from: previousSettings)
+                errorMessage = "Could not check notification access. Please try again."
+                return
             }
-            errorMessage = "Could not update reminders right now."
+            guard permissionGranted else {
+                let enabledDailyPlan = !previousSettings.dailyPlanEnabled && settings.dailyPlanEnabled
+                restoreEnabledSettings(from: previousSettings)
+                errorMessage = enabledDailyPlan
+                    ? "Notifications are off. You can still use your daily plan, or enable reminders in Settings."
+                    : "Notifications are disabled. Enable them in Settings to schedule workout reminders."
+                return
+            }
         }
+
+        settings.dateUpdated = Date()
+        let result = await updateCoordinator.apply(
+            updated: settings,
+            previous: previousSettings
+        )
+        settings = result.settings
+        errorMessage = result.errorMessage
+        await refreshPendingCount()
     }
 
     private func restoreEnabledSettings(from previousSettings: WorkoutReminderSettings) {
