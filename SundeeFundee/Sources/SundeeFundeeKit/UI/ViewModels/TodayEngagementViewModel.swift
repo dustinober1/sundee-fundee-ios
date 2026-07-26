@@ -25,6 +25,13 @@ public final class TodayEngagementViewModel: ObservableObject {
     private let calendar: Calendar
     private let now: @Sendable () -> Date
     private var needsReload = false
+    private var isRefreshing = false
+    private var pendingAction: PendingAction?
+
+    private struct PendingAction {
+        let level: DailyParticipationLevel
+        let status: DailyPresenceStatus?
+    }
 
     public init(
         service: (any DailyPresenceServicing)? = nil,
@@ -62,6 +69,7 @@ public final class TodayEngagementViewModel: ObservableObject {
             return
         }
         isLoading = true
+        isRefreshing = true
 
         do {
             let service = serviceProvider()
@@ -72,6 +80,7 @@ public final class TodayEngagementViewModel: ObservableObject {
             message = "Your daily momentum could not be updated. Your training plan is still available."
         }
 
+        isRefreshing = false
         await completeOperation()
     }
 
@@ -82,11 +91,23 @@ public final class TodayEngagementViewModel: ObservableObject {
     }
 
     public func recordCheckIn() async {
-        await promote(level: .checkedIn, status: nil)
+        await recordAction(level: .checkedIn, status: nil)
     }
 
     public func recordAction(_ status: DailyPresenceStatus?) async {
-        await promote(level: .acted, status: status)
+        await recordAction(level: .acted, status: status)
+    }
+
+    private func recordAction(
+        level: DailyParticipationLevel,
+        status: DailyPresenceStatus?
+    ) async {
+        guard !isLoading else {
+            guard isRefreshing else { return }
+            enqueueAction(level: level, status: status)
+            return
+        }
+        await promote(level: level, status: status)
     }
 
     private func promote(
@@ -123,8 +144,28 @@ public final class TodayEngagementViewModel: ObservableObject {
 
     private func completeOperation() async {
         isLoading = false
+
+        if let pendingAction {
+            self.pendingAction = nil
+            await promote(level: pendingAction.level, status: pendingAction.status)
+            return
+        }
+
         guard needsReload else { return }
         needsReload = false
         await load()
+    }
+
+    private func enqueueAction(
+        level: DailyParticipationLevel,
+        status: DailyPresenceStatus?
+    ) {
+        guard let pendingAction else {
+            self.pendingAction = PendingAction(level: level, status: status)
+            return
+        }
+
+        guard level >= pendingAction.level else { return }
+        self.pendingAction = PendingAction(level: level, status: status ?? pendingAction.status)
     }
 }
