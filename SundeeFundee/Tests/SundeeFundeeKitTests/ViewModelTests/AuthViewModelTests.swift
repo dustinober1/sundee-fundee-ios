@@ -323,6 +323,16 @@ struct AuthViewModelTests {
         #expect(restoredViewModel.isGuest)
         #expect(restoredViewModel.errorMessage != nil)
         #expect(sessionStore.read(key: AuthViewModel.pendingGuestMigrationKey) != nil)
+
+        let signInCountBeforeRetry = await authClient.signInCount
+        await restoredViewModel.signInWithApple()
+        let signInCountAfterRetry = await authClient.signInCount
+
+        #expect(signInCountAfterRetry == signInCountBeforeRetry)
+        #expect(destination.recordCount(for: "UserData") == 1)
+        #expect(restoredSessionManager.session.ownerID == AuthViewModel.guestUserID)
+        #expect(restoredViewModel.isGuest)
+        #expect(pendingPhase(in: sessionStore) == "deleting")
     }
 
     @Test("pending marker survives Apple revocation failure")
