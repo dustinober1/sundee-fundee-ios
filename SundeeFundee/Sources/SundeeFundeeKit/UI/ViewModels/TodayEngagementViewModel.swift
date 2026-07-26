@@ -24,6 +24,7 @@ public final class TodayEngagementViewModel: ObservableObject {
     private let serviceProvider: @Sendable () -> any DailyPresenceServicing
     private let calendar: Calendar
     private let now: @Sendable () -> Date
+    private var needsReload = false
 
     public init(
         service: (any DailyPresenceServicing)? = nil,
@@ -56,8 +57,11 @@ public final class TodayEngagementViewModel: ObservableObject {
     }
 
     public func load() async {
+        guard !isLoading else {
+            needsReload = true
+            return
+        }
         isLoading = true
-        defer { isLoading = false }
 
         do {
             let service = serviceProvider()
@@ -67,12 +71,13 @@ public final class TodayEngagementViewModel: ObservableObject {
         } catch {
             message = "Your daily momentum could not be updated. Your training plan is still available."
         }
+
+        await completeOperation()
     }
 
     public func select(_ status: DailyPresenceStatus) async {
         guard !isLoading else { return }
         isLoading = true
-        defer { isLoading = false }
 
         let service = serviceProvider()
         let level: DailyParticipationLevel =
@@ -92,5 +97,14 @@ public final class TodayEngagementViewModel: ObservableObject {
             message = "That check-in did not save. Please try again."
             HapticFeedback.warning()
         }
+
+        await completeOperation()
+    }
+
+    private func completeOperation() async {
+        isLoading = false
+        guard needsReload else { return }
+        needsReload = false
+        await load()
     }
 }
