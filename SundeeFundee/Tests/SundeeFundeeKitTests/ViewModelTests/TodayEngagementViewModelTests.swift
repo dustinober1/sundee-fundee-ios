@@ -33,6 +33,26 @@ struct TodayEngagementViewModelTests {
         #expect(await service.lastPromotion?.1 == .resting)
     }
 
+    @Test func workoutCompletionPromotesTrainedAction() async {
+        let service = PresenceServiceSpy()
+        let viewModel = TodayEngagementViewModel(service: service)
+
+        await viewModel.recordAction(.trained)
+
+        #expect(await service.lastPromotion?.0 == .acted)
+        #expect(await service.lastPromotion?.1 == .trained)
+    }
+
+    @Test func richCheckInDoesNotPretendWorkoutWasCompleted() async {
+        let service = PresenceServiceSpy()
+        let viewModel = TodayEngagementViewModel(service: service)
+
+        await viewModel.recordCheckIn()
+
+        #expect(await service.lastPromotion?.0 == .checkedIn)
+        #expect(await service.lastPromotion?.1 == nil)
+    }
+
     @Test func reportsPartialSuccessWhenMomentumRefreshFails() async {
         let service = PresenceServiceSpy(summaryShouldFail: true)
         let viewModel = TodayEngagementViewModel(service: service)
