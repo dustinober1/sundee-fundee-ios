@@ -437,6 +437,73 @@ struct ReminderServiceTests {
         #expect(snapshot.scheduled == original)
     }
 
+    @Test("Equal-second revisions are made causally monotonic")
+    func equalSecondRevisionsAdvanceMonotonically() async {
+        let timestamp = Date(timeIntervalSince1970: 100)
+        let original = WorkoutReminderSettings(
+            isEnabled: false,
+            hour: 9,
+            dateUpdated: timestamp
+        )
+        let firstUpdate = WorkoutReminderSettings(
+            isEnabled: false,
+            hour: 10,
+            dateUpdated: timestamp
+        )
+        let secondUpdate = WorkoutReminderSettings(
+            isEnabled: false,
+            hour: 11,
+            dateUpdated: timestamp
+        )
+        let boundary = InMemoryReminderSettingsBoundary(
+            persisted: original,
+            scheduled: original
+        )
+        let coordinator = ReminderSettingsUpdateCoordinator(boundary: boundary)
+
+        let firstResult = await coordinator.apply(
+            updated: firstUpdate,
+            previous: original
+        )
+        let secondResult = await coordinator.apply(
+            updated: secondUpdate,
+            previous: firstResult.settings
+        )
+
+        #expect(firstResult.settings.dateUpdated >= timestamp.addingTimeInterval(1))
+        #expect(
+            secondResult.settings.dateUpdated
+                >= firstResult.settings.dateUpdated.addingTimeInterval(1)
+        )
+    }
+
+    @Test("A server-winning tie schedules and publishes authoritative settings")
+    func serverWinningTieUsesAuthoritativeSettings() async {
+        let timestamp = Date(timeIntervalSince1970: 100)
+        let server = WorkoutReminderSettings(
+            isEnabled: true,
+            hour: 9,
+            dateUpdated: timestamp
+        )
+        let rejectedClient = WorkoutReminderSettings(
+            isEnabled: true,
+            hour: 10,
+            dateUpdated: timestamp
+        )
+        let boundary = ServerWinningReminderSettingsBoundary(server: server)
+        let coordinator = ReminderSettingsUpdateCoordinator(boundary: boundary)
+
+        let result = await coordinator.apply(
+            updated: rejectedClient,
+            previous: server
+        )
+        let scheduled = await boundary.scheduledSettings()
+
+        #expect(result.state == .applied)
+        #expect(result.settings == server)
+        #expect(scheduled == server)
+    }
+
     private var reminderSettingsDecoder: JSONDecoder {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
@@ -510,6 +577,34 @@ private actor InMemoryReminderSettingsBoundary: ReminderSettingsUpdateBoundary {
 
 private enum ReminderSettingsBoundaryTestError: Error {
     case injectedFailure
+}
+
+private actor ServerWinningReminderSettingsBoundary: ReminderSettingsUpdateBoundary {
+    private let server: WorkoutReminderSettings
+    private var scheduled: WorkoutReminderSettings
+
+    init(server: WorkoutReminderSettings) {
+        self.server = server
+        scheduled = server
+    }
+
+    func requestAuthorization() async throws -> Bool { true }
+
+    func saveSettings(_ settings: WorkoutReminderSettings) async throws {
+        _ = settings
+    }
+
+    func loadPersistedSettings() async throws -> WorkoutReminderSettings {
+        server
+    }
+
+    func reconcileSchedule(settings: WorkoutReminderSettings) async throws {
+        scheduled = settings
+    }
+
+    func scheduledSettings() -> WorkoutReminderSettings {
+        scheduled
+    }
 }
 
 private actor SlowReminderSettingsBoundary: ReminderSettingsUpdateBoundary {
