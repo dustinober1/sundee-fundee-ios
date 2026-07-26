@@ -126,12 +126,166 @@ struct AuthViewModelTests {
         #expect(!restoredViewModel.isGuest)
     }
 
+    @Test("deleting a pending conversion clears guest and Apple data before removing its marker")
+    func pendingConversionDeletionCleansBothAccounts() async throws {
+        let presenceDirectory = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: presenceDirectory) }
+
+        let sessionStore = TestAuthSessionStore()
+        let source = MockCloudKitClient()
+        let destination = LifecycleDestinationClient(
+            failWorkoutSaves: true,
+            markerProbe: {
+                sessionStore.read(key: AuthViewModel.pendingGuestMigrationKey) != nil
+            }
+        )
+        let sessionManager = TestAuthDataSessionManager(
+            ownerID: "signed-out",
+            client: MockCloudKitClient()
+        )
+        let authClient = TestAppleAuthClient(result: makeAuthResult())
+        let guestPresenceStore = PresenceLocalStore(
+            ownerID: AuthViewModel.guestUserID,
+            baseDirectoryURL: presenceDirectory
+        )
+        let destinationPresenceStore = PresenceLocalStore(
+            ownerID: "account-a",
+            baseDirectoryURL: presenceDirectory
+        )
+        let presence = DailyPresenceRecord(
+            dayKey: "2026-07-26",
+            timeZoneIdentifier: "America/New_York",
+            firstOpenDate: Date(timeIntervalSince1970: 1_753_528_400)
+        )
+        _ = try await guestPresenceStore.save(
+            presence,
+            ownerID: AuthViewModel.guestUserID
+        )
+        _ = try await destinationPresenceStore.save(
+            presence,
+            ownerID: "account-a"
+        )
+        try await source.save(makeWorkout(), recordType: "Workout")
+        let viewModel = makeViewModel(
+            authClient: authClient,
+            sessionStore: sessionStore,
+            sessionManager: sessionManager,
+            source: source,
+            destination: destination,
+            presenceCleanup: { ownerID in
+                try await PresenceLocalStore(
+                    ownerID: ownerID,
+                    baseDirectoryURL: presenceDirectory
+                ).clear(ownerID: ownerID)
+            }
+        )
+        viewModel.continueAsGuest()
+        await viewModel.signInWithApple()
+        #expect(sessionStore.read(key: AuthViewModel.pendingGuestMigrationKey) != nil)
+        #expect(destination.recordCount(for: "UserData") == 1)
+
+        await viewModel.deleteAccount()
+
+        let revokeCount = await authClient.revokeCount
+        #expect(source.recordCount(for: "Workout") == 0)
+        #expect(destination.recordCount(for: "UserData") == 0)
+        #expect(
+            try await guestPresenceStore.load(
+                ownerID: AuthViewModel.guestUserID
+            ).isEmpty
+        )
+        #expect(
+            try await destinationPresenceStore.load(ownerID: "account-a").isEmpty
+        )
+        #expect(revokeCount == 1)
+        #expect(sessionStore.read(key: AuthViewModel.pendingGuestMigrationKey) == nil)
+        #expect(!viewModel.isAuthenticated)
+    }
+
+    @Test("pending marker survives destination cleanup failure")
+    func pendingConversionDeletionRetainsMarkerWhenDestinationFails() async throws {
+        let sessionStore = TestAuthSessionStore()
+        let source = MockCloudKitClient()
+        let destination = LifecycleDestinationClient(
+            failWorkoutSaves: true,
+            failDeleteAllData: true,
+            markerProbe: {
+                sessionStore.read(key: AuthViewModel.pendingGuestMigrationKey) != nil
+            }
+        )
+        let sessionManager = TestAuthDataSessionManager(
+            ownerID: "signed-out",
+            client: MockCloudKitClient()
+        )
+        let authClient = TestAppleAuthClient(result: makeAuthResult())
+        try await source.save(makeWorkout(), recordType: "Workout")
+        let viewModel = makeViewModel(
+            authClient: authClient,
+            sessionStore: sessionStore,
+            sessionManager: sessionManager,
+            source: source,
+            destination: destination
+        )
+        viewModel.continueAsGuest()
+        await viewModel.signInWithApple()
+
+        await viewModel.deleteAccount()
+
+        let revokeCount = await authClient.revokeCount
+        #expect(destination.recordCount(for: "UserData") == 1)
+        #expect(revokeCount == 0)
+        #expect(sessionStore.read(key: AuthViewModel.pendingGuestMigrationKey) != nil)
+        #expect(viewModel.isAuthenticated)
+        #expect(viewModel.errorMessage != nil)
+    }
+
+    @Test("pending marker survives Apple revocation failure")
+    func pendingConversionDeletionRetainsMarkerWhenRevocationFails() async throws {
+        let sessionStore = TestAuthSessionStore()
+        let source = MockCloudKitClient()
+        let destination = LifecycleDestinationClient(
+            failWorkoutSaves: true,
+            markerProbe: {
+                sessionStore.read(key: AuthViewModel.pendingGuestMigrationKey) != nil
+            }
+        )
+        let sessionManager = TestAuthDataSessionManager(
+            ownerID: "signed-out",
+            client: MockCloudKitClient()
+        )
+        let authClient = TestAppleAuthClient(
+            result: makeAuthResult(),
+            failRevocation: true
+        )
+        try await source.save(makeWorkout(), recordType: "Workout")
+        let viewModel = makeViewModel(
+            authClient: authClient,
+            sessionStore: sessionStore,
+            sessionManager: sessionManager,
+            source: source,
+            destination: destination
+        )
+        viewModel.continueAsGuest()
+        await viewModel.signInWithApple()
+
+        await viewModel.deleteAccount()
+
+        let revokeCount = await authClient.revokeCount
+        #expect(destination.recordCount(for: "UserData") == 0)
+        #expect(revokeCount == 1)
+        #expect(sessionStore.read(key: AuthViewModel.pendingGuestMigrationKey) != nil)
+        #expect(viewModel.isAuthenticated)
+        #expect(viewModel.errorMessage != nil)
+    }
+
     private func makeViewModel(
         authClient: TestAppleAuthClient,
         sessionStore: TestAuthSessionStore,
         sessionManager: TestAuthDataSessionManager,
         source: MockCloudKitClient,
-        destination: LifecycleDestinationClient
+        destination: LifecycleDestinationClient,
+        presenceCleanup: @escaping @Sendable (String) async throws -> Void = { _ in }
     ) -> AuthViewModel {
         AuthViewModel(
             authClient: authClient,
@@ -145,6 +299,7 @@ struct AuthViewModelTests {
                     destination: destination
                 ).migrate()
             },
+            presenceCleanup: presenceCleanup,
             restoreSessionOnInit: false
         )
     }
@@ -229,10 +384,16 @@ private final class TestAuthDataSessionManager: AuthDataSessionManaging, @unchec
 
 private actor TestAppleAuthClient: AppleAuthClientProtocol {
     private let result: AppleAuthResult
+    private let failRevocation: Bool
     private(set) var signOutCount = 0
+    private(set) var revokeCount = 0
 
-    init(result: AppleAuthResult) {
+    init(
+        result: AppleAuthResult,
+        failRevocation: Bool = false
+    ) {
         self.result = result
+        self.failRevocation = failRevocation
     }
 
     func signIn(scopes: AppleAuthScope) async throws -> AppleAuthResult {
@@ -247,7 +408,12 @@ private actor TestAppleAuthClient: AppleAuthClientProtocol {
         signOutCount += 1
     }
 
-    func revokeToken(authorizationCode: Data?) async throws {}
+    func revokeToken(authorizationCode: Data?) async throws {
+        revokeCount += 1
+        if failRevocation {
+            throw AuthError.authorizationFailed(underlying: nil)
+        }
+    }
 }
 
 private final class LifecycleDestinationClient: DataClientProtocol, @unchecked Sendable {
@@ -257,12 +423,15 @@ private final class LifecycleDestinationClient: DataClientProtocol, @unchecked S
     private var hasObservedFirstSave = false
     private var didSeeMarker = false
     private var shouldFailWorkoutSaves: Bool
+    private let failDeleteAllData: Bool
 
     init(
         failWorkoutSaves: Bool = false,
+        failDeleteAllData: Bool = false,
         markerProbe: @escaping @Sendable () -> Bool
     ) {
         shouldFailWorkoutSaves = failWorkoutSaves
+        self.failDeleteAllData = failDeleteAllData
         self.markerProbe = markerProbe
     }
 
@@ -315,6 +484,9 @@ private final class LifecycleDestinationClient: DataClientProtocol, @unchecked S
     }
 
     func deleteAllData() async throws {
+        if failDeleteAllData {
+            throw DataError.networkError(underlying: nil)
+        }
         try await backing.deleteAllData()
     }
 
