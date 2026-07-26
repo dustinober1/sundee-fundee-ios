@@ -20,8 +20,9 @@ public struct WorkoutRemindersSettingsView: View {
         Form {
             Section {
                 Button {
+                    let previousSettings = settings
                     settings.isEnabled.toggle()
-                    Task { await saveAndReconcile() }
+                    Task { await saveAndReconcile(previousSettings: previousSettings) }
                 } label: {
                     HStack {
                         Text(settings.isEnabled ? "Disable reminders" : "Enable reminders")
@@ -49,6 +50,21 @@ public struct WorkoutRemindersSettingsView: View {
                 Text("Workout Reminders")
             } footer: {
                 Text("Permission is requested only when you enable reminders.")
+            }
+
+            Section {
+                Toggle("Daily plan", isOn: dailyPlanEnabledBinding)
+
+                DatePicker(
+                    "Daily plan time",
+                    selection: dailyPlanTimeBinding,
+                    displayedComponents: .hourAndMinute
+                )
+                .disabled(!settings.dailyPlanEnabled)
+            } header: {
+                Text("Daily Plan")
+            } footer: {
+                Text("A private reminder to open today’s plan. Notification details do not include health information.")
             }
 
             if let errorMessage {
@@ -99,21 +115,54 @@ public struct WorkoutRemindersSettingsView: View {
             components.minute = settings.minute
             return Calendar.current.date(from: components) ?? Date()
         } set: { date in
+            let previousSettings = settings
             let components = Calendar.current.dateComponents([.hour, .minute], from: date)
             settings.hour = components.hour ?? 9
             settings.minute = components.minute ?? 0
-            Task { await saveAndReconcile() }
+            Task { await saveAndReconcile(previousSettings: previousSettings) }
         }
     }
 
-    private func saveAndReconcile() async {
+    private var dailyPlanEnabledBinding: Binding<Bool> {
+        Binding {
+            settings.dailyPlanEnabled
+        } set: { isEnabled in
+            let previousSettings = settings
+            settings.dailyPlanEnabled = isEnabled
+            Task { await saveAndReconcile(previousSettings: previousSettings) }
+        }
+    }
+
+    private var dailyPlanTimeBinding: Binding<Date> {
+        Binding {
+            var components = DateComponents()
+            components.hour = settings.dailyPlanHour
+            components.minute = settings.dailyPlanMinute
+            return Calendar.current.date(from: components) ?? Date()
+        } set: { date in
+            let previousSettings = settings
+            let components = Calendar.current.dateComponents([.hour, .minute], from: date)
+            settings.dailyPlanHour = components.hour ?? 8
+            settings.dailyPlanMinute = components.minute ?? 0
+            Task { await saveAndReconcile(previousSettings: previousSettings) }
+        }
+    }
+
+    private func saveAndReconcile(previousSettings: WorkoutReminderSettings) async {
         errorMessage = nil
+        let requiresAuthorization = ReminderService.requiresAuthorization(
+            from: previousSettings,
+            to: settings
+        )
         do {
-            if settings.isEnabled {
+            if requiresAuthorization {
                 permissionGranted = try await service.requestAuthorization()
                 guard permissionGranted else {
-                    settings.isEnabled = false
-                    errorMessage = "Notifications are disabled. Enable them in Settings to schedule workout reminders."
+                    let enabledDailyPlan = !previousSettings.dailyPlanEnabled && settings.dailyPlanEnabled
+                    restoreEnabledSettings(from: previousSettings)
+                    errorMessage = enabledDailyPlan
+                        ? "Notifications are off. You can still use your daily plan, or enable reminders in Settings."
+                        : "Notifications are disabled. Enable them in Settings to schedule workout reminders."
                     return
                 }
             }
@@ -122,8 +171,16 @@ public struct WorkoutRemindersSettingsView: View {
             try await service.reconcileSchedule(settings: settings)
             await refreshPendingCount()
         } catch {
+            if requiresAuthorization {
+                restoreEnabledSettings(from: previousSettings)
+            }
             errorMessage = "Could not update reminders right now."
         }
+    }
+
+    private func restoreEnabledSettings(from previousSettings: WorkoutReminderSettings) {
+        settings.isEnabled = previousSettings.isEnabled
+        settings.dailyPlanEnabled = previousSettings.dailyPlanEnabled
     }
 
     private func refreshPendingCount() async {
