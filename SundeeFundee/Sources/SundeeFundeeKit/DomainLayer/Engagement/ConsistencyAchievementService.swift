@@ -16,11 +16,10 @@ public struct ConsistencyAchievementService: Sendable {
         referenceDate: Date,
         calendar: Calendar
     ) -> Set<ConsistencyAchievement> {
-        let referenceDay = calendar.startOfDay(for: referenceDate)
-        guard let referenceDayEnd = calendar.date(byAdding: .day, value: 1, to: referenceDay) else {
-            return []
-        }
-        let recordsToDate = records.filter { $0.firstOpenDate < referenceDayEnd }
+        let referenceDayKey = PresenceLocalDay.key(for: referenceDate, calendar: calendar)
+        let recordsToDate = mergedByLocalDay(
+            records.filter { $0.dayKey <= referenceDayKey }
+        )
         var earned: Set<ConsistencyAchievement> = []
 
         if containsConsistentWeek(records: recordsToDate, calendar: calendar) {
@@ -29,13 +28,11 @@ public struct ConsistencyAchievementService: Sendable {
         if containsWelcomeBack(records: recordsToDate, calendar: calendar) {
             earned.insert(.welcomeBack)
         }
-        if recordsToDate.contains(where: {
-            $0.participationLevel == .acted && $0.status == .trained
-        }) {
+        if recordsToDate.contains(where: { $0.actionEvidence.contains(.trained) }) {
             earned.insert(.plannedWorkoutCompleted)
         }
         if recordsToDate.contains(where: {
-            $0.participationLevel == .acted && $0.status == .resting
+            !$0.actionEvidence.intersection([.recovered, .rested]).isEmpty
         }) {
             earned.insert(.recoveryChoice)
         }
@@ -50,10 +47,10 @@ public struct ConsistencyAchievementService: Sendable {
         var daysByWeek: [Date: Set<String>] = [:]
 
         for record in records {
-            guard let weekStart = calendar.dateInterval(
-                of: .weekOfYear,
-                for: record.firstOpenDate
-            )?.start else {
+            guard let weekStart = PresenceLocalDay.weekStart(
+                for: record.dayKey,
+                calendar: calendar
+            ) else {
                 continue
             }
             daysByWeek[weekStart, default: []].insert(record.dayKey)
@@ -67,9 +64,7 @@ public struct ConsistencyAchievementService: Sendable {
         calendar: Calendar
     ) -> Bool {
         let participationByDay = Dictionary(
-            records.map {
-                (calendar.startOfDay(for: $0.firstOpenDate), $0.participationLevel)
-            },
+            records.map { ($0.dayKey, $0.participationLevel) },
             uniquingKeysWith: max
         )
         let orderedDays = participationByDay.keys.sorted()
@@ -77,7 +72,11 @@ public struct ConsistencyAchievementService: Sendable {
         for index in orderedDays.indices.dropFirst() {
             let currentDay = orderedDays[index]
             let previousDay = orderedDays[orderedDays.index(before: index)]
-            let gap = calendar.dateComponents([.day], from: previousDay, to: currentDay).day ?? 0
+            let gap = PresenceLocalDay.daysBetween(
+                previousDay,
+                currentDay,
+                calendar: calendar
+            ) ?? 0
 
             if gap >= 7, participationByDay[currentDay, default: .showedUp] >= .checkedIn {
                 return true
@@ -85,5 +84,13 @@ public struct ConsistencyAchievementService: Sendable {
         }
 
         return false
+    }
+
+    private func mergedByLocalDay(
+        _ records: [DailyPresenceRecord]
+    ) -> [DailyPresenceRecord] {
+        Dictionary(records.map { ($0.dayKey, $0) }) { existing, incoming in
+            existing.merging(with: incoming)
+        }.values.sorted { $0.dayKey < $1.dayKey }
     }
 }
