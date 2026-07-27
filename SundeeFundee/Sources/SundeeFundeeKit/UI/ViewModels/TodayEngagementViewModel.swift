@@ -35,39 +35,71 @@ struct PresenceSessionToken: Sendable, Equatable {
     let generation: UInt64
 }
 
+public struct AchievementAnnouncementClaim: Sendable, Equatable {
+    public let id: UUID
+    public let ownerID: String
+    public let achievements: Set<ConsistencyAchievement>
+
+    public init(
+        id: UUID = UUID(),
+        ownerID: String,
+        achievements: Set<ConsistencyAchievement>
+    ) {
+        self.id = id
+        self.ownerID = ownerID
+        self.achievements = achievements
+    }
+}
+
 public protocol AchievementAnnouncementStoring: Sendable {
     func claimNew(
         _ achievements: Set<ConsistencyAchievement>,
         ownerID: String
-    ) async -> Set<ConsistencyAchievement>
-    func release(
-        _ achievements: Set<ConsistencyAchievement>,
-        ownerID: String
-    ) async
+    ) async -> AchievementAnnouncementClaim
+    func commit(
+        _ claim: AchievementAnnouncementClaim,
+        ifCurrent: @escaping @Sendable () -> Bool
+    ) async -> Set<ConsistencyAchievement>?
+    func release(_ claim: AchievementAnnouncementClaim) async
 }
 
 public actor AccountAchievementAnnouncementStore: AchievementAnnouncementStoring {
     public static let shared = AccountAchievementAnnouncementStore()
 
     private var announcedByOwner: [String: Set<ConsistencyAchievement>] = [:]
+    private var pendingClaims: [UUID: AchievementAnnouncementClaim] = [:]
 
     public init() {}
 
     public func claimNew(
         _ achievements: Set<ConsistencyAchievement>,
         ownerID: String
-    ) -> Set<ConsistencyAchievement> {
+    ) -> AchievementAnnouncementClaim {
         let existing = announcedByOwner[ownerID, default: []]
-        let new = achievements.subtracting(existing)
-        announcedByOwner[ownerID] = existing.union(new)
+        let claim = AchievementAnnouncementClaim(
+            ownerID: ownerID,
+            achievements: achievements.subtracting(existing)
+        )
+        pendingClaims[claim.id] = claim
+        return claim
+    }
+
+    public func commit(
+        _ claim: AchievementAnnouncementClaim,
+        ifCurrent: @escaping @Sendable () -> Bool
+    ) -> Set<ConsistencyAchievement>? {
+        guard pendingClaims.removeValue(forKey: claim.id) == claim,
+              ifCurrent() else {
+            return nil
+        }
+        let existing = announcedByOwner[claim.ownerID, default: []]
+        let new = claim.achievements.subtracting(existing)
+        announcedByOwner[claim.ownerID] = existing.union(new)
         return new
     }
 
-    public func release(
-        _ achievements: Set<ConsistencyAchievement>,
-        ownerID: String
-    ) {
-        announcedByOwner[ownerID, default: []].subtract(achievements)
+    public func release(_ claim: AchievementAnnouncementClaim) {
+        pendingClaims.removeValue(forKey: claim.id)
     }
 }
 
@@ -439,12 +471,23 @@ public final class TodayEngagementViewModel: ObservableObject {
         sessionToken: PresenceSessionToken
     ) async -> SummaryUpdateResult {
         guard await isCurrent(sessionToken) else { return .stale }
-        let newlyAnnounced = await achievementStore.claimNew(
+        let claim = await achievementStore.claimNew(
             updatedSummary.achievements,
             ownerID: ownerID
         )
         guard await isCurrent(sessionToken) else {
-            await achievementStore.release(newlyAnnounced, ownerID: ownerID)
+            await achievementStore.release(claim)
+            return .stale
+        }
+        let sessionTokenProvider = self.sessionTokenProvider
+        guard let newlyAnnounced = await achievementStore.commit(
+            claim,
+            ifCurrent: {
+                sessionTokenProvider?() == sessionToken
+                    || sessionTokenProvider == nil
+            }
+        ) else {
+            await achievementStore.release(claim)
             return .stale
         }
         summary = updatedSummary
