@@ -31,6 +31,14 @@ Capture fresh App Store screenshots
 
 Push a new release build to the App Store
 
+### ios submit_screenshots_only
+
+```sh
+[bundle exec] fastlane ios submit_screenshots_only
+```
+
+Add missing screenshots to the already-uploaded build and submit for review, without rebuilding or touching existing screenshots
+
 ----
 
 This README.md is auto-generated and will be re-generated every time [_fastlane_](https://fastlane.tools) is run.

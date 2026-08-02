@@ -69,7 +69,7 @@ platform :ios do
     capture_ios_screenshots(
       project: "SundeeFundee.xcodeproj",
       scheme: "SundeeFundee",
-      devices: ["iPhone 17 Pro", "iPad Pro 13-inch (M5)"],
+      devices: ["iPhone 17 Pro", "iPhone 11 Pro Max", "iPad Pro 13-inch (M5)"],
       ios_version: "26.5",
       languages: ["en-US"],
       launch_arguments: ["--seed-screenshots"],
@@ -113,6 +113,28 @@ platform :ios do
       skip_metadata: false,
       skip_screenshots: false,
       overwrite_screenshots: true,
+      submit_for_review: true,
+      automatic_release: false,
+      force: true,
+      submission_information: {
+        export_compliance_uses_encryption: false,
+        add_id_info_uses_idfa: false
+      },
+      precheck_include_in_app_purchases: false
+    )
+  end
+
+  desc "Add missing screenshots to the already-uploaded build and submit for review, without rebuilding or touching existing screenshots"
+  lane :submit_screenshots_only do
+    api_key = load_asc_api_key
+
+    upload_to_app_store(
+      api_key: api_key,
+      skip_binary_upload: true,
+      skip_metadata: true,
+      skip_screenshots: false,
+      screenshots_path: "./fastlane/screenshots",
+      overwrite_screenshots: false,
       submit_for_review: true,
       automatic_release: false,
       force: true,
