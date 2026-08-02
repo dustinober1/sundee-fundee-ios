@@ -92,6 +92,22 @@ public struct SettingsView: View {
                         Label("Export My Data", systemImage: "square.and.arrow.up")
                     }
                 }
+                
+                Section("Help & Learning") {
+                    Button {
+                        viewModel.showingFeatureTour = true
+                    } label: {
+                        Label("Feature Tour", systemImage: "map")
+                    }
+                    .foregroundColor(AppTheme.Text.primary)
+                    
+                    Button {
+                        viewModel.showingCycleEducation = true
+                    } label: {
+                        Label("Cycle Phase Guide", systemImage: "calendar.badge.clock")
+                    }
+                    .foregroundColor(AppTheme.Text.primary)
+                }
 
                 SupportDeveloperSection()
 
@@ -112,6 +128,38 @@ public struct SettingsView: View {
                         }
                     }
                 }
+                
+                #if DEBUG
+                // Debug Section - only visible in debug builds
+                Section("Debug Tools") {
+                    Button {
+                        OnboardingResetHelper.resetFeatureTour()
+                        authViewModel.needsFeatureTour = true
+                    } label: {
+                        Label("Reset Feature Tour", systemImage: "arrow.counterclockwise")
+                    }
+                    .foregroundColor(AppTheme.Text.primary)
+                    
+                    Button {
+                        OnboardingResetHelper.resetOnboarding()
+                        authViewModel.needsOnboarding = true
+                        authViewModel.needsFeatureTour = false
+                    } label: {
+                        Label("Reset Onboarding", systemImage: "arrow.counterclockwise.circle")
+                    }
+                    .foregroundColor(AppTheme.Text.primary)
+                    
+                    Button {
+                        OnboardingResetHelper.resetForTesting()
+                        authViewModel.isAuthenticated = false
+                        authViewModel.needsOnboarding = false
+                        authViewModel.needsFeatureTour = false
+                    } label: {
+                        Label("Full Reset (Sign Out)", systemImage: "trash.circle")
+                    }
+                    .foregroundColor(AppTheme.Semantic.error)
+                }
+                #endif
 
                 Section("Account") {
                     if let userName = authViewModel.userName {
@@ -191,6 +239,14 @@ public struct SettingsView: View {
             #if os(iOS)
             .navigationBarTitleDisplayMode(.large)
             #endif
+            .sheet(isPresented: $viewModel.showingFeatureTour) {
+                FeatureTourView {
+                    viewModel.showingFeatureTour = false
+                }
+            }
+            .sheet(isPresented: $viewModel.showingCycleEducation) {
+                CyclePhaseEducationView()
+            }
             .confirmationDialog(
                 "Delete Account?",
                 isPresented: $showingDeleteConfirmation,
@@ -309,6 +365,8 @@ class SettingsViewModel: ObservableObject {
     @Published var equipmentProfiles: [EquipmentProfile] = []
     @Published var isSaving: Bool = false
     @Published var errorMessage: String?
+    @Published var showingFeatureTour: Bool = false
+    @Published var showingCycleEducation: Bool = false
 
     private let dataClient: DataClientProtocol
     private let equipmentProfileService: EquipmentProfileService

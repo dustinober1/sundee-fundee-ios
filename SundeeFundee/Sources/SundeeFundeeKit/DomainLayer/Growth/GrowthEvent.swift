@@ -48,4 +48,9 @@ public enum GrowthEventName {
     public static let onDeviceCopyFallbackUsed = "on_device_copy_fallback_used"
     public static let coachPlanFeedbackHelpful = "coach_plan_feedback_helpful"
     public static let coachPlanFeedbackNotHelpful = "coach_plan_feedback_not_helpful"
+    public static let featureTourStarted = "feature_tour_started"
+    public static let featureTourCompleted = "feature_tour_completed"
+    public static let featureTourSkipped = "feature_tour_skipped"
+    public static let cycleEducationOpened = "cycle_education_opened"
+    public static let cycleEducationPhaseExpanded = "cycle_education_phase_expanded"
 }
