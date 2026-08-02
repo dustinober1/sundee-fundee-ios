@@ -52,12 +52,15 @@ public actor GrowthAnalyticsService {
         GrowthEventName.onDeviceCopyAccepted, GrowthEventName.onDeviceCopyRejected,
         GrowthEventName.onDeviceCopyFallbackUsed, GrowthEventName.coachPlanFeedbackHelpful,
         GrowthEventName.coachPlanFeedbackNotHelpful, GrowthEventName.postWorkoutCheckInCompleted,
-        GrowthEventName.bestNextWorkoutGenerated
+        GrowthEventName.bestNextWorkoutGenerated, GrowthEventName.featureTourStarted,
+        GrowthEventName.featureTourCompleted, GrowthEventName.featureTourSkipped,
+        GrowthEventName.cycleEducationOpened, GrowthEventName.cycleEducationPhaseExpanded
     ]
 
     private static let allowedSources: Set<String> = [
         "onboarding", "active_workout", "notification", "workout_reminders", "dashboard",
         "train", "workout_completion", "challenge_card", "ai_workout", "coach_plan", "test",
+        "post_onboarding", "cycle_education",
         ShareSurface.completedWorkout.rawValue, ShareSurface.personalRecord.rawValue,
         ShareSurface.challenge.rawValue,
         ShareSurface.starterWorkout.rawValue
@@ -66,7 +69,7 @@ public actor GrowthAnalyticsService {
     private static func sanitizeProperty(key: String, value: String) -> (String, String)? {
         // Only these structural fields are useful for funnel analysis. In
         // particular, title/from/to and generated copy are never telemetry.
-        let allowedKeys = Set(["surface", "route", "equipment", "energy", "decision", "right_for_today", "sourceID", "referralCode", "challengeID", "workoutID"])
+        let allowedKeys = Set(["surface", "route", "equipment", "energy", "decision", "right_for_today", "sourceID", "referralCode", "challengeID", "workoutID", "phase", "pages_viewed", "skipped_at_page"])
         guard allowedKeys.contains(key), value.count <= 120,
               !value.isEmpty,
               !value.unicodeScalars.contains(where: { CharacterSet.controlCharacters.contains($0) }) else { return nil }
@@ -79,6 +82,9 @@ public actor GrowthAnalyticsService {
         case "right_for_today": return value == "true" || value == "false" ? (key, value) : nil
         case "sourceID", "referralCode", "challengeID", "workoutID":
             return value.range(of: #"^[A-Za-z0-9_-]+$"#, options: .regularExpression) != nil ? (key, value) : nil
+        case "phase": return ["menstrual", "follicular", "ovulation", "luteal"].contains(value) ? (key, value) : nil
+        case "pages_viewed", "skipped_at_page":
+            return value.range(of: #"^[0-9]+$"#, options: .regularExpression) != nil ? (key, value) : nil
         default: return nil
         }
     }

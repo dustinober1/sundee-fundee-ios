@@ -28,6 +28,11 @@ struct SundeeFundeeMain: App {
                             starterWorkout = workout
                             authViewModel.completeOnboarding()
                         }
+                    } else if authViewModel.needsFeatureTour {
+                        FeatureTourView {
+                            authViewModel.completeFeatureTour()
+                        }
+                        .environmentObject(authViewModel)
                     } else {
                         MainTabView()
                             .environmentObject(authViewModel)

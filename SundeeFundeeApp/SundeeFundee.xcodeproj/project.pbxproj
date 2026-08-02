@@ -322,7 +322,7 @@
 		D1BE257776B9AFA2DD400C88 /* SleepDeduplicatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepDeduplicatorTests.swift; sourceTree = "<group>"; };
 		D397DCE979CD70EEE7CD6F64 /* LiveWorkoutWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveWorkoutWidget.swift; sourceTree = "<group>"; };
 		D4B4DAE1570F4B5A28A722B9 /* GuestDataMigratorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestDataMigratorTests.swift; sourceTree = "<group>"; };
-		D5798C24CE84AA1EEC7D80E3 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		D5798C24CE84AA1EEC7D80E3 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		DA2D2E3841DB9FEDA9D82770 /* StoreKitSupportTipStoreIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreKitSupportTipStoreIntegrationTests.swift; sourceTree = "<group>"; };
 		DA675742C7893EF24A72173A /* CoachAIConfigurationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoachAIConfigurationTests.swift; sourceTree = "<group>"; };
 		DD929200CF12EA5D37594276 /* BestNextWorkoutViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BestNextWorkoutViewModelTests.swift; sourceTree = "<group>"; };

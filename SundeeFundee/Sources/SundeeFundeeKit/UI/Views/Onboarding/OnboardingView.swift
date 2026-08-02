@@ -7,6 +7,7 @@ import SwiftUI
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
 public struct OnboardingView: View {
     @StateObject private var viewModel = OnboardingViewModel()
+    @State private var showingCycleEducation = false
     let onComplete: () -> Void
     let onStartFirstWorkout: ((Workout) -> Void)?
 
@@ -35,6 +36,9 @@ public struct OnboardingView: View {
             navigationButtons
         }
         .artDecoBackground()
+        .sheet(isPresented: $showingCycleEducation) {
+            CyclePhaseEducationView()
+        }
         .task {
             await viewModel.trackOnboardingStarted()
         }
@@ -154,6 +158,18 @@ public struct OnboardingView: View {
                             Toggle("", isOn: $viewModel.cycleTrackingEnabled)
                                 .labelsHidden()
                                 .accessibilityLabel("Enable cycle tracking")
+                        }
+                        
+                        Button {
+                            showingCycleEducation = true
+                        } label: {
+                            HStack {
+                                Image(systemName: "info.circle")
+                                    .font(.caption)
+                                Text("Learn how this works")
+                                    .font(AppTheme.Typography.bodySmall)
+                            }
+                            .foregroundColor(AppTheme.Accent.gold)
                         }
                     }
                 }

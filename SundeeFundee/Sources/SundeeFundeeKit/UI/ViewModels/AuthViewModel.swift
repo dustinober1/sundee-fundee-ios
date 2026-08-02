@@ -140,6 +140,7 @@ public class AuthViewModel: ObservableObject {
     @Published public var userEmail: String?
     @Published public var userName: String?
     @Published public var needsOnboarding: Bool = false
+    @Published public var needsFeatureTour: Bool = false
     @Published public var isGuest: Bool = false
 
     public nonisolated static let guestUserID = "guest_local"
@@ -280,6 +281,7 @@ public class AuthViewModel: ObservableObject {
 
             isAuthenticated = true
             needsOnboarding = sessionStore.read(key: "onboarding_complete") == nil
+            needsFeatureTour = !needsOnboarding && sessionStore.read(key: "feature_tour_complete") == nil
         } catch {
             self.errorMessage = "Sign in failed. Please try again."
         }
@@ -313,12 +315,21 @@ public class AuthViewModel: ObservableObject {
 
         isAuthenticated = true
         needsOnboarding = sessionStore.read(key: "onboarding_complete") == nil
+        needsFeatureTour = !needsOnboarding && sessionStore.read(key: "feature_tour_complete") == nil
     }
 
     /// Marks onboarding as complete
     public func completeOnboarding() {
         _ = sessionStore.save(key: "onboarding_complete", value: "true")
         needsOnboarding = false
+        // Check if feature tour is needed
+        needsFeatureTour = sessionStore.read(key: "feature_tour_complete") == nil
+    }
+    
+    /// Marks feature tour as complete
+    public func completeFeatureTour() {
+        _ = sessionStore.save(key: "feature_tour_complete", value: "true")
+        needsFeatureTour = false
     }
 
     /// Signs out the current user
@@ -426,6 +437,7 @@ public class AuthViewModel: ObservableObject {
                 )
                 isAuthenticated = true
                 needsOnboarding = sessionStore.read(key: "onboarding_complete") == nil
+                needsFeatureTour = !needsOnboarding && sessionStore.read(key: "feature_tour_complete") == nil
                 return
             }
 
@@ -462,6 +474,7 @@ public class AuthViewModel: ObservableObject {
 
             isAuthenticated = true
             needsOnboarding = sessionStore.read(key: "onboarding_complete") == nil
+            needsFeatureTour = !needsOnboarding && sessionStore.read(key: "feature_tour_complete") == nil
         }
     }
 
@@ -571,6 +584,7 @@ public class AuthViewModel: ObservableObject {
         isGuest = true
         isAuthenticated = true
         needsOnboarding = sessionStore.read(key: "onboarding_complete") == nil
+        needsFeatureTour = !needsOnboarding && sessionStore.read(key: "feature_tour_complete") == nil
     }
 
     private func publishAuthenticatedAccount(
