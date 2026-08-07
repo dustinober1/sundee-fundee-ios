@@ -206,7 +206,6 @@ public final class DeterministicCoachService: CoachServiceProtocol, @unchecked S
         preferences: QuestionnaireAnswers,
         context: CoachContext
     ) -> [GeneratedExercise] {
-        let targetCount = max(3, preferences.timeMinutes / 10)
         var pool = workoutExercisePool(
             focus: preferences.focus,
             equipment: preferences.equipment,
@@ -232,38 +231,58 @@ public final class DeterministicCoachService: CoachServiceProtocol, @unchecked S
             )
         }
 
-        let selected = selectBalancedExercises(from: pool, targetCount: targetCount)
-        let setsPerExercise = preferences.energyLevel == .low ? 3 : 4
         let reps = preferences.focus == .conditioning ? "12-15" : "6-8"
+        // Size the session against the same arithmetic `validateGeneratedWorkout`
+        // will use, so a long request can spend its whole window without
+        // tripping the duration check and getting swapped for a safe template.
+        let rest = assignRestMinutes(bodyweight: false, reps: reps)
+        let shortlist = selectBalancedExercises(
+            from: pool,
+            targetCount: WorkoutVolumePlanner.defaultMaxExercises,
+            focus: preferences.focus
+        )
+        let volume = WorkoutVolumePlanner.plan(
+            timeMinutes: preferences.timeMinutes,
+            availableExercises: shortlist.count,
+            restMinutes: rest,
+            model: .generatedWorkout,
+            maxSets: preferences.energyLevel == .low ? 3 : 5,
+            minExercises: 2
+        )
 
-        return selected.enumerated().map { index, entry in
+        let sized = Array(zip(shortlist, volume.setsPerExercise))
+        return sized.enumerated().map { index, pair in
             GeneratedExercise(
                 id: UUID().uuidString,
-                name: entry.name,
-                sets: setsPerExercise,
+                name: pair.0.name,
+                sets: pair.1,
                 reps: reps,
                 reasoning: index == 0 ? "Primary movement for \(preferences.focus.rawValue.replacingOccurrences(of: "_", with: " "))" : nil,
-                bodyweightOnly: entry.bodyweightOnly
+                bodyweightOnly: pair.0.bodyweightOnly
             )
         }
     }
 
+    /// Shortlists candidates in pattern round-robin so a long session gets real
+    /// variety instead of five variations of the same movement, while staying
+    /// inside the per-pattern allowance that validation enforces.
     private func selectBalancedExercises(
         from pool: [WorkoutExerciseCandidate],
-        targetCount: Int
+        targetCount: Int,
+        focus: WorkoutFocus
     ) -> [WorkoutExerciseCandidate] {
+        let patternLimit = maxExercisesPerPattern(focus: focus, exerciseCount: targetCount)
+        let shuffled = pool.shuffled()
         var selected: [WorkoutExerciseCandidate] = []
-        var seenPatterns = Set<WorkoutMovementPattern>()
+        var takenPerPattern: [WorkoutMovementPattern: Int] = [:]
 
-        for candidate in pool.shuffled() where !seenPatterns.contains(candidate.pattern) {
-            selected.append(candidate)
-            seenPatterns.insert(candidate.pattern)
-            if selected.count == targetCount { return selected }
-        }
-
-        for candidate in pool.shuffled() where !selected.contains(candidate) {
-            selected.append(candidate)
-            if selected.count == targetCount { return selected }
+        for tier in 0..<max(1, patternLimit) {
+            for candidate in shuffled where selected.count < targetCount {
+                guard takenPerPattern[candidate.pattern, default: 0] == tier else { continue }
+                guard !selected.contains(candidate) else { continue }
+                selected.append(candidate)
+                takenPerPattern[candidate.pattern, default: 0] += 1
+            }
         }
 
         return selected
