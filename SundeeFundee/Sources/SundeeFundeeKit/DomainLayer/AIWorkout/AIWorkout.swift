@@ -254,13 +254,35 @@ public func validateGeneratedWorkout(_ workout: GeneratedWorkout) -> [WorkoutGen
         issues.append(.estimatedTimeTooHigh(estimated: estimated, limit: limit))
     }
 
+    let patternLimit = maxExercisesPerPattern(
+        focus: workout.questionnaire.focus,
+        exerciseCount: workout.exercises.count
+    )
     let patternCounts = Dictionary(grouping: workout.exercises, by: movementPattern(for:))
         .mapValues(\.count)
-    for (pattern, count) in patternCounts where count > 2 {
+    for (pattern, count) in patternCounts where count > patternLimit {
         issues.append(.duplicateMovementPattern(pattern: pattern))
     }
 
     return issues
+}
+
+/// How many exercises of a single movement pattern a session may contain.
+///
+/// A flat cap of two was fine when every generated workout was three or four
+/// exercises long, but it made longer sessions impossible to fill and it
+/// punished focused days for doing exactly what the user asked: a push day is
+/// supposed to be mostly pushing. The allowance therefore scales with session
+/// length, and focused sessions let their namesake pattern run free.
+func maxExercisesPerPattern(focus: WorkoutFocus, exerciseCount: Int) -> Int {
+    switch focus {
+    case .push, .pull, .core:
+        return max(2, exerciseCount)
+    case .upperBody, .lowerBody:
+        return max(2, (exerciseCount + 1) / 2)
+    case .fullBody, .conditioning:
+        return max(2, (exerciseCount + 2) / 3)
+    }
 }
 
 /// Repairs invalid output by replacing it with a conservative approved template.
@@ -298,12 +320,11 @@ private func allowedExerciseNames(for equipment: EquipmentAccess) -> Set<String>
 }
 
 private func safeTemplateExercises(for preferences: QuestionnaireAnswers) -> [GeneratedExercise] {
-    let sets = preferences.energyLevel == .low ? 3 : 4
     let reps = preferences.focus == .conditioning ? "10-12" : "6-8"
-    let targetCount = max(3, min(5, preferences.timeMinutes / 10))
+    let rest = preferences.focus == .conditioning ? 1.0 : 1.5
     var usedPatterns = Set<WorkoutMovementPattern>()
 
-    let selected = workoutExercisePool(
+    let shortlist = workoutExercisePool(
         focus: preferences.focus,
         equipment: preferences.equipment,
         energyLevel: preferences.energyLevel
@@ -315,15 +336,26 @@ private func safeTemplateExercises(for preferences: QuestionnaireAnswers) -> [Ge
         usedPatterns.insert(candidate.pattern)
         return true
     }
-    .prefix(targetCount)
 
-    return selected.map { candidate in
+    // The repair path is deliberately conservative — one movement per pattern
+    // and a low set ceiling — but it still respects the window it was asked for.
+    let volume = WorkoutVolumePlanner.plan(
+        timeMinutes: preferences.timeMinutes,
+        availableExercises: shortlist.count,
+        restMinutes: rest,
+        model: .generatedWorkout,
+        maxSets: 3,
+        minExercises: 2,
+        maxExercises: 5
+    )
+
+    return zip(shortlist, volume.setsPerExercise).map { candidate, sets in
         GeneratedExercise(
             id: UUID().uuidString,
             name: candidate.name,
             sets: sets,
             reps: reps,
-            restMinutes: preferences.focus == .conditioning ? 1.0 : 1.5,
+            restMinutes: rest,
             reasoning: "Approved \(preferences.equipment.rawValue.replacingOccurrences(of: "_", with: " ")) movement",
             bodyweightOnly: candidate.bodyweightOnly
         )
@@ -339,301 +371,6 @@ private func movementPattern(for exercise: GeneratedExercise) -> WorkoutMovement
 
 private func normalizeExerciseName(_ name: String) -> String {
     name.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-}
-
-private func fullGymExercisePool(for focus: WorkoutFocus) -> [WorkoutExerciseCandidate] {
-    switch focus {
-    case .upperBody, .push:
-        return [
-            .init(name: "Flat Barbell Bench Press", bodyweightOnly: false, pattern: .push),
-            .init(name: "Strict Press", bodyweightOnly: false, pattern: .push),
-            .init(name: "Dumbbell Incline Press", bodyweightOnly: false, pattern: .push),
-            .init(name: "Dips (Weighted)", bodyweightOnly: false, pattern: .push),
-            .init(name: "Face Pull", bodyweightOnly: false, pattern: .pull),
-            .init(name: "Push-Up", bodyweightOnly: true, pattern: .push)
-        ]
-    case .pull:
-        return [
-            .init(name: "Barbell Row", bodyweightOnly: false, pattern: .pull),
-            .init(name: "Pull-Up", bodyweightOnly: true, pattern: .pull),
-            .init(name: "Lat Pulldown", bodyweightOnly: false, pattern: .pull),
-            .init(name: "Cable Row", bodyweightOnly: false, pattern: .pull),
-            .init(name: "Dumbbell Row", bodyweightOnly: false, pattern: .pull),
-            .init(name: "Bicep Curl (Barbell)", bodyweightOnly: false, pattern: .pull)
-        ]
-    case .lowerBody:
-        return [
-            .init(name: "Back Squat", bodyweightOnly: false, pattern: .squat),
-            .init(name: "Romanian Deadlift (No Straps)", bodyweightOnly: false, pattern: .hinge),
-            .init(name: "Leg Press", bodyweightOnly: false, pattern: .squat),
-            .init(name: "Hip Thrust", bodyweightOnly: false, pattern: .hinge),
-            .init(name: "Goblet Squat", bodyweightOnly: false, pattern: .squat)
-        ]
-    case .fullBody:
-        return [
-            .init(name: "Back Squat", bodyweightOnly: false, pattern: .squat),
-            .init(name: "Romanian Deadlift (No Straps)", bodyweightOnly: false, pattern: .hinge),
-            .init(name: "Flat Barbell Bench Press", bodyweightOnly: false, pattern: .push),
-            .init(name: "Barbell Row", bodyweightOnly: false, pattern: .pull),
-            .init(name: "Strict Press", bodyweightOnly: false, pattern: .push),
-            .init(name: "Pull-Up", bodyweightOnly: true, pattern: .pull)
-        ]
-    case .core:
-        return bodyweightExercisePool(for: .core) + [
-            .init(name: "Cable Crunch", bodyweightOnly: false, pattern: .core),
-            .init(name: "Farmer Carry", bodyweightOnly: false, pattern: .carry)
-        ]
-    case .conditioning:
-        return [
-            .init(name: "Burpee", bodyweightOnly: true, pattern: .conditioning),
-            .init(name: "Kettlebell Swing", bodyweightOnly: false, pattern: .hinge),
-            .init(name: "Wall Ball", bodyweightOnly: false, pattern: .conditioning),
-            .init(name: "Box Jump", bodyweightOnly: true, pattern: .conditioning),
-            .init(name: "Thruster", bodyweightOnly: false, pattern: .push),
-            .init(name: "Air Squat", bodyweightOnly: true, pattern: .squat)
-        ]
-    }
-}
-
-private func dumbbellExercisePool(for focus: WorkoutFocus) -> [WorkoutExerciseCandidate] {
-    switch focus {
-    case .upperBody, .push:
-        return [
-            .init(name: "Dumbbell Bench Press", bodyweightOnly: false, pattern: .push),
-            .init(name: "Dumbbell Incline Press", bodyweightOnly: false, pattern: .push),
-            .init(name: "Dumbbell Shoulder Press", bodyweightOnly: false, pattern: .push),
-            .init(name: "Push-Up", bodyweightOnly: true, pattern: .push)
-        ]
-    case .pull:
-        return [
-            .init(name: "Dumbbell Row", bodyweightOnly: false, pattern: .pull),
-            .init(name: "Dumbbell Pullover", bodyweightOnly: false, pattern: .pull),
-            .init(name: "Dumbbell Curl", bodyweightOnly: false, pattern: .pull),
-            .init(name: "Reverse Fly", bodyweightOnly: false, pattern: .pull)
-        ]
-    case .lowerBody:
-        return [
-            .init(name: "Goblet Squat", bodyweightOnly: false, pattern: .squat),
-            .init(name: "Dumbbell Romanian Deadlift", bodyweightOnly: false, pattern: .hinge),
-            .init(name: "Dumbbell Lunge", bodyweightOnly: false, pattern: .squat),
-            .init(name: "Dumbbell Hip Thrust", bodyweightOnly: false, pattern: .hinge)
-        ]
-    case .fullBody:
-        return [
-            .init(name: "Goblet Squat", bodyweightOnly: false, pattern: .squat),
-            .init(name: "Dumbbell Romanian Deadlift", bodyweightOnly: false, pattern: .hinge),
-            .init(name: "Dumbbell Bench Press", bodyweightOnly: false, pattern: .push),
-            .init(name: "Dumbbell Row", bodyweightOnly: false, pattern: .pull),
-            .init(name: "Farmer Carry", bodyweightOnly: false, pattern: .carry)
-        ]
-    case .core:
-        return [
-            .init(name: "Dumbbell Dead Bug", bodyweightOnly: false, pattern: .core),
-            .init(name: "Suitcase Carry", bodyweightOnly: false, pattern: .carry),
-            .init(name: "Plank Hold", bodyweightOnly: true, pattern: .core)
-        ]
-    case .conditioning:
-        return [
-            .init(name: "Dumbbell Thruster", bodyweightOnly: false, pattern: .push),
-            .init(name: "Dumbbell Clean", bodyweightOnly: false, pattern: .hinge),
-            .init(name: "Dumbbell Step-Up", bodyweightOnly: false, pattern: .squat),
-            .init(name: "Farmer Carry", bodyweightOnly: false, pattern: .carry)
-        ]
-    }
-}
-
-private func resistanceBandExercisePool(for focus: WorkoutFocus) -> [WorkoutExerciseCandidate] {
-    switch focus {
-    case .upperBody, .push:
-        return [
-            .init(name: "Band Chest Press", bodyweightOnly: false, pattern: .push),
-            .init(name: "Band Push-Up", bodyweightOnly: false, pattern: .push),
-            .init(name: "Band Overhead Press", bodyweightOnly: false, pattern: .push),
-            .init(name: "Band Lateral Raise", bodyweightOnly: false, pattern: .push),
-            .init(name: "Band Front Raise", bodyweightOnly: false, pattern: .push),
-            .init(name: "Band Triceps Pressdown", bodyweightOnly: false, pattern: .push),
-            .init(name: "Push-Up", bodyweightOnly: true, pattern: .push)
-        ]
-    case .pull:
-        return [
-            .init(name: "Band Row", bodyweightOnly: false, pattern: .pull),
-            .init(name: "Band Lat Pulldown", bodyweightOnly: false, pattern: .pull),
-            .init(name: "Band Face Pull", bodyweightOnly: false, pattern: .pull),
-            .init(name: "Band Pull-Apart", bodyweightOnly: false, pattern: .pull),
-            .init(name: "Band Biceps Curl", bodyweightOnly: false, pattern: .pull),
-            .init(name: "Band Hammer Curl", bodyweightOnly: false, pattern: .pull),
-            .init(name: "Band Straight-Arm Pulldown", bodyweightOnly: false, pattern: .pull)
-        ]
-    case .lowerBody:
-        return [
-            .init(name: "Band Squat", bodyweightOnly: false, pattern: .squat),
-            .init(name: "Band Split Squat", bodyweightOnly: false, pattern: .squat),
-            .init(name: "Band Reverse Lunge", bodyweightOnly: false, pattern: .squat),
-            .init(name: "Band Lateral Walk", bodyweightOnly: false, pattern: .squat),
-            .init(name: "Band Monster Walk", bodyweightOnly: false, pattern: .squat),
-            .init(name: "Band Romanian Deadlift", bodyweightOnly: false, pattern: .hinge),
-            .init(name: "Band Good Morning", bodyweightOnly: false, pattern: .hinge),
-            .init(name: "Band Pull-Through", bodyweightOnly: false, pattern: .hinge),
-            .init(name: "Band Glute Bridge", bodyweightOnly: false, pattern: .hinge),
-            .init(name: "Band Hamstring Curl", bodyweightOnly: false, pattern: .hinge),
-            .init(name: "Reverse Lunge", bodyweightOnly: true, pattern: .squat)
-        ]
-    case .fullBody:
-        return [
-            .init(name: "Band Squat", bodyweightOnly: false, pattern: .squat),
-            .init(name: "Band Romanian Deadlift", bodyweightOnly: false, pattern: .hinge),
-            .init(name: "Band Good Morning", bodyweightOnly: false, pattern: .hinge),
-            .init(name: "Band Chest Press", bodyweightOnly: false, pattern: .push),
-            .init(name: "Band Overhead Press", bodyweightOnly: false, pattern: .push),
-            .init(name: "Band Row", bodyweightOnly: false, pattern: .pull),
-            .init(name: "Band Pull-Apart", bodyweightOnly: false, pattern: .pull),
-            .init(name: "Pallof Press", bodyweightOnly: false, pattern: .core),
-            .init(name: "Plank Hold", bodyweightOnly: true, pattern: .core)
-        ]
-    case .core:
-        return [
-            .init(name: "Pallof Press", bodyweightOnly: false, pattern: .core),
-            .init(name: "Band Wood Chop", bodyweightOnly: false, pattern: .core),
-            .init(name: "Band Dead Bug", bodyweightOnly: false, pattern: .core),
-            .init(name: "Band Anti-Rotation Hold", bodyweightOnly: false, pattern: .core),
-            .init(name: "Plank Hold", bodyweightOnly: true, pattern: .core),
-            .init(name: "Dead Bug", bodyweightOnly: true, pattern: .core)
-        ]
-    case .conditioning:
-        return [
-            .init(name: "Band Thruster", bodyweightOnly: false, pattern: .push),
-            .init(name: "Band Squat to Press", bodyweightOnly: false, pattern: .push),
-            .init(name: "Band High Pull", bodyweightOnly: false, pattern: .pull),
-            .init(name: "Band Row", bodyweightOnly: false, pattern: .pull),
-            .init(name: "Burpee", bodyweightOnly: true, pattern: .conditioning),
-            .init(name: "Mountain Climber", bodyweightOnly: true, pattern: .core)
-        ]
-    }
-}
-
-private func bodyweightExercisePool(for focus: WorkoutFocus) -> [WorkoutExerciseCandidate] {
-    switch focus {
-    case .upperBody, .push:
-        return [
-            .init(name: "Push-Up", bodyweightOnly: true, pattern: .push),
-            .init(name: "Pike Push-Up", bodyweightOnly: true, pattern: .push),
-            .init(name: "Dips", bodyweightOnly: true, pattern: .push)
-        ]
-    case .pull:
-        return [
-            .init(name: "Pull-Up", bodyweightOnly: true, pattern: .pull),
-            .init(name: "Inverted Row", bodyweightOnly: true, pattern: .pull),
-            .init(name: "Prone W Raise", bodyweightOnly: true, pattern: .pull)
-        ]
-    case .lowerBody:
-        return [
-            .init(name: "Air Squat", bodyweightOnly: true, pattern: .squat),
-            .init(name: "Reverse Lunge", bodyweightOnly: true, pattern: .squat),
-            .init(name: "Glute Bridge", bodyweightOnly: true, pattern: .hinge)
-        ]
-    case .fullBody:
-        return [
-            .init(name: "Air Squat", bodyweightOnly: true, pattern: .squat),
-            .init(name: "Glute Bridge", bodyweightOnly: true, pattern: .hinge),
-            .init(name: "Push-Up", bodyweightOnly: true, pattern: .push),
-            .init(name: "Prone W Raise", bodyweightOnly: true, pattern: .pull),
-            .init(name: "Plank Hold", bodyweightOnly: true, pattern: .core)
-        ]
-    case .core:
-        return [
-            .init(name: "Plank Hold", bodyweightOnly: true, pattern: .core),
-            .init(name: "V-up", bodyweightOnly: true, pattern: .core),
-            .init(name: "Dead Bug", bodyweightOnly: true, pattern: .core),
-            .init(name: "Sit-Up", bodyweightOnly: true, pattern: .core),
-            .init(name: "L-Sit Hold", bodyweightOnly: true, pattern: .core)
-        ]
-    case .conditioning:
-        return [
-            .init(name: "Burpee", bodyweightOnly: true, pattern: .conditioning),
-            .init(name: "Air Squat", bodyweightOnly: true, pattern: .squat),
-            .init(name: "Push-Up", bodyweightOnly: true, pattern: .push),
-            .init(name: "Mountain Climber", bodyweightOnly: true, pattern: .core)
-        ]
-    }
-}
-
-private func kettlebellExercisePool(for focus: WorkoutFocus) -> [WorkoutExerciseCandidate] {
-    switch focus {
-    case .upperBody, .push:
-        return [
-            .init(name: "Kettlebell Strict Press", bodyweightOnly: false, pattern: .push),
-            .init(name: "Kettlebell Floor Press", bodyweightOnly: false, pattern: .push),
-            .init(name: "Kettlebell Push Press", bodyweightOnly: false, pattern: .push, isHighSkill: true),
-            .init(name: "Kettlebell Rack Hold", bodyweightOnly: false, pattern: .core)
-        ]
-    case .pull:
-        return [
-            .init(name: "Kettlebell Row", bodyweightOnly: false, pattern: .pull),
-            .init(name: "Kettlebell High Pull", bodyweightOnly: false, pattern: .pull, isHighSkill: true),
-            .init(name: "Suitcase Carry", bodyweightOnly: false, pattern: .carry)
-        ]
-    case .lowerBody:
-        return [
-            .init(name: "Goblet Squat", bodyweightOnly: false, pattern: .squat),
-            .init(name: "Kettlebell Deadlift", bodyweightOnly: false, pattern: .hinge),
-            .init(name: "Kettlebell Reverse Lunge", bodyweightOnly: false, pattern: .squat),
-            .init(name: "Kettlebell Swing", bodyweightOnly: false, pattern: .hinge)
-        ]
-    case .fullBody:
-        return [
-            .init(name: "Goblet Squat", bodyweightOnly: false, pattern: .squat),
-            .init(name: "Kettlebell Deadlift", bodyweightOnly: false, pattern: .hinge),
-            .init(name: "Kettlebell Strict Press", bodyweightOnly: false, pattern: .push),
-            .init(name: "Kettlebell Row", bodyweightOnly: false, pattern: .pull),
-            .init(name: "Suitcase Carry", bodyweightOnly: false, pattern: .carry),
-            .init(name: "Turkish Get-Up", bodyweightOnly: false, pattern: .core, isHighSkill: true)
-        ]
-    case .core:
-        return [
-            .init(name: "Suitcase Carry", bodyweightOnly: false, pattern: .carry),
-            .init(name: "Kettlebell Rack Hold", bodyweightOnly: false, pattern: .core),
-            .init(name: "Kettlebell Dead Bug", bodyweightOnly: false, pattern: .core),
-            .init(name: "Kettlebell Windmill", bodyweightOnly: false, pattern: .core, isHighSkill: true),
-            .init(name: "Turkish Get-Up", bodyweightOnly: false, pattern: .core, isHighSkill: true)
-        ]
-    case .conditioning:
-        return [
-            .init(name: "Kettlebell Swing", bodyweightOnly: false, pattern: .hinge),
-            .init(name: "Goblet Squat", bodyweightOnly: false, pattern: .squat),
-            .init(name: "Kettlebell Clean", bodyweightOnly: false, pattern: .hinge, isHighSkill: true),
-            .init(name: "Kettlebell Snatch", bodyweightOnly: false, pattern: .conditioning, isHighSkill: true),
-            .init(name: "Kettlebell High Pull", bodyweightOnly: false, pattern: .pull, isHighSkill: true),
-            .init(name: "Suitcase Carry", bodyweightOnly: false, pattern: .carry)
-        ]
-    }
-}
-
-private func allWorkoutCandidates() -> [WorkoutExerciseCandidate] {
-    allBodyweightCandidates() + allDumbbellCandidates() + allKettlebellCandidates() +
-        allResistanceBandCandidates() +
-        WorkoutFocus.allRuleCases.flatMap { fullGymExercisePool(for: $0) }
-}
-
-private func allBodyweightCandidates() -> [WorkoutExerciseCandidate] {
-    WorkoutFocus.allRuleCases.flatMap { bodyweightExercisePool(for: $0) }
-}
-
-private func allDumbbellCandidates() -> [WorkoutExerciseCandidate] {
-    WorkoutFocus.allRuleCases.flatMap { dumbbellExercisePool(for: $0) } + allBodyweightCandidates()
-}
-
-private func allKettlebellCandidates() -> [WorkoutExerciseCandidate] {
-    WorkoutFocus.allRuleCases.flatMap { kettlebellExercisePool(for: $0) }
-}
-
-private func allResistanceBandCandidates() -> [WorkoutExerciseCandidate] {
-    WorkoutFocus.allRuleCases.flatMap { resistanceBandExercisePool(for: $0) } + allBodyweightCandidates()
-}
-
-extension WorkoutFocus {
-    fileprivate static let allRuleCases: [WorkoutFocus] = [
-        .upperBody, .lowerBody, .fullBody, .push, .pull, .core, .conditioning
-    ]
 }
 
 /// An exercise max for weight calculation
