@@ -148,18 +148,18 @@ func dumbbellExercisePool(for focus: WorkoutFocus) -> [WorkoutExerciseCandidate]
             .init(name: "Dumbbell Bench Press", bodyweightOnly: false, pattern: .push),
             .init(name: "Dumbbell Incline Press", bodyweightOnly: false, pattern: .push),
             .init(name: "Dumbbell Floor Press", bodyweightOnly: false, pattern: .push),
-            .init(name: "Dumbbell Shoulder Press", bodyweightOnly: false, pattern: .push),
+            .init(name: "Dumbbell Overhead Press", bodyweightOnly: false, pattern: .push),
             .init(name: "Dumbbell Arnold Press", bodyweightOnly: false, pattern: .push),
             .init(name: "Dumbbell Lateral Raise", bodyweightOnly: false, pattern: .push),
-            .init(name: "Dumbbell Skull Crusher", bodyweightOnly: false, pattern: .push),
+            .init(name: "Skull Crusher", bodyweightOnly: false, pattern: .push),
             .init(name: "Dumbbell Triceps Kickback", bodyweightOnly: false, pattern: .push),
             .init(name: "Push-Up", bodyweightOnly: true, pattern: .push),
             .init(name: "Dumbbell Row", bodyweightOnly: false, pattern: .pull),
-            .init(name: "Dumbbell Chest-Supported Row", bodyweightOnly: false, pattern: .pull),
+            .init(name: "Chest-Supported Row", bodyweightOnly: false, pattern: .pull),
             .init(name: "Dumbbell Pullover", bodyweightOnly: false, pattern: .pull),
-            .init(name: "Dumbbell Curl", bodyweightOnly: false, pattern: .pull),
-            .init(name: "Dumbbell Hammer Curl", bodyweightOnly: false, pattern: .pull),
-            .init(name: "Reverse Fly", bodyweightOnly: false, pattern: .pull),
+            .init(name: "Bicep Curl (Dumbbell)", bodyweightOnly: false, pattern: .pull),
+            .init(name: "Hammer Curl", bodyweightOnly: false, pattern: .pull),
+            .init(name: "Rear Delt Fly", bodyweightOnly: false, pattern: .pull),
             .init(name: "Dumbbell Shrug", bodyweightOnly: false, pattern: .pull)
         ]
     case .push:
@@ -168,11 +168,11 @@ func dumbbellExercisePool(for focus: WorkoutFocus) -> [WorkoutExerciseCandidate]
             .init(name: "Dumbbell Incline Press", bodyweightOnly: false, pattern: .push),
             .init(name: "Dumbbell Floor Press", bodyweightOnly: false, pattern: .push),
             .init(name: "Dumbbell Squeeze Press", bodyweightOnly: false, pattern: .push),
-            .init(name: "Dumbbell Shoulder Press", bodyweightOnly: false, pattern: .push),
+            .init(name: "Dumbbell Overhead Press", bodyweightOnly: false, pattern: .push),
             .init(name: "Dumbbell Arnold Press", bodyweightOnly: false, pattern: .push),
             .init(name: "Dumbbell Lateral Raise", bodyweightOnly: false, pattern: .push),
             .init(name: "Dumbbell Front Raise", bodyweightOnly: false, pattern: .push),
-            .init(name: "Dumbbell Skull Crusher", bodyweightOnly: false, pattern: .push),
+            .init(name: "Skull Crusher", bodyweightOnly: false, pattern: .push),
             .init(name: "Dumbbell Triceps Kickback", bodyweightOnly: false, pattern: .push),
             .init(name: "Push-Up", bodyweightOnly: true, pattern: .push),
             .init(name: "Plank Hold", bodyweightOnly: true, pattern: .core)
@@ -180,15 +180,15 @@ func dumbbellExercisePool(for focus: WorkoutFocus) -> [WorkoutExerciseCandidate]
     case .pull:
         return [
             .init(name: "Dumbbell Row", bodyweightOnly: false, pattern: .pull),
-            .init(name: "Dumbbell Chest-Supported Row", bodyweightOnly: false, pattern: .pull),
+            .init(name: "Chest-Supported Row", bodyweightOnly: false, pattern: .pull),
             .init(name: "Dumbbell Renegade Row", bodyweightOnly: false, pattern: .pull, isHighSkill: true),
             .init(name: "Dumbbell Pullover", bodyweightOnly: false, pattern: .pull),
-            .init(name: "Dumbbell Curl", bodyweightOnly: false, pattern: .pull),
-            .init(name: "Dumbbell Hammer Curl", bodyweightOnly: false, pattern: .pull),
+            .init(name: "Bicep Curl (Dumbbell)", bodyweightOnly: false, pattern: .pull),
+            .init(name: "Hammer Curl", bodyweightOnly: false, pattern: .pull),
             .init(name: "Dumbbell Concentration Curl", bodyweightOnly: false, pattern: .pull),
             .init(name: "Dumbbell Shrug", bodyweightOnly: false, pattern: .pull),
             .init(name: "Dumbbell High Pull", bodyweightOnly: false, pattern: .pull, isHighSkill: true),
-            .init(name: "Reverse Fly", bodyweightOnly: false, pattern: .pull),
+            .init(name: "Rear Delt Fly", bodyweightOnly: false, pattern: .pull),
             .init(name: "Inverted Row", bodyweightOnly: true, pattern: .pull)
         ]
     case .lowerBody:
@@ -216,11 +216,11 @@ func dumbbellExercisePool(for focus: WorkoutFocus) -> [WorkoutExerciseCandidate]
             .init(name: "Dumbbell Single-Leg Deadlift", bodyweightOnly: false, pattern: .hinge),
             .init(name: "Dumbbell Hip Thrust", bodyweightOnly: false, pattern: .hinge),
             .init(name: "Dumbbell Bench Press", bodyweightOnly: false, pattern: .push),
-            .init(name: "Dumbbell Shoulder Press", bodyweightOnly: false, pattern: .push),
+            .init(name: "Dumbbell Overhead Press", bodyweightOnly: false, pattern: .push),
             .init(name: "Push-Up", bodyweightOnly: true, pattern: .push),
             .init(name: "Dumbbell Row", bodyweightOnly: false, pattern: .pull),
-            .init(name: "Dumbbell Chest-Supported Row", bodyweightOnly: false, pattern: .pull),
-            .init(name: "Farmer Carry", bodyweightOnly: false, pattern: .carry),
+            .init(name: "Chest-Supported Row", bodyweightOnly: false, pattern: .pull),
+            .init(name: "Farmers Carry", bodyweightOnly: false, pattern: .carry),
             .init(name: "Suitcase Carry", bodyweightOnly: false, pattern: .carry),
             .init(name: "Dumbbell Dead Bug", bodyweightOnly: false, pattern: .core),
             .init(name: "Plank Hold", bodyweightOnly: true, pattern: .core)
@@ -236,7 +236,7 @@ func dumbbellExercisePool(for focus: WorkoutFocus) -> [WorkoutExerciseCandidate]
             .init(name: "Hollow Body Hold", bodyweightOnly: true, pattern: .core),
             .init(name: "Side Plank Hold", bodyweightOnly: true, pattern: .core),
             .init(name: "Suitcase Carry", bodyweightOnly: false, pattern: .carry),
-            .init(name: "Farmer Carry", bodyweightOnly: false, pattern: .carry)
+            .init(name: "Farmers Carry", bodyweightOnly: false, pattern: .carry)
         ]
     case .conditioning:
         return [
@@ -248,7 +248,7 @@ func dumbbellExercisePool(for focus: WorkoutFocus) -> [WorkoutExerciseCandidate]
             .init(name: "Dumbbell Step-Up", bodyweightOnly: false, pattern: .squat),
             .init(name: "Goblet Squat", bodyweightOnly: false, pattern: .squat),
             .init(name: "Dumbbell Lunge", bodyweightOnly: false, pattern: .squat),
-            .init(name: "Farmer Carry", bodyweightOnly: false, pattern: .carry),
+            .init(name: "Farmers Carry", bodyweightOnly: false, pattern: .carry),
             .init(name: "Burpee", bodyweightOnly: true, pattern: .conditioning),
             .init(name: "Jumping Jack", bodyweightOnly: true, pattern: .conditioning),
             .init(name: "Mountain Climber", bodyweightOnly: true, pattern: .core)
@@ -498,7 +498,7 @@ func fullGymExercisePool(for focus: WorkoutFocus) -> [WorkoutExerciseCandidate] 
             .init(name: "Strict Press", bodyweightOnly: false, pattern: .push),
             .init(name: "Dumbbell Bench Press", bodyweightOnly: false, pattern: .push),
             .init(name: "Dumbbell Incline Press", bodyweightOnly: false, pattern: .push),
-            .init(name: "Dumbbell Shoulder Press", bodyweightOnly: false, pattern: .push),
+            .init(name: "Dumbbell Overhead Press", bodyweightOnly: false, pattern: .push),
             .init(name: "Machine Chest Press", bodyweightOnly: false, pattern: .push),
             .init(name: "Cable Chest Fly", bodyweightOnly: false, pattern: .push),
             .init(name: "Dumbbell Lateral Raise", bodyweightOnly: false, pattern: .push),
@@ -526,7 +526,7 @@ func fullGymExercisePool(for focus: WorkoutFocus) -> [WorkoutExerciseCandidate] 
             .init(name: "Push Press", bodyweightOnly: false, pattern: .push, isHighSkill: true),
             .init(name: "Dumbbell Bench Press", bodyweightOnly: false, pattern: .push),
             .init(name: "Dumbbell Incline Press", bodyweightOnly: false, pattern: .push),
-            .init(name: "Dumbbell Shoulder Press", bodyweightOnly: false, pattern: .push),
+            .init(name: "Dumbbell Overhead Press", bodyweightOnly: false, pattern: .push),
             .init(name: "Machine Chest Press", bodyweightOnly: false, pattern: .push),
             .init(name: "Machine Shoulder Press", bodyweightOnly: false, pattern: .push),
             .init(name: "Cable Chest Fly", bodyweightOnly: false, pattern: .push),
@@ -589,12 +589,12 @@ func fullGymExercisePool(for focus: WorkoutFocus) -> [WorkoutExerciseCandidate] 
             .init(name: "Flat Barbell Bench Press", bodyweightOnly: false, pattern: .push),
             .init(name: "Dumbbell Bench Press", bodyweightOnly: false, pattern: .push),
             .init(name: "Strict Press", bodyweightOnly: false, pattern: .push),
-            .init(name: "Dumbbell Shoulder Press", bodyweightOnly: false, pattern: .push),
+            .init(name: "Dumbbell Overhead Press", bodyweightOnly: false, pattern: .push),
             .init(name: "Barbell Row", bodyweightOnly: false, pattern: .pull),
             .init(name: "Cable Row", bodyweightOnly: false, pattern: .pull),
             .init(name: "Lat Pulldown", bodyweightOnly: false, pattern: .pull),
             .init(name: "Pull-Up", bodyweightOnly: true, pattern: .pull),
-            .init(name: "Farmer Carry", bodyweightOnly: false, pattern: .carry),
+            .init(name: "Farmers Carry", bodyweightOnly: false, pattern: .carry),
             .init(name: "Cable Crunch", bodyweightOnly: false, pattern: .core),
             .init(name: "Plank Hold", bodyweightOnly: true, pattern: .core)
         ]
@@ -605,8 +605,8 @@ func fullGymExercisePool(for focus: WorkoutFocus) -> [WorkoutExerciseCandidate] 
             .init(name: "Pallof Press", bodyweightOnly: false, pattern: .core),
             .init(name: "Weighted Sit-Up", bodyweightOnly: false, pattern: .core),
             .init(name: "Hanging Leg Raise", bodyweightOnly: true, pattern: .core),
-            .init(name: "Ab Wheel Rollout", bodyweightOnly: false, pattern: .core),
-            .init(name: "Farmer Carry", bodyweightOnly: false, pattern: .carry),
+            .init(name: "Ab Wheel Rollout", bodyweightOnly: true, pattern: .core),
+            .init(name: "Farmers Carry", bodyweightOnly: false, pattern: .carry),
             .init(name: "Suitcase Carry", bodyweightOnly: false, pattern: .carry)
         ]
     case .conditioning:
@@ -624,7 +624,7 @@ func fullGymExercisePool(for focus: WorkoutFocus) -> [WorkoutExerciseCandidate] 
             .init(name: "Battle Rope Wave", bodyweightOnly: false, pattern: .conditioning),
             .init(name: "Double Under", bodyweightOnly: true, pattern: .conditioning, isHighSkill: true),
             .init(name: "Mountain Climber", bodyweightOnly: true, pattern: .core),
-            .init(name: "Farmer Carry", bodyweightOnly: false, pattern: .carry)
+            .init(name: "Farmers Carry", bodyweightOnly: false, pattern: .carry)
         ]
     }
 }

@@ -155,6 +155,36 @@ private let maxExerciseEquipment: [String: [TrainingEquipmentTag]] = [
     "Yoke Walk": [.barbell],
 ]
 
+// MARK: - Legacy ID Aliases
+
+/// Retired exercise IDs mapped to the canonical ID that replaced them.
+///
+/// Each pair named one movement twice — same movement pattern, same equipment —
+/// which split a user's logged sets and 1RM history across two names and showed
+/// both in exercise search. The canonical side is whichever ID is max-trackable,
+/// so existing PR history survives the collapse.
+///
+/// Records already saved under a retired ID are *not* rewritten: CloudKit is the
+/// only backend and there is no migration path, so lookups resolve through
+/// `canonicalExerciseID(_:)` instead. Never remove an entry from this table —
+/// doing so orphans historical records.
+public let legacyExerciseAliases: [String: String] = [
+    "Dumbbell Shoulder Press": "Dumbbell Overhead Press",
+    "Farmer Carry": "Farmers Carry",
+    "Dumbbell Curl": "Bicep Curl (Dumbbell)",
+    "Dumbbell Hammer Curl": "Hammer Curl",
+    "Dumbbell Skull Crusher": "Skull Crusher",
+    "Reverse Fly": "Rear Delt Fly",
+    "Dumbbell Chest-Supported Row": "Chest-Supported Row"
+]
+
+/// Resolves a possibly-retired exercise ID to the catalog's canonical ID.
+///
+/// Safe to call on any name: unknown IDs pass through unchanged.
+public func canonicalExerciseID(_ id: String) -> String {
+    legacyExerciseAliases[id] ?? id
+}
+
 private func movementPattern(for category: WeightliftingCategory) -> WorkoutMovementPattern {
     switch category {
     case .squat: return .squat
@@ -170,7 +200,7 @@ private let weightliftingIDs: Set<String> = Set(weightliftingExercises.map(\.id)
 
 /// Check if an exercise ID is a weightlifting exercise
 public func isWeightliftingExercise(_ id: String) -> Bool {
-    weightliftingIDs.contains(id)
+    weightliftingIDs.contains(canonicalExerciseID(id))
 }
 
 // MARK: - Conditioning Exercise Catalog
@@ -224,24 +254,67 @@ public let conditioningExercises: [ConditioningEntry] = [
     ConditioningEntry(id: "L-Sit Hold",      defaultScoringType: .time),
 ]
 
-private func movementPattern(for conditioningID: String) -> WorkoutMovementPattern {
-    let lower = conditioningID.lowercased()
-    if lower.contains("squat") || lower.contains("lunge") || lower.contains("step-up") { return .squat }
-    if lower.contains("swing") { return .hinge }
-    if lower.contains("push") || lower.contains("thruster") || lower.contains("handstand") { return .push }
-    if lower.contains("pull") || lower.contains("row") || lower.contains("toes-to-bar") || lower.contains("muscle-up") { return .pull }
-    if lower.contains("sit-up") || lower.contains("v-up") || lower.contains("plank") || lower.contains("l-sit") { return .core }
-    return .conditioning
-}
+/// Movement pattern and equipment for each conditioning entry, stated rather
+/// than inferred from the name.
+///
+/// These were previously derived by substring matching, which mislabelled every
+/// erg distance as a `.pull` (matching "row" in "500m Row") and tagged the
+/// barbell thruster as bodyweight. `ExerciseCatalogTests` asserts this table
+/// covers `conditioningExercises` exactly, so a new entry cannot silently fall
+/// back to a wrong default.
+private let conditioningMetadata: [String: (WorkoutMovementPattern, [TrainingEquipmentTag])] = [
+    // Reps-based
+    "Wall Ball":               (.conditioning, [.plates]),
+    "Box Jump":                (.conditioning, [.box]),
+    "Burpee":                  (.conditioning, [.bodyweight]),
+    "Kettlebell Swing":        (.hinge, [.kettlebell]),
+    "Double Under":            (.conditioning, [.bodyweight]),
+    "Pull-Up (Kipping)":       (.pull, [.bodyweight]),
+    "Toes-to-Bar":             (.core, [.bodyweight]),
+    "Muscle-Up":               (.pull, [.bodyweight]),
+    "Push-Up":                 (.push, [.bodyweight]),
+    "Sit-Up":                  (.core, [.bodyweight]),
+    "Air Squat":               (.squat, [.bodyweight]),
+    "Thruster":                (.push, [.barbell, .plates]),
+    "Rowing (Calories)":       (.conditioning, [.cardio]),
+    "Assault Bike (Calories)": (.conditioning, [.cardio]),
+    "SkiErg (Calories)":       (.conditioning, [.cardio]),
+    "Box Step-up":             (.squat, [.box]),
+    "Lunges (Alternating)":    (.squat, [.bodyweight]),
+    "Wall Walk":               (.push, [.bodyweight]),
+    "Handstand Push-up":       (.push, [.bodyweight]),
+    "GHD Sit-up":              (.core, [.machine]),
+    "V-up":                    (.core, [.bodyweight]),
+    // Time-based
+    "400m Run":        (.conditioning, [.bodyweight]),
+    "800m Run":        (.conditioning, [.bodyweight]),
+    "1-Mile Run":      (.conditioning, [.bodyweight]),
+    "5K Run":          (.conditioning, [.bodyweight]),
+    "500m Row":        (.conditioning, [.cardio]),
+    "2K Row":          (.conditioning, [.cardio]),
+    "1K Assault Bike": (.conditioning, [.cardio]),
+    "2K SkiErg":       (.conditioning, [.cardio]),
+    "Plank Hold":      (.core, [.bodyweight]),
+    "L-Sit Hold":      (.core, [.bodyweight])
+]
 
-private func equipmentTags(for conditioningID: String) -> [TrainingEquipmentTag] {
-    let lower = conditioningID.lowercased()
-    if lower.contains("kettlebell") { return [.kettlebell] }
-    if lower.contains("row") || lower.contains("bike") || lower.contains("skierg") { return [.cardio] }
-    if lower.contains("box") { return [.box] }
-    if lower.contains("wall ball") { return [.machine] }
-    return [.bodyweight]
-}
+/// Movements that load the body only, stated explicitly.
+///
+/// This cannot be derived from `equipmentTags == [.bodyweight]`: a weighted dip
+/// and a weighted pull-up are tagged `.bodyweight` because that is the apparatus
+/// they use, but both take external load. Getting this wrong means the logger
+/// never asks for a weight (`AIWorkoutView`) and substitution scoring pairs
+/// loaded lifts with unloaded ones.
+private let bodyweightOnlyExercises: Set<String> = [
+    // Max-tracked, apparatus-tagged but genuinely unloaded
+    "Pull-Up", "Glute Ham Raise",
+    // Conditioning
+    "Burpee", "Double Under", "Pull-Up (Kipping)", "Toes-to-Bar", "Muscle-Up",
+    "Push-Up", "Sit-Up", "Air Squat", "Box Jump", "Box Step-up",
+    "Lunges (Alternating)", "Wall Walk", "Handstand Push-up", "GHD Sit-up",
+    "V-up", "400m Run", "800m Run", "1-Mile Run", "5K Run", "Plank Hold",
+    "L-Sit Hold"
+]
 
 private let bandTrainingExercises: [TrainingExerciseDefinition] = [
     .init(id: "Band Squat", categoryLabel: "Squat", movementPattern: .squat, equipmentTags: [.bands]),
@@ -348,8 +421,6 @@ private let supplementalTrainingExercises: [TrainingExerciseDefinition] = [
     .init(id: "Dumbbell Front Raise", categoryLabel: "Press", movementPattern: .push, equipmentTags: [.dumbbells]),
     .init(id: "Dumbbell Lateral Raise", categoryLabel: "Press", movementPattern: .push, equipmentTags: [.dumbbells]),
     .init(id: "Dumbbell Push Press", categoryLabel: "Press", movementPattern: .push, equipmentTags: [.dumbbells]),
-    .init(id: "Dumbbell Shoulder Press", categoryLabel: "Press", movementPattern: .push, equipmentTags: [.dumbbells]),
-    .init(id: "Dumbbell Skull Crusher", categoryLabel: "Press", movementPattern: .push, equipmentTags: [.dumbbells]),
     .init(id: "Dumbbell Squeeze Press", categoryLabel: "Press", movementPattern: .push, equipmentTags: [.dumbbells]),
     .init(id: "Dumbbell Thruster", categoryLabel: "Press", movementPattern: .push, equipmentTags: [.dumbbells]),
     .init(id: "Dumbbell Triceps Kickback", categoryLabel: "Press", movementPattern: .push, equipmentTags: [.dumbbells]),
@@ -379,10 +450,7 @@ private let supplementalTrainingExercises: [TrainingExerciseDefinition] = [
     .init(id: "Cable Curl", categoryLabel: "Pull", movementPattern: .pull, equipmentTags: [.cable]),
     .init(id: "Chest-Supported Row", categoryLabel: "Pull", movementPattern: .pull, equipmentTags: [.dumbbells]),
     .init(id: "Chin-Up", categoryLabel: "Pull", movementPattern: .pull, equipmentTags: [.bodyweight], bodyweightOnly: true),
-    .init(id: "Dumbbell Chest-Supported Row", categoryLabel: "Pull", movementPattern: .pull, equipmentTags: [.dumbbells]),
     .init(id: "Dumbbell Concentration Curl", categoryLabel: "Pull", movementPattern: .pull, equipmentTags: [.dumbbells]),
-    .init(id: "Dumbbell Curl", categoryLabel: "Pull", movementPattern: .pull, equipmentTags: [.dumbbells]),
-    .init(id: "Dumbbell Hammer Curl", categoryLabel: "Pull", movementPattern: .pull, equipmentTags: [.dumbbells]),
     .init(id: "Dumbbell High Pull", categoryLabel: "Pull", movementPattern: .pull, equipmentTags: [.dumbbells]),
     .init(id: "Dumbbell Pullover", categoryLabel: "Pull", movementPattern: .pull, equipmentTags: [.dumbbells]),
     .init(id: "Dumbbell Renegade Row", categoryLabel: "Pull", movementPattern: .pull, equipmentTags: [.dumbbells]),
@@ -398,7 +466,6 @@ private let supplementalTrainingExercises: [TrainingExerciseDefinition] = [
     .init(id: "Prone W Raise", categoryLabel: "Pull", movementPattern: .pull, equipmentTags: [.bodyweight], bodyweightOnly: true),
     .init(id: "Prone Y Raise", categoryLabel: "Pull", movementPattern: .pull, equipmentTags: [.bodyweight], bodyweightOnly: true),
     .init(id: "Rear Delt Fly", categoryLabel: "Pull", movementPattern: .pull, equipmentTags: [.dumbbells]),
-    .init(id: "Reverse Fly", categoryLabel: "Pull", movementPattern: .pull, equipmentTags: [.dumbbells]),
     .init(id: "Scapular Pull-Up", categoryLabel: "Pull", movementPattern: .pull, equipmentTags: [.bodyweight], bodyweightOnly: true),
     .init(id: "Straight-Arm Pulldown", categoryLabel: "Pull", movementPattern: .pull, equipmentTags: [.cable]),
     .init(id: "Towel Inverted Row", categoryLabel: "Pull", movementPattern: .pull, equipmentTags: [.bodyweight], bodyweightOnly: true),
@@ -433,7 +500,6 @@ private let supplementalTrainingExercises: [TrainingExerciseDefinition] = [
     .init(id: "Weighted Sit-Up", categoryLabel: "Core", movementPattern: .core, equipmentTags: [.plates]),
     // Carry
     .init(id: "Bear Crawl", categoryLabel: "Carry", movementPattern: .carry, equipmentTags: [.bodyweight], bodyweightOnly: true),
-    .init(id: "Farmer Carry", categoryLabel: "Carry", movementPattern: .carry, equipmentTags: [.dumbbells]),
     .init(id: "Kettlebell Farmer Carry", categoryLabel: "Carry", movementPattern: .carry, equipmentTags: [.kettlebell]),
     // Conditioning
     .init(id: "Assault Bike Interval", categoryLabel: "Conditioning", movementPattern: .conditioning, equipmentTags: [.cardio]),
@@ -457,18 +523,19 @@ public let trainingExerciseCatalog: [TrainingExerciseDefinition] = {
             categoryLabel: entry.category.rawValue,
             movementPattern: movementPattern(for: entry.category),
             equipmentTags: maxExerciseEquipment[entry.id] ?? [.barbell, .plates],
-            bodyweightOnly: maxExerciseEquipment[entry.id] == [.bodyweight],
+            bodyweightOnly: bodyweightOnlyExercises.contains(entry.id),
             isMaxTrackable: true,
             defaultScoringType: nil
         )
     }
     let conditioningEntries = conditioningExercises.map { entry in
-        TrainingExerciseDefinition(
+        let metadata = conditioningMetadata[entry.id] ?? (.conditioning, [.bodyweight])
+        return TrainingExerciseDefinition(
             id: entry.id,
             categoryLabel: "Conditioning",
-            movementPattern: movementPattern(for: entry.id),
-            equipmentTags: equipmentTags(for: entry.id),
-            bodyweightOnly: equipmentTags(for: entry.id) == [.bodyweight],
+            movementPattern: metadata.0,
+            equipmentTags: metadata.1,
+            bodyweightOnly: bodyweightOnlyExercises.contains(entry.id),
             isMaxTrackable: false,
             defaultScoringType: entry.defaultScoringType
         )
@@ -486,12 +553,12 @@ private let conditioningMap: [String: ConditioningScoringType] = {
 
 /// Check if an exercise ID is a conditioning exercise
 public func isConditioningExercise(_ id: String) -> Bool {
-    conditioningMap[id] != nil
+    conditioningMap[canonicalExerciseID(id)] != nil
 }
 
 /// Get the default scoring type for a conditioning exercise
 public func conditioningScoringType(for id: String) -> ConditioningScoringType? {
-    conditioningMap[id]
+    conditioningMap[canonicalExerciseID(id)]
 }
 
 /// Format a conditioning value for display

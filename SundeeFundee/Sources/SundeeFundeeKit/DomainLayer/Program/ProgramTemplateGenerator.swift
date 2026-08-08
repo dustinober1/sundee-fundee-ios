@@ -225,7 +225,7 @@ func generateBeginnerStrengthProgram() -> GeneratedProgram {
                 makeExercise("Incline Push-Up", sets: 3, reps: .range(low: 8, high: 10), rest: 1.5, bodyweight: true),
                 makeExercise("Seated Cable Row", sets: 3, reps: .range(low: 10, high: 12), rest: 1.5),
                 makeExercise("Dead Bug", sets: 3, reps: .text(value: "6/side"), rest: 1.0, bodyweight: true),
-                makeExercise("Farmer Carry", sets: 3, reps: .text(value: "40 sec"), rest: 1.0),
+                makeExercise("Farmers Carry", sets: 3, reps: .text(value: "40 sec"), rest: 1.0),
             ]),
             ProgramSessionSpec(name: "Hinge + Press", focus: "hinge", exercises: [
                 makeExercise("Dumbbell Romanian Deadlift", sets: 3, reps: .range(low: 8, high: 10), rest: 1.5),
@@ -260,7 +260,7 @@ func generateBeginnerStrengthProgram() -> GeneratedProgram {
             ProgramSessionSpec(name: "Bridge + Pulldown", focus: "posterior chain", exercises: [
                 makeExercise("Hip Thrust", sets: 3, reps: .range(low: 8, high: 12), rest: 1.5),
                 makeExercise("Lat Pulldown", sets: 3, reps: .range(low: 8, high: 12), rest: 1.5),
-                makeExercise("Dumbbell Shoulder Press", sets: 3, reps: .range(low: 8, high: 10), rest: 1.5),
+                makeExercise("Dumbbell Overhead Press", sets: 3, reps: .range(low: 8, high: 10), rest: 1.5),
                 makeExercise("Hamstring Curl", sets: 3, reps: .range(low: 10, high: 12), rest: 1.0),
                 makeExercise("Dead Bug", sets: 3, reps: .text(value: "8/side"), rest: 1.0, bodyweight: true),
             ]),
@@ -275,7 +275,7 @@ func generateBeginnerStrengthProgram() -> GeneratedProgram {
                 makeExercise("Goblet Squat", sets: 3, reps: .range(low: 10, high: 12), rest: 1.0),
                 makeExercise("Cable Row", sets: 3, reps: .range(low: 10, high: 12), rest: 1.0),
                 makeExercise("Dumbbell Bench Press", sets: 3, reps: .range(low: 10, high: 12), rest: 1.0),
-                makeExercise("Farmer Carry", sets: 4, reps: .text(value: "30 sec"), rest: 1.0),
+                makeExercise("Farmers Carry", sets: 4, reps: .text(value: "30 sec"), rest: 1.0),
                 makeExercise("Bike or Walk", sets: 1, reps: .text(value: "8 min"), rest: 0.5, bodyweight: true),
             ]),
         ],
@@ -398,9 +398,9 @@ func generateDumbbellStrengthProgram() -> GeneratedProgram {
                 ProgramSessionSpec(name: "Upper Push/Pull", focus: "upper body", exercises: [
                     makeExercise("Dumbbell Bench Press", sets: setCount(week, base: 4), reps: reps(week, heavy: true), rest: 1.75),
                     makeExercise("One-Arm Dumbbell Row", sets: setCount(week, base: 4), reps: .text(value: week >= 5 ? "8/side" : "8-12/side"), rest: 1.5),
-                    makeExercise("Dumbbell Shoulder Press", sets: 3, reps: reps(week), rest: 1.5),
+                    makeExercise("Dumbbell Overhead Press", sets: 3, reps: reps(week), rest: 1.5),
                     makeExercise("Rear Delt Fly", sets: 3, reps: .range(low: 12, high: 15), rest: 1.0),
-                    makeExercise("Farmer Carry", sets: 3, reps: .text(value: "40 sec"), rest: 1.0),
+                    makeExercise("Farmers Carry", sets: 3, reps: .text(value: "40 sec"), rest: 1.0),
                 ]),
                 ProgramSessionSpec(name: "Lower Unilateral + Glutes", focus: "glutes", exercises: [
                     makeExercise("Dumbbell Split Squat", sets: setCount(week, base: 3), reps: .text(value: week >= 5 ? "6-8/side" : "8-10/side"), rest: 1.5),
