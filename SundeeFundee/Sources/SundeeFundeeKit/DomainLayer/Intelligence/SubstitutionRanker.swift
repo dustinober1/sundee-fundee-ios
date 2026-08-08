@@ -258,7 +258,6 @@ public enum SubstitutionRanker {
         "Cable Chest Fly":                 ["Chest", "Front Delts"],
         "Band Chest Fly":                  ["Chest", "Front Delts"],
         "Band Incline Press":              ["Upper Chest", "Triceps", "Front Delts"],
-        "Dumbbell Shoulder Press":         ["Front Delts", "Triceps", "Side Delts"],
         "Machine Shoulder Press":          ["Front Delts", "Triceps", "Side Delts"],
         "Dumbbell Arnold Press":           ["Front Delts", "Side Delts", "Triceps"],
         "Kettlebell Strict Press":         ["Front Delts", "Triceps", "Upper Chest"],
@@ -274,7 +273,6 @@ public enum SubstitutionRanker {
         "Dumbbell Lateral Raise":          ["Side Delts"],
         "Dumbbell Front Raise":            ["Front Delts"],
         "Skull Crusher":                   ["Triceps"],
-        "Dumbbell Skull Crusher":          ["Triceps"],
         "Overhead Triceps Extension":      ["Triceps"],
         "Band Overhead Triceps Extension": ["Triceps"],
         "Cable Triceps Pressdown":         ["Triceps"],
@@ -291,7 +289,6 @@ public enum SubstitutionRanker {
         "Handstand Hold":                  ["Front Delts", "Triceps", "Core"],
         // Pull variations
         "Chest-Supported Row":            ["Upper Back", "Lats", "Biceps", "Rear Delts"],
-        "Dumbbell Chest-Supported Row":   ["Upper Back", "Lats", "Biceps", "Rear Delts"],
         "Kettlebell Chest-Supported Row": ["Upper Back", "Lats", "Biceps"],
         "Kettlebell Row":                 ["Upper Back", "Lats", "Biceps"],
         "Kettlebell Gorilla Row":         ["Upper Back", "Lats", "Biceps"],
@@ -305,7 +302,6 @@ public enum SubstitutionRanker {
         "Straight-Arm Pulldown":          ["Lats", "Upper Back"],
         "Dumbbell Pullover":              ["Lats", "Chest"],
         "Rear Delt Fly":                  ["Rear Delts", "Upper Back"],
-        "Reverse Fly":                    ["Rear Delts", "Upper Back"],
         "Band Reverse Fly":               ["Rear Delts", "Upper Back"],
         "Prone W Raise":                  ["Rear Delts", "Upper Back"],
         "Prone Y Raise":                  ["Rear Delts", "Upper Back", "Traps"],
@@ -317,13 +313,10 @@ public enum SubstitutionRanker {
         "Band Upright Row":               ["Side Delts", "Traps", "Biceps"],
         "Dumbbell High Pull":             ["Traps", "Side Delts", "Upper Back"],
         "Kettlebell High Pull":           ["Traps", "Side Delts", "Upper Back"],
-        "Dumbbell Curl":                  ["Biceps"],
         "Cable Curl":                     ["Biceps"],
         "Kettlebell Curl":                ["Biceps"],
         "Dumbbell Concentration Curl":    ["Biceps"],
-        "Dumbbell Hammer Curl":           ["Biceps", "Forearms"],
         // Carries
-        "Farmer Carry":            ["Grip", "Core", "Traps", "Shoulders"],
         "Kettlebell Farmer Carry": ["Grip", "Core", "Traps", "Shoulders"],
         "Bear Crawl":              ["Core", "Shoulders", "Quads"],
         // Core
@@ -547,7 +540,8 @@ public enum SubstitutionRanker {
     /// Computes Jaccard similarity between the muscle groups of two exercises.
     /// Returns 0 if either exercise has no known muscle data.
     private static func muscleOverlapScore(_ a: String, _ b: String) -> Double {
-        guard let aMuscles = muscleGroups[a], let bMuscles = muscleGroups[b] else {
+        guard let aMuscles = muscleGroups[canonicalExerciseID(a)],
+              let bMuscles = muscleGroups[canonicalExerciseID(b)] else {
             return 0
         }
         let intersection = aMuscles.intersection(bMuscles)
@@ -594,7 +588,7 @@ public enum SubstitutionRanker {
     private static func matchesEquipment(_ exercise: String, equipment: EquipmentContext) -> Bool {
         let name = exercise.lowercased()
 
-        if let definition = trainingExerciseCatalog.first(where: { $0.id == exercise }) {
+        if let definition = trainingExerciseCatalog.first(where: { $0.id == canonicalExerciseID(exercise) }) {
             return definition.equipmentTags.allSatisfy { tag in
                 switch tag {
                 case .barbell, .plates:
