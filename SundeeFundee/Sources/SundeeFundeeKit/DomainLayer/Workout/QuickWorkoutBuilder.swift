@@ -56,19 +56,31 @@ public enum QuickWorkoutBuilder {
         let lowRecovery = request.todayDecisionKind == .recover
             || request.energyLevel == .low
             || request.painLogs.contains { $0.intensity >= 6 }
-        let targetCount = targetExerciseCount(timeMinutes: timeLimit, lowRecovery: lowRecovery)
-        let workingSets = initialWorkingSets(timeMinutes: timeLimit, energyLevel: request.energyLevel, lowRecovery: lowRecovery)
-        let restMinutes = restMinutes(focus: request.focus, lowRecovery: lowRecovery)
+        let restMinutes = WorkoutVolumePlanner.restMinutes(focus: request.focus, lowRecovery: lowRecovery)
 
-        let selected = selectCandidates(
+        // Select generously, then let the volume plan decide how much of the
+        // shortlist the requested window can actually pay for.
+        let shortlist = selectCandidates(
             request: request,
-            targetCount: targetCount,
+            targetCount: WorkoutVolumePlanner.defaultMaxExercises,
             lowRecovery: lowRecovery
         )
-        var plans = selected.map {
-            QuickExercisePlan(candidate: $0, sets: workingSets, restMinutes: restMinutes)
+        let volume = WorkoutVolumePlanner.plan(
+            timeMinutes: timeLimit,
+            availableExercises: shortlist.count,
+            restMinutes: restMinutes,
+            model: .interactiveSession,
+            maxSets: WorkoutVolumePlanner.maxSets(
+                energyLevel: request.energyLevel,
+                lowRecovery: lowRecovery
+            ),
+            minExercises: minimumExerciseCount(timeLimit: timeLimit),
+            maxExercises: lowRecovery ? 5 : WorkoutVolumePlanner.defaultMaxExercises
+        )
+
+        let plans = zip(shortlist, volume.setsPerExercise).map { candidate, sets in
+            QuickExercisePlan(candidate: candidate, sets: sets, restMinutes: restMinutes)
         }
-        trimToFit(plans: &plans, timeLimit: timeLimit)
 
         let estimatedMinutes = estimateMinutes(plans)
         let painAvoidanceApplied = painFilterIsActive(request.painLogs)
@@ -95,36 +107,6 @@ public enum QuickWorkoutBuilder {
             estimatedMinutes: estimatedMinutes,
             reasons: reasons
         )
-    }
-
-    private static func targetExerciseCount(timeMinutes: Int, lowRecovery: Bool) -> Int {
-        if timeMinutes <= 4 { return 1 }
-        if timeMinutes <= 14 { return 2 }
-        if lowRecovery { return 2 }
-        if timeMinutes >= 25 { return 4 }
-        return 3
-    }
-
-    private static func initialWorkingSets(
-        timeMinutes: Int,
-        energyLevel: EnergyLevel,
-        lowRecovery: Bool
-    ) -> Int {
-        if timeMinutes <= 12 { return 1 }
-        if lowRecovery { return 2 }
-
-        switch energyLevel {
-        case .high:
-            return 3
-        case .medium, .low:
-            return 2
-        }
-    }
-
-    private static func restMinutes(focus: WorkoutFocus, lowRecovery: Bool) -> Double {
-        if lowRecovery { return 1.0 }
-        if focus == .conditioning { return 0.75 }
-        return 1.25
     }
 
     private static func selectCandidates(
@@ -155,23 +137,35 @@ public enum QuickWorkoutBuilder {
             preferred = lowStressPool
         }
 
-        let uniquePatternSelection = preferred.reduce(into: (selected: [WorkoutExerciseCandidate](), used: Set<String>())) { result, candidate in
-            guard result.selected.count < targetCount else { return }
-            guard !result.used.contains(candidate.pattern.rawValue) else { return }
-            result.selected.append(candidate)
-            result.used.insert(candidate.pattern.rawValue)
-        }.selected
+        return spreadAcrossPatterns(
+            preferred,
+            targetCount: targetCount,
+            focus: request.focus
+        )
+    }
 
-        if uniquePatternSelection.count >= min(2, targetCount) {
-            return uniquePatternSelection
+    /// Picks candidates in pattern round-robin: one movement per pattern, then a
+    /// second, and so on. Variety lands at the front of the list, which matters
+    /// because the volume plan front-loads sets onto the earliest picks.
+    private static func spreadAcrossPatterns(
+        _ candidates: [WorkoutExerciseCandidate],
+        targetCount: Int,
+        focus: WorkoutFocus
+    ) -> [WorkoutExerciseCandidate] {
+        let patternLimit = maxExercisesPerPattern(focus: focus, exerciseCount: targetCount)
+        var selected = [WorkoutExerciseCandidate]()
+        var takenPerPattern = [WorkoutMovementPattern: Int]()
+
+        for tier in 0..<max(1, patternLimit) {
+            for candidate in candidates where selected.count < targetCount {
+                guard takenPerPattern[candidate.pattern, default: 0] == tier else { continue }
+                guard !selected.contains(candidate) else { continue }
+                selected.append(candidate)
+                takenPerPattern[candidate.pattern, default: 0] += 1
+            }
         }
 
-        var selected = uniquePatternSelection
-        for candidate in preferred where selected.count < targetCount && !selected.contains(candidate) {
-            selected.append(candidate)
-        }
-
-        return Array(selected.prefix(max(2, min(4, selected.count))))
+        return selected
     }
 
     private static func neutralFallbackCandidates(
@@ -233,8 +227,10 @@ public enum QuickWorkoutBuilder {
 
     private static func painKeywords(for region: String) -> [String] {
         switch region {
-        case "knee", "ankle":
-            return ["squat", "lunge", "step-up", "box jump", "wall ball", "thruster"]
+        case "knee":
+            return ["squat", "lunge", "step-up", "box jump", "wall ball", "thruster", "wall sit", "jump"]
+        case "ankle":
+            return ["squat", "lunge", "step-up", "box jump", "wall ball", "thruster", "calf raise", "jump", "run"]
         case "hip":
             return ["deadlift", "good morning", "hip thrust", "lunge", "step-up", "swing"]
         case "back":
@@ -264,18 +260,6 @@ public enum QuickWorkoutBuilder {
             "weighted"
         ]
         return highStressTerms.contains { normalizedName.contains($0) }
-    }
-
-    private static func trimToFit(plans: inout [QuickExercisePlan], timeLimit: Int) {
-        while estimateMinutes(plans) > timeLimit {
-            if let index = plans.lastIndex(where: { $0.sets > 1 }) {
-                plans[index].sets -= 1
-            } else if plans.count > minimumExerciseCount(timeLimit: timeLimit) {
-                plans.removeLast()
-            } else {
-                return
-            }
-        }
     }
 
     private static func minimumExerciseCount(timeLimit: Int) -> Int {
@@ -363,9 +347,9 @@ public enum QuickWorkoutBuilder {
 }
 
 private struct QuickExercisePlan: Sendable, Equatable {
-    var candidate: WorkoutExerciseCandidate
-    var sets: Int
-    var restMinutes: Double
+    let candidate: WorkoutExerciseCandidate
+    let sets: Int
+    let restMinutes: Double
 }
 
 extension Array where Element == DailyPainLog {

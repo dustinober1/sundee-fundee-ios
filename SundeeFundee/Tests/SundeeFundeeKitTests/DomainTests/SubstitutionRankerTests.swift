@@ -211,4 +211,33 @@ final class SubstitutionRankerTests: XCTestCase {
         let hasSquatExercise = results.contains { $0.exerciseName == "Back Squat" }
         XCTAssertFalse(hasSquatExercise, "Acute knee injury should filter squat exercises")
     }
+
+    // MARK: - Muscle Map Coverage
+
+    /// An exercise missing from the muscle map scores 0 on overlap, so it drops
+    /// to equipment-and-category matching without any visible failure. Adding
+    /// exercises to the catalog without adding muscle data quietly degrades
+    /// every substitution list they appear in.
+    func testEveryCatalogExerciseHasMuscleData() {
+        let uncovered = trainingExerciseCatalog
+            .map(\.id)
+            .filter { SubstitutionRanker.muscleGroups[$0] == nil }
+            .sorted()
+        XCTAssertTrue(uncovered.isEmpty, "Missing muscle data: \(uncovered)")
+    }
+
+    func testSubstitutionsForANewCatalogExerciseAreMuscleRanked() {
+        let results = SubstitutionRanker.rank(
+            substitutesFor: "Dumbbell Bulgarian Split Squat",
+            equipment: .fullGym,
+            limit: 5
+        )
+        XCTAssertFalse(results.isEmpty)
+        // Muscle overlap contributes to the score, so a quad/glute movement
+        // should outrank the generic category-only fallback.
+        XCTAssertTrue(
+            results.contains { $0.reason.localizedCaseInsensitiveContains("muscle") },
+            "Expected muscle-overlap reasoning, got: \(results.map(\.reason))"
+        )
+    }
 }
