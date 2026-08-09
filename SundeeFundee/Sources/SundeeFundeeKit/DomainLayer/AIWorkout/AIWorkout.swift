@@ -493,10 +493,13 @@ public func applyWeights(
 
 // MARK: - Find Matching Max (fuzzy)
 
-/// Fuzzy match an exercise name to a user's max
+/// Fuzzy match an exercise name to a user's max.
+///
+/// Both sides resolve through `canonicalExerciseID` first, so a max logged under
+/// a retired ID still matches the canonical name a generated workout now uses.
 public func findMatchingMax(_ exerciseName: String, maxes: [ExerciseMax]) -> ExerciseMax? {
-    let lower = exerciseName.lowercased()
-    if let exact = maxes.first(where: { $0.name.lowercased() == lower }) {
+    let lower = canonicalExerciseID(exerciseName).lowercased()
+    if let exact = maxes.first(where: { canonicalExerciseID($0.name).lowercased() == lower }) {
         return exact
     }
     return maxes.first { m in

@@ -581,8 +581,8 @@ public enum ExerciseTechniqueLibrary {
             ],
             regression: "Use a lighter bell and support the chest."
         ),
-        "Dumbbell Chest-Supported Row": ExerciseTechniqueCue(
-            exerciseName: "Dumbbell Chest-Supported Row",
+        "Chest-Supported Row": ExerciseTechniqueCue(
+            exerciseName: "Chest-Supported Row",
             setupCues: [
                 "Lie chest-down on an inclined bench.",
                 "Let the arms hang straight below the shoulders.",
@@ -857,6 +857,7 @@ public enum ExerciseTechniqueLibrary {
     ]
 
     public static func cue(for exerciseName: String) -> ExerciseTechniqueCue? {
-        cues[exerciseName] ?? aliases[exerciseName].flatMap { cues[$0] }
+        let canonical = canonicalExerciseID(exerciseName)
+        return cues[canonical] ?? aliases[canonical].flatMap { cues[$0] }
     }
 }
