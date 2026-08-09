@@ -205,12 +205,14 @@ final class TrainingReportBuilderTests: XCTestCase {
             exportedData: ExportedData(),
             rangeStart: rangeStart,
             rangeEnd: rangeEnd,
-            includeCycleDetail: false
+            includeCycleDetail: false,
+            calendar: Self.utcCalendar
         )
         let factory = TrainingReportContent.empty(
             generatedAt: built.generatedAt,
             rangeStart: rangeStart,
-            rangeEnd: rangeEnd
+            rangeEnd: rangeEnd,
+            calendar: Self.utcCalendar
         )
 
         XCTAssertEqual(built, factory,
@@ -492,7 +494,8 @@ final class TrainingReportBuilderTests: XCTestCase {
 
         XCTAssertEqual(
             report.activeReturnToLiftingRamps.first,
-            "Week 4 return-to-lifting ramp: 65% of baseline load, 3 working sets max."
+            "Week 4 of a gradual return to training: working loads are capped at 65% of usual "
+                + "working weight, with up to 3 working sets per exercise."
         )
     }
 
@@ -635,6 +638,106 @@ final class TrainingReportBuilderTests: XCTestCase {
         let dates = report.painAndInjuryTimeline.map(\.date)
         XCTAssertEqual(dates, dates.sorted(), "Merged timeline must stay chronologically ordered")
         XCTAssertEqual(dates.count, 8)
+    }
+
+    // MARK: - Narrated Session Summary
+
+    func testSessionSummary_NarratesOverviewFigures() {
+        var data = ExportedData()
+        data.workouts = [
+            makeWorkout(date: makeDate(day: 5), completedAt: makeDate(day: 5), volume: 1200),
+            makeWorkout(date: makeDate(day: 12), completedAt: makeDate(day: 12), volume: 800),
+        ]
+        data.oneRepMaxRecords = [makeMaxRecord(date: makeDate(day: 12))]
+
+        let report = TrainingReportBuilder.build(
+            exportedData: data,
+            rangeStart: rangeStart,
+            rangeEnd: rangeEnd,
+            includeCycleDetail: false,
+            calendar: Self.utcCalendar
+        )
+
+        XCTAssertEqual(report.sessionSummary, [
+            "2 training sessions were logged between June 1, 2026 to June 29, 2026 — "
+                + "an average of 0.5 per week.",
+            "Total training volume over this period was 2,000 (weight lifted × repetitions).",
+            "1 new maximum-lift record was logged.",
+        ])
+    }
+
+    func testSessionSummary_EmptyRangeReadsAsDeliberate() {
+        let report = TrainingReportBuilder.build(
+            exportedData: ExportedData(),
+            rangeStart: rangeStart,
+            rangeEnd: rangeEnd,
+            includeCycleDetail: false,
+            calendar: Self.utcCalendar
+        )
+
+        XCTAssertEqual(report.sessionSummary,
+                       ["No training sessions were logged between June 1, 2026 to June 29, 2026."],
+                       "An empty report should say nothing was logged, not render as a blank page")
+    }
+
+    func testSessionSummary_AppendsVolumeTrendWhenEnoughSessions() {
+        var data = ExportedData()
+        // Four sessions: first half light, second half heavy.
+        data.workouts = [
+            makeWorkout(date: makeDate(day: 3), completedAt: makeDate(day: 3), volume: 500),
+            makeWorkout(date: makeDate(day: 7), completedAt: makeDate(day: 7), volume: 500),
+            makeWorkout(date: makeDate(day: 20), completedAt: makeDate(day: 20), volume: 1000),
+            makeWorkout(date: makeDate(day: 24), completedAt: makeDate(day: 24), volume: 1000),
+        ]
+
+        let report = TrainingReportBuilder.build(
+            exportedData: data,
+            rangeStart: rangeStart,
+            rangeEnd: rangeEnd,
+            includeCycleDetail: false,
+            calendar: Self.utcCalendar
+        )
+
+        XCTAssertEqual(report.sessionSummary.last,
+                       "Training volume in the second half of this period was about 100% higher "
+                           + "than in the first half.")
+    }
+
+    func testSessionSummary_OmitsVolumeTrendWhenTooFewSessions() {
+        var data = ExportedData()
+        data.workouts = [
+            makeWorkout(date: makeDate(day: 3), completedAt: makeDate(day: 3), volume: 500),
+            makeWorkout(date: makeDate(day: 24), completedAt: makeDate(day: 24), volume: 2000),
+        ]
+
+        let report = TrainingReportBuilder.build(
+            exportedData: data,
+            rangeStart: rangeStart,
+            rangeEnd: rangeEnd,
+            includeCycleDetail: false,
+            calendar: Self.utcCalendar
+        )
+
+        XCTAssertFalse(
+            report.sessionSummary.contains { $0.contains("second half") },
+            "Two sessions cannot support a trend claim, however large the difference looks"
+        )
+    }
+
+    func testSessionSummary_IsNotGatedByCycleDetailToggle() {
+        var data = ExportedData()
+        data.workouts = [makeWorkout(date: makeDate(day: 5), completedAt: makeDate(day: 5), volume: 900)]
+
+        let report = TrainingReportBuilder.build(
+            exportedData: data,
+            rangeStart: rangeStart,
+            rangeEnd: rangeEnd,
+            includeCycleDetail: false,
+            calendar: Self.utcCalendar
+        )
+
+        XCTAssertFalse(report.sessionSummary.isEmpty,
+                       "Session counts carry no cycle information and must survive the privacy toggle")
     }
 
     // MARK: - Generation Metadata
