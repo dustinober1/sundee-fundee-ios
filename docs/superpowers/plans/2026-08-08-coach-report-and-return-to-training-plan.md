@@ -1,7 +1,7 @@
 # Coach Report and Return-to-Training Program Implementation Plan
 
 **Date:** 2026-08-08
-**Status:** Proposed
+**Status:** Implemented — 2026-08-09
 **Target:** Next release. Both features ship free — no paywall, no gating. This app is a hobby project, not a revenue product, so scope is deliberately kept small enough for one person to actually finish.
 
 ## Context
