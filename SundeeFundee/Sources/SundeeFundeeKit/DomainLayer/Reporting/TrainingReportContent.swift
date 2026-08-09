@@ -58,6 +58,12 @@ public struct TrainingReportContent: Sendable, Equatable {
     public let generatedAt: Date
     public let overview: Overview
 
+    /// Plain-language narration of the `overview` figures, including the
+    /// volume trend across the window. The `overview` numbers are kept
+    /// alongside these sentences so a renderer can show figures, prose, or
+    /// both.
+    public let sessionSummary: [String]
+
     /// Plain-language narration of `CycleAwareProgressInsight` values.
     /// Empty when `includesCycleDetail` is false.
     public let cycleAwarePatternSummary: [String]
@@ -85,6 +91,7 @@ public struct TrainingReportContent: Sendable, Equatable {
     public init(
         generatedAt: Date,
         overview: Overview,
+        sessionSummary: [String] = [],
         cycleAwarePatternSummary: [String],
         monthlyHighlights: [String],
         symptomTrainingNotes: [String],
@@ -94,6 +101,7 @@ public struct TrainingReportContent: Sendable, Equatable {
     ) {
         self.generatedAt = generatedAt
         self.overview = overview
+        self.sessionSummary = sessionSummary
         self.cycleAwarePatternSummary = cycleAwarePatternSummary
         self.monthlyHighlights = monthlyHighlights
         self.symptomTrainingNotes = symptomTrainingNotes
@@ -103,20 +111,27 @@ public struct TrainingReportContent: Sendable, Equatable {
     }
 
     /// A valid empty-state report — no logged data in range.
+    ///
+    /// Still narrates the (empty) overview, so an empty report reads as a
+    /// deliberate "nothing was logged in this window" rather than a blank
+    /// page that looks like a rendering failure.
     public static func empty(
         generatedAt: Date = Date(),
         rangeStart: Date,
-        rangeEnd: Date
+        rangeEnd: Date,
+        calendar: Calendar = .current
     ) -> TrainingReportContent {
-        TrainingReportContent(
+        let overview = Overview(
+            rangeStart: rangeStart,
+            rangeEnd: rangeEnd,
+            completedWorkoutCount: 0,
+            totalVolume: 0,
+            personalRecordCount: 0
+        )
+        return TrainingReportContent(
             generatedAt: generatedAt,
-            overview: Overview(
-                rangeStart: rangeStart,
-                rangeEnd: rangeEnd,
-                completedWorkoutCount: 0,
-                totalVolume: 0,
-                personalRecordCount: 0
-            ),
+            overview: overview,
+            sessionSummary: ReportNarrator.narrateOverview(overview, calendar: calendar),
             cycleAwarePatternSummary: [],
             monthlyHighlights: [],
             symptomTrainingNotes: [],
