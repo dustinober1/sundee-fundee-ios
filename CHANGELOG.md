@@ -4,6 +4,37 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Added
+
+- Added a shareable Coach Report: a plain-language PDF summary of sessions,
+  training patterns, and pain and injury history to hand to a coach, trainer,
+  or clinician. Generated on device from Export My Data and shared through the
+  system share sheet.
+- Added a Coach Report window covering the last 30 days, 90 days, or year.
+- Added a Return to Training program for coming back after a break —
+  postpartum, illness, extended time away, or another reason — that starts
+  light and builds back week by week.
+- Added a week-by-week preview of the Return to Training plan before starting
+  it, so the whole load progression is visible up front.
+
+### Changed
+
+- Return-to-lifting load guidance now recognizes non-injury returns alongside
+  pain and injury. Where both apply the more cautious limit is used, and a
+  ramp already in progress is never reset by starting a return.
+
+### Notes
+
+- Cycle phase patterns and symptom notes are left out of the Coach Report
+  unless turned on for that specific report, and the report states on the page
+  when they have been omitted.
+- Coach Reports are built fresh from current data each time and are never
+  generated in the background; nothing leaves the device until you tap share.
+- Every Coach Report states that it describes self-logged training and is not
+  a medical record.
+
 ## [1.6.5] - 2026-05-17
 
 ### Added
