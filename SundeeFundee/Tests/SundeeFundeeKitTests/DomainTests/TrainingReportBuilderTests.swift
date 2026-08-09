@@ -659,7 +659,7 @@ final class TrainingReportBuilderTests: XCTestCase {
         )
 
         XCTAssertEqual(report.sessionSummary, [
-            "2 training sessions were logged between June 1, 2026 to June 29, 2026 — "
+            "2 training sessions were logged between June 1, 2026 and June 29, 2026 — "
                 + "an average of 0.5 per week.",
             "Total training volume over this period was 2,000 (weight lifted × repetitions).",
             "1 new maximum-lift record was logged.",
@@ -676,7 +676,7 @@ final class TrainingReportBuilderTests: XCTestCase {
         )
 
         XCTAssertEqual(report.sessionSummary,
-                       ["No training sessions were logged between June 1, 2026 to June 29, 2026."],
+                       ["No training sessions were logged between June 1, 2026 and June 29, 2026."],
                        "An empty report should say nothing was logged, not render as a blank page")
     }
 

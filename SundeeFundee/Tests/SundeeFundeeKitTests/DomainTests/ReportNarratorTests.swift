@@ -71,7 +71,7 @@ final class ReportNarratorTests: XCTestCase {
     func testOverview_NoSessionsReadsAsDeliberateStatement() {
         XCTAssertEqual(
             narrate(makeOverview(completedWorkoutCount: 0)),
-            ["No training sessions were logged between June 1, 2026 to June 29, 2026."]
+            ["No training sessions were logged between June 1, 2026 and June 29, 2026."]
         )
     }
 
@@ -79,7 +79,7 @@ final class ReportNarratorTests: XCTestCase {
         let sentences = narrate(makeOverview(completedWorkoutCount: 1))
         XCTAssertEqual(
             sentences.first,
-            "1 training session was logged between June 1, 2026 to June 29, 2026 — "
+            "1 training session was logged between June 1, 2026 and June 29, 2026 — "
                 + "an average of 0.2 per week."
         )
     }
@@ -88,7 +88,7 @@ final class ReportNarratorTests: XCTestCase {
         let sentences = narrate(makeOverview(completedWorkoutCount: 12))
         XCTAssertEqual(
             sentences.first,
-            "12 training sessions were logged between June 1, 2026 to June 29, 2026 — "
+            "12 training sessions were logged between June 1, 2026 and June 29, 2026 — "
                 + "an average of 2.9 per week."
         )
     }
@@ -102,7 +102,7 @@ final class ReportNarratorTests: XCTestCase {
             completedWorkoutCount: 3
         ))
 
-        XCTAssertTrue(sentences[0].contains("June 1, 2026 to June 7, 2026"),
+        XCTAssertTrue(sentences[0].contains("June 1, 2026 and June 7, 2026"),
                       "Exclusive end date must be reported as the last covered day, got: \(sentences[0])")
     }
 
@@ -114,7 +114,7 @@ final class ReportNarratorTests: XCTestCase {
         ))
 
         XCTAssertEqual(sentences.first,
-                       "2 training sessions were logged between June 1, 2026 to June 3, 2026.")
+                       "2 training sessions were logged between June 1, 2026 and June 3, 2026.")
         XCTAssertFalse(sentences[0].contains("per week"),
                        "A three-day window cannot support a per-week average")
     }

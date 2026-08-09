@@ -42,7 +42,7 @@ public enum ReportNarrator {
         let inclusiveEnd = calendar.date(byAdding: .day, value: -1, to: overview.rangeEnd)
             ?? overview.rangeEnd
         let window = "\(formatDate(overview.rangeStart, calendar: calendar)) "
-            + "to \(formatDate(max(inclusiveEnd, overview.rangeStart), calendar: calendar))"
+            + "and \(formatDate(max(inclusiveEnd, overview.rangeStart), calendar: calendar))"
 
         if overview.completedWorkoutCount == 0 {
             sentences.append("No training sessions were logged between \(window).")
