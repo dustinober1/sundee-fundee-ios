@@ -24,6 +24,8 @@ public enum TrainingReportBuilder {
     ///     them. Session overview and pain/injury timeline are not considered cycle detail and
     ///     are always included, since those are the sections most useful to share with a
     ///     clinician or trainer.
+    ///   - calendar: Calendar used for date arithmetic in the narrated
+    ///     sentences. Injectable so report prose is deterministic under test.
     public static func build(
         exportedData: ExportedData,
         rangeStart: Date,
@@ -31,7 +33,8 @@ public enum TrainingReportBuilder {
         cycleInsights: [CycleAwareProgressInsight] = [],
         monthlyReviews: [MonthlyReview] = [],
         symptomInsights: [SymptomTrainingInsight] = [],
-        includeCycleDetail: Bool
+        includeCycleDetail: Bool,
+        calendar: Calendar = .current
     ) -> TrainingReportContent {
         let completedWorkouts = exportedData.workouts.filter { workout in
             guard let completedAt = workout.completedAt else { return false }
@@ -52,12 +55,21 @@ public enum TrainingReportBuilder {
             personalRecordCount: recordsInRange.count
         )
 
+        var sessionSummary = ReportNarrator.narrateOverview(overview, calendar: calendar)
+        if let trend = ReportNarrator.narrateVolumeTrend(
+            completedWorkouts: completedWorkouts,
+            rangeStart: rangeStart,
+            rangeEnd: rangeEnd
+        ) {
+            sessionSummary.append(trend)
+        }
+
         let cyclePatternSummary = includeCycleDetail
-            ? cycleInsights.map { "\($0.title): \($0.value) — \($0.subtitle)" }
+            ? cycleInsights.map(ReportNarrator.narrate(cycleInsight:))
             : []
 
         let symptomNotes = includeCycleDetail
-            ? symptomInsights.map(\.message)
+            ? symptomInsights.map(ReportNarrator.narrate(symptomInsight:))
             : []
 
         let monthlyHighlights = Array(
@@ -73,11 +85,12 @@ public enum TrainingReportBuilder {
 
         let rampSummaries = exportedData.returnToLiftingRampRecords
             .filter { $0.dateUpdated >= rangeStart && $0.dateUpdated < rangeEnd }
-            .map(rampSummary)
+            .map(ReportNarrator.narrate(ramp:))
 
         return TrainingReportContent(
             generatedAt: Date(),
             overview: overview,
+            sessionSummary: sessionSummary,
             cycleAwarePatternSummary: cyclePatternSummary,
             monthlyHighlights: monthlyHighlights,
             symptomTrainingNotes: symptomNotes,
@@ -119,11 +132,5 @@ public enum TrainingReportBuilder {
             }
 
         return (painEntries + injuryEntries).sorted { $0.date < $1.date }
-    }
-
-    private static func rampSummary(_ ramp: ReturnToLiftingRampRecord) -> String {
-        let percent = Int((ramp.maxLoadPercent * 100).rounded())
-        return "Week \(ramp.currentWeek) return-to-lifting ramp: \(percent)% of baseline load, "
-            + "\(ramp.maxWorkingSets) working sets max."
     }
 }
