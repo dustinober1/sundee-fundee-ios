@@ -2,8 +2,9 @@
   "mcpServers" : {
     "blitz-iphone" : {
       "args" : [
-        "\/Users\/dustinober\/.blitz\/node-runtime\/bin\/node",
-        "\/Users\/dustinober\/.blitz\/node-runtime\/bin\/iphone-mcp"
+        "\/Users\/dustinober\/.blitz\/node-runtime\/bin\/npx",
+        "-y",
+        "@blitzdev\/iphone-mcp"
       ],
       "command" : "\/Users\/dustinober\/.blitz\/bin\/blitz-detached-mcp",
       "env" : {
