@@ -1,0 +1,164 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Floors, not exact counts. These exist so a run that executes nothing —
+  # a filter that matches no suites, a test target missing files, a bundle
+  # that failed to load — cannot report success. xcodebuild in particular
+  # prints "TEST SUCCEEDED" after executing zero tests, which is
+  # indistinguishable from a real pass without a check like this.
+  #
+  # Raise them as the suite grows. Lowering one should be a deliberate,
+  # explained change in the same PR that removes the tests.
+  MIN_XCTEST: 900
+  MIN_SWIFT_TESTING: 190
+  MIN_IOS_TESTS: 900
+
+jobs:
+  package-tests:
+    name: Package tests (macOS)
+    runs-on: macos-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Show toolchain
+        run: |
+          swift --version
+          xcodebuild -version
+
+      - name: Cache SwiftPM build
+        uses: actions/cache@v4
+        with:
+          path: SundeeFundee/.build
+          key: spm-${{ runner.os }}-${{ hashFiles('SundeeFundee/Package.swift', 'SundeeFundee/Package.resolved') }}
+          restore-keys: spm-${{ runner.os }}-
+
+      - name: Run swift test
+        working-directory: SundeeFundee
+        run: |
+          set -o pipefail
+          set +e
+          swift test 2>&1 | tee "$RUNNER_TEMP/package-tests.log"
+          status=${PIPESTATUS[0]}
+          set -e
+          echo "swift test exit status: $status"
+          exit $status
+
+      - name: Verify tests actually ran
+        if: always()
+        run: |
+          log="$RUNNER_TEMP/package-tests.log"
+          if [ ! -f "$log" ]; then
+            echo "::error::No test log was produced — the test step did not run."
+            exit 1
+          fi
+
+          # Both counts appear once per suite and once as a total; take the largest.
+          xctest=$(grep -oE 'Executed [0-9]+ tests' "$log" | grep -oE '[0-9]+' | sort -rn | head -1)
+          swift_testing=$(grep -oE 'Test run with [0-9]+ tests' "$log" | grep -oE '[0-9]+' | sort -rn | head -1)
+          xctest=${xctest:-0}
+          swift_testing=${swift_testing:-0}
+
+          echo "XCTest executed:        $xctest (floor $MIN_XCTEST)"
+          echo "Swift Testing executed: $swift_testing (floor $MIN_SWIFT_TESTING)"
+
+          failed=0
+          if [ "$xctest" -lt "$MIN_XCTEST" ]; then
+            echo "::error::Only $xctest XCTest tests executed, expected at least $MIN_XCTEST."
+            failed=1
+          fi
+          if [ "$swift_testing" -lt "$MIN_SWIFT_TESTING" ]; then
+            echo "::error::Only $swift_testing Swift Testing tests executed, expected at least $MIN_SWIFT_TESTING."
+            failed=1
+          fi
+          exit $failed
+
+  ios-tests:
+    name: iOS tests (simulator)
+    runs-on: macos-latest
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Show toolchain
+        run: xcodebuild -version
+
+      # Device names change between Xcode releases, so resolve a UDID from
+      # whatever the runner actually has rather than hardcoding a model.
+      - name: Pick an available iOS simulator
+        id: sim
+        run: |
+          udid=$(xcrun simctl list devices available -j \
+            | jq -r '[.devices | to_entries[]
+                      | select(.key | test("iOS"))
+                      | .value[]
+                      | select(.isAvailable and (.name | test("iPhone")))
+                      | .udid] | first // empty')
+          if [ -z "$udid" ]; then
+            echo "::error::No available iPhone simulator on this runner."
+            exit 1
+          fi
+          echo "Using simulator $udid"
+          echo "udid=$udid" >> "$GITHUB_OUTPUT"
+
+      # The Xcode test target lists its sources explicitly, so a test file added
+      # without regenerating the project is invisible to this job. The count
+      # check below is what catches that; this step surfaces it earlier.
+      - name: Run iOS test target
+        working-directory: SundeeFundeeApp
+        run: |
+          set -o pipefail
+          set +e
+          # Do not pass CODE_SIGNING_ALLOWED=NO here. SundeeFundeeTests is
+          # hosted in the app, and stripping signing strips the iCloud
+          # entitlement, so the host crashes on launch before any test runs
+          # ("The test runner crashed before establishing connection").
+          # Simulator builds sign ad-hoc, so no signing setup is needed.
+          xcodebuild test \
+            -project SundeeFundee.xcodeproj \
+            -scheme SundeeFundee \
+            -destination "id=${{ steps.sim.outputs.udid }}" \
+            -only-testing:SundeeFundeeTests \
+            2>&1 | tee "$RUNNER_TEMP/ios-tests.log"
+          status=${PIPESTATUS[0]}
+          set -e
+          echo "xcodebuild exit status: $status"
+          exit $status
+
+      - name: Verify iOS tests actually ran
+        if: always()
+        run: |
+          log="$RUNNER_TEMP/ios-tests.log"
+          if [ ! -f "$log" ]; then
+            echo "::error::No test log was produced — the test step did not run."
+            exit 1
+          fi
+
+          executed=$(grep -oE 'Executed [0-9]+ tests' "$log" | grep -oE '[0-9]+' | sort -rn | head -1)
+          executed=${executed:-0}
+          echo "iOS tests executed: $executed (floor $MIN_IOS_TESTS)"
+
+          if [ "$executed" -lt "$MIN_IOS_TESTS" ]; then
+            echo "::error::Only $executed tests executed on iOS, expected at least $MIN_IOS_TESTS."
+            echo "::error::A stale SundeeFundee.xcodeproj is the usual cause. The test target lists its sources explicitly, so run 'xcodegen generate' in SundeeFundeeApp after adding test files."
+            exit 1
+          fi
+
+      - name: Upload test log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-test-log
+          path: ${{ runner.temp }}/ios-tests.log
+          if-no-files-found: ignore
