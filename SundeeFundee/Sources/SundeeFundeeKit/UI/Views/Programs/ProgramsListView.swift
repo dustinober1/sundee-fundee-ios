@@ -13,6 +13,7 @@ public struct ProgramsListView: View {
     @StateObject private var viewModel = ProgramsListViewModel()
     @State private var showingRecommendationQuiz = false
     @State private var showingAIWorkout = false
+    @State private var showingReturnToTraining = false
 
     public init() {}
 
@@ -35,6 +36,7 @@ public struct ProgramsListView: View {
                     ScrollView {
                         VStack(spacing: AppTheme.Spacing.md) {
                             programRecommendationPrompt
+                            returnToTrainingPrompt
 
                             ForEach(viewModel.programs) { program in
                                 ProgramRow(
@@ -70,6 +72,9 @@ public struct ProgramsListView: View {
                         showingAIWorkout = true
                     }
                 )
+            }
+            .sheet(isPresented: $showingReturnToTraining) {
+                ReturnToTrainingSheet(viewModel: viewModel)
             }
             #if os(iOS)
             .fullScreenCover(isPresented: $showingAIWorkout) {
@@ -128,6 +133,181 @@ public struct ProgramsListView: View {
                 .accessibilityLabel("Open program recommendation quiz")
             }
         }
+    }
+
+    private var returnToTrainingPrompt: some View {
+        ArtDecoCard {
+            HStack(alignment: .top, spacing: AppTheme.Spacing.md) {
+                Image(systemName: "arrow.uturn.backward.circle")
+                    .font(.title3)
+                    .foregroundColor(AppTheme.Accent.orange)
+                    .accessibilityHidden(true)
+
+                VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                    Text("Coming Back After a Break")
+                        .font(AppTheme.Typography.headlineMedium)
+                        .foregroundColor(AppTheme.Text.primary)
+
+                    Text(viewModel.isReturnToTrainingEnrolled
+                        ? "You're on a structured return. Tap to review the weekly plan."
+                        : "A gentle, structured return that starts light and builds back week by week.")
+                        .font(AppTheme.Typography.bodySmall)
+                        .foregroundColor(AppTheme.Text.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
+                Spacer()
+
+                Button {
+                    showingReturnToTraining = true
+                } label: {
+                    Image(systemName: "chevron.right")
+                        .font(.headline)
+                }
+                .buttonStyle(.plain)
+                .foregroundColor(AppTheme.Accent.gold)
+                .accessibilityLabel("Set up a return to training program")
+            }
+        }
+    }
+}
+
+// MARK: - ReturnToTrainingSheet
+
+@available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
+private struct ReturnToTrainingSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @ObservedObject var viewModel: ProgramsListViewModel
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: AppTheme.Spacing.lg) {
+                    reasonCard
+                    planSummaryCard
+                    weekByWeekCard
+                    startButton
+                }
+                .padding(AppTheme.Spacing.lg)
+            }
+            .navigationTitle("Return to Training")
+            #if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Done") { dismiss() }
+                }
+            }
+        }
+    }
+
+    private var reasonCard: some View {
+        ArtDecoCard {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
+                Text("What are you coming back from?")
+                    .font(AppTheme.Typography.headlineMedium)
+                    .foregroundColor(AppTheme.Text.primary)
+
+                Picker("Coming back from", selection: $viewModel.returnToTrainingReason) {
+                    ForEach(TrainingBreakReason.allCases) { reason in
+                        Text(reason.displayName).tag(reason)
+                    }
+                }
+                .accessibilityHint("Sets how light the first weeks start")
+
+                Text("This only changes where the plan starts and how long it takes to build "
+                    + "back. Go by how you're feeling, and skip or repeat a week whenever you "
+                    + "need to.")
+                    .font(AppTheme.Typography.bodySmall)
+                    .foregroundColor(AppTheme.Text.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+
+    private var planSummaryCard: some View {
+        ArtDecoCard {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                Text(viewModel.returnToTrainingPreview.name)
+                    .font(AppTheme.Typography.headlineMedium)
+                    .foregroundColor(AppTheme.Text.primary)
+
+                Text("\(viewModel.returnToTrainingPreview.durationWeeks) weeks · "
+                    + "\(viewModel.returnToTrainingPreview.sessionsPerWeek) sessions a week")
+                    .font(AppTheme.Typography.labelLarge)
+                    .foregroundColor(AppTheme.Text.secondary)
+
+                if let first = viewModel.returnToTrainingWeeks.first {
+                    Text(first.focus)
+                        .font(AppTheme.Typography.bodySmall)
+                        .foregroundColor(AppTheme.Text.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(.top, AppTheme.Spacing.xs)
+                }
+            }
+        }
+    }
+
+    private var weekByWeekCard: some View {
+        ArtDecoCard {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
+                Text("Week by Week")
+                    .font(AppTheme.Typography.headlineMedium)
+                    .foregroundColor(AppTheme.Text.primary)
+
+                ForEach(viewModel.returnToTrainingWeeks, id: \.week) { week in
+                    HStack(alignment: .firstTextBaseline) {
+                        Text("Week \(week.week)")
+                            .font(AppTheme.Typography.bodySmall)
+                            .foregroundColor(AppTheme.Text.primary)
+
+                        Text(week.phaseName)
+                            .font(AppTheme.Typography.bodySmall)
+                            .foregroundColor(AppTheme.Text.secondary)
+
+                        Spacer()
+
+                        Text("\(Int((week.loadPercent * 100).rounded()))%")
+                            .font(AppTheme.Typography.monoMedium)
+                            .foregroundColor(AppTheme.Text.secondary)
+                    }
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel(
+                        "Week \(week.week), \(week.phaseName), "
+                            + "\(Int((week.loadPercent * 100).rounded())) percent of usual working weight"
+                    )
+                }
+            }
+        }
+    }
+
+    private var startButton: some View {
+        Button {
+            Task {
+                await viewModel.enrollInReturnToTraining()
+                if viewModel.isReturnToTrainingEnrolled { dismiss() }
+            }
+        } label: {
+            HStack {
+                Spacer()
+                if viewModel.isEnrollingReturnToTraining {
+                    ProgressView()
+                        .padding(.trailing, AppTheme.Spacing.sm)
+                        .accessibilityLabel("Starting program")
+                }
+                Text(startButtonTitle)
+                    .font(AppTheme.Typography.labelLarge)
+                Spacer()
+            }
+            .padding(.vertical, AppTheme.Spacing.sm)
+        }
+        .disabled(viewModel.isEnrollingReturnToTraining)
+    }
+
+    private var startButtonTitle: String {
+        if viewModel.isEnrollingReturnToTraining { return "Starting..." }
+        return viewModel.isReturnToTrainingEnrolled ? "Update This Program" : "Start This Program"
     }
 }
 
@@ -1475,6 +1655,26 @@ class ProgramsListViewModel: ObservableObject {
     @Published var recommendationEquipment: EquipmentAccess = .fullGym
     @Published var programRecommendations: [ProgramRecommendation] = []
 
+    // MARK: - Return to Training
+    //
+    // Held separately from `programs` because this block is not part of the
+    // printable catalog the content client serves — it is generated per person
+    // from the selected break reason, so there is nothing to bundle.
+
+    @Published var returnToTrainingReason: TrainingBreakReason = .extendedTimeOff
+    @Published var isEnrollingReturnToTraining: Bool = false
+    @Published var isReturnToTrainingEnrolled: Bool = false
+
+    /// The block that would be generated for the currently-selected reason.
+    var returnToTrainingPreview: GeneratedProgram {
+        generateReturnToTrainingProgram(breakReason: returnToTrainingReason)
+    }
+
+    /// Week-by-week load plan for the currently-selected reason.
+    var returnToTrainingWeeks: [ReturnToTrainingWeek] {
+        ReturnToTrainingSchedule.weeks(for: returnToTrainingReason)
+    }
+
     /// Persists across CloudKit re-fetches so optimistically-enrolled programs
     /// stay visible even while CloudKit index lag hasn't caught up yet.
     private var knownEnrolledIds: Set<String> = []
@@ -1522,6 +1722,7 @@ class ProgramsListViewModel: ObservableObject {
         // Merge with locally-known enrolled IDs so CloudKit index lag doesn't
         // wipe enrollment state on every tab switch.
         enrolledIds = enrolledIds.union(knownEnrolledIds)
+        isReturnToTrainingEnrolled = enrolledIds.contains(returnToTrainingProgramID)
 
         do {
             let contentPrograms = try await contentClient.fetchPrograms()
@@ -1606,6 +1807,28 @@ class ProgramsListViewModel: ObservableObject {
             }
         } catch {
             errorMessage = "We couldn't enroll you in that program. Check your connection and try again."
+        }
+    }
+
+    /// Enrolls in a return-to-training block for the selected break reason.
+    ///
+    /// Separate from `enrollInProgram` because that method resolves the program
+    /// name out of `programs`, and this block deliberately does not live there.
+    func enrollInReturnToTraining() async {
+        isEnrollingReturnToTraining = true
+        defer { isEnrollingReturnToTraining = false }
+
+        do {
+            let record = EnrolledProgramRecord(
+                id: returnToTrainingProgramID,
+                name: returnToTrainingPreview.name,
+                isActive: true
+            )
+            try await dataClient.save(record, recordType: "EnrolledProgramRecord")
+            knownEnrolledIds.insert(returnToTrainingProgramID)
+            isReturnToTrainingEnrolled = true
+        } catch {
+            errorMessage = "We couldn't start that program. Check your connection and try again."
         }
     }
 
