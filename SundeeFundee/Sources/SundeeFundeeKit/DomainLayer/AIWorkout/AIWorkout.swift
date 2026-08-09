@@ -76,7 +76,7 @@ public struct QuestionnaireAnswers: Codable, Sendable, Equatable {
 }
 
 /// Movement-pattern metadata used by deterministic workout generation.
-public enum WorkoutMovementPattern: String, Codable, Sendable {
+public enum WorkoutMovementPattern: String, Codable, Sendable, CaseIterable {
     case squat
     case hinge
     case push
