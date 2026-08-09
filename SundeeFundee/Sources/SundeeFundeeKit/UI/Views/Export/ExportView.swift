@@ -18,6 +18,9 @@ public struct ExportView: View {
     public var body: some View {
         List {
             dataCategoriesSection
+            #if canImport(UIKit)
+            coachReportSection
+            #endif
             exportSection
             if let error = viewModel.errorMessage {
                 errorSection(error)
@@ -59,6 +62,60 @@ public struct ExportView: View {
             }
         }
     }
+
+    // MARK: - Coach Report Section
+
+    #if canImport(UIKit)
+    private var coachReportSection: some View {
+        Section {
+            Picker("Time period", selection: $viewModel.reportRange) {
+                ForEach(TrainingReportRange.allCases) { range in
+                    Text(range.displayName).tag(range)
+                }
+            }
+            .accessibilityHint("Choose how far back the report covers")
+
+            Toggle(isOn: $viewModel.includeCycleDetailInReport) {
+                VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                    Text("Include cycle details")
+                        .foregroundColor(AppTheme.Text.primary)
+                    Text("Adds cycle phase patterns and symptom notes. Off by default.")
+                        .font(AppTheme.Typography.bodySmall)
+                        .foregroundColor(AppTheme.Text.secondary)
+                }
+            }
+            .accessibilityHint("Cycle phase and symptom information is left out unless you turn this on")
+
+            Button {
+                Task {
+                    if let fileURL = await viewModel.generateReportPDF() {
+                        shareFileURL = ShareFileURL(url: fileURL)
+                    }
+                }
+            } label: {
+                HStack {
+                    Spacer()
+                    if viewModel.isGeneratingReport {
+                        ProgressView()
+                            .padding(.trailing, AppTheme.Spacing.sm)
+                            .accessibilityLabel("Preparing report")
+                    }
+                    Text(viewModel.isGeneratingReport ? "Preparing..." : "Share Training Report")
+                        .font(AppTheme.Typography.labelLarge)
+                    Spacer()
+                }
+                .padding(.vertical, AppTheme.Spacing.sm)
+            }
+            .disabled(viewModel.isGeneratingReport)
+            .accessibilityHint("Generate a PDF summary to share with a coach or clinician")
+        } header: {
+            Text("Coach Report")
+        } footer: {
+            Text("A plain-language PDF summary of your training, for a coach, trainer, or clinician. "
+                + "Nothing is generated or sent until you tap share.")
+        }
+    }
+    #endif
 
     // MARK: - Export Section
 

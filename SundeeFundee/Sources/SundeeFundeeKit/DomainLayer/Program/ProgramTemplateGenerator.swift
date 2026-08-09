@@ -137,6 +137,119 @@ public func generateProgram(
     }
 }
 
+// MARK: - Return to Training
+
+/// Stable identifier for generated return-to-training programs.
+///
+/// Deliberately not a `ProgramTemplate` case. That enum is the printable PDF
+/// catalog — every case maps to a fixed plan hosted on the website, and the
+/// generator tests enforce it. A return-to-training block has no fixed plan to
+/// print: its loads are derived per person from the break reason, so it is
+/// generated on demand instead of bundled as static content.
+public let returnToTrainingProgramID = "return-to-training"
+
+/// Generate a return-to-training program for a non-injury break.
+///
+/// Week-by-week loads come from `ReturnToTrainingSchedule`, which advances the
+/// same ramp the injury path uses, so nothing here is a hand-authored
+/// percentage table. Program length follows from the starting point: a more
+/// cautious return produces a longer block rather than a steeper climb.
+///
+/// `percent1RM` carries the ramp's meaning here — a fraction of the person's
+/// usual working load, not a tested one-rep max. The return block never asks
+/// for a max test.
+public func generateReturnToTrainingProgram(
+    breakReason: TrainingBreakReason
+) -> GeneratedProgram {
+    let schedule = ReturnToTrainingSchedule.weeks(for: breakReason)
+
+    let weeks = schedule.map { week in
+        GeneratedProgramWeek(
+            week: week.week,
+            phaseId: "week-\(week.week)",
+            sessions: returnToTrainingSessions(for: week).enumerated().map { dayIndex, spec in
+                GeneratedProgramSession(
+                    sessionId: "w\(week.week)d\(dayIndex + 1)",
+                    sessionName: "Day \(dayIndex + 1) - \(spec.name)",
+                    sessionType: "strength",
+                    focus: spec.focus,
+                    exercises: spec.exercises
+                )
+            }
+        )
+    }
+
+    let phases = schedule.map { week in
+        GeneratedProgramPhase(
+            id: "week-\(week.week)",
+            name: week.phaseName,
+            goal: week.focus,
+            weekRange: [week.week, week.week]
+        )
+    }
+
+    return GeneratedProgram(
+        id: returnToTrainingProgramID,
+        name: "Return to Training",
+        category: "Return to Training",
+        description: "A \(schedule.count)-week structured return that starts light and builds back "
+            + "week by week, paced by how you're feeling. \(breakReason.programOpening)",
+        durationWeeks: schedule.count,
+        sessionsPerWeek: 3,
+        difficulty: "Beginner",
+        phases: phases,
+        weeks: weeks
+    )
+}
+
+/// Three full-body sessions, identical in shape every week so the movements
+/// stay familiar; only the load and set caps move.
+private func returnToTrainingSessions(for week: ReturnToTrainingWeek) -> [ProgramSessionSpec] {
+    let sets = week.workingSets
+    let load = week.loadPercent
+
+    return [
+        ProgramSessionSpec(name: "Full Body A", focus: "full body", exercises: [
+            rampedExercise("Goblet Squat", sets: sets, reps: .range(low: 8, high: 10), percent: load),
+            rampedExercise("Dumbbell Bench Press", sets: sets, reps: .range(low: 8, high: 10), percent: load),
+            rampedExercise("Seated Cable Row", sets: sets, reps: .range(low: 10, high: 12), percent: load),
+            makeExercise("Dead Bug", sets: 2, reps: .text(value: "6/side"), rest: 1.0, bodyweight: true),
+            makeExercise("Farmers Carry", sets: 2, reps: .text(value: "30 sec"), rest: 1.0),
+        ]),
+        ProgramSessionSpec(name: "Hinge + Press", focus: "hinge", exercises: [
+            rampedExercise("Dumbbell Romanian Deadlift", sets: sets, reps: .range(low: 8, high: 10), percent: load),
+            rampedExercise("Dumbbell Overhead Press", sets: sets, reps: .range(low: 8, high: 10), percent: load),
+            rampedExercise("Lat Pulldown", sets: sets, reps: .range(low: 10, high: 12), percent: load),
+            makeExercise("Glute Bridge", sets: 2, reps: .range(low: 10, high: 12), rest: 1.0, bodyweight: true),
+            makeExercise("Side Plank", sets: 2, reps: .text(value: "20 sec/side"), rest: 1.0, bodyweight: true),
+        ]),
+        ProgramSessionSpec(name: "Unilateral + Carry", focus: "unilateral", exercises: [
+            rampedExercise("Box Step-Up", sets: sets, reps: .text(value: "8/side"), percent: load),
+            rampedExercise("Half-Kneeling Dumbbell Press", sets: sets, reps: .text(value: "8/side"), percent: load),
+            rampedExercise("Supported Dumbbell Row", sets: sets, reps: .text(value: "10/side"), percent: load),
+            makeExercise("Pallof Press", sets: 2, reps: .text(value: "10/side"), rest: 1.0),
+            makeExercise("Incline Walk", sets: 1, reps: .text(value: "8 min"), rest: 0.5, bodyweight: true),
+        ]),
+    ]
+}
+
+private func rampedExercise(
+    _ name: String,
+    sets: Int,
+    reps: ExerciseValue,
+    percent: Double,
+    rest: Double = 1.5
+) -> GeneratedProgramExercise {
+    GeneratedProgramExercise(
+        exercise: name,
+        sets: .fixed(value: sets),
+        reps: reps,
+        percent1RM: percent,
+        restMinutes: rest,
+        bodyweightOnly: false
+    )
+}
+
 // MARK: - Private Helpers
 
 func templateDisplayName(_ template: ProgramTemplate) -> String {

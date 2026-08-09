@@ -43,16 +43,27 @@ public enum ReturnToLiftingRampService {
 
     // MARK: - Recommendations
 
-    /// Generate ramp recommendations for the current pain/injury state.
+    /// Generate ramp recommendations for the current pain/injury state, and
+    /// optionally for a return to training after a non-injury break.
     ///
     /// Priority:
     /// 1. Existing ramp records override computed recommendations.
     /// 2. Active severe/moderate pain computes conservative caps.
     /// 3. Resolved injuries start at 50–60% for their patterns.
+    /// 4. A break reason, if given, applies to every movement pattern.
+    ///
+    /// Steps 1–3 are unchanged from the injury-only behavior. Step 4 runs last
+    /// and is skipped entirely when `breakReason` is nil, so nothing about the
+    /// injury path moves.
+    ///
+    /// - Parameter breakReason: Why the person is returning, when the return
+    ///   is not injury-driven. Unlike an injury, a break has no affected body
+    ///   region, so it caps every pattern rather than a mapped subset.
     public static func recommendations(
         painLogs: [DailyPainLog],
         injuries: [Injury],
-        activeRamps: [ReturnToLiftingRampRecord]
+        activeRamps: [ReturnToLiftingRampRecord],
+        breakReason: TrainingBreakReason? = nil
     ) -> [ReturnToLiftingRampRecommendation] {
         var recommendations: [WorkoutMovementPattern: ReturnToLiftingRampRecommendation] = [:]
 
@@ -111,6 +122,15 @@ public enum ReturnToLiftingRampService {
             }
         }
 
+        // Step 4: Apply a non-injury return across every movement pattern.
+        if let breakReason {
+            applyBreakReason(
+                breakReason,
+                to: &recommendations,
+                skipping: rampedPatterns
+            )
+        }
+
         return Array(recommendations.values)
             .sorted { $0.movementPattern.rawValue < $1.movementPattern.rawValue }
     }
@@ -145,6 +165,44 @@ public enum ReturnToLiftingRampService {
     }
 
     // MARK: - Private Helpers
+
+    /// Caps every movement pattern for a non-injury return.
+    ///
+    /// Runs after the injury steps so their behavior is untouched. Patterns
+    /// already governed by an active ramp record are skipped: that record
+    /// tracks progress the person has already earned, and a newly-selected
+    /// break reason should not walk it back.
+    private static func applyBreakReason(
+        _ breakReason: TrainingBreakReason,
+        to recommendations: inout [WorkoutMovementPattern: ReturnToLiftingRampRecommendation],
+        skipping rampedPatterns: Set<WorkoutMovementPattern>
+    ) {
+        for pattern in WorkoutMovementPattern.allCases where !rampedPatterns.contains(pattern) {
+            let fromBreak = ReturnToLiftingRampRecommendation(
+                movementPattern: pattern,
+                maxLoadPercent: breakReason.startingLoadPercent,
+                maxWorkingSets: breakReason.startingWorkingSets,
+                reason: breakReason.rampReason(for: pattern)
+            )
+
+            guard let existing = recommendations[pattern] else {
+                recommendations[pattern] = fromBreak
+                continue
+            }
+
+            // Both a break and current pain/injury apply here. Take the more
+            // cautious value on each axis, and show the reason belonging to
+            // whichever one set the load, so the explanation always matches
+            // the number next to it.
+            let breakIsMoreCautious = fromBreak.maxLoadPercent < existing.maxLoadPercent
+            recommendations[pattern] = ReturnToLiftingRampRecommendation(
+                movementPattern: pattern,
+                maxLoadPercent: min(existing.maxLoadPercent, fromBreak.maxLoadPercent),
+                maxWorkingSets: min(existing.maxWorkingSets, fromBreak.maxWorkingSets),
+                reason: breakIsMoreCautious ? fromBreak.reason : existing.reason
+            )
+        }
+    }
 
     private static func recommendationForPain(
         intensity: Int,
