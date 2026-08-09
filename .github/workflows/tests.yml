@@ -127,12 +127,10 @@ jobs:
           # entitlement, so the host crashes on launch before any test runs
           # ("The test runner crashed before establishing connection").
           # Simulator builds sign ad-hoc, so no signing setup is needed.
-          # StoreKitSupportTipStoreIntegrationTests drives a real SKTestSession
-          # purchase and hangs indefinitely in a headless simulator — it stalled
-          # a CI run for 41 minutes until the job timeout, and does the same
-          # locally. It is iOS-only, so `swift test` never reaches it either.
-          # Skipped here so the rest of the target can run; the hang itself is
-          # a separate bug worth fixing.
+          # StoreKitSupportTipStoreIntegrationTests hangs in a unit-test host and
+          # blocks every test queued behind it — un-skipping it took the executed
+          # count from 959 down to 39 before the job timeout. The cause is
+          # documented in that file; skip stays until it is actually fixed.
           xcodebuild test \
             -project SundeeFundee.xcodeproj \
             -scheme SundeeFundee \
