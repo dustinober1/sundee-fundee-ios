@@ -14,9 +14,7 @@ import XCTest
 ///   [SKTestSession] Error saving configuration file: SKInternalErrorDomain Code=3
 ///   [Default] Could not find a UI anchor for ...support.tip199 purchase
 ///
-/// `SKTestSession(contentsOf:)` is handed an absolute path into the source tree
-/// derived from `#filePath`. The sandboxed simulator app cannot write there, so
-/// the session fails to initialize, `disableDialogs` never applies, and
+/// `SKTestSession` fails to initialize, so `disableDialogs` never applies, and
 /// `purchase()` then blocks waiting on confirmation UI that a unit-test host
 /// has no scene to present. The process is eventually killed.
 ///
@@ -25,15 +23,24 @@ import XCTest
 /// same locally. That is why the iOS suite had never been run in this repo
 /// before CI existed.
 ///
-/// Ruled out while diagnosing:
-///   - The scheme's test-action StoreKit configuration competing with the
-///     session. Removing it does not change the Code=3 failure.
-///   - Bounding the calls with a task-group timeout. StoreKit blocks rather
-///     than suspends, starving the sibling sleep, so it never fires.
+/// Ruled out by experiment. Do not retry these:
+///   1. The scheme's test-action StoreKit configuration competing with the
+///      session. Removing it leaves Code=3 unchanged.
+///   2. Dropping SKTestSession and relying on the scheme instead. Strictly
+///      worse — only the session can set disableDialogs, so purchase() is then
+///      guaranteed to need UI.
+///   3. Bounding the calls with a task-group timeout. StoreKit blocks the
+///      executor rather than suspending, so the sibling sleep never runs.
+///   4. Bundling the .storekit as a test-target resource and using
+///      `SKTestSession(configurationFileNamed:)`. Identical Code=3, which also
+///      disproves the theory that an unwritable source path was the cause —
+///      the path is not the problem.
 ///
-/// Likely fix, not yet attempted: add SundeeFundee.storekit to the test
-/// target's resources and use `SKTestSession(configurationFileNamed:)`, so the
-/// session reads a bundled copy instead of an unwritable source path.
+/// What the evidence now says: SKTestSession cannot initialize at all in this
+/// simulator/Xcode environment, independent of where the configuration comes
+/// from. Anyone picking this up should start there — check whether
+/// SKTestSession works in a trivial standalone test target — rather than
+/// adjusting configuration plumbing again.
 @available(iOS 18.0, *)
 final class StoreKitSupportTipStoreIntegrationTests: XCTestCase {
     private var session: SKTestSession?
