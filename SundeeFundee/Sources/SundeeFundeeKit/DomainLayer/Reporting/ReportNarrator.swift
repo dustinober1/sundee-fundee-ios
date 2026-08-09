@@ -36,13 +36,8 @@ public enum ReportNarrator {
     ) -> [String] {
         var sentences: [String] = []
 
-        // The report range is half-open (end exclusive), so the last day a
-        // session could have landed on is the day before rangeEnd. Printing
-        // rangeEnd itself would claim a day the report does not actually cover.
-        let inclusiveEnd = calendar.date(byAdding: .day, value: -1, to: overview.rangeEnd)
-            ?? overview.rangeEnd
         let window = "\(formatDate(overview.rangeStart, calendar: calendar)) "
-            + "and \(formatDate(max(inclusiveEnd, overview.rangeStart), calendar: calendar))"
+            + "and \(formatDate(lastCoveredDay(of: overview.rangeEnd, notBefore: overview.rangeStart, calendar: calendar), calendar: calendar))"
 
         if overview.completedWorkoutCount == 0 {
             sentences.append("No training sessions were logged between \(window).")
@@ -183,6 +178,43 @@ public enum ReportNarrator {
             + "\(setWord) per exercise."
     }
 
+    // MARK: - Shared Date Formatting
+
+    /// Formats a single date in the report's date style.
+    public static func formatDate(_ date: Date, calendar: Calendar = .current) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.calendar = calendar
+        formatter.timeZone = calendar.timeZone
+        formatter.dateFormat = "MMMM d, yyyy"
+        return formatter.string(from: date)
+    }
+
+    /// A label for the report's window, e.g. "June 1, 2026 – June 29, 2026".
+    public static func dateRangeLabel(
+        rangeStart: Date,
+        rangeEnd: Date,
+        calendar: Calendar = .current
+    ) -> String {
+        let end = lastCoveredDay(of: rangeEnd, notBefore: rangeStart, calendar: calendar)
+        return "\(formatDate(rangeStart, calendar: calendar)) – \(formatDate(end, calendar: calendar))"
+    }
+
+    /// The last day the report actually covers.
+    ///
+    /// Report ranges are half-open (end exclusive), so the final covered day
+    /// is the day before `rangeEnd`. Printing `rangeEnd` itself would claim a
+    /// day of data the report does not include. Single source of truth for
+    /// this rule — every date shown to a reader goes through here.
+    private static func lastCoveredDay(
+        of rangeEnd: Date,
+        notBefore rangeStart: Date,
+        calendar: Calendar
+    ) -> Date {
+        let previousDay = calendar.date(byAdding: .day, value: -1, to: rangeEnd) ?? rangeEnd
+        return max(previousDay, rangeStart)
+    }
+
     // MARK: - Private Helpers
 
     /// Average sessions per week, or nil when the window is too short for the
@@ -226,14 +258,5 @@ public enum ReportNarrator {
         formatter.groupingSeparator = ","
         formatter.groupingSize = 3
         return formatter.string(from: NSNumber(value: value)) ?? "\(Int(value))"
-    }
-
-    private static func formatDate(_ date: Date, calendar: Calendar) -> String {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.calendar = calendar
-        formatter.timeZone = calendar.timeZone
-        formatter.dateFormat = "MMMM d, yyyy"
-        return formatter.string(from: date)
     }
 }
