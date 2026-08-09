@@ -69,6 +69,23 @@ public enum TrainingBreakReason: String, Codable, Sendable, CaseIterable, Identi
         }
     }
 
+    /// One-line framing for the opening week of a return-to-training program.
+    ///
+    /// Describes the shape of the plan, never a timeline or a claim about the
+    /// person's body.
+    public var programOpening: String {
+        switch self {
+        case .postpartum:
+            return "A gentle, structured return, paced by how you're feeling."
+        case .illness:
+            return "A steady return after being unwell, paced by your energy."
+        case .extendedTimeOff:
+            return "A structured return after time away from training."
+        case .other:
+            return "A gentle, structured return, paced by how you're feeling."
+        }
+    }
+
     /// Non-clinical explanation of why the first weeks are lighter.
     ///
     /// Describes the plan, never the body. No claims about what is happening
