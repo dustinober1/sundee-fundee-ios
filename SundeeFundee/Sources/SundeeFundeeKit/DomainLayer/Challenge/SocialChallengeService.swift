@@ -57,4 +57,33 @@ public actor SocialChallengeService {
     public func saveReaction(_ reaction: ChallengeReaction) async throws {
         try await publicClient.save(reaction, recordType: "ChallengeReaction")
     }
+
+    /// Reactions left on a shared challenge invite, newest first.
+    ///
+    /// `saveReaction` has had no caller anywhere in the app; this is its
+    /// missing read counterpart. No UI reads this yet — displaying it needs
+    /// a stable invite token recorded on the local `Challenge`, which today
+    /// only exists as a short-lived local variable at share and join time.
+    public func fetchReactions(inviteToken: String) async throws -> [ChallengeReaction] {
+        let predicate = NSPredicate(format: "inviteToken == %@", inviteToken.uppercased())
+        let reactions: [ChallengeReaction] = try await publicClient.fetch(
+            recordType: "ChallengeReaction",
+            predicate: predicate,
+            sortDescriptors: [NSSortDescriptor(key: "dateCreated", ascending: false)]
+        )
+        return reactions
+    }
+
+    /// Progress snapshots participants have posted for a shared challenge
+    /// invite, most recent first. See `fetchReactions` for the same caveat:
+    /// nothing writes these outside of tests today, and no UI reads them.
+    public func fetchProgressSnapshots(inviteToken: String) async throws -> [SocialChallengeProgressSnapshot] {
+        let predicate = NSPredicate(format: "inviteToken == %@", inviteToken.uppercased())
+        let snapshots: [SocialChallengeProgressSnapshot] = try await publicClient.fetch(
+            recordType: "SocialChallengeProgressSnapshot",
+            predicate: predicate,
+            sortDescriptors: [NSSortDescriptor(key: "dateCreated", ascending: false)]
+        )
+        return snapshots
+    }
 }
