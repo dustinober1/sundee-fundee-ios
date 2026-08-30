@@ -330,6 +330,7 @@ DEFINE SCHEMA
         "___modTime"         TIMESTAMP,
         "___modifiedBy"      REFERENCE,
         "___recordID"        REFERENCE QUERYABLE,
+        barWeight            DOUBLE,
         cycleTrackingEnabled INT64 QUERYABLE SORTABLE,
         experienceLevel      STRING QUERYABLE SEARCHABLE SORTABLE,
         primaryGoal          STRING QUERYABLE SEARCHABLE SORTABLE,
