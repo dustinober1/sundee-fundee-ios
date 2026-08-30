@@ -33,4 +33,24 @@ final class DeepLinkRouterTests: XCTestCase {
 
         XCTAssertNil(route)
     }
+
+    func testParsesReadinessDetailRoute() {
+        let route = DeepLinkRouter.route(for: URL(string: "sundeefundee://today/readiness")!)
+
+        XCTAssertEqual(route, .readinessDetail)
+    }
+
+    func testReadinessDetailRouteTargetsTodayAndOpensReadinessDetailOnly() {
+        let route = DeepLinkRouter.route(for: URL(string: "sundeefundee://today/readiness")!)
+
+        XCTAssertEqual(route?.targetTab, .today)
+        XCTAssertTrue(route?.opensReadinessDetail == true)
+        XCTAssertFalse(route?.opensQuickCheckIn == true)
+    }
+
+    func testReadinessDetailRouteURLRoundTrips() {
+        let url = DeepLinkRouter.url(for: .readinessDetail)
+
+        XCTAssertEqual(DeepLinkRouter.route(for: url), .readinessDetail)
+    }
 }
