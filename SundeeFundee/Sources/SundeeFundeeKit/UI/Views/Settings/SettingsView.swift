@@ -45,6 +45,12 @@ public struct SettingsView: View {
                         Text("Weight Loss").tag(PrimaryGoal.weightLoss)
                     }
 
+                    Picker("Experience Level", selection: $viewModel.experienceLevel) {
+                        Text(ExperienceLevel.beginner.displayName).tag(ExperienceLevel.beginner)
+                        Text(ExperienceLevel.intermediate.displayName).tag(ExperienceLevel.intermediate)
+                        Text(ExperienceLevel.advanced.displayName).tag(ExperienceLevel.advanced)
+                    }
+
                     Picker("Default Equipment", selection: $viewModel.defaultEquipment) {
                         ForEach(EquipmentAccess.userSelectableDefaults, id: \.self) { equipment in
                             Text(equipment.displayName).tag(equipment)
@@ -68,6 +74,7 @@ public struct SettingsView: View {
                 }
                 .onChange(of: viewModel.weightUnit) { _, _ in Task { await viewModel.saveSettings() } }
                 .onChange(of: viewModel.primaryGoal) { _, _ in Task { await viewModel.saveSettings() } }
+                .onChange(of: viewModel.experienceLevel) { _, _ in Task { await viewModel.saveSettings() } }
                 .onChange(of: viewModel.defaultEquipment) { _, _ in Task { await viewModel.saveSettings() } }
                 .onChange(of: viewModel.cycleTrackingEnabled) { _, _ in Task { await viewModel.saveSettings() } }
 
@@ -294,6 +301,22 @@ public enum ExperienceLevel: String, Codable, Sendable {
     case beginner
     case intermediate
     case advanced
+
+    public var displayName: String {
+        switch self {
+        case .beginner: return "Beginner"
+        case .intermediate: return "Intermediate"
+        case .advanced: return "Advanced"
+        }
+    }
+
+    public var shortDescription: String {
+        switch self {
+        case .beginner: return "New to lifting, or returning after a long break"
+        case .intermediate: return "Consistent training for 6+ months"
+        case .advanced: return "Years of structured training experience"
+        }
+    }
 }
 
 public enum PrimaryGoal: String, Codable, Sendable {
@@ -359,7 +382,7 @@ class SettingsViewModel: ObservableObject {
     @Published var isLoaded: Bool = false
     @Published var cycleTrackingEnabled: Bool = false
     @Published var weightUnit: WeightUnit = .lbs
-    @Published var experienceLevel: ExperienceLevel = .intermediate
+    @Published var experienceLevel: ExperienceLevel = .beginner
     @Published var primaryGoal: PrimaryGoal = .strength
     @Published var defaultEquipment: EquipmentAccess = .fullGym
     @Published var equipmentProfiles: [EquipmentProfile] = []
@@ -402,7 +425,7 @@ class SettingsViewModel: ObservableObject {
             if let settings = records.last {
                 cycleTrackingEnabled = settings.cycleTrackingEnabled
                 weightUnit = WeightUnit(rawValue: settings.weightUnit) ?? .lbs
-                experienceLevel = ExperienceLevel(rawValue: settings.experienceLevel) ?? .intermediate
+                experienceLevel = ExperienceLevel(rawValue: settings.experienceLevel) ?? .beginner
                 primaryGoal = PrimaryGoal(rawValue: settings.primaryGoal) ?? .strength
                 defaultEquipment = settings.defaultEquipment
             }
