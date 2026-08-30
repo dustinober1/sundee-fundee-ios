@@ -1869,11 +1869,7 @@ extension PrimaryGoal {
 extension ExperienceLevel {
     fileprivate static let recommendationChoices: [ExperienceLevel] = [.beginner, .intermediate, .advanced]
 
-    fileprivate var displayName: String {
-        switch self {
-        case .beginner: return "Beginner"
-        case .intermediate: return "Intermediate"
-        case .advanced: return "Advanced"
-        }
-    }
+    // displayName lives on ExperienceLevel itself (SettingsView.swift) —
+    // this file used to duplicate it as a fileprivate extension, which the
+    // compiler rejects as a redeclaration now that the type has a real one.
 }
