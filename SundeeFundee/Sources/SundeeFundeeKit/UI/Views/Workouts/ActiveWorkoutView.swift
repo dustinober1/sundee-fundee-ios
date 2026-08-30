@@ -541,6 +541,14 @@ public struct ActiveWorkoutView: View {
                         if exercise.bodyweight == 0 {
                             weightInputSection(prescribedWeight: set.prescribedWeight)
                                 .padding(.top, AppTheme.Spacing.xs)
+
+                            if viewModel.weightUnit == .lbs, isBarbellExercise(exercise.name) {
+                                PlateBreakdownView(
+                                    targetWeight: Double(weightInput) ?? set.prescribedWeight,
+                                    barWeight: viewModel.barWeight
+                                )
+                                .padding(.top, AppTheme.Spacing.xs)
+                            }
                         }
 
                         DisclosureGroup {
@@ -683,6 +691,12 @@ public struct ActiveWorkoutView: View {
             .keyboardType(.numberPad)
             #endif
         }
+    }
+
+    private func isBarbellExercise(_ exerciseName: String) -> Bool {
+        trainingExerciseCatalog.first {
+            $0.id.compare(exerciseName, options: [.caseInsensitive]) == .orderedSame
+        }?.equipmentTags.contains(.barbell) ?? false
     }
 
     private func weightInputSection(prescribedWeight: Double) -> some View {
