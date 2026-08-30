@@ -42,6 +42,9 @@ public class AnalyticsViewModel: ObservableObject {
     /// Cycle-correlated performance data points.
     @Published public var cycleData: [CyclePerformancePoint] = []
 
+    /// Daily readiness score history.
+    @Published public var readinessData: [ReadinessDataPoint] = []
+
     /// Unique exercise names available for the exercise picker.
     @Published public var availableExercises: [String] = []
 
@@ -79,6 +82,9 @@ public class AnalyticsViewModel: ObservableObject {
     /// All challenges fetched from persistence (unfiltered).
     private var allChallenges: [Challenge] = []
 
+    /// All daily readiness records fetched from persistence (unfiltered).
+    private var allReadinessRecords: [DailyReadinessRecord] = []
+
     // MARK: - Initialization
 
     public init(
@@ -108,12 +114,16 @@ public class AnalyticsViewModel: ObservableObject {
 
             let (ormRecords, workouts, phases) = try await (ormFetch, workoutFetch, phaseFetch)
             let challenges: [Challenge] = (try? await dataClient.fetchAll(recordType: "Challenge")) ?? []
+            let readinessRecords: [DailyReadinessRecord] = (try? await dataClient.fetchAll(
+                recordType: DailyReadinessRecord.recordType
+            )) ?? []
 
             // Cache raw data
             allORMRecords = ormRecords
             allWorkouts = workouts
             allCyclePhases = phases
             allChallenges = challenges
+            allReadinessRecords = readinessRecords
 
             // Populate available exercises
             availableExercises = ChartDataAggregator.exercises(from: ormRecords)
@@ -127,6 +137,7 @@ public class AnalyticsViewModel: ObservableObject {
             volumeData = []
             frequencyData = []
             cycleData = []
+            readinessData = []
             availableExercises = []
             progressSnapshot = nil
             cycleInsights = []
@@ -177,6 +188,12 @@ public class AnalyticsViewModel: ObservableObject {
         cycleData = ChartDataAggregator.cycleCorrelation(
             from: allWorkouts,
             phases: allCyclePhases,
+            timeRange: range
+        )
+
+        // Readiness trend
+        readinessData = ChartDataAggregator.readinessTrend(
+            from: allReadinessRecords,
             timeRange: range
         )
 
