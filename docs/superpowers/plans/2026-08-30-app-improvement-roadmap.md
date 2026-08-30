@@ -12,7 +12,7 @@
 
 ## Scope Check
 
-This roadmap covers 17 improvements plus 2 defects across six releases. It is a sequencing document, not a single implementable branch.
+This roadmap covers 17 improvements plus 1 confirmed defect across six releases (a second suspected defect was investigated during 2.1 execution and found to already be fixed — see Task 1.2 and the corrected row 1 of Verified Current State). It is a sequencing document, not a single implementable branch.
 
 **Release 2.1 is specified to task level and is ready to execute.** Every claim behind its tasks was verified against the source on 2026-08-30 (see Verified Current State). Releases 2.2 through 2.6 are specified to outcome, file, decision, and risk level. Each one **requires its own detailed plan document before implementation**, following the convention already used by `2026-07-11-readiness-foundation-shadow-assessment.md` and `2026-07-26-v2-daily-presence-momentum.md`.
 
@@ -24,7 +24,7 @@ Each finding below was confirmed by direct source inspection on 2026-08-30. Thes
 
 | # | Finding | Evidence |
 |---|---|---|
-| 1 | `ReviewPromptCoordinator.recordSuccessfulAction` has zero callers. The App Store review prompt cannot fire. | Only self-references in `DomainLayer/Growth/ReviewPromptEligibilityService.swift`. `MainTabView` listens for `.appReviewPromptRequested`, which nothing posts. |
+| 1 | **Correction (2026-08-30, during 2.1 execution):** the original entry here claimed `ReviewPromptCoordinator.recordSuccessfulAction` had zero callers. That was a verification error — the initial grep searched for the struct name `ReviewPromptEligibilityService` rather than the type actually used at call sites, `ReviewPromptCoordinator`. The review prompt is in fact fully wired: `ActiveWorkoutSessionViewModel.requestReviewIfEligible()` is called unconditionally on every workout completion and covers `thirdWorkoutCompleted`, `firstCoachPlanCompleted`, `painAwareSwapWorkoutCompleted`, and `personalRecordLogged`; `BenchmarksListView.saveResult()` covers `benchmarkLogged`; `MainTabView` observes `.appReviewPromptRequested` and calls `requestReview()`. No defect exists here. Task 1.2 below is retained as a record of the investigation rather than an implementation task. | `UI/ViewModels/ActiveWorkoutSessionViewModel.swift:459,719-745`; `UI/Views/Benchmarks/BenchmarksListView.swift:619-624`; `UI/App/SundeeFundeeApp.swift:83-84,115`. |
 | 2 | A placeholder ships in the Today tab. | `UI/Views/Dashboard/DashboardView.swift:807` — `NavigationLink("Start This Workout", destination: Text("Workout Detail"))`. |
 | 3 | `PlateCalculator.calculatePlates` has zero call sites. | Only its definition in `Calculations/PlateCalculator.swift:22` and a doc comment in `Exports.swift:40`. |
 | 4 | `SyncQueue` is never constructed. CloudKit writes are online-only. | `SyncQueue` absent from `DataLayer/DataClientFactory.swift`. `DataLayer/Diagnostics/SyncQueueDiagnosticsService.swift` exposes `attach(_:)` that is never called with a real queue, so the sync UI in `DataTrustCenterView` is permanently empty. |
@@ -69,7 +69,7 @@ These decisions apply across releases and should not be re-litigated per task.
 
 | Release | Theme | Items | Risk | Gate |
 |---|---|---|---|---|
-| 2.1 | Wire the Dark Matter | 2 defects + 6 orphaned features | Low | Ready to execute |
+| 2.1 | Wire the Dark Matter | 1 defect (+ 1 investigated, not a defect) + 6 orphaned features | Low | Ready to execute |
 | 2.2 | Foundations: Offline Writes and Localization Infrastructure | SyncQueue activation, String Catalog migration | Medium (data layer) | Needs own plan |
 | 2.3 | Multi-User Foundation | Custom zone, `CKShare`, universal links, subscriptions and push | High (data layer + web dependency) | Needs own plan |
 | 2.4 | Wrist and Glance | watchOS app, interactive widgets, Controls, Live Activity buttons | Medium (new targets) | Needs own plan |
@@ -117,43 +117,20 @@ cd SundeeFundeeApp && xcodebuild -project SundeeFundee.xcodeproj -scheme SundeeF
 fix(dashboard): route Start This Workout to the real destination
 ```
 
-## Task 1.2: Restore the App Store review prompt
+## Task 1.2: Restore the App Store review prompt — CLOSED, NOT A DEFECT
 
-**Defect.** `ReviewPromptCoordinator.recordSuccessfulAction` is fully implemented, has eligibility rules, persists state, and posts `.appReviewPromptRequested` — which `MainTabView` already observes. Nothing calls it, so the prompt can never appear. The 1.6.3 changelog claims this feature shipped, making this a regression.
+**Original claim (wrong):** `ReviewPromptCoordinator.recordSuccessfulAction` was believed to have zero callers, making the App Store review prompt unreachable.
 
-**Files:**
-- Modify: `SundeeFundee/Sources/SundeeFundeeKit/UI/ViewModels/ActiveWorkoutSessionViewModel.swift`
-- Modify: `SundeeFundee/Sources/SundeeFundeeKit/UI/Views/Challenges/ChallengesView.swift`
-- Modify: `SundeeFundee/Tests/SundeeFundeeKitTests/DomainTests/` (existing review-prompt tests)
+**Investigation finding (2026-08-30):** the claim was based on grepping for the wrong symbol (`ReviewPromptEligibilityService`, a type used only internally by the coordinator) instead of the type actually referenced at call sites (`ReviewPromptCoordinator`). Re-grepping for `ReviewPromptCoordinator` and `recordSuccessfulAction` directly found the system fully wired:
 
-- [ ] **Step 1: Enumerate the trigger cases**
+- `ActiveWorkoutSessionViewModel.swift:459` calls `requestReviewIfEligible()` unconditionally at the end of every workout completion.
+- `requestReviewIfEligible()` (`ActiveWorkoutSessionViewModel.swift:719-745`) builds and evaluates triggers for `thirdWorkoutCompleted`, `firstCoachPlanCompleted` (gated on `isCoachPlanWorkout`), `painAwareSwapWorkoutCompleted` (gated on `usedPainAwareSwap`), and one `personalRecordLogged` trigger per PR in `personalRecordExerciseNames`.
+- `BenchmarksListView.swift:619-624` calls the coordinator directly for `benchmarkLogged` after a successful `saveResult`.
+- `SundeeFundeeApp.swift:83-84` observes `.appReviewPromptRequested` and calls the SwiftUI `requestReview()` environment action; the notification name is declared at `SundeeFundeeApp.swift:115`.
 
-Read `ReviewPromptTrigger` and use only the cases it already defines. Do not invent new triggers. The intended happy-path moments per the 1.6.3 notes are workout completion, a new personal record, and a challenge tier or completion milestone.
+All five `ReviewPromptTrigger` cases are covered end to end. **No code change was made.** This task is retained, closed, as a record of the investigation rather than deleted, so the correction is traceable — see the corrected row 1 of Verified Current State above.
 
-- [ ] **Step 2: Call the coordinator at each success moment**
-
-Call `ReviewPromptCoordinator.recordSuccessfulAction(trigger:triggerID:completedWorkoutCount:)` after the success is committed and persisted, never before. Pass a stable `triggerID` so the eligibility service can deduplicate — the workout or challenge identifier, not a timestamp.
-
-The call is `@MainActor` and returns `@discardableResult Bool`; from an actor context use `Task { @MainActor in ... }` per the haptics convention.
-
-- [ ] **Step 3: Confirm eligibility gating is unchanged**
-
-Do not modify `ReviewPromptEligibilityService`. Its cooldowns, per-version limits, and `actionSucceeded` gate are already tested; this task only adds call sites.
-
-- [ ] **Step 4: Add call-site tests**
-
-Assert that completing a workout records a successful action exactly once, and that a failed save does not.
-
-- [ ] **Step 5: Verify and commit**
-
-```bash
-cd SundeeFundee && swift test --filter ReviewPrompt
-cd SundeeFundee && swift test --filter ActiveWorkoutSessionViewModelTests
-```
-
-```
-fix(growth): call the review prompt coordinator on training wins
-```
+**Lesson applied to the rest of this plan:** before treating any "has zero callers" claim as ground truth, grep for every plausible name a call site could use — including wrapper or coordinator types — not just the type that defines the behavior.
 
 ## Task 1.3: Add the experience level picker
 
