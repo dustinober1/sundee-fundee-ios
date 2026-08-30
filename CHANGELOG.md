@@ -18,12 +18,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   light and builds back week by week.
 - Added a week-by-week preview of the Return to Training plan before starting
   it, so the whole load progression is visible up front.
+- Added an Experience Level setting (Beginner, Intermediate, Advanced) in
+  onboarding and Settings, used to calibrate starting-weight guidance.
+- Added a Bar Weight setting and a per-side plate breakdown shown during
+  barbell sets in an active workout.
+- Added a Readiness Trend chart to Analytics, and a Home Screen / Lock Screen
+  readiness widget.
 
 ### Changed
 
 - Return-to-lifting load guidance now recognizes non-injury returns alongside
   pain and injury. Where both apply the more cautious limit is used, and a
   ramp already in progress is never reset by starting a return.
+
+### Fixed
+
+- The Today screen's "Start This Workout" button now opens the actual next
+  session in your active program instead of a placeholder screen, and shows
+  the real next incomplete session instead of a static day count.
 
 ### Notes
 
