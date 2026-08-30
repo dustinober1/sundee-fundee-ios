@@ -7,8 +7,15 @@ import XCTest
 /// every other test that reads `DataClientFactory.shared.client`.
 final class DataClientFactoryTests: XCTestCase {
 
-    func testWrapsCloudKitClientInSyncQueue() {
-        let client = CloudKitClient(containerIdentifier: "iCloud.com.sundeefundee.app")
+    func testWrapsNonLocalClientsInSyncQueue() {
+        // Uses MockCloudKitClient rather than a real CloudKitClient: constructing
+        // a live CKContainer hangs the test process in this repo's macOS CI
+        // runner (no responsive CloudKit daemon in that sandbox), the same
+        // class of issue this repo already hit once with a real StoreKit call
+        // in a test. wrapForSync checks !(client is LocalDataClient), so any
+        // non-local stand-in exercises the same branch a real CloudKitClient
+        // would in production.
+        let client = MockCloudKitClient()
         let monitor = NetworkMonitor()
 
         let wrapped = DataClientFactory.wrapForSync(client, ownerID: "owner-a", monitor: monitor)

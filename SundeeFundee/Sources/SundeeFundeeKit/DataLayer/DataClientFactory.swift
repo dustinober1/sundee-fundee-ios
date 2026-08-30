@@ -95,8 +95,11 @@ public final class DataClientFactory: @unchecked Sendable {
     // MARK: - Sync Queue Wrapping
 
     /// Wraps a freshly-activated client so CloudKit writes survive being
-    /// offline. Only `CloudKitClient` is wrapped — `LocalDataClient` (guest
-    /// mode) never throws a network error, so queuing it would be a no-op.
+    /// offline. Everything except `LocalDataClient` (guest mode) is wrapped —
+    /// guest mode never throws a network error, so queuing it would be a
+    /// no-op. Checking what to exclude rather than what to include means a
+    /// future non-CloudKit, non-local client defaults to being wrapped
+    /// instead of silently bypassing the offline queue.
     ///
     /// Each `ownerID` gets its own on-device storage (an arbitrary
     /// `UserDefaults` suite name, not a real App Group — no entitlement
@@ -112,7 +115,7 @@ public final class DataClientFactory: @unchecked Sendable {
         ownerID: String,
         monitor: NetworkMonitor
     ) -> any DataClientProtocol {
-        guard client is CloudKitClient else { return client }
+        guard !(client is LocalDataClient) else { return client }
         let suiteName = syncQueueSuiteName(for: ownerID)
         let store = SyncQueueStore(userDefaults: UserDefaults(suiteName: suiteName) ?? .standard)
         return SyncQueue(wrapping: client, store: store, monitor: monitor)
