@@ -8,6 +8,7 @@ struct SundeeFundeeWidgetsBundle: WidgetBundle {
     var body: some Widget {
         LiveWorkoutWidget()
         CyclePhaseWidget()
+        ReadinessWidget()
     }
 }
 
