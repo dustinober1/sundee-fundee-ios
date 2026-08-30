@@ -29,7 +29,7 @@ Each finding below was confirmed by direct source inspection on 2026-08-30. Thes
 | 3 | `PlateCalculator.calculatePlates` has zero call sites. | Only its definition in `Calculations/PlateCalculator.swift:22` and a doc comment in `Exports.swift:40`. |
 | 4 | `SyncQueue` is never constructed. CloudKit writes are online-only. | `SyncQueue` absent from `DataLayer/DataClientFactory.swift`. `DataLayer/Diagnostics/SyncQueueDiagnosticsService.swift` exposes `attach(_:)` that is never called with a real queue, so the sync UI in `DataTrustCenterView` is permanently empty. |
 | 5 | `experienceLevel` has no picker. Every user is `.intermediate`. | `OnboardingView.swift:306` and `SettingsView.swift:362` declare the property; the only `Picker`s in those views are weight unit, goal, and equipment (`OnboardingView.swift:135,183`; `SettingsView.swift:36,41,48`). It feeds `DomainLayer/Workout/StartingWeightCalibrationService.swift:37`. |
-| 6 | No `CKShare`, no shared or public database. All social records are unreachable by a second person. | `DataLayer/Actors/CloudKitClient.swift:67,80` — `.private` scope only; zero `CKShare`/`sharedCloudDatabase`/`publicCloudDatabase` references. |
+| 6 | **Correction (2026-08-30, during Task 1.7 execution):** the original entry here said no shared or public database existed anywhere, based on `CloudKitClient`'s *default* parameter being `.private`. That missed an explicit override: `SocialChallengeService` constructs its own `CloudKitClient(containerIdentifier:databaseScope: .public)` and saves `ChallengeInvite`, `ChallengeParticipant`, `ChallengeReaction`, and `SocialChallengeProgressSnapshot` there. A challenge invite code genuinely is fetchable by a second person today (`fetchInvite(token:)` queries the public database by token) — the "friends can never read this" claim was wrong for the challenge system specifically. It still holds for buddy check-ins, which have zero `CloudKitClient`/`databaseScope` references and use the default private client. There is still no `CKShare`, `UICloudSharingController`, or CloudKit subscription anywhere, and finding 7 (no custom zone) still stands — `CKShare` remains unimplemented regardless of this correction. | `DomainLayer/Challenge/SocialChallengeService.swift:6-15` (public scope), `:33-41` (cross-user fetch by token). `DomainLayer/Social/BuddyCheckInService.swift` (no scope override — private). |
 | 7 | **No custom record zone exists.** All records are in the private *default* zone. | Zero `CKRecordZone`/`zoneID`/`recordZone` references in `SundeeFundee/Sources/`. `CKShare` cannot share default-zone records — this is the gating constraint for Release 2.3. |
 | 8 | No push notifications or CloudKit subscriptions. | Zero `CKQuerySubscription`/`CKSubscription`/`registerForRemoteNotifications` references. No `aps-environment` in `SundeeFundeeApp/SundeeFundee/SundeeFundee.entitlements`. |
 | 9 | No HealthKit background delivery. Data is pulled on view appear only. | Zero `HKObserverQuery`/`HKAnchoredObjectQuery`/`enableBackgroundDelivery` references. |
@@ -286,32 +286,30 @@ Manual check: add the widget, confirm each family renders, confirm the stale pat
 feat(widgets): add a readiness widget
 ```
 
-## Task 1.7: Surface challenge reactions
+## Task 1.7: Surface challenge reactions — PARTIALLY SCOPED DOWN DURING EXECUTION
 
-**Outcome:** The reaction and progress-snapshot models that already persist become visible in the challenge UI.
+**Original outcome:** The reaction and progress-snapshot models that already persist become visible in the challenge UI.
 
-**Files:**
-- Modify: `SundeeFundee/Sources/SundeeFundeeKit/UI/Views/Challenges/ChallengesView.swift`
-- Modify: `SundeeFundee/Sources/SundeeFundeeKit/DomainLayer/Challenge/SocialChallengeService.swift`
-- Create: `SundeeFundee/Tests/SundeeFundeeKitTests/DomainTests/SocialChallengeReactionTests.swift`
+**What execution found (2026-08-30):** the premise was more incomplete than assumed, in two ways beyond the private-vs-public correction already recorded in Verified Current State row 6:
 
-- [ ] **Step 1: Read what is already written**
+1. `SocialChallengeService` already saves to a **public** database and already queries cross-user by token (`fetchInvite(token:)`), so reactions and progress snapshots for a given invite are not structurally stuck in one user's private data the way the original Step 2 assumed.
+2. But **no screen persists the invite token anywhere durable.** `ChallengeInviteShareLink.prepareInvite()` calls `createInvite` fresh every time the view appears and only keeps the resulting token in a local `@State` string used to build share text — it is never written onto the local `Challenge`. On the joining side, `JoinChallengeView`'s callback (`ChallengesView.swift:73`) passes only the `ChallengeShareTemplate` forward into `CreateChallengeView`, dropping the token entirely. Because a fresh, unlinked token is minted on every view load, there is no stable identifier to fetch reactions or progress *for* — building the display UI now would either show nothing (an ephemeral token has never been reacted to) or require adding a persisted `Challenge.inviteToken` field and rewiring both the share and join flows to set it, which is materially more than "surface an existing method."
 
-`saveReaction` and `saveProgressSnapshot` exist with no readers. Add fetch paths and render reactions on the challenge detail surface.
+**Decision:** ship the missing read half of the service — the part that genuinely is just wiring an orphaned save method — and leave the UI and the token-persistence prerequisite as follow-up work, tracked below rather than folded into this task.
 
-- [ ] **Step 2: Scope honestly to the current reachability**
+**Done:**
+- Added `SocialChallengeService.fetchReactions(inviteToken:)` and `fetchProgressSnapshots(inviteToken:)`, mirroring `fetchInvite(token:)`'s existing query-by-token pattern.
+- Added `SundeeFundee/Tests/SundeeFundeeKitTests/DomainTests/SocialChallengeServiceReadTests.swift` (this service had no test file at all before).
+- Documented `ChallengeInvite`, `ChallengeParticipant`, `ChallengeReaction`, and `SocialChallengeProgressSnapshot` in `SundeeFundeeApp/cloudkit-schema.json` — none were present there, and their live CloudKit deployment status is unverified (the schema file is known to drift from the live schema; see `UserSettings.defaultEquipmentRaw`, also undocumented until this same session added `barWeight` in Task 1.4). **Do not trust `fetchReactions`/`fetchProgressSnapshots` to return real data in production without confirming these record types are actually deployed** (CloudKit Dashboard, or the `cloudkit-validate` skill).
 
-Until Release 2.3 lands the shared zone, records written here stay in the author's own private database, so a reaction is visible only to its author. Either scope this task to self-visible progress snapshots, or hold the reaction UI for 2.3 and ship only the snapshot display now. **Do not ship copy implying another person will see a reaction.** State the chosen scope in the commit body.
-
-- [ ] **Step 3: Verify and commit**
+**Not done, follow-up work:** add `inviteToken: String?` to `Challenge` (additive, CloudKit-safe), set it in `ChallengeInviteShareLink.prepareInvite()` and thread it through `JoinChallengeView`'s callback into `CreateChallengeView`, then add read-only reaction/progress display gated on `challenge.inviteToken != nil`. This is genuinely new plumbing, not orphaned-code wiring, so it belongs in a release with room to design it properly — it fits naturally alongside Release 2.3's multi-user work, or as its own small slice of 2.2/2.3 planning.
 
 ```bash
-cd SundeeFundee && swift test --filter SocialChallenge
-cd SundeeFundeeApp && xcodebuild -project SundeeFundee.xcodeproj -scheme SundeeFundee -destination 'platform=iOS Simulator,name=iPhone 17 Pro' build
+cd SundeeFundee && swift test --filter SocialChallengeServiceReadTests
 ```
 
 ```
-feat(challenges): surface progress snapshots
+feat(challenges): add the missing read half of social challenge data
 ```
 
 ## Task 1.8: Release verification
