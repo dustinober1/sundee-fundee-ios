@@ -108,6 +108,22 @@ public struct CyclePerformancePoint: Equatable, Sendable, Identifiable {
     }
 }
 
+/// A single data point for the readiness trend chart.
+public struct ReadinessDataPoint: Equatable, Sendable, Identifiable {
+    public let id = UUID()
+    public let date: Date
+    public let totalScore: Int
+    public let state: ReadinessState
+    public let confidence: ReadinessConfidence
+
+    public init(date: Date, totalScore: Int, state: ReadinessState, confidence: ReadinessConfidence) {
+        self.date = date
+        self.totalScore = totalScore
+        self.state = state
+        self.confidence = confidence
+    }
+}
+
 // MARK: - Aggregator
 
 /// Pure domain service that transforms raw records into chart-ready data points.
@@ -297,6 +313,41 @@ public enum ChartDataAggregator {
                 confidence: avgConfidence
             )
         }.sorted { $0.phase.rawValue < $1.phase.rawValue }
+    }
+
+    // MARK: Readiness Trend
+
+    /// Filters and sorts daily readiness assessments by time range.
+    ///
+    /// Records that fail to decode into a valid assessment are skipped rather
+    /// than surfaced as an error, matching how other decode-resilient fetches
+    /// in this app degrade record-by-record instead of failing the whole fetch.
+    ///
+    /// - Parameters:
+    ///   - records: Raw daily readiness records from the persistence store.
+    ///   - timeRange: The time window to filter by.
+    ///   - referenceDate: Optional reference date for time range computation (defaults to now).
+    /// - Returns: Sorted array of readiness data points within the time range.
+    public static func readinessTrend(
+        from records: [DailyReadinessRecord],
+        timeRange: TimeRange,
+        referenceDate: Date = Date()
+    ) -> [ReadinessDataPoint] {
+        let cutoff = timeRange.startDate(relativeTo: referenceDate)
+
+        return records
+            .compactMap { record -> ReadinessDataPoint? in
+                guard let assessment = try? record.assessment(), assessment.assessmentDate >= cutoff else {
+                    return nil
+                }
+                return ReadinessDataPoint(
+                    date: assessment.assessmentDate,
+                    totalScore: assessment.totalScore,
+                    state: assessment.state,
+                    confidence: assessment.confidence
+                )
+            }
+            .sorted { $0.date < $1.date }
     }
 
     // MARK: Exercise Picker

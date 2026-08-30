@@ -38,11 +38,23 @@ public struct SettingsView: View {
                         Text("Kilograms (kg)").tag(WeightUnit.kg)
                     }
 
+                    Picker("Bar Weight", selection: $viewModel.barWeight) {
+                        ForEach(SettingsViewModel.barWeightOptions(for: viewModel.weightUnit), id: \.self) { weight in
+                            Text(SettingsViewModel.barWeightLabel(weight, unit: viewModel.weightUnit)).tag(weight)
+                        }
+                    }
+
                     Picker("Goal", selection: $viewModel.primaryGoal) {
                         Text("Strength").tag(PrimaryGoal.strength)
                         Text("Hypertrophy").tag(PrimaryGoal.hypertrophy)
                         Text("Endurance").tag(PrimaryGoal.endurance)
                         Text("Weight Loss").tag(PrimaryGoal.weightLoss)
+                    }
+
+                    Picker("Experience Level", selection: $viewModel.experienceLevel) {
+                        Text(ExperienceLevel.beginner.displayName).tag(ExperienceLevel.beginner)
+                        Text(ExperienceLevel.intermediate.displayName).tag(ExperienceLevel.intermediate)
+                        Text(ExperienceLevel.advanced.displayName).tag(ExperienceLevel.advanced)
                     }
 
                     Picker("Default Equipment", selection: $viewModel.defaultEquipment) {
@@ -66,8 +78,16 @@ public struct SettingsView: View {
                     }
                     #endif
                 }
-                .onChange(of: viewModel.weightUnit) { _, _ in Task { await viewModel.saveSettings() } }
+                .onChange(of: viewModel.weightUnit) { _, newUnit in
+                    // A bar's weight isn't the same number across units — 45 lbs
+                    // isn't "45 kg" — so switching units resets to that unit's
+                    // standard bar rather than carrying over a stale number.
+                    viewModel.barWeight = SettingsViewModel.standardBarWeight(for: newUnit)
+                    Task { await viewModel.saveSettings() }
+                }
+                .onChange(of: viewModel.barWeight) { _, _ in Task { await viewModel.saveSettings() } }
                 .onChange(of: viewModel.primaryGoal) { _, _ in Task { await viewModel.saveSettings() } }
+                .onChange(of: viewModel.experienceLevel) { _, _ in Task { await viewModel.saveSettings() } }
                 .onChange(of: viewModel.defaultEquipment) { _, _ in Task { await viewModel.saveSettings() } }
                 .onChange(of: viewModel.cycleTrackingEnabled) { _, _ in Task { await viewModel.saveSettings() } }
 
@@ -294,6 +314,22 @@ public enum ExperienceLevel: String, Codable, Sendable {
     case beginner
     case intermediate
     case advanced
+
+    public var displayName: String {
+        switch self {
+        case .beginner: return "Beginner"
+        case .intermediate: return "Intermediate"
+        case .advanced: return "Advanced"
+        }
+    }
+
+    public var shortDescription: String {
+        switch self {
+        case .beginner: return "New to lifting, or returning after a long break"
+        case .intermediate: return "Consistent training for 6+ months"
+        case .advanced: return "Years of structured training experience"
+        }
+    }
 }
 
 public enum PrimaryGoal: String, Codable, Sendable {
@@ -312,9 +348,17 @@ struct UserSettingsRecord: Codable, Sendable {
     let experienceLevel: String
     let primaryGoal: String
     let defaultEquipmentRaw: String
+    let barWeight: Double?
 
     var defaultEquipment: EquipmentAccess {
         EquipmentAccess(rawValue: defaultEquipmentRaw) ?? .fullGym
+    }
+
+    /// The bar weight to use for plate-math display: the user's saved value,
+    /// or the standard bar for their weight unit when they haven't set one.
+    var resolvedBarWeight: Double {
+        if let barWeight { return barWeight }
+        return weightUnit == WeightUnit.kg.rawValue ? 20 : 45
     }
 
     init(
@@ -322,7 +366,8 @@ struct UserSettingsRecord: Codable, Sendable {
         weightUnit: String,
         experienceLevel: String,
         primaryGoal: String,
-        defaultEquipment: EquipmentAccess = .fullGym
+        defaultEquipment: EquipmentAccess = .fullGym,
+        barWeight: Double? = nil
     ) {
         self.id = "user_settings"
         self.cycleTrackingEnabled = cycleTrackingEnabled
@@ -330,6 +375,7 @@ struct UserSettingsRecord: Codable, Sendable {
         self.experienceLevel = experienceLevel
         self.primaryGoal = primaryGoal
         self.defaultEquipmentRaw = defaultEquipment.rawValue
+        self.barWeight = barWeight
     }
 
     // CloudKit stores Bool as Int64. JSONDecoder expects Bool.
@@ -348,6 +394,7 @@ struct UserSettingsRecord: Codable, Sendable {
             ?? EquipmentAccess.fullGym.rawValue
         defaultEquipmentRaw = EquipmentAccess(rawValue: rawEquipment)?.rawValue
             ?? EquipmentAccess.fullGym.rawValue
+        barWeight = try container.decodeIfPresent(Double.self, forKey: .barWeight)
     }
 }
 
@@ -359,7 +406,8 @@ class SettingsViewModel: ObservableObject {
     @Published var isLoaded: Bool = false
     @Published var cycleTrackingEnabled: Bool = false
     @Published var weightUnit: WeightUnit = .lbs
-    @Published var experienceLevel: ExperienceLevel = .intermediate
+    @Published var barWeight: Double = SettingsViewModel.standardBarWeight(for: .lbs)
+    @Published var experienceLevel: ExperienceLevel = .beginner
     @Published var primaryGoal: PrimaryGoal = .strength
     @Published var defaultEquipment: EquipmentAccess = .fullGym
     @Published var equipmentProfiles: [EquipmentProfile] = []
@@ -379,6 +427,33 @@ class SettingsViewModel: ObservableObject {
 
     var selectedEquipmentProfile: EquipmentProfile? {
         equipmentProfiles.first(where: { $0.isDefault || $0.equipment == defaultEquipment })
+    }
+
+    /// Bars gyms actually stock, by unit — not a numeric range, since a bar's
+    /// weight isn't a free choice.
+    static func barWeightOptions(for unit: WeightUnit) -> [Double] {
+        switch unit {
+        case .lbs: return [45, 35, 15]
+        case .kg: return [20, 15, 10]
+        }
+    }
+
+    static func standardBarWeight(for unit: WeightUnit) -> Double {
+        barWeightOptions(for: unit).first ?? 45
+    }
+
+    static func barWeightLabel(_ weight: Double, unit: WeightUnit) -> String {
+        let unitLabel = unit == .kg ? "kg" : "lbs"
+        let descriptor: String
+        switch barWeightOptions(for: unit).firstIndex(of: weight) {
+        case 0: descriptor = "Standard"
+        case 1: descriptor = "Women's/Training"
+        default: descriptor = "Technique"
+        }
+        let weightLabel = weight.truncatingRemainder(dividingBy: 1) == 0
+            ? String(Int(weight))
+            : String(weight)
+        return "\(weightLabel) \(unitLabel) (\(descriptor))"
     }
 
     init(
@@ -402,9 +477,10 @@ class SettingsViewModel: ObservableObject {
             if let settings = records.last {
                 cycleTrackingEnabled = settings.cycleTrackingEnabled
                 weightUnit = WeightUnit(rawValue: settings.weightUnit) ?? .lbs
-                experienceLevel = ExperienceLevel(rawValue: settings.experienceLevel) ?? .intermediate
+                experienceLevel = ExperienceLevel(rawValue: settings.experienceLevel) ?? .beginner
                 primaryGoal = PrimaryGoal(rawValue: settings.primaryGoal) ?? .strength
                 defaultEquipment = settings.defaultEquipment
+                barWeight = settings.resolvedBarWeight
             }
             hasLoaded = true
             isLoaded = true
@@ -463,7 +539,8 @@ class SettingsViewModel: ObservableObject {
                 weightUnit: self.weightUnit.rawValue,
                 experienceLevel: self.experienceLevel.rawValue,
                 primaryGoal: self.primaryGoal.rawValue,
-                defaultEquipment: self.defaultEquipment
+                defaultEquipment: self.defaultEquipment,
+                barWeight: self.barWeight
             )
 
             do {

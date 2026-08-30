@@ -24,6 +24,8 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
     @Published public var errorMessage: String?
     @Published public var pendingPRShare: PendingPRShare?
     @Published public private(set) var defaultEquipment: EquipmentAccess = .fullGym
+    @Published public private(set) var weightUnit: WeightUnit = .lbs
+    @Published public private(set) var barWeight: Double = 45
     @Published public private(set) var lastEquipmentConversionChanges: [EquipmentConversionChange] = []
     @Published public private(set) var startingWeightSuggestions: [StartingWeightSuggestion] = []
     @Published public var showStartingWeightCalibrationSheet: Bool = false
@@ -490,6 +492,8 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
 
         let settings = await loadUserSettings()
         defaultEquipment = settings.defaultEquipment
+        weightUnit = settings.weightUnit
+        barWeight = settings.barWeight
         await evaluateStartingWeightCalibration(using: settings)
     }
 
@@ -557,14 +561,16 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
             return WorkoutCalibrationSettings(
                 experienceLevel: .beginner,
                 weightUnit: .lbs,
-                defaultEquipment: .fullGym
+                defaultEquipment: .fullGym,
+                barWeight: 45
             )
         }
 
         return WorkoutCalibrationSettings(
             experienceLevel: ExperienceLevel(rawValue: settings.experienceLevel) ?? .beginner,
             weightUnit: WeightUnit(rawValue: settings.weightUnit) ?? .lbs,
-            defaultEquipment: settings.defaultEquipment
+            defaultEquipment: settings.defaultEquipment,
+            barWeight: settings.resolvedBarWeight
         )
     }
 
@@ -879,4 +885,5 @@ private struct WorkoutCalibrationSettings {
     let experienceLevel: ExperienceLevel
     let weightUnit: WeightUnit
     let defaultEquipment: EquipmentAccess
+    let barWeight: Double
 }
