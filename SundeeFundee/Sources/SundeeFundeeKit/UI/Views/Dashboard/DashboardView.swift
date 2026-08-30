@@ -303,6 +303,10 @@ public struct DashboardView: View {
             navigationResetID = UUID()
             showingQuickCheckIn = true
         }
+        .onReceive(NotificationCenter.default.publisher(for: .deepLinkRouteOpened)) { notification in
+            guard let route = notification.object as? DeepLinkRoute, route.opensReadinessDetail else { return }
+            readinessRoute = .details
+        }
     }
 
     @ViewBuilder
