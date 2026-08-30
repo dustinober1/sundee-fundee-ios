@@ -340,9 +340,13 @@ Modify `CHANGELOG.md` under Unreleased and `SundeeFundeeApp/fastlane/metadata/en
 
 **Outcome:** CloudKit mutations survive being offline, and the codebase is ready to be translated.
 
-## 2.2a: Activate the SyncQueue
+## 2.2a: Activate the SyncQueue — IMPLEMENTED (2026-08-30), see `2026-08-30-syncqueue-activation.md`
 
 `SyncQueue`, `PendingMutation`, and `NetworkMonitor` exist under `DataLayer/SyncQueue/`, are covered by `SyncQueueTests` and `SyncQueueStuckTests`, implement stuck-mutation handling after `maxRetryAttempts`, and have a replay path in `CloudKitClient.saveFromJSON` (line 410). `DataClientFactory` never constructs one. The prior 2.0 plan listed offline queue activation as its own pre-release gate; it was never executed.
+
+Implemented as its own sub-plan (`2026-08-30-syncqueue-activation.md`) rather than inline here, since it needed real design work: `DataClientFactory.activate()` now wraps a `CloudKitClient` in a `SyncQueue` scoped to a per-`ownerID` `UserDefaults` suite (never `LocalDataClient`, and without touching `AuthViewModel`, whose `destinationClientFactory` closure has no `ownerID` parameter to scope by). The per-owner scoping is the load-bearing decision — a single shared queue store would replay one account's offline mutations into a different account that signs in on the same device before the first account reconnects. Also wires `SyncQueueDiagnosticsService.shared.attach(_:)`, which had no caller, so `DataTrustCenterView`'s sync section starts reflecting real state. Not yet exercised against a real device/simulator in airplane mode — that verification is the user's to run.
+
+2.2b (String Catalog / localization) is unrelated in kind and scale to 2.2a and remains a separate, not-yet-started effort — everything below this point is as originally planned, unchanged by 2.2a's completion.
 
 Key work and decisions for the plan document:
 
