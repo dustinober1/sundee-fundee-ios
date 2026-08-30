@@ -124,6 +124,7 @@
 		B9D39C1A3CBA1F0443BC54D3 /* CyclePhaseHelperTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4BB70A92319FA0F1C2AD710 /* CyclePhaseHelperTests.swift */; };
 		BB192828D910137DEDA6DC9A /* BestNextWorkoutViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB1C978F1C47D5424CA530D5 /* BestNextWorkoutViewModelTests.swift */; };
 		BEBB052653A7324B3DF4DB19 /* LiveWorkoutWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = D397DCE979CD70EEE7CD6F64 /* LiveWorkoutWidget.swift */; };
+		707473B063B0284DD637F444 /* ReadinessWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF321CE38EFFFAE19D22F50E /* ReadinessWidget.swift */; };
 		BF7AF483555D7D2E16B954BC /* QRBadgeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F50D4788C9573517B95B7EC /* QRBadgeTests.swift */; };
 		BF9CE9F5D1750BF852F0A0CE /* ChartDataAggregatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 078938F0E1C742945877B759 /* ChartDataAggregatorTests.swift */; };
 		C016937D513C583B184BE411 /* AppIntentsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D81DF2CE2039BADE976725C7 /* AppIntentsTests.swift */; };
@@ -366,6 +367,7 @@
 		D0DF3DE42D2DF780CB12B972 /* SharedSnapshotStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedSnapshotStoreTests.swift; sourceTree = "<group>"; };
 		D1684B1F1ADA79DF484F426E /* WorkoutCompletionCheckInViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutCompletionCheckInViewModelTests.swift; sourceTree = "<group>"; };
 		D397DCE979CD70EEE7CD6F64 /* LiveWorkoutWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveWorkoutWidget.swift; sourceTree = "<group>"; };
+		CF321CE38EFFFAE19D22F50E /* ReadinessWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadinessWidget.swift; sourceTree = "<group>"; };
 		D56FF493E2650F71206A13CE /* ExerciseCatalogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseCatalogTests.swift; sourceTree = "<group>"; };
 		D5798C24CE84AA1EEC7D80E3 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		D679623E0441637A781A59DC /* DeepLinkRouterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepLinkRouterTests.swift; sourceTree = "<group>"; };
@@ -620,6 +622,7 @@
 				5BB81604CE719EA30315E29D /* CyclePhaseWidget.swift */,
 				7171E9CD0635CF4CC1DA0CC0 /* Info.plist */,
 				D397DCE979CD70EEE7CD6F64 /* LiveWorkoutWidget.swift */,
+				CF321CE38EFFFAE19D22F50E /* ReadinessWidget.swift */,
 				A56B3641B39ABABD9066F3AC /* SundeeFundeeWidgets.entitlements */,
 			);
 			path = SundeeFundeeWidgets;
@@ -921,6 +924,7 @@
 			files = (
 				058C27E2B726ED56AF5B46C0 /* CyclePhaseWidget.swift in Sources */,
 				BEBB052653A7324B3DF4DB19 /* LiveWorkoutWidget.swift in Sources */,
+				707473B063B0284DD637F444 /* ReadinessWidget.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
