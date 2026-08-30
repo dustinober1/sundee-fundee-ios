@@ -1650,7 +1650,7 @@ class ProgramsListViewModel: ObservableObject {
     /// Tracks which program is currently being enrolled so the row can show a spinner.
     @Published var enrollingProgramId: String? = nil
     @Published var recommendationGoal: PrimaryGoal = .strength
-    @Published var recommendationExperience: ExperienceLevel = .intermediate
+    @Published var recommendationExperience: ExperienceLevel = .beginner
     @Published var recommendationDaysPerWeek: Int = 3
     @Published var recommendationEquipment: EquipmentAccess = .fullGym
     @Published var programRecommendations: [ProgramRecommendation] = []
@@ -1845,7 +1845,7 @@ class ProgramsListViewModel: ObservableObject {
 
         if let settings = (try? await dataClient.fetchAll(recordType: "UserSettings") as [UserSettingsRecord])?.last {
             recommendationGoal = PrimaryGoal(rawValue: settings.primaryGoal) ?? .strength
-            recommendationExperience = ExperienceLevel(rawValue: settings.experienceLevel) ?? .intermediate
+            recommendationExperience = ExperienceLevel(rawValue: settings.experienceLevel) ?? .beginner
             recommendationEquipment = settings.defaultEquipment
         }
 
