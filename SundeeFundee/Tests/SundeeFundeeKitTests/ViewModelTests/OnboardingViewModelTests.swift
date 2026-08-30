@@ -3,10 +3,10 @@ import XCTest
 
 @MainActor
 final class OnboardingViewModelTests: XCTestCase {
-    func testMinimalOnboardingDefaultsExperienceToIntermediate() {
+    func testMinimalOnboardingDefaultsExperienceToBeginner() {
         let viewModel = OnboardingViewModel(dataClient: MockCloudKitClient())
 
-        XCTAssertEqual(viewModel.experienceLevel, .intermediate)
+        XCTAssertEqual(viewModel.experienceLevel, .beginner)
         XCTAssertEqual(viewModel.totalSteps, 2)
     }
 
@@ -21,5 +21,16 @@ final class OnboardingViewModelTests: XCTestCase {
         await viewModel.completeOnboarding()
 
         XCTAssertEqual(dataClient.recordCount(for: "UserSettings"), 1)
+    }
+
+    func testCompleteOnboardingSavesSelectedExperienceLevel() async throws {
+        let dataClient = MockCloudKitClient()
+        let viewModel = OnboardingViewModel(dataClient: dataClient)
+        viewModel.experienceLevel = .advanced
+
+        await viewModel.completeOnboarding()
+
+        let saved: [UserSettingsRecord] = try await dataClient.fetchAll(recordType: "UserSettings")
+        XCTAssertEqual(saved.last?.experienceLevel, ExperienceLevel.advanced.rawValue)
     }
 }
