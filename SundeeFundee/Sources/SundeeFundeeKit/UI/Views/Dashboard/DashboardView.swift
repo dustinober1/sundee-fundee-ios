@@ -115,6 +115,7 @@ public struct DashboardView: View {
                 .padding(AppTheme.Spacing.lg)
             }
             .navigationTitle("Today")
+            .screenshotModeBenefitBanner(caption: ScreenshotMode.caption(for: .today))
             #if os(iOS)
             .navigationBarTitleDisplayMode(.large)
             #endif

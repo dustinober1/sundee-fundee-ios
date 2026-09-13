@@ -92,6 +92,7 @@ public struct TrainHubView: View {
                 bestNextViewModel.updateGuestState(isGuest)
             }
             .navigationTitle("Train")
+            .screenshotModeBenefitBanner(caption: ScreenshotMode.caption(for: .train))
             #if os(iOS)
             .navigationBarTitleDisplayMode(.large)
             #endif
