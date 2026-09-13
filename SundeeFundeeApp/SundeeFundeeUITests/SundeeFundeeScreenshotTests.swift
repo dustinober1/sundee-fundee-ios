@@ -31,7 +31,7 @@ final class SundeeFundeeScreenshotTests: XCTestCase {
         captureCoachPlanBenefit()
         captureProgramAdaptationSurface()
         captureDataTrustCenter()
-        capture(tab: "Cycle", title: "Cycle", name: "02_recovery_pain_energy")
+        capture(tab: "Cycle", title: "Cycle", name: "04_recovery_pain_energy")
         capture(tab: "Progress", title: "Progress", name: "03_progress_lifting")
         captureProgramsHub()
         captureWorkoutHistory()
@@ -132,6 +132,8 @@ final class SundeeFundeeScreenshotTests: XCTestCase {
 
         XCTAssertTrue(waitForScreen(title: "Coach Plan", timeout: 10), "Missing Coach Plan screen")
 
+        snapshot("02_coach_plan")
+
         let resistanceBands = app.staticTexts["Bands Only"].firstMatch
         let scrollView = app.scrollViews.firstMatch
         for _ in 0..<6 where !resistanceBands.isHittable {
@@ -139,7 +141,6 @@ final class SundeeFundeeScreenshotTests: XCTestCase {
             scrollView.swipeUp()
         }
         XCTAssertTrue(resistanceBands.isHittable, "Missing visible Bands Only option")
-        snapshot("08_coach_plan")
 
         let cancel = app.buttons["Cancel"].firstMatch
         XCTAssertTrue(cancel.waitForExistence(timeout: 5), "Missing Coach Plan cancel button")
@@ -159,7 +160,7 @@ final class SundeeFundeeScreenshotTests: XCTestCase {
         if viewProgram.waitForExistence(timeout: 5) {
             viewProgram.tap()
             if waitForScreen(title: "Russian Squat", timeout: 10) || app.staticTexts["Week 1"].firstMatch.waitForExistence(timeout: 5) {
-                snapshot("06_program_adaptation")
+                snapshot("07_program_adaptation")
             }
         }
 
@@ -187,7 +188,7 @@ final class SundeeFundeeScreenshotTests: XCTestCase {
         if scrollToElement(trustCenter, in: app.tables.firstMatch), trustCenter.isHittable {
             trustCenter.tap()
             if waitForScreen(title: "Data Trust Center", timeout: 10) {
-                snapshot("07_data_trust_center")
+                snapshot("08_data_trust_center")
             }
         }
     }
@@ -217,7 +218,7 @@ final class SundeeFundeeScreenshotTests: XCTestCase {
             if bandsOnly.waitForExistence(timeout: 5) {
                 bandsOnly.tap()
                 if app.staticTexts["Equipment Conversion Applied"].firstMatch.waitForExistence(timeout: 5) {
-                    snapshot("08_equipment_conversion")
+                    snapshot("09_equipment_conversion")
                 }
             }
         }
@@ -230,7 +231,7 @@ final class SundeeFundeeScreenshotTests: XCTestCase {
                 swapExercise.tap()
                 if app.staticTexts["Swap Exercise"].firstMatch.waitForExistence(timeout: 5) ||
                     app.buttons["Cancel"].firstMatch.waitForExistence(timeout: 5) {
-                    snapshot("09_pain_swap_surface")
+                    snapshot("10_pain_swap_surface")
                 }
             }
         }
@@ -266,7 +267,7 @@ final class SundeeFundeeScreenshotTests: XCTestCase {
 
     private func captureProgramsHub() {
         XCTAssertTrue(openProgramsFromTrain(), "Missing Programs screen")
-        snapshot("04_programs")
+        snapshot("05_programs")
         _ = returnToTrainRoot()
     }
 
@@ -280,7 +281,7 @@ final class SundeeFundeeScreenshotTests: XCTestCase {
         )
         workoutHistory.tap()
         XCTAssertTrue(waitForScreen(title: "Workouts", timeout: 10), "Missing Workouts screen")
-        snapshot("05_workouts")
+        snapshot("06_workouts")
     }
 
     private func openProgramsFromTrain() -> Bool {
