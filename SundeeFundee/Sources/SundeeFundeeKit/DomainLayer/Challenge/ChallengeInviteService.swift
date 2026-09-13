@@ -30,6 +30,7 @@ public actor ChallengeInviteService {
         }
         if let inviteToken {
             details.append("Join code: \(inviteToken)")
+            details.append("Have the app? Tap to join: \(GrowthLinkService.inviteDeepLink(code: inviteToken).absoluteString)")
         }
         details.append(GrowthLinkService.caption(for: context))
         return details.joined(separator: "\n")
