@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Added review prompt moments for active-recovery sessions and Return to
+  Training sessions, so finishing a deload or a comeback week can ask for an
+  App Store rating at a natural high point.
+- Added a satisfaction check before every App Store review prompt: ratings are
+  asked only after a positive answer, and other feedback is routed to support.
+
 - Added a shareable Coach Report: a plain-language PDF summary of sessions,
   training patterns, and pain and injury history to hand to a coach, trainer,
   or clinician. Generated on device from Export My Data and shared through the
@@ -21,6 +27,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- App Store screenshots now lead with benefit headlines (cycle-aware lifting,
+  adaptive Coach Plans, progress) instead of raw screens, and the first three
+  slots now show Today, Coach Plan, and Progress. Headlines appear only in
+  screenshot captures, never in the shipping app.
+- Tightened App Store keywords and added promotional text to lead search and
+  the description fold with who the app is for.
 - Return-to-lifting load guidance now recognizes non-injury returns alongside
   pain and injury. Where both apply the more cautious limit is used, and a
   ramp already in progress is never reset by starting a return.
