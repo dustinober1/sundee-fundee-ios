@@ -100,6 +100,7 @@ public struct CycleTrackingView: View {
                 }
             }
             .navigationTitle("Cycle")
+            .screenshotModeBenefitBanner(caption: ScreenshotMode.caption(for: .cycle))
             #if os(iOS)
             .navigationBarTitleDisplayMode(.large)
             #endif

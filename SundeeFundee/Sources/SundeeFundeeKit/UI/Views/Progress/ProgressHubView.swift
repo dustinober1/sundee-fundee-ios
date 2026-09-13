@@ -120,6 +120,7 @@ public struct ProgressHubView: View {
                 }
             }
             .navigationTitle("Progress")
+            .screenshotModeBenefitBanner(caption: ScreenshotMode.caption(for: .progress))
             #if os(iOS)
             .navigationBarTitleDisplayMode(.large)
             #endif
