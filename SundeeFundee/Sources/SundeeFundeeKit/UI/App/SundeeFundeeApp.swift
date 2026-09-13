@@ -20,7 +20,10 @@ public struct MainTabView: View {
     @Environment(\.openURL) private var openURL
     @StateObject private var cyclePhaseCache = CyclePhaseCache()
     @StateObject private var sharkWeekMonitor = SharkWeekMonitor()
+    @StateObject private var inviteChallengeViewModel = ChallengesViewModel()
     @State private var showReviewSatisfactionGate = false
+    @State private var pendingChallengeInvite: ChallengeInvitePayload?
+    @State private var challengeTemplateFromInvite: ChallengeShareTemplate?
 
     public init() {}
 
@@ -101,6 +104,22 @@ public struct MainTabView: View {
         } message: {
             Text("Ratings help other women find cycle-aware training.")
         }
+        .onReceive(NotificationCenter.default.publisher(for: .challengeInviteOpened)) { notification in
+            guard let code = notification.object as? String else { return }
+            // Challenges live in the Progress hub; land the user nearby so the
+            // created challenge is where they expect it.
+            selectedTab = .progress
+            pendingChallengeInvite = ChallengeInvitePayload(code: code)
+        }
+        .sheet(item: $pendingChallengeInvite) { payload in
+            JoinChallengeView(prefilledCode: payload.code) { template in
+                pendingChallengeInvite = nil
+                challengeTemplateFromInvite = template
+            }
+        }
+        .sheet(item: $challengeTemplateFromInvite) { template in
+            CreateChallengeView(viewModel: inviteChallengeViewModel, template: template)
+        }
         .onReceive(NotificationCenter.default.publisher(for: .startWorkoutFromIntent)) { _ in
             selectedTab = .train
         }
@@ -134,6 +153,7 @@ extension Notification.Name {
     public static let workoutReminderOpened = Notification.Name("workoutReminderOpened")
     public static let cycleDataUpdated = Notification.Name("cycleDataUpdated")
     public static let deepLinkRouteOpened = Notification.Name("deepLinkRouteOpened")
+    public static let challengeInviteOpened = Notification.Name("challengeInviteOpened")
     public static let dailyCheckInCompleted = Notification.Name("dailyCheckInCompleted")
     public static let intentionalRecoveryCompleted = Notification.Name("intentionalRecoveryCompleted")
 }
@@ -143,6 +163,16 @@ public enum Tab: String {
     case train
     case cycle
     case progress
+}
+
+/// Identifiable wrapper so an incoming invite code can drive `.sheet(item:)`.
+public struct ChallengeInvitePayload: Identifiable, Equatable {
+    public let id = UUID()
+    public let code: String
+
+    public init(code: String) {
+        self.code = code
+    }
 }
 
 // MARK: - AuthView Placeholder
