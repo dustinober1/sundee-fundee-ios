@@ -94,6 +94,12 @@ struct SundeeFundeeMain: App {
                 }
             }
             .onOpenURL { url in
+                // Challenge invites carry the join code and need their own
+                // redemption flow, so they are matched before generic routes.
+                if let inviteCode = DeepLinkRouter.inviteCode(for: url) {
+                    NotificationCenter.default.post(name: .challengeInviteOpened, object: inviteCode)
+                    return
+                }
                 guard let route = DeepLinkRouter.route(for: url) else { return }
                 NotificationCenter.default.post(name: .deepLinkRouteOpened, object: route)
             }
