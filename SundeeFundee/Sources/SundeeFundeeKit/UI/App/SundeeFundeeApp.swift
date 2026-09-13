@@ -55,13 +55,6 @@ public struct MainTabView: View {
                 .accessibilityHint("View maxes, analytics, benchmarks, challenges, and data export")
         }
         .tint(AppTheme.Accent.gold)
-        // Bottom edge, not top: a top safeAreaInset on TabView collapses the
-        // inline navigation bar, hiding toolbar buttons like the Settings gear.
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            if ScreenshotMode.isEnabled {
-                ScreenshotModeBanner(caption: ScreenshotMode.caption(for: selectedTab))
-            }
-        }
         .overlay(alignment: .bottom) {
             if sharkWeekMonitor.isSharkWeek {
                 SharkWeekBanner()
