@@ -7,8 +7,17 @@ import CloudKit
 
 private let calendar = Calendar.current
 
-private func makeDate(year: Int, month: Int, day: Int) -> Date {
-    calendar.date(from: DateComponents(year: year, month: month, day: day, hour: 12))!
+/// Anchors fixture dates to *now* so relative windows (lastSixMonths, etc.)
+/// never age fixtures out of range the way hardcoded dates did (the 2026-03-01
+/// fixtures fell outside the six-month cutoff in September 2026).
+private func daysAgo(_ days: Int) -> Date {
+    let noon = calendar.date(bySettingHour: 12, minute: 0, second: 0, of: Date())!
+    return calendar.date(byAdding: .day, value: -days, to: noon)!
+}
+
+private func monthsAgo(_ months: Int) -> Date {
+    let noon = calendar.date(bySettingHour: 12, minute: 0, second: 0, of: Date())!
+    return calendar.date(byAdding: .month, value: -months, to: noon)!
 }
 
 private func makeWorkout(
@@ -103,7 +112,7 @@ struct AnalyticsViewModelTests {
 
     @Test("loadAnalytics fetches and populates all chart data")
     func testLoadAnalytics() async throws {
-        let recent = makeDate(year: 2026, month: 3, day: 1)
+        let recent = daysAgo(5)
 
         let orm = makeORM(exerciseName: "Squat", weight: 200, date: recent)
         let workout = makeWorkout(date: recent, completedAt: recent, volume: 5000)
@@ -144,8 +153,8 @@ struct AnalyticsViewModelTests {
 
     @Test("changing time range triggers re-aggregation")
     func testTimeRangeChange() async throws {
-        let recent = makeDate(year: 2026, month: 3, day: 1)
-        let old = makeDate(year: 2025, month: 6, day: 1)
+        let recent = daysAgo(5)
+        let old = monthsAgo(8)
 
         let recentORM = makeORM(exerciseName: "Squat", weight: 200, date: recent)
         let oldORM = makeORM(exerciseName: "Squat", weight: 150, date: old)
@@ -168,7 +177,7 @@ struct AnalyticsViewModelTests {
 
     @Test("selectExercise filters strength data to single exercise")
     func testExerciseSelection() async throws {
-        let date = makeDate(year: 2026, month: 3, day: 1)
+        let date = daysAgo(5)
 
         let squatORM = makeORM(exerciseName: "Squat", weight: 200, date: date)
         let benchORM = makeORM(exerciseName: "Bench Press", weight: 150, date: date)
@@ -193,7 +202,7 @@ struct AnalyticsViewModelTests {
 
     @Test("availableExercises contains sorted unique exercise names")
     func testAvailableExercises() async throws {
-        let date = makeDate(year: 2026, month: 3, day: 1)
+        let date = daysAgo(5)
 
         let orm1 = makeORM(exerciseName: "Deadlift", weight: 250, date: date)
         let orm2 = makeORM(exerciseName: "Squat", weight: 200, date: date)
@@ -211,9 +220,9 @@ struct AnalyticsViewModelTests {
 
     @Test("cycle data is always available when phase data exists")
     func testCycleDataAlwaysAvailable() async throws {
-        let date = makeDate(year: 2026, month: 3, day: 1)
-        let phaseStart = makeDate(year: 2026, month: 2, day: 25)
-        let phaseEnd = makeDate(year: 2026, month: 3, day: 5)
+        let date = daysAgo(5)
+        let phaseStart = daysAgo(10)
+        let phaseEnd = daysAgo(3)
         let phase = makeCyclePhase(phase: .follicular, start: phaseStart, end: phaseEnd)
         let workout = makeWorkout(date: date, completedAt: date, volume: 3000)
 
@@ -229,9 +238,9 @@ struct AnalyticsViewModelTests {
 
     @Test("cycle data shows luteal phase correlation")
     func testCycleDataLutealPhase() async throws {
-        let date = makeDate(year: 2026, month: 3, day: 1)
-        let phaseStart = makeDate(year: 2026, month: 2, day: 25)
-        let phaseEnd = makeDate(year: 2026, month: 3, day: 5)
+        let date = daysAgo(5)
+        let phaseStart = daysAgo(10)
+        let phaseEnd = daysAgo(3)
         let phase = makeCyclePhase(phase: .luteal, start: phaseStart, end: phaseEnd)
         let workout = makeWorkout(date: date, completedAt: date, volume: 4000)
 
@@ -281,8 +290,8 @@ struct AnalyticsViewModelTests {
 
     @Test("changing time range preserves exercise filter")
     func testTimeRangeChangePreservesExerciseFilter() async throws {
-        let recent = makeDate(year: 2026, month: 3, day: 1)
-        let old = makeDate(year: 2025, month: 3, day: 1)
+        let recent = daysAgo(5)
+        let old = monthsAgo(8)
 
         let squatRecent = makeORM(exerciseName: "Squat", weight: 200, date: recent)
         let benchRecent = makeORM(exerciseName: "Bench", weight: 150, date: recent)
@@ -309,7 +318,7 @@ struct AnalyticsViewModelTests {
 
     @Test("cycle data is recalculated on time range change")
     func testCycleDataOnTimeRangeChange() async throws {
-        let date = makeDate(year: 2026, month: 3, day: 1)
+        let date = daysAgo(5)
         let phase = makeCyclePhase(phase: .luteal, start: date, end: date)
         let workout = makeWorkout(date: date, completedAt: date, volume: 3000)
 
