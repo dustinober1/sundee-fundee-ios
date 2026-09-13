@@ -344,22 +344,22 @@ final class SundeeFundeeScreenshotTests: XCTestCase {
             return true
         }
 
-        guard scrollView.waitForExistence(timeout: 5) else {
-            return element.exists
+        // On iOS 26, SwiftUI List exposes as a CollectionView, so a `tables`
+        // query can come up empty. Swiping the app element itself is
+        // container-agnostic and scrolls whatever list is on screen.
+        let container = scrollView.exists ? scrollView : app
+        for _ in 0..<maxSwipes {
+            if element.exists && element.isHittable {
+                return true
+            }
+            container.swipeUp()
         }
 
         for _ in 0..<maxSwipes {
             if element.exists && element.isHittable {
                 return true
             }
-            scrollView.swipeUp()
-        }
-
-        for _ in 0..<maxSwipes {
-            if element.exists && element.isHittable {
-                return true
-            }
-            scrollView.swipeDown()
+            container.swipeDown()
         }
 
         return element.exists
