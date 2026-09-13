@@ -74,7 +74,8 @@ public enum ShareCardRenderer {
                 badge: badge,
                 bullets: bullets,
                 aspect: aspect,
-                privacyOptions: privacyOptions
+                privacyOptions: privacyOptions,
+                shareURL: ShareURL.link(for: shareContext)
             )
         case .weeklyRecap(let title, let subtitle, let badge, let bullets):
             CoachSummaryShareView(
@@ -83,7 +84,8 @@ public enum ShareCardRenderer {
                 badge: badge,
                 bullets: bullets,
                 aspect: aspect,
-                privacyOptions: privacyOptions
+                privacyOptions: privacyOptions,
+                shareURL: ShareURL.link(for: shareContext)
             )
         case .buddyCheckIn(let summary, let displayName):
             BuddyCheckInShareView(
@@ -99,7 +101,8 @@ public enum ShareCardRenderer {
                 badge: "Monthly Review",
                 bullets: allBullets,
                 aspect: aspect,
-                privacyOptions: privacyOptions
+                privacyOptions: privacyOptions,
+                shareURL: ShareURL.link(for: shareContext)
             )
         case .readiness(let summary):
             ReadinessShareView(summary: summary, aspect: aspect, privacyOptions: privacyOptions)

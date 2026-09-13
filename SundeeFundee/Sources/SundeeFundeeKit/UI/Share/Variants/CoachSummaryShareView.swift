@@ -10,6 +10,7 @@ struct CoachSummaryShareView: View {
     let bullets: [String]
     let aspect: ShareCardAspect
     let privacyOptions: SharePrivacyOptions
+    var shareURL: URL = ShareURL.appStore
 
     var body: some View {
         VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
@@ -56,5 +57,13 @@ struct CoachSummaryShareView: View {
         .padding(.bottom, AppTheme.Spacing.lg)
         .frame(width: aspect.size.width, height: aspect.size.height, alignment: .leading)
         .background(AppTheme.Background.navy)
+        .overlay(alignment: .bottomTrailing) {
+            #if canImport(UIKit)
+            if #available(iOS 18.0, *) {
+                QRBadge(url: shareURL, size: aspect.size.width * 0.10)
+                    .padding(AppTheme.Spacing.lg)
+            }
+            #endif
+        }
     }
 }
