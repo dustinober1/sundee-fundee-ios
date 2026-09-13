@@ -83,3 +83,23 @@ ships and again 2–4 weeks later, so each row reads as a before/after.
 
 Success signal after the next release: product page views-to-download conversion
 and search impressions both up vs. the baseline row; rating count moving above 1.
+
+### Change 2: 2026-09-13 — acquisition loop inside the product (Phase 2)
+
+- Weekly recap, coach summary, and monthly review share cards now carry the
+  attributed App Store QR badge (completed-workout, PR, cycle-insight, and
+  selfie cards already did). Every public share card now survives
+  image-only sharing (stories strip caption text).
+- Challenge invites became a closed loop: invite text includes a
+  `sundeefundee://invite/CODE` tap-to-join link next to the code; opening it
+  routes to the existing join flow with the code prefilled and auto-looked-up,
+  then the prefilled create-challenge form. Manual entry remains in
+  Challenges (person.badge.plus toolbar action).
+- Ops note: invite lookup queries the PUBLIC CloudKit database
+  (`ChallengeInvite`, predicate on `inviteToken`). Verify that field is a
+  QUERYABLE index in CloudKit Dashboard (Development AND Production) before
+  relying on deep-link redemption; the join sheet shows an actionable error if
+  the lookup fails.
+- Deferred-install attribution (a brand-new user tapping the store link and
+  landing directly in the join flow) still needs either a universal link +
+  server handoff or Apple Ads attribution; out of scope for this slice.
