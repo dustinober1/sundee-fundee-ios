@@ -17,8 +17,10 @@ import SwiftUI
 public struct MainTabView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @Environment(\.requestReview) private var requestReview
+    @Environment(\.openURL) private var openURL
     @StateObject private var cyclePhaseCache = CyclePhaseCache()
     @StateObject private var sharkWeekMonitor = SharkWeekMonitor()
+    @State private var showReviewSatisfactionGate = false
 
     public init() {}
 
@@ -81,7 +83,23 @@ public struct MainTabView: View {
             selectedTab = .train
         }
         .onReceive(NotificationCenter.default.publisher(for: .appReviewPromptRequested)) { _ in
-            requestReview()
+            // Happy gate: ask about satisfaction first so the scarce system
+            // review prompt concentrates on happy users (Apple throttles to
+            // ~3 prompts per user per year).
+            showReviewSatisfactionGate = true
+        }
+        .alert("Enjoying Sundee Fundee?", isPresented: $showReviewSatisfactionGate) {
+            Button("Yes, rate it") {
+                requestReview()
+            }
+            Button("Not really") {
+                if let supportURL = URL(string: "https://sundeefundee.com/support/") {
+                    openURL(supportURL)
+                }
+            }
+            Button("Not now", role: .cancel) {}
+        } message: {
+            Text("Ratings help other women find cycle-aware training.")
         }
         .onReceive(NotificationCenter.default.publisher(for: .startWorkoutFromIntent)) { _ in
             selectedTab = .train
