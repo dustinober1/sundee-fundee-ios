@@ -71,6 +71,7 @@ struct AIWorkoutView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .animation(nil, value: viewModel.state)
             .navigationTitle("Coach Plan")
+            .screenshotModeBenefitBanner(caption: ScreenshotMode.caption(for: .train))
             #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
             #endif
