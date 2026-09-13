@@ -47,3 +47,39 @@ Capture these before and after metadata or screenshot changes:
 - Rework first three screenshots around benefits before running paid search.
 - Use Apple Ads search campaigns for keyword research only after attribution links are consistent.
 - Create custom product pages later for cycle/period, women who lift, and recovery/pain intents.
+
+## Experiment Log
+
+Every store-page change gets a row here. Capture the App Analytics Baseline numbers
+(via the `asc-analytics-reports` skill and the lookup API below) the week the change
+ships and again 2–4 weeks later, so each row reads as a before/after.
+
+### Baseline: 2026-09-13 (pre-change)
+
+- Version live: 2.0.2 (released 2026-08-10).
+- Ratings: 1 total, 5.0 average (public lookup API for ID `6759870888`).
+- Search: findable only by brand terms; not top 10 for `cycle-aware workout coach`.
+- ASC analytics impressions / page views / conversion: pending first capture —
+  run `asc analytics view` + `asc analytics download` per the `asc-analytics-reports`
+  skill before the next release, and fill the row in below.
+
+### Change 1: 2026-09-13 — store page conversion rework (Phase 1)
+
+- Promotional text set: leads with audience and differentiator ("Strength training
+  for women who lift. Workouts adapt to your cycle, pain, and energy. 100% free,
+  private by design."). Can go live without a version submission.
+- Keywords reworked (both `fastlane/metadata` and canonical `metadata/`): dropped
+  zero-volume terms (readiness, bands, menstrual); added `tracker`, `training`,
+  `gym`, `plan` so the indexed fields can form "strength training", "period
+  tracker", "cycle tracker", "kettlebell/dumbbell workout". Requires next version.
+- Screenshots reordered benefit-first: 01 Today ("Lift with your cycle, not
+  against it."), 02 Coach Plan ("A plan that adapts to your energy, pain, and
+  phase."), 03 Progress ("Watch your strength climb, week by week."). Captions
+  render via the screenshot-mode banner; the Cycle settings screen moved from
+  slot 2 to slot 4. Requires next version.
+- Review prompts widened (active-recovery sessions, Return to Training sessions)
+  and gated behind an in-app satisfaction check so Apple's ~3-per-year prompt
+  budget concentrates on happy users. Requires next version.
+
+Success signal after the next release: product page views-to-download conversion
+and search impressions both up vs. the baseline row; rating count moving above 1.
