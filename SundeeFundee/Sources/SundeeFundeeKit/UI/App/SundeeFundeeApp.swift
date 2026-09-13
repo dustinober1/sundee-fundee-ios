@@ -55,7 +55,9 @@ public struct MainTabView: View {
                 .accessibilityHint("View maxes, analytics, benchmarks, challenges, and data export")
         }
         .tint(AppTheme.Accent.gold)
-        .safeAreaInset(edge: .top, spacing: 0) {
+        // Bottom edge, not top: a top safeAreaInset on TabView collapses the
+        // inline navigation bar, hiding toolbar buttons like the Settings gear.
+        .safeAreaInset(edge: .bottom, spacing: 0) {
             if ScreenshotMode.isEnabled {
                 ScreenshotModeBanner(caption: ScreenshotMode.caption(for: selectedTab))
             }
