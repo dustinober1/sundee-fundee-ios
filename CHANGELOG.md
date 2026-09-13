@@ -13,6 +13,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   App Store rating at a natural high point.
 - Added a satisfaction check before every App Store review prompt: ratings are
   asked only after a positive answer, and other feedback is routed to support.
+- Challenge invites are now redeemable end to end: shared invites include a
+  tap-to-join link, and opening it in the app lands on the join flow with the
+  code already filled in.
 - Added a shareable Coach Report: a plain-language PDF summary of sessions,
   training patterns, and pain and injury history to hand to a coach, trainer,
   or clinician. Generated on device from Export My Data and shared through the
