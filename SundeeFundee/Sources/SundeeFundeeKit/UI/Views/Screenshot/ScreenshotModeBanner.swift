@@ -52,3 +52,24 @@ public struct ScreenshotModeBanner: View {
         .accessibilityElement(children: .combine)
     }
 }
+
+// MARK: - View Extension
+
+@available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
+extension View {
+    /// Shows the benefit banner above this view in screenshot mode.
+    ///
+    /// Apply to the root content INSIDE each tab's NavigationStack: an inset on
+    /// TabView itself collapses the nav bar (hiding toolbar buttons) at the top
+    /// edge and covers the iPhone tab bar at the bottom edge.
+    @ViewBuilder
+    public func screenshotModeBenefitBanner(caption: String) -> some View {
+        if ScreenshotMode.isEnabled {
+            self.safeAreaInset(edge: .top, spacing: 0) {
+                ScreenshotModeBanner(caption: caption)
+            }
+        } else {
+            self
+        }
+    }
+}
