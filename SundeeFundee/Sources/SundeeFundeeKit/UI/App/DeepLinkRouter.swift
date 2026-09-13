@@ -52,4 +52,36 @@ public enum DeepLinkRouter {
             return URL(string: "\(scheme)://today/check-in")!
         }
     }
+
+    /// Extracts a challenge invite code from `sundeefundee://invite/CODE`.
+    /// Codes are uppercased and restricted to the invite alphabet
+    /// (A-Z, 2-9 — see `ChallengeInviteService.makeInviteToken`).
+    public static func inviteCode(for url: URL) -> String? {
+        guard url.scheme == scheme else { return nil }
+
+        let host = url.host?.lowercased()
+        let segments = url.path.split(separator: "/").map(String.init)
+
+        let code: String?
+        if host == "invite" {
+            code = segments.first
+        } else if host == "join", let queryCode = URLComponents(url: url, resolvingAgainstBaseURL: false)?
+            .queryItems?
+            .first(where: { $0.name == "code" })?
+            .value {
+            code = queryCode
+        } else if segments.first?.lowercased() == "invite" {
+            code = segments.dropFirst().first
+        } else {
+            code = nil
+        }
+
+        guard var normalized = code?.uppercased() else { return nil }
+        normalized = String(normalized.filter { $0.isLetter || $0.isNumber }.prefix(12))
+        return normalized.isEmpty ? nil : normalized
+    }
+
+    public static func inviteURL(code: String) -> URL {
+        GrowthLinkService.inviteDeepLink(code: code)
+    }
 }
