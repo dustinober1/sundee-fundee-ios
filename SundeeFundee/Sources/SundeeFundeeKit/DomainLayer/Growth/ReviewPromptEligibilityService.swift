@@ -6,6 +6,8 @@ public enum ReviewPromptTrigger: String, Codable, Sendable, CaseIterable {
     case benchmarkLogged
     case firstCoachPlanCompleted
     case painAwareSwapWorkoutCompleted
+    case activeRecoveryCompleted
+    case returnToTrainingCompleted
 }
 
 public struct ReviewPromptContext: Equatable, Sendable {
