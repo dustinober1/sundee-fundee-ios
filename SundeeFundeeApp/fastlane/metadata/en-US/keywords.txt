@@ -1,1 +1,1 @@
-menstrual,cycle,workout,lifting,barbell,dumbbell,kettlebell,recovery,pain,tracker,women,bands,pms
+tracker,training,workout,lifting,gym,plan,cycle,PMS,pain,recovery,barbell,dumbbell,kettlebell,women
