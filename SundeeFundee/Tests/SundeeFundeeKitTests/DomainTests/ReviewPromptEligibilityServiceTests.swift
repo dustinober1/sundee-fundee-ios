@@ -101,7 +101,9 @@ final class ReviewPromptEligibilityServiceTests: XCTestCase {
             .personalRecordLogged,
             .benchmarkLogged,
             .firstCoachPlanCompleted,
-            .painAwareSwapWorkoutCompleted
+            .painAwareSwapWorkoutCompleted,
+            .activeRecoveryCompleted,
+            .returnToTrainingCompleted
         ]
 
         for trigger in triggers {
@@ -123,7 +125,9 @@ final class ReviewPromptEligibilityServiceTests: XCTestCase {
             .personalRecordLogged,
             .benchmarkLogged,
             .firstCoachPlanCompleted,
-            .painAwareSwapWorkoutCompleted
+            .painAwareSwapWorkoutCompleted,
+            .activeRecoveryCompleted,
+            .returnToTrainingCompleted
         ]
 
         for trigger in triggers {
