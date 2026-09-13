@@ -55,6 +55,11 @@ public struct MainTabView: View {
                 .accessibilityHint("View maxes, analytics, benchmarks, challenges, and data export")
         }
         .tint(AppTheme.Accent.gold)
+        .safeAreaInset(edge: .top, spacing: 0) {
+            if ScreenshotMode.isEnabled {
+                ScreenshotModeBanner(caption: ScreenshotMode.caption(for: selectedTab))
+            }
+        }
         .overlay(alignment: .bottom) {
             if sharkWeekMonitor.isSharkWeek {
                 SharkWeekBanner()
