@@ -357,7 +357,9 @@ private struct ChallengeInviteShareLink: View {
 }
 
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
-private struct JoinChallengeView: View {
+struct JoinChallengeView: View {
+    /// Pre-fills the code for deep-link entries and looks it up immediately.
+    var prefilledCode: String? = nil
     let onTemplateLoaded: (ChallengeShareTemplate) -> Void
     @Environment(\.dismiss) private var dismiss
     @State private var joinCode = ""
@@ -368,7 +370,13 @@ private struct JoinChallengeView: View {
         NavigationStack {
             Form {
                 Section {
+                    #if os(iOS)
                     TextField("ABCDEFGH", text: $joinCode)
+                        .textInputAutocapitalization(.characters)
+                        .autocorrectionDisabled()
+                    #else
+                    TextField("ABCDEFGH", text: $joinCode)
+                    #endif
                     if let errorMessage {
                         Text(errorMessage)
                             .font(AppTheme.Typography.bodySmall)
@@ -393,6 +401,12 @@ private struct JoinChallengeView: View {
                         Task { await loadTemplate() }
                     }
                     .disabled(joinCode.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isLoading)
+                }
+            }
+            .task {
+                if joinCode.isEmpty, let prefilledCode, !prefilledCode.isEmpty {
+                    joinCode = prefilledCode
+                    await loadTemplate()
                 }
             }
         }
