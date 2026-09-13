@@ -17,5 +17,7 @@ final class ChallengeInviteServiceTests: XCTestCase {
         XCTAssertTrue(text.contains("April Push"))
         XCTAssertTrue(text.contains("50K"))
         XCTAssertTrue(text.contains("ABCD1234"))
+        XCTAssertTrue(text.contains(GrowthLinkService.inviteDeepLink(code: "ABCD1234").absoluteString))
+        XCTAssertTrue(text.contains(GrowthLinkService.appStoreURL.absoluteString))
     }
 }

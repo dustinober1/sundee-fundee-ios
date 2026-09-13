@@ -33,4 +33,49 @@ final class DeepLinkRouterTests: XCTestCase {
 
         XCTAssertNil(route)
     }
+
+    // MARK: - Challenge Invite Codes
+
+    func testParsesInviteCodeFromHost() {
+        let code = DeepLinkRouter.inviteCode(for: URL(string: "sundeefundee://invite/ABCD1234")!)
+
+        XCTAssertEqual(code, "ABCD1234")
+    }
+
+    func testParsesInviteCodeFromPath() {
+        let code = DeepLinkRouter.inviteCode(for: URL(string: "sundeefundee:///invite/ABCD1234")!)
+
+        XCTAssertEqual(code, "ABCD1234")
+    }
+
+    func testParsesInviteCodeFromJoinQuery() {
+        let code = DeepLinkRouter.inviteCode(for: URL(string: "sundeefundee://join?code=abcd1234")!)
+
+        XCTAssertEqual(code, "ABCD1234")
+    }
+
+    func testInviteCodeNormalizesLowercaseAndStripsPadding() {
+        let code = DeepLinkRouter.inviteCode(for: URL(string: "sundeefundee://invite/abcd-1234")!)
+
+        XCTAssertEqual(code, "ABCD1234")
+    }
+
+    func testInviteCodeCapsLengthAtTwelve() {
+        let code = DeepLinkRouter.inviteCode(for: URL(string: "sundeefundee://invite/ABCDEFGHIJKLMNOPQRST")!)
+
+        XCTAssertEqual(code, "ABCDEFGHIJKL")
+    }
+
+    func testInviteParsingRejectsWrongSchemeAndUnknownHosts() {
+        XCTAssertNil(DeepLinkRouter.inviteCode(for: URL(string: "https://sundeefundee.com/invite/ABCD1234")!))
+        XCTAssertNil(DeepLinkRouter.inviteCode(for: URL(string: "sundeefundee://cycle")!))
+        XCTAssertNil(DeepLinkRouter.inviteCode(for: URL(string: "sundeefundee://invite")!))
+    }
+
+    func testInviteURIRoundTripsThroughParser() {
+        let url = GrowthLinkService.inviteDeepLink(code: "ABCD1234")
+
+        XCTAssertEqual(DeepLinkRouter.inviteCode(for: url), "ABCD1234")
+        XCTAssertEqual(DeepLinkRouter.inviteURL(code: "ABCD1234"), url)
+    }
 }
