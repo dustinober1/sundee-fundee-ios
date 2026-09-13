@@ -90,6 +90,7 @@ struct SundeeFundeeMain: App {
                     authViewModel.userName = "Sarah"
                     authViewModel.isAuthenticated = true
                     authViewModel.needsOnboarding = false
+                    authViewModel.needsFeatureTour = false
                 }
             }
             .onOpenURL { url in
