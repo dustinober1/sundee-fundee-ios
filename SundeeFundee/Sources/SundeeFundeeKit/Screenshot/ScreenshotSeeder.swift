@@ -43,9 +43,11 @@ public enum ScreenshotSeeder {
         seedHealthKitWorkouts(into: mockHealth)
         seedMenstrualCycles(into: mockHealth)
 
-        // 4. Mark onboarding complete and set user name
+        // 4. Mark onboarding, feature tour, and user name so a fresh install
+        //    lands on the main UI no matter when auth state is re-evaluated.
         _ = KeychainHelper.save(key: KeychainHelper.userIDKey, value: AuthViewModel.guestUserID)
         _ = KeychainHelper.save(key: "onboarding_complete", value: "true")
+        _ = KeychainHelper.save(key: "feature_tour_complete", value: "true")
         _ = KeychainHelper.save(key: KeychainHelper.userNameKey, value: "Sarah")
 
         seederLogger.info("Screenshot data seeded successfully")
