@@ -726,6 +726,14 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
             triggers.append((.firstCoachPlanCompleted, "coach-plan:\(workout.id)"))
         }
 
+        if workout.kind == .activeRecovery {
+            triggers.append((.activeRecoveryCompleted, "active-recovery:\(workout.id)"))
+        }
+
+        if isReturnToTrainingWorkout {
+            triggers.append((.returnToTrainingCompleted, "return-to-training:\(workout.id)"))
+        }
+
         if usedPainAwareSwap {
             triggers.append((.painAwareSwapWorkoutCompleted, "pain-aware-swap:\(workout.id)"))
         }
@@ -756,6 +764,11 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
     private var isCoachPlanWorkout: Bool {
         workout.name.localizedCaseInsensitiveContains("Coach Plan") ||
             (workout.notes?.localizedCaseInsensitiveContains("Coach Plan") ?? false)
+    }
+
+    private var isReturnToTrainingWorkout: Bool {
+        workout.name.localizedCaseInsensitiveContains("Return to Training") ||
+            (workout.notes?.localizedCaseInsensitiveContains("Return to Training") ?? false)
     }
 
     private static func isPainAwareSwapReason(_ reason: String?) -> Bool {
