@@ -13,6 +13,12 @@ public struct GrowthLinkConfiguration: Sendable, Equatable {
 public enum GrowthLinkService {
     public static let appStoreURL = URL(string: "https://apps.apple.com/app/sundeefundee/id6759870888")!
 
+    /// Custom-scheme link that opens the app's challenge-join flow directly.
+    /// Shared alongside the App Store URL so existing users skip manual entry.
+    public static func inviteDeepLink(code: String) -> URL {
+        URL(string: "sundeefundee://invite/\(code)")!
+    }
+
     public static func link(
         for context: ShareContext? = nil,
         configuration: GrowthLinkConfiguration = GrowthLinkConfiguration()
