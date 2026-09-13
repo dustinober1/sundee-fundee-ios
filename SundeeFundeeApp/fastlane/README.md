@@ -23,6 +23,14 @@ For _fastlane_ installation instructions, see [Installing _fastlane_](https://do
 
 Capture fresh App Store screenshots
 
+### ios beta
+
+```sh
+[bundle exec] fastlane ios beta
+```
+
+Build and upload to TestFlight only — does not submit for App Store review
+
 ### ios release
 
 ```sh
