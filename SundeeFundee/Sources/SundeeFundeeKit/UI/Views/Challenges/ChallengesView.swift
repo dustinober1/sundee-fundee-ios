@@ -456,7 +456,9 @@ private struct BuddyCheckInSheet: View {
                         Text("Planned").tag(BuddyCheckInStatus.planned)
                         Text("Skipped").tag(BuddyCheckInStatus.skipped)
                     }
+                    #if !os(watchOS)
                     .pickerStyle(.segmented)
+                    #endif
                 } header: {
                     Text("Check-In Status")
                 }
