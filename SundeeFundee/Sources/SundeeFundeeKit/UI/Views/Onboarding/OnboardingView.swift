@@ -136,7 +136,9 @@ public struct OnboardingView: View {
                             Text("Pounds (lbs)").tag(WeightUnit.lbs)
                             Text("Kilograms (kg)").tag(WeightUnit.kg)
                         }
+                        #if !os(watchOS)
                         .pickerStyle(.segmented)
+                        #endif
                     }
                 }
 
@@ -185,7 +187,9 @@ public struct OnboardingView: View {
                                 Text(equipment.displayName).tag(equipment)
                             }
                         }
+                        #if !os(watchOS)
                         .pickerStyle(.menu)
+                        #endif
 
                         Text(viewModel.defaultEquipment.shortDescription)
                             .font(AppTheme.Typography.bodySmall)
