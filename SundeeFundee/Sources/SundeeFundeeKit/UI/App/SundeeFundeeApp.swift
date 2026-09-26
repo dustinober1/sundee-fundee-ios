@@ -58,10 +58,18 @@ public struct MainTabView: View {
         }
         .tint(AppTheme.Accent.gold)
         .overlay(alignment: .bottom) {
-            if sharkWeekMonitor.isSharkWeek {
-                SharkWeekBanner()
-                    .padding(.bottom, 54)
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
+            if sharkWeekMonitor.isSharkWeek && !cyclePhaseCache.isGymPrivacyEnabled && cyclePhaseCache.showSharkWeekBanner {
+                SharkWeekBanner(
+                    terminologyStyle: cyclePhaseCache.terminologyStyle,
+                    onDismiss: {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                            cyclePhaseCache.dismissSharkWeekBanner()
+                            sharkWeekMonitor.sync(with: cyclePhaseCache)
+                        }
+                    }
+                )
+                .padding(.bottom, 54)
+                .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
         .animation(.easeInOut(duration: 0.3), value: sharkWeekMonitor.isSharkWeek)
