@@ -42,7 +42,7 @@ struct NewPRShareView: View {
                     .padding(.bottom, AppTheme.Spacing.lg)
             }
             .padding(.horizontal, AppTheme.Spacing.xl)
-            #if canImport(UIKit)
+            #if os(iOS)
             if #available(iOS 18.0, *) {
                 QRBadge(url: shareURL, size: aspect.size.width * 0.10)
                     .padding(AppTheme.Spacing.lg)
