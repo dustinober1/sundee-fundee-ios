@@ -15,6 +15,8 @@ public enum TrainingEquipmentTag: String, Codable, Sendable, CaseIterable, Equat
     case box
 }
 
+public typealias ExerciseCatalogEntry = TrainingExerciseDefinition
+
 public struct TrainingExerciseDefinition: Sendable, Identifiable, Equatable {
     public let id: String
     public let categoryLabel: String
@@ -23,6 +25,11 @@ public struct TrainingExerciseDefinition: Sendable, Identifiable, Equatable {
     public let bodyweightOnly: Bool
     public let isMaxTrackable: Bool
     public let defaultScoringType: ConditioningScoringType?
+
+    /// The primary anatomical body region for this exercise.
+    public var primaryRegion: ExerciseRegion {
+        movementPattern.primaryRegion
+    }
 
     public init(
         id: String,
@@ -581,4 +588,22 @@ public func isBetterConditioningScore(
 ) -> Bool {
     guard let existingValue else { return true }
     return type == .time ? newValue < existingValue : newValue > existingValue
+}
+
+private let catalogByID: [String: TrainingExerciseDefinition] = {
+    var dict = [String: TrainingExerciseDefinition]()
+    for exercise in trainingExerciseCatalog {
+        dict[exercise.id.lowercased()] = exercise
+    }
+    return dict
+}()
+
+/// Looks up an exercise catalog entry by name or alias.
+public func lookupExerciseCatalogEntry(_ name: String) -> TrainingExerciseDefinition? {
+    let canonical = canonicalExerciseID(name)
+    if let entry = catalogByID[canonical.lowercased()] {
+        return entry
+    }
+    let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+    return catalogByID[trimmed]
 }
