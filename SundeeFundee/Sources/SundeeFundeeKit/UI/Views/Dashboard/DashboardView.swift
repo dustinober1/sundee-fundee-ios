@@ -24,6 +24,7 @@ private let dashLogger = Logger(subsystem: "com.sundeefundee.app", category: "Da
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
 public struct DashboardView: View {
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @StateObject private var viewModel = DashboardViewModel()
     @StateObject private var readinessViewModel = DailyReadinessViewModel()
     @StateObject private var engagementViewModel = TodayEngagementViewModel()
@@ -47,72 +48,15 @@ public struct DashboardView: View {
     public var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: AppTheme.Spacing.lg) {
-                    welcomeHeader
-
-                    TodayPresenceCard(
-                        today: engagementViewModel.today,
-                        summary: engagementViewModel.summary,
-                        message: engagementViewModel.message,
-                        syncState: engagementViewModel.syncState,
-                        isUpdating: engagementViewModel.isLoading
-                    ) { status in
-                        Task { await engagementViewModel.select(status) }
-                    } onRetrySync: {
-                        Task { await engagementViewModel.retrySync() }
-                    }
-
-                    if let todayAction = viewModel.todayAction {
-                        todayActionCard(todayAction)
-                    } else if let decision = viewModel.todayTrainingDecision {
-                        todayTrainingDecisionCard(decision)
-                    }
-
-                    cyclePhaseBanner
-
-                    readinessContent
-
-                    if viewModel.isInitialLoad {
-                        SkeletonStatRow()
+                Group {
+                    if horizontalSizeClass == .regular {
+                        regularLayout
                     } else {
-                        compactTodaySnapshot
-                    }
-
-                    quickActionsCard
-
-                    if viewModel.showsNewUserEmptyState {
-                        EmptyStateView(
-                            icon: "figure.strengthtraining.traditional",
-                            title: "Welcome to Sundee Fundee",
-                            subtitle: "Start your first workout to unlock stats, benchmarks, and cycle-aware programming.",
-                            actionLabel: "Start First Workout",
-                            action: {
-                                Task {
-                                    starterWorkout = await viewModel.buildStarterWorkout()
-                                }
-                            },
-                            secondaryActionLabel: "Log a Max",
-                            secondaryAction: { viewModel.navigateToLogMax = true }
-                        )
-                    } else {
-                        Button {
-                            showingTodayWhy = true
-                        } label: {
-                            Label("Why Today?", systemImage: "questionmark.circle")
-                                .frame(maxWidth: .infinity)
-                        }
-                        .artDecoButton(style: .secondary)
-
-                        Button {
-                            showingMoreToday = true
-                        } label: {
-                            Label("More Today", systemImage: "ellipsis.circle")
-                                .frame(maxWidth: .infinity)
-                        }
-                        .artDecoButton(style: .ghost)
+                        compactLayout
                     }
                 }
                 .padding(AppTheme.Spacing.lg)
+                .frame(maxWidth: .infinity)
             }
             .navigationTitle("Today")
             .screenshotModeBenefitBanner(caption: ScreenshotMode.caption(for: .today))
@@ -353,6 +297,112 @@ public struct DashboardView: View {
     private func refreshReadiness() async {
         readinessViewModel.updateGuestState(authViewModel.isGuest)
         await readinessViewModel.load()
+    }
+
+    // MARK: - Adaptive Layouts
+
+    private var compactLayout: some View {
+        VStack(spacing: AppTheme.Spacing.lg) {
+            welcomeHeader
+            todayPresenceSection
+            primaryActionSection
+            cyclePhaseBanner
+            readinessContent
+            statsSection
+            quickActionsCard
+            footerButtonsSection
+        }
+    }
+
+    private var regularLayout: some View {
+        VStack(spacing: AppTheme.Spacing.lg) {
+            welcomeHeader
+
+            HStack(alignment: .top, spacing: AppTheme.Spacing.xl) {
+                VStack(spacing: AppTheme.Spacing.lg) {
+                    readinessContent
+                    cyclePhaseBanner
+                    statsSection
+                    footerButtonsSection
+                }
+                .frame(maxWidth: .infinity, alignment: .top)
+
+                VStack(spacing: AppTheme.Spacing.lg) {
+                    todayPresenceSection
+                    primaryActionSection
+                    quickActionsCard
+                }
+                .frame(maxWidth: .infinity, alignment: .top)
+            }
+        }
+        .frame(maxWidth: 1100)
+    }
+
+    private var todayPresenceSection: some View {
+        TodayPresenceCard(
+            today: engagementViewModel.today,
+            summary: engagementViewModel.summary,
+            message: engagementViewModel.message,
+            syncState: engagementViewModel.syncState,
+            isUpdating: engagementViewModel.isLoading
+        ) { status in
+            Task { await engagementViewModel.select(status) }
+        } onRetrySync: {
+            Task { await engagementViewModel.retrySync() }
+        }
+    }
+
+    @ViewBuilder
+    private var primaryActionSection: some View {
+        if let todayAction = viewModel.todayAction {
+            todayActionCard(todayAction)
+        } else if let decision = viewModel.todayTrainingDecision {
+            todayTrainingDecisionCard(decision)
+        }
+    }
+
+    @ViewBuilder
+    private var statsSection: some View {
+        if viewModel.isInitialLoad {
+            SkeletonStatRow()
+        } else {
+            compactTodaySnapshot
+        }
+    }
+
+    @ViewBuilder
+    private var footerButtonsSection: some View {
+        if viewModel.showsNewUserEmptyState {
+            EmptyStateView(
+                icon: "figure.strengthtraining.traditional",
+                title: "Welcome to Sundee Fundee",
+                subtitle: "Start your first workout to unlock stats, benchmarks, and cycle-aware programming.",
+                actionLabel: "Start First Workout",
+                action: {
+                    Task {
+                        starterWorkout = await viewModel.buildStarterWorkout()
+                    }
+                },
+                secondaryActionLabel: "Log a Max",
+                secondaryAction: { viewModel.navigateToLogMax = true }
+            )
+        } else {
+            Button {
+                showingTodayWhy = true
+            } label: {
+                Label("Why Today?", systemImage: "questionmark.circle")
+                    .frame(maxWidth: .infinity)
+            }
+            .artDecoButton(style: .secondary)
+
+            Button {
+                showingMoreToday = true
+            } label: {
+                Label("More Today", systemImage: "ellipsis.circle")
+                    .frame(maxWidth: .infinity)
+            }
+            .artDecoButton(style: .ghost)
+        }
     }
 
     // MARK: - Welcome Header
