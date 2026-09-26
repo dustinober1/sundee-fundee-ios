@@ -62,12 +62,75 @@ final class HealthKitClientTests: XCTestCase {
         if let menstrualFlow = HKObjectType.categoryType(forIdentifier: .menstrualFlow) {
             XCTAssertTrue(readTypes.contains(menstrualFlow))
         }
+        if let wristTemp = HKObjectType.quantityType(forIdentifier: .appleSleepingWristTemperature) {
+            XCTAssertTrue(readTypes.contains(wristTemp))
+        }
+        if let ovulationTest = HKObjectType.categoryType(forIdentifier: .ovulationTestResult) {
+            XCTAssertTrue(readTypes.contains(ovulationTest))
+        }
     }
 
     func testStandardWriteTypes_ContainsWorkoutType() async {
         let writeTypes = HealthKitClient.standardWriteTypes
 
         XCTAssertTrue(writeTypes.contains(HKObjectType.workoutType()))
+    }
+}
+
+// MARK: - MockHealthKitClient Biomarker Tests
+
+final class MockHealthKitClientBiomarkerTests: XCTestCase {
+    var mock: MockHealthKitClient!
+
+    override func setUp() {
+        super.setUp()
+        mock = MockHealthKitClient()
+    }
+
+    override func tearDown() {
+        mock = nil
+        super.tearDown()
+    }
+
+    func testWristTemperature_FetchAndReset() async throws {
+        let now = Date()
+        let sample = try XCTUnwrap(MockHealthKitClient.createMockWristTemperature(
+            startDate: now.addingTimeInterval(-3600),
+            endDate: now,
+            celsius: 36.65
+        ))
+
+        mock.setMockWristTemperatures([sample])
+        XCTAssertEqual(mock.wristTemperatureCount(), 1)
+
+        let fetched = try await mock.fetchWristTemperature(
+            startDate: now.addingTimeInterval(-7200),
+            endDate: now
+        )
+        XCTAssertEqual(fetched.count, 1)
+
+        mock.reset()
+        XCTAssertEqual(mock.wristTemperatureCount(), 0)
+    }
+
+    func testOvulationTestResults_FetchAndFilter() async throws {
+        let now = Date()
+        let sample = try XCTUnwrap(MockHealthKitClient.createMockOvulationTestResult(
+            startDate: now.addingTimeInterval(-1800),
+            endDate: now,
+            value: HKCategoryValueOvulationTestResult.positive.rawValue
+        ))
+
+        mock.addMockOvulationTestResult(sample)
+        XCTAssertEqual(mock.ovulationTestResultCount(), 1)
+
+        let fetched = try await mock.fetchOvulationTestResults(
+            startDate: now.addingTimeInterval(-3600),
+            endDate: now,
+            limit: 10
+        )
+        XCTAssertEqual(fetched.count, 1)
+        XCTAssertEqual(fetched.first?.value, HKCategoryValueOvulationTestResult.positive.rawValue)
     }
 }
 
