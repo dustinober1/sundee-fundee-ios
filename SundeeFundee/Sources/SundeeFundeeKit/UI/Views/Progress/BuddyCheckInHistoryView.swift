@@ -93,7 +93,9 @@ public struct BuddyCheckInHistoryView: View {
                 statusBadge(checkIn.status)
             }
         }
+        #if !os(watchOS)
         .listRowSeparator(.hidden)
+        #endif
         .listRowInsets(EdgeInsets(top: AppTheme.Spacing.xs, leading: AppTheme.Spacing.md, bottom: AppTheme.Spacing.xs, trailing: AppTheme.Spacing.md))
     }
 
