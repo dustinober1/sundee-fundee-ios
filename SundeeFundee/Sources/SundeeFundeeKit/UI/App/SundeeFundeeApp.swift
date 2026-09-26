@@ -21,7 +21,6 @@ public struct MainTabView: View {
     @StateObject private var cyclePhaseCache = CyclePhaseCache()
     @StateObject private var sharkWeekMonitor = SharkWeekMonitor()
     @StateObject private var inviteChallengeViewModel = ChallengesViewModel()
-    @State private var showReviewSatisfactionGate = false
     @State private var pendingChallengeInvite: ChallengeInvitePayload?
     @State private var challengeTemplateFromInvite: ChallengeShareTemplate?
 
@@ -86,23 +85,7 @@ public struct MainTabView: View {
             selectedTab = .train
         }
         .onReceive(NotificationCenter.default.publisher(for: .appReviewPromptRequested)) { _ in
-            // Happy gate: ask about satisfaction first so the scarce system
-            // review prompt concentrates on happy users (Apple throttles to
-            // ~3 prompts per user per year).
-            showReviewSatisfactionGate = true
-        }
-        .alert("Enjoying Sundee Fundee?", isPresented: $showReviewSatisfactionGate) {
-            Button("Yes, rate it") {
-                requestReview()
-            }
-            Button("Not really") {
-                if let supportURL = URL(string: "https://sundeefundee.com/support/") {
-                    openURL(supportURL)
-                }
-            }
-            Button("Not now", role: .cancel) {}
-        } message: {
-            Text("Ratings help other women find cycle-aware training.")
+            requestReview()
         }
         .onReceive(NotificationCenter.default.publisher(for: .challengeInviteOpened)) { notification in
             guard let code = notification.object as? String else { return }
