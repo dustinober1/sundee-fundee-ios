@@ -59,6 +59,9 @@ public struct MainTabView: View {
                 .accessibilityHint("View maxes, analytics, benchmarks, challenges, and data export")
         }
         .tint(AppTheme.Accent.gold)
+        #if !os(watchOS)
+        .tabViewStyle(.sidebarAdaptable)
+        #endif
         .overlay(alignment: .bottom) {
             if sharkWeekMonitor.isSharkWeek && !cyclePhaseCache.isGymPrivacyEnabled && cyclePhaseCache.showSharkWeekBanner {
                 SharkWeekBanner(
