@@ -82,7 +82,7 @@ struct TodayWhySheet: View {
                     Button("Close") { dismiss() }
                 }
             }
-            #if canImport(UIKit)
+            #if os(iOS)
             .sheet(item: Binding(
                 get: { deloadShareSummary.map { DeloadShareRoute(summary: $0) } },
                 set: { deloadShareSummary = $0?.summary }
@@ -93,7 +93,7 @@ struct TodayWhySheet: View {
         }
     }
 
-    #if canImport(UIKit)
+    #if os(iOS)
     private struct DeloadShareRoute: Identifiable {
         let summary: ShareSanitizedSummary
         var id: String { summary.modelVersion + summary.title }
