@@ -52,6 +52,12 @@ public final class MockHealthKitClient: HealthClientProtocol, @unchecked Sendabl
     /// In-memory storage for mock sleep analysis samples.
     private var mockSleepAnalysis: [HKCategorySample] = []
 
+    /// In-memory storage for mock wrist temperature samples.
+    private var mockWristTemperatures: [HKQuantitySample] = []
+
+    /// In-memory storage for mock ovulation test samples.
+    private var mockOvulationTestResults: [HKCategorySample] = []
+
     /// Serial queue for thread-safe access.
     private let queue = DispatchQueue(label: "com.sundeefundee.mock-healthkit-client", qos: .userInitiated)
 
@@ -319,6 +325,81 @@ public final class MockHealthKitClient: HealthClientProtocol, @unchecked Sendabl
         return filtered.sorted { $0.startDate > $1.startDate }
     }
 
+    /// Fetches sleeping wrist temperature samples from in-memory storage.
+    ///
+    /// - Parameters:
+    ///   - startDate: Start date for the query range.
+    ///   - endDate: End date for the query range.
+    /// - Returns: An array of HKQuantitySample samples filtered by date range.
+    /// - Throws: `HealthError.notAvailable` if `isAvailable` is false,
+    ///           `HealthError.queryFailed` if `shouldFailQueries` is true.
+    public func fetchWristTemperature(
+        startDate: Date,
+        endDate: Date
+    ) async throws -> [HKQuantitySample] {
+        guard isAvailable else {
+            throw HealthError.notAvailable
+        }
+
+        guard !shouldFailQueries else {
+            throw HealthError.queryFailed(underlying: nil)
+        }
+
+        let samples = queue.sync {
+            mockWristTemperatures
+        }
+
+        let filtered = samples.filter { sample in
+            sample.startDate >= startDate && sample.startDate <= endDate
+        }
+
+        return filtered.sorted { $0.startDate > $1.startDate }
+    }
+
+    /// Fetches ovulation test results from in-memory storage.
+    ///
+    /// - Parameters:
+    ///   - startDate: Optional start date for the query range.
+    ///   - endDate: Optional end date for the query range.
+    ///   - limit: Maximum number of samples to return.
+    /// - Returns: An array of HKCategorySample samples filtered by date range.
+    /// - Throws: `HealthError.notAvailable` if `isAvailable` is false,
+    ///           `HealthError.queryFailed` if `shouldFailQueries` is true.
+    public func fetchOvulationTestResults(
+        startDate: Date?,
+        endDate: Date?,
+        limit: Int
+    ) async throws -> [HKCategorySample] {
+        guard isAvailable else {
+            throw HealthError.notAvailable
+        }
+
+        guard !shouldFailQueries else {
+            throw HealthError.queryFailed(underlying: nil)
+        }
+
+        let samples = queue.sync {
+            mockOvulationTestResults
+        }
+
+        let filtered = samples.filter { sample in
+            if let start = startDate, sample.startDate < start {
+                return false
+            }
+            if let end = endDate, sample.startDate > end {
+                return false
+            }
+            return true
+        }
+
+        let sorted = filtered.sorted { $0.startDate > $1.startDate }
+
+        if limit == HKObjectQueryNoLimit || limit >= sorted.count {
+            return sorted
+        }
+        return Array(sorted.prefix(limit))
+    }
+
     /// Saves a workout to in-memory storage.
     ///
     /// - Parameters:
@@ -370,6 +451,8 @@ public final class MockHealthKitClient: HealthClientProtocol, @unchecked Sendabl
             mockHeartRateVariability.removeAll()
             mockRestingHeartRate.removeAll()
             mockSleepAnalysis.removeAll()
+            mockWristTemperatures.removeAll()
+            mockOvulationTestResults.removeAll()
             saveWorkoutCallCount = 0
             isAvailable = true
             authorizationGranted = true
@@ -485,6 +568,42 @@ public final class MockHealthKitClient: HealthClientProtocol, @unchecked Sendabl
         }
     }
 
+    /// Sets mock wrist temperature data.
+    ///
+    /// - Parameter samples: The wrist temperature samples to store.
+    public func setMockWristTemperatures(_ samples: [HKQuantitySample]) {
+        queue.sync {
+            mockWristTemperatures = samples
+        }
+    }
+
+    /// Adds a single mock wrist temperature sample.
+    ///
+    /// - Parameter sample: The wrist temperature sample to add.
+    public func addMockWristTemperature(_ sample: HKQuantitySample) {
+        queue.sync {
+            mockWristTemperatures.append(sample)
+        }
+    }
+
+    /// Sets mock ovulation test results.
+    ///
+    /// - Parameter samples: The ovulation test result samples to store.
+    public func setMockOvulationTestResults(_ samples: [HKCategorySample]) {
+        queue.sync {
+            mockOvulationTestResults = samples
+        }
+    }
+
+    /// Adds a single mock ovulation test result.
+    ///
+    /// - Parameter sample: The ovulation test result sample to add.
+    public func addMockOvulationTestResult(_ sample: HKCategorySample) {
+        queue.sync {
+            mockOvulationTestResults.append(sample)
+        }
+    }
+
     /// Returns the count of stored mock workouts.
     ///
     /// - Returns: The number of stored mock workouts.
@@ -536,6 +655,24 @@ public final class MockHealthKitClient: HealthClientProtocol, @unchecked Sendabl
     public func sleepAnalysisCount() -> Int {
         queue.sync {
             mockSleepAnalysis.count
+        }
+    }
+
+    /// Returns the count of stored mock wrist temperature samples.
+    ///
+    /// - Returns: The number of stored mock wrist temperature samples.
+    public func wristTemperatureCount() -> Int {
+        queue.sync {
+            mockWristTemperatures.count
+        }
+    }
+
+    /// Returns the count of stored mock ovulation test samples.
+    ///
+    /// - Returns: The number of stored mock ovulation test samples.
+    public func ovulationTestResultCount() -> Int {
+        queue.sync {
+            mockOvulationTestResults.count
         }
     }
 }
@@ -717,6 +854,59 @@ extension MockHealthKitClient {
             start: startDate,
             end: endDate,
             metadata: metadata
+        )
+    }
+
+    /// Creates a mock HKQuantitySample for sleeping wrist temperature testing.
+    ///
+    /// - Parameters:
+    ///   - startDate: The sample start date.
+    ///   - endDate: The sample end date.
+    ///   - celsius: The temperature in Celsius.
+    /// - Returns: A mock HKQuantitySample instance for sleeping wrist temperature.
+    public static func createMockWristTemperature(
+        startDate: Date,
+        endDate: Date,
+        celsius: Double
+    ) -> HKQuantitySample? {
+        guard let tempType = HKObjectType.quantityType(forIdentifier: .appleSleepingWristTemperature) else {
+            return nil
+        }
+
+        let quantity = HKQuantity(
+            unit: HKUnit.degreeCelsius(),
+            doubleValue: celsius
+        )
+
+        return HKQuantitySample(
+            type: tempType,
+            quantity: quantity,
+            start: startDate,
+            end: endDate
+        )
+    }
+
+    /// Creates a mock HKCategorySample for ovulation test result testing.
+    ///
+    /// - Parameters:
+    ///   - startDate: The sample start date.
+    ///   - endDate: The sample end date.
+    ///   - value: The test result value (HKCategoryValueOvulationTestResult rawValue).
+    /// - Returns: A mock HKCategorySample instance for ovulation test result.
+    public static func createMockOvulationTestResult(
+        startDate: Date,
+        endDate: Date,
+        value: Int = HKCategoryValueOvulationTestResult.positive.rawValue
+    ) -> HKCategorySample? {
+        guard let ovulationType = HKObjectType.categoryType(forIdentifier: .ovulationTestResult) else {
+            return nil
+        }
+
+        return HKCategorySample(
+            type: ovulationType,
+            value: value,
+            start: startDate,
+            end: endDate
         )
     }
 }
