@@ -47,7 +47,9 @@ struct StrengthProgressionChart: View {
 
     // MARK: - Exercise Picker
 
+    @ViewBuilder
     private var exercisePicker: some View {
+        #if !os(watchOS)
         Menu {
             Button("All Exercises") {
                 selectedExercise = nil
@@ -66,6 +68,7 @@ struct StrengthProgressionChart: View {
             }
             .foregroundColor(AppTheme.Text.secondary)
         }
+        #endif
     }
 
     // MARK: - Chart
