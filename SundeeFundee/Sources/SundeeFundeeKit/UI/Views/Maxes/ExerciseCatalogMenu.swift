@@ -17,6 +17,7 @@ public struct ExerciseCatalogMenu: View {
     }
 
     public var body: some View {
+        #if !os(watchOS)
         Menu {
             ForEach(WeightliftingCategory.allCases, id: \.self) { category in
                 Section(category.rawValue) {
@@ -46,6 +47,13 @@ public struct ExerciseCatalogMenu: View {
             }
             .contentShape(Rectangle())
         }
+        #else
+        Picker(label, selection: $selectedName) {
+            ForEach(weightliftingExercises) { entry in
+                Text(entry.id).tag(entry.id)
+            }
+        }
+        #endif
     }
 
     private var label: String {
