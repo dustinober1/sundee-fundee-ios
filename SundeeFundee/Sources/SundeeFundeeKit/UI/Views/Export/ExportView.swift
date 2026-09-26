@@ -30,7 +30,7 @@ public struct ExportView: View {
         #if os(iOS)
         .navigationBarTitleDisplayMode(.large)
         #endif
-        #if canImport(UIKit)
+        #if os(iOS)
         .sheet(item: $shareFileURL) { item in
             SystemShareSheet(activityItems: [item.url])
         }
