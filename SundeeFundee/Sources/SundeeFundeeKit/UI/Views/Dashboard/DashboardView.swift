@@ -630,6 +630,9 @@ public struct DashboardView: View {
     }
 
     private func cyclePhaseIcon(for phase: CyclePhase) -> String {
+        if cyclePhaseCache.isGymPrivacyEnabled {
+            return "waveform.path.ecg"
+        }
         switch phase {
         case .menstrual: return "drop.fill"
         case .follicular: return "sun.max.fill"
@@ -639,6 +642,9 @@ public struct DashboardView: View {
     }
 
     private func cyclePhaseColor(for phase: CyclePhase) -> Color {
+        if cyclePhaseCache.isGymPrivacyEnabled {
+            return AppTheme.Accent.gold
+        }
         switch phase {
         case .menstrual: return AppTheme.Semantic.error
         case .follicular: return AppTheme.Accent.gold
@@ -648,21 +654,17 @@ public struct DashboardView: View {
     }
 
     private func cyclePhaseTitle(for phase: CyclePhase) -> String {
-        switch phase {
-        case .menstrual: return "Menstrual Phase"
-        case .follicular: return "Follicular Phase"
-        case .ovulation: return "Ovulation Phase"
-        case .luteal: return "Luteal Phase"
+        if cyclePhaseCache.isGymPrivacyEnabled {
+            return "Cycle Optimization Active"
         }
+        return getPhaseRecommendation(phase: phase, style: cyclePhaseCache.terminologyStyle).title
     }
 
     private func cyclePhaseDescription(for phase: CyclePhase) -> String {
-        switch phase {
-        case .menstrual: return "Lower energy, focus on recovery"
-        case .follicular: return "Rising energy, great for progress"
-        case .ovulation: return "Peak strength potential"
-        case .luteal: return "Higher energy, but may need more rest"
+        if cyclePhaseCache.isGymPrivacyEnabled {
+            return "Autoregulated workout recommendations based on your personal profile."
         }
+        return getPhaseRecommendation(phase: phase, style: cyclePhaseCache.terminologyStyle).description
     }
 
     private func confidenceColor(for confidence: Double) -> Color {
