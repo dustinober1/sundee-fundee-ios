@@ -14,18 +14,21 @@ public struct CyclePhaseHelper {
     ///   - samples: Menstrual flow samples from HealthKit (HKCategoryTypeIdentifier.menstrualFlow)
     ///   - settings: Cycle settings (defaults to standard 28-day cycle)
     ///   - referenceDate: Date to calculate phase for (defaults to now)
+    ///   - biomarkerEvidence: Optional objective biomarker evidence from wrist temperature or LH surge
     /// - Returns: A CycleStatusResult if sufficient data, otherwise nil
     public static func calculatePhase(
         from samples: [HKCategorySample],
         settings: CycleSettings = CycleSettings(),
-        referenceDate: Date = Date()
+        referenceDate: Date = Date(),
+        biomarkerEvidence: OvulationBiomarkerEvidence? = nil
     ) -> CycleStatusResult? {
         let periodLogs = convertToPeriodLogs(samples)
         guard !periodLogs.isEmpty else { return nil }
         return calculateCycleStatus(
             periodLogs: periodLogs,
             settings: settings,
-            referenceDate: referenceDate
+            referenceDate: referenceDate,
+            biomarkerEvidence: biomarkerEvidence
         )
     }
 
@@ -78,15 +81,98 @@ public struct CyclePhaseHelper {
         return logs
     }
 
+    /// Analyzes HealthKit nocturnal sleeping wrist temperatures and ovulation test samples
+    /// to detect objective physiological signs of ovulation.
+    ///
+    /// - Parameters:
+    ///   - temperatureSamples: Sleeping wrist temperature quantity samples.
+    ///   - ovulationTestSamples: Ovulation test result category samples.
+    ///   - referenceDate: Reference calculation date (defaults to now).
+    /// - Returns: An `OvulationBiomarkerEvidence` summarizing biomarker findings.
+    public static func detectOvulationBiomarkers(
+        temperatureSamples: [HKQuantitySample],
+        ovulationTestSamples: [HKCategorySample],
+        referenceDate: Date = Date()
+    ) -> OvulationBiomarkerEvidence {
+        let calendar = Calendar.current
+        let thirtyDaysAgo = calendar.date(byAdding: .day, value: -30, to: referenceDate) ?? referenceDate
+
+        // 1. Check for LH surge (positive / luteinizingHormoneSurge ovulation test result)
+        var detectedLHSurgeDate: Date? = nil
+        var estimatedOvulationDate: Date? = nil
+
+        let recentTests = ovulationTestSamples.filter { $0.startDate >= thirtyDaysAgo }
+        let sortedTests = recentTests.sorted { $0.startDate > $1.startDate }
+        if let surgeSample = sortedTests.first(where: {
+            $0.value == HKCategoryValueOvulationTestResult.positive.rawValue
+        }) {
+            detectedLHSurgeDate = surgeSample.startDate
+            // Ovulation typically occurs 24-36 hours after LH surge
+            estimatedOvulationDate = calendar.date(byAdding: .day, value: 1, to: surgeSample.startDate)
+        }
+
+        // 2. Check for thermal shift (Apple Watch sleeping wrist temperature)
+        let recentTemps = temperatureSamples.filter { $0.startDate >= thirtyDaysAgo }
+        var dailyTemps: [Date: [Double]] = [:]
+        for sample in recentTemps {
+            let day = calendar.startOfDay(for: sample.startDate)
+            let tempC = sample.quantity.doubleValue(for: HKUnit.degreeCelsius())
+            dailyTemps[day, default: []].append(tempC)
+        }
+
+        // Compute daily averages and sort chronologically
+        let sortedDays = dailyTemps.map { (date: $0.key, temp: $0.value.reduce(0.0, +) / Double($0.value.count)) }
+            .sorted { $0.date < $1.date }
+
+        var hasThermalShift = false
+        var shiftMagnitude: Double? = nil
+
+        // Symptothermal thermal shift rule:
+        // Look for at least 2-3 consecutive days with temperatures >= 0.20°C above
+        // the average of the preceding baseline days (at least 3 baseline days).
+        if sortedDays.count >= 5 {
+            for i in 3..<(sortedDays.count - 1) {
+                let baselineSlice = sortedDays[max(0, i - 6)..<i]
+                let baselineAvg = baselineSlice.map(\.temp).reduce(0.0, +) / Double(baselineSlice.count)
+
+                let postSlice = sortedDays[i..<min(sortedDays.count, i + 3)]
+                let postAvg = postSlice.map(\.temp).reduce(0.0, +) / Double(postSlice.count)
+
+                let diff = postAvg - baselineAvg
+                if diff >= 0.20 {
+                    hasThermalShift = true
+                    shiftMagnitude = diff
+                    if estimatedOvulationDate == nil {
+                        // Ovulation occurs right before the sustained progesterone rise
+                        estimatedOvulationDate = sortedDays[i - 1].date
+                    }
+                    break
+                }
+            }
+        }
+
+        return OvulationBiomarkerEvidence(
+            lhSurgeDate: detectedLHSurgeDate,
+            estimatedOvulationDate: estimatedOvulationDate,
+            hasThermalShift: hasThermalShift,
+            thermalShiftCelsius: shiftMagnitude
+        )
+    }
+
     /// Calculate confidence based on available cycle data.
     ///
     /// More period logs = higher confidence. Recent data = higher confidence.
+    /// Objective biomarkers (sleeping wrist temperature shift or LH surge) boost confidence to >= 0.95.
     public static func calculateConfidence(
         periodLogCount: Int,
         lastPeriodStart: Date?,
-        referenceDate: Date = Date()
+        referenceDate: Date = Date(),
+        biomarkerEvidence: OvulationBiomarkerEvidence? = nil
     ) -> Double {
         guard periodLogCount > 0, let lastStart = lastPeriodStart else {
+            if let biomarker = biomarkerEvidence, biomarker.hasBiomarkerConfirmation {
+                return 0.95
+            }
             return 0.0
         }
 
@@ -111,6 +197,10 @@ public struct CyclePhaseHelper {
             recencyMultiplier = 0.5
         }
 
-        return min(countConfidence * recencyMultiplier, 1.0)
+        var confidence = min(countConfidence * recencyMultiplier, 1.0)
+        if let biomarker = biomarkerEvidence, biomarker.hasBiomarkerConfirmation {
+            confidence = max(confidence, 0.95)
+        }
+        return confidence
     }
 }
