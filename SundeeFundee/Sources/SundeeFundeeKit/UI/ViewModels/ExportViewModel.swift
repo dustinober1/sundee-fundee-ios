@@ -136,6 +136,7 @@ public class ExportViewModel: ObservableObject {
             range: reportRange,
             includeCycleDetail: includeCycleDetailInReport
         )
+#if os(iOS)
         let pdfData = TrainingReportPDFRenderer.render(content)
 
         do {
@@ -147,6 +148,9 @@ public class ExportViewModel: ObservableObject {
             errorMessage = "We couldn't generate your training report. Please try again."
             return nil
         }
+#else
+        return nil
+#endif
     }
 
     /// A filename a recipient can make sense of in a downloads folder.
