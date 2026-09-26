@@ -219,25 +219,63 @@ public func calculateCycleStatus(
     )
 }
 
+// MARK: - Cycle Terminology Style
+
+/// Terminology style for cycle phase labels and recommendations.
+public enum CycleTerminologyStyle: String, Codable, Sendable, CaseIterable {
+    case physiological
+    case hormone
+    case casual
+
+    public var displayName: String {
+        switch self {
+        case .physiological: return "Physiological (e.g., Menstrual)"
+        case .hormone: return "Hormone Profile (e.g., Low Hormone)"
+        case .casual: return "Casual (e.g., Shark Week)"
+        }
+    }
+}
+
 // MARK: - Phase Recommendations
 
 /// Get training recommendation for a cycle phase
-public func getPhaseRecommendation(phase: CyclePhase) -> PhaseRecommendation {
+public func getPhaseRecommendation(
+    phase: CyclePhase,
+    style: CycleTerminologyStyle = .casual
+) -> PhaseRecommendation {
     switch phase {
     case .menstrual:
+        let title: String
+        let description: String
+        let exercisesToAvoid: [String]
+        switch style {
+        case .casual:
+            title = "Shark Week"
+            description = "Your period phase. Energy may be lower — you might feel more fatigued."
+            exercisesToAvoid = ["heavy compound lifts", "max effort attempts"]
+        case .physiological:
+            title = "Menstrual Phase"
+            description = "Low hormone baseline. Individual responses vary — train normally by feel or adjust RPE as needed."
+            exercisesToAvoid = []
+        case .hormone:
+            title = "Low Hormone Phase"
+            description = "Estrogen and progesterone at baseline. Autoregulate intensity based on your recovery today."
+            exercisesToAvoid = []
+        }
         return PhaseRecommendation(
             phase: .menstrual,
-            title: "Shark Week",
-            description: "Your period phase. Energy may be lower — you might feel more fatigued.",
-            trainingFocus: "Recovery and light movement",
+            title: title,
+            description: description,
+            trainingFocus: "Recovery and autoregulated strength",
             intensityRecommendation: "low",
-            exercisesToEmphasize: ["yoga", "walking", "light stretching"],
-            exercisesToAvoid: ["heavy compound lifts", "max effort attempts"]
+            exercisesToEmphasize: ["yoga", "walking", "light stretching", "technique lifts"],
+            exercisesToAvoid: exercisesToAvoid
         )
     case .follicular:
+        let title = style == .hormone ? "Estrogen Rise Phase" : "Follicular Phase"
         return PhaseRecommendation(
             phase: .follicular,
-            title: "Follicular Phase",
+            title: title,
             description: "Energy and endurance begin to rise. Estrogen increases, supporting muscle growth.",
             trainingFocus: "Building strength and endurance",
             intensityRecommendation: "moderate",
@@ -245,24 +283,26 @@ public func getPhaseRecommendation(phase: CyclePhase) -> PhaseRecommendation {
             exercisesToAvoid: []
         )
     case .ovulation:
+        let title = style == .hormone ? "Peak Estrogen Phase" : "Ovulation Phase"
         return PhaseRecommendation(
             phase: .ovulation,
-            title: "Ovulation Phase",
-            description: "Peak estrogen and testosterone. Often the strongest phase for performance.",
+            title: title,
+            description: "Peak estrogen and testosterone. Often high performance; maintain strict form to account for laxity.",
             trainingFocus: "High-intensity training and PR attempts",
             intensityRecommendation: "peak",
             exercisesToEmphasize: ["max effort attempts", "heavy compound lifts", "power-focused workouts"],
             exercisesToAvoid: []
         )
     case .luteal:
+        let title = style == .hormone ? "Progesterone Dominant Phase" : "Luteal Phase"
         return PhaseRecommendation(
             phase: .luteal,
-            title: "Luteal Phase",
-            description: "Progesterone rises, which may affect recovery and energy. Focus on maintenance.",
+            title: title,
+            description: "Progesterone rises, slightly elevating core temp. Prioritize hydration and rest intervals.",
             trainingFocus: "Maintenance and technique refinement",
             intensityRecommendation: "moderate",
             exercisesToEmphasize: ["technique work", "volume training", "recovery-focused sessions"],
-            exercisesToAvoid: ["max effort attempts", "extremely heavy loads"]
+            exercisesToAvoid: style == .casual ? ["max effort attempts", "extremely heavy loads"] : []
         )
     }
 }
