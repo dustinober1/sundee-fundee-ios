@@ -253,6 +253,66 @@ public actor HealthKitClient: @preconcurrency HealthClientProtocol {
         ) as? [HKCategorySample] ?? []
     }
 
+    /// Fetches sleeping wrist temperature samples (Apple Watch Series 8+ / Ultra).
+    ///
+    /// - Parameters:
+    ///   - startDate: Start date for the query range.
+    ///   - endDate: End date for the query range.
+    /// - Returns: An array of HKQuantitySample samples for sleeping wrist temperature.
+    /// - Throws: `HealthError` if the query fails.
+    public func fetchWristTemperature(
+        startDate: Date,
+        endDate: Date
+    ) async throws -> [HKQuantitySample] {
+        guard isAvailable else {
+            throw HealthError.notAvailable
+        }
+
+        guard let tempType = HKObjectType.quantityType(forIdentifier: .appleSleepingWristTemperature) else {
+            return []
+        }
+
+        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate, options: .strictStartDate)
+
+        return try await fetchSamples(
+            sampleType: tempType,
+            predicate: predicate,
+            sortDescriptor: NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: false),
+            limit: HKObjectQueryNoLimit
+        ) as? [HKQuantitySample] ?? []
+    }
+
+    /// Fetches ovulation test results (LH surge test samples).
+    ///
+    /// - Parameters:
+    ///   - startDate: Optional start date for the query range.
+    ///   - endDate: Optional end date for the query range.
+    ///   - limit: Maximum number of samples to return.
+    /// - Returns: An array of HKCategorySample samples representing ovulation test results.
+    /// - Throws: `HealthError` if the query fails.
+    public func fetchOvulationTestResults(
+        startDate: Date?,
+        endDate: Date?,
+        limit: Int
+    ) async throws -> [HKCategorySample] {
+        guard isAvailable else {
+            throw HealthError.notAvailable
+        }
+
+        guard let ovulationType = HKObjectType.categoryType(forIdentifier: .ovulationTestResult) else {
+            return []
+        }
+
+        let predicate = buildDatePredicate(startDate: startDate, endDate: endDate)
+
+        return try await fetchSamples(
+            sampleType: ovulationType,
+            predicate: predicate,
+            sortDescriptor: NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: false),
+            limit: limit
+        ) as? [HKCategorySample] ?? []
+    }
+
     /// Saves a workout to HealthKit.
     ///
     /// - Parameters:
@@ -425,6 +485,12 @@ extension HealthKitClient {
         }
         if let sleepAnalysis = HKObjectType.categoryType(forIdentifier: .sleepAnalysis) {
             types.insert(sleepAnalysis)
+        }
+        if let wristTemp = HKObjectType.quantityType(forIdentifier: .appleSleepingWristTemperature) {
+            types.insert(wristTemp)
+        }
+        if let ovulationTest = HKObjectType.categoryType(forIdentifier: .ovulationTestResult) {
+            types.insert(ovulationTest)
         }
 
         return types
