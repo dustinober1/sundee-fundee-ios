@@ -18,19 +18,7 @@ public final class OnDeviceCoachService: CoachServiceProtocol, @unchecked Sendab
     ) {
         self.fallback = fallback
         self.configuration = configuration
-        if let copyEditor {
-            self.copyEditor = copyEditor
-        } else {
-            #if canImport(FoundationModels)
-            if #available(iOS 26.0, macOS 26.0, *) {
-                self.copyEditor = OnDeviceCoachCopyEditor()
-            } else {
-                self.copyEditor = nil
-            }
-            #else
-            self.copyEditor = nil
-            #endif
-        }
+        self.copyEditor = copyEditor
     }
 
     public func generateWorkout(
