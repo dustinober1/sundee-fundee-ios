@@ -58,7 +58,7 @@ struct CoachSummaryShareView: View {
         .frame(width: aspect.size.width, height: aspect.size.height, alignment: .leading)
         .background(AppTheme.Background.navy)
         .overlay(alignment: .bottomTrailing) {
-            #if canImport(UIKit)
+            #if os(iOS)
             if #available(iOS 18.0, *) {
                 QRBadge(url: shareURL, size: aspect.size.width * 0.10)
                     .padding(AppTheme.Spacing.lg)
