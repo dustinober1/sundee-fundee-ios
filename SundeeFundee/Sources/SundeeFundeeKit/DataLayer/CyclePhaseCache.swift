@@ -20,6 +20,9 @@ public final class CyclePhaseCache: ObservableObject {
     @Published public private(set) var confidence: Double?
     @Published public private(set) var isSharkWeek: Bool = false
     @Published public private(set) var cycleDay: Int?
+    @Published public private(set) var terminologyStyle: CycleTerminologyStyle = SharedSnapshotStore.readTerminologyStyle()
+    @Published public private(set) var isGymPrivacyEnabled: Bool = SharedSnapshotStore.readGymPrivacyEnabled()
+    @Published public private(set) var showSharkWeekBanner: Bool = SharedSnapshotStore.readShowSharkWeekBanner()
 
     /// Explicit user override that hides the banner after ending a period.
     private var isSharkWeekBannerSuppressed: Bool = SharedSnapshotStore.readSharkWeekBannerSuppressed()
@@ -130,6 +133,12 @@ public final class CyclePhaseCache: ObservableObject {
             recordType: "CycleSettings"
         ) as [CycleSettingsRecord], let first = settingsRecords.first {
             settings = CycleSettings(averageCycleLengthDays: first.averageCycleLengthDays)
+            self.terminologyStyle = first.terminologyStyle
+            self.isGymPrivacyEnabled = first.isGymPrivacy
+            self.showSharkWeekBanner = first.showsBanner
+            SharedSnapshotStore.writeTerminologyStyle(first.terminologyStyle)
+            SharedSnapshotStore.writeGymPrivacyEnabled(first.isGymPrivacy)
+            SharedSnapshotStore.writeShowSharkWeekBanner(first.showsBanner)
         }
 
         // Calculate phase
@@ -184,6 +193,28 @@ public final class CyclePhaseCache: ObservableObject {
         writeSnapshot()
         // Force the next refreshIfNeeded() to do a full fetch.
         lastRefreshed = nil
+    }
+
+    /// Explicitly suppresses the floating phase banner for the rest of this cycle.
+    public func dismissSharkWeekBanner() {
+        isSharkWeekBannerSuppressed = true
+        SharedSnapshotStore.writeSharkWeekBannerSuppressed(true)
+        isSharkWeek = false
+        writeSnapshot()
+    }
+
+    /// Updates cycle terminology, gym privacy, and banner preferences both in memory and shared storage.
+    public func updatePreferences(
+        terminologyStyle: CycleTerminologyStyle,
+        isGymPrivacyEnabled: Bool,
+        showSharkWeekBanner: Bool
+    ) {
+        self.terminologyStyle = terminologyStyle
+        self.isGymPrivacyEnabled = isGymPrivacyEnabled
+        self.showSharkWeekBanner = showSharkWeekBanner
+        SharedSnapshotStore.writeTerminologyStyle(terminologyStyle)
+        SharedSnapshotStore.writeGymPrivacyEnabled(isGymPrivacyEnabled)
+        SharedSnapshotStore.writeShowSharkWeekBanner(showSharkWeekBanner)
     }
 
     // MARK: - Snapshot
