@@ -8,7 +8,21 @@ import UIKit
 // Full-screen modal that guides users through a workout set-by-set.
 // Connects to ActiveWorkoutSessionViewModel which handles all business logic.
 
-@available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
+#if os(watchOS)
+@available(watchOS 11.0, *)
+public struct ActiveWorkoutView: View {
+    @ObservedObject var viewModel: ActiveWorkoutSessionViewModel
+
+    public init(viewModel: ActiveWorkoutSessionViewModel) {
+        self.viewModel = viewModel
+    }
+
+    public var body: some View {
+        WatchWorkoutSessionView(viewModel: viewModel)
+    }
+}
+#else
+@available(iOS 18.0, macOS 15.0, *)
 public struct ActiveWorkoutView: View {
     @ObservedObject var viewModel: ActiveWorkoutSessionViewModel
     @Environment(\.dismiss) private var dismiss
@@ -83,7 +97,7 @@ public struct ActiveWorkoutView: View {
                 await loadEquipmentProfiles()
             }
         }
-        #if canImport(UIKit)
+        #if os(iOS)
         .sheet(item: $viewModel.pendingPRShare) { pr in
             ShareCardSheet(
                 variant: .newPR(
@@ -101,7 +115,7 @@ public struct ActiveWorkoutView: View {
             )
         }
         #endif
-        #if canImport(UIKit)
+        #if os(iOS)
         .sheet(isPresented: $showingWorkoutShare) {
             ShareCardSheet(
                 variant: .completedWorkout(workout: viewModel.workout, personalRecords: []),
@@ -1226,6 +1240,7 @@ public struct ActiveWorkoutView: View {
         }
     }
 }
+#endif
 
 // MARK: - Safe Array Subscript
 
