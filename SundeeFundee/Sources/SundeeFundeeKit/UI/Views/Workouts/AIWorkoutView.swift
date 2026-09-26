@@ -123,8 +123,8 @@ struct AIWorkoutView: View {
                 }
                 .padding(.top, AppTheme.Spacing.lg)
 
-                // Cycle Phase (if available)
-                if let phase = viewModel.cyclePhase {
+                // Cycle Phase (if available and not hidden by gym privacy)
+                if let phase = viewModel.cyclePhase, !SharedSnapshotStore.readGymPrivacyEnabled() {
                     cyclePhaseCard(phase)
                 }
 
@@ -387,9 +387,15 @@ struct AIWorkoutView: View {
                 .font(AppTheme.Typography.headlineMedium)
                 .foregroundColor(AppTheme.Text.primary)
 
-            Text("Optimizing for \(phaseName(viewModel.cyclePhase)) phase")
-                .font(AppTheme.Typography.bodySmall)
-                .foregroundColor(AppTheme.Text.secondary)
+            if SharedSnapshotStore.readGymPrivacyEnabled() {
+                Text("Optimizing for recovery and performance")
+                    .font(AppTheme.Typography.bodySmall)
+                    .foregroundColor(AppTheme.Text.secondary)
+            } else {
+                Text("Optimizing for \(phaseName(viewModel.cyclePhase)) phase")
+                    .font(AppTheme.Typography.bodySmall)
+                    .foregroundColor(AppTheme.Text.secondary)
+            }
 
             Spacer()
         }
