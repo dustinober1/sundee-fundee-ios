@@ -148,6 +148,32 @@ public protocol HealthClientProtocol: Sendable {
         endDate: Date
     ) async throws -> [HKCategorySample]
 
+    /// Fetches sleeping wrist temperature samples (Apple Watch Series 8+ / Ultra).
+    ///
+    /// - Parameters:
+    ///   - startDate: Start date for the query range.
+    ///   - endDate: End date for the query range.
+    /// - Returns: An array of HKQuantitySample samples for sleeping wrist temperature.
+    /// - Throws: `HealthError` if the query fails.
+    func fetchWristTemperature(
+        startDate: Date,
+        endDate: Date
+    ) async throws -> [HKQuantitySample]
+
+    /// Fetches ovulation test results (LH surge test samples).
+    ///
+    /// - Parameters:
+    ///   - startDate: Optional start date for the query range.
+    ///   - endDate: Optional end date for the query range.
+    ///   - limit: Maximum number of samples to return.
+    /// - Returns: An array of HKCategorySample samples representing ovulation test results.
+    /// - Throws: `HealthError` if the query fails.
+    func fetchOvulationTestResults(
+        startDate: Date?,
+        endDate: Date?,
+        limit: Int
+    ) async throws -> [HKCategorySample]
+
     /// Saves a workout to HealthKit.
     ///
     /// - Parameters:
@@ -214,5 +240,17 @@ extension HealthClientProtocol {
         let endDate = Date()
         let startDate = Calendar.current.date(byAdding: .hour, value: -48, to: endDate) ?? endDate
         return try await fetchSleepAnalysis(startDate: startDate, endDate: endDate)
+    }
+
+    /// Fetches recent wrist temperature samples.
+    public func fetchRecentWristTemperature(days: Int = 30) async throws -> [HKQuantitySample] {
+        let endDate = Date()
+        let startDate = Calendar.current.date(byAdding: .day, value: -days, to: endDate) ?? endDate
+        return try await fetchWristTemperature(startDate: startDate, endDate: endDate)
+    }
+
+    /// Fetches ovulation test results with default parameters.
+    public func fetchOvulationTestResults() async throws -> [HKCategorySample] {
+        try await fetchOvulationTestResults(startDate: nil, endDate: nil, limit: HKObjectQueryNoLimit)
     }
 }
