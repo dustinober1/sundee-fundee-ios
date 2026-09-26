@@ -16,7 +16,9 @@ import SwiftUI
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
 public struct MainTabView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
+#if !os(watchOS)
     @Environment(\.requestReview) private var requestReview
+#endif
     @Environment(\.openURL) private var openURL
     @StateObject private var cyclePhaseCache = CyclePhaseCache()
     @StateObject private var sharkWeekMonitor = SharkWeekMonitor()
@@ -93,7 +95,9 @@ public struct MainTabView: View {
             selectedTab = .train
         }
         .onReceive(NotificationCenter.default.publisher(for: .appReviewPromptRequested)) { _ in
+#if !os(watchOS)
             requestReview()
+#endif
         }
         .onReceive(NotificationCenter.default.publisher(for: .challengeInviteOpened)) { notification in
             guard let code = notification.object as? String else { return }
