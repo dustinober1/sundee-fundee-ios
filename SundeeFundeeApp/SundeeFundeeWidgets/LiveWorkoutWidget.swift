@@ -8,6 +8,23 @@ struct SundeeFundeeWidgetsBundle: WidgetBundle {
     var body: some Widget {
         LiveWorkoutWidget()
         CyclePhaseWidget()
+        StartTodayWorkoutControl()
+    }
+}
+
+// MARK: - iOS 18 Control Widget
+
+struct StartTodayWorkoutControl: ControlWidget {
+    static let kind: String = "com.sundeefundee.startWorkoutControl"
+
+    var body: some ControlWidgetConfiguration {
+        StaticControlConfiguration(kind: Self.kind) {
+            ControlWidgetButton(action: StartWorkoutIntent()) {
+                Label("Start Workout", systemImage: "figure.strengthtraining.traditional")
+            }
+        }
+        .displayName("Start Workout")
+        .description("Quickly launch into today's workout in Sundee Fundee.")
     }
 }
 
@@ -44,8 +61,35 @@ struct LiveWorkoutWidget: Widget {
 
                 DynamicIslandExpandedRegion(.bottom) {
                     VStack(alignment: .leading, spacing: 6) {
-                        Text(progressText(context.state.progress))
-                            .font(.caption)
+                        HStack {
+                            Text(progressText(context.state.progress))
+                                .font(.caption)
+                            Spacer()
+                            if context.state.status == .active {
+                                Button(intent: CompleteSetAppIntent()) {
+                                    Label("Done", systemImage: "checkmark.circle.fill")
+                                        .font(.caption2.weight(.semibold))
+                                }
+                                .buttonStyle(.borderedProminent)
+                                .tint(AppTheme.Accent.orange)
+                            } else if context.state.status == .resting {
+                                HStack(spacing: 6) {
+                                    Button(intent: AddRestAppIntent()) {
+                                        Text("+30s")
+                                            .font(.caption2.weight(.medium))
+                                    }
+                                    .buttonStyle(.bordered)
+                                    .tint(.secondary)
+
+                                    Button(intent: CompleteSetAppIntent()) {
+                                        Text("Next")
+                                            .font(.caption2.weight(.semibold))
+                                    }
+                                    .buttonStyle(.borderedProminent)
+                                    .tint(AppTheme.Accent.orange)
+                                }
+                            }
+                        }
                         if let nextUp = context.state.nextUp {
                             Text("Next: \(nextUp.exerciseName) • \(nextUp.prescribedRepsText)")
                                 .font(.caption2)
@@ -127,6 +171,37 @@ private struct LiveWorkoutLockScreenView: View {
             }
 
             ProgressView(value: state.progress.fractionComplete)
+                .tint(AppTheme.Accent.orange)
+
+            if state.status == .active {
+                Button(intent: CompleteSetAppIntent()) {
+                    HStack {
+                        Image(systemName: "checkmark.circle.fill")
+                        Text("Complete Set")
+                            .fontWeight(.semibold)
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(AppTheme.Accent.orange)
+            } else if state.status == .resting {
+                HStack(spacing: 12) {
+                    Button(intent: AddRestAppIntent()) {
+                        Label("+30s Rest", systemImage: "plus.circle")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+                    .tint(AppTheme.Text.primary)
+
+                    Button(intent: CompleteSetAppIntent()) {
+                        Label("Next Set", systemImage: "arrow.right.circle.fill")
+                            .fontWeight(.semibold)
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(AppTheme.Accent.orange)
+                }
+            }
         }
         .padding()
     }
