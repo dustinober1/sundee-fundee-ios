@@ -143,7 +143,9 @@ struct AIWorkoutView: View {
                             Text("75 min").tag(75)
                             Text("90 min").tag(90)
                         }
+                        #if !os(watchOS)
                         .pickerStyle(.segmented)
+                        #endif
                     }
                 }
 
