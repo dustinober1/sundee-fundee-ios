@@ -35,11 +35,31 @@ public final class DataClientFactory: @unchecked Sendable {
 
     public static let shared = DataClientFactory()
 
-    // MARK: - Client
+    private static func wrapWithSyncQueueIfNeeded(_ client: any DataClientProtocol) -> any DataClientProtocol {
+        if let cloudKit = client as? CloudKitClient {
+            let store = SyncQueueStore()
+            let monitor = NetworkMonitor()
+            let queue = SyncQueue(wrapping: cloudKit, store: store, monitor: monitor)
+            Task { @MainActor in
+                SyncQueueDiagnosticsService.shared.attach(queue)
+            }
+            return queue
+        } else if let queue = client as? SyncQueue {
+            Task { @MainActor in
+                SyncQueueDiagnosticsService.shared.attach(queue)
+            }
+            return queue
+        } else {
+            Task { @MainActor in
+                SyncQueueDiagnosticsService.shared.attach(nil)
+            }
+            return client
+        }
+    }
 
     private let lock = NSLock()
-    private var _client: any DataClientProtocol = CloudKitClient(
-        containerIdentifier: "iCloud.com.sundeefundee.app"
+    private var _client: any DataClientProtocol = wrapWithSyncQueueIfNeeded(
+        CloudKitClient(containerIdentifier: "iCloud.com.sundeefundee.app")
     )
     private var _ownerID = "signed-out"
     private var _generation: UInt64 = 0
@@ -49,7 +69,7 @@ public final class DataClientFactory: @unchecked Sendable {
         get { lock.withLock { _client } }
         set {
             lock.withLock {
-                _client = newValue
+                _client = Self.wrapWithSyncQueueIfNeeded(newValue)
                 _generation &+= 1
             }
             factoryLogger.info("🔀 DataClient switched to: \(String(describing: type(of: newValue)))")
@@ -74,7 +94,7 @@ public final class DataClientFactory: @unchecked Sendable {
 
     public func activate(client: any DataClientProtocol, ownerID: String) {
         lock.withLock {
-            _client = client
+            _client = Self.wrapWithSyncQueueIfNeeded(client)
             _ownerID = ownerID
             _generation &+= 1
         }
