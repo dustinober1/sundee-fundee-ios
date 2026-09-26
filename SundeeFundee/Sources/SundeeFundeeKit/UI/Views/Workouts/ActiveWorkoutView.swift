@@ -26,9 +26,15 @@ public struct ActiveWorkoutView: View {
 public struct ActiveWorkoutView: View {
     @ObservedObject var viewModel: ActiveWorkoutSessionViewModel
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.verticalSizeClass) private var verticalSizeClass
     @EnvironmentObject private var authViewModel: AuthViewModel
     @ObservedObject private var syncDiagnostics = SyncQueueDiagnosticsService.shared
     @State private var showAbandonAlert = false
+
+    private var isTabletopOrWide: Bool {
+        horizontalSizeClass == .regular || verticalSizeClass == .compact
+    }
     @State private var weightInput: String = ""
     @State private var repsInput: String = ""
     @State private var showingSwapSheet = false
@@ -272,6 +278,16 @@ public struct ActiveWorkoutView: View {
     // MARK: - Active Workout View
 
     private var activeWorkoutView: some View {
+        Group {
+            if isTabletopOrWide {
+                tabletopWorkoutView
+            } else {
+                standardWorkoutView
+            }
+        }
+    }
+
+    private var standardWorkoutView: some View {
         ScrollView {
             VStack(spacing: AppTheme.Spacing.lg) {
                 // Header
@@ -320,6 +336,202 @@ public struct ActiveWorkoutView: View {
             completeSetButton
                 .padding(AppTheme.Spacing.lg)
                 .background(AppTheme.Background.cream)
+        }
+    }
+
+    // MARK: - Tabletop / Wide Gym View
+
+    private var tabletopWorkoutView: some View {
+        VStack(spacing: 0) {
+            headerBar
+                .padding(.horizontal, AppTheme.Spacing.lg)
+                .padding(.vertical, AppTheme.Spacing.md)
+                .background(AppTheme.Background.cream)
+
+            HStack(alignment: .top, spacing: AppTheme.Spacing.lg) {
+                // Glanceable Pane (Rest timer, targets, cues, progress)
+                ScrollView {
+                    VStack(spacing: AppTheme.Spacing.md) {
+                        progressSection
+
+                        if viewModel.isResting {
+                            restTimerCard
+                        }
+
+                        glanceableExerciseOverviewCard
+
+                        if showingWorkoutDetails {
+                            if let decision = viewModel.adaptationDecisionRecord, viewModel.completedSets == 0 {
+                                adaptationDecisionCard(decision)
+                            }
+
+                            if !viewModel.lastEquipmentConversionChanges.isEmpty {
+                                conversionSummaryCard
+                            }
+
+                            if viewModel.canStartWarmup, let warmupBlock = viewModel.pendingWarmupBlock {
+                                warmupStartCard(warmupBlock)
+                            }
+                        }
+                    }
+                    .padding(.horizontal, AppTheme.Spacing.md)
+                    .padding(.bottom, AppTheme.Spacing.lg)
+                }
+                .frame(maxWidth: .infinity)
+
+                // Interactive Logging Deck (Inputs, Steppers, Complete Set, Quick actions)
+                VStack(spacing: 0) {
+                    ScrollView {
+                        VStack(spacing: AppTheme.Spacing.md) {
+                            interactiveLoggingCard
+                            quickActionsRow
+                        }
+                        .padding(.horizontal, AppTheme.Spacing.md)
+                        .padding(.bottom, AppTheme.Spacing.md)
+                    }
+
+                    completeSetButton
+                        .padding(.horizontal, AppTheme.Spacing.md)
+                        .padding(.bottom, AppTheme.Spacing.lg)
+                        .background(AppTheme.Background.cream)
+                }
+                .frame(maxWidth: .infinity)
+            }
+        }
+    }
+
+    private var glanceableExerciseOverviewCard: some View {
+        ArtDecoCard {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
+                if let exercise = viewModel.currentExercise {
+                    HStack {
+                        VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                            Text(exercise.name)
+                                .font(AppTheme.Typography.headlineLarge)
+                                .foregroundColor(AppTheme.Text.primary)
+
+                            if let set = viewModel.currentSet {
+                                Text("Set \(viewModel.currentSetIndex + 1) of \(exercise.targetSets.count)")
+                                    .font(AppTheme.Typography.labelMedium)
+                                    .foregroundColor(AppTheme.Accent.gold)
+                            }
+                        }
+
+                        Spacer()
+
+                        if exercise.bodyweight > 0 {
+                            Text("Bodyweight")
+                                .font(AppTheme.Typography.labelSmall)
+                                .padding(.horizontal, AppTheme.Spacing.sm)
+                                .padding(.vertical, AppTheme.Spacing.xs)
+                                .background(AppTheme.Accent.gold.opacity(0.15))
+                                .foregroundColor(AppTheme.Accent.gold)
+                                .cornerRadius(AppTheme.CornerRadius.small)
+                        }
+                    }
+
+                    if let set = viewModel.currentSet {
+                        HStack(spacing: AppTheme.Spacing.sm) {
+                            statBox(value: "\(set.reps)", label: "Target Reps")
+
+                            let weightText: String = {
+                                if exercise.bodyweight > 0 && set.prescribedWeight == 0 {
+                                    return "BW"
+                                }
+                                if set.prescribedWeight > 0 {
+                                    return "\(Int(set.prescribedWeight))"
+                                }
+                                if let pct = set.prescribedPercentage {
+                                    return "\(Int(pct * 100))%"
+                                }
+                                return "--"
+                            }()
+                            statBox(value: weightText, label: "Target Load")
+
+                            let restText = exercise.restMinutes > 0
+                                ? "\(Int(exercise.restMinutes * 60))s"
+                                : "—"
+                            statBox(value: restText, label: "Rest Target")
+                        }
+                    }
+
+                    if let cue = ExerciseTechniqueLibrary.cue(for: exercise.name) {
+                        techniqueDisclosure(cue)
+                    }
+                } else {
+                    Text("No current exercise")
+                        .font(AppTheme.Typography.bodyMedium)
+                        .foregroundColor(AppTheme.Text.secondary)
+                }
+            }
+        }
+    }
+
+    private var interactiveLoggingCard: some View {
+        ArtDecoCard {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
+                HStack {
+                    Text("Log Set")
+                        .font(AppTheme.Typography.headlineMedium)
+                        .foregroundColor(AppTheme.Text.primary)
+                    Spacer()
+                    if let set = viewModel.currentSet {
+                        Text("Set \(viewModel.currentSetIndex + 1)")
+                            .font(AppTheme.Typography.labelMedium)
+                            .foregroundColor(AppTheme.Accent.gold)
+                    }
+                }
+
+                if let exercise = viewModel.currentExercise, let set = viewModel.currentSet {
+                    repsInputSection(prescribedReps: set.reps)
+                        .padding(.top, AppTheme.Spacing.xs)
+
+                    if exercise.bodyweight == 0 {
+                        weightInputSection(prescribedWeight: set.prescribedWeight)
+                            .padding(.top, AppTheme.Spacing.xs)
+                    }
+
+                    DisclosureGroup {
+                        effortPicker
+                            .padding(.top, AppTheme.Spacing.xs)
+                    } label: {
+                        Label(
+                            selectedSetRPE.map { "Effort: RPE \($0)" } ?? "Add effort",
+                            systemImage: "gauge.with.dots.needle.33percent"
+                        )
+                        .font(AppTheme.Typography.labelLarge)
+                        .foregroundColor(AppTheme.Text.primary)
+                    }
+                    .tint(AppTheme.Accent.gold)
+                    .padding(.top, AppTheme.Spacing.xs)
+                } else {
+                    Text("No current exercise")
+                        .font(AppTheme.Typography.bodyMedium)
+                        .foregroundColor(AppTheme.Text.secondary)
+                }
+            }
+        }
+    }
+
+    private var quickActionsRow: some View {
+        HStack(spacing: AppTheme.Spacing.sm) {
+            Button {
+                showingSwapSheet = true
+            } label: {
+                Label("Swap", systemImage: "arrow.triangle.2.circlepath")
+                    .font(AppTheme.Typography.labelSmall)
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(ArtDecoButtonStyle(style: .secondary))
+
+            Button {
+                showingStationTakenPicker = true
+            } label: {
+                Label("Station Taken", systemImage: "exclamationmark.triangle")
+                    .font(AppTheme.Typography.labelSmall)
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(ArtDecoButtonStyle(style: .ghost))
         }
     }
 
@@ -673,9 +885,16 @@ public struct ActiveWorkoutView: View {
 
     private func repsInputSection(prescribedReps: Int) -> some View {
         VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
-            Text("Reps")
-                .font(AppTheme.Typography.labelMedium)
-                .foregroundColor(AppTheme.Text.secondary)
+            HStack {
+                Text("Reps")
+                    .font(AppTheme.Typography.labelMedium)
+                    .foregroundColor(AppTheme.Text.secondary)
+                Spacer()
+                HStack(spacing: AppTheme.Spacing.xs) {
+                    stepperButton("-1") { adjustReps(by: -1) }
+                    stepperButton("+1") { adjustReps(by: 1) }
+                }
+            }
 
             TextField(
                 "\(prescribedReps)",
@@ -701,9 +920,17 @@ public struct ActiveWorkoutView: View {
 
     private func weightInputSection(prescribedWeight: Double) -> some View {
         VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
-            Text("Weight Lifted (lb)")
-                .font(AppTheme.Typography.labelMedium)
-                .foregroundColor(AppTheme.Text.secondary)
+            HStack {
+                Text("Weight Lifted (lb)")
+                    .font(AppTheme.Typography.labelMedium)
+                    .foregroundColor(AppTheme.Text.secondary)
+                Spacer()
+                HStack(spacing: AppTheme.Spacing.xs) {
+                    stepperButton("-5") { adjustWeight(by: -5) }
+                    stepperButton("+2.5") { adjustWeight(by: 2.5) }
+                    stepperButton("+5") { adjustWeight(by: 5) }
+                }
+            }
 
             TextField(
                 prescribedWeight > 0 ? "\(Int(prescribedWeight))" : "Enter weight",
@@ -725,6 +952,35 @@ public struct ActiveWorkoutView: View {
             .keyboardType(.decimalPad)
             #endif
         }
+    }
+
+    private func stepperButton(_ title: String, action: @escaping @MainActor () -> Void) -> some View {
+        Button(action: action) {
+            Text(title)
+                .font(AppTheme.Typography.labelSmall)
+                .foregroundColor(AppTheme.Accent.orange)
+                .padding(.horizontal, AppTheme.Spacing.sm)
+                .padding(.vertical, AppTheme.Spacing.xs)
+                .background(AppTheme.Accent.orange.opacity(0.12))
+                .cornerRadius(AppTheme.CornerRadius.small)
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func adjustWeight(by delta: Double) {
+        let current = Double(weightInput) ?? (viewModel.currentSet?.prescribedWeight ?? 0)
+        let newWeight = max(0, current + delta)
+        if newWeight.truncatingRemainder(dividingBy: 1) == 0 {
+            weightInput = "\(Int(newWeight))"
+        } else {
+            weightInput = String(format: "%.1f", newWeight)
+        }
+    }
+
+    private func adjustReps(by delta: Int) {
+        let current = Int(repsInput) ?? (viewModel.currentSet?.reps ?? 0)
+        let newReps = max(1, current + delta)
+        repsInput = "\(newReps)"
     }
 
     private func resetWeightInput() {
@@ -1171,6 +1427,8 @@ public struct ActiveWorkoutView: View {
                 Spacer()
                     .frame(height: AppTheme.Spacing.xxl)
             }
+            .frame(maxWidth: 600)
+            .frame(maxWidth: .infinity)
         }
     }
 
