@@ -77,14 +77,17 @@ public protocol AppleAuthClientProtocol: Sendable {
 public actor AppleAuthClient: AppleAuthClientProtocol {
     // MARK: - Properties
 
+#if !os(watchOS)
     /// The presentation context provider for the authorization UI.
     private weak var presentationContextProvider: (any ASAuthorizationControllerPresentationContextProviding)?
+#endif
 
     /// Delegate proxy that handles authorization callbacks.
     private var delegateProxy: AuthorizationDelegateProxy?
 
     // MARK: - Initialization
 
+#if !os(watchOS)
     /// Creates a new `AppleAuthClient`.
     ///
     /// - Parameter presentationContextProvider: An optional presentation context provider
@@ -103,6 +106,9 @@ public actor AppleAuthClient: AppleAuthClientProtocol {
     public func setPresentationContextProvider(_ provider: any ASAuthorizationControllerPresentationContextProviding) {
         self.presentationContextProvider = provider
     }
+#else
+    public init() {}
+#endif
 
     // MARK: - AppleAuthClientProtocol
 
@@ -140,9 +146,11 @@ public actor AppleAuthClient: AppleAuthClientProtocol {
         controller.delegate = delegateProxy
 
         // Set presentation context if available
+#if !os(watchOS)
         if let presentationContextProvider = presentationContextProvider {
             controller.presentationContextProvider = presentationContextProvider
         }
+#endif
 
         // Perform the authorization with async/await
         return try await withCheckedThrowingContinuation { continuation in
@@ -320,12 +328,6 @@ private final class AuthorizationDelegateProxy: NSObject, ASAuthorizationControl
                 authError = .noPresentationContext
             case .notInteractive:
                 authError = .notAvailable
-            case .matchedExcludedCredential,
-                 .credentialImport,
-                 .credentialExport,
-                 .preferSignInWithApple,
-                 .deviceNotConfiguredForPasskeyCreation:
-                authError = .authorizationFailed(underlying: error)
             @unknown default:
                 authError = .authorizationFailed(underlying: error)
             }
