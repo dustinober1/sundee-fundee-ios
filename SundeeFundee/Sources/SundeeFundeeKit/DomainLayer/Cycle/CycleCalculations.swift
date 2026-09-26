@@ -122,13 +122,49 @@ private func getPhaseBoundaries(
     ]
 }
 
+// MARK: - Ovulation Biomarker Evidence
+
+/// Objective physiological evidence for ovulation and luteal transition
+/// derived from Apple Watch sleeping wrist temperature or LH surge tests.
+public struct OvulationBiomarkerEvidence: Sendable, Equatable {
+    /// Date of detected LH surge from urine ovulation test strip.
+    public let lhSurgeDate: Date?
+
+    /// Estimated date of ovulation.
+    public let estimatedOvulationDate: Date?
+
+    /// Whether a biphasic nocturnal wrist temperature shift was detected.
+    public let hasThermalShift: Bool
+
+    /// Magnitude of thermal shift in Celsius (typically +0.20°C to +0.50°C).
+    public let thermalShiftCelsius: Double?
+
+    /// Whether any biomarker confirms the current cycle's ovulation/luteal timing.
+    public var hasBiomarkerConfirmation: Bool {
+        lhSurgeDate != nil || hasThermalShift
+    }
+
+    public init(
+        lhSurgeDate: Date? = nil,
+        estimatedOvulationDate: Date? = nil,
+        hasThermalShift: Bool = false,
+        thermalShiftCelsius: Double? = nil
+    ) {
+        self.lhSurgeDate = lhSurgeDate
+        self.estimatedOvulationDate = estimatedOvulationDate
+        self.hasThermalShift = hasThermalShift
+        self.thermalShiftCelsius = thermalShiftCelsius
+    }
+}
+
 // MARK: - Calculate Cycle Status
 
 /// Calculate current cycle status from period logs and settings
 public func calculateCycleStatus(
     periodLogs: [PeriodLog],
     settings: CycleSettings,
-    referenceDate: Date = Date()
+    referenceDate: Date = Date(),
+    biomarkerEvidence: OvulationBiomarkerEvidence? = nil
 ) -> CycleStatusResult? {
     guard !periodLogs.isEmpty else { return nil }
 
@@ -194,6 +230,36 @@ public func calculateCycleStatus(
             phaseStartDay = b.start
             phaseEndDay = b.end
             break
+        }
+    }
+
+    // Refine phase if objective biomarker evidence is available
+    if currentPhase != .menstrual, let evidence = biomarkerEvidence {
+        if let surge = evidence.lhSurgeDate {
+            let daysSinceSurge = daysBetween(from: startOfDay(surge), to: ref)
+            if daysSinceSurge >= 0 && daysSinceSurge <= 2 {
+                currentPhase = .ovulation
+                if let b = boundaries[.ovulation] {
+                    phaseStartDay = b.start
+                    phaseEndDay = b.end
+                }
+            } else if daysSinceSurge > 2 && evidence.hasThermalShift {
+                currentPhase = .luteal
+                if let b = boundaries[.luteal] {
+                    phaseStartDay = b.start
+                    phaseEndDay = b.end
+                }
+            }
+        } else if evidence.hasThermalShift {
+            // Progesterone surge detected via nocturnal wrist temperature.
+            // If calendar calculation placed user in follicular or ovulation, adjust to luteal.
+            if currentPhase == .follicular || currentPhase == .ovulation {
+                currentPhase = .luteal
+                if let b = boundaries[.luteal] {
+                    phaseStartDay = b.start
+                    phaseEndDay = b.end
+                }
+            }
         }
     }
 
