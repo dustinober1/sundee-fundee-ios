@@ -148,6 +148,35 @@ final class CycleAdaptationPolicyTests: XCTestCase {
         XCTAssertEqual(classifyExerciseRegion("V-up"), .core)
     }
 
+    func testClassifyExerciseRegion_ConditioningAndFullBody() {
+        // "500m Row" has "row" in name, but structured catalog metadata classifies as conditioning
+        XCTAssertEqual(classifyExerciseRegion("500m Row"), .conditioning)
+        XCTAssertEqual(classifyExerciseRegion("Farmers Carry"), .fullBody)
+        XCTAssertEqual(classifyExerciseRegion("Burpee"), .conditioning)
+    }
+
+    func testClassifyExerciseRegion_StructuredCatalogLookup() {
+        let entry = lookupExerciseCatalogEntry("Back Squat")
+        XCTAssertNotNil(entry)
+        XCTAssertEqual(entry?.movementPattern, .squat)
+        XCTAssertEqual(entry?.primaryRegion, .lower)
+
+        let bench = lookupExerciseCatalogEntry("Flat Barbell Bench Press")
+        XCTAssertNotNil(bench)
+        XCTAssertEqual(bench?.movementPattern, .push)
+        XCTAssertEqual(bench?.primaryRegion, .upper)
+    }
+
+    func testWorkoutMovementPattern_PrimaryRegions() {
+        XCTAssertEqual(WorkoutMovementPattern.squat.primaryRegion, .lower)
+        XCTAssertEqual(WorkoutMovementPattern.hinge.primaryRegion, .lower)
+        XCTAssertEqual(WorkoutMovementPattern.push.primaryRegion, .upper)
+        XCTAssertEqual(WorkoutMovementPattern.pull.primaryRegion, .upper)
+        XCTAssertEqual(WorkoutMovementPattern.core.primaryRegion, .core)
+        XCTAssertEqual(WorkoutMovementPattern.carry.primaryRegion, .fullBody)
+        XCTAssertEqual(WorkoutMovementPattern.conditioning.primaryRegion, .conditioning)
+    }
+
     // MARK: - Region-Specific Multipliers
 
     func testApplyPhaseAdjustment_LowerBody_MenstrualPhase_BiggerReduction() {
