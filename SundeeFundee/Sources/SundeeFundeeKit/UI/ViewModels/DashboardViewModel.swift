@@ -382,7 +382,8 @@ public class DashboardViewModel: ObservableObject {
             .max()
 
         let deload = DeloadDetectionService.recommendation(
-            recentPainLogs: painLogs
+            recentPainLogs: painLogs,
+            recentWorkouts: workouts
         )
         let decision = TodayTrainingDecisionService.decision(
             cyclePhase: cyclePhaseCache?.currentPhase,
