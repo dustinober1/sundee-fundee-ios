@@ -3,6 +3,7 @@ options:
   bundleIdPrefix: com.sundeefundee
   deploymentTarget:
     iOS: "18.0"
+    watchOS: "11.0"
   xcodeVersion: "16.0"
   createIntermediateGroups: true
   defaultConfig: Release
@@ -31,6 +32,8 @@ targets:
     dependencies:
       - package: SundeeFundeeKit
       - target: SundeeFundeeWidgetsExtension
+        embed: true
+      - target: SundeeFundeeWatch
         embed: true
     settings:
       base:
@@ -84,6 +87,22 @@ targets:
         GENERATE_INFOPLIST_FILE: true
         TEST_TARGET_NAME: SundeeFundee
 
+  SundeeFundeeWatch:
+    type: application
+    platform: watchOS
+    sources:
+      - SundeeFundeeWatch
+    dependencies:
+      - package: SundeeFundeeKit
+    settings:
+      base:
+        INFOPLIST_FILE: SundeeFundeeWatch/Info.plist
+        CODE_SIGN_ENTITLEMENTS: SundeeFundeeWatch/SundeeFundeeWatch.entitlements
+        PRODUCT_BUNDLE_IDENTIFIER: com.sundeefundee.app.watchkitapp
+        PRODUCT_NAME: SundeeFundeeWatch
+        GENERATE_INFOPLIST_FILE: false
+        SKIP_INSTALL: false
+
 schemes:
   SundeeFundee:
     build:
@@ -103,3 +122,10 @@ schemes:
         - name: SundeeFundeeUITests
     archive:
       config: Release
+
+  SundeeFundeeWatch:
+    build:
+      targets:
+        SundeeFundeeWatch: all
+    run:
+      config: Debug
