@@ -48,6 +48,9 @@ public enum SharedSnapshotStore {
     private static let cycleKey = "cycleSnapshot.v1"
     private static let sharkWeekBannerSuppressedKey = "sharkWeekBannerSuppressed.v1"
     private static let readinessKey = "dailyReadinessSnapshot.v1"
+    private static let terminologyStyleKey = "cycleTerminologyStyle.v1"
+    private static let gymPrivacyKey = "gymPrivacyEnabled.v1"
+    private static let showSharkWeekBannerKey = "showSharkWeekBanner.v1"
 
     /// Overridable suite for tests. Defaults to the shared App Group.
     /// `nonisolated(unsafe)` because this is a test seam — production code
@@ -89,6 +92,9 @@ public enum SharedSnapshotStore {
         defaults?.removeObject(forKey: cycleKey)
         defaults?.removeObject(forKey: sharkWeekBannerSuppressedKey)
         defaults?.removeObject(forKey: readinessKey)
+        defaults?.removeObject(forKey: terminologyStyleKey)
+        defaults?.removeObject(forKey: gymPrivacyKey)
+        defaults?.removeObject(forKey: showSharkWeekBannerKey)
     }
 
     // MARK: - Shark Week Banner
@@ -99,6 +105,39 @@ public enum SharedSnapshotStore {
 
     public static func readSharkWeekBannerSuppressed() -> Bool {
         defaults?.bool(forKey: sharkWeekBannerSuppressedKey) ?? false
+    }
+
+    // MARK: - Terminology & Privacy
+
+    public static func writeTerminologyStyle(_ style: CycleTerminologyStyle) {
+        defaults?.set(style.rawValue, forKey: terminologyStyleKey)
+    }
+
+    public static func readTerminologyStyle() -> CycleTerminologyStyle {
+        guard let raw = defaults?.string(forKey: terminologyStyleKey),
+              let style = CycleTerminologyStyle(rawValue: raw) else {
+            return .physiological
+        }
+        return style
+    }
+
+    public static func writeGymPrivacyEnabled(_ isEnabled: Bool) {
+        defaults?.set(isEnabled, forKey: gymPrivacyKey)
+    }
+
+    public static func readGymPrivacyEnabled() -> Bool {
+        defaults?.bool(forKey: gymPrivacyKey) ?? false
+    }
+
+    public static func writeShowSharkWeekBanner(_ show: Bool) {
+        defaults?.set(show, forKey: showSharkWeekBannerKey)
+    }
+
+    public static func readShowSharkWeekBanner() -> Bool {
+        if let defaults = defaults, defaults.object(forKey: showSharkWeekBannerKey) != nil {
+            return defaults.bool(forKey: showSharkWeekBannerKey)
+        }
+        return true
     }
 
     // MARK: - Codec
