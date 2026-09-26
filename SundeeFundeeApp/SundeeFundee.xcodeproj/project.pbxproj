@@ -33,6 +33,7 @@
 		1F9B786DC41BDBAB3D866F75 /* WorkoutAdaptationDecisionServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78DE9F282C402CD743E8572D /* WorkoutAdaptationDecisionServiceTests.swift */; };
 		20484F31F44F1CA9A8BF80FF /* ActiveRecoveryWorkoutBuilderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3BBAC200B332BB975DE98FD /* ActiveRecoveryWorkoutBuilderTests.swift */; };
 		249D7415B769C3ADC777E863 /* StartingWeightCalibrationServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC588FFE2A4C3052B59B93DF /* StartingWeightCalibrationServiceTests.swift */; };
+		24E2F931A1F98412A42EB4FA /* SundeeFundeeKit in Frameworks */ = {isa = PBXBuildFile; productRef = 2013C6AE51B5E5CBD8E6E4DD /* SundeeFundeeKit */; };
 		2619B6AD8D9E03EEDFBD94D6 /* BenchmarkReadinessTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A873EDB7628312E562E64F2E /* BenchmarkReadinessTests.swift */; };
 		272BEAFC0A212D43990A5B78 /* DailyPresencePrivacyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3C6993BA78A45C0FC1F5F0F /* DailyPresencePrivacyTests.swift */; };
 		2770E037F8969E9F7C591C45 /* ChallengeInviteServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE49938AF4A61F410A04414B /* ChallengeInviteServiceTests.swift */; };
@@ -62,6 +63,7 @@
 		4E7C5FE166559072BA92DE32 /* SharePrivacyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54D5A8E457CCC145F2B8F638 /* SharePrivacyTests.swift */; };
 		4FC79C8BE24C386B3450930E /* ShareSanitizedSummaryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DD500059C132581DEC5D38C /* ShareSanitizedSummaryTests.swift */; };
 		52EEE14B04B4E8B2E0055D3F /* CoachDecisionPacketBuilderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B9A1B28D7FA7FE7A228000A /* CoachDecisionPacketBuilderTests.swift */; };
+		53F5A1B21FCB8F98A569A843 /* SundeeFundeeWatchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78B50048D1AA80FB4CF5802E /* SundeeFundeeWatchApp.swift */; };
 		5474CD8F84A2EDC38B2AB6EE /* DeloadDecisionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53DFA6B122D42F06F4AAA6C7 /* DeloadDecisionTests.swift */; };
 		54CAF50B159E601338F2ECC5 /* WeightCalculatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61FF1D97D48E0B82FC8CDFDE /* WeightCalculatorTests.swift */; };
 		55A26C0023592648521056A9 /* UnitConverterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22F4CCCF5EE8AFAEF1A0C6E8 /* UnitConverterTests.swift */; };
@@ -106,6 +108,7 @@
 		94345D4D4B88907DAD891885 /* PlateCalculatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64EDF3080400F6A3986CF1B1 /* PlateCalculatorTests.swift */; };
 		94CFBC469A0F90AA98337938 /* WorkoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8F61D5CD8005B9566EF4AB6 /* WorkoutTests.swift */; };
 		9581E7C0D5D8BC0F721E8774 /* ReturnToLiftingRampServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACFCA15C4A8840F4BA9E0C6C /* ReturnToLiftingRampServiceTests.swift */; };
+		960762A25A0CAA52014F6A68 /* SundeeFundeeWatch.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = E4D6240705A6135754EAFA3E /* SundeeFundeeWatch.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		9820C2EEDF75E08DE860CD53 /* CoachDecisionPacketTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A015253BACCBC71307E1EEE /* CoachDecisionPacketTests.swift */; };
 		99604490D3B7CCAEBECCC838 /* SundeeFundeeScreenshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDDE08C33FC401CAE6D77501 /* SundeeFundeeScreenshotTests.swift */; };
 		9BE15F7CA38D0703CE88A616 /* ProgressGuidanceServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3813B854636B6677F1718E8D /* ProgressGuidanceServiceTests.swift */; };
@@ -148,6 +151,7 @@
 		D4686604687342E4F141D0DB /* ReturnToLiftingRampBreakReasonTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3487FF1A933F0F9C2D52DA67 /* ReturnToLiftingRampBreakReasonTests.swift */; };
 		D58647061A535699CE884528 /* TodayWorkoutPreferenceServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15ACE13F5D59AFAB337E45CD /* TodayWorkoutPreferenceServiceTests.swift */; };
 		D83C00E2B9DC3C48CDFEEBB0 /* ConsistencyAchievementServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E25C70B529B876E43097ECA /* ConsistencyAchievementServiceTests.swift */; };
+		D91FF095043A9B591637E975 /* CycleSettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A39BB80DABC68C1E4028BCBB /* CycleSettingsTests.swift */; };
 		DF49DFB2E4EC0E83D40F86F6 /* CoachReasonCodeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CE413C8208372A9076205B1 /* CoachReasonCodeTests.swift */; };
 		DFE518442D664385FF6F1E69 /* ReadinessScenarioTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B14BB90F578A4BD59266978 /* ReadinessScenarioTests.swift */; };
 		E08ACF0A6166DA7B90CF8C4B /* AppleAuthClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E18AFBD21E23621ECC1E35C /* AppleAuthClientTests.swift */; };
@@ -200,6 +204,13 @@
 			remoteGlobalIDString = 38E0473811F3273AE38A8631;
 			remoteInfo = SundeeFundeeWidgetsExtension;
 		};
+		B1CCEE021807DD17EB35690C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A23AA027FBDBC591792DA380 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = E99552941727229ACED52CFE;
+			remoteInfo = SundeeFundeeWatch;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -214,6 +225,17 @@
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		CE4AD0CDCF55EBCD01E01B57 /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				960762A25A0CAA52014F6A68 /* SundeeFundeeWatch.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
@@ -224,6 +246,7 @@
 		09F2CCD701D6D0EA783701B0 /* SundeeFundeeTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = SundeeFundeeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		0B639F14F7120C76CF9DDE94 /* BestNextWorkoutRequestBuilderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BestNextWorkoutRequestBuilderTests.swift; sourceTree = "<group>"; };
 		0BAF257DE39ED0406A2B925B /* StoreKit */ = {isa = PBXFileReference; lastKnownFileType = folder; path = StoreKit; sourceTree = SOURCE_ROOT; };
+		0DC5DD7429659DA821695837 /* SundeeFundeeWatch.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SundeeFundeeWatch.entitlements; sourceTree = "<group>"; };
 		0E9E9DE47B2689ABC7B574C6 /* WorkoutCompletionEventTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutCompletionEventTests.swift; sourceTree = "<group>"; };
 		109C288A46DDBF3BE67EFD6A /* SharePrivacyPresetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharePrivacyPresetTests.swift; sourceTree = "<group>"; };
 		12BADD433D2BA29F2F735F7D /* CycleCalculationsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleCalculationsTests.swift; sourceTree = "<group>"; };
@@ -299,6 +322,7 @@
 		77BB0E69F4C87EDCA545CA39 /* ExerciseIdentityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseIdentityTests.swift; sourceTree = "<group>"; };
 		780FF4034A329071352EA5A2 /* ExportViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportViewModelTests.swift; sourceTree = "<group>"; };
 		78488343D8E437E59B0AAD29 /* DeloadDecisionServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeloadDecisionServiceTests.swift; sourceTree = "<group>"; };
+		78B50048D1AA80FB4CF5802E /* SundeeFundeeWatchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SundeeFundeeWatchApp.swift; sourceTree = "<group>"; };
 		78DE9F282C402CD743E8572D /* WorkoutAdaptationDecisionServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutAdaptationDecisionServiceTests.swift; sourceTree = "<group>"; };
 		7935826E2237B79BDE30DF63 /* MissedWorkoutRecoveryServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MissedWorkoutRecoveryServiceTests.swift; sourceTree = "<group>"; };
 		7C4C38D3026141D6EE494174 /* SundeeFundeeWidgetsExtension.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = SundeeFundeeWidgetsExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -318,6 +342,7 @@
 		91D998D3B9247C0113A70E19 /* CoachPromptPackTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoachPromptPackTests.swift; sourceTree = "<group>"; };
 		9440F3F428ED2EAB4291ABD3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		9576D6BA8E6E6F3BAE93D89B /* DailyPresenceServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyPresenceServiceTests.swift; sourceTree = "<group>"; };
+		97EDAC4B10C1547B94998153 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		9B7161AA54144F81054DD4C0 /* BenchmarkScoreFormatterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BenchmarkScoreFormatterTests.swift; sourceTree = "<group>"; };
 		9C3926CE6DCAC67A87A4B36C /* AnalyticsViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsViewModelTests.swift; sourceTree = "<group>"; };
 		9DD500059C132581DEC5D38C /* ShareSanitizedSummaryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareSanitizedSummaryTests.swift; sourceTree = "<group>"; };
@@ -326,6 +351,7 @@
 		9EA574A78E4074DA83FC646D /* DailyReadinessRecordTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyReadinessRecordTests.swift; sourceTree = "<group>"; };
 		9F50D4788C9573517B95B7EC /* QRBadgeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRBadgeTests.swift; sourceTree = "<group>"; };
 		A1DDA1479BACFF9CDE9565B1 /* DiagnosticsServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticsServiceTests.swift; sourceTree = "<group>"; };
+		A39BB80DABC68C1E4028BCBB /* CycleSettingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleSettingsTests.swift; sourceTree = "<group>"; };
 		A3BBAC200B332BB975DE98FD /* ActiveRecoveryWorkoutBuilderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveRecoveryWorkoutBuilderTests.swift; sourceTree = "<group>"; };
 		A47F84EB4E33860359C24F14 /* AppThemeColorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppThemeColorTests.swift; sourceTree = "<group>"; };
 		A56B3641B39ABABD9066F3AC /* SundeeFundeeWidgets.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SundeeFundeeWidgets.entitlements; sourceTree = "<group>"; };
@@ -379,6 +405,7 @@
 		E34929E89195E76379EE8C96 /* StreakServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreakServiceTests.swift; sourceTree = "<group>"; };
 		E39D0BE45D01F2FBEB1D9B50 /* DeloadWorkoutIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeloadWorkoutIntegrationTests.swift; sourceTree = "<group>"; };
 		E451FAB2D909E54CF0F3C1D6 /* GrowthLinkServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrowthLinkServiceTests.swift; sourceTree = "<group>"; };
+		E4D6240705A6135754EAFA3E /* SundeeFundeeWatch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SundeeFundeeWatch.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E68DF49C1BD9228B96110837 /* CoachCopyTemplatesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoachCopyTemplatesTests.swift; sourceTree = "<group>"; };
 		E7572B297EA5A14080245EA4 /* SupportTipProductTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupportTipProductTests.swift; sourceTree = "<group>"; };
 		E8E534C4201717292D999B0E /* OnDeviceCoachServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnDeviceCoachServiceTests.swift; sourceTree = "<group>"; };
@@ -394,6 +421,14 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		33604215E11B573F8F2739D1 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				24E2F931A1F98412A42EB4FA /* SundeeFundeeKit in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		3A47C591BC0F4800CB523504 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -429,6 +464,7 @@
 				EFCC3CD8C63AC7C2ECE7472B /* sundee-fundee-ios */,
 				DEA45E21D11C2110AA682199 /* SundeeFundee */,
 				DC3E61B2D20C73271CDA9947 /* SundeeFundeeUITests */,
+				3615ED3D462687EDE507699E /* SundeeFundeeWatch */,
 				6F6564DAE083123652AFA48F /* SundeeFundeeWidgets */,
 				97B281320B0F062699145758 /* Products */,
 			);
@@ -490,6 +526,7 @@
 				3EB838D0DB04121777763697 /* CycleCalendarTests.swift */,
 				BF9266FE04423A84C593EA36 /* CycleConfidenceExplainerTests.swift */,
 				B4BB70A92319FA0F1C2AD710 /* CyclePhaseHelperTests.swift */,
+				A39BB80DABC68C1E4028BCBB /* CycleSettingsTests.swift */,
 				413A38FD1C05CDFE11F01DD4 /* DailyCoachingServiceTests.swift */,
 				C1EEA8892B72499EE615BCA8 /* DailyPresenceRecordTests.swift */,
 				40FD43E50BA2F739D8B6D8E1 /* DataExportServiceTests.swift */,
@@ -597,6 +634,16 @@
 			path = ViewModelTests;
 			sourceTree = "<group>";
 		};
+		3615ED3D462687EDE507699E /* SundeeFundeeWatch */ = {
+			isa = PBXGroup;
+			children = (
+				97EDAC4B10C1547B94998153 /* Info.plist */,
+				0DC5DD7429659DA821695837 /* SundeeFundeeWatch.entitlements */,
+				78B50048D1AA80FB4CF5802E /* SundeeFundeeWatchApp.swift */,
+			);
+			path = SundeeFundeeWatch;
+			sourceTree = "<group>";
+		};
 		3FE7305C8269F709E3103424 /* UI */ = {
 			isa = PBXGroup;
 			children = (
@@ -651,6 +698,7 @@
 				C99B9014B8F76C3124C8DA6A /* SundeeFundee.app */,
 				09F2CCD701D6D0EA783701B0 /* SundeeFundeeTests.xctest */,
 				52E10E37A46A80DD6187B950 /* SundeeFundeeUITests.xctest */,
+				E4D6240705A6135754EAFA3E /* SundeeFundeeWatch.app */,
 				7C4C38D3026141D6EE494174 /* SundeeFundeeWidgetsExtension.appex */,
 			);
 			name = Products;
@@ -812,11 +860,13 @@
 				71BF2BFB19B604FE2546224E /* Resources */,
 				3A47C591BC0F4800CB523504 /* Frameworks */,
 				36E14959B1240696107D9659 /* Embed Foundation Extensions */,
+				CE4AD0CDCF55EBCD01E01B57 /* Embed Watch Content */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 				7BEF99D262DDD2CBDB649C9E /* PBXTargetDependency */,
+				42F812F23D9261799FF3E6BC /* PBXTargetDependency */,
 			);
 			name = SundeeFundee;
 			packageProductDependencies = (
@@ -844,6 +894,25 @@
 			productReference = 52E10E37A46A80DD6187B950 /* SundeeFundeeUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+		E99552941727229ACED52CFE /* SundeeFundeeWatch */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A59D55378B4219D51DF1D011 /* Build configuration list for PBXNativeTarget "SundeeFundeeWatch" */;
+			buildPhases = (
+				9CE5B17EB835F79EA50A1F7A /* Sources */,
+				33604215E11B573F8F2739D1 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = SundeeFundeeWatch;
+			packageProductDependencies = (
+				2013C6AE51B5E5CBD8E6E4DD /* SundeeFundeeKit */,
+			);
+			productName = SundeeFundeeWatch;
+			productReference = E4D6240705A6135754EAFA3E /* SundeeFundeeWatch.app */;
+			productType = "com.apple.product-type.application";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -865,6 +934,9 @@
 					726DD0522DB779BA3F5C6A0C = {
 						DevelopmentTeam = 87VVCMCW3F;
 						TestTargetID = 6A65F4B4731A18FE7E162E4E;
+					};
+					E99552941727229ACED52CFE = {
+						DevelopmentTeam = 87VVCMCW3F;
 					};
 				};
 			};
@@ -889,6 +961,7 @@
 				38E0473811F3273AE38A8631 /* SundeeFundeeWidgetsExtension */,
 				210638487B33D83A1059A242 /* SundeeFundeeTests */,
 				726DD0522DB779BA3F5C6A0C /* SundeeFundeeUITests */,
+				E99552941727229ACED52CFE /* SundeeFundeeWatch */,
 			);
 		};
 /* End PBXProject section */
@@ -912,6 +985,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				C7FB1AE00824A23591E646D0 /* App.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9CE5B17EB835F79EA50A1F7A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				53F5A1B21FCB8F98A569A843 /* SundeeFundeeWatchApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -970,6 +1051,7 @@
 				56152C8EE62FE3E6EB5C9300 /* CycleCalendarTests.swift in Sources */,
 				7E4356EDC1028D696BB7ED88 /* CycleConfidenceExplainerTests.swift in Sources */,
 				B9D39C1A3CBA1F0443BC54D3 /* CyclePhaseHelperTests.swift in Sources */,
+				D91FF095043A9B591637E975 /* CycleSettingsTests.swift in Sources */,
 				73160393D646B6054B04160A /* DailyCoachingServiceTests.swift in Sources */,
 				272BEAFC0A212D43990A5B78 /* DailyPresencePrivacyTests.swift in Sources */,
 				376C8B63980E2BC117E514C9 /* DailyPresenceRecordTests.swift in Sources */,
@@ -1100,6 +1182,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		42F812F23D9261799FF3E6BC /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = E99552941727229ACED52CFE /* SundeeFundeeWatch */;
+			targetProxy = B1CCEE021807DD17EB35690C /* PBXContainerItemProxy */;
+		};
 		634326730CB4C7630CB8799B /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 6A65F4B4731A18FE7E162E4E /* SundeeFundee */;
@@ -1171,11 +1258,11 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 6.0;
+				WATCHOS_DEPLOYMENT_TARGET = 11.0;
 			};
 			name = Release;
 		};
@@ -1269,6 +1356,21 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.sundeefundee.app;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		B103C20BE21C6A55B6DC5544 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = SundeeFundeeWatch/SundeeFundeeWatch.entitlements;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = SundeeFundeeWatch/Info.plist;
+				PRODUCT_BUNDLE_IDENTIFIER = com.sundeefundee.app.watchkitapp;
+				PRODUCT_NAME = SundeeFundeeWatch;
+				SDKROOT = watchos;
+				SKIP_INSTALL = NO;
+				TARGETED_DEVICE_FAMILY = 4;
 			};
 			name = Release;
 		};
@@ -1366,11 +1468,26 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 6.0;
+				WATCHOS_DEPLOYMENT_TARGET = 11.0;
+			};
+			name = Debug;
+		};
+		C2B0F9D261F35C8B5883D5F4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = SundeeFundeeWatch/SundeeFundeeWatch.entitlements;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = SundeeFundeeWatch/Info.plist;
+				PRODUCT_BUNDLE_IDENTIFIER = com.sundeefundee.app.watchkitapp;
+				PRODUCT_NAME = SundeeFundeeWatch;
+				SDKROOT = watchos;
+				SKIP_INSTALL = NO;
+				TARGETED_DEVICE_FAMILY = 4;
 			};
 			name = Debug;
 		};
@@ -1430,6 +1547,15 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		A59D55378B4219D51DF1D011 /* Build configuration list for PBXNativeTarget "SundeeFundeeWatch" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C2B0F9D261F35C8B5883D5F4 /* Debug */,
+				B103C20BE21C6A55B6DC5544 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		F1454FE610F6C6B5F73CE2E0 /* Build configuration list for PBXNativeTarget "SundeeFundee" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -1450,6 +1576,10 @@
 
 /* Begin XCSwiftPackageProductDependency section */
 		0344363F4B100A32D7BC231D /* SundeeFundeeKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = SundeeFundeeKit;
+		};
+		2013C6AE51B5E5CBD8E6E4DD /* SundeeFundeeKit */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = SundeeFundeeKit;
 		};
