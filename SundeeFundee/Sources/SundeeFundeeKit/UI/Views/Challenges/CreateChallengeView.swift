@@ -37,7 +37,9 @@ struct CreateChallengeView: View {
                             Text(m.rawValue).tag(m)
                         }
                     }
+                    #if !os(watchOS)
                     .pickerStyle(.segmented)
+                    #endif
                 }
 
                 switch mode {
