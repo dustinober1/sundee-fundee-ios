@@ -1,4 +1,5 @@
 import Foundation
+import HealthKit
 import SwiftUI
 import WidgetKit
 
@@ -86,8 +87,10 @@ public final class CyclePhaseCache: ObservableObject {
         }
 
         var periodLogs: [PeriodLog] = []
+        var wristTemps: [HKQuantitySample] = []
+        var ovulationTests: [HKCategorySample] = []
 
-        // Load HealthKit cycles if available
+        // Load HealthKit cycles and biomarkers if available
         if healthClient.isAvailable {
             do {
                 let sixMonthsAgo = Calendar.current.date(byAdding: .month, value: -6, to: Date())
@@ -102,7 +105,16 @@ public final class CyclePhaseCache: ObservableObject {
             } catch {
                 // No HealthKit data — continue
             }
+
+            wristTemps = (try? await healthClient.fetchRecentWristTemperature(days: 30)) ?? []
+            ovulationTests = (try? await healthClient.fetchOvulationTestResults()) ?? []
         }
+
+        let biomarkerEvidence = CyclePhaseHelper.detectOvulationBiomarkers(
+            temperatureSamples: wristTemps,
+            ovulationTestSamples: ovulationTests,
+            referenceDate: Date()
+        )
 
         // Merge manual period logs (using the single fetch from above)
         let manualLogs = manualRecords.map { $0.toPeriodLog() }
@@ -142,11 +154,16 @@ public final class CyclePhaseCache: ObservableObject {
         }
 
         // Calculate phase
-        if let status = calculateCycleStatus(periodLogs: periodLogs, settings: settings) {
+        if let status = calculateCycleStatus(
+            periodLogs: periodLogs,
+            settings: settings,
+            biomarkerEvidence: biomarkerEvidence
+        ) {
             currentPhase = status.currentPhase
             confidence = CyclePhaseHelper.calculateConfidence(
                 periodLogCount: periodLogs.count,
-                lastPeriodStart: periodLogs.sorted(by: { $0.startDate > $1.startDate }).first?.startDate
+                lastPeriodStart: periodLogs.sorted(by: { $0.startDate > $1.startDate }).first?.startDate,
+                biomarkerEvidence: biomarkerEvidence
             )
             if status.currentPhase != .menstrual {
                 isSharkWeekBannerSuppressed = false
