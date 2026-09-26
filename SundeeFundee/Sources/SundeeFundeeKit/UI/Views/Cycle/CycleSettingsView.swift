@@ -17,6 +17,9 @@ struct CycleSettingsView: View {
     @State private var errorMessage: String?
     @State private var loadTrigger: Int = 0
     @State private var editingPeriod: PeriodLogRecord?
+    @State private var terminologyStyle: CycleTerminologyStyle = .physiological
+    @State private var isGymPrivacyEnabled: Bool = false
+    @State private var showSharkWeekBanner: Bool = true
 
     @EnvironmentObject var cyclePhaseCache: CyclePhaseCache
 
@@ -53,6 +56,23 @@ struct CycleSettingsView: View {
                 .padding(.vertical, AppTheme.Spacing.xs)
             }
 
+            // Display & Privacy
+            Section {
+                Picker("Terminology", selection: $terminologyStyle) {
+                    ForEach(CycleTerminologyStyle.allCases, id: \.self) { style in
+                        Text(style.displayName).tag(style)
+                    }
+                }
+
+                Toggle("Gym Privacy Mode", isOn: $isGymPrivacyEnabled)
+
+                Toggle("Floating Status Banner", isOn: $showSharkWeekBanner)
+            } header: {
+                Text("Display & Privacy")
+            } footer: {
+                Text("Gym Privacy hides cycle phase badges and floating banners from workout screens. Terminology changes how phases are labeled across the app.")
+            }
+
             Section {
                 Button {
                     Task { await saveCycleSettings() }
@@ -62,7 +82,7 @@ struct CycleSettingsView: View {
                         if isSaving {
                             ProgressView("Saving cycle settings")
                         } else {
-                            Text("Save Cycle Length")
+                            Text("Save Cycle Settings")
                         }
                         Spacer()
                     }
@@ -247,6 +267,15 @@ struct CycleSettingsView: View {
         } message: {
             Text(errorMessage ?? "")
         }
+        .onChange(of: terminologyStyle) { _, _ in
+            Task { await saveCycleSettings() }
+        }
+        .onChange(of: isGymPrivacyEnabled) { _, _ in
+            Task { await saveCycleSettings() }
+        }
+        .onChange(of: showSharkWeekBanner) { _, _ in
+            Task { await saveCycleSettings() }
+        }
         .sheet(item: $editingPeriod) { period in
             EditPeriodSheet(period: period) { updated in
                 Task { await updatePeriod(updated) }
@@ -264,6 +293,9 @@ struct CycleSettingsView: View {
 
             if let settings = records.first {
                 cycleLength = Double(settings.averageCycleLengthDays)
+                terminologyStyle = settings.terminologyStyle
+                isGymPrivacyEnabled = settings.isGymPrivacy
+                showSharkWeekBanner = settings.showsBanner
             }
         } catch {
             // Use defaults
@@ -284,10 +316,18 @@ struct CycleSettingsView: View {
         let lastStart = loggedPeriods.sorted(by: { $0.startDate > $1.startDate }).first?.startDate
         let record = CycleSettingsRecord(
             averageCycleLengthDays: Int(cycleLength),
-            lastPeriodStart: lastStart
+            lastPeriodStart: lastStart,
+            terminologyStyle: terminologyStyle,
+            isGymPrivacyEnabled: isGymPrivacyEnabled,
+            showSharkWeekBanner: showSharkWeekBanner
         )
         do {
             try await dataClient.save(record, recordType: "CycleSettings")
+            cyclePhaseCache.updatePreferences(
+                terminologyStyle: terminologyStyle,
+                isGymPrivacyEnabled: isGymPrivacyEnabled,
+                showSharkWeekBanner: showSharkWeekBanner
+            )
             NotificationCenter.default.post(name: .cycleDataUpdated, object: nil)
         } catch {
             errorMessage = "We couldn't save your cycle settings. Check your connection and try again."
@@ -305,7 +345,10 @@ struct CycleSettingsView: View {
 
             let settingsRecord = CycleSettingsRecord(
                 averageCycleLengthDays: Int(cycleLength),
-                lastPeriodStart: startOfDay
+                lastPeriodStart: startOfDay,
+                terminologyStyle: terminologyStyle,
+                isGymPrivacyEnabled: isGymPrivacyEnabled,
+                showSharkWeekBanner: showSharkWeekBanner
             )
             try await dataClient.save(settingsRecord, recordType: "CycleSettings")
 
@@ -348,7 +391,10 @@ struct CycleSettingsView: View {
 
             let settingsRecord = CycleSettingsRecord(
                 averageCycleLengthDays: Int(cycleLength),
-                lastPeriodStart: startOfDay
+                lastPeriodStart: startOfDay,
+                terminologyStyle: terminologyStyle,
+                isGymPrivacyEnabled: isGymPrivacyEnabled,
+                showSharkWeekBanner: showSharkWeekBanner
             )
             try await dataClient.save(settingsRecord, recordType: "CycleSettings")
 
@@ -377,7 +423,10 @@ struct CycleSettingsView: View {
             if let mostRecentStart = loggedPeriods.first?.startDate {
                 let settingsRecord = CycleSettingsRecord(
                     averageCycleLengthDays: Int(cycleLength),
-                    lastPeriodStart: mostRecentStart
+                    lastPeriodStart: mostRecentStart,
+                    terminologyStyle: terminologyStyle,
+                    isGymPrivacyEnabled: isGymPrivacyEnabled,
+                    showSharkWeekBanner: showSharkWeekBanner
                 )
                 try? await dataClient.save(settingsRecord, recordType: "CycleSettings")
             }
