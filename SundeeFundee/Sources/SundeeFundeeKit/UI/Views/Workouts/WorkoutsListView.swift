@@ -191,7 +191,9 @@ public struct WorkoutsListView: View {
                     WorkoutRowContent(workout: item)
                 }
                 .listRowBackground(Color.clear)
+                #if !os(watchOS)
                 .listRowSeparator(.hidden)
+                #endif
                 .swipeActions(edge: .leading) {
                     if item.isRedoable, case let .workout(workoutId) = item.source {
                         Button {
