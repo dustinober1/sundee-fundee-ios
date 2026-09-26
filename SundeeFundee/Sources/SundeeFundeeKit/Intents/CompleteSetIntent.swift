@@ -14,8 +14,13 @@ extension Notification.Name {
 // MARK: - CompleteSetAppIntent
 
 #if os(iOS)
-@available(iOS 18.0, *)
-public struct CompleteSetAppIntent: LiveActivityIntent {
+public typealias SFWorkoutLiveIntent = LiveActivityIntent
+#else
+public typealias SFWorkoutLiveIntent = AppIntent
+#endif
+
+@available(iOS 18.0, watchOS 11.0, macOS 15.0, *)
+public struct CompleteSetAppIntent: SFWorkoutLiveIntent {
     public static let title: LocalizedStringResource = "Complete Set"
     public static let description = IntentDescription("Completes the current set and begins the rest timer.")
     public static let isDiscoverable: Bool = false
@@ -62,8 +67,8 @@ public struct CompleteSetAppIntent: LiveActivityIntent {
 
 // MARK: - AddRestAppIntent
 
-@available(iOS 18.0, *)
-public struct AddRestAppIntent: LiveActivityIntent {
+@available(iOS 18.0, watchOS 11.0, macOS 15.0, *)
+public struct AddRestAppIntent: SFWorkoutLiveIntent {
     public static let title: LocalizedStringResource = "Add 30s Rest"
     public static let description = IntentDescription("Adds 30 seconds to the active rest countdown.")
     public static let isDiscoverable: Bool = false
@@ -101,4 +106,3 @@ public struct AddRestAppIntent: LiveActivityIntent {
         return .result()
     }
 }
-#endif
