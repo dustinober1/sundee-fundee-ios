@@ -51,6 +51,7 @@ public enum SharedSnapshotStore {
     private static let terminologyStyleKey = "cycleTerminologyStyle.v1"
     private static let gymPrivacyKey = "gymPrivacyEnabled.v1"
     private static let showSharkWeekBannerKey = "showSharkWeekBanner.v1"
+    private static let activeWorkoutStateKey = "activeWorkoutState.v1"
 
     /// Overridable suite for tests. Defaults to the shared App Group.
     /// `nonisolated(unsafe)` because this is a test seam — production code
@@ -86,6 +87,27 @@ public enum SharedSnapshotStore {
         return try? decoder().decode(DailyReadinessSnapshot.self, from: data)
     }
 
+    // MARK: - Active Workout State
+
+    public static func writeActiveWorkoutState(_ state: ActiveWorkoutState?) {
+        guard let defaults else { return }
+        guard let state else {
+            defaults.removeObject(forKey: activeWorkoutStateKey)
+            return
+        }
+        do {
+            let data = try encoder().encode(state)
+            defaults.set(data, forKey: activeWorkoutStateKey)
+        } catch {
+            snapshotLogger.error("writeActiveWorkoutState failed: \(error.localizedDescription)")
+        }
+    }
+
+    public static func readActiveWorkoutState() -> ActiveWorkoutState? {
+        guard let defaults, let data = defaults.data(forKey: activeWorkoutStateKey) else { return nil }
+        return try? decoder().decode(ActiveWorkoutState.self, from: data)
+    }
+
     // MARK: - Test helpers
 
     public static func clear() {
@@ -95,6 +117,7 @@ public enum SharedSnapshotStore {
         defaults?.removeObject(forKey: terminologyStyleKey)
         defaults?.removeObject(forKey: gymPrivacyKey)
         defaults?.removeObject(forKey: showSharkWeekBannerKey)
+        defaults?.removeObject(forKey: activeWorkoutStateKey)
     }
 
     // MARK: - Shark Week Banner
