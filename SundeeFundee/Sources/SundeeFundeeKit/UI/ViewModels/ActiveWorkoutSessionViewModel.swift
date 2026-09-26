@@ -3,6 +3,9 @@ import Combine
 #if canImport(UIKit) && os(iOS)
 import UIKit
 #endif
+#if canImport(UserNotifications)
+import UserNotifications
+#endif
 
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
 @MainActor
@@ -582,6 +585,40 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
             }
     }
 
+    // MARK: - Local Notification for Rest
+
+    private let restNotificationIdentifier = "com.sundeefundee.activeRestTimer"
+
+    private func scheduleRestNotification(duration: TimeInterval, nextExerciseName: String?) {
+        #if canImport(UserNotifications) && os(iOS)
+        let content = UNMutableNotificationContent()
+        content.title = "Rest Complete"
+        if let nextExerciseName {
+            content.body = "Time for next set: \(nextExerciseName)"
+        } else {
+            content.body = "Time for your next set."
+        }
+        content.sound = .default
+        content.interruptionLevel = .timeSensitive
+
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: max(1, duration), repeats: false)
+        let request = UNNotificationRequest(
+            identifier: restNotificationIdentifier,
+            content: content,
+            trigger: trigger
+        )
+        UNUserNotificationCenter.current().add(request)
+        #endif
+    }
+
+    private func cancelRestNotification() {
+        #if canImport(UserNotifications) && os(iOS)
+        UNUserNotificationCenter.current().removePendingNotificationRequests(
+            withIdentifiers: [restNotificationIdentifier]
+        )
+        #endif
+    }
+
     private func startRestTimer(
         duration: TimeInterval,
         reason: String?,
@@ -596,6 +633,11 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
         restStartedAt = Date()
         isResting = true
 
+        scheduleRestNotification(
+            duration: duration,
+            nextExerciseName: currentExercise?.name
+        )
+
         restTimerCancellable = Timer.publish(every: 0.25, on: .main, in: .common)
             .autoconnect()
             .sink { [weak self] _ in
@@ -604,6 +646,7 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
                 let remaining = duration - elapsed
 
                 if remaining <= 0 {
+                    self.cancelRestNotification()
                     self.restTimeRemaining = 0
                     self.isResting = false
                     self.restGuidanceReason = nil
@@ -624,6 +667,7 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
     }
 
     private func stopRestTimer() {
+        cancelRestNotification()
         restTimerCancellable?.cancel()
         restTimerCancellable = nil
         restTimeRemaining = 0
