@@ -261,7 +261,7 @@ public struct DashboardView: View {
                         }
                     )
                 case .share(let summary):
-                    #if canImport(UIKit)
+                    #if os(iOS)
                     ShareCardSheet(variant: .readiness(summary: summary), defaultAspect: .story)
                     #else
                     Text("Sharing is unavailable on this device.")
@@ -599,7 +599,7 @@ public struct DashboardView: View {
                     .accessibilityHint("Opens educational guide about menstrual cycle and training")
                 }
             }
-            #if canImport(UIKit)
+            #if os(iOS)
             .contextMenu {
                 Button {
                     showingCycleShare = true
