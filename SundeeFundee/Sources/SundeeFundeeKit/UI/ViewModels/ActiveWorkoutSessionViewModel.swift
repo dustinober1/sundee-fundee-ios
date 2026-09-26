@@ -141,6 +141,31 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
 #if canImport(ActivityKit) && os(iOS)
         liveActivityManager = LiveWorkoutActivityManager()
 #endif
+        NotificationCenter.default.addObserver(
+            forName: .completeSetFromIntent,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                guard let self, let current = self.currentSet, !self.isCompletingSet else { return }
+                await self.completeSet(
+                    actualReps: current.reps,
+                    completedWeight: current.prescribedWeight
+                )
+            }
+        }
+
+        NotificationCenter.default.addObserver(
+            forName: .addRestFromIntent,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                guard let self, self.isResting else { return }
+                self.addRest(seconds: 30)
+            }
+        }
+
         startElapsedTimer()
         updateLiveActivity()
         Task {
@@ -463,6 +488,7 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
 
         // End Live Activity
         let finalSnapshot = buildSnapshot(status: .completed)
+        SharedSnapshotStore.writeActiveWorkoutState(nil)
 #if canImport(ActivityKit) && os(iOS)
         liveActivityManager?.end(finalSnapshot: finalSnapshot)
 #endif
@@ -479,6 +505,7 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
         try? await dataClient.save(workout, recordType: "Workout")
 
         let finalSnapshot = buildSnapshot(status: .completed)
+        SharedSnapshotStore.writeActiveWorkoutState(nil)
 #if canImport(ActivityKit) && os(iOS)
         liveActivityManager?.end(finalSnapshot: finalSnapshot)
 #endif
@@ -643,7 +670,7 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
             .sink { [weak self] _ in
                 guard let self, let startedAt = self.restStartedAt else { return }
                 let elapsed = Date().timeIntervalSince(startedAt)
-                let remaining = duration - elapsed
+                let remaining = self.restTargetDuration - elapsed
 
                 if remaining <= 0 {
                     self.cancelRestNotification()
@@ -664,6 +691,19 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
                 }
                 self.updateLiveActivity()
             }
+    }
+
+    public func addRest(seconds: TimeInterval = 30) {
+        guard isResting, let startedAt = restStartedAt else { return }
+        restTargetDuration += seconds
+        let elapsed = Date().timeIntervalSince(startedAt)
+        let remaining = max(0, restTargetDuration - elapsed)
+        restTimeRemaining = remaining
+        scheduleRestNotification(
+            duration: remaining,
+            nextExerciseName: currentExercise?.name
+        )
+        updateLiveActivity()
     }
 
     private func stopRestTimer() {
@@ -828,6 +868,7 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
     private func updateLiveActivity() {
         let status: ActiveWorkoutStatus = isResting ? .resting : .active
         let snapshot = buildSnapshot(status: status)
+        SharedSnapshotStore.writeActiveWorkoutState(snapshot)
 #if canImport(ActivityKit) && os(iOS)
         liveActivityManager?.update(snapshot)
 #endif
