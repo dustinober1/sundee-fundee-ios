@@ -114,6 +114,63 @@ final class ActiveWorkoutSessionViewModelTests: XCTestCase {
         XCTAssertEqual(dataClient.recordCount(for: "OneRepMaxRecord"), 2)
     }
 
+    func testAddRestExtendsActiveRestTimer() async throws {
+        let viewModel = ActiveWorkoutSessionViewModel(
+            workout: multiSetWorkout(),
+            dataClient: MockCloudKitClient(),
+            healthClient: MockHealthKitClient()
+        )
+
+        await viewModel.completeSet(actualReps: 5, completedWeight: 135)
+        XCTAssertTrue(viewModel.isResting)
+        let initialRemaining = viewModel.restTimeRemaining
+
+        viewModel.addRest(seconds: 30)
+        XCTAssertGreaterThan(viewModel.restTimeRemaining, initialRemaining)
+
+        viewModel.skipRest()
+    }
+
+    func testCompleteSetFromIntentNotificationTriggersSetCompletion() async throws {
+        let viewModel = ActiveWorkoutSessionViewModel(
+            workout: multiSetWorkout(),
+            dataClient: MockCloudKitClient(),
+            healthClient: MockHealthKitClient()
+        )
+        viewModel.beginSession()
+
+        XCTAssertEqual(viewModel.currentSetIndex, 0)
+        NotificationCenter.default.post(name: .completeSetFromIntent, object: nil)
+
+        // Give MainActor Task time to complete
+        try await Task.sleep(nanoseconds: 100_000_000)
+
+        XCTAssertEqual(viewModel.currentSetIndex, 1)
+        XCTAssertEqual(viewModel.completedSets, 1)
+
+        await viewModel.abandonWorkout()
+    }
+
+    func testAddRestFromIntentNotificationExtendsRestTimer() async throws {
+        let viewModel = ActiveWorkoutSessionViewModel(
+            workout: multiSetWorkout(),
+            dataClient: MockCloudKitClient(),
+            healthClient: MockHealthKitClient()
+        )
+        viewModel.beginSession()
+
+        await viewModel.completeSet(actualReps: 5, completedWeight: 135)
+        XCTAssertTrue(viewModel.isResting)
+        let beforeNotification = viewModel.restTimeRemaining
+
+        NotificationCenter.default.post(name: .addRestFromIntent, object: nil)
+        try await Task.sleep(nanoseconds: 100_000_000)
+
+        XCTAssertGreaterThan(viewModel.restTimeRemaining, beforeNotification)
+
+        await viewModel.abandonWorkout()
+    }
+
     private func waitForWarmupBlock(
         in viewModel: ActiveWorkoutSessionViewModel,
         timeoutNanoseconds: UInt64 = 1_000_000_000
