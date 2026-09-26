@@ -109,7 +109,9 @@ public struct MaxesListView: View {
                     plateau: viewModel.plateauAlerts[max.exerciseName]
                 )
                 .listRowBackground(Color.clear)
+                #if !os(watchOS)
                 .listRowSeparator(.hidden)
+                #endif
             }
             .onDelete { indexSet in
                 for index in indexSet {
@@ -247,7 +249,9 @@ struct OneRepMaxEntryView: View {
                             Text("lbs").tag(WeightUnit.lbs)
                             Text("kg").tag(WeightUnit.kg)
                         }
+                        #if !os(watchOS)
                         .pickerStyle(.segmented)
+                        #endif
                     }
                 }
             }
