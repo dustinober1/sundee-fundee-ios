@@ -94,4 +94,47 @@ struct SharedSnapshotStoreTests {
             #expect(SharedSnapshotStore.readReadiness() == nil)
         }
     }
+
+    @Test("ActiveWorkoutState snapshot round-trips through UserDefaults")
+    func activeWorkoutStateRoundTrip() async throws {
+        await withTestSuite {
+            let state = ActiveWorkoutState(
+                workoutID: "w-123",
+                workoutName: "Upper Body Hypertrophy",
+                status: .active,
+                lastUpdatedAt: Date(timeIntervalSince1970: 1_700_000_000),
+                elapsedSeconds: 120,
+                progress: .init(completedSets: 3, totalSets: 12, remainingSets: 9),
+                current: .init(exerciseName: "Bench Press", exerciseIndex: 0, setIndex: 4, prescribedRepsText: "8 reps", prescribedWeight: 135, restSecondsAfterSet: 90),
+                nextUp: nil,
+                rest: nil
+            )
+            SharedSnapshotStore.writeActiveWorkoutState(state)
+            let read = SharedSnapshotStore.readActiveWorkoutState()
+            #expect(read?.workoutID == "w-123")
+            #expect(read?.current?.exerciseName == "Bench Press")
+            #expect(read?.progress.completedSets == 3)
+            #expect(read?.progress.remainingSets == 9)
+        }
+    }
+
+    @Test("clear removes active workout state snapshot")
+    func clearRemovesActiveWorkoutState() async throws {
+        await withTestSuite {
+            let state = ActiveWorkoutState(
+                workoutID: "w-123",
+                workoutName: "Upper Body Hypertrophy",
+                status: .active,
+                lastUpdatedAt: Date(),
+                elapsedSeconds: 0,
+                progress: .init(completedSets: 3, totalSets: 12, remainingSets: 9),
+                current: nil,
+                nextUp: nil,
+                rest: nil
+            )
+            SharedSnapshotStore.writeActiveWorkoutState(state)
+            SharedSnapshotStore.clear()
+            #expect(SharedSnapshotStore.readActiveWorkoutState() == nil)
+        }
+    }
 }
