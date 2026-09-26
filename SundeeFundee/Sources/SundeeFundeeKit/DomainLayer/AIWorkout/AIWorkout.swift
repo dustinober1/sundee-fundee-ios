@@ -84,6 +84,22 @@ public enum WorkoutMovementPattern: String, Codable, Sendable, CaseIterable {
     case core
     case carry
     case conditioning
+
+    /// The primary anatomical region associated with this movement pattern.
+    public var primaryRegion: ExerciseRegion {
+        switch self {
+        case .squat, .hinge:
+            return .lower
+        case .push, .pull:
+            return .upper
+        case .core:
+            return .core
+        case .carry:
+            return .fullBody
+        case .conditioning:
+            return .conditioning
+        }
+    }
 }
 
 /// An approved exercise candidate for a generated workout.
