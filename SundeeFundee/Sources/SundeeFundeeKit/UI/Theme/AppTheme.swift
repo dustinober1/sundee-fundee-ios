@@ -203,18 +203,38 @@ public enum AppTheme {
     // MARK: - Typography
 
     /// Custom font sizes and weights.
-    /// Display and headline fonts are fixed-size (per CONTEXT.md decision).
-    /// Body, label, and mono fonts scale with Dynamic Type via UIFontMetrics (AUD-05).
+    /// All display, headline, body, label, and mono fonts scale with Dynamic Type via UIFontMetrics.
     public enum Typography {
-        // Display - headings (FIXED SIZE)
-        public static let displayLarge = Font.system(size: 32, weight: .bold, design: .serif)
-        public static let displayMedium = Font.system(size: 24, weight: .bold, design: .serif)
-        public static let displaySmall = Font.system(size: 20, weight: .semibold, design: .serif)
+        public enum ScaledTextStyle: Sendable {
+            case largeTitle
+            case title1
+            case title2
+            case headline
+            case subheadline
+            case body
+        }
 
-        // Headline - section headers (FIXED SIZE)
-        public static let headlineLarge = Font.system(size: 18, weight: .semibold)
-        public static let headlineMedium = Font.system(size: 16, weight: .semibold)
-        public static let headlineSmall = Font.system(size: 14, weight: .medium)
+        // Display - headings (DYNAMIC TYPE scalable via title metrics)
+        public static var displayLarge: Font {
+            scaledFont(baseSize: 32, weight: .bold, style: .largeTitle, design: .serif)
+        }
+        public static var displayMedium: Font {
+            scaledFont(baseSize: 24, weight: .bold, style: .title1, design: .serif)
+        }
+        public static var displaySmall: Font {
+            scaledFont(baseSize: 20, weight: .semibold, style: .title2, design: .serif)
+        }
+
+        // Headline - section headers (DYNAMIC TYPE scalable via headline metrics)
+        public static var headlineLarge: Font {
+            scaledFont(baseSize: 18, weight: .semibold, style: .headline)
+        }
+        public static var headlineMedium: Font {
+            scaledFont(baseSize: 16, weight: .semibold, style: .headline)
+        }
+        public static var headlineSmall: Font {
+            scaledFont(baseSize: 14, weight: .medium, style: .subheadline)
+        }
 
         // Body - content text (DYNAMIC TYPE scalable)
         /// Scales with Dynamic Type. Base 16pt at default size.
@@ -263,10 +283,20 @@ public enum AppTheme {
         private static func scaledFont(
             baseSize: CGFloat,
             weight: Font.Weight,
+            style: ScaledTextStyle = .body,
             design: Font.Design? = nil
         ) -> Font {
             #if os(iOS)
-            let metrics = UIFontMetrics(forTextStyle: .body)
+            let uiStyle: UIFont.TextStyle
+            switch style {
+            case .largeTitle: uiStyle = .largeTitle
+            case .title1: uiStyle = .title1
+            case .title2: uiStyle = .title2
+            case .headline: uiStyle = .headline
+            case .subheadline: uiStyle = .subheadline
+            case .body: uiStyle = .body
+            }
+            let metrics = UIFontMetrics(forTextStyle: uiStyle)
             let scaledSize = metrics.scaledValue(for: baseSize)
             if let design {
                 return Font.system(size: scaledSize, weight: weight, design: design)
