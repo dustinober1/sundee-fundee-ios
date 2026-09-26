@@ -45,7 +45,7 @@ public enum AppTheme {
         light: AppThemeColorToken,
         dark: AppThemeColorToken
     ) -> Color {
-        #if canImport(UIKit)
+        #if os(iOS)
         return Color(uiColor: UIColor { traitCollection in
             let token = traitCollection.userInterfaceStyle == .dark ? dark : light
             return UIColor(
@@ -67,7 +67,7 @@ public enum AppTheme {
             )
         })
         #else
-        return light.color
+        return dark.color
         #endif
     }
 
