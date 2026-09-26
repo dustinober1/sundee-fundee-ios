@@ -217,8 +217,81 @@ public func resolveConfidence(
     return .low
 }
 
+// MARK: - Cycle Adaptation Mode & Guidance
+
+/// Mode of cycle-aware training adaptation.
+/// - autoregulated (recommended by sports science): Cycle phase provides contextual guidance
+///   and conservative pacing; working loads and volumes remain anchored to actual RPE and readiness
+///   rather than forced mechanical boosts.
+/// - prescriptive: Classic direct multiplier adjustments to prescribed loads/sets/reps.
+public enum CycleAdaptationMode: String, Codable, Sendable {
+    case autoregulated
+    case prescriptive
+}
+
+/// Evidence-based training guidance for a specific cycle phase.
+public struct CyclePhaseGuidance: Sendable, Equatable {
+    public let phase: CyclePhase
+    public let headline: String
+    public let physiologicalContext: String
+    public let autoregulationCue: String
+    public let suggestedRestModifierSeconds: Int
+
+    public init(
+        phase: CyclePhase,
+        headline: String,
+        physiologicalContext: String,
+        autoregulationCue: String,
+        suggestedRestModifierSeconds: Int = 0
+    ) {
+        self.phase = phase
+        self.headline = headline
+        self.physiologicalContext = physiologicalContext
+        self.autoregulationCue = autoregulationCue
+        self.suggestedRestModifierSeconds = suggestedRestModifierSeconds
+    }
+}
+
+/// Returns evidence-based autoregulation guidance for a cycle phase.
+public func guidanceForPhase(_ phase: CyclePhase) -> CyclePhaseGuidance {
+    switch phase {
+    case .menstrual:
+        return CyclePhaseGuidance(
+            phase: .menstrual,
+            headline: "Menstrual Phase · Baseline Hormone Profile",
+            physiologicalContext: "Estrogen and progesterone are at low baseline levels. Individual responses vary widely — some lifters feel strong, while others experience cramps or lethargy.",
+            autoregulationCue: "Listen to comfort and rate set 1 RPE honestly. If cramps or fatigue are present, take an extra 30s rest or drop 1 RIR.",
+            suggestedRestModifierSeconds: 15
+        )
+    case .follicular:
+        return CyclePhaseGuidance(
+            phase: .follicular,
+            headline: "Follicular Phase · Rising Estrogen",
+            physiologicalContext: "Estrogen rises toward mid-cycle, promoting insulin sensitivity, recovery, and neuromuscular recruitment.",
+            autoregulationCue: "Great window to push volume or test linear progression if warmups feel snappy.",
+            suggestedRestModifierSeconds: 0
+        )
+    case .ovulation:
+        return CyclePhaseGuidance(
+            phase: .ovulation,
+            headline: "Ovulatory Phase · Peak Estrogen & Relaxin",
+            physiologicalContext: "Estrogen peaks alongside relaxin, which can temporarily increase ligamentous laxity.",
+            autoregulationCue: "Maintain high intensity if feeling strong, but emphasize strict technique and joint alignment rather than sudden weight spikes.",
+            suggestedRestModifierSeconds: 0
+        )
+    case .luteal:
+        return CyclePhaseGuidance(
+            phase: .luteal,
+            headline: "Luteal Phase · High Progesterone",
+            physiologicalContext: "Progesterone elevation increases resting metabolic rate and core body temperature slightly (~0.3-0.5°C).",
+            autoregulationCue: "Stay well hydrated and prioritize rest between sets. If breathing or heart rate takes longer to recover, add 30-45s rest.",
+            suggestedRestModifierSeconds: 30
+        )
+    }
+}
+
 /// Apply cycle phase adjustment to an exercise's sets, reps, and load.
-/// Optionally accepts an exercise region for region-specific multipliers.
+/// Optionally accepts an exercise region for region-specific multipliers and an adaptation mode.
 public func applyPhaseAdjustment(
     sets: ExerciseValue,
     reps: ExerciseValue,
@@ -226,14 +299,22 @@ public func applyPhaseAdjustment(
     phase: CyclePhase,
     readinessTier: AdaptationReadinessTier,
     confidence: AdaptationConfidence,
-    exerciseRegion: ExerciseRegion? = nil
+    exerciseRegion: ExerciseRegion? = nil,
+    mode: CycleAdaptationMode = .prescriptive
 ) -> (sets: ExerciseValue, reps: ExerciseValue, percent1RM: Double?) {
     let settings = resolvePhaseMultipliers(phase: phase, region: exerciseRegion)
     let rs = readinessScales[readinessTier] ?? 1.0
     let cs = confidenceScales[confidence] ?? 1.0
 
     func blendMult(_ target: Double) -> Double {
-        clamp(1.0 + (target - 1.0) * rs * cs, min: 0.75, max: 1.25)
+        if mode == .autoregulated {
+            // In autoregulated mode, keep within conservative bounds [0.92, 1.05]
+            // to prevent large arbitrary mechanical jumps while supporting RPE-based tuning
+            let blended = 1.0 + (target - 1.0) * rs * cs
+            return clamp(blended, min: 0.92, max: 1.05)
+        } else {
+            return clamp(1.0 + (target - 1.0) * rs * cs, min: 0.75, max: 1.25)
+        }
     }
 
     let adjustedSets = adjustExerciseValueByMultiplier(sets, multiplier: blendMult(settings.sets))
