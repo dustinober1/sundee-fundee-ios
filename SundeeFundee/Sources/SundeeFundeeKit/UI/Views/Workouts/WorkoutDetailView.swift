@@ -48,6 +48,7 @@ public struct WorkoutDetailView: View {
         #endif
         .toolbar {
             if let workout = viewModel.workout {
+                #if !os(watchOS)
                 ToolbarItem(placement: .primaryAction) {
                     Menu {
                         ForEach(EquipmentAccess.userSelectableDefaults, id: \.self) { equipment in
@@ -65,6 +66,7 @@ public struct WorkoutDetailView: View {
                     }
                     .accessibilityLabel("Convert equipment")
                 }
+                #endif
 
                 if workout.isComplete {
                     ToolbarItem(placement: .primaryAction) {
