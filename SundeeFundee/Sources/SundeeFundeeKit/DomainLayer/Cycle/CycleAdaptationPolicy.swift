@@ -96,7 +96,22 @@ private func clamp(_ value: Double, min: Double, max: Double) -> Double {
 // MARK: - Exercise Region Classification
 
 /// Classify an exercise name into a body region for region-specific multipliers.
+/// Uses structured ExerciseCatalogEntry / WorkoutMovementPattern metadata first,
+/// falling back to keyword heuristics for unknown custom exercises.
 public func classifyExerciseRegion(_ exerciseName: String) -> ExerciseRegion {
+    let canonical = canonicalExerciseID(exerciseName)
+
+    if let entry = lookupExerciseCatalogEntry(canonical) {
+        return entry.primaryRegion
+    }
+
+    if let candidate = allWorkoutCandidates().first(where: {
+        $0.name.caseInsensitiveCompare(exerciseName) == .orderedSame ||
+        $0.name.caseInsensitiveCompare(canonical) == .orderedSame
+    }) {
+        return candidate.pattern.primaryRegion
+    }
+
     let lower = exerciseName.lowercased()
 
     let lowerKeywords = ["squat", "deadlift", "leg", "hip thrust", "lunge",
