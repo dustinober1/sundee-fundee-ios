@@ -24,7 +24,7 @@ struct CompletedWorkoutShareView: View {
                 Spacer(minLength: 0)
                 ShareFooter(palette: .onDark)
             }
-            #if canImport(UIKit)
+            #if os(iOS)
             if #available(iOS 18.0, *) {
                 QRBadge(url: shareURL, size: aspect.size.width * 0.10)
                     .padding(AppTheme.Spacing.lg)
