@@ -93,6 +93,7 @@
 		77B45C89707FF5B0B0C23CC7 /* SupportTipProductTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7572B297EA5A14080245EA4 /* SupportTipProductTests.swift */; };
 		79B59F8EE19CED7E4BE6985C /* CoachPlanFeedbackServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C864AE75FE38574D6574BD2C /* CoachPlanFeedbackServiceTests.swift */; };
 		7E4356EDC1028D696BB7ED88 /* CycleConfidenceExplainerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF9266FE04423A84C593EA36 /* CycleConfidenceExplainerTests.swift */; };
+		7F0EF2C22223E89C596924CA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C92AFE6713FCC4B9D457F5EA /* Assets.xcassets */; };
 		815164E27CB664AC7E1AC954 /* TrainingReportPDFRendererTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25B9E607B0BBF732596E4935 /* TrainingReportPDFRendererTests.swift */; };
 		81DF43067604869D93E13AFD /* CloudKitClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 193AB5D6436B28D5BA8884C0 /* CloudKitClientTests.swift */; };
 		86D739228A403076337BA899 /* SleepDeduplicatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DFD5C5DD75D2E75DD71E7B3 /* SleepDeduplicatorTests.swift */; };
@@ -381,6 +382,7 @@
 		C7A557FFA617B7AB55D72BDC /* AIWorkoutViewModelFeedbackTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIWorkoutViewModelFeedbackTests.swift; sourceTree = "<group>"; };
 		C864AE75FE38574D6574BD2C /* CoachPlanFeedbackServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoachPlanFeedbackServiceTests.swift; sourceTree = "<group>"; };
 		C89127AA492B7ED34BBD2F92 /* ReviewPromptEligibilityServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewPromptEligibilityServiceTests.swift; sourceTree = "<group>"; };
+		C92AFE6713FCC4B9D457F5EA /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		C99B9014B8F76C3124C8DA6A /* SundeeFundee.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = SundeeFundee.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C9FE2C96B12B8F5EF9D089ED /* SundeeFundee */ = {isa = PBXFileReference; lastKnownFileType = folder; name = SundeeFundee; path = ../SundeeFundee; sourceTree = SOURCE_ROOT; };
 		CA20241996CBB9627BE114A6 /* SyncStatusServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncStatusServiceTests.swift; sourceTree = "<group>"; };
@@ -637,6 +639,7 @@
 		3615ED3D462687EDE507699E /* SundeeFundeeWatch */ = {
 			isa = PBXGroup;
 			children = (
+				C92AFE6713FCC4B9D457F5EA /* Assets.xcassets */,
 				97EDAC4B10C1547B94998153 /* Info.plist */,
 				0DC5DD7429659DA821695837 /* SundeeFundeeWatch.entitlements */,
 				78B50048D1AA80FB4CF5802E /* SundeeFundeeWatchApp.swift */,
@@ -899,6 +902,7 @@
 			buildConfigurationList = A59D55378B4219D51DF1D011 /* Build configuration list for PBXNativeTarget "SundeeFundeeWatch" */;
 			buildPhases = (
 				9CE5B17EB835F79EA50A1F7A /* Sources */,
+				62EFFA962773EA28C0D9F0A4 /* Resources */,
 				33604215E11B573F8F2739D1 /* Frameworks */,
 			);
 			buildRules = (
@@ -967,6 +971,14 @@
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		62EFFA962773EA28C0D9F0A4 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7F0EF2C22223E89C596924CA /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		71BF2BFB19B604FE2546224E /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1240,7 +1252,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 18;
+				CURRENT_PROJECT_VERSION = 19;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 87VVCMCW3F;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -1443,7 +1455,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 18;
+				CURRENT_PROJECT_VERSION = 19;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 87VVCMCW3F;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
