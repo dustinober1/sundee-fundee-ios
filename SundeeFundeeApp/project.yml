@@ -101,7 +101,7 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.sundeefundee.app.watchkitapp
         PRODUCT_NAME: SundeeFundeeWatch
         GENERATE_INFOPLIST_FILE: false
-        SKIP_INSTALL: false
+        SKIP_INSTALL: true
 
 schemes:
   SundeeFundee:
