@@ -1369,7 +1369,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.sundeefundee.app.watchkitapp;
 				PRODUCT_NAME = SundeeFundeeWatch;
 				SDKROOT = watchos;
-				SKIP_INSTALL = NO;
+				SKIP_INSTALL = YES;
 				TARGETED_DEVICE_FAMILY = 4;
 			};
 			name = Release;
@@ -1486,7 +1486,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.sundeefundee.app.watchkitapp;
 				PRODUCT_NAME = SundeeFundeeWatch;
 				SDKROOT = watchos;
-				SKIP_INSTALL = NO;
+				SKIP_INSTALL = YES;
 				TARGETED_DEVICE_FAMILY = 4;
 			};
 			name = Debug;
