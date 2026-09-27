@@ -1,9 +1,10 @@
-What's New:
+NEW: Foldable & Dual-Screen Support
+Optimized for foldable devices like iPhone Duo and iPad multi-window:
+- Responsive 2-column dashboard layout on unfolded and wide displays.
+- Tabletop Gym Mode: prop your phone on a bench or floor stand to see glanceable rest timers, targets, and cues on the upper screen, with easy-access set completion and stepper controls on the lower deck.
+- Adaptive sidebar navigation for larger screens and iPad.
+- Full landscape orientation support for gym mounts and stands.
 
-- Clearer Today guidance with daily train, modify, or recover recommendations.
-- Better in-gym tools: Best Next 20 Min, equipment conversion, warmups, station swaps, technique cues, and smarter rest guidance.
-- More context for progress: Monthly Review, cycle-aware trends, symptom patterns, buddy check-ins, and return-to-lifting ramps.
-- Privacy and trust polish: Data Trust Center, share privacy defaults, sync status, expanded export, and clearer account deletion.
-- Optional Support the Developer tip in Settings. It is repeatable, costs $1.99, and does not change feature access.
-
-All core features remain free.
+IMPROVED:
+- Refreshed workout previews and high-resolution App Store screenshots.
+- Stability and performance improvements.
