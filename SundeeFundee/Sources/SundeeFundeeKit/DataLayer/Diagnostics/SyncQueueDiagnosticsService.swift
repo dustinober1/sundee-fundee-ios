@@ -46,4 +46,10 @@ public final class SyncQueueDiagnosticsService: ObservableObject {
         stuckCount = await queue.stuckMutations.count
         lastFlushError = await queue.lastFlushError
     }
+
+    public func flushQueue() async {
+        guard let queue else { return }
+        await queue.flushQueue(allowBackoff: false)
+        await refresh()
+    }
 }
