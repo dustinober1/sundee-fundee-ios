@@ -9,6 +9,10 @@ final class ReleaseNotesContentTests: XCTestCase {
         XCTAssertTrue(text.contains("Best Next 20 Min"))
         XCTAssertTrue(text.contains("Data Trust Center"))
         XCTAssertTrue(text.contains("Monthly Review"))
+        XCTAssertTrue(text.contains("micro-pods"))
+        XCTAssertTrue(text.contains("Apple Watch"))
+        XCTAssertTrue(text.contains("plate loading"))
+        XCTAssertTrue(text.contains("Siri"))
         XCTAssertFalse(text.contains("NEW IN 1.4"))
         XCTAssertFalse(text.localizedCaseInsensitiveContains("fundraiser"))
     }
