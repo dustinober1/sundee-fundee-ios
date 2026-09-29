@@ -411,6 +411,26 @@ public struct ActiveWorkoutView: View {
                 if let exercise = viewModel.currentExercise {
                     HStack {
                         VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                            if let group = exercise.grouping {
+                                HStack(spacing: AppTheme.Spacing.xs) {
+                                    Text(group.groupType == .circuit ? "CIRCUIT" : "SUPERSET")
+                                        .font(AppTheme.Typography.labelSmall)
+                                        .padding(.horizontal, 6)
+                                        .padding(.vertical, 2)
+                                        .background(AppTheme.Accent.orange.opacity(0.15))
+                                        .foregroundColor(AppTheme.Accent.orange)
+                                        .cornerRadius(AppTheme.CornerRadius.small)
+
+                                    Text(group.label)
+                                        .font(AppTheme.Typography.labelSmall)
+                                        .padding(.horizontal, 6)
+                                        .padding(.vertical, 2)
+                                        .background(AppTheme.Accent.gold.opacity(0.2))
+                                        .foregroundColor(AppTheme.Accent.gold)
+                                        .cornerRadius(AppTheme.CornerRadius.small)
+                                }
+                            }
+
                             Text(exercise.name)
                                 .font(AppTheme.Typography.headlineLarge)
                                 .foregroundColor(AppTheme.Text.primary)
@@ -476,6 +496,16 @@ public struct ActiveWorkoutView: View {
         ArtDecoCard {
             VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
                 HStack {
+                    if let group = viewModel.currentExercise?.grouping {
+                        Text(group.label)
+                            .font(AppTheme.Typography.labelSmall)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(AppTheme.Accent.gold.opacity(0.2))
+                            .foregroundColor(AppTheme.Accent.gold)
+                            .cornerRadius(AppTheme.CornerRadius.small)
+                    }
+
                     Text("Log Set")
                         .font(AppTheme.Typography.headlineMedium)
                         .foregroundColor(AppTheme.Text.primary)
