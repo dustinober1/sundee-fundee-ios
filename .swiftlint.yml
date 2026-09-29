@@ -55,6 +55,7 @@ excluded:
   - .worktrees/
   - .build/
   - SundeeFundee/.build/
+  - SundeeFundeeApp/build/
   - DerivedData/
   - .swiftpm/
   - Package.resolved
