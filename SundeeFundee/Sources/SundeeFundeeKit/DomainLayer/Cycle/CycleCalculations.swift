@@ -218,7 +218,7 @@ private func findCycleStartDateAndMenstrualLength(
 
 private func refinePhaseWithBiomarkers(
     currentPhase: CyclePhase,
-    boundaries: [CyclePhase: (start: Int, end: Int)],
+    boundaries: [CyclePhase: PhaseBoundary],
     evidence: OvulationBiomarkerEvidence?,
     ref: Date,
     defaultStart: Int,
