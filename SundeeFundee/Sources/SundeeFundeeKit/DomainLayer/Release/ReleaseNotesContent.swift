@@ -34,7 +34,7 @@ public enum ReleaseNotesContent {
             ReleaseNoteItem(
                 id: "watch",
                 title: "Standalone Apple Watch Workouts",
-                body: "Log workouts and record active calories directly from your wrist with HealthKit live sessions, glanceable complications, and countdown haptics."
+                body: "Log workouts and record active calories directly from your Apple Watch with HealthKit live sessions, glanceable complications, and countdown haptics."
             ),
             ReleaseNoteItem(
                 id: "plates",
