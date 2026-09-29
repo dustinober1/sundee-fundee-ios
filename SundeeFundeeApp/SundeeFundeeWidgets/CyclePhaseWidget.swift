@@ -46,6 +46,10 @@ struct CyclePhaseWidgetEntryView: View {
         switch family {
         case .accessoryCircular:
             accessoryCircular
+        case .accessoryInline:
+            accessoryInline
+        case .accessoryRectangular:
+            accessoryRectangular
         default:
             systemSmall
         }
@@ -88,6 +92,56 @@ struct CyclePhaseWidgetEntryView: View {
         }
         .containerBackground(for: .widget) { Color.clear }
         .widgetURL(DeepLinkRouter.url(for: .cycle))
+    }
+
+    private var accessoryInline: some View {
+        ViewThatFits {
+            if let day = entry.snapshot?.cycleDay {
+                Label("\(phaseTitle) • Day \(day)", systemImage: "circle.circle.fill")
+            } else {
+                Label(phaseTitle, systemImage: "circle.circle.fill")
+            }
+            Text(phaseTitle)
+        }
+        .containerBackground(for: .widget) { Color.clear }
+        .widgetURL(DeepLinkRouter.url(for: .cycle))
+    }
+
+    private var accessoryRectangular: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            HStack {
+                Image(systemName: "circle.circle.fill")
+                    .foregroundStyle(phaseColor)
+                Text("CYCLE PHASE")
+                    .font(.caption2.bold())
+                    .foregroundStyle(.secondary)
+                Spacer()
+                if let day = entry.snapshot?.cycleDay {
+                    Text("Day \(day)")
+                        .font(.subheadline.bold())
+                        .foregroundStyle(phaseColor)
+                }
+            }
+            Text(phaseTitle)
+                .font(.headline.bold())
+            Text(phaseAdvice)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+        }
+        .containerBackground(for: .widget) { Color.clear }
+        .widgetURL(DeepLinkRouter.url(for: .cycle))
+    }
+
+    private var phaseAdvice: String {
+        if entry.snapshot?.isSharkWeek == true { return "Recovery and gentle movement" }
+        switch entry.snapshot?.phaseRaw {
+        case "menstrual": return "Active recovery & technique"
+        case "follicular": return "Prime energy for progressive load"
+        case "ovulation": return "Peak strength & max effort"
+        case "luteal": return "Steady maintenance & deload"
+        default: return "Open app to track cycle"
+        }
     }
 
     private var phaseTitle: String {
@@ -135,6 +189,6 @@ struct CyclePhaseWidget: Widget {
         }
         .configurationDisplayName("Cycle Phase")
         .description("Today's cycle phase and day count.")
-        .supportedFamilies([.systemSmall, .accessoryCircular])
+        .supportedFamilies([.systemSmall, .accessoryCircular, .accessoryInline, .accessoryRectangular])
     }
 }
