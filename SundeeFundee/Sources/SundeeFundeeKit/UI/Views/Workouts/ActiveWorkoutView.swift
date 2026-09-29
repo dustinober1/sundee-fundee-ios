@@ -54,6 +54,7 @@ public struct ActiveWorkoutView: View {
     @State private var pendingCompletionInput: CompletionInput?
     @State private var showingSessionEffortDialog = false
     @State private var showingCompletionCheckIn = false
+    @State private var showingPlateCalculator = false
     @State private var undoBlockedReason: String?
     @State private var equipmentProfiles: [EquipmentProfile] = []
     @FocusState private var isWeightFocused: Bool
@@ -180,6 +181,10 @@ public struct ActiveWorkoutView: View {
                     viewModel.skipStartingWeightCalibration()
                 }
             )
+        }
+        .sheet(isPresented: $showingPlateCalculator) {
+            let current = Double(weightInput) ?? (viewModel.currentSet?.prescribedWeight ?? 135)
+            PlateCalculatorSheet(initialWeight: current, unit: .lbs)
         }
         .confirmationDialog("Convert Equipment", isPresented: $showingEquipmentConversionPicker) {
             ForEach(equipmentProfiles) { profile in
@@ -924,6 +929,19 @@ public struct ActiveWorkoutView: View {
                 Text("Weight Lifted (lb)")
                     .font(AppTheme.Typography.labelMedium)
                     .foregroundColor(AppTheme.Text.secondary)
+
+                Button {
+                    showingPlateCalculator = true
+                } label: {
+                    HStack(spacing: 3) {
+                        Image(systemName: "circle.circle")
+                        Text("Plates")
+                    }
+                    .font(AppTheme.Typography.labelSmall)
+                    .foregroundColor(AppTheme.Accent.gold)
+                }
+                .buttonStyle(.plain)
+
                 Spacer()
                 HStack(spacing: AppTheme.Spacing.xs) {
                     stepperButton("-5") { adjustWeight(by: -5) }
