@@ -4,6 +4,8 @@
 // Native watchOS 11 companion app for Sundee Fundee.
 
 import SwiftUI
+import WatchKit
+import Combine
 import SundeeFundeeKit
 
 @main
@@ -16,6 +18,7 @@ struct SundeeFundeeWatchApp: App {
 }
 
 struct WatchContentView: View {
+    @ObservedObject private var workoutManager = WatchWorkoutManager.shared
     @State private var activeState: ActiveWorkoutState?
     @State private var cycleSnapshot: CyclePhaseSnapshot?
     @State private var readinessSnapshot: DailyReadinessSnapshot?
@@ -23,12 +26,15 @@ struct WatchContentView: View {
 
     var body: some View {
         Group {
-            if let state = activeState, state.status != .completed {
+            if workoutManager.isTrackingStandalone {
+                WatchStandaloneWorkoutView(manager: workoutManager)
+            } else if let state = activeState, state.status != .completed {
                 WatchLiveMirrorView(state: state)
             } else {
                 WatchIdleDashboardView(
                     cycle: cycleSnapshot,
-                    readiness: readinessSnapshot
+                    readiness: readinessSnapshot,
+                    manager: workoutManager
                 )
             }
         }
@@ -56,7 +62,7 @@ private struct WatchLiveMirrorView: View {
         ScrollView {
             VStack(spacing: AppTheme.Spacing.xs) {
                 if state.status == .resting, let rest = state.rest {
-                    restView(rest: rest)
+                    WatchRestTimerView(rest: rest, nextExerciseName: state.current?.exerciseName)
                 } else if let current = state.current {
                     liftingView(current: current)
                 } else {
@@ -118,7 +124,7 @@ private struct WatchLiveMirrorView: View {
             .padding(.vertical, 2)
 
             Button {
-                HapticFeedback.light()
+                WKInterfaceDevice.current().play(.success)
                 Task {
                     _ = try? await CompleteSetAppIntent().perform()
                 }
@@ -138,14 +144,23 @@ private struct WatchLiveMirrorView: View {
             .padding(.top, 4)
         }
     }
+}
 
-    private func restView(rest: ActiveWorkoutState.Rest) -> some View {
+// MARK: - Watch Rest Timer View with Wrist Haptics
+
+private struct WatchRestTimerView: View {
+    let rest: ActiveWorkoutState.Rest
+    let nextExerciseName: String?
+
+    @State private var lastHapticSecond: Int?
+
+    var body: some View {
         let remaining = max(0, Int(rest.startedAt.addingTimeInterval(rest.targetDurationSeconds).timeIntervalSince(Date())))
         let m = remaining / 60
         let s = remaining % 60
         let timeString = String(format: "%d:%02d", m, s)
 
-        return VStack(spacing: AppTheme.Spacing.xs) {
+        VStack(spacing: AppTheme.Spacing.xs) {
             Text("REST")
                 .font(AppTheme.Typography.labelSmall)
                 .foregroundColor(AppTheme.Accent.gold)
@@ -154,8 +169,8 @@ private struct WatchLiveMirrorView: View {
                 .font(.system(size: 34, weight: .bold, design: .monospaced))
                 .foregroundColor(AppTheme.Text.primary)
 
-            if let current = state.current {
-                Text("Next: \(current.exerciseName)")
+            if let next = nextExerciseName {
+                Text("Next: \(next)")
                     .font(AppTheme.Typography.labelSmall)
                     .foregroundColor(AppTheme.Text.secondary)
                     .lineLimit(1)
@@ -163,7 +178,7 @@ private struct WatchLiveMirrorView: View {
 
             HStack(spacing: AppTheme.Spacing.xs) {
                 Button {
-                    HapticFeedback.light()
+                    WKInterfaceDevice.current().play(.click)
                     Task {
                         _ = try? await AddRestAppIntent().perform()
                     }
@@ -179,7 +194,7 @@ private struct WatchLiveMirrorView: View {
                 .buttonStyle(.plain)
 
                 Button {
-                    HapticFeedback.light()
+                    WKInterfaceDevice.current().play(.click)
                     Task {
                         _ = try? await CompleteSetAppIntent().perform()
                     }
@@ -196,6 +211,133 @@ private struct WatchLiveMirrorView: View {
             }
             .padding(.top, 4)
         }
+        .onAppear {
+            checkHaptics(remaining: remaining)
+        }
+        .onChange(of: remaining) { _, newVal in
+            checkHaptics(remaining: newVal)
+        }
+    }
+
+    private func checkHaptics(remaining: Int) {
+        guard lastHapticSecond != remaining else { return }
+        lastHapticSecond = remaining
+
+        switch remaining {
+        case 3, 2, 1:
+            WKInterfaceDevice.current().play(.click)
+        case 0:
+            WKInterfaceDevice.current().play(.stop)
+        default:
+            break
+        }
+    }
+}
+
+// MARK: - Watch Standalone Workout View
+
+private struct WatchStandaloneWorkoutView: View {
+    @ObservedObject var manager: WatchWorkoutManager
+
+    var body: some View {
+        ScrollView {
+            VStack(spacing: AppTheme.Spacing.xs) {
+                // Live Metrics Bar (Heart Rate & Calories)
+                HStack {
+                    if manager.currentHeartRate > 0 {
+                        HStack(spacing: 2) {
+                            Image(systemName: "heart.fill")
+                                .font(.caption2)
+                                .foregroundColor(AppTheme.Accent.orange)
+                            Text("\(Int(manager.currentHeartRate))")
+                                .font(AppTheme.Typography.monoSmall)
+                                .foregroundColor(AppTheme.Text.primary)
+                        }
+                    }
+
+                    Spacer()
+
+                    if manager.activeCalories > 0 {
+                        HStack(spacing: 2) {
+                            Image(systemName: "flame.fill")
+                                .font(.caption2)
+                                .foregroundColor(AppTheme.Accent.gold)
+                            Text("\(Int(manager.activeCalories)) cal")
+                                .font(AppTheme.Typography.monoSmall)
+                                .foregroundColor(AppTheme.Text.primary)
+                        }
+                    }
+                }
+                .padding(.horizontal, AppTheme.Spacing.xs)
+
+                if manager.isResting {
+                    // Resting state
+                    VStack(spacing: AppTheme.Spacing.xs) {
+                        Text("REST")
+                            .font(AppTheme.Typography.labelSmall)
+                            .foregroundColor(AppTheme.Accent.gold)
+
+                        let m = manager.restRemainingSeconds / 60
+                        let s = manager.restRemainingSeconds % 60
+                        Text(String(format: "%d:%02d", m, s))
+                            .font(.system(size: 34, weight: .bold, design: .monospaced))
+                            .foregroundColor(AppTheme.Text.primary)
+
+                        HStack(spacing: AppTheme.Spacing.xs) {
+                            Button("+30s") {
+                                manager.addRest(seconds: 30)
+                            }
+                            .buttonStyle(.bordered)
+
+                            Button("Skip") {
+                                manager.skipRest()
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .tint(AppTheme.Accent.orange)
+                        }
+                    }
+                } else {
+                    // Lifting state
+                    VStack(spacing: AppTheme.Spacing.xs) {
+                        Text("Standalone Lift")
+                            .font(AppTheme.Typography.headlineSmall)
+                            .foregroundColor(AppTheme.Text.primary)
+
+                        Text("Completed: \(manager.completedSets) sets")
+                            .font(AppTheme.Typography.labelMedium)
+                            .foregroundColor(AppTheme.Accent.gold)
+
+                        Button {
+                            manager.logSetCompleted()
+                        } label: {
+                            HStack {
+                                Image(systemName: "checkmark")
+                                Text("Log Set")
+                            }
+                            .font(AppTheme.Typography.labelMedium)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 38)
+                            .background(AppTheme.Accent.orange)
+                            .foregroundColor(AppTheme.Text.cream)
+                            .cornerRadius(AppTheme.CornerRadius.medium)
+                        }
+                        .buttonStyle(.plain)
+                        .padding(.top, 4)
+                    }
+                }
+
+                // End Workout button
+                Button("End Workout") {
+                    Task {
+                        await manager.endStandaloneWorkout()
+                    }
+                }
+                .font(AppTheme.Typography.labelSmall)
+                .foregroundColor(AppTheme.Text.secondary)
+                .padding(.top, AppTheme.Spacing.sm)
+            }
+            .padding(.horizontal, AppTheme.Spacing.xs)
+        }
     }
 }
 
@@ -204,6 +346,7 @@ private struct WatchLiveMirrorView: View {
 private struct WatchIdleDashboardView: View {
     let cycle: CyclePhaseSnapshot?
     let readiness: DailyReadinessSnapshot?
+    let manager: WatchWorkoutManager
 
     var body: some View {
         ScrollView {
@@ -256,11 +399,25 @@ private struct WatchIdleDashboardView: View {
                     .cornerRadius(AppTheme.CornerRadius.medium)
                 }
 
-                Text("Start workout on iPhone to track on watch")
+                // Quick Launch Standalone Workout
+                Button {
+                    Task {
+                        await manager.startStandaloneWorkout()
+                    }
+                } label: {
+                    HStack {
+                        Image(systemName: "play.fill")
+                        Text("Quick Workout")
+                    }
                     .font(AppTheme.Typography.labelSmall)
-                    .foregroundColor(AppTheme.Text.secondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.top, 4)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 36)
+                    .background(AppTheme.Accent.orange)
+                    .foregroundColor(AppTheme.Text.cream)
+                    .cornerRadius(AppTheme.CornerRadius.medium)
+                }
+                .buttonStyle(.plain)
+                .padding(.top, 2)
             }
             .padding(.horizontal, AppTheme.Spacing.xs)
         }
