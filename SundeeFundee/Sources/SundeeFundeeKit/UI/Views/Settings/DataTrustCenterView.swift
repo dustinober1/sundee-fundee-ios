@@ -6,6 +6,7 @@ public struct DataTrustCenterView: View {
     @State private var activationSnapshot: ActivationFunnelSnapshot?
     @State private var isLoading = false
     @State private var showDeleteConfirm = false
+    @State private var isFlushingQueue = false
     @EnvironmentObject private var authViewModel: AuthViewModel
     @ObservedObject private var diagnostics = SyncQueueDiagnosticsService.shared
 
@@ -110,29 +111,46 @@ public struct DataTrustCenterView: View {
     @ViewBuilder
     private var syncStatusSection: some View {
         let status = currentSyncStatus
-        // Show all statuses except "synced" silently (synced is the happy path)
-        if status.kind == .synced {
-            EmptyView()
-        } else {
-            Section("Sync Status") {
-                HStack(spacing: AppTheme.Spacing.md) {
-                    Image(systemName: status.systemImage)
-                        .font(.title3)
-                        .foregroundColor(syncStatusColor(for: status.kind))
-                        .accessibilityHidden(true)
+        Section("Sync Status") {
+            HStack(spacing: AppTheme.Spacing.md) {
+                Image(systemName: status.systemImage)
+                    .font(.title3)
+                    .foregroundColor(syncStatusColor(for: status.kind))
+                    .accessibilityHidden(true)
 
-                    VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
-                        Text(status.title)
-                            .font(AppTheme.Typography.headlineSmall)
-                            .foregroundColor(AppTheme.Text.primary)
+                VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                    Text(status.title)
+                        .font(AppTheme.Typography.headlineSmall)
+                        .foregroundColor(AppTheme.Text.primary)
 
-                        Text(status.message)
-                            .font(AppTheme.Typography.bodySmall)
-                            .foregroundColor(AppTheme.Text.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
+                    Text(status.message)
+                        .font(AppTheme.Typography.bodySmall)
+                        .foregroundColor(AppTheme.Text.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            .padding(.vertical, AppTheme.Spacing.xs)
+
+            if !authViewModel.isGuest {
+                Button {
+                    Task {
+                        isFlushingQueue = true
+                        await diagnostics.flushQueue()
+                        isFlushingQueue = false
+                        HapticFeedback.success()
+                    }
+                } label: {
+                    HStack {
+                        if isFlushingQueue {
+                            ProgressView()
+                                .padding(.trailing, AppTheme.Spacing.xs)
+                        } else {
+                            Image(systemName: "arrow.triangle.2.circlepath")
+                        }
+                        Text(isFlushingQueue ? "Syncing with iCloud…" : (diagnostics.pendingCount > 0 ? "Flush Queue Now (\(diagnostics.pendingCount) pending)" : "Sync Now"))
                     }
                 }
-                .padding(.vertical, AppTheme.Spacing.xs)
+                .disabled(isFlushingQueue)
             }
         }
     }
