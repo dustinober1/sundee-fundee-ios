@@ -136,7 +136,11 @@ public struct PlateCalculatorSheet: View {
                         Text(bar.rawValue).tag(bar)
                     }
                 }
+                #if os(watchOS)
+                .pickerStyle(.automatic)
+                #else
                 .pickerStyle(.segmented)
+                #endif
             }
         }
     }
