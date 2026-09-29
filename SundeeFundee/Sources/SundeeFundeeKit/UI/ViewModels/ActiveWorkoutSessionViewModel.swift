@@ -97,7 +97,12 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
     }
 
     public var isLastSetOfWorkout: Bool {
-        !hasNextSet && !hasNextExercise
+        let incompleteCount = workout.exercises.flatMap(\.targetSets).filter { !$0.isComplete }.count
+        return incompleteCount == 1 && (currentSet?.isComplete == false)
+    }
+
+    public var allSetsCompleted: Bool {
+        workout.exercises.allSatisfy { $0.targetSets.allSatisfy(\.isComplete) }
     }
 
     public var lastCompletedWeight: Double? {
@@ -266,6 +271,7 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
         defer { isCompletingSet = false }
 
         let completedSetIndex = currentSetIndex
+        let completedExerciseIndex = currentExerciseIndex
 
         // 1. Mark set complete
         workout.exercises[currentExerciseIndex].targetSets[currentSetIndex].isComplete = true
@@ -292,7 +298,7 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
         await saveProgress()
 
         // 4. Check if workout is done
-        if isLastSetOfWorkout {
+        if allSetsCompleted {
             await finishWorkout(sessionRPE: sessionRPEForFinish)
             return
         }
@@ -306,14 +312,35 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
             )
         )
 
+        let restDuration: TimeInterval
+        let restReason: String?
+
+        if let group = completedExercise.grouping, group.groupType != .straight {
+            let groupIndices = workout.exercises.indices.filter {
+                workout.exercises[$0].grouping?.groupID == group.groupID
+            }
+            let currentPos = groupIndices.firstIndex(of: completedExerciseIndex) ?? 0
+            if currentPos + 1 < groupIndices.count {
+                let nextExercise = workout.exercises[groupIndices[currentPos + 1]]
+                restDuration = TimeInterval(group.transitionRestSeconds)
+                restReason = "\(group.label) transition: next up \(nextExercise.name)"
+            } else {
+                restDuration = TimeInterval(group.groupRestSeconds)
+                restReason = "\(group.label) round complete: rest before next round"
+            }
+        } else {
+            restDuration = TimeInterval(restGuidance.seconds)
+            restReason = restGuidance.reason
+        }
+
         // 6. Advance to next set
         advanceToNextSet()
 
         // 7. Start rest timer if applicable
-        if completedExercise.restMinutes > 0 {
+        if completedExercise.restMinutes > 0 || completedExercise.grouping != nil {
             startRestTimer(
-                duration: TimeInterval(restGuidance.seconds),
-                reason: restGuidance.reason,
+                duration: restDuration,
+                reason: restReason,
                 sourceExerciseName: completedExercise.name,
                 sourceSetIndex: completedSetIndex
             )
@@ -723,11 +750,44 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
     private func advanceToNextSet() {
         guard let exercise = currentExercise else { return }
 
-        if currentSetIndex + 1 < exercise.targetSets.count {
-            currentSetIndex += 1
-        } else if currentExerciseIndex + 1 < workout.exercises.count {
-            currentExerciseIndex += 1
-            currentSetIndex = 0
+        if let group = exercise.grouping, group.groupType != .straight {
+            advanceGroupedSet(currentGroup: group)
+        } else {
+            if currentSetIndex + 1 < exercise.targetSets.count {
+                currentSetIndex += 1
+            } else if currentExerciseIndex + 1 < workout.exercises.count {
+                currentExerciseIndex += 1
+                currentSetIndex = 0
+            }
+        }
+    }
+
+    private func advanceGroupedSet(currentGroup: ExerciseGrouping) {
+        let groupIndices = workout.exercises.indices.filter {
+            workout.exercises[$0].grouping?.groupID == currentGroup.groupID
+        }
+        guard !groupIndices.isEmpty else { return }
+
+        let currentPos = groupIndices.firstIndex(of: currentExerciseIndex) ?? 0
+
+        if currentPos + 1 < groupIndices.count {
+            // Move to next exercise in the same round (e.g. A1 -> A2)
+            currentExerciseIndex = groupIndices[currentPos + 1]
+        } else {
+            // Completed this round across all exercises in the group
+            let firstIndex = groupIndices[0]
+            if currentSetIndex + 1 < workout.exercises[firstIndex].targetSets.count {
+                // Loop back to the first exercise for the next set (e.g. A2 Set 0 -> A1 Set 1)
+                currentExerciseIndex = firstIndex
+                currentSetIndex += 1
+            } else {
+                // All rounds of this group complete; advance to next exercise after this group
+                let maxGroupIndex = groupIndices.max() ?? currentExerciseIndex
+                if maxGroupIndex + 1 < workout.exercises.count {
+                    currentExerciseIndex = maxGroupIndex + 1
+                    currentSetIndex = 0
+                }
+            }
         }
     }
 
