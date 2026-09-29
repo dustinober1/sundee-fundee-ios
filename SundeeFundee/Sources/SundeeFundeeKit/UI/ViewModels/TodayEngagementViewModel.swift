@@ -20,12 +20,12 @@ public protocol DailyPresenceServicing: Sendable {
     func syncPending() async -> PresenceSyncState
 }
 
-public extension DailyPresenceServicing {
-    var ownerID: String { get async { "injected-presence-owner" } }
+extension DailyPresenceServicing {
+    public var ownerID: String { get async { "injected-presence-owner" } }
 
-    func currentSyncState() async -> PresenceSyncState { .synced }
+    public func currentSyncState() async -> PresenceSyncState { .synced }
 
-    func syncPending() async -> PresenceSyncState { .synced }
+    public func syncPending() async -> PresenceSyncState { .synced }
 }
 
 extension DailyPresenceService: DailyPresenceServicing {}
