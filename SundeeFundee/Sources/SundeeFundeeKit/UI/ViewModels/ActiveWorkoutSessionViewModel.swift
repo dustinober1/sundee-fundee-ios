@@ -486,7 +486,14 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
 
         // Save to HealthKit
         do {
-            let energyEstimate = Double(completedSets) * 6.0 // ~6 cal per working set
+            let hasGrouping = workout.exercises.contains(where: { $0.grouping != nil })
+            let energyEstimate = WorkoutCalorieBurnEstimator.estimateCalories(
+                durationSeconds: elapsedSeconds,
+                completedSetsCount: completedSets,
+                averageRPE: sessionRPE.map(Double.init),
+                userWeightKg: nil,
+                isSupersetOrCircuit: hasGrouping
+            )
             try await healthClient.saveWorkout(
                 startDate: startedAt,
                 endDate: Date(),
