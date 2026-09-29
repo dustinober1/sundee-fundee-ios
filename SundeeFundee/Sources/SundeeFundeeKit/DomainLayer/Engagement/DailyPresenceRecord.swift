@@ -6,10 +6,8 @@ public enum DailyPresenceStatus: String, Codable, Sendable, CaseIterable, Equata
     case sore
     case resting
     case trained
-}
 
-public extension DailyPresenceStatus {
-    var displayName: String {
+    public var displayName: String {
         switch self {
         case .ready: "Ready"
         case .tired: "Tired"
@@ -19,7 +17,7 @@ public extension DailyPresenceStatus {
         }
     }
 
-    var systemImage: String {
+    public var systemImage: String {
         switch self {
         case .ready: "bolt"
         case .tired: "moon.zzz"
