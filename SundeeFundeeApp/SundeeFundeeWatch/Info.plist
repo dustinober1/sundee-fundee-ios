@@ -28,6 +28,10 @@
 	<string>Sundee Fundee saves your workout data to Apple Health to keep your fitness records in sync.</string>
 	<key>WKApplication</key>
 	<true/>
+	<key>WKBackgroundModes</key>
+	<array>
+		<string>workout-processing</string>
+	</array>
 	<key>WKCompanionAppBundleIdentifier</key>
 	<string>com.sundeefundee.app</string>
 </dict>
