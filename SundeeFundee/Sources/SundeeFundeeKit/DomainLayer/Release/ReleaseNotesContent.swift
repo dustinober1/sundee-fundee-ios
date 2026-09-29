@@ -27,6 +27,26 @@ public enum ReleaseNotesContent {
         title: "What's New",
         items: [
             ReleaseNoteItem(
+                id: "pods",
+                title: "Private Accountability Pods",
+                body: "Form micro-pods of up to 8 members. Track weekly shared goals and send curated encouragement nudges with complete health privacy."
+            ),
+            ReleaseNoteItem(
+                id: "watch",
+                title: "Standalone Apple Watch Workouts",
+                body: "Log workouts and record active calories directly from your wrist with HealthKit live sessions, glanceable complications, and countdown haptics."
+            ),
+            ReleaseNoteItem(
+                id: "plates",
+                title: "Barbell Plate Math & Supersets",
+                body: "Visual plate loading breakdowns, alternating superset and circuit flows, and precision calorie burn estimation to close your Fitness rings."
+            ),
+            ReleaseNoteItem(
+                id: "siri",
+                title: "Siri & App Intents",
+                body: "Ask Siri 'Check my readiness' or log your daily energy hands-free. Includes instant offline sync queue flushing in Data Trust Center."
+            ),
+            ReleaseNoteItem(
                 id: "today",
                 title: "Clearer daily guidance",
                 body: "Today now explains whether to train, modify, or recover with cycle, recovery, and pain context."
