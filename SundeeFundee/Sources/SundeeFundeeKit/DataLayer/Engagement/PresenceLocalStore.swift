@@ -418,14 +418,14 @@ public actor PresenceLocalStore: PresenceLocalStoring {
     }
 }
 
-private extension PresenceCacheEnvelope {
-    mutating func consumeRevision() -> Int {
+extension PresenceCacheEnvelope {
+    fileprivate mutating func consumeRevision() -> Int {
         let revision = nextRevision
         nextRevision += 1
         return revision
     }
 
-    func normalized() -> Self {
+    fileprivate func normalized() -> Self {
         var mergedByDay: [String: DailyPresenceRecord] = [:]
         var revisionsByDay: [String: Int] = [:]
 
@@ -460,8 +460,8 @@ private extension PresenceCacheEnvelope {
     }
 }
 
-private extension DailyPresenceRecord {
-    func canonicalizedForPresence() -> Self {
+extension DailyPresenceRecord {
+    fileprivate func canonicalizedForPresence() -> Self {
         Self(
             dayKey: dayKey,
             timeZoneIdentifier: timeZoneIdentifier,
@@ -477,8 +477,8 @@ private extension DailyPresenceRecord {
     }
 }
 
-private extension Array where Element == DailyPresenceRecord {
-    func sortedForPresence() -> Self {
+extension Array where Element == DailyPresenceRecord {
+    fileprivate func sortedForPresence() -> Self {
         sorted {
             if $0.dayKey != $1.dayKey {
                 return $0.dayKey < $1.dayKey
@@ -487,11 +487,11 @@ private extension Array where Element == DailyPresenceRecord {
         }
     }
 
-    func record(forDayKey dayKey: String) -> DailyPresenceRecord? {
+    fileprivate func record(forDayKey dayKey: String) -> DailyPresenceRecord? {
         first { $0.dayKey == dayKey }
     }
 
-    mutating func upsertPresence(_ record: DailyPresenceRecord) {
+    fileprivate mutating func upsertPresence(_ record: DailyPresenceRecord) {
         if let index = firstIndex(where: { $0.dayKey == record.dayKey }) {
             self[index] = self[index].merging(with: record)
         } else {
