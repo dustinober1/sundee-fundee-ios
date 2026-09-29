@@ -225,6 +225,119 @@ final class ActiveWorkoutSessionViewModelTests: XCTestCase {
         )
     }
 
+    func testSupersetProgressionAlternatesExercisesAndRestDurations() async throws {
+        let viewModel = ActiveWorkoutSessionViewModel(
+            workout: supersetWorkout(),
+            dataClient: MockCloudKitClient(),
+            healthClient: MockHealthKitClient()
+        )
+        viewModel.beginSession()
+
+        // 1. Initial state: on A1 (Bench Press), Set 0
+        XCTAssertEqual(viewModel.currentExerciseIndex, 0)
+        XCTAssertEqual(viewModel.currentSetIndex, 0)
+        XCTAssertEqual(viewModel.currentExercise?.name, "Bench Press")
+
+        // 2. Complete A1 Set 0 -> should advance to A2 (Barbell Row) Set 0 with 30s transition rest
+        await viewModel.completeSet(actualReps: 8, completedWeight: 185)
+        XCTAssertEqual(viewModel.currentExerciseIndex, 1)
+        XCTAssertEqual(viewModel.currentSetIndex, 0)
+        XCTAssertEqual(viewModel.currentExercise?.name, "Barbell Row")
+        XCTAssertGreaterThan(viewModel.restTimeRemaining, 25)
+        XCTAssertLessThanOrEqual(viewModel.restTimeRemaining, 30)
+        XCTAssertTrue(viewModel.restGuidanceReason?.contains("transition") == true)
+
+        // 3. Complete A2 Set 0 -> should advance to A1 (Bench Press) Set 1 with 90s group rest
+        viewModel.skipRest()
+        await viewModel.completeSet(actualReps: 8, completedWeight: 155)
+        XCTAssertEqual(viewModel.currentExerciseIndex, 0)
+        XCTAssertEqual(viewModel.currentSetIndex, 1)
+        XCTAssertEqual(viewModel.currentExercise?.name, "Bench Press")
+        XCTAssertGreaterThan(viewModel.restTimeRemaining, 85)
+        XCTAssertLessThanOrEqual(viewModel.restTimeRemaining, 90)
+        XCTAssertTrue(viewModel.restGuidanceReason?.contains("round complete") == true)
+
+        // 4. Complete A1 Set 1 -> should advance to A2 (Barbell Row) Set 1 with 30s transition rest
+        viewModel.skipRest()
+        await viewModel.completeSet(actualReps: 8, completedWeight: 185)
+        XCTAssertEqual(viewModel.currentExerciseIndex, 1)
+        XCTAssertEqual(viewModel.currentSetIndex, 1)
+        XCTAssertEqual(viewModel.currentExercise?.name, "Barbell Row")
+        XCTAssertGreaterThan(viewModel.restTimeRemaining, 25)
+        XCTAssertLessThanOrEqual(viewModel.restTimeRemaining, 30)
+
+        // 5. Complete A2 Set 1 -> superset finished, advances to Exercise 2 (Tricep Pushdown)
+        viewModel.skipRest()
+        await viewModel.completeSet(actualReps: 8, completedWeight: 155)
+        XCTAssertEqual(viewModel.currentExerciseIndex, 2)
+        XCTAssertEqual(viewModel.currentSetIndex, 0)
+        XCTAssertEqual(viewModel.currentExercise?.name, "Tricep Pushdown")
+
+        // 6. Complete final straight set -> finishes workout
+        viewModel.skipRest()
+        await viewModel.completeSet(actualReps: 12, completedWeight: 50)
+        XCTAssertTrue(viewModel.isComplete)
+    }
+
+    private func supersetWorkout() -> Workout {
+        let group1 = ExerciseGrouping(
+            groupID: "group-A",
+            groupType: .superset,
+            label: "A1",
+            transitionRestSeconds: 30,
+            groupRestSeconds: 90
+        )
+        let group2 = ExerciseGrouping(
+            groupID: "group-A",
+            groupType: .superset,
+            label: "A2",
+            transitionRestSeconds: 30,
+            groupRestSeconds: 90
+        )
+
+        return Workout(
+            date: Date(),
+            name: "Superset Upper Day",
+            exercises: [
+                Exercise(
+                    id: "bench-press",
+                    name: "Bench Press",
+                    category: .compound,
+                    bodyweight: 0,
+                    targetSets: [
+                        ExerciseSet(reps: 8, prescribedWeight: 185, type: .fixed),
+                        ExerciseSet(reps: 8, prescribedWeight: 185, type: .fixed)
+                    ],
+                    restMinutes: 1.5,
+                    grouping: group1
+                ),
+                Exercise(
+                    id: "barbell-row",
+                    name: "Barbell Row",
+                    category: .compound,
+                    bodyweight: 0,
+                    targetSets: [
+                        ExerciseSet(reps: 8, prescribedWeight: 155, type: .fixed),
+                        ExerciseSet(reps: 8, prescribedWeight: 155, type: .fixed)
+                    ],
+                    restMinutes: 1.5,
+                    grouping: group2
+                ),
+                Exercise(
+                    id: "tricep-pushdown",
+                    name: "Tricep Pushdown",
+                    category: .isolation,
+                    bodyweight: 0,
+                    targetSets: [
+                        ExerciseSet(reps: 12, prescribedWeight: 50, type: .fixed)
+                    ],
+                    restMinutes: 1.0,
+                    grouping: nil
+                )
+            ]
+        )
+    }
+
     private enum TestError: Error {
         case timeout
     }
