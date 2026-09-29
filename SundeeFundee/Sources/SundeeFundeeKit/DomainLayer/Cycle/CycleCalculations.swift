@@ -157,48 +157,45 @@ public struct OvulationBiomarkerEvidence: Sendable, Equatable {
     }
 }
 
-// MARK: - Calculate Cycle Status
+private func matchPeriodLog(
+    _ period: PeriodLog,
+    ref: Date,
+    settings: CycleSettings
+) -> (matched: Bool, menstrualLength: Int?) {
+    let pStart = startOfDay(period.startDate)
+    let pEnd: Date
+    if let logEnd = period.endDate {
+        pEnd = startOfDay(logEnd)
+    } else if ref >= pStart {
+        pEnd = ref
+    } else {
+        pEnd = addDays(pStart, settings.averagePeriodLengthDays - 1)
+    }
 
-/// Calculate current cycle status from period logs and settings
-public func calculateCycleStatus(
-    periodLogs: [PeriodLog],
+    let isOngoing = isWithin(ref, start: pStart, end: pEnd)
+    let nextExpected = addDays(pStart, settings.averageCycleLengthDays)
+    let isInWindow = ref > pEnd && ref < nextExpected
+
+    if isOngoing || isInWindow {
+        let length = period.endDate != nil ? (daysBetween(from: pStart, to: pEnd) + 1) : nil
+        return (true, length)
+    }
+    return (false, nil)
+}
+
+private func findCycleStartDateAndMenstrualLength(
+    sorted: [PeriodLog],
     settings: CycleSettings,
-    referenceDate: Date = Date(),
-    biomarkerEvidence: OvulationBiomarkerEvidence? = nil
-) -> CycleStatusResult? {
-    guard !periodLogs.isEmpty else { return nil }
-
-    let ref = startOfDay(referenceDate)
-    let sorted = periodLogs.sorted { startOfDay($0.startDate) > startOfDay($1.startDate) }
-
-    var cycleStartDate: Date? = nil
-    var loggedMenstrualLength: Int? = nil
+    ref: Date
+) -> (cycleStart: Date, loggedMenstrualLength: Int?) {
+    var cycleStartDate: Date?
+    var loggedMenstrualLength: Int?
 
     for period in sorted {
-        let pStart = startOfDay(period.startDate)
-        let pEnd: Date
-        if let logEnd = period.endDate {
-            pEnd = startOfDay(logEnd)
-        } else if ref >= pStart {
-            // Active period (no end date): treat as ongoing through reference date
-            pEnd = ref
-        } else {
-            pEnd = addDays(pStart, settings.averagePeriodLengthDays - 1)
-        }
-
-        if isWithin(ref, start: pStart, end: pEnd) {
-            cycleStartDate = pStart
-            if period.endDate != nil {
-                loggedMenstrualLength = daysBetween(from: pStart, to: pEnd) + 1
-            }
-            break
-        }
-        let nextExpected = addDays(pStart, settings.averageCycleLengthDays)
-        if ref > pEnd && ref < nextExpected {
-            cycleStartDate = pStart
-            if period.endDate != nil {
-                loggedMenstrualLength = daysBetween(from: pStart, to: pEnd) + 1
-            }
+        let (matched, length) = matchPeriodLog(period, ref: ref, settings: settings)
+        if matched {
+            cycleStartDate = startOfDay(period.startDate)
+            loggedMenstrualLength = length
             break
         }
     }
@@ -215,6 +212,60 @@ public func calculateCycleStatus(
         start = addDays(start, completed * safeCycleLength)
         cycleStart = start
     }
+
+    return (cycleStart, loggedMenstrualLength)
+}
+
+private func refinePhaseWithBiomarkers(
+    currentPhase: CyclePhase,
+    boundaries: [CyclePhase: (start: Int, end: Int)],
+    evidence: OvulationBiomarkerEvidence?,
+    ref: Date,
+    defaultStart: Int,
+    defaultEnd: Int
+) -> (phase: CyclePhase, startDay: Int, endDay: Int) {
+    guard currentPhase != .menstrual, let evidence else {
+        return (currentPhase, defaultStart, defaultEnd)
+    }
+
+    if let surge = evidence.lhSurgeDate {
+        let daysSinceSurge = daysBetween(from: startOfDay(surge), to: ref)
+        if daysSinceSurge >= 0 && daysSinceSurge <= 2 {
+            let b = boundaries[.ovulation]
+            return (.ovulation, b?.start ?? defaultStart, b?.end ?? defaultEnd)
+        } else if daysSinceSurge > 2 && evidence.hasThermalShift {
+            let b = boundaries[.luteal]
+            return (.luteal, b?.start ?? defaultStart, b?.end ?? defaultEnd)
+        }
+    } else if evidence.hasThermalShift {
+        if currentPhase == .follicular || currentPhase == .ovulation {
+            let b = boundaries[.luteal]
+            return (.luteal, b?.start ?? defaultStart, b?.end ?? defaultEnd)
+        }
+    }
+
+    return (currentPhase, defaultStart, defaultEnd)
+}
+
+// MARK: - Calculate Cycle Status
+
+/// Calculate current cycle status from period logs and settings
+public func calculateCycleStatus(
+    periodLogs: [PeriodLog],
+    settings: CycleSettings,
+    referenceDate: Date = Date(),
+    biomarkerEvidence: OvulationBiomarkerEvidence? = nil
+) -> CycleStatusResult? {
+    guard !periodLogs.isEmpty else { return nil }
+
+    let ref = startOfDay(referenceDate)
+    let sorted = periodLogs.sorted { startOfDay($0.startDate) > startOfDay($1.startDate) }
+
+    let (cycleStart, loggedMenstrualLength) = findCycleStartDateAndMenstrualLength(
+        sorted: sorted,
+        settings: settings,
+        ref: ref
+    )
 
     let cycleDay = daysBetween(from: cycleStart, to: ref) + 1
     let boundaries = getPhaseBoundaries(settings: settings, menstrualLengthOverride: loggedMenstrualLength)
@@ -234,34 +285,17 @@ public func calculateCycleStatus(
     }
 
     // Refine phase if objective biomarker evidence is available
-    if currentPhase != .menstrual, let evidence = biomarkerEvidence {
-        if let surge = evidence.lhSurgeDate {
-            let daysSinceSurge = daysBetween(from: startOfDay(surge), to: ref)
-            if daysSinceSurge >= 0 && daysSinceSurge <= 2 {
-                currentPhase = .ovulation
-                if let b = boundaries[.ovulation] {
-                    phaseStartDay = b.start
-                    phaseEndDay = b.end
-                }
-            } else if daysSinceSurge > 2 && evidence.hasThermalShift {
-                currentPhase = .luteal
-                if let b = boundaries[.luteal] {
-                    phaseStartDay = b.start
-                    phaseEndDay = b.end
-                }
-            }
-        } else if evidence.hasThermalShift {
-            // Progesterone surge detected via nocturnal wrist temperature.
-            // If calendar calculation placed user in follicular or ovulation, adjust to luteal.
-            if currentPhase == .follicular || currentPhase == .ovulation {
-                currentPhase = .luteal
-                if let b = boundaries[.luteal] {
-                    phaseStartDay = b.start
-                    phaseEndDay = b.end
-                }
-            }
-        }
-    }
+    let refined = refinePhaseWithBiomarkers(
+        currentPhase: currentPhase,
+        boundaries: boundaries,
+        evidence: biomarkerEvidence,
+        ref: ref,
+        defaultStart: phaseStartDay,
+        defaultEnd: phaseEndDay
+    )
+    currentPhase = refined.phase
+    phaseStartDay = refined.startDay
+    phaseEndDay = refined.endDay
 
     let daysUntilNext: Int
     switch currentPhase {
