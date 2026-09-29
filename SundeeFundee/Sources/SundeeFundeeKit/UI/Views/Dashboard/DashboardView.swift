@@ -28,6 +28,7 @@ public struct DashboardView: View {
     @StateObject private var viewModel = DashboardViewModel()
     @StateObject private var readinessViewModel = DailyReadinessViewModel()
     @StateObject private var engagementViewModel = TodayEngagementViewModel()
+    @StateObject private var podViewModel = AccountabilityPodViewModel()
     @EnvironmentObject var authViewModel: AuthViewModel
     @EnvironmentObject var cyclePhaseCache: CyclePhaseCache
     @State private var showingAIWorkout = false
@@ -76,16 +77,22 @@ public struct DashboardView: View {
                 }
             }
             .task {
+                let currentUserID = authViewModel.userID ?? AuthViewModel.guestUserID
                 async let engagementLoad: Void = engagementViewModel.load()
+                async let podLoad: Void = podViewModel.load(userID: currentUserID)
                 await viewModel.loadData(cyclePhaseCache: cyclePhaseCache)
                 await refreshReadiness()
                 _ = await engagementLoad
+                _ = await podLoad
             }
             .refreshable {
+                let currentUserID = authViewModel.userID ?? AuthViewModel.guestUserID
                 async let engagementLoad: Void = engagementViewModel.load()
+                async let podLoad: Void = podViewModel.load(userID: currentUserID)
                 await viewModel.loadData(cyclePhaseCache: cyclePhaseCache)
                 await refreshReadiness()
                 _ = await engagementLoad
+                _ = await podLoad
             }
             .onReceive(NotificationCenter.default.publisher(for: .workoutCompleted)) { notification in
                 guard let event = WorkoutCompletionEvent.from(notification: notification),
@@ -309,6 +316,7 @@ public struct DashboardView: View {
             cyclePhaseBanner
             readinessContent
             statsSection
+            accountabilityPodSection
             quickActionsCard
             footerButtonsSection
         }
@@ -330,12 +338,21 @@ public struct DashboardView: View {
                 VStack(spacing: AppTheme.Spacing.lg) {
                     todayPresenceSection
                     primaryActionSection
+                    accountabilityPodSection
                     quickActionsCard
                 }
                 .frame(maxWidth: .infinity, alignment: .top)
             }
         }
         .frame(maxWidth: 1100)
+    }
+
+    private var accountabilityPodSection: some View {
+        AccountabilityPodCard(
+            viewModel: podViewModel,
+            userID: authViewModel.userID ?? AuthViewModel.guestUserID,
+            displayName: authViewModel.userName ?? "Lifter"
+        )
     }
 
     private var todayPresenceSection: some View {
