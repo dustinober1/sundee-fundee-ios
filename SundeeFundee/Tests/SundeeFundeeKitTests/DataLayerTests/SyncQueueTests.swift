@@ -257,4 +257,19 @@ final class SyncQueueStoreTests: XCTestCase {
         let count = await store.pendingCount
         XCTAssertEqual(count, 0)
     }
+
+    @MainActor
+    func testDiagnosticsServiceFlushQueue() async {
+        let defaults = UserDefaults(suiteName: "Test.SyncQueueStore.\(UUID().uuidString)")!
+        let store = SyncQueueStore(userDefaults: defaults)
+        let mock = MockCloudKitClient()
+        let monitor = NetworkMonitor()
+        let queue = SyncQueue(wrapping: mock, store: store, monitor: monitor)
+        let diagnostics = SyncQueueDiagnosticsService.shared
+        diagnostics.attach(queue)
+
+        await diagnostics.flushQueue()
+        XCTAssertEqual(diagnostics.pendingCount, 0)
+        diagnostics.attach(nil)
+    }
 }
