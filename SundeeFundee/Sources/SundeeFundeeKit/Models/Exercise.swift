@@ -71,6 +71,7 @@ public struct Exercise: Equatable, Codable, Identifiable, Sendable {
     public var targetSets: [ExerciseSet]
     public var notes: String?
     public var restMinutes: Double
+    public var grouping: ExerciseGrouping?
 
     public init(
         id: String,
@@ -79,7 +80,8 @@ public struct Exercise: Equatable, Codable, Identifiable, Sendable {
         bodyweight: Double,
         targetSets: [ExerciseSet],
         notes: String? = nil,
-        restMinutes: Double = 2.5
+        restMinutes: Double = 2.5,
+        grouping: ExerciseGrouping? = nil
     ) {
         self.id = id
         self.name = name
@@ -88,5 +90,6 @@ public struct Exercise: Equatable, Codable, Identifiable, Sendable {
         self.targetSets = targetSets
         self.notes = notes
         self.restMinutes = restMinutes
+        self.grouping = grouping
     }
 }
