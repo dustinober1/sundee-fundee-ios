@@ -1,10 +1,13 @@
-NEW: Foldable & Dual-Screen Support
-Optimized for foldable devices like iPhone Duo and iPad multi-window:
-- Responsive 2-column dashboard layout on unfolded and wide displays.
-- Tabletop Gym Mode: prop your phone on a bench or floor stand to see glanceable rest timers, targets, and cues on the upper screen, with easy-access set completion and stepper controls on the lower deck.
-- Adaptive sidebar navigation for larger screens and iPad.
-- Full landscape orientation support for gym mounts and stands.
+Train stronger together and untether your workouts with Apple Watch autonomy, visual barbell plate math, Siri voice shortcuts, and private accountability pods.
+
+NEW:
+- Standalone Apple Watch Workouts: Start, log, and complete lifting sessions directly from your Apple Watch with HealthKit live session tracking, countdown haptics (3-2-1), and glanceable Watch Face Complications.
+- Barbell Plate Calculator: Tap any barbell load to instantly see the exact plate arrangement for 45 lb or 35 lb bars in pounds or kilograms.
+- Supersets & Circuits: Group exercises to alternate sets seamlessly with automated two-stage rest timers between exercises and rounds.
+- Private Accountability Micro-Pods: Join small groups of up to 8 members to hit cooperative weekly workout goals and send curated encouragement nudges—with zero sharing of cycle, pain, or raw health data.
+- Siri & App Intents: Check your readiness score or log your daily presence hands-free with Siri.
 
 IMPROVED:
-- Refreshed workout previews and high-resolution App Store screenshots.
-- Stability and performance improvements.
+- Fitness Move Ring Integration: Calorie expenditure is calculated using MET intensity and RPE so your lifting sessions accurately close Apple Fitness rings.
+- Offline Queue Control: View and manually flush your offline CloudKit sync queue directly from the Data Trust Center.
+- Refreshed layouts, smoother animations, and enhanced stability throughout.
