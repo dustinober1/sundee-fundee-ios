@@ -27,5 +27,38 @@ public struct SundeeFundeeShortcuts: AppShortcutsProvider {
             shortTitle: "Start workout",
             systemImageName: "figure.strengthtraining.traditional"
         )
+
+        AppShortcut(
+            intent: CheckReadinessIntent(),
+            phrases: [
+                "Check my readiness in \(.applicationName)",
+                "What's my readiness in \(.applicationName)",
+                "What's my recovery in \(.applicationName)",
+                "Check recovery in \(.applicationName)"
+            ],
+            shortTitle: "Check readiness",
+            systemImageName: "bolt.heart.fill"
+        )
+
+        AppShortcut(
+            intent: TodayWorkoutSummaryIntent(),
+            phrases: [
+                "What's my workout today in \(.applicationName)",
+                "Today's workout in \(.applicationName)",
+                "What am I lifting today in \(.applicationName)"
+            ],
+            shortTitle: "Today's workout",
+            systemImageName: "figure.run"
+        )
+
+        AppShortcut(
+            intent: LogDailyStatusIntent(),
+            phrases: [
+                "Log daily status in \(.applicationName)",
+                "Check in for today in \(.applicationName)"
+            ],
+            shortTitle: "Log daily status",
+            systemImageName: "checkmark.circle"
+        )
     }
 }
