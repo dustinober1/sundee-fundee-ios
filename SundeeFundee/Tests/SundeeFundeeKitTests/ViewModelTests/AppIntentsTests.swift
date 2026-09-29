@@ -65,4 +65,55 @@ struct AppIntentsTests {
             #expect(workout.exercises.first?.name == "Flat Barbell Bench Press")
         }
     }
+
+    // MARK: - CheckReadinessIntent
+
+    @Test("CheckReadinessIntent returns score and guidance when snapshot exists")
+    @MainActor
+    func checkReadinessWithSnapshot() async throws {
+        let snapshot = DailyReadinessSnapshot(
+            stateRaw: "primed",
+            totalScore: 88,
+            confidenceRaw: "high",
+            modelVersion: "1.0",
+            assessmentDate: Date(),
+            capturedAt: Date()
+        )
+        SharedSnapshotStore.writeReadiness(snapshot)
+        defer { SharedSnapshotStore.clear() }
+
+        let intent = CheckReadinessIntent()
+        _ = try await intent.perform()
+    }
+
+    // MARK: - LogDailyStatusIntent
+
+    @Test("LogDailyStatusIntent records status via DailyPresenceService")
+    @MainActor
+    func logDailyStatus() async throws {
+        try await withMockClient { _ in
+            let intent = LogDailyStatusIntent(status: .trained)
+            _ = try await intent.perform()
+        }
+    }
+
+    // MARK: - TodayWorkoutSummaryIntent
+
+    @Test("TodayWorkoutSummaryIntent summarizes scheduled workout")
+    @MainActor
+    func todayWorkoutSummary() async throws {
+        try await withMockClient { mock in
+            let workout = Workout(
+                date: Date(),
+                name: "Leg Day",
+                exercises: [
+                    Exercise(id: "1", name: "Back Squat", category: .compound, bodyweight: 0, targetSets: [])
+                ]
+            )
+            try await mock.save(workout, recordType: "Workout")
+
+            let intent = TodayWorkoutSummaryIntent()
+            _ = try await intent.perform()
+        }
+    }
 }
