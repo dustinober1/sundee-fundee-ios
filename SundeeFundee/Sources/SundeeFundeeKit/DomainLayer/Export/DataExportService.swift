@@ -1,15 +1,12 @@
 import Foundation
-import os.log
-
-private let exportLogger = Logger(subsystem: "com.sundeefundee.app", category: "DataExport")
 
 // MARK: - DataExportService
 
 /// Fetches all user record types in parallel and produces an `ExportedData` container.
 ///
 /// Each record type is fetched independently. If an individual fetch fails the
-/// service logs the error and continues with an empty result for that type rather
-/// than aborting the entire export.
+/// service continues with an empty result for that type rather than aborting
+/// the entire export.
 public struct DataExportService: Sendable {
 
     // MARK: - Dependencies
@@ -127,8 +124,8 @@ public struct DataExportService: Sendable {
         do {
             return try await dataClient.fetchAll(recordType: recordType)
         } catch {
-            // Log but don't propagate — a partial export is better than none.
-            exportLogger.error("Failed to fetch \(recordType): \(error.localizedDescription)")
+            // Swallow — a partial export is better than none. The domain layer
+            // doesn't log; callers see the gap as missing sections.
             return []
         }
     }
