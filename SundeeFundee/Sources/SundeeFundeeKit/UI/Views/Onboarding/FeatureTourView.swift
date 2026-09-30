@@ -10,6 +10,11 @@ public struct FeatureTourView: View {
     @StateObject private var viewModel = FeatureTourViewModel()
     let onComplete: () -> Void
 
+    // Icon point sizes anchored to text styles so Dynamic Type scales the
+    // tour artwork along with the copy.
+    @ScaledMetric(relativeTo: .largeTitle) private var heroIconSize: CGFloat = 56
+    @ScaledMetric(relativeTo: .title3) private var phaseIconSize: CGFloat = 20
+
     public init(onComplete: @escaping () -> Void) {
         self.onComplete = onComplete
     }
@@ -68,7 +73,7 @@ public struct FeatureTourView: View {
                         .frame(width: 120, height: 120)
 
                     Image(systemName: "calendar.badge.clock")
-                        .font(.system(size: 56))
+                        .font(.system(size: heroIconSize))
                         .foregroundColor(AppTheme.Accent.gold)
                         .symbolEffect(.bounce, value: viewModel.currentPage)
                 }
@@ -123,20 +128,20 @@ public struct FeatureTourView: View {
                     VStack(spacing: 4) {
                         HStack(spacing: 8) {
                             Image(systemName: "drop.fill")
-                                .font(.system(size: 20))
+                                .font(.system(size: phaseIconSize))
                                 .foregroundColor(AppTheme.Semantic.error)
 
                             Image(systemName: "sun.max.fill")
-                                .font(.system(size: 20))
+                                .font(.system(size: phaseIconSize))
                                 .foregroundColor(AppTheme.Accent.gold)
                         }
                         HStack(spacing: 8) {
                             Image(systemName: "sparkles")
-                                .font(.system(size: 20))
+                                .font(.system(size: phaseIconSize))
                                 .foregroundColor(AppTheme.Accent.orange)
 
                             Image(systemName: "moon.fill")
-                                .font(.system(size: 20))
+                                .font(.system(size: phaseIconSize))
                                 .foregroundColor(AppTheme.Text.secondary)
                         }
                     }
@@ -203,7 +208,7 @@ public struct FeatureTourView: View {
                         .frame(width: 120, height: 120)
 
                     Image(systemName: "trophy.fill")
-                        .font(.system(size: 56))
+                        .font(.system(size: heroIconSize))
                         .foregroundColor(AppTheme.Accent.gold)
                         .symbolEffect(.bounce, value: viewModel.currentPage)
                 }
