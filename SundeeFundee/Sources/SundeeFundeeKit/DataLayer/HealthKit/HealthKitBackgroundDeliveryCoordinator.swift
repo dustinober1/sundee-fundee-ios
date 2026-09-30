@@ -29,13 +29,13 @@ public actor HealthKitBackgroundDeliveryCoordinator {
 
     public init(
         healthClient: HealthClientProtocol = HealthClientFactory.shared.client,
-        readinessService: DailyReadinessService = DailyReadinessService(
+        readinessService: DailyReadinessService? = nil
+    ) {
+        self.healthClient = healthClient
+        self.readinessService = readinessService ?? DailyReadinessService(
             contextBuilder: DailyTrainingContextBuilder(),
             dataClient: DataClientFactory.shared.client
         )
-    ) {
-        self.healthClient = healthClient
-        self.readinessService = readinessService
     }
 
     // MARK: - Public API
