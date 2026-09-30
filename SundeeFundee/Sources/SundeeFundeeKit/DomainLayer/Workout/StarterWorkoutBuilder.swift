@@ -23,12 +23,42 @@ public struct StarterWorkoutContext: Sendable, Equatable {
 }
 
 public enum StarterWorkoutBuilder {
-    public static func build(context: StarterWorkoutContext, date: Date = Date()) -> Workout {
+    public static func build(
+        context: StarterWorkoutContext,
+        date: Date = Date(),
+        calibrateStartingWeights: Bool = false,
+        maxRecords: [OneRepMaxRecord] = []
+    ) -> Workout {
         let prescriptions = prescriptions(for: context)
+        let exercises = prescriptions.map { prescription -> Exercise in
+            let base = makeExercise(prescription)
+            guard calibrateStartingWeights else { return base }
+            let suggestion = StartingWeightCalibrationService.suggestion(
+                for: base,
+                maxRecords: maxRecords,
+                experienceLevel: context.experienceLevel,
+                unit: context.weightUnit
+            )
+            let weight = suggestion.suggestedWeight ?? prescription.weight
+            return Exercise(
+                id: base.id,
+                name: base.name,
+                category: base.category,
+                bodyweight: base.bodyweight,
+                targetSets: base.targetSets.map { set in
+                    ExerciseSet(
+                        reps: set.reps,
+                        prescribedWeight: weight,
+                        type: set.type
+                    )
+                },
+                restMinutes: base.restMinutes
+            )
+        }
         return Workout(
             date: date,
             name: "First Sundee Fundee Workout",
-            exercises: prescriptions.map(makeExercise),
+            exercises: exercises,
             notes: context.cycleTrackingEnabled
                 ? "Starter workout built from onboarding preferences with cycle-aware training enabled."
                 : "Starter workout built from onboarding preferences."
@@ -51,7 +81,7 @@ public enum StarterWorkoutBuilder {
                 .init("Push-Up", .accessory, true, 3, 8, 0, 1.0),
                 .init("Glute Bridge", .accessory, true, 3, 12, 0, 1.0),
                 .init("Prone W Raise", .accessory, true, 3, 10, 0, 1.0),
-                .init("Plank", .accessory, true, 2, 30, 0, 0.75)
+                .init("Plank Hold", .accessory, true, 2, 30, 0, 0.75)
             ]
         case .kettlebellOnly:
             return [
@@ -65,40 +95,44 @@ public enum StarterWorkoutBuilder {
             break
         }
 
+        let rdlName = context.defaultEquipment == .homeDumbbells
+            ? "Dumbbell Romanian Deadlift"
+            : "Romanian Deadlift (No Straps)"
+
         switch context.primaryGoal {
         case .weightLoss, .endurance:
             return [
-                .init("Bodyweight Squat", .compound, true, 3, 12, 0, 1.0),
+                .init("Air Squat", .compound, true, 3, 12, 0, 1.0),
                 .init("Incline Push-Up", .accessory, true, 3, 10, 0, 1.0),
                 .init("Dumbbell Row", .accessory, false, 3, 12, 0, 1.0),
                 .init("Glute Bridge", .accessory, true, 3, 12, 0, 1.0),
-                .init("Plank", .accessory, true, 2, 30, 0, 0.75)
+                .init("Plank Hold", .accessory, true, 2, 30, 0, 0.75)
             ]
         case .strength, .hypertrophy:
             switch context.experienceLevel {
             case .beginner:
                 return [
-                    .init("Bodyweight Squat", .compound, true, 3, 8, 0, 1.5),
+                    .init("Air Squat", .compound, true, 3, 8, 0, 1.5),
                     .init("Push-Up", .accessory, true, 3, 8, 0, 1.5),
                     .init("Dumbbell Row", .accessory, false, 3, 10, 0, 1.5),
-                    .init("Romanian Deadlift", .compound, false, 3, 8, 0, 1.5),
-                    .init("Plank", .accessory, true, 2, 30, 0, 1.0)
+                    .init(rdlName, .compound, false, 3, 8, 0, 1.5),
+                    .init("Plank Hold", .accessory, true, 2, 30, 0, 1.0)
                 ]
             case .intermediate:
                 return [
                     .init("Goblet Squat", .compound, false, 3, 8, 0, 2.0),
                     .init("Dumbbell Bench Press", .compound, false, 3, 8, 0, 2.0),
-                    .init("One-Arm Dumbbell Row", .accessory, false, 3, 10, 0, 1.5),
-                    .init("Romanian Deadlift", .compound, false, 3, 8, 0, 2.0),
+                    .init("Dumbbell Row", .accessory, false, 3, 10, 0, 1.5),
+                    .init(rdlName, .compound, false, 3, 8, 0, 2.0),
                     .init("Dead Bug", .accessory, true, 2, 10, 0, 1.0)
                 ]
             case .advanced:
                 return [
                     .init("Front Squat", .compound, false, 4, 6, 0, 2.5),
-                    .init("Bench Press", .compound, false, 4, 6, 0, 2.5),
+                    .init("Flat Barbell Bench Press", .compound, false, 4, 6, 0, 2.5),
                     .init("Barbell Row", .compound, false, 3, 8, 0, 2.0),
-                    .init("Romanian Deadlift", .compound, false, 3, 8, 0, 2.0),
-                    .init("Side Plank", .accessory, true, 2, 30, 0, 1.0)
+                    .init("Romanian Deadlift (No Straps)", .compound, false, 3, 8, 0, 2.0),
+                    .init("Side Plank Hold", .accessory, true, 2, 30, 0, 1.0)
                 ]
             }
         }
