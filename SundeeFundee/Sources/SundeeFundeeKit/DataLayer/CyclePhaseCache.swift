@@ -24,6 +24,7 @@ public final class CyclePhaseCache: ObservableObject {
     @Published public private(set) var terminologyStyle: CycleTerminologyStyle = SharedSnapshotStore.readTerminologyStyle()
     @Published public private(set) var isGymPrivacyEnabled: Bool = SharedSnapshotStore.readGymPrivacyEnabled()
     @Published public private(set) var showSharkWeekBanner: Bool = SharedSnapshotStore.readShowSharkWeekBanner()
+    @Published public private(set) var cycleTrackingMode: CycleTrackingMode = .standard
 
     /// Explicit user override that hides the banner after ending a period.
     private var isSharkWeekBannerSuppressed: Bool = SharedSnapshotStore.readSharkWeekBannerSuppressed()
@@ -148,9 +149,22 @@ public final class CyclePhaseCache: ObservableObject {
             self.terminologyStyle = first.terminologyStyle
             self.isGymPrivacyEnabled = first.isGymPrivacy
             self.showSharkWeekBanner = first.showsBanner
+            self.cycleTrackingMode = first.cycleTrackingMode
             SharedSnapshotStore.writeTerminologyStyle(first.terminologyStyle)
             SharedSnapshotStore.writeGymPrivacyEnabled(first.isGymPrivacy)
             SharedSnapshotStore.writeShowSharkWeekBanner(first.showsBanner)
+        }
+
+        if cycleTrackingMode == .contraceptive {
+            currentPhase = nil
+            confidence = nil
+            isSharkWeek = false
+            cycleDay = nil
+            isSharkWeekBannerSuppressed = false
+            SharedSnapshotStore.writeSharkWeekBannerSuppressed(false)
+            lastRefreshed = Date()
+            writeSnapshot()
+            return
         }
 
         // Calculate phase
@@ -220,15 +234,17 @@ public final class CyclePhaseCache: ObservableObject {
         writeSnapshot()
     }
 
-    /// Updates cycle terminology, gym privacy, and banner preferences both in memory and shared storage.
+    /// Updates cycle terminology, gym privacy, banner preferences, and tracking mode both in memory and shared storage.
     public func updatePreferences(
         terminologyStyle: CycleTerminologyStyle,
         isGymPrivacyEnabled: Bool,
-        showSharkWeekBanner: Bool
+        showSharkWeekBanner: Bool,
+        cycleTrackingMode: CycleTrackingMode = .standard
     ) {
         self.terminologyStyle = terminologyStyle
         self.isGymPrivacyEnabled = isGymPrivacyEnabled
         self.showSharkWeekBanner = showSharkWeekBanner
+        self.cycleTrackingMode = cycleTrackingMode
         SharedSnapshotStore.writeTerminologyStyle(terminologyStyle)
         SharedSnapshotStore.writeGymPrivacyEnabled(isGymPrivacyEnabled)
         SharedSnapshotStore.writeShowSharkWeekBanner(showSharkWeekBanner)
