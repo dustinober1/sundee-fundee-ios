@@ -137,4 +137,34 @@ struct SharedSnapshotStoreTests {
             #expect(SharedSnapshotStore.readActiveWorkoutState() == nil)
         }
     }
+
+    @Test("Next workout snapshot round-trips through UserDefaults")
+    func nextWorkoutRoundTrip() async throws {
+        await withTestSuite {
+            let snapshot = NextWorkoutSnapshot(
+                workoutName: "Lower Body Strength",
+                recommendationRaw: "train",
+                guidanceDetail: "Primed for strength load",
+                scheduledDate: Date(timeIntervalSince1970: 1_700_000_000),
+                capturedAt: Date(timeIntervalSince1970: 1_700_000_100)
+            )
+            SharedSnapshotStore.writeNextWorkout(snapshot)
+            #expect(SharedSnapshotStore.readNextWorkout() == snapshot)
+        }
+    }
+
+    @Test("clear removes next workout snapshot")
+    func clearRemovesNextWorkout() async throws {
+        await withTestSuite {
+            SharedSnapshotStore.writeNextWorkout(
+                NextWorkoutSnapshot(
+                    workoutName: "Upper Body Hypertrophy",
+                    recommendationRaw: "modify",
+                    guidanceDetail: "Moderate load advised"
+                )
+            )
+            SharedSnapshotStore.clear()
+            #expect(SharedSnapshotStore.readNextWorkout() == nil)
+        }
+    }
 }
