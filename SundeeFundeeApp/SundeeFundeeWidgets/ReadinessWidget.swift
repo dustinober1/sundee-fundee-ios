@@ -52,8 +52,16 @@ struct ReadinessWidgetEntryView: View {
             accessoryInline
         case .accessoryRectangular:
             accessoryRectangular
+        #if os(watchOS)
+        case .accessoryCorner:
+            accessoryCorner
+        #endif
         default:
+            #if os(watchOS)
+            accessoryCircular
+            #else
             systemSmall
+            #endif
         }
     }
 
@@ -138,6 +146,20 @@ struct ReadinessWidgetEntryView: View {
         .widgetURL(DeepLinkRouter.url(for: .readinessDetail))
     }
 
+    #if os(watchOS)
+    private var accessoryCorner: some View {
+        Text(scoreString)
+            .font(.headline.bold())
+            .widgetLabel {
+                Gauge(value: Double(entry.snapshot?.totalScore ?? 0), in: 0...100) {
+                    Text("RDY")
+                }
+            }
+            .containerBackground(for: .widget) { Color.clear }
+            .widgetURL(DeepLinkRouter.url(for: .readinessDetail))
+    }
+    #endif
+
     // MARK: - Helpers
 
     private var scoreString: String {
@@ -193,6 +215,10 @@ struct ReadinessWidget: Widget {
         }
         .configurationDisplayName("Daily Readiness")
         .description("Daily recovery score and training readiness.")
+        #if os(watchOS)
+        .supportedFamilies([.accessoryCircular, .accessoryInline, .accessoryRectangular, .accessoryCorner])
+        #else
         .supportedFamilies([.systemSmall, .accessoryCircular, .accessoryInline, .accessoryRectangular])
+        #endif
     }
 }
