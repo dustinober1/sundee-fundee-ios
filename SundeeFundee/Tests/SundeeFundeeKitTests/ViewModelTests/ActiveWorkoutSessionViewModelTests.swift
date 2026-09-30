@@ -326,6 +326,49 @@ final class ActiveWorkoutSessionViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.currentSetIndex, 0)
     }
 
+    func testAddExercisesAppendsNewExercisesWithAppropriateSetsAndWeights() {
+        let viewModel = ActiveWorkoutSessionViewModel(
+            workout: squatWorkout(),
+            dataClient: MockCloudKitClient(),
+            healthClient: MockHealthKitClient()
+        )
+
+        XCTAssertEqual(viewModel.workout.exercises.count, 1)
+        XCTAssertEqual(viewModel.totalSets, 1)
+
+        // Add 2 exercises mid-workout
+        viewModel.addExercises(["Barbell Row", "Dumbbell Bicep Curl"], setsCount: 3)
+
+        XCTAssertEqual(viewModel.workout.exercises.count, 3)
+        XCTAssertEqual(viewModel.workout.exercises[1].name, "Barbell Row")
+        XCTAssertEqual(viewModel.workout.exercises[1].category, .compound)
+        XCTAssertEqual(viewModel.workout.exercises[1].targetSets.count, 3)
+        XCTAssertEqual(viewModel.workout.exercises[1].targetSets[0].prescribedWeight, 65)
+
+        XCTAssertEqual(viewModel.workout.exercises[2].name, "Dumbbell Bicep Curl")
+        XCTAssertEqual(viewModel.workout.exercises[2].category, .isolation)
+        XCTAssertEqual(viewModel.workout.exercises[2].targetSets.count, 3)
+        XCTAssertEqual(viewModel.workout.exercises[2].targetSets[0].prescribedWeight, 20)
+
+        XCTAssertEqual(viewModel.totalSets, 7) // 1 + 3 + 3
+    }
+
+    func testAddExerciseCanInsertAfterCurrentExercise() {
+        let viewModel = ActiveWorkoutSessionViewModel(
+            workout: multiSetWorkout(),
+            dataClient: MockCloudKitClient(),
+            healthClient: MockHealthKitClient()
+        )
+
+        // Insert right after current
+        viewModel.addExercise(name: "Pull-Up", setsCount: 2, reps: 5, insertAfterCurrent: true)
+
+        XCTAssertEqual(viewModel.workout.exercises.count, 2)
+        XCTAssertEqual(viewModel.workout.exercises[1].name, "Pull-Up")
+        XCTAssertEqual(viewModel.workout.exercises[1].targetSets.count, 2)
+        XCTAssertEqual(viewModel.workout.exercises[1].targetSets[0].reps, 5)
+    }
+
     private func squatWorkout() -> Workout {
         Workout(
             date: Date(),
