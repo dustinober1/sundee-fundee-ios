@@ -34,7 +34,6 @@ public struct MonthlyReview: Sendable, Equatable {
 /// Pure domain service that aggregates a month of training data into a
 /// human-readable review. No framework dependencies beyond Foundation.
 public enum MonthlyReviewService {
-
     public static func build(
         month: Date,
         workouts: [Workout],

@@ -1,5 +1,5 @@
-import StoreKit
 import os.log
+import StoreKit
 
 private let supportTipLogger = Logger(subsystem: "com.sundeefundee.app", category: "SupportTip")
 

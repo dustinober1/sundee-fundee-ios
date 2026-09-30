@@ -14,7 +14,6 @@ import WidgetKit
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
 @MainActor
 public final class CyclePhaseCache: ObservableObject {
-
     // MARK: - Published State
 
     @Published public private(set) var currentPhase: CyclePhase?
@@ -180,7 +179,7 @@ public final class CyclePhaseCache: ObservableObject {
             currentPhase = status.currentPhase
             confidence = CyclePhaseHelper.calculateConfidence(
                 periodLogCount: periodLogs.count,
-                lastPeriodStart: periodLogs.sorted(by: { $0.startDate > $1.startDate }).first?.startDate,
+                lastPeriodStart: periodLogs.sorted { $0.startDate > $1.startDate }.first?.startDate,
                 biomarkerEvidence: biomarkerEvidence
             )
             if status.currentPhase != .menstrual {

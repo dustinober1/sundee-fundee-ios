@@ -11,7 +11,6 @@ import Foundation
 //   HealthClientFactory.shared.client = HealthKitClient()       // default
 
 public final class HealthClientFactory: @unchecked Sendable {
-
     // MARK: - Shared Instance
 
     public static let shared = HealthClientFactory()

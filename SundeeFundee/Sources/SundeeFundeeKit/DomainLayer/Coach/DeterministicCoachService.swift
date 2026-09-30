@@ -11,7 +11,6 @@ import Foundation
 /// The key principle: deterministic services make the decisions,
 /// this service packages and explains them.
 public final class DeterministicCoachService: CoachServiceProtocol, @unchecked Sendable {
-
     /// Optional coach profile for user preference-aware substitutions.
     public var coachProfile: CoachProfile?
 

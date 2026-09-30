@@ -5,7 +5,6 @@ import Foundation
 /// Pure domain service that calculates realistic active energy expenditure (kcal)
 /// for completed strength training workouts to reliably credit Apple Fitness rings.
 public struct WorkoutCalorieBurnEstimator: Sendable {
-
     /// Estimates total active kilocalories burned during a workout.
     ///
     /// - Parameters:

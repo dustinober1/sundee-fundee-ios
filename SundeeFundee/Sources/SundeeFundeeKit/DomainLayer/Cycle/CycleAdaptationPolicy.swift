@@ -52,39 +52,39 @@ public struct PhaseMultipliers: Sendable {
 
 /// Default phase multipliers per cycle phase (used as fallback)
 public let phaseMultipliers: [CyclePhase: PhaseMultipliers] = [
-    .menstrual:  PhaseMultipliers(load: 0.90, sets: 0.90, reps: 0.90),
+    .menstrual: PhaseMultipliers(load: 0.90, sets: 0.90, reps: 0.90),
     .follicular: PhaseMultipliers(load: 1.00, sets: 1.00, reps: 1.00),
-    .ovulation:  PhaseMultipliers(load: 1.12, sets: 1.05, reps: 0.95),
-    .luteal:     PhaseMultipliers(load: 0.97, sets: 0.95, reps: 0.92),
+    .ovulation: PhaseMultipliers(load: 1.12, sets: 1.05, reps: 0.95),
+    .luteal: PhaseMultipliers(load: 0.97, sets: 0.95, reps: 0.92)
 ]
 
 /// Region-specific overrides — upper and lower body respond differently to hormonal shifts.
 /// Lower body gets bigger menstrual reduction and bigger ovulation boost.
 public let regionPhaseMultipliers: [ExerciseRegion: [CyclePhase: PhaseMultipliers]] = [
     .lower: [
-        .menstrual:  PhaseMultipliers(load: 0.85, sets: 0.85, reps: 0.88),
+        .menstrual: PhaseMultipliers(load: 0.85, sets: 0.85, reps: 0.88),
         .follicular: PhaseMultipliers(load: 1.00, sets: 1.00, reps: 1.00),
-        .ovulation:  PhaseMultipliers(load: 1.15, sets: 1.08, reps: 0.93),
-        .luteal:     PhaseMultipliers(load: 0.95, sets: 0.93, reps: 0.90),
+        .ovulation: PhaseMultipliers(load: 1.15, sets: 1.08, reps: 0.93),
+        .luteal: PhaseMultipliers(load: 0.95, sets: 0.93, reps: 0.90)
     ],
     .upper: [
-        .menstrual:  PhaseMultipliers(load: 0.92, sets: 0.92, reps: 0.92),
+        .menstrual: PhaseMultipliers(load: 0.92, sets: 0.92, reps: 0.92),
         .follicular: PhaseMultipliers(load: 1.00, sets: 1.00, reps: 1.00),
-        .ovulation:  PhaseMultipliers(load: 1.10, sets: 1.03, reps: 0.96),
-        .luteal:     PhaseMultipliers(load: 0.98, sets: 0.96, reps: 0.93),
-    ],
+        .ovulation: PhaseMultipliers(load: 1.10, sets: 1.03, reps: 0.96),
+        .luteal: PhaseMultipliers(load: 0.98, sets: 0.96, reps: 0.93)
+    ]
 ]
 
 private let readinessScales: [AdaptationReadinessTier: Double] = [
-    .low:     0.6,
+    .low: 0.6,
     .neutral: 1.0,
-    .high:    1.2,
+    .high: 1.2
 ]
 
 private let confidenceScales: [AdaptationConfidence: Double] = [
-    .low:    0.55,
+    .low: 0.55,
     .medium: 0.8,
-    .high:   1.0,
+    .high: 1.0
 ]
 
 // MARK: - Helpers

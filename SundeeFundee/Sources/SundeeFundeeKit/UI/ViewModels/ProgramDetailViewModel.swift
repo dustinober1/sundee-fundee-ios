@@ -496,7 +496,7 @@ class ProgramDetailViewModel: ObservableObject {
         )
 
         let painIntensity = resolvedPain
-            .sorted(by: { $0.date > $1.date })
+            .sorted { $0.date > $1.date }
             .first?
             .intensity
         let deload = DeloadDetectionService.recommendation(
@@ -576,7 +576,7 @@ class ProgramDetailViewModel: ObservableObject {
         guard !logs.isEmpty else { return nil }
         return CyclePhaseHelper.calculateConfidence(
             periodLogCount: logs.count,
-            lastPeriodStart: logs.sorted(by: { $0.startDate > $1.startDate }).first?.startDate
+            lastPeriodStart: logs.sorted { $0.startDate > $1.startDate }.first?.startDate
         )
     }
 
@@ -591,7 +591,7 @@ class ProgramDetailViewModel: ObservableObject {
 
     private func loadRecentEffortRPE() async -> Int? {
         let records: [WorkoutEffortLog] = (try? await dataClient.fetchAll(recordType: "WorkoutEffortLog")) ?? []
-        return records.sorted(by: { $0.dateCreated > $1.dateCreated }).first?.rpe
+        return records.sorted { $0.dateCreated > $1.dateCreated }.first?.rpe
     }
 
     private func loadMaxes() async -> [OneRepMaxRecord] {

@@ -207,7 +207,7 @@ public struct WorkoutsListView: View {
             } else {
                 List {
                     if let resumeCandidate = viewModel.resumeCandidate,
-                       (viewModel.selectedFilter == .all || viewModel.selectedFilter == .strength) {
+                       viewModel.selectedFilter == .all || viewModel.selectedFilter == .strength {
                         Section {
                             NavigationLink(destination: WorkoutDetailView(workoutId: resumeCandidate.id)) {
                                 HStack(spacing: AppTheme.Spacing.md) {
@@ -957,7 +957,7 @@ struct ExerciseConfig: Identifiable {
     var sets: Int
     var reps: Int
     var weight: Double
-    var groupTag: String? = nil
+    var groupTag: String?
 }
 
 // MARK: - NewWorkoutViewModel
@@ -1060,8 +1060,7 @@ class NewWorkoutViewModel: ObservableObject {
             name: workoutName.trimmingCharacters(in: .whitespaces),
             exercises: exercises.map { config in
                 let grouping: ExerciseGrouping?
-                if let tag = config.groupTag, (groupCounts[tag] ?? 0) >= 2 {
-                    let count = groupCounts[tag]!
+                if let tag = config.groupTag, let count = groupCounts[tag], count >= 2 {
                     let currentIdx = (groupIndices[tag] ?? 0) + 1
                     groupIndices[tag] = currentIdx
                     let groupType: ExerciseGrouping.GroupType = count >= 3 ? .circuit : .superset

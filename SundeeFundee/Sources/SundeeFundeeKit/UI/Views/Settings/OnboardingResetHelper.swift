@@ -6,7 +6,6 @@ import UIKit
 /// Debug helper to reset onboarding and feature tour state for testing
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
 struct OnboardingResetHelper {
-    
     /// Call this to reset all onboarding and tour flags (for testing only!)
     static func resetForTesting() {
         // Clear onboarding completion

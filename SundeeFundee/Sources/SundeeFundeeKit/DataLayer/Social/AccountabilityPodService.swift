@@ -187,7 +187,7 @@ public actor AccountabilityPodService {
             let nudges: [PodEncouragement] = try await dataClient.fetchAll(recordType: PodEncouragement.recordType)
             return nudges
                 .filter { $0.podID == podID }
-                .sorted(by: { $0.dateCreated > $1.dateCreated })
+                .sorted { $0.dateCreated > $1.dateCreated }
         } catch {
             return []
         }

@@ -57,7 +57,6 @@ public struct CycleTrackingView: View {
                     } label: {
                         Label("Symptom Check-In", systemImage: "waveform.path.ecg")
                     }
-
                 }
 
                 if settings.cycleTrackingEnabled {

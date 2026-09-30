@@ -1,5 +1,5 @@
-import SwiftUI
 import os.log
+import SwiftUI
 
 // MARK: - SettingsView
 //
@@ -7,11 +7,9 @@ import os.log
 // Matches the web app's settings feature.
 
 private enum SettingsLinks {
-    // swiftlint:disable force_unwrapping
     static let homepage = URL(string: "https://sundeefundee.com")!
     static let privacy = URL(string: "https://sundeefundee.com/privacy")!
     static let terms = URL(string: "https://sundeefundee.com/terms")!
-    // swiftlint:enable force_unwrapping
 }
 
 private var appVersionString: String {
@@ -469,7 +467,7 @@ class SettingsViewModel: ObservableObject {
     private var saveTask: Task<Void, Never>?
 
     var selectedEquipmentProfile: EquipmentProfile? {
-        equipmentProfiles.first(where: { $0.isDefault || $0.equipment == defaultEquipment })
+        equipmentProfiles.first { $0.isDefault || $0.equipment == defaultEquipment }
     }
 
     /// Bars gyms actually stock, by unit — not a numeric range, since a bar's

@@ -389,4 +389,3 @@ extension LiveWorkoutActivityAttributes.Status {
 #if canImport(ActivityKit) && os(iOS)
 extension LiveWorkoutActivityAttributes: ActivityAttributes {}
 #endif
-

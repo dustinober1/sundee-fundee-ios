@@ -51,7 +51,7 @@ public struct ReadinessDetailsSheet: View {
                     if isStale { Label("This assessment is stale. Refresh for today's signals.", systemImage: "clock.badge.exclamationmark").font(AppTheme.Typography.bodyMedium).foregroundStyle(AppTheme.Accent.orange) }
                     if !snapshot.positiveReasons.isEmpty { reasonSection(title: "What's helping", reasons: snapshot.positiveReasons, icon: "arrow.up.right") }
                     if !snapshot.cautionReasons.isEmpty { reasonSection(title: "What to consider", reasons: snapshot.cautionReasons, icon: "exclamationmark.triangle") }
-                    if let onRetry { Button("Refresh readiness", action: { HapticFeedback.medium(); onRetry() }).artDecoButton(style: .accent) }
+                    if let onRetry { Button("Refresh readiness") { HapticFeedback.medium(); onRetry() }.artDecoButton(style: .accent) }
                     if let onStartWorkout {
                         Button {
                             HapticFeedback.success()

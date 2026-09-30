@@ -7,7 +7,6 @@ import Foundation
 /// All functions are static and side-effect-free — they accept data
 /// and return data without touching any persistence layer.
 public enum ChallengeEngine {
-
     // MARK: - Default Tiers
 
     /// Standard lifetime challenge tiers: Bronze (250K), Silver (500K), Gold (1M).
@@ -15,7 +14,7 @@ public enum ChallengeEngine {
         [
             ChallengeTier(name: "Bronze", targetVolumeLbs: 250_000, ordinal: 0),
             ChallengeTier(name: "Silver", targetVolumeLbs: 500_000, ordinal: 1),
-            ChallengeTier(name: "Gold", targetVolumeLbs: 1_000_000, ordinal: 2),
+            ChallengeTier(name: "Gold", targetVolumeLbs: 1_000_000, ordinal: 2)
         ]
     }
 
@@ -73,11 +72,13 @@ public enum ChallengeEngine {
             )
         }
 
-        // If all tiers completed
+        // If all tiers completed. Also covers an empty tier list —
+        // `currentTierIndex >= tiers.count` is trivially true there, and
+        // `tiers.last` would have crashed on the old force unwrap.
         if challenge.currentTierIndex >= tiers.count || challenge.status == .completed {
-            let lastTier = tiers.last!
+            let lastTier = tiers.last
             return ChallengeProgress(
-                currentTierName: lastTier.name,
+                currentTierName: lastTier?.name ?? "",
                 percentComplete: 1.0,
                 volumeRemaining: 0,
                 isFullyComplete: true
@@ -165,10 +166,7 @@ public enum ChallengeEngine {
                 }
                 for set in exercise.targetSets {
                     let reps = set.actualReps ?? set.reps
-                    let weight = (set.completedWeight ?? 0) > 0
-                        ? set.completedWeight!
-                        : (set.prescribedWeight > 0 ? set.prescribedWeight : 0)
-                    total += Double(reps) * weight
+                    total += Double(reps) * set.volumeWeight
                 }
             }
         }
@@ -206,10 +204,7 @@ public enum ChallengeEngine {
                 .flatMap { $0.targetSets }
                 .reduce(0.0) { sum, set in
                     let reps = set.actualReps ?? set.reps
-                    let weight = (set.completedWeight ?? 0) > 0
-                        ? set.completedWeight!
-                        : (set.prescribedWeight > 0 ? set.prescribedWeight : 0)
-                    return sum + Double(reps) * weight
+                    return sum + Double(reps) * set.volumeWeight
                 }
         }
         return workout.totalVolume

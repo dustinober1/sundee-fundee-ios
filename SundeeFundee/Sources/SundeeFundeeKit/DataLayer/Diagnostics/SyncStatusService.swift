@@ -25,7 +25,6 @@ public struct SyncStatus: Sendable, Equatable {
 /// Pure, stateless service that maps guest mode and queue diagnostics
 /// into a `SyncStatus` suitable for UI display.
 public enum SyncStatusService {
-
     /// Returns the current sync status based on auth state and queue health.
     ///
     /// - Parameters:

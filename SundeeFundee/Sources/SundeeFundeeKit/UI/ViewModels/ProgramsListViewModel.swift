@@ -10,7 +10,7 @@ class ProgramsListViewModel: ObservableObject {
     @Published var programs: [ProgramListItem] = []
     @Published var errorMessage: String?
     /// Tracks which program is currently being enrolled so the row can show a spinner.
-    @Published var enrollingProgramId: String? = nil
+    @Published var enrollingProgramId: String?
     @Published var recommendationGoal: PrimaryGoal = .strength
     @Published var recommendationExperience: ExperienceLevel = .beginner
     @Published var recommendationDaysPerWeek: Int = 3
@@ -57,7 +57,7 @@ class ProgramsListViewModel: ObservableObject {
         "Glutes, Core & Conditioning": .glutesCoreConditioning,
         "8-Week Glutes, Core & Conditioning Plan": .glutesCoreConditioning,
         "Russian Squat": .russianSquat,
-        "6-Week Russian Squat Program": .russianSquat,
+        "6-Week Russian Squat Program": .russianSquat
     ]
 
     init(
@@ -143,7 +143,7 @@ class ProgramsListViewModel: ObservableObject {
         do {
             let record = EnrolledProgramRecord(
                 id: programId,
-                name: programs.first(where: { $0.id == programId })?.name ?? "",
+                name: programs.first { $0.id == programId }?.name ?? "",
                 isActive: true
             )
             try await dataClient.save(record, recordType: "EnrolledProgramRecord")

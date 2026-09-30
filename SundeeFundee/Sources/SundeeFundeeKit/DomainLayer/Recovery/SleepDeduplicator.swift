@@ -15,7 +15,6 @@ import Foundation
 /// 4. Remove non-Watch intervals that overlap with any merged Watch interval
 /// 5. Sum all remaining merged interval durations
 public enum SleepDeduplicator {
-
     // MARK: - Types
 
     /// Represents a single sleep interval with source and stage metadata.

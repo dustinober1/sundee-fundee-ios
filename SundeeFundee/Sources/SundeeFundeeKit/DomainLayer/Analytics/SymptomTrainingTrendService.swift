@@ -30,7 +30,6 @@ public struct SymptomTrainingInsight: Sendable, Equatable {
 /// - High fatigue (avg >= 7) + few completed workouts (0) -> rest balance insight.
 /// - Never produces diagnostic language ("diagnose", "treat", "condition").
 public enum SymptomTrainingTrendService {
-
     /// Returns trend insights based on the last 7 days of symptoms and workouts.
     ///
     /// - Parameters:

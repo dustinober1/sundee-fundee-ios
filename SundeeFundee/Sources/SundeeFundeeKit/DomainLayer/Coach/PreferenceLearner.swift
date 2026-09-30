@@ -8,7 +8,6 @@ import Foundation
 /// Pure domain logic — no framework dependencies.
 /// Call `learn()` with historical data to produce an updated `CoachProfile`.
 public enum PreferenceLearner {
-
     // MARK: - Learn from History
 
     /// Analyzes all available data and produces an updated CoachProfile.
@@ -159,7 +158,7 @@ public enum PreferenceLearner {
         for q in questionnaires {
             counts[q.equipment.rawValue, default: 0] += 1
         }
-        return counts.max(by: { $0.value < $1.value })?.key ?? "full_gym"
+        return counts.max { $0.value < $1.value }?.key ?? "full_gym"
     }
 
     private static func topExercises(

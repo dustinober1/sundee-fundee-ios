@@ -63,7 +63,6 @@ public struct WarmupProgression: Sendable, Equatable {
 
 /// Pure domain service calculating evidence-based warmup progressions for barbell lifts.
 public struct WarmupProgressionService: Sendable {
-
     private struct StageWeight: Sendable {
         let weight: Double
         let reps: Int

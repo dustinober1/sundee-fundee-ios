@@ -446,7 +446,7 @@ public actor HealthKitClient: @preconcurrency HealthClientProtocol {
         )
 
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            healthStore.save(sample) { success, error in
+            healthStore.save(sample) { _, error in
                 if let error = error {
                     continuation.resume(throwing: HealthError.queryFailed(underlying: error))
                 } else {
@@ -466,7 +466,7 @@ public actor HealthKitClient: @preconcurrency HealthClientProtocol {
         }
 
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            healthStore.enableBackgroundDelivery(for: sampleType, frequency: frequency) { success, error in
+            healthStore.enableBackgroundDelivery(for: sampleType, frequency: frequency) { _, error in
                 if let error = error {
                     continuation.resume(throwing: HealthError.queryFailed(underlying: error))
                 } else {
@@ -503,8 +503,8 @@ public actor HealthKitClient: @preconcurrency HealthClientProtocol {
                 sampleType: sampleType,
                 predicate: predicate,
                 limit: limit,
-                sortDescriptors: sortDescriptor != nil ? [sortDescriptor!] : nil,
-                resultsHandler: { _, samples, error in
+                sortDescriptors: sortDescriptor.map { [$0] }
+            )                { _, samples, error in
                     if let error = error {
                         continuation.resume(throwing: HealthError.queryFailed(underlying: error))
                     } else if let samples = samples {
@@ -513,7 +513,6 @@ public actor HealthKitClient: @preconcurrency HealthClientProtocol {
                         continuation.resume(returning: [])
                     }
                 }
-            )
 
             healthStore.execute(query)
         }
@@ -526,7 +525,7 @@ extension HealthKitClient {
     /// Standard types to read for workout tracking.
     public static var standardReadTypes: Set<HKObjectType> {
         var types: Set<HKObjectType> = [
-            HKObjectType.workoutType(),
+            HKObjectType.workoutType()
         ]
 
         // Add optional types if available
@@ -561,7 +560,7 @@ extension HealthKitClient {
     /// Standard types to write for workout and cycle tracking.
     public static var standardWriteTypes: Set<HKSampleType> {
         var types: Set<HKSampleType> = [
-            HKObjectType.workoutType(),
+            HKObjectType.workoutType()
         ]
         if let menstrualFlow = HKObjectType.categoryType(forIdentifier: .menstrualFlow) {
             types.insert(menstrualFlow)

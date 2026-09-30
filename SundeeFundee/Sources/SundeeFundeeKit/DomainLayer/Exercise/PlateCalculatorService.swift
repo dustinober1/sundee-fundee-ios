@@ -47,7 +47,6 @@ public struct PlateCalculationResult: Sendable, Equatable {
 
 /// Pure domain service calculating barbell plate loading configurations.
 public struct PlateCalculatorService: Sendable {
-
     /// Standard Imperial Olympic plate inventory in pounds (lbs).
     public static let defaultImperialPlates: [Double] = [45.0, 35.0, 25.0, 10.0, 5.0, 2.5]
 

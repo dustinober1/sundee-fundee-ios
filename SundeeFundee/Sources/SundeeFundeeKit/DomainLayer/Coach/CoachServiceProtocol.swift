@@ -9,7 +9,6 @@ import Foundation
 /// The protocol is designed so that deterministic services produce
 /// the decisions and AI services explain/package them.
 public protocol CoachServiceProtocol: Sendable {
-
     /// Generates a personalized workout based on context and preferences.
     func generateWorkout(
         context: CoachContext,
@@ -175,7 +174,6 @@ public struct CoachPlanResponse: Sendable {
 
 /// Creates the appropriate coach service based on device capabilities.
 public enum CoachServiceFactory {
-
     /// Returns the best available coach service.
     ///
     /// - On iOS 26+ with Apple Intelligence: returns `OnDeviceCoachService`

@@ -29,7 +29,7 @@ struct CycleSettingsView: View {
 
     /// Whether there is an active period (started but not ended).
     private var activePeriod: PeriodLogRecord? {
-        loggedPeriods.first(where: { $0.isActive })
+        loggedPeriods.first { $0.isActive }
     }
 
     var body: some View {
@@ -336,7 +336,7 @@ struct CycleSettingsView: View {
 
     private func saveCycleSettings() async {
         isSaving = true
-        let lastStart = loggedPeriods.sorted(by: { $0.startDate > $1.startDate }).first?.startDate
+        let lastStart = loggedPeriods.sorted { $0.startDate > $1.startDate }.first?.startDate
         let record = CycleSettingsRecord(
             averageCycleLengthDays: Int(cycleLength),
             lastPeriodStart: lastStart,

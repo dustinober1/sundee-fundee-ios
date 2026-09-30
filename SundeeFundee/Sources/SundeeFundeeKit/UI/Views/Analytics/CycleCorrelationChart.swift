@@ -1,5 +1,5 @@
-import SwiftUI
 import Charts
+import SwiftUI
 
 // MARK: - CycleCorrelationChart
 
@@ -46,13 +46,13 @@ struct CycleCorrelationChart: View {
             .cornerRadius(4)
         }
         .chartXAxis {
-            AxisMarks { value in
+            AxisMarks { _ in
                 AxisValueLabel()
                     .font(AppTheme.Typography.labelSmall)
             }
         }
         .chartYAxis {
-            AxisMarks { value in
+            AxisMarks { _ in
                 AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
                     .foregroundStyle(AppTheme.Accent.gold.opacity(0.2))
                 AxisValueLabel()

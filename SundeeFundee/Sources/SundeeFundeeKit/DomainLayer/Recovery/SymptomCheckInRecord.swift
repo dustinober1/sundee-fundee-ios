@@ -10,7 +10,6 @@ import Foundation
 /// `dateCreated` is the record creation timestamp; `symptomDate` is the
 /// day the symptoms describe.
 public struct SymptomCheckInRecord: Codable, Sendable, Identifiable, Equatable {
-
     // MARK: - Properties
 
     public let id: String

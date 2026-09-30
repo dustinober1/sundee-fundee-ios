@@ -74,7 +74,7 @@ public enum CoachCopyValidator {
     }
 
     private static func containsUnsafeExtraLines(_ text: String) -> Bool {
-        text.trimmingCharacters(in: .whitespacesAndNewlines).contains(where: { $0.isNewline })
+        text.trimmingCharacters(in: .whitespacesAndNewlines).contains { $0.isNewline }
     }
 
     private static func sentenceCount(_ text: String) -> Int {

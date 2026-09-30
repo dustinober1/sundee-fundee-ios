@@ -12,8 +12,7 @@ import Network
 ///
 /// Connectivity changes are published via an AsyncStream that consumers
 /// can subscribe to for triggering actions like queue flush.
-public actor NetworkMonitor: Sendable {
-
+public actor NetworkMonitor {
     // MARK: - Properties
 
     /// Whether the device currently has network connectivity.
@@ -87,4 +86,3 @@ public actor NetworkMonitor: Sendable {
     }
     #endif
 }
-

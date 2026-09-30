@@ -17,11 +17,11 @@ public struct LoadMultipliers: Sendable {
 
 /// Load multipliers per recovery phase
 public let loadMultipliers: [RecoveryPhase: LoadMultipliers] = [
-    .acute:        LoadMultipliers(load: 0,    sets: 0,    reps: 0),
-    .rehab:        LoadMultipliers(load: 0.30, sets: 0.50, reps: 0.70),
-    .lightLoad:    LoadMultipliers(load: 0.50, sets: 0.75, reps: 0.85),
+    .acute: LoadMultipliers(load: 0, sets: 0, reps: 0),
+    .rehab: LoadMultipliers(load: 0.30, sets: 0.50, reps: 0.70),
+    .lightLoad: LoadMultipliers(load: 0.50, sets: 0.75, reps: 0.85),
     .returnToPlay: LoadMultipliers(load: 0.80, sets: 0.90, reps: 1.0),
-    .resolved:     LoadMultipliers(load: 1.0,  sets: 1.0,  reps: 1.0),
+    .resolved: LoadMultipliers(load: 1.0, sets: 1.0, reps: 1.0)
 ]
 
 // MARK: - Exercise Value Adjustment
@@ -130,10 +130,10 @@ private struct TransitionRule {
 }
 
 private let phaseTransitionRules: [TransitionRule] = [
-    TransitionRule(from: .acute,        to: .rehab,        count: 3, maxPain: 5),
-    TransitionRule(from: .rehab,        to: .lightLoad,    count: 3, maxPain: 3),
-    TransitionRule(from: .lightLoad,    to: .returnToPlay, count: 3, maxPain: 2),
-    TransitionRule(from: .returnToPlay, to: .resolved,     count: 5, maxPain: 1),
+    TransitionRule(from: .acute, to: .rehab, count: 3, maxPain: 5),
+    TransitionRule(from: .rehab, to: .lightLoad, count: 3, maxPain: 3),
+    TransitionRule(from: .lightLoad, to: .returnToPlay, count: 3, maxPain: 2),
+    TransitionRule(from: .returnToPlay, to: .resolved, count: 5, maxPain: 1)
 ]
 
 private func meetsThreshold(logs: [PainLog], count: Int, maxPain: Int) -> Bool {

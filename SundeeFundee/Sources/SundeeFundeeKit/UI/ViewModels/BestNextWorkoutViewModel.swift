@@ -42,7 +42,7 @@ public final class BestNextWorkoutViewModel: ObservableObject {
         let maxRecords = (try? await maxesTask) ?? []
         let injuries = (try? await injuriesTask) ?? []
         let periodRecords = (try? await periodsTask) ?? []
-        let isMenstrual = periodRecords.contains(where: { $0.isActive })
+        let isMenstrual = periodRecords.contains { $0.isActive }
         let cyclePhase: CyclePhase? = isMenstrual ? .menstrual : nil
         let cycleMult = aiCyclePhaseMultiplier(cyclePhase)
         let recoveryMult = InjuryAdaptationEngine.calculateLoadMultiplier(baseLoad: 1.0, injuries: injuries)

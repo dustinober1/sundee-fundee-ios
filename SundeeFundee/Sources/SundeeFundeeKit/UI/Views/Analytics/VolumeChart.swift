@@ -1,5 +1,5 @@
-import SwiftUI
 import Charts
+import SwiftUI
 
 // MARK: - VolumeChart
 
@@ -60,7 +60,7 @@ struct VolumeChart: View {
             }
         }
         .chartYAxis {
-            AxisMarks { value in
+            AxisMarks { _ in
                 AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
                     .foregroundStyle(AppTheme.Accent.gold.opacity(0.2))
                 AxisValueLabel()

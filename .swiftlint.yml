@@ -32,7 +32,6 @@ opt_in_rules:
   - static_operator
   - toggle_bool
   - trailing_closure
-  - type_contents_order
   - unneeded_parentheses_in_closure_argument
   - unowned_variable_capture
   - vertical_parameter_alignment_on_call
@@ -49,6 +48,13 @@ disabled_rules:
   - type_body_length
   - file_length
   - nesting
+  # The codebase organizes types into MARK-delimited topic sections rather
+  # than property-before-method order; enforcing type_contents_order means
+  # ~860 warnings of pure churn with no readability gain.
+  - type_contents_order
+  # ScreenshotSeeder carries one sanctioned file-level force_unwrapping
+  # disable for its fixed seed data; per-line markers would be noise.
+  - blanket_disable_command
 
 # Excluded paths (third-party, generated code)
 excluded:

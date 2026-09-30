@@ -398,7 +398,7 @@ class CycleCalendarViewModel: ObservableObject {
     var monthTitle: String {
         let formatter = DateFormatter()
         formatter.dateFormat = "MMMM yyyy"
-        let date = Calendar.current.date(from: DateComponents(year: currentYear, month: currentMonth))!
+        let date = Calendar.current.date(from: DateComponents(year: currentYear, month: currentMonth)) ?? Date()
         return formatter.string(from: date)
     }
 

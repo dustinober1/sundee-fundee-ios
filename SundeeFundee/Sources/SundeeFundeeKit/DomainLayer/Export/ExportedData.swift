@@ -9,7 +9,6 @@ import Foundation
 /// fields default to empty and `cycleSettings` defaults to nil so that
 /// an empty-state export is valid.
 public struct ExportedData: Codable, Sendable {
-
     // MARK: - Metadata
 
     /// Timestamp of when this export was generated.
@@ -146,7 +145,7 @@ public struct ExportedData: Codable, Sendable {
             "Adaptation Decisions": adaptationDecisionRecords.count,
             "Symptom Check-Ins": symptomCheckInRecords.count,
             "Return-to-Lifting Ramps": returnToLiftingRampRecords.count,
-            "Buddy Check-Ins": buddyCheckInRecords.count,
+            "Buddy Check-Ins": buddyCheckInRecords.count
         ]
     }
 }

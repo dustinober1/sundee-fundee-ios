@@ -219,7 +219,7 @@ public actor DailyPresenceService {
         for localRecord in localRecords {
             let needsCanonicalUpload = aliasesByCanonicalID[localRecord.id] != nil
             let isMissingRemotely = !remoteDayKeys.contains(localRecord.dayKey)
-            guard (needsCanonicalUpload || isMissingRemotely),
+            guard needsCanonicalUpload || isMissingRemotely,
                   !pendingIDs.contains(localRecord.id) else {
                 continue
             }

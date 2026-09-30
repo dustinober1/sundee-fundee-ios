@@ -10,7 +10,7 @@ struct ExercisePickerView: View {
     @Environment(\.dismiss) private var dismiss
 
     @State private var searchText: String = ""
-    @State private var selectedCategory: String? = nil
+    @State private var selectedCategory: String?
     @State private var selectedExercises: [String] = []
 
     let onSelect: ([String]) -> Void

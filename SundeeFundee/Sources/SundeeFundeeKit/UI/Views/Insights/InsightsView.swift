@@ -1,5 +1,5 @@
-import SwiftUI
 import os.log
+import SwiftUI
 
 // MARK: - InsightsView
 //

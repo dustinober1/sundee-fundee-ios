@@ -75,12 +75,15 @@ public func getCycleCalendarData(
     let calendar = Calendar.current
     let today = calendar.startOfDay(for: Date())
 
-    guard let range = calendar.range(of: .day, in: .month, for: calendar.date(from: DateComponents(year: year, month: month))!) else {
+    guard let monthDate = calendar.date(from: DateComponents(year: year, month: month)),
+          let range = calendar.range(of: .day, in: .month, for: monthDate) else {
         return []
     }
 
     return range.map { day in
-        let date = calendar.date(from: DateComponents(year: year, month: month, day: day))!
+        // Days come from the month's own valid range, so this always
+        // constructs; the fallback only guards against calendar oddities.
+        let date = calendar.date(from: DateComponents(year: year, month: month, day: day)) ?? monthDate
         let dateStart = calendar.startOfDay(for: date)
         let isToday = dateStart == today
 

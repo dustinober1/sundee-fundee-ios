@@ -4,7 +4,6 @@ import Foundation
 
 /// Calculates benchmark readiness based on cycle phase and benchmark characteristics
 public struct BenchmarkReadinessCalculator {
-
     /// Calculate benchmark readiness for a given phase and benchmark
     public static func calculateReadiness(
         phase: CyclePhase?,

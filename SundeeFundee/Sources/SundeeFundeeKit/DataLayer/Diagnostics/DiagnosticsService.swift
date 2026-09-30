@@ -10,7 +10,6 @@ import Foundation
 /// SwiftUI. Data-layer actors call in via `MainActor.run { ... }`.
 @MainActor
 public final class DiagnosticsService: ObservableObject {
-
     // MARK: - Shared
 
     public static let shared = DiagnosticsService()

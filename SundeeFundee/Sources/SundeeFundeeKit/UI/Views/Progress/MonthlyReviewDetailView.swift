@@ -5,7 +5,6 @@ import SwiftUI
 @MainActor
 @Observable
 final class MonthlyReviewViewModel {
-
     var review: MonthlyReview?
     var isLoading = true
     var errorMessage: String?

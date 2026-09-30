@@ -27,7 +27,7 @@ func generateFirstMargaritaProgram() -> GeneratedProgram {
             name: "Deload & Testing",
             goal: "Reduce fatigue and test new maximal lifts",
             weekRange: [8, 8]
-        ),
+        )
     ]
 
     return GeneratedProgram(
@@ -42,7 +42,7 @@ func generateFirstMargaritaProgram() -> GeneratedProgram {
         weeks: [
             fmWeek1(), fmWeek2(), fmWeek3(), fmWeek4(),
             fmWeek5(), fmWeek6(), fmWeek7(),
-            fmWeek8(),
+            fmWeek8()
         ]
     )
 }
@@ -78,22 +78,22 @@ private func fmWeek1() -> GeneratedProgramWeek {
             fmEx("Back Squat", sets: 3, reps: 5, pct: 0.78, rest: 3.0),
             fmEx("Romanian Deadlift", sets: 2, reps: 8, rest: 2.5),
             fmEx("Overhead Press", sets: 2, reps: 5, rest: 2.5),
-            fmEx("Barbell Row", sets: 2, reps: 8, rest: 1.5),
+            fmEx("Barbell Row", sets: 2, reps: 8, rest: 1.5)
         ]),
         // Day 2 - Bench Focus & Olympic Pulls
         fmSession(1, 2, name: "Day 2 \u{2014} Bench Focus & Olympic Pulls", focus: "bench", [
             fmEx("Bench Press", sets: 3, reps: 5, pct: 0.77, rest: 3.0),
             fmEx("Snatch Pull", sets: 3, reps: 3, rest: 2.0),
             fmEx("Close Grip Bench Press", sets: 2, reps: 8, rest: 2.0),
-            fmEx("Dumbbell Row", sets: 2, reps: 8, rest: 1.5),
+            fmEx("Dumbbell Row", sets: 2, reps: 8, rest: 1.5)
         ]),
         // Day 3 - Deadlift Focus & Accessory
         fmSession(1, 3, name: "Day 3 \u{2014} Deadlift Focus & Accessory", focus: "deadlift", [
             fmEx("Deadlift", sets: 4, reps: 5, pct: 0.75, rest: 3.0),
             fmEx("Clean Pull", sets: 3, reps: 3, rest: 2.0),
             fmEx("Pause Squat", sets: 2, reps: 5, rest: 2.5),
-            fmEx("Face Pull", sets: 1, reps: 15, rest: 1.0),
-        ]),
+            fmEx("Face Pull", sets: 1, reps: 15, rest: 1.0)
+        ])
     ])
 }
 
@@ -103,20 +103,20 @@ private func fmWeek2() -> GeneratedProgramWeek {
             fmEx("Back Squat", sets: 3, reps: 5, pct: 0.80, rest: 3.0),
             fmEx("Deficit Deadlift", sets: 2, reps: 5, rest: 2.5),
             fmEx("Overhead Press", sets: 2, reps: 5, pct: 0.75, rest: 2.5),
-            fmEx("Pendlay Row", sets: 2, reps: 5, rest: 1.5),
+            fmEx("Pendlay Row", sets: 2, reps: 5, rest: 1.5)
         ]),
         fmSession(2, 2, name: "Day 2 \u{2014} Bench Focus & Olympic Pulls", focus: "bench", [
             fmEx("Bench Press", sets: 3, reps: 5, pct: 0.80, rest: 3.0),
             fmEx("Snatch High Pull", sets: 3, reps: 3, rest: 2.0),
             fmEx("Spoto Press", sets: 2, reps: 5, rest: 2.0),
-            fmEx("Pull-Up", sets: 2, reps: 8, rest: 2.0, bw: true),
+            fmEx("Pull-Up", sets: 2, reps: 8, rest: 2.0, bw: true)
         ]),
         fmSession(2, 3, name: "Day 3 \u{2014} Deadlift Focus & Accessory", focus: "deadlift", [
             fmEx("Deadlift", sets: 4, reps: 5, pct: 0.78, rest: 3.0),
             fmEx("Hang Clean", sets: 3, reps: 3, rest: 2.0),
             fmEx("Front Squat", sets: 2, reps: 5, rest: 2.5),
-            fmEx("Nordic Curl", sets: 2, reps: 8, rest: 1.5, bw: true),
-        ]),
+            fmEx("Nordic Curl", sets: 2, reps: 8, rest: 1.5, bw: true)
+        ])
     ])
 }
 
@@ -126,20 +126,20 @@ private func fmWeek3() -> GeneratedProgramWeek {
             fmEx("Back Squat", sets: 3, reps: 5, pct: 0.80, rest: 3.0),
             fmEx("Block Pull", sets: 2, reps: 5, rest: 2.5),
             fmEx("Overhead Press", sets: 2, reps: 5, pct: 0.78, rest: 2.5),
-            fmEx("Meadows Row", sets: 2, reps: 8, rest: 1.5),
+            fmEx("Meadows Row", sets: 2, reps: 8, rest: 1.5)
         ]),
         fmSession(3, 2, name: "Day 2 \u{2014} Bench Focus & Olympic Pulls", focus: "bench", [
             fmEx("Bench Press", sets: 3, reps: 5, pct: 0.80, rest: 3.0),
             fmEx("Snatch Pull", sets: 3, reps: 3, rest: 2.0),
             fmEx("Board Press", sets: 2, reps: 5, rest: 2.0),
-            fmEx("Incline Dumbbell Press", sets: 2, reps: 8, rest: 1.5),
+            fmEx("Incline Dumbbell Press", sets: 2, reps: 8, rest: 1.5)
         ]),
         fmSession(3, 3, name: "Day 3 \u{2014} Deadlift Focus & Accessory", focus: "deadlift", [
             fmEx("Deadlift", sets: 4, reps: 5, pct: 0.82, rest: 3.0),
             fmEx("Jerk Practice", sets: 2, reps: 3, rest: 2.0),
             fmEx("Pause Squat", sets: 3, reps: 5, rest: 2.5),
-            fmEx("Farmer's Carry", sets: 2, reps: 1, rest: 1.5),
-        ]),
+            fmEx("Farmer's Carry", sets: 2, reps: 1, rest: 1.5)
+        ])
     ])
 }
 
@@ -149,20 +149,20 @@ private func fmWeek4() -> GeneratedProgramWeek {
             fmEx("Back Squat", sets: 3, reps: 5, pct: 0.82, rest: 3.0),
             fmEx("Romanian Deadlift", sets: 2, reps: 8, rest: 2.5),
             fmEx("Overhead Press", sets: 3, reps: 5, pct: 0.80, rest: 2.5),
-            fmEx("Barbell Row", sets: 2, reps: 8, rest: 1.5),
+            fmEx("Barbell Row", sets: 2, reps: 8, rest: 1.5)
         ]),
         fmSession(4, 2, name: "Day 2 \u{2014} Bench Focus & Olympic Pulls", focus: "bench", [
             fmEx("Bench Press", sets: 3, reps: 5, pct: 0.82, rest: 3.0),
             fmEx("Snatch Pull", sets: 3, reps: 3, rest: 2.0),
             fmEx("Dumbbell Bench Press", sets: 2, reps: 8, rest: 2.0),
-            fmEx("Face Pull", sets: 1, reps: 15, rest: 1.0),
+            fmEx("Face Pull", sets: 1, reps: 15, rest: 1.0)
         ]),
         fmSession(4, 3, name: "Day 3 \u{2014} Deadlift Focus & Accessory", focus: "deadlift", [
             fmEx("Deadlift", sets: 4, reps: 5, pct: 0.80, rest: 3.0),
             fmEx("Clean Pull", sets: 3, reps: 3, rest: 2.0),
             fmEx("Front Squat", sets: 2, reps: 5, rest: 2.5),
-            fmEx("Glute Ham Raise", sets: 2, reps: 8, rest: 1.5),
-        ]),
+            fmEx("Glute Ham Raise", sets: 2, reps: 8, rest: 1.5)
+        ])
     ])
 }
 
@@ -174,20 +174,20 @@ private func fmWeek5() -> GeneratedProgramWeek {
             fmEx("Back Squat", sets: 4, reps: 3, pct: 0.85, rest: 3.0),
             fmEx("Pause Deadlift", sets: 3, reps: 3, rest: 3.0),
             fmEx("Overhead Press", sets: 3, reps: 3, pct: 0.82, rest: 2.5),
-            fmEx("Barbell Row", sets: 2, reps: 5, rest: 2.0),
+            fmEx("Barbell Row", sets: 2, reps: 5, rest: 2.0)
         ]),
         fmSession(5, 2, name: "Day 2 \u{2014} Bench Focus & Olympic Pulls", focus: "bench", [
             fmEx("Bench Press", sets: 4, reps: 3, pct: 0.85, rest: 3.0),
             fmEx("Snatch Pull", sets: 3, reps: 3, rest: 2.0),
             fmEx("Close Grip Bench Press", sets: 2, reps: 3, rest: 2.5),
-            fmEx("Pull-Up", sets: 2, reps: 5, rest: 2.0, bw: true),
+            fmEx("Pull-Up", sets: 2, reps: 5, rest: 2.0, bw: true)
         ]),
         fmSession(5, 3, name: "Day 3 \u{2014} Deadlift Focus & Accessory", focus: "deadlift", [
             fmEx("Deadlift", sets: 4, reps: 3, pct: 0.85, rest: 3.0),
             fmEx("Clean", sets: 3, reps: 2, rest: 2.0),
             fmEx("Back Squat", sets: 2, reps: 3, pct: 0.65, rest: 1.5), // Speed work
-            fmEx("Ab Rollout", sets: 1, reps: 10, rest: 1.0, bw: true),
-        ]),
+            fmEx("Ab Rollout", sets: 1, reps: 10, rest: 1.0, bw: true)
+        ])
     ])
 }
 
@@ -197,20 +197,20 @@ private func fmWeek6() -> GeneratedProgramWeek {
             fmEx("Back Squat", sets: 4, reps: 2, pct: 0.88, rest: 3.5),
             fmEx("Deficit Deadlift", sets: 3, reps: 3, rest: 3.0),
             fmEx("Overhead Press", sets: 3, reps: 3, pct: 0.85, rest: 2.5),
-            fmEx("Pendlay Row", sets: 2, reps: 5, rest: 2.0),
+            fmEx("Pendlay Row", sets: 2, reps: 5, rest: 2.0)
         ]),
         fmSession(6, 2, name: "Day 2 \u{2014} Bench Focus & Olympic Pulls", focus: "bench", [
             fmEx("Bench Press", sets: 4, reps: 2, pct: 0.88, rest: 3.5),
             fmEx("Snatch High Pull", sets: 3, reps: 3, rest: 2.0),
             fmEx("Spoto Press", sets: 3, reps: 3, rest: 2.5),
-            fmEx("Dumbbell Row", sets: 2, reps: 5, rest: 2.0),
+            fmEx("Dumbbell Row", sets: 2, reps: 5, rest: 2.0)
         ]),
         fmSession(6, 3, name: "Day 3 \u{2014} Deadlift Focus & Accessory", focus: "deadlift", [
             fmEx("Deadlift", sets: 5, reps: 2, pct: 0.88, rest: 3.5),
             fmEx("Clean Pull", sets: 3, reps: 3, rest: 2.0),
             fmEx("Pause Squat", sets: 3, reps: 2, rest: 3.0),
-            fmEx("Face Pull", sets: 1, reps: 15, rest: 1.0),
-        ]),
+            fmEx("Face Pull", sets: 1, reps: 15, rest: 1.0)
+        ])
     ])
 }
 
@@ -220,20 +220,20 @@ private func fmWeek7() -> GeneratedProgramWeek {
             fmEx("Back Squat", sets: 4, reps: 2, pct: 0.90, rest: 3.5),
             fmEx("Romanian Deadlift", sets: 3, reps: 5, rest: 2.5),
             fmEx("Overhead Press", sets: 3, reps: 3, pct: 0.87, rest: 2.5),
-            fmEx("Barbell Row", sets: 2, reps: 5, rest: 2.0),
+            fmEx("Barbell Row", sets: 2, reps: 5, rest: 2.0)
         ]),
         fmSession(7, 2, name: "Day 2 \u{2014} Bench Focus & Olympic Pulls", focus: "bench", [
             fmEx("Bench Press", sets: 4, reps: 2, pct: 0.90, rest: 3.5),
             fmEx("Snatch Pull", sets: 3, reps: 3, rest: 2.0),
             fmEx("Board Press", sets: 3, reps: 3, rest: 2.5),
-            fmEx("Pull-Up", sets: 2, reps: 5, rest: 2.0, bw: true),
+            fmEx("Pull-Up", sets: 2, reps: 5, rest: 2.0, bw: true)
         ]),
         fmSession(7, 3, name: "Day 3 \u{2014} Deadlift Focus & Accessory", focus: "deadlift", [
             fmEx("Deadlift", sets: 5, reps: 2, pct: 0.90, rest: 3.5),
             fmEx("Hang Clean", sets: 3, reps: 1, rest: 2.5),
             fmEx("Front Squat", sets: 3, reps: 3, rest: 2.5),
-            fmEx("Grip Work", sets: 2, reps: 1, rest: 1.5),
-        ]),
+            fmEx("Grip Work", sets: 2, reps: 1, rest: 1.5)
+        ])
     ])
 }
 
@@ -246,20 +246,20 @@ private func fmWeek8() -> GeneratedProgramWeek {
             fmEx("Back Squat", sets: 2, reps: 5, pct: 0.60, rest: 2.0),
             fmEx("Romanian Deadlift", sets: 2, reps: 8, rest: 2.0),
             fmEx("Overhead Press", sets: 2, reps: 5, pct: 0.55, rest: 2.0),
-            fmEx("Face Pull", sets: 1, reps: 15, rest: 1.0),
+            fmEx("Face Pull", sets: 1, reps: 15, rest: 1.0)
         ]),
         // Day 2 - Light Bench & Technique
         fmSession(8, 2, name: "Day 2 \u{2014} Light Bench & Technique", focus: "bench", [
             fmEx("Bench Press", sets: 2, reps: 5, pct: 0.60, rest: 2.0),
             fmEx("Snatch Pull", sets: 2, reps: 3, rest: 2.0),
             fmEx("Close Grip Bench Press", sets: 2, reps: 8, rest: 2.0),
-            fmEx("Band Pull-Apart", sets: 1, reps: 15, rest: 1.0, bw: true),
+            fmEx("Band Pull-Apart", sets: 1, reps: 15, rest: 1.0, bw: true)
         ]),
         // Day 3 - Testing Day (Max Effort)
         fmSession(8, 3, name: "Day 3 \u{2014} Testing Day (Max Effort)", focus: "testing", [
             fmEx("Back Squat", sets: 5, reps: 1, rest: 4.0),
             fmEx("Bench Press", sets: 5, reps: 1, rest: 4.0),
-            fmEx("Deadlift", sets: 6, reps: 1, rest: 4.0),
-        ]),
+            fmEx("Deadlift", sets: 6, reps: 1, rest: 4.0)
+        ])
     ])
 }

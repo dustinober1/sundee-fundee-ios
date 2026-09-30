@@ -16,7 +16,10 @@ public enum GrowthLinkService {
     /// Custom-scheme link that opens the app's challenge-join flow directly.
     /// Shared alongside the App Store URL so existing users skip manual entry.
     public static func inviteDeepLink(code: String) -> URL {
-        URL(string: "sundeefundee://invite/\(code)")!
+        let encoded = code.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? code
+        // Unreachable for a percent-encoded path; the store page beats a
+        // crash if a future change ever breaks the scheme URL.
+        return URL(string: "sundeefundee://invite/\(encoded)") ?? appStoreURL
     }
 
     public static func link(

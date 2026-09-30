@@ -10,7 +10,6 @@ import Foundation
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
 @MainActor
 public class AnalyticsViewModel: ObservableObject {
-
     // MARK: - Published State
 
     /// Currently selected time range for all charts.

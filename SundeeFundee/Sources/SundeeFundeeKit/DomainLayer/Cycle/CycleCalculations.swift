@@ -115,10 +115,10 @@ private func getPhaseBoundaries(
     let ovEnd = min(cycleLen, max(ovStart, ovDay + 2))
 
     return [
-        .menstrual:  PhaseBoundary(start: 1, end: periodLen),
+        .menstrual: PhaseBoundary(start: 1, end: periodLen),
         .follicular: PhaseBoundary(start: periodLen + 1, end: ovStart - 1),
-        .ovulation:  PhaseBoundary(start: ovStart, end: ovEnd),
-        .luteal:     PhaseBoundary(start: ovEnd + 1, end: cycleLen),
+        .ovulation: PhaseBoundary(start: ovStart, end: ovEnd),
+        .luteal: PhaseBoundary(start: ovEnd + 1, end: cycleLen)
     ]
 }
 

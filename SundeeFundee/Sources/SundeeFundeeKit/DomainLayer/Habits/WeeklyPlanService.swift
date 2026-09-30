@@ -53,9 +53,11 @@ public actor WeeklyPlanService {
         now: Date = Date()
     ) -> WeeklyPlanProgress {
         let weekStart = startOfWeek(containing: now)
+        let weekEnd = calendar.date(byAdding: .day, value: 7, to: weekStart)
+            ?? weekStart.addingTimeInterval(7 * 24 * 60 * 60)
         let completed = workouts.filter { workout in
             guard let completedAt = workout.completedAt else { return false }
-            return completedAt >= weekStart && completedAt < calendar.date(byAdding: .day, value: 7, to: weekStart)!
+            return completedAt >= weekStart && completedAt < weekEnd
         }
         let next = suggestNextWorkoutDay(
             plan: plan,
@@ -118,7 +120,7 @@ public actor WeeklyPlanService {
             }
         }
 
-        if (plan.cycleAwarePlanningEnabled ?? false), cyclePhase == .menstrual, weekdays.count > 1 {
+        if plan.cycleAwarePlanningEnabled ?? false, cyclePhase == .menstrual, weekdays.count > 1 {
             weekdays = Array(weekdays.dropFirst())
         }
 

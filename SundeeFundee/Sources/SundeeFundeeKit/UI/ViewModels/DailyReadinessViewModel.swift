@@ -66,9 +66,10 @@ public final class DailyReadinessViewModel: ObservableObject {
             guard let result = try await loader.load(assessmentDate: Date(), calendar: calendar, cyclePhase: cyclePhase, cycleConfidence: cycleConfidence) else {
                 state = .empty; snapshot = nil; guidance = isGuest ? "Readiness will be calculated from data saved on this device." : "Complete a check-in or allow Health data to see today's readiness."; return
             }
-            snapshot = DailyReadinessUISnapshot(assessment: result.assessment)
+            let newSnapshot = DailyReadinessUISnapshot(assessment: result.assessment)
+            snapshot = newSnapshot
             isStale = !calendar.isDateInToday(result.assessment.assessmentDate)
-            guidance = makeGuidance(snapshot: snapshot!)
+            guidance = makeGuidance(snapshot: newSnapshot)
             state = .content
         } catch {
             state = .error; canRetry = true; guidance = "We couldn't calculate readiness. Check your connection and try again."

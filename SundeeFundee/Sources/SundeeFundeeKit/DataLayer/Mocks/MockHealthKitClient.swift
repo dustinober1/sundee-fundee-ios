@@ -31,7 +31,6 @@ import HealthKit
 /// mockClient.reset()
 /// ```
 public final class MockHealthKitClient: HealthClientProtocol, @unchecked Sendable {
-
     // MARK: - Properties
 
     /// In-memory storage for mock workouts.
@@ -744,7 +743,6 @@ public final class MockHealthKitClient: HealthClientProtocol, @unchecked Sendabl
 // MARK: - Factory Helpers for Creating Mock Data
 
 extension MockHealthKitClient {
-
     /// Creates a mock HKWorkout for testing.
     ///
     /// - Parameters:

@@ -1,7 +1,7 @@
 #if os(iOS)
+import CoreImage.CIFilterBuiltins
 import SwiftUI
 import UIKit
-import CoreImage.CIFilterBuiltins
 
 // MARK: - QRBadge
 //

@@ -2,7 +2,6 @@ import Foundation
 
 /// Provider of bundled hardcoded content as a fallback when remote content is unavailable
 public struct BundledContentProvider: Sendable, ContentClientProtocol {
-
     public init() {}
 
     public func fetchExercises() async throws -> [ContentExercise] {

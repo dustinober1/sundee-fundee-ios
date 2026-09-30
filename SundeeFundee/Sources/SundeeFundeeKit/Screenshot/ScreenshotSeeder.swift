@@ -2,6 +2,12 @@ import Foundation
 import HealthKit
 import os.log
 
+// Seeding code builds a fixed, known-valid dataset for App Store screenshots;
+// force-unwrapping literal constants keeps it terse and cannot trap on user
+// data. blanket_disable_command stays off so this single sanctioned blanket
+// disable is allowed here.
+// swiftlint:disable force_unwrapping
+
 private let seederLogger = Logger(subsystem: "com.sundeefundee.app", category: "ScreenshotSeeder")
 
 // MARK: - ScreenshotSeeder
@@ -16,7 +22,6 @@ private let seederLogger = Logger(subsystem: "com.sundeefundee.app", category: "
 
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
 public enum ScreenshotSeeder {
-
     /// Seeds all data stores with realistic screenshot data.
     @MainActor
     public static func seed() async {
@@ -101,7 +106,7 @@ public enum ScreenshotSeeder {
                 weight: 135,
                 unit: .lbs,
                 date: cal.date(byAdding: .day, value: -12, to: now)!
-            ),
+            )
         ]
 
         try? await client.save(maxes, recordType: "OneRepMaxRecord")
@@ -123,7 +128,7 @@ public enum ScreenshotSeeder {
                     makeExercise("Bench Press", .compound, sets: [(5, 135), (5, 135), (5, 135)]),
                     makeExercise("Barbell Row", .compound, sets: [(8, 115), (8, 115), (8, 115)]),
                     makeExercise("Overhead Press", .compound, sets: [(8, 75), (8, 75), (8, 75)]),
-                    makeExercise("Lat Pulldown", .accessory, sets: [(10, 90), (10, 90), (10, 90)]),
+                    makeExercise("Lat Pulldown", .accessory, sets: [(10, 90), (10, 90), (10, 90)])
                 ]
             ),
             makeWorkout(
@@ -135,7 +140,7 @@ public enum ScreenshotSeeder {
                     makeExercise("Back Squat", .compound, sets: [(5, 195), (5, 195), (3, 215), (1, 225)]),
                     makeExercise("Romanian Deadlift", .compound, sets: [(8, 135), (8, 135), (8, 135)]),
                     makeExercise("Walking Lunges", .accessory, sets: [(12, 50), (12, 50), (12, 50)]),
-                    makeExercise("Leg Curl", .isolation, sets: [(10, 70), (10, 70)]),
+                    makeExercise("Leg Curl", .isolation, sets: [(10, 70), (10, 70)])
                 ]
             ),
             makeWorkout(
@@ -147,7 +152,7 @@ public enum ScreenshotSeeder {
                     makeExercise("Bench Press", .compound, sets: [(3, 145), (3, 145), (1, 155)]),
                     makeExercise("Incline Dumbbell Press", .compound, sets: [(8, 50), (8, 50), (8, 50)]),
                     makeExercise("Lateral Raise", .isolation, sets: [(12, 15), (12, 15), (12, 15)]),
-                    makeExercise("Tricep Pushdown", .isolation, sets: [(12, 40), (12, 40)]),
+                    makeExercise("Tricep Pushdown", .isolation, sets: [(12, 40), (12, 40)])
                 ]
             ),
             makeWorkout(
@@ -159,7 +164,7 @@ public enum ScreenshotSeeder {
                     makeExercise("Deadlift", .compound, sets: [(5, 225), (5, 225), (3, 255), (1, 275)]),
                     makeExercise("Dumbbell Bench Press", .compound, sets: [(8, 55), (8, 55), (8, 55)]),
                     makeExercise("Pull-ups", .compound, sets: [(8, 0), (7, 0), (6, 0)]),
-                    makeExercise("Plank", .accessory, sets: [(1, 0)]),
+                    makeExercise("Plank", .accessory, sets: [(1, 0)])
                 ]
             ),
             makeWorkout(
@@ -171,7 +176,7 @@ public enum ScreenshotSeeder {
                     makeExercise("Front Squat", .compound, sets: [(8, 155), (8, 155), (8, 155)]),
                     makeExercise("Leg Press", .compound, sets: [(10, 270), (10, 270), (10, 270)]),
                     makeExercise("Leg Extension", .isolation, sets: [(12, 80), (12, 80)]),
-                    makeExercise("Calf Raise", .isolation, sets: [(15, 90), (15, 90), (15, 90)]),
+                    makeExercise("Calf Raise", .isolation, sets: [(15, 90), (15, 90), (15, 90)])
                 ]
             ),
             makeWorkout(
@@ -183,9 +188,9 @@ public enum ScreenshotSeeder {
                     makeExercise("Barbell Row", .compound, sets: [(5, 125), (5, 125), (3, 135)]),
                     makeExercise("Lat Pulldown", .compound, sets: [(10, 100), (10, 100), (10, 100)]),
                     makeExercise("Face Pull", .accessory, sets: [(15, 30), (15, 30), (15, 30)]),
-                    makeExercise("Bicep Curl", .isolation, sets: [(10, 25), (10, 25)]),
+                    makeExercise("Bicep Curl", .isolation, sets: [(10, 25), (10, 25)])
                 ]
-            ),
+            )
         ]
 
         try? await client.save(workouts, recordType: "Workout")
@@ -223,7 +228,7 @@ public enum ScreenshotSeeder {
                 id: "cel-3",
                 description: "New PR: Deadlift 275 lbs",
                 date: cal.date(byAdding: .day, value: -7, to: now)!
-            ),
+            )
         ]
 
         try? await client.save(wins, recordType: "CelebrationEventRecord")
@@ -287,7 +292,7 @@ public enum ScreenshotSeeder {
                 notes: nil,
                 date: cal.date(byAdding: .day, value: -21, to: now)!,
                 cyclePhase: .ovulation
-            ),
+            )
         ]
 
         try? await client.save(results, recordType: "BenchmarkResult")

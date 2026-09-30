@@ -192,5 +192,5 @@ private let categoryItems: [CategoryDisplayItem] = [
     CategoryDisplayItem(name: "Pain Logs", icon: "waveform.path.ecg"),
     CategoryDisplayItem(name: "Celebrations", icon: "party.popper"),
     CategoryDisplayItem(name: "Programs", icon: "list.clipboard"),
-    CategoryDisplayItem(name: "Weekly Plans", icon: "calendar.badge.clock"),
+    CategoryDisplayItem(name: "Weekly Plans", icon: "calendar.badge.clock")
 ]

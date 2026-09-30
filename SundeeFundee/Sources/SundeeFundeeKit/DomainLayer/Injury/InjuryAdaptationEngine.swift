@@ -4,7 +4,6 @@ import Foundation
 
 /// Modifies workouts based on user's active injuries
 public struct InjuryAdaptationEngine {
-
     // MARK: - Contraindication Rules
 
     struct ContraindicationRule {
@@ -41,7 +40,7 @@ public struct InjuryAdaptationEngine {
         "ankle": ContraindicationRule(
             categories: [],
             keywords: ["calf", "jump", "run", "sprint", "box jump"]
-        ),
+        )
     ]
 
     // MARK: - Clinical Synonyms
@@ -64,7 +63,7 @@ public struct InjuryAdaptationEngine {
         "tennis elbow": "elbow",
         "golfers elbow": "elbow",
         "achilles": "ankle",
-        "plantar fascia": "ankle",
+        "plantar fascia": "ankle"
     ]
 
     // MARK: - Regression Table
@@ -88,7 +87,7 @@ public struct InjuryAdaptationEngine {
         "Pull-Up": ["Lat Pulldown", "Band-Assisted Pull-Up", "TRX Row"],
         "Toes-to-Bar": ["Knees-to-Elbows", "Hanging Leg Raises", "Lying Leg Raises"],
         "Box Jump": ["Step-Up", "Box Step-Up", "Air Squats"],
-        "Burpee": ["Step-Up Burpee", "Squat Thrust", "Air Squat"],
+        "Burpee": ["Step-Up Burpee", "Squat Thrust", "Air Squat"]
     ]
 
     // MARK: - Load Multipliers by Phase
@@ -99,7 +98,7 @@ public struct InjuryAdaptationEngine {
         .rehab: 0.30,
         .lightLoad: 0.50,
         .returnToPlay: 0.80,
-        .resolved: 1.0,
+        .resolved: 1.0
     ]
 
     // MARK: - Public Methods

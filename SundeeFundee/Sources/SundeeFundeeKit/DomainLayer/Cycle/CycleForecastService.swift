@@ -77,7 +77,6 @@ public struct CycleDayForecast: Sendable, Identifiable, Equatable {
 /// Pure domain service that generates a forward-looking 7-day training forecast
 /// adapting to the user's specific cycle tracking mode and period history.
 public struct CycleForecastService: Sendable {
-
     /// Generates a 7-day forecast starting from referenceDate.
     ///
     /// - Parameters:

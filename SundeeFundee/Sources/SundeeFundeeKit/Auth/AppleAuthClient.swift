@@ -227,13 +227,23 @@ public actor AppleAuthClient: AppleAuthClientProtocol {
         // Build the token revocation request to Apple's REST endpoint.
         // This is the on-device approach for apps without a backend server.
         // The authorization code serves as the token hint for revocation.
-        var urlComponents = URLComponents(string: "https://appleid.apple.com/auth/revoke")!
+        var urlComponents = URLComponents()
+        urlComponents.scheme = "https"
+        urlComponents.host = "appleid.apple.com"
+        urlComponents.path = "/auth/revoke"
         urlComponents.queryItems = [
             URLQueryItem(name: "token", value: codeString),
-            URLQueryItem(name: "token_type_hint", value: "authorization_code"),
+            URLQueryItem(name: "token_type_hint", value: "authorization_code")
         ]
 
-        var request = URLRequest(url: urlComponents.url!)
+        // Only reachable if URLComponents fails to assemble a valid URL from
+        // a fixed host — the token itself is query-encoded above.
+        guard let revokeURL = urlComponents.url else {
+            authLogger.error("❌ Cannot revoke token: malformed revoke URL")
+            throw AuthError.authorizationFailed(underlying: nil)
+        }
+
+        var request = URLRequest(url: revokeURL)
         request.httpMethod = "POST"
         request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
 

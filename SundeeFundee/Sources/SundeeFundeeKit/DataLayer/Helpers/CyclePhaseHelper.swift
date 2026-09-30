@@ -7,7 +7,6 @@ import HealthKit
 /// Converts HKCategorySample menstrual flow events into PeriodLog entries,
 /// then uses calculateCycleStatus() to determine the current cycle phase.
 public struct CyclePhaseHelper {
-
     /// Calculate the current cycle phase from HealthKit menstrual samples.
     ///
     /// - Parameters:
@@ -43,8 +42,8 @@ public struct CyclePhaseHelper {
         let sorted = samples.sorted { $0.startDate < $1.startDate }
 
         var logs: [PeriodLog] = []
-        var currentStart: Date? = nil
-        var currentEnd: Date? = nil
+        var currentStart: Date?
+        var currentEnd: Date?
 
         for sample in sorted {
             let sampleDate = Calendar.current.startOfDay(for: sample.startDate)
@@ -98,8 +97,8 @@ public struct CyclePhaseHelper {
         let thirtyDaysAgo = calendar.date(byAdding: .day, value: -30, to: referenceDate) ?? referenceDate
 
         // 1. Check for LH surge (positive / luteinizingHormoneSurge ovulation test result)
-        var detectedLHSurgeDate: Date? = nil
-        var estimatedOvulationDate: Date? = nil
+        var detectedLHSurgeDate: Date?
+        var estimatedOvulationDate: Date?
 
         let recentTests = ovulationTestSamples.filter { $0.startDate >= thirtyDaysAgo }
         let sortedTests = recentTests.sorted { $0.startDate > $1.startDate }
@@ -125,7 +124,7 @@ public struct CyclePhaseHelper {
             .sorted { $0.date < $1.date }
 
         var hasThermalShift = false
-        var shiftMagnitude: Double? = nil
+        var shiftMagnitude: Double?
 
         // Symptothermal thermal shift rule:
         // Look for at least 2-3 consecutive days with temperatures >= 0.20°C above

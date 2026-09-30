@@ -76,9 +76,9 @@ public class BenchmarksListViewModel: ObservableObject {
         guard let results = userResults[benchmarkId] else { return nil }
         let scoringType = benchmarks.first { $0.id == benchmarkId }?.scoringType ?? "reps"
         if scoringType == "time" {
-            return results.min(by: { $0.score < $1.score })
+            return results.min { $0.score < $1.score }
         } else {
-            return results.max(by: { $0.score < $1.score })
+            return results.max { $0.score < $1.score }
         }
     }
 

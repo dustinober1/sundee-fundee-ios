@@ -27,11 +27,10 @@ public struct ProgramsListView: View {
                         icon: "list.bullet.rectangle",
                         title: "No Programs Available",
                         subtitle: "Programs couldn't be loaded. Pull to refresh or check your connection.",
-                        actionLabel: "Try Again",
-                        action: {
+                        actionLabel: "Try Again"
+                    )                        {
                             Task { await viewModel.loadPrograms() }
                         }
-                    )
                 } else {
                     ScrollView {
                         VStack(spacing: AppTheme.Spacing.md) {
@@ -41,13 +40,12 @@ public struct ProgramsListView: View {
                             ForEach(viewModel.programs) { program in
                                 ProgramRow(
                                     program: program,
-                                    isEnrolling: viewModel.enrollingProgramId == program.id,
-                                    onEnroll: {
+                                    isEnrolling: viewModel.enrollingProgramId == program.id
+                                )                                    {
                                         Task {
                                             await viewModel.enrollInProgram(program.id)
                                         }
                                     }
-                                )
                             }
                         }
                         .padding(AppTheme.Spacing.lg)
@@ -66,12 +64,11 @@ public struct ProgramsListView: View {
             }
             .sheet(isPresented: $showingRecommendationQuiz) {
                 ProgramRecommendationSheet(
-                    viewModel: viewModel,
-                    onStartCoachPlan: {
+                    viewModel: viewModel
+                )                    {
                         showingRecommendationQuiz = false
                         showingAIWorkout = true
                     }
-                )
             }
             .sheet(isPresented: $showingReturnToTraining) {
                 ReturnToTrainingSheet(viewModel: viewModel)

@@ -5,9 +5,9 @@
 
 import Foundation
 import HealthKit
+import SundeeFundeeKit
 import SwiftUI
 import WatchKit
-import SundeeFundeeKit
 
 @MainActor
 public final class WatchWorkoutManager: ObservableObject {
@@ -45,7 +45,11 @@ public final class WatchWorkoutManager: ObservableObject {
             HKObjectType.workoutType()
         ]
         let typesToRead: Set<HKObjectType> = [
+            // Built-in HKQuantityTypeIdentifier cases — these initializers
+            // cannot fail for fixed system identifiers.
+            // swiftlint:disable:next force_unwrapping
             HKObjectType.quantityType(forIdentifier: .heartRate)!,
+            // swiftlint:disable:next force_unwrapping
             HKObjectType.quantityType(forIdentifier: .activeEnergyBurned)!,
             HKObjectType.workoutType()
         ]

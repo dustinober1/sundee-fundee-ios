@@ -57,9 +57,9 @@ public struct MaxesListView: View {
                 Task { await viewModel.loadMaxes() }
             }
             .sheet(isPresented: $viewModel.showingEntry) {
-                OneRepMaxEntryView(onSave: { name, weight, unit in
+                OneRepMaxEntryView { name, weight, unit in
                     await viewModel.saveMax(exerciseName: name, weight: weight, unit: unit)
-                })
+                }
             }
             .alert("Error", isPresented: Binding(
                 get: { viewModel.errorMessage != nil },

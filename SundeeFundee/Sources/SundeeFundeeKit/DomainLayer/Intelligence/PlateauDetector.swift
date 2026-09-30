@@ -10,7 +10,6 @@ import Foundation
 ///
 /// Pure domain logic — no framework dependencies.
 public enum PlateauDetector {
-
     // MARK: - Configuration
 
     /// Minimum number of records required before a plateau can be detected.
@@ -182,7 +181,7 @@ public enum PlateauDetector {
                 }
                 stallCount = max(stallCount, recent.count)
 
-                let bestDate = sorted.last(where: { $0.weight == peak })?.date ?? last.date
+                let bestDate = sorted.last { $0.weight == peak }?.date ?? last.date
                 let daysSinceBest = Calendar.current.dateComponents(
                     [.day], from: bestDate, to: Date()
                 ).day ?? 0
@@ -240,10 +239,7 @@ public enum PlateauDetector {
             for exercise in workout.exercises {
                 let volume = exercise.targetSets.reduce(0.0) { sum, set in
                     let reps = set.actualReps ?? set.reps
-                    let weight = (set.completedWeight ?? 0) > 0
-                        ? set.completedWeight!
-                        : (set.prescribedWeight > 0 ? set.prescribedWeight : 0)
-                    return sum + Double(reps) * weight
+                    return sum + Double(reps) * set.volumeWeight
                 }
                 weeklyVolume[yearWeek, default: [:]][exercise.name, default: 0] += volume
             }
@@ -263,11 +259,10 @@ public enum PlateauDetector {
 
         for exerciseName in allExercises {
             let volumes = sortedWeeks.compactMap { weeklyVolume[$0]?[exerciseName] }
-            guard volumes.count >= 2 else { continue }
-
-            let firstVolume = volumes.first!
-            let lastVolume = volumes.last!
-            guard firstVolume > 0 else { continue }
+            guard volumes.count >= 2,
+                  let firstVolume = volumes.first,
+                  let lastVolume = volumes.last,
+                  firstVolume > 0 else { continue }
 
             let growth = (lastVolume - firstVolume) / firstVolume
             if growth < volumeGrowthThreshold {

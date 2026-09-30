@@ -3,10 +3,10 @@
 //
 // Native watchOS 11 companion app for Sundee Fundee.
 
-import SwiftUI
-import WatchKit
 import Combine
 import SundeeFundeeKit
+import SwiftUI
+import WatchKit
 
 @main
 struct SundeeFundeeWatchApp: App {

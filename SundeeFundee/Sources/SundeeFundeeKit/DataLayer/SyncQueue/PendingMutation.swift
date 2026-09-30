@@ -65,8 +65,7 @@ public struct PendingMutation: Codable, Sendable, Identifiable, Equatable {
 ///
 /// Uses a configurable UserDefaults (defaults to .standard, can be an App Group suite)
 /// and stores mutations as a JSON array under a fixed key.
-public actor SyncQueueStore: Sendable {
-
+public actor SyncQueueStore {
     // MARK: - Properties
 
     private let userDefaults: UserDefaults

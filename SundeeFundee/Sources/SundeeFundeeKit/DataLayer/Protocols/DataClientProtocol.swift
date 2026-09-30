@@ -174,4 +174,3 @@ extension DataClientProtocol {
         try await delete(recordIDs: [recordID], recordType: recordType)
     }
 }
-

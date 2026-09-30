@@ -32,7 +32,6 @@ public enum SyncQueueError: Error, LocalizedError, Sendable {
 /// // ViewModels use `queue` as their DataClientProtocol — no code changes needed
 /// ```
 public actor SyncQueue: @preconcurrency DataClientProtocol, @unchecked Sendable {
-
     // MARK: - Properties
 
     private let wrappedClient: any DataClientProtocol

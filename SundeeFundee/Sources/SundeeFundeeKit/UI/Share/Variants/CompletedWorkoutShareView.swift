@@ -154,7 +154,7 @@ struct CompletedWorkoutShareView: View {
                 let r = set.actualReps ?? set.reps
                 return (weight: w, reps: r, volume: w * Double(r))
             }
-            .max(by: { $0.volume < $1.volume })
+            .max { $0.volume < $1.volume }
             .map { (weight: $0.weight, reps: $0.reps) }
     }
 

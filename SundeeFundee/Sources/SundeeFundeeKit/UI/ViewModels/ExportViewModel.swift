@@ -9,7 +9,6 @@ import Foundation
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
 @MainActor
 public class ExportViewModel: ObservableObject {
-
     // MARK: - Published State
 
     /// Whether an export is currently in progress.

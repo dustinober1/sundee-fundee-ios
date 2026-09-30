@@ -31,7 +31,6 @@ import Foundation
 /// mockClient.reset()
 /// ```
 public final class MockCloudKitClient: DataClientProtocol, @unchecked Sendable {
-
     // MARK: - Properties
 
     /// In-memory storage grouped by record type.

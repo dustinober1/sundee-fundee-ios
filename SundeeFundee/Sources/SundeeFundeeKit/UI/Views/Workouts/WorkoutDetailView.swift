@@ -518,7 +518,6 @@ public struct WorkoutDetailView: View {
         }
         return "\(Int(volume))"
     }
-
 }
 
 // MARK: - WorkoutDetailViewModel
@@ -777,7 +776,7 @@ class WorkoutDetailViewModel: ObservableObject {
                 guard maxCompletedWeight > 0 else { continue }
                 let previousRecord = records
                     .filter { $0.exerciseName == exercise.name }
-                    .max(by: { $0.weight < $1.weight })
+                    .max { $0.weight < $1.weight }
                 if let previous = previousRecord {
                     if maxCompletedWeight > previous.weight {
                         prs.insert(exercise.name)

@@ -22,7 +22,7 @@ public struct CycleForecastStripView: View {
     }
 
     private var selectedForecast: CycleDayForecast? {
-        forecasts.first(where: { $0.dayOffset == selectedDayOffset }) ?? forecasts.first
+        forecasts.first { $0.dayOffset == selectedDayOffset } ?? forecasts.first
     }
 
     public var body: some View {
@@ -58,11 +58,10 @@ public struct CycleForecastStripView: View {
                     ForEach(forecasts) { day in
                         DayPillView(
                             forecast: day,
-                            isSelected: day.dayOffset == selectedDayOffset,
-                            onSelect: {
+                            isSelected: day.dayOffset == selectedDayOffset
+                        )                            {
                                 selectedDayOffset = day.dayOffset
                             }
-                        )
                     }
                 }
                 .padding(.vertical, 2)

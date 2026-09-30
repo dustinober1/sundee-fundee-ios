@@ -60,7 +60,6 @@ public struct ProgressiveOverloadResult: Sendable, Codable, Equatable, Identifia
 /// Pure domain service that analyzes completed workout history and set RPE logs
 /// to provide progressive overload recommendations.
 public enum ProgressiveOverloadEngine {
-
     // MARK: - Public API
 
     /// Evaluates workout history for a single exercise and generates a progressive overload recommendation.
@@ -126,8 +125,11 @@ public enum ProgressiveOverloadEngine {
                 ? nil
                 : Double(sessionLogs.map(\.rpe).reduce(0, +)) / Double(sessionLogs.count)
 
-            let isFailure = !hitAllReps || (avgRPE != nil && avgRPE! >= 9.5)
-            let isSuccess = hitAllReps && (avgRPE == nil || avgRPE! < 9.5)
+            // RPE is never negative, so a missing average (no logs) reads as
+            // "not high effort" here rather than force-unwrapping the optional.
+            let isHighEffort = (avgRPE ?? 0) >= 9.5
+            let isFailure = !hitAllReps || isHighEffort
+            let isSuccess = hitAllReps && !isHighEffort
 
             let completedWeights = sets.compactMap { $0.completedWeight }.filter { $0 > 0 }
             let workingWeight: Double
@@ -138,7 +140,7 @@ public enum ProgressiveOverloadEngine {
                 workingWeight = prescribedWeights.max() ?? 0
             }
 
-            let workingReps = sets.first(where: { $0.reps > 0 })?.reps
+            let workingReps = sets.first { $0.reps > 0 }?.reps
                 ?? sets.first?.actualReps
                 ?? 0
 

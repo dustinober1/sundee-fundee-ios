@@ -230,9 +230,8 @@ public struct AnalyticsView: View {
             icon: "chart.bar",
             title: "No Data Yet",
             subtitle: "Complete your first workout and log a max to start seeing your analytics.",
-            actionLabel: "Log a Max",
-            action: { showLogMax = true }
-        )
+            actionLabel: "Log a Max"
+        )            { showLogMax = true }
         .frame(maxWidth: .infinity, minHeight: 400)
     }
 }

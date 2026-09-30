@@ -7,7 +7,6 @@ import Foundation
 ///
 /// Pure domain logic — no framework dependencies.
 public enum WeeklyLoadAnalyzer {
-
     // MARK: - Types
 
     /// Summary of a single training week.

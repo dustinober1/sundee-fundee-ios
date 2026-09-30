@@ -362,7 +362,7 @@ public class DashboardViewModel: ObservableObject {
                     sortDescriptors: [NSSortDescriptor(key: "date", ascending: false)]
                 )
                 if let weekStart {
-                    workoutsThisWeek = recentWorkouts.filter { $0.completedAt != nil && $0.completedAt! >= weekStart }.count
+                    workoutsThisWeek = recentWorkouts.filter { ($0.completedAt ?? .distantPast) >= weekStart }.count
                 }
             } catch {
                 // CloudKit unavailable — leave at default 0
@@ -531,9 +531,12 @@ public class DashboardViewModel: ObservableObject {
             let weekStart = calendar.dateInterval(of: .weekOfYear, for: now)?.start ?? calendar.startOfDay(for: now)
             let completedWorkoutDays = Set(
                 workouts
-                    .filter { $0.completedAt != nil && $0.completedAt! >= weekStart }
-                    .compactMap { calendar.component(.weekday, from: $0.completedAt!) }
-                    .map { (($0 + 5) % 7) + 1 }
+                    .compactMap { $0.completedAt }
+                    .filter { $0 >= weekStart }
+                    .map { weekday in
+                        let weekday = calendar.component(.weekday, from: weekday)
+                        return ((weekday + 5) % 7) + 1
+                    }
             )
 
             let missedDays = Set(plan.preferredWeekdays.filter { day in

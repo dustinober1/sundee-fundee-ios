@@ -1,5 +1,5 @@
-import SwiftUI
 import os.log
+import SwiftUI
 
 private enum ReadinessRoute: Identifiable {
     case details
@@ -307,7 +307,7 @@ public struct DashboardView: View {
                     .font(AppTheme.Typography.bodyMedium)
                     .foregroundStyle(AppTheme.Text.secondary)
                 if let action {
-                    Button("Try again", action: { HapticFeedback.medium(); action() })
+                    Button("Try again") { HapticFeedback.medium(); action() }
                         .artDecoButton(style: .accent)
                 }
             }
@@ -413,9 +413,8 @@ public struct DashboardView: View {
                         previewWorkout = await viewModel.buildStarterWorkout()
                     }
                 },
-                secondaryActionLabel: "Log a Max",
-                secondaryAction: { viewModel.navigateToLogMax = true }
-            )
+                secondaryActionLabel: "Log a Max"
+            )                { viewModel.navigateToLogMax = true }
         } else {
             Button {
                 showingTodayWhy = true

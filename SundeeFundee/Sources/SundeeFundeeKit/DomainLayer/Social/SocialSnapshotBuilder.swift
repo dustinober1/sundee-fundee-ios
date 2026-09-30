@@ -7,7 +7,6 @@ import Foundation
 /// Ensures strict redaction: only completed workout counts, streak days, and
 /// safe display names are included. No cycle or health data ever crosses this boundary.
 public enum SocialSnapshotBuilder {
-
     public static func build(
         userID: String,
         displayName: String,

@@ -35,7 +35,7 @@ public struct BodyRegions {
         BodyRegion(id: "knee_left", displayName: "Left Knee", engineKey: "knee"),
         BodyRegion(id: "knee_right", displayName: "Right Knee", engineKey: "knee"),
         BodyRegion(id: "ankle_left", displayName: "Left Ankle", engineKey: "ankle"),
-        BodyRegion(id: "ankle_right", displayName: "Right Ankle", engineKey: "ankle"),
+        BodyRegion(id: "ankle_right", displayName: "Right Ankle", engineKey: "ankle")
     ]
 
     private static let regionMap: [String: BodyRegion] = Dictionary(

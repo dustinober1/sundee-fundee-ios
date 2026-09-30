@@ -9,7 +9,7 @@ import SwiftUI
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
 struct SharkWeekBanner: View {
     var terminologyStyle: CycleTerminologyStyle = .casual
-    var onDismiss: (() -> Void)? = nil
+    var onDismiss: (() -> Void)?
 
     @State private var isPulsing = false
 

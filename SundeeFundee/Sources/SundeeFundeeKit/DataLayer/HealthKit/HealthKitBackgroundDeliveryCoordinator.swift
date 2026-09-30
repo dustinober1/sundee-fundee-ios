@@ -10,7 +10,6 @@ import WidgetKit
 /// refreshing the daily readiness snapshot and widget timeline before the user wakes.
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
 public actor HealthKitBackgroundDeliveryCoordinator {
-
     // MARK: - Shared Instance
 
     public static let shared = HealthKitBackgroundDeliveryCoordinator()
@@ -49,7 +48,7 @@ public actor HealthKitBackgroundDeliveryCoordinator {
         let sampleTypes: [HKObjectType] = [
             HKObjectType.quantityType(forIdentifier: .heartRateVariabilitySDNN),
             HKObjectType.quantityType(forIdentifier: .restingHeartRate),
-            HKObjectType.categoryType(forIdentifier: .sleepAnalysis),
+            HKObjectType.categoryType(forIdentifier: .sleepAnalysis)
         ].compactMap { $0 }
 
         for type in sampleTypes {

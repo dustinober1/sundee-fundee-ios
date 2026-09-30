@@ -65,7 +65,6 @@ public struct PodGoalProgress: Sendable, Equatable {
 // MARK: - GroupGoalEvaluator
 
 public enum GroupGoalEvaluator {
-
     public static func evaluate(pod: AccountabilityPod) -> PodGoalProgress {
         let total = pod.totalWorkoutsCompleted
         let target = max(1, pod.weeklyGoal.targetWorkouts)

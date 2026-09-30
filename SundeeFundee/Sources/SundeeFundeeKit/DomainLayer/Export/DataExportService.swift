@@ -8,7 +8,6 @@ import Foundation
 /// service continues with an empty result for that type rather than aborting
 /// the entire export.
 public struct DataExportService: Sendable {
-
     // MARK: - Dependencies
 
     private let dataClient: DataClientProtocol

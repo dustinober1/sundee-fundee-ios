@@ -1,5 +1,5 @@
-import Foundation
 import Combine
+import Foundation
 #if canImport(UIKit) && os(iOS)
 import UIKit
 #endif
@@ -10,7 +10,6 @@ import UserNotifications
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
 @MainActor
 public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
-
     // MARK: - Published State
 
     @Published public private(set) var workout: Workout
@@ -125,7 +124,7 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
             && currentExerciseIndex == 0
             && currentSetIndex == 0
             && completedSets == 0
-            && !workout.exercises.contains(where: { $0.category == .warmup })
+            && !workout.exercises.contains { $0.category == .warmup }
     }
 
     // MARK: - Initialization
@@ -604,7 +603,7 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
         guard index >= 0 && index < workout.exercises.count else { return }
         currentExerciseIndex = index
         let exercise = workout.exercises[index]
-        currentSetIndex = exercise.targetSets.firstIndex(where: { !$0.isComplete }) ?? 0
+        currentSetIndex = exercise.targetSets.firstIndex { !$0.isComplete } ?? 0
         updateLiveActivity()
     }
 
@@ -718,7 +717,7 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
 
         // Save to HealthKit
         do {
-            let hasGrouping = workout.exercises.contains(where: { $0.grouping != nil })
+            let hasGrouping = workout.exercises.contains { $0.grouping != nil }
             let energyEstimate = WorkoutCalorieBurnEstimator.estimateCalories(
                 durationSeconds: elapsedSeconds,
                 completedSetsCount: completedSets,
@@ -800,9 +799,9 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
         let maxRecords: [OneRepMaxRecord] = (try? await dataClient.fetchAll(recordType: "OneRepMaxRecord")) ?? []
         let recentThreshold = Calendar.current.date(byAdding: .day, value: -120, to: Date()) ?? Date.distantPast
         let hasRecentMaxForWorkout = maxRecords.contains { record in
-            loadedExercises.contains(where: {
+            loadedExercises.contains {
                 $0.name.compare(record.exerciseName, options: [.caseInsensitive]) == .orderedSame
-            }) && record.date >= recentThreshold
+            } && record.date >= recentThreshold
         }
         guard !hasRecentMaxForWorkout else { return }
 
@@ -1051,7 +1050,7 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
             )
             let currentMax = records
                 .filter { $0.exerciseName == exerciseName }
-                .max(by: { $0.weight < $1.weight })
+                .max { $0.weight < $1.weight }
 
             let currentMaxInCurrentUnit: Double?
             if let maxRecord = currentMax {

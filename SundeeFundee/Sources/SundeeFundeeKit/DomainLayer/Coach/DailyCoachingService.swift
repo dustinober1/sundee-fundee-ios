@@ -130,7 +130,7 @@ public actor DailyCoachingService {
         let cycleConfidence = context.cycleConfidence
         let loadTrend = insights.trends.first?.type.rawValue
         let hasPlateau = !insights.plateaus.isEmpty || !context.volumePlateaus.isEmpty || !context.progressWarnings.isEmpty
-        let overreaching = insights.trends.contains(where: { $0.type == .overreaching })
+        let overreaching = insights.trends.contains { $0.type == .overreaching }
 
         let status: DailyCoachingStatus
         if let pain = painIntensity, pain >= 8 {

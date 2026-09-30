@@ -11,7 +11,6 @@ import Foundation
 /// plays the chime, and restores background audio immediately with `.notifyOthersOnDeactivation`.
 @MainActor
 public final class AudioRestChimeService: NSObject, @unchecked Sendable {
-
     public static let shared = AudioRestChimeService()
 
     #if canImport(AVFoundation) && !os(watchOS)

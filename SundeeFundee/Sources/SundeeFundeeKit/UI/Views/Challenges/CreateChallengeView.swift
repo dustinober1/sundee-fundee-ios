@@ -19,7 +19,7 @@ struct CreateChallengeView: View {
     @State private var targetVolume = ""
     @State private var exerciseName = ""
     @State private var hasEndDate = false
-    @State private var endDate = Calendar.current.date(byAdding: .month, value: 1, to: Date())!
+    @State private var endDate = Calendar.current.date(byAdding: .month, value: 1, to: Date()) ?? Date()
     @State private var isCreating = false
 
     init(viewModel: ChallengesViewModel, template: ChallengeShareTemplate? = nil) {

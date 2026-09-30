@@ -64,7 +64,6 @@ public struct NextWorkoutSnapshot: Codable, Sendable, Equatable {
 }
 
 public enum SharedSnapshotStore {
-
     public static let suiteName = "group.com.sundeefundee.shared"
 
     private static let cycleKey = "cycleSnapshot.v1"
@@ -101,8 +100,7 @@ public enum SharedSnapshotStore {
 
     public static func writeReadiness(_ snapshot: DailyReadinessSnapshot) {
         guard let defaults else { return }
-        do { defaults.set(try encoder().encode(snapshot), forKey: readinessKey) }
-        catch { snapshotLogger.error("writeReadiness failed: \(error.localizedDescription)") }
+        do { defaults.set(try encoder().encode(snapshot), forKey: readinessKey) } catch { snapshotLogger.error("writeReadiness failed: \(error.localizedDescription)") }
     }
 
     public static func readReadiness() -> DailyReadinessSnapshot? {

@@ -27,18 +27,17 @@ public struct ReturnToLiftingRampRecommendation: Sendable, Equatable {
 /// Pure domain service that computes ramp-back recommendations from pain logs,
 /// injuries, and existing ramp records.
 public enum ReturnToLiftingRampService {
-
     /// Maps body region engine keys to the movement patterns they affect.
     private static let regionPatternMap: [String: [WorkoutMovementPattern]] = [
-        "knee":    [.squat],
-        "back":    [.hinge],
-        "shoulder":[.push],
-        "hip":     [.squat, .hinge],
-        "wrist":   [.push, .pull],
-        "elbow":   [.push, .pull],
-        "ankle":   [.squat, .conditioning],
-        "neck":    [.push, .pull],
-        "chest":   [.push],
+        "knee": [.squat],
+        "back": [.hinge],
+        "shoulder": [.push],
+        "hip": [.squat, .hinge],
+        "wrist": [.push, .pull],
+        "elbow": [.push, .pull],
+        "ankle": [.squat, .conditioning],
+        "neck": [.push, .pull],
+        "chest": [.push]
     ]
 
     // MARK: - Recommendations

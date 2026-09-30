@@ -1,7 +1,7 @@
 #if os(iOS)
+import PhotosUI
 import SwiftUI
 import UIKit
-import PhotosUI
 
 // MARK: - ShareCardSheet
 //

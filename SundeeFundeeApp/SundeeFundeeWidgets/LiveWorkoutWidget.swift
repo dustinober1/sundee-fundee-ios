@@ -1,7 +1,7 @@
 import ActivityKit
+import SundeeFundeeKit
 import SwiftUI
 import WidgetKit
-import SundeeFundeeKit
 
 @main
 struct SundeeFundeeWidgetsBundle: WidgetBundle {

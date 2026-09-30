@@ -359,7 +359,7 @@ private struct ChallengeInviteShareLink: View {
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
 struct JoinChallengeView: View {
     /// Pre-fills the code for deep-link entries and looks it up immediately.
-    var prefilledCode: String? = nil
+    var prefilledCode: String?
     let onTemplateLoaded: (ChallengeShareTemplate) -> Void
     @Environment(\.dismiss) private var dismiss
     @State private var joinCode = ""

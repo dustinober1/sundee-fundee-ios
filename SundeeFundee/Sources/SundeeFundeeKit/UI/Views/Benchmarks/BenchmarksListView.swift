@@ -21,13 +21,12 @@ public struct BenchmarksListView: View {
                         icon: "target",
                         title: "No Benchmarks in This Category",
                         subtitle: "Try selecting a different category above, or pull to refresh.",
-                        actionLabel: "Show All",
-                        action: {
+                        actionLabel: "Show All"
+                    )                        {
                             if let first = BenchmarkCatalog.categories.first {
                                 viewModel.selectCategory(first)
                             }
                         }
-                    )
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     benchmarkList

@@ -10,7 +10,6 @@ import Foundation
 ///
 /// Pure domain logic — no framework dependencies.
 public enum ScheduleReshuffler {
-
     // MARK: - Types
 
     /// Priority level for sessions — determines drop order when capacity is limited.
@@ -179,7 +178,7 @@ public enum ScheduleReshuffler {
         let summary = buildSummary(
             missed: missed,
             rescheduled: rescheduled.filter { session in
-                missed.contains(where: { $0.sessionName == session.sessionName })
+                missed.contains { $0.sessionName == session.sessionName }
             },
             dropped: dropped
         )

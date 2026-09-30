@@ -63,7 +63,7 @@ public struct SharePrivacyOptions: Sendable, Equatable, Codable {
         let selectedDetails = [
             showCycleContext ? "cycle context" : nil,
             showPainContext ? "pain context" : nil,
-            showExactDate ? "an exact date" : nil,
+            showExactDate ? "an exact date" : nil
         ].compactMap { $0 }
         let previewBoundary = "When you use Share, this card preview and a Sundee Fundee caption with an app link are shared."
 

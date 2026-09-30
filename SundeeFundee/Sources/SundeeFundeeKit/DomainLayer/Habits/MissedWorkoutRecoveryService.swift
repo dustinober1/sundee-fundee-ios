@@ -34,7 +34,6 @@ public struct MissedWorkoutRecoveryPlan: Sendable, Equatable {
 ///
 /// Returns `nil` when no recovery is needed (no missed days).
 public enum MissedWorkoutRecoveryService {
-
     /// Produces a recovery plan for missed workout sessions.
     ///
     /// - Parameters:

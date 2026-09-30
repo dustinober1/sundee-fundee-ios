@@ -48,7 +48,7 @@ public enum DeloadDetectionService {
         calendar: Calendar = .current
     ) -> DeloadRecommendation {
         let highPainDays = recentPainLogs
-            .sorted(by: { $0.date > $1.date })
+            .sorted { $0.date > $1.date }
             .prefix(7)
             .filter { $0.intensity >= 7 }
             .count
@@ -142,7 +142,7 @@ public enum DeloadDetectionService {
         }
 
         guard effortLogs.count >= 3 else { return false }
-        let recentThree = effortLogs.sorted(by: { $0.dateCreated > $1.dateCreated }).prefix(3)
+        let recentThree = effortLogs.sorted { $0.dateCreated > $1.dateCreated }.prefix(3)
         let average = Double(recentThree.map(\.rpe).reduce(0, +)) / Double(recentThree.count)
         return average >= 9.0
     }

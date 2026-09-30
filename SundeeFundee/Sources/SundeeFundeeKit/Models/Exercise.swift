@@ -60,6 +60,18 @@ public struct ExerciseSet: Equatable, Codable, Identifiable, Sendable {
         self.actualReps = actualReps
         self.isComplete = isComplete
     }
+
+    /// Weight credited to this set for volume math: the logged completed
+    /// weight when positive, otherwise the prescription when positive,
+    /// otherwise zero (e.g. bodyweight-only work). Single source for the
+    /// volume calculations in `Workout.totalVolume`, `ChallengeEngine`,
+    /// `PlateauDetector`, and `ChartDataAggregator`.
+    public var volumeWeight: Double {
+        if let completed = completedWeight, completed > 0 {
+            return completed
+        }
+        return prescribedWeight > 0 ? prescribedWeight : 0
+    }
 }
 
 // MARK: - Exercise

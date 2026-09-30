@@ -91,7 +91,7 @@ public enum StartingWeightCalibrationService {
         } else {
             let maybeMax = maxRecords
                 .filter { $0.exerciseName.caseInsensitiveCompare(exercise.name) == .orderedSame }
-                .max(by: { $0.date < $1.date })
+                .max { $0.date < $1.date }
 
             if let maybeMax {
                 let reps = exercise.targetSets.first?.reps ?? 5

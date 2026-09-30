@@ -8,7 +8,6 @@ import Foundation
 /// that fit within on-device model context windows. Each field is
 /// optional because not all data may be available for every user.
 public struct CoachContext: Sendable {
-
     // MARK: - User Profile
 
     /// Current cycle phase (nil if cycle tracking is off).
@@ -213,7 +212,7 @@ public actor CoachContextBuilder {
 
         let confidence = CyclePhaseHelper.calculateConfidence(
             periodLogCount: periodLogs.count,
-            lastPeriodStart: periodLogs.sorted(by: { $0.startDate > $1.startDate }).first?.startDate
+            lastPeriodStart: periodLogs.sorted { $0.startDate > $1.startDate }.first?.startDate
         )
         return (status.currentPhase, confidence)
     }

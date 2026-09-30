@@ -62,6 +62,9 @@ enum PresenceLocalDay {
     static func floatingCalendar(from calendar: Calendar) -> Calendar {
         var result = Calendar(identifier: calendar.identifier)
         result.locale = Locale(identifier: "en_US_POSIX")
+        // UTC is the only deterministic choice here, and offset 0 is the one
+        // TimeZone initializer that can never fail.
+        // swiftlint:disable:next force_unwrapping
         result.timeZone = TimeZone(secondsFromGMT: 0)!
         result.firstWeekday = calendar.firstWeekday
         result.minimumDaysInFirstWeek = calendar.minimumDaysInFirstWeek

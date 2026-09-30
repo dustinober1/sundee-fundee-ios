@@ -1,7 +1,7 @@
 import CloudKit
-import SwiftUI
-import SundeeFundeeKit
 import os.log
+import SundeeFundeeKit
+import SwiftUI
 #if canImport(UserNotifications)
 import UserNotifications
 #endif

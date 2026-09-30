@@ -11,7 +11,6 @@ private let localLogger = Logger(subsystem: "com.sundeefundee.app", category: "L
 // work without modification. Data survives app restarts but stays on-device only.
 
 public actor LocalDataClient: @preconcurrency DataClientProtocol {
-
     // MARK: - Properties
 
     private let userDefaults: UserDefaults
@@ -167,4 +166,3 @@ public actor LocalDataClient: @preconcurrency DataClientProtocol {
         userDefaults.set(data, forKey: storageKey(for: recordType))
     }
 }
-

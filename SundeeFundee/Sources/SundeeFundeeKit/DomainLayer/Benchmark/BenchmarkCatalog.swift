@@ -4,7 +4,6 @@ import Foundation
 
 /// Catalog of predefined benchmarks aligned with the current app benchmark catalog.
 public struct BenchmarkCatalog {
-
     /// All predefined benchmarks.
     public static let allBenchmarks: [BenchmarkDefinition] = [
         // MARK: - Sundee Fundee Exclusives
@@ -451,7 +450,7 @@ public struct BenchmarkCatalog {
             equipment: ["parallettes, floor, or rings"],
             timeDomain: "5 sec - 60+ sec",
             coachNotes: "Legs fully straight and parallel to ground. Parallettes are easiest; floor is hardest. Compress your hips and squeeze quads hard. 10s is a solid baseline; 30s is excellent; 60s is elite. Score as a single best hold or total accumulated time."
-        ),
+        )
     ]
 
     /// Get benchmarks by category.
@@ -473,6 +472,6 @@ public struct BenchmarkCatalog {
         BenchmarkCategory.strength.rawValue,
         BenchmarkCategory.endurance.rawValue,
         BenchmarkCategory.gymnastics.rawValue,
-        BenchmarkCategory.generalFitness.rawValue,
+        BenchmarkCategory.generalFitness.rawValue
     ]
 }

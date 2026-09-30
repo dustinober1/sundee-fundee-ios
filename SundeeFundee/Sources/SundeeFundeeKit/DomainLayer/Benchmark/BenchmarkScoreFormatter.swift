@@ -29,4 +29,3 @@ public enum BenchmarkScoreFormatter {
         return string(for: score, scoringType: scoringType)
     }
 }
-

@@ -1,5 +1,5 @@
-import SwiftUI
 import Charts
+import SwiftUI
 
 // MARK: - FrequencyChart
 
@@ -60,7 +60,7 @@ struct FrequencyChart: View {
             }
         }
         .chartYAxis {
-            AxisMarks(values: .automatic(desiredCount: 5)) { value in
+            AxisMarks(values: .automatic(desiredCount: 5)) { _ in
                 AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
                     .foregroundStyle(AppTheme.Accent.gold.opacity(0.2))
                 AxisValueLabel()

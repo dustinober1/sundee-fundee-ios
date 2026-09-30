@@ -5,7 +5,6 @@ import Foundation
 @available(iOS 18.0, watchOS 11.0, *)
 @MainActor
 public final class LiveWorkoutActivityManager: @unchecked Sendable {
-
     private var _activity: Activity<LiveWorkoutActivityAttributes>?
 
     public init() {}

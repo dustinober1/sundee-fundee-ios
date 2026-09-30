@@ -131,7 +131,6 @@ public struct ReadinessDataPoint: Equatable, Sendable, Identifiable {
 /// All methods are static and side-effect free. The ViewModel layer calls these
 /// with data fetched from the persistence store.
 public enum ChartDataAggregator {
-
     // MARK: - Cached Formatters
 
     private static let weekLabelFormatter: DateFormatter = {
@@ -163,7 +162,8 @@ public enum ChartDataAggregator {
                 exerciseName: $0.exerciseName,
                 weight: $0.weight,
                 unit: $0.unit
-            ) }
+            ) 
+            }
             .sorted { $0.date < $1.date }
     }
 
@@ -195,7 +195,10 @@ public enum ChartDataAggregator {
         var weekMap: [Date: (volume: Double, count: Int)] = [:]
 
         for workout in completed {
-            let weekStart = calendar.date(from: calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: workout.completedAt!))!
+            guard let completedAt = workout.completedAt else { continue }
+            let weekStart = calendar.date(
+                from: calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: completedAt)
+            ) ?? calendar.startOfDay(for: completedAt)
             if var existing = weekMap[weekStart] {
                 existing.volume += workout.totalVolume
                 existing.count += 1
@@ -237,7 +240,10 @@ public enum ChartDataAggregator {
         var weekMap: [Date: Int] = [:]
 
         for workout in completed {
-            let weekStart = calendar.date(from: calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: workout.completedAt!))!
+            guard let completedAt = workout.completedAt else { continue }
+            let weekStart = calendar.date(
+                from: calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: completedAt)
+            ) ?? calendar.startOfDay(for: completedAt)
             weekMap[weekStart, default: 0] += 1
         }
 
@@ -279,7 +285,7 @@ public enum ChartDataAggregator {
         var phaseData: [CyclePhase: (volumes: [Double], confidences: [Double])] = [:]
 
         for workout in completed {
-            let workoutDate = workout.completedAt!
+            guard let workoutDate = workout.completedAt else { continue }
             let dayStart = calendar.startOfDay(for: workoutDate)
 
             // Find the first phase whose date range contains this workout

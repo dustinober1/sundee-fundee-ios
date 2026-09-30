@@ -235,7 +235,7 @@ public struct WorkoutRemindersSettingsView: View {
             (5, "Thursday"),
             (6, "Friday"),
             (7, "Saturday"),
-            (1, "Sunday"),
+            (1, "Sunday")
         ]
     }
 }
