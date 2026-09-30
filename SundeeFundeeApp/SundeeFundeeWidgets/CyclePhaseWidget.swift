@@ -11,28 +11,24 @@ struct CyclePhaseEntry: TimelineEntry {
 
 // MARK: - Provider
 
-struct CyclePhaseProvider: TimelineProvider {
-    func placeholder(in context: Context) -> CyclePhaseEntry {
-        CyclePhaseEntry(
-            date: Date(),
-            snapshot: CyclePhaseSnapshot(
-                phaseRaw: "follicular",
-                cycleDay: 7,
-                capturedAt: Date(),
-                isSharkWeek: false
-            )
+enum CyclePhaseProvider {
+    static func make() -> SharedSnapshotProvider<CyclePhaseEntry> {
+        SharedSnapshotProvider(
+            makePlaceholder: {
+                CyclePhaseEntry(
+                    date: Date(),
+                    snapshot: CyclePhaseSnapshot(
+                        phaseRaw: "follicular",
+                        cycleDay: 7,
+                        capturedAt: Date(),
+                        isSharkWeek: false
+                    )
+                )
+            },
+            makeEntry: { date in
+                CyclePhaseEntry(date: date, snapshot: SharedSnapshotStore.readCycle())
+            }
         )
-    }
-
-    func getSnapshot(in context: Context, completion: @escaping (CyclePhaseEntry) -> Void) {
-        completion(CyclePhaseEntry(date: Date(), snapshot: SharedSnapshotStore.readCycle()))
-    }
-
-    func getTimeline(in context: Context, completion: @escaping (Timeline<CyclePhaseEntry>) -> Void) {
-        let now = Date()
-        let entry = CyclePhaseEntry(date: now, snapshot: SharedSnapshotStore.readCycle())
-        let refresh = Calendar.current.date(byAdding: .hour, value: 1, to: now) ?? now.addingTimeInterval(3600)
-        completion(Timeline(entries: [entry], policy: .after(refresh)))
     }
 }
 
@@ -204,7 +200,7 @@ struct CyclePhaseWidget: Widget {
     let kind: String = "CyclePhaseWidget"
 
     var body: some WidgetConfiguration {
-        StaticConfiguration(kind: kind, provider: CyclePhaseProvider()) { entry in
+        StaticConfiguration(kind: kind, provider: CyclePhaseProvider.make()) { entry in
             CyclePhaseWidgetEntryView(entry: entry)
         }
         .configurationDisplayName("Cycle Phase")

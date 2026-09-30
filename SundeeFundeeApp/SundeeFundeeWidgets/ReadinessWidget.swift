@@ -11,30 +11,26 @@ struct ReadinessEntry: TimelineEntry {
 
 // MARK: - Provider
 
-struct ReadinessProvider: TimelineProvider {
-    func placeholder(in context: Context) -> ReadinessEntry {
-        ReadinessEntry(
-            date: Date(),
-            snapshot: DailyReadinessSnapshot(
-                stateRaw: "ready",
-                totalScore: 84,
-                confidenceRaw: "high",
-                modelVersion: "1.0",
-                assessmentDate: Date(),
-                capturedAt: Date()
-            )
+enum ReadinessProvider {
+    static func make() -> SharedSnapshotProvider<ReadinessEntry> {
+        SharedSnapshotProvider(
+            makePlaceholder: {
+                ReadinessEntry(
+                    date: Date(),
+                    snapshot: DailyReadinessSnapshot(
+                        stateRaw: "ready",
+                        totalScore: 84,
+                        confidenceRaw: "high",
+                        modelVersion: "1.0",
+                        assessmentDate: Date(),
+                        capturedAt: Date()
+                    )
+                )
+            },
+            makeEntry: { date in
+                ReadinessEntry(date: date, snapshot: SharedSnapshotStore.readReadiness())
+            }
         )
-    }
-
-    func getSnapshot(in context: Context, completion: @escaping (ReadinessEntry) -> Void) {
-        completion(ReadinessEntry(date: Date(), snapshot: SharedSnapshotStore.readReadiness()))
-    }
-
-    func getTimeline(in context: Context, completion: @escaping (Timeline<ReadinessEntry>) -> Void) {
-        let now = Date()
-        let entry = ReadinessEntry(date: now, snapshot: SharedSnapshotStore.readReadiness())
-        let refresh = Calendar.current.date(byAdding: .hour, value: 1, to: now) ?? now.addingTimeInterval(3600)
-        completion(Timeline(entries: [entry], policy: .after(refresh)))
     }
 }
 
@@ -210,7 +206,7 @@ struct ReadinessWidget: Widget {
     let kind: String = "ReadinessWidget"
 
     var body: some WidgetConfiguration {
-        StaticConfiguration(kind: kind, provider: ReadinessProvider()) { entry in
+        StaticConfiguration(kind: kind, provider: ReadinessProvider.make()) { entry in
             ReadinessWidgetEntryView(entry: entry)
         }
         .configurationDisplayName("Daily Readiness")

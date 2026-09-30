@@ -11,29 +11,25 @@ struct NextWorkoutEntry: TimelineEntry {
 
 // MARK: - Provider
 
-struct NextWorkoutProvider: TimelineProvider {
-    func placeholder(in context: Context) -> NextWorkoutEntry {
-        NextWorkoutEntry(
-            date: Date(),
-            snapshot: NextWorkoutSnapshot(
-                workoutName: "Full Body Strength",
-                recommendationRaw: "train",
-                guidanceDetail: "Primed for high capacity lifting",
-                scheduledDate: Date(),
-                capturedAt: Date()
-            )
+enum NextWorkoutProvider {
+    static func make() -> SharedSnapshotProvider<NextWorkoutEntry> {
+        SharedSnapshotProvider(
+            makePlaceholder: {
+                NextWorkoutEntry(
+                    date: Date(),
+                    snapshot: NextWorkoutSnapshot(
+                        workoutName: "Full Body Strength",
+                        recommendationRaw: "train",
+                        guidanceDetail: "Primed for high capacity lifting",
+                        scheduledDate: Date(),
+                        capturedAt: Date()
+                    )
+                )
+            },
+            makeEntry: { date in
+                NextWorkoutEntry(date: date, snapshot: SharedSnapshotStore.readNextWorkout())
+            }
         )
-    }
-
-    func getSnapshot(in context: Context, completion: @escaping (NextWorkoutEntry) -> Void) {
-        completion(NextWorkoutEntry(date: Date(), snapshot: SharedSnapshotStore.readNextWorkout()))
-    }
-
-    func getTimeline(in context: Context, completion: @escaping (Timeline<NextWorkoutEntry>) -> Void) {
-        let now = Date()
-        let entry = NextWorkoutEntry(date: now, snapshot: SharedSnapshotStore.readNextWorkout())
-        let refresh = Calendar.current.date(byAdding: .hour, value: 1, to: now) ?? now.addingTimeInterval(3600)
-        completion(Timeline(entries: [entry], policy: .after(refresh)))
     }
 }
 
@@ -212,7 +208,7 @@ struct NextWorkoutWidget: Widget {
     let kind: String = "NextWorkoutWidget"
 
     var body: some WidgetConfiguration {
-        StaticConfiguration(kind: kind, provider: NextWorkoutProvider()) { entry in
+        StaticConfiguration(kind: kind, provider: NextWorkoutProvider.make()) { entry in
             NextWorkoutWidgetEntryView(entry: entry)
         }
         .configurationDisplayName("Next Workout")
