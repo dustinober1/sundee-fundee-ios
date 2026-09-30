@@ -199,6 +199,128 @@ public class DashboardViewModel: ObservableObject {
         return QuickWorkoutBuilder.build(request: request).workout
     }
 
+    public func buildActiveProgramWorkout() async -> Workout? {
+        guard let programItem = nextProgramListItem else { return nil }
+        let generated = generateProgram(template: programItem.template, name: programItem.name)
+        let allRecords: [ProgramSessionRecord] = (try? await dataClient.fetchAll(recordType: "ProgramSessionRecord")) ?? []
+        let programRecords = allRecords.filter { $0.programId == programItem.id }
+        let allWorkouts: [Workout] = (try? await dataClient.fetchAll(recordType: "Workout")) ?? []
+        let completedWorkoutIds = Set(allWorkouts.filter(\.isComplete).map(\.id))
+        let completedSessionIds = Set(programRecords.filter { completedWorkoutIds.contains($0.workoutId) }.map(\.sessionId))
+
+        var targetWeek: Int = 1
+        var targetSession: GeneratedProgramSession?
+        for week in generated.weeks {
+            if let session = week.sessions.first(where: { !completedSessionIds.contains($0.sessionId) }) {
+                targetWeek = week.weekNumber
+                targetSession = session
+                break
+            }
+        }
+        guard let session = targetSession else { return nil }
+
+        let cycleMult = aiCyclePhaseMultiplier(cachedCyclePhase)
+        let injuries: [Injury] = (try? await dataClient.fetchAll(recordType: "Injury")) ?? []
+        let recoveryMult = InjuryAdaptationEngine.calculateLoadMultiplier(baseLoad: 1.0, injuries: injuries)
+        let maxRecords: [OneRepMaxRecord] = (try? await dataClient.fetchAll(recordType: "OneRepMaxRecord")) ?? []
+
+        let workoutID = UUID().uuidString
+        let workoutName = "\(programItem.name) — \(session.sessionName)"
+        let workoutDate = Date()
+
+        let workout = makeProgramWorkout(
+            id: workoutID,
+            date: workoutDate,
+            name: workoutName,
+            exercises: session.exercises,
+            maxes: maxRecords,
+            cycleMultiplier: cycleMult,
+            recoveryMultiplier: recoveryMult
+        )
+
+        try? await dataClient.save(workout, recordType: "Workout")
+
+        let sessionRecord = ProgramSessionRecord(
+            id: UUID().uuidString,
+            programId: programItem.id,
+            sessionId: session.sessionId,
+            workoutId: workout.id,
+            week: targetWeek
+        )
+        try? await dataClient.save(sessionRecord, recordType: "ProgramSessionRecord")
+
+        return workout
+    }
+
+    private func makeProgramWorkout(
+        id: String,
+        date: Date,
+        name: String,
+        exercises: [GeneratedProgramExercise],
+        maxes: [OneRepMaxRecord],
+        cycleMultiplier: Double,
+        recoveryMultiplier: Double
+    ) -> Workout {
+        let maxRecords = maxes.map { ExerciseMax(name: $0.exerciseName, weightKg: $0.unit == .kg ? $0.weight : $0.weight / 2.20462) }
+        _ = maxRecords
+        return Workout(
+            id: id,
+            date: date,
+            name: name,
+            exercises: exercises.map { ex in
+                let setCount: Int
+                if case .fixed(let n) = ex.sets { setCount = n } else { setCount = 3 }
+
+                let repCount: Int
+                let setType: ExerciseType
+                switch ex.reps {
+                case .fixed(let n):
+                    repCount = n
+                    setType = .fixed
+                case .amrap:
+                    repCount = 0
+                    setType = .amrap
+                case .range(let lo, let hi):
+                    repCount = lo
+                    setType = .range(min: lo, max: hi)
+                case .text(let t):
+                    repCount = 0
+                    setType = .text(t)
+                }
+
+                var prescribedWeight: Double = 0
+                if !ex.bodyweightOnly,
+                   let userMax = maxes.first(where: { $0.exerciseName.caseInsensitiveCompare(ex.exercise) == .orderedSame }) {
+                    prescribedWeight = calculatePrescribedWeight(
+                        max: userMax.weight,
+                        reps: repCount > 0 ? repCount : 5,
+                        overridePercentage: ex.percent1RM,
+                        cycleMultiplier: cycleMultiplier,
+                        recoveryMultiplier: recoveryMultiplier
+                    )
+                }
+
+                let targetSets = (0..<setCount).map { _ in
+                    ExerciseSet(
+                        reps: repCount,
+                        prescribedWeight: prescribedWeight,
+                        prescribedPercentage: ex.percent1RM,
+                        type: setType
+                    )
+                }
+
+                return Exercise(
+                    id: UUID().uuidString,
+                    name: ex.exercise,
+                    category: ex.bodyweightOnly ? .accessory : (isWeightliftingExercise(ex.exercise) ? .compound : .accessory),
+                    bodyweight: ex.bodyweightOnly ? 1.0 : 0.0,
+                    targetSets: targetSets,
+                    restMinutes: ex.restMinutes
+                )
+            }
+        )
+    }
+
     /// Generates an AI workout based on cycle phase and energy
     public func generateAIWorkout() async {
         isGeneratingWorkout = true
@@ -481,6 +603,8 @@ public class DashboardViewModel: ObservableObject {
             workouts: workouts,
             weeklyPlanProgress: weeklyPlanProgress,
             firstWeekChecklist: checklist,
+            activeProgramName: activeProgramName,
+            nextProgramSessionName: nextWorkout,
             now: now
         )
         todayAction = action
