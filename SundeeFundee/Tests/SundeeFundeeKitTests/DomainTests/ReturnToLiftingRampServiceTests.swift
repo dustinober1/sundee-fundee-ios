@@ -217,7 +217,7 @@ final class ReturnToLiftingRampServiceTests: XCTestCase {
     }
 
     func testAdvanceRamp_UpdatesDateUpdated() {
-        let oldDate = Date().addingTimeInterval(-86400 * 7)
+        let oldDate = makeDate(daysAgo: 7)
         let ramp = makeRamp(
             locationIds: "knee_left",
             movementPattern: .squat,

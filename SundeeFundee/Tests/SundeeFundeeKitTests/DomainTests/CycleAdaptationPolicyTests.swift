@@ -71,7 +71,7 @@ final class CycleAdaptationPolicyTests: XCTestCase {
     }
 
     func testConfidence_MediumForStaleData() {
-        let old = Date().addingTimeInterval(-61 * 86400)
+        let old = makeDate(daysAgo: 61)
         XCTAssertEqual(resolveConfidence(currentPhase: .follicular, lastKnownPhase: nil, periodLogCount: 5, lastPeriodStart: old), .medium)
     }
 
