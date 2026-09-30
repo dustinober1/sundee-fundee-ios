@@ -73,14 +73,21 @@ public enum DeepLinkRouter {
     public static func url(for route: DeepLinkRoute) -> URL {
         switch route {
         case .cycle:
-            return URL(string: "\(scheme)://cycle")!
+            return routeURL("cycle")
         case .todayCheckIn:
-            return URL(string: "\(scheme)://today/check-in")!
+            return routeURL("today/check-in")
         case .readinessDetail:
-            return URL(string: "\(scheme)://today/readiness")!
+            return routeURL("today/readiness")
         case .workout:
-            return URL(string: "\(scheme)://workout")!
+            return routeURL("workout")
         }
+    }
+
+    private static func routeURL(_ path: String) -> URL {
+        // The scheme is a fixed ASCII literal and the paths are constants,
+        // so this parse can never fail.
+        // swiftlint:disable:next force_unwrapping
+        URL(string: "\(scheme)://\(path)")!
     }
 
     /// Extracts a challenge invite code from `sundeefundee://invite/CODE`.
