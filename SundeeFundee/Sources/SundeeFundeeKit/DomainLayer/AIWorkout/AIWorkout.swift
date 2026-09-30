@@ -487,18 +487,19 @@ public func applyWeights(
     exercises: [GeneratedExercise],
     maxes: [ExerciseMax],
     energyMult: Double,
-    cycleMult: Double
+    cycleMult: Double,
+    recoveryMult: Double = 1.0
 ) -> [GeneratedExercise] {
     exercises.map { ex in
         guard !ex.bodyweightOnly else { return ex }
         guard let matched = findMatchingMax(ex.name, maxes: maxes) else { return ex }
 
         let pct = aiDefaultPercentage(reps: ex.reps)
-        let raw = matched.weightKg * pct * energyMult * cycleMult
+        let raw = matched.weightKg * pct * energyMult * cycleMult * recoveryMult
         let rounded = Double(Int(raw / 5.0 + 0.5)) * 5.0
 
         // Store the effective percentage (including multipliers) for display
-        let effectivePct = pct * energyMult * cycleMult
+        let effectivePct = pct * energyMult * cycleMult * recoveryMult
 
         var modified = ex
         modified.weightKg = rounded
