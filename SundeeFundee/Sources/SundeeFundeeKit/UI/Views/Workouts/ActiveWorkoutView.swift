@@ -55,6 +55,7 @@ public struct ActiveWorkoutView: View {
     @State private var showingSessionEffortDialog = false
     @State private var showingCompletionCheckIn = false
     @State private var showingPlateCalculator = false
+    @State private var showingWarmupRamp = false
     @State private var undoBlockedReason: String?
     @State private var equipmentProfiles: [EquipmentProfile] = []
     @FocusState private var isWeightFocused: Bool
@@ -185,6 +186,16 @@ public struct ActiveWorkoutView: View {
         .sheet(isPresented: $showingPlateCalculator) {
             let current = Double(weightInput) ?? (viewModel.currentSet?.prescribedWeight ?? 135)
             PlateCalculatorSheet(initialWeight: current, unit: .lbs)
+        }
+        .sheet(isPresented: $showingWarmupRamp) {
+            let current = Double(weightInput) ?? (viewModel.currentSet?.prescribedWeight ?? 135)
+            let reps = Int(repsInput) ?? (viewModel.currentSet?.prescribedReps ?? 5)
+            WarmupCalculatorSheet(
+                exerciseName: viewModel.currentExercise?.name ?? "Barbell Exercise",
+                workingWeight: current,
+                targetReps: reps,
+                unit: .lbs
+            )
         }
         .confirmationDialog("Convert Equipment", isPresented: $showingEquipmentConversionPicker) {
             ForEach(equipmentProfiles) { profile in
@@ -985,6 +996,20 @@ public struct ActiveWorkoutView: View {
                     .foregroundColor(AppTheme.Accent.gold)
                 }
                 .buttonStyle(.plain)
+
+                if isBarbellExercise(viewModel.currentExercise?.name ?? "") {
+                    Button {
+                        showingWarmupRamp = true
+                    } label: {
+                        HStack(spacing: 3) {
+                            Image(systemName: "flame")
+                            Text("Warmup")
+                        }
+                        .font(AppTheme.Typography.labelSmall)
+                        .foregroundColor(AppTheme.Accent.orange)
+                    }
+                    .buttonStyle(.plain)
+                }
 
                 Spacer()
                 HStack(spacing: AppTheme.Spacing.xs) {
