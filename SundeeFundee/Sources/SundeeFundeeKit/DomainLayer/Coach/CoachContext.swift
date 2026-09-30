@@ -49,6 +49,9 @@ public struct CoachContext: Sendable {
     /// Early warnings for slowing progress.
     public let progressWarnings: [PlateauDetector.RateOfProgressAlert]
 
+    /// Progressive overload recommendations for recent exercises.
+    public let progressiveOverload: [ProgressiveOverloadResult]
+
     // MARK: - Equipment
 
     /// Available equipment.
@@ -69,7 +72,8 @@ public struct CoachContext: Sendable {
         plateaus: [PlateauDetector.PlateauAlert] = [],
         volumePlateaus: [PlateauDetector.PlateauAlert] = [],
         progressWarnings: [PlateauDetector.RateOfProgressAlert] = [],
-        equipment: EquipmentAccess = .fullGym
+        equipment: EquipmentAccess = .fullGym,
+        progressiveOverload: [ProgressiveOverloadResult] = []
     ) {
         self.cyclePhase = cyclePhase
         self.cycleConfidence = cycleConfidence
@@ -84,6 +88,7 @@ public struct CoachContext: Sendable {
         self.volumePlateaus = volumePlateaus
         self.progressWarnings = progressWarnings
         self.equipment = equipment
+        self.progressiveOverload = progressiveOverload
     }
 }
 
@@ -128,6 +133,14 @@ public actor CoachContextBuilder {
         let fullWorkouts = await loadFullWorkouts()
         let volumePlateaus = PlateauDetector.detectVolumePlateaus(from: fullWorkouts)
 
+        let effortLogs: [WorkoutEffortLog] = (try? await dataClient.fetchAll(recordType: "WorkoutEffortLog")) ?? []
+        let overload = ProgressiveOverloadEngine.evaluateAll(
+            workouts: fullWorkouts,
+            effortLogs: effortLogs,
+            unit: WeightUnit(rawValue: userSettings.weightUnit) ?? .lbs,
+            primaryGoal: userSettings.primaryGoal
+        )
+
         return CoachContext(
             cyclePhase: cycle.phase,
             cycleConfidence: cycle.confidence,
@@ -141,7 +154,8 @@ public actor CoachContextBuilder {
             plateaus: plateaus,
             volumePlateaus: volumePlateaus,
             progressWarnings: progressWarnings,
-            equipment: equipment
+            equipment: equipment,
+            progressiveOverload: overload
         )
     }
 
@@ -248,18 +262,18 @@ public actor CoachContextBuilder {
         }
     }
 
-    private func loadSettings() async -> (experienceLevel: String?, primaryGoal: String?) {
+    private func loadSettings() async -> (experienceLevel: String?, primaryGoal: String?, weightUnit: String) {
         do {
             let records = try await dataClient.fetchAll(
                 recordType: "UserSettings"
             ) as [UserSettingsRecord]
             if let s = records.first {
-                return (s.experienceLevel, s.primaryGoal)
+                return (s.experienceLevel, s.primaryGoal, s.weightUnit)
             }
         } catch {
             // Settings unavailable — degrade to nil defaults
         }
-        return (nil, nil)
+        return (nil, nil, "lbs")
     }
 
     private func countThisWeek(_ workouts: [CompletedWorkoutRecord]) -> Int {
