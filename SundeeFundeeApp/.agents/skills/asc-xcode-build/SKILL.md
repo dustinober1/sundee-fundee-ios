@@ -1,6 +1,6 @@
 ---
 name: asc-xcode-build
-description: Build, archive, generate export options, export, upload, and manage Xcode version/build numbers with the current asc xcode helpers before App Store Connect upload or submission. Use when creating an IPA or PKG for upload.
+description: Build, archive, generate export options, export, upload, and manage Xcode version/build numbers with the current asc xcode helpers. Use when creating an IPA or PKG for App Store Connect, TestFlight, or registered-device release testing.
 ---
 
 # Xcode build and export
@@ -35,6 +35,22 @@ asc xcode version edit --next-build-number --app "APP_ID" --platform IOS --outpu
 Version mutations validate the full change before writing and return structured output identifying the configurations and files changed. The editor follows recursive xcconfig includes and preserves unrelated project and xcconfig content. Use `asc builds next-build-number` separately when you only want to inspect the remote-safe value without changing the project.
 
 Version commands read project and xcconfig settings without launching Xcode. When those settings cannot resolve the version values, the default `--xcodebuild-settings-lookup auto` falls back to `xcodebuild -showBuildSettings` and warns on stderr. Use `--xcodebuild-settings-lookup never` in automation that must not launch Xcode implicitly.
+
+## Compile without archiving
+
+Use `asc xcode build` for an ordinary simulator, device, or CI validation build. Provide exactly one project or workspace and a scheme.
+
+```bash
+asc xcode build \
+  --project "App.xcodeproj" \
+  --scheme "App" \
+  --destination "platform=iOS Simulator,name=iPhone 17 Pro Max,OS=27.0" \
+  --no-code-signing \
+  --result-bundle-path ".asc/artifacts/App.xcresult" \
+  --output json
+```
+
+When `--derived-data-path` is omitted, asc uses a stable cache outside the source checkout. The result-bundle destination must not already exist. Xcode logs go to stderr and the structured result goes to stdout.
 
 ## Preferred iOS/tvOS/visionOS build flow
 
@@ -76,6 +92,38 @@ asc xcode export-options generate \
 ```
 
 For manual signing, add `--signing-style manual` and optionally `--team-id "TEAM_ID"`. Existing files require `--overwrite`.
+
+For an IPA installable on registered devices, use Xcode's current
+`release-testing` method. The older `ad-hoc` spelling is deprecated by Xcode and
+is not accepted by `asc`:
+
+```bash
+asc xcode export \
+  --archive-path ".asc/artifacts/App.xcarchive" \
+  --ipa-path ".asc/artifacts/App.ipa" \
+  --method release-testing \
+  --signing-style manual \
+  --team-id "TEAM_ID" \
+  --output json
+```
+
+Generate the release-testing plist separately when it needs review or reuse:
+
+```bash
+asc xcode export-options generate \
+  --archive-path ".asc/artifacts/App.xcarchive" \
+  --method release-testing \
+  --signing-style manual \
+  --team-id "TEAM_ID" \
+  --output-path ".asc/ExportOptions.release-testing.plist" \
+  --output json
+```
+
+`release-testing` always exports locally and cannot be combined with `--wait`.
+An explicit `--export-options` plist cannot be combined with `--method`,
+`--signing-style`, or `--team-id`. For device/profile reconciliation, isolated
+signing, private publication, resumability, and live verification, use the
+`asc-ad-hoc-distribution` skill instead of assembling those stages manually.
 
 To upload directly through Xcode and wait for App Store Connect processing, omit `--export-options` and add `--wait`:
 
@@ -176,6 +224,7 @@ macOS requires ICNS icons with all required sizes. Fix the asset catalog, rebuil
 ## Notes
 
 - Prefer `asc xcode archive` and `asc xcode export` for deterministic local artifacts.
+- The default generated export method remains `app-store-connect`; request `--method release-testing` explicitly for registered-device installs.
 - Use `--overwrite` only when replacing existing local artifacts intentionally.
 - Use `--wait` on upload/publish paths when the next step depends on processed builds.
 - For submission readiness, use `asc-submission-health`.
