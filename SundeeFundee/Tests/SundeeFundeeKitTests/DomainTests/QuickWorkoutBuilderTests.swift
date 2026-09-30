@@ -120,4 +120,53 @@ final class QuickWorkoutBuilderTests: XCTestCase {
         XCTAssertTrue(result.reasons.contains(where: { $0.localizedCaseInsensitiveContains("exceeds") }))
         XCTAssertFalse(result.reasons.contains(where: { $0.localizedCaseInsensitiveContains("built to fit") }))
     }
+
+    func testInjuryContraindicationsFilterExercisesFromPool() {
+        let kneeInjury = Injury(
+            id: "knee-1",
+            locationIds: "knee_left",
+            name: "Left Knee Sprain",
+            recoveryPhase: .rehab,
+            dateCreated: Date(),
+            phaseUpdated: Date()
+        )
+
+        let uninjuredResult = QuickWorkoutBuilder.build(
+            request: QuickWorkoutRequest(
+                timeMinutes: 20,
+                focus: .lowerBody,
+                energyLevel: .medium,
+                equipment: .bodyweightOnly,
+                todayDecisionKind: .modify,
+                painLogs: [],
+                injuries: []
+            )
+        )
+        let uninjuredNames = uninjuredResult.workout.exercises.map(\.name)
+        XCTAssertTrue(uninjuredNames.contains(where: { $0.localizedCaseInsensitiveContains("squat") || $0.localizedCaseInsensitiveContains("lunge") }))
+
+        let injuredResult = QuickWorkoutBuilder.build(
+            request: QuickWorkoutRequest(
+                timeMinutes: 20,
+                focus: .lowerBody,
+                energyLevel: .medium,
+                equipment: .bodyweightOnly,
+                todayDecisionKind: .modify,
+                painLogs: [],
+                injuries: [kneeInjury]
+            )
+        )
+
+        XCTAssertFalse(injuredResult.workout.exercises.isEmpty)
+        for exercise in injuredResult.workout.exercises {
+            XCTAssertFalse(
+                InjuryAdaptationEngine.isContraindicated(
+                    exerciseName: exercise.name,
+                    exerciseCategory: nil,
+                    injuries: [kneeInjury]
+                ),
+                "Expected \(exercise.name) not to be contraindicated for knee injury"
+            )
+        }
+    }
 }
