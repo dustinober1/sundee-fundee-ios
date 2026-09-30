@@ -70,6 +70,8 @@ public struct SettingsView: View {
                         }
                     }
 
+                    Toggle("Audio Rest Chimes", isOn: $viewModel.isRestChimeEnabled)
+
                     #if canImport(UserNotifications)
                     NavigationLink {
                         WorkoutRemindersSettingsView()
@@ -90,6 +92,15 @@ public struct SettingsView: View {
                 .onChange(of: viewModel.experienceLevel) { _, _ in Task { await viewModel.saveSettings() } }
                 .onChange(of: viewModel.defaultEquipment) { _, _ in Task { await viewModel.saveSettings() } }
                 .onChange(of: viewModel.cycleTrackingEnabled) { _, _ in Task { await viewModel.saveSettings() } }
+                .onChange(of: viewModel.isRestChimeEnabled) { _, _ in Task { await viewModel.saveSettings() } }
+                .onChange(of: viewModel.isMenstrualWriteBackEnabled) { _, _ in Task { await viewModel.saveSettings() } }
+
+                Section("Apple Health Sync") {
+                    Toggle("Sync Periods to Apple Health", isOn: $viewModel.isMenstrualWriteBackEnabled)
+                    Text("When enabled, period dates entered in Sundee Fundee are securely saved to Apple Health.")
+                        .font(AppTheme.Typography.bodySmall)
+                        .foregroundColor(AppTheme.Text.secondary)
+                }
 
                 Section("Privacy") {
                     NavigationLink {
@@ -349,9 +360,19 @@ struct UserSettingsRecord: Codable, Sendable {
     let primaryGoal: String
     let defaultEquipmentRaw: String
     let barWeight: Double?
+    let isMenstrualWriteBackEnabled: Bool?
+    let isRestChimeEnabled: Bool?
 
     var defaultEquipment: EquipmentAccess {
         EquipmentAccess(rawValue: defaultEquipmentRaw) ?? .fullGym
+    }
+
+    var isMenstrualWriteBack: Bool {
+        isMenstrualWriteBackEnabled ?? false
+    }
+
+    var isRestChime: Bool {
+        isRestChimeEnabled ?? true
     }
 
     /// The bar weight to use for plate-math display: the user's saved value,
@@ -367,7 +388,9 @@ struct UserSettingsRecord: Codable, Sendable {
         experienceLevel: String,
         primaryGoal: String,
         defaultEquipment: EquipmentAccess = .fullGym,
-        barWeight: Double? = nil
+        barWeight: Double? = nil,
+        isMenstrualWriteBackEnabled: Bool? = false,
+        isRestChimeEnabled: Bool? = true
     ) {
         self.id = "user_settings"
         self.cycleTrackingEnabled = cycleTrackingEnabled
@@ -376,6 +399,8 @@ struct UserSettingsRecord: Codable, Sendable {
         self.primaryGoal = primaryGoal
         self.defaultEquipmentRaw = defaultEquipment.rawValue
         self.barWeight = barWeight
+        self.isMenstrualWriteBackEnabled = isMenstrualWriteBackEnabled
+        self.isRestChimeEnabled = isRestChimeEnabled
     }
 
     // CloudKit stores Bool as Int64. JSONDecoder expects Bool.
@@ -395,6 +420,22 @@ struct UserSettingsRecord: Codable, Sendable {
         defaultEquipmentRaw = EquipmentAccess(rawValue: rawEquipment)?.rawValue
             ?? EquipmentAccess.fullGym.rawValue
         barWeight = try container.decodeIfPresent(Double.self, forKey: .barWeight)
+
+        if let b = try? container.decodeIfPresent(Bool.self, forKey: .isMenstrualWriteBackEnabled) {
+            isMenstrualWriteBackEnabled = b
+        } else if let i = try? container.decodeIfPresent(Int.self, forKey: .isMenstrualWriteBackEnabled) {
+            isMenstrualWriteBackEnabled = (i != 0)
+        } else {
+            isMenstrualWriteBackEnabled = false
+        }
+
+        if let b = try? container.decodeIfPresent(Bool.self, forKey: .isRestChimeEnabled) {
+            isRestChimeEnabled = b
+        } else if let i = try? container.decodeIfPresent(Int.self, forKey: .isRestChimeEnabled) {
+            isRestChimeEnabled = (i != 0)
+        } else {
+            isRestChimeEnabled = true
+        }
     }
 }
 
@@ -410,6 +451,8 @@ class SettingsViewModel: ObservableObject {
     @Published var experienceLevel: ExperienceLevel = .beginner
     @Published var primaryGoal: PrimaryGoal = .strength
     @Published var defaultEquipment: EquipmentAccess = .fullGym
+    @Published var isRestChimeEnabled: Bool = true
+    @Published var isMenstrualWriteBackEnabled: Bool = false
     @Published var equipmentProfiles: [EquipmentProfile] = []
     @Published var isSaving: Bool = false
     @Published var errorMessage: String?
@@ -481,6 +524,8 @@ class SettingsViewModel: ObservableObject {
                 primaryGoal = PrimaryGoal(rawValue: settings.primaryGoal) ?? .strength
                 defaultEquipment = settings.defaultEquipment
                 barWeight = settings.resolvedBarWeight
+                isMenstrualWriteBackEnabled = settings.isMenstrualWriteBack
+                isRestChimeEnabled = settings.isRestChime
             }
             hasLoaded = true
             isLoaded = true
@@ -540,7 +585,9 @@ class SettingsViewModel: ObservableObject {
                 experienceLevel: self.experienceLevel.rawValue,
                 primaryGoal: self.primaryGoal.rawValue,
                 defaultEquipment: self.defaultEquipment,
-                barWeight: self.barWeight
+                barWeight: self.barWeight,
+                isMenstrualWriteBackEnabled: self.isMenstrualWriteBackEnabled,
+                isRestChimeEnabled: self.isRestChimeEnabled
             )
 
             do {
