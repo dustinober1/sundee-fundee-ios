@@ -194,7 +194,7 @@ public struct WarmupProgressionService: Sendable {
         let parts = plates.map { plate in
             let weightString = plate.weight.truncatingRemainder(dividingBy: 1) == 0
                 ? "\(Int(plate.weight))"
-                : String(format: "%.1f", plate.weight)
+                : String(format: "%g", plate.weight)
             if plate.countPerSide > 1 {
                 return "\(plate.countPerSide)×\(weightString)"
             }
