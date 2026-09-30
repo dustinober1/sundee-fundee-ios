@@ -104,7 +104,7 @@ public struct CycleForecastStripView: View {
                 .cornerRadius(AppTheme.CornerRadius.medium)
                 .overlay(
                     RoundedRectangle(cornerRadius: AppTheme.CornerRadius.medium)
-                        .stroke(AppTheme.Border.subtle, lineWidth: 1)
+                        .stroke(AppTheme.Text.secondary.opacity(0.18), lineWidth: 1)
                 )
                 .transition(.opacity)
             }
@@ -118,7 +118,7 @@ public struct CycleForecastStripView: View {
         case .peak:       return AppTheme.Accent.gold
         case .moderate:   return AppTheme.Recovery.green
         case .recovering: return AppTheme.Accent.orange
-        case .steady:     return AppTheme.Accent.navy
+        case .steady:     return AppTheme.Background.navy
         }
     }
 }
@@ -151,7 +151,7 @@ private struct DayPillView: View {
             .cornerRadius(AppTheme.CornerRadius.medium)
             .overlay(
                 RoundedRectangle(cornerRadius: AppTheme.CornerRadius.medium)
-                    .stroke(isSelected ? AppTheme.Accent.gold : AppTheme.Border.subtle, lineWidth: isSelected ? 1.5 : 1)
+                    .stroke(isSelected ? AppTheme.Accent.gold : AppTheme.Text.secondary.opacity(0.18), lineWidth: isSelected ? 1.5 : 1)
             )
         }
         .buttonStyle(.plain)
@@ -165,7 +165,7 @@ private struct DayPillView: View {
         case .peak:       return AppTheme.Accent.gold
         case .moderate:   return AppTheme.Recovery.green
         case .recovering: return AppTheme.Accent.orange
-        case .steady:     return AppTheme.Accent.navy
+        case .steady:     return AppTheme.Background.navy
         }
     }
 }
