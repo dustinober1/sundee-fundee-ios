@@ -1,6 +1,6 @@
 import Foundation
 
-/// Standard plate sizes in lbs
+/// Standard plate sizes in lbs, largest to smallest
 public let standardPlates = [45.0, 35.0, 25.0, 10.0, 5.0, 2.5]
 
 /// Represents a plate weight and how many are needed per side
@@ -14,7 +14,7 @@ public struct Plate: Equatable {
     }
 }
 
-/// Calculates which plates to load on ONE SIDE of a barbell
+/// Calculates which plates to load on ONE SIDE of a barbell, in lbs.
 /// - Parameters:
 ///   - targetWeight: The total target weight in lbs
 ///   - barWeight: The weight of the barbell in lbs (default: 45)
@@ -28,6 +28,7 @@ public func calculatePlates(targetWeight: Double, barWeight: Double = 45) -> [Pl
     let weightPerSide = (targetWeight - barWeight) / 2
     var remaining = weightPerSide
     var plates: [Plate] = []
+    let smallestPlate = standardPlates.last ?? 0
 
     for plateSize in standardPlates {
         let count = Int(remaining / plateSize)
@@ -36,7 +37,7 @@ public func calculatePlates(targetWeight: Double, barWeight: Double = 45) -> [Pl
             remaining -= Double(count) * plateSize
         }
 
-        if remaining < 2.4 { // Less than smallest plate/2
+        if remaining < smallestPlate / 2 { // Less than smallest plate/2
             break
         }
     }

@@ -128,6 +128,27 @@ public struct OnboardingView: View {
 
                 ArtDecoCard {
                     VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
+                        Text("Experience Level")
+                            .font(AppTheme.Typography.headlineMedium)
+                            .foregroundColor(AppTheme.Text.primary)
+
+                        Picker("Experience Level", selection: $viewModel.experienceLevel) {
+                            Text(ExperienceLevel.beginner.displayName).tag(ExperienceLevel.beginner)
+                            Text(ExperienceLevel.intermediate.displayName).tag(ExperienceLevel.intermediate)
+                            Text(ExperienceLevel.advanced.displayName).tag(ExperienceLevel.advanced)
+                        }
+                        #if !os(watchOS)
+                        .pickerStyle(.menu)
+                        #endif
+
+                        Text(viewModel.experienceLevel.shortDescription)
+                            .font(AppTheme.Typography.bodySmall)
+                            .foregroundColor(AppTheme.Text.secondary)
+                    }
+                }
+
+                ArtDecoCard {
+                    VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
                         Text("Weight Unit")
                             .font(AppTheme.Typography.headlineMedium)
                             .foregroundColor(AppTheme.Text.primary)
@@ -307,7 +328,7 @@ public struct OnboardingView: View {
 @MainActor
 class OnboardingViewModel: ObservableObject {
     @Published var currentStep: Int = 0
-    @Published var experienceLevel: ExperienceLevel = .intermediate
+    @Published var experienceLevel: ExperienceLevel = .beginner
     @Published var primaryGoal: PrimaryGoal = .strength
     @Published var weightUnit: WeightUnit = .lbs
     @Published var cycleTrackingEnabled: Bool = false

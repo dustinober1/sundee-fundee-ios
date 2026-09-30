@@ -19,6 +19,7 @@ public class DashboardViewModel: ObservableObject {
     @Published public var prsThisMonth: Int = 0
     @Published public var activeProgramName: String?
     @Published public var nextWorkout: String?
+    @Published var nextProgramListItem: ProgramListItem?
     @Published public var canGenerateAIWorkout: Bool = false
     @Published public var isGeneratingWorkout: Bool = false
     @Published public var recentWins: [String] = []
@@ -225,22 +226,69 @@ public class DashboardViewModel: ObservableObject {
         }
     }
 
-    private func loadProgramInfo() async {
+    public func loadProgramInfo() async {
         do {
             let programs = try await dataClient.fetchAll(
                 recordType: "EnrolledProgramRecord"
             ) as [EnrolledProgramRecord]
 
             let currentProgramIds = Set(ProgramTemplate.allCases.map(\.stableID))
-            if let program = programs.first(where: { $0.isActive && currentProgramIds.contains($0.id) }) {
+            if let program = programs.first(where: { $0.isActive && currentProgramIds.contains($0.id) }),
+               let template = ProgramTemplate(rawValue: program.id) {
                 activeProgramName = program.name
-                nextWorkout = "Day \(programs.count + 1)" // Simplified
+                let generated = generateProgram(template: template, name: program.name)
+                nextWorkout = await Self.nextSessionName(for: program.id, generated: generated, dataClient: dataClient)
+                nextProgramListItem = ProgramListItem(
+                    id: generated.id,
+                    name: program.name,
+                    category: generated.category,
+                    description: generated.description,
+                    durationWeeks: generated.durationWeeks,
+                    sessionsPerWeek: generated.sessionsPerWeek,
+                    difficulty: generated.difficulty,
+                    isEnrolled: true,
+                    template: template,
+                    printablePDFURL: template.printablePDFURL
+                )
             } else {
                 activeProgramName = nil
                 nextWorkout = nil
+                nextProgramListItem = nil
             }
         } catch {
             // CloudKit unavailable — leave program info at defaults
+        }
+    }
+
+    /// Name of the first session in program order that has no completed
+    /// workout yet, mirroring `ProgramDetailViewModel.loadSessionProgress()`.
+    /// Falls back to the first session when progress can't be determined or
+    /// every session is already complete.
+    private static func nextSessionName(
+        for programId: String,
+        generated: GeneratedProgram,
+        dataClient: DataClientProtocol
+    ) async -> String? {
+        let orderedSessions = generated.weeks.flatMap(\.sessions)
+        guard let firstSession = orderedSessions.first else { return nil }
+
+        do {
+            let sessionRecords: [ProgramSessionRecord] = try await dataClient.fetchAll(
+                recordType: "ProgramSessionRecord"
+            )
+            let workouts: [Workout] = try await dataClient.fetchAll(recordType: "Workout")
+            let completedWorkoutIds = Set(workouts.filter(\.isComplete).map(\.id))
+
+            let completedSessionIds = Set(
+                sessionRecords
+                    .filter { $0.programId == programId && completedWorkoutIds.contains($0.workoutId) }
+                    .map(\.sessionId)
+            )
+
+            let nextSession = orderedSessions.first { !completedSessionIds.contains($0.sessionId) }
+            return (nextSession ?? firstSession).sessionName
+        } catch {
+            return firstSession.sessionName
         }
     }
 

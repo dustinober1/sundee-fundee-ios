@@ -330,6 +330,7 @@ DEFINE SCHEMA
         "___modTime"         TIMESTAMP,
         "___modifiedBy"      REFERENCE,
         "___recordID"        REFERENCE QUERYABLE,
+        barWeight            DOUBLE,
         cycleTrackingEnabled INT64 QUERYABLE SORTABLE,
         experienceLevel      STRING QUERYABLE SEARCHABLE SORTABLE,
         primaryGoal          STRING QUERYABLE SEARCHABLE SORTABLE,
@@ -592,6 +593,84 @@ DEFINE SCHEMA
         message         STRING,
         statusRaw       STRING QUERYABLE SEARCHABLE SORTABLE,
         threadID        STRING QUERYABLE SEARCHABLE SORTABLE,
+        GRANT WRITE TO "_creator",
+        GRANT CREATE TO "_icloud",
+        GRANT READ TO "_world"
+    );
+
+    // The four record types below are saved by SocialChallengeService to the
+    // PUBLIC database (databaseScope: .public), not the private database
+    // every other record type in this file uses. Best-effort documentation
+    // only, written from the Swift models and CloudKitClient's encoding
+    // behavior (Date -> ISO8601 string, nested struct -> JSON string) —
+    // not verified against a live CloudKit Dashboard export. Confirm with
+    // the cloudkit-validate skill or CloudKit Dashboard before deploying.
+
+    RECORD TYPE ChallengeInvite (
+        "___createTime"  TIMESTAMP,
+        "___createdBy"   REFERENCE,
+        "___etag"        STRING,
+        "___modTime"     TIMESTAMP,
+        "___modifiedBy"  REFERENCE,
+        "___recordID"    REFERENCE QUERYABLE,
+        createdByUserID  STRING QUERYABLE,
+        dateCreated      STRING QUERYABLE SORTABLE,
+        expiresAt        STRING QUERYABLE,
+        id               STRING,
+        inviteToken      STRING QUERYABLE SEARCHABLE,
+        template         STRING,
+        GRANT WRITE TO "_creator",
+        GRANT CREATE TO "_icloud",
+        GRANT READ TO "_world"
+    );
+
+    RECORD TYPE ChallengeParticipant (
+        "___createTime" TIMESTAMP,
+        "___createdBy"  REFERENCE,
+        "___etag"       STRING,
+        "___modTime"    TIMESTAMP,
+        "___modifiedBy" REFERENCE,
+        "___recordID"   REFERENCE QUERYABLE,
+        dateCreated     STRING QUERYABLE SORTABLE,
+        displayName     STRING,
+        id              STRING,
+        inviteToken     STRING QUERYABLE SEARCHABLE,
+        userID          STRING QUERYABLE,
+        GRANT WRITE TO "_creator",
+        GRANT CREATE TO "_icloud",
+        GRANT READ TO "_world"
+    );
+
+    RECORD TYPE ChallengeReaction (
+        "___createTime" TIMESTAMP,
+        "___createdBy"  REFERENCE,
+        "___etag"       STRING,
+        "___modTime"    TIMESTAMP,
+        "___modifiedBy" REFERENCE,
+        "___recordID"   REFERENCE QUERYABLE,
+        dateCreated     STRING QUERYABLE SORTABLE,
+        id              STRING,
+        inviteToken     STRING QUERYABLE SEARCHABLE,
+        reaction        STRING,
+        userID          STRING QUERYABLE,
+        GRANT WRITE TO "_creator",
+        GRANT CREATE TO "_icloud",
+        GRANT READ TO "_world"
+    );
+
+    RECORD TYPE SocialChallengeProgressSnapshot (
+        "___createTime"       TIMESTAMP,
+        "___createdBy"        REFERENCE,
+        "___etag"             STRING,
+        "___modTime"          TIMESTAMP,
+        "___modifiedBy"       REFERENCE,
+        "___recordID"         REFERENCE QUERYABLE,
+        accumulatedVolumeLbs  DOUBLE,
+        dateCreated           STRING QUERYABLE SORTABLE,
+        id                    STRING,
+        inviteToken           STRING QUERYABLE SEARCHABLE,
+        percentComplete       DOUBLE,
+        userID                STRING QUERYABLE,
         GRANT WRITE TO "_creator",
         GRANT CREATE TO "_icloud",
         GRANT READ TO "_world"

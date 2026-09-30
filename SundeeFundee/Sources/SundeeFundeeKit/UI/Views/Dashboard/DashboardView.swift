@@ -255,6 +255,10 @@ public struct DashboardView: View {
             navigationResetID = UUID()
             showingQuickCheckIn = true
         }
+        .onReceive(NotificationCenter.default.publisher(for: .deepLinkRouteOpened)) { notification in
+            guard let route = notification.object as? DeepLinkRoute, route.opensReadinessDetail else { return }
+            readinessRoute = .details
+        }
     }
 
     @ViewBuilder
@@ -874,8 +878,10 @@ public struct DashboardView: View {
                                 .font(AppTheme.Typography.bodyMedium)
                                 .foregroundColor(AppTheme.Text.primary)
 
-                            NavigationLink("Start This Workout", destination: Text("Workout Detail"))
-                                .artDecoButton(style: .primary)
+                            if let program = viewModel.nextProgramListItem {
+                                NavigationLink("Start This Workout", destination: ProgramDetailView(program: program))
+                                    .artDecoButton(style: .primary)
+                            }
                         } else {
                             Text("No workout scheduled")
                                 .font(AppTheme.Typography.bodySmall)

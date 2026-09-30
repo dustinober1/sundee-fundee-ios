@@ -78,4 +78,26 @@ final class DeepLinkRouterTests: XCTestCase {
         XCTAssertEqual(DeepLinkRouter.inviteCode(for: url), "ABCD1234")
         XCTAssertEqual(DeepLinkRouter.inviteURL(code: "ABCD1234"), url)
     }
+
+    // MARK: - Readiness Detail Route
+
+    func testParsesReadinessDetailRoute() {
+        let route = DeepLinkRouter.route(for: URL(string: "sundeefundee://today/readiness")!)
+
+        XCTAssertEqual(route, .readinessDetail)
+    }
+
+    func testReadinessDetailRouteTargetsTodayAndOpensReadinessDetailOnly() {
+        let route = DeepLinkRouter.route(for: URL(string: "sundeefundee://today/readiness")!)
+
+        XCTAssertEqual(route?.targetTab, .today)
+        XCTAssertTrue(route?.opensReadinessDetail == true)
+        XCTAssertFalse(route?.opensQuickCheckIn == true)
+    }
+
+    func testReadinessDetailRouteURLRoundTrips() {
+        let url = DeepLinkRouter.url(for: .readinessDetail)
+
+        XCTAssertEqual(DeepLinkRouter.route(for: url), .readinessDetail)
+    }
 }

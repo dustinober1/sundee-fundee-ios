@@ -16,7 +16,7 @@ struct ReadinessProvider: TimelineProvider {
         ReadinessEntry(
             date: Date(),
             snapshot: DailyReadinessSnapshot(
-                stateRaw: "primed",
+                stateRaw: "ready",
                 totalScore: 84,
                 confidenceRaw: "high",
                 modelVersion: "1.0",
@@ -57,46 +57,38 @@ struct ReadinessWidgetEntryView: View {
         }
     }
 
-    // MARK: - Families
-
     private var systemSmall: some View {
         VStack(alignment: .leading, spacing: 6) {
-            HStack {
-                Text("Readiness")
-                    .font(.caption)
+            Text("Readiness")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            if let snapshot = entry.snapshot, !isStale(snapshot) {
+                Text("\(snapshot.totalScore)")
+                    .font(.system(size: 32, weight: .bold, design: .rounded))
+                    .foregroundStyle(AppTheme.recoveryColor(for: snapshot.totalScore))
+                Text(stateTitle)
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.primary)
+            } else {
+                Image(systemName: "gauge.with.dots.needle.67percent")
+                    .font(.title2)
                     .foregroundStyle(.secondary)
-                Spacer()
-                Image(systemName: "bolt.heart.fill")
-                    .font(.caption)
-                    .foregroundStyle(stateColor)
+                Text(entry.snapshot == nil ? "No data yet" : "Stale")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
             }
-
-            HStack(alignment: .firstTextBaseline, spacing: 4) {
-                Text(scoreString)
-                    .font(.system(size: 36, weight: .bold, design: .rounded))
-                    .foregroundStyle(stateColor)
-                if entry.snapshot != nil {
-                    Text("/100")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-            }
-
-            Text(stateTitle)
-                .font(.subheadline.bold())
-                .foregroundStyle(.primary)
-
-            Spacer()
 
             Text(freshnessText(capturedAt: entry.snapshot?.capturedAt))
                 .font(.caption2)
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
+            Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
         .padding()
         .containerBackground(for: .widget) { AppTheme.Background.cream }
-        .widgetURL(DeepLinkRouter.url(for: .todayCheckIn))
+        .widgetURL(DeepLinkRouter.url(for: .readinessDetail))
     }
 
     private var accessoryCircular: some View {
@@ -109,7 +101,7 @@ struct ReadinessWidgetEntryView: View {
         .gaugeStyle(.accessoryCircular)
         .tint(stateColor)
         .containerBackground(for: .widget) { Color.clear }
-        .widgetURL(DeepLinkRouter.url(for: .todayCheckIn))
+        .widgetURL(DeepLinkRouter.url(for: .readinessDetail))
     }
 
     private var accessoryInline: some View {
@@ -119,7 +111,7 @@ struct ReadinessWidgetEntryView: View {
             Text("RDY \(scoreString)")
         }
         .containerBackground(for: .widget) { Color.clear }
-        .widgetURL(DeepLinkRouter.url(for: .todayCheckIn))
+        .widgetURL(DeepLinkRouter.url(for: .readinessDetail))
     }
 
     private var accessoryRectangular: some View {
@@ -143,7 +135,7 @@ struct ReadinessWidgetEntryView: View {
                 .lineLimit(1)
         }
         .containerBackground(for: .widget) { Color.clear }
-        .widgetURL(DeepLinkRouter.url(for: .todayCheckIn))
+        .widgetURL(DeepLinkRouter.url(for: .readinessDetail))
     }
 
     // MARK: - Helpers
@@ -154,9 +146,10 @@ struct ReadinessWidgetEntryView: View {
 
     private var stateTitle: String {
         switch entry.snapshot?.stateRaw {
-        case "primed": return "Primed"
-        case "steady": return "Steady"
-        case "recovering": return "Recovering"
+        case "ready", "primed": return "Primed"
+        case "maintain", "steady": return "Steady"
+        case "recover", "recovering": return "Recovering"
+        case "rest": return "Rest"
         default: return "Check In"
         }
     }
@@ -168,11 +161,17 @@ struct ReadinessWidgetEntryView: View {
 
     private var guidanceSummary: String {
         switch entry.snapshot?.stateRaw {
-        case "primed": return "Full capacity for high intensity"
-        case "steady": return "Solid capacity for baseline load"
-        case "recovering": return "Active recovery or rest advised"
+        case "ready", "primed": return "Full capacity for high intensity"
+        case "maintain", "steady": return "Solid capacity for baseline load"
+        case "recover", "recovering": return "Active recovery or rest advised"
+        case "rest": return "Full rest advised today"
         default: return "Open app to assess readiness"
         }
+    }
+
+    private func isStale(_ snapshot: DailyReadinessSnapshot) -> Bool {
+        let hours = Calendar.current.dateComponents([.hour], from: snapshot.capturedAt, to: Date()).hour ?? 0
+        return hours >= 24
     }
 
     private func freshnessText(capturedAt: Date?) -> String {
