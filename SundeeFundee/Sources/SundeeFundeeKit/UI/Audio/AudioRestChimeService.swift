@@ -73,9 +73,9 @@ public final class AudioRestChimeService: NSObject, @unchecked Sendable {
 
         // "fmt " chunk
         data.append(contentsOf: "fmt ".utf8)
-        var subchunk1Size: Int32 = 16.littleEndian
+        var subchunk1Size: Int32 = Int32(16).littleEndian
         data.append(Data(bytes: &subchunk1Size, count: 4))
-        var audioFormat: Int16 = 1.littleEndian // PCM
+        var audioFormat: Int16 = Int16(1).littleEndian // PCM
         data.append(Data(bytes: &audioFormat, count: 2))
         var channels = numChannels.littleEndian
         data.append(Data(bytes: &channels, count: 2))
