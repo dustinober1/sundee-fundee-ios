@@ -403,6 +403,10 @@ public struct ExerciseMax: Sendable {
 // MARK: - Extract Muscle Groups
 
 /// Extract targeted muscle groups from exercise names
+// A flat movement-pattern-to-muscles mapping with per-name overrides; a
+// table-driven rewrite is possible but the switch mirrors the catalog
+// structure reviewers reason about.
+// swiftlint:disable:next cyclomatic_complexity
 public func extractMuscleGroups(_ exercises: [GeneratedExercise]) -> [String] {
     var groups = Set<String>()
     for ex in exercises {

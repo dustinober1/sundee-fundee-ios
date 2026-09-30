@@ -404,6 +404,9 @@ public enum SubstitutionRanker {
     ///   - profile: Optional coach profile for user history preferences.
     ///   - limit: Maximum number of results (default 5).
     /// - Returns: Ranked substitutions, best first.
+    // Scoring pipeline with one guarded scoring factor per dimension
+    // (injury, equipment, profile); branches track scoring factors.
+    // swiftlint:disable:next cyclomatic_complexity
     public static func rank(
         substitutesFor target: String,
         injuries: [Injury] = [],

@@ -219,6 +219,10 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
     ///    changeTag is stale (another device updated the server copy). We use the
     ///    server's current CKRecord attached to the error's userInfo, overlay our
     ///    field values, and retry. This is the multi-device "oplock" fix.
+    // The duplicate-record and serverRecordChanged recovery paths add the
+    // branches; splitting them out would separate the retry loop from the
+    // error classification it exists to feed.
+    // swiftlint:disable:next cyclomatic_complexity
     public func save<T>(
         _ records: [T],
         recordType: String
@@ -407,6 +411,8 @@ public final class CloudKitClient: DataClientProtocol, @unchecked Sendable {
     /// are especially prone to stale changeTags (the server has moved on while we
     /// were offline), so this path handles `serverRecordChanged` the same way
     /// `save()` does.
+    // Mirror of save()'s conflict-recovery branching; see the justification there.
+    // swiftlint:disable:next cyclomatic_complexity
     public func saveFromJSON(
         _ jsonRecords: [Data],
         recordType: String

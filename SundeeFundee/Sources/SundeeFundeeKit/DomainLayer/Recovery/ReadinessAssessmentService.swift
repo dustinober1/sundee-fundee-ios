@@ -100,6 +100,9 @@ extension ReadinessAssessmentService {
         context.pain.map { [(.pain, $0.observedAt)] } ?? []
     }
 
+    // One independent threshold check per readiness signal; the branch count
+    // tracks the signal count, not control-flow complexity.
+    // swiftlint:disable:next cyclomatic_complexity
     private static func reasonCodes(_ context: DailyTrainingContext) -> (positive: [ReadinessReasonCode], caution: [ReadinessReasonCode]) {
         var positive: [ReadinessReasonCode] = [], caution: [ReadinessReasonCode] = []
         if let sleep = context.physiological.sleepHours { let score = ReadinessBaselineNormalizer.sleepScore(hours: sleep.currentValue, history: sleep.baselineValues); if score >= 75 { positive.append(.goodSleep) }; if score < 60 { caution.append(.sleepBelowBaseline) } }

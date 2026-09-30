@@ -68,6 +68,13 @@ excluded:
   - SundeeFundee/Tests/
 
 # Configurable rules
+cyclomatic_complexity:
+  # Domain scoring logic (readiness signals, substitution ranking, CloudKit
+  # conflict retry) legitimately runs 11-15 branches; the default 10 makes
+  # every scoring function warn. Functions above 15 carry a inline
+  # swiftlint:disable with a justification.
+  warning: 15
+
 identifier_name:
   min_length:
     warning: 2

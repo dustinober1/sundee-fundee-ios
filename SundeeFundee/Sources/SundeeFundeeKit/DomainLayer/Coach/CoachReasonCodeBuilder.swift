@@ -1,6 +1,9 @@
 import Foundation
 
 public enum CoachReasonCodeBuilder {
+    // One emission rule per coaching dimension; the branch count tracks
+    // the reason-code catalog, not nested control flow.
+    // swiftlint:disable:next cyclomatic_complexity
     public static func codes(
         context: CoachContext,
         preferences: QuestionnaireAnswers,
