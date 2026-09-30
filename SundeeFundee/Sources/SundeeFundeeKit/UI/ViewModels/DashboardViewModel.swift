@@ -200,8 +200,9 @@ public class DashboardViewModel: ObservableObject {
     }
 
     public func buildActiveProgramWorkout() async -> Workout? {
-        guard let programItem = nextProgramListItem else { return nil }
-        let generated = generateProgram(template: programItem.template, name: programItem.name)
+        guard let programItem = nextProgramListItem,
+              let template = programItem.template else { return nil }
+        let generated = generateProgram(template: template, name: programItem.name)
         let allRecords: [ProgramSessionRecord] = (try? await dataClient.fetchAll(recordType: "ProgramSessionRecord")) ?? []
         let programRecords = allRecords.filter { $0.programId == programItem.id }
         let allWorkouts: [Workout] = (try? await dataClient.fetchAll(recordType: "Workout")) ?? []
@@ -212,7 +213,7 @@ public class DashboardViewModel: ObservableObject {
         var targetSession: GeneratedProgramSession?
         for week in generated.weeks {
             if let session = week.sessions.first(where: { !completedSessionIds.contains($0.sessionId) }) {
-                targetWeek = week.weekNumber
+                targetWeek = week.week
                 targetSession = session
                 break
             }
