@@ -42,6 +42,7 @@ public struct ActiveWorkoutView: View {
     @State private var showingWorkoutShare = false
     @State private var showingWorkoutDetails = false
     @State private var showingWorkoutOptionsDialog = false
+    @State private var showingAddExerciseSheet = false
     @State private var pendingSwap: SubstitutionRanker.RankedSubstitution?
     @State private var showingStationTakenPicker = false
     @State private var showingStationTakenSwapSheet = false
@@ -168,6 +169,11 @@ public struct ActiveWorkoutView: View {
         .sheet(isPresented: $showingWarmupRamp) {
             warmupRampSheetView
         }
+        .sheet(isPresented: $showingAddExerciseSheet) {
+            ExercisePickerView { selectedNames in
+                viewModel.addExercises(selectedNames)
+            }
+        }
         .confirmationDialog("Convert Equipment", isPresented: $showingEquipmentConversionPicker) {
             ForEach(equipmentProfiles) { profile in
                 Button("\(profile.name) - \(profile.equipment.displayName)") {
@@ -198,6 +204,10 @@ public struct ActiveWorkoutView: View {
 
             Button("Swap Exercise") {
                 showingSwapSheet = true
+            }
+
+            Button("Add Exercise") {
+                showingAddExerciseSheet = true
             }
 
             Button("Station Taken") {
@@ -554,6 +564,15 @@ public struct ActiveWorkoutView: View {
                 showingSwapSheet = true
             } label: {
                 Label("Swap", systemImage: "arrow.triangle.2.circlepath")
+                    .font(AppTheme.Typography.labelSmall)
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(ArtDecoButtonStyle(style: .secondary))
+
+            Button {
+                showingAddExerciseSheet = true
+            } label: {
+                Label("Add", systemImage: "plus")
                     .font(AppTheme.Typography.labelSmall)
                     .frame(maxWidth: .infinity)
             }
