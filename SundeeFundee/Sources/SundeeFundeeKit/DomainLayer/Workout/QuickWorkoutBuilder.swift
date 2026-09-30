@@ -8,6 +8,7 @@ public struct QuickWorkoutRequest: Sendable, Equatable {
     public let todayDecisionKind: TodayTrainingDecisionKind
     public let painLogs: [DailyPainLog]
     public let workoutKind: WorkoutKind
+    public let exerciseMaxes: [ExerciseMax]
 
     public init(
         timeMinutes: Int,
@@ -16,7 +17,8 @@ public struct QuickWorkoutRequest: Sendable, Equatable {
         equipment: EquipmentAccess,
         todayDecisionKind: TodayTrainingDecisionKind,
         painLogs: [DailyPainLog],
-        workoutKind: WorkoutKind = .standard
+        workoutKind: WorkoutKind = .standard,
+        exerciseMaxes: [ExerciseMax] = []
     ) {
         self.timeMinutes = timeMinutes
         self.focus = focus
@@ -25,6 +27,7 @@ public struct QuickWorkoutRequest: Sendable, Equatable {
         self.todayDecisionKind = todayDecisionKind
         self.painLogs = painLogs
         self.workoutKind = workoutKind
+        self.exerciseMaxes = exerciseMaxes
     }
 
     public static func == (lhs: QuickWorkoutRequest, rhs: QuickWorkoutRequest) -> Bool {
@@ -35,6 +38,7 @@ public struct QuickWorkoutRequest: Sendable, Equatable {
             && lhs.todayDecisionKind == rhs.todayDecisionKind
             && lhs.painLogs.quickWorkoutComparableValue == rhs.painLogs.quickWorkoutComparableValue
             && lhs.workoutKind == rhs.workoutKind
+            && lhs.exerciseMaxes.count == rhs.exerciseMaxes.count
     }
 }
 
@@ -93,7 +97,7 @@ public enum QuickWorkoutBuilder {
             lowRecovery: lowRecovery,
             painAvoidanceApplied: painAvoidanceApplied
         )
-        let exercises = plans.map(makeExercise)
+        let exercises = plans.map { makeExercise(from: $0, maxes: request.exerciseMaxes, energyLevel: request.energyLevel) }
 
         return QuickWorkoutResult(
             workout: Workout(
@@ -275,16 +279,30 @@ public enum QuickWorkoutBuilder {
         return Int(ceil(total))
     }
 
-    private static func makeExercise(from plan: QuickExercisePlan) -> Exercise {
-        Exercise(
+    private static func makeExercise(
+        from plan: QuickExercisePlan,
+        maxes: [ExerciseMax],
+        energyLevel: EnergyLevel
+    ) -> Exercise {
+        let repCount = reps(for: plan.candidate.pattern)
+        let weight: Double
+        if !plan.candidate.bodyweightOnly,
+           let matched = maxes.first(where: { $0.name.caseInsensitiveCompare(plan.candidate.name) == .orderedSame }) {
+            let pct = defaultPercentage(reps: repCount)
+            let eMult = energyMultiplier(energyLevel)
+            weight = roundToNearest(matched.weightKg * pct * eMult, increment: 5)
+        } else {
+            weight = 0
+        }
+        return Exercise(
             id: UUID().uuidString,
             name: plan.candidate.name,
             category: category(for: plan.candidate.pattern),
             bodyweight: plan.candidate.bodyweightOnly ? 1.0 : 0.0,
             targetSets: (0..<plan.sets).map { _ in
                 ExerciseSet(
-                    reps: reps(for: plan.candidate.pattern),
-                    prescribedWeight: 0,
+                    reps: repCount,
+                    prescribedWeight: weight,
                     type: .fixed
                 )
             },
