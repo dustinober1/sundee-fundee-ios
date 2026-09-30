@@ -77,6 +77,12 @@ public final class MockHealthKitClient: HealthClientProtocol, @unchecked Sendabl
     /// Use this in tests to verify that a workout save was attempted.
     public private(set) var saveWorkoutCallCount: Int = 0
 
+    /// Number of times `saveMenstrualFlow` has been called successfully.
+    public private(set) var saveMenstrualFlowCallCount: Int = 0
+
+    /// Types for which background delivery was enabled.
+    public private(set) var enabledBackgroundDeliveryTypes: [HKObjectType] = []
+
     // MARK: - Initialization
 
     /// Creates a new MockHealthKitClient with empty storage.
@@ -428,6 +434,52 @@ public final class MockHealthKitClient: HealthClientProtocol, @unchecked Sendabl
         }
     }
 
+    /// Saves a mock menstrual flow log.
+    public func saveMenstrualFlow(
+        startDate: Date,
+        endDate: Date?,
+        flow: HKCategoryValueMenstrualFlow,
+        isStartOfCycle: Bool
+    ) async throws {
+        guard isAvailable else {
+            throw HealthError.notAvailable
+        }
+
+        guard !shouldFailQueries else {
+            throw HealthError.queryFailed(underlying: nil)
+        }
+
+        if let sample = Self.createMockMenstrualCycle(
+            startDate: startDate,
+            endDate: endDate ?? startDate,
+            value: flow.rawValue,
+            isStartOfCycle: isStartOfCycle
+        ) {
+            queue.sync {
+                saveMenstrualFlowCallCount += 1
+                mockMenstrualCycles.append(sample)
+            }
+        }
+    }
+
+    /// Enables mock background delivery.
+    public func enableBackgroundDelivery(
+        for sampleType: HKObjectType,
+        frequency: HKUpdateFrequency
+    ) async throws {
+        guard isAvailable else {
+            throw HealthError.notAvailable
+        }
+
+        guard !shouldFailQueries else {
+            throw HealthError.queryFailed(underlying: nil)
+        }
+
+        queue.sync {
+            enabledBackgroundDeliveryTypes.append(sampleType)
+        }
+    }
+
     public func requestStandardAuthorization() async throws {
         guard isAvailable else {
             throw HealthError.notAvailable
@@ -454,6 +506,8 @@ public final class MockHealthKitClient: HealthClientProtocol, @unchecked Sendabl
             mockWristTemperatures.removeAll()
             mockOvulationTestResults.removeAll()
             saveWorkoutCallCount = 0
+            saveMenstrualFlowCallCount = 0
+            enabledBackgroundDeliveryTypes.removeAll()
             isAvailable = true
             authorizationGranted = true
             shouldFailQueries = false
