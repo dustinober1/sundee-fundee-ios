@@ -35,6 +35,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- Internal quality pass across the codebase: the domain layer is now
+  Foundation-only (CloudKit, OSLog, and UserNotifications moved out to the
+  data layer), force unwraps were eliminated outside screenshot seeding, the
+  three snapshot widgets share one timeline provider, and SwiftLint runs
+  clean of mechanical warnings. No user-facing behavior change.
 - App Store screenshots now lead with benefit headlines (cycle-aware lifting,
   adaptive Coach Plans, progress) instead of raw screens, and the first three
   slots now show Today, Coach Plan, and Progress. Headlines appear only in
