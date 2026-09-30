@@ -347,7 +347,7 @@ private struct ChallengeInviteShareLink: View {
     private func prepareInvite() async {
         let service = ChallengeInviteService()
         let template = await service.template(from: challenge)
-        if let invite = try? await SocialChallengeService().createInvite(template: template, userID: nil) {
+        if let invite = try? await SocialChallengeService(publicClient: DataClientFactory.publicChallengeClient()).createInvite(template: template, userID: nil) {
             shareText = await service.inviteText(template: template, inviteToken: invite.inviteToken)
         } else {
             let fallbackToken = await service.makeInviteToken()
@@ -418,7 +418,7 @@ struct JoinChallengeView: View {
 
         let token = joinCode.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
         do {
-            if let invite = try await SocialChallengeService().fetchInvite(token: token) {
+            if let invite = try await SocialChallengeService(publicClient: DataClientFactory.publicChallengeClient()).fetchInvite(token: token) {
                 onTemplateLoaded(invite.template)
                 dismiss()
             } else {
