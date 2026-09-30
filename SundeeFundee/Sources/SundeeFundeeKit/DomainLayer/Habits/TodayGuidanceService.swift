@@ -67,6 +67,8 @@ public enum TodayGuidanceService {
         workouts: [Workout],
         weeklyPlanProgress: WeeklyPlanProgress?,
         firstWeekChecklist: [FirstWeekChecklistItem],
+        activeProgramName: String? = nil,
+        nextProgramSessionName: String? = nil,
         now: Date = Date()
     ) -> TodayAction {
         if let workout = mostRecentIncompleteWorkout(in: workouts, now: now) {
@@ -75,6 +77,15 @@ public enum TodayGuidanceService {
                 title: "Resume \(workout.name)",
                 subtitle: "Pick up where you left off and finish this session.",
                 systemImage: "arrow.forward.circle.fill"
+            )
+        }
+
+        if let activeProgramName, let nextProgramSessionName {
+            return TodayAction(
+                kind: .resumeProgramSession,
+                title: "Continue \(activeProgramName)",
+                subtitle: nextProgramSessionName,
+                systemImage: "flame.fill"
             )
         }
 
