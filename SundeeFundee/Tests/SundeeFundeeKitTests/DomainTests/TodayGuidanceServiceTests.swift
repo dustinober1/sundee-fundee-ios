@@ -56,4 +56,22 @@ final class TodayGuidanceServiceTests: XCTestCase {
         XCTAssertEqual(items.first(where: { !$0.isComplete })?.kind, .logMax)
     }
 
+    func testTodayActionPrefersActiveProgramOverWeeklyPlan() {
+        let progress = WeeklyPlanProgress(completed: 0, target: 3, nextWorkoutWeekday: 2)
+        let activeProgramName = "Upper Body Hypertrophy"
+        let nextSessionName = "Day 1: Heavy Bench"
+
+        let action = TodayGuidanceService.primaryAction(
+            workouts: [],
+            weeklyPlanProgress: progress,
+            firstWeekChecklist: [],
+            activeProgramName: activeProgramName,
+            nextProgramSessionName: nextSessionName
+        )
+
+        XCTAssertEqual(action.kind, .resumeProgramSession)
+        XCTAssertEqual(action.title, "Continue \(activeProgramName)")
+        XCTAssertEqual(action.subtitle, nextSessionName)
+    }
 }
+
