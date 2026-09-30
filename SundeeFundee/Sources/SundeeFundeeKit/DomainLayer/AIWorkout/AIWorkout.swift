@@ -406,6 +406,34 @@ public struct ExerciseMax: Sendable {
 public func extractMuscleGroups(_ exercises: [GeneratedExercise]) -> [String] {
     var groups = Set<String>()
     for ex in exercises {
+        if let entry = lookupExerciseCatalogEntry(ex.name) {
+            switch entry.movementPattern {
+            case .squat:
+                groups.insert("Quads")
+                groups.insert("Glutes")
+            case .hinge:
+                groups.insert("Glutes")
+                groups.insert("Hamstrings")
+            case .push:
+                if ex.name.localizedCaseInsensitiveContains("overhead") || ex.name.localizedCaseInsensitiveContains("shoulder") {
+                    groups.insert("Shoulders")
+                } else {
+                    groups.insert("Chest")
+                    groups.insert("Triceps")
+                }
+            case .pull:
+                groups.insert("Back")
+                groups.insert("Biceps")
+            case .core:
+                groups.insert("Core")
+            case .carry:
+                groups.insert("Core")
+                groups.insert("Back")
+            case .conditioning:
+                break
+            }
+        }
+
         let name = ex.name.lowercased()
         if name.contains("squat") || name.contains("lunge") || name.contains("leg press") { groups.insert("Quads") }
         if name.contains("deadlift") || name.contains("hip thrust") || name.contains("glute") { groups.insert("Glutes") }
