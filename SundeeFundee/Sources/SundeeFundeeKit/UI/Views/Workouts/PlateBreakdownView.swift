@@ -1,21 +1,27 @@
 import SwiftUI
 
-/// Shows which plates to load per side for a barbell lift. Pounds only —
-/// the active workout screen's weight entry is unconditionally in pounds
-/// regardless of the user's weight-unit setting, so showing kilogram plate
-/// math against that number would silently mismatch units.
+/// Shows which plates to load per side for a barbell lift.
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
 struct PlateBreakdownView: View {
     let targetWeight: Double
     let barWeight: Double
+    var unit: WeightUnit = .lbs
 
-    private var plates: [Plate] {
-        calculatePlates(targetWeight: targetWeight, barWeight: barWeight)
+    private var availablePlates: [Double] {
+        unit == .kg ? PlateCalculatorService.defaultMetricPlates : PlateCalculatorService.defaultImperialPlates
+    }
+
+    private var calculation: PlateCalculationResult {
+        PlateCalculatorService.calculate(
+            targetWeight: targetWeight,
+            barWeight: barWeight,
+            availablePlates: availablePlates
+        )
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
-            Text("Per Side (\(Int(barWeight)) lb bar)")
+            Text("Per Side (\(Int(barWeight)) \(unit == .kg ? "kg" : "lb") bar)")
                 .font(AppTheme.Typography.labelMedium)
                 .foregroundColor(AppTheme.Text.secondary)
 
@@ -23,27 +29,27 @@ struct PlateBreakdownView: View {
                 Text("Bar only")
                     .font(AppTheme.Typography.bodyMedium)
                     .foregroundColor(AppTheme.Text.primary)
-            } else if plates.isEmpty {
+            } else if calculation.platesPerSide.isEmpty {
                 Text("No combination of standard plates hits this weight exactly")
                     .font(AppTheme.Typography.bodySmall)
                     .foregroundColor(AppTheme.Text.secondary)
             } else {
                 HStack(spacing: AppTheme.Spacing.sm) {
-                    ForEach(plates, id: \.weight) { plate in
-                        plateChip(plate)
+                    ForEach(calculation.platesPerSide, id: \.weight) { plate in
+                        plateChip(weight: plate.weight, count: plate.countPerSide)
                     }
                 }
             }
         }
     }
 
-    private func plateChip(_ plate: Plate) -> some View {
+    private func plateChip(weight: Double, count: Int) -> some View {
         VStack(spacing: 2) {
-            Text(Self.weightLabel(plate.weight))
+            Text(Self.weightLabel(weight))
                 .font(AppTheme.Typography.labelLarge)
                 .foregroundColor(AppTheme.Text.primary)
-            if plate.count > 1 {
-                Text("×\(plate.count)")
+            if count > 1 {
+                Text("×\(count)")
                     .font(AppTheme.Typography.labelSmall)
                     .foregroundColor(AppTheme.Text.secondary)
             }
@@ -53,7 +59,7 @@ struct PlateBreakdownView: View {
         .background(AppTheme.Background.cream.opacity(0.5))
         .cornerRadius(AppTheme.CornerRadius.small)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(plate.count > 1 ? "\(plate.count) times \(Self.weightLabel(plate.weight)) pounds" : "\(Self.weightLabel(plate.weight)) pounds")
+        .accessibilityLabel(count > 1 ? "\(count) times \(Self.weightLabel(weight)) \(unit == .kg ? "kilograms" : "pounds")" : "\(Self.weightLabel(weight)) \(unit == .kg ? "kilograms" : "pounds")")
     }
 
     private static func weightLabel(_ weight: Double) -> String {
