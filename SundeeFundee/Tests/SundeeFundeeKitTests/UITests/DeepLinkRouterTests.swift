@@ -100,4 +100,27 @@ final class DeepLinkRouterTests: XCTestCase {
 
         XCTAssertEqual(DeepLinkRouter.route(for: url), .readinessDetail)
     }
+
+    // MARK: - Workout Route
+
+    func testParsesWorkoutRoute() {
+        let route = DeepLinkRouter.route(for: URL(string: "sundeefundee://workout")!)
+
+        XCTAssertEqual(route, .workout)
+    }
+
+    func testWorkoutRouteTargetsTrainAndOpensWorkoutOnly() {
+        let route = DeepLinkRouter.route(for: URL(string: "sundeefundee://workout")!)
+
+        XCTAssertEqual(route?.targetTab, .train)
+        XCTAssertTrue(route?.opensWorkout == true)
+        XCTAssertFalse(route?.opensQuickCheckIn == true)
+        XCTAssertFalse(route?.opensReadinessDetail == true)
+    }
+
+    func testWorkoutRouteURLRoundTrips() {
+        let url = DeepLinkRouter.url(for: .workout)
+
+        XCTAssertEqual(DeepLinkRouter.route(for: url), .workout)
+    }
 }
