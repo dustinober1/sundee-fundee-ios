@@ -41,6 +41,28 @@ public struct DailyReadinessSnapshot: Codable, Sendable, Equatable {
     }
 }
 
+public struct NextWorkoutSnapshot: Codable, Sendable, Equatable {
+    public let workoutName: String
+    public let recommendationRaw: String
+    public let guidanceDetail: String
+    public let scheduledDate: Date
+    public let capturedAt: Date
+
+    public init(
+        workoutName: String,
+        recommendationRaw: String,
+        guidanceDetail: String,
+        scheduledDate: Date = Date(),
+        capturedAt: Date = Date()
+    ) {
+        self.workoutName = workoutName
+        self.recommendationRaw = recommendationRaw
+        self.guidanceDetail = guidanceDetail
+        self.scheduledDate = scheduledDate
+        self.capturedAt = capturedAt
+    }
+}
+
 public enum SharedSnapshotStore {
 
     public static let suiteName = "group.com.sundeefundee.shared"
@@ -48,6 +70,7 @@ public enum SharedSnapshotStore {
     private static let cycleKey = "cycleSnapshot.v1"
     private static let sharkWeekBannerSuppressedKey = "sharkWeekBannerSuppressed.v1"
     private static let readinessKey = "dailyReadinessSnapshot.v1"
+    private static let nextWorkoutKey = "nextWorkoutSnapshot.v1"
     private static let terminologyStyleKey = "cycleTerminologyStyle.v1"
     private static let gymPrivacyKey = "gymPrivacyEnabled.v1"
     private static let showSharkWeekBannerKey = "showSharkWeekBanner.v1"
@@ -108,12 +131,29 @@ public enum SharedSnapshotStore {
         return try? decoder().decode(ActiveWorkoutState.self, from: data)
     }
 
+    // MARK: - Next Workout
+
+    public static func writeNextWorkout(_ snapshot: NextWorkoutSnapshot) {
+        guard let defaults else { return }
+        do {
+            defaults.set(try encoder().encode(snapshot), forKey: nextWorkoutKey)
+        } catch {
+            snapshotLogger.error("writeNextWorkout failed: \(error.localizedDescription)")
+        }
+    }
+
+    public static func readNextWorkout() -> NextWorkoutSnapshot? {
+        guard let defaults, let data = defaults.data(forKey: nextWorkoutKey) else { return nil }
+        return try? decoder().decode(NextWorkoutSnapshot.self, from: data)
+    }
+
     // MARK: - Test helpers
 
     public static func clear() {
         defaults?.removeObject(forKey: cycleKey)
         defaults?.removeObject(forKey: sharkWeekBannerSuppressedKey)
         defaults?.removeObject(forKey: readinessKey)
+        defaults?.removeObject(forKey: nextWorkoutKey)
         defaults?.removeObject(forKey: terminologyStyleKey)
         defaults?.removeObject(forKey: gymPrivacyKey)
         defaults?.removeObject(forKey: showSharkWeekBannerKey)
