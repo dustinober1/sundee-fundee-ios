@@ -11,6 +11,7 @@ public struct QuickWorkoutRequest: Sendable, Equatable {
     public let exerciseMaxes: [ExerciseMax]
     public let cycleMultiplier: Double
     public let recoveryMultiplier: Double
+    public let injuries: [Injury]
 
     public init(
         timeMinutes: Int,
@@ -22,7 +23,8 @@ public struct QuickWorkoutRequest: Sendable, Equatable {
         workoutKind: WorkoutKind = .standard,
         exerciseMaxes: [ExerciseMax] = [],
         cycleMultiplier: Double = 1.0,
-        recoveryMultiplier: Double = 1.0
+        recoveryMultiplier: Double = 1.0,
+        injuries: [Injury] = []
     ) {
         self.timeMinutes = timeMinutes
         self.focus = focus
@@ -34,6 +36,7 @@ public struct QuickWorkoutRequest: Sendable, Equatable {
         self.exerciseMaxes = exerciseMaxes
         self.cycleMultiplier = cycleMultiplier
         self.recoveryMultiplier = recoveryMultiplier
+        self.injuries = injuries
     }
 
     public static func == (lhs: QuickWorkoutRequest, rhs: QuickWorkoutRequest) -> Bool {
@@ -47,6 +50,7 @@ public struct QuickWorkoutRequest: Sendable, Equatable {
             && lhs.exerciseMaxes.count == rhs.exerciseMaxes.count
             && lhs.cycleMultiplier == rhs.cycleMultiplier
             && lhs.recoveryMultiplier == rhs.recoveryMultiplier
+            && lhs.injuries.count == rhs.injuries.count
     }
 }
 
@@ -131,7 +135,19 @@ public enum QuickWorkoutBuilder {
             equipment: request.equipment,
             energyLevel: request.energyLevel
         )
-        let lowStressPool = lowRecovery ? pool.filter { !isHighStress($0.name) } : pool
+        let injuryFilteredPool: [WorkoutExerciseCandidate]
+        if !request.injuries.isEmpty {
+            injuryFilteredPool = pool.filter { candidate in
+                !InjuryAdaptationEngine.isContraindicated(
+                    exerciseName: candidate.name,
+                    exerciseCategory: nil,
+                    injuries: request.injuries
+                )
+            }
+        } else {
+            injuryFilteredPool = pool
+        }
+        let lowStressPool = lowRecovery ? injuryFilteredPool.filter { !isHighStress($0.name) } : injuryFilteredPool
         let preferred: [WorkoutExerciseCandidate]
         if painFilterIsActive(request.painLogs) {
             let painFilteredPool = filterForPain(lowStressPool, painLogs: request.painLogs)
