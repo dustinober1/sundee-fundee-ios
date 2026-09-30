@@ -51,8 +51,6 @@ public struct ActiveWorkoutView: View {
     @State private var stationTakenSwaps: [SubstitutionRanker.RankedSubstitution] = []
     @State private var showingEquipmentConversionPicker = false
     @State private var selectedSetRPE: Int?
-    @State private var pendingCompletionInput: CompletionInput?
-    @State private var showingSessionEffortDialog = false
     @State private var showingCompletionCheckIn = false
     @State private var showingPlateCalculator = false
     @State private var showingWarmupRamp = false
@@ -241,21 +239,12 @@ public struct ActiveWorkoutView: View {
         } message: {
             Text("Which station is unavailable?")
         }
-        .confirmationDialog("How did the workout feel?", isPresented: $showingSessionEffortDialog) {
-            ForEach(6...10, id: \.self) { rpe in
-                Button("RPE \(rpe)") {
-                    completePendingSet(sessionRPE: rpe)
-                }
-            }
-            Button("Skip", role: .cancel) {
-                completePendingSet(sessionRPE: nil)
-            }
-        } message: {
-            Text("Quick effort check before finishing.")
-        }
         .sheet(isPresented: $showingCompletionCheckIn) {
             WorkoutCompletionCheckInSheet(
-                viewModel: WorkoutCompletionCheckInViewModel(workoutID: viewModel.workout.id)
+                viewModel: WorkoutCompletionCheckInViewModel(
+                    workoutID: viewModel.workout.id,
+                    initialSessionRPE: selectedSetRPE
+                )
             ) {
                 showingCompletionCheckIn = false
             }
@@ -1213,14 +1202,7 @@ public struct ActiveWorkoutView: View {
                 setRPE: selectedSetRPE
             )
 
-            if viewModel.isLastSetOfWorkout,
-               !viewModel.hasLoggedSetEffort,
-               selectedSetRPE == nil {
-                pendingCompletionInput = input
-                showingSessionEffortDialog = true
-            } else {
-                completeSet(input, sessionRPE: nil)
-            }
+            completeSet(input)
         } label: {
             Text("Complete Set")
                 .font(AppTheme.Typography.labelLarge)
@@ -1238,19 +1220,12 @@ public struct ActiveWorkoutView: View {
             viewModel.isCompletingSet
     }
 
-    private func completePendingSet(sessionRPE: Int?) {
-        guard let input = pendingCompletionInput else { return }
-        pendingCompletionInput = nil
-        completeSet(input, sessionRPE: sessionRPE)
-    }
-
-    private func completeSet(_ input: CompletionInput, sessionRPE: Int?) {
+    private func completeSet(_ input: CompletionInput) {
         Task {
             await viewModel.completeSet(
                 actualReps: input.reps,
                 completedWeight: input.weight,
-                setRPE: input.setRPE,
-                sessionRPEForFinish: sessionRPE
+                setRPE: input.setRPE
             )
         }
     }
