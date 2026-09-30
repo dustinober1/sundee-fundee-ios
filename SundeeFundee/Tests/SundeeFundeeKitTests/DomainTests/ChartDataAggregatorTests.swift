@@ -6,10 +6,6 @@ import Foundation
 
 private let calendar = Calendar.current
 
-private func makeDate(year: Int, month: Int, day: Int) -> Date {
-    calendar.date(from: DateComponents(year: year, month: month, day: day, hour: 12))!
-}
-
 private func makeWorkout(
     date: Date,
     completedAt: Date? = nil,
