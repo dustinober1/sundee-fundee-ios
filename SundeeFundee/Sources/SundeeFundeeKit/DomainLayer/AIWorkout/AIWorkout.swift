@@ -423,14 +423,10 @@ public func extractMuscleGroups(_ exercises: [GeneratedExercise]) -> [String] {
 
 // MARK: - Default Percentage
 
-/// Map rep count string to default %1RM
+/// Map rep count string to default %1RM by delegating to canonical defaultPercentage(reps:)
 public func aiDefaultPercentage(reps: String) -> Double {
     let repCount = Int(reps.split(separator: "-").first ?? "") ?? 10
-    if repCount >= 1 && repCount <= 3 { return 0.85 }
-    if repCount >= 4 && repCount <= 5 { return 0.80 }
-    if repCount >= 6 && repCount <= 8 { return 0.70 }
-    if repCount >= 9 && repCount <= 12 { return 0.65 }
-    return 0.60
+    return defaultPercentage(reps: repCount)
 }
 
 // MARK: - Assign Rest Minutes
