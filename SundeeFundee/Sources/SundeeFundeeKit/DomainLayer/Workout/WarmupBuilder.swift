@@ -82,6 +82,16 @@ public enum WarmupBuilder {
     }
 
     private static func movementPattern(for exercise: Exercise) -> WarmupMovementPattern {
+        if let entry = lookupExerciseCatalogEntry(exercise.name) {
+            switch entry.movementPattern {
+            case .squat: return .squat
+            case .hinge: return .hinge
+            case .push: return .press
+            case .pull: return .pull
+            case .carry, .core, .conditioning: break
+            }
+        }
+
         let name = exercise.name.lowercased()
         if name.contains("squat") || name.contains("thruster") || name.contains("wall ball") {
             return .squat
