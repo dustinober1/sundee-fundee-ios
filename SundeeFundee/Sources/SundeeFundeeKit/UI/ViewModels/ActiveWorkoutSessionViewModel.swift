@@ -465,6 +465,133 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
         }
     }
 
+    /// Adds exercises to the active workout session mid-workout.
+    /// New exercises are appended to the workout or inserted after current.
+    public func addExercises(
+        _ names: [String],
+        category customCategory: ExerciseCategory? = nil,
+        setsCount: Int = 3,
+        reps: Int? = nil,
+        weight: Double? = nil,
+        insertAfterCurrent: Bool = false
+    ) {
+        guard !names.isEmpty else { return }
+        var updated = workout
+        var insertIndex = currentExerciseIndex + 1
+
+        for name in names {
+            let catalogEntry = lookupExerciseCatalogEntry(name)
+            let category: ExerciseCategory
+            let isBodyweight: Bool
+            let isIso = Self.isIsolationMovement(name)
+
+            if let customCategory {
+                category = customCategory
+                isBodyweight = catalogEntry?.bodyweightOnly ?? false
+            } else if isIso {
+                category = .isolation
+                isBodyweight = catalogEntry?.bodyweightOnly ?? false
+            } else if let entry = catalogEntry {
+                isBodyweight = entry.bodyweightOnly
+                switch entry.categoryLabel {
+                case "Squat", "Hip Hinge", "Press", "Pull", "Olympic Weightlifting":
+                    category = .compound
+                case "Core", "Carry":
+                    category = .accessory
+                default:
+                    category = .isolation
+                }
+            } else {
+                category = .compound
+                isBodyweight = false
+            }
+
+            let targetReps = reps ?? (category == .compound ? 8 : 10)
+            let prescribedWeight: Double
+            if let weight {
+                prescribedWeight = weight
+            } else if isBodyweight {
+                prescribedWeight = 0
+            } else {
+                let starter = StartingWeightCalibrationService.defaultStarterWeight(
+                    for: .intermediate,
+                    category: category
+                )
+                prescribedWeight = weightUnit == .kg ? (starter * 0.45359237).rounded() : starter
+            }
+
+            let sets = (0..<max(1, setsCount)).map { _ in
+                ExerciseSet(
+                    id: UUID().uuidString,
+                    reps: targetReps,
+                    prescribedWeight: prescribedWeight,
+                    type: .fixed,
+                    completedWeight: nil,
+                    actualReps: nil,
+                    isComplete: false
+                )
+            }
+
+            let restMinutes: Double = category == .compound ? 2.0 : 1.5
+            let newExercise = Exercise(
+                id: UUID().uuidString,
+                name: name,
+                category: category,
+                bodyweight: isBodyweight ? 1.0 : 0.0,
+                targetSets: sets,
+                notes: nil,
+                restMinutes: restMinutes
+            )
+
+            if insertAfterCurrent && insertIndex <= updated.exercises.count {
+                updated.exercises.insert(newExercise, at: insertIndex)
+                insertIndex += 1
+            } else {
+                updated.exercises.append(newExercise)
+            }
+        }
+
+        workout = updated
+        if isComplete {
+            isComplete = false
+        }
+        updateLiveActivity()
+    }
+
+    /// Adds a single exercise to the active workout session mid-workout.
+    public func addExercise(
+        name: String,
+        category: ExerciseCategory? = nil,
+        setsCount: Int = 3,
+        reps: Int? = nil,
+        weight: Double? = nil,
+        insertAfterCurrent: Bool = false
+    ) {
+        addExercises(
+            [name],
+            category: category,
+            setsCount: setsCount,
+            reps: reps,
+            weight: weight,
+            insertAfterCurrent: insertAfterCurrent
+        )
+    }
+
+    private static func isIsolationMovement(_ name: String) -> Bool {
+        let lower = name.lowercased()
+        return lower.contains("curl")
+            || lower.contains("extension")
+            || lower.contains("lateral raise")
+            || lower.contains("raise")
+            || lower.contains("fly")
+            || lower.contains("flye")
+            || lower.contains("pushdown")
+            || lower.contains("calf")
+            || lower.contains("calves")
+            || lower.contains("shrug")
+            || lower.contains("kickback")
+    }
+
     public func stationTakenSwaps(
         blockedStation: BlockedStationKind,
         painLogs: [DailyPainLog]
