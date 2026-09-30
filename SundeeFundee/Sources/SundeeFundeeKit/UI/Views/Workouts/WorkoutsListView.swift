@@ -26,8 +26,14 @@ public struct WorkoutsListView: View {
                 }
             }
             .safeAreaInset(edge: .top, spacing: 0) {
-                bestNextEntry
+                VStack(spacing: 0) {
+                    bestNextEntry
+                    if !viewModel.workouts.isEmpty {
+                        filterChipBar
+                    }
+                }
             }
+            .searchable(text: $viewModel.searchText, prompt: "Search workouts or exercises")
             .navigationTitle("Workouts")
             #if os(iOS)
             .navigationBarTitleDisplayMode(.large)
@@ -129,6 +135,43 @@ public struct WorkoutsListView: View {
         }
     }
 
+    private var filterChipBar: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: AppTheme.Spacing.sm) {
+                ForEach(WorkoutHistoryFilter.allCases) { filter in
+                    filterChipButton(for: filter)
+                }
+            }
+            .padding(.horizontal, AppTheme.Spacing.lg)
+            .padding(.vertical, AppTheme.Spacing.xs)
+        }
+        .background(AppTheme.Background.cream)
+    }
+
+    private func filterChipButton(for filter: WorkoutHistoryFilter) -> some View {
+        let isSelected = viewModel.selectedFilter == filter
+        return Button {
+            viewModel.selectedFilter = filter
+        } label: {
+            Text(filter.rawValue)
+                .font(AppTheme.Typography.labelMedium)
+                .padding(.horizontal, AppTheme.Spacing.md)
+                .padding(.vertical, 6)
+                .background(isSelected ? AppTheme.Accent.orange : AppTheme.Background.cream.opacity(0.8))
+                .foregroundColor(isSelected ? AppTheme.Background.cream : AppTheme.Text.secondary)
+                .cornerRadius(AppTheme.CornerRadius.small)
+                .overlay(
+                    RoundedRectangle(cornerRadius: AppTheme.CornerRadius.small)
+                        .stroke(
+                            isSelected ? AppTheme.Accent.orange : AppTheme.Text.secondary.opacity(0.2),
+                            lineWidth: 1
+                        )
+                )
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("\(filter.rawValue) filter")
+    }
+
     // MARK: - Empty State
 
     private var emptyState: some View {
@@ -158,72 +201,109 @@ public struct WorkoutsListView: View {
     // MARK: - Workout List
 
     private var workoutList: some View {
-        List {
-            if let resumeCandidate = viewModel.resumeCandidate {
-                Section {
-                    NavigationLink(destination: WorkoutDetailView(workoutId: resumeCandidate.id)) {
-                        HStack(spacing: AppTheme.Spacing.md) {
-                            Image(systemName: "arrow.forward.circle.fill")
-                                .font(.title3)
-                                .foregroundColor(AppTheme.Accent.orange)
-                                .accessibilityHidden(true)
+        Group {
+            if viewModel.filteredWorkouts.isEmpty {
+                emptyFilteredState
+            } else {
+                List {
+                    if let resumeCandidate = viewModel.resumeCandidate,
+                       (viewModel.selectedFilter == .all || viewModel.selectedFilter == .strength) {
+                        Section {
+                            NavigationLink(destination: WorkoutDetailView(workoutId: resumeCandidate.id)) {
+                                HStack(spacing: AppTheme.Spacing.md) {
+                                    Image(systemName: "arrow.forward.circle.fill")
+                                        .font(.title3)
+                                        .foregroundColor(AppTheme.Accent.orange)
+                                        .accessibilityHidden(true)
 
-                            VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
-                                Text("Resume \(resumeCandidate.name)")
-                                    .font(AppTheme.Typography.headlineMedium)
-                                    .foregroundColor(AppTheme.Text.primary)
+                                    VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                                        Text("Resume \(resumeCandidate.name)")
+                                            .font(AppTheme.Typography.headlineMedium)
+                                            .foregroundColor(AppTheme.Text.primary)
 
-                                Text("Incomplete workouts stay resumable for 24 hours.")
-                                    .font(AppTheme.Typography.bodySmall)
-                                    .foregroundColor(AppTheme.Text.secondary)
-                            }
-                        }
-                        .padding(.vertical, AppTheme.Spacing.xs)
-                    }
-                    .listRowBackground(AppTheme.Accent.goldLight.opacity(0.35))
-                }
-            }
-
-            ForEach(viewModel.workouts) { item in
-                NavigationLink {
-                    destinationView(for: item)
-                } label: {
-                    WorkoutRowContent(workout: item)
-                }
-                .listRowBackground(Color.clear)
-                #if !os(watchOS)
-                .listRowSeparator(.hidden)
-                #endif
-                .swipeActions(edge: .leading) {
-                    if item.isRedoable, case let .workout(workoutId) = item.source {
-                        Button {
-                            Task {
-                                if let session = await viewModel.redoWorkout(id: workoutId) {
-                                    activeWorkoutSession = session
+                                        Text("Incomplete workouts stay resumable for 24 hours.")
+                                            .font(AppTheme.Typography.bodySmall)
+                                            .foregroundColor(AppTheme.Text.secondary)
+                                    }
                                 }
+                                .padding(.vertical, AppTheme.Spacing.xs)
                             }
-                        } label: {
-                            Label("Redo", systemImage: "arrow.counterclockwise")
+                            .listRowBackground(AppTheme.Accent.goldLight.opacity(0.35))
                         }
-                        .tint(AppTheme.Accent.orange)
                     }
-                }
-                .deleteDisabled(item.source.isBenchmark)
-            }
-            .onDelete { indexSet in
-                let itemsToDelete: [WorkoutListItem] = indexSet.compactMap { index in
-                    viewModel.workouts.indices.contains(index) ? viewModel.workouts[index] : nil
-                }
 
-                Task {
-                    for item in itemsToDelete {
-                        guard case let .workout(workoutId) = item.source else { continue }
-                        await viewModel.deleteWorkout(id: workoutId)
+                    ForEach(viewModel.filteredWorkouts) { item in
+                        NavigationLink {
+                            destinationView(for: item)
+                        } label: {
+                            WorkoutRowContent(workout: item)
+                        }
+                        .listRowBackground(Color.clear)
+                        #if !os(watchOS)
+                        .listRowSeparator(.hidden)
+                        #endif
+                        .swipeActions(edge: .leading) {
+                            if item.isRedoable, case let .workout(workoutId) = item.source {
+                                Button {
+                                    Task {
+                                        if let session = await viewModel.redoWorkout(id: workoutId) {
+                                            activeWorkoutSession = session
+                                        }
+                                    }
+                                } label: {
+                                    Label("Redo", systemImage: "arrow.counterclockwise")
+                                }
+                                .tint(AppTheme.Accent.orange)
+                            }
+                        }
+                        .deleteDisabled(item.source.isBenchmark)
+                    }
+                    .onDelete { indexSet in
+                        let itemsToDelete: [WorkoutListItem] = indexSet.compactMap { index in
+                            viewModel.filteredWorkouts.indices.contains(index) ? viewModel.filteredWorkouts[index] : nil
+                        }
+
+                        Task {
+                            for item in itemsToDelete {
+                                guard case let .workout(workoutId) = item.source else { continue }
+                                await viewModel.deleteWorkout(id: workoutId)
+                            }
+                        }
                     }
                 }
+                .listStyle(.plain)
             }
         }
-        .listStyle(.plain)
+    }
+
+    private var emptyFilteredState: some View {
+        VStack(spacing: AppTheme.Spacing.md) {
+            Image(systemName: "line.3.horizontal.decrease.circle")
+                .font(.system(.title))
+                .foregroundColor(AppTheme.Text.secondary.opacity(0.6))
+                .accessibilityHidden(true)
+
+            Text("No Matching Workouts")
+                .font(AppTheme.Typography.headlineMedium)
+                .foregroundColor(AppTheme.Text.primary)
+
+            Text(viewModel.searchText.isEmpty
+                 ? "No workouts match the \"\(viewModel.selectedFilter.rawValue)\" filter."
+                 : "No workouts match \"\(viewModel.searchText)\".")
+                .font(AppTheme.Typography.bodySmall)
+                .foregroundColor(AppTheme.Text.secondary)
+                .multilineTextAlignment(.center)
+
+            Button("Reset Filters") {
+                viewModel.selectedFilter = .all
+                viewModel.searchText = ""
+            }
+            .font(AppTheme.Typography.labelMedium)
+            .foregroundColor(AppTheme.Accent.orange)
+            .padding(.top, AppTheme.Spacing.xs)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(AppTheme.Spacing.xl)
     }
 
     @ViewBuilder
@@ -396,6 +476,16 @@ enum WorkoutHistorySource: Equatable, Sendable {
 }
 
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
+enum WorkoutHistoryFilter: String, CaseIterable, Identifiable, Sendable {
+    case all = "All"
+    case strength = "Strength"
+    case activeRecovery = "Active Recovery"
+    case benchmarks = "Benchmarks"
+
+    var id: String { rawValue }
+}
+
+@available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
 struct WorkoutListItem: Identifiable {
     let id: String
     let name: String
@@ -405,6 +495,29 @@ struct WorkoutListItem: Identifiable {
     let isComplete: Bool
     let source: WorkoutHistorySource
     let isRedoable: Bool
+    let kind: WorkoutKind?
+
+    init(
+        id: String,
+        name: String,
+        date: Date,
+        duration: Int?,
+        exercises: [String],
+        isComplete: Bool,
+        source: WorkoutHistorySource,
+        isRedoable: Bool,
+        kind: WorkoutKind? = nil
+    ) {
+        self.id = id
+        self.name = name
+        self.date = date
+        self.duration = duration
+        self.exercises = exercises
+        self.isComplete = isComplete
+        self.source = source
+        self.isRedoable = isRedoable
+        self.kind = kind
+    }
 }
 
 // MARK: - NewWorkoutView
@@ -750,6 +863,86 @@ struct NewWorkoutView: View {
                         }
                     }
                 }
+
+                #if !os(watchOS)
+                // Grouping / Superset control
+                HStack(spacing: AppTheme.Spacing.sm) {
+                    Menu {
+                        if index + 1 < viewModel.exercises.count {
+                            Button {
+                                viewModel.pairWithNext(at: index)
+                            } label: {
+                                Label("Pair with next as Superset", systemImage: "link.badge.plus")
+                            }
+
+                            Divider()
+                        }
+
+                        Button {
+                            viewModel.setGroupTag(at: index, tag: nil)
+                        } label: {
+                            if config.groupTag == nil {
+                                Label("Straight Sets (No Group)", systemImage: "checkmark")
+                            } else {
+                                Text("Straight Sets (No Group)")
+                            }
+                        }
+
+                        Divider()
+
+                        ForEach(["A", "B", "C", "D"], id: \.self) { tag in
+                            Button {
+                                viewModel.setGroupTag(at: index, tag: tag)
+                            } label: {
+                                if config.groupTag == tag {
+                                    Label("Group \(tag)", systemImage: "checkmark")
+                                } else {
+                                    Text("Group \(tag)")
+                                }
+                            }
+                        }
+                    } label: {
+                        HStack(spacing: AppTheme.Spacing.xs) {
+                            Image(systemName: config.groupTag != nil ? "link.circle.fill" : "link")
+                                .font(.caption)
+                            Text(viewModel.groupDisplayLabel(for: index) ?? "Straight Sets")
+                                .font(AppTheme.Typography.labelSmall)
+                            Image(systemName: "chevron.up.chevron.down")
+                                .font(.caption2)
+                                .opacity(0.6)
+                        }
+                        .padding(.horizontal, AppTheme.Spacing.sm)
+                        .padding(.vertical, 6)
+                        .background(
+                            config.groupTag != nil
+                                ? AppTheme.Accent.orange.opacity(0.12)
+                                : AppTheme.Background.cream.opacity(0.6)
+                        )
+                        .foregroundColor(
+                            config.groupTag != nil
+                                ? AppTheme.Accent.orange
+                                : AppTheme.Text.secondary
+                        )
+                        .cornerRadius(AppTheme.CornerRadius.small)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: AppTheme.CornerRadius.small)
+                                .stroke(
+                                    config.groupTag != nil
+                                        ? AppTheme.Accent.orange.opacity(0.3)
+                                        : AppTheme.Text.secondary.opacity(0.2),
+                                    lineWidth: 1
+                                )
+                        )
+                    }
+                    .accessibilityLabel(
+                        config.groupTag != nil
+                            ? "Grouping: \(viewModel.groupDisplayLabel(for: index) ?? "Group")"
+                            : "Grouping: Straight Sets"
+                    )
+
+                    Spacer()
+                }
+                #endif
             }
         }
     }
@@ -764,6 +957,7 @@ struct ExerciseConfig: Identifiable {
     var sets: Int
     var reps: Int
     var weight: Double
+    var groupTag: String? = nil
 }
 
 // MARK: - NewWorkoutViewModel
@@ -819,12 +1013,70 @@ class NewWorkoutViewModel: ObservableObject {
         exercises[index].weight = max(0, value)
     }
 
+    func setGroupTag(at index: Int, tag: String?) {
+        guard index < exercises.count else { return }
+        exercises[index].groupTag = tag
+    }
+
+    func pairWithNext(at index: Int) {
+        guard index < exercises.count else { return }
+        let availableTags = ["A", "B", "C", "D", "E"]
+        let usedTags = Set(exercises.compactMap(\.groupTag))
+        let nextTag = availableTags.first { !usedTags.contains($0) } ?? "A"
+
+        exercises[index].groupTag = nextTag
+        if index + 1 < exercises.count {
+            exercises[index + 1].groupTag = nextTag
+        }
+    }
+
+    func groupDisplayLabel(for index: Int) -> String? {
+        guard index < exercises.count, let tag = exercises[index].groupTag else { return nil }
+        let groupIndices = exercises.enumerated().filter { $0.element.groupTag == tag }.map(\.offset)
+        guard let positionInGroup = groupIndices.firstIndex(of: index) else { return nil }
+
+        let ordinal = positionInGroup + 1
+        if groupIndices.count >= 3 {
+            return "Circuit \(tag)\(ordinal)"
+        } else if groupIndices.count == 2 {
+            return "Superset \(tag)\(ordinal)"
+        } else {
+            return "Group \(tag) (needs 2+)"
+        }
+    }
+
     func createWorkout() async -> Workout? {
+        var groupCounts: [String: Int] = [:]
+        for config in exercises {
+            if let tag = config.groupTag {
+                groupCounts[tag, default: 0] += 1
+            }
+        }
+
+        var groupIndices: [String: Int] = [:]
+
         let workout = Workout(
             date: Date(),
             name: workoutName.trimmingCharacters(in: .whitespaces),
             exercises: exercises.map { config in
-                Exercise(
+                let grouping: ExerciseGrouping?
+                if let tag = config.groupTag, (groupCounts[tag] ?? 0) >= 2 {
+                    let count = groupCounts[tag]!
+                    let currentIdx = (groupIndices[tag] ?? 0) + 1
+                    groupIndices[tag] = currentIdx
+                    let groupType: ExerciseGrouping.GroupType = count >= 3 ? .circuit : .superset
+                    grouping = ExerciseGrouping(
+                        groupID: "group-\(tag.lowercased())",
+                        groupType: groupType,
+                        label: "\(tag)\(currentIdx)",
+                        transitionRestSeconds: 30,
+                        groupRestSeconds: 90
+                    )
+                } else {
+                    grouping = nil
+                }
+
+                return Exercise(
                     id: UUID().uuidString,
                     name: config.name,
                     category: isWeightliftingExercise(config.name) ? .compound : .accessory,
@@ -836,7 +1088,8 @@ class NewWorkoutViewModel: ObservableObject {
                             type: .fixed
                         )
                     },
-                    restMinutes: config.weight > 0 ? assignRestMinutes(bodyweight: false, reps: "\(config.reps)") : 1.0
+                    restMinutes: config.weight > 0 ? assignRestMinutes(bodyweight: false, reps: "\(config.reps)") : 1.0,
+                    grouping: grouping
                 )
             },
             notes: notes.isEmpty ? nil : notes
@@ -861,6 +1114,34 @@ class WorkoutsListViewModel: ObservableObject {
     @Published var resumeCandidate: WorkoutListItem?
     @Published var showingNewWorkout: Bool = false
     @Published var errorMessage: String?
+    @Published var selectedFilter: WorkoutHistoryFilter = .all
+    @Published var searchText: String = ""
+
+    var filteredWorkouts: [WorkoutListItem] {
+        workouts.filter { item in
+            let matchesFilter: Bool
+            switch selectedFilter {
+            case .all:
+                matchesFilter = true
+            case .strength:
+                matchesFilter = item.source.isWorkout && (item.kind == .standard || item.kind == nil)
+            case .activeRecovery:
+                matchesFilter = item.source.isWorkout && item.kind == .activeRecovery
+            case .benchmarks:
+                matchesFilter = item.source.isBenchmark
+            }
+
+            guard matchesFilter else { return false }
+
+            let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !query.isEmpty else { return true }
+
+            if item.name.localizedCaseInsensitiveContains(query) {
+                return true
+            }
+            return item.exercises.contains { $0.localizedCaseInsensitiveContains(query) }
+        }
+    }
 
     private let dataClient: DataClientProtocol
     private let healthClient: HealthClientProtocol
@@ -898,7 +1179,8 @@ class WorkoutsListViewModel: ObservableObject {
                     exercises: workout.exercises.map(\.name),
                     isComplete: workout.isComplete,
                     source: .workout(workoutId: workout.id),
-                    isRedoable: workout.isComplete
+                    isRedoable: workout.isComplete,
+                    kind: workout.kind
                 )
             }
 
@@ -927,7 +1209,8 @@ class WorkoutsListViewModel: ObservableObject {
                     exercises: [],
                     isComplete: true,
                     source: .benchmark(resultId: result.id, benchmarkId: result.benchmarkId, scoreText: scoreText),
-                    isRedoable: false
+                    isRedoable: false,
+                    kind: nil
                 )
             }
 
@@ -990,7 +1273,8 @@ class WorkoutsListViewModel: ObservableObject {
                             )
                         },
                         notes: exercise.notes,
-                        restMinutes: exercise.restMinutes
+                        restMinutes: exercise.restMinutes,
+                        grouping: exercise.grouping
                     )
                 },
                 notes: original.notes,
