@@ -15,7 +15,7 @@ let package = Package(
         .library(
             name: "SundeeFundeeKit",
             targets: ["SundeeFundeeKit"]
-        ),
+        )
     ],
     dependencies: [],
     targets: [
@@ -28,7 +28,7 @@ let package = Package(
             name: "SundeeFundeeKitTests",
             dependencies: ["SundeeFundeeKit"],
             path: "Tests/SundeeFundeeKitTests"
-        ),
+        )
     ],
     swiftLanguageModes: [.v6]
 )
