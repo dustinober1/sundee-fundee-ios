@@ -155,58 +155,8 @@ public struct WarmupCalculatorSheet: View {
                 Divider()
                     .background(AppTheme.Text.secondary.opacity(0.2))
 
-                ForEach(progression.sets) { set in
-                    let isCompleted = completedSetIds.contains(set.id)
-                    let isSelected = selectedSetId == set.id
-
-                    HStack(spacing: AppTheme.Spacing.md) {
-                        Button {
-                            toggleCompleted(set.id)
-                        } label: {
-                            Image(systemName: isCompleted ? "checkmark.circle.fill" : "circle")
-                                .font(.title3)
-                                .foregroundColor(isCompleted ? AppTheme.Recovery.high : AppTheme.Text.secondary)
-                        }
-                        .buttonStyle(.plain)
-
-                        VStack(alignment: .leading, spacing: 2) {
-                            HStack {
-                                Text(badgeText(for: set))
-                                    .font(AppTheme.Typography.labelSmall)
-                                    .foregroundColor(set.isWorkingSet ? AppTheme.Accent.orange : AppTheme.Accent.gold)
-
-                                Spacer()
-
-                                Text(String(format: set.weight.truncatingRemainder(dividingBy: 1) == 0 ? "%.0f" : "%.1f", set.weight) + (unit == .kg ? " kg" : " lb"))
-                                    .font(AppTheme.Typography.monoMedium)
-                                    .foregroundColor(isCompleted ? AppTheme.Text.secondary : AppTheme.Text.primary)
-                                    .strikethrough(isCompleted)
-                            }
-
-                            HStack {
-                                Text("\(set.targetReps) \(set.targetReps == 1 ? "rep" : "reps")")
-                                    .font(AppTheme.Typography.bodySmall)
-                                    .foregroundColor(AppTheme.Text.secondary)
-
-                                Spacer()
-
-                                Text(set.plateSummary)
-                                    .font(AppTheme.Typography.bodySmall)
-                                    .foregroundColor(AppTheme.Text.secondary)
-                            }
-                        }
-                    }
-                    .padding(.vertical, AppTheme.Spacing.xs)
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        withAnimation {
-                            if selectedSetId == set.id {
-                                selectedSetId = nil
-                            } else {
-                                selectedSetId = set.id
-                            }
-                        }
-                    }
+                ForEach(progression.sets, id: \.id) { set in
+                    warmupSetRow(for: set)
 
                     if set.id != progression.sets.last?.id {
                         Divider()
@@ -215,6 +165,64 @@ public struct WarmupCalculatorSheet: View {
                 }
             }
         }
+    }
+
+    private func warmupSetRow(for set: WarmupSet) -> some View {
+        let isCompleted = completedSetIds.contains(set.id)
+
+        return HStack(spacing: AppTheme.Spacing.md) {
+            Button {
+                toggleCompleted(set.id)
+            } label: {
+                Image(systemName: isCompleted ? "checkmark.circle.fill" : "circle")
+                    .font(.title3)
+                    .foregroundColor(isCompleted ? AppTheme.Semantic.success : AppTheme.Text.secondary)
+            }
+            .buttonStyle(.plain)
+
+            VStack(alignment: .leading, spacing: 2) {
+                HStack {
+                    Text(badgeText(for: set))
+                        .font(AppTheme.Typography.labelSmall)
+                        .foregroundColor(set.isWorkingSet ? AppTheme.Accent.orange : AppTheme.Accent.gold)
+
+                    Spacer()
+
+                    Text(formatWeight(set.weight))
+                        .font(AppTheme.Typography.monoMedium)
+                        .foregroundColor(isCompleted ? AppTheme.Text.secondary : AppTheme.Text.primary)
+                        .strikethrough(isCompleted)
+                }
+
+                HStack {
+                    Text("\(set.targetReps) \(set.targetReps == 1 ? "rep" : "reps")")
+                        .font(AppTheme.Typography.bodySmall)
+                        .foregroundColor(AppTheme.Text.secondary)
+
+                    Spacer()
+
+                    Text(set.plateSummary)
+                        .font(AppTheme.Typography.bodySmall)
+                        .foregroundColor(AppTheme.Text.secondary)
+                }
+            }
+        }
+        .padding(.vertical, AppTheme.Spacing.xs)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            withAnimation {
+                if selectedSetId == set.id {
+                    selectedSetId = nil
+                } else {
+                    selectedSetId = set.id
+                }
+            }
+        }
+    }
+
+    private func formatWeight(_ weight: Double) -> String {
+        let weightStr = weight.truncatingRemainder(dividingBy: 1) == 0 ? "\(Int(weight))" : String(format: "%.1f", weight)
+        return "\(weightStr) \(unit == .kg ? "kg" : "lb")"
     }
 
     private func selectedSetDetailCard(for set: WarmupSet) -> some View {
