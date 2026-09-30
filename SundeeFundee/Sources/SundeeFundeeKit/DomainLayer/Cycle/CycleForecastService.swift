@@ -142,26 +142,39 @@ public struct CycleForecastService: Sendable {
             referenceDate: targetDate
         )
 
-        // Check if an active period log covers this day
+        let sortedLogs = periodLogs.sorted { calendar.startOfDay(for: $0.startDate) > calendar.startOfDay(for: $1.startDate) }
+        let rawCycleDay: Int?
+        if let mostRecent = sortedLogs.first {
+            let days = calendar.dateComponents([.day], from: calendar.startOfDay(for: mostRecent.startDate), to: targetDate).day ?? 0
+            rawCycleDay = max(1, days + 1)
+        } else {
+            rawCycleDay = nil
+        }
+
+        // Check if an active or logged period covers this day
         let isPeriodActiveOnTarget = periodLogs.contains { log in
             let start = calendar.startOfDay(for: log.startDate)
-            let end = log.endDate.map { calendar.startOfDay(for: $0) }
-                ?? calendar.date(byAdding: .day, value: settings.averagePeriodLengthDays - 1, to: start)
-                ?? start
-            return targetDate >= start && targetDate <= end
+            if let logEnd = log.endDate {
+                let end = calendar.startOfDay(for: logEnd)
+                return targetDate >= start && targetDate <= end
+            } else {
+                // Ongoing active period: covers from start through referenceDate or today
+                return targetDate >= start
+            }
         }
 
         switch mode {
         case .contraceptive:
             // Contraceptive suppresses natural ovulation.
-            if isPeriodActiveOnTarget || status?.currentPhase == .menstrual {
+            // Only reflect withdrawal bleed if an active period log covers this date.
+            if isPeriodActiveOnTarget {
                 return CycleDayForecast(
                     date: targetDate,
                     dayOffset: dayOffset,
                     dayOfWeek: dayOfWeek,
                     dayOfMonth: dayOfMonth,
                     phase: .menstrual,
-                    cycleDay: status?.cycleDay ?? (dayOffset + 1),
+                    cycleDay: rawCycleDay ?? (status?.cycleDay ?? (dayOffset + 1)),
                     energyTier: .recovering,
                     headline: "Withdrawal Bleed · Reset",
                     summary: "Scheduled withdrawal bleed. Maintain lighter active movement and respect daily comfort.",
@@ -189,7 +202,7 @@ public struct CycleForecastService: Sendable {
             }
 
         case .irregular:
-            let cycleDay = status?.cycleDay ?? (dayOffset + 1)
+            let cycleDay = rawCycleDay ?? (status?.cycleDay ?? (dayOffset + 1))
             let phase = status?.currentPhase ?? .follicular
 
             if cycleDay > 38 {
