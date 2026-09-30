@@ -369,6 +369,49 @@ final class ActiveWorkoutSessionViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.workout.exercises[1].targetSets[0].reps, 5)
     }
 
+    func testMoveExercisesReordersWorkoutAndMaintainsFocus() {
+        let viewModel = ActiveWorkoutSessionViewModel(
+            workout: supersetWorkout(),
+            dataClient: MockCloudKitClient(),
+            healthClient: MockHealthKitClient()
+        )
+
+        // Initial: Bench Press (0), Barbell Row (1), Tricep Pushdown (2)
+        XCTAssertEqual(viewModel.workout.exercises[0].name, "Bench Press")
+        XCTAssertEqual(viewModel.workout.exercises[1].name, "Barbell Row")
+        XCTAssertEqual(viewModel.workout.exercises[2].name, "Tricep Pushdown")
+        XCTAssertEqual(viewModel.currentExerciseIndex, 0)
+
+        // Move Tricep Pushdown (index 2) to beginning (index 0)
+        viewModel.moveExercises(from: IndexSet(integer: 2), to: 0)
+
+        // New order: Tricep Pushdown (0), Bench Press (1), Barbell Row (2)
+        XCTAssertEqual(viewModel.workout.exercises[0].name, "Tricep Pushdown")
+        XCTAssertEqual(viewModel.workout.exercises[1].name, "Bench Press")
+        XCTAssertEqual(viewModel.workout.exercises[2].name, "Barbell Row")
+
+        // Active focus stays on Bench Press, now at index 1
+        XCTAssertEqual(viewModel.currentExerciseIndex, 1)
+        XCTAssertEqual(viewModel.currentExercise?.name, "Bench Press")
+    }
+
+    func testSelectExerciseJumpsToTargetExercise() {
+        let viewModel = ActiveWorkoutSessionViewModel(
+            workout: supersetWorkout(),
+            dataClient: MockCloudKitClient(),
+            healthClient: MockHealthKitClient()
+        )
+
+        XCTAssertEqual(viewModel.currentExerciseIndex, 0)
+
+        // Jump to Tricep Pushdown (index 2)
+        viewModel.selectExercise(at: 2)
+
+        XCTAssertEqual(viewModel.currentExerciseIndex, 2)
+        XCTAssertEqual(viewModel.currentExercise?.name, "Tricep Pushdown")
+        XCTAssertEqual(viewModel.currentSetIndex, 0)
+    }
+
     private func squatWorkout() -> Workout {
         Workout(
             date: Date(),
