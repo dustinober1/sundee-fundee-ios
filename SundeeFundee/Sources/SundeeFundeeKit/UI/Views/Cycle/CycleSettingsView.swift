@@ -20,6 +20,7 @@ struct CycleSettingsView: View {
     @State private var terminologyStyle: CycleTerminologyStyle = .physiological
     @State private var isGymPrivacyEnabled: Bool = false
     @State private var showSharkWeekBanner: Bool = true
+    @State private var cycleTrackingMode: CycleTrackingMode = .standard
 
     @EnvironmentObject var cyclePhaseCache: CyclePhaseCache
 
@@ -32,6 +33,23 @@ struct CycleSettingsView: View {
 
     var body: some View {
         Form {
+            // Cycle Mode
+            Section {
+                Picker("Tracking Mode", selection: $cycleTrackingMode) {
+                    ForEach(CycleTrackingMode.allCases, id: \.self) { mode in
+                        Text(mode.displayName).tag(mode)
+                    }
+                }
+
+                Text(cycleTrackingMode.shortDescription)
+                    .font(AppTheme.Typography.bodySmall)
+                    .foregroundColor(AppTheme.Text.secondary)
+            } header: {
+                Text("Cycle Mode")
+            } footer: {
+                Text("Contraceptive mode suppresses artificial phase projections. Irregular and Perimenopause modes adapt predictions and training guidance.")
+            }
+
             // Cycle Length
             Section {
                 VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
@@ -276,6 +294,9 @@ struct CycleSettingsView: View {
         .onChange(of: showSharkWeekBanner) { _, _ in
             Task { await saveCycleSettings() }
         }
+        .onChange(of: cycleTrackingMode) { _, _ in
+            Task { await saveCycleSettings() }
+        }
         .sheet(item: $editingPeriod) { period in
             EditPeriodSheet(period: period) { updated in
                 Task { await updatePeriod(updated) }
@@ -296,6 +317,7 @@ struct CycleSettingsView: View {
                 terminologyStyle = settings.terminologyStyle
                 isGymPrivacyEnabled = settings.isGymPrivacy
                 showSharkWeekBanner = settings.showsBanner
+                cycleTrackingMode = settings.cycleTrackingMode
             }
         } catch {
             // Use defaults
@@ -319,14 +341,16 @@ struct CycleSettingsView: View {
             lastPeriodStart: lastStart,
             terminologyStyle: terminologyStyle,
             isGymPrivacyEnabled: isGymPrivacyEnabled,
-            showSharkWeekBanner: showSharkWeekBanner
+            showSharkWeekBanner: showSharkWeekBanner,
+            cycleTrackingMode: cycleTrackingMode
         )
         do {
             try await dataClient.save(record, recordType: "CycleSettings")
             cyclePhaseCache.updatePreferences(
                 terminologyStyle: terminologyStyle,
                 isGymPrivacyEnabled: isGymPrivacyEnabled,
-                showSharkWeekBanner: showSharkWeekBanner
+                showSharkWeekBanner: showSharkWeekBanner,
+                cycleTrackingMode: cycleTrackingMode
             )
             NotificationCenter.default.post(name: .cycleDataUpdated, object: nil)
         } catch {
@@ -348,7 +372,8 @@ struct CycleSettingsView: View {
                 lastPeriodStart: startOfDay,
                 terminologyStyle: terminologyStyle,
                 isGymPrivacyEnabled: isGymPrivacyEnabled,
-                showSharkWeekBanner: showSharkWeekBanner
+                showSharkWeekBanner: showSharkWeekBanner,
+                cycleTrackingMode: cycleTrackingMode
             )
             try await dataClient.save(settingsRecord, recordType: "CycleSettings")
 
@@ -394,7 +419,8 @@ struct CycleSettingsView: View {
                 lastPeriodStart: startOfDay,
                 terminologyStyle: terminologyStyle,
                 isGymPrivacyEnabled: isGymPrivacyEnabled,
-                showSharkWeekBanner: showSharkWeekBanner
+                showSharkWeekBanner: showSharkWeekBanner,
+                cycleTrackingMode: cycleTrackingMode
             )
             try await dataClient.save(settingsRecord, recordType: "CycleSettings")
 
@@ -426,7 +452,8 @@ struct CycleSettingsView: View {
                     lastPeriodStart: mostRecentStart,
                     terminologyStyle: terminologyStyle,
                     isGymPrivacyEnabled: isGymPrivacyEnabled,
-                    showSharkWeekBanner: showSharkWeekBanner
+                    showSharkWeekBanner: showSharkWeekBanner,
+                    cycleTrackingMode: cycleTrackingMode
                 )
                 try? await dataClient.save(settingsRecord, recordType: "CycleSettings")
             }
