@@ -46,6 +46,7 @@ public class DashboardViewModel: ObservableObject {
     private let dataClient: DataClientProtocol
     private var hasRequestedHealthAuth = false
     private var hasTrackedFirstWorkoutPrompt = false
+    private var cachedCyclePhase: CyclePhase?
 
     // MARK: - Initialization
 
@@ -96,6 +97,7 @@ public class DashboardViewModel: ObservableObject {
         async let winsTask: Void = loadRecentWins()
         async let cycleTask: Void = cyclePhaseCache.refreshIfNeeded()
         _ = await (statsTask, programTask, winsTask, cycleTask)
+        cachedCyclePhase = cyclePhaseCache.currentPhase
 
         canGenerateAIWorkout = true
         isLoading = false
@@ -174,6 +176,12 @@ public class DashboardViewModel: ObservableObject {
         let recentPainLogs = painLogs.filter { $0.date >= recentCutoff }
         let decisionKind = todayTrainingDecision?.kind ?? .modify
 
+        let maxRecords: [OneRepMaxRecord] = (try? await dataClient.fetchAll(recordType: "OneRepMaxRecord")) ?? []
+        let exerciseMaxes = maxRecords.map { ExerciseMax(name: $0.exerciseName, weightKg: $0.unit == .kg ? $0.weight : $0.weight / 2.20462) }
+        let injuries: [Injury] = (try? await dataClient.fetchAll(recordType: "Injury")) ?? []
+        let cycleMult = aiCyclePhaseMultiplier(cachedCyclePhase)
+        let recoveryMult = InjuryAdaptationEngine.calculateLoadMultiplier(baseLoad: 1.0, injuries: injuries)
+
         let request = QuickWorkoutRequest(
             timeMinutes: 20,
             focus: .fullBody,
@@ -181,7 +189,11 @@ public class DashboardViewModel: ObservableObject {
             equipment: settings.defaultEquipment,
             todayDecisionKind: decisionKind,
             painLogs: recentPainLogs,
-            workoutKind: decisionKind == .recover ? .activeRecovery : .standard
+            workoutKind: decisionKind == .recover ? .activeRecovery : .standard,
+            exerciseMaxes: exerciseMaxes,
+            cycleMultiplier: cycleMult,
+            recoveryMultiplier: recoveryMult,
+            injuries: injuries
         )
 
         return QuickWorkoutBuilder.build(request: request).workout
