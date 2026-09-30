@@ -64,6 +64,13 @@ public struct WarmupProgression: Sendable, Equatable {
 /// Pure domain service calculating evidence-based warmup progressions for barbell lifts.
 public struct WarmupProgressionService: Sendable {
 
+    private struct StageWeight: Sendable {
+        let weight: Double
+        let reps: Int
+        let percent: Double
+        let isWorking: Bool
+    }
+
     /// Generates a structured barbell warmup progression up to the target working weight.
     ///
     /// - Parameters:
@@ -118,9 +125,9 @@ public struct WarmupProgressionService: Sendable {
             (0.85, lastWarmupReps)
         ]
 
-        var rawWeights: [(weight: Double, reps: Int, percent: Double, isWorking: Bool)] = []
+        var rawWeights: [StageWeight] = []
         // Step 1: Empty bar
-        rawWeights.append((weight: resolvedBar, reps: 10, percent: resolvedBar / targetWeight, isWorking: false))
+        rawWeights.append(StageWeight(weight: resolvedBar, reps: 10, percent: resolvedBar / targetWeight, isWorking: false))
 
         // Steps 2-4: Intermediate ramps
         for stage in stages {
@@ -128,7 +135,7 @@ public struct WarmupProgressionService: Sendable {
             let roundedWeight = roundToIncrement(idealWeight, barWeight: resolvedBar, increment: minIncrement)
             // Only add if it's strictly greater than the previous set and strictly less than targetWeight
             if roundedWeight > (rawWeights.last?.weight ?? 0) && roundedWeight < targetWeight {
-                rawWeights.append((
+                rawWeights.append(StageWeight(
                     weight: roundedWeight,
                     reps: stage.reps,
                     percent: roundedWeight / targetWeight,
@@ -141,7 +148,7 @@ public struct WarmupProgressionService: Sendable {
         let roundedTarget = roundToIncrement(targetWeight, barWeight: resolvedBar, increment: minIncrement)
         let effectiveTarget = max(roundedTarget, resolvedBar)
         if effectiveTarget > (rawWeights.last?.weight ?? 0) {
-            rawWeights.append((
+            rawWeights.append(StageWeight(
                 weight: effectiveTarget,
                 reps: targetReps,
                 percent: 1.0,
