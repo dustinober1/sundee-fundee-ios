@@ -114,6 +114,65 @@ final class ActiveWorkoutSessionViewModelTests: XCTestCase {
         XCTAssertEqual(dataClient.recordCount(for: "OneRepMaxRecord"), 2)
     }
 
+    func testMetricWeightUnitPRRecording() async throws {
+        let dataClient = MockCloudKitClient()
+        try await dataClient.save(
+            UserSettingsRecord(
+                cycleTrackingEnabled: false,
+                weightUnit: "kg",
+                experienceLevel: "beginner",
+                primaryGoal: "strength"
+            ),
+            recordType: "UserSettings"
+        )
+        try await dataClient.save(
+            OneRepMaxRecord(
+                id: UUID().uuidString,
+                exerciseName: "Back Squat",
+                weight: 80,
+                unit: .kg,
+                date: Date().addingTimeInterval(-86_400)
+            ),
+            recordType: "OneRepMaxRecord"
+        )
+        let viewModel = ActiveWorkoutSessionViewModel(
+            workout: squatWorkout(),
+            dataClient: dataClient,
+            healthClient: MockHealthKitClient()
+        )
+        viewModel.beginSession()
+
+        let deadline = DispatchTime.now().uptimeNanoseconds + 1_000_000_000
+        while viewModel.weightUnit != .kg && DispatchTime.now().uptimeNanoseconds < deadline {
+            try await Task.sleep(nanoseconds: 10_000_000)
+        }
+        XCTAssertEqual(viewModel.weightUnit, .kg)
+
+        await viewModel.completeSet(actualReps: 5, completedWeight: 100)
+        let maxRecords: [OneRepMaxRecord] = try await dataClient.fetchAll(recordType: "OneRepMaxRecord")
+
+        let newRecord = maxRecords.first(where: { $0.weight > 80 })
+        XCTAssertNotNil(newRecord)
+        XCTAssertEqual(newRecord?.exerciseName, "Back Squat")
+        XCTAssertEqual(newRecord?.unit, .kg)
+
+        XCTAssertEqual(viewModel.pendingPRShare?.exerciseName, "Back Squat")
+        XCTAssertEqual(viewModel.pendingPRShare?.unit, "kg")
+
+        let celebration = viewModel.celebrationEvents.first { event in
+            if case .newPersonalRecord(let exerciseName, _) = event {
+                return exerciseName == "Back Squat"
+            }
+            return false
+        }
+        XCTAssertNotNil(celebration)
+        if case .newPersonalRecord(_, let weightKg) = celebration, let record = newRecord {
+            XCTAssertEqual(weightKg, record.weight, accuracy: 0.01)
+        }
+
+        await viewModel.abandonWorkout()
+    }
+
     func testAddRestExtendsActiveRestTimer() async throws {
         let viewModel = ActiveWorkoutSessionViewModel(
             workout: multiSetWorkout(),
