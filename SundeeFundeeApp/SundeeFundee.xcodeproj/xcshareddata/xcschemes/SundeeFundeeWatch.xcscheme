@@ -21,6 +21,20 @@
                ReferencedContainer = "container:SundeeFundee.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "91E1EB2EC13A22297ECD0A0A"
+               BuildableName = "SundeeFundeeWatchWidgetsExtension.appex"
+               BlueprintName = "SundeeFundeeWatchWidgetsExtension"
+               ReferencedContainer = "container:SundeeFundee.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction
