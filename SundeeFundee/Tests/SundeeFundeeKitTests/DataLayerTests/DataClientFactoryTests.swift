@@ -82,4 +82,57 @@ final class DataClientFactoryTests: XCTestCase {
         XCTAssertEqual(countA, 1)
         XCTAssertEqual(countB, 0)
     }
+
+    // The setter and `activate` must share one installation path: the setter
+    // once re-read `_client` outside the lock to attach diagnostics, which
+    // was a data race `@unchecked Sendable` hides from the compiler. These
+    // tests pin the observable semantics of both entry points on a private
+    // (non-`shared`) instance so a future divergence fails loudly.
+
+    func testClientSetterWrapsAndPreservesOwner() {
+        let suiteName = "DataClientFactoryTests.setter.\(UUID().uuidString)"
+        defer { UserDefaults(suiteName: suiteName)?.removePersistentDomain(forName: suiteName) }
+        let factory = DataClientFactory(
+            client: LocalDataClient(userDefaults: UserDefaults(suiteName: suiteName)!),
+            ownerID: "owner-a"
+        )
+
+        factory.client = MockCloudKitClient()
+
+        XCTAssertTrue(factory.client is SyncQueue)
+        XCTAssertEqual(factory.ownerID, "owner-a", "plain client set must not rewrite the owner namespace")
+    }
+
+    func testActivateWrapsAndUpdatesOwner() {
+        let suiteName = "DataClientFactoryTests.activate.\(UUID().uuidString)"
+        defer { UserDefaults(suiteName: suiteName)?.removePersistentDomain(forName: suiteName) }
+        let factory = DataClientFactory(
+            client: LocalDataClient(userDefaults: UserDefaults(suiteName: suiteName)!),
+            ownerID: "owner-a"
+        )
+
+        factory.activate(client: MockCloudKitClient(), ownerID: "owner-b")
+
+        XCTAssertTrue(factory.client is SyncQueue)
+        XCTAssertEqual(factory.ownerID, "owner-b")
+    }
+
+    func testGenerationIncrementsOnBothPaths() {
+        let suiteName = "DataClientFactoryTests.generation.\(UUID().uuidString)"
+        defer { UserDefaults(suiteName: suiteName)?.removePersistentDomain(forName: suiteName) }
+        let factory = DataClientFactory(
+            client: LocalDataClient(userDefaults: UserDefaults(suiteName: suiteName)!),
+            ownerID: "owner-a"
+        )
+        let initial = factory.session.generation
+
+        factory.client = MockCloudKitClient()
+        let afterSet = factory.session.generation
+
+        factory.activate(client: MockCloudKitClient(), ownerID: "owner-b")
+        let afterActivate = factory.session.generation
+
+        XCTAssertEqual(afterSet, initial &+ 1)
+        XCTAssertEqual(afterActivate, initial &+ 2)
+    }
 }
