@@ -31,11 +31,16 @@ public final class DeterministicCoachService: CoachServiceProtocol, @unchecked S
         // Apply weights from maxes
         let eMult = energyMultiplier(preferences.energyLevel)
         let cMult = aiCyclePhaseMultiplier(context.cyclePhase)
+        let rMult = InjuryAdaptationEngine.calculateLoadMultiplier(
+            baseLoad: 1.0,
+            injuries: context.injuries
+        )
         let weighted = applyWeights(
             exercises: exercises,
             maxes: context.maxes,
             energyMult: eMult,
-            cycleMult: cMult
+            cycleMult: cMult,
+            recoveryMult: rMult
         )
 
         // Assign rest times
