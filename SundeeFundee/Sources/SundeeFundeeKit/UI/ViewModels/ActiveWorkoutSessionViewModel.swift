@@ -383,40 +383,86 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
         updateLiveActivity()
     }
 
-    /// Swaps the current exercise with an alternative. Preserves set structure
-    /// (reps / prescribed weight) but clears any logged progress on the current
-    /// exercise — callers should confirm with the user before calling if any
-    /// sets have already been completed on this exercise.
-    public func swapCurrentExercise(to newName: String, reason: String? = nil) {
+    /// Swaps the current exercise with an alternative.
+    /// If `keepCompletedSets` is true and at least one set has been completed on the current exercise,
+    /// the completed sets remain on the original exercise, and a new exercise is inserted
+    /// immediately after it with the remaining incomplete sets.
+    /// If `keepCompletedSets` is false (or no sets have been completed),
+    /// the exercise is replaced in-place and sets are reset.
+    public func swapCurrentExercise(
+        to newName: String,
+        reason: String? = nil,
+        keepCompletedSets: Bool = false
+    ) {
         guard currentExerciseIndex < workout.exercises.count else { return }
         var updated = workout
-        var existing = updated.exercises[currentExerciseIndex]
+        let existing = updated.exercises[currentExerciseIndex]
         let oldName = existing.name
-        let resetSets = existing.targetSets.map { set in
-            ExerciseSet(
+
+        let completedSets = existing.targetSets.filter(\.isComplete)
+        let incompleteSets = existing.targetSets.filter { !$0.isComplete }
+
+        if keepCompletedSets && !completedSets.isEmpty && !incompleteSets.isEmpty {
+            var trimmedExisting = existing
+            trimmedExisting.targetSets = completedSets
+            updated.exercises[currentExerciseIndex] = trimmedExisting
+
+            let remainingResetSets = incompleteSets.map { set in
+                ExerciseSet(
+                    id: UUID().uuidString,
+                    reps: set.reps,
+                    prescribedWeight: set.prescribedWeight,
+                    type: set.type,
+                    completedWeight: nil,
+                    actualReps: nil,
+                    isComplete: false
+                )
+            }
+            let newExercise = Exercise(
                 id: UUID().uuidString,
-                reps: set.reps,
-                prescribedWeight: set.prescribedWeight,
-                type: set.type,
-                completedWeight: nil,
-                actualReps: nil,
-                isComplete: false
+                name: newName,
+                category: existing.category,
+                bodyweight: existing.bodyweight,
+                targetSets: remainingResetSets,
+                notes: existing.notes,
+                restMinutes: existing.restMinutes,
+                grouping: existing.grouping
             )
+            updated.exercises.insert(newExercise, at: currentExerciseIndex + 1)
+            workout = updated
+            currentExerciseIndex += 1
+            currentSetIndex = 0
+        } else {
+            let resetSets = existing.targetSets.map { set in
+                ExerciseSet(
+                    id: UUID().uuidString,
+                    reps: set.reps,
+                    prescribedWeight: set.prescribedWeight,
+                    type: set.type,
+                    completedWeight: nil,
+                    actualReps: nil,
+                    isComplete: false
+                )
+            }
+            let replacedExercise = Exercise(
+                id: existing.id,
+                name: newName,
+                category: existing.category,
+                bodyweight: existing.bodyweight,
+                targetSets: resetSets,
+                notes: existing.notes,
+                restMinutes: existing.restMinutes,
+                grouping: existing.grouping
+            )
+            updated.exercises[currentExerciseIndex] = replacedExercise
+            workout = updated
+            currentSetIndex = 0
         }
-        existing = Exercise(
-            id: existing.id,
-            name: newName,
-            category: existing.category,
-            bodyweight: existing.bodyweight,
-            targetSets: resetSets
-        )
-        updated.exercises[currentExerciseIndex] = existing
-        workout = updated
+
         acceptedSubstitutions.append("\(oldName) -> \(newName)")
         if Self.isPainAwareSwapReason(reason) {
             usedPainAwareSwap = true
         }
-        currentSetIndex = 0
     }
 
     public func stationTakenSwaps(
