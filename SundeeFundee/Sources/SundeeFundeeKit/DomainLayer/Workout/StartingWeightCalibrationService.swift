@@ -143,7 +143,7 @@ public enum StartingWeightCalibrationService {
         }
     }
 
-    private static func defaultStarterWeight(
+    public static func defaultStarterWeight(
         for experienceLevel: ExperienceLevel,
         category: ExerciseCategory
     ) -> Double {
