@@ -28,16 +28,18 @@ public func defaultPercentage(reps: Int) -> Double {
 /// - Parameters:
 ///   - max: User's 1RM for this exercise (lbs)
 ///   - reps: Number of reps prescribed
+///   - overridePercentage: Optional percentage of 1RM override
 ///   - energyMultiplier: Energy level adjustment (0.85 = low, 1.0 = medium, 1.05 = high)
 ///   - cycleMultiplier: Cycle phase adjustment (varies by phase)
 /// - Returns: Prescribed weight in lbs
 public func calculatePrescribedWeight(
     max: Double,
     reps: Int,
+    overridePercentage: Double? = nil,
     energyMultiplier: Double = 1.0,
     cycleMultiplier: Double = 1.0
 ) -> Double {
-    let percentage = defaultPercentage(reps: reps)
+    let percentage = overridePercentage ?? defaultPercentage(reps: reps)
     let baseWeight = max * percentage
     let adjustedWeight = baseWeight * energyMultiplier * cycleMultiplier
     return roundToNearest(adjustedWeight, increment: 5)
