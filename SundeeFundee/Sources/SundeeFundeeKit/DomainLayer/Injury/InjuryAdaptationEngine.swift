@@ -95,10 +95,10 @@ public struct InjuryAdaptationEngine {
 
     /// Load reduction multipliers for each recovery phase
     private static let loadMultipliers: [RecoveryPhase: Double] = [
-        .acute: 0.3,
-        .rehab: 0.5,
-        .lightLoad: 0.7,
-        .returnToPlay: 0.85,
+        .acute: 0.0,
+        .rehab: 0.30,
+        .lightLoad: 0.50,
+        .returnToPlay: 0.80,
         .resolved: 1.0,
     ]
 
