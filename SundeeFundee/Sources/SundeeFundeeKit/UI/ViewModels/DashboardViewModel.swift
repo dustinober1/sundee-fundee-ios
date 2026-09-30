@@ -1,5 +1,8 @@
 import Foundation
 import os.log
+#if canImport(WidgetKit)
+import WidgetKit
+#endif
 
 private let dashLogger = Logger(subsystem: "com.sundeefundee.app", category: "Dashboard")
 
@@ -462,12 +465,29 @@ public class DashboardViewModel: ObservableObject {
         firstWeekChecklist = checklist
         deloadRecommendation = deload
         todayTrainingDecision = decision
-        todayAction = TodayGuidanceService.primaryAction(
+        let action = TodayGuidanceService.primaryAction(
             workouts: workouts,
             weeklyPlanProgress: weeklyPlanProgress,
             firstWeekChecklist: checklist,
             now: now
         )
+        todayAction = action
+
+        let workoutTitle = nextWorkout ?? action.title
+        let rec = decision.kind.rawValue
+        let guidance = decision.headline
+        SharedSnapshotStore.writeNextWorkout(
+            NextWorkoutSnapshot(
+                workoutName: workoutTitle,
+                recommendationRaw: rec,
+                guidanceDetail: guidance,
+                scheduledDate: now,
+                capturedAt: now
+            )
+        )
+        #if canImport(WidgetKit)
+        WidgetCenter.shared.reloadTimelines(ofKind: "NextWorkoutWidget")
+        #endif
     }
 
     private func trackFirstWorkoutPromptIfNeeded() async {
