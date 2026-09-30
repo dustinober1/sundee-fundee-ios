@@ -577,6 +577,37 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
         )
     }
 
+    /// Reorders exercises in the workout during an active session.
+    public func moveExercises(from source: IndexSet, to destination: Int) {
+        guard !workout.exercises.isEmpty else { return }
+        var updated = workout
+        let currentID = currentExercise?.id
+
+        updated.exercises.move(fromOffsets: source, toOffset: destination)
+        workout = updated
+
+        if let currentID,
+           let newIndex = updated.exercises.firstIndex(where: { $0.id == currentID }) {
+            currentExerciseIndex = newIndex
+        } else {
+            currentExerciseIndex = min(currentExerciseIndex, workout.exercises.count - 1)
+        }
+
+        if let exercise = currentExercise {
+            currentSetIndex = min(currentSetIndex, max(0, exercise.targetSets.count - 1))
+        }
+        updateLiveActivity()
+    }
+
+    /// Focuses a specific exercise in the active workout session.
+    public func selectExercise(at index: Int) {
+        guard index >= 0 && index < workout.exercises.count else { return }
+        currentExerciseIndex = index
+        let exercise = workout.exercises[index]
+        currentSetIndex = exercise.targetSets.firstIndex(where: { !$0.isComplete }) ?? 0
+        updateLiveActivity()
+    }
+
     private static func isIsolationMovement(_ name: String) -> Bool {
         let lower = name.lowercased()
         return lower.contains("curl")
