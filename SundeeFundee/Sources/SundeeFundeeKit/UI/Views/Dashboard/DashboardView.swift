@@ -32,6 +32,7 @@ public struct DashboardView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @EnvironmentObject var cyclePhaseCache: CyclePhaseCache
     @State private var showingAIWorkout = false
+    @State private var previewWorkout: Workout?
     @State private var starterWorkout: Workout?
     @State private var resumeWorkoutID: String?
     @State private var showingTodayWhy = false
@@ -149,6 +150,14 @@ public struct DashboardView: View {
                 AIWorkoutView()
             }
             #endif
+            .sheet(item: $previewWorkout) { workout in
+                WorkoutPreviewSheet(workout: workout) { workoutToStart in
+                    Task { @MainActor in
+                        try? await Task.sleep(nanoseconds: 350_000_000)
+                        starterWorkout = workoutToStart
+                    }
+                }
+            }
             .sheet(item: $starterWorkout) { workout in
                 ActiveWorkoutView(
                     viewModel: ActiveWorkoutSessionViewModel(workout: workout)
@@ -167,10 +176,10 @@ public struct DashboardView: View {
                     sections: viewModel.todaySecondarySectionInput,
                     viewModel: viewModel,
                     onStartWorkout: {
-                        Task { starterWorkout = await viewModel.buildStarterWorkout() }
+                        Task { previewWorkout = await viewModel.buildStarterWorkout() }
                     },
                     onStartQuickWorkout: {
-                        Task { starterWorkout = await viewModel.buildQuickWorkout() }
+                        Task { previewWorkout = await viewModel.buildQuickWorkout() }
                     },
                     onOpenCoachPlan: {
                         showingAIWorkout = true
@@ -401,7 +410,7 @@ public struct DashboardView: View {
                 actionLabel: "Start First Workout",
                 action: {
                     Task {
-                        starterWorkout = await viewModel.buildStarterWorkout()
+                        previewWorkout = await viewModel.buildStarterWorkout()
                     }
                 },
                 secondaryActionLabel: "Log a Max",
@@ -502,10 +511,10 @@ public struct DashboardView: View {
     private func handleTodayTrainingDecision(_ decision: TodayTrainingDecision) {
         switch decision.kind {
         case .train, .modify:
-            Task { starterWorkout = await viewModel.buildStarterWorkout() }
+            Task { previewWorkout = await viewModel.buildStarterWorkout() }
         case .recover:
             Task {
-                starterWorkout = await viewModel.buildActiveRecoveryWorkout(
+                previewWorkout = await viewModel.buildActiveRecoveryWorkout(
                     cyclePhase: cyclePhaseCache.currentPhase
                 )
             }
@@ -571,13 +580,13 @@ public struct DashboardView: View {
         case .resumeProgramSession:
             Task {
                 if let programWorkout = await viewModel.buildActiveProgramWorkout() {
-                    starterWorkout = programWorkout
+                    previewWorkout = programWorkout
                 } else {
-                    starterWorkout = await viewModel.buildStarterWorkout()
+                    previewWorkout = await viewModel.buildStarterWorkout()
                 }
             }
         case .startScheduledWorkout, .startFirstWorkout:
-            Task { starterWorkout = await viewModel.buildStarterWorkout() }
+            Task { previewWorkout = await viewModel.buildStarterWorkout() }
         case .completeFirstWeekChecklist(let kind):
             handleFirstWeekChecklistAction(kind)
         }
@@ -586,7 +595,7 @@ public struct DashboardView: View {
     private func handleFirstWeekChecklistAction(_ kind: FirstWeekChecklistKind) {
         switch kind {
         case .firstWorkout:
-            Task { starterWorkout = await viewModel.buildStarterWorkout() }
+            Task { previewWorkout = await viewModel.buildStarterWorkout() }
         case .logMax:
             viewModel.navigateToLogMax = true
         case .weeklySchedule:
@@ -1007,7 +1016,7 @@ public struct DashboardView: View {
 
                     HStack {
                         Button {
-                            Task { starterWorkout = await viewModel.buildStarterWorkout() }
+                            Task { previewWorkout = await viewModel.buildStarterWorkout() }
                         } label: {
                             Label("Start This Workout", systemImage: "figure.strengthtraining.traditional")
                                 .frame(maxWidth: .infinity)
