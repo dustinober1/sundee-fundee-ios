@@ -554,7 +554,7 @@ public struct DashboardView: View {
         case .resumeWorkout:
             return "Resume Workout"
         case .resumeProgramSession:
-            return "Resume Program"
+            return "Start Session"
         case .startScheduledWorkout:
             return "Start Workout"
         case .completeFirstWeekChecklist(let checklistKind):
@@ -568,7 +568,15 @@ public struct DashboardView: View {
         switch action.kind {
         case .resumeWorkout(let workoutID):
             resumeWorkoutID = workoutID
-        case .resumeProgramSession, .startScheduledWorkout, .startFirstWorkout:
+        case .resumeProgramSession:
+            Task {
+                if let programWorkout = await viewModel.buildActiveProgramWorkout() {
+                    starterWorkout = programWorkout
+                } else {
+                    starterWorkout = await viewModel.buildStarterWorkout()
+                }
+            }
+        case .startScheduledWorkout, .startFirstWorkout:
             Task { starterWorkout = await viewModel.buildStarterWorkout() }
         case .completeFirstWeekChecklist(let kind):
             handleFirstWeekChecklistAction(kind)
