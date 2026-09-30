@@ -80,7 +80,7 @@ public enum StartingWeightCalibrationService {
             baseConfidence = 0.85
             reason = "Based on your latest \(exercise.name) max and target reps."
         } else {
-            base = defaultStarterWeight(for: experienceLevel)
+            base = defaultStarterWeight(for: experienceLevel, category: exercise.category)
             baseConfidence = 0.45
             reason = "No max found. Starting with a conservative entry weight."
         }
@@ -121,14 +121,29 @@ public enum StartingWeightCalibrationService {
         }
     }
 
-    private static func defaultStarterWeight(for experienceLevel: ExperienceLevel) -> Double {
-        switch experienceLevel {
-        case .beginner:
+    private static func defaultStarterWeight(
+        for experienceLevel: ExperienceLevel,
+        category: ExerciseCategory
+    ) -> Double {
+        switch (experienceLevel, category) {
+        case (.beginner, .compound):
             return 45
-        case .intermediate:
+        case (.beginner, .isolation), (.beginner, .accessory):
+            return 10
+        case (.beginner, .warmup), (.beginner, .cooldown):
+            return 0
+        case (.intermediate, .compound):
             return 65
-        case .advanced:
+        case (.intermediate, .isolation), (.intermediate, .accessory):
+            return 20
+        case (.intermediate, .warmup), (.intermediate, .cooldown):
+            return 0
+        case (.advanced, .compound):
             return 95
+        case (.advanced, .isolation), (.advanced, .accessory):
+            return 30
+        case (.advanced, .warmup), (.advanced, .cooldown):
+            return 0
         }
     }
 
