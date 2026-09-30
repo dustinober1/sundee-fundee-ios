@@ -36,7 +36,11 @@ public final class DataClientFactory: @unchecked Sendable {
     public static let shared = DataClientFactory()
 
     private let lock = NSLock()
-    private var _client: any DataClientProtocol = CloudKitClient(containerIdentifier: "iCloud.com.sundeefundee.app")
+    // No property-level default: defaults evaluate at the start of *every*
+    // init, and constructing a live CKContainer traps under the macOS CI
+    // sandbox. The CloudKit boot client belongs to `init()` alone; the test
+    // initializer injects a stand-in before any CloudKit type is touched.
+    private var _client: any DataClientProtocol
     private var _ownerID = "signed-out"
     private var _generation: UInt64 = 0
 
@@ -48,15 +52,9 @@ public final class DataClientFactory: @unchecked Sendable {
     public var client: any DataClientProtocol {
         get { lock.withLock { _client } }
         set {
-            lock.withLock {
-                _client = Self.wrapForSync(newValue, ownerID: _ownerID, monitor: networkMonitor)
-                _generation &+= 1
-            }
+            let wrapped = install(client: newValue, ownerID: lock.withLock { _ownerID })
             factoryLogger.info("🔀 DataClient switched to: \(String(describing: type(of: newValue)))")
-            let queue = _client as? SyncQueue
-            Task { @MainActor in
-                SyncQueueDiagnosticsService.shared.attach(queue)
-            }
+            attachDiagnostics(wrapped)
         }
     }
 
@@ -77,15 +75,29 @@ public final class DataClientFactory: @unchecked Sendable {
     }
 
     public func activate(client: any DataClientProtocol, ownerID: String) {
+        let wrapped = install(client: client, ownerID: ownerID)
+        factoryLogger.info(
+            "🔀 DataClient session switched to owner namespace: \(ownerID, privacy: .private(mask: .hash))"
+        )
+        attachDiagnostics(wrapped)
+    }
+
+    /// The one path through which `_client`/`_ownerID`/`_generation` change.
+    /// Returns the wrapped client so callers act on the value they just
+    /// installed rather than re-reading `_client` outside the lock — that
+    /// unlocked re-read was a data race this class's `@unchecked Sendable`
+    /// conformity hides from the compiler.
+    private func install(client: any DataClientProtocol, ownerID: String) -> any DataClientProtocol {
         let wrapped = Self.wrapForSync(client, ownerID: ownerID, monitor: networkMonitor)
         lock.withLock {
             _client = wrapped
             _ownerID = ownerID
             _generation &+= 1
         }
-        factoryLogger.info(
-            "🔀 DataClient session switched to owner namespace: \(ownerID, privacy: .private(mask: .hash))"
-        )
+        return wrapped
+    }
+
+    private func attachDiagnostics(_ wrapped: any DataClientProtocol) {
         let queue = wrapped as? SyncQueue
         Task { @MainActor in
             SyncQueueDiagnosticsService.shared.attach(queue)
@@ -130,5 +142,16 @@ public final class DataClientFactory: @unchecked Sendable {
 
     // MARK: - Initialization
 
-    private init() {}
+    private init() {
+        _client = CloudKitClient(containerIdentifier: "iCloud.com.sundeefundee.app")
+    }
+
+    /// Non-singleton initializer for tests. Production code uses `shared`,
+    /// which boots with a live CloudKit client — constructing a real
+    /// CKContainer traps in the macOS CI sandbox, so tests must inject a
+    /// stand-in client explicitly.
+    init(client: any DataClientProtocol, ownerID: String = "test-owner") {
+        _client = client
+        _ownerID = ownerID
+    }
 }
