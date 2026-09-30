@@ -64,6 +64,7 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
     private var personalRecordExerciseNames: Set<String> = []
     private var hasEvaluatedStartingCalibration = false
     private var hasAppliedStartingCalibration = false
+    private var isRestChimeEnabled = true
 #if canImport(ActivityKit) && os(iOS)
     private var liveActivityManager: LiveWorkoutActivityManager?
 #endif
@@ -630,6 +631,8 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
             )
         }
 
+        self.isRestChimeEnabled = settings.isRestChime
+
         return WorkoutCalibrationSettings(
             experienceLevel: ExperienceLevel(rawValue: settings.experienceLevel) ?? .beginner,
             weightUnit: WeightUnit(rawValue: settings.weightUnit) ?? .lbs,
@@ -722,6 +725,9 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
                     self.restTimerCancellable?.cancel()
                     self.restTimerCancellable = nil
                     self.restStartedAt = nil
+                    if self.isRestChimeEnabled {
+                        AudioRestChimeService.shared.playRestCompleteChime()
+                    }
                     // Haptic feedback
 #if canImport(UIKit) && os(iOS)
                     UINotificationFeedbackGenerator().notificationOccurred(.success)
