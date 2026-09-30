@@ -37,6 +37,7 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
     @Published public private(set) var hasLoggedSetEffort: Bool = false
     @Published public private(set) var isCompletingSet: Bool = false
     @Published public private(set) var adaptationDecisionRecord: WorkoutAdaptationDecisionRecord?
+    @Published public var autoregulationNotice: String?
 
     // MARK: - PR Share Prompt
 
@@ -297,6 +298,30 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
                 rpe: clampedSetRPE
             )
             hasLoggedSetEffort = true
+        }
+
+        if let rpe = setRPE, let ex = currentExercise, completedWeight > 0 {
+            _ = ex
+            let targetReps = currentSet?.reps ?? 5
+            let adjustment = AutoregulationService.evaluate(
+                completedReps: actualReps,
+                targetReps: targetReps,
+                completedWeight: completedWeight,
+                rpe: rpe,
+                unit: weightUnit
+            )
+            if let newWeight = adjustment.adjustedWeight, adjustment.action != .maintain {
+                autoregulationNotice = adjustment.reason
+                // Adjust remaining incomplete sets for this exercise
+                let exIndex = currentExerciseIndex
+                for setIndex in (currentSetIndex + 1)..<workout.exercises[exIndex].targetSets.count {
+                    if !workout.exercises[exIndex].targetSets[setIndex].isComplete {
+                        workout.exercises[exIndex].targetSets[setIndex].prescribedWeight = newWeight
+                    }
+                }
+            } else {
+                autoregulationNotice = nil
+            }
         }
         await saveProgress()
 
