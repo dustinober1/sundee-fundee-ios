@@ -35,14 +35,18 @@ public enum StartingWeightCalibrationService {
         for workout: Workout,
         maxRecords: [OneRepMaxRecord],
         experienceLevel: ExperienceLevel,
-        unit: WeightUnit = .lbs
+        unit: WeightUnit = .lbs,
+        recentWorkouts: [Workout] = [],
+        effortLogs: [WorkoutEffortLog] = []
     ) -> [StartingWeightSuggestion] {
         workout.exercises.map {
             suggestion(
                 for: $0,
                 maxRecords: maxRecords,
                 experienceLevel: experienceLevel,
-                unit: unit
+                unit: unit,
+                recentWorkouts: recentWorkouts,
+                effortLogs: effortLogs
             )
         }
     }
@@ -51,7 +55,9 @@ public enum StartingWeightCalibrationService {
         for exercise: Exercise,
         maxRecords: [OneRepMaxRecord],
         experienceLevel: ExperienceLevel,
-        unit: WeightUnit = .lbs
+        unit: WeightUnit = .lbs,
+        recentWorkouts: [Workout] = [],
+        effortLogs: [WorkoutEffortLog] = []
     ) -> StartingWeightSuggestion {
         if exercise.bodyweight > 0 || isBodyweightExercise(exercise.name) {
             return StartingWeightSuggestion(
@@ -65,29 +71,45 @@ public enum StartingWeightCalibrationService {
             )
         }
 
-        let maybeMax = maxRecords
-            .filter { $0.exerciseName.caseInsensitiveCompare(exercise.name) == .orderedSame }
-            .max(by: { $0.date < $1.date })
+        let overloadResult = ProgressiveOverloadEngine.evaluate(
+            exerciseName: exercise.name,
+            workouts: recentWorkouts,
+            effortLogs: effortLogs,
+            unit: unit
+        )
 
         let base: Double
         let baseConfidence: Double
         let reason: String
+        let isOverload: Bool
 
-        if let maybeMax {
-            let reps = exercise.targetSets.first?.reps ?? 5
-            let percentage = recommendedPercentage(for: reps, experienceLevel: experienceLevel)
-            base = maybeMax.weight * percentage
-            baseConfidence = 0.85
-            reason = "Based on your latest \(exercise.name) max and target reps."
+        if let overloadResult {
+            base = overloadResult.recommendedWeight
+            baseConfidence = 0.90
+            reason = overloadResult.reason
+            isOverload = true
         } else {
-            base = defaultStarterWeight(for: experienceLevel, category: exercise.category)
-            baseConfidence = 0.45
-            reason = "No max found. Starting with a conservative entry weight."
+            let maybeMax = maxRecords
+                .filter { $0.exerciseName.caseInsensitiveCompare(exercise.name) == .orderedSame }
+                .max(by: { $0.date < $1.date })
+
+            if let maybeMax {
+                let reps = exercise.targetSets.first?.reps ?? 5
+                let percentage = recommendedPercentage(for: reps, experienceLevel: experienceLevel)
+                base = maybeMax.weight * percentage
+                baseConfidence = 0.85
+                reason = "Based on your latest \(exercise.name) max and target reps."
+            } else {
+                base = defaultStarterWeight(for: experienceLevel, category: exercise.category)
+                baseConfidence = 0.45
+                reason = "No max found. Starting with a conservative entry weight."
+            }
+            isOverload = false
         }
 
         return StartingWeightSuggestion(
             exerciseName: exercise.name,
-            suggestedWeight: roundToNearestFive(base),
+            suggestedWeight: isOverload ? base : roundToNearestFive(base),
             unit: unit,
             confidence: baseConfidence,
             reason: reason,
