@@ -31,17 +31,19 @@ public func defaultPercentage(reps: Int) -> Double {
 ///   - overridePercentage: Optional percentage of 1RM override
 ///   - energyMultiplier: Energy level adjustment (0.85 = low, 1.0 = medium, 1.05 = high)
 ///   - cycleMultiplier: Cycle phase adjustment (varies by phase)
+///   - recoveryMultiplier: Recovery phase adjustment from injury adaptation (0.0 to 1.0)
 /// - Returns: Prescribed weight in lbs
 public func calculatePrescribedWeight(
     max: Double,
     reps: Int,
     overridePercentage: Double? = nil,
     energyMultiplier: Double = 1.0,
-    cycleMultiplier: Double = 1.0
+    cycleMultiplier: Double = 1.0,
+    recoveryMultiplier: Double = 1.0
 ) -> Double {
     let percentage = overridePercentage ?? defaultPercentage(reps: reps)
     let baseWeight = max * percentage
-    let adjustedWeight = baseWeight * energyMultiplier * cycleMultiplier
+    let adjustedWeight = baseWeight * energyMultiplier * cycleMultiplier * recoveryMultiplier
     return roundToNearest(adjustedWeight, increment: 5)
 }
 
