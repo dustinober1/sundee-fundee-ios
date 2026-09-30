@@ -50,8 +50,16 @@ struct CyclePhaseWidgetEntryView: View {
             accessoryInline
         case .accessoryRectangular:
             accessoryRectangular
+        #if os(watchOS)
+        case .accessoryCorner:
+            accessoryCorner
+        #endif
         default:
+            #if os(watchOS)
+            accessoryCircular
+            #else
             systemSmall
+            #endif
         }
     }
 
@@ -133,6 +141,18 @@ struct CyclePhaseWidgetEntryView: View {
         .widgetURL(DeepLinkRouter.url(for: .cycle))
     }
 
+    #if os(watchOS)
+    private var accessoryCorner: some View {
+        Text(shortPhaseLabel)
+            .font(.headline.bold())
+            .widgetLabel {
+                Text(entry.snapshot?.cycleDay.map { "Day \($0)" } ?? phaseTitle)
+            }
+            .containerBackground(for: .widget) { Color.clear }
+            .widgetURL(DeepLinkRouter.url(for: .cycle))
+    }
+    #endif
+
     private var phaseAdvice: String {
         if entry.snapshot?.isSharkWeek == true { return "Recovery and gentle movement" }
         switch entry.snapshot?.phaseRaw {
@@ -189,6 +209,10 @@ struct CyclePhaseWidget: Widget {
         }
         .configurationDisplayName("Cycle Phase")
         .description("Today's cycle phase and day count.")
+        #if os(watchOS)
+        .supportedFamilies([.accessoryCircular, .accessoryInline, .accessoryRectangular, .accessoryCorner])
+        #else
         .supportedFamilies([.systemSmall, .accessoryCircular, .accessoryInline, .accessoryRectangular])
+        #endif
     }
 }
