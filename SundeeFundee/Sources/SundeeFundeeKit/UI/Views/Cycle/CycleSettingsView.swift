@@ -1,3 +1,4 @@
+import HealthKit
 import SwiftUI
 
 // MARK: - CycleSettingsView
@@ -359,6 +360,24 @@ struct CycleSettingsView: View {
         isSaving = false
     }
 
+    private func syncMenstrualFlowToHealthKit(
+        startDate: Date,
+        endDate: Date?,
+        flow: HKCategoryValueMenstrualFlow,
+        isStartOfCycle: Bool
+    ) async {
+        let settings: [UserSettingsRecord] = (try? await dataClient.fetchAll(recordType: "UserSettings")) ?? []
+        guard let userSettings = settings.first, userSettings.isMenstrualWriteBack else { return }
+        let healthClient = HealthClientFactory.shared.client
+        guard healthClient.isAvailable else { return }
+        _ = try? await healthClient.saveMenstrualFlow(
+            startDate: startDate,
+            endDate: endDate,
+            flow: flow,
+            isStartOfCycle: isStartOfCycle
+        )
+    }
+
     private func startPeriod() async {
         isLogging = true
         let startOfDay = Calendar.current.startOfDay(for: periodStartDate)
@@ -378,6 +397,7 @@ struct CycleSettingsView: View {
             try await dataClient.save(settingsRecord, recordType: "CycleSettings")
 
             cyclePhaseCache.markPeriodStarted()
+            await syncMenstrualFlowToHealthKit(startDate: startOfDay, endDate: nil, flow: .unspecified, isStartOfCycle: true)
             NotificationCenter.default.post(name: .cycleDataUpdated, object: nil)
             periodStartDate = Date()
         } catch {
@@ -398,6 +418,7 @@ struct CycleSettingsView: View {
                 loggedPeriods[idx] = updated
             }
             cyclePhaseCache.markPeriodEnded()
+            await syncMenstrualFlowToHealthKit(startDate: active.startDate, endDate: endOfDay, flow: .unspecified, isStartOfCycle: false)
             NotificationCenter.default.post(name: .cycleDataUpdated, object: nil)
         } catch {
             errorMessage = "We couldn't end your period log. Check your connection and try again."
@@ -424,6 +445,7 @@ struct CycleSettingsView: View {
             )
             try await dataClient.save(settingsRecord, recordType: "CycleSettings")
 
+            await syncMenstrualFlowToHealthKit(startDate: startOfDay, endDate: endOfDay, flow: .unspecified, isStartOfCycle: true)
             NotificationCenter.default.post(name: .cycleDataUpdated, object: nil)
             periodStartDate = Date()
             periodEndDate = Date()
@@ -458,6 +480,7 @@ struct CycleSettingsView: View {
                 try? await dataClient.save(settingsRecord, recordType: "CycleSettings")
             }
 
+            await syncMenstrualFlowToHealthKit(startDate: startOfDay, endDate: endOfDay, flow: .unspecified, isStartOfCycle: true)
             NotificationCenter.default.post(name: .cycleDataUpdated, object: nil)
         } catch {
             errorMessage = "We couldn't update your period log. Check your connection and try again."
