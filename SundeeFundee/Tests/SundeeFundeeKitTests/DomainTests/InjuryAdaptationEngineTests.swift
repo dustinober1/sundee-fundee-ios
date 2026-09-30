@@ -132,7 +132,7 @@ final class InjuryAdaptationEngineTests: XCTestCase {
             baseLoad: 100.0,
             injuries: injuries
         )
-        XCTAssertEqual(result, 30.0, accuracy: 0.01)
+        XCTAssertEqual(result, 0.0, accuracy: 0.01)
     }
 
     func testLoadMultiplier_RehabPhase() {
@@ -141,7 +141,7 @@ final class InjuryAdaptationEngineTests: XCTestCase {
             baseLoad: 100.0,
             injuries: injuries
         )
-        XCTAssertEqual(result, 50.0, accuracy: 0.01)
+        XCTAssertEqual(result, 30.0, accuracy: 0.01)
     }
 
     func testLoadMultiplier_LightLoadPhase() {
@@ -150,7 +150,7 @@ final class InjuryAdaptationEngineTests: XCTestCase {
             baseLoad: 100.0,
             injuries: injuries
         )
-        XCTAssertEqual(result, 70.0, accuracy: 0.01)
+        XCTAssertEqual(result, 50.0, accuracy: 0.01)
     }
 
     func testLoadMultiplier_ReturnToPlayPhase() {
@@ -159,7 +159,7 @@ final class InjuryAdaptationEngineTests: XCTestCase {
             baseLoad: 100.0,
             injuries: injuries
         )
-        XCTAssertEqual(result, 85.0, accuracy: 0.01)
+        XCTAssertEqual(result, 80.0, accuracy: 0.01)
     }
 
     func testLoadMultiplier_ResolvedPhase() {
@@ -181,8 +181,8 @@ final class InjuryAdaptationEngineTests: XCTestCase {
             baseLoad: 100.0,
             injuries: injuries
         )
-        // Should use acute (0.3), the most restrictive
-        XCTAssertEqual(result, 30.0, accuracy: 0.01)
+        // Should use acute (0.0), the most restrictive
+        XCTAssertEqual(result, 0.0, accuracy: 0.01)
     }
 
     func testLoadMultiplier_NoInjuries() {
