@@ -54,6 +54,14 @@ final class AIWorkoutTests: XCTestCase {
 
     // MARK: - aiDefaultPercentage
 
+    func testDefaultPercentage_SingleRep() {
+        XCTAssertEqual(aiDefaultPercentage(reps: "1"), 1.0, accuracy: 0.01)
+    }
+
+    func testDefaultPercentage_TwoReps() {
+        XCTAssertEqual(aiDefaultPercentage(reps: "2"), 0.93, accuracy: 0.01)
+    }
+
     func testDefaultPercentage_HeavyReps() {
         XCTAssertEqual(aiDefaultPercentage(reps: "3"), 0.85, accuracy: 0.01)
     }
