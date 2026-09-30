@@ -1,5 +1,4 @@
 import Foundation
-import OSLog
 
 // MARK: - OnDeviceCoachService
 
@@ -9,7 +8,6 @@ public final class OnDeviceCoachService: CoachServiceProtocol, @unchecked Sendab
     private let fallback: CoachServiceProtocol
     private let copyEditor: CoachCopyEditing?
     private let configuration: CoachAIConfiguration
-    private let logger = Logger(subsystem: "com.sundeefundee.app", category: "CoachAI")
 
     public init(
         fallback: CoachServiceProtocol = DeterministicCoachService(),
@@ -71,7 +69,6 @@ public final class OnDeviceCoachService: CoachServiceProtocol, @unchecked Sendab
         )
 
         guard await configuration.shouldUseOnDeviceCopy(), let copyEditor else {
-            log(flow: "workout_summary", packet: packet, source: .onDeviceAIUnavailableFallback, issues: [])
             return CoachCopyFallback.workoutResponse(base: base, packet: packet, source: .onDeviceAIUnavailableFallback)
         }
 
@@ -80,11 +77,9 @@ public final class OnDeviceCoachService: CoachServiceProtocol, @unchecked Sendab
             let issues = CoachCopyValidator.validateWorkoutSummary(candidate, packet: packet)
             guard issues.isEmpty else {
                 await configuration.recordRejectedCopy()
-                log(flow: "workout_summary", packet: packet, source: .onDeviceAIRejectedFallback, issues: issues)
                 return CoachCopyFallback.workoutResponse(base: base, packet: packet, source: .onDeviceAIRejectedFallback)
             }
             await configuration.recordAcceptedCopy()
-            log(flow: "workout_summary", packet: packet, source: .onDeviceAIAccepted, issues: [])
             return base.replacingCopy(
                 summary: candidate.summary,
                 tips: base.tips,
@@ -92,7 +87,6 @@ public final class OnDeviceCoachService: CoachServiceProtocol, @unchecked Sendab
                 source: .onDeviceAIAccepted
             )
         } catch {
-            log(flow: "workout_summary", packet: packet, source: .onDeviceAIUnavailableFallback, issues: [])
             return CoachCopyFallback.workoutResponse(base: base, packet: packet, source: .onDeviceAIUnavailableFallback)
         }
     }
@@ -109,11 +103,9 @@ public final class OnDeviceCoachService: CoachServiceProtocol, @unchecked Sendab
             let issues = CoachCopyValidator.validateInsightsSummary(candidate, packet: packet)
             guard issues.isEmpty else {
                 await configuration.recordRejectedCopy()
-                log(flow: "insights_summary", packet: packet, source: .onDeviceAIRejectedFallback, issues: issues)
                 return base
             }
             await configuration.recordAcceptedCopy()
-            log(flow: "insights_summary", packet: packet, source: .onDeviceAIAccepted, issues: [])
             return CoachInsightsResponse(
                 plateaus: base.plateaus,
                 trends: base.trends,
@@ -121,7 +113,6 @@ public final class OnDeviceCoachService: CoachServiceProtocol, @unchecked Sendab
                 priorityActions: base.priorityActions
             )
         } catch {
-            log(flow: "insights_summary", packet: packet, source: .onDeviceAIUnavailableFallback, issues: [])
             return base
         }
     }
@@ -138,25 +129,12 @@ public final class OnDeviceCoachService: CoachServiceProtocol, @unchecked Sendab
             let issues = CoachCopyValidator.validatePlanExplanation(candidate, packet: packet)
             guard issues.isEmpty else {
                 await configuration.recordRejectedCopy()
-                log(flow: "plan_explanation", packet: packet, source: .onDeviceAIRejectedFallback, issues: issues)
                 return base
             }
             await configuration.recordAcceptedCopy()
-            log(flow: "plan_explanation", packet: packet, source: .onDeviceAIAccepted, issues: [])
             return CoachPlanResponse(result: base.result, explanation: candidate.summary, volumeWarning: base.volumeWarning)
         } catch {
-            log(flow: "plan_explanation", packet: packet, source: .onDeviceAIUnavailableFallback, issues: [])
             return base
         }
-    }
-
-    private func log(
-        flow: String,
-        packet: CoachDecisionPacket,
-        source: CoachCopySource,
-        issues: [CoachCopyValidationIssue]
-    ) {
-        let issueTypes = issues.map { String(describing: $0) }.joined(separator: ",")
-        logger.info("coach_copy flow=\(flow, privacy: .public) prompt_version=\(packet.promptVersion, privacy: .public) source=\(source.rawValue, privacy: .public) validation_issue_count=\(issues.count, privacy: .public) validation_issues=\(issueTypes, privacy: .public)")
     }
 }
