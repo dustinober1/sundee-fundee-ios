@@ -1235,6 +1235,10 @@ class AIWorkoutViewModel: ObservableObject {
         let cMult = aiCyclePhaseMultiplier(cyclePhase)
         let context = cachedContext
         let maxes = context?.maxes ?? []
+        let rMult = InjuryAdaptationEngine.calculateLoadMultiplier(
+            baseLoad: 1.0,
+            injuries: cachedContext?.injuries ?? []
+        )
         let weighted = applyWeights(
             exercises: {
                 var updatedExercises = workout.exercises
@@ -1243,7 +1247,8 @@ class AIWorkoutViewModel: ObservableObject {
             }(),
             maxes: maxes,
             energyMult: eMult,
-            cycleMult: cMult
+            cycleMult: cMult,
+            recoveryMult: rMult
         )
         let final = weighted.map { ex -> GeneratedExercise in
             guard ex.restMinutes == nil else { return ex }
