@@ -47,7 +47,7 @@ SundeeFundee/ (Swift Package — SundeeFundeeKit)
 
 - `DataClientFactory.shared.client` — thread-safe client switching (CloudKit for signed-in, `LocalDataClient` for guest).
 - `CloudKitClient` is an actor. ViewModels are `@MainActor`.
-- `SyncQueue` queues mutations offline; **currently dormant** — not wired into `DataClientFactory`.
+- `SyncQueue` queues mutations offline: `DataClientFactory` wraps every client except `LocalDataClient` in a `SyncQueue` (see `wrapForSync`). Queue storage is a per-owner `UserDefaults` suite (`com.sundeefundee.syncqueue.<ownerID>`), not an App Group — accounts can never replay each other's pending writes.
 
 ## CloudKit schema rules
 
