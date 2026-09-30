@@ -590,62 +590,93 @@ public struct DashboardView: View {
 
     @ViewBuilder
     private var cyclePhaseBanner: some View {
-        if viewModel.cycleTrackingEnabled, let phase = cyclePhaseCache.currentPhase {
+        if viewModel.cycleTrackingEnabled {
             ArtDecoCard {
                 VStack(spacing: 0) {
-                    // Main cycle banner content (tappable to go to calendar)
-                    NavigationLink(destination: CycleCalendarView()) {
+                    if let phase = cyclePhaseCache.currentPhase {
+                        // Main cycle banner content (tappable to go to calendar)
+                        NavigationLink(destination: CycleCalendarView()) {
+                            HStack(spacing: AppTheme.Spacing.md) {
+                                Image(systemName: cyclePhaseIcon(for: phase))
+                                    .font(.title3)
+                                    .foregroundColor(cyclePhaseColor(for: phase))
+                                    .accessibilityHidden(true)
+
+                                VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                                    Text(cyclePhaseTitle(for: phase))
+                                        .font(AppTheme.Typography.headlineMedium)
+                                        .foregroundColor(AppTheme.Text.primary)
+
+                                    Text(cyclePhaseDescription(for: phase))
+                                        .font(AppTheme.Typography.bodySmall)
+                                        .foregroundColor(AppTheme.Text.secondary)
+
+                                    if let confidence = cyclePhaseCache.confidence {
+                                        Text(cycleConfidenceText(confidence))
+                                            .font(AppTheme.Typography.bodySmall)
+                                            .foregroundColor(AppTheme.Text.secondary.opacity(0.85))
+                                            .fixedSize(horizontal: false, vertical: true)
+                                    }
+                                }
+
+                                Spacer()
+
+                                // Confidence indicator
+                                if let confidence = cyclePhaseCache.confidence {
+                                    HStack(spacing: AppTheme.Spacing.xs) {
+                                        Text("\(Int(confidence * 100))%")
+                                            .font(AppTheme.Typography.labelMedium)
+                                            .foregroundColor(AppTheme.Text.secondary)
+
+                                        Circle()
+                                            .fill(confidenceColor(for: confidence))
+                                            .frame(width: 8, height: 8)
+                                            .accessibilityHidden(true)
+                                    }
+                                    .accessibilityElement(children: .combine)
+                                    .accessibilityLabel("Phase confidence: \(Int(confidence * 100)) percent")
+                                }
+                            }
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityElement(children: .combine)
+                        .accessibilityLabel("Cycle phase: \(cyclePhaseTitle(for: phase))")
+                        .accessibilityHint("Tap to view cycle calendar")
+                    } else if cyclePhaseCache.cycleTrackingMode == .contraceptive {
                         HStack(spacing: AppTheme.Spacing.md) {
-                            Image(systemName: cyclePhaseIcon(for: phase))
+                            Image(systemName: "pills.fill")
                                 .font(.title3)
-                                .foregroundColor(cyclePhaseColor(for: phase))
+                                .foregroundColor(AppTheme.Accent.gold)
                                 .accessibilityHidden(true)
 
                             VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
-                                Text(cyclePhaseTitle(for: phase))
+                                Text("Steady Baseline")
                                     .font(AppTheme.Typography.headlineMedium)
                                     .foregroundColor(AppTheme.Text.primary)
 
-                                Text(cyclePhaseDescription(for: phase))
+                                Text("Hormonal contraceptive mode · Training adapts to nocturnal HRV, resting heart rate, and RPE.")
                                     .font(AppTheme.Typography.bodySmall)
                                     .foregroundColor(AppTheme.Text.secondary)
-
-                                if let confidence = cyclePhaseCache.confidence {
-                                    Text(cycleConfidenceText(confidence))
-                                        .font(AppTheme.Typography.bodySmall)
-                                        .foregroundColor(AppTheme.Text.secondary.opacity(0.85))
-                                        .fixedSize(horizontal: false, vertical: true)
-                                }
                             }
 
                             Spacer()
-
-                            // Confidence indicator
-                            if let confidence = cyclePhaseCache.confidence {
-                                HStack(spacing: AppTheme.Spacing.xs) {
-                                    Text("\(Int(confidence * 100))%")
-                                        .font(AppTheme.Typography.labelMedium)
-                                        .foregroundColor(AppTheme.Text.secondary)
-
-                                    Circle()
-                                        .fill(confidenceColor(for: confidence))
-                                        .frame(width: 8, height: 8)
-                                        .accessibilityHidden(true)
-                                }
-                                .accessibilityElement(children: .combine)
-                                .accessibilityLabel("Phase confidence: \(Int(confidence * 100)) percent")
-                            }
                         }
                     }
-                    .buttonStyle(.plain)
-                    .accessibilityElement(children: .combine)
-                    .accessibilityLabel("Cycle phase: \(cyclePhaseTitle(for: phase))")
-                    .accessibilityHint("Tap to view cycle calendar")
-                    
+
+                    if !viewModel.cycleForecast.isEmpty {
+                        Divider()
+                            .padding(.vertical, AppTheme.Spacing.sm)
+
+                        CycleForecastStripView(
+                            forecasts: viewModel.cycleForecast,
+                            terminologyStyle: cyclePhaseCache.terminologyStyle
+                        )
+                    }
+
                     // Info button footer
                     Divider()
                         .padding(.vertical, AppTheme.Spacing.xs)
-                    
+
                     Button {
                         showingCycleEducation = true
                     } label: {
@@ -653,13 +684,13 @@ public struct DashboardView: View {
                             Image(systemName: "info.circle")
                                 .font(.caption)
                                 .foregroundColor(AppTheme.Accent.gold)
-                            
+
                             Text("Learn about cycle-aware training")
                                 .font(AppTheme.Typography.bodySmall)
                                 .foregroundColor(AppTheme.Accent.gold)
-                            
+
                             Spacer()
-                            
+
                             Image(systemName: "arrow.right")
                                 .font(.caption2)
                                 .foregroundColor(AppTheme.Accent.gold)
