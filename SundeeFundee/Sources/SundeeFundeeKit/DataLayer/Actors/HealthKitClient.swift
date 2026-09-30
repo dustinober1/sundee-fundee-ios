@@ -414,6 +414,68 @@ public actor HealthKitClient: @preconcurrency HealthClientProtocol {
         }
     }
 
+    /// Saves a menstrual flow log to HealthKit.
+    public func saveMenstrualFlow(
+        startDate: Date,
+        endDate: Date?,
+        flow: HKCategoryValueMenstrualFlow,
+        isStartOfCycle: Bool
+    ) async throws {
+        guard isAvailable else {
+            throw HealthError.notAvailable
+        }
+        guard let menstrualType = HKObjectType.categoryType(forIdentifier: .menstrualFlow) else {
+            throw HealthError.noData(type: "menstrualFlow")
+        }
+
+        var metadata: [String: Any] = [
+            HKMetadataKeyWasUserEntered: true,
+            "com.sundeefundee.origin": "manual_period_log"
+        ]
+        if isStartOfCycle {
+            metadata[HKMetadataKeyMenstrualCycleStart] = true
+        }
+
+        let effectiveEnd = endDate ?? startDate
+        let sample = HKCategorySample(
+            type: menstrualType,
+            value: flow.rawValue,
+            start: startDate,
+            end: effectiveEnd,
+            metadata: metadata
+        )
+
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            healthStore.save(sample) { success, error in
+                if let error = error {
+                    continuation.resume(throwing: HealthError.queryFailed(underlying: error))
+                } else {
+                    continuation.resume()
+                }
+            }
+        }
+    }
+
+    /// Enables background delivery for the given sample type.
+    public func enableBackgroundDelivery(
+        for sampleType: HKObjectType,
+        frequency: HKUpdateFrequency
+    ) async throws {
+        guard isAvailable else {
+            throw HealthError.notAvailable
+        }
+
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            healthStore.enableBackgroundDelivery(for: sampleType, frequency: frequency) { success, error in
+                if let error = error {
+                    continuation.resume(throwing: HealthError.queryFailed(underlying: error))
+                } else {
+                    continuation.resume()
+                }
+            }
+        }
+    }
+
     // MARK: - Private Helpers
 
     /// Builds a date predicate from optional start and end dates.
@@ -496,11 +558,15 @@ extension HealthKitClient {
         return types
     }
 
-    /// Standard types to write for workout tracking.
+    /// Standard types to write for workout and cycle tracking.
     public static var standardWriteTypes: Set<HKSampleType> {
-        [
+        var types: Set<HKSampleType> = [
             HKObjectType.workoutType(),
         ]
+        if let menstrualFlow = HKObjectType.categoryType(forIdentifier: .menstrualFlow) {
+            types.insert(menstrualFlow)
+        }
+        return types
     }
 
     /// Requests authorization for standard workout tracking types.
