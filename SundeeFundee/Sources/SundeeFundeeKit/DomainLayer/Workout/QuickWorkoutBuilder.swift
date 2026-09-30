@@ -9,6 +9,8 @@ public struct QuickWorkoutRequest: Sendable, Equatable {
     public let painLogs: [DailyPainLog]
     public let workoutKind: WorkoutKind
     public let exerciseMaxes: [ExerciseMax]
+    public let cycleMultiplier: Double
+    public let recoveryMultiplier: Double
 
     public init(
         timeMinutes: Int,
@@ -18,7 +20,9 @@ public struct QuickWorkoutRequest: Sendable, Equatable {
         todayDecisionKind: TodayTrainingDecisionKind,
         painLogs: [DailyPainLog],
         workoutKind: WorkoutKind = .standard,
-        exerciseMaxes: [ExerciseMax] = []
+        exerciseMaxes: [ExerciseMax] = [],
+        cycleMultiplier: Double = 1.0,
+        recoveryMultiplier: Double = 1.0
     ) {
         self.timeMinutes = timeMinutes
         self.focus = focus
@@ -28,6 +32,8 @@ public struct QuickWorkoutRequest: Sendable, Equatable {
         self.painLogs = painLogs
         self.workoutKind = workoutKind
         self.exerciseMaxes = exerciseMaxes
+        self.cycleMultiplier = cycleMultiplier
+        self.recoveryMultiplier = recoveryMultiplier
     }
 
     public static func == (lhs: QuickWorkoutRequest, rhs: QuickWorkoutRequest) -> Bool {
@@ -39,6 +45,8 @@ public struct QuickWorkoutRequest: Sendable, Equatable {
             && lhs.painLogs.quickWorkoutComparableValue == rhs.painLogs.quickWorkoutComparableValue
             && lhs.workoutKind == rhs.workoutKind
             && lhs.exerciseMaxes.count == rhs.exerciseMaxes.count
+            && lhs.cycleMultiplier == rhs.cycleMultiplier
+            && lhs.recoveryMultiplier == rhs.recoveryMultiplier
     }
 }
 
@@ -97,7 +105,7 @@ public enum QuickWorkoutBuilder {
             lowRecovery: lowRecovery,
             painAvoidanceApplied: painAvoidanceApplied
         )
-        let exercises = plans.map { makeExercise(from: $0, maxes: request.exerciseMaxes, energyLevel: request.energyLevel) }
+        let exercises = plans.map { makeExercise(from: $0, request: request) }
 
         return QuickWorkoutResult(
             workout: Workout(
@@ -281,16 +289,15 @@ public enum QuickWorkoutBuilder {
 
     private static func makeExercise(
         from plan: QuickExercisePlan,
-        maxes: [ExerciseMax],
-        energyLevel: EnergyLevel
+        request: QuickWorkoutRequest
     ) -> Exercise {
         let repCount = reps(for: plan.candidate.pattern)
         let weight: Double
         if !plan.candidate.bodyweightOnly,
-           let matched = maxes.first(where: { $0.name.caseInsensitiveCompare(plan.candidate.name) == .orderedSame }) {
+           let matched = request.exerciseMaxes.first(where: { $0.name.caseInsensitiveCompare(plan.candidate.name) == .orderedSame }) {
             let pct = defaultPercentage(reps: repCount)
-            let eMult = energyMultiplier(energyLevel)
-            weight = roundToNearest(matched.weightKg * pct * eMult, increment: 5)
+            let eMult = energyMultiplier(request.energyLevel)
+            weight = roundToNearest(matched.weightKg * pct * eMult * request.cycleMultiplier * request.recoveryMultiplier, increment: 5)
         } else {
             weight = 0
         }
