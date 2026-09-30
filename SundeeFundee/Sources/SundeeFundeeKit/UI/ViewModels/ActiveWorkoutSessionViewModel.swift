@@ -824,21 +824,34 @@ public class ActiveWorkoutSessionViewModel: ObservableObject, Identifiable {
                 .filter { $0.exerciseName == exerciseName }
                 .max(by: { $0.weight < $1.weight })
 
-            if estimated > (currentMax?.weight ?? 0) {
+            let currentMaxInCurrentUnit: Double?
+            if let maxRecord = currentMax {
+                if maxRecord.unit == weightUnit {
+                    currentMaxInCurrentUnit = maxRecord.weight
+                } else if maxRecord.unit == .lbs && weightUnit == .kg {
+                    currentMaxInCurrentUnit = maxRecord.weight / 2.20462
+                } else {
+                    currentMaxInCurrentUnit = maxRecord.weight * 2.20462
+                }
+            } else {
+                currentMaxInCurrentUnit = nil
+            }
+
+            if estimated > (currentMaxInCurrentUnit ?? 0) {
                 let newRecord = OneRepMaxRecord(
                     id: UUID().uuidString,
                     exerciseName: exerciseName,
                     weight: estimated,
-                    unit: .lbs,
+                    unit: weightUnit,
                     date: Date()
                 )
                 try await dataClient.save(newRecord, recordType: "OneRepMaxRecord")
-                celebrationEvents.append(.newPersonalRecord(exerciseName: exerciseName, weightKg: estimated / 2.20462))
+                celebrationEvents.append(.newPersonalRecord(exerciseName: exerciseName, weightKg: weightUnit == .kg ? estimated : estimated / 2.20462))
                 if currentMax != nil, MinimalSurfacePolicy.shouldPromptShare(for: .personalRecord) {
                     pendingPRShare = PendingPRShare(
                         exerciseName: exerciseName,
                         weight: estimated,
-                        unit: "lb",
+                        unit: weightUnit == .kg ? "kg" : "lb",
                         previousBest: currentMax?.weight
                     )
                 }
