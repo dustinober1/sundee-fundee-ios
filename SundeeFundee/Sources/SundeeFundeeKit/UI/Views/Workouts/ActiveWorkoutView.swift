@@ -171,31 +171,13 @@ public struct ActiveWorkoutView: View {
             Text("You've already logged sets on this exercise. Swapping will clear that progress.")
         }
         .sheet(isPresented: $viewModel.showStartingWeightCalibrationSheet) {
-            StartingWeightCalibrationSheet(
-                suggestions: viewModel.startingWeightSuggestions,
-                onApplyAll: {
-                    Task {
-                        await viewModel.applyStartingWeightSuggestions()
-                    }
-                },
-                onSkip: {
-                    viewModel.skipStartingWeightCalibration()
-                }
-            )
+            startingWeightCalibrationSheetView
         }
         .sheet(isPresented: $showingPlateCalculator) {
-            let current = Double(weightInput) ?? (viewModel.currentSet?.prescribedWeight ?? 135)
-            PlateCalculatorSheet(initialWeight: current, unit: .lbs)
+            plateCalculatorSheetView
         }
         .sheet(isPresented: $showingWarmupRamp) {
-            let current = Double(weightInput) ?? (viewModel.currentSet?.prescribedWeight ?? 135)
-            let reps = Int(repsInput) ?? (viewModel.currentSet?.prescribedReps ?? 5)
-            WarmupCalculatorSheet(
-                exerciseName: viewModel.currentExercise?.name ?? "Barbell Exercise",
-                workingWeight: current,
-                targetReps: reps,
-                unit: .lbs
-            )
+            warmupRampSheetView
         }
         .confirmationDialog("Convert Equipment", isPresented: $showingEquipmentConversionPicker) {
             ForEach(equipmentProfiles) { profile in
@@ -1237,6 +1219,39 @@ public struct ActiveWorkoutView: View {
                 sessionRPEForFinish: sessionRPE
             )
         }
+    }
+
+    @ViewBuilder
+    private var startingWeightCalibrationSheetView: some View {
+        StartingWeightCalibrationSheet(
+            suggestions: viewModel.startingWeightSuggestions,
+            onApplyAll: {
+                Task {
+                    await viewModel.applyStartingWeightSuggestions()
+                }
+            },
+            onSkip: {
+                viewModel.skipStartingWeightCalibration()
+            }
+        )
+    }
+
+    @ViewBuilder
+    private var plateCalculatorSheetView: some View {
+        let current = Double(weightInput) ?? (viewModel.currentSet?.prescribedWeight ?? 135)
+        PlateCalculatorSheet(initialWeight: current, unit: .lbs)
+    }
+
+    @ViewBuilder
+    private var warmupRampSheetView: some View {
+        let current = Double(weightInput) ?? (viewModel.currentSet?.prescribedWeight ?? 135)
+        let reps = Int(repsInput) ?? (viewModel.currentSet?.reps ?? 5)
+        WarmupCalculatorSheet(
+            exerciseName: viewModel.currentExercise?.name ?? "Barbell Exercise",
+            workingWeight: current,
+            targetReps: reps,
+            unit: .lbs
+        )
     }
 
     private var stationTakenSwapSheet: some View {
