@@ -13,6 +13,7 @@ public struct CycleSettingsRecord: Codable, Sendable, Equatable {
     public let terminologyStyleRaw: String?
     public let isGymPrivacyEnabled: Bool?
     public let showSharkWeekBanner: Bool?
+    public let cycleTrackingModeRaw: String?
 
     public var terminologyStyle: CycleTerminologyStyle {
         terminologyStyleRaw.flatMap(CycleTerminologyStyle.init(rawValue:)) ?? .physiological
@@ -26,12 +27,17 @@ public struct CycleSettingsRecord: Codable, Sendable, Equatable {
         showSharkWeekBanner ?? true
     }
 
+    public var cycleTrackingMode: CycleTrackingMode {
+        cycleTrackingModeRaw.flatMap(CycleTrackingMode.init(rawValue:)) ?? .standard
+    }
+
     public init(
         averageCycleLengthDays: Int,
         lastPeriodStart: Date? = nil,
         terminologyStyle: CycleTerminologyStyle = .physiological,
         isGymPrivacyEnabled: Bool = false,
-        showSharkWeekBanner: Bool = true
+        showSharkWeekBanner: Bool = true,
+        cycleTrackingMode: CycleTrackingMode = .standard
     ) {
         self.id = "cycle_settings"
         self.averageCycleLengthDays = averageCycleLengthDays
@@ -39,6 +45,7 @@ public struct CycleSettingsRecord: Codable, Sendable, Equatable {
         self.terminologyStyleRaw = terminologyStyle.rawValue
         self.isGymPrivacyEnabled = isGymPrivacyEnabled
         self.showSharkWeekBanner = showSharkWeekBanner
+        self.cycleTrackingModeRaw = cycleTrackingMode.rawValue
     }
 
     enum CodingKeys: String, CodingKey {
@@ -48,6 +55,7 @@ public struct CycleSettingsRecord: Codable, Sendable, Equatable {
         case terminologyStyleRaw
         case isGymPrivacyEnabled
         case showSharkWeekBanner
+        case cycleTrackingModeRaw
     }
 
     public init(from decoder: Decoder) throws {
@@ -56,6 +64,7 @@ public struct CycleSettingsRecord: Codable, Sendable, Equatable {
         self.averageCycleLengthDays = try container.decode(Int.self, forKey: .averageCycleLengthDays)
         self.lastPeriodStart = try? container.decodeIfPresent(Date.self, forKey: .lastPeriodStart)
         self.terminologyStyleRaw = try? container.decodeIfPresent(String.self, forKey: .terminologyStyleRaw)
+        self.cycleTrackingModeRaw = try? container.decodeIfPresent(String.self, forKey: .cycleTrackingModeRaw)
 
         if let b = try? container.decodeIfPresent(Bool.self, forKey: .isGymPrivacyEnabled) {
             self.isGymPrivacyEnabled = b
@@ -82,5 +91,6 @@ public struct CycleSettingsRecord: Codable, Sendable, Equatable {
         try container.encodeIfPresent(terminologyStyleRaw, forKey: .terminologyStyleRaw)
         try container.encode(isGymPrivacyEnabled ?? false, forKey: .isGymPrivacyEnabled)
         try container.encode(showSharkWeekBanner ?? true, forKey: .showSharkWeekBanner)
+        try container.encodeIfPresent(cycleTrackingModeRaw, forKey: .cycleTrackingModeRaw)
     }
 }
