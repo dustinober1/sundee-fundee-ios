@@ -144,29 +144,20 @@ public struct ActiveWorkoutView: View {
         .sheet(isPresented: $showingStationTakenSwapSheet) {
             stationTakenSwapSheet
         }
-        .alert("Swap mid-exercise?", isPresented: $showingSwapConfirm, presenting: pendingSwap) { sub in
-            Button("Swap & reset progress", role: .destructive) {
-                let wasStationTakenSwap = pendingStationTakenExercise != nil
-                if let stationTakenExercise = pendingStationTakenExercise,
-                   !currentExerciseMatches(stationTakenExercise) {
-                    resetStationTakenState()
-                    pendingSwap = nil
-                    return
-                }
-                viewModel.swapCurrentExercise(to: sub.exerciseName, reason: sub.reason)
-                if wasStationTakenSwap {
-                    resetStationTakenState()
-                } else {
-                    pendingStationTakenExercise = nil
-                }
-                pendingSwap = nil
+        .alert("Swap Exercise", isPresented: $showingSwapConfirm, presenting: pendingSwap) { sub in
+            Button("Keep Logged Sets & Continue") {
+                executeSwap(sub: sub, keepCompletedSets: true)
+            }
+            Button("Start Over (Reset Progress)", role: .destructive) {
+                executeSwap(sub: sub, keepCompletedSets: false)
             }
             Button("Cancel", role: .cancel) {
                 pendingStationTakenExercise = nil
                 pendingSwap = nil
             }
-        } message: { _ in
-            Text("You've already logged sets on this exercise. Swapping will clear that progress.")
+        } message: { sub in
+            let exerciseName = viewModel.currentExercise?.name ?? "this exercise"
+            Text("You've already completed sets on \(exerciseName). Would you like to keep those completed sets and continue remaining sets with \(sub.exerciseName), or reset and start over?")
         }
         .sheet(isPresented: $viewModel.showStartingWeightCalibrationSheet) {
             startingWeightCalibrationSheetView
@@ -1407,6 +1398,23 @@ public struct ActiveWorkoutView: View {
             viewModel.swapCurrentExercise(to: sub.exerciseName, reason: sub.reason)
             resetStationTakenState()
         }
+    }
+
+    private func executeSwap(sub: SubstitutionRanker.RankedSubstitution, keepCompletedSets: Bool) {
+        let wasStationTakenSwap = pendingStationTakenExercise != nil
+        if let stationTakenExercise = pendingStationTakenExercise,
+           !currentExerciseMatches(stationTakenExercise) {
+            resetStationTakenState()
+            pendingSwap = nil
+            return
+        }
+        viewModel.swapCurrentExercise(to: sub.exerciseName, reason: sub.reason, keepCompletedSets: keepCompletedSets)
+        if wasStationTakenSwap {
+            resetStationTakenState()
+        } else {
+            pendingStationTakenExercise = nil
+        }
+        pendingSwap = nil
     }
 
     private func currentStationTakenExerciseSnapshot() -> StationTakenExerciseSnapshot? {
