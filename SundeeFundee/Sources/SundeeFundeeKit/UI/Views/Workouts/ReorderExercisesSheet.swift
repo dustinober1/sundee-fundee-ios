@@ -33,8 +33,10 @@ public struct ReorderExercisesSheet: View {
             #if os(iOS)
             .listStyle(.insetGrouped)
             .environment(\.editMode, .constant(.active))
-            #else
+            #elseif os(macOS)
             .listStyle(.inset)
+            #else
+            .listStyle(.plain)
             #endif
             .navigationTitle("Reorder Exercises")
             #if os(iOS)
