@@ -449,12 +449,22 @@ public final class MockHealthKitClient: HealthClientProtocol, @unchecked Sendabl
             throw HealthError.queryFailed(underlying: nil)
         }
 
-        if let sample = Self.createMockMenstrualCycle(
-            startDate: startDate,
-            endDate: endDate ?? startDate,
-            value: flow.rawValue,
-            isStartOfCycle: isStartOfCycle
-        ) {
+        var metadata: [String: Any] = [
+            HKMetadataKeyWasUserEntered: true,
+            "com.sundeefundee.origin": "manual_period_log"
+        ]
+        if isStartOfCycle {
+            metadata[HKMetadataKeyMenstrualCycleStart] = true
+        }
+
+        if let cycleType = HKObjectType.categoryType(forIdentifier: .menstrualFlow) {
+            let sample = HKCategorySample(
+                type: cycleType,
+                value: flow.rawValue,
+                start: startDate,
+                end: endDate ?? startDate,
+                metadata: metadata
+            )
             queue.sync {
                 saveMenstrualFlowCallCount += 1
                 mockMenstrualCycles.append(sample)
