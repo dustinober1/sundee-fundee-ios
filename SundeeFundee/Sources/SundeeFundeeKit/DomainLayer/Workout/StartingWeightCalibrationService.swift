@@ -174,6 +174,9 @@ public enum StartingWeightCalibrationService {
     }
 
     private static func isBodyweightExercise(_ exerciseName: String) -> Bool {
+        if let entry = lookupExerciseCatalogEntry(exerciseName) {
+            return entry.bodyweightOnly || (entry.equipmentTags.contains(.bodyweight) && entry.equipmentTags.count == 1)
+        }
         let lower = exerciseName.lowercased()
         return lower.contains("push-up")
             || lower.contains("air squat")
