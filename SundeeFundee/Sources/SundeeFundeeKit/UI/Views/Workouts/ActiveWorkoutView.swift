@@ -43,6 +43,7 @@ public struct ActiveWorkoutView: View {
     @State private var showingWorkoutDetails = false
     @State private var showingWorkoutOptionsDialog = false
     @State private var showingAddExerciseSheet = false
+    @State private var showingReorderSheet = false
     @State private var pendingSwap: SubstitutionRanker.RankedSubstitution?
     @State private var showingStationTakenPicker = false
     @State private var showingStationTakenSwapSheet = false
@@ -174,6 +175,9 @@ public struct ActiveWorkoutView: View {
                 viewModel.addExercises(selectedNames)
             }
         }
+        .sheet(isPresented: $showingReorderSheet) {
+            ReorderExercisesSheet(viewModel: viewModel)
+        }
         .confirmationDialog("Convert Equipment", isPresented: $showingEquipmentConversionPicker) {
             ForEach(equipmentProfiles) { profile in
                 Button("\(profile.name) - \(profile.equipment.displayName)") {
@@ -208,6 +212,10 @@ public struct ActiveWorkoutView: View {
 
             Button("Add Exercise") {
                 showingAddExerciseSheet = true
+            }
+
+            Button("Reorder Exercises") {
+                showingReorderSheet = true
             }
 
             Button("Station Taken") {
@@ -643,32 +651,40 @@ public struct ActiveWorkoutView: View {
     // MARK: - Progress Section
 
     private var progressSection: some View {
-        VStack(spacing: AppTheme.Spacing.sm) {
-            // Segmented bar
-            HStack(spacing: AppTheme.Spacing.xs) {
-                ForEach(0..<viewModel.workout.exercises.count, id: \.self) { index in
-                    let exercise = viewModel.workout.exercises[index]
-                    let isComplete = exercise.targetSets.allSatisfy { $0.isComplete }
-                    let isCurrent = index == viewModel.currentExerciseIndex
+        Button {
+            showingReorderSheet = true
+        } label: {
+            VStack(spacing: AppTheme.Spacing.sm) {
+                // Segmented bar
+                HStack(spacing: AppTheme.Spacing.xs) {
+                    ForEach(0..<viewModel.workout.exercises.count, id: \.self) { index in
+                        let exercise = viewModel.workout.exercises[index]
+                        let isComplete = exercise.targetSets.allSatisfy { $0.isComplete }
+                        let isCurrent = index == viewModel.currentExerciseIndex
 
-                    RoundedRectangle(cornerRadius: 3)
-                        .fill(isComplete ? AppTheme.Accent.orange :
-                              isCurrent ? AppTheme.Accent.orange.opacity(0.5) :
-                                AppTheme.Text.secondary.opacity(0.2))
-                        .frame(height: 6)
-                        .frame(maxWidth: .infinity)
+                        RoundedRectangle(cornerRadius: 3)
+                            .fill(isComplete ? AppTheme.Accent.orange :
+                                  isCurrent ? AppTheme.Accent.orange.opacity(0.5) :
+                                    AppTheme.Text.secondary.opacity(0.2))
+                            .frame(height: 6)
+                            .frame(maxWidth: .infinity)
+                    }
                 }
-            }
 
-            // Progress text
-            HStack(spacing: AppTheme.Spacing.xs) {
-                Text("\(viewModel.completedSets) of \(viewModel.totalSets) sets")
-                Text("·")
-                Text("Exercise \(viewModel.currentExerciseIndex + 1) of \(viewModel.workout.exercises.count)")
+                // Progress text
+                HStack(spacing: AppTheme.Spacing.xs) {
+                    Text("\(viewModel.completedSets) of \(viewModel.totalSets) sets")
+                    Text("·")
+                    Text("Exercise \(viewModel.currentExerciseIndex + 1) of \(viewModel.workout.exercises.count)")
+                    Image(systemName: "arrow.up.arrow.down")
+                        .font(.system(size: 9, weight: .bold))
+                }
+                .font(AppTheme.Typography.labelSmall)
+                .foregroundColor(AppTheme.Text.secondary)
             }
-            .font(AppTheme.Typography.labelSmall)
-            .foregroundColor(AppTheme.Text.secondary)
         }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Reorder exercises or switch active exercise")
     }
 
     private func adaptationDecisionCard(_ decision: WorkoutAdaptationDecisionRecord) -> some View {
