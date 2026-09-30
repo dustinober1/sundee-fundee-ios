@@ -19,5 +19,20 @@ final class WorkoutCompletionCheckInViewModelTests: XCTestCase {
         XCTAssertEqual(records.first?.soreness, 4)
         XCTAssertEqual(records.first?.pain, 2)
         XCTAssertEqual(records.first?.wasRightForToday, true)
+
+        let effortLogs: [WorkoutEffortLog] = try await client.fetchAll(recordType: "WorkoutEffortLog")
+        XCTAssertEqual(effortLogs.count, 1)
+        XCTAssertEqual(effortLogs.first?.workoutID, "workout-1")
+        XCTAssertEqual(effortLogs.first?.rpe, 8)
+    }
+
+    func testInitialSessionRPEPopulatesState() {
+        let client = MockCloudKitClient()
+        let viewModel = WorkoutCompletionCheckInViewModel(
+            workoutID: "workout-2",
+            initialSessionRPE: 7,
+            dataClient: client
+        )
+        XCTAssertEqual(viewModel.sessionRPE, 7)
     }
 }
