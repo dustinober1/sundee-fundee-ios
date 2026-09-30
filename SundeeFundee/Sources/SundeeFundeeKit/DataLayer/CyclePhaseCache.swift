@@ -100,8 +100,12 @@ public final class CyclePhaseCache: ObservableObject {
                     endDate: nil,
                     limit: 100
                 )
-                if !cycles.isEmpty {
-                    periodLogs = CyclePhaseHelper.convertToPeriodLogs(cycles)
+                // Exclude samples written back by Sundee Fundee to prevent circular feedback loops
+                let externalCycles = cycles.filter { sample in
+                    (sample.metadata?["com.sundeefundee.origin"] as? String) != "manual_period_log"
+                }
+                if !externalCycles.isEmpty {
+                    periodLogs = CyclePhaseHelper.convertToPeriodLogs(externalCycles)
                 }
             } catch {
                 // No HealthKit data — continue
