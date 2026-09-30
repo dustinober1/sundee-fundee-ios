@@ -12,8 +12,13 @@ public final class WorkoutCompletionCheckInViewModel: ObservableObject {
     private let workoutID: String
     private let dataClient: DataClientProtocol
 
-    public init(workoutID: String, dataClient: DataClientProtocol = DataClientFactory.shared.client) {
+    public init(
+        workoutID: String,
+        initialSessionRPE: Int? = nil,
+        dataClient: DataClientProtocol = DataClientFactory.shared.client
+    ) {
         self.workoutID = workoutID
+        self.sessionRPE = initialSessionRPE
         self.dataClient = dataClient
     }
 
@@ -29,6 +34,17 @@ public final class WorkoutCompletionCheckInViewModel: ObservableObject {
             wasRightForToday: wasRightForToday
         )
         try? await dataClient.save(record, recordType: "WorkoutCompletionCheckIn")
+
+        if let sessionRPE {
+            let effortLog = WorkoutEffortLog(
+                workoutID: workoutID,
+                exerciseName: nil,
+                setID: nil,
+                rpe: sessionRPE
+            )
+            try? await dataClient.save(effortLog, recordType: "WorkoutEffortLog")
+        }
+
         await GrowthAnalyticsService(dataClient: dataClient).track(
             "post_workout_check_in_completed",
             source: "active_workout",
