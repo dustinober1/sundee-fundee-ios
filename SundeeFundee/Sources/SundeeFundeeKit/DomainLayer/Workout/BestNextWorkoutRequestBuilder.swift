@@ -19,7 +19,11 @@ public enum BestNextWorkoutRequestBuilder {
         painLogs: [DailyPainLog],
         todayDecisionKind: TodayTrainingDecisionKind,
         deloadDecision: DeloadDecision? = nil,
-        useStandardSession: Bool = false
+        useStandardSession: Bool = false,
+        exerciseMaxes: [ExerciseMax] = [],
+        injuries: [Injury] = [],
+        cycleMultiplier: Double = 1.0,
+        recoveryMultiplier: Double = 1.0
     ) -> QuickWorkoutRequest {
         let highPain = painLogs.contains { $0.intensity >= 6 }
         let decision: TodayTrainingDecisionKind = highPain ? .recover : todayDecisionKind
@@ -44,7 +48,11 @@ public enum BestNextWorkoutRequestBuilder {
             equipment: defaultEquipment,
             todayDecisionKind: decision,
             painLogs: painLogs,
-            workoutKind: workoutKind
+            workoutKind: workoutKind,
+            exerciseMaxes: exerciseMaxes,
+            cycleMultiplier: cycleMultiplier,
+            recoveryMultiplier: recoveryMultiplier,
+            injuries: injuries
         )
     }
 
