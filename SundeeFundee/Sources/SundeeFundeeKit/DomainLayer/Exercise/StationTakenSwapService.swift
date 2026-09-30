@@ -219,9 +219,7 @@ public enum StationTakenSwapService {
     }
 
     private static func movementPattern(for exerciseName: String) -> WorkoutMovementPattern {
-        if let definition = trainingExerciseCatalog.first(where: {
-            $0.id.compare(exerciseName, options: [.caseInsensitive]) == .orderedSame
-        }) {
+        if let definition = lookupExerciseCatalogEntry(exerciseName) {
             return definition.movementPattern
         }
 
