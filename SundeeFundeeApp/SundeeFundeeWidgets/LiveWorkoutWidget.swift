@@ -9,6 +9,7 @@ struct SundeeFundeeWidgetsBundle: WidgetBundle {
         LiveWorkoutWidget()
         CyclePhaseWidget()
         ReadinessWidget()
+        NextWorkoutWidget()
         StartTodayWorkoutControl()
     }
 }
