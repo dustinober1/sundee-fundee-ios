@@ -100,22 +100,20 @@ public struct CycleForecastService: Sendable {
         let dayFormatter = DateFormatter()
         dayFormatter.dateFormat = "EEE"
 
+        let context = ProjectionContext(
+            periodLogs: periodLogs,
+            settings: settings,
+            mode: mode,
+            calendar: calendar
+        )
+
         for offset in 0..<7 {
             let targetDate = calendar.date(byAdding: .day, value: offset, to: anchor) ?? anchor
-            let dayOfWeek = dayFormatter.string(from: targetDate)
-            let dayOfMonth = calendar.component(.day, from: targetDate)
-            let isToday = (offset == 0)
-
             let forecast = projectDay(
                 targetDate: targetDate,
                 dayOffset: offset,
-                dayOfWeek: dayOfWeek,
-                dayOfMonth: dayOfMonth,
-                isToday: isToday,
-                periodLogs: periodLogs,
-                settings: settings,
-                mode: mode,
-                calendar: calendar
+                dayFormatter: dayFormatter,
+                context: context
             )
             forecasts.append(forecast)
         }
@@ -125,43 +123,51 @@ public struct CycleForecastService: Sendable {
 
     // MARK: - Private Helpers
 
+    private struct ProjectionContext: Sendable {
+        let periodLogs: [PeriodLog]
+        let settings: CycleSettings
+        let mode: CycleTrackingMode
+        let calendar: Calendar
+    }
+
     private static func projectDay(
         targetDate: Date,
         dayOffset: Int,
-        dayOfWeek: String,
-        dayOfMonth: Int,
-        isToday: Bool,
-        periodLogs: [PeriodLog],
-        settings: CycleSettings,
-        mode: CycleTrackingMode,
-        calendar: Calendar
+        dayFormatter: DateFormatter,
+        context: ProjectionContext
     ) -> CycleDayForecast {
+        let dayOfWeek = dayFormatter.string(from: targetDate)
+        let dayOfMonth = context.calendar.component(.day, from: targetDate)
+        let isToday = (dayOffset == 0)
+
         let status = calculateCycleStatus(
-            periodLogs: periodLogs,
-            settings: settings,
+            periodLogs: context.periodLogs,
+            settings: context.settings,
             referenceDate: targetDate
         )
 
-        let sortedLogs = periodLogs.sorted { calendar.startOfDay(for: $0.startDate) > calendar.startOfDay(for: $1.startDate) }
+        let sortedLogs = context.periodLogs.sorted { context.calendar.startOfDay(for: $0.startDate) > context.calendar.startOfDay(for: $1.startDate) }
         let rawCycleDay: Int?
         if let mostRecent = sortedLogs.first {
-            let days = calendar.dateComponents([.day], from: calendar.startOfDay(for: mostRecent.startDate), to: targetDate).day ?? 0
+            let days = context.calendar.dateComponents([.day], from: context.calendar.startOfDay(for: mostRecent.startDate), to: targetDate).day ?? 0
             rawCycleDay = max(1, days + 1)
         } else {
             rawCycleDay = nil
         }
 
         // Check if an active or logged period covers this day
-        let isPeriodActiveOnTarget = periodLogs.contains { log in
-            let start = calendar.startOfDay(for: log.startDate)
+        let isPeriodActiveOnTarget = context.periodLogs.contains { log in
+            let start = context.calendar.startOfDay(for: log.startDate)
             if let logEnd = log.endDate {
-                let end = calendar.startOfDay(for: logEnd)
+                let end = context.calendar.startOfDay(for: logEnd)
                 return targetDate >= start && targetDate <= end
             } else {
                 // Ongoing active period: covers from start through referenceDate or today
                 return targetDate >= start
             }
         }
+
+        let mode = context.mode
 
         switch mode {
         case .contraceptive:
