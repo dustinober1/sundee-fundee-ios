@@ -29,6 +29,7 @@ public class DashboardViewModel: ObservableObject {
     @Published public var weeklyPlanProgress: WeeklyPlanProgress?
     @Published public var weeklyStreak: WeeklyStreak?
     @Published public var cycleTrackingEnabled: Bool = false
+    @Published public var cycleForecast: [CycleDayForecast] = []
     @Published public var todayAction: TodayAction?
     @Published public var firstWeekChecklist: [FirstWeekChecklistItem] = []
     @Published public var navigateToPainTracking: Bool = false
@@ -103,6 +104,22 @@ public class DashboardViewModel: ObservableObject {
         await loadWeeklyPlan(cyclePhase: cyclePhaseCache.currentPhase)
         await loadTodayGuidance(cyclePhaseCache: cyclePhaseCache)
         await trackFirstWorkoutPromptIfNeeded()
+
+        if cycleTrackingEnabled {
+            let periodLogs: [PeriodLogRecord] = (try? await dataClient.fetchAll(recordType: "PeriodLogRecord")) ?? []
+            var settings = CycleSettings()
+            if let settingsRecords = try? await dataClient.fetchAll(recordType: "CycleSettings") as [CycleSettingsRecord],
+               let first = settingsRecords.first {
+                settings = CycleSettings(averageCycleLengthDays: first.averageCycleLengthDays)
+            }
+            cycleForecast = CycleForecastService.generateSevenDayForecast(
+                periodLogs: periodLogs.map { $0.toPeriodLog() },
+                settings: settings,
+                mode: cyclePhaseCache.cycleTrackingMode
+            )
+        } else {
+            cycleForecast = []
+        }
     }
 
     public func resetWeeklyPlan() async {
