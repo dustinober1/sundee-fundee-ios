@@ -1287,6 +1287,7 @@ class ProgramDetailViewModel: ObservableObject {
                     prescribedWeight = calculatePrescribedWeight(
                         max: userMax.weight,
                         reps: repCount > 0 ? repCount : 5,
+                        overridePercentage: ex.percent1RM,
                         cycleMultiplier: cycleMultiplier
                     )
                 }
