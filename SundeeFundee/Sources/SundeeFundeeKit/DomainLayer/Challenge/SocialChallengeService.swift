@@ -1,16 +1,13 @@
-import CloudKit
 import Foundation
 
 @available(iOS 18.0, macOS 15.0, watchOS 11.0, *)
 public actor SocialChallengeService {
     private let publicClient: DataClientProtocol
 
-    public init(
-        publicClient: DataClientProtocol = CloudKitClient(
-            containerIdentifier: "iCloud.com.sundeefundee.app",
-            databaseScope: .public
-        )
-    ) {
+    /// - Parameter publicClient: Client scoped to the CloudKit public
+    ///   database — in the app, `DataClientFactory.publicChallengeClient()`.
+    ///   The domain layer stays CloudKit-free by taking it injected.
+    public init(publicClient: DataClientProtocol) {
         self.publicClient = publicClient
     }
 
