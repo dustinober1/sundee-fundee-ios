@@ -245,6 +245,87 @@ final class ActiveWorkoutSessionViewModelTests: XCTestCase {
         throw TestError.timeout
     }
 
+    func testSwapCurrentExerciseKeepingCompletedSetsSplitsExercise() async throws {
+        let viewModel = ActiveWorkoutSessionViewModel(
+            workout: multiSetWorkout(),
+            dataClient: MockCloudKitClient(),
+            healthClient: MockHealthKitClient()
+        )
+
+        // Complete 1 of 3 sets on Back Squat
+        await viewModel.completeSet(actualReps: 5, completedWeight: 135)
+        viewModel.skipRest()
+
+        XCTAssertEqual(viewModel.completedSets, 1)
+        XCTAssertEqual(viewModel.currentExercise?.name, "Back Squat")
+        XCTAssertEqual(viewModel.currentSetIndex, 1)
+
+        // Swap to Front Squat keeping completed sets
+        viewModel.swapCurrentExercise(to: "Front Squat", keepCompletedSets: true)
+
+        // Back Squat remains as first exercise with 1 completed set
+        XCTAssertEqual(viewModel.workout.exercises.count, 2)
+        XCTAssertEqual(viewModel.workout.exercises[0].name, "Back Squat")
+        XCTAssertEqual(viewModel.workout.exercises[0].targetSets.count, 1)
+        XCTAssertTrue(viewModel.workout.exercises[0].targetSets[0].isComplete)
+
+        // Front Squat inserted as second exercise with remaining 2 incomplete sets
+        XCTAssertEqual(viewModel.workout.exercises[1].name, "Front Squat")
+        XCTAssertEqual(viewModel.workout.exercises[1].targetSets.count, 2)
+        XCTAssertFalse(viewModel.workout.exercises[1].targetSets[0].isComplete)
+        XCTAssertFalse(viewModel.workout.exercises[1].targetSets[1].isComplete)
+
+        // View model points to Front Squat at set 0
+        XCTAssertEqual(viewModel.currentExerciseIndex, 1)
+        XCTAssertEqual(viewModel.currentSetIndex, 0)
+        XCTAssertEqual(viewModel.currentExercise?.name, "Front Squat")
+        XCTAssertEqual(viewModel.completedSets, 1)
+        XCTAssertEqual(viewModel.totalSets, 3)
+    }
+
+    func testSwapCurrentExerciseResettingProgressReplacesInPlace() async throws {
+        let viewModel = ActiveWorkoutSessionViewModel(
+            workout: multiSetWorkout(),
+            dataClient: MockCloudKitClient(),
+            healthClient: MockHealthKitClient()
+        )
+
+        // Complete 1 of 3 sets on Back Squat
+        await viewModel.completeSet(actualReps: 5, completedWeight: 135)
+        viewModel.skipRest()
+
+        // Swap to Front Squat without keeping completed sets
+        viewModel.swapCurrentExercise(to: "Front Squat", keepCompletedSets: false)
+
+        // Single exercise replaced in-place with all sets reset
+        XCTAssertEqual(viewModel.workout.exercises.count, 1)
+        XCTAssertEqual(viewModel.workout.exercises[0].name, "Front Squat")
+        XCTAssertEqual(viewModel.workout.exercises[0].targetSets.count, 3)
+        XCTAssertTrue(viewModel.workout.exercises[0].targetSets.allSatisfy { !$0.isComplete })
+
+        XCTAssertEqual(viewModel.currentExerciseIndex, 0)
+        XCTAssertEqual(viewModel.currentSetIndex, 0)
+        XCTAssertEqual(viewModel.completedSets, 0)
+        XCTAssertEqual(viewModel.totalSets, 3)
+    }
+
+    func testSwapCurrentExerciseWithoutProgressReplacesInPlaceEvenIfKeepTrue() {
+        let viewModel = ActiveWorkoutSessionViewModel(
+            workout: multiSetWorkout(),
+            dataClient: MockCloudKitClient(),
+            healthClient: MockHealthKitClient()
+        )
+
+        // No sets completed yet
+        viewModel.swapCurrentExercise(to: "Front Squat", keepCompletedSets: true)
+
+        XCTAssertEqual(viewModel.workout.exercises.count, 1)
+        XCTAssertEqual(viewModel.workout.exercises[0].name, "Front Squat")
+        XCTAssertEqual(viewModel.workout.exercises[0].targetSets.count, 3)
+        XCTAssertEqual(viewModel.currentExerciseIndex, 0)
+        XCTAssertEqual(viewModel.currentSetIndex, 0)
+    }
+
     private func squatWorkout() -> Workout {
         Workout(
             date: Date(),
