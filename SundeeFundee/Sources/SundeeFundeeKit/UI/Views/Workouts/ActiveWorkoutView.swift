@@ -314,6 +314,20 @@ public struct ActiveWorkoutView: View {
                     }
                 }
 
+                if let notice = viewModel.autoregulationNotice {
+                    HStack(spacing: AppTheme.Spacing.xs) {
+                        Image(systemName: "sparkles")
+                            .foregroundColor(AppTheme.Accent.gold)
+                        Text(notice)
+                            .font(AppTheme.Typography.labelSmall)
+                            .foregroundColor(AppTheme.Accent.gold)
+                    }
+                    .padding(AppTheme.Spacing.sm)
+                    .background(AppTheme.Background.card)
+                    .cornerRadius(AppTheme.CornerRadius.small)
+                    .padding(.horizontal, AppTheme.Spacing.lg)
+                }
+
                 // Rest Timer (conditional)
                 if viewModel.isResting {
                     restTimerCard
@@ -351,6 +365,19 @@ public struct ActiveWorkoutView: View {
                 ScrollView {
                     VStack(spacing: AppTheme.Spacing.md) {
                         progressSection
+
+                        if let notice = viewModel.autoregulationNotice {
+                            HStack(spacing: AppTheme.Spacing.xs) {
+                                Image(systemName: "sparkles")
+                                    .foregroundColor(AppTheme.Accent.gold)
+                                Text(notice)
+                                    .font(AppTheme.Typography.labelSmall)
+                                    .foregroundColor(AppTheme.Accent.gold)
+                            }
+                            .padding(AppTheme.Spacing.sm)
+                            .background(AppTheme.Background.card)
+                            .cornerRadius(AppTheme.CornerRadius.small)
+                        }
 
                         if viewModel.isResting {
                             restTimerCard
