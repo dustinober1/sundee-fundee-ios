@@ -1,3 +1,4 @@
+import CloudKit
 import Foundation
 import os.log
 
@@ -133,6 +134,21 @@ public final class DataClientFactory: @unchecked Sendable {
         return SyncQueue(wrapping: client, store: store, monitor: monitor)
     }
 
+    /// The app's iCloud container, declared once so the private boot client
+    /// and the public-database social client can never drift apart.
+    static let cloudContainerIdentifier = "iCloud.com.sundeefundee.app"
+
+    /// CloudKit client scoped to the PUBLIC database for social-challenge
+    /// records (invites, participants, reactions) — data signed-out users
+    /// must be able to read. `SocialChallengeService` takes this as an
+    /// injected `DataClientProtocol` so DomainLayer never imports CloudKit.
+    public static func publicChallengeClient() -> CloudKitClient {
+        CloudKitClient(
+            containerIdentifier: cloudContainerIdentifier,
+            databaseScope: .public
+        )
+    }
+
     /// Separated from `wrapForSync` as its own function so tests can verify
     /// the isolation-by-owner naming scheme directly, without needing a real
     /// `CloudKitClient` round trip to observe it.
@@ -143,7 +159,7 @@ public final class DataClientFactory: @unchecked Sendable {
     // MARK: - Initialization
 
     private init() {
-        _client = CloudKitClient(containerIdentifier: "iCloud.com.sundeefundee.app")
+        _client = CloudKitClient(containerIdentifier: Self.cloudContainerIdentifier)
     }
 
     /// Non-singleton initializer for tests. Production code uses `shared`,
