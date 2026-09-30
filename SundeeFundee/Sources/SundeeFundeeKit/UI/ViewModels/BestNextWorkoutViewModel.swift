@@ -32,10 +32,21 @@ public final class BestNextWorkoutViewModel: ObservableObject {
         async let settingsTask: [UserSettingsRecord] = fetch("UserSettings")
         async let painTask: [DailyPainLog] = fetch("DailyPainLog")
         async let checkInTask: [SymptomCheckInRecord] = fetch("SymptomCheckInRecord")
+        async let maxesTask: [OneRepMaxRecord] = fetch("OneRepMaxRecord")
+        async let injuriesTask: [Injury] = fetch("Injury")
+        async let periodsTask: [PeriodLogRecord] = fetch("PeriodLogRecord")
 
         let settings = (try? await settingsTask) ?? []
         let painLogs = recentPainLogs((try? await painTask) ?? [])
         let checkIns = (try? await checkInTask) ?? []
+        let maxRecords = (try? await maxesTask) ?? []
+        let injuries = (try? await injuriesTask) ?? []
+        let periodRecords = (try? await periodsTask) ?? []
+        let isMenstrual = periodRecords.contains(where: { $0.isActive })
+        let cyclePhase: CyclePhase? = isMenstrual ? .menstrual : nil
+        let cycleMult = aiCyclePhaseMultiplier(cyclePhase)
+        let recoveryMult = InjuryAdaptationEngine.calculateLoadMultiplier(baseLoad: 1.0, injuries: injuries)
+        let exerciseMaxes = maxRecords.map { ExerciseMax(name: $0.exerciseName, weightKg: $0.unit == .kg ? $0.weight : $0.weight / 2.20462) }
         let deloadDecision = await loadDeloadDecision(painLogs: painLogs)
 
         let defaultEquipment = settings.last?.defaultEquipment ?? .fullGym
@@ -46,7 +57,11 @@ public final class BestNextWorkoutViewModel: ObservableObject {
             painLogs: painLogs,
             todayDecisionKind: .modify,
             deloadDecision: deloadDecision,
-            useStandardSession: useStandardSession
+            useStandardSession: useStandardSession,
+            exerciseMaxes: exerciseMaxes,
+            injuries: injuries,
+            cycleMultiplier: cycleMult,
+            recoveryMultiplier: recoveryMult
         )
         adjustment = BestNextWorkoutRequestBuilder.adjustment(for: deloadDecision, useStandardSession: useStandardSession)
 
