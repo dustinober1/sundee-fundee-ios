@@ -18,15 +18,40 @@ final class WeightCalculatorTests: XCTestCase {
     }
 
     func testCalculatePrescribedWeight_WithMultipliers() {
-        // 300lb max, 5 reps (80%), medium energy (1.0), normal cycle (1.0)
-        // Expected: 300 * 0.80 * 1.0 * 1.0 = 240 lbs
+        // 300lb max, 5 reps (80%), medium energy (1.0), normal cycle (1.0), recovery (1.0)
+        // Expected: 300 * 0.80 * 1.0 * 1.0 * 1.0 = 240 lbs
         let result = calculatePrescribedWeight(
             max: 300,
             reps: 5,
             energyMultiplier: 1.0,
-            cycleMultiplier: 1.0
+            cycleMultiplier: 1.0,
+            recoveryMultiplier: 1.0
         )
         XCTAssertEqual(result, 240, accuracy: 0.1)
+    }
+
+    func testCalculatePrescribedWeight_WithRecoveryMultiplier() {
+        // 300lb max, 5 reps (80%), reduced load during injury recovery (0.75)
+        // Expected: 300 * 0.80 * 1.0 * 1.0 * 0.75 = 180 lbs
+        let result = calculatePrescribedWeight(
+            max: 300,
+            reps: 5,
+            recoveryMultiplier: 0.75
+        )
+        XCTAssertEqual(result, 180, accuracy: 0.1)
+    }
+
+    func testCalculatePrescribedWeight_ComposedMultipliers() {
+        // 300lb max, 5 reps (80%), low energy (0.85), cycle (0.90), recovery (0.80)
+        // Expected: 300 * 0.80 * 0.85 * 0.90 * 0.80 = 146.88, rounded to 145 lbs
+        let result = calculatePrescribedWeight(
+            max: 300,
+            reps: 5,
+            energyMultiplier: 0.85,
+            cycleMultiplier: 0.90,
+            recoveryMultiplier: 0.80
+        )
+        XCTAssertEqual(result, 145, accuracy: 0.1)
     }
 
     func testCalculatePrescribedWeight_LowEnergy() {
