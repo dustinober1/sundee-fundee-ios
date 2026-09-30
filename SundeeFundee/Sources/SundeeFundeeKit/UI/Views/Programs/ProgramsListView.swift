@@ -1185,6 +1185,10 @@ class ProgramDetailViewModel: ObservableObject {
             await CoachMemoryService(dataClient: dataClient).recordWorkoutEdit(edit)
         }
         let cycleMult = aiCyclePhaseMultiplier(adaptationContext.cyclePhase)
+        let recoveryMult = InjuryAdaptationEngine.calculateLoadMultiplier(
+            baseLoad: 1.0,
+            injuries: adaptationContext.injuries
+        )
         let workoutID = UUID().uuidString
         let workoutName = "\(programName) — \(session.sessionName)"
         let workoutDate = Date()
@@ -1202,7 +1206,8 @@ class ProgramDetailViewModel: ObservableObject {
             name: workoutName,
             exercises: edited.exercises,
             maxes: maxes,
-            cycleMultiplier: cycleMult
+            cycleMultiplier: cycleMult,
+            recoveryMultiplier: recoveryMult
         )
 
         do {
@@ -1254,7 +1259,8 @@ class ProgramDetailViewModel: ObservableObject {
         name: String,
         exercises: [GeneratedProgramExercise],
         maxes: [OneRepMaxRecord],
-        cycleMultiplier: Double
+        cycleMultiplier: Double,
+        recoveryMultiplier: Double = 1.0
     ) -> Workout {
         Workout(
             id: id,
@@ -1288,7 +1294,8 @@ class ProgramDetailViewModel: ObservableObject {
                         max: userMax.weight,
                         reps: repCount > 0 ? repCount : 5,
                         overridePercentage: ex.percent1RM,
-                        cycleMultiplier: cycleMultiplier
+                        cycleMultiplier: cycleMultiplier,
+                        recoveryMultiplier: recoveryMultiplier
                     )
                 }
 
