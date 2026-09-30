@@ -189,6 +189,32 @@ public protocol HealthClientProtocol: Sendable {
         exercises: [Exercise]
     ) async throws
 
+    /// Saves a menstrual flow log to HealthKit.
+    ///
+    /// - Parameters:
+    ///   - startDate: The start date of the period.
+    ///   - endDate: Optional end date of the period.
+    ///   - flow: The menstrual flow level.
+    ///   - isStartOfCycle: Whether this log marks the start of a cycle.
+    /// - Throws: `HealthError` if saving fails.
+    func saveMenstrualFlow(
+        startDate: Date,
+        endDate: Date?,
+        flow: HKCategoryValueMenstrualFlow,
+        isStartOfCycle: Bool
+    ) async throws
+
+    /// Enables background delivery for a given sample type.
+    ///
+    /// - Parameters:
+    ///   - sampleType: The HealthKit sample type to observe.
+    ///   - frequency: How frequently HealthKit should wake the app.
+    /// - Throws: `HealthError` if registering fails.
+    func enableBackgroundDelivery(
+        for sampleType: HKObjectType,
+        frequency: HKUpdateFrequency
+    ) async throws
+
     /// Requests authorization for standard workout tracking types.
     func requestStandardAuthorization() async throws
 }
@@ -252,5 +278,31 @@ extension HealthClientProtocol {
     /// Fetches ovulation test results with default parameters.
     public func fetchOvulationTestResults() async throws -> [HKCategorySample] {
         try await fetchOvulationTestResults(startDate: nil, endDate: nil, limit: HKObjectQueryNoLimit)
+    }
+
+    /// Saves a menstrual flow log to HealthKit with convenient defaults.
+    public func saveMenstrualFlow(
+        startDate: Date,
+        endDate: Date? = nil,
+        flow: HKCategoryValueMenstrualFlow = .unspecified,
+        isStartOfCycle: Bool = false
+    ) async throws {
+        try await saveMenstrualFlow(
+            startDate: startDate,
+            endDate: endDate,
+            flow: flow,
+            isStartOfCycle: isStartOfCycle
+        )
+    }
+
+    /// Enables background delivery for the given sample type with immediate frequency.
+    public func enableBackgroundDelivery(
+        for sampleType: HKObjectType,
+        frequency: HKUpdateFrequency = .immediate
+    ) async throws {
+        try await enableBackgroundDelivery(
+            for: sampleType,
+            frequency: frequency
+        )
     }
 }
