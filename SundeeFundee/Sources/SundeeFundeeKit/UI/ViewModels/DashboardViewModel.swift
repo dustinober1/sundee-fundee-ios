@@ -475,7 +475,7 @@ public class DashboardViewModel: ObservableObject {
 
         let workoutTitle = nextWorkout ?? action.title
         let rec = decision.kind.rawValue
-        let guidance = decision.headline
+        let guidance = decision.subtitle
         SharedSnapshotStore.writeNextWorkout(
             NextWorkoutSnapshot(
                 workoutName: workoutTitle,
