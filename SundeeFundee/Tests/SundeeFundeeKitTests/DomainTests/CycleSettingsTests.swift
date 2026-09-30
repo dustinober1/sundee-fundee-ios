@@ -64,4 +64,24 @@ final class CycleSettingsTests: XCTestCase {
         let hormoneRec = getPhaseRecommendation(phase: .menstrual, style: .hormone)
         XCTAssertEqual(hormoneRec.title, "Low Hormone Phase")
     }
+
+    func testDecodesCycleTrackingModeDefaultAndCustom() throws {
+        let legacyJson = """
+        {
+          "id": "cycle_settings",
+          "averageCycleLengthDays": 28
+        }
+        """.data(using: .utf8)!
+        let legacy = try JSONDecoder().decode(CycleSettingsRecord.self, from: legacyJson)
+        XCTAssertEqual(legacy.cycleTrackingMode, .standard)
+
+        let contraceptiveRecord = CycleSettingsRecord(
+            averageCycleLengthDays: 28,
+            cycleTrackingMode: .contraceptive
+        )
+        let encoded = try JSONEncoder().encode(contraceptiveRecord)
+        let decoded = try JSONDecoder().decode(CycleSettingsRecord.self, from: encoded)
+        XCTAssertEqual(decoded.cycleTrackingMode, .contraceptive)
+        XCTAssertFalse(decoded.cycleTrackingMode.supportsPhasePrediction)
+    }
 }
