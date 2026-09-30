@@ -796,10 +796,11 @@ public struct ActiveWorkoutView: View {
                             weightInputSection(prescribedWeight: set.prescribedWeight)
                                 .padding(.top, AppTheme.Spacing.xs)
 
-                            if viewModel.weightUnit == .lbs, isBarbellExercise(exercise.name) {
+                            if isBarbellExercise(exercise.name) {
                                 PlateBreakdownView(
                                     targetWeight: Double(weightInput) ?? set.prescribedWeight,
-                                    barWeight: viewModel.barWeight
+                                    barWeight: viewModel.barWeight,
+                                    unit: viewModel.weightUnit
                                 )
                                 .padding(.top, AppTheme.Spacing.xs)
                             }
@@ -963,7 +964,7 @@ public struct ActiveWorkoutView: View {
     private func weightInputSection(prescribedWeight: Double) -> some View {
         VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
             HStack {
-                Text("Weight Lifted (lb)")
+                Text("Weight Lifted (\(viewModel.weightUnit == .kg ? "kg" : "lb"))")
                     .font(AppTheme.Typography.labelMedium)
                     .foregroundColor(AppTheme.Text.secondary)
 
@@ -995,9 +996,15 @@ public struct ActiveWorkoutView: View {
 
                 Spacer()
                 HStack(spacing: AppTheme.Spacing.xs) {
-                    stepperButton("-5") { adjustWeight(by: -5) }
-                    stepperButton("+2.5") { adjustWeight(by: 2.5) }
-                    stepperButton("+5") { adjustWeight(by: 5) }
+                    if viewModel.weightUnit == .kg {
+                        stepperButton("-2.5") { adjustWeight(by: -2.5) }
+                        stepperButton("+1.25") { adjustWeight(by: 1.25) }
+                        stepperButton("+2.5") { adjustWeight(by: 2.5) }
+                    } else {
+                        stepperButton("-5") { adjustWeight(by: -5) }
+                        stepperButton("+2.5") { adjustWeight(by: 2.5) }
+                        stepperButton("+5") { adjustWeight(by: 5) }
+                    }
                 }
             }
 
@@ -1239,7 +1246,7 @@ public struct ActiveWorkoutView: View {
     @ViewBuilder
     private var plateCalculatorSheetView: some View {
         let current = Double(weightInput) ?? (viewModel.currentSet?.prescribedWeight ?? 135)
-        PlateCalculatorSheet(initialWeight: current, unit: .lbs)
+        PlateCalculatorSheet(initialWeight: current, unit: viewModel.weightUnit)
     }
 
     @ViewBuilder
@@ -1250,7 +1257,7 @@ public struct ActiveWorkoutView: View {
             exerciseName: viewModel.currentExercise?.name ?? "Barbell Exercise",
             workingWeight: current,
             targetReps: reps,
-            unit: .lbs
+            unit: viewModel.weightUnit
         )
     }
 
@@ -1590,7 +1597,7 @@ public struct ActiveWorkoutView: View {
                         .font(AppTheme.Typography.headlineMedium)
                         .foregroundColor(AppTheme.Text.primary)
 
-                    Text(celebrationSubtitle(event, unit: "lb"))
+                    Text(celebrationSubtitle(event, unit: viewModel.weightUnit == .kg ? "kg" : "lb"))
                         .font(AppTheme.Typography.bodySmall)
                         .foregroundColor(AppTheme.Text.secondary)
                 }
