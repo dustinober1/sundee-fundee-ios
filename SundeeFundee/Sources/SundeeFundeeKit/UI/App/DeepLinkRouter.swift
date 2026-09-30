@@ -4,6 +4,7 @@ public enum DeepLinkRoute: String, Sendable, Equatable {
     case cycle
     case todayCheckIn
     case readinessDetail
+    case workout
 
     public var targetTab: Tab {
         switch self {
@@ -11,12 +12,14 @@ public enum DeepLinkRoute: String, Sendable, Equatable {
             return .cycle
         case .todayCheckIn, .readinessDetail:
             return .today
+        case .workout:
+            return .train
         }
     }
 
     public var opensQuickCheckIn: Bool {
         switch self {
-        case .cycle, .readinessDetail:
+        case .cycle, .readinessDetail, .workout:
             return false
         case .todayCheckIn:
             return true
@@ -25,9 +28,18 @@ public enum DeepLinkRoute: String, Sendable, Equatable {
 
     public var opensReadinessDetail: Bool {
         switch self {
-        case .cycle, .todayCheckIn:
+        case .cycle, .todayCheckIn, .workout:
             return false
         case .readinessDetail:
+            return true
+        }
+    }
+
+    public var opensWorkout: Bool {
+        switch self {
+        case .cycle, .todayCheckIn, .readinessDetail:
+            return false
+        case .workout:
             return true
         }
     }
@@ -51,6 +63,8 @@ public enum DeepLinkRouter {
             return .todayCheckIn
         case "today/readiness":
             return .readinessDetail
+        case "workout":
+            return .workout
         default:
             return nil
         }
@@ -64,6 +78,8 @@ public enum DeepLinkRouter {
             return URL(string: "\(scheme)://today/check-in")!
         case .readinessDetail:
             return URL(string: "\(scheme)://today/readiness")!
+        case .workout:
+            return URL(string: "\(scheme)://workout")!
         }
     }
 
