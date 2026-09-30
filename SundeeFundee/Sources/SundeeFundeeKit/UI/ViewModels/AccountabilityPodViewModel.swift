@@ -62,7 +62,7 @@ public final class AccountabilityPodViewModel: ObservableObject {
             HapticFeedback.success()
             return true
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = "We couldn't create your pod. Check your connection and try again."
             HapticFeedback.warning()
             return false
         }
@@ -88,7 +88,7 @@ public final class AccountabilityPodViewModel: ObservableObject {
             HapticFeedback.success()
             return true
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = "We couldn't join that pod. Check the code and your connection, then try again."
             HapticFeedback.warning()
             return false
         }
@@ -105,7 +105,7 @@ public final class AccountabilityPodViewModel: ObservableObject {
             self.recentNudges = []
             HapticFeedback.light()
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = "We couldn't leave your pod. Check your connection and try again."
             HapticFeedback.warning()
         }
     }
@@ -128,7 +128,7 @@ public final class AccountabilityPodViewModel: ObservableObject {
             HapticFeedback.success()
             return true
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = "We couldn't send that nudge. Check your connection and try again."
             HapticFeedback.warning()
             return false
         }
